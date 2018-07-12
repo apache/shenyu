@@ -73,6 +73,17 @@
     <dependencyManagement>
         <dependencies>
 
+            <dependency>
+                <groupId>org.dromara.soul</groupId>
+                <artifactId>soul-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.dromara.soul</groupId>
+                <artifactId>soul-web</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
             <dependency>

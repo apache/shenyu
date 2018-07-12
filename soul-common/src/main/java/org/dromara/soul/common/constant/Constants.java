@@ -56,9 +56,9 @@ public interface Constants {
 
     int RETRY = 3;
 
-    String SKYWAY_DISRUPTOR_THREAD_NAME = "skyway-disruptor";
+    String SOUL_DISRUPTOR_THREAD_NAME = "soul-disruptor";
 
-    String SKYWAY_THREAD_NAME = "skyway-thread";
+    String SOUL_THREAD_NAME = "soul-thread";
 
     String REJECT_MSG = " You are forbidden to visit";
 

@@ -17,10 +17,20 @@
  *
  */
 
-package org.dromara.soul.web;
+package org.dromara.soul.web.disruptor.factory;
+
+
+import com.lmax.disruptor.EventFactory;
+import org.dromara.soul.web.disruptor.event.SoulDataEvent;
 
 /**
- * @author xiaoyu(549477611 @ qq.com)
+ * SoulEventFactory.
+ * @author xiaoyu(Myth)
  */
-public class T {
+public class SoulEventFactory implements EventFactory<SoulDataEvent> {
+
+    @Override
+    public SoulDataEvent newInstance() {
+        return new SoulDataEvent();
+    }
 }
