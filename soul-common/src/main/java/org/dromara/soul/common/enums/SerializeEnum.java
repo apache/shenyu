@@ -19,8 +19,6 @@
 
 package org.dromara.soul.common.enums;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -28,10 +26,9 @@ import java.util.Optional;
 
 /**
  * SerializeEnum.
+ *
  * @author xiaoyu
  */
-@Getter
-@RequiredArgsConstructor
 public enum SerializeEnum {
 
     /**
@@ -55,6 +52,20 @@ public enum SerializeEnum {
     PROTOSTUFF("protostuff");
 
     private final String serialize;
+
+    SerializeEnum(final String serialize) {
+        this.serialize = serialize;
+    }
+
+    /**
+     * get serialize.
+     *
+     * @return serialize
+     */
+    public String getSerialize() {
+        return serialize;
+    }
+
 
     /**
      * Acquire serialize protocol serialize protocol enum.

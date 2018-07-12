@@ -15,7 +15,7 @@
 
         <dependency>
             <groupId>org.dromara.soul</groupId>
-            <artifactId>soul-common</artifactId>
+            <artifactId>soul-configuration</artifactId>
         </dependency>
 
         <dependency>

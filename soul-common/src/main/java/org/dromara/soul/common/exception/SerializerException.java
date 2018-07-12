@@ -17,10 +17,25 @@
  *
  */
 
-package org.dromara.soul.configuration;
+package org.dromara.soul.common.exception;
 
 /**
- * @author xiaoyu(549477611 @ qq.com)
+ * SerializerException.
+ * @author xiaoyu(Myth)
  */
-public class A {
+public class SerializerException extends RuntimeException {
+
+    private static final long serialVersionUID = 8068509879445395353L;
+
+    public SerializerException(final Throwable e) {
+        super(e);
+    }
+
+    public SerializerException(final String message) {
+        super(message);
+    }
+
+    public SerializerException(final String message, final Throwable throwable) {
+        super(message, throwable);
+    }
 }
