@@ -1,11 +1,11 @@
 # Auto Configure
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.hqyg.skyway.web.config.InfluxDbConfiguration,\
-com.hqyg.skyway.web.config.SkywayConfiguration,\
-com.hqyg.skyway.web.config.SkywayRedisAutoConfiguration,\
-com.hqyg.skyway.web.config.DubboConfiguration,\
-com.hqyg.skyway.configuration.zookeeper.ZookeeperConfiguration
+org.dromara.soul.web.config.InfluxDbConfiguration,\
+org.dromara.soul.web.config.SkywayConfiguration,\
+org.dromara.soul.web.config.SkywayRedisAutoConfiguration,\
+org.dromara.soul.web.config.DubboConfiguration,\
+org.dromara.soul.configuration.zookeeper.ZookeeperConfiguration
 
 
 org.springframework.context.ApplicationListener=\
-com.hqyg.skyway.web.logo.WelcomeLogo
+org.dromara.soul.web.logo.SoulLogo
