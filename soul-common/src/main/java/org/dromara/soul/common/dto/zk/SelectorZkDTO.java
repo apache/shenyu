@@ -17,60 +17,52 @@
  *
  */
 
-package org.dromara.soul.common.enums;
+package org.dromara.soul.common.dto.zk;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.Arrays;
+import java.io.Serializable;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
- * Param Type.
+ * SelectorZkDTO.
  * @author xiaoyu(Myth)
  */
-@RequiredArgsConstructor
-@Getter
-public enum ParamTypeEnum {
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class SelectorZkDTO implements Serializable {
+
+    private String id;
+
+    private Integer pluginId;
 
     /**
-     * Post param type enum.
+     * plugin name.
      */
-    POST("post",false),
+    private String pluginName;
+
+    private String name;
 
     /**
-     * Uri param type enum.
+     * matchMode（0 and  1 or).
      */
-    URI("uri",false),
+    private Integer matchMode;
 
     /**
-     * Query param type enum.
+     * type（false full，true custom).
      */
-    QUERY("query",false),
+    private Boolean type;
 
-    /**
-     * Host param type enum.
-     */
-    HOST("host",true),
+    private Integer rank;
 
-    /**
-     * Ip param type enum.
-     */
-    IP("ip",true),
+    private Boolean enabled;
 
-    /**
-     * Header param type enum.
-     */
-    HEADER("header",true);
+    private Boolean loged;
 
-    private final String name;
+    private Boolean continued;
 
-    private final Boolean support;
-
-    public static List<ParamTypeEnum> acquireSupport() {
-        return Arrays.stream(ParamTypeEnum.values())
-                .filter(e -> e.support).collect(Collectors.toList());
-    }
-
+    private List<ConditionZkDTO> conditionZkDTOList;
 }

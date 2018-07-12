@@ -29,7 +29,7 @@ import java.io.Serializable;
  * @author xiaoyu
  **/
 @Data
-public class AjaxResult implements Serializable {
+public class SoulResult implements Serializable {
 
     private static final long serialVersionUID = -2792556188993845048L;
 
@@ -39,11 +39,11 @@ public class AjaxResult implements Serializable {
 
     private Object data;
 
-    public AjaxResult() {
+    public SoulResult() {
 
     }
 
-    public AjaxResult(final Integer code, final String message, final Object data) {
+    public SoulResult(final Integer code, final String message, final Object data) {
 
         this.code = code;
         this.message = message;
@@ -52,27 +52,27 @@ public class AjaxResult implements Serializable {
 
     /**
      * return success.
-     * @return {@linkplain AjaxResult}
+     * @return {@linkplain SoulResult}
      */
-    public static AjaxResult success() {
+    public static SoulResult success() {
         return success("");
     }
 
     /**
      * return success.
      * @param msg msg
-     * @return {@linkplain AjaxResult}
+     * @return {@linkplain SoulResult}
      */
-    public static AjaxResult success(final String msg) {
+    public static SoulResult success(final String msg) {
         return success(msg, null);
     }
 
     /**
      * return success.
      * @param data  this is result data.
-     * @return {@linkplain AjaxResult}
+     * @return {@linkplain SoulResult}
      */
-    public static AjaxResult success(final Object data) {
+    public static SoulResult success(final Object data) {
         return success(null, data);
     }
 
@@ -80,18 +80,18 @@ public class AjaxResult implements Serializable {
      * return success.
      * @param data this is result data.
      * @param msg  this ext msg.
-     * @return {@linkplain AjaxResult}
+     * @return {@linkplain SoulResult}
      */
-    public static AjaxResult success(final String msg, final Object data) {
+    public static SoulResult success(final String msg, final Object data) {
         return get(CommonErrorCode.SUCCESSFUL, msg, data);
     }
 
     /**
      * return error .
      * @param msg error msg
-     * @return {@linkplain AjaxResult}
+     * @return {@linkplain SoulResult}
      */
-    public static AjaxResult error(final String msg) {
+    public static SoulResult error(final String msg) {
         return error(CommonErrorCode.ERROR, msg);
     }
 
@@ -99,14 +99,14 @@ public class AjaxResult implements Serializable {
      * return error .
      * @param code error code
      * @param msg error msg
-     * @return {@linkplain AjaxResult}
+     * @return {@linkplain SoulResult}
      */
-    public static AjaxResult error(final int code, final String msg) {
+    public static SoulResult error(final int code, final String msg) {
         return get(code, msg, null);
     }
 
-    private static AjaxResult get(final int code, final String msg, final Object data) {
-        return new AjaxResult(code, msg, data);
+    private static SoulResult get(final int code, final String msg, final Object data) {
+        return new SoulResult(code, msg, data);
     }
 
 }
