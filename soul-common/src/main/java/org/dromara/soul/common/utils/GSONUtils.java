@@ -16,10 +16,29 @@
  *
  */
 
-package org.dromara.soul.common.dto;
+package org.dromara.soul.common.utils;
+
+import com.google.gson.Gson;
 
 /**
- * @author xiaoyu(549477611@qq.com)
+ * GSONUtils.
+ * @author xiaoyu(Myth)
  */
-public class T {
+public class GSONUtils {
+
+    private static final GSONUtils INSTANCE = new GSONUtils();
+
+    private static final Gson GSON = new Gson();
+
+    public static GSONUtils getInstance() {
+        return INSTANCE;
+    }
+
+    public String toJson(final Object object) {
+        return GSON.toJson(object);
+    }
+
+    public <T> T fromJson(final String json, final Class<T> tClass) {
+        return GSON.fromJson(json, tClass);
+    }
 }
