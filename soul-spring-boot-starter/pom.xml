@@ -11,5 +11,11 @@
 
     <artifactId>soul-spring-boot-starter</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.dromara.soul</groupId>
+            <artifactId>soul-web</artifactId>
+        </dependency>
+    </dependencies>
 
 </project>

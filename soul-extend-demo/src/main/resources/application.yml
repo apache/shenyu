@@ -1,0 +1,42 @@
+server:
+  port: 8087
+  address: 0.0.0.0
+
+spring:
+   profiles:
+     active: dev
+   redis:
+     host: localhost
+     password: 123456
+     port: 6379
+   influxdb:
+        url: http://localhost:8086
+        username: test
+        password: test
+        database: test
+        retention-policy: autogen
+        connect-timeout: 10
+        read-timeout: 30
+        write-timeout: 10
+   zookeeper:
+        url : 10.40.6.154:2181
+        sessionTimeout: 5000
+        connectionTimeout : 2000
+        serializer : KryoSerializer
+soul:
+    timeDelay: 1000
+    bufferSize: 1024
+    signAuth:
+       enabled: true
+    timeVerify:
+       enabled: true
+logging:
+    level:
+        root: info
+        org.springframework.boot: info
+        org.apache.ibatis: info
+        org.dromara.soul.bonuspoint: info
+        org.dromara.soul.lottery: debug
+        org.dromara.soul: debug
+
+    path: "./logs"

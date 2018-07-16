@@ -14,6 +14,7 @@
         <module>soul-web</module>
         <module>soul-configuration</module>
         <module>soul-spring-boot-starter</module>
+        <module>soul-extend-demo</module>
     </modules>
     <name>soul</name>
 
@@ -88,6 +89,12 @@
             <dependency>
                 <groupId>org.dromara.soul</groupId>
                 <artifactId>soul-web</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.dromara.soul</groupId>
+                <artifactId>soul-spring-boot-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
