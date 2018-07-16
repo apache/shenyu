@@ -19,16 +19,15 @@
 
 package org.dromara.soul.web.plugin.hystrix;
 
-import com.hqyg.skyway.api.convert.DivideUpstream;
-import com.hqyg.skyway.common.constant.Constants;
-import com.hqyg.skyway.common.enums.HttpMethodEnum;
-import com.hqyg.skyway.common.enums.ResultEnum;
-import com.hqyg.skyway.common.utils.JsonToGetParamUtils;
-import com.hqyg.skyway.common.utils.LogUtils;
-import com.hqyg.skyway.core.request.RequestDTO;
-import com.hqyg.skyway.web.plugin.SkywayPluginChain;
 import com.netflix.hystrix.HystrixObservableCommand;
 import org.apache.commons.lang3.StringUtils;
+import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.dto.convert.DivideUpstream;
+import org.dromara.soul.common.enums.HttpMethodEnum;
+import org.dromara.soul.common.enums.ResultEnum;
+import org.dromara.soul.common.utils.LogUtils;
+import org.dromara.soul.web.plugin.SoulPluginChain;
+import org.dromara.soul.web.request.RequestDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -41,18 +40,17 @@ import rx.Observable;
 import rx.RxReactiveStreams;
 
 import java.time.Duration;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * HttpHystrixCommand.
  * @author xiaoyu(Myth)
  */
-public class HttpHystrixCommand extends HystrixObservableCommand<Void> {
+public class HttpCommand extends HystrixObservableCommand<Void> {
 
     /**
      * logger.
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(HttpHystrixCommand.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpCommand.class);
 
     private static final WebClient WEB_CLIENT = WebClient.create();
 
@@ -62,20 +60,16 @@ public class HttpHystrixCommand extends HystrixObservableCommand<Void> {
 
     private ServerWebExchange exchange;
 
-    private SkywayPluginChain chain;
+    private SoulPluginChain chain;
 
-    private AtomicInteger retry;
-
-    public HttpHystrixCommand(final Setter setter, final DivideUpstream divideUpstream,
-                              final RequestDTO requestDTO, final ServerWebExchange exchange,
-                              final SkywayPluginChain chain) {
+    public HttpCommand(final Setter setter, final DivideUpstream divideUpstream,
+                       final RequestDTO requestDTO, final ServerWebExchange exchange,
+                       final SoulPluginChain chain) {
         super(setter);
         this.divideUpstream = divideUpstream;
         this.requestDTO = requestDTO;
         this.exchange = exchange;
         this.chain = chain;
-        retry = new AtomicInteger(1);
-
     }
 
     @Override
@@ -88,12 +82,8 @@ public class HttpHystrixCommand extends HystrixObservableCommand<Void> {
      * @return {@code Mono<Void>} to indicate when request processing is complete
      */
     private Mono<Void> doHttpRequest() {
-        //如果是get请求
         if (requestDTO.getHttpMethod().equals(HttpMethodEnum.GET.getName())) {
             String uri = buildRealURL();
-            if (StringUtils.isNoneBlank(requestDTO.getExtInfo())) {
-                uri = uri + "?" + JsonToGetParamUtils.toGetParam(requestDTO.getExtInfo());
-            }
             return WEB_CLIENT.get().uri(uri)
                     .exchange()
                     .doOnError(e -> LogUtils.error(LOGGER, e::getMessage))
@@ -125,8 +115,6 @@ public class HttpHystrixCommand extends HystrixObservableCommand<Void> {
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
         } else {
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.ERROR.getName());
-       /*     LogUtils.error(LOGGER, () -> res.statusCode().getReasonPhrase() + " now retrying...." + retry.getAndIncrement());
-            throw new RuntimeException(res.statusCode().getReasonPhrase());*/
         }
         exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);
         return chain.execute(exchange);

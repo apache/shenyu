@@ -19,19 +19,19 @@
 
 package org.dromara.soul.web.plugin.function;
 
-import com.hqyg.skyway.api.convert.RewriteHandle;
-import com.hqyg.skyway.api.dto.zk.RuleZkDTO;
-import com.hqyg.skyway.common.constant.Constants;
-import com.hqyg.skyway.common.enums.PluginEnum;
-import com.hqyg.skyway.common.enums.PluginTypeEnum;
-import com.hqyg.skyway.common.enums.RpcTypeEnum;
-import com.hqyg.skyway.common.utils.GSONUtils;
-import com.hqyg.skyway.common.utils.LogUtils;
-import com.hqyg.skyway.core.request.RequestDTO;
-import com.hqyg.skyway.web.cache.DataCacheManager;
-import com.hqyg.skyway.web.plugin.AbstractSkywayPlugin;
-import com.hqyg.skyway.web.plugin.SkywayPluginChain;
 import org.apache.commons.lang3.StringUtils;
+import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.dto.convert.RewriteHandle;
+import org.dromara.soul.common.dto.zk.RuleZkDTO;
+import org.dromara.soul.common.enums.PluginEnum;
+import org.dromara.soul.common.enums.PluginTypeEnum;
+import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.dromara.soul.common.utils.GSONUtils;
+import org.dromara.soul.common.utils.LogUtils;
+import org.dromara.soul.web.cache.ZookeeperCacheManager;
+import org.dromara.soul.web.plugin.AbstractSoulPlugin;
+import org.dromara.soul.web.plugin.SoulPluginChain;
+import org.dromara.soul.web.request.RequestDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
@@ -44,15 +44,15 @@ import java.util.Objects;
  * rewrite url.
  * @author xiaoyu(Myth)
  */
-public class RewriteSkywayPlugin extends AbstractSkywayPlugin {
+public class RewritePlugin extends AbstractSoulPlugin {
 
     /**
      * logger.
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(RewriteSkywayPlugin.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RewritePlugin.class);
 
-    public RewriteSkywayPlugin(final DataCacheManager dataCacheManager) {
-        super(dataCacheManager);
+    public RewritePlugin(final ZookeeperCacheManager zookeeperCacheManager) {
+        super(zookeeperCacheManager);
     }
 
     /**
@@ -74,19 +74,17 @@ public class RewriteSkywayPlugin extends AbstractSkywayPlugin {
      * @return {@code Mono<Void>} to indicate when request handling is complete
      */
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SkywayPluginChain chain, final RuleZkDTO rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final RuleZkDTO rule) {
 
         @NotBlank final String handle = rule.getHandle();
 
         final RewriteHandle rewriteHandle = GSONUtils.getInstance().fromJson(handle, RewriteHandle.class);
 
         if (Objects.isNull(rewriteHandle) || StringUtils.isBlank(rewriteHandle.getRewriteURI())) {
-            LogUtils.error(LOGGER, "uri rewrite 处理规则未配置：{}", () -> handle);
+            LogUtils.error(LOGGER, "uri rewrite rule can not config：{}", () -> handle);
             return chain.execute(exchange);
         }
-
         exchange.getAttributes().put(Constants.REWRITE_URI, rewriteHandle.getRewriteURI());
-
         return chain.execute(exchange);
     }
 

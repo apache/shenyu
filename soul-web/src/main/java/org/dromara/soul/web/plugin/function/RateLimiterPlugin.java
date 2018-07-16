@@ -19,31 +19,36 @@
 
 package org.dromara.soul.web.plugin.function;
 
-import com.hqyg.skyway.api.convert.RateLimiterHandle;
-import com.hqyg.skyway.api.dto.zk.RuleZkDTO;
-import com.hqyg.skyway.common.constant.Constants;
-import com.hqyg.skyway.common.enums.PluginEnum;
-import com.hqyg.skyway.common.enums.PluginTypeEnum;
-import com.hqyg.skyway.common.utils.GSONUtils;
-import com.hqyg.skyway.web.cache.DataCacheManager;
-import com.hqyg.skyway.web.plugin.AbstractSkywayPlugin;
-import com.hqyg.skyway.web.plugin.SkywayPluginChain;
-import com.hqyg.skyway.web.plugin.ratelimter.RedisRateLimiter;
+import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.dto.convert.RateLimiterHandle;
+import org.dromara.soul.common.dto.zk.RuleZkDTO;
+import org.dromara.soul.common.enums.PluginEnum;
+import org.dromara.soul.common.enums.PluginTypeEnum;
+import org.dromara.soul.common.result.SoulResult;
+import org.dromara.soul.common.utils.GSONUtils;
+import org.dromara.soul.common.utils.JSONUtils;
+import org.dromara.soul.web.cache.ZookeeperCacheManager;
+import org.dromara.soul.web.plugin.AbstractSoulPlugin;
+import org.dromara.soul.web.plugin.SoulPluginChain;
+import org.dromara.soul.web.plugin.ratelimter.RedisRateLimiter;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
+
 /**
  * RateLimiter Plugin.
+ *
  * @author xiaoyu(Myth)
  */
-public class RateLimiterSkywayPlugin extends AbstractSkywayPlugin {
+public class RateLimiterPlugin extends AbstractSoulPlugin {
 
     private final RedisRateLimiter redisRateLimiter;
 
-    public RateLimiterSkywayPlugin(final DataCacheManager dataCacheManager,
-                                   final RedisRateLimiter redisRateLimiter) {
-        super(dataCacheManager);
+    public RateLimiterPlugin(final ZookeeperCacheManager zookeeperCacheManager,
+                             final RedisRateLimiter redisRateLimiter) {
+        super(zookeeperCacheManager);
         this.redisRateLimiter = redisRateLimiter;
     }
 
@@ -68,7 +73,7 @@ public class RateLimiterSkywayPlugin extends AbstractSkywayPlugin {
     }
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SkywayPluginChain chain, final RuleZkDTO rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final RuleZkDTO rule) {
 
         final String handle = rule.getHandle();
 
@@ -78,7 +83,10 @@ public class RateLimiterSkywayPlugin extends AbstractSkywayPlugin {
                 .flatMap(response -> {
                     if (!response.isAllowed()) {
                         exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
-                        return exchange.getResponse().writeWith(Mono.just(exchange.getResponse().bufferFactory().wrap(Constants.TOO_MANY_REQUESTS.getBytes())));
+                        return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
+                                .bufferFactory()
+                                .wrap(Objects.requireNonNull(JSONUtils.toJson(SoulResult.error(Constants.TOO_MANY_REQUESTS)))
+                                        .getBytes())));
                     }
                     return chain.execute(exchange);
                 });

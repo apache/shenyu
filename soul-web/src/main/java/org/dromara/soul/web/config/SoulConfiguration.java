@@ -24,9 +24,13 @@ import org.dromara.soul.web.handler.SoulHandlerMapping;
 import org.dromara.soul.web.handler.SoulWebHandler;
 import org.dromara.soul.web.plugin.SoulPlugin;
 import org.dromara.soul.web.plugin.after.MonitorPlugin;
+import org.dromara.soul.web.plugin.after.ResponsePlugin;
 import org.dromara.soul.web.plugin.before.GlobalPlugin;
 import org.dromara.soul.web.plugin.before.SignPlugin;
 import org.dromara.soul.web.plugin.before.WafPlugin;
+import org.dromara.soul.web.plugin.function.DividePlugin;
+import org.dromara.soul.web.plugin.function.RateLimiterPlugin;
+import org.dromara.soul.web.plugin.function.RewritePlugin;
 import org.dromara.soul.web.plugin.ratelimter.RedisRateLimiter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -37,7 +41,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * SkywayConfiguration .
+ * SoulConfiguration.
+ *
  * @author xiaoyu(Myth)
  */
 @Configuration
@@ -101,56 +106,49 @@ public class SoulConfiguration {
     }
 
     /**
-     * init rateLimiterSkywayPlugin.
-     * @return {@linkplain RateLimiterSkywayPlugin}
-     */
-    @Bean
-    public SkywayPlugin rateLimiterSkywayPlugin() {
-        return new RateLimiterSkywayPlugin(dataCacheManager, redisRateLimiter);
-    }
-
-
-    /**
-     * init rewriteSkywayPlugin.
+     * init rateLimiterPlugin.
      *
-     * @return {@linkplain RewriteSkywayPlugin}
+     * @return {@linkplain RateLimiterPlugin}
      */
     @Bean
-    public SkywayPlugin rewriteSkywayPlugin() {
-        return new RewriteSkywayPlugin(dataCacheManager);
+    public SoulPlugin rateLimiterPlugin() {
+        return new RateLimiterPlugin(zookeeperCacheManager, redisRateLimiter);
     }
 
     /**
-     * init redirectSkywayPlugin.
+     * init rewritePlugin.
      *
-     * @return {@linkplain RedirectSkywayPlugin}
+     * @return {@linkplain RewritePlugin}
      */
     @Bean
-    public SkywayPlugin redirectSkywayPlugin() {
-        return new RedirectSkywayPlugin(dataCacheManager);
+    public SoulPlugin rewritePlugin() {
+        return new RewritePlugin(zookeeperCacheManager);
     }
 
     /**
-     * init divideSkywayPlugin.
-     * @return {@linkplain DivideSkywayPlugin}
+     * init dividePlugin.
+     *
+     * @return {@linkplain DividePlugin}
      */
     @Bean
-    public SkywayPlugin divideSkywayPlugin() {
-        return new DivideSkywayPlugin(dataCacheManager);
+    public SoulPlugin dividePlugin() {
+        return new DividePlugin(zookeeperCacheManager);
     }
 
     /**
-     * init WebClientResponsePluginImpl.
-     * @return {@linkplain WebClientResponsePlugin}
+     * init responsePlugin.
+     *
+     * @return {@linkplain ResponsePlugin}
      */
     @Bean
-    public SkywayPlugin webClientResponsePlugin() {
-        return new WebClientResponsePlugin();
+    public SoulPlugin responsePlugin() {
+        return new ResponsePlugin();
     }
 
     /**
      * init SoulWebHandler.
-     * @param plugins  this plugins is All impl SoulPlugin.
+     *
+     * @param plugins this plugins is All impl SoulPlugin.
      * @return {@linkplain SoulWebHandler}
      */
     @Bean
@@ -168,6 +166,7 @@ public class SoulConfiguration {
 
     /**
      * init  SoulHandlerMapping.
+     *
      * @param soulWebHandler {@linkplain SoulWebHandler}
      * @return {@linkplain SoulHandlerMapping}
      */

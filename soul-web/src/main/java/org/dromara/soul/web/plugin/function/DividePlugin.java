@@ -19,29 +19,29 @@
 
 package org.dromara.soul.web.plugin.function;
 
-import com.hqyg.skyway.api.convert.DivideHandle;
-import com.hqyg.skyway.api.convert.DivideUpstream;
-import com.hqyg.skyway.api.dto.zk.RuleZkDTO;
-import com.hqyg.skyway.common.constant.Constants;
-import com.hqyg.skyway.common.enums.PluginEnum;
-import com.hqyg.skyway.common.enums.PluginTypeEnum;
-import com.hqyg.skyway.common.enums.ResultEnum;
-import com.hqyg.skyway.common.enums.RpcTypeEnum;
-import com.hqyg.skyway.common.utils.GSONUtils;
-import com.hqyg.skyway.common.utils.LogUtils;
-import com.hqyg.skyway.core.balance.LoadBalance;
-import com.hqyg.skyway.core.balance.factory.LoadBalanceFactory;
-import com.hqyg.skyway.core.request.RequestDTO;
-import com.hqyg.skyway.web.cache.DataCacheManager;
-import com.hqyg.skyway.web.plugin.AbstractSkywayPlugin;
-import com.hqyg.skyway.web.plugin.SkywayPluginChain;
-import com.hqyg.skyway.web.plugin.hystrix.HttpHystrixCommand;
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixCommandKey;
 import com.netflix.hystrix.HystrixCommandProperties;
 import com.netflix.hystrix.HystrixObservableCommand;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.apache.commons.collections4.CollectionUtils;
+import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.dto.convert.DivideHandle;
+import org.dromara.soul.common.dto.convert.DivideUpstream;
+import org.dromara.soul.common.dto.zk.RuleZkDTO;
+import org.dromara.soul.common.enums.PluginEnum;
+import org.dromara.soul.common.enums.PluginTypeEnum;
+import org.dromara.soul.common.enums.ResultEnum;
+import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.dromara.soul.common.utils.GSONUtils;
+import org.dromara.soul.common.utils.LogUtils;
+import org.dromara.soul.web.balance.LoadBalance;
+import org.dromara.soul.web.balance.factory.LoadBalanceFactory;
+import org.dromara.soul.web.cache.ZookeeperCacheManager;
+import org.dromara.soul.web.plugin.AbstractSoulPlugin;
+import org.dromara.soul.web.plugin.SoulPluginChain;
+import org.dromara.soul.web.plugin.hystrix.HttpCommand;
+import org.dromara.soul.web.request.RequestDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -58,19 +58,19 @@ import java.util.function.Function;
  * @author xiaoyu(Myth)
  */
 @SuppressWarnings("unchecked")
-public class DivideSkywayPlugin extends AbstractSkywayPlugin {
+public class DividePlugin extends AbstractSoulPlugin {
 
     /**
      * logger.
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(DivideSkywayPlugin.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DividePlugin.class);
 
-    public DivideSkywayPlugin(final DataCacheManager dataCacheManager) {
-        super(dataCacheManager);
+    public DividePlugin(final ZookeeperCacheManager zookeeperCacheManager) {
+        super(zookeeperCacheManager);
     }
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SkywayPluginChain chain, final RuleZkDTO rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final RuleZkDTO rule) {
 
         final RequestDTO body = exchange.getAttribute(Constants.REQUESTDTO);
 
@@ -80,7 +80,7 @@ public class DivideSkywayPlugin extends AbstractSkywayPlugin {
 
         if (Objects.isNull(divideHandle)
                 || CollectionUtils.isEmpty(divideHandle.getUpstreamList())) {
-            LogUtils.error(LOGGER, "divide rule config error：{}", () -> handle);
+            LogUtils.error(LOGGER, "divide config error：{}", () -> handle);
             return chain.execute(exchange);
         }
 
@@ -112,13 +112,13 @@ public class DivideSkywayPlugin extends AbstractSkywayPlugin {
         final HystrixObservableCommand.Setter setter = HystrixObservableCommand.Setter.withGroupKey(groupKey)
                 .andCommandKey(commandKey)
                 .andCommandPropertiesDefaults(propertiesSetter);
-        HttpHystrixCommand command = new HttpHystrixCommand(setter, divideUpstream, body, exchange, chain);
+        HttpCommand command = new HttpCommand(setter, divideUpstream, body, exchange, chain);
         return Mono.create((MonoSink<Object> s) -> {
             Subscription sub = command.toObservable().subscribe(s::success,
                     s::error, s::success);
             s.onCancel(sub::unsubscribe);
             if (command.isCircuitBreakerOpen()) {
-                LogUtils.error(LOGGER, () -> groupKey + "....http:circuitBreaker is Open !");
+                LogUtils.error(LOGGER, () -> groupKey + "....http:circuitBreaker is Open.... !");
             }
         }).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> {
             if (throwable instanceof HystrixRuntimeException) {

@@ -35,7 +35,7 @@ import org.springframework.core.annotation.Order;
 @Order(LoggingApplicationListener.DEFAULT_ORDER + 1)
 public class SoulLogo implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
 
-    private static final String SOUL_LOGO ="\n" +
+    private static final String SOUL_LOGO = "\n" +
             "                 _ \n" +
             "                | |\n" +
             " ___  ___  _   _| |\n" +

@@ -1,8 +1,8 @@
 # Auto Configure
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
 org.dromara.soul.web.config.InfluxDbConfiguration,\
-org.dromara.soul.web.config.SkywayConfiguration,\
-org.dromara.soul.web.config.SkywayRedisAutoConfiguration,\
+org.dromara.soul.web.config.SoulConfiguration,\
+org.dromara.soul.web.config.RedisConfiguration,\
 org.dromara.soul.web.config.DubboConfiguration,\
 org.dromara.soul.configuration.zookeeper.ZookeeperConfiguration
 

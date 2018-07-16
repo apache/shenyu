@@ -19,15 +19,15 @@
 
 package org.dromara.soul.web.plugin.hystrix;
 
-import cn.hutool.json.JSONUtil;
-import com.hqyg.skyway.api.convert.DubboHandle;
-import com.hqyg.skyway.common.constant.Constants;
-import com.hqyg.skyway.common.enums.ResultEnum;
-import com.hqyg.skyway.common.utils.LogUtils;
-import com.hqyg.skyway.web.plugin.SkywayPluginChain;
-import com.hqyg.skyway.web.plugin.dubbo.DubboServiceProxy;
-import com.hqyg.skyway.web.result.SkywayResult;
 import com.netflix.hystrix.HystrixObservableCommand;
+import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.dto.convert.DubboHandle;
+import org.dromara.soul.common.enums.ResultEnum;
+import org.dromara.soul.common.result.SoulResult;
+import org.dromara.soul.common.utils.JSONUtils;
+import org.dromara.soul.common.utils.LogUtils;
+import org.dromara.soul.web.plugin.SoulPluginChain;
+import org.dromara.soul.web.plugin.dubbo.DubboProxyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -37,38 +37,40 @@ import rx.Observable;
 import rx.RxReactiveStreams;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * DubboHystrixCommand.
+ *
  * @author xiaoyu(Myth)
  */
-public class DubboHystrixCommand extends HystrixObservableCommand<Void> {
+public class DubboCommand extends HystrixObservableCommand<Void> {
 
     /**
      * logger.
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(DubboHystrixCommand.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DubboCommand.class);
 
     private final ServerWebExchange exchange;
 
-    private final SkywayPluginChain chain;
+    private final SoulPluginChain chain;
 
-    private final DubboServiceProxy dubboServiceProxy;
+    private final DubboProxyService dubboProxyService;
 
     private final Map<String, Object> paramMap;
 
     private final DubboHandle dubboHandle;
 
-    public DubboHystrixCommand(final Setter setter, final Map<String, Object> paramMap,
-                               final ServerWebExchange exchange,
-                               final SkywayPluginChain chain,
-                               final DubboServiceProxy dubboServiceProxy,
-                               final DubboHandle dubboHandle) {
+    public DubboCommand(final Setter setter, final Map<String, Object> paramMap,
+                        final ServerWebExchange exchange,
+                        final SoulPluginChain chain,
+                        final DubboProxyService dubboProxyService,
+                        final DubboHandle dubboHandle) {
         super(setter);
         this.exchange = exchange;
         this.paramMap = paramMap;
         this.chain = chain;
-        this.dubboServiceProxy = dubboServiceProxy;
+        this.dubboProxyService = dubboProxyService;
         this.dubboHandle = dubboHandle;
 
     }
@@ -79,9 +81,10 @@ public class DubboHystrixCommand extends HystrixObservableCommand<Void> {
     }
 
     private Mono<Void> doRpcInvoke() {
-        final Object result = dubboServiceProxy.genericInvoker(paramMap, dubboHandle);
+        final Object result = dubboProxyService.genericInvoker(paramMap, dubboHandle);
         exchange.getAttributes().put(Constants.DUBBO_RPC_RESULT, result);
-        exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
+        exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE,
+                ResultEnum.SUCCESS.getName());
         return chain.execute(exchange);
     }
 
@@ -95,7 +98,8 @@ public class DubboHystrixCommand extends HystrixObservableCommand<Void> {
             LogUtils.error(LOGGER, "dubbo rpc have error:{}", () -> getExecutionException().getMessage());
         }
         exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-        final SkywayResult error = SkywayResult.error(Constants.DUBBO_ERROR_RESULT);
-        return exchange.getResponse().writeWith(Mono.just(exchange.getResponse().bufferFactory().wrap(JSONUtil.toJsonStr(error).getBytes())));
+        final SoulResult error = SoulResult.error(Constants.DUBBO_ERROR_RESULT);
+        return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
+                .bufferFactory().wrap(Objects.requireNonNull(JSONUtils.toJson(error)).getBytes())));
     }
 }

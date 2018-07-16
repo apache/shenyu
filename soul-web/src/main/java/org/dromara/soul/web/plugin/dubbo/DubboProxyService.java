@@ -19,8 +19,6 @@
 
 package org.dromara.soul.web.plugin.dubbo;
 
-import cn.hutool.json.JSONArray;
-import cn.hutool.json.JSONUtil;
 import com.alibaba.dubbo.config.ApplicationConfig;
 import com.alibaba.dubbo.config.ReferenceConfig;
 import com.alibaba.dubbo.config.RegistryConfig;
@@ -29,14 +27,13 @@ import com.alibaba.dubbo.rpc.service.GenericException;
 import com.alibaba.dubbo.rpc.service.GenericService;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.hqyg.skyway.api.convert.DubboHandle;
-import com.hqyg.skyway.common.constant.DubboParamConstants;
-import com.hqyg.skyway.common.exception.SkywayException;
-import com.hqyg.skyway.common.utils.JsonToGetParamUtils;
-import com.hqyg.skyway.common.utils.LogUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.dromara.soul.common.constant.DubboParamConstants;
+import org.dromara.soul.common.dto.convert.DubboHandle;
+import org.dromara.soul.common.exception.SoulException;
+import org.dromara.soul.common.utils.LogUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -45,7 +42,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * dubbo proxy service is  use GenericService.
@@ -53,12 +49,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author xiaoyu(Myth)
  */
 @Service
-public class DubboServiceProxy  {
+public class DubboProxyService {
 
     /**
      * logger.
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(DubboServiceProxy.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DubboProxyService.class);
 
     private static final Map<String, RegistryConfig> REGISTRY_CONFIG_MAP = Maps.newConcurrentMap();
 
@@ -67,16 +63,14 @@ public class DubboServiceProxy  {
     /**
      * dubbo rpc invoke.
      *
-     * @param paramMap request paramMap.
+     * @param paramMap    request paramMap.
      * @param dubboHandle dubboHandle.
      * @return rpc result.
-     * @throws SkywayException exception for rpc.
+     * @throws SoulException exception for rpc.
      */
-    public Object genericInvoker(final Map<String, Object> paramMap, final DubboHandle dubboHandle) throws SkywayException {
-        // 该实例很重量，里面封装了所有与注册中心及服务提供方连接，请缓存
-        ReferenceConfig<GenericService> reference = buildReferenceConfig(dubboHandle, paramMap.get(DubboParamConstants.INTERFACE_NAME).toString());
-
-        //使用dubbo自带的缓存
+    public Object genericInvoker(final Map<String, Object> paramMap, final DubboHandle dubboHandle) throws SoulException {
+        ReferenceConfig<GenericService> reference = buildReferenceConfig(dubboHandle,
+                paramMap.get(DubboParamConstants.INTERFACE_NAME).toString());
         ReferenceConfigCache referenceConfigCache = ReferenceConfigCache.getCache();
 
         GenericService genericService = referenceConfigCache.get(reference);
@@ -91,7 +85,7 @@ public class DubboServiceProxy  {
             return genericService.$invoke(method, pair.getLeft(), pair.getRight());
         } catch (GenericException e) {
             LogUtils.error(LOGGER, e::getExceptionMessage);
-            throw new SkywayException(e.getMessage());
+            throw new SoulException(e.getMessage());
         }
     }
 
@@ -99,45 +93,6 @@ public class DubboServiceProxy  {
         List<String> paramList = Lists.newArrayList();
         List<Object> args = Lists.newArrayList();
         //如果参数里面包含class字段
-        if (paramMap.containsKey(DubboParamConstants.PARAM_CLASS)) {
-            final JSONArray clazzArray = JSONUtil.parseArray(paramMap.get(DubboParamConstants.PARAM_CLASS));
-            //设置参数为class 类型
-            AtomicBoolean hasList = new AtomicBoolean(false);
-            clazzArray.forEach(c -> {
-                paramList.add(c.toString());
-                if (List.class.getName().equals(c.toString())) {
-                    hasList.set(true);
-                }
-            });
-
-            if (hasList.get()) {
-                final Object classParams = paramMap.get(DubboParamConstants.CLASS_PARAMS);
-                final JSONArray jsonArray = JSONUtil.parseArray(classParams);
-                List<Map> params = jsonArray.toList(Map.class);
-                args.add(params);
-            } else {
-                final Object classParams = paramMap.get(DubboParamConstants.CLASS_PARAMS);
-                args.addAll(JSONUtil.parseArray(classParams));
-            }
-        }
-        //如果Map参数里面包含 params字段  规定params 里面是json字符串转成Map key为类型，value为值
-        if (paramMap.containsKey(DubboParamConstants.PARAMS)) {
-            final Object params = paramMap.get(DubboParamConstants.PARAMS);
-            final Map<String, Object> objectMap = JsonToGetParamUtils.toObjectMap(params.toString());
-            objectMap.forEach((k, v) -> {
-                //如果v是数组类型
-                if (v instanceof JSONArray) {
-                    final JSONArray jsonArray = JSONUtil.parseArray(v);
-                    jsonArray.forEach(j -> {
-                        paramList.add(k);
-                        args.add(j);
-                    });
-                } else {
-                    paramList.add(k);
-                    args.add(v);
-                }
-            });
-        }
         return new ImmutablePair<>(paramList.toArray(new String[0]), args.toArray());
     }
 

@@ -19,26 +19,26 @@
 
 package org.dromara.soul.web.plugin.function;
 
-import com.hqyg.skyway.api.convert.DubboHandle;
-import com.hqyg.skyway.api.dto.zk.RuleZkDTO;
-import com.hqyg.skyway.common.constant.Constants;
-import com.hqyg.skyway.common.enums.PluginEnum;
-import com.hqyg.skyway.common.enums.PluginTypeEnum;
-import com.hqyg.skyway.common.enums.ResultEnum;
-import com.hqyg.skyway.common.enums.RpcTypeEnum;
-import com.hqyg.skyway.common.utils.GSONUtils;
-import com.hqyg.skyway.common.utils.LogUtils;
-import com.hqyg.skyway.core.request.RequestDTO;
-import com.hqyg.skyway.web.cache.DataCacheManager;
-import com.hqyg.skyway.web.plugin.AbstractSkywayPlugin;
-import com.hqyg.skyway.web.plugin.SkywayPluginChain;
-import com.hqyg.skyway.web.plugin.dubbo.DubboServiceProxy;
-import com.hqyg.skyway.web.plugin.hystrix.DubboHystrixCommand;
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixCommandKey;
 import com.netflix.hystrix.HystrixCommandProperties;
 import com.netflix.hystrix.HystrixObservableCommand;
 import org.apache.commons.lang3.StringUtils;
+import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.dto.convert.DubboHandle;
+import org.dromara.soul.common.dto.zk.RuleZkDTO;
+import org.dromara.soul.common.enums.PluginEnum;
+import org.dromara.soul.common.enums.PluginTypeEnum;
+import org.dromara.soul.common.enums.ResultEnum;
+import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.dromara.soul.common.utils.GSONUtils;
+import org.dromara.soul.common.utils.LogUtils;
+import org.dromara.soul.web.cache.ZookeeperCacheManager;
+import org.dromara.soul.web.plugin.AbstractSoulPlugin;
+import org.dromara.soul.web.plugin.SoulPluginChain;
+import org.dromara.soul.web.plugin.dubbo.DubboProxyService;
+import org.dromara.soul.web.plugin.hystrix.DubboCommand;
+import org.dromara.soul.web.request.RequestDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
@@ -54,18 +54,18 @@ import java.util.Objects;
  *
  * @author xiaoyu(Myth)
  */
-public class DubboSkywayPlugin extends AbstractSkywayPlugin {
+public class DubboPlugin extends AbstractSoulPlugin {
 
     /**
      * logger.
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(DubboSkywayPlugin.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DubboPlugin.class);
 
-    private final DubboServiceProxy dubboServiceProxy;
+    private final DubboProxyService dubboProxyService;
 
-    public DubboSkywayPlugin(final DataCacheManager dataCacheManager, final DubboServiceProxy dubboServiceProxy) {
-        super(dataCacheManager);
-        this.dubboServiceProxy = dubboServiceProxy;
+    public DubboPlugin(final ZookeeperCacheManager zookeeperCacheManager, final DubboProxyService dubboProxyService) {
+        super(zookeeperCacheManager);
+        this.dubboProxyService = dubboProxyService;
     }
 
 
@@ -78,7 +78,7 @@ public class DubboSkywayPlugin extends AbstractSkywayPlugin {
      * @return {@code Mono<Void>} to indicate when request handling is complete
      */
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SkywayPluginChain chain, final RuleZkDTO rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final RuleZkDTO rule) {
 
         final String handle = rule.getHandle();
 
@@ -98,10 +98,8 @@ public class DubboSkywayPlugin extends AbstractSkywayPlugin {
 
         final HystrixCommandProperties.Setter propertiesSetter =
                 HystrixCommandProperties.Setter()
-                        // set time out
                         .withExecutionTimeoutInMilliseconds(dubboHandle.getTimeout())
                         .withCircuitBreakerEnabled(true)
-                        // set IsolationStrategy.SEMAPHORE
                         .withExecutionIsolationStrategy(HystrixCommandProperties.ExecutionIsolationStrategy.SEMAPHORE)
                         .withExecutionIsolationSemaphoreMaxConcurrentRequests(dubboHandle.getMaxConcurrentRequests())
                         .withCircuitBreakerErrorThresholdPercentage(dubboHandle.getErrorThresholdPercentage())
@@ -111,21 +109,23 @@ public class DubboSkywayPlugin extends AbstractSkywayPlugin {
         final HystrixObservableCommand.Setter setter =
                 HystrixObservableCommand.Setter
                         .withGroupKey(groupKey)
-                .andCommandKey(commandKey)
-                .andCommandPropertiesDefaults(propertiesSetter);
+                        .andCommandKey(commandKey)
+                        .andCommandPropertiesDefaults(propertiesSetter);
 
-        DubboHystrixCommand command = new DubboHystrixCommand(setter, paramMap, exchange, chain, dubboServiceProxy, dubboHandle);
+        DubboCommand command =
+                new DubboCommand(setter, paramMap, exchange, chain, dubboProxyService, dubboHandle);
 
         return Mono.create((MonoSink<Object> s) -> {
             Subscription sub = command.toObservable().subscribe(s::success,
                     s::error, s::success);
             s.onCancel(sub::unsubscribe);
             if (command.isCircuitBreakerOpen()) {
-                LogUtils.error(LOGGER, () -> groupKey + ":dubbo circuitBreaker is Open !");
+                LogUtils.error(LOGGER, () -> groupKey + ":dubbo execute circuitBreaker is Open !");
             }
         }).doOnError(throwable -> {
             throwable.printStackTrace();
-            exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.ERROR.getName());
+            exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE,
+                    ResultEnum.ERROR.getName());
             chain.execute(exchange);
         }).then();
     }
@@ -189,7 +189,6 @@ public class DubboSkywayPlugin extends AbstractSkywayPlugin {
                 || StringUtils.isBlank(dubboHandle.getAppName())) {
             LogUtils.error(LOGGER, () -> "dubbo handle require param not config!");
             return false;
-
         }
         return true;
     }
