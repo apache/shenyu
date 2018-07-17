@@ -78,6 +78,12 @@
 
             <dependency>
                 <groupId>org.dromara.soul</groupId>
+                <artifactId>soul-admin</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.dromara.soul</groupId>
                 <artifactId>soul-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
