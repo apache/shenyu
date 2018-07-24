@@ -19,53 +19,53 @@
 package org.dromara.soul.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
-import org.dromara.soul.admin.entity.AppAuthDO;
+import org.dromara.soul.admin.entity.PluginDO;
 
 /**
- * AppAuthMapper.
+ * PluginMapper.
  *
- * @author xiaoyu(549477611 @ qq.com)
+ * @author jiangxiaofeng(programgeek @ 163.com)
  */
 @Mapper
-public interface AppAuthMapper {
+public interface PluginMapper {
 
     /**
-     * select application authority by id
+     * select plugin by id
      *
      * @param id
      * @return
      */
-    AppAuthDO selectById(Long id);
+    PluginDO selectById(Long id);
 
     /**
-     * insert application authority
+     * insert plugin
      *
-     * @param appAuthDO
+     * @param pluginDO
      * @return
      */
-    int insert(AppAuthDO appAuthDO);
+    int insert(PluginDO pluginDO);
 
     /**
-     * insert selective application authority
+     * insert selective plugin
      *
-     * @param appAuthDO
+     * @param pluginDO
      * @return
      */
-    int insertSelective(AppAuthDO appAuthDO);
+    int insertSelective(PluginDO pluginDO);
 
     /**
-     * update application authority
+     * update plugin
      *
-     * @param appAuthDO
+     * @param pluginDO
      * @return
      */
-    int update(AppAuthDO appAuthDO);
+    int update(PluginDO pluginDO);
 
     /**
-     * update selective application authority
+     * update selective plugin
      *
-     * @param appAuthDO
+     * @param pluginDO
      * @return
      */
-    int updateSelective(AppAuthDO appAuthDO);
+    int updateSelective(PluginDO pluginDO);
 }

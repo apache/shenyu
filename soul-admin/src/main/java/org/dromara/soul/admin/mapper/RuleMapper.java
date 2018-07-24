@@ -19,53 +19,53 @@
 package org.dromara.soul.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
-import org.dromara.soul.admin.entity.AppAuthDO;
+import org.dromara.soul.admin.entity.RuleDO;
 
 /**
- * AppAuthMapper.
+ * RuleMapper.
  *
- * @author xiaoyu(549477611 @ qq.com)
+ * @author jiangxiaofeng(programgeek @ 163.com)
  */
 @Mapper
-public interface AppAuthMapper {
+public interface RuleMapper {
 
     /**
-     * select application authority by id
+     * select rule by id
      *
      * @param id
      * @return
      */
-    AppAuthDO selectById(Long id);
+    RuleDO selectById(Long id);
 
     /**
-     * insert application authority
+     * insert rule
      *
-     * @param appAuthDO
+     * @param ruleDO
      * @return
      */
-    int insert(AppAuthDO appAuthDO);
+    int insert(RuleDO ruleDO);
 
     /**
-     * insert selective application authority
+     * insert selective rule
      *
-     * @param appAuthDO
+     * @param ruleDO
      * @return
      */
-    int insertSelective(AppAuthDO appAuthDO);
+    int insertSelective(RuleDO ruleDO);
 
     /**
-     * update application authority
+     * update rule
      *
-     * @param appAuthDO
+     * @param ruleDO
      * @return
      */
-    int update(AppAuthDO appAuthDO);
+    int update(RuleDO ruleDO);
 
     /**
-     * update selective application authority
+     * update selective rule
      *
-     * @param appAuthDO
+     * @param ruleDO
      * @return
      */
-    int updateSelective(AppAuthDO appAuthDO);
+    int updateSelective(RuleDO ruleDO);
 }

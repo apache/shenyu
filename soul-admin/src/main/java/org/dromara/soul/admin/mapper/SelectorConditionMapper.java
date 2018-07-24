@@ -19,53 +19,53 @@
 package org.dromara.soul.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
-import org.dromara.soul.admin.entity.AppAuthDO;
+import org.dromara.soul.admin.entity.SelectorConditionDO;
 
 /**
- * AppAuthMapper.
+ * SelectorConditionMapper.
  *
- * @author xiaoyu(549477611 @ qq.com)
+ * @author jiangxiaofeng(programgeek @ 163.com)
  */
 @Mapper
-public interface AppAuthMapper {
+public interface SelectorConditionMapper {
 
     /**
-     * select application authority by id
+     * select selector condition by id
      *
      * @param id
      * @return
      */
-    AppAuthDO selectById(Long id);
+    SelectorConditionDO selectById(Long id);
 
     /**
-     * insert application authority
+     * insert selector condition
      *
-     * @param appAuthDO
+     * @param selectorConditionDO
      * @return
      */
-    int insert(AppAuthDO appAuthDO);
+    int insert(SelectorConditionDO selectorConditionDO);
 
     /**
-     * insert selective application authority
+     * insert selective selector condition
      *
-     * @param appAuthDO
+     * @param selectorConditionDO
      * @return
      */
-    int insertSelective(AppAuthDO appAuthDO);
+    int insertSelective(SelectorConditionDO selectorConditionDO);
 
     /**
-     * update application authority
+     * update selector condition
      *
-     * @param appAuthDO
+     * @param selectorConditionDO
      * @return
      */
-    int update(AppAuthDO appAuthDO);
+    int update(SelectorConditionDO selectorConditionDO);
 
     /**
-     * update selective application authority
+     * update selective selector condition
      *
-     * @param appAuthDO
+     * @param selectorConditionDO
      * @return
      */
-    int updateSelective(AppAuthDO appAuthDO);
+    int updateSelective(SelectorConditionDO selectorConditionDO);
 }
