@@ -28,10 +28,18 @@ import lombok.Data;
 @Data
 public class AppAuthDO extends BaseDO {
 
+    /**
+     * application key
+     */
     private String appKey;
 
+    /**
+     * encryption secret
+     */
     private String appSecret;
 
+    /**
+     * whether enabled
+     */
     private Boolean enabled;
-
 }

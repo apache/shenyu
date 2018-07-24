@@ -77,7 +77,7 @@ DROP TABLE IF EXISTS `rule_condition`;
 
 CREATE TABLE `rule_condition` (
   `id` varchar(128) NOT NULL COMMENT '主键id',
-  `rule_id` bigint(10) NOT NULL COMMENT '规则id',
+  `rule_id` varchar(128) NOT NULL COMMENT '规则id',
   `param_type` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '参数类型（post  query  uri等）',
   `operator` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '匹配符（=  > <  like match）',
   `param_name` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '参数名称',
@@ -92,10 +92,10 @@ DROP TABLE IF EXISTS `selector`;
 
 CREATE TABLE `selector` (
   `id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '主键id varchar',
-  `plugin_id` bigint(10) NOT NULL COMMENT '插件id',
+  `plugin_id` varchar(128) NOT NULL COMMENT '插件id',
   `name` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '选择器名称',
   `match_mode` int(2) NOT NULL COMMENT '匹配方式（0 and  1 or)',
-  `type` tinyint(4) NOT NULL COMMENT '类型（0，全流量，1自定义流量）',
+  `type` int(4) NOT NULL COMMENT '类型（0，全流量，1自定义流量）',
   `rank` int(4) NOT NULL COMMENT '排序',
   `enabled` tinyint(4) NOT NULL COMMENT '是否开启',
   `loged` tinyint(4) NOT NULL COMMENT '是否打印日志',
@@ -109,8 +109,8 @@ CREATE TABLE `selector` (
 DROP TABLE IF EXISTS `selector_condition`;
 
 CREATE TABLE `selector_condition` (
-  `id` bigint(10) NOT NULL COMMENT '主键id',
-  `selector_id` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '选择器id',
+  `id` varchar(128) NOT NULL COMMENT '主键id',
+  `selector_id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '选择器id',
   `param_type` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '参数类型（post  query  uri等）',
   `operator` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '匹配符（=  > <  like match）',
   `param_name` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '参数名称',
