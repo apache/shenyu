@@ -33,26 +33,57 @@ import org.springframework.stereotype.Service;
  */
 @Service("appAuthService")
 public class AppAuthServiceImpl implements AppAuthService {
+
+    /**
+     * save or update application authority.
+     *
+     * @param appAuthDTO {@linkplain AppAuthDTO}
+     * @return rows
+     */
     @Override
     public int saveOrUpdate(final AppAuthDTO appAuthDTO) {
         return 0;
     }
 
+    /**
+     * enabled or disabled application authority.
+     *
+     * @param appAuthDTO {@linkplain AppAuthDTO}
+     * @return rows
+     */
     @Override
     public int enabled(final AppAuthDTO appAuthDTO) {
         return 0;
     }
 
+    /**
+     * find application authority by id.
+     *
+     * @param id pk.
+     * @return {@linkplain AppAuthDO}
+     */
     @Override
     public AppAuthDO findById(final String id) {
         return null;
     }
 
+    /**
+     * find application authority by appKey.
+     *
+     * @param appKey appKey.
+     * @return {@linkplain AppAuthDO}
+     */
     @Override
     public AppAuthDO findByAppKey(final String appKey) {
         return null;
     }
 
+    /**
+     * find page of application authority by query.
+     *
+     * @param appAuthQuery {@linkplain AppAuthQuery}
+     * @return CommonPager<AppAuthVO>
+     */
     @Override
     public CommonPager<AppAuthVO> listByPage(final AppAuthQuery appAuthQuery) {
         return null;

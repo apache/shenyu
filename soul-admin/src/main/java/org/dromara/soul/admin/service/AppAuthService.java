@@ -25,14 +25,14 @@ import org.dromara.soul.admin.query.AppAuthQuery;
 import org.dromara.soul.admin.vo.AppAuthVO;
 
 /**
- * this is app auth service.
+ * this is application authority service.
  *
  * @author xiaoyu(549477611 @ qq.com)
  */
 public interface AppAuthService {
 
     /**
-     * save or update  app auth.
+     * save or update application authority.
      *
      * @param appAuthDTO {@linkplain AppAuthDTO}
      * @return rows
@@ -40,7 +40,7 @@ public interface AppAuthService {
     int saveOrUpdate(AppAuthDTO appAuthDTO);
 
     /**
-     * enabled or disabled app auth .
+     * enabled or disabled application authority.
      *
      * @param appAuthDTO {@linkplain AppAuthDTO}
      * @return rows
@@ -48,7 +48,7 @@ public interface AppAuthService {
     int enabled(AppAuthDTO appAuthDTO);
 
     /**
-     * find by id.
+     * find application authority by id.
      *
      * @param id pk.
      * @return {@linkplain AppAuthDO}
@@ -56,7 +56,7 @@ public interface AppAuthService {
     AppAuthDO findById(String id);
 
     /**
-     * find by appKey.
+     * find application authority by appKey.
      *
      * @param appKey appKey.
      * @return {@linkplain AppAuthDO}
@@ -64,12 +64,10 @@ public interface AppAuthService {
     AppAuthDO findByAppKey(String appKey);
 
     /**
-     * find page by query.
+     * find page of application authority by query.
      *
      * @param appAuthQuery {@linkplain AppAuthQuery}
      * @return CommonPager<AppAuthVO>
      */
     CommonPager<AppAuthVO> listByPage(AppAuthQuery appAuthQuery);
-
-
 }

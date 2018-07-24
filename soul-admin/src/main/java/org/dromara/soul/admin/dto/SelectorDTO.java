@@ -16,33 +16,48 @@
  *
  */
 
-package org.dromara.soul.admin.entity;
+package org.dromara.soul.admin.dto;
 
 import lombok.Data;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.util.List;
 
 /**
- * BaseDO.
+ * this is selector from by web front.
  *
- * @author xiaoyu(Myth)
+ * @author jiangxiaofeng(programgeek @ 163.com)
  */
 @Data
-public class BaseDO implements Serializable {
+public class SelectorDTO implements Serializable {
 
     /**
-     * primary key.
+     * plugin id
      */
-    private String id;
+    private String pluginId;
 
     /**
-     * created time.
+     * selector name
      */
-    private LocalDateTime dateCreated;
+    private String name;
 
     /**
-     * updated time.
+     * match mode
      */
-    private LocalDateTime dateUpdated;
+    private Integer matchMode;
+
+    /**
+     * selector type
+     */
+    private Integer type;
+
+    /**
+     * whether enabled
+     */
+    private Boolean enabled;
+
+    /**
+     * selector conditions
+     */
+    private List<SelectorConditionDTO> selectorConditions;
 }
