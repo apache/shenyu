@@ -16,53 +16,49 @@
  *
  */
 
-package org.dromara.soul.admin.dto;
+package org.dromara.soul.admin.service;
 
-import lombok.Data;
-
-import java.io.Serializable;
-import java.util.List;
+import org.dromara.soul.admin.dto.PluginDTO;
+import org.dromara.soul.admin.entity.PluginDO;
+import org.dromara.soul.admin.page.CommonPager;
+import org.dromara.soul.admin.query.PluginQuery;
 
 /**
- * this is selector from by web front.
+ * this is plugin service.
  *
  * @author jiangxiaofeng(programgeek @ 163.com)
  */
-@Data
-public class SelectorDTO implements Serializable {
+public interface PluginService {
 
     /**
-     * primary key
+     * save or update plugin.
+     *
+     * @param pluginDTO {@linkplain PluginDTO}
+     * @return rows
      */
-    private String id;
+    int saveOrUpdate(PluginDTO pluginDTO);
 
     /**
-     * plugin id
+     * enabled or disabled plugin.
+     *
+     * @param pluginDTO {@linkplain PluginDTO}
+     * @return rows
      */
-    private String pluginId;
+    int enabled(PluginDTO pluginDTO);
 
     /**
-     * selector name
+     * find plugin by id.
+     *
+     * @param id pk.
+     * @return {@linkplain PluginDO}
      */
-    private String name;
+    PluginDO findById(String id);
 
     /**
-     * match mode
+     * find page of plugin by query.
+     *
+     * @param pluginQuery {@linkplain PluginQuery}
+     * @return CommonPager<PluginDO>
      */
-    private Integer matchMode;
-
-    /**
-     * selector type
-     */
-    private Integer type;
-
-    /**
-     * whether enabled
-     */
-    private Boolean enabled;
-
-    /**
-     * selector conditions
-     */
-    private List<SelectorConditionDTO> selectorConditions;
+    CommonPager<PluginDO> listByPage(PluginQuery pluginQuery);
 }

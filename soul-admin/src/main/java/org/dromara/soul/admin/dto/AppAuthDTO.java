@@ -41,6 +41,11 @@ public class AppAuthDTO implements Serializable {
     private String appKey;
 
     /**
+     * encryption secret
+     */
+    private String appSecret;
+
+    /**
      * whether enabled
      */
     private Boolean enabled;

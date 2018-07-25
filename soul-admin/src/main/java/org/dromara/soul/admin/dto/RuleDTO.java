@@ -32,6 +32,11 @@ import java.util.List;
 public class RuleDTO implements Serializable {
 
     /**
+     * primary key
+     */
+    private String id;
+
+    /**
      * selector id
      */
     private String selectorId;

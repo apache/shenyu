@@ -27,7 +27,7 @@ import org.dromara.soul.admin.vo.SelectorVO;
 import org.springframework.stereotype.Service;
 
 /**
- * AppAuthServiceImpl.
+ * SelectorServiceImpl.
  *
  * @author jiangxiaofeng(programgeek @ 163.com)
  */

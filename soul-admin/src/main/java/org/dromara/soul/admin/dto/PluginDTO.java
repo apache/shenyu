@@ -21,15 +21,14 @@ package org.dromara.soul.admin.dto;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
- * this is selector from by web front.
+ * this is plugin from by web front.
  *
  * @author jiangxiaofeng(programgeek @ 163.com)
  */
 @Data
-public class SelectorDTO implements Serializable {
+public class PluginDTO implements Serializable {
 
     /**
      * primary key
@@ -37,32 +36,12 @@ public class SelectorDTO implements Serializable {
     private String id;
 
     /**
-     * plugin id
-     */
-    private String pluginId;
-
-    /**
-     * selector name
+     * plugin name
      */
     private String name;
-
-    /**
-     * match mode
-     */
-    private Integer matchMode;
-
-    /**
-     * selector type
-     */
-    private Integer type;
 
     /**
      * whether enabled
      */
     private Boolean enabled;
-
-    /**
-     * selector conditions
-     */
-    private List<SelectorConditionDTO> selectorConditions;
 }

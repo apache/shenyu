@@ -21,15 +21,14 @@ package org.dromara.soul.admin.dto;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
- * this is selector from by web front.
+ * this is dashboard user from by web front.
  *
  * @author jiangxiaofeng(programgeek @ 163.com)
  */
 @Data
-public class SelectorDTO implements Serializable {
+public class DashboardUserDTO implements Serializable {
 
     /**
      * primary key
@@ -37,32 +36,22 @@ public class SelectorDTO implements Serializable {
     private String id;
 
     /**
-     * plugin id
+     * user name
      */
-    private String pluginId;
+    private String userName;
 
     /**
-     * selector name
+     * user password
      */
-    private String name;
+    private String password;
 
     /**
-     * match mode
+     * dashboard role
      */
-    private Integer matchMode;
-
-    /**
-     * selector type
-     */
-    private Integer type;
+    private Integer role;
 
     /**
      * whether enabled
      */
     private Boolean enabled;
-
-    /**
-     * selector conditions
-     */
-    private List<SelectorConditionDTO> selectorConditions;
 }

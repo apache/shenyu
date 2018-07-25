@@ -16,20 +16,20 @@
  *
  */
 
-package org.dromara.soul.admin.dto;
+package org.dromara.soul.admin.vo;
 
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.List;
+import java.time.LocalDateTime;
 
 /**
- * this is selector from by web front.
+ * this is plugin view to web front.
  *
  * @author jiangxiaofeng(programgeek @ 163.com)
  */
 @Data
-public class SelectorDTO implements Serializable {
+public class PluginVO implements Serializable {
 
     /**
      * primary key
@@ -37,24 +37,9 @@ public class SelectorDTO implements Serializable {
     private String id;
 
     /**
-     * plugin id
-     */
-    private String pluginId;
-
-    /**
-     * selector name
+     * plugin name
      */
     private String name;
-
-    /**
-     * match mode
-     */
-    private Integer matchMode;
-
-    /**
-     * selector type
-     */
-    private Integer type;
 
     /**
      * whether enabled
@@ -62,7 +47,12 @@ public class SelectorDTO implements Serializable {
     private Boolean enabled;
 
     /**
-     * selector conditions
+     * created time.
      */
-    private List<SelectorConditionDTO> selectorConditions;
+    private LocalDateTime dateCreated;
+
+    /**
+     * updated time.
+     */
+    private LocalDateTime dateUpdated;
 }

@@ -18,63 +18,58 @@
 
 package org.dromara.soul.admin.service.impl;
 
-import org.dromara.soul.admin.dto.RuleDTO;
-import org.dromara.soul.admin.entity.RuleDO;
+import org.dromara.soul.admin.dto.DashboardUserDTO;
+import org.dromara.soul.admin.entity.DashboardUserDO;
 import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.query.RuleQuery;
-import org.dromara.soul.admin.service.RuleService;
-import org.dromara.soul.admin.vo.RuleVO;
+import org.dromara.soul.admin.query.DashboardUserQuery;
+import org.dromara.soul.admin.service.DashboardUserService;
 import org.springframework.stereotype.Service;
 
 /**
- * RuleServiceImpl.
+ * DashboardUserServiceImpl.
  *
  * @author jiangxiaofeng(programgeek @ 163.com)
  */
-@Service("ruleService")
-public class RuleServiceImpl implements RuleService {
+@Service("dashboardUserService")
+public class DashboardUserServiceImpl implements DashboardUserService {
 
     /**
-     * save or update rule.
+     * save or update dashboard user.
      *
-     * @param ruleDTO {@linkplain RuleDTO}
+     * @param dashboardUserDTO {@linkplain DashboardUserDTO}
      * @return rows
      */
-    @Override
-    public int saveOrUpdate(RuleDTO ruleDTO) {
+    public int saveOrUpdate(DashboardUserDTO dashboardUserDTO) {
         return 0;
     }
 
     /**
-     * enabled or disabled rule.
+     * enabled or disabled dashboard user.
      *
-     * @param ruleDTO {@linkplain RuleDTO}
+     * @param dashboardUserDTO {@linkplain DashboardUserDTO}
      * @return rows
      */
-    @Override
-    public int enabled(RuleDTO ruleDTO) {
+    public int enabled(DashboardUserDTO dashboardUserDTO) {
         return 0;
     }
 
     /**
-     * find rule by id.
+     * find dashboard user by id.
      *
      * @param id pk.
-     * @return {@linkplain RuleDO}
+     * @return {@linkplain DashboardUserDO}
      */
-    @Override
-    public RuleDO findById(String id) {
+    public DashboardUserDO findById(String id) {
         return null;
     }
 
     /**
-     * find page of rule by query.
+     * find page of dashboard user by query.
      *
-     * @param ruleQuery {@linkplain RuleQuery}
-     * @return CommonPager<RuleVO>
+     * @param dashboardUserQuery {@linkplain DashboardUserQuery}
+     * @return CommonPager<DashboardUserDO>
      */
-    @Override
-    public CommonPager<RuleVO> listByPage(RuleQuery ruleQuery) {
+    public CommonPager<DashboardUserDO> listByPage(DashboardUserQuery dashboardUserQuery) {
         return null;
     }
 }

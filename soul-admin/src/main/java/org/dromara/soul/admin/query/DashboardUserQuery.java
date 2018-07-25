@@ -16,53 +16,23 @@
  *
  */
 
-package org.dromara.soul.admin.dto;
+package org.dromara.soul.admin.query;
 
 import lombok.Data;
+import org.dromara.soul.admin.page.PageParameter;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
- * this is selector from by web front.
+ * this is dashboard user query.
  *
  * @author jiangxiaofeng(programgeek @ 163.com)
  */
 @Data
-public class SelectorDTO implements Serializable {
+public class DashboardUserQuery implements Serializable {
 
     /**
-     * primary key
+     * page parameter
      */
-    private String id;
-
-    /**
-     * plugin id
-     */
-    private String pluginId;
-
-    /**
-     * selector name
-     */
-    private String name;
-
-    /**
-     * match mode
-     */
-    private Integer matchMode;
-
-    /**
-     * selector type
-     */
-    private Integer type;
-
-    /**
-     * whether enabled
-     */
-    private Boolean enabled;
-
-    /**
-     * selector conditions
-     */
-    private List<SelectorConditionDTO> selectorConditions;
+    private PageParameter pageParameter;
 }

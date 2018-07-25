@@ -18,63 +18,58 @@
 
 package org.dromara.soul.admin.service.impl;
 
-import org.dromara.soul.admin.dto.RuleDTO;
-import org.dromara.soul.admin.entity.RuleDO;
+import org.dromara.soul.admin.dto.PluginDTO;
+import org.dromara.soul.admin.entity.PluginDO;
 import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.query.RuleQuery;
-import org.dromara.soul.admin.service.RuleService;
-import org.dromara.soul.admin.vo.RuleVO;
+import org.dromara.soul.admin.query.PluginQuery;
+import org.dromara.soul.admin.service.PluginService;
 import org.springframework.stereotype.Service;
 
 /**
- * RuleServiceImpl.
+ * PluginServiceImpl.
  *
  * @author jiangxiaofeng(programgeek @ 163.com)
  */
-@Service("ruleService")
-public class RuleServiceImpl implements RuleService {
+@Service("pluginService")
+public class PluginServiceImpl implements PluginService {
 
     /**
-     * save or update rule.
+     * save or update plugin.
      *
-     * @param ruleDTO {@linkplain RuleDTO}
+     * @param pluginDTO {@linkplain PluginDTO}
      * @return rows
      */
-    @Override
-    public int saveOrUpdate(RuleDTO ruleDTO) {
+    public int saveOrUpdate(PluginDTO pluginDTO) {
         return 0;
     }
 
     /**
-     * enabled or disabled rule.
+     * enabled or disabled plugin.
      *
-     * @param ruleDTO {@linkplain RuleDTO}
+     * @param pluginDTO {@linkplain PluginDTO}
      * @return rows
      */
-    @Override
-    public int enabled(RuleDTO ruleDTO) {
+    public int enabled(PluginDTO pluginDTO) {
         return 0;
     }
 
     /**
-     * find rule by id.
+     * find plugin by id.
      *
      * @param id pk.
-     * @return {@linkplain RuleDO}
+     * @return {@linkplain PluginDO}
      */
-    @Override
-    public RuleDO findById(String id) {
+    public PluginDO findById(String id) {
         return null;
     }
 
     /**
-     * find page of rule by query.
+     * find page of plugin by query.
      *
-     * @param ruleQuery {@linkplain RuleQuery}
-     * @return CommonPager<RuleVO>
+     * @param pluginQuery {@linkplain PluginQuery}
+     * @return CommonPager<PluginDO>
      */
-    @Override
-    public CommonPager<RuleVO> listByPage(RuleQuery ruleQuery) {
+    public CommonPager<PluginDO> listByPage(PluginQuery pluginQuery) {
         return null;
     }
 }

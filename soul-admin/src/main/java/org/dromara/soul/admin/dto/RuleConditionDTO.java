@@ -31,6 +31,11 @@ import java.io.Serializable;
 public class RuleConditionDTO implements Serializable {
 
     /**
+     * primary key
+     */
+    private String id;
+    
+    /**
      * rule id
      */
     private String ruleId;

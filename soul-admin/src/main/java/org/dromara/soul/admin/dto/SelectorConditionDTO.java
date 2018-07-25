@@ -31,6 +31,11 @@ import java.io.Serializable;
 public class SelectorConditionDTO implements Serializable {
 
     /**
+     * primary key
+     */
+    private String id;
+
+    /**
      * selector id
      */
     private String selectorId;
