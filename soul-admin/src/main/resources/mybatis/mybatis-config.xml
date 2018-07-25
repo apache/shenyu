@@ -6,6 +6,7 @@
     <properties>
         <property name="dialect" value="mysql"/>
     </properties>
+
     <settings>
         <!-- 开启驼峰匹配 -->
         <setting name="mapUnderscoreToCamelCase" value="true"/>
@@ -34,6 +35,7 @@
         <typeAlias alias="ArrayList" type="java.util.ArrayList"/>
         <typeAlias alias="LinkedList" type="java.util.LinkedList"/>
     </typeAliases>
+
     <!-- 分页助手 -->
     <plugins>
         <plugin interceptor="com.github.pagehelper.PageInterceptor">
@@ -66,6 +68,12 @@
     </plugins>
 
     <mappers>
-        <mapper resource=""/>
+        <mapper resource="mybatis/app-auth-sqlmap.xml"/>
+        <mapper resource="mybatis/dashboard-user-sqlmap"/>
+        <mapper resource="mybatis/plugin-sqlmap.xml"/>
+        <mapper resource="mybatis/rule-sqlmap.xml"/>
+        <mapper resource="mybatis/rule-condition-sqlmap.xml"/>
+        <mapper resource="mybatis/selector-sqlmap.xml"/>
+        <mapper resource="mybatis/selector-condition-sqlmap.xml"/>
     </mappers>
 </configuration>
