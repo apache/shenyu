@@ -22,14 +22,15 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
- * this is application authority view to web front.
+ * this is rule view to web front.
  *
- * @author xiaoyu(549477611 @ qq.com)
+ * @author jiangxiaofeng(programgeek @ 163.com)
  */
 @Data
-public class AppAuthVO implements Serializable {
+public class RuleVO implements Serializable {
 
     /**
      * primary key
@@ -37,19 +38,44 @@ public class AppAuthVO implements Serializable {
     private String id;
 
     /**
-     * application key
+     * selector id
      */
-    private String appKey;
+    private String selectorId;
 
     /**
-     * encryption secret
+     * match mode
      */
-    private String appSecret;
+    private Integer matchMode;
+
+    /**
+     * rule name
+     */
+    private String name;
 
     /**
      * whether enabled
      */
     private Boolean enabled;
+
+    /**
+     * whether loged
+     */
+    private Boolean loged;
+
+    /**
+     * sort rank
+     */
+    private Integer rank;
+
+    /**
+     * process logic
+     */
+    private String handle;
+
+    /**
+     * rule conditions
+     */
+    private List<RuleConditionVO> ruleConditions;
 
     /**
      * created time.

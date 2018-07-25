@@ -16,30 +16,58 @@
  *
  */
 
-package org.dromara.soul.admin;
+package org.dromara.soul.admin.vo;
 
-import org.dromara.soul.configuration.zookeeper.ZookeeperConfiguration;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Import;
+import lombok.Data;
+
+import java.io.Serializable;
+import java.time.LocalDateTime;
 
 /**
- * soul start.
+ * this is selector condition view to web front.
  *
- * @author xiaoyu
+ * @author jiangxiaofeng(programgeek @ 163.com)
  */
-@SpringBootApplication
-@ComponentScan("org.dromara.soul")
-@Import(value = {ZookeeperConfiguration.class})
-public class SoulAdminApplication {
+@Data
+public class SelectorConditionVO implements Serializable {
 
     /**
-     * Main Entrance.
-     *
-     * @param args startup arguments
+     * primary key
      */
-    public static void main(final String[] args) {
-        SpringApplication.run(SoulAdminApplication.class, args);
-    }
+    private String id;
+
+    /**
+     * selector id
+     */
+    private String selectorId;
+
+    /**
+     * parameter type
+     */
+    private String paramType;
+
+    /**
+     * match operator
+     */
+    private String operator;
+
+    /**
+     * parameter name
+     */
+    private String paramName;
+
+    /**
+     * parameter value
+     */
+    private String paramValue;
+
+    /**
+     * created time.
+     */
+    private LocalDateTime dateCreated;
+
+    /**
+     * updated time.
+     */
+    private LocalDateTime dateUpdated;
 }

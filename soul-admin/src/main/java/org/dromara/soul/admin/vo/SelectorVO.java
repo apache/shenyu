@@ -22,14 +22,15 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
- * this is application authority view to web front.
+ * this is selector view to web front.
  *
- * @author xiaoyu(549477611 @ qq.com)
+ * @author jiangxiaofeng(programgeek @ 163.com)
  */
 @Data
-public class AppAuthVO implements Serializable {
+public class SelectorVO implements Serializable {
 
     /**
      * primary key
@@ -37,19 +38,49 @@ public class AppAuthVO implements Serializable {
     private String id;
 
     /**
-     * application key
+     * plugin id
      */
-    private String appKey;
+    private String pluginId;
 
     /**
-     * encryption secret
+     * selector name
      */
-    private String appSecret;
+    private String name;
+
+    /**
+     * match mode
+     */
+    private Integer matchMode;
+
+    /**
+     * selector type
+     */
+    private Integer type;
+
+    /**
+     * sort rank
+     */
+    private Integer rank;
 
     /**
      * whether enabled
      */
     private Boolean enabled;
+
+    /**
+     * whether loged
+     */
+    private Boolean loged;
+
+    /**
+     * whether continued
+     */
+    private Boolean continued;
+
+    /**
+     * selector conditions
+     */
+    private List<SelectorConditionVO> selectorConditions;
 
     /**
      * created time.

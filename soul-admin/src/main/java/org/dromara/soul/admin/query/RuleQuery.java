@@ -16,30 +16,23 @@
  *
  */
 
-package org.dromara.soul.admin;
+package org.dromara.soul.admin.query;
 
-import org.dromara.soul.configuration.zookeeper.ZookeeperConfiguration;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Import;
+import lombok.Data;
+import org.dromara.soul.admin.page.PageParameter;
+
+import java.io.Serializable;
 
 /**
- * soul start.
+ * this is rule query.
  *
- * @author xiaoyu
+ * @author jiangxiaofeng(programgeek @ 163.com)
  */
-@SpringBootApplication
-@ComponentScan("org.dromara.soul")
-@Import(value = {ZookeeperConfiguration.class})
-public class SoulAdminApplication {
+@Data
+public class RuleQuery implements Serializable {
 
     /**
-     * Main Entrance.
-     *
-     * @param args startup arguments
+     * page parameter
      */
-    public static void main(final String[] args) {
-        SpringApplication.run(SoulAdminApplication.class, args);
-    }
+    private PageParameter pageParameter;
 }

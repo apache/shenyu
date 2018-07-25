@@ -32,9 +32,12 @@ import java.io.Serializable;
 public class AppAuthQuery implements Serializable {
 
     /**
-     * appKey.
+     * application key.
      */
     private String appKey;
 
+    /**
+     * page parameter
+     */
     private PageParameter pageParameter;
 }
