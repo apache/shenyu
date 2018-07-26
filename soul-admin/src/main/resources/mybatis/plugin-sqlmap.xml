@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.dromara.soul.admin.mapper.PluginMapper">
+    <resultMap id="BaseResultMap" type="org.dromara.soul.admin.entity.PluginDO">
+        <id column="ID" jdbcType="VARCHAR" property="id"/>
+        <result column="DATE_CREATED" jdbcType="TIMESTAMP" property="dateCreated"/>
+        <result column="DATE_UPDATED" jdbcType="TIMESTAMP" property="dateUpdated"/>
+        <result column="PLUGIN_ID" jdbcType="VARCHAR" property="pluginId"/>
+        <result column="NAME" jdbcType="VARCHAR" property="name"/>
+        <result column="ENABLED" jdbcType="TINYINT" property="enabled"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+      ID, DATE_CREATED, DATE_UPDATED, PLUGIN_ID, NAME, ENABLED
+  </sql>
+
+    <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from PLUGIN
+        where ID = #{id,jdbcType=VARCHAR}
+    </select>
+
+    <insert id="insert" parameterType="org.dromara.soul.admin.entity.PluginDO">
+        insert into PLUGIN (ID, DATE_CREATED, DATE_UPDATED,
+        PLUGIN_ID, NAME, ENABLED)
+        values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
+        #{pluginId,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{enabled,jdbcType=TINYINT})
+    </insert>
+
+    <insert id="insertSelective" parameterType="org.dromara.soul.admin.entity.PluginDO">
+        insert into PLUGIN
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            ID,
+            <if test="dateCreated != null">
+                DATE_CREATED,
+            </if>
+            <if test="dateUpdated != null">
+                DATE_UPDATED,
+            </if>
+            <if test="pluginId != null">
+                PLUGIN_ID,
+            </if>
+            <if test="name != null">
+                NAME,
+            </if>
+            <if test="enabled != null">
+                ENABLED,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            #{id,jdbcType=VARCHAR},
+            <if test="dateCreated != null">
+                #{dateCreated,jdbcType=TIMESTAMP},
+            </if>
+            <if test="dateUpdated != null">
+                #{dateUpdated,jdbcType=TIMESTAMP},
+            </if>
+            <if test="pluginId != null">
+                #{pluginId,jdbcType=VARCHAR},
+            </if>
+            <if test="name != null">
+                #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="enabled != null">
+                #{enabled,jdbcType=TINYINT},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="update" parameterType="org.dromara.soul.admin.entity.PluginDO">
+      update PLUGIN
+        set DATE_CREATED = #{dateCreated,jdbcType=TIMESTAMP},
+          DATE_UPDATED = #{dateUpdated,jdbcType=TIMESTAMP},
+          PLUGIN_ID = #{pluginId,jdbcType=VARCHAR},
+          NAME = #{name,jdbcType=VARCHAR},
+          ENABLED = #{enabled,jdbcType=TINYINT}
+    where ID = #{id,jdbcType=VARCHAR}
+    </update>
+
+    <update id="updateSelective" parameterType="org.dromara.soul.admin.entity.PluginDO">
+        update PLUGIN
+        <set>
+            <if test="dateCreated != null">
+                DATE_CREATED = #{dateCreated,jdbcType=TIMESTAMP},
+            </if>
+            <if test="dateUpdated != null">
+                DATE_UPDATED = #{dateUpdated,jdbcType=TIMESTAMP},
+            </if>
+            <if test="pluginId != null">
+                PLUGIN_ID = #{pluginId,jdbcType=VARCHAR},
+            </if>
+            <if test="name != null">
+                NAME = #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="enabled != null">
+                ENABLED = #{enabled,jdbcType=TINYINT},
+            </if>
+        </set>
+        where ID = #{id,jdbcType=VARCHAR}
+    </update>
+</mapper>
