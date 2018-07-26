@@ -18,56 +18,47 @@
 
 package org.dromara.soul.admin.service;
 
-import org.dromara.soul.admin.dto.AppAuthDTO;
-import org.dromara.soul.admin.entity.AppAuthDO;
+import org.dromara.soul.admin.dto.PluginDTO;
+import org.dromara.soul.admin.entity.PluginDO;
 import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.query.AppAuthQuery;
-import org.dromara.soul.admin.vo.AppAuthVO;
+import org.dromara.soul.admin.query.PluginQuery;
 
 /**
- * this is application authority service.
+ * this is plugin service.
  *
- * @author xiaoyu(549477611 @ qq.com)
+ * @author jiangxiaofeng(programgeek @ 163.com)
  */
-public interface AppAuthService {
+public interface PluginService {
 
     /**
-     * save or update application authority.
+     * save or update plugin.
      *
-     * @param appAuthDTO {@linkplain AppAuthDTO}
+     * @param pluginDTO {@linkplain PluginDTO}
      * @return rows
      */
-    int saveOrUpdate(AppAuthDTO appAuthDTO);
+    int saveOrUpdate(PluginDTO pluginDTO);
 
     /**
-     * enabled or disabled application authority.
+     * enabled or disabled plugin.
      *
-     * @param appAuthDTO {@linkplain AppAuthDTO}
+     * @param pluginDTO {@linkplain PluginDTO}
      * @return rows
      */
-    int enabled(AppAuthDTO appAuthDTO);
+    int enabled(PluginDTO pluginDTO);
 
     /**
-     * find application authority by id.
+     * find plugin by id.
      *
      * @param id pk.
-     * @return {@linkplain AppAuthDO}
+     * @return {@linkplain PluginDO}
      */
-    AppAuthDO findById(String id);
+    PluginDO findById(String id);
 
     /**
-     * find application authority by appKey.
+     * find page of plugin by query.
      *
-     * @param appKey appKey.
-     * @return {@linkplain AppAuthDO}
+     * @param pluginQuery {@linkplain PluginQuery}
+     * @return CommonPager<PluginDO>
      */
-    AppAuthDO findByAppKey(String appKey);
-
-    /**
-     * find page of application authority by query.
-     *
-     * @param appAuthQuery {@linkplain AppAuthQuery}
-     * @return CommonPager<AppAuthVO>
-     */
-    CommonPager<AppAuthVO> listByPage(AppAuthQuery appAuthQuery);
+    CommonPager<PluginDO> listByPage(PluginQuery pluginQuery);
 }

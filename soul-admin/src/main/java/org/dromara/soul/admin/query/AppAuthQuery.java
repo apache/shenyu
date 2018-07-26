@@ -24,7 +24,7 @@ import org.dromara.soul.admin.page.PageParameter;
 import java.io.Serializable;
 
 /**
- * this is app auth query.
+ * this is application authority query.
  *
  * @author xiaoyu(549477611 @ qq.com)
  */
@@ -32,9 +32,12 @@ import java.io.Serializable;
 public class AppAuthQuery implements Serializable {
 
     /**
-     * appKey.
+     * application key.
      */
     private String appKey;
 
+    /**
+     * page parameter
+     */
     private PageParameter pageParameter;
 }
