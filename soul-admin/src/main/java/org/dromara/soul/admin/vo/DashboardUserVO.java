@@ -22,38 +22,37 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * this is dashboard user view to web front.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Data
 public class DashboardUserVO implements Serializable {
 
     /**
-     * primary key
+     * primary key.
      */
     private String id;
 
     /**
-     * user name
+     * user name.
      */
     private String userName;
 
     /**
-     * user password
+     * user password.
      */
     private String password;
 
     /**
-     * dashboard role
+     * dashboard role.
      */
     private Integer role;
 
     /**
-     * whether enabled
+     * whether enabled.
      */
     private Boolean enabled;
 

@@ -32,7 +32,7 @@ import java.io.Serializable;
 public class PluginQuery implements Serializable {
 
     /**
-     * page parameter
+     * page parameter.
      */
     private PageParameter pageParameter;
 }

@@ -26,38 +26,38 @@ import java.time.LocalDateTime;
 /**
  * this is rule condition view to web front.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Data
 public class RuleConditionVO implements Serializable {
 
     /**
-     * primary key
+     * primary key.
      */
     private String id;
 
     /**
-     * rule id
+     * rule id.
      */
     private String ruleId;
 
     /**
-     * parameter type
+     * parameter type.
      */
     private String paramType;
 
     /**
-     * match operator
+     * match operator.
      */
     private String operator;
 
     /**
-     * parameter name
+     * parameter name.
      */
     private String paramName;
 
     /**
-     * parameter value
+     * parameter value.
      */
     private String paramValue;
 

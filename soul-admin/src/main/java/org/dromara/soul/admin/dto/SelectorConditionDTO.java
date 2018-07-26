@@ -25,38 +25,38 @@ import java.io.Serializable;
 /**
  * this is selector condition from by web front.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Data
 public class SelectorConditionDTO implements Serializable {
 
     /**
-     * primary key
+     * primary key.
      */
     private String id;
 
     /**
-     * selector id
+     * selector id.
      */
     private String selectorId;
 
     /**
-     * parameter type
+     * parameter type.
      */
     private String paramType;
 
     /**
-     * match operator
+     * match operator.
      */
     private String operator;
 
     /**
-     * parameter name
+     * parameter name.
      */
     private String paramName;
 
     /**
-     * parameter value
+     * parameter value.
      */
     private String paramValue;
 }

@@ -26,13 +26,13 @@ import java.io.Serializable;
 /**
  * this is selector query.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Data
 public class SelectorQuery implements Serializable {
 
     /**
-     * page parameter
+     * page parameter.
      */
     private PageParameter pageParameter;
 }

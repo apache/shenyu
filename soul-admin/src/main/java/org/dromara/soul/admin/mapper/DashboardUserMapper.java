@@ -24,48 +24,48 @@ import org.dromara.soul.admin.entity.DashboardUserDO;
 /**
  * DashboardUserMapper.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Mapper
 public interface DashboardUserMapper {
 
     /**
-     * select dashboard user by id
+     * select dashboard user by id.
      *
-     * @param id
-     * @return
+     * @param id pk
+     * @return {@linkplain DashboardUserDO}
      */
     DashboardUserDO selectById(String id);
 
     /**
-     * insert dashboard user
+     * insert dashboard user.
      *
-     * @param dashboardUserDO
-     * @return
+     * @param dashboardUserDO {@linkplain DashboardUserDO}
+     * @return rows
      */
     int insert(DashboardUserDO dashboardUserDO);
 
     /**
-     * insert selective dashboard user
+     * insert selective dashboard user.
      *
-     * @param dashboardUserDO
-     * @return
+     * @param dashboardUserDO {@linkplain DashboardUserDO}
+     * @return rows
      */
     int insertSelective(DashboardUserDO dashboardUserDO);
 
     /**
-     * update dashboard user
+     * update dashboard user.
      *
-     * @param dashboardUserDO
-     * @return
+     * @param dashboardUserDO {@linkplain DashboardUserDO}
+     * @return rows
      */
     int update(DashboardUserDO dashboardUserDO);
 
     /**
-     * update selective dashboard user
+     * update selective dashboard user.
      *
-     * @param dashboardUserDO
-     * @return
+     * @param dashboardUserDO {@linkplain DashboardUserDO}
+     * @return rows
      */
     int updateSelective(DashboardUserDO dashboardUserDO);
 }

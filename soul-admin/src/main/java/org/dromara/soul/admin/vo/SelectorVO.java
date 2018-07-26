@@ -27,58 +27,58 @@ import java.util.List;
 /**
  * this is selector view to web front.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Data
 public class SelectorVO implements Serializable {
 
     /**
-     * primary key
+     * primary key.
      */
     private String id;
 
     /**
-     * plugin id
+     * plugin id.
      */
     private String pluginId;
 
     /**
-     * selector name
+     * selector name.
      */
     private String name;
 
     /**
-     * match mode
+     * match mode.
      */
     private Integer matchMode;
 
     /**
-     * selector type
+     * selector type.
      */
     private Integer type;
 
     /**
-     * sort rank
+     * sort rank.
      */
     private Integer rank;
 
     /**
-     * whether enabled
+     * whether enabled.
      */
     private Boolean enabled;
 
     /**
-     * whether loged
+     * whether loged.
      */
     private Boolean loged;
 
     /**
-     * whether continued
+     * whether continued.
      */
     private Boolean continued;
 
     /**
-     * selector conditions
+     * selector conditions.
      */
     private List<SelectorConditionVO> selectorConditions;
 

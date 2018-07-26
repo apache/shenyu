@@ -23,43 +23,43 @@ import lombok.Data;
 /**
  * RuleDO.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Data
 public class RuleDO extends BaseDO {
 
     /**
-     * selector id
+     * selector id.
      */
     private String selectorId;
 
     /**
-     * match mode
+     * match mode.
      */
     private Integer matchMode;
 
     /**
-     * rule name
+     * rule name.
      */
     private String name;
 
     /**
-     * whether enabled
+     * whether enabled.
      */
     private Boolean enabled;
 
     /**
-     * whether loged
+     * whether loged.
      */
     private Boolean loged;
 
     /**
-     * sort rank
+     * sort rank.
      */
     private Integer rank;
 
     /**
-     * process logic
+     * process logic.
      */
     private String handle;
 }

@@ -1,9 +1,9 @@
 /*
- *   Licensed to the Apache Software Foundation (ASF) under one or more
+ *   Licensed to the Apache Software Foundation (final ASF) under one or more
  *   contributor license agreements.  See the NOTICE file distributed with
  *   this work for additional information regarding copyright ownership.
  *   The ASF licenses this file to You under the Apache License, Version 2.0
- *   (the "License"); you may not use this file except in compliance with
+ *   (final the "License"); you may not use this file except in compliance with
  *   the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -28,7 +28,7 @@ import org.springframework.stereotype.Service;
 /**
  * PluginServiceImpl.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Service("pluginService")
 public class PluginServiceImpl implements PluginService {
@@ -39,7 +39,7 @@ public class PluginServiceImpl implements PluginService {
      * @param pluginDTO {@linkplain PluginDTO}
      * @return rows
      */
-    public int saveOrUpdate(PluginDTO pluginDTO) {
+    public int saveOrUpdate(final PluginDTO pluginDTO) {
         return 0;
     }
 
@@ -49,7 +49,7 @@ public class PluginServiceImpl implements PluginService {
      * @param pluginDTO {@linkplain PluginDTO}
      * @return rows
      */
-    public int enabled(PluginDTO pluginDTO) {
+    public int enabled(final PluginDTO pluginDTO) {
         return 0;
     }
 
@@ -59,7 +59,7 @@ public class PluginServiceImpl implements PluginService {
      * @param id pk.
      * @return {@linkplain PluginDO}
      */
-    public PluginDO findById(String id) {
+    public PluginDO findById(final String id) {
         return null;
     }
 
@@ -67,9 +67,9 @@ public class PluginServiceImpl implements PluginService {
      * find page of plugin by query.
      *
      * @param pluginQuery {@linkplain PluginQuery}
-     * @return CommonPager<PluginDO>
+     * @return {@linkplain CommonPager}
      */
-    public CommonPager<PluginDO> listByPage(PluginQuery pluginQuery) {
+    public CommonPager<PluginDO> listByPage(final PluginQuery pluginQuery) {
         return null;
     }
 }

@@ -26,7 +26,7 @@ import org.dromara.soul.admin.query.DashboardUserQuery;
 /**
  * this is dashboard user service.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 public interface DashboardUserService {
 
@@ -58,7 +58,7 @@ public interface DashboardUserService {
      * find page of dashboard user by query.
      *
      * @param dashboardUserQuery {@linkplain DashboardUserQuery}
-     * @return CommonPager<DashboardUserDO>
+     * @return {@linkplain CommonPager}
      */
     CommonPager<DashboardUserDO> listByPage(DashboardUserQuery dashboardUserQuery);
 }

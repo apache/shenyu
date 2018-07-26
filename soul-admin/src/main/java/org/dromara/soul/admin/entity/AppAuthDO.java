@@ -23,23 +23,23 @@ import lombok.Data;
 /**
  * AppAuthDO.
  *
- * @author xiaoyu(549477611 @ qq.com)
+ * @author xiaoyu(Myth)
  */
 @Data
 public class AppAuthDO extends BaseDO {
 
     /**
-     * application key
+     * application key.
      */
     private String appKey;
 
     /**
-     * encryption secret
+     * encryption secret.
      */
     private String appSecret;
 
     /**
-     * whether enabled
+     * whether enabled.
      */
     private Boolean enabled;
 }

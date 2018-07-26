@@ -58,7 +58,7 @@ public interface PluginService {
      * find page of plugin by query.
      *
      * @param pluginQuery {@linkplain PluginQuery}
-     * @return CommonPager<PluginDO>
+     * @return {@linkplain CommonPager}
      */
     CommonPager<PluginDO> listByPage(PluginQuery pluginQuery);
 }

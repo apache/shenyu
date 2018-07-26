@@ -26,28 +26,28 @@ import java.time.LocalDateTime;
 /**
  * this is application authority view to web front.
  *
- * @author xiaoyu(549477611 @ qq.com)
+ * @author xiaoyu(Myth)
  */
 @Data
 public class AppAuthVO implements Serializable {
 
     /**
-     * primary key
+     * primary key.
      */
     private String id;
 
     /**
-     * application key
+     * application key.
      */
     private String appKey;
 
     /**
-     * encryption secret
+     * encryption secret.
      */
     private String appSecret;
 
     /**
-     * whether enabled
+     * whether enabled.
      */
     private Boolean enabled;
 

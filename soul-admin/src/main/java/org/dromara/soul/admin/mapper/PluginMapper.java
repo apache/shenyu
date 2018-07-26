@@ -24,48 +24,48 @@ import org.dromara.soul.admin.entity.PluginDO;
 /**
  * PluginMapper.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Mapper
 public interface PluginMapper {
 
     /**
-     * select plugin by id
+     * select plugin by id.
      *
-     * @param id
-     * @return
+     * @param id pk
+     * @return {@linkplain PluginDO}
      */
     PluginDO selectById(String id);
 
     /**
-     * insert plugin
+     * insert plugin.
      *
-     * @param pluginDO
-     * @return
+     * @param pluginDO {@linkplain PluginDO}
+     * @return rows
      */
     int insert(PluginDO pluginDO);
 
     /**
-     * insert selective plugin
+     * insert selective plugin.
      *
-     * @param pluginDO
-     * @return
+     * @param pluginDO {@linkplain PluginDO}
+     * @return rows
      */
     int insertSelective(PluginDO pluginDO);
 
     /**
-     * update plugin
+     * update plugin.
      *
-     * @param pluginDO
-     * @return
+     * @param pluginDO {@linkplain PluginDO}
+     * @return rows
      */
     int update(PluginDO pluginDO);
 
     /**
-     * update selective plugin
+     * update selective plugin.
      *
-     * @param pluginDO
-     * @return
+     * @param pluginDO {@linkplain PluginDO}
+     * @return rows
      */
     int updateSelective(PluginDO pluginDO);
 }

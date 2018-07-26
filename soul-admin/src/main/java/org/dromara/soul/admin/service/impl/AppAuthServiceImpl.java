@@ -29,7 +29,7 @@ import org.springframework.stereotype.Service;
 /**
  * AppAuthServiceImpl.
  *
- * @author xiaoyu(549477611 @ qq.com)
+ * @author xiaoyu(Myth)
  */
 @Service("appAuthService")
 public class AppAuthServiceImpl implements AppAuthService {
@@ -82,7 +82,7 @@ public class AppAuthServiceImpl implements AppAuthService {
      * find page of application authority by query.
      *
      * @param appAuthQuery {@linkplain AppAuthQuery}
-     * @return CommonPager<AppAuthVO>
+     * @return {@linkplain CommonPager}
      */
     @Override
     public CommonPager<AppAuthVO> listByPage(final AppAuthQuery appAuthQuery) {
