@@ -20,29 +20,46 @@ package org.dromara.soul.admin.entity;
 
 import lombok.Data;
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
-
 /**
- * BaseDO.
+ * RuleDO.
  *
- * @author xiaoyu(Myth)
+ * @author jiangxiaofeng(programgeek @ 163.com)
  */
 @Data
-public class BaseDO implements Serializable {
+public class RuleDO extends BaseDO {
 
     /**
-     * primary key.
+     * selector id
      */
-    private String id;
+    private String selectorId;
 
     /**
-     * created time.
+     * match mode
      */
-    private LocalDateTime dateCreated;
+    private Integer matchMode;
 
     /**
-     * updated time.
+     * rule name
      */
-    private LocalDateTime dateUpdated;
+    private String name;
+
+    /**
+     * whether enabled
+     */
+    private Boolean enabled;
+
+    /**
+     * whether loged
+     */
+    private Boolean loged;
+
+    /**
+     * sort rank
+     */
+    private Integer rank;
+
+    /**
+     * process logic
+     */
+    private String handle;
 }

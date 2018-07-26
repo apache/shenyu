@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Import;
  */
 @SpringBootApplication
 @ComponentScan("org.dromara.soul")
-@Import(value = { ZookeeperConfiguration.class })
+@Import(value = {ZookeeperConfiguration.class})
 public class SoulAdminApplication {
 
     /**
@@ -42,5 +42,4 @@ public class SoulAdminApplication {
     public static void main(final String[] args) {
         SpringApplication.run(SoulAdminApplication.class, args);
     }
-
 }

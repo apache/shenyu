@@ -16,33 +16,56 @@
  *
  */
 
-package org.dromara.soul.admin.entity;
+package org.dromara.soul.admin.mapper;
 
-import lombok.Data;
-
-import java.io.Serializable;
-import java.time.LocalDateTime;
+import org.apache.ibatis.annotations.Mapper;
+import org.dromara.soul.admin.entity.PluginDO;
 
 /**
- * BaseDO.
+ * PluginMapper.
  *
- * @author xiaoyu(Myth)
+ * @author jiangxiaofeng(programgeek @ 163.com)
  */
-@Data
-public class BaseDO implements Serializable {
+@Mapper
+public interface PluginMapper {
 
     /**
-     * primary key.
+     * select plugin by id
+     *
+     * @param id
+     * @return
      */
-    private String id;
+    PluginDO selectById(String id);
 
     /**
-     * created time.
+     * insert plugin
+     *
+     * @param pluginDO
+     * @return
      */
-    private LocalDateTime dateCreated;
+    int insert(PluginDO pluginDO);
 
     /**
-     * updated time.
+     * insert selective plugin
+     *
+     * @param pluginDO
+     * @return
      */
-    private LocalDateTime dateUpdated;
+    int insertSelective(PluginDO pluginDO);
+
+    /**
+     * update plugin
+     *
+     * @param pluginDO
+     * @return
+     */
+    int update(PluginDO pluginDO);
+
+    /**
+     * update selective plugin
+     *
+     * @param pluginDO
+     * @return
+     */
+    int updateSelective(PluginDO pluginDO);
 }

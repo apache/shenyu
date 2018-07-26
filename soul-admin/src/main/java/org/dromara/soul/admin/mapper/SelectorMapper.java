@@ -16,33 +16,56 @@
  *
  */
 
-package org.dromara.soul.admin.entity;
+package org.dromara.soul.admin.mapper;
 
-import lombok.Data;
-
-import java.io.Serializable;
-import java.time.LocalDateTime;
+import org.apache.ibatis.annotations.Mapper;
+import org.dromara.soul.admin.entity.SelectorDO;
 
 /**
- * BaseDO.
+ * SelectorMapper.
  *
- * @author xiaoyu(Myth)
+ * @author jiangxiaofeng(programgeek @ 163.com)
  */
-@Data
-public class BaseDO implements Serializable {
+@Mapper
+public interface SelectorMapper {
 
     /**
-     * primary key.
+     * select selector by id
+     *
+     * @param id
+     * @return
      */
-    private String id;
+    SelectorDO selectById(String id);
 
     /**
-     * created time.
+     * insert selector
+     *
+     * @param selectorDO
+     * @return
      */
-    private LocalDateTime dateCreated;
+    int insert(SelectorDO selectorDO);
 
     /**
-     * updated time.
+     * insert selective selector
+     *
+     * @param selectorDO
+     * @return
      */
-    private LocalDateTime dateUpdated;
+    int insertSelective(SelectorDO selectorDO);
+
+    /**
+     * update selector
+     *
+     * @param selectorDO
+     * @return
+     */
+    int update(SelectorDO selectorDO);
+
+    /**
+     * update selective selector
+     *
+     * @param selectorDO
+     * @return
+     */
+    int updateSelective(SelectorDO selectorDO);
 }

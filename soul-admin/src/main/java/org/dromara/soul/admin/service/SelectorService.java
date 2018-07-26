@@ -18,56 +18,48 @@
 
 package org.dromara.soul.admin.service;
 
-import org.dromara.soul.admin.dto.AppAuthDTO;
-import org.dromara.soul.admin.entity.AppAuthDO;
+import org.dromara.soul.admin.dto.SelectorDTO;
+import org.dromara.soul.admin.entity.SelectorDO;
 import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.query.AppAuthQuery;
-import org.dromara.soul.admin.vo.AppAuthVO;
+import org.dromara.soul.admin.query.SelectorQuery;
+import org.dromara.soul.admin.vo.SelectorVO;
 
 /**
- * this is application authority service.
+ * this is selector service.
  *
- * @author xiaoyu(549477611 @ qq.com)
+ * @author jiangxiaofeng(programgeek @ 163.com)
  */
-public interface AppAuthService {
+public interface SelectorService {
 
     /**
-     * save or update application authority.
+     * save or update selector.
      *
-     * @param appAuthDTO {@linkplain AppAuthDTO}
+     * @param selectorDTO {@linkplain SelectorDTO}
      * @return rows
      */
-    int saveOrUpdate(AppAuthDTO appAuthDTO);
+    int saveOrUpdate(SelectorDTO selectorDTO);
 
     /**
-     * enabled or disabled application authority.
+     * enabled or disabled selector.
      *
-     * @param appAuthDTO {@linkplain AppAuthDTO}
+     * @param selectorDTO {@linkplain SelectorDTO}
      * @return rows
      */
-    int enabled(AppAuthDTO appAuthDTO);
+    int enabled(SelectorDTO selectorDTO);
 
     /**
-     * find application authority by id.
+     * find selector by id.
      *
      * @param id pk.
-     * @return {@linkplain AppAuthDO}
+     * @return {@linkplain SelectorDO}
      */
-    AppAuthDO findById(String id);
+    SelectorDO findById(String id);
 
     /**
-     * find application authority by appKey.
+     * find page of selector by query.
      *
-     * @param appKey appKey.
-     * @return {@linkplain AppAuthDO}
+     * @param selectorQuery {@linkplain SelectorQuery}
+     * @return CommonPager<SelectorVO>
      */
-    AppAuthDO findByAppKey(String appKey);
-
-    /**
-     * find page of application authority by query.
-     *
-     * @param appAuthQuery {@linkplain AppAuthQuery}
-     * @return CommonPager<AppAuthVO>
-     */
-    CommonPager<AppAuthVO> listByPage(AppAuthQuery appAuthQuery);
+    CommonPager<SelectorVO> listByPage(SelectorQuery selectorQuery);
 }
