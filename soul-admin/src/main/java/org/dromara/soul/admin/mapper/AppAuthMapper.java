@@ -35,7 +35,7 @@ public interface AppAuthMapper {
      * @param id
      * @return
      */
-    AppAuthDO selectById(Long id);
+    AppAuthDO selectById(String id);
 
     /**
      * insert application authority

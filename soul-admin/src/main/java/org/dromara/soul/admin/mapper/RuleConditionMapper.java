@@ -36,7 +36,7 @@ public interface RuleConditionMapper {
      * @param id
      * @return
      */
-    RuleDO selectById(Long id);
+    RuleDO selectById(String id);
 
     /**
      * insert rule condition

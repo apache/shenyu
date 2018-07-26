@@ -35,7 +35,7 @@ public interface PluginMapper {
      * @param id
      * @return
      */
-    PluginDO selectById(Long id);
+    PluginDO selectById(String id);
 
     /**
      * insert plugin

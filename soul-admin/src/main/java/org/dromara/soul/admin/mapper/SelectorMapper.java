@@ -35,7 +35,7 @@ public interface SelectorMapper {
      * @param id
      * @return
      */
-    SelectorDO selectById(Long id);
+    SelectorDO selectById(String id);
 
     /**
      * insert selector

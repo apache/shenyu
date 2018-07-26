@@ -35,7 +35,7 @@ public interface DashboardUserMapper {
      * @param id
      * @return
      */
-    DashboardUserDO selectById(Long id);
+    DashboardUserDO selectById(String id);
 
     /**
      * insert dashboard user

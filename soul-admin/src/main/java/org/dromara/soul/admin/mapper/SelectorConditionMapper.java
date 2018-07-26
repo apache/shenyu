@@ -35,7 +35,7 @@ public interface SelectorConditionMapper {
      * @param id
      * @return
      */
-    SelectorConditionDO selectById(Long id);
+    SelectorConditionDO selectById(String id);
 
     /**
      * insert selector condition
