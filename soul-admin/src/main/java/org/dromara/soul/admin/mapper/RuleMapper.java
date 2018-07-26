@@ -16,33 +16,56 @@
  *
  */
 
-package org.dromara.soul.admin.entity;
+package org.dromara.soul.admin.mapper;
 
-import lombok.Data;
-
-import java.io.Serializable;
-import java.time.LocalDateTime;
+import org.apache.ibatis.annotations.Mapper;
+import org.dromara.soul.admin.entity.RuleDO;
 
 /**
- * BaseDO.
+ * RuleMapper.
  *
- * @author xiaoyu(Myth)
+ * @author jiangxiaofeng(programgeek @ 163.com)
  */
-@Data
-public class BaseDO implements Serializable {
+@Mapper
+public interface RuleMapper {
 
     /**
-     * primary key.
+     * select rule by id
+     *
+     * @param id
+     * @return
      */
-    private String id;
+    RuleDO selectById(String id);
 
     /**
-     * created time.
+     * insert rule
+     *
+     * @param ruleDO
+     * @return
      */
-    private LocalDateTime dateCreated;
+    int insert(RuleDO ruleDO);
 
     /**
-     * updated time.
+     * insert selective rule
+     *
+     * @param ruleDO
+     * @return
      */
-    private LocalDateTime dateUpdated;
+    int insertSelective(RuleDO ruleDO);
+
+    /**
+     * update rule
+     *
+     * @param ruleDO
+     * @return
+     */
+    int update(RuleDO ruleDO);
+
+    /**
+     * update selective rule
+     *
+     * @param ruleDO
+     * @return
+     */
+    int updateSelective(RuleDO ruleDO);
 }

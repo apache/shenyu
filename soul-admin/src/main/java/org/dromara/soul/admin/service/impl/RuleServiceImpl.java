@@ -18,74 +18,63 @@
 
 package org.dromara.soul.admin.service.impl;
 
-import org.dromara.soul.admin.dto.AppAuthDTO;
-import org.dromara.soul.admin.entity.AppAuthDO;
+import org.dromara.soul.admin.dto.RuleDTO;
+import org.dromara.soul.admin.entity.RuleDO;
 import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.query.AppAuthQuery;
-import org.dromara.soul.admin.service.AppAuthService;
-import org.dromara.soul.admin.vo.AppAuthVO;
+import org.dromara.soul.admin.query.RuleQuery;
+import org.dromara.soul.admin.service.RuleService;
+import org.dromara.soul.admin.vo.RuleVO;
 import org.springframework.stereotype.Service;
 
 /**
- * AppAuthServiceImpl.
+ * RuleServiceImpl.
  *
- * @author xiaoyu(549477611 @ qq.com)
+ * @author jiangxiaofeng(programgeek @ 163.com)
  */
-@Service("appAuthService")
-public class AppAuthServiceImpl implements AppAuthService {
+@Service("ruleService")
+public class RuleServiceImpl implements RuleService {
 
     /**
-     * save or update application authority.
+     * save or update rule.
      *
-     * @param appAuthDTO {@linkplain AppAuthDTO}
+     * @param ruleDTO {@linkplain RuleDTO}
      * @return rows
      */
     @Override
-    public int saveOrUpdate(final AppAuthDTO appAuthDTO) {
+    public int saveOrUpdate(RuleDTO ruleDTO) {
         return 0;
     }
 
     /**
-     * enabled or disabled application authority.
+     * enabled or disabled rule.
      *
-     * @param appAuthDTO {@linkplain AppAuthDTO}
+     * @param ruleDTO {@linkplain RuleDTO}
      * @return rows
      */
     @Override
-    public int enabled(final AppAuthDTO appAuthDTO) {
+    public int enabled(RuleDTO ruleDTO) {
         return 0;
     }
 
     /**
-     * find application authority by id.
+     * find rule by id.
      *
      * @param id pk.
-     * @return {@linkplain AppAuthDO}
+     * @return {@linkplain RuleDO}
      */
     @Override
-    public AppAuthDO findById(final String id) {
+    public RuleDO findById(String id) {
         return null;
     }
 
     /**
-     * find application authority by appKey.
+     * find page of rule by query.
      *
-     * @param appKey appKey.
-     * @return {@linkplain AppAuthDO}
+     * @param ruleQuery {@linkplain RuleQuery}
+     * @return CommonPager<RuleVO>
      */
     @Override
-    public AppAuthDO findByAppKey(final String appKey) {
-        return null;
-    }
-
-    /**
-     * find page of application authority by query.
-     *
-     * @param appAuthQuery {@linkplain AppAuthQuery}
-     * @return CommonPager<AppAuthVO>
-     */
-    @Override
-    public CommonPager<AppAuthVO> listByPage(final AppAuthQuery appAuthQuery) {
+    public CommonPager<RuleVO> listByPage(RuleQuery ruleQuery) {
         return null;
     }
 }
