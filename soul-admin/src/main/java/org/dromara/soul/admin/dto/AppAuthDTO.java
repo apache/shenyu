@@ -23,16 +23,30 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * this is from by web front.
+ * this is application authority from by web front.
  *
  * @author xiaoyu(549477611 @ qq.com)
  */
 @Data
 public class AppAuthDTO implements Serializable {
 
+    /**
+     * primary key
+     */
     private String id;
 
+    /**
+     * application key
+     */
     private String appKey;
 
+    /**
+     * encryption secret
+     */
+    private String appSecret;
+
+    /**
+     * whether enabled
+     */
     private Boolean enabled;
 }

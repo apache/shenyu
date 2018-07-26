@@ -16,7 +16,7 @@
  *
  */
 
-package org.dromara.soul.admin.entity;
+package org.dromara.soul.admin.vo;
 
 import lombok.Data;
 
@@ -24,17 +24,27 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * BaseDO.
+ * this is plugin view to web front.
  *
- * @author xiaoyu(Myth)
+ * @author jiangxiaofeng(programgeek @ 163.com)
  */
 @Data
-public class BaseDO implements Serializable {
+public class PluginVO implements Serializable {
 
     /**
-     * primary key.
+     * primary key
      */
     private String id;
+
+    /**
+     * plugin name
+     */
+    private String name;
+
+    /**
+     * whether enabled
+     */
+    private Boolean enabled;
 
     /**
      * created time.

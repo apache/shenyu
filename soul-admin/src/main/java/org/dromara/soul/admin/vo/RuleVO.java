@@ -16,25 +16,66 @@
  *
  */
 
-package org.dromara.soul.admin.entity;
+package org.dromara.soul.admin.vo;
 
 import lombok.Data;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
- * BaseDO.
+ * this is rule view to web front.
  *
- * @author xiaoyu(Myth)
+ * @author jiangxiaofeng(programgeek @ 163.com)
  */
 @Data
-public class BaseDO implements Serializable {
+public class RuleVO implements Serializable {
 
     /**
-     * primary key.
+     * primary key
      */
     private String id;
+
+    /**
+     * selector id
+     */
+    private String selectorId;
+
+    /**
+     * match mode
+     */
+    private Integer matchMode;
+
+    /**
+     * rule name
+     */
+    private String name;
+
+    /**
+     * whether enabled
+     */
+    private Boolean enabled;
+
+    /**
+     * whether loged
+     */
+    private Boolean loged;
+
+    /**
+     * sort rank
+     */
+    private Integer rank;
+
+    /**
+     * process logic
+     */
+    private String handle;
+
+    /**
+     * rule conditions
+     */
+    private List<RuleConditionVO> ruleConditions;
 
     /**
      * created time.

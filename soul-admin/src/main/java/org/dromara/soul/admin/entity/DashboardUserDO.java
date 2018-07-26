@@ -20,29 +20,31 @@ package org.dromara.soul.admin.entity;
 
 import lombok.Data;
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
-
 /**
- * BaseDO.
+ * DashboardUserDO.
  *
- * @author xiaoyu(Myth)
+ * @author jiangxiaofeng(programgeek @ 163.com)
  */
 @Data
-public class BaseDO implements Serializable {
+public class DashboardUserDO extends BaseDO {
 
     /**
-     * primary key.
+     * user name
      */
-    private String id;
+    private String userName;
 
     /**
-     * created time.
+     * user password
      */
-    private LocalDateTime dateCreated;
+    private String password;
 
     /**
-     * updated time.
+     * dashboard role
      */
-    private LocalDateTime dateUpdated;
+    private Integer role;
+
+    /**
+     * whether enabled
+     */
+    private Boolean enabled;
 }
