@@ -31,11 +31,12 @@ import org.springframework.context.annotation.Import;
  */
 @SpringBootApplication
 @ComponentScan("org.dromara.soul")
-@Import(value = ZookeeperConfiguration.class)
+@Import(value = {ZookeeperConfiguration.class})
 public class SoulAdminApplication {
 
     /**
      * Main Entrance.
+     *
      * @param args startup arguments
      */
     public static void main(final String[] args) {

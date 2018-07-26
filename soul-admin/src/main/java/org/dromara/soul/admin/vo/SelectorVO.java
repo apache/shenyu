@@ -18,10 +18,11 @@
 
 package org.dromara.soul.admin.vo;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -30,6 +31,8 @@ import java.util.List;
  * @author jiangxiaofeng(Nicholas)
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class SelectorVO implements Serializable {
 
     /**
@@ -85,10 +88,10 @@ public class SelectorVO implements Serializable {
     /**
      * created time.
      */
-    private LocalDateTime dateCreated;
+    private String dateCreated;
 
     /**
      * updated time.
      */
-    private LocalDateTime dateUpdated;
+    private String dateUpdated;
 }

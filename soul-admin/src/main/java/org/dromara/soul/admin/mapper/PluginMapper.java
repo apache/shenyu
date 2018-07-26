@@ -20,6 +20,9 @@ package org.dromara.soul.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.dromara.soul.admin.entity.PluginDO;
+import org.dromara.soul.admin.query.PluginQuery;
+
+import java.util.List;
 
 /**
  * PluginMapper.
@@ -36,6 +39,14 @@ public interface PluginMapper {
      * @return {@linkplain PluginDO}
      */
     PluginDO selectById(String id);
+
+    /**
+     * select plugin by id.
+     *
+     * @param pluginQuery {@linkplain PluginQuery}
+     * @return {@linkplain List}
+     */
+    List<PluginDO> selectByQuery(PluginQuery pluginQuery);
 
     /**
      * insert plugin.

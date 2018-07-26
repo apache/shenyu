@@ -18,10 +18,11 @@
 
 package org.dromara.soul.admin.vo;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 /**
  * this is plugin view to web front.
@@ -29,30 +30,32 @@ import java.time.LocalDateTime;
  * @author jiangxiaofeng(programgeek @ 163.com)
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class PluginVO implements Serializable {
 
     /**
-     * primary key
+     * primary key.
      */
     private String id;
 
     /**
-     * plugin name
+     * plugin name.
      */
     private String name;
 
     /**
-     * whether enabled
+     * whether enabled.
      */
     private Boolean enabled;
 
     /**
      * created time.
      */
-    private LocalDateTime dateCreated;
+    private String dateCreated;
 
     /**
      * updated time.
      */
-    private LocalDateTime dateUpdated;
+    private String dateUpdated;
 }

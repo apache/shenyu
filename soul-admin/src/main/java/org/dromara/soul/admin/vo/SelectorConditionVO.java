@@ -18,10 +18,11 @@
 
 package org.dromara.soul.admin.vo;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 /**
  * this is selector condition view to web front.
@@ -29,6 +30,8 @@ import java.time.LocalDateTime;
  * @author jiangxiaofeng(Nicholas)
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class SelectorConditionVO implements Serializable {
 
     /**
@@ -64,10 +67,10 @@ public class SelectorConditionVO implements Serializable {
     /**
      * created time.
      */
-    private LocalDateTime dateCreated;
+    private String dateCreated;
 
     /**
      * updated time.
      */
-    private LocalDateTime dateUpdated;
+    private String dateUpdated;
 }

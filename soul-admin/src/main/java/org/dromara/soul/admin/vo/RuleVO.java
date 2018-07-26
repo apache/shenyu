@@ -21,7 +21,6 @@ package org.dromara.soul.admin.vo;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -80,10 +79,10 @@ public class RuleVO implements Serializable {
     /**
      * created time.
      */
-    private LocalDateTime dateCreated;
+    private String dateCreated;
 
     /**
      * updated time.
      */
-    private LocalDateTime dateUpdated;
+    private String dateUpdated;
 }

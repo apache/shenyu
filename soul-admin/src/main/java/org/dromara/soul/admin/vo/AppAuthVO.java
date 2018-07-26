@@ -18,10 +18,11 @@
 
 package org.dromara.soul.admin.vo;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 /**
  * this is application authority view to web front.
@@ -29,6 +30,8 @@ import java.time.LocalDateTime;
  * @author xiaoyu(Myth)
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class AppAuthVO implements Serializable {
 
     /**
@@ -54,10 +57,10 @@ public class AppAuthVO implements Serializable {
     /**
      * created time.
      */
-    private LocalDateTime dateCreated;
+    private String dateCreated;
 
     /**
      * updated time.
      */
-    private LocalDateTime dateUpdated;
+    private String dateUpdated;
 }

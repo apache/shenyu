@@ -18,7 +18,9 @@
 
 package org.dromara.soul.admin.query;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.dromara.soul.admin.page.PageParameter;
 
 import java.io.Serializable;
@@ -29,6 +31,8 @@ import java.io.Serializable;
  * @author jiangxiaofeng(programgeek @ 163.com)
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class PluginQuery implements Serializable {
 
     /**

@@ -22,6 +22,7 @@ import org.dromara.soul.admin.dto.PluginDTO;
 import org.dromara.soul.admin.entity.PluginDO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.PluginQuery;
+import org.dromara.soul.admin.vo.PluginVO;
 
 /**
  * this is plugin service.
@@ -60,5 +61,5 @@ public interface PluginService {
      * @param pluginQuery {@linkplain PluginQuery}
      * @return {@linkplain CommonPager}
      */
-    CommonPager<PluginDO> listByPage(PluginQuery pluginQuery);
+    CommonPager<PluginVO> listByPage(PluginQuery pluginQuery);
 }
