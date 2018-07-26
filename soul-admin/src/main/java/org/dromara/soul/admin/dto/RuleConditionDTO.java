@@ -16,33 +16,47 @@
  *
  */
 
-package org.dromara.soul.admin.entity;
+package org.dromara.soul.admin.dto;
 
 import lombok.Data;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 /**
- * BaseDO.
+ * this is rule condition from by web front.
  *
- * @author xiaoyu(Myth)
+ * @author jiangxiaofeng(programgeek @ 163.com)
  */
 @Data
-public class BaseDO implements Serializable {
+public class RuleConditionDTO implements Serializable {
 
     /**
-     * primary key.
+     * primary key
      */
     private String id;
+    
+    /**
+     * rule id
+     */
+    private String ruleId;
 
     /**
-     * created time.
+     * parameter type
      */
-    private LocalDateTime dateCreated;
+    private String paramType;
 
     /**
-     * updated time.
+     * match operator
      */
-    private LocalDateTime dateUpdated;
+    private String operator;
+
+    /**
+     * parameter name
+     */
+    private String paramName;
+
+    /**
+     * parameter value
+     */
+    private String paramValue;
 }

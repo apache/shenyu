@@ -18,56 +18,47 @@
 
 package org.dromara.soul.admin.service;
 
-import org.dromara.soul.admin.dto.AppAuthDTO;
-import org.dromara.soul.admin.entity.AppAuthDO;
+import org.dromara.soul.admin.dto.DashboardUserDTO;
+import org.dromara.soul.admin.entity.DashboardUserDO;
 import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.query.AppAuthQuery;
-import org.dromara.soul.admin.vo.AppAuthVO;
+import org.dromara.soul.admin.query.DashboardUserQuery;
 
 /**
- * this is application authority service.
+ * this is dashboard user service.
  *
- * @author xiaoyu(549477611 @ qq.com)
+ * @author jiangxiaofeng(programgeek @ 163.com)
  */
-public interface AppAuthService {
+public interface DashboardUserService {
 
     /**
-     * save or update application authority.
+     * save or update dashboard user.
      *
-     * @param appAuthDTO {@linkplain AppAuthDTO}
+     * @param dashboardUserDTO {@linkplain DashboardUserDTO}
      * @return rows
      */
-    int saveOrUpdate(AppAuthDTO appAuthDTO);
+    int saveOrUpdate(DashboardUserDTO dashboardUserDTO);
 
     /**
-     * enabled or disabled application authority.
+     * enabled or disabled dashboard user.
      *
-     * @param appAuthDTO {@linkplain AppAuthDTO}
+     * @param dashboardUserDTO {@linkplain DashboardUserDTO}
      * @return rows
      */
-    int enabled(AppAuthDTO appAuthDTO);
+    int enabled(DashboardUserDTO dashboardUserDTO);
 
     /**
-     * find application authority by id.
+     * find dashboard user by id.
      *
      * @param id pk.
-     * @return {@linkplain AppAuthDO}
+     * @return {@linkplain DashboardUserDO}
      */
-    AppAuthDO findById(String id);
+    DashboardUserDO findById(String id);
 
     /**
-     * find application authority by appKey.
+     * find page of dashboard user by query.
      *
-     * @param appKey appKey.
-     * @return {@linkplain AppAuthDO}
+     * @param dashboardUserQuery {@linkplain DashboardUserQuery}
+     * @return CommonPager<DashboardUserDO>
      */
-    AppAuthDO findByAppKey(String appKey);
-
-    /**
-     * find page of application authority by query.
-     *
-     * @param appAuthQuery {@linkplain AppAuthQuery}
-     * @return CommonPager<AppAuthVO>
-     */
-    CommonPager<AppAuthVO> listByPage(AppAuthQuery appAuthQuery);
+    CommonPager<DashboardUserDO> listByPage(DashboardUserQuery dashboardUserQuery);
 }
