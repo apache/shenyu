@@ -32,6 +32,7 @@ import org.dromara.soul.common.utils.JSONUtils;
 import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.web.cache.ZookeeperCacheManager;
 import org.dromara.soul.web.condition.strategy.ConditionStrategy;
+import org.dromara.soul.web.condition.strategy.MatchStrategyFactory;
 import org.dromara.soul.web.request.RequestDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +46,7 @@ import java.util.Objects;
 
 /**
  * abstract soul plugin please extends.
+ *
  * @author xiaoyu(Myth)
  */
 @SuppressWarnings("unchecked")
@@ -124,31 +126,21 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
     }
 
     private Boolean filterSelector(final SelectorZkDTO selector, final ServerWebExchange exchange) {
-        boolean selectorPass = true;
         if (selector.getType()) {
             if (CollectionUtils.isEmpty(selector.getConditionZkDTOList())) {
                 return false;
             }
             //判断自定义流量规则
-            if (selector.getMatchMode() == MatchModeEnum.AND.getCode()) {
-                selectorPass = ConditionStrategy.and(selector.getConditionZkDTOList(), exchange);
-            } else if (selector.getMatchMode() == MatchModeEnum.OR.getCode()) {
-                selectorPass = ConditionStrategy.or(selector.getConditionZkDTOList(), exchange);
-            }
+            return MatchStrategyFactory.of(selector.getMatchMode()).match(selector.getConditionZkDTOList(), exchange);
         }
-        return selectorPass;
+        return true;
     }
 
     private RuleZkDTO filterRule(final ServerWebExchange exchange, final List<RuleZkDTO> rules) {
         return rules.stream()
                 .filter(rule -> Objects.nonNull(rule) && rule.getEnabled())
-                .filter((RuleZkDTO ruleZkDTO) -> {
-                    if (ruleZkDTO.getMatchMode() == MatchModeEnum.AND.getCode()) {
-                        return ConditionStrategy.and(ruleZkDTO.getConditionZkDTOList(), exchange);
-                    } else if (ruleZkDTO.getMatchMode() == MatchModeEnum.OR.getCode()) {
-                        return ConditionStrategy.or(ruleZkDTO.getConditionZkDTOList(), exchange);
-                    }
-                    return false;
-                }).findFirst().orElse(null);
+                .filter((RuleZkDTO ruleZkDTO) -> MatchStrategyFactory.of(ruleZkDTO.getMatchMode())
+                        .match(ruleZkDTO.getConditionZkDTOList(), exchange))
+                .findFirst().orElse(null);
     }
 }
