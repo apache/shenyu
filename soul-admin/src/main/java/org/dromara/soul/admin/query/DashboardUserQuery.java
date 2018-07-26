@@ -16,33 +16,23 @@
  *
  */
 
-package org.dromara.soul.admin.entity;
+package org.dromara.soul.admin.query;
 
 import lombok.Data;
+import org.dromara.soul.admin.page.PageParameter;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 
 /**
- * BaseDO.
+ * this is dashboard user query.
  *
- * @author xiaoyu(Myth)
+ * @author jiangxiaofeng(programgeek @ 163.com)
  */
 @Data
-public class BaseDO implements Serializable {
+public class DashboardUserQuery implements Serializable {
 
     /**
-     * primary key.
+     * page parameter
      */
-    private String id;
-
-    /**
-     * created time.
-     */
-    private LocalDateTime dateCreated;
-
-    /**
-     * updated time.
-     */
-    private LocalDateTime dateUpdated;
+    private PageParameter pageParameter;
 }
