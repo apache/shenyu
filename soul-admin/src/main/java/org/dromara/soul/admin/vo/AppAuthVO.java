@@ -24,19 +24,31 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
- * this is view to front.
+ * this is application authority view to web front.
  *
  * @author xiaoyu(549477611 @ qq.com)
  */
 @Data
 public class AppAuthVO implements Serializable {
 
+    /**
+     * primary key
+     */
     private String id;
 
+    /**
+     * application key
+     */
     private String appKey;
 
+    /**
+     * encryption secret
+     */
     private String appSecret;
 
+    /**
+     * whether enabled
+     */
     private Boolean enabled;
 
     /**

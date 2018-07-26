@@ -19,53 +19,54 @@
 package org.dromara.soul.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
-import org.dromara.soul.admin.entity.AppAuthDO;
+import org.dromara.soul.admin.entity.RuleConditionDO;
+import org.dromara.soul.admin.entity.RuleDO;
 
 /**
- * AppAuthMapper.
+ * RuleConditionMapper.
  *
- * @author xiaoyu(549477611 @ qq.com)
+ * @author jiangxiaofeng(programgeek @ 163.com)
  */
 @Mapper
-public interface AppAuthMapper {
+public interface RuleConditionMapper {
 
     /**
-     * select application authority by id
+     * select rule condition by id
      *
      * @param id
      * @return
      */
-    AppAuthDO selectById(String id);
+    RuleDO selectById(String id);
 
     /**
-     * insert application authority
+     * insert rule condition
      *
-     * @param appAuthDO
+     * @param ruleConditionDO
      * @return
      */
-    int insert(AppAuthDO appAuthDO);
+    int insert(RuleConditionDO ruleConditionDO);
 
     /**
-     * insert selective application authority
+     * insert selective rule condition
      *
-     * @param appAuthDO
+     * @param ruleConditionDO
      * @return
      */
-    int insertSelective(AppAuthDO appAuthDO);
+    int insertSelective(RuleConditionDO ruleConditionDO);
 
     /**
-     * update application authority
+     * update rule condition
      *
-     * @param appAuthDO
+     * @param ruleConditionDO
      * @return
      */
-    int update(AppAuthDO appAuthDO);
+    int update(RuleConditionDO ruleConditionDO);
 
     /**
-     * update selective application authority
+     * update selective rule condition
      *
-     * @param appAuthDO
+     * @param ruleConditionDO
      * @return
      */
-    int updateSelective(AppAuthDO appAuthDO);
+    int updateSelective(RuleConditionDO ruleConditionDO);
 }

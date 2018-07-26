@@ -19,53 +19,53 @@
 package org.dromara.soul.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
-import org.dromara.soul.admin.entity.AppAuthDO;
+import org.dromara.soul.admin.entity.DashboardUserDO;
 
 /**
- * AppAuthMapper.
+ * DashboardUserMapper.
  *
- * @author xiaoyu(549477611 @ qq.com)
+ * @author jiangxiaofeng(programgeek @ 163.com)
  */
 @Mapper
-public interface AppAuthMapper {
+public interface DashboardUserMapper {
 
     /**
-     * select application authority by id
+     * select dashboard user by id
      *
      * @param id
      * @return
      */
-    AppAuthDO selectById(String id);
+    DashboardUserDO selectById(String id);
 
     /**
-     * insert application authority
+     * insert dashboard user
      *
-     * @param appAuthDO
+     * @param dashboardUserDO
      * @return
      */
-    int insert(AppAuthDO appAuthDO);
+    int insert(DashboardUserDO dashboardUserDO);
 
     /**
-     * insert selective application authority
+     * insert selective dashboard user
      *
-     * @param appAuthDO
+     * @param dashboardUserDO
      * @return
      */
-    int insertSelective(AppAuthDO appAuthDO);
+    int insertSelective(DashboardUserDO dashboardUserDO);
 
     /**
-     * update application authority
+     * update dashboard user
      *
-     * @param appAuthDO
+     * @param dashboardUserDO
      * @return
      */
-    int update(AppAuthDO appAuthDO);
+    int update(DashboardUserDO dashboardUserDO);
 
     /**
-     * update selective application authority
+     * update selective dashboard user
      *
-     * @param appAuthDO
+     * @param dashboardUserDO
      * @return
      */
-    int updateSelective(AppAuthDO appAuthDO);
+    int updateSelective(DashboardUserDO dashboardUserDO);
 }
