@@ -29,7 +29,7 @@ import org.springframework.stereotype.Service;
 /**
  * SelectorServiceImpl.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Service("selectorService")
 public class SelectorServiceImpl implements SelectorService {
@@ -41,7 +41,7 @@ public class SelectorServiceImpl implements SelectorService {
      * @return rows
      */
     @Override
-    public int saveOrUpdate(SelectorDTO selectorDTO) {
+    public int saveOrUpdate(final SelectorDTO selectorDTO) {
         return 0;
     }
 
@@ -52,7 +52,7 @@ public class SelectorServiceImpl implements SelectorService {
      * @return rows
      */
     @Override
-    public int enabled(SelectorDTO selectorDTO) {
+    public int enabled(final SelectorDTO selectorDTO) {
         return 0;
     }
 
@@ -63,7 +63,7 @@ public class SelectorServiceImpl implements SelectorService {
      * @return {@linkplain SelectorDO}
      */
     @Override
-    public SelectorDO findById(String id) {
+    public SelectorDO findById(final String id) {
         return null;
     }
 
@@ -71,10 +71,10 @@ public class SelectorServiceImpl implements SelectorService {
      * find page of selector by query.
      *
      * @param selectorQuery {@linkplain SelectorQuery}
-     * @return CommonPager<SelectorVO>
+     * @return {@linkplain CommonPager}
      */
     @Override
-    public CommonPager<SelectorVO> listByPage(SelectorQuery selectorQuery) {
+    public CommonPager<SelectorVO> listByPage(final SelectorQuery selectorQuery) {
         return null;
     }
 }

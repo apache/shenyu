@@ -1,9 +1,9 @@
 /*
- *   Licensed to the Apache Software Foundation (ASF) under one or more
+ *   Licensed to the Apache Software Foundation (final ASF) under one or more
  *   contributor license agreements.  See the NOTICE file distributed with
  *   this work for additional information regarding copyright ownership.
  *   The ASF licenses this file to You under the Apache License, Version 2.0
- *   (the "License"); you may not use this file except in compliance with
+ *   (final the "License"); you may not use this file except in compliance with
  *   the License.  You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -20,18 +20,26 @@ package org.dromara.soul.admin.service.impl;
 
 import org.dromara.soul.admin.dto.PluginDTO;
 import org.dromara.soul.admin.entity.PluginDO;
+import org.dromara.soul.admin.mapper.PluginMapper;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.PluginQuery;
 import org.dromara.soul.admin.service.PluginService;
+import org.dromara.soul.admin.vo.PluginVO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.stream.Collectors;
 
 /**
  * PluginServiceImpl.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Service("pluginService")
 public class PluginServiceImpl implements PluginService {
+
+    @Autowired
+    private PluginMapper pluginMapper;
 
     /**
      * save or update plugin.
@@ -39,7 +47,7 @@ public class PluginServiceImpl implements PluginService {
      * @param pluginDTO {@linkplain PluginDTO}
      * @return rows
      */
-    public int saveOrUpdate(PluginDTO pluginDTO) {
+    public int saveOrUpdate(final PluginDTO pluginDTO) {
         return 0;
     }
 
@@ -49,7 +57,7 @@ public class PluginServiceImpl implements PluginService {
      * @param pluginDTO {@linkplain PluginDTO}
      * @return rows
      */
-    public int enabled(PluginDTO pluginDTO) {
+    public int enabled(final PluginDTO pluginDTO) {
         return 0;
     }
 
@@ -59,7 +67,7 @@ public class PluginServiceImpl implements PluginService {
      * @param id pk.
      * @return {@linkplain PluginDO}
      */
-    public PluginDO findById(String id) {
+    public PluginDO findById(final String id) {
         return null;
     }
 
@@ -67,9 +75,12 @@ public class PluginServiceImpl implements PluginService {
      * find page of plugin by query.
      *
      * @param pluginQuery {@linkplain PluginQuery}
-     * @return CommonPager<PluginDO>
+     * @return {@linkplain CommonPager}
      */
-    public CommonPager<PluginDO> listByPage(PluginQuery pluginQuery) {
-        return null;
+    public CommonPager<PluginVO> listByPage(final PluginQuery pluginQuery) {
+        return new CommonPager<PluginVO>(pluginQuery.getPageParameter(),
+                pluginMapper.selectByQuery(pluginQuery).stream()
+                        .map(pluginDO -> PluginVO.buildPluginVO(pluginDO))
+                        .collect(Collectors.toList()));
     }
 }

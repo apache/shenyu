@@ -18,52 +18,54 @@
 
 package org.dromara.soul.admin.vo;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * this is dashboard user view to web front.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class DashboardUserVO implements Serializable {
 
     /**
-     * primary key
+     * primary key.
      */
     private String id;
 
     /**
-     * user name
+     * user name.
      */
     private String userName;
 
     /**
-     * user password
+     * user password.
      */
     private String password;
 
     /**
-     * dashboard role
+     * dashboard role.
      */
     private Integer role;
 
     /**
-     * whether enabled
+     * whether enabled.
      */
     private Boolean enabled;
 
     /**
      * created time.
      */
-    private LocalDateTime dateCreated;
+    private String dateCreated;
 
     /**
      * updated time.
      */
-    private LocalDateTime dateUpdated;
+    private String dateUpdated;
 }

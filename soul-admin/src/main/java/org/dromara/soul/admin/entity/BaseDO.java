@@ -21,6 +21,7 @@ package org.dromara.soul.admin.entity;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 /**
@@ -39,10 +40,10 @@ public class BaseDO implements Serializable {
     /**
      * created time.
      */
-    private LocalDateTime dateCreated;
+    private Timestamp dateCreated;
 
     /**
      * updated time.
      */
-    private LocalDateTime dateUpdated;
+    private Timestamp dateUpdated;
 }

@@ -24,48 +24,48 @@ import org.dromara.soul.admin.entity.SelectorConditionDO;
 /**
  * SelectorConditionMapper.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Mapper
 public interface SelectorConditionMapper {
 
     /**
-     * select selector condition by id
+     * select selector condition by id.
      *
-     * @param id
-     * @return
+     * @param id pk
+     * @return {@linkplain SelectorConditionDO}
      */
     SelectorConditionDO selectById(String id);
 
     /**
-     * insert selector condition
+     * insert selector condition.
      *
-     * @param selectorConditionDO
-     * @return
+     * @param selectorConditionDO {@linkplain SelectorConditionDO}
+     * @return rows
      */
     int insert(SelectorConditionDO selectorConditionDO);
 
     /**
-     * insert selective selector condition
+     * insert selective selector condition.
      *
-     * @param selectorConditionDO
-     * @return
+     * @param selectorConditionDO {@linkplain SelectorConditionDO}
+     * @return rows
      */
     int insertSelective(SelectorConditionDO selectorConditionDO);
 
     /**
-     * update selector condition
+     * update selector condition.
      *
-     * @param selectorConditionDO
-     * @return
+     * @param selectorConditionDO {@linkplain SelectorConditionDO}
+     * @return rows
      */
     int update(SelectorConditionDO selectorConditionDO);
 
     /**
-     * update selective selector condition
+     * update selective selector condition.
      *
-     * @param selectorConditionDO
-     * @return
+     * @param selectorConditionDO {@linkplain SelectorConditionDO}
+     * @return rows
      */
     int updateSelective(SelectorConditionDO selectorConditionDO);
 }

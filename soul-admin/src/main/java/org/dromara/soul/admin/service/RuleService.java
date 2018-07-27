@@ -27,7 +27,7 @@ import org.dromara.soul.admin.vo.RuleVO;
 /**
  * this is rule service.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 public interface RuleService {
 
@@ -59,7 +59,7 @@ public interface RuleService {
      * find page of rule by query.
      *
      * @param ruleQuery {@linkplain RuleQuery}
-     * @return CommonPager<ruleVO>
+     * @return {@linkplain CommonPager}
      */
     CommonPager<RuleVO> listByPage(RuleQuery ruleQuery);
 }

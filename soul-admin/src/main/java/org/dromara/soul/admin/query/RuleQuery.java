@@ -26,13 +26,13 @@ import java.io.Serializable;
 /**
  * this is rule query.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Data
 public class RuleQuery implements Serializable {
 
     /**
-     * page parameter
+     * page parameter.
      */
     private PageParameter pageParameter;
 }

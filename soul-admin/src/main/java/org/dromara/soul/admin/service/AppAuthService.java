@@ -27,7 +27,7 @@ import org.dromara.soul.admin.vo.AppAuthVO;
 /**
  * this is application authority service.
  *
- * @author xiaoyu(549477611 @ qq.com)
+ * @author xiaoyu(Myth)
  */
 public interface AppAuthService {
 
@@ -67,7 +67,7 @@ public interface AppAuthService {
      * find page of application authority by query.
      *
      * @param appAuthQuery {@linkplain AppAuthQuery}
-     * @return CommonPager<AppAuthVO>
+     * @return {@linkplain CommonPager}
      */
     CommonPager<AppAuthVO> listByPage(AppAuthQuery appAuthQuery);
 }
