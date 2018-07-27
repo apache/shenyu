@@ -28,7 +28,6 @@ import org.dromara.soul.admin.vo.PluginVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
 
 /**
@@ -41,8 +40,6 @@ public class PluginServiceImpl implements PluginService {
 
     @Autowired
     private PluginMapper pluginMapper;
-
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     /**
      * save or update plugin.
@@ -81,6 +78,9 @@ public class PluginServiceImpl implements PluginService {
      * @return {@linkplain CommonPager}
      */
     public CommonPager<PluginVO> listByPage(final PluginQuery pluginQuery) {
-        return new CommonPager<PluginVO>(pluginQuery.getPageParameter(), pluginMapper.selectByQuery(pluginQuery).stream().map(pluginDO -> new PluginVO(pluginDO.getId(), pluginDO.getName(), pluginDO.getEnabled(), DATE_TIME_FORMATTER.format(pluginDO.getDateCreated().toLocalDateTime()), DATE_TIME_FORMATTER.format(pluginDO.getDateUpdated().toLocalDateTime()))).collect(Collectors.toList()));
+        return new CommonPager<PluginVO>(pluginQuery.getPageParameter(),
+                pluginMapper.selectByQuery(pluginQuery).stream()
+                        .map(pluginDO -> PluginVO.buildPluginVO(pluginDO))
+                        .collect(Collectors.toList()));
     }
 }
