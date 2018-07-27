@@ -38,8 +38,12 @@ import java.util.stream.Collectors;
 @Service("pluginService")
 public class PluginServiceImpl implements PluginService {
 
-    @Autowired
-    private PluginMapper pluginMapper;
+    private final PluginMapper pluginMapper;
+
+    @Autowired(required = false)
+    public PluginServiceImpl(final PluginMapper pluginMapper) {
+        this.pluginMapper = pluginMapper;
+    }
 
     /**
      * save or update plugin.
@@ -78,9 +82,9 @@ public class PluginServiceImpl implements PluginService {
      * @return {@linkplain CommonPager}
      */
     public CommonPager<PluginVO> listByPage(final PluginQuery pluginQuery) {
-        return new CommonPager<PluginVO>(pluginQuery.getPageParameter(),
+        return new CommonPager<>(pluginQuery.getPageParameter(),
                 pluginMapper.selectByQuery(pluginQuery).stream()
-                        .map(pluginDO -> PluginVO.buildPluginVO(pluginDO))
+                        .map(PluginVO::buildPluginVO)
                         .collect(Collectors.toList()));
     }
 }
