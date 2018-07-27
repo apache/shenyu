@@ -66,14 +66,4 @@
             <property name="returnPageInfo" value="check"/>
         </plugin>
     </plugins>
-
-    <mappers>
-        <mapper resource="mybatis/app-auth-sqlmap.xml"/>
-        <mapper resource="mybatis/dashboard-user-sqlmap"/>
-        <mapper resource="mybatis/plugin-sqlmap.xml"/>
-        <mapper resource="mybatis/rule-sqlmap.xml"/>
-        <mapper resource="mybatis/rule-condition-sqlmap.xml"/>
-        <mapper resource="mybatis/selector-sqlmap.xml"/>
-        <mapper resource="mybatis/selector-condition-sqlmap.xml"/>
-    </mappers>
 </configuration>

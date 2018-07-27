@@ -23,33 +23,33 @@ import lombok.Data;
 /**
  * SelectorConditionDO.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Data
 public class SelectorConditionDO extends BaseDO {
 
     /**
-     * selector id
+     * selector id.
      */
     private String selectorId;
 
     /**
-     * parameter type
+     * parameter type.
      */
     private String paramType;
 
     /**
-     * match operator
+     * match operator.
      */
     private String operator;
 
     /**
-     * parameter name
+     * parameter name.
      */
     private String paramName;
 
     /**
-     * parameter value
+     * parameter value.
      */
     private String paramValue;
 }

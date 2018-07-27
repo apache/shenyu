@@ -26,7 +26,7 @@ import java.io.Serializable;
 /**
  * this is application authority query.
  *
- * @author xiaoyu(549477611 @ qq.com)
+ * @author xiaoyu(Myth)
  */
 @Data
 public class AppAuthQuery implements Serializable {
@@ -37,7 +37,7 @@ public class AppAuthQuery implements Serializable {
     private String appKey;
 
     /**
-     * page parameter
+     * page parameter.
      */
     private PageParameter pageParameter;
 }
