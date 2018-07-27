@@ -27,7 +27,7 @@ import org.springframework.context.annotation.Import;
 /**
  * soul start.
  *
- * @author xiaoyu
+ * @author xiaoyu(Myth)
  */
 @SpringBootApplication
 @ComponentScan("org.dromara.soul")

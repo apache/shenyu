@@ -25,7 +25,7 @@ import org.springframework.web.reactive.config.WebFluxConfigurer;
 /**
  * web handler.
  *
- * @author xiaoyu
+ * @author xiaoyu(Myth)
  */
 @Configuration
 public class WebConfig implements WebFluxConfigurer {

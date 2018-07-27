@@ -24,48 +24,48 @@ import org.dromara.soul.admin.entity.RuleDO;
 /**
  * RuleMapper.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Mapper
 public interface RuleMapper {
 
     /**
-     * select rule by id
+     * select rule by id.
      *
-     * @param id
-     * @return
+     * @param id pk
+     * @return {@linkplain RuleDO}
      */
     RuleDO selectById(String id);
 
     /**
-     * insert rule
+     * insert rule.
      *
-     * @param ruleDO
-     * @return
+     * @param ruleDO {@linkplain RuleDO}
+     * @return rows
      */
     int insert(RuleDO ruleDO);
 
     /**
-     * insert selective rule
+     * insert selective rule.
      *
-     * @param ruleDO
-     * @return
+     * @param ruleDO {@linkplain RuleDO}
+     * @return rows
      */
     int insertSelective(RuleDO ruleDO);
 
     /**
-     * update rule
+     * update rule.
      *
-     * @param ruleDO
-     * @return
+     * @param ruleDO {@linkplain RuleDO}
+     * @return rows
      */
     int update(RuleDO ruleDO);
 
     /**
-     * update selective rule
+     * update selective rule.
      *
-     * @param ruleDO
-     * @return
+     * @param ruleDO {@linkplain RuleDO}
+     * @return rows
      */
     int updateSelective(RuleDO ruleDO);
 }

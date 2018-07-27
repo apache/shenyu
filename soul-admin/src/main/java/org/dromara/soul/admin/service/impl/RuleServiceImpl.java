@@ -29,7 +29,7 @@ import org.springframework.stereotype.Service;
 /**
  * RuleServiceImpl.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Service("ruleService")
 public class RuleServiceImpl implements RuleService {
@@ -41,7 +41,7 @@ public class RuleServiceImpl implements RuleService {
      * @return rows
      */
     @Override
-    public int saveOrUpdate(RuleDTO ruleDTO) {
+    public int saveOrUpdate(final RuleDTO ruleDTO) {
         return 0;
     }
 
@@ -52,7 +52,7 @@ public class RuleServiceImpl implements RuleService {
      * @return rows
      */
     @Override
-    public int enabled(RuleDTO ruleDTO) {
+    public int enabled(final RuleDTO ruleDTO) {
         return 0;
     }
 
@@ -63,7 +63,7 @@ public class RuleServiceImpl implements RuleService {
      * @return {@linkplain RuleDO}
      */
     @Override
-    public RuleDO findById(String id) {
+    public RuleDO findById(final String id) {
         return null;
     }
 
@@ -71,10 +71,10 @@ public class RuleServiceImpl implements RuleService {
      * find page of rule by query.
      *
      * @param ruleQuery {@linkplain RuleQuery}
-     * @return CommonPager<RuleVO>
+     * @return {@linkplain CommonPager}
      */
     @Override
-    public CommonPager<RuleVO> listByPage(RuleQuery ruleQuery) {
+    public CommonPager<RuleVO> listByPage(final RuleQuery ruleQuery) {
         return null;
     }
 }

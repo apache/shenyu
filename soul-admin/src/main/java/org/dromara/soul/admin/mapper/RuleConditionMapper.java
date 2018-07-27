@@ -20,53 +20,52 @@ package org.dromara.soul.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.dromara.soul.admin.entity.RuleConditionDO;
-import org.dromara.soul.admin.entity.RuleDO;
 
 /**
  * RuleConditionMapper.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Mapper
 public interface RuleConditionMapper {
 
     /**
-     * select rule condition by id
+     * select rule condition by id.
      *
-     * @param id
-     * @return
+     * @param id pk
+     * @return {@linkplain RuleConditionDO}
      */
-    RuleDO selectById(String id);
+    RuleConditionDO selectById(String id);
 
     /**
-     * insert rule condition
+     * insert rule condition.
      *
-     * @param ruleConditionDO
-     * @return
+     * @param ruleConditionDO {@linkplain RuleConditionDO}
+     * @return rows
      */
     int insert(RuleConditionDO ruleConditionDO);
 
     /**
-     * insert selective rule condition
+     * insert selective rule condition.
      *
-     * @param ruleConditionDO
-     * @return
+     * @param ruleConditionDO {@linkplain RuleConditionDO}
+     * @return rows
      */
     int insertSelective(RuleConditionDO ruleConditionDO);
 
     /**
-     * update rule condition
+     * update rule condition.
      *
-     * @param ruleConditionDO
-     * @return
+     * @param ruleConditionDO {@linkplain RuleConditionDO}
+     * @return rows
      */
     int update(RuleConditionDO ruleConditionDO);
 
     /**
-     * update selective rule condition
+     * update selective rule condition.
      *
-     * @param ruleConditionDO
-     * @return
+     * @param ruleConditionDO {@linkplain RuleConditionDO}
+     * @return rows
      */
     int updateSelective(RuleConditionDO ruleConditionDO);
 }

@@ -28,7 +28,7 @@ import org.springframework.stereotype.Service;
 /**
  * DashboardUserServiceImpl.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Service("dashboardUserService")
 public class DashboardUserServiceImpl implements DashboardUserService {
@@ -39,7 +39,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      * @param dashboardUserDTO {@linkplain DashboardUserDTO}
      * @return rows
      */
-    public int saveOrUpdate(DashboardUserDTO dashboardUserDTO) {
+    public int saveOrUpdate(final DashboardUserDTO dashboardUserDTO) {
         return 0;
     }
 
@@ -49,7 +49,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      * @param dashboardUserDTO {@linkplain DashboardUserDTO}
      * @return rows
      */
-    public int enabled(DashboardUserDTO dashboardUserDTO) {
+    public int enabled(final DashboardUserDTO dashboardUserDTO) {
         return 0;
     }
 
@@ -59,7 +59,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      * @param id pk.
      * @return {@linkplain DashboardUserDO}
      */
-    public DashboardUserDO findById(String id) {
+    public DashboardUserDO findById(final String id) {
         return null;
     }
 
@@ -67,9 +67,9 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      * find page of dashboard user by query.
      *
      * @param dashboardUserQuery {@linkplain DashboardUserQuery}
-     * @return CommonPager<DashboardUserDO>
+     * @return {@linkplain CommonPager}
      */
-    public CommonPager<DashboardUserDO> listByPage(DashboardUserQuery dashboardUserQuery) {
+    public CommonPager<DashboardUserDO> listByPage(final DashboardUserQuery dashboardUserQuery) {
         return null;
     }
 }

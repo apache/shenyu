@@ -25,33 +25,33 @@ import java.io.Serializable;
 /**
  * this is dashboard user from by web front.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Data
 public class DashboardUserDTO implements Serializable {
 
     /**
-     * primary key
+     * primary key.
      */
     private String id;
 
     /**
-     * user name
+     * user name.
      */
     private String userName;
 
     /**
-     * user password
+     * user password.
      */
     private String password;
 
     /**
-     * dashboard role
+     * dashboard role.
      */
     private Integer role;
 
     /**
-     * whether enabled
+     * whether enabled.
      */
     private Boolean enabled;
 }

@@ -23,18 +23,18 @@ import lombok.Data;
 /**
  * PluginDO.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Data
 public class PluginDO extends BaseDO {
 
     /**
-     * plugin name
+     * plugin name.
      */
     private String name;
 
     /**
-     * whether enabled
+     * whether enabled.
      */
     private Boolean enabled;
 }
