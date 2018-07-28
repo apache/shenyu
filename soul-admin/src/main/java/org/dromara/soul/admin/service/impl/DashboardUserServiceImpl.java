@@ -18,12 +18,19 @@
 
 package org.dromara.soul.admin.service.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.DashboardUserDTO;
 import org.dromara.soul.admin.entity.DashboardUserDO;
+import org.dromara.soul.admin.mapper.DashboardUserMapper;
 import org.dromara.soul.admin.page.CommonPager;
+import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.DashboardUserQuery;
 import org.dromara.soul.admin.service.DashboardUserService;
+import org.dromara.soul.admin.vo.DashboardUserVO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.stream.Collectors;
 
 /**
  * DashboardUserServiceImpl.
@@ -33,14 +40,25 @@ import org.springframework.stereotype.Service;
 @Service("dashboardUserService")
 public class DashboardUserServiceImpl implements DashboardUserService {
 
+    private final DashboardUserMapper dashboardUserMapper;
+
+    @Autowired(required = false)
+    public DashboardUserServiceImpl(final DashboardUserMapper dashboardUserMapper) {
+        this.dashboardUserMapper = dashboardUserMapper;
+    }
+
     /**
-     * save or update dashboard user.
+     * create or update dashboard user.
      *
      * @param dashboardUserDTO {@linkplain DashboardUserDTO}
      * @return rows
      */
-    public int saveOrUpdate(final DashboardUserDTO dashboardUserDTO) {
-        return 0;
+    public int createOrUpdate(final DashboardUserDTO dashboardUserDTO) {
+        if (StringUtils.isEmpty(dashboardUserDTO.getId())) {
+            return dashboardUserMapper.insertSelective(DashboardUserDO.buildDashboardUserDO(dashboardUserDTO));
+        } else {
+            return dashboardUserMapper.updateSelective(DashboardUserDO.buildDashboardUserDO(dashboardUserDTO));
+        }
     }
 
     /**
@@ -50,17 +68,17 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      * @return rows
      */
     public int enabled(final DashboardUserDTO dashboardUserDTO) {
-        return 0;
+        return dashboardUserMapper.updateSelective(DashboardUserDO.buildDashboardUserDO(dashboardUserDTO));
     }
 
     /**
      * find dashboard user by id.
      *
-     * @param id pk.
-     * @return {@linkplain DashboardUserDO}
+     * @param id primary key..
+     * @return {@linkplain DashboardUserVO}
      */
-    public DashboardUserDO findById(final String id) {
-        return null;
+    public DashboardUserVO findById(final String id) {
+        return DashboardUserVO.buildDashboardUserVO(dashboardUserMapper.selectById(id));
     }
 
     /**
@@ -69,7 +87,12 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      * @param dashboardUserQuery {@linkplain DashboardUserQuery}
      * @return {@linkplain CommonPager}
      */
-    public CommonPager<DashboardUserDO> listByPage(final DashboardUserQuery dashboardUserQuery) {
-        return null;
+    public CommonPager<DashboardUserVO> listByPage(final DashboardUserQuery dashboardUserQuery) {
+        PageParameter pageParameter = dashboardUserQuery.getPageParameter();
+        return new CommonPager<>(
+                new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), dashboardUserMapper.countByQuery(dashboardUserQuery)),
+                dashboardUserMapper.selectByQuery(dashboardUserQuery).stream()
+                        .map(DashboardUserVO::buildDashboardUserVO)
+                        .collect(Collectors.toList()));
     }
 }

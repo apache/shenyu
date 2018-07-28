@@ -34,13 +34,15 @@ public class PageParameter implements Serializable {
 
     private static final int DEFAULT_PAGE_SIZE = 10;
 
-    private int pageSize;
-
     private int currentPage;
 
     private int prePage;
 
     private int nextPage;
+
+    private int pageSize;
+
+    private int offset;
 
     private int totalPage;
 
@@ -58,16 +60,24 @@ public class PageParameter implements Serializable {
      * @param pageSize    page size.
      */
     public PageParameter(final int currentPage, final int pageSize) {
-        this.currentPage = currentPage;
-        this.pageSize = pageSize;
+        this.currentPage = currentPage <= 0 ? 1 : currentPage;
+        this.pageSize = pageSize <= 0 ? DEFAULT_PAGE_SIZE : pageSize;
+        this.offset = (this.currentPage - 1) * this.pageSize;
     }
 
     /**
-     * get current page.
+     * PageParameter.
      *
-     * @return current page
+     * @param currentPage current page.
+     * @param pageSize    page size.
+     * @param totalCount  total count.
      */
-    public int getCurrentPage() {
-        return currentPage;
+    public PageParameter(final int currentPage, final int pageSize, final int totalCount) {
+        this.currentPage = currentPage;
+        this.pageSize = pageSize;
+        this.totalCount = totalCount;
+        this.totalPage = (int) Math.ceil((double) totalCount / (double) pageSize);
+        this.prePage = currentPage <= 1 ? 1 : currentPage - 1;
+        this.nextPage = currentPage >= this.totalPage ? this.totalPage : currentPage + 1;
     }
 }

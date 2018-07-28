@@ -35,13 +35,13 @@ import org.springframework.stereotype.Service;
 public class AppAuthServiceImpl implements AppAuthService {
 
     /**
-     * save or update application authority.
+     * create or update application authority.
      *
      * @param appAuthDTO {@linkplain AppAuthDTO}
      * @return rows
      */
     @Override
-    public int saveOrUpdate(final AppAuthDTO appAuthDTO) {
+    public int createOrUpdate(final AppAuthDTO appAuthDTO) {
         return 0;
     }
 
@@ -60,10 +60,10 @@ public class AppAuthServiceImpl implements AppAuthService {
      * find application authority by id.
      *
      * @param id pk.
-     * @return {@linkplain AppAuthDO}
+     * @return {@linkplain AppAuthVO}
      */
     @Override
-    public AppAuthDO findById(final String id) {
+    public AppAuthVO findById(final String id) {
         return null;
     }
 
@@ -71,10 +71,10 @@ public class AppAuthServiceImpl implements AppAuthService {
      * find application authority by appKey.
      *
      * @param appKey appKey.
-     * @return {@linkplain AppAuthDO}
+     * @return {@linkplain AppAuthVO}
      */
     @Override
-    public AppAuthDO findByAppKey(final String appKey) {
+    public AppAuthVO findByAppKey(final String appKey) {
         return null;
     }
 

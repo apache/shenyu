@@ -32,12 +32,12 @@ import org.dromara.soul.admin.vo.AppAuthVO;
 public interface AppAuthService {
 
     /**
-     * save or update application authority.
+     * create or update application authority.
      *
      * @param appAuthDTO {@linkplain AppAuthDTO}
      * @return rows
      */
-    int saveOrUpdate(AppAuthDTO appAuthDTO);
+    int createOrUpdate(AppAuthDTO appAuthDTO);
 
     /**
      * enabled or disabled application authority.
@@ -51,17 +51,17 @@ public interface AppAuthService {
      * find application authority by id.
      *
      * @param id pk.
-     * @return {@linkplain AppAuthDO}
+     * @return {@linkplain AppAuthVO}
      */
-    AppAuthDO findById(String id);
+    AppAuthVO findById(String id);
 
     /**
      * find application authority by appKey.
      *
      * @param appKey appKey.
-     * @return {@linkplain AppAuthDO}
+     * @return {@linkplain AppAuthVO}
      */
-    AppAuthDO findByAppKey(String appKey);
+    AppAuthVO findByAppKey(String appKey);
 
     /**
      * find page of application authority by query.

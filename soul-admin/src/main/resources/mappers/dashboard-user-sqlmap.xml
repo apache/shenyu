@@ -22,6 +22,28 @@
         where ID = #{id,jdbcType=VARCHAR}
     </select>
 
+    <select id="selectByQuery" parameterType="org.dromara.soul.admin.query.DashboardUserQuery"
+            resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from DASHBOARD_USER
+        where ENABLED = 1
+        <if test="userName != null">
+            and USER_NAME = #{userName,jdbcType=VARCHAR}
+        </if>
+        limit #{pageParameter.offset},#{pageParameter.pageSize}
+    </select>
+
+    <select id="countByQuery" parameterType="org.dromara.soul.admin.query.DashboardUserQuery"
+            resultType="java.lang.Integer">
+        select count(1)
+        from DASHBOARD_USER
+        where ENABLED = 1
+        <if test="userName != null">
+            and USER_NAME = #{userName,jdbcType=VARCHAR}
+        </if>
+    </select>
+
     <insert id="insert" parameterType="org.dromara.soul.admin.entity.DashboardUserDO">
         insert into DASHBOARD_USER (ID, DATE_CREATED, DATE_UPDATED,
         USER_NAME, PASSWORD, ENABLED)

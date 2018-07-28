@@ -19,9 +19,9 @@
 package org.dromara.soul.admin.service;
 
 import org.dromara.soul.admin.dto.DashboardUserDTO;
-import org.dromara.soul.admin.entity.DashboardUserDO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.DashboardUserQuery;
+import org.dromara.soul.admin.vo.DashboardUserVO;
 
 /**
  * this is dashboard user service.
@@ -31,12 +31,12 @@ import org.dromara.soul.admin.query.DashboardUserQuery;
 public interface DashboardUserService {
 
     /**
-     * save or update dashboard user.
+     * create or update dashboard user.
      *
      * @param dashboardUserDTO {@linkplain DashboardUserDTO}
      * @return rows
      */
-    int saveOrUpdate(DashboardUserDTO dashboardUserDTO);
+    int createOrUpdate(DashboardUserDTO dashboardUserDTO);
 
     /**
      * enabled or disabled dashboard user.
@@ -49,10 +49,10 @@ public interface DashboardUserService {
     /**
      * find dashboard user by id.
      *
-     * @param id pk.
-     * @return {@linkplain DashboardUserDO}
+     * @param id primary key.
+     * @return {@linkplain DashboardUserVO}
      */
-    DashboardUserDO findById(String id);
+    DashboardUserVO findById(String id);
 
     /**
      * find page of dashboard user by query.
@@ -60,5 +60,5 @@ public interface DashboardUserService {
      * @param dashboardUserQuery {@linkplain DashboardUserQuery}
      * @return {@linkplain CommonPager}
      */
-    CommonPager<DashboardUserDO> listByPage(DashboardUserQuery dashboardUserQuery);
+    CommonPager<DashboardUserVO> listByPage(DashboardUserQuery dashboardUserQuery);
 }

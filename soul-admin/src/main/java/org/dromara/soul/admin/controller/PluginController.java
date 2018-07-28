@@ -20,19 +20,24 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/plugin")
 public class PluginController {
 
-    @Autowired
-    private PluginService pluginService;
+    private final PluginService pluginService;
+
+    @Autowired(required = false)
+    public PluginController(final PluginService pluginService) {
+        this.pluginService = pluginService;
+    }
 
     /**
-     * query plugins.
+     * search plugins.
      *
      * @param currentPage current page
-     * @param pageSize    page szie
+     * @param pageSize    page size
      * @return {@linkplain Mono}
      */
-    @GetMapping("")
-    public Mono<CommonPager<PluginVO>> queryPlugins(final Integer currentPage, final Integer pageSize) {
-        return Mono.create(commonPager -> commonPager.success(pluginService.listByPage(
-                new PluginQuery(new PageParameter(currentPage, pageSize)))));
+    @GetMapping("/search")
+    public Mono<CommonPager<PluginVO>> searchPlugins(final Integer currentPage, final Integer pageSize) {
+        return Mono.create(commonPager ->
+                commonPager.success(pluginService.listByPage(
+                        new PluginQuery(new PageParameter(currentPage, pageSize)))));
     }
 }

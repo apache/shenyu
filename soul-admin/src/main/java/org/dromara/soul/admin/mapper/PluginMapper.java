@@ -41,7 +41,7 @@ public interface PluginMapper {
     PluginDO selectById(String id);
 
     /**
-     * select plugin by id.
+     * select plugin by query.
      *
      * @param pluginQuery {@linkplain PluginQuery}
      * @return {@linkplain List}
