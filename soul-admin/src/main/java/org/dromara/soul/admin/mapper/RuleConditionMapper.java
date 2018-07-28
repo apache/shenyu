@@ -20,6 +20,9 @@ package org.dromara.soul.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.dromara.soul.admin.entity.RuleConditionDO;
+import org.dromara.soul.admin.query.RuleConditionQuery;
+
+import java.util.List;
 
 /**
  * RuleConditionMapper.
@@ -32,10 +35,18 @@ public interface RuleConditionMapper {
     /**
      * select rule condition by id.
      *
-     * @param id pk
+     * @param id primary key.
      * @return {@linkplain RuleConditionDO}
      */
     RuleConditionDO selectById(String id);
+
+    /**
+     * select rule condition by query.
+     *
+     * @param ruleConditionQuery {@linkplain RuleConditionQuery}
+     * @return {@linkplain List}
+     */
+    List<RuleConditionDO> selectByQuery(RuleConditionQuery ruleConditionQuery);
 
     /**
      * insert rule condition.
@@ -76,4 +87,12 @@ public interface RuleConditionMapper {
      * @return rows
      */
     int delete(String id);
+
+    /**
+     * delete rule condition by query.
+     *
+     * @param ruleConditionQuery {@linkplain RuleConditionQuery}
+     * @return rows
+     */
+    int deleteByQuery(RuleConditionQuery ruleConditionQuery);
 }

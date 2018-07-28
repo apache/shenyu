@@ -20,6 +20,9 @@ package org.dromara.soul.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.dromara.soul.admin.entity.RuleDO;
+import org.dromara.soul.admin.query.RuleQuery;
+
+import java.util.List;
 
 /**
  * RuleMapper.
@@ -32,10 +35,26 @@ public interface RuleMapper {
     /**
      * select rule by id.
      *
-     * @param id pk
+     * @param id primary key.
      * @return {@linkplain RuleDO}
      */
     RuleDO selectById(String id);
+
+    /**
+     * select rule by query.
+     *
+     * @param ruleQuery {@linkplain RuleQuery}
+     * @return {@linkplain List}
+     */
+    List<RuleDO> selectByQuery(RuleQuery ruleQuery);
+
+    /**
+     * count rule by query.
+     *
+     * @param ruleQuery {@linkplain RuleQuery}
+     * @return {@linkplain Integer}
+     */
+    Integer countByQuery(RuleQuery ruleQuery);
 
     /**
      * insert rule.

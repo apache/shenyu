@@ -84,12 +84,22 @@ public class PluginServiceImpl implements PluginService {
      * @return rows
      */
     public int delete(final String id) {
+        int pluginCount;
+
         PluginDO pluginDO = pluginMapper.selectById(id);
-        int pluginCount = pluginMapper.delete(id);
+        pluginCount = pluginMapper.delete(id);
 
         String pluginPath = ZkPathConstants.buildPluginPath(pluginDO.getName());
         if (zkClient.exists(pluginPath)) {
             zkClient.delete(pluginPath);
+        }
+        String selectorParentPath = ZkPathConstants.buildSelectorParentPath(pluginDO.getName());
+        if (zkClient.exists(selectorParentPath)) {
+            zkClient.delete(selectorParentPath);
+        }
+        String ruleParentPath = ZkPathConstants.buildRuleParentPath(pluginDO.getName());
+        if (zkClient.exists(ruleParentPath)) {
+            zkClient.delete(ruleParentPath);
         }
         return pluginCount;
     }

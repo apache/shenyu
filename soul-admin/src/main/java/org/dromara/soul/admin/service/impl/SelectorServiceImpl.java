@@ -43,7 +43,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * SelectorServiceImpl.
@@ -135,16 +134,23 @@ public class SelectorServiceImpl implements SelectorService {
      */
     @Override
     public int delete(final String id) {
+        int selectorCount;
         SelectorDO selectorDO = selectorMapper.selectById(id);
         PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
 
-        int selectorCount = selectorMapper.delete(id);
+        selectorCount = selectorMapper.delete(id);
         selectorConditionMapper.deleteByQuery(new SelectorConditionQuery(id));
 
         String selectorRealPath = ZkPathConstants.buildSelectorRealPath(pluginDO.getName(), selectorDO.getId());
         if (zkClient.exists(selectorRealPath)) {
             zkClient.delete(selectorRealPath);
         }
+        String ruleParentPath = ZkPathConstants.buildRuleParentPath(pluginDO.getName());
+        zkClient.getChildren(ruleParentPath).forEach(selectorRulePath -> {
+            if (selectorRulePath.contains(selectorDO.getId() + ZkPathConstants.SELECTOR_JOIN_RULE)) {
+                zkClient.delete(ruleParentPath + "/" + selectorRulePath);
+            }
+        });
         return selectorCount;
     }
 

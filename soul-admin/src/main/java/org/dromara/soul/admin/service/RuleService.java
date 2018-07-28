@@ -19,7 +19,6 @@
 package org.dromara.soul.admin.service;
 
 import org.dromara.soul.admin.dto.RuleDTO;
-import org.dromara.soul.admin.entity.RuleDO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.RuleQuery;
 import org.dromara.soul.admin.vo.RuleVO;
@@ -51,9 +50,9 @@ public interface RuleService {
      * find rule by id.
      *
      * @param id primary key.
-     * @return {@linkplain RuleDO}
+     * @return {@linkplain RuleVO}
      */
-    RuleDO findById(String id);
+    RuleVO findById(String id);
 
     /**
      * find page of rule by query.

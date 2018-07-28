@@ -16,63 +16,26 @@
  *
  */
 
-package org.dromara.soul.admin.dto;
+package org.dromara.soul.admin.query;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
- * this is rule from by web front.
+ * this is rule condition query.
  *
  * @author jiangxiaofeng(Nicholas)
  */
 @Data
-public class RuleDTO implements Serializable {
+@AllArgsConstructor
+@NoArgsConstructor
+public class RuleConditionQuery implements Serializable {
 
     /**
-     * primary key.
+     * rule id.
      */
-    private String id;
-
-    /**
-     * selector id.
-     */
-    private String selectorId;
-
-    /**
-     * match mode.
-     */
-    private Integer matchMode;
-
-    /**
-     * rule name.
-     */
-    private String name;
-
-    /**
-     * whether enabled.
-     */
-    private Boolean enabled;
-
-    /**
-     * whether loged.
-     */
-    private Boolean loged;
-
-    /**
-     * sort rank.
-     */
-    private Integer rank;
-
-    /**
-     * process logic.
-     */
-    private String handle;
-
-    /**
-     * rule conditions.
-     */
-    private List<RuleConditionDTO> ruleConditions;
+    private String ruleId;
 }
