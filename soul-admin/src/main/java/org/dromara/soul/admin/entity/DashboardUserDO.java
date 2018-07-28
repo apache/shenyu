@@ -66,20 +66,16 @@ public class DashboardUserDO extends BaseDO {
             Timestamp currentTime = new Timestamp(new Date().getTime());
             if (StringUtils.isEmpty(dashboardUserDTO.getId())) {
                 dashboardUserDO.setId(UUIDUtils.generateShortUuid());
-                dashboardUserDO.setUserName(dashboardUserDTO.getUserName());
-                dashboardUserDO.setPassword(dashboardUserDTO.getPassword());
-                dashboardUserDO.setRole(dashboardUserDTO.getRole());
                 dashboardUserDO.setEnabled(true);
                 dashboardUserDO.setDateCreated(currentTime);
-                dashboardUserDO.setDateUpdated(currentTime);
             } else {
                 dashboardUserDO.setId(dashboardUserDTO.getId());
-                dashboardUserDO.setUserName(dashboardUserDTO.getUserName());
-                dashboardUserDO.setPassword(dashboardUserDTO.getPassword());
-                dashboardUserDO.setRole(dashboardUserDTO.getRole());
                 dashboardUserDO.setEnabled(dashboardUserDTO.getEnabled());
-                dashboardUserDO.setDateUpdated(currentTime);
             }
+            dashboardUserDO.setUserName(dashboardUserDTO.getUserName());
+            dashboardUserDO.setPassword(dashboardUserDTO.getPassword());
+            dashboardUserDO.setRole(dashboardUserDTO.getRole());
+            dashboardUserDO.setDateUpdated(currentTime);
             return dashboardUserDO;
         }
         return null;

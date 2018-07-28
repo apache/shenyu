@@ -54,10 +54,11 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      * @return rows
      */
     public int createOrUpdate(final DashboardUserDTO dashboardUserDTO) {
+        DashboardUserDO dashboardUserDO = DashboardUserDO.buildDashboardUserDO(dashboardUserDTO);
         if (StringUtils.isEmpty(dashboardUserDTO.getId())) {
-            return dashboardUserMapper.insertSelective(DashboardUserDO.buildDashboardUserDO(dashboardUserDTO));
+            return dashboardUserMapper.insertSelective(dashboardUserDO);
         } else {
-            return dashboardUserMapper.updateSelective(DashboardUserDO.buildDashboardUserDO(dashboardUserDTO));
+            return dashboardUserMapper.updateSelective(dashboardUserDO);
         }
     }
 

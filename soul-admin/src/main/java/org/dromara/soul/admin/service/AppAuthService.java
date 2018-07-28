@@ -50,7 +50,7 @@ public interface AppAuthService {
     /**
      * find application authority by id.
      *
-     * @param id pk.
+     * @param id primary key.
      * @return {@linkplain AppAuthVO}
      */
     AppAuthVO findById(String id);
@@ -58,7 +58,7 @@ public interface AppAuthService {
     /**
      * find application authority by appKey.
      *
-     * @param appKey appKey.
+     * @param appKey application key.
      * @return {@linkplain AppAuthVO}
      */
     AppAuthVO findByAppKey(String appKey);

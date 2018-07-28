@@ -35,13 +35,13 @@ import org.springframework.stereotype.Service;
 public class SelectorServiceImpl implements SelectorService {
 
     /**
-     * save or update selector.
+     * create or update selector.
      *
      * @param selectorDTO {@linkplain SelectorDTO}
      * @return rows
      */
     @Override
-    public int saveOrUpdate(final SelectorDTO selectorDTO) {
+    public int createOrUpdate(final SelectorDTO selectorDTO) {
         return 0;
     }
 
@@ -59,7 +59,7 @@ public class SelectorServiceImpl implements SelectorService {
     /**
      * find selector by id.
      *
-     * @param id pk.
+     * @param id primary key.
      * @return {@linkplain SelectorDO}
      */
     @Override

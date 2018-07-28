@@ -59,7 +59,7 @@ public class AppAuthServiceImpl implements AppAuthService {
     /**
      * find application authority by id.
      *
-     * @param id pk.
+     * @param id primary key.
      * @return {@linkplain AppAuthVO}
      */
     @Override
@@ -70,7 +70,7 @@ public class AppAuthServiceImpl implements AppAuthService {
     /**
      * find application authority by appKey.
      *
-     * @param appKey appKey.
+     * @param appKey application key.
      * @return {@linkplain AppAuthVO}
      */
     @Override

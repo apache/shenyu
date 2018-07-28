@@ -35,13 +35,13 @@ import org.springframework.stereotype.Service;
 public class RuleServiceImpl implements RuleService {
 
     /**
-     * save or update rule.
+     * create or update rule.
      *
      * @param ruleDTO {@linkplain RuleDTO}
      * @return rows
      */
     @Override
-    public int saveOrUpdate(final RuleDTO ruleDTO) {
+    public int createOrUpdate(final RuleDTO ruleDTO) {
         return 0;
     }
 

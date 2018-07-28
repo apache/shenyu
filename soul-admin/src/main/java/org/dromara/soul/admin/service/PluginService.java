@@ -32,12 +32,12 @@ import org.dromara.soul.admin.vo.PluginVO;
 public interface PluginService {
 
     /**
-     * save or update plugin.
+     * create or update plugin.
      *
      * @param pluginDTO {@linkplain PluginDTO}
      * @return rows
      */
-    int saveOrUpdate(PluginDTO pluginDTO);
+    int createOrUpdate(PluginDTO pluginDTO);
 
     /**
      * enabled or disabled plugin.
@@ -51,9 +51,9 @@ public interface PluginService {
      * find plugin by id.
      *
      * @param id pk.
-     * @return {@linkplain PluginDO}
+     * @return {@linkplain PluginVO}
      */
-    PluginDO findById(String id);
+    PluginVO findById(String id);
 
     /**
      * find page of plugin by query.

@@ -36,6 +36,11 @@ import java.io.Serializable;
 public class PluginQuery implements Serializable {
 
     /**
+     * plugin name.
+     */
+    private String name;
+
+    /**
      * page parameter.
      */
     private PageParameter pageParameter;

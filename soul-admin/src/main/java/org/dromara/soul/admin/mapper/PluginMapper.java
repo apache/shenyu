@@ -35,7 +35,7 @@ public interface PluginMapper {
     /**
      * select plugin by id.
      *
-     * @param id pk
+     * @param id primary key.
      * @return {@linkplain PluginDO}
      */
     PluginDO selectById(String id);
@@ -47,6 +47,14 @@ public interface PluginMapper {
      * @return {@linkplain List}
      */
     List<PluginDO> selectByQuery(PluginQuery pluginQuery);
+
+    /**
+     * count plugin by query.
+     *
+     * @param pluginQuery {@linkplain PluginQuery}
+     * @return {@linkplain Integer}
+     */
+    Integer countByQuery(PluginQuery pluginQuery);
 
     /**
      * insert plugin.

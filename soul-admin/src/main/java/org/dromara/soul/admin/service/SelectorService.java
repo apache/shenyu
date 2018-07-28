@@ -32,12 +32,12 @@ import org.dromara.soul.admin.vo.SelectorVO;
 public interface SelectorService {
 
     /**
-     * save or update selector.
+     * create or update selector.
      *
      * @param selectorDTO {@linkplain SelectorDTO}
      * @return rows
      */
-    int saveOrUpdate(SelectorDTO selectorDTO);
+    int createOrUpdate(SelectorDTO selectorDTO);
 
     /**
      * enabled or disabled selector.
@@ -50,7 +50,7 @@ public interface SelectorService {
     /**
      * find selector by id.
      *
-     * @param id pk.
+     * @param id primary key.
      * @return {@linkplain SelectorDO}
      */
     SelectorDO findById(String id);

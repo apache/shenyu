@@ -32,12 +32,12 @@ import org.dromara.soul.admin.vo.RuleVO;
 public interface RuleService {
 
     /**
-     * save or update rule.
+     * create or update rule.
      *
      * @param ruleDTO {@linkplain RuleDTO}
      * @return rows
      */
-    int saveOrUpdate(RuleDTO ruleDTO);
+    int createOrUpdate(RuleDTO ruleDTO);
 
     /**
      * enabled or disabled rule.
@@ -50,7 +50,7 @@ public interface RuleService {
     /**
      * find rule by id.
      *
-     * @param id pk.
+     * @param id primary key.
      * @return {@linkplain RuleDO}
      */
     RuleDO findById(String id);
