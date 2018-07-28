@@ -46,13 +46,13 @@ public class RuleServiceImpl implements RuleService {
     }
 
     /**
-     * enabled or disabled rule.
+     * delete rule.
      *
-     * @param ruleDTO {@linkplain RuleDTO}
+     * @param id primary key.
      * @return rows
      */
     @Override
-    public int enabled(final RuleDTO ruleDTO) {
+    public int delete(final String id) {
         return 0;
     }
 

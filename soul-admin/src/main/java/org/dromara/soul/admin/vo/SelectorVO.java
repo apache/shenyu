@@ -21,8 +21,12 @@ package org.dromara.soul.admin.vo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.dromara.soul.admin.entity.SelectorDO;
+import org.dromara.soul.common.enums.MatchModeEnum;
+import org.dromara.soul.common.enums.SelectorTypeEnum;
 
 import java.io.Serializable;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
@@ -51,14 +55,24 @@ public class SelectorVO implements Serializable {
     private String name;
 
     /**
-     * match mode.
+     * match mode code.
      */
     private Integer matchMode;
 
     /**
-     * selector type.
+     * match mode name.
+     */
+    private String matchModeName;
+
+    /**
+     * selector type code.
      */
     private Integer type;
+
+    /**
+     * selector type name.
+     */
+    private String typeName;
 
     /**
      * sort rank.
@@ -94,4 +108,35 @@ public class SelectorVO implements Serializable {
      * updated time.
      */
     private String dateUpdated;
+
+    /**
+     * build selectorVO.
+     *
+     * @param selectorDO {@linkplain SelectorDO}
+     * @return {@linkplain SelectorVO}
+     */
+    public static SelectorVO buildSelectorVO(final SelectorDO selectorDO) {
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return new SelectorVO(selectorDO.getId(), selectorDO.getPluginId(), selectorDO.getName(), selectorDO.getMatchMode(), MatchModeEnum.getMatchModeByCode(selectorDO.getMatchMode()),
+                selectorDO.getType(), SelectorTypeEnum.getSelectorTypeByCode(selectorDO.getType()), selectorDO.getRank(),
+                selectorDO.getEnabled(), selectorDO.getLoged(), selectorDO.getContinued(), null,
+                dateTimeFormatter.format(selectorDO.getDateCreated().toLocalDateTime()),
+                dateTimeFormatter.format(selectorDO.getDateUpdated().toLocalDateTime()));
+    }
+
+    /**
+     * build selectorVO.
+     *
+     * @param selectorDO         {@linkplain SelectorDO}
+     * @param selectorConditions {@linkplain List}
+     * @return {@linkplain SelectorVO}
+     */
+    public static SelectorVO buildSelectorVO(final SelectorDO selectorDO, final List<SelectorConditionVO> selectorConditions) {
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return new SelectorVO(selectorDO.getId(), selectorDO.getPluginId(), selectorDO.getName(), selectorDO.getMatchMode(), MatchModeEnum.getMatchModeByCode(selectorDO.getMatchMode()),
+                selectorDO.getType(), SelectorTypeEnum.getSelectorTypeByCode(selectorDO.getType()), selectorDO.getRank(),
+                selectorDO.getEnabled(), selectorDO.getLoged(), selectorDO.getContinued(), selectorConditions,
+                dateTimeFormatter.format(selectorDO.getDateCreated().toLocalDateTime()),
+                dateTimeFormatter.format(selectorDO.getDateUpdated().toLocalDateTime()));
+    }
 }

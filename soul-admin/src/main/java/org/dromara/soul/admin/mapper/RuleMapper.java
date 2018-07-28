@@ -68,4 +68,12 @@ public interface RuleMapper {
      * @return rows
      */
     int updateSelective(RuleDO ruleDO);
+
+    /**
+     * delete rule.
+     *
+     * @param id primary key.
+     * @return rows
+     */
+    int delete(String id);
 }

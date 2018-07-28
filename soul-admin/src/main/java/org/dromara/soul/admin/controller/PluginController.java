@@ -39,8 +39,8 @@ public class PluginController {
      * query plugins.
      *
      * @param name        plugin name.
-     * @param currentPage current page
-     * @param pageSize    page size
+     * @param currentPage current page.
+     * @param pageSize    page size.
      * @return {@linkplain Mono}
      */
     @GetMapping("")
@@ -93,9 +93,6 @@ public class PluginController {
      */
     @DeleteMapping("/{id}")
     public Mono<Integer> deletePlugin(@PathVariable("id") final String id) {
-        PluginDTO pluginDTO = new PluginDTO();
-        pluginDTO.setId(id);
-        pluginDTO.setEnabled(false);
-        return Mono.create(commonPager -> commonPager.success(pluginService.enabled(pluginDTO)));
+        return Mono.create(commonPager -> commonPager.success(pluginService.delete(id)));
     }
 }

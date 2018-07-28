@@ -85,7 +85,7 @@ public enum PluginEnum {
      * get plugin enum by code.
      *
      * @param code plugin code.
-     * @return plugin enum
+     * @return plugin enum.
      */
     public static PluginEnum getPluginEnumByCode(final int code) {
         for (PluginEnum pluginEnum : PluginEnum.values()) {

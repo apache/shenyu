@@ -21,27 +21,21 @@ package org.dromara.soul.admin.query;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.dromara.soul.admin.page.PageParameter;
 
 import java.io.Serializable;
 
 /**
- * this is selector query.
+ * this is selector condition query.
  *
  * @author jiangxiaofeng(Nicholas)
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SelectorQuery implements Serializable {
+public class SelectorConditionQuery implements Serializable {
 
     /**
-     * plugin id.
+     * selector id.
      */
-    private String pluginId;
-
-    /**
-     * page parameter.
-     */
-    private PageParameter pageParameter;
+    private String selectorId;
 }

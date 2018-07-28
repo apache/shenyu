@@ -39,12 +39,12 @@ public interface DashboardUserService {
     int createOrUpdate(DashboardUserDTO dashboardUserDTO);
 
     /**
-     * enabled or disabled dashboard user.
+     * delete dashboard user.
      *
-     * @param dashboardUserDTO {@linkplain DashboardUserDTO}
+     * @param id primary key.
      * @return rows
      */
-    int enabled(DashboardUserDTO dashboardUserDTO);
+    int delete(String id);
 
     /**
      * find dashboard user by id.

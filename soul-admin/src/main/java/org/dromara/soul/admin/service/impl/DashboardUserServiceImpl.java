@@ -63,13 +63,13 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     }
 
     /**
-     * enabled or disabled dashboard user.
+     * delete dashboard user.
      *
-     * @param dashboardUserDTO {@linkplain DashboardUserDTO}
+     * @param id primary key.
      * @return rows
      */
-    public int enabled(final DashboardUserDTO dashboardUserDTO) {
-        return dashboardUserMapper.updateSelective(DashboardUserDO.buildDashboardUserDO(dashboardUserDTO));
+    public int delete(final String id) {
+        return dashboardUserMapper.delete(id);
     }
 
     /**

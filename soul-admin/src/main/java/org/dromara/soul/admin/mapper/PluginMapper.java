@@ -87,4 +87,12 @@ public interface PluginMapper {
      * @return rows
      */
     int updateSelective(PluginDO pluginDO);
+
+    /**
+     * delete plugin.
+     *
+     * @param id primary key.
+     * @return rows
+     */
+    int delete(String id);
 }

@@ -93,9 +93,6 @@ public class DashboardUserController {
      */
     @DeleteMapping("/{id}")
     public Mono<Integer> deleteDashboardUser(@PathVariable("id") final String id) {
-        DashboardUserDTO dashboardUserDTO = new DashboardUserDTO();
-        dashboardUserDTO.setId(id);
-        dashboardUserDTO.setEnabled(false);
-        return Mono.create(commonPager -> commonPager.success(dashboardUserService.enabled(dashboardUserDTO)));
+        return Mono.create(commonPager -> commonPager.success(dashboardUserService.delete(id)));
     }
 }

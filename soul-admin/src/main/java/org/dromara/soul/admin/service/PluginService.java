@@ -19,7 +19,6 @@
 package org.dromara.soul.admin.service;
 
 import org.dromara.soul.admin.dto.PluginDTO;
-import org.dromara.soul.admin.entity.PluginDO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.PluginQuery;
 import org.dromara.soul.admin.vo.PluginVO;
@@ -40,12 +39,12 @@ public interface PluginService {
     int createOrUpdate(PluginDTO pluginDTO);
 
     /**
-     * enabled or disabled plugin.
+     * delete plugin.
      *
-     * @param pluginDTO {@linkplain PluginDTO}
+     * @param id primary key.
      * @return rows
      */
-    int enabled(PluginDTO pluginDTO);
+    int delete(String id);
 
     /**
      * find plugin by id.

@@ -133,4 +133,9 @@
         </set>
         where ID = #{id,jdbcType=VARCHAR}
     </update>
+
+    <delete id="delete" parameterType="java.lang.String">
+        delete from DASHBOARD_USER
+        where ID = #{id,jdbcType=VARCHAR}
+    </delete>
 </mapper>

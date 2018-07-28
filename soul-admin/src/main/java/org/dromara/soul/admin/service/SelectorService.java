@@ -19,7 +19,6 @@
 package org.dromara.soul.admin.service;
 
 import org.dromara.soul.admin.dto.SelectorDTO;
-import org.dromara.soul.admin.entity.SelectorDO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.SelectorQuery;
 import org.dromara.soul.admin.vo.SelectorVO;
@@ -40,20 +39,20 @@ public interface SelectorService {
     int createOrUpdate(SelectorDTO selectorDTO);
 
     /**
-     * enabled or disabled selector.
+     * delete selector.
      *
-     * @param selectorDTO {@linkplain SelectorDTO}
+     * @param id primary key.
      * @return rows
      */
-    int enabled(SelectorDTO selectorDTO);
+    int delete(String id);
 
     /**
      * find selector by id.
      *
      * @param id primary key.
-     * @return {@linkplain SelectorDO}
+     * @return {@linkplain SelectorVO}
      */
-    SelectorDO findById(String id);
+    SelectorVO findById(String id);
 
     /**
      * find page of selector by query.

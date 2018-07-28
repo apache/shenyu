@@ -68,4 +68,12 @@ public interface RuleConditionMapper {
      * @return rows
      */
     int updateSelective(RuleConditionDO ruleConditionDO);
+
+    /**
+     * delete rule condition.
+     *
+     * @param id primary key.
+     * @return rows
+     */
+    int delete(String id);
 }

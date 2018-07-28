@@ -19,7 +19,6 @@
 package org.dromara.soul.admin.service.impl;
 
 import org.dromara.soul.admin.dto.AppAuthDTO;
-import org.dromara.soul.admin.entity.AppAuthDO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.AppAuthQuery;
 import org.dromara.soul.admin.service.AppAuthService;
@@ -46,13 +45,13 @@ public class AppAuthServiceImpl implements AppAuthService {
     }
 
     /**
-     * enabled or disabled application authority.
+     * delete application authority.
      *
-     * @param appAuthDTO {@linkplain AppAuthDTO}
+     * @param id primary key.
      * @return rows
      */
     @Override
-    public int enabled(final AppAuthDTO appAuthDTO) {
+    public int delete(final String id) {
         return 0;
     }
 

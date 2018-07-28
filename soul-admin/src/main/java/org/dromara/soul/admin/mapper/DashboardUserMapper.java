@@ -87,4 +87,12 @@ public interface DashboardUserMapper {
      * @return rows
      */
     int updateSelective(DashboardUserDO dashboardUserDO);
+
+    /**
+     * delete dashboard user.
+     *
+     * @param id primary key.
+     * @return rows
+     */
+    int delete(String id);
 }

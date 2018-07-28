@@ -78,21 +78,19 @@ public class PluginServiceImpl implements PluginService {
     }
 
     /**
-     * enabled or disabled plugin.
+     * delete plugin.
      *
-     * @param pluginDTO {@linkplain PluginDTO}
+     * @param id primary key.
      * @return rows
      */
-    public int enabled(final PluginDTO pluginDTO) {
-        PluginDO pluginDO = pluginMapper.selectById(pluginDTO.getId());
-        pluginDO.setEnabled(pluginDTO.getEnabled());
-        int pluginCount = pluginMapper.update(pluginDO);
+    public int delete(final String id) {
+        PluginDO pluginDO = pluginMapper.selectById(id);
+        int pluginCount = pluginMapper.delete(id);
 
         String pluginPath = ZkPathConstants.buildPluginPath(pluginDO.getName());
-        if (!zkClient.exists(pluginPath)) {
-            zkClient.createPersistent(pluginPath, true);
+        if (zkClient.exists(pluginPath)) {
+            zkClient.delete(pluginPath);
         }
-        zkClient.writeData(pluginPath, new PluginZkDTO(pluginDO.getId(), pluginDO.getName(), pluginDO.getEnabled()));
         return pluginCount;
     }
 

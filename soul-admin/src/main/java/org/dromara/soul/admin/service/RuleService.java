@@ -40,12 +40,12 @@ public interface RuleService {
     int createOrUpdate(RuleDTO ruleDTO);
 
     /**
-     * enabled or disabled rule.
+     * delete rule.
      *
-     * @param ruleDTO {@linkplain RuleDTO}
+     * @param id primary key.
      * @return rows
      */
-    int enabled(RuleDTO ruleDTO);
+    int delete(String id);
 
     /**
      * find rule by id.
