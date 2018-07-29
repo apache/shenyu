@@ -24,48 +24,48 @@ import org.dromara.soul.admin.entity.AppAuthDO;
 /**
  * AppAuthMapper.
  *
- * @author xiaoyu(549477611 @ qq.com)
+ * @author xiaoyu(Myth)
  */
 @Mapper
 public interface AppAuthMapper {
 
     /**
-     * select application authority by id
+     * select application authority by id.
      *
-     * @param id
-     * @return
+     * @param id pk.
+     * @return {@linkplain AppAuthDO}
      */
     AppAuthDO selectById(String id);
 
     /**
-     * insert application authority
+     * insert application authority.
      *
-     * @param appAuthDO
-     * @return
+     * @param appAuthDO {@linkplain AppAuthDO}
+     * @return rows
      */
     int insert(AppAuthDO appAuthDO);
 
     /**
-     * insert selective application authority
+     * insert selective application authority.
      *
-     * @param appAuthDO
-     * @return
+     * @param appAuthDO {@linkplain AppAuthDO}
+     * @return rows
      */
     int insertSelective(AppAuthDO appAuthDO);
 
     /**
-     * update application authority
+     * update application authority.
      *
-     * @param appAuthDO
-     * @return
+     * @param appAuthDO {@linkplain AppAuthDO}
+     * @return rows
      */
     int update(AppAuthDO appAuthDO);
 
     /**
-     * update selective application authority
+     * update selective application authority.
      *
-     * @param appAuthDO
-     * @return
+     * @param appAuthDO {@linkplain AppAuthDO}
+     * @return rows
      */
     int updateSelective(AppAuthDO appAuthDO);
 }

@@ -21,69 +21,68 @@ package org.dromara.soul.admin.vo;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
  * this is rule view to web front.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Data
 public class RuleVO implements Serializable {
 
     /**
-     * primary key
+     * primary key.
      */
     private String id;
 
     /**
-     * selector id
+     * selector id.
      */
     private String selectorId;
 
     /**
-     * match mode
+     * match mode.
      */
     private Integer matchMode;
 
     /**
-     * rule name
+     * rule name.
      */
     private String name;
 
     /**
-     * whether enabled
+     * whether enabled.
      */
     private Boolean enabled;
 
     /**
-     * whether loged
+     * whether loged.
      */
     private Boolean loged;
 
     /**
-     * sort rank
+     * sort rank.
      */
     private Integer rank;
 
     /**
-     * process logic
+     * process logic.
      */
     private String handle;
 
     /**
-     * rule conditions
+     * rule conditions.
      */
     private List<RuleConditionVO> ruleConditions;
 
     /**
      * created time.
      */
-    private LocalDateTime dateCreated;
+    private String dateCreated;
 
     /**
      * updated time.
      */
-    private LocalDateTime dateUpdated;
+    private String dateUpdated;
 }

@@ -24,6 +24,7 @@ import java.io.Serializable;
 
 /**
  * PageParameter.
+ *
  * @author xiaoyu(Myth)
  */
 @Data
@@ -52,16 +53,21 @@ public class PageParameter implements Serializable {
 
     /**
      * PageParameter.
+     *
      * @param currentPage current page.
-     * @param pageSize page size.
+     * @param pageSize    page size.
      */
     public PageParameter(final int currentPage, final int pageSize) {
         this.currentPage = currentPage;
         this.pageSize = pageSize;
     }
 
+    /**
+     * get current page.
+     *
+     * @return current page
+     */
     public int getCurrentPage() {
         return currentPage;
     }
-
 }
