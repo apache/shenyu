@@ -37,7 +37,7 @@ public class SelectorZkDTO implements Serializable {
 
     private String id;
 
-    private Integer pluginId;
+    private String pluginId;
 
     /**
      * plugin name.
@@ -54,7 +54,7 @@ public class SelectorZkDTO implements Serializable {
     /**
      * type（false full，true custom).
      */
-    private Boolean type;
+    private Integer type;
 
     private Integer rank;
 

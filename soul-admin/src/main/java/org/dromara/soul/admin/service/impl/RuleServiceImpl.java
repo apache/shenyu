@@ -18,13 +18,33 @@
 
 package org.dromara.soul.admin.service.impl;
 
+import org.I0Itec.zkclient.ZkClient;
+import org.apache.commons.lang3.StringUtils;
+import org.dromara.soul.admin.dto.RuleConditionDTO;
 import org.dromara.soul.admin.dto.RuleDTO;
+import org.dromara.soul.admin.entity.PluginDO;
+import org.dromara.soul.admin.entity.RuleConditionDO;
 import org.dromara.soul.admin.entity.RuleDO;
+import org.dromara.soul.admin.entity.SelectorDO;
+import org.dromara.soul.admin.mapper.PluginMapper;
+import org.dromara.soul.admin.mapper.RuleConditionMapper;
+import org.dromara.soul.admin.mapper.RuleMapper;
+import org.dromara.soul.admin.mapper.SelectorMapper;
 import org.dromara.soul.admin.page.CommonPager;
+import org.dromara.soul.admin.page.PageParameter;
+import org.dromara.soul.admin.query.RuleConditionQuery;
 import org.dromara.soul.admin.query.RuleQuery;
 import org.dromara.soul.admin.service.RuleService;
+import org.dromara.soul.admin.vo.RuleConditionVO;
 import org.dromara.soul.admin.vo.RuleVO;
+import org.dromara.soul.common.constant.ZkPathConstants;
+import org.dromara.soul.common.dto.zk.ConditionZkDTO;
+import org.dromara.soul.common.dto.zk.RuleZkDTO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * RuleServiceImpl.
@@ -34,37 +54,116 @@ import org.springframework.stereotype.Service;
 @Service("ruleService")
 public class RuleServiceImpl implements RuleService {
 
-    /**
-     * save or update rule.
-     *
-     * @param ruleDTO {@linkplain RuleDTO}
-     * @return rows
-     */
-    @Override
-    public int saveOrUpdate(final RuleDTO ruleDTO) {
-        return 0;
+    private RuleMapper ruleMapper;
+
+    private RuleConditionMapper ruleConditionMapper;
+
+    private SelectorMapper selectorMapper;
+
+    private PluginMapper pluginMapper;
+
+    private final ZkClient zkClient;
+
+    @Autowired(required = false)
+    public RuleServiceImpl(final RuleMapper ruleMapper, final RuleConditionMapper ruleConditionMapper,
+                           final SelectorMapper selectorMapper, final PluginMapper pluginMapper, final ZkClient zkClient) {
+        this.ruleMapper = ruleMapper;
+        this.ruleConditionMapper = ruleConditionMapper;
+        this.selectorMapper = selectorMapper;
+        this.pluginMapper = pluginMapper;
+        this.zkClient = zkClient;
     }
 
     /**
-     * enabled or disabled rule.
+     * create or update rule.
      *
      * @param ruleDTO {@linkplain RuleDTO}
      * @return rows
      */
     @Override
-    public int enabled(final RuleDTO ruleDTO) {
-        return 0;
+    public int createOrUpdate(final RuleDTO ruleDTO) {
+        int ruleCount;
+
+        RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
+        List<RuleConditionDTO> ruleConditionDTOs = ruleDTO.getRuleConditions();
+        if (StringUtils.isEmpty(ruleDTO.getId())) {
+            ruleCount = ruleMapper.insertSelective(ruleDO);
+            ruleConditionDTOs.forEach(ruleConditionDTO -> {
+                ruleConditionDTO.setRuleId(ruleDO.getId());
+                ruleConditionMapper.insertSelective(RuleConditionDO.buildRuleConditionDO(ruleConditionDTO));
+            });
+        } else {
+            ruleCount = ruleMapper.updateSelective(ruleDO);
+            List<RuleConditionDO> ruleConditions = ruleConditionMapper.selectByQuery(
+                    new RuleConditionQuery(ruleDO.getId()));
+            ruleConditionDTOs.forEach(ruleConditionDTO -> {
+                ruleConditionDTO.setRuleId(ruleDO.getId());
+                RuleConditionDO ruleConditionDO = RuleConditionDO.buildRuleConditionDO(ruleConditionDTO);
+                if (StringUtils.isEmpty(ruleConditionDTO.getId())) {
+                    ruleConditionMapper.insertSelective(ruleConditionDO);
+                } else {
+                    ruleConditionMapper.updateSelective(ruleConditionDO);
+                }
+            });
+            ruleConditions.stream().filter(ruleConditionDO -> ruleConditionDTOs.stream()
+                    .filter(ruleConditionDTO -> StringUtils.isNoneEmpty(ruleConditionDTO.getId()))
+                    .anyMatch(ruleConditionDTO -> !ruleConditionDO.getId().equals(ruleConditionDTO.getId())))
+                    .forEach(ruleConditionDO -> ruleConditionMapper.delete(ruleConditionDO.getId()));
+        }
+
+        SelectorDO selectorDO = selectorMapper.selectById(ruleDO.getSelectorId());
+        PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
+        String ruleParentPath = ZkPathConstants.buildRuleParentPath(pluginDO.getName());
+        if (!zkClient.exists(ruleParentPath)) {
+            zkClient.createPersistent(ruleParentPath, true);
+        }
+
+        String ruleRealPath = ZkPathConstants.buildRulePath(pluginDO.getName(), selectorDO.getId(), ruleDO.getId());
+        if (!zkClient.exists(ruleRealPath)) {
+            zkClient.createPersistent(ruleRealPath, true);
+        }
+
+        List<ConditionZkDTO> conditionZkDTOs = ruleConditionDTOs.stream().map(selectorConditionDTO ->
+                new ConditionZkDTO(selectorConditionDTO.getParamType(), selectorConditionDTO.getOperator(),
+                        selectorConditionDTO.getParamName(), selectorConditionDTO.getParamValue())).collect(Collectors.toList());
+        zkClient.writeData(ruleRealPath, new RuleZkDTO(ruleDO.getId(), pluginDO.getName(), ruleDO.getSelectorId(),
+                ruleDO.getMatchMode(), ruleDO.getRank(), ruleDO.getEnabled(), ruleDO.getLoged(), ruleDO.getHandle(), conditionZkDTOs));
+        return ruleCount;
+    }
+
+    /**
+     * delete rule.
+     *
+     * @param id primary key.
+     * @return rows
+     */
+    @Override
+    public int delete(final String id) {
+        RuleDO ruleDO = ruleMapper.selectById(id);
+        SelectorDO selectorDO = selectorMapper.selectById(ruleDO.getSelectorId());
+        PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
+
+        int ruleCount = ruleMapper.delete(id);
+        ruleConditionMapper.deleteByQuery(new RuleConditionQuery(id));
+
+        String ruleRealPath = ZkPathConstants.buildRulePath(pluginDO.getName(), selectorDO.getId(), ruleDO.getId());
+        if (zkClient.exists(ruleRealPath)) {
+            zkClient.delete(ruleRealPath);
+        }
+        return ruleCount;
     }
 
     /**
      * find rule by id.
      *
-     * @param id pk.
-     * @return {@linkplain RuleDO}
+     * @param id primary key..
+     * @return {@linkplain RuleVO}
      */
     @Override
-    public RuleDO findById(final String id) {
-        return null;
+    public RuleVO findById(final String id) {
+        return RuleVO.buildRuleVO(ruleMapper.selectById(id), ruleConditionMapper.selectByQuery(
+                new RuleConditionQuery(id)).stream().map(RuleConditionVO::buildRuleConditionVO).collect(Collectors.toList()));
+
     }
 
     /**
@@ -75,6 +174,11 @@ public class RuleServiceImpl implements RuleService {
      */
     @Override
     public CommonPager<RuleVO> listByPage(final RuleQuery ruleQuery) {
-        return null;
+        PageParameter pageParameter = ruleQuery.getPageParameter();
+        return new CommonPager<>(
+                new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), ruleMapper.countByQuery(ruleQuery)),
+                ruleMapper.selectByQuery(ruleQuery).stream()
+                        .map(RuleVO::buildRuleVO)
+                        .collect(Collectors.toList()));
     }
 }

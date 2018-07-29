@@ -26,6 +26,24 @@
         where ID = #{id,jdbcType=VARCHAR}
     </select>
 
+    <select id="selectByQuery" parameterType="org.dromara.soul.admin.query.RuleQuery" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from RULE
+        <if test="selectorId != null">
+            where SELECTOR_ID = #{selectorId,jdbcType=VARCHAR}
+        </if>
+        limit #{pageParameter.offset},#{pageParameter.pageSize}
+    </select>
+
+    <select id="countByQuery" parameterType="org.dromara.soul.admin.query.RuleQuery" resultType="java.lang.Integer">
+        select count(1)
+        from RULE
+        <if test="selectorId != null">
+            where SELECTOR_ID = #{selectorId,jdbcType=VARCHAR}
+        </if>
+    </select>
+
     <insert id="insert" parameterType="org.dromara.soul.admin.entity.RuleDO">
         insert into RULE (ID, DATE_CREATED, DATE_UPDATED,
         SELECTOR_ID, NAME, MATCH_MODE, RANK, ENABLED,
@@ -147,4 +165,9 @@
         </set>
         where ID = #{id,jdbcType=VARCHAR}
     </update>
+
+    <delete id="delete" parameterType="java.lang.String">
+        delete from RULE
+        where ID = #{id,jdbcType=VARCHAR}
+    </delete>
 </mapper>

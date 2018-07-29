@@ -20,6 +20,9 @@ package org.dromara.soul.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.dromara.soul.admin.entity.SelectorConditionDO;
+import org.dromara.soul.admin.query.SelectorConditionQuery;
+
+import java.util.List;
 
 /**
  * SelectorConditionMapper.
@@ -32,10 +35,18 @@ public interface SelectorConditionMapper {
     /**
      * select selector condition by id.
      *
-     * @param id pk
+     * @param id primary key.
      * @return {@linkplain SelectorConditionDO}
      */
     SelectorConditionDO selectById(String id);
+
+    /**
+     * select selector condition by query.
+     *
+     * @param selectorConditionQuery {@linkplain SelectorConditionQuery}
+     * @return {@linkplain List}
+     */
+    List<SelectorConditionDO> selectByQuery(SelectorConditionQuery selectorConditionQuery);
 
     /**
      * insert selector condition.
@@ -68,4 +79,20 @@ public interface SelectorConditionMapper {
      * @return rows
      */
     int updateSelective(SelectorConditionDO selectorConditionDO);
+
+    /**
+     * delete selector condition by id.
+     *
+     * @param id primary key.
+     * @return rows
+     */
+    int delete(String id);
+
+    /**
+     * delete selector condition by query.
+     *
+     * @param selectorConditionQuery {@linkplain SelectorConditionDO}
+     * @return rows
+     */
+    int deleteByQuery(SelectorConditionQuery selectorConditionQuery);
 }

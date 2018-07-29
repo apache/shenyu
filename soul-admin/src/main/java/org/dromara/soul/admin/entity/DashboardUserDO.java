@@ -19,6 +19,12 @@
 package org.dromara.soul.admin.entity;
 
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+import org.dromara.soul.admin.dto.DashboardUserDTO;
+import org.dromara.soul.common.utils.UUIDUtils;
+
+import java.sql.Timestamp;
+import java.util.Date;
 
 /**
  * DashboardUserDO.
@@ -47,4 +53,31 @@ public class DashboardUserDO extends BaseDO {
      * whether enabled.
      */
     private Boolean enabled;
+
+    /**
+     * build dashboardUserDO.
+     *
+     * @param dashboardUserDTO {@linkplain DashboardUserDTO}
+     * @return {@linkplain DashboardUserDO}
+     */
+    public static DashboardUserDO buildDashboardUserDO(final DashboardUserDTO dashboardUserDTO) {
+        if (dashboardUserDTO != null) {
+            DashboardUserDO dashboardUserDO = new DashboardUserDO();
+            Timestamp currentTime = new Timestamp(new Date().getTime());
+            if (StringUtils.isEmpty(dashboardUserDTO.getId())) {
+                dashboardUserDO.setId(UUIDUtils.generateShortUuid());
+                dashboardUserDO.setEnabled(true);
+                dashboardUserDO.setDateCreated(currentTime);
+            } else {
+                dashboardUserDO.setId(dashboardUserDTO.getId());
+                dashboardUserDO.setEnabled(dashboardUserDTO.getEnabled());
+            }
+            dashboardUserDO.setUserName(dashboardUserDTO.getUserName());
+            dashboardUserDO.setPassword(dashboardUserDTO.getPassword());
+            dashboardUserDO.setRole(dashboardUserDTO.getRole());
+            dashboardUserDO.setDateUpdated(currentTime);
+            return dashboardUserDO;
+        }
+        return null;
+    }
 }
