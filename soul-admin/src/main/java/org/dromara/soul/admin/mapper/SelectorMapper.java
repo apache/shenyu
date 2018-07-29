@@ -24,48 +24,48 @@ import org.dromara.soul.admin.entity.SelectorDO;
 /**
  * SelectorMapper.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Mapper
 public interface SelectorMapper {
 
     /**
-     * select selector by id
+     * select selector by id.
      *
-     * @param id
-     * @return
+     * @param id pk
+     * @return {@linkplain SelectorDO}
      */
     SelectorDO selectById(String id);
 
     /**
-     * insert selector
+     * insert selector.
      *
-     * @param selectorDO
-     * @return
+     * @param selectorDO {@linkplain SelectorDO}
+     * @return rows
      */
     int insert(SelectorDO selectorDO);
 
     /**
-     * insert selective selector
+     * insert selective selector.
      *
-     * @param selectorDO
-     * @return
+     * @param selectorDO {@linkplain SelectorDO}
+     * @return rows
      */
     int insertSelective(SelectorDO selectorDO);
 
     /**
-     * update selector
+     * update selector.
      *
-     * @param selectorDO
-     * @return
+     * @param selectorDO {@linkplain SelectorDO}
+     * @return rows
      */
     int update(SelectorDO selectorDO);
 
     /**
-     * update selective selector
+     * update selective selector.
      *
-     * @param selectorDO
-     * @return
+     * @param selectorDO {@linkplain SelectorDO}
+     * @return rows
      */
     int updateSelective(SelectorDO selectorDO);
 }

@@ -25,38 +25,38 @@ import java.io.Serializable;
 /**
  * this is rule condition from by web front.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Data
 public class RuleConditionDTO implements Serializable {
 
     /**
-     * primary key
+     * primary key.
      */
     private String id;
     
     /**
-     * rule id
+     * rule id.
      */
     private String ruleId;
 
     /**
-     * parameter type
+     * parameter type.
      */
     private String paramType;
 
     /**
-     * match operator
+     * match operator.
      */
     private String operator;
 
     /**
-     * parameter name
+     * parameter name.
      */
     private String paramName;
 
     /**
-     * parameter value
+     * parameter value.
      */
     private String paramValue;
 }

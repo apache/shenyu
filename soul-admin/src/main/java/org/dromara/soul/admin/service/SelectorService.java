@@ -27,7 +27,7 @@ import org.dromara.soul.admin.vo.SelectorVO;
 /**
  * this is selector service.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 public interface SelectorService {
 
@@ -59,7 +59,7 @@ public interface SelectorService {
      * find page of selector by query.
      *
      * @param selectorQuery {@linkplain SelectorQuery}
-     * @return CommonPager<SelectorVO>
+     * @return {@linkplain CommonPager}
      */
     CommonPager<SelectorVO> listByPage(SelectorQuery selectorQuery);
 }

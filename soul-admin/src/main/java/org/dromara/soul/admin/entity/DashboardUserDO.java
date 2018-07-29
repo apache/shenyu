@@ -23,28 +23,28 @@ import lombok.Data;
 /**
  * DashboardUserDO.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Data
 public class DashboardUserDO extends BaseDO {
 
     /**
-     * user name
+     * user name.
      */
     private String userName;
 
     /**
-     * user password
+     * user password.
      */
     private String password;
 
     /**
-     * dashboard role
+     * dashboard role.
      */
     private Integer role;
 
     /**
-     * whether enabled
+     * whether enabled.
      */
     private Boolean enabled;
 }
