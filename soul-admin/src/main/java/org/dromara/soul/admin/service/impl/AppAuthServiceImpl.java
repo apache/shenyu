@@ -19,7 +19,6 @@
 package org.dromara.soul.admin.service.impl;
 
 import org.dromara.soul.admin.dto.AppAuthDTO;
-import org.dromara.soul.admin.entity.AppAuthDO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.AppAuthQuery;
 import org.dromara.soul.admin.service.AppAuthService;
@@ -35,46 +34,46 @@ import org.springframework.stereotype.Service;
 public class AppAuthServiceImpl implements AppAuthService {
 
     /**
-     * save or update application authority.
+     * create or update application authority.
      *
      * @param appAuthDTO {@linkplain AppAuthDTO}
      * @return rows
      */
     @Override
-    public int saveOrUpdate(final AppAuthDTO appAuthDTO) {
+    public int createOrUpdate(final AppAuthDTO appAuthDTO) {
         return 0;
     }
 
     /**
-     * enabled or disabled application authority.
+     * delete application authority.
      *
-     * @param appAuthDTO {@linkplain AppAuthDTO}
+     * @param id primary key.
      * @return rows
      */
     @Override
-    public int enabled(final AppAuthDTO appAuthDTO) {
+    public int delete(final String id) {
         return 0;
     }
 
     /**
      * find application authority by id.
      *
-     * @param id pk.
-     * @return {@linkplain AppAuthDO}
+     * @param id primary key.
+     * @return {@linkplain AppAuthVO}
      */
     @Override
-    public AppAuthDO findById(final String id) {
+    public AppAuthVO findById(final String id) {
         return null;
     }
 
     /**
      * find application authority by appKey.
      *
-     * @param appKey appKey.
-     * @return {@linkplain AppAuthDO}
+     * @param appKey application key.
+     * @return {@linkplain AppAuthVO}
      */
     @Override
-    public AppAuthDO findByAppKey(final String appKey) {
+    public AppAuthVO findByAppKey(final String appKey) {
         return null;
     }
 

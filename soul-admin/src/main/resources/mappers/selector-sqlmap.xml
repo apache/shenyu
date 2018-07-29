@@ -27,6 +27,24 @@
         where ID = #{id,jdbcType=VARCHAR}
     </select>
 
+    <select id="selectByQuery" parameterType="org.dromara.soul.admin.query.SelectorQuery" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from SELECTOR
+        <if test="pluginId != null">
+            where PLUGIN_ID = #{pluginId,jdbcType=VARCHAR}
+        </if>
+        limit #{pageParameter.offset},#{pageParameter.pageSize}
+    </select>
+
+    <select id="countByQuery" parameterType="org.dromara.soul.admin.query.SelectorQuery" resultType="java.lang.Integer">
+        select count(1)
+        from SELECTOR
+        <if test="pluginId != null">
+            where PLUGIN_ID = #{pluginId,jdbcType=VARCHAR}
+        </if>
+    </select>
+
     <insert id="insert" parameterType="org.dromara.soul.admin.entity.SelectorDO">
         insert into SELECTOR (ID, DATE_CREATED, DATE_UPDATED,
         PLUGIN_ID, NAME, MATCH_MODE, TYPE, RANK, ENABLED,
@@ -158,4 +176,9 @@
         </set>
         where ID = #{id,jdbcType=VARCHAR}
     </update>
+
+    <delete id="delete" parameterType="java.lang.String">
+        delete from SELECTOR
+        where ID = #{id,jdbcType=VARCHAR}
+    </delete>
 </mapper>

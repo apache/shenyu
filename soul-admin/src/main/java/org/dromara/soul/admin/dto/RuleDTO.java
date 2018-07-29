@@ -62,6 +62,11 @@ public class RuleDTO implements Serializable {
     private Boolean loged;
 
     /**
+     * sort rank.
+     */
+    private Integer rank;
+
+    /**
      * process logic.
      */
     private String handle;

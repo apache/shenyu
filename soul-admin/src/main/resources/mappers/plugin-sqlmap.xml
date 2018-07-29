@@ -24,6 +24,18 @@
         select
         <include refid="Base_Column_List"/>
         from PLUGIN
+        <if test="name != null">
+            where NAME = #{name,jdbcType=VARCHAR}
+        </if>
+        limit #{pageParameter.offset},#{pageParameter.pageSize}
+    </select>
+
+    <select id="countByQuery" parameterType="org.dromara.soul.admin.query.PluginQuery" resultType="java.lang.Integer">
+        select count(1)
+        from PLUGIN
+        <if test="name != null">
+            where NAME = #{name,jdbcType=VARCHAR}
+        </if>
     </select>
 
     <insert id="insert" parameterType="org.dromara.soul.admin.entity.PluginDO">
@@ -94,4 +106,9 @@
         </set>
         where ID = #{id,jdbcType=VARCHAR}
     </update>
+
+    <delete id="delete" parameterType="java.lang.String">
+        delete from PLUGIN
+        where ID = #{id,jdbcType=VARCHAR}
+    </delete>
 </mapper>

@@ -64,11 +64,28 @@ public enum OperatorEnum {
 
     private final Boolean support;
 
-
+    /**
+     * acquire operator supports.
+     *
+     * @return operator support.
+     */
     public static List<OperatorEnum> acquireSupport() {
         return Arrays.stream(OperatorEnum.values())
                 .filter(e -> e.support).collect(Collectors.toList());
     }
 
-
+    /**
+     * get operator enum by alias.
+     *
+     * @param alias operator alias.
+     * @return operator enum.
+     */
+    public static OperatorEnum getOperatorEnumByAlias(final String alias) {
+        for (OperatorEnum operatorEnum : OperatorEnum.values()) {
+            if (operatorEnum.getAlias().equals(alias)) {
+                return operatorEnum;
+            }
+        }
+        return null;
+    }
 }

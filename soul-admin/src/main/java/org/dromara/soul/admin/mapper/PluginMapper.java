@@ -35,18 +35,26 @@ public interface PluginMapper {
     /**
      * select plugin by id.
      *
-     * @param id pk
+     * @param id primary key.
      * @return {@linkplain PluginDO}
      */
     PluginDO selectById(String id);
 
     /**
-     * select plugin by id.
+     * select plugin by query.
      *
      * @param pluginQuery {@linkplain PluginQuery}
      * @return {@linkplain List}
      */
     List<PluginDO> selectByQuery(PluginQuery pluginQuery);
+
+    /**
+     * count plugin by query.
+     *
+     * @param pluginQuery {@linkplain PluginQuery}
+     * @return {@linkplain Integer}
+     */
+    Integer countByQuery(PluginQuery pluginQuery);
 
     /**
      * insert plugin.
@@ -79,4 +87,12 @@ public interface PluginMapper {
      * @return rows
      */
     int updateSelective(PluginDO pluginDO);
+
+    /**
+     * delete plugin.
+     *
+     * @param id primary key.
+     * @return rows
+     */
+    int delete(String id);
 }
