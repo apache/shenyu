@@ -68,4 +68,12 @@ public interface AppAuthMapper {
      * @return rows
      */
     int updateSelective(AppAuthDO appAuthDO);
+
+    /**
+     * delete application authority.
+     *
+     * @param id primary key.
+     * @return rows
+     */
+    int delete(String id);
 }

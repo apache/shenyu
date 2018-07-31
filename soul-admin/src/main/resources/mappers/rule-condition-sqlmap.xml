@@ -24,6 +24,16 @@
         where ID = #{id,jdbcType=VARCHAR}
     </select>
 
+    <select id="selectByQuery" parameterType="org.dromara.soul.admin.query.RuleConditionQuery"
+            resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from RULE_CONDITION
+        <if test="ruleId != null">
+            where RULE_ID = #{ruleId,jdbcType=VARCHAR}
+        </if>
+    </select>
+
     <insert id="insert" parameterType="org.dromara.soul.admin.entity.RuleConditionDO">
         insert into RULE_CONDITION (ID, DATE_CREATED, DATE_UPDATED,
         RULE_ID, PARAM_TYPE, OPERATOR, PARAM_NAME, PARAM_VALUE)
@@ -123,4 +133,14 @@
         </set>
         where ID = #{id,jdbcType=VARCHAR}
     </update>
+
+    <delete id="delete" parameterType="java.lang.String">
+        delete from RULE_CONDITION
+        where ID = #{id,jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteByQuery" parameterType="org.dromara.soul.admin.query.RuleConditionQuery">
+        delete from RULE_CONDITION
+        where RULE_ID = #{ruleId,jdbcType=VARCHAR}
+    </delete>
 </mapper>

@@ -23,38 +23,38 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
- * MatchModeEnum.
+ * SelectorTypeEnum.
  *
- * @author xiaoyu(Myth)
+ * @author jiangxiaofeng(Nicholas)
  */
 @RequiredArgsConstructor
 @Getter
-public enum MatchModeEnum {
+public enum SelectorTypeEnum {
 
     /**
-     * And match mode enum.
+     * full selector type enum.
      */
-    AND(0, "and"),
+    FULL_FLOW(0, "full flow"),
 
     /**
      * Or match mode enum.
      */
-    OR(1, "or");
+    CUSTOM_FLOW(1, "custom flow");
 
     private final int code;
 
     private final String name;
 
     /**
-     * get match mode name by code.
+     * get selector type name by code.
      *
-     * @param code match mode code.
-     * @return match mode name.
+     * @param code selector type code.
+     * @return selector type name.
      */
-    public static String getMatchModeByCode(final int code) {
-        for (MatchModeEnum matchModeEnum : MatchModeEnum.values()) {
-            if (matchModeEnum.getCode() == code) {
-                return matchModeEnum.getName();
+    public static String getSelectorTypeByCode(final int code) {
+        for (SelectorTypeEnum selectorTypeEnum : SelectorTypeEnum.values()) {
+            if (selectorTypeEnum.getCode() == code) {
+                return selectorTypeEnum.getName();
             }
         }
         return null;

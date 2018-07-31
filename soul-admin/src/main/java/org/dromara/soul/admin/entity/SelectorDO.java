@@ -19,6 +19,12 @@
 package org.dromara.soul.admin.entity;
 
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+import org.dromara.soul.admin.dto.SelectorDTO;
+import org.dromara.soul.common.utils.UUIDUtils;
+
+import java.sql.Timestamp;
+import java.util.Date;
 
 /**
  * SelectorDO.
@@ -67,4 +73,35 @@ public class SelectorDO extends BaseDO {
      * whether continued.
      */
     private Boolean continued;
+
+    /**
+     * build selectorDO.
+     *
+     * @param selectorDTO {@linkplain SelectorDTO}
+     * @return {@linkplain SelectorDO}
+     */
+    public static SelectorDO buildSelectorDO(final SelectorDTO selectorDTO) {
+        if (selectorDTO != null) {
+            SelectorDO selectorDO = new SelectorDO();
+            Timestamp currentTime = new Timestamp(new Date().getTime());
+            if (StringUtils.isEmpty(selectorDTO.getId())) {
+                selectorDO.setId(UUIDUtils.generateShortUuid());
+                selectorDO.setDateCreated(currentTime);
+            } else {
+                selectorDO.setId(selectorDTO.getId());
+            }
+
+            selectorDO.setPluginId(selectorDTO.getPluginId());
+            selectorDO.setName(selectorDTO.getName());
+            selectorDO.setMatchMode(selectorDTO.getMatchMode());
+            selectorDO.setType(selectorDTO.getType());
+            selectorDO.setRank(selectorDTO.getRank());
+            selectorDO.setEnabled(selectorDTO.getEnabled());
+            selectorDO.setLoged(selectorDTO.getLoged());
+            selectorDO.setContinued(selectorDTO.getContinued());
+            selectorDO.setDateUpdated(currentTime);
+            return selectorDO;
+        }
+        return null;
+    }
 }

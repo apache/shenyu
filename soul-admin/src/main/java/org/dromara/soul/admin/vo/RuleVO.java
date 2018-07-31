@@ -18,9 +18,14 @@
 
 package org.dromara.soul.admin.vo;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.dromara.soul.admin.entity.RuleDO;
+import org.dromara.soul.common.enums.MatchModeEnum;
 
 import java.io.Serializable;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
@@ -29,6 +34,8 @@ import java.util.List;
  * @author jiangxiaofeng(Nicholas)
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class RuleVO implements Serializable {
 
     /**
@@ -45,6 +52,11 @@ public class RuleVO implements Serializable {
      * match mode.
      */
     private Integer matchMode;
+
+    /**
+     * match mode name.
+     */
+    private String matchModeName;
 
     /**
      * rule name.
@@ -85,4 +97,33 @@ public class RuleVO implements Serializable {
      * updated time.
      */
     private String dateUpdated;
+
+    /**
+     * build ruleVO.
+     *
+     * @param ruleDO {@linkplain RuleDO}
+     * @return {@linkplain RuleVO}
+     */
+    public static RuleVO buildRuleVO(final RuleDO ruleDO) {
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return new RuleVO(ruleDO.getId(), ruleDO.getSelectorId(), ruleDO.getMatchMode(), MatchModeEnum.getMatchModeByCode(ruleDO.getMatchMode()),
+                ruleDO.getName(), ruleDO.getEnabled(), ruleDO.getLoged(), ruleDO.getRank(), ruleDO.getHandle(), null,
+                dateTimeFormatter.format(ruleDO.getDateCreated().toLocalDateTime()),
+                dateTimeFormatter.format(ruleDO.getDateUpdated().toLocalDateTime()));
+    }
+
+    /**
+     * build ruleVO.
+     *
+     * @param ruleDO         {@linkplain RuleDO}
+     * @param ruleConditions {@linkplain List}
+     * @return {@linkplain RuleVO}
+     */
+    public static RuleVO buildRuleVO(final RuleDO ruleDO, final List<RuleConditionVO> ruleConditions) {
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return new RuleVO(ruleDO.getId(), ruleDO.getSelectorId(), ruleDO.getMatchMode(), MatchModeEnum.getMatchModeByCode(ruleDO.getMatchMode()),
+                ruleDO.getName(), ruleDO.getEnabled(), ruleDO.getLoged(), ruleDO.getRank(), ruleDO.getHandle(), ruleConditions,
+                dateTimeFormatter.format(ruleDO.getDateCreated().toLocalDateTime()),
+                dateTimeFormatter.format(ruleDO.getDateUpdated().toLocalDateTime()));
+    }
 }

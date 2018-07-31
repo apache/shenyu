@@ -19,7 +19,6 @@
 package org.dromara.soul.admin.service;
 
 import org.dromara.soul.admin.dto.RuleDTO;
-import org.dromara.soul.admin.entity.RuleDO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.RuleQuery;
 import org.dromara.soul.admin.vo.RuleVO;
@@ -32,28 +31,28 @@ import org.dromara.soul.admin.vo.RuleVO;
 public interface RuleService {
 
     /**
-     * save or update rule.
+     * create or update rule.
      *
      * @param ruleDTO {@linkplain RuleDTO}
      * @return rows
      */
-    int saveOrUpdate(RuleDTO ruleDTO);
+    int createOrUpdate(RuleDTO ruleDTO);
 
     /**
-     * enabled or disabled rule.
+     * delete rule.
      *
-     * @param ruleDTO {@linkplain RuleDTO}
+     * @param id primary key.
      * @return rows
      */
-    int enabled(RuleDTO ruleDTO);
+    int delete(String id);
 
     /**
      * find rule by id.
      *
-     * @param id pk.
-     * @return {@linkplain RuleDO}
+     * @param id primary key.
+     * @return {@linkplain RuleVO}
      */
-    RuleDO findById(String id);
+    RuleVO findById(String id);
 
     /**
      * find page of rule by query.
