@@ -20,6 +20,9 @@ package org.dromara.soul.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.dromara.soul.admin.entity.SelectorDO;
+import org.dromara.soul.admin.query.SelectorQuery;
+
+import java.util.List;
 
 /**
  * SelectorMapper.
@@ -32,10 +35,26 @@ public interface SelectorMapper {
     /**
      * select selector by id.
      *
-     * @param id pk
+     * @param id primary key.
      * @return {@linkplain SelectorDO}
      */
     SelectorDO selectById(String id);
+
+    /**
+     * select selector by query.
+     *
+     * @param selectorQuery {@linkplain SelectorQuery}
+     * @return {@linkplain List}
+     */
+    List<SelectorDO> selectByQuery(SelectorQuery selectorQuery);
+
+    /**
+     * count selector by query.
+     *
+     * @param selectorQuery {@linkplain SelectorQuery}
+     * @return {@linkplain Integer}
+     */
+    Integer countByQuery(SelectorQuery selectorQuery);
 
     /**
      * insert selector.
@@ -68,4 +87,12 @@ public interface SelectorMapper {
      * @return rows
      */
     int updateSelective(SelectorDO selectorDO);
+
+    /**
+     * delete selector.
+     *
+     * @param id primary key.
+     * @return rows
+     */
+    int delete(String id);
 }

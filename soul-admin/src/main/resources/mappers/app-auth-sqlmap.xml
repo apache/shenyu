@@ -99,4 +99,9 @@
         </set>
         where ID = #{id,jdbcType=VARCHAR}
     </update>
+
+    <delete id="delete" parameterType="java.lang.String">
+        delete from APP_AUTH
+        where ID = #{id,jdbcType=VARCHAR}
+    </delete>
 </mapper>
