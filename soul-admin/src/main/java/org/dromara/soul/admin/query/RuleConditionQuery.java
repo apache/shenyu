@@ -16,30 +16,26 @@
  *
  */
 
-package org.dromara.soul.admin.entity;
+package org.dromara.soul.admin.query;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
 
 /**
- * AppAuthDO.
+ * this is rule condition query.
  *
- * @author xiaoyu(Myth)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Data
-public class AppAuthDO extends BaseDO {
+@AllArgsConstructor
+@NoArgsConstructor
+public class RuleConditionQuery implements Serializable {
 
     /**
-     * application key.
+     * rule id.
      */
-    private String appKey;
-
-    /**
-     * encryption secret.
-     */
-    private String appSecret;
-
-    /**
-     * whether enabled.
-     */
-    private Boolean enabled;
+    private String ruleId;
 }

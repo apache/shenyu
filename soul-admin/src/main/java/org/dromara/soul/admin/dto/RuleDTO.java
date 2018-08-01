@@ -26,48 +26,53 @@ import java.util.List;
 /**
  * this is rule from by web front.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Data
 public class RuleDTO implements Serializable {
 
     /**
-     * primary key
+     * primary key.
      */
     private String id;
 
     /**
-     * selector id
+     * selector id.
      */
     private String selectorId;
 
     /**
-     * match mode
+     * match mode.
      */
     private Integer matchMode;
 
     /**
-     * rule name
+     * rule name.
      */
     private String name;
 
     /**
-     * whether enabled
+     * whether enabled.
      */
     private Boolean enabled;
 
     /**
-     * whether loged
+     * whether loged.
      */
     private Boolean loged;
 
     /**
-     * process logic
+     * sort rank.
+     */
+    private Integer rank;
+
+    /**
+     * process logic.
      */
     private String handle;
 
     /**
-     * rule conditions
+     * rule conditions.
      */
     private List<RuleConditionDTO> ruleConditions;
 }

@@ -20,52 +20,79 @@ package org.dromara.soul.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.dromara.soul.admin.entity.SelectorDO;
+import org.dromara.soul.admin.query.SelectorQuery;
+
+import java.util.List;
 
 /**
  * SelectorMapper.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Mapper
 public interface SelectorMapper {
 
     /**
-     * select selector by id
+     * select selector by id.
      *
-     * @param id
-     * @return
+     * @param id primary key.
+     * @return {@linkplain SelectorDO}
      */
     SelectorDO selectById(String id);
 
     /**
-     * insert selector
+     * select selector by query.
      *
-     * @param selectorDO
-     * @return
+     * @param selectorQuery {@linkplain SelectorQuery}
+     * @return {@linkplain List}
+     */
+    List<SelectorDO> selectByQuery(SelectorQuery selectorQuery);
+
+    /**
+     * count selector by query.
+     *
+     * @param selectorQuery {@linkplain SelectorQuery}
+     * @return {@linkplain Integer}
+     */
+    Integer countByQuery(SelectorQuery selectorQuery);
+
+    /**
+     * insert selector.
+     *
+     * @param selectorDO {@linkplain SelectorDO}
+     * @return rows
      */
     int insert(SelectorDO selectorDO);
 
     /**
-     * insert selective selector
+     * insert selective selector.
      *
-     * @param selectorDO
-     * @return
+     * @param selectorDO {@linkplain SelectorDO}
+     * @return rows
      */
     int insertSelective(SelectorDO selectorDO);
 
     /**
-     * update selector
+     * update selector.
      *
-     * @param selectorDO
-     * @return
+     * @param selectorDO {@linkplain SelectorDO}
+     * @return rows
      */
     int update(SelectorDO selectorDO);
 
     /**
-     * update selective selector
+     * update selective selector.
      *
-     * @param selectorDO
-     * @return
+     * @param selectorDO {@linkplain SelectorDO}
+     * @return rows
      */
     int updateSelective(SelectorDO selectorDO);
+
+    /**
+     * delete selector.
+     *
+     * @param id primary key.
+     * @return rows
+     */
+    int delete(String id);
 }

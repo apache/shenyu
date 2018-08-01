@@ -19,7 +19,6 @@
 package org.dromara.soul.admin.service;
 
 import org.dromara.soul.admin.dto.AppAuthDTO;
-import org.dromara.soul.admin.entity.AppAuthDO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.AppAuthQuery;
 import org.dromara.soul.admin.vo.AppAuthVO;
@@ -27,47 +26,47 @@ import org.dromara.soul.admin.vo.AppAuthVO;
 /**
  * this is application authority service.
  *
- * @author xiaoyu(549477611 @ qq.com)
+ * @author xiaoyu(Myth)
  */
 public interface AppAuthService {
 
     /**
-     * save or update application authority.
+     * create or update application authority.
      *
      * @param appAuthDTO {@linkplain AppAuthDTO}
      * @return rows
      */
-    int saveOrUpdate(AppAuthDTO appAuthDTO);
+    int createOrUpdate(AppAuthDTO appAuthDTO);
 
     /**
-     * enabled or disabled application authority.
+     * delete application authority.
      *
-     * @param appAuthDTO {@linkplain AppAuthDTO}
+     * @param id primary key.
      * @return rows
      */
-    int enabled(AppAuthDTO appAuthDTO);
+    int delete(String id);
 
     /**
      * find application authority by id.
      *
-     * @param id pk.
-     * @return {@linkplain AppAuthDO}
+     * @param id primary key.
+     * @return {@linkplain AppAuthVO}
      */
-    AppAuthDO findById(String id);
+    AppAuthVO findById(String id);
 
     /**
      * find application authority by appKey.
      *
-     * @param appKey appKey.
-     * @return {@linkplain AppAuthDO}
+     * @param appKey application key.
+     * @return {@linkplain AppAuthVO}
      */
-    AppAuthDO findByAppKey(String appKey);
+    AppAuthVO findByAppKey(String appKey);
 
     /**
      * find page of application authority by query.
      *
      * @param appAuthQuery {@linkplain AppAuthQuery}
-     * @return CommonPager<AppAuthVO>
+     * @return {@linkplain CommonPager}
      */
     CommonPager<AppAuthVO> listByPage(AppAuthQuery appAuthQuery);
 }

@@ -19,37 +19,73 @@
 package org.dromara.soul.admin.entity;
 
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+import org.dromara.soul.admin.dto.SelectorConditionDTO;
+import org.dromara.soul.common.enums.ParamTypeEnum;
+import org.dromara.soul.common.utils.UUIDUtils;
+
+import java.sql.Timestamp;
+import java.util.Date;
 
 /**
  * SelectorConditionDO.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Data
 public class SelectorConditionDO extends BaseDO {
 
     /**
-     * selector id
+     * selector id.
      */
     private String selectorId;
 
     /**
-     * parameter type
+     * parameter type.
      */
     private String paramType;
 
     /**
-     * match operator
+     * match operator.
      */
     private String operator;
 
     /**
-     * parameter name
+     * parameter name.
      */
     private String paramName;
 
     /**
-     * parameter value
+     * parameter value.
      */
     private String paramValue;
+
+    /**
+     * build selectorConditionDO.
+     *
+     * @param selectorConditionDTO {@linkplain SelectorConditionDTO}
+     * @return {@linkplain SelectorConditionDO}
+     */
+    public static SelectorConditionDO buildSelectorConditionDO(final SelectorConditionDTO selectorConditionDTO) {
+        if (selectorConditionDTO != null) {
+            SelectorConditionDO selectorConditionDO = new SelectorConditionDO();
+            Timestamp currentTime = new Timestamp(new Date().getTime());
+            if (StringUtils.isEmpty(selectorConditionDTO.getId())) {
+                selectorConditionDO.setId(UUIDUtils.generateShortUuid());
+                selectorConditionDO.setDateCreated(currentTime);
+            } else {
+                selectorConditionDO.setId(selectorConditionDTO.getId());
+            }
+
+            ParamTypeEnum paramTypeEnum = ParamTypeEnum.getParamTypeEnumByName(selectorConditionDTO.getParamType());
+            selectorConditionDO.setParamType(paramTypeEnum == null ? null : paramTypeEnum.name());
+            selectorConditionDO.setSelectorId(selectorConditionDTO.getSelectorId());
+            selectorConditionDO.setOperator(selectorConditionDTO.getOperator());
+            selectorConditionDO.setParamName(selectorConditionDTO.getParamName());
+            selectorConditionDO.setParamValue(selectorConditionDTO.getParamValue());
+            selectorConditionDO.setDateUpdated(currentTime);
+            return selectorConditionDO;
+        }
+        return null;
+    }
 }

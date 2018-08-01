@@ -20,52 +20,79 @@ package org.dromara.soul.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.dromara.soul.admin.entity.SelectorConditionDO;
+import org.dromara.soul.admin.query.SelectorConditionQuery;
+
+import java.util.List;
 
 /**
  * SelectorConditionMapper.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Mapper
 public interface SelectorConditionMapper {
 
     /**
-     * select selector condition by id
+     * select selector condition by id.
      *
-     * @param id
-     * @return
+     * @param id primary key.
+     * @return {@linkplain SelectorConditionDO}
      */
     SelectorConditionDO selectById(String id);
 
     /**
-     * insert selector condition
+     * select selector condition by query.
      *
-     * @param selectorConditionDO
-     * @return
+     * @param selectorConditionQuery {@linkplain SelectorConditionQuery}
+     * @return {@linkplain List}
+     */
+    List<SelectorConditionDO> selectByQuery(SelectorConditionQuery selectorConditionQuery);
+
+    /**
+     * insert selector condition.
+     *
+     * @param selectorConditionDO {@linkplain SelectorConditionDO}
+     * @return rows
      */
     int insert(SelectorConditionDO selectorConditionDO);
 
     /**
-     * insert selective selector condition
+     * insert selective selector condition.
      *
-     * @param selectorConditionDO
-     * @return
+     * @param selectorConditionDO {@linkplain SelectorConditionDO}
+     * @return rows
      */
     int insertSelective(SelectorConditionDO selectorConditionDO);
 
     /**
-     * update selector condition
+     * update selector condition.
      *
-     * @param selectorConditionDO
-     * @return
+     * @param selectorConditionDO {@linkplain SelectorConditionDO}
+     * @return rows
      */
     int update(SelectorConditionDO selectorConditionDO);
 
     /**
-     * update selective selector condition
+     * update selective selector condition.
      *
-     * @param selectorConditionDO
-     * @return
+     * @param selectorConditionDO {@linkplain SelectorConditionDO}
+     * @return rows
      */
     int updateSelective(SelectorConditionDO selectorConditionDO);
+
+    /**
+     * delete selector condition by id.
+     *
+     * @param id primary key.
+     * @return rows
+     */
+    int delete(String id);
+
+    /**
+     * delete selector condition by query.
+     *
+     * @param selectorConditionQuery {@linkplain SelectorConditionDO}
+     * @return rows
+     */
+    int deleteByQuery(SelectorConditionQuery selectorConditionQuery);
 }

@@ -20,52 +20,79 @@ package org.dromara.soul.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.dromara.soul.admin.entity.PluginDO;
+import org.dromara.soul.admin.query.PluginQuery;
+
+import java.util.List;
 
 /**
  * PluginMapper.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Mapper
 public interface PluginMapper {
 
     /**
-     * select plugin by id
+     * select plugin by id.
      *
-     * @param id
-     * @return
+     * @param id primary key.
+     * @return {@linkplain PluginDO}
      */
     PluginDO selectById(String id);
 
     /**
-     * insert plugin
+     * select plugin by query.
      *
-     * @param pluginDO
-     * @return
+     * @param pluginQuery {@linkplain PluginQuery}
+     * @return {@linkplain List}
+     */
+    List<PluginDO> selectByQuery(PluginQuery pluginQuery);
+
+    /**
+     * count plugin by query.
+     *
+     * @param pluginQuery {@linkplain PluginQuery}
+     * @return {@linkplain Integer}
+     */
+    Integer countByQuery(PluginQuery pluginQuery);
+
+    /**
+     * insert plugin.
+     *
+     * @param pluginDO {@linkplain PluginDO}
+     * @return rows
      */
     int insert(PluginDO pluginDO);
 
     /**
-     * insert selective plugin
+     * insert selective plugin.
      *
-     * @param pluginDO
-     * @return
+     * @param pluginDO {@linkplain PluginDO}
+     * @return rows
      */
     int insertSelective(PluginDO pluginDO);
 
     /**
-     * update plugin
+     * update plugin.
      *
-     * @param pluginDO
-     * @return
+     * @param pluginDO {@linkplain PluginDO}
+     * @return rows
      */
     int update(PluginDO pluginDO);
 
     /**
-     * update selective plugin
+     * update selective plugin.
      *
-     * @param pluginDO
-     * @return
+     * @param pluginDO {@linkplain PluginDO}
+     * @return rows
      */
     int updateSelective(PluginDO pluginDO);
+
+    /**
+     * delete plugin.
+     *
+     * @param id primary key.
+     * @return rows
+     */
+    int delete(String id);
 }

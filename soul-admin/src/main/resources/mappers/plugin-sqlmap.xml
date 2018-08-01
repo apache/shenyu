@@ -5,13 +5,12 @@
         <id column="ID" jdbcType="VARCHAR" property="id"/>
         <result column="DATE_CREATED" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="DATE_UPDATED" jdbcType="TIMESTAMP" property="dateUpdated"/>
-        <result column="PLUGIN_ID" jdbcType="VARCHAR" property="pluginId"/>
         <result column="NAME" jdbcType="VARCHAR" property="name"/>
         <result column="ENABLED" jdbcType="TINYINT" property="enabled"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-      ID, DATE_CREATED, DATE_UPDATED, PLUGIN_ID, NAME, ENABLED
+      ID, DATE_CREATED, DATE_UPDATED, NAME, ENABLED
   </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -21,11 +20,29 @@
         where ID = #{id,jdbcType=VARCHAR}
     </select>
 
+    <select id="selectByQuery" parameterType="org.dromara.soul.admin.query.PluginQuery" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from PLUGIN
+        <if test="name != null">
+            where NAME = #{name,jdbcType=VARCHAR}
+        </if>
+        limit #{pageParameter.offset},#{pageParameter.pageSize}
+    </select>
+
+    <select id="countByQuery" parameterType="org.dromara.soul.admin.query.PluginQuery" resultType="java.lang.Integer">
+        select count(1)
+        from PLUGIN
+        <if test="name != null">
+            where NAME = #{name,jdbcType=VARCHAR}
+        </if>
+    </select>
+
     <insert id="insert" parameterType="org.dromara.soul.admin.entity.PluginDO">
         insert into PLUGIN (ID, DATE_CREATED, DATE_UPDATED,
-        PLUGIN_ID, NAME, ENABLED)
+        NAME, ENABLED)
         values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
-        #{pluginId,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{enabled,jdbcType=TINYINT})
+        #{name,jdbcType=VARCHAR}, #{enabled,jdbcType=TINYINT})
     </insert>
 
     <insert id="insertSelective" parameterType="org.dromara.soul.admin.entity.PluginDO">
@@ -37,9 +54,6 @@
             </if>
             <if test="dateUpdated != null">
                 DATE_UPDATED,
-            </if>
-            <if test="pluginId != null">
-                PLUGIN_ID,
             </if>
             <if test="name != null">
                 NAME,
@@ -56,9 +70,6 @@
             <if test="dateUpdated != null">
                 #{dateUpdated,jdbcType=TIMESTAMP},
             </if>
-            <if test="pluginId != null">
-                #{pluginId,jdbcType=VARCHAR},
-            </if>
             <if test="name != null">
                 #{name,jdbcType=VARCHAR},
             </if>
@@ -72,7 +83,6 @@
       update PLUGIN
         set DATE_CREATED = #{dateCreated,jdbcType=TIMESTAMP},
           DATE_UPDATED = #{dateUpdated,jdbcType=TIMESTAMP},
-          PLUGIN_ID = #{pluginId,jdbcType=VARCHAR},
           NAME = #{name,jdbcType=VARCHAR},
           ENABLED = #{enabled,jdbcType=TINYINT}
     where ID = #{id,jdbcType=VARCHAR}
@@ -87,9 +97,6 @@
             <if test="dateUpdated != null">
                 DATE_UPDATED = #{dateUpdated,jdbcType=TIMESTAMP},
             </if>
-            <if test="pluginId != null">
-                PLUGIN_ID = #{pluginId,jdbcType=VARCHAR},
-            </if>
             <if test="name != null">
                 NAME = #{name,jdbcType=VARCHAR},
             </if>
@@ -99,4 +106,9 @@
         </set>
         where ID = #{id,jdbcType=VARCHAR}
     </update>
+
+    <delete id="delete" parameterType="java.lang.String">
+        delete from PLUGIN
+        where ID = #{id,jdbcType=VARCHAR}
+    </delete>
 </mapper>

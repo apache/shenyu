@@ -25,23 +25,23 @@ import java.io.Serializable;
 /**
  * this is plugin from by web front.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Data
 public class PluginDTO implements Serializable {
 
     /**
-     * primary key
+     * primary key.
      */
     private String id;
 
     /**
-     * plugin name
+     * plugin code.
      */
-    private String name;
+    private Integer code;
 
     /**
-     * whether enabled
+     * whether enabled.
      */
     private Boolean enabled;
 }
