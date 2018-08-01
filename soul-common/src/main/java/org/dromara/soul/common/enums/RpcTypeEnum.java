@@ -43,20 +43,27 @@ public enum RpcTypeEnum {
      */
     DUBBO("dubbo"),
 
+
     /**
-     * motan
+     * springCloud rpc type enum.
+     */
+    SPRING_CLOUD("springCloud"),
+
+    /**
+     * motan.
      */
     MOTAN("motan"),
 
     /**
-     * grpc
+     * grpc.
      */
-    GRPC("grpc")  ;
+    GRPC("grpc");
+
 
     private final String name;
 
     /**
-     * convertByName
+     * convertByName.
      * @param name  name
      * @return {@linkplain RpcTypeEnum}
      */

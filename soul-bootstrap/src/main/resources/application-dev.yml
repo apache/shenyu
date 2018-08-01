@@ -26,6 +26,15 @@ soul:
     bufferSize: 2048
     timeVerify:
        enabled: true
+eureka:
+  instance:
+    leaseRenewalIntervalInSeconds: 10
+    leaseExpirationDurationInSeconds: 30
+  client:
+    serviceUrl:
+      defaultZone: http://eureka.didispace.com/eureka/
+
+
 logging:
     level:
         root: info

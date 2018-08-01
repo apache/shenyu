@@ -4,7 +4,9 @@ org.dromara.soul.web.config.InfluxDbConfiguration,\
 org.dromara.soul.web.config.SoulConfiguration,\
 org.dromara.soul.web.config.RedisConfiguration,\
 org.dromara.soul.web.config.DubboConfiguration,\
-org.dromara.soul.configuration.zookeeper.ZookeeperConfiguration
+org.dromara.soul.web.config.SpringCloudAutoConfiguration,\
+org.dromara.soul.configuration.zookeeper.ZookeeperConfiguration,
+
 
 
 org.springframework.context.ApplicationListener=\
