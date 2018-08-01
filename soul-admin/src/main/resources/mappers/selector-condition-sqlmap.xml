@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="org.dromara.soul.admin.mapper.RuleConditionMapper">
-    <resultMap id="BaseResultMap" type="org.dromara.soul.admin.entity.RuleConditionDO">
+<mapper namespace="org.dromara.soul.admin.mapper.SelectorConditionMapper">
+    <resultMap id="BaseResultMap" type="org.dromara.soul.admin.entity.SelectorConditionDO">
         <id column="ID" jdbcType="VARCHAR" property="id"/>
         <result column="DATE_CREATED" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="DATE_UPDATED" jdbcType="TIMESTAMP" property="dateUpdated"/>
-        <result column="RULE_ID" jdbcType="VARCHAR" property="ruleId"/>
+        <result column="SELECTOR_ID" jdbcType="VARCHAR" property="selectorId"/>
         <result column="PARAM_TYPE" jdbcType="VARCHAR" property="paramType"/>
         <result column="OPERATOR" jdbcType="VARCHAR" property="operator"/>
         <result column="PARAM_NAME" jdbcType="VARCHAR" property="paramName"/>
@@ -13,27 +13,37 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-      ID, DATE_CREATED, DATE_UPDATED, RULE_ID, PARAM_TYPE,
+      ID, DATE_CREATED, DATE_UPDATED, SELECTOR_ID, PARAM_TYPE,
       OPERATOR, PARAM_NAME, PARAM_VALUE
   </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
-        from RULE_CONDITION
+        from SELECTOR_CONDITION
         where ID = #{id,jdbcType=VARCHAR}
     </select>
 
-    <insert id="insert" parameterType="org.dromara.soul.admin.entity.RuleConditionDO">
-        insert into RULE_CONDITION (ID, DATE_CREATED, DATE_UPDATED,
-        RULE_ID, PARAM_TYPE, OPERATOR, PARAM_NAME, PARAM_VALUE)
+    <select id="selectByQuery" parameterType="org.dromara.soul.admin.query.SelectorConditionQuery"
+            resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from SELECTOR_CONDITION
+        <if test="selectorId != null">
+            where SELECTOR_ID = #{selectorId,jdbcType=VARCHAR}
+        </if>
+    </select>
+
+    <insert id="insert" parameterType="org.dromara.soul.admin.entity.SelectorConditionDO">
+        insert into SELECTOR_CONDITION (ID, DATE_CREATED, DATE_UPDATED,
+        SELECTOR_ID, PARAM_TYPE, OPERATOR, PARAM_NAME, PARAM_VALUE)
         values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
-        #{ruleId,jdbcType=VARCHAR}, #{paramType,jdbcType=VARCHAR}, #{operator,jdbcType=VARCHAR},
+        #{selectorId,jdbcType=VARCHAR}, #{paramType,jdbcType=VARCHAR}, #{operator,jdbcType=VARCHAR},
         #{paramName,jdbcType=VARCHAR}, #{paramValue,jdbcType=VARCHAR})
     </insert>
 
-    <insert id="insertSelective" parameterType="org.dromara.soul.admin.entity.RuleConditionDO">
-        insert into RULE_CONDITION
+    <insert id="insertSelective" parameterType="org.dromara.soul.admin.entity.SelectorConditionDO">
+        insert into SELECTOR_CONDITION
         <trim prefix="(" suffix=")" suffixOverrides=",">
             ID,
             <if test="dateCreated != null">
@@ -42,8 +52,8 @@
             <if test="dateUpdated != null">
                 DATE_UPDATED,
             </if>
-            <if test="ruleId != null">
-                RULE_ID,
+            <if test="selectorId != null">
+                SELECTOR_ID,
             </if>
             <if test="paramType != null">
                 PARAM_TYPE,
@@ -66,8 +76,8 @@
             <if test="dateUpdated != null">
                 #{dateUpdated,jdbcType=TIMESTAMP},
             </if>
-            <if test="ruleId != null">
-                #{ruleId,jdbcType=VARCHAR},
+            <if test="selectorId != null">
+                #{selectorId,jdbcType=VARCHAR},
             </if>
             <if test="paramType != null">
                 #{paramType,jdbcType=VARCHAR},
@@ -84,11 +94,11 @@
         </trim>
     </insert>
 
-    <update id="update" parameterType="org.dromara.soul.admin.entity.RuleConditionDO">
-      update RULE_CONDITION
+    <update id="update" parameterType="org.dromara.soul.admin.entity.SelectorConditionDO">
+      update SELECTOR_CONDITION
         set DATE_CREATED = #{dateCreated,jdbcType=TIMESTAMP},
           DATE_UPDATED = #{dateUpdated,jdbcType=TIMESTAMP},
-          RULE_ID = #{ruleId,jdbcType=VARCHAR},
+          SELECTOR_ID = #{selectorId,jdbcType=VARCHAR},
           PARAM_TYPE = #{paramType,jdbcType=VARCHAR},
           OPERATOR = #{operator,jdbcType=VARCHAR},
           PARAM_NAME = #{paramName,jdbcType=VARCHAR},
@@ -96,8 +106,8 @@
     where ID = #{id,jdbcType=VARCHAR}
     </update>
 
-    <update id="updateSelective" parameterType="org.dromara.soul.admin.entity.RuleConditionDO">
-        update RULE_CONDITION
+    <update id="updateSelective" parameterType="org.dromara.soul.admin.entity.SelectorConditionDO">
+        update SELECTOR_CONDITION
         <set>
             <if test="dateCreated != null">
                 DATE_CREATED = #{dateCreated,jdbcType=TIMESTAMP},
@@ -105,8 +115,8 @@
             <if test="dateUpdated != null">
                 DATE_UPDATED = #{dateUpdated,jdbcType=TIMESTAMP},
             </if>
-            <if test="ruleId != null">
-                RULE_ID = #{ruleId,jdbcType=VARCHAR},
+            <if test="selectorId != null">
+                SELECTOR_ID = #{selectorId,jdbcType=VARCHAR},
             </if>
             <if test="paramType != null">
                 PARAM_TYPE = #{paramType,jdbcType=VARCHAR},
@@ -123,4 +133,14 @@
         </set>
         where ID = #{id,jdbcType=VARCHAR}
     </update>
+
+    <delete id="delete" parameterType="java.lang.String">
+        delete from SELECTOR_CONDITION
+        where ID = #{id,jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteByQuery" parameterType="org.dromara.soul.admin.query.SelectorConditionQuery">
+        delete from SELECTOR_CONDITION
+        where SELECTOR_ID = #{selectorId,jdbcType=VARCHAR}
+    </delete>
 </mapper>

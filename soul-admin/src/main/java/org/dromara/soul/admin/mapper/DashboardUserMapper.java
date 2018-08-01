@@ -20,52 +20,79 @@ package org.dromara.soul.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.dromara.soul.admin.entity.DashboardUserDO;
+import org.dromara.soul.admin.query.DashboardUserQuery;
+
+import java.util.List;
 
 /**
  * DashboardUserMapper.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Mapper
 public interface DashboardUserMapper {
 
     /**
-     * select dashboard user by id
+     * select dashboard user by id.
      *
-     * @param id
-     * @return
+     * @param id primary key.
+     * @return {@linkplain DashboardUserDO}
      */
     DashboardUserDO selectById(String id);
 
     /**
-     * insert dashboard user
+     * select dashboard user by query.
      *
-     * @param dashboardUserDO
-     * @return
+     * @param dashboardUserQuery {@linkplain DashboardUserQuery}
+     * @return {@linkplain List}
+     */
+    List<DashboardUserDO> selectByQuery(DashboardUserQuery dashboardUserQuery);
+
+    /**
+     * count dashboard user by query.
+     *
+     * @param dashboardUserQuery {@linkplain DashboardUserQuery}
+     * @return {@linkplain Integer}
+     */
+    Integer countByQuery(DashboardUserQuery dashboardUserQuery);
+
+    /**
+     * insert dashboard user.
+     *
+     * @param dashboardUserDO {@linkplain DashboardUserDO}
+     * @return rows
      */
     int insert(DashboardUserDO dashboardUserDO);
 
     /**
-     * insert selective dashboard user
+     * insert selective dashboard user.
      *
-     * @param dashboardUserDO
-     * @return
+     * @param dashboardUserDO {@linkplain DashboardUserDO}
+     * @return rows
      */
     int insertSelective(DashboardUserDO dashboardUserDO);
 
     /**
-     * update dashboard user
+     * update dashboard user.
      *
-     * @param dashboardUserDO
-     * @return
+     * @param dashboardUserDO {@linkplain DashboardUserDO}
+     * @return rows
      */
     int update(DashboardUserDO dashboardUserDO);
 
     /**
-     * update selective dashboard user
+     * update selective dashboard user.
      *
-     * @param dashboardUserDO
-     * @return
+     * @param dashboardUserDO {@linkplain DashboardUserDO}
+     * @return rows
      */
     int updateSelective(DashboardUserDO dashboardUserDO);
+
+    /**
+     * delete dashboard user.
+     *
+     * @param id primary key.
+     * @return rows
+     */
+    int delete(String id);
 }

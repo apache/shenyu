@@ -19,47 +19,83 @@
 package org.dromara.soul.admin.entity;
 
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+import org.dromara.soul.admin.dto.RuleDTO;
+import org.dromara.soul.common.utils.UUIDUtils;
+
+import java.sql.Timestamp;
+import java.util.Date;
 
 /**
  * RuleDO.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Data
 public class RuleDO extends BaseDO {
 
     /**
-     * selector id
+     * selector id.
      */
     private String selectorId;
 
     /**
-     * match mode
+     * match mode.
      */
     private Integer matchMode;
 
     /**
-     * rule name
+     * rule name.
      */
     private String name;
 
     /**
-     * whether enabled
+     * whether enabled.
      */
     private Boolean enabled;
 
     /**
-     * whether loged
+     * whether loged.
      */
     private Boolean loged;
 
     /**
-     * sort rank
+     * sort rank.
      */
     private Integer rank;
 
     /**
-     * process logic
+     * process logic.
      */
     private String handle;
+
+    /**
+     * build ruleDO.
+     *
+     * @param ruleDTO {@linkplain RuleDTO}
+     * @return {@linkplain RuleDO}
+     */
+    public static RuleDO buildRuleDO(final RuleDTO ruleDTO) {
+        if (ruleDTO != null) {
+            RuleDO ruleDO = new RuleDO();
+            Timestamp currentTime = new Timestamp(new Date().getTime());
+            if (StringUtils.isEmpty(ruleDTO.getId())) {
+                ruleDO.setId(UUIDUtils.generateShortUuid());
+                ruleDO.setDateCreated(currentTime);
+            } else {
+                ruleDO.setId(ruleDTO.getId());
+            }
+
+            ruleDO.setSelectorId(ruleDTO.getSelectorId());
+            ruleDO.setMatchMode(ruleDTO.getMatchMode());
+            ruleDO.setName(ruleDTO.getName());
+            ruleDO.setEnabled(ruleDTO.getEnabled());
+            ruleDO.setLoged(ruleDTO.getLoged());
+            ruleDO.setRank(ruleDTO.getRank());
+            ruleDO.setHandle(ruleDTO.getHandle());
+            ruleDO.setDateUpdated(currentTime);
+            return ruleDO;
+        }
+        return null;
+    }
 }

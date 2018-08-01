@@ -18,72 +18,112 @@
 
 package org.dromara.soul.admin.vo;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.dromara.soul.admin.entity.RuleDO;
+import org.dromara.soul.common.enums.MatchModeEnum;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
  * this is rule view to web front.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class RuleVO implements Serializable {
 
     /**
-     * primary key
+     * primary key.
      */
     private String id;
 
     /**
-     * selector id
+     * selector id.
      */
     private String selectorId;
 
     /**
-     * match mode
+     * match mode.
      */
     private Integer matchMode;
 
     /**
-     * rule name
+     * match mode name.
+     */
+    private String matchModeName;
+
+    /**
+     * rule name.
      */
     private String name;
 
     /**
-     * whether enabled
+     * whether enabled.
      */
     private Boolean enabled;
 
     /**
-     * whether loged
+     * whether loged.
      */
     private Boolean loged;
 
     /**
-     * sort rank
+     * sort rank.
      */
     private Integer rank;
 
     /**
-     * process logic
+     * process logic.
      */
     private String handle;
 
     /**
-     * rule conditions
+     * rule conditions.
      */
     private List<RuleConditionVO> ruleConditions;
 
     /**
      * created time.
      */
-    private LocalDateTime dateCreated;
+    private String dateCreated;
 
     /**
      * updated time.
      */
-    private LocalDateTime dateUpdated;
+    private String dateUpdated;
+
+    /**
+     * build ruleVO.
+     *
+     * @param ruleDO {@linkplain RuleDO}
+     * @return {@linkplain RuleVO}
+     */
+    public static RuleVO buildRuleVO(final RuleDO ruleDO) {
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return new RuleVO(ruleDO.getId(), ruleDO.getSelectorId(), ruleDO.getMatchMode(), MatchModeEnum.getMatchModeByCode(ruleDO.getMatchMode()),
+                ruleDO.getName(), ruleDO.getEnabled(), ruleDO.getLoged(), ruleDO.getRank(), ruleDO.getHandle(), null,
+                dateTimeFormatter.format(ruleDO.getDateCreated().toLocalDateTime()),
+                dateTimeFormatter.format(ruleDO.getDateUpdated().toLocalDateTime()));
+    }
+
+    /**
+     * build ruleVO.
+     *
+     * @param ruleDO         {@linkplain RuleDO}
+     * @param ruleConditions {@linkplain List}
+     * @return {@linkplain RuleVO}
+     */
+    public static RuleVO buildRuleVO(final RuleDO ruleDO, final List<RuleConditionVO> ruleConditions) {
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return new RuleVO(ruleDO.getId(), ruleDO.getSelectorId(), ruleDO.getMatchMode(), MatchModeEnum.getMatchModeByCode(ruleDO.getMatchMode()),
+                ruleDO.getName(), ruleDO.getEnabled(), ruleDO.getLoged(), ruleDO.getRank(), ruleDO.getHandle(), ruleConditions,
+                dateTimeFormatter.format(ruleDO.getDateCreated().toLocalDateTime()),
+                dateTimeFormatter.format(ruleDO.getDateUpdated().toLocalDateTime()));
+    }
 }

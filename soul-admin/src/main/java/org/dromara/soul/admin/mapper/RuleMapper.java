@@ -20,52 +20,79 @@ package org.dromara.soul.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.dromara.soul.admin.entity.RuleDO;
+import org.dromara.soul.admin.query.RuleQuery;
+
+import java.util.List;
 
 /**
  * RuleMapper.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Mapper
 public interface RuleMapper {
 
     /**
-     * select rule by id
+     * select rule by id.
      *
-     * @param id
-     * @return
+     * @param id primary key.
+     * @return {@linkplain RuleDO}
      */
     RuleDO selectById(String id);
 
     /**
-     * insert rule
+     * select rule by query.
      *
-     * @param ruleDO
-     * @return
+     * @param ruleQuery {@linkplain RuleQuery}
+     * @return {@linkplain List}
+     */
+    List<RuleDO> selectByQuery(RuleQuery ruleQuery);
+
+    /**
+     * count rule by query.
+     *
+     * @param ruleQuery {@linkplain RuleQuery}
+     * @return {@linkplain Integer}
+     */
+    Integer countByQuery(RuleQuery ruleQuery);
+
+    /**
+     * insert rule.
+     *
+     * @param ruleDO {@linkplain RuleDO}
+     * @return rows
      */
     int insert(RuleDO ruleDO);
 
     /**
-     * insert selective rule
+     * insert selective rule.
      *
-     * @param ruleDO
-     * @return
+     * @param ruleDO {@linkplain RuleDO}
+     * @return rows
      */
     int insertSelective(RuleDO ruleDO);
 
     /**
-     * update rule
+     * update rule.
      *
-     * @param ruleDO
-     * @return
+     * @param ruleDO {@linkplain RuleDO}
+     * @return rows
      */
     int update(RuleDO ruleDO);
 
     /**
-     * update selective rule
+     * update selective rule.
      *
-     * @param ruleDO
-     * @return
+     * @param ruleDO {@linkplain RuleDO}
+     * @return rows
      */
     int updateSelective(RuleDO ruleDO);
+
+    /**
+     * delete rule.
+     *
+     * @param id primary key.
+     * @return rows
+     */
+    int delete(String id);
 }

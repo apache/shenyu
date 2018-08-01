@@ -19,52 +19,89 @@
 package org.dromara.soul.admin.entity;
 
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+import org.dromara.soul.admin.dto.SelectorDTO;
+import org.dromara.soul.common.utils.UUIDUtils;
+
+import java.sql.Timestamp;
+import java.util.Date;
 
 /**
  * SelectorDO.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Data
 public class SelectorDO extends BaseDO {
 
     /**
-     * plugin id
+     * plugin id.
      */
     private String pluginId;
 
     /**
-     * selector name
+     * selector name.
      */
     private String name;
 
     /**
-     * match mode
+     * match mode.
      */
     private Integer matchMode;
 
     /**
-     * selector type
+     * selector type.
      */
     private Integer type;
 
     /**
-     * sort rank
+     * sort rank.
      */
     private Integer rank;
 
     /**
-     * whether enabled
+     * whether enabled.
      */
     private Boolean enabled;
 
     /**
-     * whether loged
+     * whether loged.
      */
     private Boolean loged;
 
     /**
-     * whether continued
+     * whether continued.
      */
     private Boolean continued;
+
+    /**
+     * build selectorDO.
+     *
+     * @param selectorDTO {@linkplain SelectorDTO}
+     * @return {@linkplain SelectorDO}
+     */
+    public static SelectorDO buildSelectorDO(final SelectorDTO selectorDTO) {
+        if (selectorDTO != null) {
+            SelectorDO selectorDO = new SelectorDO();
+            Timestamp currentTime = new Timestamp(new Date().getTime());
+            if (StringUtils.isEmpty(selectorDTO.getId())) {
+                selectorDO.setId(UUIDUtils.generateShortUuid());
+                selectorDO.setDateCreated(currentTime);
+            } else {
+                selectorDO.setId(selectorDTO.getId());
+            }
+
+            selectorDO.setPluginId(selectorDTO.getPluginId());
+            selectorDO.setName(selectorDTO.getName());
+            selectorDO.setMatchMode(selectorDTO.getMatchMode());
+            selectorDO.setType(selectorDTO.getType());
+            selectorDO.setRank(selectorDTO.getRank());
+            selectorDO.setEnabled(selectorDTO.getEnabled());
+            selectorDO.setLoged(selectorDTO.getLoged());
+            selectorDO.setContinued(selectorDTO.getContinued());
+            selectorDO.setDateUpdated(currentTime);
+            return selectorDO;
+        }
+        return null;
+    }
 }

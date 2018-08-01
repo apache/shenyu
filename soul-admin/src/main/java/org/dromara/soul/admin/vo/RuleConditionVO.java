@@ -18,56 +18,88 @@
 
 package org.dromara.soul.admin.vo;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.dromara.soul.admin.entity.RuleConditionDO;
+import org.dromara.soul.common.enums.OperatorEnum;
+import org.dromara.soul.common.enums.ParamTypeEnum;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * this is rule condition view to web front.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class RuleConditionVO implements Serializable {
 
     /**
-     * primary key
+     * primary key.
      */
     private String id;
 
     /**
-     * rule id
+     * rule id.
      */
     private String ruleId;
 
     /**
-     * parameter type
+     * parameter type.
      */
     private String paramType;
 
     /**
-     * match operator
+     * parameter type name.
+     */
+    private String paramTypeName;
+
+    /**
+     * match operator.
      */
     private String operator;
 
     /**
-     * parameter name
+     * match operator name.
+     */
+    private String operatorName;
+
+    /**
+     * parameter name.
      */
     private String paramName;
 
     /**
-     * parameter value
+     * parameter value.
      */
     private String paramValue;
 
     /**
      * created time.
      */
-    private LocalDateTime dateCreated;
+    private String dateCreated;
 
     /**
      * updated time.
      */
-    private LocalDateTime dateUpdated;
+    private String dateUpdated;
+
+    /**
+     * build ruleConditionVO.
+     *
+     * @param ruleConditionDO {@linkplain RuleConditionDO}
+     * @return {@linkplain RuleConditionVO}
+     */
+    public static RuleConditionVO buildRuleConditionVO(final RuleConditionDO ruleConditionDO) {
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        OperatorEnum operatorEnum = OperatorEnum.getOperatorEnumByAlias(ruleConditionDO.getOperator());
+        return new RuleConditionVO(ruleConditionDO.getId(), ruleConditionDO.getRuleId(), ruleConditionDO.getParamType(), ParamTypeEnum.valueOf(ruleConditionDO.getParamType()).getName(),
+                ruleConditionDO.getOperator(), operatorEnum == null ? null : operatorEnum.name(), ruleConditionDO.getParamName(), ruleConditionDO.getParamValue(),
+                dateTimeFormatter.format(ruleConditionDO.getDateCreated().toLocalDateTime()),
+                dateTimeFormatter.format(ruleConditionDO.getDateUpdated().toLocalDateTime()));
+    }
 }

@@ -18,77 +18,125 @@
 
 package org.dromara.soul.admin.vo;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.dromara.soul.admin.entity.SelectorDO;
+import org.dromara.soul.common.enums.MatchModeEnum;
+import org.dromara.soul.common.enums.SelectorTypeEnum;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
  * this is selector view to web front.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class SelectorVO implements Serializable {
 
     /**
-     * primary key
+     * primary key.
      */
     private String id;
 
     /**
-     * plugin id
+     * plugin id.
      */
     private String pluginId;
 
     /**
-     * selector name
+     * selector name.
      */
     private String name;
 
     /**
-     * match mode
+     * match mode code.
      */
     private Integer matchMode;
 
     /**
-     * selector type
+     * match mode name.
+     */
+    private String matchModeName;
+
+    /**
+     * selector type code.
      */
     private Integer type;
 
     /**
-     * sort rank
+     * selector type name.
+     */
+    private String typeName;
+
+    /**
+     * sort rank.
      */
     private Integer rank;
 
     /**
-     * whether enabled
+     * whether enabled.
      */
     private Boolean enabled;
 
     /**
-     * whether loged
+     * whether loged.
      */
     private Boolean loged;
 
     /**
-     * whether continued
+     * whether continued.
      */
     private Boolean continued;
 
     /**
-     * selector conditions
+     * selector conditions.
      */
     private List<SelectorConditionVO> selectorConditions;
 
     /**
      * created time.
      */
-    private LocalDateTime dateCreated;
+    private String dateCreated;
 
     /**
      * updated time.
      */
-    private LocalDateTime dateUpdated;
+    private String dateUpdated;
+
+    /**
+     * build selectorVO.
+     *
+     * @param selectorDO {@linkplain SelectorDO}
+     * @return {@linkplain SelectorVO}
+     */
+    public static SelectorVO buildSelectorVO(final SelectorDO selectorDO) {
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return new SelectorVO(selectorDO.getId(), selectorDO.getPluginId(), selectorDO.getName(), selectorDO.getMatchMode(), MatchModeEnum.getMatchModeByCode(selectorDO.getMatchMode()),
+                selectorDO.getType(), SelectorTypeEnum.getSelectorTypeByCode(selectorDO.getType()), selectorDO.getRank(),
+                selectorDO.getEnabled(), selectorDO.getLoged(), selectorDO.getContinued(), null,
+                dateTimeFormatter.format(selectorDO.getDateCreated().toLocalDateTime()),
+                dateTimeFormatter.format(selectorDO.getDateUpdated().toLocalDateTime()));
+    }
+
+    /**
+     * build selectorVO.
+     *
+     * @param selectorDO         {@linkplain SelectorDO}
+     * @param selectorConditions {@linkplain List}
+     * @return {@linkplain SelectorVO}
+     */
+    public static SelectorVO buildSelectorVO(final SelectorDO selectorDO, final List<SelectorConditionVO> selectorConditions) {
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return new SelectorVO(selectorDO.getId(), selectorDO.getPluginId(), selectorDO.getName(), selectorDO.getMatchMode(), MatchModeEnum.getMatchModeByCode(selectorDO.getMatchMode()),
+                selectorDO.getType(), SelectorTypeEnum.getSelectorTypeByCode(selectorDO.getType()), selectorDO.getRank(),
+                selectorDO.getEnabled(), selectorDO.getLoged(), selectorDO.getContinued(), selectorConditions,
+                dateTimeFormatter.format(selectorDO.getDateCreated().toLocalDateTime()),
+                dateTimeFormatter.format(selectorDO.getDateUpdated().toLocalDateTime()));
+    }
 }

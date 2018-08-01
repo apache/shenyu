@@ -22,10 +22,12 @@ package org.dromara.soul.common.dto.zk;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.io.Serializable;
 
 /**
  * ConditionZkDTO.
+ *
  * @author xiaoyu(Myth)
  */
 @Data
@@ -37,7 +39,6 @@ public class ConditionZkDTO implements Serializable {
      * param type（post  query  uri..）.
      */
     private String paramType;
-
 
     /**
      * （=  > <  like match）.
@@ -53,6 +54,4 @@ public class ConditionZkDTO implements Serializable {
      * param value.
      */
     private String paramValue;
-
-
 }
