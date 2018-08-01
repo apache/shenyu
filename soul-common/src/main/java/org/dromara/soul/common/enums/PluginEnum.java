@@ -72,10 +72,16 @@ public enum PluginEnum {
      */
     DUBBO(60, "dubbo"),
 
+
+    /**
+     * springCloud plugin enum.
+     */
+    SPRING_CLOUD(70, "springCloud"),
+
     /**
      * Monitor plugin enum.
      */
-    MONITOR(70, "monitor");
+    MONITOR(80, "monitor");
 
     private final int code;
 

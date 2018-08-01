@@ -112,7 +112,9 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
                 return doExecute(exchange, chain, rule);
             } else {
                 //如果是代理分流插件未匹配到，直接返回
-                if (PluginEnum.DIVIDE.getName().equals(named())) {
+                if (PluginEnum.DIVIDE.getName().equals(named())
+                        || PluginEnum.DUBBO.getName().equals(named())
+                        || PluginEnum.SPRING_CLOUD.getName().equals(named())) {
                     LogUtils.info(LOGGER, () -> body.getModule() + ":" + body.getMethod() + " not match  " + named() + "  rule");
                     final SoulResult error = SoulResult.error(HttpStatus.NOT_FOUND.value(), Constants.UPSTREAM_NOT_FIND);
                     return exchange.getResponse().writeWith(Mono.just(exchange.getResponse().bufferFactory().wrap(Objects.requireNonNull(JSONUtils.toJson(error)).getBytes())));

@@ -29,9 +29,10 @@
 
     <artifactId>soul-test-http</artifactId>
     <dependencies>
+
         <dependency>
-            <groupId>com.hqyg.skyway</groupId>
-            <artifactId>skyway-common</artifactId>
+            <groupId>org.dromara.soul</groupId>
+            <artifactId>soul-common</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
