@@ -26,6 +26,7 @@ import org.dromara.soul.common.dto.zk.PluginZkDTO;
 import org.dromara.soul.common.dto.zk.RuleZkDTO;
 import org.dromara.soul.common.dto.zk.SelectorZkDTO;
 import org.dromara.soul.common.enums.PluginEnum;
+import org.dromara.soul.common.enums.SelectorTypeEnum;
 import org.dromara.soul.common.result.SoulResult;
 import org.dromara.soul.common.utils.JSONUtils;
 import org.dromara.soul.common.utils.LogUtils;
@@ -115,7 +116,7 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
                 if (PluginEnum.DIVIDE.getName().equals(named())
                         || PluginEnum.DUBBO.getName().equals(named())
                         || PluginEnum.SPRING_CLOUD.getName().equals(named())) {
-                    LogUtils.info(LOGGER, () -> body.getModule() + ":" + body.getMethod() + " not match  " + named() + "  rule");
+                    LogUtils.info(LOGGER, () -> Objects.requireNonNull(body).getModule() + ":" + body.getMethod() + " not match  " + named() + "  rule");
                     final SoulResult error = SoulResult.error(HttpStatus.NOT_FOUND.value(), Constants.UPSTREAM_NOT_FIND);
                     return exchange.getResponse().writeWith(Mono.just(exchange.getResponse().bufferFactory().wrap(Objects.requireNonNull(JSONUtils.toJson(error)).getBytes())));
                 }
@@ -126,12 +127,12 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
     }
 
     private Boolean filterSelector(final SelectorZkDTO selector, final ServerWebExchange exchange) {
-        if (selector.getType()) {
+        if (selector.getType() == SelectorTypeEnum.CUSTOM_FLOW.getCode()) {
             if (CollectionUtils.isEmpty(selector.getConditionZkDTOList())) {
                 return false;
             }
-            //判断自定义流量规则
-            return MatchStrategyFactory.of(selector.getMatchMode()).match(selector.getConditionZkDTOList(), exchange);
+            return MatchStrategyFactory.of(selector.getMatchMode())
+                    .match(selector.getConditionZkDTOList(), exchange);
         }
         return true;
     }
