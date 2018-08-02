@@ -26,6 +26,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
+import java.util.Objects;
+
 /**
  * ZookeeperConfiguration .
  * @author xiaoyu(Myth)
@@ -48,8 +50,8 @@ public class ZookeeperConfiguration {
     @Bean
     public ZkClient zkClient() {
         return new ZkClient(env.getProperty("spring.zookeeper.url"),
-                Integer.parseInt(env.getProperty("spring.zookeeper.sessionTimeout")),
-                Integer.parseInt(env.getProperty("spring.zookeeper.connectionTimeout")),
+                Integer.parseInt(Objects.requireNonNull(env.getProperty("spring.zookeeper.sessionTimeout"))),
+                Integer.parseInt(Objects.requireNonNull(env.getProperty("spring.zookeeper.connectionTimeout"))),
                 ZkSerializerFactory.of(env.getProperty("spring.zookeeper.serializer")));
     }
 }

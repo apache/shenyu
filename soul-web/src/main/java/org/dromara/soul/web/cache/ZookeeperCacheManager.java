@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
  * @author xiaoyu
  */
 @Component
-@SuppressWarnings("unchecked")
+@SuppressWarnings("all")
 public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean {
 
     private static final Map<String, PluginZkDTO> PLUGIN_MAP = Maps.newConcurrentMap();

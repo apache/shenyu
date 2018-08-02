@@ -22,7 +22,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * skyway start.
+ * soul start.
  *
  * @author xiaoyu
  */

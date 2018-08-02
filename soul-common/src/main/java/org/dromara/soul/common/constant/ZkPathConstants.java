@@ -25,15 +25,15 @@ package org.dromara.soul.common.constant;
  */
 public final class ZkPathConstants implements Constants {
 
-    public static final String SELECTOR_PARENT = "/skyway/selector";
+    public static final String SELECTOR_PARENT = "/soul/selector";
 
     public static final String SELECTOR_JOIN_RULE = "-";
 
-    private static final String PLUGIN_PARENT = "/skyway/plugin";
+    private static final String PLUGIN_PARENT = "/soul/plugin";
 
-    private static final String RULE_PARENT = "/skyway/rule";
+    private static final String RULE_PARENT = "/soul/rule";
 
-    public static final String APP_AUTH_PARENT = "/skyway/auth";
+    public static final String APP_AUTH_PARENT = "/soul/auth";
 
     /**
      * acquire app_auth_path.

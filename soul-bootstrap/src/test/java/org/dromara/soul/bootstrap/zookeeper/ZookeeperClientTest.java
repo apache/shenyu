@@ -40,6 +40,7 @@ import org.dromara.soul.common.enums.MatchModeEnum;
 import org.dromara.soul.common.enums.OperatorEnum;
 import org.dromara.soul.common.enums.ParamTypeEnum;
 import org.dromara.soul.common.enums.PluginEnum;
+import org.dromara.soul.common.enums.SelectorTypeEnum;
 import org.dromara.soul.common.enums.WafEnum;
 import org.dromara.soul.common.utils.JSONUtils;
 import org.junit.After;
@@ -76,7 +77,7 @@ public class ZookeeperClientTest extends BaseTest {
         if (!zkClient.exists(ROOT_PATH)) {
             zkClient.createPersistent(ROOT_PATH, true);
         }
-        zkClient.writeData(ROOT_PATH, new PluginZkDTO(1, PluginEnum.DIVIDE.getName(), Boolean.TRUE));
+        zkClient.writeData(ROOT_PATH, new PluginZkDTO("1", PluginEnum.DIVIDE.getName(), Boolean.TRUE));
         final Object o = zkClient.readData(ROOT_PATH);
         System.out.println(o.toString());
     }
@@ -193,7 +194,7 @@ public class ZookeeperClientTest extends BaseTest {
         selectorZkDTO.setLoged(Boolean.TRUE);
         selectorZkDTO.setEnabled(Boolean.TRUE);
         selectorZkDTO.setPluginName(pluginName);
-        selectorZkDTO.setType(Boolean.TRUE);
+        selectorZkDTO.setType(SelectorTypeEnum.FULL_FLOW.getCode());
         selectorZkDTO.setMatchMode(MatchModeEnum.AND.getCode());
         final ConditionZkDTO conditionZkDTO = buildConditionZkDTO();
         selectorZkDTO.setConditionZkDTOList(Collections.singletonList(conditionZkDTO));
@@ -352,11 +353,11 @@ public class ZookeeperClientTest extends BaseTest {
     @Test
     public void testUpdatePlugin() {
         String divide = PLUGIN + "/" + PluginEnum.DIVIDE.getName();
-        PluginZkDTO divideDTO = new PluginZkDTO(2, PluginEnum.DIVIDE.getName(), false);
+        PluginZkDTO divideDTO = new PluginZkDTO("3", PluginEnum.DIVIDE.getName(), false);
         zkClient.writeData(divide, divideDTO);
 
         String global = PLUGIN + "/" + PluginEnum.GLOBAL.getName();
-        PluginZkDTO globalDTO = new PluginZkDTO(2, PluginEnum.GLOBAL.getName(), false);
+        PluginZkDTO globalDTO = new PluginZkDTO("4", PluginEnum.GLOBAL.getName(), false);
         zkClient.writeData(global, globalDTO);
 
 
@@ -366,7 +367,7 @@ public class ZookeeperClientTest extends BaseTest {
     private PluginZkDTO buildByName(String name) {
         PluginZkDTO pluginZkDTO = new PluginZkDTO();
         pluginZkDTO.setEnabled(true);
-        pluginZkDTO.setId(1);
+        pluginZkDTO.setId("1");
         pluginZkDTO.setName(name);
         return pluginZkDTO;
     }
@@ -392,7 +393,7 @@ public class ZookeeperClientTest extends BaseTest {
     @Test
     public void testPluginUpdate() {
         final Map<String, PluginZkDTO> map = buildMap();
-        map.put(PluginEnum.DIVIDE.getName(), new PluginZkDTO(2, PluginEnum.DIVIDE.getName(), Boolean.FALSE));
+        map.put(PluginEnum.DIVIDE.getName(), new PluginZkDTO("2", PluginEnum.DIVIDE.getName(), Boolean.FALSE));
         zkClient.writeData(PLUGIN, map);
     }
 
@@ -442,9 +443,9 @@ public class ZookeeperClientTest extends BaseTest {
 
     private Map<String, PluginZkDTO> buildMap() {
         Map<String, PluginZkDTO> pluginMap = Maps.newHashMap();
-        pluginMap.put(PluginEnum.DIVIDE.getName(), new PluginZkDTO(1, PluginEnum.DIVIDE.getName(), Boolean.TRUE));
-        pluginMap.put(PluginEnum.GLOBAL.getName(), new PluginZkDTO(1, PluginEnum.GLOBAL.getName(), Boolean.TRUE));
-        pluginMap.put(PluginEnum.MONITOR.getName(), new PluginZkDTO(1, PluginEnum.MONITOR.getName(), Boolean.TRUE));
+        pluginMap.put(PluginEnum.DIVIDE.getName(), new PluginZkDTO("6", PluginEnum.DIVIDE.getName(), Boolean.TRUE));
+        pluginMap.put(PluginEnum.GLOBAL.getName(), new PluginZkDTO("7", PluginEnum.GLOBAL.getName(), Boolean.TRUE));
+        pluginMap.put(PluginEnum.MONITOR.getName(), new PluginZkDTO("8", PluginEnum.MONITOR.getName(), Boolean.TRUE));
         return pluginMap;
     }
 }
