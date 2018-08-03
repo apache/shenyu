@@ -19,24 +19,30 @@
 package org.dromara.soul.web.plugin.hystrix;
 
 import com.netflix.hystrix.HystrixObservableCommand;
+import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
-import org.dromara.soul.common.dto.convert.DubboHandle;
 import org.dromara.soul.common.dto.convert.SpringCloudHandle;
+import org.dromara.soul.common.enums.HttpMethodEnum;
 import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.result.SoulResult;
 import org.dromara.soul.common.utils.JSONUtils;
 import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.web.plugin.SoulPluginChain;
-import org.dromara.soul.web.plugin.dubbo.DubboProxyService;
+import org.dromara.soul.web.request.RequestDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import rx.Observable;
 import rx.RxReactiveStreams;
 
-import java.util.Map;
+import java.net.URI;
+import java.time.Duration;
 import java.util.Objects;
 
 /**
@@ -44,6 +50,7 @@ import java.util.Objects;
  *
  * @author xiaoyu(Myth)
  */
+@SuppressWarnings("all")
 public class SpringCloudCommand extends HystrixObservableCommand<Void> {
 
     /**
@@ -51,21 +58,30 @@ public class SpringCloudCommand extends HystrixObservableCommand<Void> {
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(SpringCloudCommand.class);
 
+    private static final WebClient WEB_CLIENT = WebClient.create();
+
     private final ServerWebExchange exchange;
 
     private final SoulPluginChain chain;
 
     private final SpringCloudHandle springCloudHandle;
 
+    private final RequestDTO requestDTO;
+
+    private final URI remoteURI;
+
     public SpringCloudCommand(final Setter setter,
                               final ServerWebExchange exchange,
                               final SoulPluginChain chain,
-                              final SpringCloudHandle springCloudHandle) {
+                              final SpringCloudHandle springCloudHandle,
+                              final RequestDTO requestDTO,
+                              final URI remoteURI) {
         super(setter);
         this.exchange = exchange;
         this.chain = chain;
         this.springCloudHandle = springCloudHandle;
-
+        this.requestDTO = requestDTO;
+        this.remoteURI = remoteURI;
     }
 
     @Override
@@ -74,13 +90,46 @@ public class SpringCloudCommand extends HystrixObservableCommand<Void> {
     }
 
     private Mono<Void> doRpcInvoke() {
-
-        return chain.execute(exchange);
+        if (requestDTO.getHttpMethod().equals(HttpMethodEnum.GET.getName())) {
+            String uri = buildRealURL();
+            return WEB_CLIENT.get().uri(uri)
+                    .exchange()
+                    .doOnError(e -> LogUtils.error(LOGGER, e::getMessage))
+                    .timeout(Duration.ofMillis(springCloudHandle.getTimeout()))
+                    .flatMap(this::doNext);
+        } else if (requestDTO.getHttpMethod().equals(HttpMethodEnum.POST.getName())) {
+            return WEB_CLIENT.post().uri(buildRealURL())
+                    .contentType(MediaType.APPLICATION_JSON_UTF8)
+                    .body(BodyInserters.fromDataBuffers(exchange.getRequest().getBody()))
+                    .exchange()
+                    .doOnError(e -> LogUtils.error(LOGGER, e::getMessage))
+                    .timeout(Duration.ofMillis(springCloudHandle.getTimeout()))
+                    .flatMap(this::doNext);
+        }
+        return Mono.empty();
     }
 
     @Override
     protected Observable<Void> resumeWithFallback() {
         return RxReactiveStreams.toObservable(doFallback());
+    }
+
+    private Mono<Void> doNext(final ClientResponse res) {
+        if (res.statusCode().is2xxSuccessful()) {
+            exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
+        } else {
+            exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.ERROR.getName());
+        }
+        exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);
+        return chain.execute(exchange);
+    }
+
+    private String buildRealURL() {
+        final String rewriteURI = (String) exchange.getAttributes().get(Constants.REWRITE_URI);
+        if (StringUtils.isBlank(rewriteURI)) {
+            return String.join("/", remoteURI.toString(), requestDTO.getMethod());
+        }
+        return String.join("/", remoteURI.toString(), rewriteURI);
     }
 
     private Mono<Void> doFallback() {
