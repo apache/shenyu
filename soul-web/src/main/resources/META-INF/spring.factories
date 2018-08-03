@@ -7,7 +7,5 @@ org.dromara.soul.web.config.DubboConfiguration,\
 org.dromara.soul.web.config.SpringCloudAutoConfiguration,\
 org.dromara.soul.configuration.zookeeper.ZookeeperConfiguration
 
-
-
 org.springframework.context.ApplicationListener=\
 org.dromara.soul.web.logo.SoulLogo
