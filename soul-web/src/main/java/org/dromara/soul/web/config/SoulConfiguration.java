@@ -20,6 +20,8 @@ package org.dromara.soul.web.config;
 
 import org.dromara.soul.web.cache.ZookeeperCacheManager;
 import org.dromara.soul.web.disruptor.publisher.SoulEventPublisher;
+import org.dromara.soul.web.filter.ParamWebFilter;
+import org.dromara.soul.web.filter.TimeWebFilter;
 import org.dromara.soul.web.handler.SoulHandlerMapping;
 import org.dromara.soul.web.handler.SoulWebHandler;
 import org.dromara.soul.web.plugin.SoulPlugin;
@@ -33,9 +35,12 @@ import org.dromara.soul.web.plugin.function.RateLimiterPlugin;
 import org.dromara.soul.web.plugin.function.RewritePlugin;
 import org.dromara.soul.web.plugin.ratelimter.RedisRateLimiter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.web.server.WebFilter;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -55,7 +60,7 @@ public class SoulConfiguration {
 
     private final RedisRateLimiter redisRateLimiter;
 
-    @Autowired
+    @Autowired(required = false)
     public SoulConfiguration(final ZookeeperCacheManager zookeeperCacheManager,
                              final SoulEventPublisher soulEventPublisher,
                              final RedisRateLimiter redisRateLimiter) {
@@ -173,5 +178,28 @@ public class SoulConfiguration {
     @Bean
     public SoulHandlerMapping soulHandlerMapping(final SoulWebHandler soulWebHandler) {
         return new SoulHandlerMapping(soulWebHandler);
+    }
+
+    /**
+     * init param web filter.
+     *
+     * @return {@linkplain ParamWebFilter}
+     */
+    @Bean
+    @Order(1)
+    public WebFilter paramWebFilter() {
+        return new ParamWebFilter();
+    }
+
+    /**
+     * init time web filter.
+     *
+     * @return {@linkplain TimeWebFilter}
+     */
+    @Bean
+    @Order(2)
+    @ConditionalOnProperty(name = "soul.timeVerify.enabled", matchIfMissing = true)
+    public WebFilter timeWebFilter() {
+        return new TimeWebFilter();
     }
 }

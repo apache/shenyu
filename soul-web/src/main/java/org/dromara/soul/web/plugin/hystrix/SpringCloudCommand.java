@@ -25,6 +25,7 @@ import org.dromara.soul.common.dto.convert.SpringCloudHandle;
 import org.dromara.soul.common.enums.HttpMethodEnum;
 import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.result.SoulResult;
+import org.dromara.soul.common.utils.GSONUtils;
 import org.dromara.soul.common.utils.JSONUtils;
 import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.web.plugin.SoulPluginChain;
@@ -92,6 +93,9 @@ public class SpringCloudCommand extends HystrixObservableCommand<Void> {
     private Mono<Void> doRpcInvoke() {
         if (requestDTO.getHttpMethod().equals(HttpMethodEnum.GET.getName())) {
             String uri = buildRealURL();
+            if (StringUtils.isNoneBlank(requestDTO.getExtInfo())) {
+                uri = uri + "?" + GSONUtils.getInstance().toGetParam(requestDTO.getExtInfo());
+            }
             return WEB_CLIENT.get().uri(uri)
                     .exchange()
                     .doOnError(e -> LogUtils.error(LOGGER, e::getMessage))
