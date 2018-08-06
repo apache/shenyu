@@ -19,11 +19,17 @@
 package org.dromara.soul.common.utils;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Map;
 
 /**
  * GSONUtils.
+ *
  * @author xiaoyu(Myth)
  */
+@SuppressWarnings("all")
 public class GSONUtils {
 
     private static final GSONUtils INSTANCE = new GSONUtils();
@@ -40,5 +46,40 @@ public class GSONUtils {
 
     public <T> T fromJson(final String json, final Class<T> tClass) {
         return GSON.fromJson(json, tClass);
+    }
+
+
+    /**
+     * toGetParam.
+     *
+     * @param json json
+     * @return java.lang.String
+     */
+    public String toGetParam(final String json) {
+        if (StringUtils.isBlank(json)) {
+            return "";
+        }
+        final Map<String, String> map = toStringMap(json);
+        StringBuilder stringBuilder = new StringBuilder();
+        map.forEach((k, v) -> stringBuilder.append(k).append("=").append(v).append("&"));
+        final String r = stringBuilder.toString();
+        return r.substring(0, r.lastIndexOf("&"));
+
+    }
+
+    /**
+     * toMap.
+     *
+     * @param json json
+     * @return hashMap
+     */
+    public Map<String, String> toStringMap(final String json) {
+        return GSON.fromJson(json, new TypeToken<Map<String, String>>() {
+        }.getType());
+    }
+
+    public Map<String, Object> toObjectMap(final String json) {
+        return GSON.fromJson(json, new TypeToken<Map<String, Object>>() {
+        }.getType());
     }
 }

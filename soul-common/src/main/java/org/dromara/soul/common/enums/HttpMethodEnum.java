@@ -21,6 +21,7 @@ package org.dromara.soul.common.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.dromara.soul.common.exception.SoulException;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -36,24 +37,26 @@ public enum HttpMethodEnum {
     /**
      * Get http method enum.
      */
-    GET("get"),
+    GET("get", true),
 
     /**
      * Post http method enum.
      */
-    POST("post"),
+    POST("post", true),
 
     /**
      * Put http method enum.
      */
-    PUT("put"),
+    PUT("put", false),
 
     /**
      * Delete http method enum.
      */
-    DELETE("delete");
+    DELETE("delete", false);
 
     private final String name;
+
+    private final Boolean support;
 
     /**
      *  convert by name.
@@ -61,10 +64,10 @@ public enum HttpMethodEnum {
      * @param name name
      * @return {@link HttpMethodEnum }
      */
-    public static HttpMethodEnum convertByName(final String name) {
+    public static HttpMethodEnum acquireByName(final String name) {
         return Arrays.stream(HttpMethodEnum.values())
-                .filter(httpMethodEnum -> Objects.equals(httpMethodEnum.name, name))
-                .findFirst().orElse(null);
+                .filter(e -> e.support && e.name.equals(name)).findFirst()
+                .orElseThrow(() -> new SoulException(" this http method can not support!"));
     }
 
 }
