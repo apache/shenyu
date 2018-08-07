@@ -33,6 +33,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.dromara.soul.common.constant.DubboParamConstants;
 import org.dromara.soul.common.dto.convert.DubboHandle;
 import org.dromara.soul.common.exception.SoulException;
+import org.dromara.soul.common.utils.GSONUtils;
 import org.dromara.soul.common.utils.LogUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * dubbo proxy service is  use GenericService.
@@ -49,6 +51,7 @@ import java.util.Optional;
  * @author xiaoyu(Myth)
  */
 @Service
+@SuppressWarnings("all")
 public class DubboProxyService {
 
     /**
@@ -93,6 +96,47 @@ public class DubboProxyService {
         List<String> paramList = Lists.newArrayList();
         List<Object> args = Lists.newArrayList();
         //如果参数里面包含class字段
+        //如果参数里面包含class字段
+        if (paramMap.containsKey(DubboParamConstants.PARAM_CLASS)) {
+            List<String> clazz = GSONUtils.getInstance()
+                    .fromJson(paramMap.get(DubboParamConstants.PARAM_CLASS).toString(), List.class);
+            //设置参数为class 类型
+            AtomicBoolean hasList = new AtomicBoolean(false);
+            clazz.forEach(c -> {
+                paramList.add(c.toString());
+                if (List.class.getName().equals(c.toString())) {
+                    hasList.set(true);
+                }
+            });
+
+            if (hasList.get()) {
+                final Object classParams = paramMap.get(DubboParamConstants.CLASS_PARAMS);
+                List<Map> params = GSONUtils.getInstance().toListMap(classParams.toString());
+                args.add(params);
+            } else {
+                final Object classParams = paramMap.get(DubboParamConstants.CLASS_PARAMS);
+                args.addAll(GSONUtils.getInstance()
+                        .fromJson(classParams.toString(), List.class));
+            }
+        }
+        //如果Map参数里面包含 params字段  规定params 里面是json字符串转成Map key为类型，value为值
+        if (paramMap.containsKey(DubboParamConstants.PARAMS)) {
+            final Object params = paramMap.get(DubboParamConstants.PARAMS);
+            final Map<String, Object> objectMap = GSONUtils.getInstance().toObjectMap(params.toString());
+            objectMap.forEach((k, v) -> {
+                //如果v是数组类型
+                if (v instanceof List) {
+                    List<String> arg = GSONUtils.getInstance().fromJson(v.toString(), List.class);
+                    arg.forEach(j -> {
+                        paramList.add(k);
+                        args.add(j);
+                    });
+                } else {
+                    paramList.add(k);
+                    args.add(v);
+                }
+            });
+        }
         return new ImmutablePair<>(paramList.toArray(new String[0]), args.toArray());
     }
 

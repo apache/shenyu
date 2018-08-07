@@ -21,6 +21,7 @@ package org.dromara.soul.common.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.dromara.soul.common.exception.SoulException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -86,11 +87,8 @@ public enum ParamTypeEnum {
      * @return param type enum.
      */
     public static ParamTypeEnum getParamTypeEnumByName(final String name) {
-        for (ParamTypeEnum paramTypeEnum : ParamTypeEnum.values()) {
-            if (paramTypeEnum.getName().equals(name)) {
-                return paramTypeEnum;
-            }
-        }
-        return null;
+        return Arrays.stream(ParamTypeEnum.values())
+                .filter(e -> e.getName().equals(name) && e.support).findFirst()
+                .orElseThrow(() -> new SoulException(" this  param type can not support!"));
     }
 }

@@ -21,9 +21,15 @@ package org.dromara.soul.common.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.dromara.soul.common.exception.SoulException;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * load balance enum.
+ *
  * @author xiaoyu(Myth)
  */
 @RequiredArgsConstructor
@@ -33,20 +39,33 @@ public enum LoadBalanceEnum {
     /**
      * Hash load balance enum.
      */
-    HASH(1, "hash"),
+    HASH(1, "hash", false),
 
     /**
      * Random load balance enum.
      */
-    RANDOM(2, "random"),
+    RANDOM(2, "random", true),
 
     /**
      * Round robin load balance enum.
      */
-    ROUND_ROBIN(3, "roundRobin");
+    ROUND_ROBIN(3, "roundRobin", true);
 
     private final int code;
 
     private final String name;
+
+    private final boolean support;
+
+
+    /**
+     * acquireList.
+     *
+     * @return {@link LoadBalanceEnum }
+     */
+    public static List<HttpMethodEnum> acquireList() {
+        return Arrays.stream(HttpMethodEnum.values())
+                .filter(HttpMethodEnum::getSupport).collect(Collectors.toList());
+    }
 
 }
