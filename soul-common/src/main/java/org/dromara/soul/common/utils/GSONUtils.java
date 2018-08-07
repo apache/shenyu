@@ -22,6 +22,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -75,6 +76,18 @@ public class GSONUtils {
      */
     public Map<String, String> toStringMap(final String json) {
         return GSON.fromJson(json, new TypeToken<Map<String, String>>() {
+        }.getType());
+    }
+
+
+    /**
+     * toList<Map></Map>.
+     *
+     * @param json json
+     * @return hashMap
+     */
+    public List<Map> toListMap(final String json) {
+        return GSON.fromJson(json, new TypeToken<List<Map>>() {
         }.getType());
     }
 

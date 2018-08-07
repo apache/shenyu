@@ -21,6 +21,7 @@ package org.dromara.soul.common.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.dromara.soul.common.exception.SoulException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -81,11 +82,9 @@ public enum OperatorEnum {
      * @return operator enum.
      */
     public static OperatorEnum getOperatorEnumByAlias(final String alias) {
-        for (OperatorEnum operatorEnum : OperatorEnum.values()) {
-            if (operatorEnum.getAlias().equals(alias)) {
-                return operatorEnum;
-            }
-        }
-        return null;
+        return Arrays.stream(OperatorEnum.values())
+                .filter(e -> e.getAlias().equals(alias) && e.support).findFirst()
+                .orElseThrow(() -> new SoulException(" this  operator can not support!"));
+
     }
 }
