@@ -1,11 +1,10 @@
 package org.dromara.soul.admin.controller;
 
 import org.dromara.soul.admin.dto.SelectorDTO;
-import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.SelectorQuery;
 import org.dromara.soul.admin.service.SelectorService;
-import org.dromara.soul.admin.vo.SelectorVO;
+import org.dromara.soul.common.result.SoulResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,9 +43,9 @@ public class SelectorController {
      * @return {@linkplain Mono}
      */
     @GetMapping("")
-    public Mono<CommonPager<SelectorVO>> querySelectors(final String pluginId, final Integer currentPage, final Integer pageSize) {
-        return Mono.create(commonPager -> commonPager.success(selectorService.listByPage(
-                new SelectorQuery(pluginId, new PageParameter(currentPage, pageSize)))));
+    public Mono<SoulResult> querySelectors(final String pluginId, final Integer currentPage, final Integer pageSize) {
+        return Mono.create(soulResult -> soulResult.success(SoulResult.success(selectorService.listByPage(
+                new SelectorQuery(pluginId, new PageParameter(currentPage, pageSize))))));
     }
 
     /**
@@ -56,8 +55,8 @@ public class SelectorController {
      * @return {@linkplain Mono}
      */
     @GetMapping("/{id}")
-    public Mono<SelectorVO> detailSelector(@PathVariable("id") final String id) {
-        return Mono.create(commonPager -> commonPager.success(selectorService.findById(id)));
+    public Mono<SoulResult> detailSelector(@PathVariable("id") final String id) {
+        return Mono.create(soulResult -> soulResult.success(SoulResult.success(selectorService.findById(id))));
     }
 
     /**
@@ -67,8 +66,8 @@ public class SelectorController {
      * @return {@linkplain Mono}
      */
     @PostMapping("")
-    public Mono<Integer> createSelector(@RequestBody final SelectorDTO selectorDTO) {
-        return Mono.create(commonPager -> commonPager.success(selectorService.createOrUpdate(selectorDTO)));
+    public Mono<SoulResult> createSelector(@RequestBody final SelectorDTO selectorDTO) {
+        return Mono.create(soulResult -> soulResult.success(SoulResult.success(selectorService.createOrUpdate(selectorDTO))));
     }
 
     /**
@@ -79,10 +78,10 @@ public class SelectorController {
      * @return {@linkplain Mono}
      */
     @PutMapping("/{id}")
-    public Mono<Integer> updateSelector(@PathVariable("id") final String id, @RequestBody final SelectorDTO selectorDTO) {
+    public Mono<SoulResult> updateSelector(@PathVariable("id") final String id, @RequestBody final SelectorDTO selectorDTO) {
         Objects.requireNonNull(selectorDTO);
         selectorDTO.setId(id);
-        return Mono.create(commonPager -> commonPager.success(selectorService.createOrUpdate(selectorDTO)));
+        return Mono.create(soulResult -> soulResult.success(SoulResult.success(selectorService.createOrUpdate(selectorDTO))));
     }
 
     /**
@@ -92,7 +91,7 @@ public class SelectorController {
      * @return {@linkplain Mono}
      */
     @DeleteMapping("/{id}")
-    public Mono<Integer> deleteSelector(@PathVariable("id") final String id) {
-        return Mono.create(commonPager -> commonPager.success(selectorService.delete(id)));
+    public Mono<SoulResult> deleteSelector(@PathVariable("id") final String id) {
+        return Mono.create(soulResult -> soulResult.success(SoulResult.success(selectorService.delete(id))));
     }
 }

@@ -1,11 +1,10 @@
 package org.dromara.soul.admin.controller;
 
 import org.dromara.soul.admin.dto.PluginDTO;
-import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.PluginQuery;
 import org.dromara.soul.admin.service.PluginService;
-import org.dromara.soul.admin.vo.PluginVO;
+import org.dromara.soul.common.result.SoulResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,9 +43,9 @@ public class PluginController {
      * @return {@linkplain Mono}
      */
     @GetMapping("")
-    public Mono<CommonPager<PluginVO>> queryPlugins(final String name, final Integer currentPage, final Integer pageSize) {
-        return Mono.create(commonPager -> commonPager.success(pluginService.listByPage(
-                new PluginQuery(name, new PageParameter(currentPage, pageSize)))));
+    public Mono<SoulResult> queryPlugins(final String name, final Integer currentPage, final Integer pageSize) {
+        return Mono.create(soulResult -> soulResult.success(SoulResult.success(pluginService.listByPage(
+                new PluginQuery(name, new PageParameter(currentPage, pageSize))))));
     }
 
     /**
@@ -56,8 +55,8 @@ public class PluginController {
      * @return {@linkplain Mono}
      */
     @GetMapping("/{id}")
-    public Mono<PluginVO> detailPlugin(@PathVariable("id") final String id) {
-        return Mono.create(commonPager -> commonPager.success(pluginService.findById(id)));
+    public Mono<SoulResult> detailPlugin(@PathVariable("id") final String id) {
+        return Mono.create(soulResult -> soulResult.success(SoulResult.success(pluginService.findById(id))));
     }
 
     /**
@@ -67,8 +66,8 @@ public class PluginController {
      * @return {@linkplain Mono}
      */
     @PostMapping("")
-    public Mono<Integer> createPlugin(@RequestBody final PluginDTO pluginDTO) {
-        return Mono.create(commonPager -> commonPager.success(pluginService.createOrUpdate(pluginDTO)));
+    public Mono<SoulResult> createPlugin(@RequestBody final PluginDTO pluginDTO) {
+        return Mono.create(soulResult -> soulResult.success(SoulResult.success(pluginService.createOrUpdate(pluginDTO))));
     }
 
     /**
@@ -79,10 +78,10 @@ public class PluginController {
      * @return {@linkplain Mono}
      */
     @PutMapping("/{id}")
-    public Mono<Integer> updatePlugin(@PathVariable("id") final String id, @RequestBody final PluginDTO pluginDTO) {
+    public Mono<SoulResult> updatePlugin(@PathVariable("id") final String id, @RequestBody final PluginDTO pluginDTO) {
         Objects.requireNonNull(pluginDTO);
         pluginDTO.setId(id);
-        return Mono.create(commonPager -> commonPager.success(pluginService.createOrUpdate(pluginDTO)));
+        return Mono.create(soulResult -> soulResult.success(SoulResult.success(pluginService.createOrUpdate(pluginDTO))));
     }
 
     /**
@@ -92,7 +91,7 @@ public class PluginController {
      * @return {@linkplain Mono}
      */
     @DeleteMapping("/{id}")
-    public Mono<Integer> deletePlugin(@PathVariable("id") final String id) {
-        return Mono.create(commonPager -> commonPager.success(pluginService.delete(id)));
+    public Mono<SoulResult> deletePlugin(@PathVariable("id") final String id) {
+        return Mono.create(soulResult -> soulResult.success(SoulResult.success(pluginService.delete(id))));
     }
 }

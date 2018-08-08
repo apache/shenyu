@@ -1,11 +1,10 @@
 package org.dromara.soul.admin.controller;
 
 import org.dromara.soul.admin.dto.RuleDTO;
-import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.RuleQuery;
 import org.dromara.soul.admin.service.RuleService;
-import org.dromara.soul.admin.vo.RuleVO;
+import org.dromara.soul.common.result.SoulResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,9 +43,9 @@ public class RuleController {
      * @return {@linkplain Mono}
      */
     @GetMapping("")
-    public Mono<CommonPager<RuleVO>> queryRules(final String selectorId, final Integer currentPage, final Integer pageSize) {
-        return Mono.create(commonPager -> commonPager.success(ruleService.listByPage(
-                new RuleQuery(selectorId, new PageParameter(currentPage, pageSize)))));
+    public Mono<SoulResult> queryRules(final String selectorId, final Integer currentPage, final Integer pageSize) {
+        return Mono.create(soulResult -> soulResult.success(SoulResult.success(ruleService.listByPage(
+                new RuleQuery(selectorId, new PageParameter(currentPage, pageSize))))));
     }
 
     /**
@@ -56,8 +55,8 @@ public class RuleController {
      * @return {@linkplain Mono}
      */
     @GetMapping("/{id}")
-    public Mono<RuleVO> detailRule(@PathVariable("id") final String id) {
-        return Mono.create(commonPager -> commonPager.success(ruleService.findById(id)));
+    public Mono<SoulResult> detailRule(@PathVariable("id") final String id) {
+        return Mono.create(soulResult -> soulResult.success(SoulResult.success(ruleService.findById(id))));
     }
 
     /**
@@ -67,8 +66,8 @@ public class RuleController {
      * @return {@linkplain Mono}
      */
     @PostMapping("")
-    public Mono<Integer> createRule(@RequestBody final RuleDTO ruleDTO) {
-        return Mono.create(commonPager -> commonPager.success(ruleService.createOrUpdate(ruleDTO)));
+    public Mono<SoulResult> createRule(@RequestBody final RuleDTO ruleDTO) {
+        return Mono.create(soulResult -> soulResult.success(SoulResult.success(ruleService.createOrUpdate(ruleDTO))));
     }
 
     /**
@@ -79,10 +78,10 @@ public class RuleController {
      * @return {@linkplain Mono}
      */
     @PutMapping("/{id}")
-    public Mono<Integer> updateRule(@PathVariable("id") final String id, @RequestBody final RuleDTO ruleDTO) {
+    public Mono<SoulResult> updateRule(@PathVariable("id") final String id, @RequestBody final RuleDTO ruleDTO) {
         Objects.requireNonNull(ruleDTO);
         ruleDTO.setId(id);
-        return Mono.create(commonPager -> commonPager.success(ruleService.createOrUpdate(ruleDTO)));
+        return Mono.create(soulResult -> soulResult.success(SoulResult.success(ruleService.createOrUpdate(ruleDTO))));
     }
 
     /**
@@ -92,7 +91,7 @@ public class RuleController {
      * @return {@linkplain Mono}
      */
     @DeleteMapping("/{id}")
-    public Mono<Integer> deleteRule(@PathVariable("id") final String id) {
-        return Mono.create(commonPager -> commonPager.success(ruleService.delete(id)));
+    public Mono<SoulResult> deleteRule(@PathVariable("id") final String id) {
+        return Mono.create(soulResult -> soulResult.success(SoulResult.success(ruleService.delete(id))));
     }
 }

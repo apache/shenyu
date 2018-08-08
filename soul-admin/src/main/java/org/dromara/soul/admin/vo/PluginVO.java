@@ -30,7 +30,7 @@ import java.time.format.DateTimeFormatter;
 /**
  * this is plugin view to web front.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Data
 @AllArgsConstructor
