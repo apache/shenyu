@@ -18,15 +18,13 @@
 
 package org.dromara.soul.bootstrap.plugin.dubbo;
 
-import com.google.common.collect.Maps;
 import org.dromara.soul.bootstrap.BaseTest;
 import org.dromara.soul.common.dto.convert.DubboHandle;
+import org.dromara.soul.common.utils.GSONUtils;
 import org.dromara.soul.web.plugin.dubbo.DubboProxyService;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Map;
 
 /**
  * @author xiaoyu(Myth)
@@ -53,13 +51,14 @@ public class DubboServiceProxyTest extends BaseTest {
                 "  \"interfaceName\":\"org.dromara.soul.test.dubbo.api.service.DubboTestService\",\n" +
                 "  \"method\":\"insert\",\n" +
                 "  \"timeout\":\"50000\",\n" +
-                "  \"paramClass\":\"[com.hqyg.skyway.test.dubbo.api.entity.DubboTest]\",\n" +
+                "  \"paramClass\":\"[org.dromara.soul.test.dubbo.api.entity.DubboTest]\",\n" +
                 "  \"classParams\":[{\n" +
-                "    \"id\":\"1\",\n" +
+                "    \"id\":\"xxxx\",\n" +
                 "    \"name\":\"xiaoyu\"\n" +
                 "  }]\n" +
                 "}";
-        final Object o = dubboProxyService.genericInvoker(null, dubboHandle);
+
+        final Object o = dubboProxyService.genericInvoker(GSONUtils.getInstance().toObjectMap(json), dubboHandle);
         System.out.println(o.toString());
     }
 
@@ -69,9 +68,9 @@ public class DubboServiceProxyTest extends BaseTest {
                 "  \"interfaceName\":\"org.dromara.soul.test.dubbo.api.service.DubboTestService\",\n" +
                 "  \"method\":\"testEntityStringParam\",\n" +
                 "  \"timeout\":\"50000\",\n" +
-                "  \"paramClass\":\"[com.hqyg.skyway.test.dubbo.api.entity.DubboTest]\",\n" +
+                "  \"paramClass\":\"[org.dromara.soul.test.dubbo.api.entity.DubboTest]\",\n" +
                 "  \"classParams\":[{\n" +
-                "    \"id\":\"1\",\n" +
+                "    \"id\":\"xxx\",\n" +
                 "    \"name\":\"xiaoyu\"\n" +
                 "  }],\n" +
                 "  \"params\":{" +
@@ -79,7 +78,7 @@ public class DubboServiceProxyTest extends BaseTest {
                 "    \"java.lang.Integer\":\"1\"\n" +
                 "  }\n" +
                 "}";
-        final Object o = dubboProxyService.genericInvoker(null, dubboHandle);
+        final Object o = dubboProxyService.genericInvoker(GSONUtils.getInstance().toObjectMap(json), dubboHandle);
         System.out.println(o.toString());
     }
 
@@ -96,7 +95,7 @@ public class DubboServiceProxyTest extends BaseTest {
                 "    ]\n" +
                 "  }\n" +
                 "}";
-        final Object o = dubboProxyService.genericInvoker(null, dubboHandle);
+        final Object o = dubboProxyService.genericInvoker(GSONUtils.getInstance().toObjectMap(json), dubboHandle);
         System.out.println(o.toString());
     }
 
@@ -111,19 +110,18 @@ public class DubboServiceProxyTest extends BaseTest {
                 "    ], \n" +
                 "    \"classParams\": [\n" +
                 "        {\n" +
-                "            \"id\": \"2\", \n" +
+                "            \"id\": \"xxxx\", \n" +
                 "            \"name\": \"y\", \n" +
                 "            \"class\": \"org.dromara.soul.test.dubbo.api.entity.DubboTest\"\n" +
                 "        }, \n" +
                 "        {\n" +
-                "            \"id\": \"2\", \n" +
+                "            \"id\": \"xxx\", \n" +
                 "            \"name\": \"y\", \n" +
                 "            \"class\": \"org.dromara.soul.test.dubbo.api.entity.DubboTest\"\n" +
                 "        }\n" +
                 "    ]\n" +
                 "}";
-        final Map<String, Object> map = Maps.newConcurrentMap();
-        final Object o = dubboProxyService.genericInvoker(map, dubboHandle);
+        final Object o = dubboProxyService.genericInvoker(GSONUtils.getInstance().toObjectMap(json), dubboHandle);
         System.out.println(o.toString());
 
     }

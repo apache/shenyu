@@ -21,34 +21,35 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>soul-test</artifactId>
+        <artifactId>soul-test-dubbo</artifactId>
         <groupId>org.dromara.soul</groupId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>soul-test-dubbo</artifactId>
-    <packaging>pom</packaging>
-    <modules>
-        <module>soul-test-dubbo-api</module>
-        <module>soul-test-dubbo-service</module>
-    </modules>
+    <artifactId>soul-test-dubbo-api</artifactId>
 
-    <dependencyManagement>
-        <dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+    </dependencies>
 
-            <dependency>
-                <groupId>org.dromara.soul</groupId>
-                <artifactId>soul-test-dubbo-api</artifactId>
-                <version>${project.version}</version>
-            </dependency>
 
-            <dependency>
-                <groupId>org.dromara.soul</groupId>
-                <artifactId>soul-test-dubbo-service</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+    <build>
+        <finalName>soul-test-dubbo-api</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
