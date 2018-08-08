@@ -28,7 +28,7 @@ import java.io.Serializable;
 /**
  * this is plugin query.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Data
 @AllArgsConstructor
