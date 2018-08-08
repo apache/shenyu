@@ -16,49 +16,36 @@
  *
  */
 
-package org.dromara.soul.admin.service;
+package org.dromara.soul.admin.vo;
 
-import org.dromara.soul.admin.dto.PluginDTO;
-import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.query.PluginQuery;
-import org.dromara.soul.admin.vo.PluginVO;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
 
 /**
- * this is plugin service.
+ * this is enum view to web front.
  *
  * @author jiangxiaofeng(Nicholas)
  */
-public interface PluginService {
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class EnumVO implements Serializable {
 
     /**
-     * create or update plugin.
-     *
-     * @param pluginDTO {@linkplain PluginDTO}
-     * @return rows
+     * enum code.
      */
-    int createOrUpdate(PluginDTO pluginDTO);
+    private Object code;
 
     /**
-     * delete plugin.
-     *
-     * @param id primary key.
-     * @return rows
+     * enum name.
      */
-    int delete(String id);
+    private String name;
 
     /**
-     * find plugin by id.
-     *
-     * @param id pk.
-     * @return {@linkplain PluginVO}
+     * whether support.
      */
-    PluginVO findById(String id);
-
-    /**
-     * find page of plugin by query.
-     *
-     * @param pluginQuery {@linkplain PluginQuery}
-     * @return {@linkplain CommonPager}
-     */
-    CommonPager<PluginVO> listByPage(PluginQuery pluginQuery);
+    private Boolean support;
 }

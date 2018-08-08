@@ -18,47 +18,22 @@
 
 package org.dromara.soul.admin.service;
 
-import org.dromara.soul.admin.dto.PluginDTO;
-import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.query.PluginQuery;
-import org.dromara.soul.admin.vo.PluginVO;
+import org.dromara.soul.admin.vo.EnumVO;
+
+import java.util.List;
+import java.util.Map;
 
 /**
- * this is plugin service.
+ * this is enum service.
  *
  * @author jiangxiaofeng(Nicholas)
  */
-public interface PluginService {
+public interface EnumService {
 
     /**
-     * create or update plugin.
+     * find list of enum.
      *
-     * @param pluginDTO {@linkplain PluginDTO}
-     * @return rows
+     * @return {@linkplain Map}
      */
-    int createOrUpdate(PluginDTO pluginDTO);
-
-    /**
-     * delete plugin.
-     *
-     * @param id primary key.
-     * @return rows
-     */
-    int delete(String id);
-
-    /**
-     * find plugin by id.
-     *
-     * @param id pk.
-     * @return {@linkplain PluginVO}
-     */
-    PluginVO findById(String id);
-
-    /**
-     * find page of plugin by query.
-     *
-     * @param pluginQuery {@linkplain PluginQuery}
-     * @return {@linkplain CommonPager}
-     */
-    CommonPager<PluginVO> listByPage(PluginQuery pluginQuery);
+    Map<String, List<EnumVO>> list();
 }
