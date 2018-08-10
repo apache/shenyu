@@ -101,4 +101,19 @@ public enum PluginEnum {
         }
         return null;
     }
+
+    /**
+     * get plugin enum by name.
+     *
+     * @param name plugin name.
+     * @return plugin enum.
+     */
+    public static PluginEnum getPluginEnumByName(final String name) {
+        for (PluginEnum pluginEnum : PluginEnum.values()) {
+            if (pluginEnum.getName().equals(name)) {
+                return pluginEnum;
+            }
+        }
+        return null;
+    }
 }

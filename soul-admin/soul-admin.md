@@ -1,6 +1,6 @@
-##环球易购网关管理系统后端服务API
+**Soul后端服务API**
 **用户管理**
-**(1)查询用户** 
+**(1)查询用户**
 URL地址：
 [/dashboardUser](http://127.0.0.1:8082/dashboardUser)
 请求方式：
@@ -11,6 +11,9 @@ GET
 |userName|String|否|-|用户名|
 |currentPage|Integer|否|-|当前页数|
 |pageSize|Integer|否|-|页大小|
+
+请求范例：
+[http://127.0.0.1:8082/dashboardUser?userName=ADMIN&currentPage=1&pageSize=10](http://127.0.0.1:8082/dashboardUser?userName=ADMIN&currentPage=1&pageSize=10)
 响应结果：
 ```java
 public class CommonPager<T> {
@@ -82,35 +85,41 @@ public class DashboardUserVO {
 响应范例：
 ```json
 {
-    "page": {
-        "currentPage": 1,
-        "prePage": 1,
-        "nextPage": 1,
-        "pageSize": 10,
-        "offset": 0,
-        "totalPage": 1,
-        "totalCount": 1
-    },
-    "dataList": [
-        {
-            "id": "1",
-            "userName": "ADMIN",
-            "password": "123456",
-            "role": 1,
-            "enabled": true,
-            "dateCreated": "2018-07-28 13:38:05",
-            "dateUpdated": "2018-07-28 13:38:05"
-        }
-    ]
+    "code": 200,
+    "message": "query dashboard users success",
+    "data": {
+        "page": {
+            "currentPage": 1,
+            "prePage": 1,
+            "nextPage": 1,
+            "pageSize": 10,
+            "offset": 0,
+            "totalPage": 1,
+            "totalCount": 1
+        },
+        "dataList": [
+            {
+                "id": "1",
+                "userName": "admin",
+                "password": "123456",
+                "role": 1,
+                "enabled": true,
+                "dateCreated": "2018-06-23 15:12:22",
+                "dateUpdated": "2018-06-23 15:12:23"
+            }
+        ]
+    }
 }
 ```
-**(2)明细用户** 
+**(2)明细用户**
 URL地址：
 [/dashboardUser/{id}](http://127.0.0.1:8082/dashboardUser/{id})
 请求方式：
 GET
 请求参数：
 无
+请求范例：
+[http://127.0.0.1:8082/dashboardUser/1](http://127.0.0.1:8082/dashboardUser/1)
 响应结果：
 ```java
 public class DashboardUserVO {
@@ -154,16 +163,20 @@ public class DashboardUserVO {
 响应范例：
 ```json
 {
-    "id": "1",
-    "userName": "ADMIN",
-    "password": "123456",
-    "role": 1,
-    "enabled": true,
-    "dateCreated": "2018-07-28 13:38:05",
-    "dateUpdated": "2018-07-28 13:38:05"
+    "code": 200,
+    "message": "detail dashboard user success",
+    "data": {
+        "id": "1",
+        "userName": "admin",
+        "password": "123456",
+        "role": 1,
+        "enabled": true,
+        "dateCreated": "2018-06-23 15:12:22",
+        "dateUpdated": "2018-06-23 15:12:23"
+    }
 }
 ```
-**(3)新增用户** 
+**(3)新增用户**
 URL地址：
 [/dashboardUser](http://127.0.0.1:8082/dashboardUser)
 请求方式：
@@ -198,9 +211,24 @@ public class DashboardUserDTO {
     private Boolean enabled;
 }
 ```
+参数范例：
+```json
+{
+	"userName": "soul",
+	"password": "soul",
+	"role": 1,
+	"enabled": true
+}
+```
 响应结果：
-1
-**(4)编辑用户** 
+```json
+{
+    "code": 200,
+    "message": "create dashboard user success",
+    "data": 1
+}
+```
+**(4)编辑用户**
 URL地址：
 [/dashboardUser/{id}](http://127.0.0.1:8082/dashboardUser/{id})
 请求方式：
@@ -235,8 +263,23 @@ public class DashboardUserDTO {
     private Boolean enabled;
 }
 ```
+参数范例：
+```json
+{
+	"userName": "soul",
+	"password": "soul",
+	"role": 2,
+	"enabled": true
+}
+```
 响应结果：
-1
+```json
+{
+    "code": 200,
+    "message": "update dashboard user success",
+    "data": 1
+}
+```
 **(5)删除用户**
 URL地址：
 [/dashboardUser/{id}](http://127.0.0.1:8082/dashboardUser/{id})
@@ -245,11 +288,17 @@ DELETE
 请求参数：
 无
 响应结果：
-1
+```
+{
+    "code": 200,
+    "message": "delete dashboard user success",
+    "data": 1
+}
+```
 
 -------------------
 **插件管理**
-**(1)查询插件** 
+**(1)查询插件**
 URL地址：
 [/plugin](http://127.0.0.1:8082/plugin)
 请求方式：
@@ -260,6 +309,9 @@ GET
 |name|String|否|-|插件名|
 |currentPage|Integer|否|-|当前页数|
 |pageSize|Integer|否|-|页大小|
+
+请求范例：
+[http://127.0.0.1:8082/plugin?name=sign&currentPage=1&pageSize=10](http://127.0.0.1:8082/plugin?name=sign&currentPage=1&pageSize=10)
 响应结果：
 ```java
 public class CommonPager<T> {
@@ -326,30 +378,84 @@ public class PluginVO {
 响应范例：
 ```json
 {
-    "page": {
-        "currentPage": 1,
-        "prePage": 1,
-        "nextPage": 1,
-        "pageSize": 15,
-        "offset": 0,
-        "totalPage": 1,
-        "totalCount": 1
-    },
-    "dataList": [
-        {
-            "id": "4",
-            "code": 20,
-            "name": "RATE_LIMITER",
-            "enabled": false,
-            "dateCreated": "2018-06-23 10:26:37",
-            "dateUpdated": "2018-06-13 15:34:48"
-        }
-    ]
+    "code": 200,
+    "message": "query plugins success",
+    "data": {
+        "page": {
+            "currentPage": 1,
+            "prePage": 1,
+            "nextPage": 1,
+            "pageSize": 10,
+            "offset": 0,
+            "totalPage": 1,
+            "totalCount": 7
+        },
+        "dataList": [
+            {
+                "id": "1",
+                "code": 2,
+                "name": "sign",
+                "enabled": false,
+                "dateCreated": "2018-06-14 10:17:35",
+                "dateUpdated": "2018-06-14 10:17:35"
+            },
+            {
+                "id": "2",
+                "code": 10,
+                "name": "waf",
+                "enabled": false,
+                "dateCreated": "2018-06-23 10:26:30",
+                "dateUpdated": "2018-06-13 15:43:10"
+            },
+            {
+                "id": "3",
+                "code": 30,
+                "name": "rewrite",
+                "enabled": false,
+                "dateCreated": "2018-06-23 10:26:34",
+                "dateUpdated": "2018-06-25 13:59:31"
+            },
+            {
+                "id": "4",
+                "code": 20,
+                "name": "rate_limiter",
+                "enabled": false,
+                "dateCreated": "2018-06-23 10:26:37",
+                "dateUpdated": "2018-06-13 15:34:48"
+            },
+            {
+                "id": "5",
+                "code": 50,
+                "name": "divide",
+                "enabled": true,
+                "dateCreated": "2018-06-25 10:19:10",
+                "dateUpdated": "2018-06-13 13:56:04"
+            },
+            {
+                "id": "6",
+                "code": 60,
+                "name": "dubbo",
+                "enabled": false,
+                "dateCreated": "2018-06-23 10:26:41",
+                "dateUpdated": "2018-06-11 10:11:47"
+            },
+            {
+                "id": "7",
+                "code": 80,
+                "name": "monitor",
+                "enabled": false,
+                "dateCreated": "2018-06-25 13:47:57",
+                "dateUpdated": "2018-06-25 13:47:57"
+            }
+        ]
+    }
 }
 ```
-**(2)明细插件** 
+**(2)明细插件**
 URL地址：
 [/plugin/{id}](http://127.0.0.1:8082/plugin/{id})
+请求范例：
+[http://127.0.0.1:8082/plugin/1](http://127.0.0.1:8082/plugin/1)
 请求方式：
 GET
 请求参数：
@@ -392,48 +498,19 @@ public class PluginVO {
 响应范例：
 ```json
 {
-    "id": "wFzuv7ZI",
-    "pluginId": "1",
-    "name": "selector1",
-    "matchMode": 0,
-    "matchModeName": "and",
-    "type": 1,
-    "typeName": "custom flow",
-    "rank": 1,
-    "enabled": true,
-    "loged": true,
-    "continued": true,
-    "selectorConditions": [
-        {
-            "id": "2oMViT8t",
-            "selectorId": "wFzuv7ZI",
-            "paramType": "QUERY",
-            "paramTypeName": "query",
-            "operator": ">",
-            "operatorName": "GT",
-            "paramName": "param2",
-            "paramValue": "value2",
-            "dateCreated": "2018-07-29 00:03:33",
-            "dateUpdated": "2018-07-29 00:03:33"
-        },
-        {
-            "id": "BzH2VwMA",
-            "selectorId": "wFzuv7ZI",
-            "paramType": "POST",
-            "paramTypeName": "post",
-            "operator": "=",
-            "operatorName": "EQ",
-            "paramName": "param1",
-            "paramValue": "value1",
-            "dateCreated": "2018-07-29 00:03:33",
-            "dateUpdated": "2018-07-29 00:03:33"
-        }
-    ],
-    "dateCreated": "2018-07-29 00:03:31",
-    "dateUpdated": "2018-07-29 00:03:31"
+    "code": 200,
+    "message": "detail plugin success",
+    "data": {
+        "id": "1",
+        "code": 2,
+        "name": "sign",
+        "enabled": false,
+        "dateCreated": "2018-06-14 10:17:35",
+        "dateUpdated": "2018-06-14 10:17:35"
+    }
 }
 ```
-**(3)新增插件** 
+**(3)新增插件**
 URL地址：
 [/plugin](http://127.0.0.1:8082/plugin)
 请求方式：
@@ -458,9 +535,22 @@ public class PluginDTO {
     private Boolean enabled;
 }
 ```
+参数范例：
+```json
+{
+	"code": 1,
+	"enabled": true
+}
+```
 响应结果：
-1
-**(4)编辑插件** 
+```json
+{
+    "code": 200,
+    "message": "create plugin success",
+    "data": 1
+}
+```
+**(4)编辑插件**
 URL地址：
 [/plugin/{id}](http://127.0.0.1:8082/plugin/{id})
 请求方式：
@@ -485,8 +575,21 @@ public class PluginDTO {
     private Boolean enabled;
 }
 ```
+参数范例：
+```json
+{
+	"code": 2,
+	"enabled": false
+}
+```
 响应结果：
-1
+```json
+{
+    "code": 200,
+    "message": "update plugin success",
+    "data": 1
+}
+```
 **(5)删除插件**
 URL地址：
 [/plugin/{id}](http://127.0.0.1:8082/plugin/{id})
@@ -495,12 +598,18 @@ DELETE
 请求参数：
 无
 响应结果：
-1
+```json
+{
+    "code": 200,
+    "message": "delete plugin success",
+    "data": 1
+}
+```
 
 -------------------
 
 **选择器管理**
-**(1)查询选择器** 
+**(1)查询选择器**
 URL地址：
 [/selector](http://127.0.0.1:8082/selector)
 请求方式：
@@ -511,6 +620,9 @@ GET
 |pluginId|String|否|-|插件ID|
 |currentPage|Integer|否|-|当前页数|
 |pageSize|Integer|否|-|页大小|
+
+请求范例：
+[http://127.0.0.1:8082/selector?pluginId=1&currentPage=1&pageSize=10](http://127.0.0.1:8082/selector?pluginId=1&currentPage=1&pageSize=10)
 响应结果：
 ```java
 public class CommonPager<T> {
@@ -601,42 +713,48 @@ public class SelectorVO {
 响应范例：
 ```json
 {
-    "page": {
-        "currentPage": 1,
-        "prePage": 1,
-        "nextPage": 1,
-        "pageSize": 15,
-        "offset": 0,
-        "totalPage": 1,
-        "totalCount": 1
-    },
-    "dataList": [
-        {
-            "id": "DHSqDfqC",
-            "pluginId": "1",
-            "name": "selector1",
-            "matchMode": 1,
-            "matchModeName": "or",
-            "type": 0,
-            "typeName": "full flow",
-            "rank": 2,
-            "enabled": true,
-            "loged": false,
-            "continued": false,
-            "selectorConditions": null,
-            "dateCreated": "2018-07-29 07:16:28",
-            "dateUpdated": "2018-07-29 07:16:28"
-        }
-    ]
+    "code": 200,
+    "message": "query selectors success",
+    "data": {
+        "page": {
+            "currentPage": 1,
+            "prePage": 1,
+            "nextPage": 1,
+            "pageSize": 10,
+            "offset": 0,
+            "totalPage": 1,
+            "totalCount": 1
+        },
+        "dataList": [
+            {
+                "id": "Xmj2tL1T",
+                "pluginId": "1",
+                "name": "selector",
+                "matchMode": 1,
+                "matchModeName": "or",
+                "type": 1,
+                "typeName": "custom flow",
+                "rank": 1,
+                "enabled": true,
+                "loged": true,
+                "continued": true,
+                "selectorConditions": null,
+                "dateCreated": "2018-08-09 16:16:21",
+                "dateUpdated": "2018-08-09 16:16:21"
+            }
+        ]
+    }
 }
 ```
-**(2)明细选择器** 
+**(2)明细选择器**
 URL地址：
 [/selector/{id}](http://127.0.0.1:8082/selector/{id})
 请求方式：
 GET
 请求参数：
 无
+请求范例：
+[http://127.0.0.1:8082/selector/1](http://127.0.0.1:8082/selector/1)
 响应结果：
 ```java
 public class SelectorVO {
@@ -715,48 +833,38 @@ public class SelectorVO {
 响应范例：
 ```json
 {
-    "id": "DHSqDfqC",
-    "pluginId": "1",
-    "name": "selector1",
-    "matchMode": 1,
-    "matchModeName": "or",
-    "type": 0,
-    "typeName": "full flow",
-    "rank": 2,
-    "enabled": true,
-    "loged": false,
-    "continued": false,
-    "selectorConditions": [
-        {
-            "id": "KjXgN0dC",
-            "selectorId": "DHSqDfqC",
-            "paramType": "POST",
-            "paramTypeName": "post",
-            "operator": "<",
-            "operatorName": "LT",
-            "paramName": "parameter1",
-            "paramValue": "val1",
-            "dateCreated": "2018-07-29 07:16:28",
-            "dateUpdated": "2018-07-29 07:16:28"
-        },
-        {
-            "id": "yhDIotQr",
-            "selectorId": "DHSqDfqC",
-            "paramType": "QUERY",
-            "paramTypeName": "query",
-            "operator": ">",
-            "operatorName": "GT",
-            "paramName": "parameter2",
-            "paramValue": "val2",
-            "dateCreated": "2018-07-29 07:16:28",
-            "dateUpdated": "2018-07-29 07:16:28"
-        }
-    ],
-    "dateCreated": "2018-07-29 07:16:28",
-    "dateUpdated": "2018-07-29 07:16:28"
+	"code": 200,
+	"message": "detail selector success",
+	"data": {
+		"id": "Xmj2tL1T",
+		"pluginId": "1",
+		"name": "selector",
+		"matchMode": 1,
+		"matchModeName": "or",
+		"type": 1,
+		"typeName": "custom flow",
+		"rank": 1,
+		"enabled": true,
+		"loged": true,
+		"continued": true,
+		"selectorConditions": [{
+			"id": "PweXPL2t",
+			"selectorId": "Xmj2tL1T",
+			"paramType": "host",
+			"paramTypeName": "HOST",
+			"operator": "match",
+			"operatorName": "MATCH",
+			"paramName": "paramName",
+			"paramValue": "paramValue",
+			"dateCreated": "2018-08-09 17:07:51",
+			"dateUpdated": "2018-08-09 16:16:21"
+		}],
+		"dateCreated": "2018-08-09 16:16:21",
+		"dateUpdated": "2018-08-09 16:16:21"
+	}
 }
 ```
-**(3)新增选择器** 
+**(3)新增选择器**
 URL地址：
 [/selector](http://127.0.0.1:8082/selector)
 请求方式：
@@ -848,9 +956,34 @@ public class SelectorConditionDTO {
     private String paramValue;
 }
 ```
+参数范例：
+```json
+{
+	"pluginId": "1",
+	"name": "selector",
+	"matchMode": 1,
+	"type": 1,
+	"rank": 1,
+	"enabled": true,
+	"loged": true,
+	"continued": true,
+	"selectorConditions": [{
+		"paramType": "host",
+		"operator": "match",
+		"paramName": "paramName",
+		"paramValue": "paramValue"
+	}]
+}
+```
 响应结果：
-1
-**(4)编辑选择器** 
+```json
+{
+    "code": 200,
+    "message": "create selector success",
+    "data": 1
+}
+```
+**(4)编辑选择器**
 URL地址：
 [/selector/{id}](http://127.0.0.1:8082/selector/{id})
 请求方式：
@@ -942,8 +1075,33 @@ public class SelectorConditionDTO {
     private String paramValue;
 }
 ```
+参数范例：
+```json
+{
+	"pluginId": "1",
+	"name": "selector",
+	"matchMode": 1,
+	"type": 1,
+	"rank": 1,
+	"enabled": true,
+	"loged": true,
+	"continued": true,
+	"selectorConditions": [{
+		"paramType": "host",
+		"operator": "match",
+		"paramName": "paramNam",
+		"paramValue": "paramValu"
+	}]
+}
+```
 响应结果：
-1
+```json
+{
+    "code": 200,
+    "message": "update selector success",
+    "data": 1
+}
+```
 **(5)删除选择器**
 URL地址：
 [/selector/{id}](http://127.0.0.1:8082/selector/{id})
@@ -952,11 +1110,17 @@ DELETE
 请求参数：
 无
 响应结果：
-1
+```json
+{
+    "code": 200,
+    "message": "delete selector success",
+    "data": 1
+}
+```
 
 -------------------
 **规则管理**
-**(1)查询规则** 
+**(1)查询规则**
 URL地址：
 [/rule](http://127.0.0.1:8082/rule)
 请求方式：
@@ -967,6 +1131,9 @@ GET
 |selectorId|String|否|-|选择器ID|
 |currentPage|Integer|否|-|当前页数|
 |pageSize|Integer|否|-|页大小|
+
+请求范例：
+[http://127.0.0.1:8082/rule?selectorId=1&currentPage=1&pageSize=10](http://127.0.0.1:8082/rule?selectorId=1&currentPage=1&pageSize=10)
 响应结果：
 ```java
 public class CommonPager<T> {
@@ -1047,40 +1214,44 @@ public class RuleVO {
 响应范例：
 ```json
 {
-    "page": {
-        "currentPage": 1,
-        "prePage": 1,
-        "nextPage": 1,
-        "pageSize": 15,
-        "offset": 0,
-        "totalPage": 1,
-        "totalCount": 1
-    },
-    "dataList": [
-        {
-            "id": "dB4JdjWu",
-            "selectorId": "DHSqDfqC",
-            "matchMode": 0,
-            "matchModeName": "and",
-            "name": "rule1",
-            "enabled": true,
-            "loged": true,
-            "rank": 1,
-            "handle": "xxxxxx",
-            "ruleConditions": null,
-            "dateCreated": "2018-07-29 07:24:20",
-            "dateUpdated": "2018-07-29 07:24:21"
-        }
-    ]
+	"code": 200,
+	"message": "query rules success",
+	"data": {
+		"page": {
+			"currentPage": 1,
+			"prePage": 1,
+			"nextPage": 1,
+			"pageSize": 15,
+			"offset": 0,
+			"totalPage": 1,
+			"totalCount": 1
+		},
+		"dataList": [{
+			"id": "dB4JdjWu",
+			"selectorId": "DHSqDfqC",
+			"matchMode": 0,
+			"matchModeName": "and",
+			"name": "rule1",
+			"enabled": true,
+			"loged": true,
+			"rank": 1,
+			"handle": "xxxxxx",
+			"ruleConditions": null,
+			"dateCreated": "2018-07-29 07:24:20",
+			"dateUpdated": "2018-07-29 07:24:21"
+		}]
+	}
 }
 ```
-**(2)明细规则** 
+**(2)明细规则**
 URL地址：
 [/rule/{id}](http://127.0.0.1:8082/rule/{id})
 请求方式：
 GET
 请求参数：
 无
+请求范例：
+[http://127.0.0.1:8082/rule/1](http://127.0.0.1:8082/rule/1)
 响应结果：
 ```java
 public class RuleVO {
@@ -1149,46 +1320,49 @@ public class RuleVO {
 响应范例：
 ```json
 {
-    "id": "dB4JdjWu",
-    "selectorId": "DHSqDfqC",
-    "matchMode": 0,
-    "matchModeName": "and",
-    "name": "rule1",
-    "enabled": true,
-    "loged": true,
-    "rank": 1,
-    "handle": "xxxxxx",
-    "ruleConditions": [
-        {
-            "id": "L1d8rGVP",
-            "ruleId": "dB4JdjWu",
-            "paramType": "QUERY",
-            "paramTypeName": "query",
-            "operator": ">",
-            "operatorName": "GT",
-            "paramName": "param2",
-            "paramValue": "val2",
-            "dateCreated": "2018-07-29 07:24:22",
-            "dateUpdated": "2018-07-29 07:24:22"
-        },
-        {
-            "id": "L9CroLVq",
-            "ruleId": "dB4JdjWu",
-            "paramType": "POST",
-            "paramTypeName": "post",
-            "operator": "<",
-            "operatorName": "LT",
-            "paramName": "param1",
-            "paramValue": "val1",
-            "dateCreated": "2018-07-29 07:24:21",
-            "dateUpdated": "2018-07-29 07:24:22"
-        }
-    ],
-    "dateCreated": "2018-07-29 07:24:20",
-    "dateUpdated": "2018-07-29 07:24:21"
+	"code": 200,
+	"message": "query rules success",
+	"data": {
+		"id": "dB4JdjWu",
+		"selectorId": "DHSqDfqC",
+		"matchMode": 0,
+		"matchModeName": "and",
+		"name": "rule1",
+		"enabled": true,
+		"loged": true,
+		"rank": 1,
+		"handle": "xxxxxx",
+		"ruleConditions": [{
+				"id": "L1d8rGVP",
+				"ruleId": "dB4JdjWu",
+				"paramType": "query",
+				"paramTypeName": "QUERY",
+				"operator": ">",
+				"operatorName": "GT",
+				"paramName": "param2",
+				"paramValue": "val2",
+				"dateCreated": "2018-07-29 07:24:22",
+				"dateUpdated": "2018-07-29 07:24:22"
+			},
+			{
+				"id": "L9CroLVq",
+				"ruleId": "dB4JdjWu",
+				"paramType": "post",
+				"paramTypeName": "POST",
+				"operator": "<",
+				"operatorName": "LT",
+				"paramName": "param1",
+				"paramValue": "val1",
+				"dateCreated": "2018-07-29 07:24:21",
+				"dateUpdated": "2018-07-29 07:24:22"
+			}
+		],
+		"dateCreated": "2018-07-29 07:24:20",
+		"dateUpdated": "2018-07-29 07:24:21"
+	}
 }
 ```
-**(3)新增规则** 
+**(3)新增规则**
 URL地址：
 [/rule](http://127.0.0.1:8082/rule)
 请求方式：
@@ -1248,7 +1422,7 @@ public class RuleConditionDTO {
      * primary key.
      */
     private String id;
-    
+
     /**
      * rule id.
      */
@@ -1275,9 +1449,33 @@ public class RuleConditionDTO {
     private String paramValue;
 }
 ```
+参数范例：
+```json
+{
+	"selectorId": "1",
+	"matchMode": 1,
+	"name": "rule",
+	"enabled": true,
+	"loged": true,
+	"rank": 1,
+	"handle": "handle",
+	"ruleConditionDTO": [{
+		"paramType": "host",
+		"operator": "match",
+		"paramName": "paramName",
+		"paramValue": "paramValue"
+	}]
+}
+```
 响应结果：
-1
-**(4)编辑规则** 
+```json
+{
+    "code": 200,
+    "message": "create rule success",
+    "data": 1
+}
+```
+**(4)编辑规则**
 URL地址：
 [/rule/{id}](http://127.0.0.1:8082/rule/{id})
 请求方式：
@@ -1337,7 +1535,7 @@ public class RuleConditionDTO {
      * primary key.
      */
     private String id;
-    
+
     /**
      * rule id.
      */
@@ -1364,8 +1562,34 @@ public class RuleConditionDTO {
     private String paramValue;
 }
 ```
+参数范例：
+```json
+{
+	"selectorId": "1",
+	"matchMode": 1,
+	"name": "rule",
+	"enabled": true,
+	"loged": true,
+	"rank": 1,
+	"handle": "handle",
+	"ruleConditionDTO": [{
+		"id": "1",
+		"ruleId": "1",
+		"paramType": "host",
+		"operator": "match",
+		"paramName": "paramNam",
+		"paramValue": "paramVal"
+	}]
+}
+```
 响应结果：
-1
+```json
+{
+    "code": 200,
+    "message": "update rule success",
+    "data": 1
+}
+```
 **(5)删除规则**
 URL地址：
 [/rule/{id}](http://127.0.0.1:8082/rule/{id})
@@ -1374,6 +1598,247 @@ DELETE
 请求参数：
 无
 响应结果：
-1
+```json
+{
+    "code": 200,
+    "message": "delete rule success",
+    "data": 1
+}
+```
 
 -------------------
+**枚举管理**
+**(1)查询枚举**
+URL地址：
+[/platform](http://127.0.0.1:8082/platform)
+请求方式：
+GET
+请求参数：
+无
+
+请求范例：
+[http://127.0.0.1:8082/platform)
+响应结果：
+```java
+public class EnumVO implements Serializable {
+
+    /**
+     * enum code.
+     */
+    private Object code;
+
+    /**
+     * enum name.
+     */
+    private String name;
+
+    /**
+     * whether support.
+     */
+    private Boolean support;
+}
+```
+响应范例：
+```json
+{
+	"code": 200,
+	"message": null,
+	"data": {
+		"matchModeEnums": [{
+			"code": 0,
+			"name": "and",
+			"support": true
+		}, {
+			"code": 1,
+			"name": "or",
+			"support": true
+		}],
+		"wafEnums": [{
+			"code": 0,
+			"name": "reject",
+			"support": true
+		}, {
+			"code": 1,
+			"name": "allow",
+			"support": true
+		}],
+		"pluginEnums": [{
+			"code": 1,
+			"name": "global",
+			"support": true
+		}, {
+			"code": 2,
+			"name": "sign",
+			"support": true
+		}, {
+			"code": 10,
+			"name": "waf",
+			"support": true
+		}, {
+			"code": 20,
+			"name": "rate_limiter",
+			"support": true
+		}, {
+			"code": 30,
+			"name": "rewrite",
+			"support": true
+		}, {
+			"code": 40,
+			"name": "redirect",
+			"support": true
+		}, {
+			"code": 50,
+			"name": "divide",
+			"support": true
+		}, {
+			"code": 60,
+			"name": "dubbo",
+			"support": true
+		}, {
+			"code": 70,
+			"name": "springCloud",
+			"support": true
+		}, {
+			"code": 80,
+			"name": "monitor",
+			"support": true
+		}],
+		"selectorTypeEnums": [{
+			"code": 0,
+			"name": "full flow",
+			"support": true
+		}, {
+			"code": 1,
+			"name": "custom flow",
+			"support": true
+		}],
+		"rpcTypeEnums": [{
+			"code": null,
+			"name": "http",
+			"support": true
+		}, {
+			"code": null,
+			"name": "dubbo",
+			"support": true
+		}, {
+			"code": null,
+			"name": "springCloud",
+			"support": true
+		}, {
+			"code": null,
+			"name": "motan",
+			"support": false
+		}, {
+			"code": null,
+			"name": "grpc",
+			"support": false
+		}],
+		"operatorEnums": [{
+			"code": null,
+			"name": "match",
+			"support": true
+		}, {
+			"code": null,
+			"name": "=",
+			"support": true
+		}, {
+			"code": null,
+			"name": ">",
+			"support": false
+		}, {
+			"code": null,
+			"name": "<",
+			"support": false
+		}, {
+			"code": null,
+			"name": "like",
+			"support": true
+		}],
+		"paramTypeEnums": [{
+			"code": null,
+			"name": "post",
+			"support": false
+		}, {
+			"code": null,
+			"name": "uri",
+			"support": false
+		}, {
+			"code": null,
+			"name": "query",
+			"support": false
+		}, {
+			"code": null,
+			"name": "host",
+			"support": true
+		}, {
+			"code": null,
+			"name": "ip",
+			"support": true
+		}, {
+			"code": null,
+			"name": "header",
+			"support": true
+		}],
+		"pluginTypeEnums": [{
+			"code": null,
+			"name": "before",
+			"support": true
+		}, {
+			"code": null,
+			"name": "function",
+			"support": true
+		}, {
+			"code": null,
+			"name": "last",
+			"support": true
+		}],
+		"loadBalanceEnums": [{
+			"code": 1,
+			"name": "hash",
+			"support": true
+		}, {
+			"code": 2,
+			"name": "random",
+			"support": true
+		}, {
+			"code": 3,
+			"name": "roundRobin",
+			"support": true
+		}],
+		"httpMethodEnums": [{
+			"code": null,
+			"name": "get",
+			"support": true
+		}, {
+			"code": null,
+			"name": "post",
+			"support": true
+		}, {
+			"code": null,
+			"name": "put",
+			"support": false
+		}, {
+			"code": null,
+			"name": "delete",
+			"support": false
+		}],
+		"serializeEnums": [{
+			"code": null,
+			"name": "jdk",
+			"support": true
+		}, {
+			"code": null,
+			"name": "kryo",
+			"support": true
+		}, {
+			"code": null,
+			"name": "hessian",
+			"support": true
+		}, {
+			"code": null,
+			"name": "protostuff",
+			"support": true
+		}]
+	}
+}
+```

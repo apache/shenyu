@@ -1,9 +1,11 @@
 package org.dromara.soul.admin.controller;
 
 import org.dromara.soul.admin.dto.PluginDTO;
+import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.PluginQuery;
 import org.dromara.soul.admin.service.PluginService;
+import org.dromara.soul.admin.vo.PluginVO;
 import org.dromara.soul.common.result.SoulResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -44,8 +46,12 @@ public class PluginController {
      */
     @GetMapping("")
     public Mono<SoulResult> queryPlugins(final String name, final Integer currentPage, final Integer pageSize) {
-        return Mono.create(soulResult -> soulResult.success(SoulResult.success(pluginService.listByPage(
-                new PluginQuery(name, new PageParameter(currentPage, pageSize))))));
+        try {
+            CommonPager<PluginVO> commonPager = pluginService.listByPage(new PluginQuery(name, new PageParameter(currentPage, pageSize)));
+            return Mono.create(soulResult -> soulResult.success(SoulResult.success("query plugins success", commonPager)));
+        } catch (Exception e) {
+            return Mono.create(soulResult -> soulResult.success(SoulResult.error("query plugins exception")));
+        }
     }
 
     /**
@@ -56,7 +62,12 @@ public class PluginController {
      */
     @GetMapping("/{id}")
     public Mono<SoulResult> detailPlugin(@PathVariable("id") final String id) {
-        return Mono.create(soulResult -> soulResult.success(SoulResult.success(pluginService.findById(id))));
+        try {
+            PluginVO pluginVO = pluginService.findById(id);
+            return Mono.create(soulResult -> soulResult.success(SoulResult.success("detail plugin success", pluginVO)));
+        } catch (Exception e) {
+            return Mono.create(soulResult -> soulResult.success(SoulResult.error("detail plugin exception")));
+        }
     }
 
     /**
@@ -67,7 +78,12 @@ public class PluginController {
      */
     @PostMapping("")
     public Mono<SoulResult> createPlugin(@RequestBody final PluginDTO pluginDTO) {
-        return Mono.create(soulResult -> soulResult.success(SoulResult.success(pluginService.createOrUpdate(pluginDTO))));
+        try {
+            Integer createCount = pluginService.createOrUpdate(pluginDTO);
+            return Mono.create(soulResult -> soulResult.success(SoulResult.success("create plugin success", createCount)));
+        } catch (Exception e) {
+            return Mono.create(soulResult -> soulResult.success(SoulResult.error("create plugin exception")));
+        }
     }
 
     /**
@@ -79,9 +95,14 @@ public class PluginController {
      */
     @PutMapping("/{id}")
     public Mono<SoulResult> updatePlugin(@PathVariable("id") final String id, @RequestBody final PluginDTO pluginDTO) {
-        Objects.requireNonNull(pluginDTO);
-        pluginDTO.setId(id);
-        return Mono.create(soulResult -> soulResult.success(SoulResult.success(pluginService.createOrUpdate(pluginDTO))));
+        try {
+            Objects.requireNonNull(pluginDTO);
+            pluginDTO.setId(id);
+            Integer updateCount = pluginService.createOrUpdate(pluginDTO);
+            return Mono.create(soulResult -> soulResult.success(SoulResult.success("update plugin success", updateCount)));
+        } catch (Exception e) {
+            return Mono.create(soulResult -> soulResult.success(SoulResult.error("update plugin exception")));
+        }
     }
 
     /**
@@ -92,6 +113,11 @@ public class PluginController {
      */
     @DeleteMapping("/{id}")
     public Mono<SoulResult> deletePlugin(@PathVariable("id") final String id) {
-        return Mono.create(soulResult -> soulResult.success(SoulResult.success(pluginService.delete(id))));
+        try {
+            Integer deleteCount = pluginService.delete(id);
+            return Mono.create(soulResult -> soulResult.success(SoulResult.success("delete plugin success", deleteCount)));
+        } catch (Exception e) {
+            return Mono.create(soulResult -> soulResult.success(SoulResult.error("delete plugin exception")));
+        }
     }
 }

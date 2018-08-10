@@ -96,8 +96,9 @@ public class RuleConditionVO implements Serializable {
      */
     public static RuleConditionVO buildRuleConditionVO(final RuleConditionDO ruleConditionDO) {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        ParamTypeEnum paramTypeEnum = ParamTypeEnum.getParamTypeEnumByName(ruleConditionDO.getParamType());
         OperatorEnum operatorEnum = OperatorEnum.getOperatorEnumByAlias(ruleConditionDO.getOperator());
-        return new RuleConditionVO(ruleConditionDO.getId(), ruleConditionDO.getRuleId(), ruleConditionDO.getParamType(), ParamTypeEnum.valueOf(ruleConditionDO.getParamType()).getName(),
+        return new RuleConditionVO(ruleConditionDO.getId(), ruleConditionDO.getRuleId(), ruleConditionDO.getParamType(), paramTypeEnum == null ? null : paramTypeEnum.getName(),
                 ruleConditionDO.getOperator(), operatorEnum == null ? null : operatorEnum.name(), ruleConditionDO.getParamName(), ruleConditionDO.getParamValue(),
                 dateTimeFormatter.format(ruleConditionDO.getDateCreated().toLocalDateTime()),
                 dateTimeFormatter.format(ruleConditionDO.getDateUpdated().toLocalDateTime()));

@@ -2,50 +2,50 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.dromara.soul.admin.mapper.AppAuthMapper">
     <resultMap id="BaseResultMap" type="org.dromara.soul.admin.entity.AppAuthDO">
-        <id column="ID" jdbcType="VARCHAR" property="id"/>
-        <result column="DATE_CREATED" jdbcType="TIMESTAMP" property="dateCreated"/>
-        <result column="DATE_UPDATED" jdbcType="TIMESTAMP" property="dateUpdated"/>
-        <result column="APP_KEY" jdbcType="VARCHAR" property="appKey"/>
-        <result column="APP_SECRET" jdbcType="VARCHAR" property="appSecret"/>
-        <result column="ENABLED" jdbcType="TINYINT" property="enabled"/>
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
+        <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
+        <result column="app_key" jdbcType="VARCHAR" property="appKey"/>
+        <result column="app_secret" jdbcType="VARCHAR" property="appSecret"/>
+        <result column="enabled" jdbcType="TINYINT" property="enabled"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-      ID, DATE_CREATED, DATE_UPDATED, APP_KEY, APP_SECRET, ENABLED
-  </sql>
+        id, date_created, date_updated, app_key, app_secret, enabled
+    </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
-        from APP_AUTH
-        where ID = #{id,jdbcType=VARCHAR}
+        from app_auth
+        where id = #{id,jdbcType=VARCHAR}
     </select>
 
     <insert id="insert" parameterType="org.dromara.soul.admin.entity.AppAuthDO">
-        insert into APP_AUTH (ID, DATE_CREATED, DATE_UPDATED,
-        APP_KEY, APP_SECRET, ENABLED)
+        insert into app_auth (id, date_created, date_updated,
+        app_key, app_secret, enabled)
         values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
         #{appKey,jdbcType=VARCHAR}, #{appSecret,jdbcType=VARCHAR}, #{enabled,jdbcType=TINYINT})
     </insert>
 
     <insert id="insertSelective" parameterType="org.dromara.soul.admin.entity.AppAuthDO">
-        insert into APP_AUTH
+        insert into app_auth
         <trim prefix="(" suffix=")" suffixOverrides=",">
-            ID,
+            id,
             <if test="dateCreated != null">
-                DATE_CREATED,
+                date_created,
             </if>
             <if test="dateUpdated != null">
-                DATE_UPDATED,
+                date_updated,
             </if>
             <if test="appKey != null">
-                APP_KEY,
+                app_key,
             </if>
             <if test="appSecret != null">
-                APP_SECRET,
+                app_secret,
             </if>
             <if test="enabled != null">
-                ENABLED,
+                enabled,
             </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
@@ -69,39 +69,39 @@
     </insert>
 
     <update id="update" parameterType="org.dromara.soul.admin.entity.AppAuthDO">
-      update APP_AUTH
-        set DATE_CREATED = #{dateCreated,jdbcType=TIMESTAMP},
-          DATE_UPDATED = #{dateUpdated,jdbcType=TIMESTAMP},
-          APP_KEY = #{appKey,jdbcType=VARCHAR},
-          APP_SECRET = #{appSecret,jdbcType=VARCHAR},
-          ENABLED = #{enabled,jdbcType=TINYINT}
-    where ID = #{id,jdbcType=VARCHAR}
+        update app_auth
+        set date_created = #{dateCreated,jdbcType=TIMESTAMP},
+        date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
+        app_key = #{appKey,jdbcType=VARCHAR},
+        app_secret = #{appSecret,jdbcType=VARCHAR},
+        enabled = #{enabled,jdbcType=TINYINT}
+        where id = #{id,jdbcType=VARCHAR}
     </update>
 
     <update id="updateSelective" parameterType="org.dromara.soul.admin.entity.AppAuthDO">
-        update APP_AUTH
+        update app_auth
         <set>
             <if test="dateCreated != null">
-                DATE_CREATED = #{dateCreated,jdbcType=TIMESTAMP},
+                date_created = #{dateCreated,jdbcType=TIMESTAMP},
             </if>
             <if test="dateUpdated != null">
-                DATE_UPDATED = #{dateUpdated,jdbcType=TIMESTAMP},
+                date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
             </if>
             <if test="appKey != null">
-                APP_KEY = #{appKey,jdbcType=VARCHAR},
+                app_key = #{appKey,jdbcType=VARCHAR},
             </if>
             <if test="appSecret != null">
-                APP_SECRET = #{appSecret,jdbcType=VARCHAR},
+                app_secret = #{appSecret,jdbcType=VARCHAR},
             </if>
             <if test="enabled != null">
-                ENABLED = #{enabled,jdbcType=TINYINT},
+                enabled = #{enabled,jdbcType=TINYINT},
             </if>
         </set>
-        where ID = #{id,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=VARCHAR}
     </update>
 
     <delete id="delete" parameterType="java.lang.String">
-        delete from APP_AUTH
-        where ID = #{id,jdbcType=VARCHAR}
+        delete from app_auth
+        where id = #{id,jdbcType=VARCHAR}
     </delete>
 </mapper>
