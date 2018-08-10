@@ -21,7 +21,6 @@ package org.dromara.soul.admin.entity;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.RuleConditionDTO;
-import org.dromara.soul.common.enums.ParamTypeEnum;
 import org.dromara.soul.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
