@@ -96,9 +96,10 @@ public class SelectorConditionVO implements Serializable {
      */
     public static SelectorConditionVO buildSelectorConditionVO(final SelectorConditionDO selectorConditionDO) {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        ParamTypeEnum paramTypeEnum = ParamTypeEnum.getParamTypeEnumByName(selectorConditionDO.getParamType());
         OperatorEnum operatorEnum = OperatorEnum.getOperatorEnumByAlias(selectorConditionDO.getOperator());
         return new SelectorConditionVO(selectorConditionDO.getId(), selectorConditionDO.getSelectorId(), selectorConditionDO.getParamType(),
-                ParamTypeEnum.valueOf(selectorConditionDO.getParamType()).getName(), selectorConditionDO.getOperator(),
+                paramTypeEnum == null ? null : paramTypeEnum.name(), selectorConditionDO.getOperator(),
                 operatorEnum == null ? null : operatorEnum.name(), selectorConditionDO.getParamName(), selectorConditionDO.getParamValue(),
                 dateTimeFormatter.format(selectorConditionDO.getDateCreated().toLocalDateTime()),
                 dateTimeFormatter.format(selectorConditionDO.getDateUpdated().toLocalDateTime()));

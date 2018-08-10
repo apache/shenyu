@@ -77,8 +77,7 @@ public class RuleConditionDO extends BaseDO {
                 ruleConditionDO.setId(ruleConditionDTO.getId());
             }
 
-            ParamTypeEnum paramTypeEnum = ParamTypeEnum.getParamTypeEnumByName(ruleConditionDTO.getParamType());
-            ruleConditionDO.setParamType(paramTypeEnum == null ? null : paramTypeEnum.name());
+            ruleConditionDO.setParamType(ruleConditionDTO.getParamType());
             ruleConditionDO.setRuleId(ruleConditionDTO.getRuleId());
             ruleConditionDO.setOperator(ruleConditionDTO.getOperator());
             ruleConditionDO.setParamName(ruleConditionDTO.getParamName());

@@ -21,7 +21,6 @@ package org.dromara.soul.admin.entity;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.SelectorConditionDTO;
-import org.dromara.soul.common.enums.ParamTypeEnum;
 import org.dromara.soul.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
@@ -77,8 +76,7 @@ public class SelectorConditionDO extends BaseDO {
                 selectorConditionDO.setId(selectorConditionDTO.getId());
             }
 
-            ParamTypeEnum paramTypeEnum = ParamTypeEnum.getParamTypeEnumByName(selectorConditionDTO.getParamType());
-            selectorConditionDO.setParamType(paramTypeEnum == null ? null : paramTypeEnum.name());
+            selectorConditionDO.setParamType(selectorConditionDTO.getParamType());
             selectorConditionDO.setSelectorId(selectorConditionDTO.getSelectorId());
             selectorConditionDO.setOperator(selectorConditionDTO.getOperator());
             selectorConditionDO.setParamName(selectorConditionDTO.getParamName());

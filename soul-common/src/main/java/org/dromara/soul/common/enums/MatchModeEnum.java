@@ -59,6 +59,5 @@ public enum MatchModeEnum {
                 .filter(e -> e.code == code).findFirst()
                 .orElse(MatchModeEnum.AND)
                 .getName();
-
     }
 }

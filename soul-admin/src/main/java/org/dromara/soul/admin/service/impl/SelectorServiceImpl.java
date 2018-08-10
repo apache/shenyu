@@ -40,6 +40,7 @@ import org.dromara.soul.common.dto.zk.ConditionZkDTO;
 import org.dromara.soul.common.dto.zk.SelectorZkDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -76,6 +77,7 @@ public class SelectorServiceImpl implements SelectorService {
      * @return rows
      */
     @Override
+    @Transactional
     public int createOrUpdate(final SelectorDTO selectorDTO) {
         int selectorCount;
 
