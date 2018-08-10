@@ -24,7 +24,6 @@ import lombok.RequiredArgsConstructor;
 import org.dromara.soul.common.exception.SoulException;
 
 import java.util.Arrays;
-import java.util.Objects;
 
 /**
  * this is http method support.
