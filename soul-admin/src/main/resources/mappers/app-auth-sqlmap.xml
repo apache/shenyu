@@ -21,6 +21,24 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
 
+    <select id="selectByQuery" parameterType="org.dromara.soul.admin.query.AppAuthQuery" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from app_auth
+        <if test="appKey != null">
+            where app_key = #{appKey,jdbcType=VARCHAR}
+        </if>
+        limit #{pageParameter.offset},#{pageParameter.pageSize}
+    </select>
+
+    <select id="countByQuery" parameterType="org.dromara.soul.admin.query.AppAuthQuery" resultType="java.lang.Integer">
+        select count(1)
+        from app_auth
+        <if test="appKey != null">
+            where app_key = #{appKey,jdbcType=VARCHAR}
+        </if>
+    </select>
+
     <insert id="insert" parameterType="org.dromara.soul.admin.entity.AppAuthDO">
         insert into app_auth (id, date_created, date_updated,
         app_key, app_secret, enabled)

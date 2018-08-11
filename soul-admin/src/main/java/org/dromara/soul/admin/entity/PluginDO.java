@@ -49,7 +49,7 @@ public class PluginDO extends BaseDO {
      * build pluginDO.
      *
      * @param pluginDTO {@linkplain PluginDTO}
-     * @return {@linkplain DashboardUserDO}
+     * @return {@linkplain PluginDO}
      */
     public static PluginDO buildPluginDO(final PluginDTO pluginDTO) {
         if (pluginDTO != null) {
