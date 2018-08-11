@@ -57,6 +57,15 @@ public interface DashboardUserService {
     DashboardUserVO findById(String id);
 
     /**
+     * find dashboard user by query.
+     *
+     * @param userName user name
+     * @param password user password
+     * @return {@linkplain DashboardUserVO}
+     */
+    DashboardUserVO findByQuery(final String userName, final String password);
+
+    /**
      * find page of dashboard user by query.
      *
      * @param dashboardUserQuery {@linkplain DashboardUserQuery}

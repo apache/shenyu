@@ -11,7 +11,6 @@ GET
 |userName|String|否|-|用户名|
 |currentPage|Integer|否|-|当前页数|
 |pageSize|Integer|否|-|页大小|
-
 请求范例：
 [http://127.0.0.1:8082/dashboardUser?userName=ADMIN&currentPage=1&pageSize=10](http://127.0.0.1:8082/dashboardUser?userName=ADMIN&currentPage=1&pageSize=10)
 响应结果：
@@ -1882,10 +1881,77 @@ DELETE
 ```
 
 -------------------
-**枚举管理**
-**(1)查询枚举**
+**平台管理**
 URL地址：
-[/platform](http://127.0.0.1:8082/platform)
+[/platform/login](http://127.0.0.1:8082/platform/login)
+请求方式：
+GET
+请求参数：
+|参数名|参数类型|是否必须|默认值|备注|
+|:----|:-----|:------|:----|:---|
+|userName|String|否|-|账号|
+|password|String|否|-|密码|
+请求范例：
+[http://127.0.0.1:8082/platform/login?userName=admin&password=123456](http://127.0.0.1:8082/platform/login?userName=admin&password=123456)
+响应结果：
+```java
+public class DashboardUserVO {
+
+    /**
+     * primary key.
+     */
+    private String id;
+
+    /**
+     * user name.
+     */
+    private String userName;
+
+    /**
+     * user password.
+     */
+    private String password;
+
+    /**
+     * dashboard role.
+     */
+    private Integer role;
+
+    /**
+     * whether enabled.
+     */
+    private Boolean enabled;
+
+    /**
+     * created time.
+     */
+    private String dateCreated;
+
+    /**
+     * updated time.
+     */
+    private String dateUpdated;
+}
+```
+响应范例：
+```json
+{
+    "code": 200,
+    "message": "login dashboard user success",
+    "data": {
+        "id": "1",
+        "userName": "admin",
+        "password": "123456",
+        "role": 1,
+        "enabled": true,
+        "dateCreated": "2018-06-23 15:12:22",
+        "dateUpdated": "2018-06-23 15:12:23"
+    }
+}
+```
+**(2)查询枚举**
+URL地址：
+[/platform/enum](http://127.0.0.1:8082/platform/enum)
 请求方式：
 GET
 请求参数：

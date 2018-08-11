@@ -88,6 +88,17 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     }
 
     /**
+     * find dashboard user by query.
+     *
+     * @param userName user name
+     * @param password user password
+     * @return {@linkplain DashboardUserVO}
+     */
+    public DashboardUserVO findByQuery(final String userName, final String password) {
+        return DashboardUserVO.buildDashboardUserVO(dashboardUserMapper.findByQuery(userName, password));
+    }
+
+    /**
      * find page of dashboard user by query.
      *
      * @param dashboardUserQuery {@linkplain DashboardUserQuery}
