@@ -1606,6 +1606,281 @@ DELETE
 }
 ```
 
+
+-------------------
+**认证管理**
+**(1)查询认证**
+URL地址：
+[/appAuth](http://127.0.0.1:8082/appAuth)
+请求方式：
+GET
+请求参数：
+|参数名|参数类型|是否必须|默认值|备注|
+|:----|:-----|:------|:----|:---|
+|appKey|String|否|-|应用键|
+|currentPage|Integer|否|-|当前页数|
+|pageSize|Integer|否|-|页大小|
+
+请求范例：
+[http://127.0.0.1:8082/appAuth?appKey=applicationKey&currentPage=1&pageSize=10](http://127.0.0.1:8082/appAuth?appKey=applicationKey&currentPage=1&pageSize=10)
+响应结果：
+```java
+public class CommonPager<T> {
+
+    /**
+     * page.
+     */
+    private PageParameter page;
+
+    /**
+     * data.
+     */
+    private List<AppAuthVO> dataList;
+}
+public class PageParameter {
+
+    private int currentPage;
+
+    private int prePage;
+
+    private int nextPage;
+
+    private int pageSize;
+
+    private int offset;
+
+    private int totalPage;
+
+    private int totalCount;
+}
+public class AppAuthVO {
+
+    /**
+     * primary key.
+     */
+    private String id;
+
+    /**
+     * application key.
+     */
+    private String appKey;
+
+    /**
+     * encryption secret.
+     */
+    private String appSecret;
+
+    /**
+     * whether enabled.
+     */
+    private Boolean enabled;
+
+    /**
+     * created time.
+     */
+    private String dateCreated;
+
+    /**
+     * updated time.
+     */
+    private String dateUpdated;
+}
+```
+响应范例：
+```json
+{
+    "code": 200,
+    "message": "query dashboard users success",
+    "data": {
+        "page": {
+            "currentPage": 1,
+            "prePage": 1,
+            "nextPage": 1,
+            "pageSize": 10,
+            "offset": 0,
+            "totalPage": 1,
+            "totalCount": 1
+        },
+        "dataList": [
+            {
+                "id": "1",
+                "appKey": "appKey",
+                "appSecret": "appSecret",
+                "enabled": true,
+                "dateCreated": "2018-06-23 15:12:22",
+                "dateUpdated": "2018-06-23 15:12:23"
+            }
+        ]
+    }
+}
+```
+**(2)明细认证**
+URL地址：
+[/appAuth/{id}](http://127.0.0.1:8082/appAuth/{id})
+请求方式：
+GET
+请求参数：
+无
+请求范例：
+[http://127.0.0.1:8082/appAuth/1](http://127.0.0.1:8082/appAuth/1)
+响应结果：
+```java
+public class AppAuthVO {
+
+    /**
+     * primary key.
+     */
+    private String id;
+
+    /**
+     * application key.
+     */
+    private String appKey;
+
+    /**
+     * encryption secret.
+     */
+    private String appSecret;
+
+    /**
+     * whether enabled.
+     */
+    private Boolean enabled;
+
+    /**
+     * created time.
+     */
+    private String dateCreated;
+
+    /**
+     * updated time.
+     */
+    private String dateUpdated;
+}
+```
+响应范例：
+```json
+{
+    "code": 200,
+    "message": "detail dashboard user success",
+    "data": {
+        "id": "1",
+        "appKey": "appKey",
+        "appSecret": "appSecret",
+        "enabled": true,
+        "dateCreated": "2018-06-23 15:12:22",
+        "dateUpdated": "2018-06-23 15:12:23"
+    }
+}
+```
+**(3)新增认证**
+URL地址：
+[/appAuth](http://127.0.0.1:8082/appAuth)
+请求方式：
+POST
+请求参数：
+```java
+public class AppAuthDTO {
+
+    /**
+     * primary key.
+     */
+    private String id;
+
+    /**
+     * application key.
+     */
+    private String appKey;
+
+    /**
+     * encryption secret.
+     */
+    private String appSecret;
+
+    /**
+     * whether enabled.
+     */
+    private Boolean enabled;
+}
+```
+参数范例：
+```json
+{
+	"appKey": "appKey",
+	"appSecret": "appSecret",
+	"enabled": true
+}
+```
+响应结果：
+```json
+{
+    "code": 200,
+    "message": "create application authority success",
+    "data": 1
+}
+```
+**(4)编辑认证**
+URL地址：
+[/appAuth/{id}](http://127.0.0.1:8082/appAuth/{id})
+请求方式：
+PUT
+请求参数：
+```java
+public class AppAuthDTO {
+
+    /**
+     * primary key.
+     */
+    private String id;
+
+    /**
+     * application key.
+     */
+    private String appKey;
+
+    /**
+     * encryption secret.
+     */
+    private String appSecret;
+
+    /**
+     * whether enabled.
+     */
+    private Boolean enabled;
+}
+```
+参数范例：
+```json
+{
+	"appKey": "appKey",
+	"appSecret": "appSecret",
+	"enabled": false
+}
+```
+响应结果：
+```json
+{
+    "code": 200,
+    "message": "update application authority success",
+    "data": 1
+}
+```
+**(5)删除认证**
+URL地址：
+[/appAuth/batch](http://127.0.0.1:8082/appAuth/batch)
+请求方式：
+DELETE
+请求参数：
+["1","2"]
+响应结果：
+```
+{
+    "code": 200,
+    "message": "delete application authority success",
+    "data": 1
+}
+```
+
 -------------------
 **枚举管理**
 **(1)查询枚举**
