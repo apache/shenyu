@@ -21,8 +21,10 @@ package org.dromara.soul.admin.vo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.dromara.soul.admin.entity.AppAuthDO;
 
 import java.io.Serializable;
+import java.time.format.DateTimeFormatter;
 
 /**
  * this is application authority view to web front.
@@ -63,4 +65,17 @@ public class AppAuthVO implements Serializable {
      * updated time.
      */
     private String dateUpdated;
+
+    /**
+     * build appAuthVO.
+     *
+     * @param appAuthDO {@linkplain AppAuthDO}
+     * @return {@linkplain AppAuthVO}
+     */
+    public static AppAuthVO buildAppAuthVO(final AppAuthDO appAuthDO) {
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return new AppAuthVO(appAuthDO.getId(), appAuthDO.getAppKey(), appAuthDO.getAppSecret(), appAuthDO.getEnabled(),
+                dateTimeFormatter.format(appAuthDO.getDateCreated().toLocalDateTime()),
+                dateTimeFormatter.format(appAuthDO.getDateUpdated().toLocalDateTime()));
+    }
 }

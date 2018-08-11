@@ -71,7 +71,7 @@ public class PluginVO implements Serializable {
      * build pluginVO.
      *
      * @param pluginDO {@linkplain PluginDO}
-     * @return {@linkplain PluginDO}
+     * @return {@linkplain PluginVO}
      */
     public static PluginVO buildPluginVO(final PluginDO pluginDO) {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
