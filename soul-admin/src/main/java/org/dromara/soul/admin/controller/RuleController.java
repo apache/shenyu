@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -106,15 +107,15 @@ public class RuleController {
     }
 
     /**
-     * delete rule.
+     * delete rules.
      *
-     * @param id primary key.
+     * @param ids primary key.
      * @return {@linkplain Mono}
      */
-    @DeleteMapping("/{id}")
-    public Mono<SoulResult> deleteRule(@PathVariable("id") final String id) {
+    @DeleteMapping("/batch")
+    public Mono<SoulResult> deleteRules(@RequestBody final List<String> ids) {
         try {
-            Integer deleteCount = ruleService.delete(id);
+            Integer deleteCount = ruleService.delete(ids);
             return Mono.create(soulResult -> soulResult.success(SoulResult.success("delete rule success", deleteCount)));
         } catch (Exception e) {
             return Mono.create(soulResult -> soulResult.success(SoulResult.error("delete rule exception")));

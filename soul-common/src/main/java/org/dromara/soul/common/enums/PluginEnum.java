@@ -72,7 +72,6 @@ public enum PluginEnum {
      */
     DUBBO(60, "dubbo"),
 
-
     /**
      * springCloud plugin enum.
      */

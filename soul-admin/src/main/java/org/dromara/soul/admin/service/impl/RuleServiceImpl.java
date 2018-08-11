@@ -132,23 +132,26 @@ public class RuleServiceImpl implements RuleService {
     }
 
     /**
-     * delete rule.
+     * delete rules.
      *
-     * @param id primary key.
+     * @param ids primary key.
      * @return rows
      */
     @Override
-    public int delete(final String id) {
-        RuleDO ruleDO = ruleMapper.selectById(id);
-        SelectorDO selectorDO = selectorMapper.selectById(ruleDO.getSelectorId());
-        PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
+    public int delete(final List<String> ids) {
+        int ruleCount = 0;
+        for (String id : ids) {
+            RuleDO ruleDO = ruleMapper.selectById(id);
+            SelectorDO selectorDO = selectorMapper.selectById(ruleDO.getSelectorId());
+            PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
 
-        int ruleCount = ruleMapper.delete(id);
-        ruleConditionMapper.deleteByQuery(new RuleConditionQuery(id));
+            ruleCount += ruleMapper.delete(id);
+            ruleConditionMapper.deleteByQuery(new RuleConditionQuery(id));
 
-        String ruleRealPath = ZkPathConstants.buildRulePath(pluginDO.getName(), selectorDO.getId(), ruleDO.getId());
-        if (zkClient.exists(ruleRealPath)) {
-            zkClient.delete(ruleRealPath);
+            String ruleRealPath = ZkPathConstants.buildRulePath(pluginDO.getName(), selectorDO.getId(), ruleDO.getId());
+            if (zkClient.exists(ruleRealPath)) {
+                zkClient.delete(ruleRealPath);
+            }
         }
         return ruleCount;
     }

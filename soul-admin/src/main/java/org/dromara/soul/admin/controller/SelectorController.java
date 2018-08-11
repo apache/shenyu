@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -107,18 +108,18 @@ public class SelectorController {
     }
 
     /**
-     * delete Selector.
+     * delete Selectors.
      *
-     * @param id primary key.
+     * @param ids primary key.
      * @return {@linkplain Mono}
      */
-    @DeleteMapping("/{id}")
-    public Mono<SoulResult> deleteSelector(@PathVariable("id") final String id) {
+    @DeleteMapping("/batch")
+    public Mono<SoulResult> deleteSelector(@RequestBody final List<String> ids) {
         try {
-            Integer deleteCount = selectorService.delete(id);
-            return Mono.create(soulResult -> soulResult.success(SoulResult.success("delete selector success", deleteCount)));
+            Integer deleteCount = selectorService.delete(ids);
+            return Mono.create(soulResult -> soulResult.success(SoulResult.success("delete selectors success", deleteCount)));
         } catch (Exception e) {
-            return Mono.create(soulResult -> soulResult.success(SoulResult.error("delete selector exception")));
+            return Mono.create(soulResult -> soulResult.success(SoulResult.error("delete selectors exception")));
         }
     }
 }

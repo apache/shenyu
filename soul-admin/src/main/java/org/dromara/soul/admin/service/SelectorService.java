@@ -23,6 +23,8 @@ import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.SelectorQuery;
 import org.dromara.soul.admin.vo.SelectorVO;
 
+import java.util.List;
+
 /**
  * this is selector service.
  *
@@ -39,12 +41,12 @@ public interface SelectorService {
     int createOrUpdate(SelectorDTO selectorDTO);
 
     /**
-     * delete selector.
+     * delete selectors.
      *
-     * @param id primary key.
+     * @param ids primary key.
      * @return rows
      */
-    int delete(String id);
+    int delete(List<String> ids);
 
     /**
      * find selector by id.
