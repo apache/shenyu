@@ -33,6 +33,7 @@ import org.dromara.soul.common.dto.zk.PluginZkDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -78,28 +79,30 @@ public class PluginServiceImpl implements PluginService {
     }
 
     /**
-     * delete plugin.
+     * delete plugins.
      *
-     * @param id primary key.
+     * @param ids primary key.
      * @return rows
      */
-    public int delete(final String id) {
-        int pluginCount;
+    public int delete(final List<String> ids) {
+        int pluginCount = 0;
 
-        PluginDO pluginDO = pluginMapper.selectById(id);
-        pluginCount = pluginMapper.delete(id);
+        for (String id : ids) {
+            PluginDO pluginDO = pluginMapper.selectById(id);
+            pluginCount += pluginMapper.delete(id);
 
-        String pluginPath = ZkPathConstants.buildPluginPath(pluginDO.getName());
-        if (zkClient.exists(pluginPath)) {
-            zkClient.delete(pluginPath);
-        }
-        String selectorParentPath = ZkPathConstants.buildSelectorParentPath(pluginDO.getName());
-        if (zkClient.exists(selectorParentPath)) {
-            zkClient.delete(selectorParentPath);
-        }
-        String ruleParentPath = ZkPathConstants.buildRuleParentPath(pluginDO.getName());
-        if (zkClient.exists(ruleParentPath)) {
-            zkClient.delete(ruleParentPath);
+            String pluginPath = ZkPathConstants.buildPluginPath(pluginDO.getName());
+            if (zkClient.exists(pluginPath)) {
+                zkClient.delete(pluginPath);
+            }
+            String selectorParentPath = ZkPathConstants.buildSelectorParentPath(pluginDO.getName());
+            if (zkClient.exists(selectorParentPath)) {
+                zkClient.delete(selectorParentPath);
+            }
+            String ruleParentPath = ZkPathConstants.buildRuleParentPath(pluginDO.getName());
+            if (zkClient.exists(ruleParentPath)) {
+                zkClient.delete(ruleParentPath);
+            }
         }
         return pluginCount;
     }

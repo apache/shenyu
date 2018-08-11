@@ -23,6 +23,8 @@ import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.PluginQuery;
 import org.dromara.soul.admin.vo.PluginVO;
 
+import java.util.List;
+
 /**
  * this is plugin service.
  *
@@ -39,12 +41,12 @@ public interface PluginService {
     int createOrUpdate(PluginDTO pluginDTO);
 
     /**
-     * delete plugin.
+     * delete plugins.
      *
-     * @param id primary key.
+     * @param ids primary key.
      * @return rows
      */
-    int delete(String id);
+    int delete(List<String> ids);
 
     /**
      * find plugin by id.

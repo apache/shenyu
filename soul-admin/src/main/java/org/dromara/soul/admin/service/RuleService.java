@@ -23,6 +23,8 @@ import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.RuleQuery;
 import org.dromara.soul.admin.vo.RuleVO;
 
+import java.util.List;
+
 /**
  * this is rule service.
  *
@@ -39,12 +41,12 @@ public interface RuleService {
     int createOrUpdate(RuleDTO ruleDTO);
 
     /**
-     * delete rule.
+     * delete rules.
      *
-     * @param id primary key.
+     * @param ids primary key.
      * @return rows
      */
-    int delete(String id);
+    int delete(List<String> ids);
 
     /**
      * find rule by id.

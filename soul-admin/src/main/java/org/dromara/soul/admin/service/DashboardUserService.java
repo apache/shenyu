@@ -23,6 +23,8 @@ import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.DashboardUserQuery;
 import org.dromara.soul.admin.vo.DashboardUserVO;
 
+import java.util.List;
+
 /**
  * this is dashboard user service.
  *
@@ -39,12 +41,12 @@ public interface DashboardUserService {
     int createOrUpdate(DashboardUserDTO dashboardUserDTO);
 
     /**
-     * delete dashboard user.
+     * delete dashboard users.
      *
-     * @param id primary key.
+     * @param ids primary key.
      * @return rows
      */
-    int delete(String id);
+    int delete(List<String> ids);
 
     /**
      * find dashboard user by id.

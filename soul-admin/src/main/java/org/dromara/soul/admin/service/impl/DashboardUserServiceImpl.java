@@ -30,6 +30,7 @@ import org.dromara.soul.admin.vo.DashboardUserVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -63,13 +64,17 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     }
 
     /**
-     * delete dashboard user.
+     * delete dashboard users.
      *
-     * @param id primary key.
+     * @param ids primary key.
      * @return rows
      */
-    public int delete(final String id) {
-        return dashboardUserMapper.delete(id);
+    public int delete(final List<String> ids) {
+        int dashboardUserCount = 0;
+        for (String id : ids) {
+            dashboardUserCount += dashboardUserMapper.delete(id);
+        }
+        return dashboardUserCount;
     }
 
     /**

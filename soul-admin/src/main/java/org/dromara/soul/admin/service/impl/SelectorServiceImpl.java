@@ -129,30 +129,32 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     /**
-     * find selector by id.
+     * delete selectors.
      *
-     * @param id primary key.
-     * @return {@linkplain SelectorVO}
+     * @param ids primary key.
+     * @return rows
      */
     @Override
-    public int delete(final String id) {
-        int selectorCount;
-        SelectorDO selectorDO = selectorMapper.selectById(id);
-        PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
+    public int delete(final List<String> ids) {
+        int selectorCount = 0;
+        for (String id : ids) {
+            SelectorDO selectorDO = selectorMapper.selectById(id);
+            PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
 
-        selectorCount = selectorMapper.delete(id);
-        selectorConditionMapper.deleteByQuery(new SelectorConditionQuery(id));
+            selectorCount = selectorMapper.delete(id);
+            selectorConditionMapper.deleteByQuery(new SelectorConditionQuery(id));
 
-        String selectorRealPath = ZkPathConstants.buildSelectorRealPath(pluginDO.getName(), selectorDO.getId());
-        if (zkClient.exists(selectorRealPath)) {
-            zkClient.delete(selectorRealPath);
-        }
-        String ruleParentPath = ZkPathConstants.buildRuleParentPath(pluginDO.getName());
-        zkClient.getChildren(ruleParentPath).forEach(selectorRulePath -> {
-            if (selectorRulePath.contains(selectorDO.getId() + ZkPathConstants.SELECTOR_JOIN_RULE)) {
-                zkClient.delete(ruleParentPath + "/" + selectorRulePath);
+            String selectorRealPath = ZkPathConstants.buildSelectorRealPath(pluginDO.getName(), selectorDO.getId());
+            if (zkClient.exists(selectorRealPath)) {
+                zkClient.delete(selectorRealPath);
             }
-        });
+            String ruleParentPath = ZkPathConstants.buildRuleParentPath(pluginDO.getName());
+            zkClient.getChildren(ruleParentPath).forEach(selectorRulePath -> {
+                if (selectorRulePath.contains(selectorDO.getId() + ZkPathConstants.SELECTOR_JOIN_RULE)) {
+                    zkClient.delete(ruleParentPath + "/" + selectorRulePath);
+                }
+            });
+        }
         return selectorCount;
     }
 
