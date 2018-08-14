@@ -39,16 +39,8 @@ public class RoundRobinLoadBalance implements LoadBalance {
 
     private final ConcurrentMap<String, AtomicPositiveInteger> weightSequences = new ConcurrentHashMap<>();
 
-
-    /**
-     * RoundRobin algorithm for selector  DivideUpstream .
-     *
-     * @param upstreamList upstreamList
-     * @return DivideUpstream
-     */
     @Override
-    public DivideUpstream select(final List<DivideUpstream> upstreamList) {
-
+    public DivideUpstream select(final List<DivideUpstream> upstreamList, final String ip) {
         List<DivideUpstream> resultUpstreamList = upstreamList;
         String key = resultUpstreamList.get(0).getUpstreamUrl();
         // 总个数
