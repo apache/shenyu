@@ -33,14 +33,8 @@ public class RandomLoadBalance implements LoadBalance {
 
     private static final Random RANDOM = new Random();
 
-    /**
-     * random algorithm for selector  DivideUpstream.
-     *
-     * @param upstreamList 代理分流处理对象集合
-     * @return DivideHandle
-     */
     @Override
-    public DivideUpstream select(final List<DivideUpstream> upstreamList) {
+    public DivideUpstream select(final List<DivideUpstream> upstreamList, final String ip) {
         // 总个数
         int length = upstreamList.size();
         // 总权重
