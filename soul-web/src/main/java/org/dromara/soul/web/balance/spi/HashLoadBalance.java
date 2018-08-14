@@ -21,6 +21,7 @@ package org.dromara.soul.web.balance.spi;
 
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.enums.LoadBalanceEnum;
+import org.dromara.soul.common.exception.SoulException;
 import org.dromara.soul.web.balance.LoadBalance;
 
 import java.io.UnsupportedEncodingException;
@@ -43,12 +44,12 @@ public class HashLoadBalance implements LoadBalance {
         final TreeMap<Long, DivideUpstream> treeMap = new TreeMap<>();
         for (DivideUpstream address: upstreamList) {
             for (int i = 0; i < VIRTUAL_NODE_NUM; i++) {
-                long addressHash = hash("SHARD-" + address.getUpstreamUrl() + "-NODE-" + i);
+                long addressHash = hash("SOUL-" + address.getUpstreamUrl() + "-HASH-" + i);
                 treeMap.put(addressHash, address);
             }
         }
-        long jobHash = hash(String.valueOf(ip));
-        SortedMap<Long, DivideUpstream> lastRing = treeMap.tailMap(jobHash);
+        long hash = hash(String.valueOf(ip));
+        SortedMap<Long, DivideUpstream> lastRing = treeMap.tailMap(hash);
         if (!lastRing.isEmpty()) {
             return lastRing.get(lastRing.firstKey());
         }
@@ -71,14 +72,14 @@ public class HashLoadBalance implements LoadBalance {
         try {
             md5 = MessageDigest.getInstance("MD5");
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("MD5 not supported", e);
+            throw new SoulException("MD5 not supported", e);
         }
         md5.reset();
         byte[] keyBytes;
         try {
             keyBytes = key.getBytes("UTF-8");
         } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException("Unknown string :" + key, e);
+            throw new SoulException("Unknown string :" + key, e);
         }
 
         md5.update(keyBytes);
