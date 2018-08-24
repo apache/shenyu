@@ -64,8 +64,11 @@ public class DividePlugin extends AbstractSoulPlugin {
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(DividePlugin.class);
 
+    private final ZookeeperCacheManager zookeeperCacheManager;
+
     public DividePlugin(final ZookeeperCacheManager zookeeperCacheManager) {
         super(zookeeperCacheManager);
+        this.zookeeperCacheManager = zookeeperCacheManager;
     }
 
     @Override
@@ -77,14 +80,13 @@ public class DividePlugin extends AbstractSoulPlugin {
 
         final DivideHandle divideHandle = GSONUtils.getInstance().fromJson(handle, DivideHandle.class);
 
-        if (Objects.isNull(divideHandle)
-                || CollectionUtils.isEmpty(divideHandle.getUpstreamList())) {
-            LogUtils.error(LOGGER, "divide config error：{}", () -> handle);
+        final List<DivideUpstream> upstreamList =
+                zookeeperCacheManager.findUpstreamListByRuleId(rule.getId());
+        if (CollectionUtils.isEmpty(upstreamList)) {
+            LogUtils.error(LOGGER, "divide upstream  config error：{}", () -> rule.toString());
             return chain.execute(exchange);
         }
-
         DivideUpstream divideUpstream;
-        final List<DivideUpstream> upstreamList = divideHandle.getUpstreamList();
         if (upstreamList.size() == 1) {
             divideUpstream = upstreamList.get(0);
         } else {
