@@ -674,9 +674,9 @@ public class SelectorVO {
     private String typeName;
 
     /**
-     * sort rank.
+     * sort type.
      */
-    private Integer rank;
+    private Integer sort;
 
     /**
      * whether enabled.
@@ -733,7 +733,7 @@ public class SelectorVO {
                 "matchModeName": "or",
                 "type": 1,
                 "typeName": "custom flow",
-                "rank": 1,
+                "sort": 1,
                 "enabled": true,
                 "loged": true,
                 "continued": true,
@@ -794,9 +794,9 @@ public class SelectorVO {
     private String typeName;
 
     /**
-     * sort rank.
+     * sort type.
      */
-    private Integer rank;
+    private Integer sort;
 
     /**
      * whether enabled.
@@ -842,7 +842,7 @@ public class SelectorVO {
 		"matchModeName": "or",
 		"type": 1,
 		"typeName": "custom flow",
-		"rank": 1,
+		"sort": 1,
 		"enabled": true,
 		"loged": true,
 		"continued": true,
@@ -898,9 +898,9 @@ public class SelectorDTO {
     private Integer type;
 
     /**
-     * sort rank.
+     * sort type.
      */
-    private Integer rank;
+    private Integer sort;
 
     /**
      * whether enabled.
@@ -962,7 +962,7 @@ public class SelectorConditionDTO {
 	"name": "selector",
 	"matchMode": 1,
 	"type": 1,
-	"rank": 1,
+	"sort": 1,
 	"enabled": true,
 	"loged": true,
 	"continued": true,
@@ -1017,9 +1017,9 @@ public class SelectorDTO {
     private Integer type;
 
     /**
-     * sort rank.
+     * sort type.
      */
-    private Integer rank;
+    private Integer sort;
 
     /**
      * whether enabled.
@@ -1081,7 +1081,7 @@ public class SelectorConditionDTO {
 	"name": "selector",
 	"matchMode": 1,
 	"type": 1,
-	"rank": 1,
+	"sort": 1,
 	"enabled": true,
 	"loged": true,
 	"continued": true,
@@ -1185,9 +1185,9 @@ public class RuleVO {
     private Boolean loged;
 
     /**
-     * sort rank.
+     * sort type.
      */
-    private Integer rank;
+    private Integer sort;
 
     /**
      * process logic.
@@ -1233,7 +1233,7 @@ public class RuleVO {
 			"name": "rule1",
 			"enabled": true,
 			"loged": true,
-			"rank": 1,
+			"sort": 1,
 			"handle": "xxxxxx",
 			"ruleConditions": null,
 			"dateCreated": "2018-07-29 07:24:20",
@@ -1291,9 +1291,9 @@ public class RuleVO {
     private Boolean loged;
 
     /**
-     * sort rank.
+     * sort type.
      */
-    private Integer rank;
+    private Integer sort;
 
     /**
      * process logic.
@@ -1329,7 +1329,7 @@ public class RuleVO {
 		"name": "rule1",
 		"enabled": true,
 		"loged": true,
-		"rank": 1,
+		"sort": 1,
 		"handle": "xxxxxx",
 		"ruleConditions": [{
 				"id": "L1d8rGVP",
@@ -1401,9 +1401,9 @@ public class RuleDTO {
     private Boolean loged;
 
     /**
-     * sort rank.
+     * sort type.
      */
-    private Integer rank;
+    private Integer sort;
 
     /**
      * process logic.
@@ -1456,7 +1456,7 @@ public class RuleConditionDTO {
 	"name": "rule",
 	"enabled": true,
 	"loged": true,
-	"rank": 1,
+	"sort": 1,
 	"handle": "handle",
 	"ruleConditionDTO": [{
 		"paramType": "host",
@@ -1514,9 +1514,9 @@ public class RuleDTO {
     private Boolean loged;
 
     /**
-     * sort rank.
+     * sort type.
      */
-    private Integer rank;
+    private Integer sort;
 
     /**
      * process logic.
@@ -1569,7 +1569,7 @@ public class RuleConditionDTO {
 	"name": "rule",
 	"enabled": true,
 	"loged": true,
-	"rank": 1,
+	"sort": 1,
 	"handle": "handle",
 	"ruleConditionDTO": [{
 		"id": "1",

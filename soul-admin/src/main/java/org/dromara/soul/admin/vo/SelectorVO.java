@@ -75,9 +75,9 @@ public class SelectorVO implements Serializable {
     private String typeName;
 
     /**
-     * sort rank.
+     * sort type.
      */
-    private Integer rank;
+    private Integer sort;
 
     /**
      * whether enabled.
@@ -118,7 +118,7 @@ public class SelectorVO implements Serializable {
     public static SelectorVO buildSelectorVO(final SelectorDO selectorDO) {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         return new SelectorVO(selectorDO.getId(), selectorDO.getPluginId(), selectorDO.getName(), selectorDO.getMatchMode(), MatchModeEnum.getMatchModeByCode(selectorDO.getMatchMode()),
-                selectorDO.getType(), SelectorTypeEnum.getSelectorTypeByCode(selectorDO.getType()), selectorDO.getRank(),
+                selectorDO.getType(), SelectorTypeEnum.getSelectorTypeByCode(selectorDO.getType()), selectorDO.getSort(),
                 selectorDO.getEnabled(), selectorDO.getLoged(), selectorDO.getContinued(), null,
                 dateTimeFormatter.format(selectorDO.getDateCreated().toLocalDateTime()),
                 dateTimeFormatter.format(selectorDO.getDateUpdated().toLocalDateTime()));
@@ -134,7 +134,7 @@ public class SelectorVO implements Serializable {
     public static SelectorVO buildSelectorVO(final SelectorDO selectorDO, final List<SelectorConditionVO> selectorConditions) {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         return new SelectorVO(selectorDO.getId(), selectorDO.getPluginId(), selectorDO.getName(), selectorDO.getMatchMode(), MatchModeEnum.getMatchModeByCode(selectorDO.getMatchMode()),
-                selectorDO.getType(), SelectorTypeEnum.getSelectorTypeByCode(selectorDO.getType()), selectorDO.getRank(),
+                selectorDO.getType(), SelectorTypeEnum.getSelectorTypeByCode(selectorDO.getType()), selectorDO.getSort(),
                 selectorDO.getEnabled(), selectorDO.getLoged(), selectorDO.getContinued(), selectorConditions,
                 dateTimeFormatter.format(selectorDO.getDateCreated().toLocalDateTime()),
                 dateTimeFormatter.format(selectorDO.getDateUpdated().toLocalDateTime()));

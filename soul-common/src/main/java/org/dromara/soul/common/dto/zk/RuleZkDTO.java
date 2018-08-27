@@ -46,7 +46,7 @@ public class RuleZkDTO implements Serializable {
      */
     private Integer matchMode;
 
-    private Integer rank;
+    private Integer sort;
 
     private Boolean enabled;
 

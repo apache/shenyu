@@ -127,7 +127,7 @@ public class RuleServiceImpl implements RuleService {
                 new ConditionZkDTO(selectorConditionDTO.getParamType(), selectorConditionDTO.getOperator(),
                         selectorConditionDTO.getParamName(), selectorConditionDTO.getParamValue())).collect(Collectors.toList());
         zkClient.writeData(ruleRealPath, new RuleZkDTO(ruleDO.getId(), pluginDO.getName(), ruleDO.getSelectorId(),
-                ruleDO.getMatchMode(), ruleDO.getRank(), ruleDO.getEnabled(), ruleDO.getLoged(), ruleDO.getHandle(), conditionZkDTOs));
+                ruleDO.getMatchMode(), ruleDO.getSort(), ruleDO.getEnabled(), ruleDO.getLoged(), ruleDO.getHandle(), conditionZkDTOs));
         return ruleCount;
     }
 

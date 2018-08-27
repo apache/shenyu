@@ -270,7 +270,7 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
                                 .collect(Collectors.toList());
                         resultList.add(selectorZkDTO);
                         final List<SelectorZkDTO> collect = resultList.stream()
-                                .sorted(Comparator.comparing(SelectorZkDTO::getRank))
+                                .sorted(Comparator.comparing(SelectorZkDTO::getSort))
                                 .collect(Collectors.toList());
                         SELECTOR_MAP.put(key, collect);
                     } else {
@@ -293,7 +293,7 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
                                         selectorZkDTOList.stream().filter(r -> !r.getId() .equals(dto.getId())) .collect(Collectors.toList());
                                 resultList.add(dto);
                                 final List<SelectorZkDTO> collect = resultList.stream()
-                                        .sorted(Comparator.comparing(SelectorZkDTO::getRank))
+                                        .sorted(Comparator.comparing(SelectorZkDTO::getSort))
                                         .collect(Collectors.toList());
                                 SELECTOR_MAP.put(key, collect);
                             } else {
@@ -327,7 +327,7 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
                                 .collect(Collectors.toList());
                         resultList.add(ruleZkDTO);
                         final List<RuleZkDTO> collect = resultList.stream()
-                                .sorted(Comparator.comparing(RuleZkDTO::getRank))
+                                .sorted(Comparator.comparing(RuleZkDTO::getSort))
                                 .collect(Collectors.toList());
                         RULE_MAP.put(key, collect);
 
@@ -352,7 +352,7 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
                                                 .equals(dto.getId())).collect(Collectors.toList());
                                 resultList.add(dto);
                                 final List<RuleZkDTO> collect = resultList.stream()
-                                        .sorted(Comparator.comparing(RuleZkDTO::getRank))
+                                        .sorted(Comparator.comparing(RuleZkDTO::getSort))
                                         .collect(Collectors.toList());
                                 RULE_MAP.put(key, collect);
                             } else {

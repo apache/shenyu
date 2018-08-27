@@ -60,9 +60,9 @@ public class RuleDO extends BaseDO {
     private Boolean loged;
 
     /**
-     * sort rank.
+     * sort type.
      */
-    private Integer rank;
+    private Integer sort;
 
     /**
      * process logic.
@@ -91,7 +91,7 @@ public class RuleDO extends BaseDO {
             ruleDO.setName(ruleDTO.getName());
             ruleDO.setEnabled(ruleDTO.getEnabled());
             ruleDO.setLoged(ruleDTO.getLoged());
-            ruleDO.setRank(ruleDTO.getRank());
+            ruleDO.setSort(ruleDTO.getSort());
             ruleDO.setHandle(ruleDTO.getHandle());
             ruleDO.setDateUpdated(currentTime);
             return ruleDO;
