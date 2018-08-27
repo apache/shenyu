@@ -38,7 +38,7 @@ public enum LoadBalanceEnum {
     /**
      * Hash load balance enum.
      */
-    HASH(1, "hash", false),
+    HASH(1, "hash", true),
 
     /**
      * Random load balance enum.
@@ -62,9 +62,9 @@ public enum LoadBalanceEnum {
      *
      * @return {@link LoadBalanceEnum }
      */
-    public static List<HttpMethodEnum> acquireList() {
-        return Arrays.stream(HttpMethodEnum.values())
-                .filter(HttpMethodEnum::getSupport).collect(Collectors.toList());
+    public static List<LoadBalanceEnum> acquireList() {
+        return Arrays.stream(LoadBalanceEnum.values())
+                .filter(e -> e.support).collect(Collectors.toList());
     }
 
 }
