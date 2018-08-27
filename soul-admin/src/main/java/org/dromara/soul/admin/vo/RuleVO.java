@@ -74,9 +74,9 @@ public class RuleVO implements Serializable {
     private Boolean loged;
 
     /**
-     * sort rank.
+     * sort type.
      */
-    private Integer rank;
+    private Integer sort;
 
     /**
      * process logic.
@@ -107,7 +107,7 @@ public class RuleVO implements Serializable {
     public static RuleVO buildRuleVO(final RuleDO ruleDO) {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         return new RuleVO(ruleDO.getId(), ruleDO.getSelectorId(), ruleDO.getMatchMode(), MatchModeEnum.getMatchModeByCode(ruleDO.getMatchMode()),
-                ruleDO.getName(), ruleDO.getEnabled(), ruleDO.getLoged(), ruleDO.getRank(), ruleDO.getHandle(), null,
+                ruleDO.getName(), ruleDO.getEnabled(), ruleDO.getLoged(), ruleDO.getSort(), ruleDO.getHandle(), null,
                 dateTimeFormatter.format(ruleDO.getDateCreated().toLocalDateTime()),
                 dateTimeFormatter.format(ruleDO.getDateUpdated().toLocalDateTime()));
     }
@@ -122,7 +122,7 @@ public class RuleVO implements Serializable {
     public static RuleVO buildRuleVO(final RuleDO ruleDO, final List<RuleConditionVO> ruleConditions) {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         return new RuleVO(ruleDO.getId(), ruleDO.getSelectorId(), ruleDO.getMatchMode(), MatchModeEnum.getMatchModeByCode(ruleDO.getMatchMode()),
-                ruleDO.getName(), ruleDO.getEnabled(), ruleDO.getLoged(), ruleDO.getRank(), ruleDO.getHandle(), ruleConditions,
+                ruleDO.getName(), ruleDO.getEnabled(), ruleDO.getLoged(), ruleDO.getSort(), ruleDO.getHandle(), ruleConditions,
                 dateTimeFormatter.format(ruleDO.getDateCreated().toLocalDateTime()),
                 dateTimeFormatter.format(ruleDO.getDateUpdated().toLocalDateTime()));
     }

@@ -56,7 +56,7 @@ public class SelectorZkDTO implements Serializable {
      */
     private Integer type;
 
-    private Integer rank;
+    private Integer sort;
 
     private Boolean enabled;
 

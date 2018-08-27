@@ -9,7 +9,7 @@
         <result column="name" jdbcType="VARCHAR" property="name"/>
         <result column="match_mode" jdbcType="INTEGER" property="matchMode"/>
         <result column="type" jdbcType="INTEGER" property="type"/>
-        <result column="rank" jdbcType="INTEGER" property="rank"/>
+        <result column="sort" jdbcType="INTEGER" property="sort"/>
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
         <result column="loged" jdbcType="TINYINT" property="loged"/>
         <result column="continued" jdbcType="TINYINT" property="continued"/>
@@ -17,7 +17,7 @@
 
     <sql id="Base_Column_List">
         id, date_created, date_updated, plugin_id, name, match_mode,
-        type, rank, enabled, loged, continued
+        type, sort, enabled, loged, continued
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -47,11 +47,11 @@
 
     <insert id="insert" parameterType="org.dromara.soul.admin.entity.SelectorDO">
         insert into selector (id, date_created, date_updated,
-        plugin_id, name, match_mode, type, rank, enabled,
+        plugin_id, name, match_mode, type, sort, enabled,
         loged, continued)
         values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
         #{pluginId,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{matchMode,jdbcType=INTEGER},
-        #{type,jdbcType=INTEGER}, #{rank,jdbcType=INTEGER}, #{enabled,jdbcType=TINYINT},
+        #{type,jdbcType=INTEGER}, #{sort,jdbcType=INTEGER}, #{enabled,jdbcType=TINYINT},
         #{loged,jdbcType=TINYINT},  #{continued,jdbcType=TINYINT})
     </insert>
 
@@ -77,8 +77,8 @@
             <if test="type != null">
                 type,
             </if>
-            <if test="rank != null">
-                rank,
+            <if test="sort != null">
+                sort,
             </if>
             <if test="enabled != null">
                 enabled,
@@ -110,8 +110,8 @@
             <if test="type != null">
                 #{type,jdbcType=INTEGER},
             </if>
-            <if test="rank != null">
-                #{rank,jdbcType=INTEGER},
+            <if test="sort != null">
+                #{sort,jdbcType=INTEGER},
             </if>
             <if test="enabled != null">
                 #{enabled,jdbcType=TINYINT},
@@ -133,7 +133,7 @@
         name = #{name,jdbcType=VARCHAR},
         match_mode = #{matchMode,jdbcType=INTEGER},
         type = #{type,jdbcType=INTEGER},
-        rank = #{rank,jdbcType=INTEGER},
+        sort = #{sort,jdbcType=INTEGER},
         enabled = #{enabled,jdbcType=TINYINT},
         loged = #{loged,jdbcType=TINYINT},
         continued = #{continued,jdbcType=TINYINT}
@@ -161,8 +161,8 @@
             <if test="type != null">
                 type = #{type,jdbcType=INTEGER},
             </if>
-            <if test="rank != null">
-                rank = #{rank,jdbcType=INTEGER},
+            <if test="sort != null">
+                sort = #{sort,jdbcType=INTEGER},
             </if>
             <if test="enabled != null">
                 enabled = #{enabled,jdbcType=TINYINT},

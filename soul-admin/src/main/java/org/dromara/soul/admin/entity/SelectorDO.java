@@ -55,9 +55,9 @@ public class SelectorDO extends BaseDO {
     private Integer type;
 
     /**
-     * sort rank.
+     * sort type.
      */
-    private Integer rank;
+    private Integer sort;
 
     /**
      * whether enabled.
@@ -95,7 +95,7 @@ public class SelectorDO extends BaseDO {
             selectorDO.setName(selectorDTO.getName());
             selectorDO.setMatchMode(selectorDTO.getMatchMode());
             selectorDO.setType(selectorDTO.getType());
-            selectorDO.setRank(selectorDTO.getRank());
+            selectorDO.setSort(selectorDTO.getSort());
             selectorDO.setEnabled(selectorDTO.getEnabled());
             selectorDO.setLoged(selectorDTO.getLoged());
             selectorDO.setContinued(selectorDTO.getContinued());

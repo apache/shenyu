@@ -57,9 +57,9 @@ public class SelectorDTO implements Serializable {
     private Integer type;
 
     /**
-     * sort rank.
+     * sort type.
      */
-    private Integer rank;
+    private Integer sort;
 
     /**
      * whether enabled.

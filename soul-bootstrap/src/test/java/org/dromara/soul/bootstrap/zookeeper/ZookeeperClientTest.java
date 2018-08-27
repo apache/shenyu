@@ -189,7 +189,7 @@ public class ZookeeperClientTest extends BaseTest {
         SelectorZkDTO selectorZkDTO = new SelectorZkDTO();
         selectorZkDTO.setId(id);
         selectorZkDTO.setName(name);
-        selectorZkDTO.setRank(1);
+        selectorZkDTO.setSort(1);
         selectorZkDTO.setContinued(Boolean.TRUE);
         selectorZkDTO.setLoged(Boolean.TRUE);
         selectorZkDTO.setEnabled(Boolean.TRUE);
@@ -223,7 +223,7 @@ public class ZookeeperClientTest extends BaseTest {
         } else if (PluginEnum.DUBBO.getName().equals(pluginName)) {
             dto1.setHandle(JSONUtils.toJson(buildDubboHandle()));
         }
-        dto1.setRank(120);
+        dto1.setSort(120);
         return dto1;
     }
 
