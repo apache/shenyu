@@ -33,9 +33,10 @@ public interface LoadBalance {
      * this is select one  for upstreamList .
      *
      * @param upstreamList upstreamList
+     * @param ip ip
      * @return DivideUpstream
      */
-    DivideUpstream select(List<DivideUpstream> upstreamList);
+    DivideUpstream select(List<DivideUpstream> upstreamList, String ip);
 
     /**
      * algorithm .

@@ -47,6 +47,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoSink;
 import rx.Subscription;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -55,7 +56,7 @@ import java.util.function.Function;
  *
  * @author xiaoyu(Myth)
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings("all")
 public class DividePlugin extends AbstractSoulPlugin {
 
     /**
@@ -63,8 +64,11 @@ public class DividePlugin extends AbstractSoulPlugin {
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(DividePlugin.class);
 
+    private final ZookeeperCacheManager zookeeperCacheManager;
+
     public DividePlugin(final ZookeeperCacheManager zookeeperCacheManager) {
         super(zookeeperCacheManager);
+        this.zookeeperCacheManager = zookeeperCacheManager;
     }
 
     @Override
@@ -76,16 +80,20 @@ public class DividePlugin extends AbstractSoulPlugin {
 
         final DivideHandle divideHandle = GSONUtils.getInstance().fromJson(handle, DivideHandle.class);
 
-        if (Objects.isNull(divideHandle)
-                || CollectionUtils.isEmpty(divideHandle.getUpstreamList())) {
-            LogUtils.error(LOGGER, "divide config error：{}", () -> handle);
+        final List<DivideUpstream> upstreamList =
+                zookeeperCacheManager.findUpstreamListByRuleId(rule.getId());
+        if (CollectionUtils.isEmpty(upstreamList)) {
+            LogUtils.error(LOGGER, "divide upstream  config error：{}", () -> rule.toString());
             return chain.execute(exchange);
         }
-
-        final LoadBalance loadBalance = LoadBalanceFactory.of(divideHandle.getLoadBalance());
-
-        final DivideUpstream divideUpstream = loadBalance.select(divideHandle.getUpstreamList());
-
+        DivideUpstream divideUpstream;
+        if (upstreamList.size() == 1) {
+            divideUpstream = upstreamList.get(0);
+        } else {
+            final LoadBalance loadBalance = LoadBalanceFactory.of(divideHandle.getLoadBalance());
+            final String ip = exchange.getRequest().getRemoteAddress().getAddress().getHostAddress();
+            divideUpstream = loadBalance.select(divideHandle.getUpstreamList(), ip);
+        }
         if (Objects.isNull(divideUpstream)) {
             LogUtils.error(LOGGER, () -> "LoadBalance has error！");
             return chain.execute(exchange);
