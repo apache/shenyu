@@ -60,6 +60,7 @@ public class PluginServiceImpl implements PluginService {
      * @param pluginDTO {@linkplain PluginDTO}
      * @return rows
      */
+    @Override
     public int createOrUpdate(final PluginDTO pluginDTO) {
         int pluginCount;
 
@@ -84,6 +85,7 @@ public class PluginServiceImpl implements PluginService {
      * @param ids primary key.
      * @return rows
      */
+    @Override
     public int delete(final List<String> ids) {
         int pluginCount = 0;
 
@@ -113,6 +115,7 @@ public class PluginServiceImpl implements PluginService {
      * @param id primary key.
      * @return {@linkplain PluginVO}
      */
+    @Override
     public PluginVO findById(final String id) {
         return PluginVO.buildPluginVO(pluginMapper.selectById(id));
     }
@@ -123,6 +126,7 @@ public class PluginServiceImpl implements PluginService {
      * @param pluginQuery {@linkplain PluginQuery}
      * @return {@linkplain CommonPager}
      */
+    @Override
     public CommonPager<PluginVO> listByPage(final PluginQuery pluginQuery) {
         PageParameter pageParameter = pluginQuery.getPageParameter();
         return new CommonPager<>(
