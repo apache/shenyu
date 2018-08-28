@@ -54,6 +54,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      * @param dashboardUserDTO {@linkplain DashboardUserDTO}
      * @return rows
      */
+    @Override
     public int createOrUpdate(final DashboardUserDTO dashboardUserDTO) {
         DashboardUserDO dashboardUserDO = DashboardUserDO.buildDashboardUserDO(dashboardUserDTO);
         if (StringUtils.isEmpty(dashboardUserDTO.getId())) {
@@ -69,6 +70,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      * @param ids primary key.
      * @return rows
      */
+    @Override
     public int delete(final List<String> ids) {
         int dashboardUserCount = 0;
         for (String id : ids) {
@@ -83,6 +85,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      * @param id primary key..
      * @return {@linkplain DashboardUserVO}
      */
+    @Override
     public DashboardUserVO findById(final String id) {
         return DashboardUserVO.buildDashboardUserVO(dashboardUserMapper.selectById(id));
     }
@@ -94,6 +97,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      * @param password user password
      * @return {@linkplain DashboardUserVO}
      */
+    @Override
     public DashboardUserVO findByQuery(final String userName, final String password) {
         return DashboardUserVO.buildDashboardUserVO(dashboardUserMapper.findByQuery(userName, password));
     }
@@ -104,6 +108,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      * @param dashboardUserQuery {@linkplain DashboardUserQuery}
      * @return {@linkplain CommonPager}
      */
+    @Override
     public CommonPager<DashboardUserVO> listByPage(final DashboardUserQuery dashboardUserQuery) {
         PageParameter pageParameter = dashboardUserQuery.getPageParameter();
         return new CommonPager<>(

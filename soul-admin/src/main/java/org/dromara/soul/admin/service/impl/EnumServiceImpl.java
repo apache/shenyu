@@ -52,6 +52,7 @@ public class EnumServiceImpl implements EnumService {
      *
      * @return {@linkplain Map}
      */
+    @Override
     public Map<String, List<EnumVO>> list() {
         List<EnumVO> httpMethodEnums = Arrays.stream(HttpMethodEnum.values())
                 .map(httpMethodEnum -> new EnumVO(null, httpMethodEnum.getName(), httpMethodEnum.getSupport())).collect(Collectors.toList());
