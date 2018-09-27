@@ -144,10 +144,8 @@ public class RuleServiceImpl implements RuleService {
             RuleDO ruleDO = ruleMapper.selectById(id);
             SelectorDO selectorDO = selectorMapper.selectById(ruleDO.getSelectorId());
             PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
-
             ruleCount += ruleMapper.delete(id);
             ruleConditionMapper.deleteByQuery(new RuleConditionQuery(id));
-
             String ruleRealPath = ZkPathConstants.buildRulePath(pluginDO.getName(), selectorDO.getId(), ruleDO.getId());
             if (zkClient.exists(ruleRealPath)) {
                 zkClient.delete(ruleRealPath);
@@ -164,9 +162,11 @@ public class RuleServiceImpl implements RuleService {
      */
     @Override
     public RuleVO findById(final String id) {
-        return RuleVO.buildRuleVO(ruleMapper.selectById(id), ruleConditionMapper.selectByQuery(
-                new RuleConditionQuery(id)).stream().map(RuleConditionVO::buildRuleConditionVO).collect(Collectors.toList()));
-
+        return RuleVO.buildRuleVO(ruleMapper.selectById(id),
+                ruleConditionMapper.selectByQuery(
+                        new RuleConditionQuery(id)).stream()
+                        .map(RuleConditionVO::buildRuleConditionVO)
+                        .collect(Collectors.toList()));
     }
 
     /**
@@ -179,7 +179,8 @@ public class RuleServiceImpl implements RuleService {
     public CommonPager<RuleVO> listByPage(final RuleQuery ruleQuery) {
         PageParameter pageParameter = ruleQuery.getPageParameter();
         return new CommonPager<>(
-                new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), ruleMapper.countByQuery(ruleQuery)),
+                new PageParameter(pageParameter.getCurrentPage(),
+                        pageParameter.getPageSize(), ruleMapper.countByQuery(ruleQuery)),
                 ruleMapper.selectByQuery(ruleQuery).stream()
                         .map(RuleVO::buildRuleVO)
                         .collect(Collectors.toList()));
