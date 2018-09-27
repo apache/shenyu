@@ -22,6 +22,9 @@ package org.dromara.soul.common.enums;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
+
 /**
  * PluginEnum.
  *
@@ -35,7 +38,6 @@ public enum PluginEnum {
      * Global plugin enum.
      */
     GLOBAL(1, "global"),
-
 
     /**
      * Sign plugin enum.
@@ -93,12 +95,9 @@ public enum PluginEnum {
      * @return plugin enum.
      */
     public static PluginEnum getPluginEnumByCode(final int code) {
-        for (PluginEnum pluginEnum : PluginEnum.values()) {
-            if (pluginEnum.getCode() == code) {
-                return pluginEnum;
-            }
-        }
-        return null;
+        return Arrays.stream(PluginEnum.values())
+                .filter(pluginEnum -> pluginEnum.getCode() == code)
+                .findFirst().orElse(PluginEnum.GLOBAL);
     }
 
     /**
@@ -108,11 +107,8 @@ public enum PluginEnum {
      * @return plugin enum.
      */
     public static PluginEnum getPluginEnumByName(final String name) {
-        for (PluginEnum pluginEnum : PluginEnum.values()) {
-            if (pluginEnum.getName().equals(name)) {
-                return pluginEnum;
-            }
-        }
-        return null;
+        return Arrays.stream(PluginEnum.values())
+                .filter(pluginEnum -> pluginEnum.getName().equals(name))
+                .findFirst().orElse(PluginEnum.GLOBAL);
     }
 }

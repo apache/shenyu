@@ -63,19 +63,18 @@ public class PluginServiceImpl implements PluginService {
     @Override
     public int createOrUpdate(final PluginDTO pluginDTO) {
         int pluginCount;
-
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         if (StringUtils.isEmpty(pluginDTO.getId())) {
             pluginCount = pluginMapper.insertSelective(pluginDO);
         } else {
             pluginCount = pluginMapper.updateSelective(pluginDO);
         }
-
         String pluginPath = ZkPathConstants.buildPluginPath(pluginDO.getName());
         if (!zkClient.exists(pluginPath)) {
             zkClient.createPersistent(pluginPath, true);
         }
-        zkClient.writeData(pluginPath, new PluginZkDTO(pluginDO.getId(), pluginDO.getName(), pluginDO.getEnabled()));
+        zkClient.writeData(pluginPath, new PluginZkDTO(pluginDO.getId(),
+                pluginDO.getName(), pluginDO.getEnabled()));
         return pluginCount;
     }
 
@@ -88,11 +87,9 @@ public class PluginServiceImpl implements PluginService {
     @Override
     public int delete(final List<String> ids) {
         int pluginCount = 0;
-
         for (String id : ids) {
             PluginDO pluginDO = pluginMapper.selectById(id);
             pluginCount += pluginMapper.delete(id);
-
             String pluginPath = ZkPathConstants.buildPluginPath(pluginDO.getName());
             if (zkClient.exists(pluginPath)) {
                 zkClient.delete(pluginPath);
@@ -130,7 +127,8 @@ public class PluginServiceImpl implements PluginService {
     public CommonPager<PluginVO> listByPage(final PluginQuery pluginQuery) {
         PageParameter pageParameter = pluginQuery.getPageParameter();
         return new CommonPager<>(
-                new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), pluginMapper.countByQuery(pluginQuery)),
+                new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(),
+                        pluginMapper.countByQuery(pluginQuery)),
                 pluginMapper.selectByQuery(pluginQuery).stream()
                         .map(PluginVO::buildPluginVO)
                         .collect(Collectors.toList()));
