@@ -18,7 +18,6 @@
 
 package org.dromara.soul.web.balance.spi;
 
-
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.enums.LoadBalanceEnum;
 import org.dromara.soul.common.exception.SoulException;
@@ -33,6 +32,7 @@ import java.util.TreeMap;
 
 /**
  * hash algorithm impl.
+ *
  * @author xiaoyu(Myth)
  */
 public class HashLoadBalance implements LoadBalance {
@@ -42,7 +42,7 @@ public class HashLoadBalance implements LoadBalance {
     @Override
     public DivideUpstream select(final List<DivideUpstream> upstreamList, final String ip) {
         final TreeMap<Long, DivideUpstream> treeMap = new TreeMap<>();
-        for (DivideUpstream address: upstreamList) {
+        for (DivideUpstream address : upstreamList) {
             for (int i = 0; i < VIRTUAL_NODE_NUM; i++) {
                 long addressHash = hash("SOUL-" + address.getUpstreamUrl() + "-HASH-" + i);
                 treeMap.put(addressHash, address);
@@ -86,7 +86,7 @@ public class HashLoadBalance implements LoadBalance {
         byte[] digest = md5.digest();
 
         // hash code, Truncate to 32-bits
-        long hashCode = ((long) (digest[3] & 0xFF) << 24)
+        long hashCode = (long) (digest[3] & 0xFF) << 24
                 | ((long) (digest[2] & 0xFF) << 16)
                 | ((long) (digest[1] & 0xFF) << 8)
                 | (digest[0] & 0xFF);

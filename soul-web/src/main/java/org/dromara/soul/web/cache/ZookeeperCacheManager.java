@@ -83,7 +83,6 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
         this.zkClient = zkClient;
     }
 
-
     /**
      * acquire AppAuthZkDTO by appKey with AUTH_MAP container.
      *
@@ -93,7 +92,6 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
     public AppAuthZkDTO findAuthDTOByAppKey(final String appKey) {
         return AUTH_MAP.get(appKey);
     }
-
 
     /**
      * acquire PluginZkDTO by pluginName with PLUGIN_MAP container.
@@ -248,7 +246,6 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
                             });
                     subscribeSelectorDataChanges(realPath);
                 });
-
             }
 
             zkClient.subscribeChildChanges(selectorParentPath, (parentPath, currentChilds) -> {
@@ -257,7 +254,6 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
                     unsubscribePath.stream().map(p -> buildRealPath(parentPath, p))
                             .forEach(this::subscribeSelectorDataChanges);
                 }
-
             });
 
         });
@@ -269,7 +265,6 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
             if (!zkClient.exists(ruleParent)) {
                 zkClient.createPersistent(ruleParent, true);
             }
-
             final List<String> childrenList = zkClient.getChildren(ruleParent);
             if (CollectionUtils.isNotEmpty(childrenList)) {
                 childrenList.forEach(children -> {

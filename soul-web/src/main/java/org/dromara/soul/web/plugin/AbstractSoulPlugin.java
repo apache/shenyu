@@ -108,11 +108,14 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
 
             if (Objects.nonNull(rule)) {
                 if (rule.getLoged()) {
-                    LogUtils.info(LOGGER, () -> body.getModule() + ":" + body.getMethod() + "  match  " + named() + "  rule  is name :" + rule.getName());
+                    LogUtils.info(LOGGER, () -> {
+                        assert body != null;
+                        return body.getModule() + ":" + body.getMethod() + "  match  " + named() + "  rule  is name :" + rule.getName();
+                    });
                 }
                 return doExecute(exchange, chain, rule);
             } else {
-                //如果是代理分流插件未匹配到，直接返回
+                //If the divide or dubbo or spring cloud plug-in does not match, return directly
                 if (PluginEnum.DIVIDE.getName().equals(named())
                         || PluginEnum.DUBBO.getName().equals(named())
                         || PluginEnum.SPRING_CLOUD.getName().equals(named())) {

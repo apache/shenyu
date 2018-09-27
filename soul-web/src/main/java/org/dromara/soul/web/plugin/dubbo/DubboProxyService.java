@@ -74,6 +74,7 @@ public class DubboProxyService {
     public Object genericInvoker(final Map<String, Object> paramMap, final DubboHandle dubboHandle) throws SoulException {
         ReferenceConfig<GenericService> reference = buildReferenceConfig(dubboHandle,
                 paramMap.get(DubboParamConstants.INTERFACE_NAME).toString());
+
         ReferenceConfigCache referenceConfigCache = ReferenceConfigCache.getCache();
 
         GenericService genericService = referenceConfigCache.get(reference);

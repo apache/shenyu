@@ -19,7 +19,6 @@
 
 package org.dromara.soul.web.plugin.after;
 
-
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
@@ -63,6 +62,7 @@ public class ResponsePlugin implements SoulPlugin {
 
             final RequestDTO requestDTO = exchange.getAttribute(Constants.REQUESTDTO);
 
+            assert requestDTO != null;
             if (requestDTO.getRpcType().equals(RpcTypeEnum.DUBBO.getName())) {
 
                 final Object object = exchange.getAttribute(Constants.DUBBO_RPC_RESULT);
@@ -84,6 +84,7 @@ public class ResponsePlugin implements SoulPlugin {
                     return response.writeWith(Mono.just(exchange.getResponse()
                             .bufferFactory().wrap(Objects.requireNonNull(JSONUtils.toJson(result)).getBytes())));
                 }
+                assert clientResponse != null;
                 return response.writeWith(clientResponse.body(BodyExtractors.toDataBuffers()));
 
             }
