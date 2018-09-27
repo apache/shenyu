@@ -40,16 +40,16 @@ abstract class AbstractMatchStrategy {
             final MultiValueMap<String, String> queryParams = exchange.getRequest().getQueryParams();
             realData = queryParams.getFirst(condition.getParamName());
         } else if (Objects.equals(ParamTypeEnum.HOST.getName(), condition.getParamType())) {
-            realData = exchange.getRequest().getRemoteAddress().getHostString();
+            realData = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getHostString();
         } else if (Objects.equals(ParamTypeEnum.IP.getName(), condition.getParamType())) {
-            realData = exchange.getRequest().getRemoteAddress().getAddress().getHostAddress();
+            realData = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
         } else if (Objects.equals(ParamTypeEnum.HEADER.getName(), condition.getParamType())) {
             final HttpHeaders headers = exchange.getRequest().getHeaders();
             final List<String> list = headers.get(condition.getParamName());
             if (CollectionUtils.isEmpty(list)) {
                 return realData;
             }
-            realData = headers.get(condition.getParamName()).stream().findFirst().orElse("");
+            realData = Objects.requireNonNull(headers.get(condition.getParamName())).stream().findFirst().orElse("");
         }
         return realData;
     }

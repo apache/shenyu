@@ -19,26 +19,33 @@
 
 package org.dromara.soul.web.disruptor.publisher;
 
+import com.lmax.disruptor.BlockingWaitStrategy;
+import com.lmax.disruptor.IgnoreExceptionHandler;
 import com.lmax.disruptor.RingBuffer;
-import com.lmax.disruptor.SleepingWaitStrategy;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
-import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.web.concurrent.SoulThreadFactory;
 import org.dromara.soul.web.disruptor.event.SoulDataEvent;
 import org.dromara.soul.web.disruptor.factory.SoulEventFactory;
-import org.dromara.soul.web.disruptor.handler.ClearingEventHandler;
-import org.dromara.soul.web.disruptor.handler.SoulEventHandler;
+import org.dromara.soul.web.disruptor.handler.SoulDataHandler;
 import org.dromara.soul.web.disruptor.translator.SoulEventTranslator;
 import org.dromara.soul.web.influxdb.entity.MonitorDO;
+import org.dromara.soul.web.influxdb.service.InfluxDbService;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * disruptor start and publishEvent.
+ *
  * @author xiaoyu(Myth)
  */
 @Component
@@ -46,30 +53,39 @@ public class SoulEventPublisher implements InitializingBean, DisposableBean {
 
     private Disruptor<SoulDataEvent> disruptor;
 
-    private final SoulEventHandler soulEventHandler;
+    private final InfluxDbService influxDbService;
 
-    private final ClearingEventHandler clearingEventHandler;
-
-    @Value("${soul.bufferSize}")
+    @Value("${soul.disruptor.bufferSize:4096}")
     private int bufferSize;
 
+    @Value("${soul.disruptor.threadSize:8}")
+    private int threadSize;
+
     @Autowired
-    public SoulEventPublisher(final SoulEventHandler soulEventHandler,
-                              final ClearingEventHandler clearingEventHandler) {
-        this.soulEventHandler = soulEventHandler;
-        this.clearingEventHandler = clearingEventHandler;
+    public SoulEventPublisher(final InfluxDbService influxDbService) {
+        this.influxDbService = influxDbService;
     }
 
     /**
      * disruptor start with bufferSize.
-     *
-     * @param bufferSize bufferSize
      */
-    private void start(final int bufferSize) {
-        disruptor = new Disruptor<>(new SoulEventFactory(),
-                bufferSize, SoulThreadFactory.create(Constants.SOUL_DISRUPTOR_THREAD_NAME,
-                false), ProducerType.SINGLE, new SleepingWaitStrategy());
-        disruptor.handleEventsWith(soulEventHandler).then(clearingEventHandler);
+    private void start() {
+        disruptor = new Disruptor<>(new SoulEventFactory(), bufferSize, r -> {
+            AtomicInteger index = new AtomicInteger(1);
+            return new Thread(null, r, "disruptor-thread-" + index.getAndIncrement());
+        }, ProducerType.MULTI, new BlockingWaitStrategy());
+
+        final Executor executor = new ThreadPoolExecutor(threadSize, threadSize, 0, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<>(),
+                SoulThreadFactory.create("soul-log-disruptor", false),
+                new ThreadPoolExecutor.AbortPolicy());
+
+        SoulDataHandler[] consumers = new SoulDataHandler[threadSize];
+        for (int i = 0; i < threadSize; i++) {
+            consumers[i] = new SoulDataHandler(executor, influxDbService);
+        }
+        disruptor.handleEventsWithWorkerPool(consumers);
+        disruptor.setDefaultExceptionHandler(new IgnoreExceptionHandler());
         disruptor.start();
     }
 
@@ -90,6 +106,6 @@ public class SoulEventPublisher implements InitializingBean, DisposableBean {
 
     @Override
     public void afterPropertiesSet() {
-        start(bufferSize);
+        start();
     }
 }
