@@ -18,7 +18,6 @@
 
 package org.dromara.soul.web.balance.spi;
 
-
 import com.alibaba.dubbo.common.utils.AtomicPositiveInteger;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.enums.LoadBalanceEnum;
@@ -86,7 +85,6 @@ public class RoundRobinLoadBalance implements LoadBalance {
         // 取模轮循
         return resultUpstreamList.get(sequence.getAndIncrement() % length);
     }
-
 
     /**
      *  get algorithm name.

@@ -18,7 +18,6 @@
 
 package org.dromara.soul.web.balance;
 
-
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 
 import java.util.List;

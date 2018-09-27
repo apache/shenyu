@@ -82,11 +82,8 @@ public class RedisRateLimiter {
                     }).map(results -> {
                         boolean allowed = results.get(0) == 1L;
                         Long tokensLeft = results.get(1);
-
                         RateLimiterResponse rateLimiterResponse = new RateLimiterResponse(allowed, tokensLeft);
-
                         LogUtils.debug(LOGGER, "RateLimiter response:{}", rateLimiterResponse::toString);
-
                         return rateLimiterResponse;
                     });
         } catch (Exception e) {

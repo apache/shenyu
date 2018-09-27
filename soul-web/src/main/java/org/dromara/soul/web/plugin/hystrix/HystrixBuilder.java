@@ -53,7 +53,6 @@ public class HystrixBuilder {
                 .withGroupKey(groupKey)
                 .andCommandKey(commandKey)
                 .andCommandPropertiesDefaults(propertiesSetter);
-
     }
 
 }

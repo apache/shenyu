@@ -49,7 +49,7 @@ public class GlobalErrorHandler implements WebExceptionHandler {
      * @return {@code Mono<Void>} to indicate when exception handling is complete
      */
     @Override
-    public Mono<Void> handle(ServerWebExchange exchange, Throwable ex) {
+    public Mono<Void> handle(final ServerWebExchange exchange, final Throwable ex) {
         return handle(ex).flatMap(it -> it.writeTo(exchange,
                 new HandlerStrategiesResponseContext(HandlerStrategies.withDefaults())))
                 .flatMap(i -> Mono.empty());
@@ -60,7 +60,7 @@ public class GlobalErrorHandler implements WebExceptionHandler {
         return createResponse(INTERNAL_SERVER_ERROR, "GENERIC_ERROR", "Unhandled exception");
     }
 
-    private Mono<ServerResponse> createResponse(HttpStatus httpStatus, String code, String mesage) {
+    private Mono<ServerResponse> createResponse(final HttpStatus httpStatus, final String code, final String mesage) {
 
         return ServerResponse.status(httpStatus).syncBody(mesage);
     }
@@ -69,7 +69,7 @@ public class GlobalErrorHandler implements WebExceptionHandler {
 
         private HandlerStrategies handlerStrategies;
 
-        public HandlerStrategiesResponseContext(HandlerStrategies handlerStrategies) {
+        public HandlerStrategiesResponseContext(final HandlerStrategies handlerStrategies) {
             this.handlerStrategies = handlerStrategies;
         }
 

@@ -19,7 +19,6 @@
 
 package org.dromara.soul.web.disruptor.factory;
 
-
 import com.lmax.disruptor.EventFactory;
 import org.dromara.soul.web.disruptor.event.SoulDataEvent;
 

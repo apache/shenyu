@@ -35,6 +35,7 @@ import org.dromara.soul.web.request.RequestDTO;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -101,11 +102,11 @@ public class MonitorPlugin implements SoulPlugin {
         } else {
             visitorDO.setResultType(result);
         }
-        visitorDO.setRpcType(requestDTO.getRpcType());
+        visitorDO.setRpcType(Objects.requireNonNull(requestDTO).getRpcType());
         visitorDO.setCount(1);
         visitorDO.setModule(requestDTO.getModule());
         visitorDO.setMethod(requestDTO.getMethod());
-        visitorDO.setIp(exchange.getRequest().getRemoteAddress().getAddress().getHostAddress());
+        visitorDO.setIp(Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress());
         visitorDO.setHost(exchange.getRequest().getRemoteAddress().getHostString());
         return visitorDO;
     }

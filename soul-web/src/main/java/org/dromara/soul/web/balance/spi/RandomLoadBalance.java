@@ -18,7 +18,6 @@
 
 package org.dromara.soul.web.balance.spi;
 
-
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.enums.LoadBalanceEnum;
 import org.dromara.soul.web.balance.LoadBalance;
@@ -64,7 +63,6 @@ public class RandomLoadBalance implements LoadBalance {
         }
         // 如果权重相同或权重为0则均等随机
         return upstreamList.get(RANDOM.nextInt(length));
-
     }
 
     /**

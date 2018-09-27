@@ -83,6 +83,7 @@ public class SignPlugin implements SoulPlugin {
                 zookeeperCacheManager.findPluginByName(named());
         if (pluginZkDTO != null && pluginZkDTO.getEnabled()) {
             final RequestDTO requestDTO = exchange.getAttribute(Constants.REQUESTDTO);
+            assert requestDTO != null;
             final Boolean success = signVerify(requestDTO);
             if (!success) {
                 exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
@@ -93,7 +94,6 @@ public class SignPlugin implements SoulPlugin {
         }
         return chain.execute(exchange);
     }
-
 
     /**
      * verify sign .
