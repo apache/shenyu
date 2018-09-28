@@ -32,6 +32,7 @@
     <modules>
         <module>soul-test-http</module>
         <module>soul-test-dubbo</module>
+        <module>soul-test-springcloud</module>
     </modules>
 
 

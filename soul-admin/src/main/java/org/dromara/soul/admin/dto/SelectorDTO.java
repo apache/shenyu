@@ -57,9 +57,24 @@ public class SelectorDTO implements Serializable {
     private Integer type;
 
     /**
+     * sort type.
+     */
+    private Integer sort;
+
+    /**
      * whether enabled.
      */
     private Boolean enabled;
+
+    /**
+     * whether loged.
+     */
+    private Boolean loged;
+
+    /**
+     * whether continued.
+     */
+    private Boolean continued;
 
     /**
      * selector conditions.

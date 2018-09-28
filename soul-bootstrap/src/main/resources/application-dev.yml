@@ -1,12 +1,14 @@
 server:
-  port: 8080
+  port: 8088
   address: 0.0.0.0
 
 spring:
+   application:
+    name: soul-bootstrap
    redis:
-     host: localhost
-     password: 123456
-     port: 6379
+    host: 192.168.1.88
+    password: foobaredbbexONE123
+    port: 6379
    influxdb:
         url: http://localhost:8086
         username: test
@@ -26,6 +28,15 @@ soul:
     bufferSize: 2048
     timeVerify:
        enabled: true
+eureka:
+  instance:
+    leaseRenewalIntervalInSeconds: 10
+    leaseExpirationDurationInSeconds: 30
+  client:
+    serviceUrl:
+      defaultZone: http://eureka.didispace.com/eureka/
+
+
 logging:
     level:
         root: info

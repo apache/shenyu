@@ -20,6 +20,9 @@ package org.dromara.soul.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.dromara.soul.admin.entity.AppAuthDO;
+import org.dromara.soul.admin.query.AppAuthQuery;
+
+import java.util.List;
 
 /**
  * AppAuthMapper.
@@ -36,6 +39,22 @@ public interface AppAuthMapper {
      * @return {@linkplain AppAuthDO}
      */
     AppAuthDO selectById(String id);
+
+    /**
+     * select application authority by query.
+     *
+     * @param appAuthQuery {@linkplain AppAuthQuery}
+     * @return {@linkplain List}
+     */
+    List<AppAuthDO> selectByQuery(AppAuthQuery appAuthQuery);
+
+    /**
+     * count application authority by query.
+     *
+     * @param appAuthQuery {@linkplain AppAuthQuery}
+     * @return {@linkplain Integer}
+     */
+    Integer countByQuery(AppAuthQuery appAuthQuery);
 
     /**
      * insert application authority.
@@ -68,4 +87,12 @@ public interface AppAuthMapper {
      * @return rows
      */
     int updateSelective(AppAuthDO appAuthDO);
+
+    /**
+     * delete application authority.
+     *
+     * @param id primary key.
+     * @return rows
+     */
+    int delete(String id);
 }

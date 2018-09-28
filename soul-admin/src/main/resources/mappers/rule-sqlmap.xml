@@ -2,70 +2,88 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.dromara.soul.admin.mapper.RuleMapper">
     <resultMap id="BaseResultMap" type="org.dromara.soul.admin.entity.RuleDO">
-        <id column="ID" jdbcType="VARCHAR" property="id"/>
-        <result column="DATE_CREATED" jdbcType="TIMESTAMP" property="dateCreated"/>
-        <result column="DATE_UPDATED" jdbcType="TIMESTAMP" property="dateUpdated"/>
-        <result column="SELECTOR_ID" jdbcType="VARCHAR" property="selectorId"/>
-        <result column="NAME" jdbcType="VARCHAR" property="name"/>
-        <result column="MATCH_MODE" jdbcType="INTEGER" property="matchMode"/>
-        <result column="RANK" jdbcType="INTEGER" property="rank"/>
-        <result column="ENABLED" jdbcType="TINYINT" property="enabled"/>
-        <result column="LOGED" jdbcType="TINYINT" property="loged"/>
-        <result column="HANDLE" jdbcType="VARCHAR" property="handle"/>
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
+        <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
+        <result column="selector_id" jdbcType="VARCHAR" property="selectorId"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="match_mode" jdbcType="INTEGER" property="matchMode"/>
+        <result column="sort" jdbcType="INTEGER" property="sort"/>
+        <result column="enabled" jdbcType="TINYINT" property="enabled"/>
+        <result column="loged" jdbcType="TINYINT" property="loged"/>
+        <result column="handle" jdbcType="VARCHAR" property="handle"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-      ID, DATE_CREATED, DATE_UPDATED, SELECTOR_ID, NAME, MATCH_MODE,
-      RANK, ENABLED, LOGED, HANDLE
-  </sql>
+        id, date_created, date_updated, selector_id, name, match_mode,
+        sort, enabled, loged, handle
+    </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
-        from RULE
-        where ID = #{id,jdbcType=VARCHAR}
+        from rule
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByQuery" parameterType="org.dromara.soul.admin.query.RuleQuery" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from rule
+        <if test="selectorId != null">
+            where selector_id = #{selectorId,jdbcType=VARCHAR}
+        </if>
+        limit #{pageParameter.offset},#{pageParameter.pageSize}
+    </select>
+
+    <select id="countByQuery" parameterType="org.dromara.soul.admin.query.RuleQuery" resultType="java.lang.Integer">
+        select count(1)
+        from rule
+        <if test="selectorId != null">
+            where selector_id = #{selectorId,jdbcType=VARCHAR}
+        </if>
     </select>
 
     <insert id="insert" parameterType="org.dromara.soul.admin.entity.RuleDO">
-        insert into RULE (ID, DATE_CREATED, DATE_UPDATED,
-        SELECTOR_ID, NAME, MATCH_MODE, RANK, ENABLED,
-        LOGED, HANDLE)
+        insert into rule (id, date_created, date_updated,
+        selector_id, name, match_mode, sort, enabled,
+        loged, handle)
         values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
         #{selectorId,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{matchMode,jdbcType=INTEGER},
-        #{rank,jdbcType=INTEGER}, #{enabled,jdbcType=TINYINT}, #{loged,jdbcType=TINYINT},
+        #{sort,jdbcType=INTEGER}, #{enabled,jdbcType=TINYINT}, #{loged,jdbcType=TINYINT},
         #{handle,jdbcType=VARCHAR})
     </insert>
 
     <insert id="insertSelective" parameterType="org.dromara.soul.admin.entity.RuleDO">
-        insert into RULE
+        insert into rule
         <trim prefix="(" suffix=")" suffixOverrides=",">
-            ID,
+            id,
             <if test="dateCreated != null">
-                DATE_CREATED,
+                date_created,
             </if>
             <if test="dateUpdated != null">
-                DATE_UPDATED,
+                date_updated,
             </if>
             <if test="selectorId != null">
-                SELECTOR_ID,
+                selector_id,
             </if>
             <if test="name != null">
-                NAME,
+                name,
             </if>
             <if test="matchMode != null">
-                MATCH_MODE,
+                match_mode,
             </if>
-            <if test="rank != null">
-                RANK,
+            <if test="sort != null">
+                sort,
             </if>
             <if test="enabled != null">
-                ENABLED,
+                enabled,
             </if>
             <if test="loged != null">
-                LOGED,
+                loged,
             </if>
             <if test="handle != null">
-                HANDLE,
+                handle,
             </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
@@ -85,8 +103,8 @@
             <if test="matchMode != null">
                 #{matchMode,jdbcType=INTEGER},
             </if>
-            <if test="rank != null">
-                #{rank,jdbcType=INTEGER},
+            <if test="sort != null">
+                #{sort,jdbcType=INTEGER},
             </if>
             <if test="enabled != null">
                 #{enabled,jdbcType=TINYINT},
@@ -101,50 +119,55 @@
     </insert>
 
     <update id="update" parameterType="org.dromara.soul.admin.entity.RuleDO">
-      update RULE
-        set DATE_CREATED = #{dateCreated,jdbcType=TIMESTAMP},
-          DATE_UPDATED = #{dateUpdated,jdbcType=TIMESTAMP},
-          SELECTOR_ID = #{selectorId,jdbcType=VARCHAR},
-          NAME = #{name,jdbcType=VARCHAR},
-          MATCH_MODE = #{matchMode,jdbcType=INTEGER},
-          RANK = #{rank,jdbcType=INTEGER},
-          ENABLED = #{enabled,jdbcType=TINYINT},
-          LOGED = #{loged,jdbcType=TINYINT},
-          HANDLE = #{handle,jdbcType=VARCHAR}
-    where ID = #{id,jdbcType=VARCHAR}
+        update rule
+        set date_created = #{dateCreated,jdbcType=TIMESTAMP},
+        date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
+        selector_id = #{selectorId,jdbcType=VARCHAR},
+        name = #{name,jdbcType=VARCHAR},
+        match_mode = #{matchMode,jdbcType=INTEGER},
+        sort = #{sort,jdbcType=INTEGER},
+        enabled = #{enabled,jdbcType=TINYINT},
+        loged = #{loged,jdbcType=TINYINT},
+        handle = #{handle,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=VARCHAR}
     </update>
 
     <update id="updateSelective" parameterType="org.dromara.soul.admin.entity.RuleDO">
-        update RULE
+        update rule
         <set>
             <if test="dateCreated != null">
-                DATE_CREATED = #{dateCreated,jdbcType=TIMESTAMP},
+                date_created = #{dateCreated,jdbcType=TIMESTAMP},
             </if>
             <if test="dateUpdated != null">
-                DATE_UPDATED = #{dateUpdated,jdbcType=TIMESTAMP},
+                date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
             </if>
             <if test="selectorId != null">
-                SELECTOR_ID = #{selectorId,jdbcType=VARCHAR},
+                selector_id = #{selectorId,jdbcType=VARCHAR},
             </if>
             <if test="name != null">
-                NAME = #{name,jdbcType=VARCHAR},
+                name = #{name,jdbcType=VARCHAR},
             </if>
             <if test="matchMode != null">
-                MATCH_MODE = #{matchMode,jdbcType=INTEGER},
+                match_mode = #{matchMode,jdbcType=INTEGER},
             </if>
-            <if test="rank != null">
-                RANK = #{rank,jdbcType=INTEGER},
+            <if test="sort != null">
+                sort = #{sort,jdbcType=INTEGER},
             </if>
             <if test="enabled != null">
-                ENABLED = #{enabled,jdbcType=TINYINT},
+                enabled = #{enabled,jdbcType=TINYINT},
             </if>
             <if test="loged != null">
-                LOGED = #{loged,jdbcType=TINYINT},
+                loged = #{loged,jdbcType=TINYINT},
             </if>
             <if test="handle != null">
-                HANDLE = #{handle,jdbcType=VARCHAR},
+                handle = #{handle,jdbcType=VARCHAR},
             </if>
         </set>
-        where ID = #{id,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=VARCHAR}
     </update>
+
+    <delete id="delete" parameterType="java.lang.String">
+        delete from rule
+        where id = #{id,jdbcType=VARCHAR}
+    </delete>
 </mapper>

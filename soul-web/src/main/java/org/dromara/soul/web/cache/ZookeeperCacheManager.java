@@ -26,29 +26,41 @@ import org.I0Itec.zkclient.IZkDataListener;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.common.constant.ZkPathConstants;
+import org.dromara.soul.common.dto.convert.DivideHandle;
+import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.dto.zk.AppAuthZkDTO;
 import org.dromara.soul.common.dto.zk.PluginZkDTO;
 import org.dromara.soul.common.dto.zk.RuleZkDTO;
 import org.dromara.soul.common.dto.zk.SelectorZkDTO;
 import org.dromara.soul.common.enums.PluginEnum;
+import org.dromara.soul.common.utils.GSONUtils;
+import org.dromara.soul.web.concurrent.SoulThreadFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
  * this cache data with zookeeper.
+ *
  * @author xiaoyu
  */
 @Component
-@SuppressWarnings("unchecked")
+@SuppressWarnings("all")
 public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean {
 
     private static final Map<String, PluginZkDTO> PLUGIN_MAP = Maps.newConcurrentMap();
@@ -59,13 +71,17 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
 
     private static final Map<String, AppAuthZkDTO> AUTH_MAP = Maps.newConcurrentMap();
 
+    private static final Map<String, List<DivideUpstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
+
     private final ZkClient zkClient;
+
+    @Value("${soul.upstream.time:30}")
+    private int upstreamTime;
 
     @Autowired(required = false)
     public ZookeeperCacheManager(final ZkClient zkClient) {
         this.zkClient = zkClient;
     }
-
 
     /**
      * acquire AppAuthZkDTO by appKey with AUTH_MAP container.
@@ -76,7 +92,6 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
     public AppAuthZkDTO findAuthDTOByAppKey(final String appKey) {
         return AUTH_MAP.get(appKey);
     }
-
 
     /**
      * acquire PluginZkDTO by pluginName with PLUGIN_MAP container.
@@ -108,12 +123,37 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
         return RULE_MAP.get(selectorId);
     }
 
+    /**
+     * acquire DivideUpstream list by ruleId.
+     *
+     * @param ruleId ruleId
+     * @return DivideUpstream list {@linkplain  DivideUpstream}
+     */
+    public List<DivideUpstream> findUpstreamListByRuleId(final String ruleId) {
+        return UPSTREAM_MAP.get(ruleId);
+    }
+
     @Override
     public void run(final String... args) {
         loadWatcherPlugin();
         loadWatcherSelector();
         loadWatcherRule();
         loadWatchAppAuth();
+        loadUpstream();
+    }
+
+    private void loadUpstream() {
+        final List<SelectorZkDTO> selectorZkDTOList =
+                this.findSelectorByPluginName(PluginEnum.DIVIDE.getName());
+        if (CollectionUtils.isNotEmpty(selectorZkDTOList)) {
+            ScheduledThreadPoolExecutor scheduledExecutorService =
+                    new ScheduledThreadPoolExecutor(selectorZkDTOList.size(),
+                            SoulThreadFactory.create("upstream-task", false));
+            for (SelectorZkDTO selectorZkDTO : selectorZkDTOList) {
+                scheduledExecutorService.scheduleWithFixedDelay(new UpstreamTask(selectorZkDTO),
+                        30, upstreamTime, TimeUnit.SECONDS);
+            }
+        }
     }
 
     private void loadWatchAppAuth() {
@@ -206,7 +246,6 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
                             });
                     subscribeSelectorDataChanges(realPath);
                 });
-
             }
 
             zkClient.subscribeChildChanges(selectorParentPath, (parentPath, currentChilds) -> {
@@ -215,7 +254,6 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
                     unsubscribePath.stream().map(p -> buildRealPath(parentPath, p))
                             .forEach(this::subscribeSelectorDataChanges);
                 }
-
             });
 
         });
@@ -227,7 +265,6 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
             if (!zkClient.exists(ruleParent)) {
                 zkClient.createPersistent(ruleParent, true);
             }
-
             final List<String> childrenList = zkClient.getChildren(ruleParent);
             if (CollectionUtils.isNotEmpty(childrenList)) {
                 childrenList.forEach(children -> {
@@ -270,7 +307,7 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
                                 .collect(Collectors.toList());
                         resultList.add(selectorZkDTO);
                         final List<SelectorZkDTO> collect = resultList.stream()
-                                .sorted(Comparator.comparing(SelectorZkDTO::getRank))
+                                .sorted(Comparator.comparing(SelectorZkDTO::getSort))
                                 .collect(Collectors.toList());
                         SELECTOR_MAP.put(key, collect);
                     } else {
@@ -290,10 +327,10 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
                             final List<SelectorZkDTO> selectorZkDTOList = SELECTOR_MAP.get(key);
                             if (CollectionUtils.isNotEmpty(selectorZkDTOList)) {
                                 final List<SelectorZkDTO> resultList =
-                                        selectorZkDTOList.stream().filter(r -> !r.getId() .equals(dto.getId())) .collect(Collectors.toList());
+                                        selectorZkDTOList.stream().filter(r -> !r.getId().equals(dto.getId())).collect(Collectors.toList());
                                 resultList.add(dto);
                                 final List<SelectorZkDTO> collect = resultList.stream()
-                                        .sorted(Comparator.comparing(SelectorZkDTO::getRank))
+                                        .sorted(Comparator.comparing(SelectorZkDTO::getSort))
                                         .collect(Collectors.toList());
                                 SELECTOR_MAP.put(key, collect);
                             } else {
@@ -319,6 +356,11 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
     private void setRuleMapByKey(final String key, final RuleZkDTO ruleZkDTO) {
         Optional.ofNullable(key)
                 .ifPresent(k -> {
+                    final DivideHandle divideHandle =
+                            GSONUtils.getInstance().fromJson(ruleZkDTO.getHandle(), DivideHandle.class);
+                    if (Objects.nonNull(divideHandle) && CollectionUtils.isNotEmpty(divideHandle.getUpstreamList())) {
+                        UPSTREAM_MAP.put(ruleZkDTO.getId(), divideHandle.getUpstreamList());
+                    }
                     if (RULE_MAP.containsKey(k)) {
                         final List<RuleZkDTO> ruleZkDTOList = RULE_MAP.get(key);
                         final List<RuleZkDTO> resultList = ruleZkDTOList.stream()
@@ -327,7 +369,7 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
                                 .collect(Collectors.toList());
                         resultList.add(ruleZkDTO);
                         final List<RuleZkDTO> collect = resultList.stream()
-                                .sorted(Comparator.comparing(RuleZkDTO::getRank))
+                                .sorted(Comparator.comparing(RuleZkDTO::getSort))
                                 .collect(Collectors.toList());
                         RULE_MAP.put(key, collect);
 
@@ -344,6 +386,17 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
                 Optional.ofNullable(data)
                         .ifPresent(d -> {
                             RuleZkDTO dto = (RuleZkDTO) d;
+                            final DivideHandle divideHandle =
+                                    GSONUtils.getInstance().fromJson(dto.getHandle(), DivideHandle.class);
+                            if (Objects.nonNull(divideHandle)) {
+                                final List<DivideUpstream> upstreamList = divideHandle.getUpstreamList();
+                                if (CollectionUtils.isNotEmpty(upstreamList)) {
+                                    UPSTREAM_MAP.put(dto.getId(), divideHandle.getUpstreamList());
+                                } else {
+                                    UPSTREAM_MAP.remove(dto.getId());
+                                }
+                            }
+
                             final String key = dto.getSelectorId();
                             final List<RuleZkDTO> ruleZkDTOList = RULE_MAP.get(key);
                             if (CollectionUtils.isNotEmpty(ruleZkDTOList)) {
@@ -352,7 +405,7 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
                                                 .equals(dto.getId())).collect(Collectors.toList());
                                 resultList.add(dto);
                                 final List<RuleZkDTO> collect = resultList.stream()
-                                        .sorted(Comparator.comparing(RuleZkDTO::getRank))
+                                        .sorted(Comparator.comparing(RuleZkDTO::getSort))
                                         .collect(Collectors.toList());
                                 RULE_MAP.put(key, collect);
                             } else {
@@ -368,6 +421,7 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
                         .splitToList(dataPath.substring(dataPath.lastIndexOf("/") + 1));
                 final String key = list.get(0);
                 final String id = list.get(1);
+                UPSTREAM_MAP.remove(id);
                 Optional.ofNullable(key).ifPresent(k -> {
                     final List<RuleZkDTO> ruleZkDTOList = RULE_MAP.get(k);
                     ruleZkDTOList.removeIf(e -> e.getId().equals(id));
@@ -383,6 +437,37 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
         return currentChilds.stream().filter(c -> alreadyChildren.stream().anyMatch(a -> !c.equals(a))).collect(Collectors.toList());
     }
 
+    private void execute(final SelectorZkDTO selectorZkDTO) {
+        final List<RuleZkDTO> ruleZkDTOList = this.findRuleBySelectorId(selectorZkDTO.getId());
+        if (CollectionUtils.isNotEmpty(ruleZkDTOList)) {
+            for (RuleZkDTO ruleZkDTO : ruleZkDTOList) {
+                final DivideHandle divideHandle =
+                        GSONUtils.getInstance().fromJson(ruleZkDTO.getHandle(), DivideHandle.class);
+                if (Objects.nonNull(divideHandle)
+                        && divideHandle.getUpstreamList().size() > 1) {
+                    final List<DivideUpstream> upstreamList = divideHandle.getUpstreamList();
+                    for (DivideUpstream divideUpstream : upstreamList) {
+                        final boolean pass = checkUrl(divideUpstream.getUpstreamUrl());
+                        if (!pass) {
+                            UPSTREAM_MAP.get(ruleZkDTO.getId())
+                                    .removeIf(d -> d.getUpstreamUrl().equals(divideUpstream.getUpstreamUrl()));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private static boolean checkUrl(final String url) {
+        try {
+            URL URI = new URL(url);
+            InputStream in = URI.openStream();
+        } catch (IOException e) {
+            return false;
+        }
+        return true;
+    }
+
     private String buildRealPath(final String parent, final String children) {
         return parent + "/" + children;
     }
@@ -390,5 +475,19 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
     @Override
     public void destroy() {
         zkClient.close();
+    }
+
+    class UpstreamTask implements Runnable {
+
+        private SelectorZkDTO selectorZkDTO;
+
+        UpstreamTask(final SelectorZkDTO selectorZkDTO) {
+            this.selectorZkDTO = selectorZkDTO;
+        }
+
+        @Override
+        public void run() {
+            execute(selectorZkDTO);
+        }
     }
 }

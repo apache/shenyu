@@ -18,7 +18,9 @@
 
 package org.dromara.soul.common.dto.convert;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.io.Serializable;
 import java.util.List;
@@ -27,41 +29,13 @@ import java.util.List;
  * DivideHandle.
  * @author xiaoyu(Myth)
  */
-@Data
-public class DivideHandle implements Serializable {
+@Getter
+@Setter
+@ToString
+public class DivideHandle extends HystrixHandle implements Serializable {
 
     /**
-     *  hystrix group key.
-     */
-    private String groupKey;
-
-    /**
-     * hystrix command key.
-     */
-    private String commandKey;
-
-    /**
-     * hystrix withExecutionIsolationSemaphoreMaxConcurrentRequests.
-     */
-    private int maxConcurrentRequests;
-
-    /**
-     * hystrix  withCircuitBreakerErrorThresholdPercentage.
-     */
-    private int errorThresholdPercentage;
-
-    /**
-     * hystrix withCircuitBreakerRequestVolumeThreshold.
-     */
-    private int requestVolumeThreshold;
-
-    /**
-     * hystrix withCircuitBreakerSleepWindowInMilliseconds.
-     */
-    private int sleepWindowInMilliseconds;
-
-    /**
-     * job style.
+     * {@linkplain org.dromara.soul.common.enums.LoadBalanceEnum}
      */
     private String loadBalance;
 

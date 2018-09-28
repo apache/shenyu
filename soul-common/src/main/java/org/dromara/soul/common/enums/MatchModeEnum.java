@@ -22,8 +22,11 @@ package org.dromara.soul.common.enums;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Arrays;
+
 /**
  * MatchModeEnum.
+ *
  * @author xiaoyu(Myth)
  */
 @RequiredArgsConstructor
@@ -43,4 +46,17 @@ public enum MatchModeEnum {
     private final int code;
 
     private final String name;
+
+    /**
+     * get match mode name by code.
+     *
+     * @param code match mode code.
+     * @return match mode name.
+     */
+    public static String getMatchModeByCode(final int code) {
+        return Arrays.stream(MatchModeEnum.values())
+                .filter(e -> e.code == code).findFirst()
+                .orElse(MatchModeEnum.AND)
+                .getName();
+    }
 }

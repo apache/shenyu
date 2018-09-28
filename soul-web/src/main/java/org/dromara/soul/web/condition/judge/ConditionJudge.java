@@ -18,36 +18,40 @@
 
 package org.dromara.soul.web.condition.judge;
 
+import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.dto.zk.ConditionZkDTO;
 import org.dromara.soul.common.enums.OperatorEnum;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
  * ConditionJudge.
+ *
  * @author xiaoyu(Myth)
  */
 public class ConditionJudge {
 
+    private static final Map<String, OperatorJudge> OPERATOR_JUDGE_MAP = Maps.newHashMapWithExpectedSize(3);
+
+    static {
+        OPERATOR_JUDGE_MAP.put(OperatorEnum.EQ.getAlias(), new EqOperatorJudge());
+        OPERATOR_JUDGE_MAP.put(OperatorEnum.MATCH.getAlias(), new MatchOperatorJudge());
+        OPERATOR_JUDGE_MAP.put(OperatorEnum.LIKE.getAlias(), new LikeOperatorJudge());
+    }
+
     /**
      * judge this conditionZkDTO has by pass.
      *
-     * @param conditionZkDTO  condition data
-     * @param realData          realData
+     * @param conditionZkDTO condition data
+     * @param realData       realData
      * @return is true pass   is false not pass
      */
     public static Boolean judge(final ConditionZkDTO conditionZkDTO, final String realData) {
         if (Objects.isNull(conditionZkDTO) || StringUtils.isBlank(realData)) {
             return false;
         }
-        if (Objects.equals(conditionZkDTO.getOperator(), OperatorEnum.EQ.getAlias())) {
-            return Objects.equals(realData, conditionZkDTO.getParamValue().trim());
-        } else if (Objects.equals(conditionZkDTO.getOperator(), OperatorEnum.MATCH.getAlias())) {
-            return realData.contains(conditionZkDTO.getParamValue().trim());
-        } else if (Objects.equals(conditionZkDTO.getOperator(), OperatorEnum.LIKE.getAlias())) {
-            return realData.contains(conditionZkDTO.getParamValue().trim());
-        }
-        return false;
+        return OPERATOR_JUDGE_MAP.get(conditionZkDTO.getOperator()).judge(conditionZkDTO, realData);
     }
 }

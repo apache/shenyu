@@ -21,8 +21,12 @@ package org.dromara.soul.admin.vo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.dromara.soul.admin.entity.RuleConditionDO;
+import org.dromara.soul.common.enums.OperatorEnum;
+import org.dromara.soul.common.enums.ParamTypeEnum;
 
 import java.io.Serializable;
+import java.time.format.DateTimeFormatter;
 
 /**
  * this is rule condition view to web front.
@@ -50,9 +54,19 @@ public class RuleConditionVO implements Serializable {
     private String paramType;
 
     /**
+     * parameter type name.
+     */
+    private String paramTypeName;
+
+    /**
      * match operator.
      */
     private String operator;
+
+    /**
+     * match operator name.
+     */
+    private String operatorName;
 
     /**
      * parameter name.
@@ -73,4 +87,20 @@ public class RuleConditionVO implements Serializable {
      * updated time.
      */
     private String dateUpdated;
+
+    /**
+     * build ruleConditionVO.
+     *
+     * @param ruleConditionDO {@linkplain RuleConditionDO}
+     * @return {@linkplain RuleConditionVO}
+     */
+    public static RuleConditionVO buildRuleConditionVO(final RuleConditionDO ruleConditionDO) {
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        ParamTypeEnum paramTypeEnum = ParamTypeEnum.getParamTypeEnumByName(ruleConditionDO.getParamType());
+        OperatorEnum operatorEnum = OperatorEnum.getOperatorEnumByAlias(ruleConditionDO.getOperator());
+        return new RuleConditionVO(ruleConditionDO.getId(), ruleConditionDO.getRuleId(), ruleConditionDO.getParamType(), paramTypeEnum == null ? null : paramTypeEnum.getName(),
+                ruleConditionDO.getOperator(), operatorEnum == null ? null : operatorEnum.name(), ruleConditionDO.getParamName(), ruleConditionDO.getParamValue(),
+                dateTimeFormatter.format(ruleConditionDO.getDateCreated().toLocalDateTime()),
+                dateTimeFormatter.format(ruleConditionDO.getDateUpdated().toLocalDateTime()));
+    }
 }

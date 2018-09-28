@@ -22,6 +22,9 @@ package org.dromara.soul.common.enums;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
+
 /**
  * PluginEnum.
  *
@@ -35,7 +38,6 @@ public enum PluginEnum {
      * Global plugin enum.
      */
     GLOBAL(1, "global"),
-
 
     /**
      * Sign plugin enum.
@@ -73,13 +75,40 @@ public enum PluginEnum {
     DUBBO(60, "dubbo"),
 
     /**
+     * springCloud plugin enum.
+     */
+    SPRING_CLOUD(70, "springCloud"),
+
+    /**
      * Monitor plugin enum.
      */
-    MONITOR(70, "monitor");
+    MONITOR(80, "monitor");
 
     private final int code;
 
     private final String name;
 
+    /**
+     * get plugin enum by code.
+     *
+     * @param code plugin code.
+     * @return plugin enum.
+     */
+    public static PluginEnum getPluginEnumByCode(final int code) {
+        return Arrays.stream(PluginEnum.values())
+                .filter(pluginEnum -> pluginEnum.getCode() == code)
+                .findFirst().orElse(PluginEnum.GLOBAL);
+    }
 
+    /**
+     * get plugin enum by name.
+     *
+     * @param name plugin name.
+     * @return plugin enum.
+     */
+    public static PluginEnum getPluginEnumByName(final String name) {
+        return Arrays.stream(PluginEnum.values())
+                .filter(pluginEnum -> pluginEnum.getName().equals(name))
+                .findFirst().orElse(PluginEnum.GLOBAL);
+    }
 }

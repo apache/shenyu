@@ -27,6 +27,7 @@ import java.io.Serializable;
 
 /**
  * PluginZkDTO.
+ *
  * @author xiaoyu(Myth)
  */
 @Data
@@ -34,7 +35,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class PluginZkDTO implements Serializable {
 
-    private Integer id;
+    private String id;
 
     private String name;
 

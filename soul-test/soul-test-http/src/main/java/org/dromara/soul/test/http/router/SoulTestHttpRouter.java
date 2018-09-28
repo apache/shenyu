@@ -48,7 +48,7 @@ public class SoulTestHttpRouter {
 
 
     public RouterFunction<ServerResponse> routes() {
-        return nest(path(""),
+        return nest(path("/test"),
                 route(POST("/helloWorld2").and(accept(APPLICATION_JSON)), this :: postHandler)
                         .and(route(POST("/helloWorld"), this :: getHandler)
                                 .and(route(GET("/rewrite"), this :: rewriteHandler))

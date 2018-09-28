@@ -91,7 +91,7 @@ public class RewritePlugin extends AbstractSoulPlugin {
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
         final RequestDTO body = exchange.getAttribute(Constants.REQUESTDTO);
-        return Objects.equals(body.getRpcType(), RpcTypeEnum.DUBBO.getName());
+        return Objects.equals(Objects.requireNonNull(body).getRpcType(), RpcTypeEnum.DUBBO.getName());
     }
 
     /**
