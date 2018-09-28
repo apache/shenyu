@@ -55,27 +55,48 @@ public class EnumServiceImpl implements EnumService {
     @Override
     public Map<String, List<EnumVO>> list() {
         List<EnumVO> httpMethodEnums = Arrays.stream(HttpMethodEnum.values())
-                .map(httpMethodEnum -> new EnumVO(null, httpMethodEnum.getName(), httpMethodEnum.getSupport())).collect(Collectors.toList());
+                .map(httpMethodEnum -> new EnumVO(null, httpMethodEnum.getName(), httpMethodEnum.getSupport()))
+                .collect(Collectors.toList());
+
         List<EnumVO> loadBalanceEnums = Arrays.stream(LoadBalanceEnum.values())
-                .map(loadBalanceEnum -> new EnumVO(loadBalanceEnum.getCode(), loadBalanceEnum.getName(), true)).collect(Collectors.toList());
+                .map(loadBalanceEnum -> new EnumVO(loadBalanceEnum.getCode(), loadBalanceEnum.getName(), true))
+                .collect(Collectors.toList());
+
         List<EnumVO> matchModeEnums = Arrays.stream(MatchModeEnum.values())
-                .map(matchModeEnum -> new EnumVO(matchModeEnum.getCode(), matchModeEnum.getName(), true)).collect(Collectors.toList());
-        List<EnumVO> operatorEnums = Arrays.stream(OperatorEnum.values())
-                .map(operatorEnum -> new EnumVO(null, operatorEnum.getAlias(), operatorEnum.getSupport())).collect(Collectors.toList());
-        List<EnumVO> paramTypeEnums = Arrays.stream(ParamTypeEnum.values())
+                .map(matchModeEnum -> new EnumVO(matchModeEnum.getCode(), matchModeEnum.getName(), true))
+                .collect(Collectors.toList());
+
+        List<EnumVO> operatorEnums =
+                OperatorEnum.acquireSupport().stream().map(operatorEnum ->
+                        new EnumVO(null, operatorEnum.getAlias(), operatorEnum.getSupport()))
+                        .collect(Collectors.toList());
+
+        List<EnumVO> paramTypeEnums = ParamTypeEnum.acquireSupport().stream()
                 .map(paramTypeEnum -> new EnumVO(null, paramTypeEnum.getName(), paramTypeEnum.getSupport())).collect(Collectors.toList());
+
         List<EnumVO> pluginEnums = Arrays.stream(PluginEnum.values())
-                .map(pluginEnum -> new EnumVO(pluginEnum.getCode(), pluginEnum.getName(), true)).collect(Collectors.toList());
+                .map(pluginEnum -> new EnumVO(pluginEnum.getCode(), pluginEnum.getName(), true))
+                .collect(Collectors.toList());
+
         List<EnumVO> pluginTypeEnums = Arrays.stream(PluginTypeEnum.values())
-                .map(pluginTypeEnum -> new EnumVO(null, pluginTypeEnum.getName(), true)).collect(Collectors.toList());
-        List<EnumVO> rpcTypeEnums = Arrays.stream(RpcTypeEnum.values())
-                .map(rpcTypeEnum -> new EnumVO(null, rpcTypeEnum.getName(), rpcTypeEnum.getSupport())).collect(Collectors.toList());
+                .map(pluginTypeEnum -> new EnumVO(null, pluginTypeEnum.getName(), true))
+                .collect(Collectors.toList());
+
+        List<EnumVO> rpcTypeEnums = RpcTypeEnum.acquireSupports().stream()
+                .map(rpcTypeEnum -> new EnumVO(null, rpcTypeEnum.getName(), rpcTypeEnum.getSupport()))
+                .collect(Collectors.toList());
+
         List<EnumVO> selectorTypeEnums = Arrays.stream(SelectorTypeEnum.values())
                 .map(selectorTypeEnum -> new EnumVO(selectorTypeEnum.getCode(), selectorTypeEnum.getName(), true)).collect(Collectors.toList());
+
         List<EnumVO> serializeEnums = Arrays.stream(SerializeEnum.values())
-                .map(serializeEnum -> new EnumVO(null, serializeEnum.getSerialize(), true)).collect(Collectors.toList());
+                .map(serializeEnum -> new EnumVO(null, serializeEnum.getSerialize(), true))
+                .collect(Collectors.toList());
+
         List<EnumVO> wafEnums = Arrays.stream(WafEnum.values())
-                .map(wafEnum -> new EnumVO(wafEnum.getCode(), wafEnum.getName(), true)).collect(Collectors.toList());
+                .map(wafEnum -> new EnumVO(wafEnum.getCode(), wafEnum.getName(), true))
+                .collect(Collectors.toList());
+
         Map<String, List<EnumVO>> enums = Maps.newHashMap();
         enums.put("httpMethodEnums", httpMethodEnums);
         enums.put("loadBalanceEnums", loadBalanceEnums);
