@@ -18,44 +18,20 @@
 
 package org.dromara.soul.common.dto.convert;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
+import java.io.Serializable;
 
 /**
  * DubboHandle.
  * @author xiaoyu(Myth)
  */
-@Data
-public class DubboHandle {
-
-    /**
-     * hystrix group key is required.
-     */
-    private String groupKey;
-
-    /**
-     * hystrix command key is required.
-     */
-    private String commandKey;
-
-    /**
-     * hystrix withExecutionIsolationSemaphoreMaxConcurrentRequests.
-     */
-    private int maxConcurrentRequests;
-
-    /**
-     * hystrix  withCircuitBreakerErrorThresholdPercentage.
-     */
-    private int errorThresholdPercentage;
-
-    /**
-     * hystrix withCircuitBreakerRequestVolumeThreshold.
-     */
-    private int requestVolumeThreshold;
-
-    /**
-     * hystrix withCircuitBreakerSleepWindowInMilliseconds.
-     */
-    private int sleepWindowInMilliseconds;
+@ToString
+@Getter
+@Setter
+public class DubboHandle extends HystrixHandle implements Serializable {
 
     /**
      * zookeeper url  is required.

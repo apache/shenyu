@@ -18,12 +18,20 @@
 
 package org.dromara.soul.admin.service.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.DashboardUserDTO;
 import org.dromara.soul.admin.entity.DashboardUserDO;
+import org.dromara.soul.admin.mapper.DashboardUserMapper;
 import org.dromara.soul.admin.page.CommonPager;
+import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.DashboardUserQuery;
 import org.dromara.soul.admin.service.DashboardUserService;
+import org.dromara.soul.admin.vo.DashboardUserVO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * DashboardUserServiceImpl.
@@ -33,34 +41,65 @@ import org.springframework.stereotype.Service;
 @Service("dashboardUserService")
 public class DashboardUserServiceImpl implements DashboardUserService {
 
-    /**
-     * save or update dashboard user.
-     *
-     * @param dashboardUserDTO {@linkplain DashboardUserDTO}
-     * @return rows
-     */
-    public int saveOrUpdate(final DashboardUserDTO dashboardUserDTO) {
-        return 0;
+    private final DashboardUserMapper dashboardUserMapper;
+
+    @Autowired(required = false)
+    public DashboardUserServiceImpl(final DashboardUserMapper dashboardUserMapper) {
+        this.dashboardUserMapper = dashboardUserMapper;
     }
 
     /**
-     * enabled or disabled dashboard user.
+     * create or update dashboard user.
      *
      * @param dashboardUserDTO {@linkplain DashboardUserDTO}
      * @return rows
      */
-    public int enabled(final DashboardUserDTO dashboardUserDTO) {
-        return 0;
+    @Override
+    public int createOrUpdate(final DashboardUserDTO dashboardUserDTO) {
+        DashboardUserDO dashboardUserDO = DashboardUserDO.buildDashboardUserDO(dashboardUserDTO);
+        if (StringUtils.isEmpty(dashboardUserDTO.getId())) {
+            return dashboardUserMapper.insertSelective(dashboardUserDO);
+        } else {
+            return dashboardUserMapper.updateSelective(dashboardUserDO);
+        }
+    }
+
+    /**
+     * delete dashboard users.
+     *
+     * @param ids primary key.
+     * @return rows
+     */
+    @Override
+    public int delete(final List<String> ids) {
+        int dashboardUserCount = 0;
+        for (String id : ids) {
+            dashboardUserCount += dashboardUserMapper.delete(id);
+        }
+        return dashboardUserCount;
     }
 
     /**
      * find dashboard user by id.
      *
-     * @param id pk.
-     * @return {@linkplain DashboardUserDO}
+     * @param id primary key..
+     * @return {@linkplain DashboardUserVO}
      */
-    public DashboardUserDO findById(final String id) {
-        return null;
+    @Override
+    public DashboardUserVO findById(final String id) {
+        return DashboardUserVO.buildDashboardUserVO(dashboardUserMapper.selectById(id));
+    }
+
+    /**
+     * find dashboard user by query.
+     *
+     * @param userName user name
+     * @param password user password
+     * @return {@linkplain DashboardUserVO}
+     */
+    @Override
+    public DashboardUserVO findByQuery(final String userName, final String password) {
+        return DashboardUserVO.buildDashboardUserVO(dashboardUserMapper.findByQuery(userName, password));
     }
 
     /**
@@ -69,7 +108,13 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      * @param dashboardUserQuery {@linkplain DashboardUserQuery}
      * @return {@linkplain CommonPager}
      */
-    public CommonPager<DashboardUserDO> listByPage(final DashboardUserQuery dashboardUserQuery) {
-        return null;
+    @Override
+    public CommonPager<DashboardUserVO> listByPage(final DashboardUserQuery dashboardUserQuery) {
+        PageParameter pageParameter = dashboardUserQuery.getPageParameter();
+        return new CommonPager<>(
+                new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), dashboardUserMapper.countByQuery(dashboardUserQuery)),
+                dashboardUserMapper.selectByQuery(dashboardUserQuery).stream()
+                        .map(DashboardUserVO::buildDashboardUserVO)
+                        .collect(Collectors.toList()));
     }
 }

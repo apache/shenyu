@@ -72,13 +72,9 @@ public class RedisRateLimiter {
         }
         try {
             List<String> keys = getKeys(id);
-            // The arguments to the LUA script. time() returns unixtime in seconds.
             List<String> scriptArgs = Arrays.asList(replenishRate + "", burstCapacity + "",
                     Instant.now().getEpochSecond() + "", "1");
-            // allowed, tokens_left = redis.eval(SCRIPT, keys, args)
             Flux<List<Long>> resultFlux = this.redisTemplate.execute(this.script, keys, scriptArgs);
-            // .log("redisratelimiter", Level.FINER);\
-
             return resultFlux.onErrorResume(throwable -> Flux.just(Arrays.asList(1L, -1L)))
                     .reduce(new ArrayList<Long>(), (longs, l) -> {
                         longs.addAll(l);
@@ -86,11 +82,8 @@ public class RedisRateLimiter {
                     }).map(results -> {
                         boolean allowed = results.get(0) == 1L;
                         Long tokensLeft = results.get(1);
-
                         RateLimiterResponse rateLimiterResponse = new RateLimiterResponse(allowed, tokensLeft);
-
                         LogUtils.debug(LOGGER, "RateLimiter response:{}", rateLimiterResponse::toString);
-
                         return rateLimiterResponse;
                     });
         } catch (Exception e) {

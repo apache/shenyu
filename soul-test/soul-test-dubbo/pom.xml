@@ -28,6 +28,27 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>soul-test-dubbo</artifactId>
+    <packaging>pom</packaging>
+    <modules>
+        <module>soul-test-dubbo-api</module>
+        <module>soul-test-dubbo-service</module>
+    </modules>
 
+    <dependencyManagement>
+        <dependencies>
+
+            <dependency>
+                <groupId>org.dromara.soul</groupId>
+                <artifactId>soul-test-dubbo-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.dromara.soul</groupId>
+                <artifactId>soul-test-dubbo-service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
 </project>

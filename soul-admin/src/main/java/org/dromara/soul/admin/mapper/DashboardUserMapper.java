@@ -19,7 +19,11 @@
 package org.dromara.soul.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.dromara.soul.admin.entity.DashboardUserDO;
+import org.dromara.soul.admin.query.DashboardUserQuery;
+
+import java.util.List;
 
 /**
  * DashboardUserMapper.
@@ -32,10 +36,35 @@ public interface DashboardUserMapper {
     /**
      * select dashboard user by id.
      *
-     * @param id pk
+     * @param id primary key.
      * @return {@linkplain DashboardUserDO}
      */
     DashboardUserDO selectById(String id);
+
+    /**
+     * find dashboard user by query.
+     *
+     * @param userName user name
+     * @param password user password
+     * @return {@linkplain DashboardUserDO}
+     */
+    DashboardUserDO findByQuery(@Param("userName") String userName, @Param("password") String password);
+
+    /**
+     * select dashboard user by query.
+     *
+     * @param dashboardUserQuery {@linkplain DashboardUserQuery}
+     * @return {@linkplain List}
+     */
+    List<DashboardUserDO> selectByQuery(DashboardUserQuery dashboardUserQuery);
+
+    /**
+     * count dashboard user by query.
+     *
+     * @param dashboardUserQuery {@linkplain DashboardUserQuery}
+     * @return {@linkplain Integer}
+     */
+    Integer countByQuery(DashboardUserQuery dashboardUserQuery);
 
     /**
      * insert dashboard user.
@@ -68,4 +97,12 @@ public interface DashboardUserMapper {
      * @return rows
      */
     int updateSelective(DashboardUserDO dashboardUserDO);
+
+    /**
+     * delete dashboard user.
+     *
+     * @param id primary key.
+     * @return rows
+     */
+    int delete(String id);
 }

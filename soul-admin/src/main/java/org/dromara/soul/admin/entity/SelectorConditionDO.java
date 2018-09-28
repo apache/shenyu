@@ -19,6 +19,12 @@
 package org.dromara.soul.admin.entity;
 
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+import org.dromara.soul.admin.dto.SelectorConditionDTO;
+import org.dromara.soul.common.utils.UUIDUtils;
+
+import java.sql.Timestamp;
+import java.util.Date;
 
 /**
  * SelectorConditionDO.
@@ -52,4 +58,32 @@ public class SelectorConditionDO extends BaseDO {
      * parameter value.
      */
     private String paramValue;
+
+    /**
+     * build selectorConditionDO.
+     *
+     * @param selectorConditionDTO {@linkplain SelectorConditionDTO}
+     * @return {@linkplain SelectorConditionDO}
+     */
+    public static SelectorConditionDO buildSelectorConditionDO(final SelectorConditionDTO selectorConditionDTO) {
+        if (selectorConditionDTO != null) {
+            SelectorConditionDO selectorConditionDO = new SelectorConditionDO();
+            Timestamp currentTime = new Timestamp(new Date().getTime());
+            if (StringUtils.isEmpty(selectorConditionDTO.getId())) {
+                selectorConditionDO.setId(UUIDUtils.generateShortUuid());
+                selectorConditionDO.setDateCreated(currentTime);
+            } else {
+                selectorConditionDO.setId(selectorConditionDTO.getId());
+            }
+
+            selectorConditionDO.setParamType(selectorConditionDTO.getParamType());
+            selectorConditionDO.setSelectorId(selectorConditionDTO.getSelectorId());
+            selectorConditionDO.setOperator(selectorConditionDTO.getOperator());
+            selectorConditionDO.setParamName(selectorConditionDTO.getParamName());
+            selectorConditionDO.setParamValue(selectorConditionDTO.getParamValue());
+            selectorConditionDO.setDateUpdated(currentTime);
+            return selectorConditionDO;
+        }
+        return null;
+    }
 }

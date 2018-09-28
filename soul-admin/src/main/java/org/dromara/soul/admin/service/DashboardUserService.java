@@ -19,9 +19,11 @@
 package org.dromara.soul.admin.service;
 
 import org.dromara.soul.admin.dto.DashboardUserDTO;
-import org.dromara.soul.admin.entity.DashboardUserDO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.DashboardUserQuery;
+import org.dromara.soul.admin.vo.DashboardUserVO;
+
+import java.util.List;
 
 /**
  * this is dashboard user service.
@@ -31,28 +33,37 @@ import org.dromara.soul.admin.query.DashboardUserQuery;
 public interface DashboardUserService {
 
     /**
-     * save or update dashboard user.
+     * create or update dashboard user.
      *
      * @param dashboardUserDTO {@linkplain DashboardUserDTO}
      * @return rows
      */
-    int saveOrUpdate(DashboardUserDTO dashboardUserDTO);
+    int createOrUpdate(DashboardUserDTO dashboardUserDTO);
 
     /**
-     * enabled or disabled dashboard user.
+     * delete dashboard users.
      *
-     * @param dashboardUserDTO {@linkplain DashboardUserDTO}
+     * @param ids primary key.
      * @return rows
      */
-    int enabled(DashboardUserDTO dashboardUserDTO);
+    int delete(List<String> ids);
 
     /**
      * find dashboard user by id.
      *
-     * @param id pk.
-     * @return {@linkplain DashboardUserDO}
+     * @param id primary key.
+     * @return {@linkplain DashboardUserVO}
      */
-    DashboardUserDO findById(String id);
+    DashboardUserVO findById(String id);
+
+    /**
+     * find dashboard user by query.
+     *
+     * @param userName user name
+     * @param password user password
+     * @return {@linkplain DashboardUserVO}
+     */
+    DashboardUserVO findByQuery(final String userName, final String password);
 
     /**
      * find page of dashboard user by query.
@@ -60,5 +71,5 @@ public interface DashboardUserService {
      * @param dashboardUserQuery {@linkplain DashboardUserQuery}
      * @return {@linkplain CommonPager}
      */
-    CommonPager<DashboardUserDO> listByPage(DashboardUserQuery dashboardUserQuery);
+    CommonPager<DashboardUserVO> listByPage(DashboardUserQuery dashboardUserQuery);
 }

@@ -19,10 +19,6 @@
 
 package org.dromara.soul.web.plugin.function;
 
-import com.netflix.hystrix.HystrixCommandGroupKey;
-import com.netflix.hystrix.HystrixCommandKey;
-import com.netflix.hystrix.HystrixCommandProperties;
-import com.netflix.hystrix.HystrixObservableCommand;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.convert.DubboHandle;
@@ -38,6 +34,7 @@ import org.dromara.soul.web.plugin.AbstractSoulPlugin;
 import org.dromara.soul.web.plugin.SoulPluginChain;
 import org.dromara.soul.web.plugin.dubbo.DubboProxyService;
 import org.dromara.soul.web.plugin.hystrix.DubboCommand;
+import org.dromara.soul.web.plugin.hystrix.HystrixBuilder;
 import org.dromara.soul.web.request.RequestDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,39 +85,18 @@ public class DubboPlugin extends AbstractSoulPlugin {
             return chain.execute(exchange);
         }
 
-        buildDefaultHystrixAttr(dubboHandle);
-
-        HystrixCommandGroupKey groupKey = HystrixCommandGroupKey.Factory.asKey(dubboHandle.getGroupKey());
-
-        HystrixCommandKey commandKey = HystrixCommandKey.Factory.asKey(dubboHandle.getCommandKey());
-
         final Map<String, Object> paramMap = exchange.getAttribute(Constants.DUBBO_RPC_PARAMS);
 
-        final HystrixCommandProperties.Setter propertiesSetter =
-                HystrixCommandProperties.Setter()
-                        .withExecutionTimeoutInMilliseconds(dubboHandle.getTimeout())
-                        .withCircuitBreakerEnabled(true)
-                        .withExecutionIsolationStrategy(HystrixCommandProperties.ExecutionIsolationStrategy.SEMAPHORE)
-                        .withExecutionIsolationSemaphoreMaxConcurrentRequests(dubboHandle.getMaxConcurrentRequests())
-                        .withCircuitBreakerErrorThresholdPercentage(dubboHandle.getErrorThresholdPercentage())
-                        .withCircuitBreakerRequestVolumeThreshold(dubboHandle.getRequestVolumeThreshold())
-                        .withCircuitBreakerSleepWindowInMilliseconds(dubboHandle.getSleepWindowInMilliseconds());
-
-        final HystrixObservableCommand.Setter setter =
-                HystrixObservableCommand.Setter
-                        .withGroupKey(groupKey)
-                        .andCommandKey(commandKey)
-                        .andCommandPropertiesDefaults(propertiesSetter);
-
         DubboCommand command =
-                new DubboCommand(setter, paramMap, exchange, chain, dubboProxyService, dubboHandle);
+                new DubboCommand(HystrixBuilder.build(dubboHandle), paramMap,
+                        exchange, chain, dubboProxyService, dubboHandle);
 
         return Mono.create((MonoSink<Object> s) -> {
             Subscription sub = command.toObservable().subscribe(s::success,
                     s::error, s::success);
             s.onCancel(sub::unsubscribe);
             if (command.isCircuitBreakerOpen()) {
-                LogUtils.error(LOGGER, () -> groupKey + ":dubbo execute circuitBreaker is Open !");
+                LogUtils.error(LOGGER, () -> dubboHandle.getGroupKey() + ":dubbo execute circuitBreaker is Open !");
             }
         }).doOnError(throwable -> {
             throwable.printStackTrace();
@@ -159,27 +135,13 @@ public class DubboPlugin extends AbstractSoulPlugin {
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
         final RequestDTO body = exchange.getAttribute(Constants.REQUESTDTO);
+        assert body != null;
         return Objects.equals(body.getRpcType(), RpcTypeEnum.HTTP.getName());
     }
 
     @Override
     public int getOrder() {
         return PluginEnum.DUBBO.getCode();
-    }
-
-    private void buildDefaultHystrixAttr(final DubboHandle dubboHandle) {
-        if (dubboHandle.getMaxConcurrentRequests() == 0) {
-            dubboHandle.setMaxConcurrentRequests(Constants.MAX_CONCURRENT_REQUESTS);
-        }
-        if (dubboHandle.getErrorThresholdPercentage() == 0) {
-            dubboHandle.setErrorThresholdPercentage(Constants.ERROR_THRESHOLD_PERCENTAGE);
-        }
-        if (dubboHandle.getRequestVolumeThreshold() == 0) {
-            dubboHandle.setRequestVolumeThreshold(Constants.REQUEST_VOLUME_THRESHOLD);
-        }
-        if (dubboHandle.getSleepWindowInMilliseconds() == 0) {
-            dubboHandle.setSleepWindowInMilliseconds(Constants.SLEEP_WINDOW_INMILLISECONDS);
-        }
     }
 
     private boolean checkData(final DubboHandle dubboHandle) {
@@ -192,4 +154,5 @@ public class DubboPlugin extends AbstractSoulPlugin {
         }
         return true;
     }
+
 }

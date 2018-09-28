@@ -135,7 +135,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>com.hqyg.skyway.admin.SkywayAdminApplication</mainClass>
+                    <mainClass>org.dromara.soul.admin.SoulAdminApplication</mainClass>
                     <executable>true</executable>
                 </configuration>
             </plugin>

@@ -19,6 +19,12 @@
 package org.dromara.soul.admin.entity;
 
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+import org.dromara.soul.admin.dto.AppAuthDTO;
+import org.dromara.soul.common.utils.UUIDUtils;
+
+import java.sql.Timestamp;
+import java.util.Date;
 
 /**
  * AppAuthDO.
@@ -42,4 +48,30 @@ public class AppAuthDO extends BaseDO {
      * whether enabled.
      */
     private Boolean enabled;
+
+    /**
+     * build appAuthDO.
+     *
+     * @param appAuthDTO {@linkplain AppAuthDTO}
+     * @return {@linkplain AppAuthDO}
+     */
+    public static AppAuthDO buildAppAuthDO(final AppAuthDTO appAuthDTO) {
+        if (appAuthDTO != null) {
+            AppAuthDO appAuthDO = new AppAuthDO();
+            Timestamp currentTime = new Timestamp(new Date().getTime());
+            if (StringUtils.isEmpty(appAuthDTO.getId())) {
+                appAuthDO.setId(UUIDUtils.generateShortUuid());
+                appAuthDO.setDateCreated(currentTime);
+            } else {
+                appAuthDO.setId(appAuthDTO.getId());
+            }
+
+            appAuthDO.setAppKey(appAuthDTO.getAppKey());
+            appAuthDO.setAppSecret(appAuthDTO.getAppSecret());
+            appAuthDO.setEnabled(appAuthDTO.getEnabled());
+            appAuthDO.setDateUpdated(currentTime);
+            return appAuthDO;
+        }
+        return null;
+    }
 }

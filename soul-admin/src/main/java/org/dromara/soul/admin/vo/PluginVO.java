@@ -22,6 +22,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.dromara.soul.admin.entity.PluginDO;
+import org.dromara.soul.common.enums.PluginEnum;
 
 import java.io.Serializable;
 import java.time.format.DateTimeFormatter;
@@ -29,7 +30,7 @@ import java.time.format.DateTimeFormatter;
 /**
  * this is plugin view to web front.
  *
- * @author jiangxiaofeng(programgeek @ 163.com)
+ * @author jiangxiaofeng(Nicholas)
  */
 @Data
 @AllArgsConstructor
@@ -40,6 +41,11 @@ public class PluginVO implements Serializable {
      * primary key.
      */
     private String id;
+
+    /**
+     * plugin code.
+     */
+    private Integer code;
 
     /**
      * plugin name.
@@ -65,11 +71,12 @@ public class PluginVO implements Serializable {
      * build pluginVO.
      *
      * @param pluginDO {@linkplain PluginDO}
-     * @return {@linkplain PluginDO}
+     * @return {@linkplain PluginVO}
      */
     public static PluginVO buildPluginVO(final PluginDO pluginDO) {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        return new PluginVO(pluginDO.getId(), pluginDO.getName(), pluginDO.getEnabled(),
+        PluginEnum pluginEnum = PluginEnum.getPluginEnumByName(pluginDO.getName());
+        return new PluginVO(pluginDO.getId(), pluginEnum == null ? null : pluginEnum.getCode(), pluginDO.getName(), pluginDO.getEnabled(),
                 dateTimeFormatter.format(pluginDO.getDateCreated().toLocalDateTime()),
                 dateTimeFormatter.format(pluginDO.getDateUpdated().toLocalDateTime()));
     }

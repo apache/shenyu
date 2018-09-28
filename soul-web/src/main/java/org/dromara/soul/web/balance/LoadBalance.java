@@ -18,7 +18,6 @@
 
 package org.dromara.soul.web.balance;
 
-
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 
 import java.util.List;
@@ -33,9 +32,10 @@ public interface LoadBalance {
      * this is select one  for upstreamList .
      *
      * @param upstreamList upstreamList
+     * @param ip ip
      * @return DivideUpstream
      */
-    DivideUpstream select(List<DivideUpstream> upstreamList);
+    DivideUpstream select(List<DivideUpstream> upstreamList, String ip);
 
     /**
      * algorithm .

@@ -19,10 +19,11 @@
 package org.dromara.soul.admin.service;
 
 import org.dromara.soul.admin.dto.AppAuthDTO;
-import org.dromara.soul.admin.entity.AppAuthDO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.AppAuthQuery;
 import org.dromara.soul.admin.vo.AppAuthVO;
+
+import java.util.List;
 
 /**
  * this is application authority service.
@@ -32,36 +33,28 @@ import org.dromara.soul.admin.vo.AppAuthVO;
 public interface AppAuthService {
 
     /**
-     * save or update application authority.
+     * create or update application authority.
      *
      * @param appAuthDTO {@linkplain AppAuthDTO}
      * @return rows
      */
-    int saveOrUpdate(AppAuthDTO appAuthDTO);
+    int createOrUpdate(AppAuthDTO appAuthDTO);
 
     /**
-     * enabled or disabled application authority.
+     * delete application authorities.
      *
-     * @param appAuthDTO {@linkplain AppAuthDTO}
+     * @param ids primary key.
      * @return rows
      */
-    int enabled(AppAuthDTO appAuthDTO);
+    int delete(List<String> ids);
 
     /**
      * find application authority by id.
      *
-     * @param id pk.
-     * @return {@linkplain AppAuthDO}
+     * @param id primary key.
+     * @return {@linkplain AppAuthVO}
      */
-    AppAuthDO findById(String id);
-
-    /**
-     * find application authority by appKey.
-     *
-     * @param appKey appKey.
-     * @return {@linkplain AppAuthDO}
-     */
-    AppAuthDO findByAppKey(String appKey);
+    AppAuthVO findById(String id);
 
     /**
      * find page of application authority by query.

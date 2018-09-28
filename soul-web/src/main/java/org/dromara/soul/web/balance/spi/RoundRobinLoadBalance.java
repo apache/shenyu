@@ -18,7 +18,6 @@
 
 package org.dromara.soul.web.balance.spi;
 
-
 import com.alibaba.dubbo.common.utils.AtomicPositiveInteger;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.enums.LoadBalanceEnum;
@@ -39,16 +38,8 @@ public class RoundRobinLoadBalance implements LoadBalance {
 
     private final ConcurrentMap<String, AtomicPositiveInteger> weightSequences = new ConcurrentHashMap<>();
 
-
-    /**
-     * RoundRobin algorithm for selector  DivideUpstream .
-     *
-     * @param upstreamList upstreamList
-     * @return DivideUpstream
-     */
     @Override
-    public DivideUpstream select(final List<DivideUpstream> upstreamList) {
-
+    public DivideUpstream select(final List<DivideUpstream> upstreamList, final String ip) {
         List<DivideUpstream> resultUpstreamList = upstreamList;
         String key = resultUpstreamList.get(0).getUpstreamUrl();
         // 总个数
@@ -94,7 +85,6 @@ public class RoundRobinLoadBalance implements LoadBalance {
         // 取模轮循
         return resultUpstreamList.get(sequence.getAndIncrement() % length);
     }
-
 
     /**
      *  get algorithm name.

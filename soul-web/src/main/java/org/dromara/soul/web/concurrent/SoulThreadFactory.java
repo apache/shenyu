@@ -16,6 +16,7 @@
  *  * limitations under the License.
  *
  */
+
 package org.dromara.soul.web.concurrent;
 
 import java.util.concurrent.ThreadFactory;

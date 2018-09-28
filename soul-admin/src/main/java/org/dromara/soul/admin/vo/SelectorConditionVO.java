@@ -21,8 +21,12 @@ package org.dromara.soul.admin.vo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.dromara.soul.admin.entity.SelectorConditionDO;
+import org.dromara.soul.common.enums.OperatorEnum;
+import org.dromara.soul.common.enums.ParamTypeEnum;
 
 import java.io.Serializable;
+import java.time.format.DateTimeFormatter;
 
 /**
  * this is selector condition view to web front.
@@ -45,14 +49,24 @@ public class SelectorConditionVO implements Serializable {
     private String selectorId;
 
     /**
-     * parameter type.
+     * parameter type code.
      */
     private String paramType;
 
     /**
-     * match operator.
+     * parameter type name.
+     */
+    private String paramTypeName;
+
+    /**
+     * match operator code.
      */
     private String operator;
+
+    /**
+     * match operator name.
+     */
+    private String operatorName;
 
     /**
      * parameter name.
@@ -73,4 +87,21 @@ public class SelectorConditionVO implements Serializable {
      * updated time.
      */
     private String dateUpdated;
+
+    /**
+     * build selectorConditionVO.
+     *
+     * @param selectorConditionDO {@linkplain SelectorConditionDO}
+     * @return {@linkplain SelectorConditionVO}
+     */
+    public static SelectorConditionVO buildSelectorConditionVO(final SelectorConditionDO selectorConditionDO) {
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        ParamTypeEnum paramTypeEnum = ParamTypeEnum.getParamTypeEnumByName(selectorConditionDO.getParamType());
+        OperatorEnum operatorEnum = OperatorEnum.getOperatorEnumByAlias(selectorConditionDO.getOperator());
+        return new SelectorConditionVO(selectorConditionDO.getId(), selectorConditionDO.getSelectorId(), selectorConditionDO.getParamType(),
+                paramTypeEnum == null ? null : paramTypeEnum.name(), selectorConditionDO.getOperator(),
+                operatorEnum == null ? null : operatorEnum.name(), selectorConditionDO.getParamName(), selectorConditionDO.getParamValue(),
+                dateTimeFormatter.format(selectorConditionDO.getDateCreated().toLocalDateTime()),
+                dateTimeFormatter.format(selectorConditionDO.getDateUpdated().toLocalDateTime()));
+    }
 }

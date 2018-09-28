@@ -25,22 +25,22 @@ package org.dromara.soul.common.constant;
  */
 public final class ZkPathConstants implements Constants {
 
-    public static final String SELECTOR_PARENT = "/skyway/selector";
+    public static final String SELECTOR_PARENT = "/soul/selector";
 
     public static final String SELECTOR_JOIN_RULE = "-";
 
-    private static final String PLUGIN_PARENT = "/skyway/plugin";
+    private static final String PLUGIN_PARENT = "/soul/plugin";
 
-    private static final String RULE_PARENT = "/skyway/rule";
+    private static final String RULE_PARENT = "/soul/rule";
 
-    public static final String APP_AUTH_PARENT = "/skyway/auth";
+    public static final String APP_AUTH_PARENT = "/soul/auth";
 
     /**
      * acquire app_auth_path.
      * @param appKey appKey
      * @return  app_auth_path
      */
-    public static String buildAppAuthPath(final String appKey){
+    public static String buildAppAuthPath(final String appKey) {
         return String.join("/", APP_AUTH_PARENT, appKey);
     }
 
@@ -91,7 +91,7 @@ public final class ZkPathConstants implements Constants {
      * @param pluginName pluginName
      * @param selectorId selectorId
      * @param ruleId     ruleId
-     * @return  /skyway/rule/pluginName/selectorId-ruleId
+     * @return  /soul/rule/pluginName/selectorId-ruleId
      */
     public static String buildRulePath(final String pluginName, final String selectorId, final String ruleId) {
         return String.join("/", buildRuleParentPath(pluginName), selectorId + SELECTOR_JOIN_RULE + ruleId);

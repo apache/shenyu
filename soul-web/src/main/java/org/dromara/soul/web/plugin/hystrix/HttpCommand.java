@@ -25,6 +25,7 @@ import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.enums.HttpMethodEnum;
 import org.dromara.soul.common.enums.ResultEnum;
+import org.dromara.soul.common.utils.GSONUtils;
 import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.web.plugin.SoulPluginChain;
 import org.dromara.soul.web.request.RequestDTO;
@@ -43,8 +44,10 @@ import java.time.Duration;
 
 /**
  * HttpHystrixCommand.
+ *
  * @author xiaoyu(Myth)
  */
+@SuppressWarnings("all")
 public class HttpCommand extends HystrixObservableCommand<Void> {
 
     /**
@@ -79,17 +82,20 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
 
     /**
      * execute http request.
+     *
      * @return {@code Mono<Void>} to indicate when request processing is complete
      */
     private Mono<Void> doHttpRequest() {
         if (requestDTO.getHttpMethod().equals(HttpMethodEnum.GET.getName())) {
             String uri = buildRealURL();
+            if (StringUtils.isNoneBlank(requestDTO.getExtInfo())) {
+                uri = uri + "?" +GSONUtils.getInstance().toGetParam(requestDTO.getExtInfo());
+            }
             return WEB_CLIENT.get().uri(uri)
                     .exchange()
                     .doOnError(e -> LogUtils.error(LOGGER, e::getMessage))
                     .timeout(Duration.ofMillis(divideUpstream.getTimeout()))
-                    .flatMap(this::doNext)
-                    .retry(buildRetry(), e -> e instanceof RuntimeException);
+                    .flatMap(this::doNext);
         } else if (requestDTO.getHttpMethod().equals(HttpMethodEnum.POST.getName())) {
             return WEB_CLIENT.post().uri(buildRealURL())
                     .contentType(MediaType.APPLICATION_JSON_UTF8)
@@ -118,10 +124,6 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
         }
         exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);
         return chain.execute(exchange);
-    }
-
-    private int buildRetry() {
-        return divideUpstream.getRetry() == 0 ? Constants.RETRY : divideUpstream.getRetry();
     }
 
 }
