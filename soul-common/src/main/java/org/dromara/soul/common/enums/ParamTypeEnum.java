@@ -39,7 +39,7 @@ public enum ParamTypeEnum {
     /**
      * Post param type enum.
      */
-    POST("post", false),
+    POST("post", true),
 
     /**
      * Uri param type enum.

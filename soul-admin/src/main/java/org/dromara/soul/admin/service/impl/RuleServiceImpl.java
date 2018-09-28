@@ -83,7 +83,6 @@ public class RuleServiceImpl implements RuleService {
     @Override
     public int createOrUpdate(final RuleDTO ruleDTO) {
         int ruleCount;
-
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         List<RuleConditionDTO> ruleConditionDTOs = ruleDTO.getRuleConditions();
         if (StringUtils.isEmpty(ruleDTO.getId())) {

@@ -43,3 +43,4 @@ public class SoulAdminApplication {
         SpringApplication.run(SoulAdminApplication.class, args);
     }
 }
+

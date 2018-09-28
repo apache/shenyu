@@ -68,7 +68,7 @@ public class RuleConditionDO extends BaseDO {
     public static RuleConditionDO buildRuleConditionDO(final RuleConditionDTO ruleConditionDTO) {
         if (ruleConditionDTO != null) {
             RuleConditionDO ruleConditionDO = new RuleConditionDO();
-            Timestamp currentTime = new Timestamp(new Date().getTime());
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             if (StringUtils.isEmpty(ruleConditionDTO.getId())) {
                 ruleConditionDO.setId(UUIDUtils.generateShortUuid());
                 ruleConditionDO.setDateCreated(currentTime);
