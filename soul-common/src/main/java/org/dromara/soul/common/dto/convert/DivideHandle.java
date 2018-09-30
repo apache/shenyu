@@ -26,7 +26,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * DivideHandle.
+ * this is divide plugin handle.
  * @author xiaoyu(Myth)
  */
 @Getter
@@ -35,6 +35,7 @@ import java.util.List;
 public class DivideHandle extends HystrixHandle implements Serializable {
 
     /**
+     * loadBalance.
      * {@linkplain org.dromara.soul.common.enums.LoadBalanceEnum}
      */
     private String loadBalance;

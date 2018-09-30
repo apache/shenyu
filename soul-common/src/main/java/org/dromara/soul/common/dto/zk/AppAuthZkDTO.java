@@ -27,6 +27,7 @@ import java.io.Serializable;
 
 /**
  * AppAuthZkDTO.
+ *
  * @author xiaoyu(Myth)
  */
 @Data

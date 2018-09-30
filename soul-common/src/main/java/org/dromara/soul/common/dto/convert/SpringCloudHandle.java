@@ -25,7 +25,7 @@ import lombok.ToString;
 import java.io.Serializable;
 
 /**
- * SpringCloudHandle.
+ * this is spring cloud plugin handle.
  *
  * @author xiaoyu
  */

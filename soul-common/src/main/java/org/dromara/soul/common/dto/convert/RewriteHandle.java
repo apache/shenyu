@@ -21,11 +21,14 @@ package org.dromara.soul.common.dto.convert;
 import lombok.Data;
 
 /**
- * RewriteHandle.
+ * this is rewrite plugin handle.
  * @author xiaoyu
  */
 @Data
 public class RewriteHandle {
 
+    /**
+     * rewrite uri.
+     */
     private String rewriteURI;
 }

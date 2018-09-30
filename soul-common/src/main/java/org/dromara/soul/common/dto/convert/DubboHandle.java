@@ -25,7 +25,7 @@ import lombok.ToString;
 import java.io.Serializable;
 
 /**
- * DubboHandle.
+ * this is dubbo plugin handle.
  * @author xiaoyu(Myth)
  */
 @ToString
@@ -34,12 +34,12 @@ import java.io.Serializable;
 public class DubboHandle extends HystrixHandle implements Serializable {
 
     /**
-     * zookeeper url  is required.
+     * zookeeper url is required.
      */
     private String registry;
 
     /**
-     * dubbo application Name  is required.
+     * dubbo application name is required.
      */
     private String appName;
 
@@ -62,7 +62,6 @@ public class DubboHandle extends HystrixHandle implements Serializable {
      * version.
      */
     private String version;
-
 
     /**
      *  group.
