@@ -21,14 +21,21 @@ package org.dromara.soul.common.dto.convert;
 import lombok.Data;
 
 /**
- * WafHandle.
+ * this is waf plugin handle.
+ *
  * @author xiaoyu
  */
 @Data
 public class WafHandle {
 
+    /**
+     * permission
+     */
     private String permission;
 
+    /**
+     * statusCode.
+     */
     private String statusCode;
 
 }

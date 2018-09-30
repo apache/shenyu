@@ -4,7 +4,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * @author xiaoyu(549477611 @ qq.com)
+ * this is hystrix handle.
+ * @author xiaoyu(Myth)
  */
 @Getter
 @Setter

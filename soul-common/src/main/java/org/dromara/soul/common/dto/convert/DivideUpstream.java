@@ -23,7 +23,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * DivideUpstream for upstream.
+ * this is divide upstream.
  *
  * @author xiaoyu(Myth).
  */
