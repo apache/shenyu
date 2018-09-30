@@ -35,6 +35,7 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 /**
  * GlobalErrorHandler.
+ *
  * @author xiaoyu(Myth)
  */
 @Component
@@ -65,10 +66,18 @@ public class GlobalErrorHandler implements WebExceptionHandler {
         return ServerResponse.status(httpStatus).syncBody(mesage);
     }
 
+    /**
+     * The type Handler strategies response context.
+     */
     static class HandlerStrategiesResponseContext implements ServerResponse.Context {
 
         private HandlerStrategies handlerStrategies;
 
+        /**
+         * Instantiates a new Handler strategies response context.
+         *
+         * @param handlerStrategies the handler strategies
+         */
         public HandlerStrategiesResponseContext(final HandlerStrategies handlerStrategies) {
             this.handlerStrategies = handlerStrategies;
         }

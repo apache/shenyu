@@ -29,12 +29,18 @@ import java.util.List;
 
 /**
  * this is web handler request starter.
+ *
  * @author xiaoyu(Myth)
  */
 public final class SoulWebHandler implements WebHandler {
 
     private List<SoulPlugin> plugins;
 
+    /**
+     * Instantiates a new Soul web handler.
+     *
+     * @param plugins the plugins
+     */
     public SoulWebHandler(final List<SoulPlugin> plugins) {
         this.plugins = plugins;
     }
@@ -56,6 +62,11 @@ public final class SoulWebHandler implements WebHandler {
 
         private final List<SoulPlugin> plugins;
 
+        /**
+         * Instantiates a new Default soul plugin chain.
+         *
+         * @param plugins the plugins
+         */
         DefaultSoulPluginChain(final List<SoulPlugin> plugins) {
             this.plugins = plugins;
         }

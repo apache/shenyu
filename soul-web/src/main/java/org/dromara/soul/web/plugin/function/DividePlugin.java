@@ -66,6 +66,11 @@ public class DividePlugin extends AbstractSoulPlugin {
 
     private final ZookeeperCacheManager zookeeperCacheManager;
 
+    /**
+     * Instantiates a new Divide plugin.
+     *
+     * @param zookeeperCacheManager the zookeeper cache manager
+     */
     public DividePlugin(final ZookeeperCacheManager zookeeperCacheManager) {
         super(zookeeperCacheManager);
         this.zookeeperCacheManager = zookeeperCacheManager;

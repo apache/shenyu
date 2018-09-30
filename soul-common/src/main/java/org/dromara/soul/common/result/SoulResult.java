@@ -27,8 +27,9 @@ import java.io.Serializable;
 
 /**
  * AjaxResult .
+ *
  * @author xiaoyu
- **/
+ */
 @Data
 public class SoulResult implements Serializable {
 
@@ -40,10 +41,20 @@ public class SoulResult implements Serializable {
 
     private Object data;
 
+    /**
+     * Instantiates a new Soul result.
+     */
     public SoulResult() {
 
     }
 
+    /**
+     * Instantiates a new Soul result.
+     *
+     * @param code    the code
+     * @param message the message
+     * @param data    the data
+     */
     public SoulResult(final Integer code, final String message, final Object data) {
 
         this.code = code;
@@ -53,6 +64,7 @@ public class SoulResult implements Serializable {
 
     /**
      * return success.
+     *
      * @return {@linkplain SoulResult}
      */
     public static SoulResult success() {
@@ -61,6 +73,7 @@ public class SoulResult implements Serializable {
 
     /**
      * return success.
+     *
      * @param msg msg
      * @return {@linkplain SoulResult}
      */
@@ -70,7 +83,8 @@ public class SoulResult implements Serializable {
 
     /**
      * return success.
-     * @param data  this is result data.
+     *
+     * @param data this is result data.
      * @return {@linkplain SoulResult}
      */
     public static SoulResult success(final Object data) {
@@ -79,8 +93,9 @@ public class SoulResult implements Serializable {
 
     /**
      * return success.
-     * @param data this is result data.
+     *
      * @param msg  this ext msg.
+     * @param data this is result data.
      * @return {@linkplain SoulResult}
      */
     public static SoulResult success(final String msg, final Object data) {
@@ -89,6 +104,7 @@ public class SoulResult implements Serializable {
 
     /**
      * return error .
+     *
      * @param msg error msg
      * @return {@linkplain SoulResult}
      */
@@ -98,8 +114,9 @@ public class SoulResult implements Serializable {
 
     /**
      * return error .
+     *
      * @param code error code
-     * @param msg error msg
+     * @param msg  error msg
      * @return {@linkplain SoulResult}
      */
     public static SoulResult error(final int code, final String msg) {
@@ -109,6 +126,7 @@ public class SoulResult implements Serializable {
 
     /**
      * return timeout .
+     *
      * @param msg error msg
      * @return {@linkplain SoulResult}
      */

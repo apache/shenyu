@@ -35,6 +35,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * RedisRateLimiter.
+ *
  * @author xiaoyu
  */
 public class RedisRateLimiter {
@@ -50,6 +51,12 @@ public class RedisRateLimiter {
 
     private AtomicBoolean initialized = new AtomicBoolean(false);
 
+    /**
+     * Instantiates a new Redis rate limiter.
+     *
+     * @param redisTemplate the redis template
+     * @param script        the script
+     */
     public RedisRateLimiter(final ReactiveRedisTemplate<String, String> redisTemplate, final RedisScript<List<Long>> script) {
         this.redisTemplate = redisTemplate;
         this.script = script;
@@ -60,8 +67,9 @@ public class RedisRateLimiter {
      * This uses a basic token bucket algorithm and relies on the fact that Redis scripts
      * execute atomically. No other operations can run between fetching the count and
      * writing the new count.
-     * @param id is rule id
-     * @param replenishRate  replenishRate
+     *
+     * @param id            is rule id
+     * @param replenishRate replenishRate
      * @param burstCapacity burstCapacity
      * @return {@code Mono<Response>} to indicate when request processing is complete
      */

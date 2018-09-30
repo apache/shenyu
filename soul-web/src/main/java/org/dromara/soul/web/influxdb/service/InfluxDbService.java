@@ -28,7 +28,8 @@ import org.springframework.stereotype.Component;
 import java.util.concurrent.TimeUnit;
 
 /**
- * InfluxDbService.
+ * the influx db Service.
+ *
  * @author xiaoyu(Myth)
  */
 @Component
@@ -37,6 +38,11 @@ public class InfluxDbService {
 
     private final InfluxDBTemplate influxDBTemplate;
 
+    /**
+     * Instantiates a new Influx db service.
+     *
+     * @param influxDBTemplate the influx db template
+     */
     @Autowired
     public InfluxDbService(final InfluxDBTemplate influxDBTemplate) {
         this.influxDBTemplate = influxDBTemplate;

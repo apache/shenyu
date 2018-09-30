@@ -17,6 +17,12 @@ public class SoulDataHandler implements WorkHandler<SoulDataEvent> {
 
     private final InfluxDbService influxDbService;
 
+    /**
+     * Instantiates a new Soul data handler.
+     *
+     * @param executor        the executor
+     * @param influxDbService the influx db service
+     */
     public SoulDataHandler(final Executor executor, final InfluxDbService influxDbService) {
         this.executor = executor;
         this.influxDbService = influxDbService;

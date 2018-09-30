@@ -46,6 +46,12 @@ public class RateLimiterPlugin extends AbstractSoulPlugin {
 
     private final RedisRateLimiter redisRateLimiter;
 
+    /**
+     * Instantiates a new Rate limiter plugin.
+     *
+     * @param zookeeperCacheManager the zookeeper cache manager
+     * @param redisRateLimiter      the redis rate limiter
+     */
     public RateLimiterPlugin(final ZookeeperCacheManager zookeeperCacheManager,
                              final RedisRateLimiter redisRateLimiter) {
         super(zookeeperCacheManager);

@@ -25,6 +25,7 @@ import java.security.CodeSource;
 
 /**
  * VersionUtils.
+ *
  * @author xiaoyu(Myth)
  */
 public class VersionUtils {
@@ -36,10 +37,22 @@ public class VersionUtils {
     private VersionUtils() {
     }
 
+    /**
+     * Gets version.
+     *
+     * @return the version
+     */
     public static String getVersion() {
         return VERSION;
     }
 
+    /**
+     * Gets version.
+     *
+     * @param cls            the cls
+     * @param defaultVersion the default version
+     * @return the version
+     */
     public static String getVersion(final Class<?> cls, final String defaultVersion) {
         try {
             // find version info from MANIFEST.MF first

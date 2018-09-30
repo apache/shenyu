@@ -27,7 +27,8 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import java.io.Serializable;
 
 /**
- * Soul Request DTO .
+ * the soul request DTO .
+ *
  * @author xiaoyu(Myth)
  */
 @Data
@@ -84,7 +85,7 @@ public class RequestDTO implements Serializable {
      * ServerHttpRequest transform RequestDTO .
      *
      * @param request {@linkplain ServerHttpRequest}
-     * @return RequestDTO
+     * @return RequestDTO request dto
      */
     public static RequestDTO transform(final ServerHttpRequest request) {
         final String module = request.getHeaders().getFirst(Constants.MODULE);

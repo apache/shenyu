@@ -25,6 +25,7 @@ import java.io.Serializable;
 
 /**
  * this is influxDb entity.
+ *
  * @author xiaoyu(Myth)
  */
 @Data

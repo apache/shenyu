@@ -61,6 +61,11 @@ public class SoulEventPublisher implements InitializingBean, DisposableBean {
     @Value("${soul.disruptor.threadSize:8}")
     private int threadSize;
 
+    /**
+     * Instantiates a new Soul event publisher.
+     *
+     * @param influxDbService the influx db service
+     */
     @Autowired
     public SoulEventPublisher(final InfluxDbService influxDbService) {
         this.influxDbService = influxDbService;

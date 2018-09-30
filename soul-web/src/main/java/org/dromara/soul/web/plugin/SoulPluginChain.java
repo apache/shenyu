@@ -23,7 +23,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 /**
- * SkywayPluginChain.
+ * the soul plugin chain.
  *
  * @author xiaoyu
  */

@@ -30,10 +30,18 @@ import java.util.Objects;
 
 /**
  * AbstractMatchStrategy.
+ *
  * @author xiaoyu(549477611 @ qq.com)
  */
 abstract class AbstractMatchStrategy {
 
+    /**
+     * Build real data string.
+     *
+     * @param condition the condition
+     * @param exchange  the exchange
+     * @return the string
+     */
     String buildRealData(final ConditionZkDTO condition, final ServerWebExchange exchange) {
         String realData = "";
         if (condition.getParamType().equals(ParamTypeEnum.QUERY.getName())) {

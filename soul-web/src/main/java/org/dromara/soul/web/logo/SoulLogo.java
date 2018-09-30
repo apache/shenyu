@@ -28,7 +28,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.core.annotation.Order;
 
 /**
- * logo.
+ * the soul logo.
  *
  * @author xiaoyu
  */

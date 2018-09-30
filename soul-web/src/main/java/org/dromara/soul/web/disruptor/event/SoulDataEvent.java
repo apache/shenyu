@@ -26,6 +26,7 @@ import java.io.Serializable;
 
 /**
  * SoulDataEvent.
+ *
  * @author xiaoyu(Myth)
  */
 @Data
@@ -34,7 +35,7 @@ public class SoulDataEvent implements Serializable {
     private MonitorDO monitorDO;
 
     /**
-     * clear data help  gc.
+     * clear data help gc.
      */
     public void clear() {
         //help gc

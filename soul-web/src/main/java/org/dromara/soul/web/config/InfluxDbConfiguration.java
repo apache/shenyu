@@ -31,6 +31,7 @@ import org.springframework.data.influxdb.converter.PointConverter;
 
 /**
  * InfluxDbConfiguration.
+ *
  * @author xiaoyu(Myth)
  */
 @Configuration
@@ -40,6 +41,7 @@ public class InfluxDbConfiguration {
 
     /**
      * init  InfluxDBConnectionFactory.
+     *
      * @param influxDBProperties {@linkplain InfluxDBProperties}
      * @return {@linkplain InfluxDBConnectionFactory}
      */
@@ -50,6 +52,7 @@ public class InfluxDbConfiguration {
 
     /**
      * init  InfluxDBTemplate.
+     *
      * @param connectionFactory {@linkplain InfluxDBConnectionFactory}
      * @return {@linkplain InfluxDBTemplate}
      */
@@ -60,6 +63,7 @@ public class InfluxDbConfiguration {
 
     /**
      * init  DefaultInfluxDBTemplate.
+     *
      * @param connectionFactory {@linkplain InfluxDBConnectionFactory}
      * @return {@linkplain DefaultInfluxDBTemplate}
      */
