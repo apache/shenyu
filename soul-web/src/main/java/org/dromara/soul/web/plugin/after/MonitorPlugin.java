@@ -42,7 +42,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Monitor Plugin.
+ * the monitor plugin.
+ *
  * @author xiaoyu(Myth)
  */
 public class MonitorPlugin implements SoulPlugin {
@@ -55,6 +56,12 @@ public class MonitorPlugin implements SoulPlugin {
 
     private final Executor executor;
 
+    /**
+     * Instantiates a new Monitor plugin.
+     *
+     * @param soulEventPublisher    the soul event publisher
+     * @param zookeeperCacheManager the zookeeper cache manager
+     */
     public MonitorPlugin(final SoulEventPublisher soulEventPublisher,
                          final ZookeeperCacheManager zookeeperCacheManager) {
         this.soulEventPublisher = soulEventPublisher;

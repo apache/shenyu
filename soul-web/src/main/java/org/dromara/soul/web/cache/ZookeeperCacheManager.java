@@ -78,6 +78,11 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
     @Value("${soul.upstream.time:30}")
     private int upstreamTime;
 
+    /**
+     * Instantiates a new Zookeeper cache manager.
+     *
+     * @param zkClient the zk client
+     */
     @Autowired(required = false)
     public ZookeeperCacheManager(final ZkClient zkClient) {
         this.zkClient = zkClient;
@@ -477,10 +482,18 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
         zkClient.close();
     }
 
+    /**
+     * The type Upstream task.
+     */
     class UpstreamTask implements Runnable {
 
         private SelectorZkDTO selectorZkDTO;
 
+        /**
+         * Instantiates a new Upstream task.
+         *
+         * @param selectorZkDTO the selector zk dto
+         */
         UpstreamTask(final SelectorZkDTO selectorZkDTO) {
             this.selectorZkDTO = selectorZkDTO;
         }

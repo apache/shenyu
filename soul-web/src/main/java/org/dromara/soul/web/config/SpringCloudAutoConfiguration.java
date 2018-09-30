@@ -48,6 +48,12 @@ public class SpringCloudAutoConfiguration {
 
     private final ZookeeperCacheManager zookeeperCacheManager;
 
+    /**
+     * Instantiates a new Spring cloud auto configuration.
+     *
+     * @param loadBalancerClient    the load balancer client
+     * @param zookeeperCacheManager the zookeeper cache manager
+     */
     @Autowired(required = false)
     public SpringCloudAutoConfiguration(final LoadBalancerClient loadBalancerClient, final ZookeeperCacheManager zookeeperCacheManager) {
         this.loadBalancerClient = loadBalancerClient;

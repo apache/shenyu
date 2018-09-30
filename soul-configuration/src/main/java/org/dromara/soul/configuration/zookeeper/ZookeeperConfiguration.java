@@ -30,6 +30,7 @@ import java.util.Objects;
 
 /**
  * ZookeeperConfiguration .
+ *
  * @author xiaoyu(Myth)
  */
 @Configuration
@@ -37,6 +38,11 @@ public class ZookeeperConfiguration {
 
     private final Environment env;
 
+    /**
+     * Instantiates a new Zookeeper configuration.
+     *
+     * @param env the env
+     */
     @Autowired
     public ZookeeperConfiguration(final Environment env) {
         this.env = env;

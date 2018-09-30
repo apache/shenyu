@@ -65,6 +65,15 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
 
     private SoulPluginChain chain;
 
+    /**
+     * Instantiates a new Http command.
+     *
+     * @param setter         the setter
+     * @param divideUpstream the divide upstream
+     * @param requestDTO     the request dto
+     * @param exchange       the exchange
+     * @param chain          the chain
+     */
     public HttpCommand(final Setter setter, final DivideUpstream divideUpstream,
                        final RequestDTO requestDTO, final ServerWebExchange exchange,
                        final SoulPluginChain chain) {

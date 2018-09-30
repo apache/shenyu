@@ -28,6 +28,7 @@ import java.util.stream.StreamSupport;
 
 /**
  * LoadBalanceFactory.
+ *
  * @author xiaoyu(Myth)
  */
 public class LoadBalanceFactory {
@@ -39,7 +40,7 @@ public class LoadBalanceFactory {
      * factory of .
      *
      * @param algorithm param
-     * @return LoadBalance
+     * @return LoadBalance load balance
      */
     public static LoadBalance of(final String algorithm) {
         return StreamSupport.stream(SERVICE_LOADER.spliterator(), false)

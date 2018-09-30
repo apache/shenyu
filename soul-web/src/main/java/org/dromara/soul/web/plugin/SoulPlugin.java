@@ -24,7 +24,8 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 /**
- * plugin interface.
+ * the soul plugin interface.
+ *
  * @author xiaoyu
  */
 public interface SoulPlugin {
@@ -43,6 +44,7 @@ public interface SoulPlugin {
      * return plugin type.
      * the plugin execution order
      * before type The first to perform then Function Type ,then last type.
+     *
      * @return {@linkplain PluginTypeEnum}
      */
     PluginTypeEnum pluginType();
@@ -50,7 +52,8 @@ public interface SoulPlugin {
     /**
      * return plugin order .
      * This attribute To determine the plugin execution order in the same type plugin.
-     * @return int
+     *
+     * @return int order
      */
     int getOrder();
 
@@ -58,6 +61,7 @@ public interface SoulPlugin {
      * acquire plugin name.
      * this is plugin name define  if you extend {@linkplain AbstractSoulPlugin } you must Provide the right name.
      * if you impl AbstractSoulPlugin this attribute not use.
+     *
      * @return plugin name.
      */
     String named();
@@ -65,6 +69,7 @@ public interface SoulPlugin {
     /**
      * plugin is execute.
      * if return true this plugin can not execute.
+     *
      * @param exchange the current server exchange
      * @return default false.
      */

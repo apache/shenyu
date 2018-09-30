@@ -47,7 +47,7 @@ import java.time.Duration;
 import java.util.Objects;
 
 /**
- * SpringCloudCommand.
+ * the spring cloud command.
  *
  * @author xiaoyu(Myth)
  */
@@ -71,6 +71,16 @@ public class SpringCloudCommand extends HystrixObservableCommand<Void> {
 
     private final URI remoteURI;
 
+    /**
+     * Instantiates a new Spring cloud command.
+     *
+     * @param setter            the setter
+     * @param exchange          the exchange
+     * @param chain             the chain
+     * @param springCloudHandle the spring cloud handle
+     * @param requestDTO        the request dto
+     * @param remoteURI         the remote uri
+     */
     public SpringCloudCommand(final Setter setter,
                               final ServerWebExchange exchange,
                               final SoulPluginChain chain,

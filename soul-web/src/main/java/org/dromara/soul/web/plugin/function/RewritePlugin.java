@@ -42,6 +42,7 @@ import java.util.Objects;
 
 /**
  * rewrite url.
+ *
  * @author xiaoyu(Myth)
  */
 public class RewritePlugin extends AbstractSoulPlugin {
@@ -51,6 +52,11 @@ public class RewritePlugin extends AbstractSoulPlugin {
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(RewritePlugin.class);
 
+    /**
+     * Instantiates a new Rewrite plugin.
+     *
+     * @param zookeeperCacheManager the zookeeper cache manager
+     */
     public RewritePlugin(final ZookeeperCacheManager zookeeperCacheManager) {
         super(zookeeperCacheManager);
     }

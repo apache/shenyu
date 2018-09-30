@@ -32,8 +32,9 @@ public interface MatchStrategy {
 
     /**
      * this is condition match.
+     *
      * @param conditionZkDTOList condition list.
-     * @param exchange {@linkplain ServerWebExchange}
+     * @param exchange           {@linkplain ServerWebExchange}
      * @return true is match , false is not match.
      */
     Boolean match(List<ConditionZkDTO> conditionZkDTOList, ServerWebExchange exchange);

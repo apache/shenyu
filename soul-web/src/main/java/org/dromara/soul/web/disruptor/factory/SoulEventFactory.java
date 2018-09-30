@@ -24,6 +24,7 @@ import org.dromara.soul.web.disruptor.event.SoulDataEvent;
 
 /**
  * SoulEventFactory.
+ *
  * @author xiaoyu(Myth)
  */
 public class SoulEventFactory implements EventFactory<SoulDataEvent> {

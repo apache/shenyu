@@ -27,7 +27,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Dubbo Configuration.
+ * the dubbo configuration.
  *
  * @author xiaoyu(Myth)
  */
@@ -38,6 +38,12 @@ public class DubboConfiguration {
 
     private final ZookeeperCacheManager zookeeperCacheManager;
 
+    /**
+     * Instantiates a new Dubbo configuration.
+     *
+     * @param dubboProxyService     the dubbo proxy service
+     * @param zookeeperCacheManager the zookeeper cache manager
+     */
     @Autowired(required = false)
     public DubboConfiguration(final DubboProxyService dubboProxyService, final ZookeeperCacheManager zookeeperCacheManager) {
         this.dubboProxyService = dubboProxyService;

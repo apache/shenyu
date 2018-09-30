@@ -60,6 +60,12 @@ public class DubboPlugin extends AbstractSoulPlugin {
 
     private final DubboProxyService dubboProxyService;
 
+    /**
+     * Instantiates a new Dubbo plugin.
+     *
+     * @param zookeeperCacheManager the zookeeper cache manager
+     * @param dubboProxyService     the dubbo proxy service
+     */
     public DubboPlugin(final ZookeeperCacheManager zookeeperCacheManager, final DubboProxyService dubboProxyService) {
         super(zookeeperCacheManager);
         this.dubboProxyService = dubboProxyService;

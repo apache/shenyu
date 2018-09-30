@@ -24,21 +24,23 @@ import java.util.List;
 
 /**
  * LoadBalance interface spi .
+ *
  * @author xiaoyu(Myth)
  */
 public interface LoadBalance {
 
     /**
-     * this is select one  for upstreamList .
+     * this is select one for upstreamList .
      *
      * @param upstreamList upstreamList
-     * @param ip ip
-     * @return DivideUpstream
+     * @param ip           ip
+     * @return DivideUpstream divide upstream
      */
     DivideUpstream select(List<DivideUpstream> upstreamList, String ip);
 
     /**
      * algorithm .
+     *
      * @return algorithm name
      */
     String algorithm();

@@ -28,6 +28,7 @@ import java.util.stream.StreamSupport;
 
 /**
  * ZkSerializer Factory.
+ *
  * @author xiaoyu(Myth)
  */
 public class ZkSerializerFactory {
@@ -38,7 +39,7 @@ public class ZkSerializerFactory {
      * product  ZkSerializer with className.
      *
      * @param className className
-     * @return ZkSerializer
+     * @return ZkSerializer zk serializer
      */
     public static ZkSerializer of(final String className) {
         return StreamSupport.stream(SERVICE_LOADER.spliterator(), false)

@@ -61,6 +61,16 @@ public class DubboCommand extends HystrixObservableCommand<Void> {
 
     private final DubboHandle dubboHandle;
 
+    /**
+     * Instantiates a new Dubbo command.
+     *
+     * @param setter            the setter
+     * @param paramMap          the param map
+     * @param exchange          the exchange
+     * @param chain             the chain
+     * @param dubboProxyService the dubbo proxy service
+     * @param dubboHandle       the dubbo handle
+     */
     public DubboCommand(final Setter setter, final Map<String, Object> paramMap,
                         final ServerWebExchange exchange,
                         final SoulPluginChain chain,

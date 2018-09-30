@@ -21,24 +21,35 @@ package org.dromara.soul.common.constant;
 
 /**
  * ZkPathConstants.
+ *
  * @author xiaoyu(Myth)
  */
 public final class ZkPathConstants implements Constants {
 
+    /**
+     * The constant SELECTOR_PARENT.
+     */
     public static final String SELECTOR_PARENT = "/soul/selector";
 
+    /**
+     * The constant SELECTOR_JOIN_RULE.
+     */
     public static final String SELECTOR_JOIN_RULE = "-";
 
     private static final String PLUGIN_PARENT = "/soul/plugin";
 
     private static final String RULE_PARENT = "/soul/rule";
 
+    /**
+     * The constant APP_AUTH_PARENT.
+     */
     public static final String APP_AUTH_PARENT = "/soul/auth";
 
     /**
      * acquire app_auth_path.
+     *
      * @param appKey appKey
-     * @return  app_auth_path
+     * @return app_auth_path string
      */
     public static String buildAppAuthPath(final String appKey) {
         return String.join("/", APP_AUTH_PARENT, appKey);
@@ -91,7 +102,7 @@ public final class ZkPathConstants implements Constants {
      * @param pluginName pluginName
      * @param selectorId selectorId
      * @param ruleId     ruleId
-     * @return  /soul/rule/pluginName/selectorId-ruleId
+     * @return /soul/rule/pluginName/selectorId-ruleId
      */
     public static String buildRulePath(final String pluginName, final String selectorId, final String ruleId) {
         return String.join("/", buildRuleParentPath(pluginName), selectorId + SELECTOR_JOIN_RULE + ruleId);

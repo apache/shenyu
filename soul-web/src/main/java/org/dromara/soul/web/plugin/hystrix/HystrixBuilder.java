@@ -8,7 +8,7 @@ import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.convert.HystrixHandle;
 
 /**
- * this hystrix builder.
+ * the hystrix builder.
  *
  * @author xiaoyu(549477611 @ qq.com)
  */

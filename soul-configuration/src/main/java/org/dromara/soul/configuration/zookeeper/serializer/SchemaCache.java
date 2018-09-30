@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * SchemaCache.
+ *
  * @author xiaoyu
  */
 public class SchemaCache {
@@ -37,6 +38,11 @@ public class SchemaCache {
             .maximumSize(1024).expireAfterWrite(1, TimeUnit.HOURS)
             .build();
 
+    /**
+     * Gets instance.
+     *
+     * @return the instance
+     */
     protected static SchemaCache getInstance() {
         return SchemaCacheHolder.cache;
     }
@@ -51,8 +57,9 @@ public class SchemaCache {
 
     /**
      * acquire Schema with class.
+     *
      * @param clazz Class
-     * @return Schema<?>
+     * @return Schema<?> schema
      */
     public Schema<?> get(final Class<?> clazz) {
         return get(clazz, cache);

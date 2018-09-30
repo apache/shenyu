@@ -26,12 +26,18 @@ import reactor.core.publisher.Mono;
 
 /**
  * HandlerMapping.
+ *
  * @author xiaoyu
  */
 public final class SoulHandlerMapping extends AbstractHandlerMapping {
 
     private final SoulWebHandler soulWebHandler;
 
+    /**
+     * Instantiates a new Soul handler mapping.
+     *
+     * @param soulWebHandler the soul web handler
+     */
     public SoulHandlerMapping(final SoulWebHandler soulWebHandler) {
         this.soulWebHandler = soulWebHandler;
         setOrder(1);

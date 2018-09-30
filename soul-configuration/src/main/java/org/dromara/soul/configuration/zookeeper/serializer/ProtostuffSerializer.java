@@ -36,6 +36,7 @@ import java.io.IOException;
 
 /**
  * ProtostuffSerializer.
+ *
  * @author xiaoyu
  */
 @SuppressWarnings("unchecked")

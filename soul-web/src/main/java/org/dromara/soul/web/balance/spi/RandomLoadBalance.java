@@ -26,6 +26,7 @@ import java.util.Random;
 
 /**
  * random algorithm impl.
+ *
  * @author xiaoyu(Myth)
  */
 public class RandomLoadBalance implements LoadBalance {

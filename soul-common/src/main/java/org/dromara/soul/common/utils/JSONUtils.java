@@ -59,6 +59,12 @@ public final class JSONUtils {
     private static Logger logger = LoggerFactory.getLogger(JSONUtils.class);
 
 
+    /**
+     * Get json bytes byte [ ].
+     *
+     * @param o the o
+     * @return the byte [ ]
+     */
     public static byte[] getJsonBytes(Object o) {
         try {
             return mapper.writerFor(o.getClass()).writeValueAsBytes(o);
@@ -67,6 +73,12 @@ public final class JSONUtils {
         }
     }
 
+    /**
+     * Gets json string.
+     *
+     * @param instance the instance
+     * @return the json string
+     */
     public static String getJsonString(Object instance) {
         try {
             return mapper.writerFor(instance.getClass()).writeValueAsString(instance);
@@ -75,6 +87,14 @@ public final class JSONUtils {
         }
     }
 
+    /**
+     * Read json string t.
+     *
+     * @param <T>      the type parameter
+     * @param jsonStr  the json str
+     * @param objClass the obj class
+     * @return the t
+     */
     public static <T> T readJsonString(String jsonStr, Class<T> objClass) {
         try {
             return mapper.readerFor(objClass).readValue(jsonStr);
@@ -107,6 +127,9 @@ public final class JSONUtils {
 
     /**
      * Object可以是POJO，也可以是Collection或数组。 如果对象为Null, 返回"null". 如果集合为空集合, 返回"[]".
+     *
+     * @param object the object
+     * @return the string
      */
     public static String toJson(Object object) {
         try {
@@ -124,7 +147,11 @@ public final class JSONUtils {
      * <p>
      * 如需反序列化复杂Collection如List<MyBean>, 请使用fromJson(String, JavaType)
      *
-     * @see #fromJson(String, JavaType)
+     * @param <T>        the type parameter
+     * @param jsonString the json string
+     * @param clazz      the clazz
+     * @return the t
+     * @see #fromJson(String, JavaType) #fromJson(String, JavaType)
      */
     public static <T> T fromJson(String jsonString, Class<T> clazz) {
         if (StringUtils.isEmpty(jsonString)) {
@@ -138,6 +165,14 @@ public final class JSONUtils {
         }
     }
 
+    /**
+     * From json t.
+     *
+     * @param <T>               the type parameter
+     * @param jsonString        the json string
+     * @param jsonTypeReference the json type reference
+     * @return the t
+     */
     public static <T> T fromJson(String jsonString, TypeReference<T> jsonTypeReference) {
         if (StringUtils.isEmpty(jsonString)) {
             return null;
@@ -150,16 +185,33 @@ public final class JSONUtils {
         }
     }
 
+    /**
+     * From json map.
+     *
+     * @param jsonString the json string
+     * @return the map
+     */
     public static Map<String, Object> fromJson(String jsonString) {
         JavaType map = buildMapType(HashMap.class, String.class, Object.class);
         return fromJson(jsonString, map);
     }
 
+    /**
+     * Map str from json map.
+     *
+     * @param jsonString the json string
+     * @return the map
+     */
     public static Map<String, String> mapStrFromJson(String jsonString) {
         JavaType map = buildMapType(HashMap.class, String.class, String.class);
         return fromJson(jsonString, map);
     }
 
+    /**
+     * New map type reference type reference.
+     *
+     * @return the type reference
+     */
     public static TypeReference<Map<String, Object>> newMapTypeReference() {
         return new TypeReference<Map<String, Object>>() {
         };
@@ -167,6 +219,11 @@ public final class JSONUtils {
 
     /**
      * 反序列化复杂Collection如List<Bean>, contructCollectionType()或contructMapType()构造类型, 然后调用本函数.
+     *
+     * @param <T>        the type parameter
+     * @param jsonString the json string
+     * @param javaType   the java type
+     * @return the t
      */
     @SuppressWarnings("unchecked")
     public static <T> T fromJson(String jsonString, JavaType javaType) {
@@ -183,6 +240,10 @@ public final class JSONUtils {
 
     /**
      * 构造Collection类型.
+     *
+     * @param collectionClass the collection class
+     * @param elementClass    the element class
+     * @return the java type
      */
     @SuppressWarnings("rawtypes")
     public static JavaType buildCollectionType(Class<? extends Collection> collectionClass, Class<?> elementClass) {
@@ -191,6 +252,11 @@ public final class JSONUtils {
 
     /**
      * 构造Map类型.
+     *
+     * @param mapClass   the map class
+     * @param keyClass   the key class
+     * @param valueClass the value class
+     * @return the java type
      */
     @SuppressWarnings("rawtypes")
     public static JavaType buildMapType(Class<? extends Map> mapClass, Class<?> keyClass, Class<?> valueClass) {
@@ -199,6 +265,10 @@ public final class JSONUtils {
 
     /**
      * 輸出JSONP格式數據.
+     *
+     * @param functionName the function name
+     * @param object       the object
+     * @return the string
      */
     public static String toJsonP(String functionName, Object object) {
         return toJson(new JSONPObject(functionName, object));

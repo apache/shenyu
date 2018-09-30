@@ -35,6 +35,7 @@ import java.io.ObjectOutputStream;
 
 /**
  * JavaSerializer.
+ *
  * @author xiaoyu
  */
 public class JavaSerializer implements ZkSerializer, SerializerName {

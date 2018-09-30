@@ -24,7 +24,8 @@ import org.dromara.soul.web.disruptor.event.SoulDataEvent;
 import org.dromara.soul.web.influxdb.entity.MonitorDO;
 
 /**
- * Translator for disruptor data.
+ * translator for disruptor data.
+ *
  * @author xiaoyu(Myth)
  */
 public class SoulEventTranslator implements EventTranslatorOneArg<SoulDataEvent, MonitorDO> {

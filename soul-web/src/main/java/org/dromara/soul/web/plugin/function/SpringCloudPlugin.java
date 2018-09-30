@@ -47,9 +47,9 @@ import java.net.URI;
 import java.util.Objects;
 
 /**
- * this is impl springCloud proxy.
+ * this is springCloud proxy impl.
  *
- * @author xiaoyu(549477611 @ qq.com)
+ * @author xiaoyu(myth)
  */
 public class SpringCloudPlugin extends AbstractSoulPlugin {
 

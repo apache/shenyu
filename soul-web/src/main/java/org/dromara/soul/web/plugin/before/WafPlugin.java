@@ -54,6 +54,11 @@ public class WafPlugin extends AbstractSoulPlugin {
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(WafPlugin.class);
 
+    /**
+     * Instantiates a new Waf plugin.
+     *
+     * @param zookeeperCacheManager the zookeeper cache manager
+     */
     public WafPlugin(final ZookeeperCacheManager zookeeperCacheManager) {
         super(zookeeperCacheManager);
     }

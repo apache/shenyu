@@ -55,6 +55,11 @@ public class SignPlugin implements SoulPlugin {
 
     private final ZookeeperCacheManager zookeeperCacheManager;
 
+    /**
+     * Instantiates a new Sign plugin.
+     *
+     * @param zookeeperCacheManager the zookeeper cache manager
+     */
     public SignPlugin(final ZookeeperCacheManager zookeeperCacheManager) {
         this.zookeeperCacheManager = zookeeperCacheManager;
     }

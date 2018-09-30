@@ -28,6 +28,7 @@ import reactor.core.publisher.Mono;
 
 /**
  * GlobalPlugin.
+ *
  * @author xiaoyu(Myth)
  */
 public class GlobalPlugin implements SoulPlugin {

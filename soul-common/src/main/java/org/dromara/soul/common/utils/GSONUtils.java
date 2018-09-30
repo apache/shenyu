@@ -37,14 +37,33 @@ public class GSONUtils {
 
     private static final Gson GSON = new Gson();
 
+    /**
+     * Gets instance.
+     *
+     * @return the instance
+     */
     public static GSONUtils getInstance() {
         return INSTANCE;
     }
 
+    /**
+     * To json string.
+     *
+     * @param object the object
+     * @return the string
+     */
     public String toJson(final Object object) {
         return GSON.toJson(object);
     }
 
+    /**
+     * From json t.
+     *
+     * @param <T>    the type parameter
+     * @param json   the json
+     * @param tClass the t class
+     * @return the t
+     */
     public <T> T fromJson(final String json, final Class<T> tClass) {
         return GSON.fromJson(json, tClass);
     }
@@ -54,7 +73,7 @@ public class GSONUtils {
      * toGetParam.
      *
      * @param json json
-     * @return java.lang.String
+     * @return java.lang.String string
      */
     public String toGetParam(final String json) {
         if (StringUtils.isBlank(json)) {
@@ -72,7 +91,7 @@ public class GSONUtils {
      * toMap.
      *
      * @param json json
-     * @return hashMap
+     * @return hashMap map
      */
     public Map<String, String> toStringMap(final String json) {
         return GSON.fromJson(json, new TypeToken<Map<String, String>>() {
@@ -84,13 +103,19 @@ public class GSONUtils {
      * toList<Map></Map>.
      *
      * @param json json
-     * @return hashMap
+     * @return hashMap list
      */
     public List<Map> toListMap(final String json) {
         return GSON.fromJson(json, new TypeToken<List<Map>>() {
         }.getType());
     }
 
+    /**
+     * To object map map.
+     *
+     * @param json the json
+     * @return the map
+     */
     public Map<String, Object> toObjectMap(final String json) {
         return GSON.fromJson(json, new TypeToken<Map<String, Object>>() {
         }.getType());

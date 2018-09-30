@@ -60,6 +60,13 @@ public class SoulConfiguration {
 
     private final RedisRateLimiter redisRateLimiter;
 
+    /**
+     * Instantiates a new Soul configuration.
+     *
+     * @param zookeeperCacheManager the zookeeper cache manager
+     * @param soulEventPublisher    the soul event publisher
+     * @param redisRateLimiter      the redis rate limiter
+     */
     @Autowired(required = false)
     public SoulConfiguration(final ZookeeperCacheManager zookeeperCacheManager,
                              final SoulEventPublisher soulEventPublisher,
