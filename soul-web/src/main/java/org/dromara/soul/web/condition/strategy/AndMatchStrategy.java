@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * this is and match Strategy.
  *
- * @author xiaoyu(549477611 @ qq.com)
+ * @author xiaoyu(Myth)
  */
 public class AndMatchStrategy extends AbstractMatchStrategy implements MatchStrategy {
 

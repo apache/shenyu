@@ -25,7 +25,7 @@ import java.util.Objects;
 /**
  * this is eq impl.
  *
- * @author xiaoyu(549477611 @ qq.com)
+ * @author xiaoyu(Myth)
  */
 public class EqOperatorJudge implements OperatorJudge {
 

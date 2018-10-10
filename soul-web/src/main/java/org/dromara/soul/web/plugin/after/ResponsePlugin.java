@@ -39,7 +39,7 @@ import reactor.core.publisher.Mono;
 import java.util.Objects;
 
 /**
- * ResponsePlugin.
+ * this is response plugin.
  *
  * @author xiaoyu
  */
@@ -86,7 +86,6 @@ public class ResponsePlugin implements SoulPlugin {
                 }
                 assert clientResponse != null;
                 return response.writeWith(clientResponse.body(BodyExtractors.toDataBuffers()));
-
             }
         }));
 
@@ -114,7 +113,7 @@ public class ResponsePlugin implements SoulPlugin {
      */
     @Override
     public String named() {
-        return "Response";
+        return "SoulResponse";
     }
 
 }

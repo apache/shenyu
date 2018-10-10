@@ -23,7 +23,7 @@ import org.dromara.soul.common.dto.zk.ConditionZkDTO;
 /**
  * this is match impl.
  *
- * @author xiaoyu(549477611 @ qq.com)
+ * @author xiaoyu(Myth)
  */
 public class MatchOperatorJudge implements OperatorJudge {
 

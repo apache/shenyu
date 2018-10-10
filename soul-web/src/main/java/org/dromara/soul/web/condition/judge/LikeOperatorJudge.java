@@ -23,7 +23,7 @@ import org.dromara.soul.common.dto.zk.ConditionZkDTO;
 /**
  * this is like impl.
  *
- * @author xiaoyu(549477611 @ qq.com)
+ * @author xiaoyu(Myth)
  */
 public class LikeOperatorJudge implements OperatorJudge {
 

@@ -33,13 +33,13 @@ import reactor.core.publisher.Mono;
 import java.time.LocalDateTime;
 
 /**
- * time Verify Filter.
+ * this is visit time verify filter.
  *
  * @author xiaoyu(Myth)
  */
 public class TimeWebFilter extends AbstractWebFilter {
 
-    @Value("${soul.timeDelay}")
+    @Value("${soul.timeDelay:10}")
     private long timeDelay;
 
     @Override
@@ -50,11 +50,9 @@ public class TimeWebFilter extends AbstractWebFilter {
         final LocalDateTime start = DateUtils.parseLocalDateTime(timestamp);
         final LocalDateTime now = LocalDateTime.now();
         final long between = DateUtils.acquireMinutesBetween(start, now);
-        //时间间隔在 TIME_DELAY 以内，可以通过，否则不能通过
         if (between < timeDelay) {
             return Mono.just(true);
         }
-
         return Mono.just(false);
     }
 
