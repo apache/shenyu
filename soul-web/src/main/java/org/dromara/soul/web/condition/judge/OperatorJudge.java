@@ -23,7 +23,7 @@ import org.dromara.soul.common.dto.zk.ConditionZkDTO;
 /**
  * this is operator Judge.
  *
- * @author xiaoyu(549477611 @ qq.com)
+ * @author xiaoyu(Myth)
  */
 @FunctionalInterface
 public interface OperatorJudge {

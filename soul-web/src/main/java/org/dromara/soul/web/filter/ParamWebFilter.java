@@ -40,7 +40,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Param verify Filter.
+ * this is http post param verify filter.
  *
  * @author xiaoyu(Myth)
  */

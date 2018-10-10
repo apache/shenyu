@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * this is condition Strategy.
  *
- * @author xiaoyu(549477611 @ qq.com)
+ * @author xiaoyu(Myth)
  */
 public interface MatchStrategy {
 
