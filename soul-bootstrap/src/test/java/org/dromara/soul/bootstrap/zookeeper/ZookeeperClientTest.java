@@ -29,6 +29,7 @@ import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.dto.convert.DubboHandle;
 import org.dromara.soul.common.dto.convert.RateLimiterHandle;
 import org.dromara.soul.common.dto.convert.RewriteHandle;
+import org.dromara.soul.common.dto.convert.SpringCloudHandle;
 import org.dromara.soul.common.dto.convert.WafHandle;
 import org.dromara.soul.common.dto.zk.AppAuthZkDTO;
 import org.dromara.soul.common.dto.zk.ConditionZkDTO;
@@ -49,6 +50,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.swing.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -227,7 +229,11 @@ public class ZookeeperClientTest extends BaseTest {
         return dto1;
     }
 
-    private DivideHandle buildDivideHandle() {
+    public static void main(String[] args) {
+        System.out.println(JSONUtils.toJson(buildSpringCloudHandle()));
+    }
+
+    private static DivideHandle buildDivideHandle() {
         DivideHandle divideHandle = new DivideHandle();
         divideHandle.setLoadBalance(LoadBalanceEnum.ROUND_ROBIN.getName());
         divideHandle.setCommandKey("PDM");
@@ -239,7 +245,7 @@ public class ZookeeperClientTest extends BaseTest {
         return divideHandle;
     }
 
-    private DubboHandle buildDubboHandle() {
+    private static DubboHandle buildDubboHandle() {
         DubboHandle dubboHandle = new DubboHandle();
         dubboHandle.setAppName("local");
         dubboHandle.setRegistry("zookeeper://localhost:2181");
@@ -249,7 +255,7 @@ public class ZookeeperClientTest extends BaseTest {
         return dubboHandle;
     }
 
-    private RateLimiterHandle buildRateLimiterHandle() {
+    private static RateLimiterHandle buildRateLimiterHandle() {
         RateLimiterHandle rateLimiterHandle = new RateLimiterHandle();
         rateLimiterHandle.setBurstCapacity(1);
         rateLimiterHandle.setReplenishRate(1);
@@ -257,21 +263,28 @@ public class ZookeeperClientTest extends BaseTest {
     }
 
 
-    private WafHandle buildWafHandle() {
+    private static WafHandle buildWafHandle() {
         WafHandle wafHandle = new WafHandle();
         wafHandle.setPermission(WafEnum.ALLOW.getName());
         wafHandle.setStatusCode("403");
         return wafHandle;
     }
 
-    private RewriteHandle buildRewriteHandle() {
+    private static RewriteHandle buildRewriteHandle() {
         RewriteHandle rewriteHandle = new RewriteHandle();
         rewriteHandle.setRewriteURI("rewrite");
         return rewriteHandle;
     }
 
 
-    private List<DivideUpstream> buildUpstreamList() {
+    private static SpringCloudHandle buildSpringCloudHandle(){
+        SpringCloudHandle springCloudHandle = new SpringCloudHandle();
+        springCloudHandle.setPath("/xxx");
+        springCloudHandle.setServiceId("xiaoyu");
+        return springCloudHandle;
+    }
+
+    private static List<DivideUpstream> buildUpstreamList() {
         List<DivideUpstream> upstreams = Lists.newArrayList();
         DivideUpstream upstream = new DivideUpstream();
         upstream.setTimeout(1000);
