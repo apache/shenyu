@@ -63,4 +63,11 @@ public interface PluginService {
      * @return {@linkplain CommonPager}
      */
     CommonPager<PluginVO> listByPage(PluginQuery pluginQuery);
+
+    /**
+     * sync plugins.
+     *
+     * @return rows
+     */
+    int sync();
 }

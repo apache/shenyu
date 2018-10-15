@@ -34,7 +34,9 @@
         <if test="pluginId != null">
             where plugin_id = #{pluginId,jdbcType=VARCHAR}
         </if>
-        limit #{pageParameter.offset},#{pageParameter.pageSize}
+        <if test="pageParameter.offset != null">
+            limit #{pageParameter.offset},#{pageParameter.pageSize}
+        </if>
     </select>
 
     <select id="countByQuery" parameterType="org.dromara.soul.admin.query.SelectorQuery" resultType="java.lang.Integer">

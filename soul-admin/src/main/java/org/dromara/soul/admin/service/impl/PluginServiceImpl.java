@@ -19,17 +19,22 @@
 package org.dromara.soul.admin.service.impl;
 
 import org.I0Itec.zkclient.ZkClient;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.PluginDTO;
 import org.dromara.soul.admin.entity.PluginDO;
-import org.dromara.soul.admin.mapper.PluginMapper;
+import org.dromara.soul.admin.entity.SelectorDO;
+import org.dromara.soul.admin.mapper.*;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
-import org.dromara.soul.admin.query.PluginQuery;
+import org.dromara.soul.admin.query.*;
 import org.dromara.soul.admin.service.PluginService;
 import org.dromara.soul.admin.vo.PluginVO;
 import org.dromara.soul.common.constant.ZkPathConstants;
+import org.dromara.soul.common.dto.zk.ConditionZkDTO;
 import org.dromara.soul.common.dto.zk.PluginZkDTO;
+import org.dromara.soul.common.dto.zk.RuleZkDTO;
+import org.dromara.soul.common.dto.zk.SelectorZkDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -46,11 +51,24 @@ public class PluginServiceImpl implements PluginService {
 
     private final PluginMapper pluginMapper;
 
+    private final SelectorMapper selectorMapper;
+
+    private SelectorConditionMapper selectorConditionMapper;
+
+    private final RuleMapper ruleMapper;
+
+    private final RuleConditionMapper ruleConditionMapper;
+
     private final ZkClient zkClient;
 
     @Autowired(required = false)
-    public PluginServiceImpl(final PluginMapper pluginMapper, final ZkClient zkClient) {
+    public PluginServiceImpl(final PluginMapper pluginMapper, final SelectorMapper selectorMapper, final SelectorConditionMapper selectorConditionMapper,
+                             final RuleMapper ruleMapper, final RuleConditionMapper ruleConditionMapper, final ZkClient zkClient) {
         this.pluginMapper = pluginMapper;
+        this.selectorMapper = selectorMapper;
+        this.selectorConditionMapper = selectorConditionMapper;
+        this.ruleMapper = ruleMapper;
+        this.ruleConditionMapper = ruleConditionMapper;
         this.zkClient = zkClient;
     }
 
@@ -132,5 +150,88 @@ public class PluginServiceImpl implements PluginService {
                 pluginMapper.selectByQuery(pluginQuery).stream()
                         .map(PluginVO::buildPluginVO)
                         .collect(Collectors.toList()));
+    }
+
+    /**
+     * sync plugins.
+     *
+     * @return rows
+     */
+    @Override
+    public int sync() {
+        List<PluginDO> pluginDOs = pluginMapper.selectByQuery(new PluginQuery());
+        List<String> pluginZKs = zkClient.getChildren(ZkPathConstants.buildPluginParentPath());
+        pluginDOs.forEach(pluginDO -> {
+            if (CollectionUtils.isNotEmpty(pluginZKs)) {
+                pluginZKs.remove(pluginDO.getName());
+            }
+            String pluginPath = ZkPathConstants.buildPluginPath(pluginDO.getName());
+            if (!zkClient.exists(pluginPath)) {
+                zkClient.createPersistent(pluginPath, true);
+            }
+            zkClient.writeData(pluginPath, new PluginZkDTO(pluginDO.getId(),
+                    pluginDO.getName(), pluginDO.getEnabled()));
+
+            List<String> selectorZKs = zkClient.getChildren(ZkPathConstants.buildSelectorParentPath(pluginDO.getName()));
+            selectorMapper.selectByQuery(new SelectorQuery(pluginDO.getId(), null)).forEach(selectorDO -> {
+                if (CollectionUtils.isNotEmpty(selectorZKs)) {
+                    selectorZKs.remove(selectorDO.getId());
+                }
+                String selectorRealPath = ZkPathConstants.buildSelectorRealPath(pluginDO.getName(), selectorDO.getId());
+                if (!zkClient.exists(selectorRealPath)) {
+                    zkClient.createPersistent(selectorRealPath, true);
+                }
+                List<ConditionZkDTO> selectorConditionZkDTOs = selectorConditionMapper.selectByQuery(new SelectorConditionQuery(selectorDO.getId())).stream().map(selectorConditionDO ->
+                        new ConditionZkDTO(selectorConditionDO.getParamType(), selectorConditionDO.getOperator(),
+                                selectorConditionDO.getParamName(), selectorConditionDO.getParamValue())).collect(Collectors.toList());
+                zkClient.writeData(selectorRealPath, new SelectorZkDTO(selectorDO.getId(), selectorDO.getPluginId(), pluginDO.getName(),
+                        selectorDO.getName(), selectorDO.getMatchMode(), selectorDO.getType(), selectorDO.getSort(), selectorDO.getEnabled(),
+                        selectorDO.getLoged(), selectorDO.getContinued(), selectorConditionZkDTOs));
+
+                List<String> ruleZKs = zkClient.getChildren(ZkPathConstants.buildRuleParentPath(pluginDO.getName()));
+                ruleMapper.selectByQuery(new RuleQuery(selectorDO.getId(), null)).forEach(ruleDO -> {
+                    if (CollectionUtils.isNotEmpty(ruleZKs)) {
+                        ruleZKs.remove(selectorDO.getId() + ZkPathConstants.SELECTOR_JOIN_RULE + ruleDO.getId());
+                    }
+                    String ruleRealPath = ZkPathConstants.buildRulePath(pluginDO.getName(), selectorDO.getId(), ruleDO.getId());
+                    if (!zkClient.exists(ruleRealPath)) {
+                        zkClient.createPersistent(ruleRealPath, true);
+                    }
+                    List<ConditionZkDTO> ruleConditionZkDTOs = ruleConditionMapper.selectByQuery(new RuleConditionQuery(ruleDO.getId())).stream().map(ruleConditionDO ->
+                            new ConditionZkDTO(ruleConditionDO.getParamType(), ruleConditionDO.getOperator(),
+                                    ruleConditionDO.getParamName(), ruleConditionDO.getParamValue())).collect(Collectors.toList());
+                    zkClient.writeData(ruleRealPath, new RuleZkDTO(ruleDO.getId(), pluginDO.getName(), ruleDO.getSelectorId(),
+                            ruleDO.getMatchMode(), ruleDO.getSort(), ruleDO.getEnabled(), ruleDO.getLoged(), ruleDO.getHandle(), ruleConditionZkDTOs));
+                });
+
+                ruleZKs.forEach(ruleZK -> {
+                    zkClient.delete(ZkPathConstants.buildRulePath(pluginDO.getName(), selectorDO.getId(), ruleZK));
+                });
+            });
+
+            selectorZKs.forEach(selectorZK -> {
+                zkClient.delete(ZkPathConstants.buildSelectorRealPath(pluginDO.getName(), selectorZK));
+                String ruleParentPath = ZkPathConstants.buildRuleParentPath(pluginDO.getName());
+                zkClient.getChildren(ruleParentPath).forEach(selectorRulePath -> {
+                    if (selectorRulePath.split(ZkPathConstants.SELECTOR_JOIN_RULE)[0].equals(selectorZK)) {
+                        zkClient.delete(ruleParentPath + "/" + selectorRulePath);
+                    }
+                });
+            });
+        });
+
+        pluginZKs.forEach(pluginZK -> {
+            zkClient.delete(ZkPathConstants.buildPluginPath(pluginZK));
+            String selectorParentPath = ZkPathConstants.buildSelectorParentPath(pluginZK);
+            if (zkClient.exists(selectorParentPath)) {
+                zkClient.delete(selectorParentPath);
+            }
+            String ruleParentPath = ZkPathConstants.buildRuleParentPath(pluginZK);
+            if (zkClient.exists(ruleParentPath)) {
+                zkClient.delete(ruleParentPath);
+            }
+        });
+
+        return pluginDOs.size();
     }
 }
