@@ -56,7 +56,16 @@ public final class ZkPathConstants implements Constants {
     }
 
     /**
-     * buildPluginPath.
+     * buildPluginParentPath.
+     *
+     * @return zk path for plugin
+     */
+    public static String buildPluginParentPath() {
+        return String.join("/", PLUGIN_PARENT);
+    }
+
+    /**
+     * buildPluginRealPath.
      *
      * @param pluginName pluginName
      * @return zk path for plugin

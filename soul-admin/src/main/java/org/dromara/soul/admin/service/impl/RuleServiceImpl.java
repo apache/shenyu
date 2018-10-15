@@ -122,9 +122,9 @@ public class RuleServiceImpl implements RuleService {
             zkClient.createPersistent(ruleRealPath, true);
         }
 
-        List<ConditionZkDTO> conditionZkDTOs = ruleConditionDTOs.stream().map(selectorConditionDTO ->
-                new ConditionZkDTO(selectorConditionDTO.getParamType(), selectorConditionDTO.getOperator(),
-                        selectorConditionDTO.getParamName(), selectorConditionDTO.getParamValue())).collect(Collectors.toList());
+        List<ConditionZkDTO> conditionZkDTOs = ruleConditionDTOs.stream().map(ruleConditionDTO ->
+                new ConditionZkDTO(ruleConditionDTO.getParamType(), ruleConditionDTO.getOperator(),
+                        ruleConditionDTO.getParamName(), ruleConditionDTO.getParamValue())).collect(Collectors.toList());
         zkClient.writeData(ruleRealPath, new RuleZkDTO(ruleDO.getId(), pluginDO.getName(), ruleDO.getSelectorId(),
                 ruleDO.getMatchMode(), ruleDO.getSort(), ruleDO.getEnabled(), ruleDO.getLoged(), ruleDO.getHandle(), conditionZkDTOs));
         return ruleCount;

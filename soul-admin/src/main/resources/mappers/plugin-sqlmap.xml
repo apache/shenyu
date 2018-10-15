@@ -27,7 +27,9 @@
         <if test="name != null">
             where name = #{name,jdbcType=VARCHAR}
         </if>
-        limit #{pageParameter.offset},#{pageParameter.pageSize}
+        <if test="pageParameter.offset != null">
+            limit #{pageParameter.offset},#{pageParameter.pageSize}
+        </if>
     </select>
 
     <select id="countByQuery" parameterType="org.dromara.soul.admin.query.PluginQuery" resultType="java.lang.Integer">

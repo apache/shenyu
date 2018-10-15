@@ -121,4 +121,19 @@ public class PluginController {
             return Mono.create(soulResult -> soulResult.success(SoulResult.error("delete plugins exception")));
         }
     }
+
+    /**
+     * sync plugins.
+     *
+     * @return {@linkplain Mono}
+     */
+    @PostMapping("/sync")
+    public Mono<SoulResult> syncPlugins() {
+        try {
+            Integer syncCount = pluginService.sync();
+            return Mono.create(soulResult -> soulResult.success(SoulResult.success("sync plugins success", syncCount)));
+        } catch (Exception e) {
+            return Mono.create(soulResult -> soulResult.success(SoulResult.error("sync plugins exception")));
+        }
+    }
 }
