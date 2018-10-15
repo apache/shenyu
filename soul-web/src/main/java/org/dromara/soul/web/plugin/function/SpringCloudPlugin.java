@@ -97,7 +97,7 @@ public class SpringCloudPlugin extends AbstractSoulPlugin {
                     s::error, s::success);
             s.onCancel(sub::unsubscribe);
             if (command.isCircuitBreakerOpen()) {
-                LogUtils.error(LOGGER, () -> handle.getGroupKey() + ":spring cloud  execute circuitBreaker is Open !");
+                LogUtils.error(LOGGER, () -> handle.getGroupKey() + ":spring cloud execute circuitBreaker is Open !");
             }
         }).doOnError(throwable -> {
             throwable.printStackTrace();

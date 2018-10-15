@@ -88,7 +88,7 @@ public class DividePlugin extends AbstractSoulPlugin {
         final List<DivideUpstream> upstreamList =
                 zookeeperCacheManager.findUpstreamListByRuleId(rule.getId());
         if (CollectionUtils.isEmpty(upstreamList)) {
-            LogUtils.error(LOGGER, "divide upstream  config error：{}", () -> rule.toString());
+            LogUtils.error(LOGGER, "divide upstream config error：{}", () -> rule.toString());
             return chain.execute(exchange);
         }
         DivideUpstream divideUpstream;

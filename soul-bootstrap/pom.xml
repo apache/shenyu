@@ -31,7 +31,6 @@
 
     <dependencies>
 
-
         <dependency>
             <groupId>org.dromara.soul</groupId>
             <artifactId>soul-spring-boot-starter</artifactId>
@@ -48,8 +47,6 @@
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
 
-
-
         <dependency>
             <groupId>org.projectreactor</groupId>
             <artifactId>reactor-spring</artifactId>
@@ -61,6 +58,7 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
     </dependencies>
 
 
