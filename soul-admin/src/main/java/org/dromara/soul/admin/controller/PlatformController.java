@@ -20,6 +20,7 @@ import reactor.core.publisher.Mono;
 public class PlatformController {
 
     private final DashboardUserService dashboardUserService;
+
     private final EnumService enumService;
 
     @Autowired(required = false)
@@ -32,7 +33,7 @@ public class PlatformController {
      * login dashboard user.
      *
      * @param userName user name
-     * @param userName user password
+     * @param password user password
      * @return {@linkplain Mono}
      */
     @GetMapping("/login")
