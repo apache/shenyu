@@ -29,6 +29,11 @@
  
  # 插件集合   
  
+  [插件集合介绍](https://github.com/Dromara/soul/wiki/%E6%8F%92%E4%BB%B6%E9%9B%86%E5%90%88)
+ 
+ 
+ 
+ # 用户手册
  
  
 # Support
