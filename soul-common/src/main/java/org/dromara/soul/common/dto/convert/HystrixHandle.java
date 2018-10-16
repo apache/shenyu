@@ -27,7 +27,7 @@ public class HystrixHandle {
     private int maxConcurrentRequests;
 
     /**
-     * hystrix  withCircuitBreakerErrorThresholdPercentage.
+     * hystrix withCircuitBreakerErrorThresholdPercentage.
      */
     private int errorThresholdPercentage;
 
