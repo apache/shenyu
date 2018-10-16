@@ -20,4 +20,16 @@
   ![](https://yu199195.github.io/images/soul/soul-framework.png)
  
  
+ # 配置中心
+ 
+ **数据结构图:**
+ 
+ ![](https://yu199195.github.io/images/soul/soul-zookeeper.png)
+ 
+ 
+ 
+ **数据流程图:**
+ 
+ ![](https://yu199195.github.io/images/soul/plugin-data.png)
+ 
  # 文档未完成。。。待续     
