@@ -34,7 +34,7 @@
         <if test="pluginId != null">
             where plugin_id = #{pluginId,jdbcType=VARCHAR}
         </if>
-        <if test="pageParameter.offset != null">
+        <if test="pageParameter != null">
             limit #{pageParameter.offset},#{pageParameter.pageSize}
         </if>
     </select>
