@@ -127,10 +127,25 @@ public class PluginController {
      *
      * @return {@linkplain Mono}
      */
-    @PostMapping("/sync")
-    public Mono<SoulResult> syncPlugins() {
+    @PostMapping("/syncPluginAll")
+    public Mono<SoulResult> syncPluginAll() {
         try {
-            Integer syncCount = pluginService.sync();
+            Integer syncCount = pluginService.syncPluginAll();
+            return Mono.create(soulResult -> soulResult.success(SoulResult.success("sync plugins success", syncCount)));
+        } catch (Exception e) {
+            return Mono.create(soulResult -> soulResult.success(SoulResult.error("sync plugins exception")));
+        }
+    }
+
+    /**
+     * sync plugins.
+     *
+     * @return {@linkplain Mono}
+     */
+    @PutMapping("/syncPluginData/{id}")
+    public Mono<SoulResult> syncPluginData(@PathVariable("id") final String id) {
+        try {
+            Integer syncCount = pluginService.syncPluginData(id);
             return Mono.create(soulResult -> soulResult.success(SoulResult.success("sync plugins success", syncCount)));
         } catch (Exception e) {
             return Mono.create(soulResult -> soulResult.success(SoulResult.error("sync plugins exception")));

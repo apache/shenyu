@@ -37,6 +37,7 @@ import org.dromara.soul.common.dto.zk.RuleZkDTO;
 import org.dromara.soul.common.dto.zk.SelectorZkDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -79,6 +80,7 @@ public class PluginServiceImpl implements PluginService {
      * @return rows
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public int createOrUpdate(final PluginDTO pluginDTO) {
         int pluginCount;
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
@@ -103,6 +105,7 @@ public class PluginServiceImpl implements PluginService {
      * @return rows
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public int delete(final List<String> ids) {
         int pluginCount = 0;
         for (String id : ids) {
@@ -152,13 +155,19 @@ public class PluginServiceImpl implements PluginService {
                         .collect(Collectors.toList()));
     }
 
+    @Override
+    public int syncPluginData(String pluginId) {
+        return 0;
+    }
+
+
     /**
      * sync plugins.
      *
      * @return rows
      */
     @Override
-    public int sync() {
+    public int syncPluginAll() {
         List<PluginDO> pluginDOs = pluginMapper.selectByQuery(new PluginQuery());
         List<String> pluginZKs = zkClient.getChildren(ZkPathConstants.buildPluginParentPath());
         pluginDOs.forEach(pluginDO -> {
