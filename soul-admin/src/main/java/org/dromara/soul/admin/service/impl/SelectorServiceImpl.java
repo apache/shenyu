@@ -135,6 +135,7 @@ public class SelectorServiceImpl implements SelectorService {
      * @return rows
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public int delete(final List<String> ids) {
         int selectorCount = 0;
         for (String id : ids) {

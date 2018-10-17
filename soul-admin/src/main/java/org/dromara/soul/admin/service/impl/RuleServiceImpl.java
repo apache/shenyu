@@ -42,6 +42,7 @@ import org.dromara.soul.common.dto.zk.ConditionZkDTO;
 import org.dromara.soul.common.dto.zk.RuleZkDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -81,6 +82,7 @@ public class RuleServiceImpl implements RuleService {
      * @return rows
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public int createOrUpdate(final RuleDTO ruleDTO) {
         int ruleCount;
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
@@ -137,6 +139,7 @@ public class RuleServiceImpl implements RuleService {
      * @return rows
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public int delete(final List<String> ids) {
         int ruleCount = 0;
         for (String id : ids) {
