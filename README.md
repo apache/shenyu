@@ -24,18 +24,38 @@
  
  # 配置中心
    
-   [配置中心介绍](https://github.com/Dromara/soul/wiki/%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83%E4%BB%8B%E7%BB%8D)
+  * ### [配置中心介绍](https://github.com/Dromara/soul/wiki/%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83%E4%BB%8B%E7%BB%8D)
  
  
  # 插件集合   
  
-  [插件集合介绍](https://github.com/Dromara/soul/wiki/%E6%8F%92%E4%BB%B6%E9%9B%86%E5%90%88)
+  * ### [插件集合介绍](https://github.com/Dromara/soul/wiki/%E6%8F%92%E4%BB%B6%E9%9B%86%E5%90%88)
  
  
  
- # 用户手册
+# Prerequisite
+
+  *   #### JDK 1.8+
+
+  *   #### Maven 3.2.x
+
+  *   #### Git
+
+  *   #### zookeeper
+  
+  *   #### mysql
+  
  
- 
+# 部署文档
+
+  * ### [部署文档](https://github.com/Dromara/soul/wiki/%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3)
+
+
+# 用户手册
+
+  * ### [用户手册](https://github.com/Dromara/soul/wiki/%E4%BD%BF%E7%94%A8%E6%96%87%E6%A1%A3)
+
+
 # Support
 
  * ###  如有任何问题欢迎加入QQ群(429951241)进行讨论
