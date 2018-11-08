@@ -151,9 +151,11 @@ public class SelectorServiceImpl implements SelectorService {
             }
             String ruleParentPath = ZkPathConstants.buildRuleParentPath(pluginDO.getName());
             zkClient.getChildren(ruleParentPath).forEach(selectorRulePath -> {
-                if (selectorRulePath.split(ZkPathConstants.SELECTOR_JOIN_RULE)[0].equals(selectorDO.getId())) {
-                    zkClient.delete(ruleParentPath + "/" + selectorRulePath);
-                }
+                if (zkClient.exists(selectorRulePath)) {
+                    if (selectorRulePath.split(ZkPathConstants.SELECTOR_JOIN_RULE)[0].equals(selectorDO.getId())) {
+                        zkClient.delete(ruleParentPath + "/" + selectorRulePath);
+                    } }
+
             });
         }
         return selectorCount;

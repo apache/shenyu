@@ -176,6 +176,16 @@ public interface Constants {
      */
     int SLEEP_WINDOW_INMILLISECONDS = 5000;
 
+    /**
+     * The constant TIME_OUT.
+     */
+    int TIME_OUT = 3000;
+
+    /**
+     * The constant COLONS.
+     */
+    String COLONS = ":";
+
 
 }
 
