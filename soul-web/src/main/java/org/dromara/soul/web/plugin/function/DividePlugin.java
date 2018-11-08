@@ -33,6 +33,7 @@ import org.dromara.soul.common.utils.GSONUtils;
 import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.web.balance.LoadBalance;
 import org.dromara.soul.web.balance.factory.LoadBalanceFactory;
+import org.dromara.soul.web.cache.UpstreamCacheManager;
 import org.dromara.soul.web.cache.ZookeeperCacheManager;
 import org.dromara.soul.web.plugin.AbstractSoulPlugin;
 import org.dromara.soul.web.plugin.SoulPluginChain;
@@ -66,14 +67,17 @@ public class DividePlugin extends AbstractSoulPlugin {
 
     private final ZookeeperCacheManager zookeeperCacheManager;
 
+    private final UpstreamCacheManager upstreamCacheManager;
+
     /**
      * Instantiates a new Divide plugin.
      *
      * @param zookeeperCacheManager the zookeeper cache manager
      */
-    public DividePlugin(final ZookeeperCacheManager zookeeperCacheManager) {
+    public DividePlugin(final ZookeeperCacheManager zookeeperCacheManager, final UpstreamCacheManager upstreamCacheManager) {
         super(zookeeperCacheManager);
         this.zookeeperCacheManager = zookeeperCacheManager;
+        this.upstreamCacheManager = upstreamCacheManager;
     }
 
     @Override
@@ -86,7 +90,7 @@ public class DividePlugin extends AbstractSoulPlugin {
         final DivideHandle divideHandle = GSONUtils.getInstance().fromJson(handle, DivideHandle.class);
 
         final List<DivideUpstream> upstreamList =
-                zookeeperCacheManager.findUpstreamListByRuleId(rule.getId());
+                upstreamCacheManager.findUpstreamListByRuleId(rule.getId());
         if (CollectionUtils.isEmpty(upstreamList)) {
             LogUtils.error(LOGGER, "divide upstream config error：{}", () -> rule.toString());
             return chain.execute(exchange);

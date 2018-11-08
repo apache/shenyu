@@ -19,6 +19,7 @@
 package org.dromara.soul.common.dto.convert;
 
 import lombok.Data;
+import lombok.ToString;
 
 import java.io.Serializable;
 
@@ -28,6 +29,7 @@ import java.io.Serializable;
  * @author xiaoyu(Myth).
  */
 @Data
+@ToString
 public class DivideUpstream implements Serializable {
 
     /**
