@@ -50,18 +50,10 @@ public class UrlUtils {
     }
 
     private static boolean isHostConnector(final String host, final int port) {
-        Socket socket = new Socket();
-        try {
+        try (Socket socket = new Socket()) {
             socket.connect(new InetSocketAddress(host, port));
         } catch (IOException e) {
-            e.printStackTrace();
             return false;
-        } finally {
-            try {
-                socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
         return true;
     }
@@ -69,15 +61,9 @@ public class UrlUtils {
     private static boolean isHostReachable(final String host) {
         try {
             return InetAddress.getByName(host).isReachable(1000);
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ignored) {
         }
         return false;
-    }
-
-    public static void main(String[] args) {
-        final boolean success = checkUrl("www.baidu.com");
-        System.out.println(success);
     }
 
 }

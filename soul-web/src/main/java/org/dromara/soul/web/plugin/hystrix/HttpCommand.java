@@ -20,17 +20,21 @@
 package org.dromara.soul.web.plugin.hystrix;
 
 import com.netflix.hystrix.HystrixObservableCommand;
+import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.enums.HttpMethodEnum;
 import org.dromara.soul.common.enums.ResultEnum;
+import org.dromara.soul.common.result.SoulResult;
 import org.dromara.soul.common.utils.GSONUtils;
+import org.dromara.soul.common.utils.JSONUtils;
 import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.web.plugin.SoulPluginChain;
 import org.dromara.soul.web.request.RequestDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
@@ -41,6 +45,7 @@ import rx.Observable;
 import rx.RxReactiveStreams;
 
 import java.time.Duration;
+import java.util.Objects;
 
 /**
  * HttpHystrixCommand.
@@ -89,6 +94,29 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
         return RxReactiveStreams.toObservable(doHttpRequest());
     }
 
+
+    @Override
+    protected Observable<Void> resumeWithFallback() {
+        return RxReactiveStreams.toObservable(doFallback());
+    }
+
+    private Mono<Void> doFallback() {
+        if (isFailedExecution()) {
+            LogUtils.error(LOGGER, "http have error:{}", () -> getExecutionException().getMessage());
+        }
+        if (getExecutionException() instanceof HystrixRuntimeException) {
+            HystrixRuntimeException e = (HystrixRuntimeException) getExecutionException();
+            if (e.getFailureType() == HystrixRuntimeException.FailureType.TIMEOUT) {
+                exchange.getResponse().setStatusCode(HttpStatus.GATEWAY_TIMEOUT);
+            } else {
+                exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+        final SoulResult error = SoulResult.error(Constants.HTTP_ERROR_RESULT);
+        return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
+                .bufferFactory().wrap(Objects.requireNonNull(JSONUtils.toJson(error)).getBytes())));
+    }
+
     /**
      * execute http request.
      *
@@ -98,7 +126,7 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
         if (requestDTO.getHttpMethod().equals(HttpMethodEnum.GET.getName())) {
             String uri = buildRealURL();
             if (StringUtils.isNoneBlank(requestDTO.getExtInfo())) {
-                uri = uri + "?" +GSONUtils.getInstance().toGetParam(requestDTO.getExtInfo());
+                uri = uri + "?" + GSONUtils.getInstance().toGetParam(requestDTO.getExtInfo());
             }
             return WEB_CLIENT.get().uri(uri)
                     .exchange()
@@ -119,10 +147,14 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
 
     private String buildRealURL() {
         final String rewriteURI = (String) exchange.getAttributes().get(Constants.REWRITE_URI);
-        if (StringUtils.isBlank(rewriteURI)) {
-            return String.join("/", divideUpstream.getUpstreamUrl(), requestDTO.getMethod());
+        String protocol = divideUpstream.getProtocol();
+        if (StringUtils.isBlank(protocol)) {
+            protocol = "http://";
         }
-        return String.join("/", divideUpstream.getUpstreamUrl(), rewriteURI);
+        if (StringUtils.isBlank(rewriteURI)) {
+            return protocol + divideUpstream.getUpstreamUrl().trim() + "/" + requestDTO.getMethod().trim();
+        }
+        return protocol + divideUpstream.getUpstreamUrl().trim() + "/" + rewriteURI.trim();
     }
 
     private Mono<Void> doNext(final ClientResponse res) {

@@ -141,19 +141,18 @@ public class RuleServiceImpl implements RuleService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int delete(final List<String> ids) {
-        int ruleCount = 0;
         for (String id : ids) {
             RuleDO ruleDO = ruleMapper.selectById(id);
             SelectorDO selectorDO = selectorMapper.selectById(ruleDO.getSelectorId());
             PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
-            ruleCount += ruleMapper.delete(id);
+            ruleMapper.delete(id);
             ruleConditionMapper.deleteByQuery(new RuleConditionQuery(id));
             String ruleRealPath = ZkPathConstants.buildRulePath(pluginDO.getName(), selectorDO.getId(), ruleDO.getId());
             if (zkClient.exists(ruleRealPath)) {
                 zkClient.delete(ruleRealPath);
             }
         }
-        return ruleCount;
+        return ids.size();
     }
 
     /**

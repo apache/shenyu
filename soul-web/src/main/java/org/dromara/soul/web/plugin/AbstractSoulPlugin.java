@@ -79,8 +79,8 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
      */
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final SoulPluginChain chain) {
-        final PluginZkDTO redisDTO = zookeeperCacheManager.findPluginByName(named());
-        if (!(skip(exchange) || redisDTO == null || !redisDTO.getEnabled())) {
+        final PluginZkDTO pluginZkDTO = zookeeperCacheManager.findPluginByName(named());
+        if (!(skip(exchange) || pluginZkDTO == null || !pluginZkDTO.getEnabled())) {
             //获取selector
             final List<SelectorZkDTO> selectors = zookeeperCacheManager.findSelectorByPluginName(named());
             if (CollectionUtils.isEmpty(selectors)) {
@@ -109,7 +109,7 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
                 if (rule.getLoged()) {
                     LogUtils.info(LOGGER, () -> {
                         assert body != null;
-                        return body.getModule() + ":" + body.getMethod() + "  match  " + named() + "  rule  is name :" + rule.getName();
+                        return body.getModule() + ":" + body.getMethod() + " match " + named() + " rule is name :" + rule.getName();
                     });
                 }
                 return doExecute(exchange, chain, rule);

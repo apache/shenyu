@@ -97,7 +97,6 @@ public class SoulTestHttpRouter {
 
 
     private Mono<ServerResponse> postHandler(ServerRequest req) {
-        final Mono<RequestDTO> requestBeanMono = req.bodyToMono(RequestDTO.class);
         ResultBean resultBean = new ResultBean(1, "msg", "post hello world");
         return ok().body(Mono.just(resultBean), ResultBean.class);
     }

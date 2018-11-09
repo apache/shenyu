@@ -1,7 +1,7 @@
 package org.dromara.soul.web.cache;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.common.dto.convert.DivideHandle;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.dto.zk.RuleZkDTO;
@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -98,30 +97,16 @@ public class UpstreamCacheManager {
     public void execute(final RuleZkDTO ruleZkDTO) {
         final DivideHandle divideHandle =
                 GSONUtils.getInstance().fromJson(ruleZkDTO.getHandle(), DivideHandle.class);
-        if (Objects.nonNull(divideHandle)
-                && divideHandle.getUpstreamList().size() > 1) {
+        if (Objects.nonNull(divideHandle)) {
             final List<DivideUpstream> upstreamList = divideHandle.getUpstreamList();
+            List<DivideUpstream> resultList = Lists.newArrayListWithCapacity(upstreamList.size());
             for (DivideUpstream divideUpstream : upstreamList) {
-                final boolean pass =UrlUtils.checkUrl(divideUpstream.getUpstreamUrl());
-                if (!pass) {
-                    if (UPSTREAM_MAP.containsKey(ruleZkDTO.getId())) {
-                        UPSTREAM_MAP.get(ruleZkDTO.getId())
-                                .removeIf(d -> d.getUpstreamUrl().equals(divideUpstream.getUpstreamUrl()));
-                    }
-                } else {
-                    if (UPSTREAM_MAP.containsKey(ruleZkDTO.getId())) {
-                        final List<DivideUpstream> divideUpstreams = UPSTREAM_MAP.get(ruleZkDTO.getId());
-                        if (CollectionUtils.isNotEmpty(divideUpstreams)) {
-                            if (!divideUpstreams.contains(divideUpstream)) {
-                                divideUpstreams.add(divideUpstream);
-                                UPSTREAM_MAP.put(ruleZkDTO.getId(), divideUpstreams);
-                            }
-                        }
-                    } else {
-                        UPSTREAM_MAP.put(ruleZkDTO.getId(), Collections.singletonList(divideUpstream));
-                    }
+                final boolean pass = UrlUtils.checkUrl(divideUpstream.getUpstreamUrl());
+                if (pass) {
+                    resultList.add(divideUpstream);
                 }
             }
+            UPSTREAM_MAP.put(ruleZkDTO.getId(), resultList);
         }
     }
 

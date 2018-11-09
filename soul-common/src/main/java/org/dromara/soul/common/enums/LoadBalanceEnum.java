@@ -22,10 +22,6 @@ package org.dromara.soul.common.enums;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
 /**
  * load balance enum.
  *
@@ -56,15 +52,5 @@ public enum LoadBalanceEnum {
 
     private final boolean support;
 
-
-    /**
-     * acquireList.
-     *
-     * @return {@link LoadBalanceEnum }
-     */
-    public static List<LoadBalanceEnum> acquireList() {
-        return Arrays.stream(LoadBalanceEnum.values())
-                .filter(e -> e.support).collect(Collectors.toList());
-    }
 
 }
