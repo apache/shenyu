@@ -24,10 +24,10 @@ spring:
         connectionTimeout : 2000
         serializer : KryoSerializer
 soul:
-    timeDelay: 1000
     bufferSize: 2048
     timeVerify:
-       enabled: true
+       timeDelay : 10
+       enabled: false
 eureka:
   instance:
     leaseRenewalIntervalInSeconds: 10

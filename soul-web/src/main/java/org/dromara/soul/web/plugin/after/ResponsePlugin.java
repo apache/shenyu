@@ -74,7 +74,7 @@ public class ResponsePlugin implements SoulPlugin {
                 }
             } else {
                 ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
-                if (response.getStatusCode() == HttpStatus.BAD_GATEWAY) {
+                if (response.getStatusCode() == HttpStatus.BAD_GATEWAY || Objects.isNull(clientResponse)) {
                     final String result = JSONUtils.toJson(SoulResult.error(Constants.HTTP_ERROR_RESULT));
                     return response.writeWith(Mono.just(exchange.getResponse()
                             .bufferFactory()
@@ -84,7 +84,6 @@ public class ResponsePlugin implements SoulPlugin {
                     return response.writeWith(Mono.just(exchange.getResponse()
                             .bufferFactory().wrap(Objects.requireNonNull(JSONUtils.toJson(result)).getBytes())));
                 }
-                assert clientResponse != null;
                 return response.writeWith(clientResponse.body(BodyExtractors.toDataBuffers()));
             }
         }));

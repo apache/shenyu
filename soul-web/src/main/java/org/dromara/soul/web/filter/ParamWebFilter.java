@@ -69,7 +69,6 @@ public class ParamWebFilter extends AbstractWebFilter {
 
     private Boolean verify(final RequestDTO requestDTO, final ServerWebExchange exchange) {
         if (Objects.isNull(requestDTO)
-                || StringUtils.isBlank(requestDTO.getTimestamp())
                 || StringUtils.isBlank(requestDTO.getModule())
                 || StringUtils.isBlank(requestDTO.getMethod())) {
             return false;

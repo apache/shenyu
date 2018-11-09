@@ -38,6 +38,11 @@ public class DivideUpstream implements Serializable {
     private String upstreamHost;
 
     /**
+     * this is http protocol.
+     */
+    private String protocol;
+
+    /**
      * url.
      */
     private String upstreamUrl;
