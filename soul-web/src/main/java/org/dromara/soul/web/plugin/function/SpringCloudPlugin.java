@@ -68,11 +68,21 @@ public class SpringCloudPlugin extends AbstractSoulPlugin {
             return Mono.empty();
         }
 
+        final RequestDTO requestDTO = exchange.getAttribute(Constants.REQUESTDTO);
+
+        assert requestDTO != null;
+
         final SpringCloudHandle handle = GSONUtils.getInstance().fromJson(rule.getHandle(), SpringCloudHandle.class);
 
-        if (Objects.isNull(handle)
-                || StringUtils.isBlank(handle.getServiceId())
-                || StringUtils.isBlank(handle.getPath())) {
+        if(StringUtils.isBlank(handle.getGroupKey())){
+            handle.setGroupKey(requestDTO.getModule());
+        }
+
+        if(StringUtils.isBlank(handle.getCommandKey())){
+            handle.setCommandKey(requestDTO.getMethod());
+        }
+
+        if (StringUtils.isBlank(handle.getServiceId()) || StringUtils.isBlank(handle.getPath())) {
             LogUtils.error(LOGGER, () -> "can not config spring cloud handle....");
             return Mono.empty();
         }
@@ -86,7 +96,7 @@ public class SpringCloudPlugin extends AbstractSoulPlugin {
 
         final URI uri = loadBalancer.reconstructURI(serviceInstance, URI.create(handle.getPath()));
 
-        final RequestDTO requestDTO = exchange.getAttribute(Constants.REQUESTDTO);
+
 
         SpringCloudCommand command =
                 new SpringCloudCommand(HystrixBuilder.build(handle),

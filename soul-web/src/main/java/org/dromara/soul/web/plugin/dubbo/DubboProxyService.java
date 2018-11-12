@@ -159,8 +159,8 @@ public class DubboProxyService {
             reference.setGroup(dubboHandle.getGroup());
         }
 
-        if (StringUtils.isNoneBlank(dubboHandle.getLoadbalance())) {
-            reference.setLoadbalance(dubboHandle.getLoadbalance());
+        if (StringUtils.isNoneBlank(dubboHandle.getLoadBalance())) {
+            reference.setLoadbalance(dubboHandle.getLoadBalance());
         }
 
         Optional.ofNullable(dubboHandle.getTimeout()).ifPresent(reference::setTimeout);

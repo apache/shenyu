@@ -21,6 +21,7 @@ package org.dromara.soul.web.plugin.function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.constant.DubboParamConstants;
 import org.dromara.soul.common.dto.convert.DubboHandle;
 import org.dromara.soul.common.dto.zk.RuleZkDTO;
 import org.dromara.soul.common.enums.PluginEnum;
@@ -83,15 +84,26 @@ public class DubboPlugin extends AbstractSoulPlugin {
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final RuleZkDTO rule) {
 
+
+        final Map<String, Object> paramMap = exchange.getAttribute(Constants.DUBBO_RPC_PARAMS);
+
+        assert paramMap != null;
+
         final String handle = rule.getHandle();
 
         final DubboHandle dubboHandle = GSONUtils.getInstance().fromJson(handle, DubboHandle.class);
 
+        if (StringUtils.isBlank(dubboHandle.getGroupKey())) {
+            dubboHandle.setGroupKey(String.valueOf(paramMap.get(DubboParamConstants.INTERFACE_NAME)));
+        }
+
+        if (StringUtils.isBlank(dubboHandle.getCommandKey())) {
+            dubboHandle.setCommandKey(String.valueOf(paramMap.get(DubboParamConstants.METHOD)));
+        }
+
         if (!checkData(dubboHandle)) {
             return chain.execute(exchange);
         }
-
-        final Map<String, Object> paramMap = exchange.getAttribute(Constants.DUBBO_RPC_PARAMS);
 
         DubboCommand command =
                 new DubboCommand(HystrixBuilder.build(dubboHandle), paramMap,

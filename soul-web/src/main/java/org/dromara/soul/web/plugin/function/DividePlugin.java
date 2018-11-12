@@ -21,6 +21,7 @@ package org.dromara.soul.web.plugin.function;
 
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.convert.DivideHandle;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
@@ -88,6 +89,14 @@ public class DividePlugin extends AbstractSoulPlugin {
         final String handle = rule.getHandle();
 
         final DivideHandle divideHandle = GSONUtils.getInstance().fromJson(handle, DivideHandle.class);
+
+        if(StringUtils.isBlank(divideHandle.getGroupKey())){
+            divideHandle.setGroupKey(body.getModule());
+        }
+
+        if(StringUtils.isBlank(divideHandle.getCommandKey())){
+            divideHandle.setCommandKey(body.getMethod());
+        }
 
         final List<DivideUpstream> upstreamList =
                 upstreamCacheManager.findUpstreamListByRuleId(rule.getId());
