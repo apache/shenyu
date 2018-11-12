@@ -154,7 +154,7 @@ public class DubboPlugin extends AbstractSoulPlugin {
     public Boolean skip(final ServerWebExchange exchange) {
         final RequestDTO body = exchange.getAttribute(Constants.REQUESTDTO);
         assert body != null;
-        return Objects.equals(body.getRpcType(), RpcTypeEnum.HTTP.getName());
+        return !Objects.equals(body.getRpcType(), RpcTypeEnum.DUBBO.getName());
     }
 
     @Override

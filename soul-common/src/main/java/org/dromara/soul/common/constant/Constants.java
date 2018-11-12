@@ -124,12 +124,17 @@ public interface Constants {
     /**
      * The constant HTTP_ERROR_RESULT.
      */
-    String HTTP_ERROR_RESULT = "this is bad request or fuse ing  Please try again later";
+    String HTTP_ERROR_RESULT = "this is bad request or fuse ing please try again later";
 
     /**
      * The constant DUBBO_ERROR_RESULT.
      */
-    String DUBBO_ERROR_RESULT = "dubbo rpc have error or fuse ing  Please check your param and  try again later";
+    String DUBBO_ERROR_RESULT = "dubbo rpc have error or fuse ing please check your param and  try again later";
+
+    /**
+     * The constant SPRING_CLOUD_ERROR_RESULT.
+     */
+    String SPRING_CLOUD_ERROR_RESULT = "spring cloud rpc have error or fuse ing please check your param and  try again later";
 
     /**
      * The constant TIMEOUT_RESULT.

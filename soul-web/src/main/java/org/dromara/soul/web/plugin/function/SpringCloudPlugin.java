@@ -74,11 +74,11 @@ public class SpringCloudPlugin extends AbstractSoulPlugin {
 
         final SpringCloudHandle handle = GSONUtils.getInstance().fromJson(rule.getHandle(), SpringCloudHandle.class);
 
-        if(StringUtils.isBlank(handle.getGroupKey())){
+        if (StringUtils.isBlank(handle.getGroupKey())) {
             handle.setGroupKey(requestDTO.getModule());
         }
 
-        if(StringUtils.isBlank(handle.getCommandKey())){
+        if (StringUtils.isBlank(handle.getCommandKey())) {
             handle.setCommandKey(requestDTO.getMethod());
         }
 
@@ -95,7 +95,6 @@ public class SpringCloudPlugin extends AbstractSoulPlugin {
         }
 
         final URI uri = loadBalancer.reconstructURI(serviceInstance, URI.create(handle.getPath()));
-
 
 
         SpringCloudCommand command =
@@ -141,6 +140,6 @@ public class SpringCloudPlugin extends AbstractSoulPlugin {
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
         final RequestDTO body = exchange.getAttribute(Constants.REQUESTDTO);
-        return Objects.equals(Objects.requireNonNull(body).getRpcType(), RpcTypeEnum.SPRING_CLOUD.getName());
+        return !Objects.equals(Objects.requireNonNull(body).getRpcType(), RpcTypeEnum.SPRING_CLOUD.getName());
     }
 }
