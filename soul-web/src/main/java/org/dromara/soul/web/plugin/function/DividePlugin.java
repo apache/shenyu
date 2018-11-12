@@ -90,11 +90,11 @@ public class DividePlugin extends AbstractSoulPlugin {
 
         final DivideHandle divideHandle = GSONUtils.getInstance().fromJson(handle, DivideHandle.class);
 
-        if(StringUtils.isBlank(divideHandle.getGroupKey())){
+        if (StringUtils.isBlank(divideHandle.getGroupKey())) {
             divideHandle.setGroupKey(body.getModule());
         }
 
-        if(StringUtils.isBlank(divideHandle.getCommandKey())){
+        if (StringUtils.isBlank(divideHandle.getCommandKey())) {
             divideHandle.setCommandKey(body.getMethod());
         }
 
@@ -156,7 +156,7 @@ public class DividePlugin extends AbstractSoulPlugin {
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
         final RequestDTO body = exchange.getAttribute(Constants.REQUESTDTO);
-        return Objects.equals(Objects.requireNonNull(body).getRpcType(), RpcTypeEnum.DUBBO.getName());
+        return !Objects.equals(Objects.requireNonNull(body).getRpcType(), RpcTypeEnum.HTTP.getName());
     }
 
     /**

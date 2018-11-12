@@ -19,6 +19,7 @@
 package org.dromara.soul.web.plugin.hystrix;
 
 import com.netflix.hystrix.HystrixObservableCommand;
+import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.convert.SpringCloudHandle;
@@ -150,8 +151,17 @@ public class SpringCloudCommand extends HystrixObservableCommand<Void> {
         if (isFailedExecution()) {
             LogUtils.error(LOGGER, "spring cloud rpc have error:{}", () -> getExecutionException().getMessage());
         }
+
+        if (getExecutionException() instanceof HystrixRuntimeException) {
+            HystrixRuntimeException e = (HystrixRuntimeException) getExecutionException();
+            if (e.getFailureType() == HystrixRuntimeException.FailureType.TIMEOUT) {
+                exchange.getResponse().setStatusCode(HttpStatus.GATEWAY_TIMEOUT);
+            } else {
+                exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
         exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-        final SoulResult error = SoulResult.error(Constants.DUBBO_ERROR_RESULT);
+        final SoulResult error = SoulResult.error(Constants.SPRING_CLOUD_ERROR_RESULT);
         return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
                 .bufferFactory().wrap(Objects.requireNonNull(JSONUtils.toJson(error)).getBytes())));
     }

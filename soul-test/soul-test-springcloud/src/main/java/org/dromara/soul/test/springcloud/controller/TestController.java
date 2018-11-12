@@ -19,8 +19,10 @@
 package org.dromara.soul.test.springcloud.controller;
 
 
+import org.dromara.soul.test.springcloud.dto.UserDTO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,13 +38,13 @@ public class TestController {
 
 
     @PostMapping("/payment")
-    public Boolean post(final String userId) {
-        return true;
+    public String post(@RequestBody final UserDTO userDTO) {
+        return userDTO.getUserId();
     }
 
 
     @GetMapping("/findByUserId")
-    public String get(@RequestParam("userId") String userId) {
+    public String findByUserId() {
         return "helloWorld!";
     }
 
