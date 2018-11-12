@@ -65,10 +65,15 @@ public class ResponsePlugin implements SoulPlugin {
             assert requestDTO != null;
             if (requestDTO.getRpcType().equals(RpcTypeEnum.DUBBO.getName())) {
 
-                final Object object = exchange.getAttribute(Constants.DUBBO_RPC_RESULT);
+                final Object result = exchange.getAttribute(Constants.DUBBO_RPC_RESULT);
                 try {
+                    if(Objects.isNull(result)){
+                        return response.writeWith(Mono.just(exchange.getResponse()
+                                .bufferFactory().wrap(Objects.requireNonNull(JSONUtils
+                                        .toJson(SoulResult.error(Constants.DUBBO_ERROR_RESULT))).getBytes())));
+                    }
                     return response.writeWith(Mono.just(exchange.getResponse()
-                            .bufferFactory().wrap(Objects.requireNonNull(JSONUtils.toJson(object)).getBytes())));
+                            .bufferFactory().wrap(Objects.requireNonNull(JSONUtils.toJson(result)).getBytes())));
                 } catch (SoulException e) {
                     return Mono.empty();
                 }
@@ -78,11 +83,11 @@ public class ResponsePlugin implements SoulPlugin {
                     final String result = JSONUtils.toJson(SoulResult.error(Constants.HTTP_ERROR_RESULT));
                     return response.writeWith(Mono.just(exchange.getResponse()
                             .bufferFactory()
-                            .wrap(Objects.requireNonNull(JSONUtils.toJson(result)).getBytes())));
+                            .wrap(Objects.requireNonNull(result).getBytes())));
                 } else if (response.getStatusCode() == HttpStatus.GATEWAY_TIMEOUT) {
                     final String result = JSONUtils.toJson(SoulResult.timeout(Constants.TIMEOUT_RESULT));
                     return response.writeWith(Mono.just(exchange.getResponse()
-                            .bufferFactory().wrap(Objects.requireNonNull(JSONUtils.toJson(result)).getBytes())));
+                            .bufferFactory().wrap(Objects.requireNonNull(result).getBytes())));
                 }
                 return response.writeWith(clientResponse.body(BodyExtractors.toDataBuffers()));
             }
