@@ -1,13 +1,7 @@
 # What is the Soul
 ### 这是一个异步的,高性能的,跨语言的,响应式的API网关。我希望能够有一样东西像灵魂一样，保护您的微服务。参考了Kong，Spring-Cloud-Gateway等优秀的网关后，站在巨人的肩膀上，Soul由此诞生！
 
-
-# 官网
-
- ### http://dromara.org
- 
-
- # Features
+# Features
 
    * 支持各种语言,无缝集成Dubbo,SpringCloud。
    
@@ -19,6 +13,15 @@
    
    * 支持集群部署，支持A/B Test。
    
+ 
+ # 官网
+ 
+  ## https://dromara.org 或者 http://dromara.org
+  
+  
+# 文档 
+   
+   ## https://dromara.org/website/zh-cn/docs/soul/soul.html
    
  # 架构图
  
@@ -26,16 +29,6 @@
  
  # 执行流程图
    ![](https://yu199195.github.io/images/soul/soul-handler.png)
- 
- # 配置中心
-   
-  * ### [配置中心介绍](https://github.com/Dromara/soul/wiki/%E9%85%8D%E7%BD%AE%E4%B8%AD%E5%BF%83%E4%BB%8B%E7%BB%8D)
- 
- 
- # 插件集合   
- 
-  * ### [插件集合介绍](https://github.com/Dromara/soul/wiki/%E6%8F%92%E4%BB%B6%E9%9B%86%E5%90%88)
- 
  
  
 # Prerequisite
@@ -50,16 +43,6 @@
   
   *   #### mysql
   
- 
-# 部署文档
-
-  * ### [部署文档](https://github.com/Dromara/soul/wiki/%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3)
-
-
-# 用户手册
-
-  * ### [用户手册](https://github.com/Dromara/soul/wiki/%E4%BD%BF%E7%94%A8%E6%96%87%E6%A1%A3)
-
 
 # Support
 
