@@ -27,7 +27,7 @@ import org.dromara.soul.common.enums.HttpMethodEnum;
 import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.result.SoulResult;
 import org.dromara.soul.common.utils.GSONUtils;
-import org.dromara.soul.common.utils.JSONUtils;
+import org.dromara.soul.common.utils.JsonUtils;
 import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.web.plugin.SoulPluginChain;
 import org.dromara.soul.web.request.RequestDTO;
@@ -163,6 +163,6 @@ public class SpringCloudCommand extends HystrixObservableCommand<Void> {
         exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
         final SoulResult error = SoulResult.error(Constants.SPRING_CLOUD_ERROR_RESULT);
         return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
-                .bufferFactory().wrap(Objects.requireNonNull(JSONUtils.toJson(error)).getBytes())));
+                .bufferFactory().wrap(Objects.requireNonNull(JsonUtils.toJson(error)).getBytes())));
     }
 }

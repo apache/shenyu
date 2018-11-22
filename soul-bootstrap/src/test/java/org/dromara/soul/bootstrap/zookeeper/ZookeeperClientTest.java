@@ -43,14 +43,13 @@ import org.dromara.soul.common.enums.ParamTypeEnum;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.SelectorTypeEnum;
 import org.dromara.soul.common.enums.WafEnum;
-import org.dromara.soul.common.utils.JSONUtils;
+import org.dromara.soul.common.utils.JsonUtils;
 import org.junit.After;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.swing.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -213,24 +212,24 @@ public class ZookeeperClientTest extends BaseTest {
         dto1.setLoged(Boolean.TRUE);
         dto1.setMatchMode(MatchModeEnum.AND.getCode());
         if (PluginEnum.DIVIDE.getName().equals(pluginName)) {
-            final String jsonStr = JSONUtils.toJson(buildDivideHandle());
+            final String jsonStr = JsonUtils.toJson(buildDivideHandle());
             dto1.setHandle(jsonStr);
         } else if (PluginEnum.RATE_LIMITER.getName().equals(pluginName)) {
-            final String jsonStr = JSONUtils.toJson(buildRateLimiterHandle());
+            final String jsonStr = JsonUtils.toJson(buildRateLimiterHandle());
             dto1.setHandle(jsonStr);
         } else if (PluginEnum.WAF.getName().equals(pluginName)) {
-            dto1.setHandle(JSONUtils.toJson(buildWafHandle()));
+            dto1.setHandle(JsonUtils.toJson(buildWafHandle()));
         } else if (PluginEnum.REWRITE.getName().equals(pluginName)) {
-            dto1.setHandle(JSONUtils.toJson(buildRewriteHandle()));
+            dto1.setHandle(JsonUtils.toJson(buildRewriteHandle()));
         } else if (PluginEnum.DUBBO.getName().equals(pluginName)) {
-            dto1.setHandle(JSONUtils.toJson(buildDubboHandle()));
+            dto1.setHandle(JsonUtils.toJson(buildDubboHandle()));
         }
         dto1.setSort(120);
         return dto1;
     }
 
     public static void main(String[] args) {
-        System.out.println(JSONUtils.toJson(buildSpringCloudHandle()));
+        System.out.println(JsonUtils.toJson(buildSpringCloudHandle()));
     }
 
     private static DivideHandle buildDivideHandle() {

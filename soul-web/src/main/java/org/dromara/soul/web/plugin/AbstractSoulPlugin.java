@@ -27,7 +27,7 @@ import org.dromara.soul.common.dto.zk.SelectorZkDTO;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.SelectorTypeEnum;
 import org.dromara.soul.common.result.SoulResult;
-import org.dromara.soul.common.utils.JSONUtils;
+import org.dromara.soul.common.utils.JsonUtils;
 import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.web.cache.ZookeeperCacheManager;
 import org.dromara.soul.web.condition.strategy.MatchStrategyFactory;
@@ -120,7 +120,7 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
                         || PluginEnum.SPRING_CLOUD.getName().equals(named())) {
                     LogUtils.info(LOGGER, () -> Objects.requireNonNull(body).getModule() + ":" + body.getMethod() + " not match  " + named() + "  rule");
                     final SoulResult error = SoulResult.error(HttpStatus.NOT_FOUND.value(), Constants.UPSTREAM_NOT_FIND);
-                    return exchange.getResponse().writeWith(Mono.just(exchange.getResponse().bufferFactory().wrap(Objects.requireNonNull(JSONUtils.toJson(error)).getBytes())));
+                    return exchange.getResponse().writeWith(Mono.just(exchange.getResponse().bufferFactory().wrap(Objects.requireNonNull(JsonUtils.toJson(error)).getBytes())));
                 }
                 return chain.execute(exchange);
             }

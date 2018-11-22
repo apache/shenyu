@@ -33,22 +33,27 @@ public interface DubboTestService {
      * find by id.
      *
      * @param id id
-     * @return DubboTest
+     * @return DubboTest dubbo test
      */
     DubboTest findById(String id);
 
+
     /**
-     * insert .
+     * Insert dubbo test.
      *
-     * @param dubboTest dubboTest
+     * @param dubboTest the dubbo test
+     * @return the dubbo test
      */
     DubboTest insert(DubboTest dubboTest);
 
 
     /**
-     * insert by more param.
+     * Insert 3 dubbo test.
      *
-     * @param dubboTest dubboTest
+     * @param dubboTest the dubbo test
+     * @param id        the id
+     * @param name      the name
+     * @return the dubbo test
      */
     DubboTest insert3(DubboTest dubboTest, String id, String name);
 
@@ -57,18 +62,46 @@ public interface DubboTestService {
      *
      * @param id   id
      * @param name name
-     * @return DubboTest
+     * @return DubboTest dubbo test
      */
     DubboTest findByIdAndName(String id, String name);
 
 
+    /**
+     * Test entity string list param dubbo test.
+     *
+     * @param dubboTest the dubbo test
+     * @param id        the id
+     * @param ids       the ids
+     * @return the dubbo test
+     */
     DubboTest testEntityStringListParam(DubboTest dubboTest, String id, List<String> ids);
 
+    /**
+     * Test entity string param dubbo test.
+     *
+     * @param dubboTest the dubbo test
+     * @param id        the id
+     * @param name      the name
+     * @return the dubbo test
+     */
     DubboTest testEntityStringParam(DubboTest dubboTest, String id, Integer name);
 
-
+    /**
+     * Test multi entity dubbo test.
+     *
+     * @param test1 the test 1
+     * @param test2 the test 2
+     * @return the dubbo test
+     */
     DubboTest testMultiEntity(DubboTest test1, DubboTest test2);
 
+    /**
+     * Test list entity dubbo test.
+     *
+     * @param dubboTestList the dubbo test list
+     * @return the dubbo test
+     */
     DubboTest testListEntity(List<DubboTest> dubboTestList);
 
 }

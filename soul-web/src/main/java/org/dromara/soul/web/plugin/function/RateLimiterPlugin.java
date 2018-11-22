@@ -26,7 +26,7 @@ import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.result.SoulResult;
 import org.dromara.soul.common.utils.GSONUtils;
-import org.dromara.soul.common.utils.JSONUtils;
+import org.dromara.soul.common.utils.JsonUtils;
 import org.dromara.soul.web.cache.ZookeeperCacheManager;
 import org.dromara.soul.web.plugin.AbstractSoulPlugin;
 import org.dromara.soul.web.plugin.SoulPluginChain;
@@ -91,7 +91,7 @@ public class RateLimiterPlugin extends AbstractSoulPlugin {
                         exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
                         return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
                                 .bufferFactory()
-                                .wrap(Objects.requireNonNull(JSONUtils.toJson(SoulResult.error(Constants.TOO_MANY_REQUESTS)))
+                                .wrap(Objects.requireNonNull(JsonUtils.toJson(SoulResult.error(Constants.TOO_MANY_REQUESTS)))
                                         .getBytes())));
                     }
                     return chain.execute(exchange);
