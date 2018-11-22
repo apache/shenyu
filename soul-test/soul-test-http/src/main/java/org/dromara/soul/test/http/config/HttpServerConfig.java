@@ -29,15 +29,18 @@ import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * HttpServerConfig.
+ *
  * @author xiaoyu
  */
 @Configuration
 public class HttpServerConfig {
-
 
     private final Environment environment;
 
@@ -51,10 +54,18 @@ public class HttpServerConfig {
         return soulTestHttpRouter.routes();
     }
 
-
     @Bean
     public Scheduler scheduler() {
-        ExecutorService threadPool = Executors.newFixedThreadPool(100);
+        ExecutorService threadPool = new ThreadPoolExecutor(100, 100,
+                0L, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<>(), runnable -> {
+                    Thread thread = new Thread(runnable, "http-exe");
+                    thread.setDaemon(false);
+                    if (thread.getPriority() != Thread.NORM_PRIORITY) {
+                        thread.setPriority(Thread.NORM_PRIORITY);
+                    }
+                    return thread;
+                });
         return Schedulers.fromExecutor(threadPool);
     }
 }
