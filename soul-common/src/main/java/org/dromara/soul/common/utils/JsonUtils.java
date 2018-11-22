@@ -52,11 +52,11 @@ import java.util.Map;
  *
  * @author xiaoyu
  */
-public final class JSONUtils {
+public final class JsonUtils {
 
     private static ObjectMapper mapper = new ObjectMapper();
 
-    private static Logger logger = LoggerFactory.getLogger(JSONUtils.class);
+    private static Logger logger = LoggerFactory.getLogger(JsonUtils.class);
 
 
     /**
@@ -110,10 +110,6 @@ public final class JSONUtils {
         mapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
         mapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_CONTROL_CHARS, true);
         mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
-        //SimpleModule byteModule = new SimpleModule();
-        //byteModule.addSerializer(byte[].class, new ByteSerializer());
-        //byteModule.addDeserializer(byte[].class, new ByteDeserializer());
-        //mapper.registerModule(byteModule);
         JavaTimeModule javaTimeModule = new JavaTimeModule();
         javaTimeModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         javaTimeModule.addSerializer(LocalDate.class, new LocalDateSerializer(DateTimeFormatter.ofPattern("yyyy-MM-dd")));

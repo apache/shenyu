@@ -24,7 +24,7 @@ import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.exception.SoulException;
 import org.dromara.soul.common.result.SoulResult;
-import org.dromara.soul.common.utils.JSONUtils;
+import org.dromara.soul.common.utils.JsonUtils;
 import org.dromara.soul.web.plugin.SoulPlugin;
 import org.dromara.soul.web.plugin.SoulPluginChain;
 import org.dromara.soul.web.request.RequestDTO;
@@ -69,23 +69,23 @@ public class ResponsePlugin implements SoulPlugin {
                 try {
                     if(Objects.isNull(result)){
                         return response.writeWith(Mono.just(exchange.getResponse()
-                                .bufferFactory().wrap(Objects.requireNonNull(JSONUtils
+                                .bufferFactory().wrap(Objects.requireNonNull(JsonUtils
                                         .toJson(SoulResult.error(Constants.DUBBO_ERROR_RESULT))).getBytes())));
                     }
                     return response.writeWith(Mono.just(exchange.getResponse()
-                            .bufferFactory().wrap(Objects.requireNonNull(JSONUtils.toJson(result)).getBytes())));
+                            .bufferFactory().wrap(Objects.requireNonNull(JsonUtils.toJson(result)).getBytes())));
                 } catch (SoulException e) {
                     return Mono.empty();
                 }
             } else {
                 ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
                 if (response.getStatusCode() == HttpStatus.BAD_GATEWAY || Objects.isNull(clientResponse)) {
-                    final String result = JSONUtils.toJson(SoulResult.error(Constants.HTTP_ERROR_RESULT));
+                    final String result = JsonUtils.toJson(SoulResult.error(Constants.HTTP_ERROR_RESULT));
                     return response.writeWith(Mono.just(exchange.getResponse()
                             .bufferFactory()
                             .wrap(Objects.requireNonNull(result).getBytes())));
                 } else if (response.getStatusCode() == HttpStatus.GATEWAY_TIMEOUT) {
-                    final String result = JSONUtils.toJson(SoulResult.timeout(Constants.TIMEOUT_RESULT));
+                    final String result = JsonUtils.toJson(SoulResult.timeout(Constants.TIMEOUT_RESULT));
                     return response.writeWith(Mono.just(exchange.getResponse()
                             .bufferFactory().wrap(Objects.requireNonNull(result).getBytes())));
                 }
