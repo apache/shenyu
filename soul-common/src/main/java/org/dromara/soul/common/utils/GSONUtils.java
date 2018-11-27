@@ -19,11 +19,21 @@
 package org.dromara.soul.common.utils;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
 
+import java.lang.reflect.Type;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * GSONUtils.
@@ -36,6 +46,53 @@ public class GSONUtils {
     private static final GSONUtils INSTANCE = new GSONUtils();
 
     private static final Gson GSON = new Gson();
+
+    private class MapDeserializer<T, U> implements JsonDeserializer<Map<T, U>> {
+
+        @Override
+        public Map<T, U> deserialize(JsonElement json, Type type, JsonDeserializationContext context) throws JsonParseException {
+            if (!json.isJsonObject()) {
+                return null;
+            }
+
+            JsonObject jsonObject = json.getAsJsonObject();
+            Set<Map.Entry<String, JsonElement>> jsonEntrySet = jsonObject.entrySet();
+            Map<T, U> deserializedMap = new LinkedHashMap<>();
+
+            for (Map.Entry<String, JsonElement> entry : jsonEntrySet) {
+                U value = context.deserialize(entry.getValue(), this.getType(entry.getValue()));
+                deserializedMap.put((T) entry.getKey(), value);
+            }
+
+            return deserializedMap;
+        }
+
+        /**
+         * Get JsonElement class type.
+         *
+         * @param element the element
+         * @return Class class
+         */
+        public Class getType(JsonElement element) {
+            if (element.isJsonPrimitive()) {
+                final JsonPrimitive primitive = element.getAsJsonPrimitive();
+                if (primitive.isString()) {
+                    return String.class;
+                } else if (primitive.isNumber()) {
+                    String numStr = primitive.getAsString();
+                    if (numStr.contains(".") || numStr.contains("e")
+                            || numStr.contains("E")) {
+                        return Double.class;
+                    }
+                    return Long.class;
+                } else if (primitive.isBoolean()) {
+                    return Boolean.class;
+                }
+            }
+            return element.getClass();
+        }
+    }
+
 
     /**
      * Gets instance.
@@ -117,7 +174,8 @@ public class GSONUtils {
      * @return the map
      */
     public Map<String, Object> toObjectMap(final String json) {
-        return GSON.fromJson(json, new TypeToken<Map<String, Object>>() {
-        }.getType());
+        TypeToken typeToken = new TypeToken<Map<String, Object>>() {};
+        Gson gson = new GsonBuilder().serializeNulls().registerTypeHierarchyAdapter(typeToken.getRawType(), new MapDeserializer<String, Object>()).create();
+        return gson.fromJson(json, typeToken.getType());
     }
 }
