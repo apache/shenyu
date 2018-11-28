@@ -49,33 +49,21 @@ public class SoulTestHttpRouter {
 
     public RouterFunction<ServerResponse> routes() {
         return nest(path("/test"),
-                route(POST("/helloWorld2").and(accept(APPLICATION_JSON)), this :: postHandler)
-                        .and(route(POST("/helloWorld"), this :: getHandler)
-                                .and(route(GET("/rewrite"), this :: rewriteHandler))
-                                .and(route(GET("/pdm"), this :: pdmHttpGet))
+                route(POST("/helloWorld2").and(accept(APPLICATION_JSON)), this::postHandler)
+                        .and(route(POST("/helloWorld"), this::getHandler)
+                                .and(route(GET("/rewrite"), this::rewriteHandler))
+                                .and(route(GET("/pdm"), this::pdmHttpGet))
                                 .and(route(GET("/oms"), this::omsHttpGet))
                                 .and(route(GET("/timeout"), this::testRetry))));
     }
 
 
     private Mono<ServerResponse> testRetry(ServerRequest req) {
-      /*  final MultiValueMap<String, String> multiValueMap = req.queryParams();
-
-        final List<String> list = multiValueMap.get("count");
-        Integer count = Integer.valueOf(list.get(0));
-
-        int i = ATOMIC_INTEGER.incrementAndGet();
-        System.out.println("Retry count: " + i);
-        if (i < count) {
-            throw new RuntimeException("temporarily broken");
-        }*/
         int i = ATOMIC_INTEGER.incrementAndGet();
         System.out.println("Retry count: " + i);
         ResultBean resultBean = new ResultBean(1, "msg", "this is retry hello world");
         return ok().body(Mono.just(resultBean), ResultBean.class);
-
     }
-
 
     private Mono<ServerResponse> pdmHttpGet(ServerRequest req) {
         ResultBean resultBean = new ResultBean(1, "msg", "this is pdm get hello world");
@@ -93,7 +81,6 @@ public class SoulTestHttpRouter {
         ResultBean resultBean = new ResultBean(1, "msg", "this is rewrite hello world");
         return ok().body(Mono.just(resultBean), ResultBean.class);
     }
-
 
 
     private Mono<ServerResponse> postHandler(ServerRequest req) {
