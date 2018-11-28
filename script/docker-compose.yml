@@ -1,0 +1,26 @@
+version: '2.1'
+services:
+  soul_admin:
+    build: ../soul-admin/.
+    image: "soul/soul-admin"
+    container_name: soul_admin
+    hostname: soul_admin
+    restart: always
+    ports:
+      - "8086:8086"
+    networks:
+      - soul
+  soul_bootstrap:
+    build: ../soul-bootstrap/.
+    image: "soul/soul-bootstrap"
+    container_name: soul_bootstrap
+    restart: always
+    hostname: soul_bootstrap
+    ports:
+      - "8089:8089"
+    depends_on:
+      - soul_admin
+    networks:
+      - soul
+networks:
+   soul:
