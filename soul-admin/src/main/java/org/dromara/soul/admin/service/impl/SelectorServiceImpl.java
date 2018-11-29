@@ -19,17 +19,23 @@
 package org.dromara.soul.admin.service.impl;
 
 import org.I0Itec.zkclient.ZkClient;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.SelectorConditionDTO;
 import org.dromara.soul.admin.dto.SelectorDTO;
 import org.dromara.soul.admin.entity.PluginDO;
+import org.dromara.soul.admin.entity.RuleDO;
 import org.dromara.soul.admin.entity.SelectorConditionDO;
 import org.dromara.soul.admin.entity.SelectorDO;
 import org.dromara.soul.admin.mapper.PluginMapper;
+import org.dromara.soul.admin.mapper.RuleConditionMapper;
+import org.dromara.soul.admin.mapper.RuleMapper;
 import org.dromara.soul.admin.mapper.SelectorConditionMapper;
 import org.dromara.soul.admin.mapper.SelectorMapper;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
+import org.dromara.soul.admin.query.RuleConditionQuery;
+import org.dromara.soul.admin.query.RuleQuery;
 import org.dromara.soul.admin.query.SelectorConditionQuery;
 import org.dromara.soul.admin.query.SelectorQuery;
 import org.dromara.soul.admin.service.SelectorService;
@@ -57,17 +63,23 @@ public class SelectorServiceImpl implements SelectorService {
 
     private SelectorConditionMapper selectorConditionMapper;
 
+    private final RuleMapper ruleMapper;
+
+    private final RuleConditionMapper ruleConditionMapper;
+
     private PluginMapper pluginMapper;
 
     private final ZkClient zkClient;
 
     @Autowired(required = false)
     public SelectorServiceImpl(final SelectorMapper selectorMapper, final SelectorConditionMapper selectorConditionMapper,
-                               final PluginMapper pluginMapper, final ZkClient zkClient) {
+                               final PluginMapper pluginMapper, final ZkClient zkClient, RuleMapper ruleMapper, RuleConditionMapper ruleConditionMapper) {
         this.selectorMapper = selectorMapper;
         this.selectorConditionMapper = selectorConditionMapper;
         this.pluginMapper = pluginMapper;
         this.zkClient = zkClient;
+        this.ruleMapper = ruleMapper;
+        this.ruleConditionMapper = ruleConditionMapper;
     }
 
     /**
@@ -135,27 +147,36 @@ public class SelectorServiceImpl implements SelectorService {
      * @return rows
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public int delete(final List<String> ids) {
-        int selectorCount = 0;
         for (String id : ids) {
+
             SelectorDO selectorDO = selectorMapper.selectById(id);
             PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
 
-            selectorCount = selectorMapper.delete(id);
+            selectorMapper.delete(id);
             selectorConditionMapper.deleteByQuery(new SelectorConditionQuery(id));
 
+            //清除zookeeper上的选择器
             String selectorRealPath = ZkPathConstants.buildSelectorRealPath(pluginDO.getName(), selectorDO.getId());
             if (zkClient.exists(selectorRealPath)) {
                 zkClient.delete(selectorRealPath);
             }
-            String ruleParentPath = ZkPathConstants.buildRuleParentPath(pluginDO.getName());
-            zkClient.getChildren(ruleParentPath).forEach(selectorRulePath -> {
-                if (selectorRulePath.split(ZkPathConstants.SELECTOR_JOIN_RULE)[0].equals(selectorDO.getId())) {
-                    zkClient.delete(ruleParentPath + "/" + selectorRulePath);
+            //清除规则与规则条件
+            final List<RuleDO> ruleDOList = ruleMapper.selectByQuery(new RuleQuery(id, null));
+            if (CollectionUtils.isNotEmpty(ruleDOList)) {
+                for (RuleDO ruleDO : ruleDOList) {
+                    ruleMapper.delete(ruleDO.getId());
+                    ruleConditionMapper.deleteByQuery(new RuleConditionQuery(ruleDO.getId()));
+                    //清除zookeeper上的规则
+                    final String rulePath = ZkPathConstants.buildRulePath(pluginDO.getName(), id, ruleDO.getId());
+                    if (zkClient.exists(rulePath)) {
+                        zkClient.delete(rulePath);
+                    }
                 }
-            });
+            }
         }
-        return selectorCount;
+        return ids.size();
     }
 
     /**

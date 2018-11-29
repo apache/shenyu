@@ -34,6 +34,8 @@ public class VersionUtils {
 
     private static final String VERSION = getVersion(VersionUtils.class, "1.0.0");
 
+    private static final String JAR = ".jar";
+
     private VersionUtils() {
     }
 
@@ -67,7 +69,7 @@ public class VersionUtils {
                     LOGGER.info("No codeSource for class " + cls.getName() + " when getVersion, use default version " + defaultVersion);
                 } else {
                     String file = codeSource.getLocation().getFile();
-                    if (file != null && file.length() > 0 && file.endsWith(".jar")) {
+                    if (file != null && file.length() > 0 && file.endsWith(JAR)) {
                         file = file.substring(0, file.length() - 4);
                         int i = file.lastIndexOf('/');
                         if (i >= 0) {

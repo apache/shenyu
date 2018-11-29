@@ -18,6 +18,7 @@
 
 package org.dromara.soul.web.config;
 
+import org.dromara.soul.web.cache.UpstreamCacheManager;
 import org.dromara.soul.web.cache.ZookeeperCacheManager;
 import org.dromara.soul.web.disruptor.publisher.SoulEventPublisher;
 import org.dromara.soul.web.filter.ParamWebFilter;
@@ -60,6 +61,8 @@ public class SoulConfiguration {
 
     private final RedisRateLimiter redisRateLimiter;
 
+    private final UpstreamCacheManager upstreamCacheManager;
+
     /**
      * Instantiates a new Soul configuration.
      *
@@ -70,10 +73,12 @@ public class SoulConfiguration {
     @Autowired(required = false)
     public SoulConfiguration(final ZookeeperCacheManager zookeeperCacheManager,
                              final SoulEventPublisher soulEventPublisher,
-                             final RedisRateLimiter redisRateLimiter) {
+                             final RedisRateLimiter redisRateLimiter,
+                             final UpstreamCacheManager upstreamCacheManager) {
         this.zookeeperCacheManager = zookeeperCacheManager;
         this.soulEventPublisher = soulEventPublisher;
         this.redisRateLimiter = redisRateLimiter;
+        this.upstreamCacheManager = upstreamCacheManager;
     }
 
     /**
@@ -144,7 +149,7 @@ public class SoulConfiguration {
      */
     @Bean
     public SoulPlugin dividePlugin() {
-        return new DividePlugin(zookeeperCacheManager);
+        return new DividePlugin(zookeeperCacheManager, upstreamCacheManager);
     }
 
     /**
