@@ -45,13 +45,13 @@ public class RequestDTO implements Serializable {
     private String method;
 
     /**
-     *  is rpcType data.  now we only support "http","dubbo" "motan","grpc".
+     *  is rpcType data. now we only support "http","dubbo" "springCloud".
      *  {@linkplain RpcTypeEnum}
      */
     private String rpcType;
 
     /**
-     *  httpMethod  now we only support "get","post" .
+     *  httpMethod now we only support "get","post" .
      * {@linkplain  HttpMethodEnum}
      */
     private String httpMethod;

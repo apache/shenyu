@@ -54,11 +54,6 @@ public class DubboHandle extends HystrixHandle implements Serializable {
     private int port;
 
     /**
-     *  timeout is required.
-     */
-    private Integer timeout;
-
-    /**
      * version.
      */
     private String version;
@@ -74,9 +69,9 @@ public class DubboHandle extends HystrixHandle implements Serializable {
     private Integer retries;
 
     /**
-     * loadbalance random hash robin.
+     * {@linkplain org.dromara.soul.common.enums.LoadBalanceEnum}
      */
-    private String loadbalance;
+    private String loadBalance;
 
 
 }

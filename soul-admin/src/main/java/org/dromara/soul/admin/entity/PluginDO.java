@@ -61,6 +61,7 @@ public class PluginDO extends BaseDO {
             } else {
                 pluginDO.setId(pluginDTO.getId());
             }
+            pluginDO.setName(PluginEnum.getPluginEnumByCode(pluginDTO.getCode()).getName());
             pluginDO.setEnabled(pluginDTO.getEnabled());
             pluginDO.setDateUpdated(currentTime);
             return pluginDO;

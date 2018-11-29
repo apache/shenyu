@@ -36,7 +36,7 @@ public interface PluginService {
      * create or update plugin.
      *
      * @param pluginDTO {@linkplain PluginDTO}
-     * @return rows
+     * @return rows int
      */
     int createOrUpdate(PluginDTO pluginDTO);
 
@@ -44,7 +44,7 @@ public interface PluginService {
      * delete plugins.
      *
      * @param ids primary key.
-     * @return rows
+     * @return rows int
      */
     int delete(List<String> ids);
 
@@ -64,10 +64,19 @@ public interface PluginService {
      */
     CommonPager<PluginVO> listByPage(PluginQuery pluginQuery);
 
+
+    /**
+     * Sync plugin data for mysql.
+     *
+     * @param pluginId the plugin id
+     * @return the int
+     */
+    int syncPluginData(String pluginId);
+
     /**
      * sync plugins.
      *
-     * @return rows
+     * @return rows int
      */
-    int sync();
+    int syncPluginAll();
 }

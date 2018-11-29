@@ -25,7 +25,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 
 /**
- * soul start.
+ * soul admin start.
  *
  * @author xiaoyu(Myth)
  */

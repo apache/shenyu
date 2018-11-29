@@ -28,7 +28,7 @@ import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.enums.WafEnum;
 import org.dromara.soul.common.result.SoulResult;
 import org.dromara.soul.common.utils.GSONUtils;
-import org.dromara.soul.common.utils.JSONUtils;
+import org.dromara.soul.common.utils.JsonUtils;
 import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.web.cache.ZookeeperCacheManager;
 import org.dromara.soul.web.plugin.AbstractSoulPlugin;
@@ -99,7 +99,7 @@ public class WafPlugin extends AbstractSoulPlugin {
                     Constants.REJECT_MSG);
             return exchange.getResponse()
                     .writeWith(Mono.just(exchange.getResponse().bufferFactory()
-                            .wrap(Objects.requireNonNull(JSONUtils.toJson(error)).getBytes())));
+                            .wrap(Objects.requireNonNull(JsonUtils.toJson(error)).getBytes())));
         }
         return chain.execute(exchange);
     }

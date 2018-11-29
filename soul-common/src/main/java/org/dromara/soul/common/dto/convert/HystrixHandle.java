@@ -2,9 +2,11 @@ package org.dromara.soul.common.dto.convert;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.dromara.soul.common.constant.Constants;
 
 /**
  * this is hystrix handle.
+ *
  * @author xiaoyu(Myth)
  */
 @Getter
@@ -24,25 +26,25 @@ public class HystrixHandle {
     /**
      * hystrix withExecutionIsolationSemaphoreMaxConcurrentRequests.
      */
-    private int maxConcurrentRequests;
+    private int maxConcurrentRequests = Constants.MAX_CONCURRENT_REQUESTS;
 
     /**
-     * hystrix  withCircuitBreakerErrorThresholdPercentage.
+     * hystrix withCircuitBreakerErrorThresholdPercentage.
      */
-    private int errorThresholdPercentage;
+    private int errorThresholdPercentage = Constants.ERROR_THRESHOLD_PERCENTAGE;
 
     /**
      * hystrix withCircuitBreakerRequestVolumeThreshold.
      */
-    private int requestVolumeThreshold;
+    private int requestVolumeThreshold = Constants.REQUEST_VOLUME_THRESHOLD;
 
     /**
      * hystrix withCircuitBreakerSleepWindowInMilliseconds.
      */
-    private int sleepWindowInMilliseconds;
+    private int sleepWindowInMilliseconds = Constants.SLEEP_WINDOW_INMILLISECONDS;
 
     /**
-     *  timeout is required.
+     * timeout is required.
      */
-    private Integer timeout;
+    private Integer timeout = Constants.TIME_OUT;
 }
