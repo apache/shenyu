@@ -85,7 +85,7 @@ public class DubboPlugin extends AbstractSoulPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final RuleZkDTO rule) {
 
 
-        final Map<String, Object> paramMap = exchange.getAttribute(Constants.DUBBO_RPC_PARAMS);
+        final Map<String, Object> paramMap = exchange.getAttribute(Constants.DUBBO_PARAMS);
 
         assert paramMap != null;
 

@@ -45,16 +45,21 @@ public class RequestDTO implements Serializable {
     private String method;
 
     /**
-     *  is rpcType data. now we only support "http","dubbo" "springCloud".
-     *  {@linkplain RpcTypeEnum}
+     * is rpcType data. now we only support "http","dubbo" "springCloud".
+     * {@linkplain RpcTypeEnum}
      */
     private String rpcType;
 
     /**
-     *  httpMethod now we only support "get","post" .
+     * httpMethod now we only support "get","post" .
      * {@linkplain  HttpMethodEnum}
      */
     private String httpMethod;
+
+    /**
+     * this is dubbo params.
+     */
+    private String dubboParams;
 
     /**
      * this is sign .
@@ -95,6 +100,7 @@ public class RequestDTO implements Serializable {
         final String rpcType = request.getHeaders().getFirst(Constants.RPC_TYPE);
         final String sign = request.getHeaders().getFirst(Constants.SIGN);
         final String timestamp = request.getHeaders().getFirst(Constants.TIMESTAMP);
+        final String dubboParams = request.getHeaders().getFirst(Constants.DUBBO_PARAMS);
         RequestDTO requestDTO = new RequestDTO();
         requestDTO.setModule(module);
         requestDTO.setMethod(method);
@@ -103,6 +109,7 @@ public class RequestDTO implements Serializable {
         requestDTO.setRpcType(rpcType);
         requestDTO.setSign(sign);
         requestDTO.setTimestamp(timestamp);
+        requestDTO.setDubboParams(dubboParams);
         return requestDTO;
     }
 
