@@ -68,6 +68,12 @@
             <artifactId>zkclient</artifactId>
         </dependency>
         <!--  zookeeper -->
+
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.53</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
