@@ -71,6 +71,6 @@ public class KryoSerializer implements ZkSerializer, SerializerName {
 
     @Override
     public String named() {
-        return SerializeEnum.HESSIAN.getSerialize();
+        return SerializeEnum.KRYO.getSerialize();
     }
 }
