@@ -77,7 +77,14 @@ public class DubboProxyService {
 
         ReferenceConfigCache referenceConfigCache = ReferenceConfigCache.getCache();
 
-        GenericService genericService = referenceConfigCache.get(reference);
+        GenericService genericService = null;
+        try {
+            genericService = referenceConfigCache.get(reference);
+        } catch (Exception ex) {
+            referenceConfigCache.destroy(reference);
+            LogUtils.error(LOGGER, ex::getMessage);
+            throw new SoulException(ex.getMessage());
+        }
 
         // 用Map表示POJO参数，如果返回值为POJO也将自动转成Map
         final String method = paramMap.get(DubboParamConstants.METHOD).toString();
