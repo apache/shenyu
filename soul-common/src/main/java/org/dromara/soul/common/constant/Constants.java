@@ -41,6 +41,11 @@ public interface Constants {
     String DUBBO_RPC_RESULT = "dubbo_rpc_result";
 
     /**
+     * The constant DUBBO_RPC_RESULT_EMPTY.
+     */
+    String DUBBO_RPC_RESULT_EMPTY = "dubbo has not return value!";
+
+    /**
      * The constant CLIENT_RESPONSE_RESULT_TYPE.
      */
     String CLIENT_RESPONSE_RESULT_TYPE = "webHandlerClientResponseResultType";

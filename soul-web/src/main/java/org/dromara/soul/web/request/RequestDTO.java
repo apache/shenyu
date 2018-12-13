@@ -101,6 +101,7 @@ public class RequestDTO implements Serializable {
         final String sign = request.getHeaders().getFirst(Constants.SIGN);
         final String timestamp = request.getHeaders().getFirst(Constants.TIMESTAMP);
         final String dubboParams = request.getHeaders().getFirst(Constants.DUBBO_PARAMS);
+        final String extInfo = request.getHeaders().getFirst(Constants.EXT_INFO);
         RequestDTO requestDTO = new RequestDTO();
         requestDTO.setModule(module);
         requestDTO.setMethod(method);
@@ -110,6 +111,7 @@ public class RequestDTO implements Serializable {
         requestDTO.setSign(sign);
         requestDTO.setTimestamp(timestamp);
         requestDTO.setDubboParams(dubboParams);
+        requestDTO.setExtInfo(extInfo);
         return requestDTO;
     }
 
