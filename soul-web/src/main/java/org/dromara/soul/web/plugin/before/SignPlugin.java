@@ -19,7 +19,6 @@
 package org.dromara.soul.web.plugin.before;
 
 import com.google.common.collect.Maps;
-
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.zk.AppAuthZkDTO;
@@ -131,10 +130,10 @@ public class SignPlugin implements SoulPlugin {
 
     private Map<String, String> buildParamsMap(final RequestDTO dto) {
         Map<String, String> map = Maps.newHashMapWithExpectedSize(4);
-        map.put("timestamp", dto.getTimestamp());
-        map.put("module", dto.getModule());
-        map.put("method", dto.getMethod());
-        map.put("rpcType", dto.getRpcType());
+        map.put(Constants.TIMESTAMP, dto.getTimestamp());
+        map.put(Constants.MODULE, dto.getModule());
+        map.put(Constants.METHOD, dto.getMethod());
+        map.put(Constants.RPC_TYPE, dto.getRpcType());
         return map;
     }
 
