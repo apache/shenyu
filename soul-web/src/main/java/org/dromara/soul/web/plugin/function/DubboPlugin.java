@@ -23,6 +23,7 @@ import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.constant.DubboParamConstants;
 import org.dromara.soul.common.dto.convert.DubboHandle;
 import org.dromara.soul.common.dto.zk.RuleZkDTO;
+import org.dromara.soul.common.dto.zk.SelectorZkDTO;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.enums.ResultEnum;
@@ -71,17 +72,8 @@ public class DubboPlugin extends AbstractSoulPlugin {
         this.dubboProxyService = dubboProxyService;
     }
 
-
-    /**
-     * this is Template Method child has Implement your own logic.
-     *
-     * @param exchange exchange the current server exchange {@linkplain ServerWebExchange}
-     * @param chain    chain the current chain  {@linkplain ServerWebExchange}
-     * @param rule     rule    {@linkplain RuleZkDTO}
-     * @return {@code Mono<Void>} to indicate when request handling is complete
-     */
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final RuleZkDTO rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorZkDTO selector, final RuleZkDTO rule) {
 
 
         final Map<String, Object> paramMap = exchange.getAttribute(Constants.DUBBO_PARAMS);

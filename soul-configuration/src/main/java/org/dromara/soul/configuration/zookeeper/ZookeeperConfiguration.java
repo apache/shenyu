@@ -20,12 +20,9 @@ package org.dromara.soul.configuration.zookeeper;
 
 import org.I0Itec.zkclient.ZkClient;
 import org.dromara.soul.configuration.zookeeper.serializer.ZkSerializerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
-
-import java.util.Objects;
 
 /**
  * ZookeeperConfiguration .
@@ -35,28 +32,28 @@ import java.util.Objects;
 @Configuration
 public class ZookeeperConfiguration {
 
-    private final Environment env;
-
     /**
-     * Instantiates a new Zookeeper configuration.
+     * Zookeeper config zookeeper config.
      *
-     * @param env the env
+     * @return the zookeeper config
      */
-    @Autowired
-    public ZookeeperConfiguration(final Environment env) {
-        this.env = env;
+    @Bean
+    @ConfigurationProperties(prefix = "spring.zookeeper")
+    public ZookeeperConfig zookeeperConfig() {
+        return new ZookeeperConfig();
     }
 
     /**
      * register zkClient in spring ioc.
      *
+     * @param zookeeperConfig the zookeeper config
      * @return ZkClient {@linkplain ZkClient}
      */
     @Bean
-    public ZkClient zkClient() {
-        return new ZkClient(env.getProperty("spring.zookeeper.url"),
-                Integer.parseInt(Objects.requireNonNull(env.getProperty("spring.zookeeper.sessionTimeout"))),
-                Integer.parseInt(Objects.requireNonNull(env.getProperty("spring.zookeeper.connectionTimeout"))),
-                ZkSerializerFactory.of(env.getProperty("spring.zookeeper.serializer")));
+    public ZkClient zkClient(ZookeeperConfig zookeeperConfig) {
+        return new ZkClient(zookeeperConfig.getUrl(),
+                zookeeperConfig.getSessionTimeout(),
+                zookeeperConfig.getConnectionTimeout(),
+                ZkSerializerFactory.of(zookeeperConfig.getSerializer()));
     }
 }
