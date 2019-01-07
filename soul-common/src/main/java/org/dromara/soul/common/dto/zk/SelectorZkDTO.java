@@ -28,6 +28,7 @@ import java.util.List;
 
 /**
  * SelectorZkDTO.
+ *
  * @author xiaoyu(Myth)
  */
 @Data
@@ -63,6 +64,8 @@ public class SelectorZkDTO implements Serializable {
     private Boolean loged;
 
     private Boolean continued;
+
+    private String handle;
 
     private List<ConditionZkDTO> conditionZkDTOList;
 }

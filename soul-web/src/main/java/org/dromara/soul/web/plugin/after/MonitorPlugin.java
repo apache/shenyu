@@ -20,40 +20,30 @@ package org.dromara.soul.web.plugin.after;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
-import org.dromara.soul.common.dto.zk.PluginZkDTO;
+import org.dromara.soul.common.dto.zk.RuleZkDTO;
+import org.dromara.soul.common.dto.zk.SelectorZkDTO;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.web.cache.ZookeeperCacheManager;
-import org.dromara.soul.web.concurrent.SoulThreadFactory;
 import org.dromara.soul.web.disruptor.publisher.SoulEventPublisher;
 import org.dromara.soul.web.influxdb.entity.MonitorDO;
-import org.dromara.soul.web.plugin.SoulPlugin;
+import org.dromara.soul.web.plugin.AbstractSoulPlugin;
 import org.dromara.soul.web.plugin.SoulPluginChain;
 import org.dromara.soul.web.request.RequestDTO;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
-import java.util.concurrent.Executor;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * the monitor plugin.
  *
  * @author xiaoyu(Myth)
  */
-public class MonitorPlugin implements SoulPlugin {
-
-    private static final int MAX_THREAD = Runtime.getRuntime().availableProcessors() << 1;
+public class MonitorPlugin extends AbstractSoulPlugin {
 
     private final SoulEventPublisher soulEventPublisher;
-
-    private final ZookeeperCacheManager zookeeperCacheManager;
-
-    private final Executor executor;
 
     /**
      * Instantiates a new Monitor plugin.
@@ -63,11 +53,8 @@ public class MonitorPlugin implements SoulPlugin {
      */
     public MonitorPlugin(final SoulEventPublisher soulEventPublisher,
                          final ZookeeperCacheManager zookeeperCacheManager) {
+        super(zookeeperCacheManager);
         this.soulEventPublisher = soulEventPublisher;
-        this.zookeeperCacheManager = zookeeperCacheManager;
-        executor = new ThreadPoolExecutor(MAX_THREAD, MAX_THREAD, 0, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(),
-                SoulThreadFactory.create(Constants.SOUL_DISRUPTOR_THREAD_NAME, false), new ThreadPoolExecutor.AbortPolicy());
     }
 
     @Override
@@ -80,22 +67,9 @@ public class MonitorPlugin implements SoulPlugin {
         return PluginEnum.MONITOR.getCode();
     }
 
-    /**
-     * Process the Web request and (optionally) delegate to the next
-     * {@code WebFilter} through the given {@link SoulPluginChain}.
-     *
-     * @param exchange the current server exchange
-     * @param chain    provides a way to delegate to the next filter
-     * @return {@code Mono<Void>} to indicate when request processing is complete
-     */
     @Override
-    public Mono<Void> execute(final ServerWebExchange exchange, final SoulPluginChain chain) {
-        final PluginZkDTO redisDTO =
-                zookeeperCacheManager.findPluginByName(named());
-        if (redisDTO != null && redisDTO.getEnabled()) {
-            final MonitorDO monitorData = buildMonitorData(exchange);
-            executor.execute(() -> soulEventPublisher.publishEvent(monitorData));
-        }
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorZkDTO selector, final RuleZkDTO rule) {
+        soulEventPublisher.publishEvent(buildMonitorData(exchange));
         return chain.execute(exchange);
     }
 

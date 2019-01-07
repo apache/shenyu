@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.convert.SpringCloudHandle;
 import org.dromara.soul.common.dto.zk.RuleZkDTO;
+import org.dromara.soul.common.dto.zk.SelectorZkDTO;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.enums.ResultEnum;
@@ -63,7 +64,7 @@ public class SpringCloudPlugin extends AbstractSoulPlugin {
     }
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final RuleZkDTO rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorZkDTO selector, final RuleZkDTO rule) {
         if (Objects.isNull(rule)) {
             return Mono.empty();
         }
@@ -95,7 +96,6 @@ public class SpringCloudPlugin extends AbstractSoulPlugin {
         }
 
         final URI uri = loadBalancer.reconstructURI(serviceInstance, URI.create(handle.getPath()));
-
 
         SpringCloudCommand command =
                 new SpringCloudCommand(HystrixBuilder.build(handle),
