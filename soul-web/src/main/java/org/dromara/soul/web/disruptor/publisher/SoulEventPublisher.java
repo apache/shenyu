@@ -48,7 +48,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author xiaoyu(Myth)
  */
 @Component
-public class SoulEventPublisher implements InitializingBean, DisposableBean {
+public class  SoulEventPublisher implements InitializingBean, DisposableBean {
 
     private Disruptor<SoulDataEvent> disruptor;
 
@@ -57,7 +57,7 @@ public class SoulEventPublisher implements InitializingBean, DisposableBean {
     @Value("${soul.disruptor.bufferSize:4096}")
     private int bufferSize;
 
-    @Value("${soul.disruptor.threadSize:8}")
+    @Value("${soul.disruptor.threadSize:16}")
     private int threadSize;
 
     /**
