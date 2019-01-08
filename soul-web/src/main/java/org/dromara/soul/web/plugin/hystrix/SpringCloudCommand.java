@@ -22,7 +22,7 @@ import com.netflix.hystrix.HystrixObservableCommand;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
-import org.dromara.soul.common.dto.convert.SpringCloudHandle;
+import org.dromara.soul.common.dto.convert.rule.SpringCloudRuleHandle;
 import org.dromara.soul.common.enums.HttpMethodEnum;
 import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.result.SoulResult;
@@ -66,7 +66,7 @@ public class SpringCloudCommand extends HystrixObservableCommand<Void> {
 
     private final SoulPluginChain chain;
 
-    private final SpringCloudHandle springCloudHandle;
+    private final SpringCloudRuleHandle springCloudRuleHandle;
 
     private final RequestDTO requestDTO;
 
@@ -75,23 +75,23 @@ public class SpringCloudCommand extends HystrixObservableCommand<Void> {
     /**
      * Instantiates a new Spring cloud command.
      *
-     * @param setter            the setter
-     * @param exchange          the exchange
-     * @param chain             the chain
-     * @param springCloudHandle the spring cloud handle
-     * @param requestDTO        the request dto
-     * @param remoteURI         the remote uri
+     * @param setter                the setter
+     * @param exchange              the exchange
+     * @param chain                 the chain
+     * @param springCloudRuleHandle the spring cloud rule handle
+     * @param requestDTO            the request dto
+     * @param remoteURI             the remote uri
      */
     public SpringCloudCommand(final Setter setter,
                               final ServerWebExchange exchange,
                               final SoulPluginChain chain,
-                              final SpringCloudHandle springCloudHandle,
+                              final SpringCloudRuleHandle springCloudRuleHandle,
                               final RequestDTO requestDTO,
                               final URI remoteURI) {
         super(setter);
         this.exchange = exchange;
         this.chain = chain;
-        this.springCloudHandle = springCloudHandle;
+        this.springCloudRuleHandle = springCloudRuleHandle;
         this.requestDTO = requestDTO;
         this.remoteURI = remoteURI;
     }
@@ -110,7 +110,7 @@ public class SpringCloudCommand extends HystrixObservableCommand<Void> {
             return WEB_CLIENT.get().uri(uri)
                     .exchange()
                     .doOnError(e -> LogUtils.error(LOGGER, e::getMessage))
-                    .timeout(Duration.ofMillis(springCloudHandle.getTimeout()))
+                    .timeout(Duration.ofMillis(springCloudRuleHandle.getTimeout()))
                     .flatMap(this::doNext);
         } else if (requestDTO.getHttpMethod().equals(HttpMethodEnum.POST.getName())) {
             return WEB_CLIENT.post().uri(buildRealURL())
@@ -118,7 +118,7 @@ public class SpringCloudCommand extends HystrixObservableCommand<Void> {
                     .body(BodyInserters.fromDataBuffers(exchange.getRequest().getBody()))
                     .exchange()
                     .doOnError(e -> LogUtils.error(LOGGER, e::getMessage))
-                    .timeout(Duration.ofMillis(springCloudHandle.getTimeout()))
+                    .timeout(Duration.ofMillis(springCloudRuleHandle.getTimeout()))
                     .flatMap(this::doNext);
         }
         return Mono.empty();

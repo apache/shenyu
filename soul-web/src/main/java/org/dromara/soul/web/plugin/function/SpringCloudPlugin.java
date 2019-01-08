@@ -20,7 +20,8 @@ package org.dromara.soul.web.plugin.function;
 
 import org.apache.commons.lang.StringUtils;
 import org.dromara.soul.common.constant.Constants;
-import org.dromara.soul.common.dto.convert.SpringCloudHandle;
+import org.dromara.soul.common.dto.convert.rule.SpringCloudRuleHandle;
+import org.dromara.soul.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.dromara.soul.common.dto.zk.RuleZkDTO;
 import org.dromara.soul.common.dto.zk.SelectorZkDTO;
 import org.dromara.soul.common.enums.PluginEnum;
@@ -65,6 +66,7 @@ public class SpringCloudPlugin extends AbstractSoulPlugin {
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorZkDTO selector, final RuleZkDTO rule) {
+
         if (Objects.isNull(rule)) {
             return Mono.empty();
         }
@@ -73,40 +75,42 @@ public class SpringCloudPlugin extends AbstractSoulPlugin {
 
         assert requestDTO != null;
 
-        final SpringCloudHandle handle = GSONUtils.getInstance().fromJson(rule.getHandle(), SpringCloudHandle.class);
+        final SpringCloudRuleHandle ruleHandle = GSONUtils.getInstance().fromJson(rule.getHandle(), SpringCloudRuleHandle.class);
 
-        if (StringUtils.isBlank(handle.getGroupKey())) {
-            handle.setGroupKey(requestDTO.getModule());
+        final SpringCloudSelectorHandle selectorHandle = GSONUtils.getInstance().fromJson(selector.getHandle(), SpringCloudSelectorHandle.class);
+
+        if (StringUtils.isBlank(ruleHandle.getGroupKey())) {
+            ruleHandle.setGroupKey(requestDTO.getModule());
         }
 
-        if (StringUtils.isBlank(handle.getCommandKey())) {
-            handle.setCommandKey(requestDTO.getMethod());
+        if (StringUtils.isBlank(ruleHandle.getCommandKey())) {
+            ruleHandle.setCommandKey(requestDTO.getMethod());
         }
 
-        if (StringUtils.isBlank(handle.getServiceId()) || StringUtils.isBlank(handle.getPath())) {
+        if (StringUtils.isBlank(selectorHandle.getServiceId()) || StringUtils.isBlank(ruleHandle.getPath())) {
             LogUtils.error(LOGGER, () -> "can not config spring cloud handle....");
             return Mono.empty();
         }
 
-        final ServiceInstance serviceInstance = loadBalancer.choose(handle.getServiceId());
+        final ServiceInstance serviceInstance = loadBalancer.choose(selectorHandle.getServiceId());
 
         if (Objects.isNull(serviceInstance)) {
-            LogUtils.error(LOGGER, () -> "eureka never register this serviceId " + handle.getServiceId());
+            LogUtils.error(LOGGER, () -> "eureka never register this serviceId " + selectorHandle.getServiceId());
             return Mono.empty();
         }
 
-        final URI uri = loadBalancer.reconstructURI(serviceInstance, URI.create(handle.getPath()));
+        final URI uri = loadBalancer.reconstructURI(serviceInstance, URI.create(ruleHandle.getPath()));
 
         SpringCloudCommand command =
-                new SpringCloudCommand(HystrixBuilder.build(handle),
-                        exchange, chain, handle, requestDTO, uri);
+                new SpringCloudCommand(HystrixBuilder.build(ruleHandle),
+                        exchange, chain, ruleHandle, requestDTO, uri);
 
         return Mono.create((MonoSink<Object> s) -> {
             Subscription sub = command.toObservable().subscribe(s::success,
                     s::error, s::success);
             s.onCancel(sub::unsubscribe);
             if (command.isCircuitBreakerOpen()) {
-                LogUtils.error(LOGGER, () -> handle.getGroupKey() + ":spring cloud execute circuitBreaker is Open !");
+                LogUtils.error(LOGGER, () -> ruleHandle.getGroupKey() + ":spring cloud execute circuitBreaker is Open !");
             }
         }).doOnError(throwable -> {
             throwable.printStackTrace();

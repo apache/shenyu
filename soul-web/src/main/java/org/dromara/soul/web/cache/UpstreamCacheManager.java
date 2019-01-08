@@ -20,9 +20,9 @@ package org.dromara.soul.web.cache;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.dromara.soul.common.dto.convert.DivideHandle;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
-import org.dromara.soul.common.dto.zk.RuleZkDTO;
+import org.dromara.soul.common.dto.convert.selector.DivideSelectorHandle;
+import org.dromara.soul.common.dto.zk.SelectorZkDTO;
 import org.dromara.soul.common.utils.GSONUtils;
 import org.dromara.soul.common.utils.UrlUtils;
 import org.dromara.soul.web.concurrent.SoulThreadFactory;
@@ -47,25 +47,24 @@ import java.util.concurrent.TimeUnit;
  * @author xiaoyu
  */
 @Component
-@SuppressWarnings("all")
 public class UpstreamCacheManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UpstreamCacheManager.class);
 
-    private static final BlockingQueue<RuleZkDTO> BLOCKING_QUEUE = new LinkedBlockingQueue<>(1024);
+    private static final BlockingQueue<SelectorZkDTO> BLOCKING_QUEUE = new LinkedBlockingQueue<>(1024);
 
     private static final int MAX_THREAD = Runtime.getRuntime().availableProcessors() << 1;
 
     private static final Map<String, List<DivideUpstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
 
     /**
-     * acquire DivideUpstream list by ruleId.
+     * Find upstream list by selector id list.
      *
-     * @param ruleId ruleId
-     * @return DivideUpstream list {@linkplain  DivideUpstream}
+     * @param selectorId the selector id
+     * @return the list
      */
-    public List<DivideUpstream> findUpstreamListByRuleId(final String ruleId) {
-        return UPSTREAM_MAP.get(ruleId);
+    public List<DivideUpstream> findUpstreamListBySelectorId(final String selectorId) {
+        return UPSTREAM_MAP.get(selectorId);
     }
 
     /**
@@ -73,7 +72,7 @@ public class UpstreamCacheManager {
      *
      * @param key the key
      */
-    protected static void removeByKey(final String key) {
+    static void removeByKey(final String key) {
         UPSTREAM_MAP.remove(key);
     }
 
@@ -94,14 +93,15 @@ public class UpstreamCacheManager {
         }
     }
 
+
     /**
      * Submit.
      *
-     * @param ruleZkDTO the rule zk dto
+     * @param selectorZkDTO the selector zk dto
      */
-    public static void submit(final RuleZkDTO ruleZkDTO) {
+    static void submit(final SelectorZkDTO selectorZkDTO) {
         try {
-            BLOCKING_QUEUE.put(ruleZkDTO);
+            BLOCKING_QUEUE.put(selectorZkDTO);
         } catch (InterruptedException e) {
             LOGGER.error(e.getMessage());
         }
@@ -110,11 +110,11 @@ public class UpstreamCacheManager {
     /**
      * Execute.
      *
-     * @param ruleZkDTO the rule zk dto
+     * @param selectorZkDTO the selector zk dto
      */
-    public void execute(final RuleZkDTO ruleZkDTO) {
-        final DivideHandle divideHandle =
-                GSONUtils.getInstance().fromJson(ruleZkDTO.getHandle(), DivideHandle.class);
+    public void execute(final SelectorZkDTO selectorZkDTO) {
+        final DivideSelectorHandle divideHandle =
+                GSONUtils.getInstance().fromJson(selectorZkDTO.getHandle(), DivideSelectorHandle.class);
         if (Objects.nonNull(divideHandle)) {
             final List<DivideUpstream> upstreamList = divideHandle.getUpstreamList();
             List<DivideUpstream> resultList = Lists.newArrayListWithCapacity(upstreamList.size());
@@ -124,7 +124,7 @@ public class UpstreamCacheManager {
                     resultList.add(divideUpstream);
                 }
             }
-            UPSTREAM_MAP.put(ruleZkDTO.getId(), resultList);
+            UPSTREAM_MAP.put(selectorZkDTO.getId(), resultList);
         }
     }
 
@@ -141,10 +141,10 @@ public class UpstreamCacheManager {
         private void runTask() {
             while (true) {
                 try {
-                    final RuleZkDTO ruleZkDTO = BLOCKING_QUEUE.take();
-                    Optional.of(ruleZkDTO).ifPresent(UpstreamCacheManager.this::execute);
-                } catch (Exception e) {
-                    LOGGER.error(" failure ," + e.getMessage());
+                    final SelectorZkDTO selectorZkDTO = BLOCKING_QUEUE.take();
+                    Optional.of(selectorZkDTO).ifPresent(UpstreamCacheManager.this::execute);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         }

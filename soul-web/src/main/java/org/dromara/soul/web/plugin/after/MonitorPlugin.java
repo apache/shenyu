@@ -58,6 +58,12 @@ public class MonitorPlugin extends AbstractSoulPlugin {
     }
 
     @Override
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorZkDTO selector, final RuleZkDTO rule) {
+        soulEventPublisher.publishEvent(buildMonitorData(exchange));
+        return chain.execute(exchange);
+    }
+
+    @Override
     public String named() {
         return PluginEnum.MONITOR.getName();
     }
@@ -65,12 +71,6 @@ public class MonitorPlugin extends AbstractSoulPlugin {
     @Override
     public int getOrder() {
         return PluginEnum.MONITOR.getCode();
-    }
-
-    @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorZkDTO selector, final RuleZkDTO rule) {
-        soulEventPublisher.publishEvent(buildMonitorData(exchange));
-        return chain.execute(exchange);
     }
 
     private MonitorDO buildMonitorData(final ServerWebExchange exchange) {

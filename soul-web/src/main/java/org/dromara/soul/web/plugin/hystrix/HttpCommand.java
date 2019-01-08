@@ -23,6 +23,7 @@ import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
+import org.dromara.soul.common.dto.convert.rule.DivideRuleHandle;
 import org.dromara.soul.common.enums.HttpMethodEnum;
 import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.result.SoulResult;
@@ -61,13 +62,15 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
 
     private static final WebClient WEB_CLIENT = WebClient.create();
 
-    private DivideUpstream divideUpstream;
+    private final DivideUpstream divideUpstream;
 
-    private RequestDTO requestDTO;
+    private final RequestDTO requestDTO;
 
-    private ServerWebExchange exchange;
+    private final ServerWebExchange exchange;
 
-    private SoulPluginChain chain;
+    private final SoulPluginChain chain;
+
+    private final DivideRuleHandle ruleHandle;
 
     /**
      * Instantiates a new Http command.
@@ -78,14 +81,18 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
      * @param exchange       the exchange
      * @param chain          the chain
      */
-    public HttpCommand(final Setter setter, final DivideUpstream divideUpstream,
-                       final RequestDTO requestDTO, final ServerWebExchange exchange,
-                       final SoulPluginChain chain) {
+    public HttpCommand(final Setter setter,
+                       final DivideUpstream divideUpstream,
+                       final RequestDTO requestDTO,
+                       final ServerWebExchange exchange,
+                       final SoulPluginChain chain,
+                       final DivideRuleHandle ruleHandle) {
         super(setter);
         this.divideUpstream = divideUpstream;
         this.requestDTO = requestDTO;
         this.exchange = exchange;
         this.chain = chain;
+        this.ruleHandle = ruleHandle;
     }
 
     @Override
@@ -130,7 +137,7 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
             return WEB_CLIENT.get().uri(uri)
                     .exchange()
                     .doOnError(e -> LogUtils.error(LOGGER, e::getMessage))
-                    .timeout(Duration.ofMillis(divideUpstream.getTimeout()))
+                    .timeout(Duration.ofMillis(ruleHandle.getTimeout()))
                     .flatMap(this::doNext);
         } else if (requestDTO.getHttpMethod().equals(HttpMethodEnum.POST.getName())) {
             return WEB_CLIENT.post().uri(buildRealURL())
@@ -138,7 +145,7 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
                     .body(BodyInserters.fromDataBuffers(exchange.getRequest().getBody()))
                     .exchange()
                     .doOnError(e -> LogUtils.error(LOGGER, e::getMessage))
-                    .timeout(Duration.ofMillis(divideUpstream.getTimeout()))
+                    .timeout(Duration.ofMillis(ruleHandle.getTimeout()))
                     .flatMap(this::doNext);
         }
         return Mono.empty();
