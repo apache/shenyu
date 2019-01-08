@@ -22,8 +22,9 @@ import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
-import org.dromara.soul.common.dto.convert.DivideHandle;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
+import org.dromara.soul.common.dto.convert.rule.DivideRuleHandle;
+import org.dromara.soul.common.dto.convert.selector.DivideSelectorHandle;
 import org.dromara.soul.common.dto.zk.RuleZkDTO;
 import org.dromara.soul.common.dto.zk.SelectorZkDTO;
 import org.dromara.soul.common.enums.PluginEnum;
@@ -86,20 +87,20 @@ public class DividePlugin extends AbstractSoulPlugin {
 
         final RequestDTO body = exchange.getAttribute(Constants.REQUESTDTO);
 
-        final String handle = rule.getHandle();
+        final DivideRuleHandle ruleHandle = GSONUtils.getInstance().fromJson(rule.getHandle(), DivideRuleHandle.class);
 
-        final DivideHandle divideHandle = GSONUtils.getInstance().fromJson(handle, DivideHandle.class);
+        final DivideSelectorHandle selectorHandle = GSONUtils.getInstance().fromJson(selector.getHandle(), DivideSelectorHandle.class);
 
-        if (StringUtils.isBlank(divideHandle.getGroupKey())) {
-            divideHandle.setGroupKey(body.getModule());
+        if (StringUtils.isBlank(ruleHandle.getGroupKey())) {
+            ruleHandle.setGroupKey(body.getModule());
         }
 
-        if (StringUtils.isBlank(divideHandle.getCommandKey())) {
-            divideHandle.setCommandKey(body.getMethod());
+        if (StringUtils.isBlank(ruleHandle.getCommandKey())) {
+            ruleHandle.setCommandKey(body.getMethod());
         }
 
         final List<DivideUpstream> upstreamList =
-                upstreamCacheManager.findUpstreamListByRuleId(rule.getId());
+                upstreamCacheManager.findUpstreamListBySelectorId(selector.getId());
         if (CollectionUtils.isEmpty(upstreamList)) {
             LogUtils.error(LOGGER, "divide upstream config error：{}", () -> rule.toString());
             return chain.execute(exchange);
@@ -108,23 +109,23 @@ public class DividePlugin extends AbstractSoulPlugin {
         if (upstreamList.size() == 1) {
             divideUpstream = upstreamList.get(0);
         } else {
-            final LoadBalance loadBalance = LoadBalanceFactory.of(divideHandle.getLoadBalance());
+            final LoadBalance loadBalance = LoadBalanceFactory.of(ruleHandle.getLoadBalance());
             final String ip = exchange.getRequest().getRemoteAddress().getAddress().getHostAddress();
-            divideUpstream = loadBalance.select(divideHandle.getUpstreamList(), ip);
+            divideUpstream = loadBalance.select(upstreamList, ip);
         }
         if (Objects.isNull(divideUpstream)) {
             LogUtils.error(LOGGER, () -> "LoadBalance has error！");
             return chain.execute(exchange);
         }
 
-        HttpCommand command = new HttpCommand(HystrixBuilder.build(divideHandle),
-                divideUpstream, body, exchange, chain);
+        HttpCommand command = new HttpCommand(HystrixBuilder.build(ruleHandle),
+                divideUpstream, body, exchange, chain, ruleHandle);
         return Mono.create((MonoSink<Object> s) -> {
             Subscription sub = command.toObservable().subscribe(s::success,
                     s::error, s::success);
             s.onCancel(sub::unsubscribe);
             if (command.isCircuitBreakerOpen()) {
-                LogUtils.error(LOGGER, () -> divideHandle.getGroupKey() + "....http:circuitBreaker is Open.... !");
+                LogUtils.error(LOGGER, () -> ruleHandle.getGroupKey() + "....http:circuitBreaker is Open.... !");
             }
         }).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> {
             if (throwable instanceof HystrixRuntimeException) {

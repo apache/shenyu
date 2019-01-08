@@ -18,13 +18,21 @@
 
 package org.dromara.soul.common.dto.convert.rule;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.dromara.soul.common.dto.convert.HystrixHandle;
 
 import java.io.Serializable;
 
 /**
+ * The type Spring cloud rule handle.
+ *
  * @author xiaoyu(Myth)
  */
+@ToString
+@Getter
+@Setter
 public class SpringCloudRuleHandle extends HystrixHandle implements Serializable {
 
     /**

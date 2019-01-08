@@ -48,17 +48,6 @@ public class DivideUpstream implements Serializable {
     private String upstreamUrl;
 
     /**
-     * timeout.
-     */
-    private long timeout;
-
-
-    /**
-     * http retry.
-     */
-    private int retry;
-
-    /**
      * weight.
      */
     private int weight;

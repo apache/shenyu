@@ -18,7 +18,10 @@
 
 package org.dromara.soul.common.dto.convert.rule;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.dromara.soul.common.dto.convert.HystrixHandle;
 
 import java.io.Serializable;
 
@@ -27,8 +30,10 @@ import java.io.Serializable;
  *
  * @author xiaoyu(Myth)
  */
-@Data
-public class DubboRuleHandle implements Serializable {
+@Getter
+@Setter
+@ToString
+public class DubboRuleHandle extends HystrixHandle implements Serializable {
 
     /**
      * version.

@@ -21,7 +21,8 @@ package org.dromara.soul.web.plugin.function;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.constant.DubboParamConstants;
-import org.dromara.soul.common.dto.convert.DubboHandle;
+import org.dromara.soul.common.dto.convert.rule.DubboRuleHandle;
+import org.dromara.soul.common.dto.convert.selector.DubboSelectorHandle;
 import org.dromara.soul.common.dto.zk.RuleZkDTO;
 import org.dromara.soul.common.dto.zk.SelectorZkDTO;
 import org.dromara.soul.common.enums.PluginEnum;
@@ -75,37 +76,36 @@ public class DubboPlugin extends AbstractSoulPlugin {
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorZkDTO selector, final RuleZkDTO rule) {
 
-
         final Map<String, Object> paramMap = exchange.getAttribute(Constants.DUBBO_PARAMS);
 
         assert paramMap != null;
 
-        final String handle = rule.getHandle();
+        final DubboRuleHandle ruleHandle = GSONUtils.getInstance().fromJson(rule.getHandle(), DubboRuleHandle.class);
 
-        final DubboHandle dubboHandle = GSONUtils.getInstance().fromJson(handle, DubboHandle.class);
+        final DubboSelectorHandle selectorHandle = GSONUtils.getInstance().fromJson(selector.getHandle(), DubboSelectorHandle.class);
 
-        if (StringUtils.isBlank(dubboHandle.getGroupKey())) {
-            dubboHandle.setGroupKey(String.valueOf(paramMap.get(DubboParamConstants.INTERFACE_NAME)));
+        if (StringUtils.isBlank(ruleHandle.getGroupKey())) {
+            ruleHandle.setGroupKey(String.valueOf(paramMap.get(DubboParamConstants.INTERFACE_NAME)));
         }
 
-        if (StringUtils.isBlank(dubboHandle.getCommandKey())) {
-            dubboHandle.setCommandKey(String.valueOf(paramMap.get(DubboParamConstants.METHOD)));
+        if (StringUtils.isBlank(ruleHandle.getCommandKey())) {
+            ruleHandle.setCommandKey(String.valueOf(paramMap.get(DubboParamConstants.METHOD)));
         }
 
-        if (!checkData(dubboHandle)) {
+        if (!checkData(selectorHandle)) {
             return chain.execute(exchange);
         }
 
         DubboCommand command =
-                new DubboCommand(HystrixBuilder.build(dubboHandle), paramMap,
-                        exchange, chain, dubboProxyService, dubboHandle);
+                new DubboCommand(HystrixBuilder.build(ruleHandle), paramMap,
+                        exchange, chain, dubboProxyService, selectorHandle, ruleHandle);
 
         return Mono.create((MonoSink<Object> s) -> {
             Subscription sub = command.toObservable().subscribe(s::success,
                     s::error, s::success);
             s.onCancel(sub::unsubscribe);
             if (command.isCircuitBreakerOpen()) {
-                LogUtils.error(LOGGER, () -> dubboHandle.getGroupKey() + ":dubbo execute circuitBreaker is Open !");
+                LogUtils.error(LOGGER, () -> ruleHandle.getGroupKey() + ":dubbo execute circuitBreaker is Open !");
             }
         }).doOnError(throwable -> {
             throwable.printStackTrace();
@@ -153,11 +153,9 @@ public class DubboPlugin extends AbstractSoulPlugin {
         return PluginEnum.DUBBO.getCode();
     }
 
-    private boolean checkData(final DubboHandle dubboHandle) {
-        if (StringUtils.isBlank(dubboHandle.getGroupKey())
-                || StringUtils.isBlank(dubboHandle.getCommandKey())
-                || StringUtils.isBlank(dubboHandle.getRegistry())
-                || StringUtils.isBlank(dubboHandle.getAppName())) {
+    private boolean checkData(final DubboSelectorHandle dubboSelectorHandle) {
+        if (StringUtils.isBlank(dubboSelectorHandle.getRegistry())
+                || StringUtils.isBlank(dubboSelectorHandle.getAppName())) {
             LogUtils.error(LOGGER, () -> "dubbo handle require param not config!");
             return false;
         }

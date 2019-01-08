@@ -30,7 +30,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dromara.soul.common.constant.DubboParamConstants;
-import org.dromara.soul.common.dto.convert.DubboHandle;
+import org.dromara.soul.common.dto.convert.rule.DubboRuleHandle;
+import org.dromara.soul.common.dto.convert.selector.DubboSelectorHandle;
 import org.dromara.soul.common.exception.SoulException;
 import org.dromara.soul.common.utils.GSONUtils;
 import org.dromara.soul.common.utils.LogUtils;
@@ -63,23 +64,26 @@ public class DubboProxyService {
     private static final Map<String, ApplicationConfig> APPLICATION_CONFIG_MAP = Maps.newConcurrentMap();
 
     /**
-     * dubbo rpc invoke.
+     * Generic invoker object.
      *
-     * @param paramMap    request paramMap.
-     * @param dubboHandle dubboHandle.
-     * @return rpc result.
-     * @throws SoulException exception for rpc.
+     * @param paramMap            the param map
+     * @param dubboSelectorHandle the dubbo selector handle
+     * @param dubboRuleHandle     the dubbo rule handle
+     * @return the object
+     * @throws SoulException the soul exception
      */
-    public Object genericInvoker(final Map<String, Object> paramMap, final DubboHandle dubboHandle) throws SoulException {
-        ReferenceConfig<GenericService> reference = buildReferenceConfig(dubboHandle,
+    public Object genericInvoker(final Map<String, Object> paramMap, final DubboSelectorHandle dubboSelectorHandle, final DubboRuleHandle dubboRuleHandle) throws SoulException {
+
+        ReferenceConfig<GenericService> reference = buildReferenceConfig(dubboSelectorHandle, dubboRuleHandle,
                 paramMap.get(DubboParamConstants.INTERFACE_NAME).toString());
 
         ReferenceConfigCache referenceConfigCache = ReferenceConfigCache.getCache();
 
         GenericService genericService = null;
+
         try {
             genericService = referenceConfigCache.get(reference);
-        } catch (Exception ex) {
+        } catch (NullPointerException ex) {
             referenceConfigCache.destroy(reference);
             LogUtils.error(LOGGER, ex::getMessage);
             throw new SoulException(ex.getMessage());
@@ -147,30 +151,40 @@ public class DubboProxyService {
         return new ImmutablePair<>(paramList.toArray(new String[0]), args.toArray());
     }
 
-    private ReferenceConfig<GenericService> buildReferenceConfig(final DubboHandle dubboHandle, final String interfaceName) {
+    private ReferenceConfig<GenericService> buildReferenceConfig(final DubboSelectorHandle dubboSelectorHandle, final DubboRuleHandle dubboRuleHandle, final String interfaceName) {
+
         ReferenceConfig<GenericService> reference = new ReferenceConfig<>();
+
         reference.setGeneric(true);
-        final ApplicationConfig applicationConfig = cacheApplication(dubboHandle.getAppName());
+
+        final ApplicationConfig applicationConfig = cacheApplication(dubboSelectorHandle.getAppName());
+
         reference.setApplication(applicationConfig);
-        reference.setRegistry(cacheRegistry(dubboHandle.getAppName(), dubboHandle.getRegistry()));
+
+        reference.setRegistry(cacheRegistry(dubboSelectorHandle.getAppName(), dubboSelectorHandle.getRegistry()));
+
         reference.setInterface(interfaceName);
-        if (StringUtils.isNoneBlank(dubboHandle.getVersion())) {
-            reference.setVersion(dubboHandle.getVersion());
-        }
-        if (StringUtils.isNoneBlank(dubboHandle.getProtocol())) {
-            reference.setProtocol(dubboHandle.getProtocol());
+
+        if (StringUtils.isNoneBlank(dubboSelectorHandle.getProtocol())) {
+            reference.setProtocol(dubboSelectorHandle.getProtocol());
         }
 
-        if (StringUtils.isNoneBlank(dubboHandle.getGroup())) {
-            reference.setGroup(dubboHandle.getGroup());
+        if (StringUtils.isNoneBlank(dubboRuleHandle.getVersion())) {
+            reference.setVersion(dubboRuleHandle.getVersion());
         }
 
-        if (StringUtils.isNoneBlank(dubboHandle.getLoadBalance())) {
-            reference.setLoadbalance(dubboHandle.getLoadBalance());
+        if (StringUtils.isNoneBlank(dubboRuleHandle.getGroup())) {
+            reference.setGroup(dubboRuleHandle.getGroup());
         }
 
-        Optional.ofNullable(dubboHandle.getTimeout()).ifPresent(reference::setTimeout);
-        Optional.ofNullable(dubboHandle.getRetries()).ifPresent(reference::setRetries);
+        if (StringUtils.isNoneBlank(dubboRuleHandle.getLoadBalance())) {
+            reference.setLoadbalance(dubboRuleHandle.getLoadBalance());
+        }
+
+        Optional.ofNullable(dubboRuleHandle.getTimeout()).ifPresent(reference::setTimeout);
+
+        Optional.ofNullable(dubboRuleHandle.getRetries()).ifPresent(reference::setRetries);
+
         return reference;
     }
 

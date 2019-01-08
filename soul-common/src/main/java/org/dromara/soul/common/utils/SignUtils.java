@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 
 /**
  * SignUtils.
+ *
  * @author xiaoyu
  */
 public final class SignUtils {
@@ -38,7 +39,6 @@ public final class SignUtils {
     private static final SignUtils SIGN_UTILS = new SignUtils();
 
     private SignUtils() {
-
     }
 
     /**
@@ -54,7 +54,7 @@ public final class SignUtils {
      * acquired sign.
      *
      * @param signKey sign key
-     * @param params params
+     * @param params  params
      * @return sign
      */
     private static String generateSign(final String signKey, final Map<String, String> params) {
@@ -73,10 +73,10 @@ public final class SignUtils {
     /**
      * isValid.
      *
-     * @param sign sign
-     * @param params params
+     * @param sign    sign
+     * @param params  params
      * @param signKey signKey
-     * @return boolean
+     * @return boolean boolean
      */
     public boolean isValid(final String sign, final Map<String, String> params, final String signKey) {
         return Objects.equals(sign, generateSign(signKey, params));
