@@ -74,6 +74,8 @@ public class SelectorDO extends BaseDO {
      */
     private Boolean continued;
 
+    private String handle;
+
     /**
      * build selectorDO.
      *
@@ -100,6 +102,7 @@ public class SelectorDO extends BaseDO {
             selectorDO.setLoged(selectorDTO.getLoged());
             selectorDO.setContinued(selectorDTO.getContinued());
             selectorDO.setDateUpdated(currentTime);
+            selectorDO.setHandle(selectorDTO.getHandle());
             return selectorDO;
         }
         return null;
