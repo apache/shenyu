@@ -240,7 +240,7 @@ public class PluginServiceImpl implements PluginService {
                             selectorConditionDO.getParamName(), selectorConditionDO.getParamValue())).collect(Collectors.toList());
             zkClient.writeData(selectorRealPath, new SelectorZkDTO(selectorDO.getId(), selectorDO.getPluginId(), pluginDO.getName(),
                     selectorDO.getName(), selectorDO.getMatchMode(), selectorDO.getType(), selectorDO.getSort(), selectorDO.getEnabled(),
-                    selectorDO.getLoged(), selectorDO.getContinued(), "", selectorConditionZkDTOs));
+                    selectorDO.getLoged(), selectorDO.getContinued(), selectorDO.getHandle(), selectorConditionZkDTOs));
 
             List<String> ruleZKs = zkClient.getChildren(ZkPathConstants.buildRuleParentPath(pluginDO.getName()));
             ruleMapper.selectByQuery(new RuleQuery(selectorDO.getId(), null)).forEach(ruleDO -> {

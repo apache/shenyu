@@ -17,7 +17,7 @@
 
     <sql id="Base_Column_List">
         id, date_created, date_updated, plugin_id, name, match_mode,
-        type, sort, enabled, loged, continued
+        type, sort, enabled, loged, continued,handle
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -50,11 +50,11 @@
     <insert id="insert" parameterType="org.dromara.soul.admin.entity.SelectorDO">
         insert into selector (id, date_created, date_updated,
         plugin_id, name, match_mode, type, sort, enabled,
-        loged, continued)
+        loged, continued,handle)
         values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
         #{pluginId,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{matchMode,jdbcType=INTEGER},
         #{type,jdbcType=INTEGER}, #{sort,jdbcType=INTEGER}, #{enabled,jdbcType=TINYINT},
-        #{loged,jdbcType=TINYINT},  #{continued,jdbcType=TINYINT})
+        #{loged,jdbcType=TINYINT},  #{continued,jdbcType=TINYINT},#{handle,jdbcType=VARCHAR})
     </insert>
 
     <insert id="insertSelective" parameterType="org.dromara.soul.admin.entity.SelectorDO">
@@ -91,6 +91,11 @@
             <if test="continued != null">
                 continued,
             </if>
+
+            <if test="handle != null">
+                handle,
+            </if>
+
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             #{id,jdbcType=VARCHAR},
@@ -124,6 +129,9 @@
             <if test="continued != null">
                 #{continued,jdbcType=TINYINT},
             </if>
+            <if test="handle != null">
+                #{handle,jdbcType=VARCHAR},
+            </if>
         </trim>
     </insert>
 
@@ -138,7 +146,8 @@
         sort = #{sort,jdbcType=INTEGER},
         enabled = #{enabled,jdbcType=TINYINT},
         loged = #{loged,jdbcType=TINYINT},
-        continued = #{continued,jdbcType=TINYINT}
+        continued = #{continued,jdbcType=TINYINT},
+        handle = #{handle,jdbcType=VARCHAR}
         where id = #{id,jdbcType=VARCHAR}
     </update>
 
@@ -174,6 +183,9 @@
             </if>
             <if test="continued != null">
                 continued = #{continued,jdbcType=TINYINT},
+            </if>
+            <if test="handle != null">
+                handle = #{handle,jdbcType=VARCHAR},
             </if>
         </set>
         where id = #{id,jdbcType=VARCHAR}

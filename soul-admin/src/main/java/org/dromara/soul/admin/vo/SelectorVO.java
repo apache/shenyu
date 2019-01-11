@@ -94,6 +94,8 @@ public class SelectorVO implements Serializable {
      */
     private Boolean continued;
 
+    private String handle;
+
     /**
      * selector conditions.
      */
@@ -119,7 +121,7 @@ public class SelectorVO implements Serializable {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         return new SelectorVO(selectorDO.getId(), selectorDO.getPluginId(), selectorDO.getName(), selectorDO.getMatchMode(), MatchModeEnum.getMatchModeByCode(selectorDO.getMatchMode()),
                 selectorDO.getType(), SelectorTypeEnum.getSelectorTypeByCode(selectorDO.getType()), selectorDO.getSort(),
-                selectorDO.getEnabled(), selectorDO.getLoged(), selectorDO.getContinued(), null,
+                selectorDO.getEnabled(), selectorDO.getLoged(), selectorDO.getContinued(), selectorDO.getHandle(),null,
                 dateTimeFormatter.format(selectorDO.getDateCreated().toLocalDateTime()),
                 dateTimeFormatter.format(selectorDO.getDateUpdated().toLocalDateTime()));
     }
@@ -135,7 +137,7 @@ public class SelectorVO implements Serializable {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         return new SelectorVO(selectorDO.getId(), selectorDO.getPluginId(), selectorDO.getName(), selectorDO.getMatchMode(), MatchModeEnum.getMatchModeByCode(selectorDO.getMatchMode()),
                 selectorDO.getType(), SelectorTypeEnum.getSelectorTypeByCode(selectorDO.getType()), selectorDO.getSort(),
-                selectorDO.getEnabled(), selectorDO.getLoged(), selectorDO.getContinued(), selectorConditions,
+                selectorDO.getEnabled(), selectorDO.getLoged(), selectorDO.getContinued(), selectorDO.getHandle(),selectorConditions,
                 dateTimeFormatter.format(selectorDO.getDateCreated().toLocalDateTime()),
                 dateTimeFormatter.format(selectorDO.getDateUpdated().toLocalDateTime()));
     }

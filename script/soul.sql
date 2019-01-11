@@ -97,6 +97,7 @@ CREATE TABLE `selector` (
   `match_mode` int(2) NOT NULL COMMENT '匹配方式（0 and  1 or)',
   `type` int(4) NOT NULL COMMENT '类型（0，全流量，1自定义流量）',
   `sort` int(4) NOT NULL COMMENT '排序',
+  `handle` varchar(1024) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '处理逻辑（此处针对不同的插件，会有不同的字段来标识不同的处理，所有存储json格式数据）',
   `enabled` tinyint(4) NOT NULL COMMENT '是否开启',
   `loged` tinyint(4) NOT NULL COMMENT '是否打印日志',
   `continued` tinyint(4) NOT NULL COMMENT '是否继续执行',
