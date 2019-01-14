@@ -52,7 +52,9 @@ public final class SoulWebHandler implements WebHandler {
      */
     @Override
     public Mono<Void> handle(final ServerWebExchange exchange) {
-        return new DefaultSoulPluginChain(plugins).execute(exchange).doOnError(Throwable::printStackTrace);
+        return new DefaultSoulPluginChain(plugins)
+                .execute(exchange)
+                .doOnError(Throwable::printStackTrace);
     }
 
     private static class DefaultSoulPluginChain implements SoulPluginChain {

@@ -20,8 +20,8 @@ package org.dromara.soul.web.cache;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
-import org.dromara.soul.common.dto.convert.selector.DivideSelectorHandle;
 import org.dromara.soul.common.dto.zk.SelectorZkDTO;
 import org.dromara.soul.common.utils.GSONUtils;
 import org.dromara.soul.common.utils.UrlUtils;
@@ -33,7 +33,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -113,10 +112,9 @@ public class UpstreamCacheManager {
      * @param selectorZkDTO the selector zk dto
      */
     public void execute(final SelectorZkDTO selectorZkDTO) {
-        final DivideSelectorHandle divideHandle =
-                GSONUtils.getInstance().fromJson(selectorZkDTO.getHandle(), DivideSelectorHandle.class);
-        if (Objects.nonNull(divideHandle)) {
-            final List<DivideUpstream> upstreamList = divideHandle.getUpstreamList();
+        final List<DivideUpstream> upstreamList =
+                GSONUtils.getInstance().fromList(selectorZkDTO.getHandle(), DivideUpstream[].class);
+        if (CollectionUtils.isNotEmpty(upstreamList)) {
             List<DivideUpstream> resultList = Lists.newArrayListWithCapacity(upstreamList.size());
             for (DivideUpstream divideUpstream : upstreamList) {
                 final boolean pass = UrlUtils.checkUrl(divideUpstream.getUpstreamUrl());

@@ -3,6 +3,8 @@ server:
   address: 0.0.0.0
 
 spring:
+   main:
+     allow-bean-definition-overriding: true
    redis:
      host: localhost
      password: 123456

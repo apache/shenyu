@@ -21,7 +21,6 @@ package org.dromara.soul.web.plugin.function;
 import org.apache.commons.lang.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.convert.rule.SpringCloudRuleHandle;
-import org.dromara.soul.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.dromara.soul.common.dto.zk.RuleZkDTO;
 import org.dromara.soul.common.dto.zk.SelectorZkDTO;
 import org.dromara.soul.common.enums.PluginEnum;
@@ -77,7 +76,7 @@ public class SpringCloudPlugin extends AbstractSoulPlugin {
 
         final SpringCloudRuleHandle ruleHandle = GSONUtils.getInstance().fromJson(rule.getHandle(), SpringCloudRuleHandle.class);
 
-        final SpringCloudSelectorHandle selectorHandle = GSONUtils.getInstance().fromJson(selector.getHandle(), SpringCloudSelectorHandle.class);
+        final String serviceId = selector.getHandle();
 
         if (StringUtils.isBlank(ruleHandle.getGroupKey())) {
             ruleHandle.setGroupKey(requestDTO.getModule());
@@ -87,15 +86,15 @@ public class SpringCloudPlugin extends AbstractSoulPlugin {
             ruleHandle.setCommandKey(requestDTO.getMethod());
         }
 
-        if (StringUtils.isBlank(selectorHandle.getServiceId()) || StringUtils.isBlank(ruleHandle.getPath())) {
+        if (StringUtils.isBlank(serviceId) || StringUtils.isBlank(ruleHandle.getPath())) {
             LogUtils.error(LOGGER, () -> "can not config spring cloud handle....");
             return Mono.empty();
         }
 
-        final ServiceInstance serviceInstance = loadBalancer.choose(selectorHandle.getServiceId());
+        final ServiceInstance serviceInstance = loadBalancer.choose(serviceId);
 
         if (Objects.isNull(serviceInstance)) {
-            LogUtils.error(LOGGER, () -> "eureka never register this serviceId " + selectorHandle.getServiceId());
+            LogUtils.error(LOGGER, () -> "eureka never register this serviceId " + serviceId);
             return Mono.empty();
         }
 
