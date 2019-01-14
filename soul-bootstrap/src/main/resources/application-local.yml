@@ -31,7 +31,7 @@ spring:
         connectionTimeout : 2000
         serializer : KryoSerializer
 soul:
-    bufferSize: 2048
+    bufferSize: 4096
     timeVerify:
        timeDelay : 10
        enabled: false

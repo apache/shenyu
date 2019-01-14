@@ -32,6 +32,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.dromara.soul.common.constant.DubboParamConstants;
 import org.dromara.soul.common.dto.convert.rule.DubboRuleHandle;
 import org.dromara.soul.common.dto.convert.selector.DubboSelectorHandle;
+import org.dromara.soul.common.enums.LoadBalanceEnum;
 import org.dromara.soul.common.exception.SoulException;
 import org.dromara.soul.common.utils.GSONUtils;
 import org.dromara.soul.common.utils.LogUtils;
@@ -178,7 +179,14 @@ public class DubboProxyService {
         }
 
         if (StringUtils.isNoneBlank(dubboRuleHandle.getLoadBalance())) {
-            reference.setLoadbalance(dubboRuleHandle.getLoadBalance());
+            final String loadBalance = dubboRuleHandle.getLoadBalance();
+            if (LoadBalanceEnum.HASH.getName().equals(loadBalance)) {
+                reference.setLoadbalance("consistenthash");
+            } else if (LoadBalanceEnum.ROUND_ROBIN.getName().equals(loadBalance)) {
+                reference.setLoadbalance("roundrobin");
+            } else {
+                reference.setLoadbalance(loadBalance);
+            }
         }
 
         Optional.ofNullable(dubboRuleHandle.getTimeout()).ifPresent(reference::setTimeout);

@@ -24,7 +24,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.dto.convert.rule.DivideRuleHandle;
-import org.dromara.soul.common.dto.convert.selector.DivideSelectorHandle;
 import org.dromara.soul.common.dto.zk.RuleZkDTO;
 import org.dromara.soul.common.dto.zk.SelectorZkDTO;
 import org.dromara.soul.common.enums.PluginEnum;
@@ -88,8 +87,6 @@ public class DividePlugin extends AbstractSoulPlugin {
         final RequestDTO body = exchange.getAttribute(Constants.REQUESTDTO);
 
         final DivideRuleHandle ruleHandle = GSONUtils.getInstance().fromJson(rule.getHandle(), DivideRuleHandle.class);
-
-        final DivideSelectorHandle selectorHandle = GSONUtils.getInstance().fromJson(selector.getHandle(), DivideSelectorHandle.class);
 
         if (StringUtils.isBlank(ruleHandle.getGroupKey())) {
             ruleHandle.setGroupKey(body.getModule());

@@ -33,7 +33,6 @@ import org.dromara.soul.common.dto.convert.WafHandle;
 import org.dromara.soul.common.dto.convert.rule.DivideRuleHandle;
 import org.dromara.soul.common.dto.convert.rule.DubboRuleHandle;
 import org.dromara.soul.common.dto.convert.rule.SpringCloudRuleHandle;
-import org.dromara.soul.common.dto.convert.selector.DivideSelectorHandle;
 import org.dromara.soul.common.dto.convert.selector.DubboSelectorHandle;
 import org.dromara.soul.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.dromara.soul.common.dto.zk.AppAuthZkDTO;
@@ -269,10 +268,7 @@ public class ZookeeperClientTest extends BaseTest {
         System.out.println(JsonUtils.toJson(buildSpringCloudHandle()));
     }
 
-    private static Pair<DivideSelectorHandle, DivideRuleHandle> buildDivideHandle() {
-        DivideSelectorHandle selectorHandle = new DivideSelectorHandle();
-
-        selectorHandle.setUpstreamList(buildUpstreamList());
+    private static Pair<List<DivideUpstream>, DivideRuleHandle> buildDivideHandle() {
 
         DivideRuleHandle ruleHandle = new DivideRuleHandle();
 
@@ -282,7 +278,7 @@ public class ZookeeperClientTest extends BaseTest {
 
         ruleHandle.setTimeout(1000);
 
-        return new ImmutablePair<>(selectorHandle, ruleHandle);
+        return new ImmutablePair<>(buildUpstreamList(), ruleHandle);
     }
 
     private static Pair<DubboSelectorHandle, DubboRuleHandle> buildDubboHandle() {

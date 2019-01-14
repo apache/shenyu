@@ -19,6 +19,7 @@
 package org.dromara.soul.extend.demo.extend;
 
 import org.dromara.soul.common.dto.zk.RuleZkDTO;
+import org.dromara.soul.common.dto.zk.SelectorZkDTO;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.web.cache.ZookeeperCacheManager;
 import org.dromara.soul.web.plugin.AbstractSoulPlugin;
@@ -45,20 +46,6 @@ public class FunctionPlugin extends AbstractSoulPlugin {
 
     public FunctionPlugin(final ZookeeperCacheManager dataCacheManager) {
         super(dataCacheManager);
-    }
-
-    /**
-     * this is Template Method child has Implement your own logic.
-     *
-     * @param exchange exchange the current server exchange {@linkplain ServerWebExchange}
-     * @param chain    chain the current chain  {@linkplain ServerWebExchange}
-     * @param rule     rule    {@linkplain RuleZkDTO}
-     * @return {@code Mono<Void>} to indicate when request handling is complete
-     */
-    @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final RuleZkDTO rule) {
-        LOGGER.debug(".......... function plugin start..............");
-        return chain.execute(exchange);
     }
 
     /**
@@ -100,5 +87,11 @@ public class FunctionPlugin extends AbstractSoulPlugin {
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
         return false;
+    }
+
+    @Override
+    protected Mono<Void> doExecute(ServerWebExchange exchange, SoulPluginChain chain, SelectorZkDTO selector, RuleZkDTO rule) {
+        LOGGER.debug(".......... function plugin start..............");
+        return chain.execute(exchange);
     }
 }

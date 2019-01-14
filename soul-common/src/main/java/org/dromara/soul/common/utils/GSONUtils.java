@@ -30,6 +30,7 @@ import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -125,6 +126,20 @@ public class GSONUtils {
         return GSON.fromJson(json, tClass);
     }
 
+    /**
+     * From list list.
+     *
+     * @param <T>    the type parameter
+     * @param string the string
+     * @param cls    the cls
+     * @return the list
+     */
+    public <T> List<T> fromList(String string, Class<T[]> cls) {
+        Gson gson = new Gson();
+        T[] array = gson.fromJson(string, cls);
+        return Arrays.asList(array);
+    }
+
 
     /**
      * toGetParam.
@@ -174,7 +189,8 @@ public class GSONUtils {
      * @return the map
      */
     public Map<String, Object> toObjectMap(final String json) {
-        TypeToken typeToken = new TypeToken<Map<String, Object>>() {};
+        TypeToken typeToken = new TypeToken<Map<String, Object>>() {
+        };
         Gson gson = new GsonBuilder().serializeNulls().registerTypeHierarchyAdapter(typeToken.getRawType(), new MapDeserializer<String, Object>()).create();
         return gson.fromJson(json, typeToken.getType());
     }
