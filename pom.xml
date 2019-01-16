@@ -15,8 +15,8 @@
         <module>soul-web</module>
         <module>soul-configuration</module>
         <module>soul-spring-boot-starter</module>
-        <!--  <module>soul-extend-demo</module>
-          <module>soul-test</module>-->
+        <module>soul-extend-demo</module>
+        <module>soul-test</module>
         <module>soul-bootstrap</module>
     </modules>
 
