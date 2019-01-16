@@ -266,10 +266,10 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
     private void setSelectorMapByKey(final String key, final SelectorZkDTO selectorZkDTO) {
         Optional.ofNullable(key)
                 .ifPresent(k -> {
+                    if (selectorZkDTO.getPluginName().equals(PluginEnum.DIVIDE.getName())) {
+                        UpstreamCacheManager.submit(selectorZkDTO);
+                    }
                     if (SELECTOR_MAP.containsKey(k)) {
-                        if (selectorZkDTO.getPluginName().equals(PluginEnum.DIVIDE.getName())) {
-                            UpstreamCacheManager.submit(selectorZkDTO);
-                        }
                         final List<SelectorZkDTO> selectorZkDTOList = SELECTOR_MAP.get(key);
                         final List<SelectorZkDTO> resultList = selectorZkDTOList.stream()
                                 .filter(r -> !r.getId()

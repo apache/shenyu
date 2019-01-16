@@ -172,7 +172,7 @@ public class GSONUtils {
 
 
     /**
-     * toList<Map></Map>.
+     * toList Map.
      *
      * @param json json
      * @return hashMap list

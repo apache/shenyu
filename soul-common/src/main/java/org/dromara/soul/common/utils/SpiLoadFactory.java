@@ -23,15 +23,17 @@ import java.util.ServiceLoader;
 
 /**
  * SpiLoadFactory.
+ *
  * @author xiaoyu
  */
 public class SpiLoadFactory {
 
     /**
-     * load loadFirst.
-     * @param clazz className
-     * @param <S> java.util.ServiceLoader<S/>
-     * @return java.util.ServiceLoader<S/>
+     * Load first s.
+     *
+     * @param <S>   the type parameter
+     * @param clazz the clazz
+     * @return the s
      */
     public static <S> S loadFirst(final Class<S> clazz) {
         final ServiceLoader<S> loader = loadAll(clazz);
@@ -45,10 +47,11 @@ public class SpiLoadFactory {
     }
 
     /**
-     * load all.
+     * Load all service loader.
      *
-     * @param clazz className
-     * @return java.util.ServiceLoader<S/>
+     * @param <S>   the type parameter
+     * @param clazz the clazz
+     * @return the service loader
      */
     public static <S> ServiceLoader<S> loadAll(final Class<S> clazz) {
         return ServiceLoader.load(clazz);

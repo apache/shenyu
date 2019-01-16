@@ -32,8 +32,8 @@ import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.web.cache.ZookeeperCacheManager;
 import org.dromara.soul.web.plugin.AbstractSoulPlugin;
 import org.dromara.soul.web.plugin.SoulPluginChain;
+import org.dromara.soul.web.plugin.hystrix.HttpCommand;
 import org.dromara.soul.web.plugin.hystrix.HystrixBuilder;
-import org.dromara.soul.web.plugin.hystrix.SpringCloudCommand;
 import org.dromara.soul.web.request.RequestDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +65,6 @@ public class SpringCloudPlugin extends AbstractSoulPlugin {
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorZkDTO selector, final RuleZkDTO rule) {
-
         if (Objects.isNull(rule)) {
             return Mono.empty();
         }
@@ -100,9 +99,9 @@ public class SpringCloudPlugin extends AbstractSoulPlugin {
 
         final URI uri = loadBalancer.reconstructURI(serviceInstance, URI.create(ruleHandle.getPath()));
 
-        SpringCloudCommand command =
-                new SpringCloudCommand(HystrixBuilder.build(ruleHandle),
-                        exchange, chain, ruleHandle, requestDTO, uri);
+        HttpCommand command =
+                new HttpCommand(HystrixBuilder.build(ruleHandle),
+                        exchange, chain, requestDTO, uri.toString(), ruleHandle.getTimeout());
 
         return Mono.create((MonoSink<Object> s) -> {
             Subscription sub = command.toObservable().subscribe(s::success,

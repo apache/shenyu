@@ -36,12 +36,12 @@ import java.io.Serializable;
 public class ConditionZkDTO implements Serializable {
 
     /**
-     * param type（post  query  uri..）.
+     * param type (post  query  uri).
      */
     private String paramType;
 
     /**
-     * （=  > <  like match）.
+     *  =  like match.
      */
     private String operator;
 
