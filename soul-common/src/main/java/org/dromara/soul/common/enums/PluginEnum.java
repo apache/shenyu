@@ -21,7 +21,6 @@ package org.dromara.soul.common.enums;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.lang.reflect.Array;
 import java.util.Arrays;
 
 /**
