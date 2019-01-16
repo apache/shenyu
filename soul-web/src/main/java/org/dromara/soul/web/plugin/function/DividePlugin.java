@@ -18,7 +18,6 @@
 
 package org.dromara.soul.web.plugin.function;
 
-import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
@@ -43,7 +42,6 @@ import org.dromara.soul.web.plugin.hystrix.HystrixBuilder;
 import org.dromara.soul.web.request.RequestDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.MonoSink;
@@ -51,22 +49,18 @@ import rx.Subscription;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
 
 /**
  * Divide Plugin.
  *
  * @author xiaoyu(Myth)
  */
-@SuppressWarnings("all")
 public class DividePlugin extends AbstractSoulPlugin {
 
     /**
      * logger.
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(DividePlugin.class);
-
-    private final ZookeeperCacheManager zookeeperCacheManager;
 
     private final UpstreamCacheManager upstreamCacheManager;
 
@@ -77,46 +71,51 @@ public class DividePlugin extends AbstractSoulPlugin {
      */
     public DividePlugin(final ZookeeperCacheManager zookeeperCacheManager, final UpstreamCacheManager upstreamCacheManager) {
         super(zookeeperCacheManager);
-        this.zookeeperCacheManager = zookeeperCacheManager;
         this.upstreamCacheManager = upstreamCacheManager;
     }
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorZkDTO selector, final RuleZkDTO rule) {
-
-        final RequestDTO body = exchange.getAttribute(Constants.REQUESTDTO);
+        final RequestDTO requestDTO = exchange.getAttribute(Constants.REQUESTDTO);
+        if (Objects.isNull(requestDTO)) {
+            return chain.execute(exchange);
+        }
 
         final DivideRuleHandle ruleHandle = GSONUtils.getInstance().fromJson(rule.getHandle(), DivideRuleHandle.class);
 
         if (StringUtils.isBlank(ruleHandle.getGroupKey())) {
-            ruleHandle.setGroupKey(body.getModule());
+            ruleHandle.setGroupKey(requestDTO.getModule());
         }
 
         if (StringUtils.isBlank(ruleHandle.getCommandKey())) {
-            ruleHandle.setCommandKey(body.getMethod());
+            ruleHandle.setCommandKey(requestDTO.getMethod());
         }
 
         final List<DivideUpstream> upstreamList =
                 upstreamCacheManager.findUpstreamListBySelectorId(selector.getId());
         if (CollectionUtils.isEmpty(upstreamList)) {
-            LogUtils.error(LOGGER, "divide upstream config error：{}", () -> rule.toString());
+            LogUtils.error(LOGGER, "divide upstream config error：{}", rule::toString);
             return chain.execute(exchange);
         }
-        DivideUpstream divideUpstream;
+
+        DivideUpstream divideUpstream = null;
         if (upstreamList.size() == 1) {
             divideUpstream = upstreamList.get(0);
         } else {
-            final LoadBalance loadBalance = LoadBalanceFactory.of(ruleHandle.getLoadBalance());
-            final String ip = exchange.getRequest().getRemoteAddress().getAddress().getHostAddress();
-            divideUpstream = loadBalance.select(upstreamList, ip);
+            if (StringUtils.isNoneBlank(ruleHandle.getLoadBalance())) {
+                final LoadBalance loadBalance = LoadBalanceFactory.of(ruleHandle.getLoadBalance());
+                final String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
+                divideUpstream = loadBalance.select(upstreamList, ip);
+            }
         }
+
         if (Objects.isNull(divideUpstream)) {
             LogUtils.error(LOGGER, () -> "LoadBalance has error！");
             return chain.execute(exchange);
         }
 
-        HttpCommand command = new HttpCommand(HystrixBuilder.build(ruleHandle),
-                divideUpstream, body, exchange, chain, ruleHandle);
+        HttpCommand command = new HttpCommand(HystrixBuilder.build(ruleHandle), exchange, chain,
+                requestDTO, buildRealURL(divideUpstream), ruleHandle.getTimeout());
         return Mono.create((MonoSink<Object> s) -> {
             Subscription sub = command.toObservable().subscribe(s::success,
                     s::error, s::success);
@@ -124,21 +123,20 @@ public class DividePlugin extends AbstractSoulPlugin {
             if (command.isCircuitBreakerOpen()) {
                 LogUtils.error(LOGGER, () -> ruleHandle.getGroupKey() + "....http:circuitBreaker is Open.... !");
             }
-        }).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> {
-            if (throwable instanceof HystrixRuntimeException) {
-                HystrixRuntimeException e = (HystrixRuntimeException) throwable;
-                LOGGER.error(e.getCause().getMessage());
-                if (e.getFailureType() == HystrixRuntimeException.FailureType.TIMEOUT) {
-                    exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.TIME_OUT.getName());
-                    exchange.getResponse().setStatusCode(HttpStatus.GATEWAY_TIMEOUT);
-                } else {
-                    exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.ERROR.getName());
-                    exchange.getResponse().setStatusCode(HttpStatus.BAD_GATEWAY);
-                }
-                return chain.execute(exchange);
-            }
-            return Mono.empty();
+        }).doOnError(throwable -> {
+            throwable.printStackTrace();
+            exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE,
+                    ResultEnum.ERROR.getName());
+            chain.execute(exchange);
         }).then();
+    }
+
+    private String buildRealURL(final DivideUpstream divideUpstream) {
+        String protocol = divideUpstream.getProtocol();
+        if (StringUtils.isBlank(protocol)) {
+            protocol = "http://";
+        }
+        return protocol + divideUpstream.getUpstreamUrl().trim();
     }
 
     @Override

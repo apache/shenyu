@@ -50,6 +50,11 @@ public class PluginController {
 
     private final PluginService pluginService;
 
+    /**
+     * Instantiates a new Plugin controller.
+     *
+     * @param pluginService the plugin service
+     */
     @Autowired(required = false)
     public PluginController(final PluginService pluginService) {
         this.pluginService = pluginService;
@@ -155,10 +160,12 @@ public class PluginController {
         }
     }
 
+
     /**
-     * sync plugins.
+     * Sync plugin data mono.
      *
-     * @return {@linkplain Mono}
+     * @param id the id
+     * @return the mono
      */
     @PutMapping("/syncPluginData/{id}")
     public Mono<SoulResult> syncPluginData(@PathVariable("id") final String id) {

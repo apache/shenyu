@@ -66,7 +66,7 @@ public class ResponsePlugin implements SoulPlugin {
 
                 final Object result = exchange.getAttribute(Constants.DUBBO_RPC_RESULT);
                 try {
-                    if(Objects.isNull(result)){
+                    if (Objects.isNull(result)) {
                         return response.writeWith(Mono.just(exchange.getResponse()
                                 .bufferFactory().wrap(Objects.requireNonNull(JsonUtils
                                         .toJson(SoulResult.error(Constants.DUBBO_ERROR_RESULT))).getBytes())));
@@ -78,7 +78,9 @@ public class ResponsePlugin implements SoulPlugin {
                 }
             } else {
                 ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
-                if (response.getStatusCode() == HttpStatus.BAD_GATEWAY || Objects.isNull(clientResponse)) {
+                if (response.getStatusCode() == HttpStatus.BAD_GATEWAY
+                        || response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR
+                        || Objects.isNull(clientResponse)) {
                     final String result = JsonUtils.toJson(SoulResult.error(Constants.HTTP_ERROR_RESULT));
                     return response.writeWith(Mono.just(exchange.getResponse()
                             .bufferFactory()

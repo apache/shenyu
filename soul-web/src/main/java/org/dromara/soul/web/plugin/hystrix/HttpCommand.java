@@ -20,10 +20,9 @@ package org.dromara.soul.web.plugin.hystrix;
 
 import com.netflix.hystrix.HystrixObservableCommand;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
+import com.netflix.hystrix.exception.HystrixTimeoutException;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
-import org.dromara.soul.common.dto.convert.DivideUpstream;
-import org.dromara.soul.common.dto.convert.rule.DivideRuleHandle;
 import org.dromara.soul.common.enums.HttpMethodEnum;
 import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.result.SoulResult;
@@ -34,6 +33,7 @@ import org.dromara.soul.web.plugin.SoulPluginChain;
 import org.dromara.soul.web.request.RequestDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -46,13 +46,13 @@ import rx.RxReactiveStreams;
 
 import java.time.Duration;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
- * HttpHystrixCommand.
+ * the spring cloud command.
  *
  * @author xiaoyu(Myth)
  */
-@SuppressWarnings("all")
 public class HttpCommand extends HystrixObservableCommand<Void> {
 
     /**
@@ -62,105 +62,86 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
 
     private static final WebClient WEB_CLIENT = WebClient.create();
 
-    private final DivideUpstream divideUpstream;
-
-    private final RequestDTO requestDTO;
-
     private final ServerWebExchange exchange;
 
     private final SoulPluginChain chain;
 
-    private final DivideRuleHandle ruleHandle;
+    private final RequestDTO requestDTO;
+
+    private final String url;
+
+    private final Integer timeout;
 
     /**
      * Instantiates a new Http command.
      *
-     * @param setter         the setter
-     * @param divideUpstream the divide upstream
-     * @param requestDTO     the request dto
-     * @param exchange       the exchange
-     * @param chain          the chain
+     * @param setter     the setter
+     * @param exchange   the exchange
+     * @param chain      the chain
+     * @param requestDTO the request dto
+     * @param url        the url
+     * @param timeout    the timeout
      */
     public HttpCommand(final Setter setter,
-                       final DivideUpstream divideUpstream,
-                       final RequestDTO requestDTO,
                        final ServerWebExchange exchange,
                        final SoulPluginChain chain,
-                       final DivideRuleHandle ruleHandle) {
+                       final RequestDTO requestDTO,
+                       final String url,
+                       final Integer timeout) {
         super(setter);
-        this.divideUpstream = divideUpstream;
-        this.requestDTO = requestDTO;
         this.exchange = exchange;
         this.chain = chain;
-        this.ruleHandle = ruleHandle;
+        this.requestDTO = requestDTO;
+        this.url = url;
+        this.timeout = timeout;
     }
 
     @Override
     protected Observable<Void> construct() {
-        return RxReactiveStreams.toObservable(doHttpRequest());
+        return RxReactiveStreams.toObservable(doHttpInvoke());
     }
 
-
-    @Override
-    protected Observable<Void> resumeWithFallback() {
-        return RxReactiveStreams.toObservable(doFallback());
-    }
-
-    private Mono<Void> doFallback() {
-        if (isFailedExecution()) {
-            LogUtils.error(LOGGER, "http have error:{}", () -> getExecutionException().getMessage());
-        }
-        if (getExecutionException() instanceof HystrixRuntimeException) {
-            HystrixRuntimeException e = (HystrixRuntimeException) getExecutionException();
-            if (e.getFailureType() == HystrixRuntimeException.FailureType.TIMEOUT) {
-                exchange.getResponse().setStatusCode(HttpStatus.GATEWAY_TIMEOUT);
-            } else {
-                exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        }
-        final SoulResult error = SoulResult.error(Constants.HTTP_ERROR_RESULT);
-        return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
-                .bufferFactory().wrap(Objects.requireNonNull(JsonUtils.toJson(error)).getBytes())));
-    }
-
-    /**
-     * execute http request.
-     *
-     * @return {@code Mono<Void>} to indicate when request processing is complete
-     */
-    private Mono<Void> doHttpRequest() {
+    private Mono<Void> doHttpInvoke() {
         if (requestDTO.getHttpMethod().equals(HttpMethodEnum.GET.getName())) {
             String uri = buildRealURL();
             if (StringUtils.isNoneBlank(requestDTO.getExtInfo())) {
                 uri = uri + "?" + GSONUtils.getInstance().toGetParam(requestDTO.getExtInfo());
             }
             return WEB_CLIENT.get().uri(uri)
+                    .headers(httpHeaders -> {
+                        httpHeaders.addAll(exchange.getRequest().getHeaders());
+                        httpHeaders.remove(HttpHeaders.HOST);
+                    })
                     .exchange()
                     .doOnError(e -> LogUtils.error(LOGGER, e::getMessage))
-                    .timeout(Duration.ofMillis(ruleHandle.getTimeout()))
+                    .timeout(Duration.ofMillis(timeout))
                     .flatMap(this::doNext);
         } else if (requestDTO.getHttpMethod().equals(HttpMethodEnum.POST.getName())) {
             return WEB_CLIENT.post().uri(buildRealURL())
-                    .contentType(MediaType.APPLICATION_JSON_UTF8)
+                    .headers(httpHeaders -> {
+                        httpHeaders.addAll(exchange.getRequest().getHeaders());
+                        httpHeaders.remove(HttpHeaders.HOST);
+                    })
+                    .contentType(buildMediaType())
                     .body(BodyInserters.fromDataBuffers(exchange.getRequest().getBody()))
                     .exchange()
                     .doOnError(e -> LogUtils.error(LOGGER, e::getMessage))
-                    .timeout(Duration.ofMillis(ruleHandle.getTimeout()))
+                    .timeout(Duration.ofMillis(timeout))
                     .flatMap(this::doNext);
         }
         return Mono.empty();
     }
 
-    private String buildRealURL() {
-        final String rewriteURI = (String) exchange.getAttributes().get(Constants.REWRITE_URI);
-        String protocol = divideUpstream.getProtocol();
-        if (StringUtils.isBlank(protocol)) {
-            protocol = "http://";
-        }
-        if (StringUtils.isBlank(rewriteURI)) {
-            return protocol + divideUpstream.getUpstreamUrl().trim() + "/" + requestDTO.getMethod().trim();
-        }
-        return protocol + divideUpstream.getUpstreamUrl().trim() + "/" + rewriteURI.trim();
+    @Override
+    protected Observable<Void> resumeWithFallback() {
+        return RxReactiveStreams.toObservable(doFallback());
+    }
+
+    private MediaType buildMediaType() {
+        return MediaType.valueOf(Optional.ofNullable(exchange
+                .getRequest()
+                .getHeaders().getFirst(HttpHeaders.CONTENT_TYPE))
+                .orElse(MediaType.APPLICATION_JSON_UTF8_VALUE));
     }
 
     private Mono<Void> doNext(final ClientResponse res) {
@@ -173,4 +154,32 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
         return chain.execute(exchange);
     }
 
+    private String buildRealURL() {
+        final String rewriteURI = (String) exchange.getAttributes().get(Constants.REWRITE_URI);
+        if (StringUtils.isBlank(rewriteURI)) {
+            return String.join("/", url, requestDTO.getMethod());
+        }
+        return String.join("/", url, rewriteURI);
+    }
+
+    private Mono<Void> doFallback() {
+        if (isFailedExecution()) {
+            LogUtils.error(LOGGER, "http execute have error:{}", () -> getExecutionException().getMessage());
+        }
+        final Throwable exception = getExecutionException();
+        if (exception instanceof HystrixRuntimeException) {
+            HystrixRuntimeException e = (HystrixRuntimeException) getExecutionException();
+            if (e.getFailureType() == HystrixRuntimeException.FailureType.TIMEOUT) {
+                exchange.getResponse().setStatusCode(HttpStatus.GATEWAY_TIMEOUT);
+            } else {
+                exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } else if (exception instanceof HystrixTimeoutException) {
+            exchange.getResponse().setStatusCode(HttpStatus.GATEWAY_TIMEOUT);
+        }
+        exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+        final SoulResult error = SoulResult.error(Constants.HTTP_ERROR_RESULT);
+        return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
+                .bufferFactory().wrap(Objects.requireNonNull(JsonUtils.toJson(error)).getBytes())));
+    }
 }

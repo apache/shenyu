@@ -22,7 +22,6 @@ package org.dromara.soul.test.http.controller;
 import org.dromara.soul.test.http.dto.UserDTO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -37,7 +36,7 @@ public class HttpTestController {
 
 
     @PostMapping("/payment")
-    public UserDTO post(@RequestBody final UserDTO userDTO) {
+    public UserDTO post(final UserDTO userDTO) {
         return userDTO;
     }
 
