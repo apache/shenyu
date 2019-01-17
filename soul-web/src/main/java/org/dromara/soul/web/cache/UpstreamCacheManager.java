@@ -28,6 +28,7 @@ import org.dromara.soul.common.utils.UrlUtils;
 import org.dromara.soul.web.concurrent.SoulThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -37,6 +38,7 @@ import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -55,6 +57,14 @@ public class UpstreamCacheManager {
     private static final int MAX_THREAD = Runtime.getRuntime().availableProcessors() << 1;
 
     private static final Map<String, List<DivideUpstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
+
+    private static final Map<String, List<DivideUpstream>> SCHEDULED_MAP = Maps.newConcurrentMap();
+
+    @Value("${soul.upstream.delayInit:30}")
+    private Integer delayInit;
+
+    @Value("${soul.upstream.delayInit:10}")
+    private Integer scheduledTime;
 
     /**
      * Find upstream list by selector id list.
@@ -84,11 +94,16 @@ public class UpstreamCacheManager {
             ExecutorService executorService = new ThreadPoolExecutor(MAX_THREAD, MAX_THREAD,
                     0L, TimeUnit.MILLISECONDS,
                     new LinkedBlockingQueue<>(),
-                    SoulThreadFactory.create("divide-upstream-task",
-                            false));
+                    SoulThreadFactory.create("save-upstream-task", false));
+
             for (int i = 0; i < MAX_THREAD; i++) {
                 executorService.execute(new Worker());
             }
+
+            new ScheduledThreadPoolExecutor(MAX_THREAD,
+                    SoulThreadFactory.create("scheduled-upstream-task", false))
+                    .scheduleWithFixedDelay(this::scheduled,
+                            delayInit, scheduledTime, TimeUnit.SECONDS);
         }
     }
 
@@ -115,15 +130,26 @@ public class UpstreamCacheManager {
         final List<DivideUpstream> upstreamList =
                 GSONUtils.getInstance().fromList(selectorZkDTO.getHandle(), DivideUpstream[].class);
         if (CollectionUtils.isNotEmpty(upstreamList)) {
-            List<DivideUpstream> resultList = Lists.newArrayListWithCapacity(upstreamList.size());
-            for (DivideUpstream divideUpstream : upstreamList) {
-                final boolean pass = UrlUtils.checkUrl(divideUpstream.getUpstreamUrl());
-                if (pass) {
-                    resultList.add(divideUpstream);
-                }
-            }
-            UPSTREAM_MAP.put(selectorZkDTO.getId(), resultList);
+            SCHEDULED_MAP.put(selectorZkDTO.getId(), upstreamList);
+            UPSTREAM_MAP.put(selectorZkDTO.getId(), check(upstreamList));
         }
+    }
+
+    private void scheduled() {
+        if (SCHEDULED_MAP.size() > 0) {
+            SCHEDULED_MAP.forEach((k, v) -> UPSTREAM_MAP.put(k, check(v)));
+        }
+    }
+
+    private List<DivideUpstream> check(final List<DivideUpstream> upstreamList) {
+        List<DivideUpstream> resultList = Lists.newArrayListWithCapacity(upstreamList.size());
+        for (DivideUpstream divideUpstream : upstreamList) {
+            final boolean pass = UrlUtils.checkUrl(divideUpstream.getUpstreamUrl());
+            if (pass) {
+                resultList.add(divideUpstream);
+            }
+        }
+        return resultList;
     }
 
     /**
