@@ -6,7 +6,7 @@ server:
 
 spring:
     application:
-      name: test-service
+      name:
 eureka:
  client:
      serviceUrl:
