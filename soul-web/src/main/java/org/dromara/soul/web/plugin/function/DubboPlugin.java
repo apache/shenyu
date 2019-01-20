@@ -78,8 +78,6 @@ public class DubboPlugin extends AbstractSoulPlugin {
 
         final Map<String, Object> paramMap = exchange.getAttribute(Constants.DUBBO_PARAMS);
 
-        assert paramMap != null;
-
         final DubboRuleHandle ruleHandle = GSONUtils.getInstance().fromJson(rule.getHandle(), DubboRuleHandle.class);
 
         final DubboSelectorHandle selectorHandle = GSONUtils.getInstance().fromJson(selector.getHandle(), DubboSelectorHandle.class);

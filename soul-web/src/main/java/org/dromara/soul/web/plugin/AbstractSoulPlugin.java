@@ -125,12 +125,9 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
             }
 
             if (rule.getLoged()) {
-                LogUtils.info(LOGGER, () -> {
-                    assert request != null;
-                    return request.getModule() + ":" + request.getMethod() + " match " + named()
-                            + " rule is name :"
-                            + rule.getName();
-                });
+                LogUtils.info(LOGGER, () -> request.getModule() + ":" + request.getMethod() + " match " + named()
+                        + " rule is name :"
+                        + rule.getName());
             }
             return doExecute(exchange, chain, selectorZkDTO, rule);
         }

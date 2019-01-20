@@ -77,9 +77,6 @@ public class DividePlugin extends AbstractSoulPlugin {
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorZkDTO selector, final RuleZkDTO rule) {
         final RequestDTO requestDTO = exchange.getAttribute(Constants.REQUESTDTO);
-        if (Objects.isNull(requestDTO)) {
-            return chain.execute(exchange);
-        }
 
         final DivideRuleHandle ruleHandle = GSONUtils.getInstance().fromJson(rule.getHandle(), DivideRuleHandle.class);
 
