@@ -24,6 +24,17 @@
  
   ## https://dromara.org 或者 http://dromara.org
   
+
+# 视频源码解析
+
+* ## 环境搭建(一) : http://www.iqiyi.com/w_19s6521605.html
+
+* ## 环境搭建(二) : http://www.iqiyi.com/w_19s65203ap.html
+
+* ## 源码调试 : http://www.iqiyi.com/w_19s650tbol.html
+
+* ## 插件详解 : http://www.iqiyi.com/w_19s651zyo9.html
+ 
   
 # 文档 
    
