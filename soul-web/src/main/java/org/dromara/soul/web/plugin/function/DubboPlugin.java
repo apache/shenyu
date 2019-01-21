@@ -83,11 +83,11 @@ public class DubboPlugin extends AbstractSoulPlugin {
         final DubboSelectorHandle selectorHandle = GSONUtils.getInstance().fromJson(selector.getHandle(), DubboSelectorHandle.class);
 
         if (StringUtils.isBlank(ruleHandle.getGroupKey())) {
-            ruleHandle.setGroupKey(String.valueOf(paramMap.get(DubboParamConstants.INTERFACE_NAME)));
+            ruleHandle.setGroupKey(String.valueOf(Objects.requireNonNull(paramMap).get(DubboParamConstants.INTERFACE_NAME)));
         }
 
         if (StringUtils.isBlank(ruleHandle.getCommandKey())) {
-            ruleHandle.setCommandKey(String.valueOf(paramMap.get(DubboParamConstants.METHOD)));
+            ruleHandle.setCommandKey(String.valueOf(Objects.requireNonNull(paramMap).get(DubboParamConstants.METHOD)));
         }
 
         if (!checkData(selectorHandle)) {

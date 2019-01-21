@@ -77,7 +77,7 @@ public class SignPlugin extends AbstractSoulPlugin {
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorZkDTO selector, final RuleZkDTO rule) {
         final RequestDTO requestDTO = exchange.getAttribute(Constants.REQUESTDTO);
-        final Boolean success = signVerify(requestDTO);
+        final Boolean success = signVerify(Objects.requireNonNull(requestDTO));
         if (!success) {
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
             final SoulResult error = SoulResult.error(HttpStatus.UNAUTHORIZED.value(), Constants.SIGN_IS_NOT_PASS);
