@@ -63,7 +63,7 @@ public class UpstreamCacheManager {
     @Value("${soul.upstream.delayInit:30}")
     private Integer delayInit;
 
-    @Value("${soul.upstream.delayInit:10}")
+    @Value("${soul.upstream.scheduledTime:10}")
     private Integer scheduledTime;
 
     /**
