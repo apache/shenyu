@@ -26,6 +26,7 @@ import com.alibaba.dubbo.rpc.service.GenericException;
 import com.alibaba.dubbo.rpc.service.GenericService;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.gson.JsonArray;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -137,7 +138,7 @@ public class DubboProxyService {
             final Map<String, Object> objectMap = GSONUtils.getInstance().toObjectMap(params.toString());
             objectMap.forEach((k, v) -> {
                 //如果v是数组类型
-                if (v instanceof List) {
+                if (v instanceof JsonArray) {
                     List<String> arg = GSONUtils.getInstance().fromJson(v.toString(), List.class);
                     arg.forEach(j -> {
                         paramList.add(k);

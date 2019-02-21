@@ -26,7 +26,7 @@ spring:
         read-timeout: 30
         write-timeout: 10
    zookeeper:
-        url : localhost:2181
+        url : zk.zookeeper:2181
         sessionTimeout: 5000
         connectionTimeout : 2000
         serializer : KryoSerializer

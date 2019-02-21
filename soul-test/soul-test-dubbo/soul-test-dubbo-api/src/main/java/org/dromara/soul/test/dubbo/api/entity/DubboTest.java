@@ -23,6 +23,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.net.URLEncoder;
 
 /**
  * DubboTest.
@@ -36,4 +37,12 @@ public class DubboTest implements Serializable {
     private String id;
 
     private String name;
+
+    private Address address;
+
+
+    public static void main(String[] args)  throws Exception{
+        System.out.println(URLEncoder.encode("安徽","UTF-8"));
+    }
+
 }
