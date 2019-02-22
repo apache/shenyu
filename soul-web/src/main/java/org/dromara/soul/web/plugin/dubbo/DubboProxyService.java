@@ -124,8 +124,12 @@ public class DubboProxyService {
 
             if (hasList.get()) {
                 final Object classParams = paramMap.get(DubboParamConstants.CLASS_PARAMS);
-                List<Map> params = GSONUtils.getInstance().toListMap(classParams.toString());
-                args.add(params);
+                JsonArray classParamslist = (JsonArray) classParams;
+                classParamslist.forEach(classParam->{
+                    List<Map> params = GSONUtils.getInstance().toListMap(classParam.toString());
+                    args.add(params);
+                });
+
             } else {
                 final Object classParams = paramMap.get(DubboParamConstants.CLASS_PARAMS);
                 args.addAll(GSONUtils.getInstance()
