@@ -110,7 +110,8 @@ public class DubboProxyService {
         List<Object> args = Lists.newArrayList();
         //如果参数里面包含class字段
         //如果参数里面包含class字段
-        if (paramMap.containsKey(DubboParamConstants.PARAM_CLASS)) {
+        if (paramMap.containsKey(DubboParamConstants.PARAM_CLASS)
+                && !StringUtils.equals(String.valueOf(paramMap.get(DubboParamConstants.PARAM_CLASS)), "null")) {
             List<String> clazz = GSONUtils.getInstance()
                     .fromJson(paramMap.get(DubboParamConstants.PARAM_CLASS).toString(), List.class);
             //设置参数为class 类型
@@ -125,9 +126,21 @@ public class DubboProxyService {
             if (hasList.get()) {
                 final Object classParams = paramMap.get(DubboParamConstants.CLASS_PARAMS);
                 JsonArray classParamslist = (JsonArray) classParams;
-                classParamslist.forEach(classParam->{
-                    List<Map> params = GSONUtils.getInstance().toListMap(classParam.toString());
-                    args.add(params);
+                classParamslist.forEach(classParam -> {
+                    try {
+                        List<Map> params = GSONUtils.getInstance().toListMap(classParam.toString());
+                        args.add(params);
+                    } catch (Exception e) {
+                        try {
+                            List<String> arg = GSONUtils.getInstance().fromJson(classParam.toString(), List.class);
+                            arg.forEach(j -> {
+                                args.add(j);
+                            });
+                        } catch (Exception e1) {
+                            Object arg = GSONUtils.getInstance().fromJson(classParam.toString(), Object.class);
+                            args.add(arg);
+                        }
+                    }
                 });
 
             } else {
@@ -137,7 +150,8 @@ public class DubboProxyService {
             }
         }
         //如果Map参数里面包含 params字段  规定params 里面是json字符串转成Map key为类型，value为值
-        if (paramMap.containsKey(DubboParamConstants.PARAMS)) {
+        if (paramMap.containsKey(DubboParamConstants.PARAMS)
+                && !StringUtils.equals(String.valueOf(paramMap.get(DubboParamConstants.PARAMS)), "null")) {
             final Object params = paramMap.get(DubboParamConstants.PARAMS);
             final Map<String, Object> objectMap = GSONUtils.getInstance().toObjectMap(params.toString());
             objectMap.forEach((k, v) -> {
