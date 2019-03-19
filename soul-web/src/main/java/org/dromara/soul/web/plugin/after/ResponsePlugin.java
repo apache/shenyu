@@ -78,9 +78,9 @@ public class ResponsePlugin implements SoulPlugin {
                 }
             } else {
                 ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
-                if (response.getStatusCode() == HttpStatus.BAD_GATEWAY
-                        || response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR
-                        || Objects.isNull(clientResponse)) {
+                if (Objects.isNull(clientResponse) ||
+                        response.getStatusCode() == HttpStatus.BAD_GATEWAY
+                        || response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
                     final String result = JsonUtils.toJson(SoulResult.error(Constants.HTTP_ERROR_RESULT));
                     return response.writeWith(Mono.just(exchange.getResponse()
                             .bufferFactory()
