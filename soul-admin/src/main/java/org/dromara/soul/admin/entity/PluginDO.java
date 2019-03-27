@@ -21,11 +21,9 @@ package org.dromara.soul.admin.entity;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.PluginDTO;
-import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
-import java.util.Date;
 
 /**
  * PluginDO.
@@ -46,6 +44,11 @@ public class PluginDO extends BaseDO {
     private Boolean enabled;
 
     /**
+     * {@linkplain org.dromara.soul.common.enums.PluginRoleEnum}
+     */
+    private Integer role;
+
+    /**
      * build pluginDO.
      *
      * @param pluginDTO {@linkplain PluginDTO}
@@ -61,8 +64,9 @@ public class PluginDO extends BaseDO {
             } else {
                 pluginDO.setId(pluginDTO.getId());
             }
-            pluginDO.setName(PluginEnum.getPluginEnumByCode(pluginDTO.getCode()).getName());
+            pluginDO.setName(pluginDTO.getName());
             pluginDO.setEnabled(pluginDTO.getEnabled());
+            pluginDO.setRole(pluginDTO.getRole());
             pluginDO.setDateUpdated(currentTime);
             return pluginDO;
         }

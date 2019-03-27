@@ -6,11 +6,12 @@
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
         <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="role" jdbcType="INTEGER" property="role"/>
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, date_created, date_updated, name, enabled
+        id, date_created, date_updated, name,role, enabled
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -42,9 +43,9 @@
 
     <insert id="insert" parameterType="org.dromara.soul.admin.entity.PluginDO">
         insert into plugin (id, date_created, date_updated,
-        name, enabled)
+        name,role, enabled)
         values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
-        #{name,jdbcType=VARCHAR}, #{enabled,jdbcType=TINYINT})
+        #{name,jdbcType=VARCHAR}, #{role,jdbcType=INTEGER}, #{enabled,jdbcType=TINYINT})
     </insert>
 
     <insert id="insertSelective" parameterType="org.dromara.soul.admin.entity.PluginDO">
@@ -60,6 +61,9 @@
             <if test="name != null">
                 name,
             </if>
+            <if test="role != null">
+                role,
+            </if>
             <if test="enabled != null">
                 enabled,
             </if>
@@ -74,6 +78,9 @@
             </if>
             <if test="name != null">
                 #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="role != null">
+                #{role,jdbcType=INTEGER},
             </if>
             <if test="enabled != null">
                 #{enabled,jdbcType=TINYINT},
@@ -101,6 +108,9 @@
             </if>
             <if test="name != null">
                 name = #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="role != null">
+                name = #{role,jdbcType=INTEGER},
             </if>
             <if test="enabled != null">
                 enabled = #{enabled,jdbcType=TINYINT},

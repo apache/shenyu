@@ -26,7 +26,7 @@ import org.dromara.soul.common.dto.zk.SelectorZkDTO;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
-import org.dromara.soul.common.utils.GSONUtils;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.web.cache.ZookeeperCacheManager;
 import org.dromara.soul.web.plugin.AbstractSoulPlugin;
@@ -76,7 +76,7 @@ public class RewritePlugin extends AbstractSoulPlugin {
 
         @NotBlank final String handle = rule.getHandle();
 
-        final RewriteHandle rewriteHandle = GSONUtils.getInstance().fromJson(handle, RewriteHandle.class);
+        final RewriteHandle rewriteHandle = GsonUtils.getInstance().fromJson(handle, RewriteHandle.class);
 
         if (Objects.isNull(rewriteHandle) || StringUtils.isBlank(rewriteHandle.getRewriteURI())) {
             LogUtils.error(LOGGER, "uri rewrite rule can not config：{}", () -> handle);

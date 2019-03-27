@@ -16,37 +16,24 @@
  *
  */
 
-package org.dromara.soul.admin.dto;
+package org.dromara.soul.web.plugin.dubbo;
 
-import lombok.Data;
+import org.apache.commons.lang3.tuple.Pair;
 
-import java.io.Serializable;
+import java.util.Map;
 
 /**
- * this is plugin from by web front.
- *
- * @author jiangxiaofeng(Nicholas)
+ * The interface Generic param service.
+ * This service is used to construct the parameters required for the dubbo generalization.
+ * @author xiaoyu(Myth)
  */
-@Data
-public class PluginDTO implements Serializable {
+public interface GenericParamService {
 
     /**
-     * primary key.
+     * Build parameter pair.
+     *
+     * @param paramMap the param map
+     * @return the pair
      */
-    private String id;
-
-    /**
-     * plugin code.
-     */
-    private String name;
-
-    /**
-     * plugin role.
-     */
-    private Integer role;
-
-    /**
-     * whether enabled.
-     */
-    private Boolean enabled;
+    Pair<String[], Object[]> buildParameter(Map<String, Object> paramMap);
 }

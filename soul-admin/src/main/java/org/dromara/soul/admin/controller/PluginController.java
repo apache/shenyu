@@ -26,14 +26,14 @@ import org.dromara.soul.admin.service.PluginService;
 import org.dromara.soul.admin.vo.PluginVO;
 import org.dromara.soul.common.result.SoulResult;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -139,6 +139,9 @@ public class PluginController {
     public Mono<SoulResult> deletePlugins(@RequestBody final List<String> ids) {
         try {
             Integer deleteCount = pluginService.delete(ids);
+            if (deleteCount <= 0) {
+                return Mono.create(soulResult -> soulResult.success(SoulResult.error("sys plugin can not delete!")));
+            }
             return Mono.create(soulResult -> soulResult.success(SoulResult.success("delete plugins success", deleteCount)));
         } catch (Exception e) {
             return Mono.create(soulResult -> soulResult.success(SoulResult.error("delete plugins exception")));

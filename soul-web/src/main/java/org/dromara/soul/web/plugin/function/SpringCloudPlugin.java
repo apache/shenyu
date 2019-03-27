@@ -27,7 +27,7 @@ import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
-import org.dromara.soul.common.utils.GSONUtils;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.web.cache.ZookeeperCacheManager;
 import org.dromara.soul.web.plugin.AbstractSoulPlugin;
@@ -73,7 +73,7 @@ public class SpringCloudPlugin extends AbstractSoulPlugin {
 
         assert requestDTO != null;
 
-        final SpringCloudRuleHandle ruleHandle = GSONUtils.getInstance().fromJson(rule.getHandle(), SpringCloudRuleHandle.class);
+        final SpringCloudRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), SpringCloudRuleHandle.class);
 
         final String serviceId = selector.getHandle();
 

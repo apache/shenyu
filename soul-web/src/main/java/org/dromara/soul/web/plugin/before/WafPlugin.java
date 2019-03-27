@@ -27,7 +27,7 @@ import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.enums.WafEnum;
 import org.dromara.soul.common.result.SoulResult;
-import org.dromara.soul.common.utils.GSONUtils;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.JsonUtils;
 import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.web.cache.ZookeeperCacheManager;
@@ -78,7 +78,7 @@ public class WafPlugin extends AbstractSoulPlugin {
 
         @NotBlank final String handle = rule.getHandle();
 
-        final WafHandle wafHandle = GSONUtils.getInstance().fromJson(handle, WafHandle.class);
+        final WafHandle wafHandle = GsonUtils.getInstance().fromJson(handle, WafHandle.class);
 
         if (Objects.isNull(wafHandle) || StringUtils.isBlank(wafHandle.getPermission())) {
             LogUtils.error(LOGGER, "waf handler can not config：{}", () -> handle);

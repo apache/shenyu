@@ -42,6 +42,7 @@ import org.dromara.soul.common.dto.zk.ConditionZkDTO;
 import org.dromara.soul.common.dto.zk.PluginZkDTO;
 import org.dromara.soul.common.dto.zk.RuleZkDTO;
 import org.dromara.soul.common.dto.zk.SelectorZkDTO;
+import org.dromara.soul.common.enums.PluginRoleEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -101,7 +102,7 @@ public class PluginServiceImpl implements PluginService {
             zkClient.createPersistent(pluginPath, true);
         }
         zkClient.writeData(pluginPath, new PluginZkDTO(pluginDO.getId(),
-                pluginDO.getName(), pluginDO.getEnabled()));
+                pluginDO.getName(), pluginDO.getRole(), pluginDO.getEnabled()));
         return pluginCount;
     }
 
@@ -117,6 +118,10 @@ public class PluginServiceImpl implements PluginService {
         int pluginCount = 0;
         for (String id : ids) {
             PluginDO pluginDO = pluginMapper.selectById(id);
+            // if sys plugin not delete
+            if (pluginDO.getRole().equals(PluginRoleEnum.SYS.getCode())) {
+                return pluginCount;
+            }
             pluginCount += pluginMapper.delete(id);
             String pluginPath = ZkPathConstants.buildPluginPath(pluginDO.getName());
             if (zkClient.exists(pluginPath)) {
@@ -224,7 +229,7 @@ public class PluginServiceImpl implements PluginService {
             zkClient.createPersistent(pluginPath, true);
         }
         zkClient.writeData(pluginPath, new PluginZkDTO(pluginDO.getId(),
-                pluginDO.getName(), pluginDO.getEnabled()));
+                pluginDO.getName(), pluginDO.getRole(), pluginDO.getEnabled()));
 
         List<String> selectorZKs = zkClient.getChildren(ZkPathConstants.buildSelectorParentPath(pluginDO.getName()));
         selectorMapper.selectByQuery(new SelectorQuery(pluginDO.getId(), null)).forEach(selectorDO -> {

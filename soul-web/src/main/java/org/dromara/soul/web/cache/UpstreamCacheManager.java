@@ -23,7 +23,7 @@ import com.google.common.collect.Maps;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.dto.zk.SelectorZkDTO;
-import org.dromara.soul.common.utils.GSONUtils;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.UrlUtils;
 import org.dromara.soul.web.concurrent.SoulThreadFactory;
 import org.slf4j.Logger;
@@ -128,7 +128,7 @@ public class UpstreamCacheManager {
      */
     public void execute(final SelectorZkDTO selectorZkDTO) {
         final List<DivideUpstream> upstreamList =
-                GSONUtils.getInstance().fromList(selectorZkDTO.getHandle(), DivideUpstream[].class);
+                GsonUtils.getInstance().fromList(selectorZkDTO.getHandle(), DivideUpstream[].class);
         if (CollectionUtils.isNotEmpty(upstreamList)) {
             SCHEDULED_MAP.put(selectorZkDTO.getId(), upstreamList);
             UPSTREAM_MAP.put(selectorZkDTO.getId(), check(upstreamList));
