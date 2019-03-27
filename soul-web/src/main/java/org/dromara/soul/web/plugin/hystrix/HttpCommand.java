@@ -26,7 +26,7 @@ import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.HttpMethodEnum;
 import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.result.SoulResult;
-import org.dromara.soul.common.utils.GSONUtils;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.JsonUtils;
 import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.web.plugin.SoulPluginChain;
@@ -105,7 +105,7 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
         if (requestDTO.getHttpMethod().equals(HttpMethodEnum.GET.getName())) {
             String uri = buildRealURL();
             if (StringUtils.isNoneBlank(requestDTO.getExtInfo())) {
-                uri = uri + "?" + GSONUtils.getInstance().toGetParam(requestDTO.getExtInfo());
+                uri = uri + "?" + GsonUtils.getInstance().toGetParam(requestDTO.getExtInfo());
             }
             return WEB_CLIENT.get().uri(uri)
                     .headers(httpHeaders -> {

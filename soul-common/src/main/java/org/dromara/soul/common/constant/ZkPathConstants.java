@@ -35,7 +35,7 @@ public final class ZkPathConstants implements Constants {
      */
     public static final String SELECTOR_JOIN_RULE = "-";
 
-    private static final String PLUGIN_PARENT = "/soul/plugin";
+    public static final String PLUGIN_PARENT = "/soul/plugin";
 
     private static final String RULE_PARENT = "/soul/rule";
 

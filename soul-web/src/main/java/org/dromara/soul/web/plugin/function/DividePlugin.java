@@ -29,7 +29,7 @@ import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
-import org.dromara.soul.common.utils.GSONUtils;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.web.balance.LoadBalance;
 import org.dromara.soul.web.balance.factory.LoadBalanceFactory;
@@ -78,7 +78,7 @@ public class DividePlugin extends AbstractSoulPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorZkDTO selector, final RuleZkDTO rule) {
         final RequestDTO requestDTO = exchange.getAttribute(Constants.REQUESTDTO);
 
-        final DivideRuleHandle ruleHandle = GSONUtils.getInstance().fromJson(rule.getHandle(), DivideRuleHandle.class);
+        final DivideRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), DivideRuleHandle.class);
 
         if (StringUtils.isBlank(ruleHandle.getGroupKey())) {
             ruleHandle.setGroupKey(Objects.requireNonNull(requestDTO).getModule());

@@ -21,7 +21,7 @@ package org.dromara.soul.bootstrap.plugin.dubbo;
 import org.dromara.soul.bootstrap.BaseTest;
 import org.dromara.soul.common.dto.convert.rule.DubboRuleHandle;
 import org.dromara.soul.common.dto.convert.selector.DubboSelectorHandle;
-import org.dromara.soul.common.utils.GSONUtils;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.web.plugin.dubbo.DubboProxyService;
 import org.junit.Before;
 import org.junit.Test;
@@ -62,7 +62,7 @@ public class DubboServiceProxyTest extends BaseTest {
                 "  }]\n" +
                 "}";
 
-        final Object o = dubboProxyService.genericInvoker(GSONUtils.getInstance().toObjectMap(json), selectorHandle, ruleHandle);
+        final Object o = dubboProxyService.genericInvoker(GsonUtils.getInstance().toObjectMap(json), selectorHandle, ruleHandle);
         System.out.println(o.toString());
     }
 
@@ -82,7 +82,7 @@ public class DubboServiceProxyTest extends BaseTest {
                 "    \"java.lang.Integer\":\"1\"\n" +
                 "  }\n" +
                 "}";
-        final Object o = dubboProxyService.genericInvoker(GSONUtils.getInstance().toObjectMap(json), selectorHandle, ruleHandle);
+        final Object o = dubboProxyService.genericInvoker(GsonUtils.getInstance().toObjectMap(json), selectorHandle, ruleHandle);
         System.out.println(o.toString());
     }
 
@@ -99,7 +99,7 @@ public class DubboServiceProxyTest extends BaseTest {
                 "    ]\n" +
                 "  }\n" +
                 "}";
-        final Object o = dubboProxyService.genericInvoker(GSONUtils.getInstance().toObjectMap(json), selectorHandle, ruleHandle);
+        final Object o = dubboProxyService.genericInvoker(GsonUtils.getInstance().toObjectMap(json), selectorHandle, ruleHandle);
         System.out.println(o.toString());
     }
 
@@ -125,7 +125,7 @@ public class DubboServiceProxyTest extends BaseTest {
                 "        }\n" +
                 "    ]\n" +
                 "}";
-        final Object o = dubboProxyService.genericInvoker(GSONUtils.getInstance().toObjectMap(json), selectorHandle, ruleHandle);
+        final Object o = dubboProxyService.genericInvoker(GsonUtils.getInstance().toObjectMap(json), selectorHandle, ruleHandle);
         System.out.println(o.toString());
 
     }

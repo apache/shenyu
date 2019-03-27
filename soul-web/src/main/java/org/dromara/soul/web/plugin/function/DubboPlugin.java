@@ -29,7 +29,7 @@ import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
-import org.dromara.soul.common.utils.GSONUtils;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.web.cache.ZookeeperCacheManager;
 import org.dromara.soul.web.plugin.AbstractSoulPlugin;
@@ -78,9 +78,9 @@ public class DubboPlugin extends AbstractSoulPlugin {
 
         final Map<String, Object> paramMap = exchange.getAttribute(Constants.DUBBO_PARAMS);
 
-        final DubboRuleHandle ruleHandle = GSONUtils.getInstance().fromJson(rule.getHandle(), DubboRuleHandle.class);
+        final DubboRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), DubboRuleHandle.class);
 
-        final DubboSelectorHandle selectorHandle = GSONUtils.getInstance().fromJson(selector.getHandle(), DubboSelectorHandle.class);
+        final DubboSelectorHandle selectorHandle = GsonUtils.getInstance().fromJson(selector.getHandle(), DubboSelectorHandle.class);
 
         if (StringUtils.isBlank(ruleHandle.getGroupKey())) {
             ruleHandle.setGroupKey(String.valueOf(Objects.requireNonNull(paramMap).get(DubboParamConstants.INTERFACE_NAME)));

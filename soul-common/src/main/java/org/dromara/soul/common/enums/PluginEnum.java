@@ -35,54 +35,56 @@ public enum PluginEnum {
     /**
      * Global plugin enum.
      */
-    GLOBAL(1, "global"),
+    GLOBAL(1, 0, "global"),
 
     /**
      * Sign plugin enum.
      */
-    SIGN(2, "sign"),
+    SIGN(2, 0, "sign"),
 
     /**
      * Waf plugin enum.
      */
-    WAF(10, "waf"),
+    WAF(10, 0, "waf"),
 
     /**
      * Rate limiter plugin enum.
      */
-    RATE_LIMITER(20, "rate_limiter"),
+    RATE_LIMITER(20, 0, "rate_limiter"),
 
     /**
      * Rewrite plugin enum.
      */
-    REWRITE(30, "rewrite"),
+    REWRITE(30, 0, "rewrite"),
 
     /**
      * Redirect plugin enum.
      */
-    REDIRECT(40, "redirect"),
+    REDIRECT(40, 0, "redirect"),
 
     /**
      * Divide plugin enum.
      */
-    DIVIDE(50, "divide"),
+    DIVIDE(50, 0, "divide"),
 
     /**
      * Dubbo plugin enum.
      */
-    DUBBO(60, "dubbo"),
+    DUBBO(60, 0, "dubbo"),
 
     /**
      * springCloud plugin enum.
      */
-    SPRING_CLOUD(70, "springCloud"),
+    SPRING_CLOUD(70, 0, "springCloud"),
 
     /**
      * Monitor plugin enum.
      */
-    MONITOR(80, "monitor");
+    MONITOR(80, 0, "monitor");
 
     private final int code;
+
+    private final int role;
 
     private final String name;
 

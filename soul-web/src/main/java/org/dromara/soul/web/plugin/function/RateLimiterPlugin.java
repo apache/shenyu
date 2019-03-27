@@ -25,7 +25,7 @@ import org.dromara.soul.common.dto.zk.SelectorZkDTO;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.result.SoulResult;
-import org.dromara.soul.common.utils.GSONUtils;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.JsonUtils;
 import org.dromara.soul.web.cache.ZookeeperCacheManager;
 import org.dromara.soul.web.plugin.AbstractSoulPlugin;
@@ -83,7 +83,7 @@ public class RateLimiterPlugin extends AbstractSoulPlugin {
 
         final String handle = rule.getHandle();
 
-        final RateLimiterHandle limiterHandle = GSONUtils.getInstance().fromJson(handle, RateLimiterHandle.class);
+        final RateLimiterHandle limiterHandle = GsonUtils.getInstance().fromJson(handle, RateLimiterHandle.class);
 
         return redisRateLimiter.isAllowed(rule.getId(), limiterHandle.getReplenishRate(), limiterHandle.getBurstCapacity())
                 .flatMap(response -> {

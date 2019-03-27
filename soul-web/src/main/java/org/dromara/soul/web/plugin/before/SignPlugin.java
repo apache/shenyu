@@ -94,8 +94,8 @@ public class SignPlugin extends AbstractSoulPlugin {
      * @return result : True is pass, False is not pass.
      */
     private Boolean signVerify(final RequestDTO requestDTO) {
-        if(StringUtils.isBlank(requestDTO.getAppKey())){
-            LogUtils.error(LOGGER, () ->  " app key can not incoming!");
+        if (StringUtils.isBlank(requestDTO.getAppKey())) {
+            LogUtils.error(LOGGER, () -> " app key can not incoming!");
             return false;
         }
         final AppAuthZkDTO appAuthZkDTO = zookeeperCacheManager.findAuthDTOByAppKey(requestDTO.getAppKey());
