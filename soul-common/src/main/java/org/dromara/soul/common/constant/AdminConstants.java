@@ -16,25 +16,17 @@
  *
  */
 
-package org.dromara.soul.web.condition.strategy;
-
-import org.dromara.soul.common.dto.zk.ConditionZkDTO;
-import org.dromara.soul.web.condition.judge.OperatorJudgeFactory;
-import org.springframework.web.server.ServerWebExchange;
-
-import java.util.List;
+package org.dromara.soul.common.constant;
 
 /**
- * this is and match Strategy.
+ * The type Admin constants.
  *
- * @author xiaoyu(Mtyh)
+ * @author xiaoyu(Myth)
  */
-public class OrMatchStrategy extends AbstractMatchStrategy implements MatchStrategy {
-    
-    @Override
-    public Boolean match(final List<ConditionZkDTO> conditionZkDTOList, final ServerWebExchange exchange) {
-        return conditionZkDTOList
-                .stream()
-                .anyMatch(condition -> OperatorJudgeFactory.judge(condition, buildRealData(condition, exchange)));
-    }
+public final class AdminConstants {
+
+    /**
+     * The constant PLUGIN_NAME_IS_EXIST.
+     */
+    public static final String PLUGIN_NAME_IS_EXIST = "插件名称已经存在，不能重复添加!";
 }

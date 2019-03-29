@@ -21,6 +21,14 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
 
+
+    <select id="selectByName" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from plugin
+        where name = #{name,jdbcType=VARCHAR}
+    </select>
+
     <select id="selectByQuery" parameterType="org.dromara.soul.admin.query.PluginQuery" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -28,9 +36,13 @@
         <if test="name != null">
             where name = #{name,jdbcType=VARCHAR}
         </if>
+
+        order by role asc
+
         <if test="pageParameter != null">
             limit #{pageParameter.offset},#{pageParameter.pageSize}
         </if>
+
     </select>
 
     <select id="countByQuery" parameterType="org.dromara.soul.admin.query.PluginQuery" resultType="java.lang.Integer">

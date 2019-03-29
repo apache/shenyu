@@ -41,7 +41,7 @@ public class ConditionZkDTO implements Serializable {
     private String paramType;
 
     /**
-     *  =  like match.
+     * {@linkplain org.dromara.soul.common.enums.OperatorEnum}.
      */
     private String operator;
 
