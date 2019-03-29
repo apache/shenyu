@@ -18,6 +18,7 @@
 
 package org.dromara.soul.admin.controller;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.PluginDTO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
@@ -103,8 +104,11 @@ public class PluginController {
     @PostMapping("")
     public Mono<SoulResult> createPlugin(@RequestBody final PluginDTO pluginDTO) {
         try {
-            Integer createCount = pluginService.createOrUpdate(pluginDTO);
-            return Mono.create(soulResult -> soulResult.success(SoulResult.success("create plugin success", createCount)));
+            String result = pluginService.createOrUpdate(pluginDTO);
+            if (StringUtils.isNoneBlank()) {
+                return Mono.create(soulResult -> soulResult.success(SoulResult.error(result)));
+            }
+            return Mono.create(soulResult -> soulResult.success(SoulResult.success("create plugin success")));
         } catch (Exception e) {
             return Mono.create(soulResult -> soulResult.success(SoulResult.error("create plugin exception")));
         }
@@ -122,8 +126,11 @@ public class PluginController {
         try {
             Objects.requireNonNull(pluginDTO);
             pluginDTO.setId(id);
-            Integer updateCount = pluginService.createOrUpdate(pluginDTO);
-            return Mono.create(soulResult -> soulResult.success(SoulResult.success("update plugin success", updateCount)));
+            final String result = pluginService.createOrUpdate(pluginDTO);
+            if (StringUtils.isNoneBlank()) {
+                return Mono.create(soulResult -> soulResult.success(SoulResult.error(result)));
+            }
+            return Mono.create(soulResult -> soulResult.success(SoulResult.success("update plugin success")));
         } catch (Exception e) {
             return Mono.create(soulResult -> soulResult.success(SoulResult.error("update plugin exception")));
         }

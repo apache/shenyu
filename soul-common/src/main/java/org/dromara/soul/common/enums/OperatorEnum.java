@@ -46,6 +46,11 @@ public enum OperatorEnum {
     EQ("=", true),
 
     /**
+     * Regex operator enum.
+     */
+    REGEX("regEx",true),
+
+    /**
      * Gt operator enum.
      */
     GT(">", false),

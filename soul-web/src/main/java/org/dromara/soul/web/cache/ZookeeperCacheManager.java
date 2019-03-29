@@ -128,9 +128,9 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
         for (String pluginName : pluginZKs) {
             loadPlugin(pluginName);
         }
-        zkClient.subscribeChildChanges(pluginParent, (parentPath, currentChilds) -> {
-            if (CollectionUtils.isNotEmpty(currentChilds)) {
-                final List<String> unsubscribePath = unsubscribePath(pluginZKs, currentChilds);
+        zkClient.subscribeChildChanges(pluginParent, (parentPath, currentChildren) -> {
+            if (CollectionUtils.isNotEmpty(currentChildren)) {
+                final List<String> unsubscribePath = unsubscribePath(pluginZKs, currentChildren);
                 for (String pluginName : unsubscribePath) {
                     loadPlugin(pluginName);
                 }

@@ -33,12 +33,12 @@ import java.util.List;
 public interface PluginService {
 
     /**
-     * create or update plugin.
+     * Create or update string.
      *
-     * @param pluginDTO {@linkplain PluginDTO}
-     * @return rows int
+     * @param pluginDTO the plugin dto
+     * @return the string
      */
-    int createOrUpdate(PluginDTO pluginDTO);
+    String createOrUpdate(PluginDTO pluginDTO);
 
     /**
      * delete plugins.

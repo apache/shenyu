@@ -16,25 +16,21 @@
  *
  */
 
-package org.dromara.soul.web.condition.strategy;
+package org.dromara.soul.web.condition.judge;
 
 import org.dromara.soul.common.dto.zk.ConditionZkDTO;
-import org.dromara.soul.web.condition.judge.OperatorJudgeFactory;
-import org.springframework.web.server.ServerWebExchange;
 
-import java.util.List;
+import java.util.regex.Pattern;
 
 /**
- * this is and match Strategy.
+ * The type Reg ex operator judge.
  *
- * @author xiaoyu(Mtyh)
+ * @author xiaoyu(Myth)
  */
-public class OrMatchStrategy extends AbstractMatchStrategy implements MatchStrategy {
-    
+public class RegExOperatorJudge implements OperatorJudge {
+
     @Override
-    public Boolean match(final List<ConditionZkDTO> conditionZkDTOList, final ServerWebExchange exchange) {
-        return conditionZkDTOList
-                .stream()
-                .anyMatch(condition -> OperatorJudgeFactory.judge(condition, buildRealData(condition, exchange)));
+    public Boolean judge(final ConditionZkDTO conditionZkDTO, final String realData) {
+        return Pattern.matches(conditionZkDTO.getParamValue(), realData);
     }
 }

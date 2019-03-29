@@ -37,6 +37,7 @@ import org.dromara.soul.admin.query.SelectorConditionQuery;
 import org.dromara.soul.admin.query.SelectorQuery;
 import org.dromara.soul.admin.service.PluginService;
 import org.dromara.soul.admin.vo.PluginVO;
+import org.dromara.soul.common.constant.AdminConstants;
 import org.dromara.soul.common.constant.ZkPathConstants;
 import org.dromara.soul.common.dto.zk.ConditionZkDTO;
 import org.dromara.soul.common.dto.zk.PluginZkDTO;
@@ -48,6 +49,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -89,13 +91,16 @@ public class PluginServiceImpl implements PluginService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public int createOrUpdate(final PluginDTO pluginDTO) {
-        int pluginCount;
+    public String createOrUpdate(final PluginDTO pluginDTO) {
+        final String msg = checkData(pluginDTO);
+        if (StringUtils.isNoneBlank(msg)) {
+            return msg;
+        }
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
-        if (StringUtils.isEmpty(pluginDTO.getId())) {
-            pluginCount = pluginMapper.insertSelective(pluginDO);
+        if (StringUtils.isBlank(pluginDTO.getId())) {
+            pluginMapper.insertSelective(pluginDO);
         } else {
-            pluginCount = pluginMapper.updateSelective(pluginDO);
+            pluginMapper.updateSelective(pluginDO);
         }
         String pluginPath = ZkPathConstants.buildPluginPath(pluginDO.getName());
         if (!zkClient.exists(pluginPath)) {
@@ -103,7 +108,21 @@ public class PluginServiceImpl implements PluginService {
         }
         zkClient.writeData(pluginPath, new PluginZkDTO(pluginDO.getId(),
                 pluginDO.getName(), pluginDO.getRole(), pluginDO.getEnabled()));
-        return pluginCount;
+        return "";
+    }
+
+    private String checkData(final PluginDTO pluginDTO) {
+        final PluginDO exist = pluginMapper.selectByName(pluginDTO.getName());
+        if (StringUtils.isBlank(pluginDTO.getId())) {
+            if (Objects.nonNull(exist)) {
+                return AdminConstants.PLUGIN_NAME_IS_EXIST;
+            }
+        } else {
+            if (exist.getId().equals(pluginDTO.getId())) {
+                return AdminConstants.PLUGIN_NAME_IS_EXIST;
+            }
+        }
+        return "";
     }
 
     /**
