@@ -19,6 +19,7 @@
 package org.dromara.soul.admin.controller;
 
 import org.apache.commons.lang3.StringUtils;
+import org.dromara.soul.admin.dto.BatchCommonDTO;
 import org.dromara.soul.admin.dto.PluginDTO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
@@ -127,7 +128,7 @@ public class PluginController {
             Objects.requireNonNull(pluginDTO);
             pluginDTO.setId(id);
             final String result = pluginService.createOrUpdate(pluginDTO);
-            if (StringUtils.isNoneBlank()) {
+            if (StringUtils.isNoneBlank(result)) {
                 return Mono.create(soulResult -> soulResult.success(SoulResult.error(result)));
             }
             return Mono.create(soulResult -> soulResult.success(SoulResult.success("update plugin success")));
@@ -145,15 +146,36 @@ public class PluginController {
     @DeleteMapping("/batch")
     public Mono<SoulResult> deletePlugins(@RequestBody final List<String> ids) {
         try {
-            Integer deleteCount = pluginService.delete(ids);
-            if (deleteCount <= 0) {
-                return Mono.create(soulResult -> soulResult.success(SoulResult.error("sys plugin can not delete!")));
+            final String result = pluginService.delete(ids);
+            if (StringUtils.isNoneBlank(result)) {
+                return Mono.create(soulResult -> soulResult.success(SoulResult.error(result)));
             }
-            return Mono.create(soulResult -> soulResult.success(SoulResult.success("delete plugins success", deleteCount)));
+            return Mono.create(soulResult -> soulResult.success(SoulResult.success("delete plugins success")));
         } catch (Exception e) {
             return Mono.create(soulResult -> soulResult.success(SoulResult.error("delete plugins exception")));
         }
     }
+
+
+    /**
+     * Enable mono.
+     *
+     * @param batchCommonDTO the batch common dto
+     * @return the mono
+     */
+    @PostMapping("/enabled")
+    public Mono<SoulResult> enabled(@RequestBody final BatchCommonDTO batchCommonDTO) {
+        try {
+            final String result = pluginService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled());
+            if (StringUtils.isNoneBlank(result)) {
+                return Mono.create(soulResult -> soulResult.success(SoulResult.error(result)));
+            }
+            return Mono.create(soulResult -> soulResult.success(SoulResult.success("enable plugins success")));
+        } catch (Exception e) {
+            return Mono.create(soulResult -> soulResult.success(SoulResult.error("enable plugins exception")));
+        }
+    }
+
 
     /**
      * sync plugins.
@@ -166,6 +188,7 @@ public class PluginController {
             Integer syncCount = pluginService.syncPluginAll();
             return Mono.create(soulResult -> soulResult.success(SoulResult.success("sync plugins success", syncCount)));
         } catch (Exception e) {
+            e.printStackTrace();
             return Mono.create(soulResult -> soulResult.success(SoulResult.error("sync plugins exception")));
         }
     }

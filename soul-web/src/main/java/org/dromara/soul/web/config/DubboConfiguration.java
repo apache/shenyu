@@ -21,13 +21,8 @@ package org.dromara.soul.web.config;
 import org.dromara.soul.web.cache.ZookeeperCacheManager;
 import org.dromara.soul.web.plugin.SoulPlugin;
 import org.dromara.soul.web.plugin.dubbo.DubboProxyService;
-import org.dromara.soul.web.plugin.dubbo.GenericParamService;
-import org.dromara.soul.web.plugin.dubbo.GenericParamServiceImpl;
 import org.dromara.soul.web.plugin.function.DubboPlugin;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.SearchStrategy;
-import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -53,17 +48,6 @@ public class DubboConfiguration {
     public DubboConfiguration(final DubboProxyService dubboProxyService, final ZookeeperCacheManager zookeeperCacheManager) {
         this.dubboProxyService = dubboProxyService;
         this.zookeeperCacheManager = zookeeperCacheManager;
-    }
-
-    /**
-     * Generic param service generic param service.
-     *
-     * @return the generic param service
-     */
-    @Bean
-    @ConditionalOnMissingBean(value = GenericParamService.class, search = SearchStrategy.ALL)
-    public GenericParamService genericParamService() {
-        return new GenericParamServiceImpl();
     }
 
     /**

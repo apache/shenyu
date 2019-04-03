@@ -90,6 +90,14 @@ public interface PluginMapper {
     int update(PluginDO pluginDO);
 
     /**
+     * Update enable int.
+     *
+     * @param pluginDO the plugin do
+     * @return the int
+     */
+    int updateEnable(PluginDO pluginDO);
+
+    /**
      * update selective plugin.
      *
      * @param pluginDO {@linkplain PluginDO}

@@ -16,28 +16,22 @@
  *
  */
 
-package org.dromara.soul.extend.demo.entity;
+package org.dromara.soul.admin.dto;
 
 import lombok.Data;
-import org.dromara.soul.common.utils.GsonUtils;
+
+import java.io.Serializable;
+import java.util.List;
 
 /**
- * The type Test.
+ * The type Batch common dto.
  *
  * @author xiaoyu(Myth)
  */
 @Data
-public class Test {
+public class BatchCommonDTO implements Serializable {
 
-    private String id;
+    private List<String> ids;
 
-    private String name;
-
-    public static void main(String[] args) {
-        Test test = new Test();
-        test.setId("1");
-        test.setName("xiaoyu");
-        final String toJson = GsonUtils.getInstance().toJson(test);
-        System.out.println(toJson);
-    }
+    private Boolean enabled;
 }

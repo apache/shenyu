@@ -41,12 +41,12 @@ public interface PluginService {
     String createOrUpdate(PluginDTO pluginDTO);
 
     /**
-     * delete plugins.
+     * Delete string.
      *
-     * @param ids primary key.
-     * @return rows int
+     * @param ids the ids
+     * @return the string
      */
-    int delete(List<String> ids);
+    String delete(List<String> ids);
 
     /**
      * find plugin by id.
@@ -79,4 +79,14 @@ public interface PluginService {
      * @return rows int
      */
     int syncPluginAll();
+
+
+    /**
+     * Enabled string.
+     *
+     * @param ids    the ids
+     * @param enabled the enable
+     * @return the string
+     */
+    String enabled(List<String> ids, Boolean enabled);
 }
