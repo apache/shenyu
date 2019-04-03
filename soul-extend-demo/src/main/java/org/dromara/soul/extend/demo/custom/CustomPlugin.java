@@ -83,7 +83,7 @@ public class CustomPlugin extends AbstractSoulPlugin {
      */
     @Override
     public String named() {
-        return "test";
+        return "soul";
     }
 
     /**

@@ -102,12 +102,20 @@
 
     <update id="update" parameterType="org.dromara.soul.admin.entity.PluginDO">
         update plugin
-        set date_created = #{dateCreated,jdbcType=TIMESTAMP},
-        date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
+        set  date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
         name = #{name,jdbcType=VARCHAR},
         enabled = #{enabled,jdbcType=TINYINT}
         where id = #{id,jdbcType=VARCHAR}
     </update>
+
+    <update id="updateEnable" parameterType="org.dromara.soul.admin.entity.PluginDO">
+        update plugin
+        SET  date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
+        enabled = #{enabled,jdbcType=TINYINT}
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+
+
 
     <update id="updateSelective" parameterType="org.dromara.soul.admin.entity.PluginDO">
         update plugin

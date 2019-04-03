@@ -130,8 +130,7 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
         }
         zkClient.subscribeChildChanges(pluginParent, (parentPath, currentChildren) -> {
             if (CollectionUtils.isNotEmpty(currentChildren)) {
-                final List<String> unsubscribePath = unsubscribePath(pluginZKs, currentChildren);
-                for (String pluginName : unsubscribePath) {
+                for (String pluginName : currentChildren) {
                     loadPlugin(pluginName);
                 }
             }
@@ -180,21 +179,20 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
         if (CollectionUtils.isNotEmpty(childrenList)) {
             childrenList.forEach(children -> {
                 String realPath = buildRealPath(selectorParentPath, children);
-                final SelectorZkDTO selectorZkDTO = zkClient.readData(realPath);
-                Optional.ofNullable(selectorZkDTO)
-                        .ifPresent(dto -> {
-                            final String key = dto.getPluginName();
-                            setSelectorMapByKey(key, dto);
-                        });
+                setSelectorData(realPath);
                 subscribeSelectorDataChanges(realPath);
             });
         }
 
-        zkClient.subscribeChildChanges(selectorParentPath, (parentPath, currentChilds) -> {
-            if (CollectionUtils.isNotEmpty(currentChilds)) {
-                final List<String> unsubscribePath = unsubscribePath(childrenList, currentChilds);
-                unsubscribePath.stream().map(p -> buildRealPath(parentPath, p))
-                        .forEach(this::subscribeSelectorDataChanges);
+        zkClient.subscribeChildChanges(selectorParentPath, (parentPath, currentChildren) -> {
+            if (CollectionUtils.isNotEmpty(currentChildren)) {
+                final List<String> addSubscribePath = addSubscribePath(childrenList, currentChildren);
+                addSubscribePath.stream().map(addPath -> {
+                    final String realPath = buildRealPath(parentPath, addPath);
+                    setSelectorData(realPath);
+                    return realPath;
+                }).forEach(this::subscribeSelectorDataChanges);
+
             }
         });
     }
@@ -208,21 +206,20 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
         if (CollectionUtils.isNotEmpty(childrenList)) {
             childrenList.forEach(children -> {
                 String realPath = buildRealPath(ruleParent, children);
-                final RuleZkDTO ruleZkDTO = zkClient.readData(realPath);
-                Optional.ofNullable(ruleZkDTO)
-                        .ifPresent(dto -> {
-                            String key = dto.getSelectorId();
-                            setRuleMapByKey(key, ruleZkDTO);
-                        });
+                setRuleData(realPath);
                 subscribeRuleDataChanges(realPath);
             });
         }
 
-        zkClient.subscribeChildChanges(ruleParent, (parentPath, currentChilds) -> {
-            if (CollectionUtils.isNotEmpty(currentChilds)) {
-                final List<String> unsubscribePath = unsubscribePath(childrenList, currentChilds);
+        zkClient.subscribeChildChanges(ruleParent, (parentPath, currentChildren) -> {
+            if (CollectionUtils.isNotEmpty(currentChildren)) {
+                final List<String> addSubscribePath = addSubscribePath(childrenList, currentChildren);
                 //获取新增的节点数据，并对该节点进行订阅
-                unsubscribePath.stream().map(p -> buildRealPath(parentPath, p))
+                addSubscribePath.stream().map(addPath -> {
+                    final String realPath = buildRealPath(parentPath, addPath);
+                    setRuleData(realPath);
+                    return realPath;
+                })
                         .forEach(this::subscribeRuleDataChanges);
             }
         });
@@ -276,6 +273,24 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
                 });
             }
         });
+    }
+
+    private void setSelectorData(final String realPath) {
+        final SelectorZkDTO selectorZkDTO = zkClient.readData(realPath);
+        Optional.ofNullable(selectorZkDTO)
+                .ifPresent(dto -> {
+                    final String key = dto.getPluginName();
+                    setSelectorMapByKey(key, dto);
+                });
+    }
+
+    private void setRuleData(final String rulePath) {
+        final RuleZkDTO ruleZkDTO = zkClient.readData(rulePath);
+        Optional.ofNullable(ruleZkDTO)
+                .ifPresent(dto -> {
+                    String key = dto.getSelectorId();
+                    setRuleMapByKey(key, ruleZkDTO);
+                });
     }
 
     private void setRuleMapByKey(final String key, final RuleZkDTO ruleZkDTO) {
@@ -367,20 +382,27 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
         if (CollectionUtils.isNotEmpty(childrenList)) {
             childrenList.forEach(children -> {
                 String realPath = buildRealPath(appAuthParent, children);
-                final AppAuthZkDTO appAuthZkDTO = zkClient.readData(realPath);
-                Optional.ofNullable(appAuthZkDTO)
-                        .ifPresent(dto -> AUTH_MAP.put(dto.getAppKey(), dto));
+                setAuthData(realPath);
                 subscribeAppAuthDataChanges(realPath);
             });
         }
 
-        zkClient.subscribeChildChanges(appAuthParent, (parentPath, currentChilds) -> {
-            if (CollectionUtils.isNotEmpty(currentChilds)) {
-                final List<String> unsubscribePath = unsubscribePath(childrenList, currentChilds);
-                unsubscribePath.stream().map(children -> buildRealPath(parentPath, children))
-                        .forEach(this::subscribeAppAuthDataChanges);
+        zkClient.subscribeChildChanges(appAuthParent, (parentPath, currentChildren) -> {
+            if (CollectionUtils.isNotEmpty(currentChildren)) {
+                final List<String> addSubscribePath = addSubscribePath(childrenList, currentChildren);
+                addSubscribePath.stream().map(children -> {
+                    final String realPath = buildRealPath(parentPath, children);
+                    setAuthData(realPath);
+                    return realPath;
+                }).forEach(this::subscribeAppAuthDataChanges);
             }
         });
+    }
+
+    private void setAuthData(final String realPath) {
+        final AppAuthZkDTO appAuthZkDTO = zkClient.readData(realPath);
+        Optional.ofNullable(appAuthZkDTO)
+                .ifPresent(dto -> AUTH_MAP.put(dto.getAppKey(), dto));
     }
 
     private void subscribeAppAuthDataChanges(final String realPath) {
@@ -399,11 +421,11 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
         });
     }
 
-    private List<String> unsubscribePath(final List<String> alreadyChildren, final List<String> currentChilds) {
+    private List<String> addSubscribePath(final List<String> alreadyChildren, final List<String> currentChildren) {
         if (CollectionUtils.isEmpty(alreadyChildren)) {
-            return currentChilds;
+            return currentChildren;
         }
-        return currentChilds.stream().filter(c -> alreadyChildren.stream().anyMatch(a -> !c.equals(a))).collect(Collectors.toList());
+        return currentChildren.stream().filter(current -> alreadyChildren.stream().noneMatch(current::equals)).collect(Collectors.toList());
     }
 
     private String buildRealPath(final String parent, final String children) {

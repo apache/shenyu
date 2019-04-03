@@ -29,4 +29,23 @@ public final class AdminConstants {
      * The constant PLUGIN_NAME_IS_EXIST.
      */
     public static final String PLUGIN_NAME_IS_EXIST = "插件名称已经存在，不能重复添加!";
+
+
+    /**
+     * The constant PLUGIN_NAME_NOT_EXIST.
+     */
+    public static final String PLUGIN_NAME_NOT_EXIST = "插件名称已经不存在!";
+
+    /**
+     * The constant SYS_PLUGIN_NOT_DELETE.
+     */
+    public static final String SYS_PLUGIN_NOT_DELETE = "系统插件不能删除!";
+
+
+    /**
+     * The constant SYS_PLUGIN_ID_NOT_EXIST.
+     */
+    public static final String SYS_PLUGIN_ID_NOT_EXIST = "插件id不存在！";
+
+
 }
