@@ -7,7 +7,7 @@
     <groupId>org.dromara</groupId>
     <artifactId>soul</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.2-RELEASE</version>
+    <version>1.0.3-RELEASE</version>
     <name>soul</name>
     <modules>
         <module>soul-admin</module>
@@ -332,6 +332,20 @@
                     <target>1.8</target>
                     <encoding>UTF-8</encoding>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5.3</version>
+                <configuration>
+                    <tagNameFormat>v@{project.version}</tagNameFormat>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>2.5</version>
             </plugin>
         </plugins>
     </build>
