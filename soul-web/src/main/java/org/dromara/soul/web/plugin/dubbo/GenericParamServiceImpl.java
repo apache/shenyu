@@ -19,6 +19,8 @@
 package org.dromara.soul.web.plugin.dubbo;
 
 import com.google.common.collect.Lists;
+import com.google.gson.JsonArray;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dromara.soul.common.constant.DubboParamConstants;
@@ -64,13 +66,14 @@ public class GenericParamServiceImpl implements GenericParamService {
             }
         }
         //如果Map参数里面包含 params字段  规定params 里面是json字符串转成Map key为类型，value为值
-        if (paramMap.containsKey(DubboParamConstants.PARAMS)) {
+        if (paramMap.containsKey(DubboParamConstants.PARAMS)
+                && !StringUtils.equals(String.valueOf(paramMap.get(DubboParamConstants.PARAMS)), "null")) {
             final Object params = paramMap.get(DubboParamConstants.PARAMS);
             final Map<String, Object> objectMap = GsonUtils.getInstance().toObjectMap(params.toString());
             objectMap.forEach((k, v) -> {
                 //如果v是数组类型
-                if (v instanceof List) {
-                    List<String> arg = GsonUtils.getInstance().fromList(v.toString(), String[].class);
+                if (v instanceof JsonArray) {
+                    List<String> arg = GsonUtils.getInstance().fromJson(v.toString(), List.class);
                     arg.forEach(j -> {
                         paramList.add(k);
                         args.add(j);
