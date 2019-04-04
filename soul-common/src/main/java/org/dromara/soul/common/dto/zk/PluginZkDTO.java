@@ -42,4 +42,5 @@ public class PluginZkDTO implements Serializable {
     private Integer role;
 
     private Boolean enabled;
+
 }

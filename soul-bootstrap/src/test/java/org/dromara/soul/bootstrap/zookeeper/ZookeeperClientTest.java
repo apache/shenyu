@@ -79,6 +79,11 @@ public class ZookeeperClientTest extends BaseTest {
 
     private static Map<String, PluginZkDTO> pluginZkDTOMap = Maps.newConcurrentMap();
 
+
+    @Test
+    public void testSerize(){
+    }
+
     /**
      * Test.
      */
@@ -89,6 +94,12 @@ public class ZookeeperClientTest extends BaseTest {
             zkClient.createPersistent(ROOT_PATH, true);
         }
         zkClient.writeData(ROOT_PATH, new PluginZkDTO("1", PluginEnum.DIVIDE.getName(), 0, Boolean.TRUE));
+        final Object o = zkClient.readData(ROOT_PATH);
+        System.out.println(o.toString());
+    }
+
+    @Test
+    public void readData(){
         final Object o = zkClient.readData(ROOT_PATH);
         System.out.println(o.toString());
     }

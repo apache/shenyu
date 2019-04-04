@@ -20,8 +20,6 @@ package org.dromara.soul.configuration.zookeeper.serializer;
 
 import org.I0Itec.zkclient.exception.ZkMarshallingError;
 import org.I0Itec.zkclient.serialize.ZkSerializer;
-import org.dromara.soul.configuration.zookeeper.SerializerName;
-import org.dromara.soul.common.enums.SerializeEnum;
 import org.dromara.soul.common.exception.SerializerException;
 
 import java.io.ByteArrayInputStream;
@@ -37,7 +35,7 @@ import java.io.ObjectOutputStream;
  *
  * @author xiaoyu
  */
-public class JavaSerializer implements ZkSerializer, SerializerName {
+public class JavaSerializer implements ZkSerializer {
 
     @Override
     public byte[] serialize(final Object obj) {
@@ -57,11 +55,6 @@ public class JavaSerializer implements ZkSerializer, SerializerName {
         } catch (IOException | ClassNotFoundException e) {
             throw new SerializerException("JAVA deSerialize error " + e.getMessage());
         }
-    }
-
-    @Override
-    public String named() {
-        return SerializeEnum.JDK.getSerialize();
     }
 
 }

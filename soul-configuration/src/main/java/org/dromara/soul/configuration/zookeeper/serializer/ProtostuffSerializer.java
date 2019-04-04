@@ -23,8 +23,6 @@ import com.dyuproject.protostuff.ProtostuffIOUtil;
 import com.dyuproject.protostuff.Schema;
 import org.I0Itec.zkclient.exception.ZkMarshallingError;
 import org.I0Itec.zkclient.serialize.ZkSerializer;
-import org.dromara.soul.configuration.zookeeper.SerializerName;
-import org.dromara.soul.common.enums.SerializeEnum;
 import org.dromara.soul.common.exception.SerializerException;
 import org.objenesis.Objenesis;
 import org.objenesis.ObjenesisStd;
@@ -39,7 +37,7 @@ import java.io.IOException;
  * @author xiaoyu
  */
 @SuppressWarnings("unchecked")
-public class ProtostuffSerializer implements ZkSerializer, SerializerName {
+public class ProtostuffSerializer implements ZkSerializer {
 
     private static final SchemaCache CACHED_SCHEMA = SchemaCache.getInstance();
 
@@ -80,9 +78,5 @@ public class ProtostuffSerializer implements ZkSerializer, SerializerName {
         }
     }
 
-    @Override
-    public String named() {
-        return SerializeEnum.PROTOSTUFF.getSerialize();
-    }
 }
 
