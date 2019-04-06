@@ -119,7 +119,7 @@ public class DividePlugin extends AbstractSoulPlugin {
 
         HttpCommand command = new HttpCommand(HystrixBuilder.build(divideHandle),
                 divideUpstream, body, exchange, chain);
-        return Mono.create((MonoSink<Object> s) -> {
+        return Mono.create(s -> {
             Subscription sub = command.toObservable().subscribe(s::success,
                     s::error, s::success);
             s.onCancel(sub::unsubscribe);
