@@ -37,16 +37,20 @@ import org.dromara.soul.admin.query.SelectorConditionQuery;
 import org.dromara.soul.admin.query.SelectorQuery;
 import org.dromara.soul.admin.service.PluginService;
 import org.dromara.soul.admin.vo.PluginVO;
+import org.dromara.soul.common.constant.AdminConstants;
 import org.dromara.soul.common.constant.ZkPathConstants;
 import org.dromara.soul.common.dto.zk.ConditionZkDTO;
 import org.dromara.soul.common.dto.zk.PluginZkDTO;
 import org.dromara.soul.common.dto.zk.RuleZkDTO;
 import org.dromara.soul.common.dto.zk.SelectorZkDTO;
+import org.dromara.soul.common.enums.PluginRoleEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -88,21 +92,41 @@ public class PluginServiceImpl implements PluginService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public int createOrUpdate(final PluginDTO pluginDTO) {
-        int pluginCount;
+    public String createOrUpdate(final PluginDTO pluginDTO) {
+        final String msg = checkData(pluginDTO);
+        if (StringUtils.isNoneBlank(msg)) {
+            return msg;
+        }
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
-        if (StringUtils.isEmpty(pluginDTO.getId())) {
-            pluginCount = pluginMapper.insertSelective(pluginDO);
+        if (StringUtils.isBlank(pluginDTO.getId())) {
+            pluginMapper.insertSelective(pluginDO);
         } else {
-            pluginCount = pluginMapper.updateSelective(pluginDO);
+            pluginMapper.updateSelective(pluginDO);
         }
         String pluginPath = ZkPathConstants.buildPluginPath(pluginDO.getName());
         if (!zkClient.exists(pluginPath)) {
             zkClient.createPersistent(pluginPath, true);
         }
         zkClient.writeData(pluginPath, new PluginZkDTO(pluginDO.getId(),
-                pluginDO.getName(), pluginDO.getEnabled()));
-        return pluginCount;
+                pluginDO.getName(), pluginDO.getRole(), pluginDO.getEnabled()));
+        return "";
+    }
+
+    private String checkData(final PluginDTO pluginDTO) {
+        final PluginDO exist = pluginMapper.selectByName(pluginDTO.getName());
+        if (StringUtils.isBlank(pluginDTO.getId())) {
+            if (Objects.nonNull(exist)) {
+                return AdminConstants.PLUGIN_NAME_IS_EXIST;
+            }
+        } else {
+            if (Objects.isNull(exist)) {
+                return AdminConstants.PLUGIN_NAME_NOT_EXIST;
+            }
+            if (!exist.getId().equals(pluginDTO.getId())) {
+                return AdminConstants.PLUGIN_NAME_IS_EXIST;
+            }
+        }
+        return "";
     }
 
     /**
@@ -113,11 +137,17 @@ public class PluginServiceImpl implements PluginService {
      */
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public int delete(final List<String> ids) {
-        int pluginCount = 0;
+    public String delete(final List<String> ids) {
         for (String id : ids) {
             PluginDO pluginDO = pluginMapper.selectById(id);
-            pluginCount += pluginMapper.delete(id);
+            if (Objects.isNull(pluginDO)) {
+                return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
+            }
+            // if sys plugin not delete
+            if (pluginDO.getRole().equals(PluginRoleEnum.SYS.getCode())) {
+                return AdminConstants.SYS_PLUGIN_NOT_DELETE;
+            }
+            pluginMapper.delete(id);
             String pluginPath = ZkPathConstants.buildPluginPath(pluginDO.getName());
             if (zkClient.exists(pluginPath)) {
                 zkClient.delete(pluginPath);
@@ -131,8 +161,32 @@ public class PluginServiceImpl implements PluginService {
                 zkClient.delete(ruleParentPath);
             }
         }
-        return pluginCount;
+        return "";
     }
+
+    @Override
+    public String enabled(List<String> ids, Boolean enabled) {
+        for (String id : ids) {
+            PluginDO pluginDO = pluginMapper.selectById(id);
+            if (Objects.isNull(pluginDO)) {
+                return AdminConstants.SYS_PLUGIN_ID_NOT_EXIST;
+            }
+            pluginDO.setDateUpdated(new Timestamp(System.currentTimeMillis()));
+            pluginDO.setEnabled(enabled);
+
+            pluginMapper.updateEnable(pluginDO);
+
+            String pluginPath = ZkPathConstants.buildPluginPath(pluginDO.getName());
+            if (!zkClient.exists(pluginPath)) {
+                zkClient.createPersistent(pluginPath, true);
+            }
+            zkClient.writeData(pluginPath, new PluginZkDTO(pluginDO.getId(),
+                    pluginDO.getName(), pluginDO.getRole(), pluginDO.getEnabled()));
+
+        }
+        return "";
+    }
+
 
     /**
      * find plugin by id.
@@ -188,6 +242,10 @@ public class PluginServiceImpl implements PluginService {
     public int syncPluginAll() {
         List<PluginDO> pluginDOs = pluginMapper.selectByQuery(new PluginQuery());
         if (CollectionUtils.isNotEmpty(pluginDOs)) {
+            String pluginPath = ZkPathConstants.buildPluginParentPath();
+            if (!zkClient.exists(pluginPath)) {
+                zkClient.createPersistent(pluginPath, true);
+            }
             List<String> pluginZKs = zkClient.getChildren(ZkPathConstants.buildPluginParentPath());
             pluginDOs.forEach(pluginDO -> {
                 if (CollectionUtils.isNotEmpty(pluginZKs)) {
@@ -213,6 +271,7 @@ public class PluginServiceImpl implements PluginService {
         return 0;
     }
 
+
     /**
      * sync plugin.
      *
@@ -224,9 +283,16 @@ public class PluginServiceImpl implements PluginService {
             zkClient.createPersistent(pluginPath, true);
         }
         zkClient.writeData(pluginPath, new PluginZkDTO(pluginDO.getId(),
-                pluginDO.getName(), pluginDO.getEnabled()));
+                pluginDO.getName(), pluginDO.getRole(), pluginDO.getEnabled()));
 
-        List<String> selectorZKs = zkClient.getChildren(ZkPathConstants.buildSelectorParentPath(pluginDO.getName()));
+
+        final String selectorParentPath = ZkPathConstants.buildSelectorParentPath(pluginDO.getName());
+
+        if (!zkClient.exists(selectorParentPath)) {
+            zkClient.createPersistent(selectorParentPath, true);
+        }
+
+        List<String> selectorZKs = zkClient.getChildren(selectorParentPath);
         selectorMapper.selectByQuery(new SelectorQuery(pluginDO.getId(), null)).forEach(selectorDO -> {
             if (CollectionUtils.isNotEmpty(selectorZKs)) {
                 selectorZKs.remove(selectorDO.getId());
@@ -240,9 +306,15 @@ public class PluginServiceImpl implements PluginService {
                             selectorConditionDO.getParamName(), selectorConditionDO.getParamValue())).collect(Collectors.toList());
             zkClient.writeData(selectorRealPath, new SelectorZkDTO(selectorDO.getId(), selectorDO.getPluginId(), pluginDO.getName(),
                     selectorDO.getName(), selectorDO.getMatchMode(), selectorDO.getType(), selectorDO.getSort(), selectorDO.getEnabled(),
-                    selectorDO.getLoged(), selectorDO.getContinued(), selectorConditionZkDTOs));
+                    selectorDO.getLoged(), selectorDO.getContinued(), selectorDO.getHandle(), selectorConditionZkDTOs));
 
-            List<String> ruleZKs = zkClient.getChildren(ZkPathConstants.buildRuleParentPath(pluginDO.getName()));
+
+            final String ruleParentPath = ZkPathConstants.buildRuleParentPath(pluginDO.getName());
+
+            if (!zkClient.exists(ruleParentPath)) {
+                zkClient.createPersistent(ruleParentPath, true);
+            }
+            List<String> ruleZKs = zkClient.getChildren(ruleParentPath);
             ruleMapper.selectByQuery(new RuleQuery(selectorDO.getId(), null)).forEach(ruleDO -> {
                 if (CollectionUtils.isNotEmpty(ruleZKs)) {
                     ruleZKs.remove(selectorDO.getId() + ZkPathConstants.SELECTOR_JOIN_RULE + ruleDO.getId());

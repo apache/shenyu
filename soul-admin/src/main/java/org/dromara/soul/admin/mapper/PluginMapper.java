@@ -40,6 +40,15 @@ public interface PluginMapper {
      */
     PluginDO selectById(String id);
 
+
+    /**
+     * Select by name plugin do.
+     *
+     * @param name the name
+     * @return the plugin do
+     */
+    PluginDO selectByName(String name);
+
     /**
      * select plugin by query.
      *
@@ -60,7 +69,7 @@ public interface PluginMapper {
      * insert plugin.
      *
      * @param pluginDO {@linkplain PluginDO}
-     * @return rows
+     * @return rows int
      */
     int insert(PluginDO pluginDO);
 
@@ -68,7 +77,7 @@ public interface PluginMapper {
      * insert selective plugin.
      *
      * @param pluginDO {@linkplain PluginDO}
-     * @return rows
+     * @return rows int
      */
     int insertSelective(PluginDO pluginDO);
 
@@ -76,15 +85,23 @@ public interface PluginMapper {
      * update plugin.
      *
      * @param pluginDO {@linkplain PluginDO}
-     * @return rows
+     * @return rows int
      */
     int update(PluginDO pluginDO);
+
+    /**
+     * Update enable int.
+     *
+     * @param pluginDO the plugin do
+     * @return the int
+     */
+    int updateEnable(PluginDO pluginDO);
 
     /**
      * update selective plugin.
      *
      * @param pluginDO {@linkplain PluginDO}
-     * @return rows
+     * @return rows int
      */
     int updateSelective(PluginDO pluginDO);
 
@@ -92,7 +109,7 @@ public interface PluginMapper {
      * delete plugin.
      *
      * @param id primary key.
-     * @return rows
+     * @return rows int
      */
     int delete(String id);
 }

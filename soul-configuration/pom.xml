@@ -5,7 +5,7 @@
     <parent>
         <artifactId>soul</artifactId>
         <groupId>org.dromara</groupId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.0.3-RELEASE</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -27,6 +27,13 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-autoconfigure</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <dependency>
             <groupId>com.101tec</groupId>
             <artifactId>zkclient</artifactId>
@@ -61,6 +68,12 @@
         <dependency>
             <groupId>com.caucho</groupId>
             <artifactId>hessian</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.56</version>
         </dependency>
 
     </dependencies>

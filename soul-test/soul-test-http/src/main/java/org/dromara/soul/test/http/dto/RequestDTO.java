@@ -25,12 +25,9 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 
 /**
- * <p>Description: .</p>
+ * The type Request dto.
  *
  * @author xiaoyu(Myth)
- * @version 1.0
- * @date 2018/5/8 17:29
- * @since JDK 1.8
  */
 @Data
 @AllArgsConstructor

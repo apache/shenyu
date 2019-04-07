@@ -47,7 +47,6 @@ import java.util.Objects;
  *
  * @author xiaoyu(Myth)
  */
-@SuppressWarnings("unchecked")
 @RequiredArgsConstructor
 public abstract class AbstractSoulPlugin implements SoulPlugin {
 
@@ -63,10 +62,11 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
      *
      * @param exchange exchange the current server exchange {@linkplain ServerWebExchange}
      * @param chain    chain the current chain  {@linkplain ServerWebExchange}
+     * @param selector selector    {@linkplain SelectorZkDTO}
      * @param rule     rule    {@linkplain RuleZkDTO}
      * @return {@code Mono<Void>} to indicate when request handling is complete
      */
-    protected abstract Mono<Void> doExecute(ServerWebExchange exchange, SoulPluginChain chain, RuleZkDTO rule);
+    protected abstract Mono<Void> doExecute(ServerWebExchange exchange, SoulPluginChain chain, SelectorZkDTO selector, RuleZkDTO rule);
 
 
     /**
@@ -86,44 +86,50 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
             if (CollectionUtils.isEmpty(selectors)) {
                 return chain.execute(exchange);
             }
-            RuleZkDTO rule = selectors.stream()
+            final SelectorZkDTO selectorZkDTO = selectors.stream()
                     .filter(selector -> selector.getEnabled() && filterSelector(selector, exchange))
-                    .findFirst()
-                    .map(selectorZkDTO -> {
-                        //如果打印日志
-                        if (selectorZkDTO.getLoged()) {
-                            LogUtils.info(LOGGER, named() + " selector success selector name :{}", selectorZkDTO::getName);
-                        }
-                        final List<RuleZkDTO> rules =
-                                zookeeperCacheManager.findRuleBySelectorId(selectorZkDTO.getId());
-                        if (CollectionUtils.isEmpty(rules)) {
-                            return null;
-                        }
-                        return filterRule(exchange, rules);
+                    .findFirst().orElse(null);
 
-                    }).orElse(null);
+            if (Objects.isNull(selectorZkDTO)) {
+                return chain.execute(exchange);
+            }
 
-            final RequestDTO body = exchange.getAttribute(Constants.REQUESTDTO);
+            if (selectorZkDTO.getLoged()) {
+                LogUtils.info(LOGGER, named()
+                        + " selector success selector name :{}", selectorZkDTO::getName);
+            }
+            final List<RuleZkDTO> rules =
+                    zookeeperCacheManager.findRuleBySelectorId(selectorZkDTO.getId());
+            if (CollectionUtils.isEmpty(rules)) {
+                return chain.execute(exchange);
+            }
 
-            if (Objects.nonNull(rule)) {
-                if (rule.getLoged()) {
-                    LogUtils.info(LOGGER, () -> {
-                        assert body != null;
-                        return body.getModule() + ":" + body.getMethod() + " match " + named() + " rule is name :" + rule.getName();
-                    });
-                }
-                return doExecute(exchange, chain, rule);
-            } else {
+            RuleZkDTO rule = filterRule(exchange, rules);
+
+            final RequestDTO request = exchange.getAttribute(Constants.REQUESTDTO);
+
+            if (Objects.isNull(rule)) {
                 //If the divide or dubbo or spring cloud plug-in does not match, return directly
                 if (PluginEnum.DIVIDE.getName().equals(named())
                         || PluginEnum.DUBBO.getName().equals(named())
                         || PluginEnum.SPRING_CLOUD.getName().equals(named())) {
-                    LogUtils.info(LOGGER, () -> Objects.requireNonNull(body).getModule() + ":" + body.getMethod() + " not match  " + named() + "  rule");
-                    final SoulResult error = SoulResult.error(HttpStatus.NOT_FOUND.value(), Constants.UPSTREAM_NOT_FIND);
-                    return exchange.getResponse().writeWith(Mono.just(exchange.getResponse().bufferFactory().wrap(Objects.requireNonNull(JsonUtils.toJson(error)).getBytes())));
+                    LogUtils.info(LOGGER, () -> Objects.requireNonNull(request).getModule() + ":"
+                            + request.getMethod() + " not match  " + named() + "  rule");
+                    final SoulResult error = SoulResult.error(HttpStatus.NOT_FOUND.value(),
+                            Constants.UPSTREAM_NOT_FIND);
+                    return exchange.getResponse()
+                            .writeWith(Mono.just(exchange.getResponse().bufferFactory()
+                                    .wrap(Objects.requireNonNull(JsonUtils.toJson(error)).getBytes())));
                 }
                 return chain.execute(exchange);
             }
+
+            if (rule.getLoged()) {
+                LogUtils.info(LOGGER, () -> Objects.requireNonNull(request).getModule() + ":" + request.getMethod() + " match " + named()
+                        + " rule is name :"
+                        + rule.getName());
+            }
+            return doExecute(exchange, chain, selectorZkDTO, rule);
         }
         return chain.execute(exchange);
     }

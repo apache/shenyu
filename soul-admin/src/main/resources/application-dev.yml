@@ -3,17 +3,22 @@ server:
   address: 0.0.0.0
 
 spring:
+   thymeleaf:
+      cache: true
+      encoding: utf-8
+      enabled: true
+      prefix: classpath:/static/
+      suffix: .html
    datasource:
-     url: jdbc:mysql://172.16.10.162:3306/soul?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=CONVERT_TO_NULL&failOverReadOnly=false&autoReconnect=true
+     url: jdbc:mysql://192.168.1.82:3306/soul?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=CONVERT_TO_NULL&failOverReadOnly=false&autoReconnect=true
      username: root
-     password: root
+     password: 123456
      dbcp2:
        driver-class-name: com.mysql.jdbc.Driver
    zookeeper:
      url : localhost:2181
      sessionTimeout: 5000
      connectionTimeout : 2000
-     serializer : KryoSerializer
 
 mybatis:
   config-location: classpath:/mybatis/mybatis-config.xml

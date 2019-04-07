@@ -31,12 +31,16 @@ import org.dromara.soul.web.plugin.after.ResponsePlugin;
 import org.dromara.soul.web.plugin.before.GlobalPlugin;
 import org.dromara.soul.web.plugin.before.SignPlugin;
 import org.dromara.soul.web.plugin.before.WafPlugin;
+import org.dromara.soul.web.plugin.dubbo.GenericParamService;
+import org.dromara.soul.web.plugin.dubbo.GenericParamServiceImpl;
 import org.dromara.soul.web.plugin.function.DividePlugin;
 import org.dromara.soul.web.plugin.function.RateLimiterPlugin;
 import org.dromara.soul.web.plugin.function.RewritePlugin;
 import org.dromara.soul.web.plugin.ratelimter.RedisRateLimiter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.SearchStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -213,5 +217,16 @@ public class SoulConfiguration {
     @ConditionalOnProperty(name = "soul.timeVerify.enabled", matchIfMissing = true)
     public WebFilter timeWebFilter() {
         return new TimeWebFilter();
+    }
+
+    /**
+     * Generic param service generic param service.
+     *
+     * @return the generic param service
+     */
+    @Bean
+    @ConditionalOnMissingBean(value = GenericParamService.class, search = SearchStrategy.ALL)
+    public GenericParamService genericParamService() {
+        return new GenericParamServiceImpl();
     }
 }

@@ -49,6 +49,7 @@ DROP TABLE IF EXISTS `plugin`;
 CREATE TABLE `plugin` (
   `id` varchar(128) NOT NULL COMMENT '主键id',
   `name` varchar(62) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '插件名称',
+  `role` int(4) NOT NULL COMMENT '插件角色',
   `enabled` tinyint(4) NOT NULL DEFAULT '0' COMMENT '是否开启（0，未开启，1开启）',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '创建时间',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '更新时间',
@@ -97,6 +98,7 @@ CREATE TABLE `selector` (
   `match_mode` int(2) NOT NULL COMMENT '匹配方式（0 and  1 or)',
   `type` int(4) NOT NULL COMMENT '类型（0，全流量，1自定义流量）',
   `sort` int(4) NOT NULL COMMENT '排序',
+  `handle` varchar(1024) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '处理逻辑（此处针对不同的插件，会有不同的字段来标识不同的处理，所有存储json格式数据）',
   `enabled` tinyint(4) NOT NULL COMMENT '是否开启',
   `loged` tinyint(4) NOT NULL COMMENT '是否打印日志',
   `continued` tinyint(4) NOT NULL COMMENT '是否继续执行',
@@ -121,13 +123,13 @@ CREATE TABLE `selector_condition` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*plugin*/
-INSERT INTO `soul`.`plugin` (`id`, `name`, `enabled`, `date_created`, `date_updated`) VALUES ('1', 'sign', '1', '2018-06-14 10:17:35', '2018-06-14 10:17:35');
-INSERT INTO `soul`.`plugin` (`id`, `name`, `enabled`, `date_created`, `date_updated`) VALUES ('2', 'waf', '0', '2018-06-23 10:26:30', '2018-06-13 15:43:10');
-INSERT INTO `soul`.`plugin` (`id`, `name`, `enabled`, `date_created`, `date_updated`) VALUES ('3', 'rewrite', '0', '2018-06-23 10:26:34', '2018-06-25 13:59:31');
-INSERT INTO `soul`.`plugin` (`id`, `name`, `enabled`, `date_created`, `date_updated`) VALUES ('4', 'rate_limiter', '0', '2018-06-23 10:26:37', '2018-06-13 15:34:48');
-INSERT INTO `soul`.`plugin` (`id`, `name`, `enabled`, `date_created`, `date_updated`) VALUES ('5', 'divide', '0', '2018-06-25 10:19:10', '2018-06-13 13:56:04');
-INSERT INTO `soul`.`plugin` (`id`, `name`, `enabled`, `date_created`, `date_updated`) VALUES ('6', 'dubbo', '1', '2018-06-23 10:26:41', '2018-06-11 10:11:47');
-INSERT INTO `soul`.`plugin` (`id`, `name`, `enabled`, `date_created`, `date_updated`) VALUES ('7', 'monitor', '0', '2018-06-25 13:47:57', '2018-06-25 13:47:57');
-INSERT INTO `soul`.`plugin` (`id`, `name`, `enabled`, `date_created`, `date_updated`) VALUES ('8', 'springcloud', '1', '2018-06-25 13:47:57', '2018-06-25 13:47:57');
+INSERT INTO `soul`.`plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('1', 'sign','0', '0', '2018-06-14 10:17:35', '2018-06-14 10:17:35');
+INSERT INTO `soul`.`plugin` (`id`, `name`,`role`,`enabled`, `date_created`, `date_updated`) VALUES ('2', 'waf', '0','0', '2018-06-23 10:26:30', '2018-06-13 15:43:10');
+INSERT INTO `soul`.`plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('3', 'rewrite', '0','0', '2018-06-23 10:26:34', '2018-06-25 13:59:31');
+INSERT INTO `soul`.`plugin` (`id`, `name`,`role`,`enabled`, `date_created`, `date_updated`) VALUES ('4', 'rate_limiter','0', '0', '2018-06-23 10:26:37', '2018-06-13 15:34:48');
+INSERT INTO `soul`.`plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('5', 'divide', '0','1', '2018-06-25 10:19:10', '2018-06-13 13:56:04');
+INSERT INTO `soul`.`plugin` (`id`, `name`,`role`,`enabled`, `date_created`, `date_updated`) VALUES ('6', 'dubbo','0', '1', '2018-06-23 10:26:41', '2018-06-11 10:11:47');
+INSERT INTO `soul`.`plugin` (`id`, `name`,`role`,`enabled`, `date_created`, `date_updated`) VALUES ('7', 'monitor', '0','0', '2018-06-25 13:47:57', '2018-06-25 13:47:57');
+INSERT INTO `soul`.`plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('8', 'springCloud','0', '1', '2018-06-25 13:47:57', '2018-06-25 13:47:57');
 /**user**/
 INSERT INTO `soul`.`dashboard_user` (`id`, `user_name`, `password`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('1', 'admin', '123456', '1', '1', '2018-06-23 15:12:22', '2018-06-23 15:12:23');

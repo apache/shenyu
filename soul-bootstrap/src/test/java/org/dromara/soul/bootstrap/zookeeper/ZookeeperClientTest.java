@@ -21,16 +21,20 @@ package org.dromara.soul.bootstrap.zookeeper;
 import com.google.common.collect.Maps;
 import org.I0Itec.zkclient.IZkDataListener;
 import org.I0Itec.zkclient.ZkClient;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.assertj.core.util.Lists;
 import org.dromara.soul.bootstrap.BaseTest;
 import org.dromara.soul.common.constant.ZkPathConstants;
-import org.dromara.soul.common.dto.convert.DivideHandle;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
-import org.dromara.soul.common.dto.convert.DubboHandle;
 import org.dromara.soul.common.dto.convert.RateLimiterHandle;
 import org.dromara.soul.common.dto.convert.RewriteHandle;
-import org.dromara.soul.common.dto.convert.SpringCloudHandle;
 import org.dromara.soul.common.dto.convert.WafHandle;
+import org.dromara.soul.common.dto.convert.rule.DivideRuleHandle;
+import org.dromara.soul.common.dto.convert.rule.DubboRuleHandle;
+import org.dromara.soul.common.dto.convert.rule.SpringCloudRuleHandle;
+import org.dromara.soul.common.dto.convert.selector.DubboSelectorHandle;
+import org.dromara.soul.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.dromara.soul.common.dto.zk.AppAuthZkDTO;
 import org.dromara.soul.common.dto.zk.ConditionZkDTO;
 import org.dromara.soul.common.dto.zk.PluginZkDTO;
@@ -57,6 +61,9 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 
+/**
+ * The type Zookeeper client test.
+ */
 @SuppressWarnings("all")
 public class ZookeeperClientTest extends BaseTest {
 
@@ -72,17 +79,34 @@ public class ZookeeperClientTest extends BaseTest {
 
     private static Map<String, PluginZkDTO> pluginZkDTOMap = Maps.newConcurrentMap();
 
+
+    @Test
+    public void testSerize(){
+    }
+
+    /**
+     * Test.
+     */
     @Test
     public void test() {
 
         if (!zkClient.exists(ROOT_PATH)) {
             zkClient.createPersistent(ROOT_PATH, true);
         }
-        zkClient.writeData(ROOT_PATH, new PluginZkDTO("1", PluginEnum.DIVIDE.getName(), Boolean.TRUE));
+        zkClient.writeData(ROOT_PATH, new PluginZkDTO("1", PluginEnum.DIVIDE.getName(), 0, Boolean.TRUE));
         final Object o = zkClient.readData(ROOT_PATH);
         System.out.println(o.toString());
     }
 
+    @Test
+    public void readData(){
+        final Object o = zkClient.readData(ROOT_PATH);
+        System.out.println(o.toString());
+    }
+
+    /**
+     * Test insert app auth.
+     */
     @Test
     public void testInsertAppAuth() {
         AppAuthZkDTO appAuthZkDTO = new AppAuthZkDTO();
@@ -103,6 +127,9 @@ public class ZookeeperClientTest extends BaseTest {
     }
 
 
+    /**
+     * Test write divide selector.
+     */
     @Test
     public void testWriteDivideSelector() {
 
@@ -113,6 +140,9 @@ public class ZookeeperClientTest extends BaseTest {
     }
 
 
+    /**
+     * Test write dubbo selector and rule.
+     */
     @Test
     public void testWriteDubboSelectorAndRule() {
 
@@ -120,6 +150,9 @@ public class ZookeeperClientTest extends BaseTest {
     }
 
 
+    /**
+     * Test write rate limiter selector.
+     */
     @Test
     public void testWriteRateLimiterSelector() {
 
@@ -127,12 +160,18 @@ public class ZookeeperClientTest extends BaseTest {
     }
 
 
+    /**
+     * Test write waf selector.
+     */
     @Test
     public void testWriteWafSelector() {
         writeSelectorAndRule(PluginEnum.WAF.getName());
     }
 
 
+    /**
+     * Test write rewrite selector.
+     */
     @Test
     public void testWriteRewriteSelector() {
         writeSelectorAndRule(PluginEnum.REWRITE.getName());
@@ -151,6 +190,9 @@ public class ZookeeperClientTest extends BaseTest {
     }
 
 
+    /**
+     * Test insert rule.
+     */
     @Test
     public void testInsertRule() {
         final RuleZkDTO ruleZkDTO = buildRuleDTO("aaa", "eee", PluginEnum.DIVIDE.getName());
@@ -212,7 +254,7 @@ public class ZookeeperClientTest extends BaseTest {
         dto1.setLoged(Boolean.TRUE);
         dto1.setMatchMode(MatchModeEnum.AND.getCode());
         if (PluginEnum.DIVIDE.getName().equals(pluginName)) {
-            final String jsonStr = JsonUtils.toJson(buildDivideHandle());
+            final String jsonStr = JsonUtils.toJson(buildDivideHandle().getRight());
             dto1.setHandle(jsonStr);
         } else if (PluginEnum.RATE_LIMITER.getName().equals(pluginName)) {
             final String jsonStr = JsonUtils.toJson(buildRateLimiterHandle());
@@ -228,30 +270,40 @@ public class ZookeeperClientTest extends BaseTest {
         return dto1;
     }
 
+    /**
+     * The entry point of application.
+     *
+     * @param args the input arguments
+     */
     public static void main(String[] args) {
         System.out.println(JsonUtils.toJson(buildSpringCloudHandle()));
     }
 
-    private static DivideHandle buildDivideHandle() {
-        DivideHandle divideHandle = new DivideHandle();
-        divideHandle.setLoadBalance(LoadBalanceEnum.ROUND_ROBIN.getName());
-        divideHandle.setCommandKey("PDM");
-        divideHandle.setGroupKey("pdm");
+    private static Pair<List<DivideUpstream>, DivideRuleHandle> buildDivideHandle() {
 
-        DivideUpstream upstream = new DivideUpstream();
-        upstream.setTimeout(1000);
-        divideHandle.setUpstreamList(buildUpstreamList());
-        return divideHandle;
+        DivideRuleHandle ruleHandle = new DivideRuleHandle();
+
+        ruleHandle.setLoadBalance(LoadBalanceEnum.ROUND_ROBIN.getName());
+        ruleHandle.setCommandKey("PDM");
+        ruleHandle.setGroupKey("pdm");
+
+        ruleHandle.setTimeout(1000);
+
+        return new ImmutablePair<>(buildUpstreamList(), ruleHandle);
     }
 
-    private static DubboHandle buildDubboHandle() {
-        DubboHandle dubboHandle = new DubboHandle();
-        dubboHandle.setAppName("local");
-        dubboHandle.setRegistry("zookeeper://localhost:2181");
-        dubboHandle.setTimeout(3000);
-        dubboHandle.setGroupKey("xiaoyu");
-        dubboHandle.setCommandKey("xiaoyu");
-        return dubboHandle;
+    private static Pair<DubboSelectorHandle, DubboRuleHandle> buildDubboHandle() {
+        DubboSelectorHandle selectorHandle = new DubboSelectorHandle();
+        selectorHandle.setAppName("local");
+        selectorHandle.setRegistry("zookeeper://localhost:2181");
+
+        DubboRuleHandle ruleHandle = new DubboRuleHandle();
+
+        ruleHandle.setTimeout(3000);
+        ruleHandle.setGroupKey("xiaoyu");
+        ruleHandle.setCommandKey("xiaoyu");
+
+        return new ImmutablePair<>(selectorHandle, ruleHandle);
     }
 
     private static RateLimiterHandle buildRateLimiterHandle() {
@@ -276,17 +328,20 @@ public class ZookeeperClientTest extends BaseTest {
     }
 
 
-    private static SpringCloudHandle buildSpringCloudHandle(){
-        SpringCloudHandle springCloudHandle = new SpringCloudHandle();
-        springCloudHandle.setPath("/xxx");
-        springCloudHandle.setServiceId("xiaoyu");
-        return springCloudHandle;
+    private static Pair<SpringCloudSelectorHandle, SpringCloudRuleHandle> buildSpringCloudHandle() {
+
+        SpringCloudSelectorHandle selectorHandle = new SpringCloudSelectorHandle();
+        selectorHandle.setServiceId("xiaoyu");
+
+        SpringCloudRuleHandle ruleHandle = new SpringCloudRuleHandle();
+
+        ruleHandle.setPath("/xiaoyu");
+        return new ImmutablePair<>(selectorHandle, ruleHandle);
     }
 
     private static List<DivideUpstream> buildUpstreamList() {
         List<DivideUpstream> upstreams = Lists.newArrayList();
         DivideUpstream upstream = new DivideUpstream();
-        upstream.setTimeout(1000);
         upstream.setUpstreamHost("localhost");
         upstream.setUpstreamUrl("http://localhost:8081");
         upstream.setWeight(90);
@@ -294,6 +349,9 @@ public class ZookeeperClientTest extends BaseTest {
         return upstreams;
     }
 
+    /**
+     * Test delete.
+     */
     @Test
     public void testDelete() {
         final String dividePath = ZkPathConstants.buildSelectorParentPath(PluginEnum.DIVIDE.getName());
@@ -311,6 +369,9 @@ public class ZookeeperClientTest extends BaseTest {
     }
 
 
+    /**
+     * Test write plugin.
+     */
     @Test
     public void testWritePlugin() {
 
@@ -327,6 +388,11 @@ public class ZookeeperClientTest extends BaseTest {
 
     }
 
+    /**
+     * Test load plugin data.
+     *
+     * @throws InterruptedException the interrupted exception
+     */
     @Test
     public void testLoadPluginData() throws InterruptedException {
         Arrays.stream(PluginEnum.values()).forEach(pluginEnum -> {
@@ -362,14 +428,17 @@ public class ZookeeperClientTest extends BaseTest {
 
     }
 
+    /**
+     * Test update plugin.
+     */
     @Test
     public void testUpdatePlugin() {
         String divide = PLUGIN + "/" + PluginEnum.DIVIDE.getName();
-        PluginZkDTO divideDTO = new PluginZkDTO("3", PluginEnum.DIVIDE.getName(), false);
+        PluginZkDTO divideDTO = new PluginZkDTO("3", PluginEnum.DIVIDE.getName(), 0, false);
         zkClient.writeData(divide, divideDTO);
 
         String global = PLUGIN + "/" + PluginEnum.GLOBAL.getName();
-        PluginZkDTO globalDTO = new PluginZkDTO("4", PluginEnum.GLOBAL.getName(), false);
+        PluginZkDTO globalDTO = new PluginZkDTO("4", PluginEnum.GLOBAL.getName(), 0, false);
         zkClient.writeData(global, globalDTO);
 
 
@@ -385,6 +454,9 @@ public class ZookeeperClientTest extends BaseTest {
     }
 
 
+    /**
+     * Test plugin.
+     */
     @Test
     public void testPlugin() {
         if (!zkClient.exists(PLUGIN)) {
@@ -396,19 +468,30 @@ public class ZookeeperClientTest extends BaseTest {
 
     }
 
+    /**
+     * Dispose.
+     */
     @After
     public void dispose() {
         zkClient.close();
         LOGGER.info("zkclient closed!");
     }
 
+    /**
+     * Test plugin update.
+     */
     @Test
     public void testPluginUpdate() {
         final Map<String, PluginZkDTO> map = buildMap();
-        map.put(PluginEnum.DIVIDE.getName(), new PluginZkDTO("2", PluginEnum.DIVIDE.getName(), Boolean.FALSE));
+        map.put(PluginEnum.DIVIDE.getName(), new PluginZkDTO("2", PluginEnum.DIVIDE.getName(), 0, Boolean.FALSE));
         zkClient.writeData(PLUGIN, map);
     }
 
+    /**
+     * Test listener.
+     *
+     * @throws InterruptedException the interrupted exception
+     */
     @Test
     public void testListener() throws InterruptedException {
         //监听指定节点的数据变化
@@ -442,6 +525,9 @@ public class ZookeeperClientTest extends BaseTest {
     }
 
 
+    /**
+     * Test update config.
+     */
     @Test
     public void testUpdateConfig() {
         if (!zkClient.exists(ROOT_PATH)) {
@@ -455,9 +541,9 @@ public class ZookeeperClientTest extends BaseTest {
 
     private Map<String, PluginZkDTO> buildMap() {
         Map<String, PluginZkDTO> pluginMap = Maps.newHashMap();
-        pluginMap.put(PluginEnum.DIVIDE.getName(), new PluginZkDTO("6", PluginEnum.DIVIDE.getName(), Boolean.TRUE));
-        pluginMap.put(PluginEnum.GLOBAL.getName(), new PluginZkDTO("7", PluginEnum.GLOBAL.getName(), Boolean.TRUE));
-        pluginMap.put(PluginEnum.MONITOR.getName(), new PluginZkDTO("8", PluginEnum.MONITOR.getName(), Boolean.TRUE));
+        pluginMap.put(PluginEnum.DIVIDE.getName(), new PluginZkDTO("6", PluginEnum.DIVIDE.getName(), 0, Boolean.TRUE));
+        pluginMap.put(PluginEnum.GLOBAL.getName(), new PluginZkDTO("7", PluginEnum.GLOBAL.getName(), 0, Boolean.TRUE));
+        pluginMap.put(PluginEnum.MONITOR.getName(), new PluginZkDTO("8", PluginEnum.MONITOR.getName(), 0, Boolean.TRUE));
         return pluginMap;
     }
 }

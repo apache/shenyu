@@ -16,32 +16,28 @@
  *
  */
 
-package org.dromara.soul.common.dto.convert;
+package org.dromara.soul.extend.demo.entity;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-
-import java.io.Serializable;
-import java.util.List;
+import lombok.Data;
+import org.dromara.soul.common.utils.GsonUtils;
 
 /**
- * this is divide plugin handle.
+ * The type Test.
+ *
  * @author xiaoyu(Myth)
  */
-@Getter
-@Setter
-@ToString
-public class DivideHandle extends HystrixHandle implements Serializable {
+@Data
+public class Test {
 
-    /**
-     * loadBalance.
-     * {@linkplain org.dromara.soul.common.enums.LoadBalanceEnum}
-     */
-    private String loadBalance;
+    private String id;
 
-    /**
-     * upstream list.
-     */
-    private List<DivideUpstream> upstreamList;
+    private String name;
+
+    public static void main(String[] args) {
+        Test test = new Test();
+        test.setId("1");
+        test.setName("xiaoyu");
+        final String toJson = GsonUtils.getInstance().toJson(test);
+        System.out.println(toJson);
+    }
 }

@@ -1,8 +1,10 @@
 server:
-  port: 8087
+  port: 8999
   address: 0.0.0.0
 
 spring:
+   main:
+     allow-bean-definition-overriding: true
    profiles:
      active: dev
    redis:
@@ -19,17 +21,14 @@ spring:
         read-timeout: 30
         write-timeout: 10
    zookeeper:
-        url : 10.40.6.154:2181
+        url : localhost:2181
         sessionTimeout: 5000
         connectionTimeout : 2000
-        serializer : KryoSerializer
 soul:
-    timeDelay: 1000
-    bufferSize: 1024
-    signAuth:
-       enabled: true
+    bufferSize: 4096
     timeVerify:
-       enabled: true
+       timeDelay : 10
+       enabled: false
 logging:
     level:
         root: info

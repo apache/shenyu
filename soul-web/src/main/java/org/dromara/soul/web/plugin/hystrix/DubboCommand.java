@@ -1,19 +1,18 @@
 /*
+ *   Licensed to the Apache Software Foundation (ASF) under one or more
+ *   contributor license agreements.  See the NOTICE file distributed with
+ *   this work for additional information regarding copyright ownership.
+ *   The ASF licenses this file to You under the Apache License, Version 2.0
+ *   (the "License"); you may not use this file except in compliance with
+ *   the License.  You may obtain a copy of the License at
  *
- *  * Licensed to the Apache Software Foundation (ASF) under one or more
- *  * contributor license agreements.  See the NOTICE file distributed with
- *  * this work for additional information regarding copyright ownership.
- *  * The ASF licenses this file to You under the Apache License, Version 2.0
- *  * (the "License"); you may not use this file except in compliance with
- *  * the License.  You may obtain a copy of the License at
- *  *
- *  *     http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  * Unless required by applicable law or agreed to in writing, software
- *  * distributed under the License is distributed on an "AS IS" BASIS,
- *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  * See the License for the specific language governing permissions and
- *  * limitations under the License.
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 
@@ -21,7 +20,8 @@ package org.dromara.soul.web.plugin.hystrix;
 
 import com.netflix.hystrix.HystrixObservableCommand;
 import org.dromara.soul.common.constant.Constants;
-import org.dromara.soul.common.dto.convert.DubboHandle;
+import org.dromara.soul.common.dto.convert.rule.DubboRuleHandle;
+import org.dromara.soul.common.dto.convert.selector.DubboSelectorHandle;
 import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.result.SoulResult;
 import org.dromara.soul.common.utils.JsonUtils;
@@ -59,30 +59,34 @@ public class DubboCommand extends HystrixObservableCommand<Void> {
 
     private final Map<String, Object> paramMap;
 
-    private final DubboHandle dubboHandle;
+    private final DubboSelectorHandle dubboSelectorHandle;
+
+    private final DubboRuleHandle dubboRuleHandle;
 
     /**
      * Instantiates a new Dubbo command.
      *
-     * @param setter            the setter
-     * @param paramMap          the param map
-     * @param exchange          the exchange
-     * @param chain             the chain
-     * @param dubboProxyService the dubbo proxy service
-     * @param dubboHandle       the dubbo handle
+     * @param setter              the setter
+     * @param paramMap            the param map
+     * @param exchange            the exchange
+     * @param chain               the chain
+     * @param dubboProxyService   the dubbo proxy service
+     * @param dubboSelectorHandle the dubbo selector handle
+     * @param dubboRuleHandle     the dubbo rule handle
      */
     public DubboCommand(final Setter setter, final Map<String, Object> paramMap,
                         final ServerWebExchange exchange,
                         final SoulPluginChain chain,
                         final DubboProxyService dubboProxyService,
-                        final DubboHandle dubboHandle) {
+                        final DubboSelectorHandle dubboSelectorHandle,
+                        final DubboRuleHandle dubboRuleHandle) {
         super(setter);
         this.exchange = exchange;
         this.paramMap = paramMap;
         this.chain = chain;
         this.dubboProxyService = dubboProxyService;
-        this.dubboHandle = dubboHandle;
-
+        this.dubboSelectorHandle = dubboSelectorHandle;
+        this.dubboRuleHandle = dubboRuleHandle;
     }
 
     @Override
@@ -91,10 +95,13 @@ public class DubboCommand extends HystrixObservableCommand<Void> {
     }
 
     private Mono<Void> doRpcInvoke() {
-        final Object result = dubboProxyService.genericInvoker(paramMap, dubboHandle);
-        exchange.getAttributes().put(Constants.DUBBO_RPC_RESULT, result);
-        exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE,
-                ResultEnum.SUCCESS.getName());
+        final Object result = dubboProxyService.genericInvoker(paramMap, dubboSelectorHandle, dubboRuleHandle);
+        if (Objects.nonNull(result)) {
+            exchange.getAttributes().put(Constants.DUBBO_RPC_RESULT, result);
+        } else {
+            exchange.getAttributes().put(Constants.DUBBO_RPC_RESULT, Constants.DUBBO_RPC_RESULT_EMPTY);
+        }
+        exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
         return chain.execute(exchange);
     }
 

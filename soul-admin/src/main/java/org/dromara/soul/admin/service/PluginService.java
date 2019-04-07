@@ -33,20 +33,20 @@ import java.util.List;
 public interface PluginService {
 
     /**
-     * create or update plugin.
+     * Create or update string.
      *
-     * @param pluginDTO {@linkplain PluginDTO}
-     * @return rows int
+     * @param pluginDTO the plugin dto
+     * @return the string
      */
-    int createOrUpdate(PluginDTO pluginDTO);
+    String createOrUpdate(PluginDTO pluginDTO);
 
     /**
-     * delete plugins.
+     * Delete string.
      *
-     * @param ids primary key.
-     * @return rows int
+     * @param ids the ids
+     * @return the string
      */
-    int delete(List<String> ids);
+    String delete(List<String> ids);
 
     /**
      * find plugin by id.
@@ -79,4 +79,14 @@ public interface PluginService {
      * @return rows int
      */
     int syncPluginAll();
+
+
+    /**
+     * Enabled string.
+     *
+     * @param ids    the ids
+     * @param enabled the enable
+     * @return the string
+     */
+    String enabled(List<String> ids, Boolean enabled);
 }

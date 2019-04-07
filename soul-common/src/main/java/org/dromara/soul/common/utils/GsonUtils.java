@@ -30,6 +30,7 @@ import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,12 +41,15 @@ import java.util.Set;
  *
  * @author xiaoyu(Myth)
  */
-@SuppressWarnings("all")
-public class GSONUtils {
+public class GsonUtils {
 
-    private static final GSONUtils INSTANCE = new GSONUtils();
+    private static final GsonUtils INSTANCE = new GsonUtils();
 
     private static final Gson GSON = new Gson();
+
+    private static final String DOT = ".";
+
+    private static final String E = "e";
 
     private class MapDeserializer<T, U> implements JsonDeserializer<Map<T, U>> {
 
@@ -57,14 +61,14 @@ public class GSONUtils {
 
             JsonObject jsonObject = json.getAsJsonObject();
             Set<Map.Entry<String, JsonElement>> jsonEntrySet = jsonObject.entrySet();
-            Map<T, U> deserializedMap = new LinkedHashMap<>();
+            Map<T, U> resultMap = new LinkedHashMap<>();
 
             for (Map.Entry<String, JsonElement> entry : jsonEntrySet) {
                 U value = context.deserialize(entry.getValue(), this.getType(entry.getValue()));
-                deserializedMap.put((T) entry.getKey(), value);
+                resultMap.put((T) entry.getKey(), value);
             }
 
-            return deserializedMap;
+            return resultMap;
         }
 
         /**
@@ -80,7 +84,7 @@ public class GSONUtils {
                     return String.class;
                 } else if (primitive.isNumber()) {
                     String numStr = primitive.getAsString();
-                    if (numStr.contains(".") || numStr.contains("e")
+                    if (numStr.contains(DOT) || numStr.contains(E)
                             || numStr.contains("E")) {
                         return Double.class;
                     }
@@ -99,7 +103,7 @@ public class GSONUtils {
      *
      * @return the instance
      */
-    public static GSONUtils getInstance() {
+    public static GsonUtils getInstance() {
         return INSTANCE;
     }
 
@@ -123,6 +127,20 @@ public class GSONUtils {
      */
     public <T> T fromJson(final String json, final Class<T> tClass) {
         return GSON.fromJson(json, tClass);
+    }
+
+    /**
+     * From list list.
+     *
+     * @param <T>    the type parameter
+     * @param string the string
+     * @param cls    the cls
+     * @return the list
+     */
+    public <T> List<T> fromList(String string, Class<T[]> cls) {
+        Gson gson = new Gson();
+        T[] array = gson.fromJson(string, cls);
+        return Arrays.asList(array);
     }
 
 
@@ -150,14 +168,14 @@ public class GSONUtils {
      * @param json json
      * @return hashMap map
      */
-    public Map<String, String> toStringMap(final String json) {
+    private Map<String, String> toStringMap(final String json) {
         return GSON.fromJson(json, new TypeToken<Map<String, String>>() {
         }.getType());
     }
 
 
     /**
-     * toList<Map></Map>.
+     * toList Map.
      *
      * @param json json
      * @return hashMap list
@@ -174,7 +192,8 @@ public class GSONUtils {
      * @return the map
      */
     public Map<String, Object> toObjectMap(final String json) {
-        TypeToken typeToken = new TypeToken<Map<String, Object>>() {};
+        TypeToken typeToken = new TypeToken<Map<String, Object>>() {
+        };
         Gson gson = new GsonBuilder().serializeNulls().registerTypeHierarchyAdapter(typeToken.getRawType(), new MapDeserializer<String, Object>()).create();
         return gson.fromJson(json, typeToken.getType());
     }

@@ -16,22 +16,19 @@
  *
  */
 
-package org.dromara.soul.common.dto.convert;
+package org.dromara.soul.common.dto.convert.selector;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
 import java.io.Serializable;
 
 /**
- * this is dubbo plugin handle.
+ * The type Dubbo selector handle.
+ *
  * @author xiaoyu(Myth)
  */
-@ToString
-@Getter
-@Setter
-public class DubboHandle extends HystrixHandle implements Serializable {
+@Data
+public class DubboSelectorHandle implements Serializable {
 
     /**
      * zookeeper url is required.
@@ -52,26 +49,5 @@ public class DubboHandle extends HystrixHandle implements Serializable {
      * port.
      */
     private int port;
-
-    /**
-     * version.
-     */
-    private String version;
-
-    /**
-     *  group.
-     */
-    private String group;
-
-    /**
-     * retries.
-     */
-    private Integer retries;
-
-    /**
-     * {@linkplain org.dromara.soul.common.enums.LoadBalanceEnum}
-     */
-    private String loadBalance;
-
 
 }
