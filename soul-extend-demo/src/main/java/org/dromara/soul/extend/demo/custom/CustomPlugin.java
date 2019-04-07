@@ -16,10 +16,13 @@
  *
  */
 
-package org.dromara.soul.extend.demo.extend;
+package org.dromara.soul.extend.demo.custom;
 
 import org.dromara.soul.common.dto.zk.RuleZkDTO;
+import org.dromara.soul.common.dto.zk.SelectorZkDTO;
 import org.dromara.soul.common.enums.PluginTypeEnum;
+import org.dromara.soul.common.utils.GsonUtils;
+import org.dromara.soul.extend.demo.entity.Test;
 import org.dromara.soul.web.cache.ZookeeperCacheManager;
 import org.dromara.soul.web.plugin.AbstractSoulPlugin;
 import org.dromara.soul.web.plugin.SoulPluginChain;
@@ -36,33 +39,22 @@ import reactor.core.publisher.Mono;
  *
  * @author xiaoyu(Myth)
  */
-public class FunctionPlugin extends AbstractSoulPlugin {
+public class CustomPlugin extends AbstractSoulPlugin {
 
     /**
      * logger.
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(FunctionPlugin.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CustomPlugin.class);
 
-    public FunctionPlugin(final ZookeeperCacheManager dataCacheManager) {
+    public CustomPlugin(final ZookeeperCacheManager dataCacheManager) {
         super(dataCacheManager);
     }
 
     /**
-     * this is Template Method child has Implement your own logic.
-     *
-     * @param exchange exchange the current server exchange {@linkplain ServerWebExchange}
-     * @param chain    chain the current chain  {@linkplain ServerWebExchange}
-     * @param rule     rule    {@linkplain RuleZkDTO}
-     * @return {@code Mono<Void>} to indicate when request handling is complete
-     */
-    @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final RuleZkDTO rule) {
-        LOGGER.debug(".......... function plugin start..............");
-        return chain.execute(exchange);
-    }
-
-    /**
      * return plugin type.
+     * The type of plug-ins indicates their order at runtime
+     * The PluginTypeEnum.BEFORE is first
+     * The PluginTypeEnum.LAST is last.
      *
      * @return {@linkplain PluginTypeEnum}
      */
@@ -73,6 +65,7 @@ public class FunctionPlugin extends AbstractSoulPlugin {
 
     /**
      * return plugin order .
+     * The same plugin he executes in the same order.
      *
      * @return int
      */
@@ -83,16 +76,20 @@ public class FunctionPlugin extends AbstractSoulPlugin {
 
     /**
      * acquire plugin name.
+     * return you custom plugin name.
+     * It must be the same name as the plug-in you added in the admin background.
      *
      * @return plugin name.
      */
     @Override
     public String named() {
-        return "waf";
+        return "soul";
     }
 
     /**
      * plugin is execute.
+     * Do I need to skip.
+     * if you need skip return true.
      *
      * @param exchange the current server exchange
      * @return default false.
@@ -100,5 +97,31 @@ public class FunctionPlugin extends AbstractSoulPlugin {
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
         return false;
+    }
+
+    @Override
+    protected Mono<Void> doExecute(ServerWebExchange exchange, SoulPluginChain chain, SelectorZkDTO selector, RuleZkDTO rule) {
+        LOGGER.debug(".......... function plugin start..............");
+
+        /*
+         * Processing after your selector matches the rule.
+         * rule.getHandle() is you Customize the json string to be processed.
+         * for this example.
+         * Convert your custom json string pass to an entity class.
+         */
+        final String ruleHandle = rule.getHandle();
+
+        final Test test = GsonUtils.getInstance().fromJson(ruleHandle, Test.class);
+
+        /*
+         * Then do your own business processing.
+         * The last execution  chain.execute(exchange).
+         * Let it continue on the chain until the end.
+         */
+
+        System.out.println(test.toString());
+
+
+        return chain.execute(exchange);
     }
 }

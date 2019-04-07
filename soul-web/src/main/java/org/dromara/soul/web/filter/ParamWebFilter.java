@@ -24,7 +24,7 @@ import org.dromara.soul.common.constant.DubboParamConstants;
 import org.dromara.soul.common.enums.HttpMethodEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.result.SoulResult;
-import org.dromara.soul.common.utils.GSONUtils;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.web.request.RequestDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -61,7 +61,7 @@ public class ParamWebFilter extends AbstractWebFilter {
         response.setStatusCode(HttpStatus.BAD_REQUEST);
         final SoulResult result = SoulResult.error("you param is error please check with doc!");
         return response.writeWith(Mono.just(response.bufferFactory()
-                .wrap(GSONUtils.getInstance().toJson(result).getBytes())));
+                .wrap(GsonUtils.getInstance().toJson(result).getBytes())));
     }
 
     private Boolean verify(final RequestDTO requestDTO, final ServerWebExchange exchange) {
@@ -81,7 +81,7 @@ public class ParamWebFilter extends AbstractWebFilter {
             if (StringUtils.isBlank(dubboParams)) {
                 return false;
             }
-            final Map<String, Object> paramMap = GSONUtils.getInstance().toObjectMap(dubboParams);
+            final Map<String, Object> paramMap = GsonUtils.getInstance().toObjectMap(dubboParams);
             if (paramMap.containsKey(DubboParamConstants.INTERFACE_NAME)
                     && paramMap.containsKey(DubboParamConstants.METHOD)) {
                 exchange.getAttributes().put(Constants.DUBBO_PARAMS, paramMap);

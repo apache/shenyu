@@ -16,32 +16,21 @@
  *
  */
 
-package org.dromara.soul.common.dto.convert;
+package org.dromara.soul.web.condition.judge;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import org.dromara.soul.common.dto.zk.ConditionZkDTO;
 
-import java.io.Serializable;
+import java.util.regex.Pattern;
 
 /**
- * this is spring cloud plugin handle.
+ * The type Reg ex operator judge.
  *
- * @author xiaoyu
+ * @author xiaoyu(Myth)
  */
-@Getter
-@Setter
-@ToString
-public class SpringCloudHandle extends HystrixHandle implements Serializable {
+public class RegExOperatorJudge implements OperatorJudge {
 
-    /**
-     * this is register eureka serviceId.
-     */
-    private String serviceId;
-
-    /**
-     * this remote uri path.
-     */
-    private String path;
-
+    @Override
+    public Boolean judge(final ConditionZkDTO conditionZkDTO, final String realData) {
+        return Pattern.matches(conditionZkDTO.getParamValue(), realData);
+    }
 }

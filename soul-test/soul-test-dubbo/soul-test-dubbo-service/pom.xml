@@ -23,7 +23,7 @@
     <parent>
         <artifactId>soul-test-dubbo</artifactId>
         <groupId>org.dromara</groupId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>1.0.3-RELEASE</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -68,6 +68,12 @@
             <artifactId>zkclient</artifactId>
         </dependency>
         <!--  zookeeper -->
+
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.53</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>

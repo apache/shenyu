@@ -76,6 +76,8 @@ public class SelectorDTO implements Serializable {
      */
     private Boolean continued;
 
+    private String handle;
+
     /**
      * selector conditions.
      */

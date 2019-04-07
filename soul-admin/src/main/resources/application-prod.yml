@@ -3,6 +3,12 @@ server:
   address: 0.0.0.0
 
 spring:
+   thymeleaf:
+      cache: true
+      encoding: utf-8
+      enabled: true
+      prefix: classpath:/static/
+      suffix: .html
    datasource:
      url: jdbc:mysql://127.0.0.1:3306/soul?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=CONVERT_TO_NULL&failOverReadOnly=false&autoReconnect=true
      username: root
@@ -13,8 +19,6 @@ spring:
      url : localhost:2181
      sessionTimeout: 5000
      connectionTimeout : 2000
-     serializer : KryoSerializer
-
 mybatis:
   config-location: classpath:/mybatis/mybatis-config.xml
   mapper-locations: classpath:/mappers/*.xml

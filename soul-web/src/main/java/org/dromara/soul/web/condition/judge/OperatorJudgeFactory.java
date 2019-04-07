@@ -31,19 +31,19 @@ import java.util.Objects;
  *
  * @author xiaoyu(Myth)
  */
-public class ConditionJudge {
+public class OperatorJudgeFactory {
 
-    private static final Map<String, OperatorJudge> OPERATOR_JUDGE_MAP = Maps.newHashMapWithExpectedSize(3);
+    private static final Map<String, OperatorJudge> OPERATOR_JUDGE_MAP = Maps.newHashMapWithExpectedSize(4);
 
     static {
         OPERATOR_JUDGE_MAP.put(OperatorEnum.EQ.getAlias(), new EqOperatorJudge());
         OPERATOR_JUDGE_MAP.put(OperatorEnum.MATCH.getAlias(), new MatchOperatorJudge());
         OPERATOR_JUDGE_MAP.put(OperatorEnum.LIKE.getAlias(), new LikeOperatorJudge());
+        OPERATOR_JUDGE_MAP.put(OperatorEnum.REGEX.getAlias(), new RegExOperatorJudge());
     }
 
     /**
-     * judge this conditionZkDTO has by pass.
-     *
+     * judge request realData has by pass.
      * @param conditionZkDTO condition data
      * @param realData       realData
      * @return is true pass   is false not pass

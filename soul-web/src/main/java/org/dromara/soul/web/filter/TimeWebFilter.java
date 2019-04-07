@@ -22,7 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.result.SoulResult;
 import org.dromara.soul.common.utils.DateUtils;
-import org.dromara.soul.common.utils.GSONUtils;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.web.request.RequestDTO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -66,6 +66,6 @@ public class TimeWebFilter extends AbstractWebFilter {
         response.setStatusCode(HttpStatus.REQUEST_TIMEOUT);
         final SoulResult result = SoulResult.error("timestamp is not passed validation");
         return response.writeWith(Mono.just(response.bufferFactory()
-                .wrap(GSONUtils.getInstance().toJson(result).getBytes())));
+                .wrap(GsonUtils.getInstance().toJson(result).getBytes())));
     }
 }

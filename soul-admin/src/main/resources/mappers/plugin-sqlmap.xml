@@ -6,11 +6,12 @@
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
         <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="role" jdbcType="INTEGER" property="role"/>
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, date_created, date_updated, name, enabled
+        id, date_created, date_updated, name,role, enabled
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -20,6 +21,14 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
 
+
+    <select id="selectByName" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from plugin
+        where name = #{name,jdbcType=VARCHAR}
+    </select>
+
     <select id="selectByQuery" parameterType="org.dromara.soul.admin.query.PluginQuery" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -27,9 +36,13 @@
         <if test="name != null">
             where name = #{name,jdbcType=VARCHAR}
         </if>
+
+        order by role asc
+
         <if test="pageParameter != null">
             limit #{pageParameter.offset},#{pageParameter.pageSize}
         </if>
+
     </select>
 
     <select id="countByQuery" parameterType="org.dromara.soul.admin.query.PluginQuery" resultType="java.lang.Integer">
@@ -42,9 +55,9 @@
 
     <insert id="insert" parameterType="org.dromara.soul.admin.entity.PluginDO">
         insert into plugin (id, date_created, date_updated,
-        name, enabled)
+        name,role, enabled)
         values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
-        #{name,jdbcType=VARCHAR}, #{enabled,jdbcType=TINYINT})
+        #{name,jdbcType=VARCHAR}, #{role,jdbcType=INTEGER}, #{enabled,jdbcType=TINYINT})
     </insert>
 
     <insert id="insertSelective" parameterType="org.dromara.soul.admin.entity.PluginDO">
@@ -59,6 +72,9 @@
             </if>
             <if test="name != null">
                 name,
+            </if>
+            <if test="role != null">
+                role,
             </if>
             <if test="enabled != null">
                 enabled,
@@ -75,6 +91,9 @@
             <if test="name != null">
                 #{name,jdbcType=VARCHAR},
             </if>
+            <if test="role != null">
+                #{role,jdbcType=INTEGER},
+            </if>
             <if test="enabled != null">
                 #{enabled,jdbcType=TINYINT},
             </if>
@@ -83,12 +102,20 @@
 
     <update id="update" parameterType="org.dromara.soul.admin.entity.PluginDO">
         update plugin
-        set date_created = #{dateCreated,jdbcType=TIMESTAMP},
-        date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
+        set  date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
         name = #{name,jdbcType=VARCHAR},
         enabled = #{enabled,jdbcType=TINYINT}
         where id = #{id,jdbcType=VARCHAR}
     </update>
+
+    <update id="updateEnable" parameterType="org.dromara.soul.admin.entity.PluginDO">
+        update plugin
+        SET  date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
+        enabled = #{enabled,jdbcType=TINYINT}
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+
+
 
     <update id="updateSelective" parameterType="org.dromara.soul.admin.entity.PluginDO">
         update plugin
@@ -101,6 +128,9 @@
             </if>
             <if test="name != null">
                 name = #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="role != null">
+                name = #{role,jdbcType=INTEGER},
             </if>
             <if test="enabled != null">
                 enabled = #{enabled,jdbcType=TINYINT},

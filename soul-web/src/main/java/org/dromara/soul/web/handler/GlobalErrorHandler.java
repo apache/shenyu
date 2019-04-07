@@ -1,106 +1,85 @@
 /*
+ *   Licensed to the Apache Software Foundation (ASF) under one or more
+ *   contributor license agreements.  See the NOTICE file distributed with
+ *   this work for additional information regarding copyright ownership.
+ *   The ASF licenses this file to You under the Apache License, Version 2.0
+ *   (the "License"); you may not use this file except in compliance with
+ *   the License.  You may obtain a copy of the License at
  *
- *  * Licensed to the Apache Software Foundation (ASF) under one or more
- *  * contributor license agreements.  See the NOTICE file distributed with
- *  * this work for additional information regarding copyright ownership.
- *  * The ASF licenses this file to You under the Apache License, Version 2.0
- *  * (the "License"); you may not use this file except in compliance with
- *  * the License.  You may obtain a copy of the License at
- *  *
- *  *     http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  * Unless required by applicable law or agreed to in writing, software
- *  * distributed under the License is distributed on an "AS IS" BASIS,
- *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  * See the License for the specific language governing permissions and
- *  * limitations under the License.
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  *
  */
 
 package org.dromara.soul.web.handler;
 
+import com.google.common.collect.Maps;
+import org.dromara.soul.common.exception.CommonErrorCode;
+import org.springframework.boot.autoconfigure.web.ErrorProperties;
+import org.springframework.boot.autoconfigure.web.ResourceProperties;
+import org.springframework.boot.autoconfigure.web.reactive.error.DefaultErrorWebExceptionHandler;
+import org.springframework.boot.web.reactive.error.ErrorAttributes;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.codec.HttpMessageWriter;
-import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.server.HandlerStrategies;
+import org.springframework.web.reactive.function.server.RequestPredicates;
+import org.springframework.web.reactive.function.server.RouterFunction;
+import org.springframework.web.reactive.function.server.RouterFunctions;
+import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
-import org.springframework.web.reactive.result.view.ViewResolver;
-import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.server.WebExceptionHandler;
-import reactor.core.publisher.Mono;
 
-import java.util.List;
-
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import java.util.Map;
 
 /**
  * GlobalErrorHandler.
  *
  * @author xiaoyu(Myth)
  */
-@Component
-public class GlobalErrorHandler implements WebExceptionHandler {
+public class GlobalErrorHandler extends DefaultErrorWebExceptionHandler {
+
     /**
-     * Handle the given exception. A completion signal through the return value
-     * indicates error handling is complete while an error signal indicates the
-     * exception is still not handled.
+     * Instantiates a new Global error handler.
      *
-     * @param exchange the current exchange
-     * @param ex       the exception to handle
-     * @return {@code Mono<Void>} to indicate when exception handling is complete
+     * @param errorAttributes    the error attributes
+     * @param resourceProperties the resource properties
+     * @param errorProperties    the error properties
+     * @param applicationContext the application context
      */
+    public GlobalErrorHandler(final ErrorAttributes errorAttributes,
+                              final ResourceProperties resourceProperties,
+                              final ErrorProperties errorProperties,
+                              final ApplicationContext applicationContext) {
+        super(errorAttributes, resourceProperties, errorProperties, applicationContext);
+    }
+
     @Override
-    public Mono<Void> handle(final ServerWebExchange exchange, final Throwable ex) {
-        return handle(ex).flatMap(it -> it.writeTo(exchange,
-                new HandlerStrategiesResponseContext(HandlerStrategies.withDefaults())))
-                .flatMap(i -> Mono.empty());
+    protected Map<String, Object> getErrorAttributes(final ServerRequest request, final boolean includeStackTrace) {
+        Throwable error = super.getError(request);
+        error.printStackTrace();
+        return response(HttpStatus.INTERNAL_SERVER_ERROR.value());
     }
 
-
-    private Mono<ServerResponse> handle(Throwable ex) {
-        return createResponse(INTERNAL_SERVER_ERROR, "GENERIC_ERROR", "Unhandled exception");
+    @Override
+    protected RouterFunction<ServerResponse> getRoutingFunction(final ErrorAttributes errorAttributes) {
+        return RouterFunctions.route(RequestPredicates.all(), this::renderErrorResponse);
     }
 
-    private Mono<ServerResponse> createResponse(final HttpStatus httpStatus, final String code, final String mesage) {
-
-        return ServerResponse.status(httpStatus).syncBody(mesage);
+    @Override
+    protected HttpStatus getHttpStatus(final Map<String, Object> errorAttributes) {
+        int statusCode = (int) errorAttributes.get("code");
+        return HttpStatus.valueOf(statusCode);
     }
 
-    /**
-     * The type Handler strategies response context.
-     */
-    static class HandlerStrategiesResponseContext implements ServerResponse.Context {
-
-        private HandlerStrategies handlerStrategies;
-
-        /**
-         * Instantiates a new Handler strategies response context.
-         *
-         * @param handlerStrategies the handler strategies
-         */
-        public HandlerStrategiesResponseContext(final HandlerStrategies handlerStrategies) {
-            this.handlerStrategies = handlerStrategies;
-        }
-
-        /**
-         * Return the {@link HttpMessageWriter}s to be used for response body conversion.
-         *
-         * @return the list of message writers
-         */
-        @Override
-        public List<HttpMessageWriter<?>> messageWriters() {
-            return this.handlerStrategies.messageWriters();
-        }
-
-        /**
-         * Return the  {@link ViewResolver}s to be used for view name resolution.
-         *
-         * @return the list of view resolvers
-         */
-        @Override
-        public List<ViewResolver> viewResolvers() {
-            return this.handlerStrategies.viewResolvers();
-        }
+    private static Map<String, Object> response(final int status) {
+        Map<String, Object> map = Maps.newHashMapWithExpectedSize(3);
+        map.put("code", status);
+        map.put("message", CommonErrorCode.ERROR_MSG);
+        map.put("data", null);
+        return map;
     }
 
 }

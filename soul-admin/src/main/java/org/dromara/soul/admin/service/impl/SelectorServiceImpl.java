@@ -136,7 +136,7 @@ public class SelectorServiceImpl implements SelectorService {
                         selectorConditionDTO.getParamName(), selectorConditionDTO.getParamValue())).collect(Collectors.toList());
         zkClient.writeData(selectorRealPath, new SelectorZkDTO(selectorDO.getId(), selectorDO.getPluginId(), pluginDO.getName(),
                 selectorDO.getName(), selectorDO.getMatchMode(), selectorDO.getType(), selectorDO.getSort(), selectorDO.getEnabled(),
-                selectorDO.getLoged(), selectorDO.getContinued(), conditionZkDTOs));
+                selectorDO.getLoged(), selectorDO.getContinued(), selectorDO.getHandle(), conditionZkDTOs));
         return selectorCount;
     }
 

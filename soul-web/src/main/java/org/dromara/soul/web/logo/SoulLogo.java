@@ -19,6 +19,7 @@
 package org.dromara.soul.web.logo;
 
 import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.common.utils.VersionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,15 +37,15 @@ import org.springframework.core.annotation.Order;
 @SuppressWarnings("all")
 public class SoulLogo implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
 
-    private static final String SOUL_LOGO = "\n" +
-            "                 _ \n" +
-            "                | |\n" +
-            " ___  ___  _   _| |\n" +
-            "/ __|/ _ \\| | | | |\n" +
-            "\\__ \\ (_) | |_| | |\n" +
-            "|___/\\___/ \\__,_|_|\n" +
-            "                   \n" +
-            "                   \n";
+    private static final String SOUL_LOGO = "\n"
+            + "                 _  \n"
+            + "                | | \n"
+            + " ___  ___  _   _| | \n"
+            + "/ __|/ _ \\| | | | |\n"
+            + "\\__ \\ (_) | |_| | |\n"
+            + "|___/\\___/ \\__,_|_|\n"
+            + "                    \n"
+            + "                   \n";
 
     /**
      * logger.
@@ -54,20 +55,15 @@ public class SoulLogo implements ApplicationListener<ApplicationEnvironmentPrepa
     @Override
     public void onApplicationEvent(final ApplicationEnvironmentPreparedEvent event) {
         String bannerText = buildBannerText();
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info(bannerText);
-        } else {
-            System.out.print(bannerText);
-        }
+        LogUtils.info(LOGGER, () -> bannerText);
     }
 
     private String buildBannerText() {
-
         return Constants.LINE_SEPARATOR
                 + Constants.LINE_SEPARATOR
                 + SOUL_LOGO
                 + Constants.LINE_SEPARATOR
-                + " :: Soul :: (v" + VersionUtils.getVersion(getClass(), "1.0.0") + ")"
+                + " :: Soul :: (v" + VersionUtils.getVersion(getClass(), "1.0.2") + ")"
                 + Constants.LINE_SEPARATOR;
     }
 
