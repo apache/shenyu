@@ -74,8 +74,12 @@ public class PluginServiceImpl implements PluginService {
     private final ZkClient zkClient;
 
     @Autowired(required = false)
-    public PluginServiceImpl(final PluginMapper pluginMapper, final SelectorMapper selectorMapper, final SelectorConditionMapper selectorConditionMapper,
-                             final RuleMapper ruleMapper, final RuleConditionMapper ruleConditionMapper, final ZkClient zkClient) {
+    public PluginServiceImpl(final PluginMapper pluginMapper,
+                             final SelectorMapper selectorMapper,
+                             final SelectorConditionMapper selectorConditionMapper,
+                             final RuleMapper ruleMapper,
+                             final RuleConditionMapper ruleConditionMapper,
+                             final ZkClient zkClient) {
         this.pluginMapper = pluginMapper;
         this.selectorMapper = selectorMapper;
         this.selectorConditionMapper = selectorConditionMapper;
@@ -165,7 +169,7 @@ public class PluginServiceImpl implements PluginService {
     }
 
     @Override
-    public String enabled(List<String> ids, Boolean enabled) {
+    public String enabled(final List<String> ids, final Boolean enabled) {
         for (String id : ids) {
             PluginDO pluginDO = pluginMapper.selectById(id);
             if (Objects.isNull(pluginDO)) {
@@ -223,7 +227,7 @@ public class PluginServiceImpl implements PluginService {
      * @return isNull
      */
     @Override
-    public int syncPluginData(String pluginId) {
+    public int syncPluginData(final String pluginId) {
         PluginDO pluginDO = pluginMapper.selectById(pluginId);
         if (pluginDO != null) {
             syncPlugin(pluginDO);
@@ -277,14 +281,13 @@ public class PluginServiceImpl implements PluginService {
      *
      * @param pluginDO {@linkplain PluginDO}
      */
-    private void syncPlugin(PluginDO pluginDO) {
+    private void syncPlugin(final PluginDO pluginDO) {
         String pluginPath = ZkPathConstants.buildPluginPath(pluginDO.getName());
         if (!zkClient.exists(pluginPath)) {
             zkClient.createPersistent(pluginPath, true);
         }
         zkClient.writeData(pluginPath, new PluginZkDTO(pluginDO.getId(),
                 pluginDO.getName(), pluginDO.getRole(), pluginDO.getEnabled()));
-
 
         final String selectorParentPath = ZkPathConstants.buildSelectorParentPath(pluginDO.getName());
 
@@ -307,7 +310,6 @@ public class PluginServiceImpl implements PluginService {
             zkClient.writeData(selectorRealPath, new SelectorZkDTO(selectorDO.getId(), selectorDO.getPluginId(), pluginDO.getName(),
                     selectorDO.getName(), selectorDO.getMatchMode(), selectorDO.getType(), selectorDO.getSort(), selectorDO.getEnabled(),
                     selectorDO.getLoged(), selectorDO.getContinued(), selectorDO.getHandle(), selectorConditionZkDTOs));
-
 
             final String ruleParentPath = ZkPathConstants.buildRuleParentPath(pluginDO.getName());
 
