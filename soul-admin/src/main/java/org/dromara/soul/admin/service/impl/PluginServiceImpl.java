@@ -23,6 +23,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.PluginDTO;
 import org.dromara.soul.admin.entity.PluginDO;
+import org.dromara.soul.admin.entity.RuleDO;
+import org.dromara.soul.admin.entity.SelectorDO;
 import org.dromara.soul.admin.mapper.PluginMapper;
 import org.dromara.soul.admin.mapper.RuleConditionMapper;
 import org.dromara.soul.admin.mapper.RuleMapper;
@@ -152,17 +154,29 @@ public class PluginServiceImpl implements PluginService {
                 return AdminConstants.SYS_PLUGIN_NOT_DELETE;
             }
             pluginMapper.delete(id);
+
+            final List<SelectorDO> selectorDOList = selectorMapper.selectByQuery(new SelectorQuery(id, null));
+            selectorDOList.forEach(selectorDO -> {
+                final List<RuleDO> ruleDOS = ruleMapper.selectByQuery(new RuleQuery(selectorDO.getId(), null));
+                ruleDOS.forEach(ruleDO -> {
+                    ruleMapper.delete(ruleDO.getId());
+                    ruleConditionMapper.deleteByQuery(new RuleConditionQuery(ruleDO.getId()));
+                });
+                selectorMapper.delete(selectorDO.getId());
+                selectorConditionMapper.deleteByQuery(new SelectorConditionQuery(selectorDO.getId()));
+            });
+
             String pluginPath = ZkPathConstants.buildPluginPath(pluginDO.getName());
             if (zkClient.exists(pluginPath)) {
-                zkClient.delete(pluginPath);
+                zkClient.deleteRecursive(pluginPath);
             }
             String selectorParentPath = ZkPathConstants.buildSelectorParentPath(pluginDO.getName());
             if (zkClient.exists(selectorParentPath)) {
-                zkClient.delete(selectorParentPath);
+                zkClient.deleteRecursive(selectorParentPath);
             }
             String ruleParentPath = ZkPathConstants.buildRuleParentPath(pluginDO.getName());
             if (zkClient.exists(ruleParentPath)) {
-                zkClient.delete(ruleParentPath);
+                zkClient.deleteRecursive(ruleParentPath);
             }
         }
         return "";
