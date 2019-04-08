@@ -41,10 +41,7 @@ public class DubboTestServiceImpl implements DubboTestService {
 
     @Override
     public DubboTest insert(DubboTest dubboTest) {
-        DubboTest test = new DubboTest();
-        test.setId("2");
-        test.setName("myth");
-        return test;
+        return dubboTest;
     }
 
     @Override

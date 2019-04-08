@@ -25,7 +25,6 @@ import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
 import java.io.Serializable;
-import java.net.URLDecoder;
 
 /**
  * the soul request DTO .
@@ -101,13 +100,6 @@ public class RequestDTO implements Serializable {
         final String rpcType = request.getHeaders().getFirst(Constants.RPC_TYPE);
         final String sign = request.getHeaders().getFirst(Constants.SIGN);
         final String timestamp = request.getHeaders().getFirst(Constants.TIMESTAMP);
-        String dubboParamsDecoder = null;
-        try {
-            dubboParamsDecoder = URLDecoder.decode(request.getHeaders().getFirst(Constants.DUBBO_PARAMS),"UTF-8");
-        }catch (Exception e ){
-
-        }
-        final String dubboParams = dubboParamsDecoder;
         final String extInfo = request.getHeaders().getFirst(Constants.EXT_INFO);
         RequestDTO requestDTO = new RequestDTO();
         requestDTO.setModule(module);
@@ -117,7 +109,6 @@ public class RequestDTO implements Serializable {
         requestDTO.setRpcType(rpcType);
         requestDTO.setSign(sign);
         requestDTO.setTimestamp(timestamp);
-        requestDTO.setDubboParams(dubboParams);
         requestDTO.setExtInfo(extInfo);
         return requestDTO;
     }

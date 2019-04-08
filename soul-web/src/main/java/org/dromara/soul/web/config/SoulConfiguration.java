@@ -21,6 +21,7 @@ package org.dromara.soul.web.config;
 import org.dromara.soul.web.cache.UpstreamCacheManager;
 import org.dromara.soul.web.cache.ZookeeperCacheManager;
 import org.dromara.soul.web.disruptor.publisher.SoulEventPublisher;
+import org.dromara.soul.web.filter.BodyWebFilter;
 import org.dromara.soul.web.filter.ParamWebFilter;
 import org.dromara.soul.web.filter.TimeWebFilter;
 import org.dromara.soul.web.handler.SoulHandlerMapping;
@@ -73,6 +74,7 @@ public class SoulConfiguration {
      * @param zookeeperCacheManager the zookeeper cache manager
      * @param soulEventPublisher    the soul event publisher
      * @param redisRateLimiter      the redis rate limiter
+     * @param upstreamCacheManager  the upstream cache manager
      */
     @Autowired(required = false)
     public SoulConfiguration(final ZookeeperCacheManager zookeeperCacheManager,
@@ -194,6 +196,17 @@ public class SoulConfiguration {
     @Bean
     public SoulHandlerMapping soulHandlerMapping(final SoulWebHandler soulWebHandler) {
         return new SoulHandlerMapping(soulWebHandler);
+    }
+
+    /**
+     * Body web filter web filter.
+     *
+     * @return the web filter
+     */
+    @Bean
+    @Order(-1)
+    public WebFilter bodyWebFilter() {
+        return new BodyWebFilter();
     }
 
     /**
