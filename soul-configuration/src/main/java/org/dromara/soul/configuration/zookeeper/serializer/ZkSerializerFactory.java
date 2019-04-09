@@ -49,7 +49,7 @@ public class ZkSerializerFactory {
             case FAST_JSON:
                 return new FastJsonSerializer();
             default:
-                return new KryoSerializer();
+                return new JavaSerializer();
         }
     }
 }

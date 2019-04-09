@@ -69,7 +69,6 @@ public class ParamWebFilter extends AbstractWebFilter {
             return false;
         }
         final RpcTypeEnum rpcTypeEnum = RpcTypeEnum.acquireByName(requestDTO.getRpcType());
-
         if (Objects.isNull(rpcTypeEnum)) {
             return false;
         }

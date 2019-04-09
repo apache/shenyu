@@ -81,7 +81,7 @@ public enum SerializeEnum {
                 Arrays.stream(SerializeEnum.values())
                         .filter(v -> Objects.equals(v.getSerialize(), serialize))
                         .findFirst();
-        return serializeEnum.orElse(SerializeEnum.KRYO);
+        return serializeEnum.orElse(SerializeEnum.JDK);
 
     }
 }

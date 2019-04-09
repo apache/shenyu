@@ -48,7 +48,6 @@ public class BodyWebFilter implements WebFilter {
                         if (MediaType.APPLICATION_JSON.isCompatibleWith(mediaType)) {
                             final Map<String, Object> paramMap = GsonUtils.getInstance().toObjectMap(body);
                             exchange.getAttributes().put(Constants.DUBBO_PARAMS, paramMap);
-
                         }
                         return chain.filter(exchange);
                     });
