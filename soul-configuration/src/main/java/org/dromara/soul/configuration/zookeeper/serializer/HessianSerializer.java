@@ -18,14 +18,12 @@
 
 package org.dromara.soul.configuration.zookeeper.serializer;
 
-
 import com.caucho.hessian.io.Hessian2Input;
 import com.caucho.hessian.io.Hessian2Output;
 import org.I0Itec.zkclient.exception.ZkMarshallingError;
 import org.I0Itec.zkclient.serialize.ZkSerializer;
-import org.dromara.soul.common.enums.SerializeEnum;
 import org.dromara.soul.common.exception.SerializerException;
-import org.dromara.soul.configuration.zookeeper.SerializerName;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -36,7 +34,7 @@ import java.io.IOException;
  *
  * @author xiaoyu
  */
-public class HessianSerializer implements ZkSerializer, SerializerName {
+public class HessianSerializer implements ZkSerializer {
 
     @Override
     public byte[] serialize(final Object obj) {
@@ -62,10 +60,5 @@ public class HessianSerializer implements ZkSerializer, SerializerName {
         } catch (IOException e) {
             throw new SerializerException("Hessian deSerialize error " + e.getMessage());
         }
-    }
-
-    @Override
-    public String named() {
-        return SerializeEnum.HESSIAN.getSerialize();
     }
 }

@@ -20,7 +20,6 @@ package org.dromara.soul.web.filter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
-import org.dromara.soul.common.constant.DubboParamConstants;
 import org.dromara.soul.common.enums.HttpMethodEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.result.SoulResult;
@@ -33,7 +32,6 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -71,24 +69,13 @@ public class ParamWebFilter extends AbstractWebFilter {
             return false;
         }
         final RpcTypeEnum rpcTypeEnum = RpcTypeEnum.acquireByName(requestDTO.getRpcType());
-
         if (Objects.isNull(rpcTypeEnum)) {
             return false;
         }
         //if rpcType is dubbo
         if (Objects.equals(rpcTypeEnum.getName(), RpcTypeEnum.DUBBO.getName())) {
-            final String dubboParams = requestDTO.getDubboParams();
-            if (StringUtils.isBlank(dubboParams)) {
-                return false;
-            }
-            final Map<String, Object> paramMap = GsonUtils.getInstance().toObjectMap(dubboParams);
-            if (paramMap.containsKey(DubboParamConstants.INTERFACE_NAME)
-                    && paramMap.containsKey(DubboParamConstants.METHOD)) {
-                exchange.getAttributes().put(Constants.DUBBO_PARAMS, paramMap);
-                return true;
-            } else {
-                return false;
-            }
+            final Object param = exchange.getAttributes().get(Constants.DUBBO_PARAMS);
+            return !Objects.isNull(param);
         } else {
             return !StringUtils.isBlank(requestDTO.getHttpMethod())
                     && !Objects.isNull(HttpMethodEnum.acquireByName(requestDTO.getHttpMethod()));

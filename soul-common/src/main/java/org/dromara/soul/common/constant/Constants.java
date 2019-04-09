@@ -56,6 +56,11 @@ public interface Constants {
     String DUBBO_PARAMS = "dubbo_params";
 
     /**
+     * The constant DECODE.
+     */
+    String DECODE = "UTF-8";
+
+    /**
      * The constant MODULE.
      */
     String MODULE = "module";

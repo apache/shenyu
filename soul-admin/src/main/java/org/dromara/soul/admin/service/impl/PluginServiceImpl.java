@@ -23,6 +23,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.PluginDTO;
 import org.dromara.soul.admin.entity.PluginDO;
+import org.dromara.soul.admin.entity.RuleDO;
+import org.dromara.soul.admin.entity.SelectorDO;
 import org.dromara.soul.admin.mapper.PluginMapper;
 import org.dromara.soul.admin.mapper.RuleConditionMapper;
 import org.dromara.soul.admin.mapper.RuleMapper;
@@ -74,8 +76,12 @@ public class PluginServiceImpl implements PluginService {
     private final ZkClient zkClient;
 
     @Autowired(required = false)
-    public PluginServiceImpl(final PluginMapper pluginMapper, final SelectorMapper selectorMapper, final SelectorConditionMapper selectorConditionMapper,
-                             final RuleMapper ruleMapper, final RuleConditionMapper ruleConditionMapper, final ZkClient zkClient) {
+    public PluginServiceImpl(final PluginMapper pluginMapper,
+                             final SelectorMapper selectorMapper,
+                             final SelectorConditionMapper selectorConditionMapper,
+                             final RuleMapper ruleMapper,
+                             final RuleConditionMapper ruleConditionMapper,
+                             final ZkClient zkClient) {
         this.pluginMapper = pluginMapper;
         this.selectorMapper = selectorMapper;
         this.selectorConditionMapper = selectorConditionMapper;
@@ -148,24 +154,36 @@ public class PluginServiceImpl implements PluginService {
                 return AdminConstants.SYS_PLUGIN_NOT_DELETE;
             }
             pluginMapper.delete(id);
+
+            final List<SelectorDO> selectorDOList = selectorMapper.selectByQuery(new SelectorQuery(id, null));
+            selectorDOList.forEach(selectorDO -> {
+                final List<RuleDO> ruleDOS = ruleMapper.selectByQuery(new RuleQuery(selectorDO.getId(), null));
+                ruleDOS.forEach(ruleDO -> {
+                    ruleMapper.delete(ruleDO.getId());
+                    ruleConditionMapper.deleteByQuery(new RuleConditionQuery(ruleDO.getId()));
+                });
+                selectorMapper.delete(selectorDO.getId());
+                selectorConditionMapper.deleteByQuery(new SelectorConditionQuery(selectorDO.getId()));
+            });
+
             String pluginPath = ZkPathConstants.buildPluginPath(pluginDO.getName());
             if (zkClient.exists(pluginPath)) {
-                zkClient.delete(pluginPath);
+                zkClient.deleteRecursive(pluginPath);
             }
             String selectorParentPath = ZkPathConstants.buildSelectorParentPath(pluginDO.getName());
             if (zkClient.exists(selectorParentPath)) {
-                zkClient.delete(selectorParentPath);
+                zkClient.deleteRecursive(selectorParentPath);
             }
             String ruleParentPath = ZkPathConstants.buildRuleParentPath(pluginDO.getName());
             if (zkClient.exists(ruleParentPath)) {
-                zkClient.delete(ruleParentPath);
+                zkClient.deleteRecursive(ruleParentPath);
             }
         }
         return "";
     }
 
     @Override
-    public String enabled(List<String> ids, Boolean enabled) {
+    public String enabled(final List<String> ids, final Boolean enabled) {
         for (String id : ids) {
             PluginDO pluginDO = pluginMapper.selectById(id);
             if (Objects.isNull(pluginDO)) {
@@ -223,7 +241,7 @@ public class PluginServiceImpl implements PluginService {
      * @return isNull
      */
     @Override
-    public int syncPluginData(String pluginId) {
+    public int syncPluginData(final String pluginId) {
         PluginDO pluginDO = pluginMapper.selectById(pluginId);
         if (pluginDO != null) {
             syncPlugin(pluginDO);
@@ -277,14 +295,13 @@ public class PluginServiceImpl implements PluginService {
      *
      * @param pluginDO {@linkplain PluginDO}
      */
-    private void syncPlugin(PluginDO pluginDO) {
+    private void syncPlugin(final PluginDO pluginDO) {
         String pluginPath = ZkPathConstants.buildPluginPath(pluginDO.getName());
         if (!zkClient.exists(pluginPath)) {
             zkClient.createPersistent(pluginPath, true);
         }
         zkClient.writeData(pluginPath, new PluginZkDTO(pluginDO.getId(),
                 pluginDO.getName(), pluginDO.getRole(), pluginDO.getEnabled()));
-
 
         final String selectorParentPath = ZkPathConstants.buildSelectorParentPath(pluginDO.getName());
 
@@ -307,7 +324,6 @@ public class PluginServiceImpl implements PluginService {
             zkClient.writeData(selectorRealPath, new SelectorZkDTO(selectorDO.getId(), selectorDO.getPluginId(), pluginDO.getName(),
                     selectorDO.getName(), selectorDO.getMatchMode(), selectorDO.getType(), selectorDO.getSort(), selectorDO.getEnabled(),
                     selectorDO.getLoged(), selectorDO.getContinued(), selectorDO.getHandle(), selectorConditionZkDTOs));
-
 
             final String ruleParentPath = ZkPathConstants.buildRuleParentPath(pluginDO.getName());
 

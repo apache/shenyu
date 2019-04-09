@@ -23,7 +23,7 @@
     <parent>
         <artifactId>soul-test-dubbo</artifactId>
         <groupId>org.dromara</groupId>
-        <version>1.0.3-RELEASE</version>
+        <version>1.0.4-RELEASE</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 

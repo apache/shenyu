@@ -195,4 +195,10 @@
         delete from selector
         where id = #{id,jdbcType=VARCHAR}
     </delete>
+
+    <delete id="deleteByPluginId" parameterType="java.lang.String">
+        delete from selector
+        where plugin_id = #{pluginId,jdbcType=VARCHAR}
+
+    </delete>
 </mapper>
