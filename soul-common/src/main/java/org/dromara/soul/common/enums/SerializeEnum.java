@@ -45,6 +45,11 @@ public enum SerializeEnum {
     HESSIAN("hessian"),
 
     /**
+     * Fast json serialize enum.
+     */
+    FAST_JSON("fastJson"),
+
+    /**
      * Protostuff serialize protocol enum.
      */
     PROTOSTUFF("protostuff");
@@ -58,7 +63,7 @@ public enum SerializeEnum {
     /**
      * get serialize.
      *
-     * @return serialize
+     * @return serialize serialize
      */
     public String getSerialize() {
         return serialize;
@@ -76,7 +81,7 @@ public enum SerializeEnum {
                 Arrays.stream(SerializeEnum.values())
                         .filter(v -> Objects.equals(v.getSerialize(), serialize))
                         .findFirst();
-        return serializeEnum.orElse(SerializeEnum.KRYO);
+        return serializeEnum.orElse(SerializeEnum.JDK);
 
     }
 }

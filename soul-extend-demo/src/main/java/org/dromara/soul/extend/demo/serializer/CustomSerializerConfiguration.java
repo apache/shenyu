@@ -16,18 +16,25 @@
  *
  */
 
-package org.dromara.soul.configuration.zookeeper;
+package org.dromara.soul.extend.demo.serializer;
+
+import org.I0Itec.zkclient.serialize.ZkSerializer;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * acquire serializer name .
+ * CustomConfiguration.
+ *
  * @author xiaoyu(Myth)
  */
-public interface SerializerName {
+@Configuration
+public class CustomSerializerConfiguration {
 
     /**
-     * this is acquire  serializer name .
+     * Zk serializer zk serializer.
      *
-     * @return serializer name
+     * @return the zk serializer
      */
-    String named();
+    public ZkSerializer zkSerializer(){
+        return new CustomSerializer();
+    }
 }

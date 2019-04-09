@@ -5,13 +5,18 @@
     <parent>
         <artifactId>soul</artifactId>
         <groupId>org.dromara</groupId>
-        <version>1.0.3-RELEASE</version>
+        <version>1.0.4-RELEASE</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>soul-web</artifactId>
 
     <dependencies>
+
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-common</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.dromara</groupId>

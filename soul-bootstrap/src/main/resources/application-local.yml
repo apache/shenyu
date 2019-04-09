@@ -29,7 +29,6 @@ spring:
         url : localhost:2181
         sessionTimeout: 5000
         connectionTimeout : 2000
-        serializer : KryoSerializer
 soul:
     bufferSize: 4096
     timeVerify:

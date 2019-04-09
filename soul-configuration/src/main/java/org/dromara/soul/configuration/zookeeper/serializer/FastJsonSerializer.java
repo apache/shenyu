@@ -18,38 +18,35 @@
 
 package org.dromara.soul.configuration.zookeeper.serializer;
 
+import com.alibaba.fastjson.JSON;
 import org.I0Itec.zkclient.serialize.ZkSerializer;
-import org.dromara.soul.common.enums.SerializeEnum;
+import org.springframework.data.redis.serializer.SerializationException;
+
+import java.nio.charset.Charset;
 
 /**
- * ZkSerializer Factory.
+ * The type FastJson serializer.
  *
- * @author xiaoyu(Myth)
+ * @author xiaoyu
  */
-public class ZkSerializerFactory {
+public class FastJsonSerializer implements ZkSerializer {
 
-
-    /**
-     * Of zk serializer.
-     *
-     * @param name the name
-     * @return the zk serializer
-     */
-    public static ZkSerializer of(final String name) {
-        final SerializeEnum serializeEnum = SerializeEnum.acquire(name);
-        switch (serializeEnum) {
-            case KRYO:
-                return new KryoSerializer();
-            case JDK:
-                return new JavaSerializer();
-            case HESSIAN:
-                return new HessianSerializer();
-            case PROTOSTUFF:
-                return new ProtostuffSerializer();
-            case FAST_JSON:
-                return new FastJsonSerializer();
-            default:
-                return new JavaSerializer();
+    @Override
+    public byte[] serialize(final Object o) throws SerializationException {
+        if (o == null) {
+            return new byte[]{};
         }
+        if (o instanceof String) {
+            return o.toString().getBytes(Charset.forName("UTF-8"));
+        }
+        return JSON.toJSONString(o).getBytes(Charset.forName("UTF-8"));
+    }
+
+    @Override
+    public Object deserialize(final byte[] bytes) throws SerializationException {
+        if (bytes == null) {
+            return null;
+        }
+        return new String(bytes, Charset.forName("UTF-8"));
     }
 }

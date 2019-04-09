@@ -66,4 +66,6 @@ public class CustomConfiguration {
     public GenericParamService genericParamService() {
         return new CustomGenericParamServiceImpl();
     }
+
+
 }

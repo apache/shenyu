@@ -60,7 +60,7 @@ public interface SelectorMapper {
      * insert selector.
      *
      * @param selectorDO {@linkplain SelectorDO}
-     * @return rows
+     * @return rows int
      */
     int insert(SelectorDO selectorDO);
 
@@ -68,7 +68,7 @@ public interface SelectorMapper {
      * insert selective selector.
      *
      * @param selectorDO {@linkplain SelectorDO}
-     * @return rows
+     * @return rows int
      */
     int insertSelective(SelectorDO selectorDO);
 
@@ -76,7 +76,7 @@ public interface SelectorMapper {
      * update selector.
      *
      * @param selectorDO {@linkplain SelectorDO}
-     * @return rows
+     * @return rows int
      */
     int update(SelectorDO selectorDO);
 
@@ -84,7 +84,7 @@ public interface SelectorMapper {
      * update selective selector.
      *
      * @param selectorDO {@linkplain SelectorDO}
-     * @return rows
+     * @return rows int
      */
     int updateSelective(SelectorDO selectorDO);
 
@@ -92,7 +92,15 @@ public interface SelectorMapper {
      * delete selector.
      *
      * @param id primary key.
-     * @return rows
+     * @return rows int
      */
     int delete(String id);
+
+    /**
+     * Delete by plugin id int.
+     *
+     * @param pluginId the plugin id
+     * @return the int
+     */
+    int deleteByPluginId(String pluginId);
 }

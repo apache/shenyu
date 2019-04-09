@@ -7,7 +7,7 @@
     <groupId>org.dromara</groupId>
     <artifactId>soul</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.3-RELEASE</version>
+    <version>1.0.4-RELEASE</version>
     <name>soul</name>
     <modules>
         <module>soul-admin</module>
