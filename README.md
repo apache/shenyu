@@ -5,7 +5,6 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?label=license)](https://github.com/Dromara/soul/blob/master/LICENSE)
 [![Build Status](https://travis-ci.org/Dromara/soul.svg?branch=master)](https://travis-ci.org/Dromara/soul)
 [![Maven Central](https://img.shields.io/maven-central/v/org.dromara/soul.svg?label=maven%20central)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22org.dromara%22%20AND%soul)
-[![Javadocs](http://www.javadoc.io/badge/org.dromara/soul.svg)](http://www.javadoc.io/doc/org.dromara/soul)
 [![QQ群](https://img.shields.io/badge/chat-on%20QQ-ff69b4.svg?style=flat-square)](https://shang.qq.com/wpa/qunwpa?idkey=03bbb6f74b3257989316c0a8cf07cec117314dbdfe4fa7a20870b298b7db2c3b)
 
 
@@ -23,10 +22,12 @@
    
    * 支持集群部署，支持A/B Test。
    
+   * 支持用户自定义插件.
+   
  
  # 官网
  
-  ## https://dromara.org 或者 http://dromara.org
+  ## https://dromara.org
   
 # Stargazers over time
 
