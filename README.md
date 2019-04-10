@@ -28,6 +28,9 @@
  
   ## https://dromara.org 或者 http://dromara.org
   
+# Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/Dromara/soul.svg)](https://starchart.cc/Dromara/soul)
 
 # 视频源码解析
 
