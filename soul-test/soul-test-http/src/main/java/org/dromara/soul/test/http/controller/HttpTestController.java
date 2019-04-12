@@ -23,6 +23,7 @@ import org.dromara.soul.test.http.dto.UserDTO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -34,16 +35,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/test")
 public class HttpTestController {
 
-
     @PostMapping("/payment")
     public UserDTO post(final UserDTO userDTO) {
         return userDTO;
     }
 
-
     @GetMapping("/findByUserId")
     public String findByUserId() {
         return "helloWorld!";
+    }
+
+    @GetMapping("/id")
+    public Integer testGet(@RequestParam("id") Integer id) {
+        return id;
     }
 
 

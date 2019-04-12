@@ -107,6 +107,7 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
             if (StringUtils.isNoneBlank(requestDTO.getExtInfo())) {
                 uri = uri + "?" + GsonUtils.getInstance().toGetParam(requestDTO.getExtInfo());
             }
+            LOGGER.info("you get request,The resulting url is{}", uri);
             return WEB_CLIENT.get().uri(uri)
                     .headers(httpHeaders -> {
                         httpHeaders.addAll(exchange.getRequest().getHeaders());
@@ -117,7 +118,9 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
                     .timeout(Duration.ofMillis(timeout))
                     .flatMap(this::doNext);
         } else if (requestDTO.getHttpMethod().equals(HttpMethodEnum.POST.getName())) {
-            return WEB_CLIENT.post().uri(buildRealURL())
+            String uri = buildRealURL();
+            LOGGER.info("you post request,The resulting url is{}", uri);
+            return WEB_CLIENT.post().uri(uri)
                     .headers(httpHeaders -> {
                         httpHeaders.addAll(exchange.getRequest().getHeaders());
                         httpHeaders.remove(HttpHeaders.HOST);
