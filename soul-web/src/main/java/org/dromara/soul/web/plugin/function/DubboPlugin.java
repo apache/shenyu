@@ -98,7 +98,7 @@ public class DubboPlugin extends AbstractSoulPlugin {
                 new DubboCommand(HystrixBuilder.build(ruleHandle), paramMap,
                         exchange, chain, dubboProxyService, selectorHandle, ruleHandle);
 
-        return Mono.create((MonoSink<Object> s) -> {
+        return Mono.create(s -> {
             Subscription sub = command.toObservable().subscribe(s::success,
                     s::error, s::success);
             s.onCancel(sub::unsubscribe);
