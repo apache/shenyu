@@ -100,7 +100,7 @@ public class  SoulEventPublisher implements InitializingBean, DisposableBean {
      */
     public void publishEvent(final MonitorDO monitorDO) {
         final RingBuffer<SoulDataEvent> ringBuffer = disruptor.getRingBuffer();
-        ringBuffer.publishEvent(new SoulEventTranslator(), monitorDO);
+        ringBuffer.publishEvent(SoulEventTranslator.getInstance(), monitorDO);
     }
 
     @Override
