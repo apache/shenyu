@@ -29,6 +29,18 @@ import org.dromara.soul.web.influxdb.entity.MonitorDO;
  */
 public class SoulEventTranslator implements EventTranslatorOneArg<SoulDataEvent, MonitorDO> {
 
+    private static volatile SoulEventTranslator instance;
+
+    private SoulEventTranslator(){}
+
+    public static SoulEventTranslator getInstance() {
+        if (instance == null) {
+            synchronized (SoulEventTranslator.class) {
+                instance = new SoulEventTranslator();
+            }
+        }
+        return instance;
+    }
     @Override
     public void translateTo(final SoulDataEvent soulDataEvent, final long l, final MonitorDO monitorDO) {
         soulDataEvent.setMonitorDO(monitorDO);
