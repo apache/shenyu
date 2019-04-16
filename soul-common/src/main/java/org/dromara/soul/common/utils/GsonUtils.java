@@ -28,8 +28,11 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
+import org.dromara.soul.common.constant.Constants;
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
+import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -156,7 +159,16 @@ public class GsonUtils {
         }
         final Map<String, String> map = toStringMap(json);
         StringBuilder stringBuilder = new StringBuilder();
-        map.forEach((k, v) -> stringBuilder.append(k).append("=").append(v).append("&"));
+        map.forEach((k, v) -> {
+            try {
+                stringBuilder.append(k)
+                        .append("=")
+                        .append(URLDecoder.decode(v,Constants.DECODE))
+                        .append("&");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        });
         final String r = stringBuilder.toString();
         return r.substring(0, r.lastIndexOf("&"));
 
