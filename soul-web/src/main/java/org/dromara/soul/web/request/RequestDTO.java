@@ -87,6 +87,11 @@ public class RequestDTO implements Serializable {
     private String extInfo;
 
     /**
+     * pathVariable
+     */
+    private String pathVariable;
+
+    /**
      * ServerHttpRequest transform RequestDTO .
      *
      * @param request {@linkplain ServerHttpRequest}
@@ -101,6 +106,7 @@ public class RequestDTO implements Serializable {
         final String sign = request.getHeaders().getFirst(Constants.SIGN);
         final String timestamp = request.getHeaders().getFirst(Constants.TIMESTAMP);
         final String extInfo = request.getHeaders().getFirst(Constants.EXT_INFO);
+        final String pathVariable = request.getHeaders().getFirst(Constants.PATH_VARIABLE);
         RequestDTO requestDTO = new RequestDTO();
         requestDTO.setModule(module);
         requestDTO.setMethod(method);
@@ -110,6 +116,7 @@ public class RequestDTO implements Serializable {
         requestDTO.setSign(sign);
         requestDTO.setTimestamp(timestamp);
         requestDTO.setExtInfo(extInfo);
+        requestDTO.setPathVariable(pathVariable);
         return requestDTO;
     }
 
