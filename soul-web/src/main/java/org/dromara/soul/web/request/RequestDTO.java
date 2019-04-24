@@ -23,6 +23,7 @@ import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.HttpMethodEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.util.MultiValueMap;
 
 import java.io.Serializable;
 
@@ -117,6 +118,14 @@ public class RequestDTO implements Serializable {
         requestDTO.setTimestamp(timestamp);
         requestDTO.setExtInfo(extInfo);
         requestDTO.setPathVariable(pathVariable);
+        return requestDTO;
+    }
+
+    public static RequestDTO transformMap(MultiValueMap<String, String> queryParams) {
+        RequestDTO requestDTO = new RequestDTO();
+        requestDTO.setModule(queryParams.getFirst(Constants.MODULE));
+        requestDTO.setMethod(queryParams.getFirst(Constants.METHOD));
+        requestDTO.setRpcType(queryParams.getFirst(Constants.RPC_TYPE));
         return requestDTO;
     }
 

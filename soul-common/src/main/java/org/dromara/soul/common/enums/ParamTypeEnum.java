@@ -48,7 +48,7 @@ public enum ParamTypeEnum {
     /**
      * Query param type enum.
      */
-    QUERY("query", false),
+    QUERY("query", true),
 
     /**
      * Host param type enum.

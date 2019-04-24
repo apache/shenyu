@@ -31,8 +31,7 @@ import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.LogUtils;
-import org.dromara.soul.web.balance.LoadBalance;
-import org.dromara.soul.web.balance.factory.LoadBalanceFactory;
+import org.dromara.soul.web.balance.utils.LoadBalanceUtils;
 import org.dromara.soul.web.cache.UpstreamCacheManager;
 import org.dromara.soul.web.cache.ZookeeperCacheManager;
 import org.dromara.soul.web.plugin.AbstractSoulPlugin;
@@ -94,16 +93,10 @@ public class DividePlugin extends AbstractSoulPlugin {
             return chain.execute(exchange);
         }
 
-        DivideUpstream divideUpstream = null;
-        if (upstreamList.size() == 1) {
-            divideUpstream = upstreamList.get(0);
-        } else {
-            if (StringUtils.isNoneBlank(ruleHandle.getLoadBalance())) {
-                final LoadBalance loadBalance = LoadBalanceFactory.of(ruleHandle.getLoadBalance());
-                final String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
-                divideUpstream = loadBalance.select(upstreamList, ip);
-            }
-        }
+        final String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
+
+        DivideUpstream divideUpstream =
+                LoadBalanceUtils.selector(upstreamList, ruleHandle.getLoadBalance(), ip);
 
         if (Objects.isNull(divideUpstream)) {
             LogUtils.error(LOGGER, () -> "LoadBalance has error！");

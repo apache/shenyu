@@ -21,6 +21,7 @@ package org.dromara.soul.test.http.controller;
 
 import org.dromara.soul.test.http.dto.UserDTO;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -48,6 +49,11 @@ public class HttpTestController {
     @GetMapping("/id")
     public Integer testGet(@RequestParam("id") Integer id) {
         return id;
+    }
+
+    @GetMapping("/path/{id}")
+    public String pathVariable(@PathVariable("id") String id,@RequestParam("name") String name) {
+        return id + name;
     }
 
 
