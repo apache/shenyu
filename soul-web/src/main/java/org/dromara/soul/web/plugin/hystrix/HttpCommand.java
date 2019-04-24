@@ -105,7 +105,7 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
     private Mono<Void> doHttpInvoke() {
         if (requestDTO.getHttpMethod().equals(HttpMethodEnum.GET.getName())) {
             final String uri = getUrl(buildRealURL());
-            LogUtils.debug(LOGGER, "you get request,The resulting url is{}", () -> uri);
+            LogUtils.debug(LOGGER, "you get request,The resulting url is :{}", () -> uri);
             return WEB_CLIENT.get().uri(uri)
                     .headers(httpHeaders -> {
                         httpHeaders.addAll(exchange.getRequest().getHeaders());
@@ -117,7 +117,7 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
                     .flatMap(this::doNext);
         } else if (requestDTO.getHttpMethod().equals(HttpMethodEnum.PUT.getName())) {
             final String pathVariable = pathVariable(buildRealURL());
-            LogUtils.debug(LOGGER, "you put request,The resulting url is{}", () -> pathVariable);
+            LogUtils.debug(LOGGER, "you put request,The resulting url is :{}", () -> pathVariable);
             return WEB_CLIENT.put().uri(pathVariable)
                     .headers(httpHeaders -> {
                         httpHeaders.addAll(exchange.getRequest().getHeaders());
@@ -132,7 +132,7 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
 
         } else if (requestDTO.getHttpMethod().equals(HttpMethodEnum.DELETE.getName())) {
             final String pathVariable = pathVariable(buildRealURL());
-            LogUtils.debug(LOGGER, "you delete request,The resulting url is{}", () -> pathVariable);
+            LogUtils.debug(LOGGER, "you delete request,The resulting url is:{}", () -> pathVariable);
             return WEB_CLIENT.method(HttpMethod.DELETE).uri(pathVariable)
                     .headers(httpHeaders -> {
                         httpHeaders.addAll(exchange.getRequest().getHeaders());
@@ -147,7 +147,7 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
 
         } else if (requestDTO.getHttpMethod().equals(HttpMethodEnum.POST.getName())) {
             final String uri = buildRealURL();
-            LogUtils.debug(LOGGER, "you post request,The resulting url is{}", () -> uri);
+            LogUtils.debug(LOGGER, "you post request,The resulting url is :{}", () -> uri);
             return WEB_CLIENT.post().uri(uri)
                     .headers(httpHeaders -> {
                         httpHeaders.addAll(exchange.getRequest().getHeaders());
@@ -168,11 +168,12 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
         return RxReactiveStreams.toObservable(doFallback());
     }
 
-    private String getUrl(String uri) {
+    private String getUrl(final String uri) {
+        String url = pathVariable(uri);
         if (StringUtils.isNoneBlank(requestDTO.getExtInfo())) {
-            uri = uri + "?" + GsonUtils.getInstance().toGetParam(requestDTO.getExtInfo());
+            url = url + "?" + GsonUtils.getInstance().toGetParam(requestDTO.getExtInfo());
         }
-        return uri;
+        return url;
     }
 
     private String pathVariable(String uri) {
