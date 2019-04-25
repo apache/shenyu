@@ -39,7 +39,7 @@
 
    * It provides plugins such as current limiting, fusing, forwarding, routing monitoring and so on.
    
-   * Seamless docking with HTTP, dubbo, and springcloud.
+   * Seamless docking with HTTP,Restful,websocket,dubbo and springcloud.
    
    * Plug-in hot plug, users can customize the development.
    
