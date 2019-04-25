@@ -176,12 +176,13 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
         return url;
     }
 
-    private String pathVariable(String uri) {
+    private String pathVariable(final String uri) {
+        String path = uri;
         final String pathVariable = requestDTO.getPathVariable();
         if (StringUtils.isNoneBlank(pathVariable)) {
-            uri = uri + "/" + pathVariable;
+            path = path + "/" + pathVariable;
         }
-        return uri;
+        return path;
     }
 
     private MediaType buildMediaType() {
