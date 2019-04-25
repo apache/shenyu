@@ -53,6 +53,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -115,7 +116,7 @@ public class WebSocketPlugin extends AbstractSoulPlugin {
         }
         URI wsRequestUrl = UriComponentsBuilder
                 .fromUri(URI.create(buildWsRealPath(divideUpstream, requestDTO)))
-                .scheme(divideUpstream.getProtocol())
+                .scheme(Optional.ofNullable(divideUpstream.getProtocol()).orElse("ws"))
                 .build().toUri();
 
         HttpHeaders headers = exchange.getRequest().getHeaders();
