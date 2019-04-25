@@ -7,7 +7,7 @@
     <groupId>org.dromara</groupId>
     <artifactId>soul</artifactId>
     <packaging>pom</packaging>
-    <version>1.0.4-RELEASE</version>
+    <version>1.0.5-RELEASE</version>
     <name>soul</name>
     <modules>
         <module>soul-admin</module>
@@ -15,8 +15,8 @@
         <module>soul-web</module>
         <module>soul-configuration</module>
         <module>soul-spring-boot-starter</module>
-        <module>soul-extend-demo</module>
-        <module>soul-test</module>
+      <!--  <module>soul-extend-demo</module>
+        <module>soul-test</module>-->
         <module>soul-bootstrap</module>
     </modules>
 
@@ -273,7 +273,7 @@
 
     <build>
         <plugins>
-           <!-- <plugin>
+            <plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
                 <version>1.6.3</version>
@@ -296,7 +296,7 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>-->
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
