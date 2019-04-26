@@ -45,6 +45,10 @@ public enum RpcTypeEnum {
      */
     DUBBO("dubbo", true),
 
+    /**
+     * Web socket rpc type enum.
+     */
+    WEB_SOCKET("websocket", true),
 
     /**
      * springCloud rpc type enum.
@@ -81,7 +85,7 @@ public enum RpcTypeEnum {
      * acquireByName.
      *
      * @param name this is rpc type
-     * @return RpcTypeEnum
+     * @return RpcTypeEnum rpc type enum
      */
     public static RpcTypeEnum acquireByName(final String name) {
         return Arrays.stream(RpcTypeEnum.values())

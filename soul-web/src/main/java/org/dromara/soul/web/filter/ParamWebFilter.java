@@ -25,6 +25,7 @@ import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.result.SoulResult;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.web.request.RequestDTO;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -44,11 +45,15 @@ public class ParamWebFilter extends AbstractWebFilter {
     @Override
     protected Mono<Boolean> doFilter(final ServerWebExchange exchange, final WebFilterChain chain) {
         final ServerHttpRequest request = exchange.getRequest();
-        final RequestDTO requestDTO = RequestDTO.transform(request);
-        if (verify(requestDTO, exchange)) {
-            exchange.getAttributes().put(Constants.REQUESTDTO, requestDTO);
-        } else {
-            return Mono.just(false);
+        final HttpHeaders headers = request.getHeaders();
+        final String upgrade = headers.getFirst("Upgrade");
+        if (StringUtils.isBlank(upgrade) || !RpcTypeEnum.WEB_SOCKET.getName().equals(upgrade)) {
+            final RequestDTO requestDTO = RequestDTO.transform(request);
+            if (verify(requestDTO, exchange)) {
+                exchange.getAttributes().put(Constants.REQUESTDTO, requestDTO);
+            } else {
+                return Mono.just(false);
+            }
         }
         return Mono.just(true);
     }

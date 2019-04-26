@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 8088
   address: 0.0.0.0
 
 logging:

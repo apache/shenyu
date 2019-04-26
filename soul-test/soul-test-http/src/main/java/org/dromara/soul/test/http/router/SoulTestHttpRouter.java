@@ -46,7 +46,6 @@ public class SoulTestHttpRouter {
 
     private static final AtomicInteger ATOMIC_INTEGER = new AtomicInteger(1);
 
-
     public RouterFunction<ServerResponse> routes() {
         return nest(path("/test"),
                 route(POST("/helloWorld2").and(accept(APPLICATION_JSON)), this::postHandler)

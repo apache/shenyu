@@ -86,6 +86,11 @@ public interface Constants {
     String EXT_INFO = "extInfo";
 
     /**
+     * The constant PATH_VARIABLE.
+     */
+    String PATH_VARIABLE = "pathVariable";
+
+    /**
      * The constant HTTP_METHOD.
      */
     String HTTP_METHOD = "httpMethod";

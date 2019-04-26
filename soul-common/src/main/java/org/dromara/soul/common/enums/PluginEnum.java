@@ -68,6 +68,11 @@ public enum PluginEnum {
     DIVIDE(50, 0, "divide"),
 
     /**
+     * webSocket plugin enum.
+     */
+    WEB_SOCKET(51, 0, "webSocket"),
+
+    /**
      * Dubbo plugin enum.
      */
     DUBBO(60, 0, "dubbo"),
@@ -87,18 +92,6 @@ public enum PluginEnum {
     private final int role;
 
     private final String name;
-
-    /**
-     * get plugin enum by code.
-     *
-     * @param code plugin code.
-     * @return plugin enum.
-     */
-    public static PluginEnum getPluginEnumByCode(final int code) {
-        return Arrays.stream(PluginEnum.values())
-                .filter(pluginEnum -> pluginEnum.getCode() == code)
-                .findFirst().orElse(PluginEnum.GLOBAL);
-    }
 
     /**
      * get plugin enum by name.
