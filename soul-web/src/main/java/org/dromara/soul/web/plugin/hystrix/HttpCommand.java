@@ -34,6 +34,7 @@ import org.dromara.soul.web.request.RequestDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -103,10 +104,8 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
 
     private Mono<Void> doHttpInvoke() {
         if (requestDTO.getHttpMethod().equals(HttpMethodEnum.GET.getName())) {
-            String uri = buildRealURL();
-            if (StringUtils.isNoneBlank(requestDTO.getExtInfo())) {
-                uri = uri + "?" + GsonUtils.getInstance().toGetParam(requestDTO.getExtInfo());
-            }
+            final String uri = getUrl(buildRealURL());
+            LogUtils.debug(LOGGER, "you get request,The resulting url is :{}", () -> uri);
             return WEB_CLIENT.get().uri(uri)
                     .headers(httpHeaders -> {
                         httpHeaders.addAll(exchange.getRequest().getHeaders());
@@ -116,8 +115,40 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
                     .doOnError(e -> LogUtils.error(LOGGER, e::getMessage))
                     .timeout(Duration.ofMillis(timeout))
                     .flatMap(this::doNext);
+        } else if (requestDTO.getHttpMethod().equals(HttpMethodEnum.PUT.getName())) {
+            final String pathVariable = pathVariable(buildRealURL());
+            LogUtils.debug(LOGGER, "you put request,The resulting url is :{}", () -> pathVariable);
+            return WEB_CLIENT.put().uri(pathVariable)
+                    .headers(httpHeaders -> {
+                        httpHeaders.addAll(exchange.getRequest().getHeaders());
+                        httpHeaders.remove(HttpHeaders.HOST);
+                    })
+                    .contentType(buildMediaType())
+                    .body(BodyInserters.fromDataBuffers(exchange.getRequest().getBody()))
+                    .exchange()
+                    .doOnError(e -> LogUtils.error(LOGGER, e::getMessage))
+                    .timeout(Duration.ofMillis(timeout))
+                    .flatMap(this::doNext);
+
+        } else if (requestDTO.getHttpMethod().equals(HttpMethodEnum.DELETE.getName())) {
+            final String pathVariable = pathVariable(buildRealURL());
+            LogUtils.debug(LOGGER, "you delete request,The resulting url is:{}", () -> pathVariable);
+            return WEB_CLIENT.method(HttpMethod.DELETE).uri(pathVariable)
+                    .headers(httpHeaders -> {
+                        httpHeaders.addAll(exchange.getRequest().getHeaders());
+                        httpHeaders.remove(HttpHeaders.HOST);
+                    })
+                    .contentType(buildMediaType())
+                    .body(BodyInserters.fromDataBuffers(exchange.getRequest().getBody()))
+                    .exchange()
+                    .doOnError(e -> LogUtils.error(LOGGER, e::getMessage))
+                    .timeout(Duration.ofMillis(timeout))
+                    .flatMap(this::doNext);
+
         } else if (requestDTO.getHttpMethod().equals(HttpMethodEnum.POST.getName())) {
-            return WEB_CLIENT.post().uri(buildRealURL())
+            final String uri = buildRealURL();
+            LogUtils.debug(LOGGER, "you post request,The resulting url is :{}", () -> uri);
+            return WEB_CLIENT.post().uri(uri)
                     .headers(httpHeaders -> {
                         httpHeaders.addAll(exchange.getRequest().getHeaders());
                         httpHeaders.remove(HttpHeaders.HOST);
@@ -135,6 +166,23 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
     @Override
     protected Observable<Void> resumeWithFallback() {
         return RxReactiveStreams.toObservable(doFallback());
+    }
+
+    private String getUrl(final String uri) {
+        String url = pathVariable(uri);
+        if (StringUtils.isNoneBlank(requestDTO.getExtInfo())) {
+            url = url + "?" + GsonUtils.getInstance().toGetParam(requestDTO.getExtInfo());
+        }
+        return url;
+    }
+
+    private String pathVariable(final String uri) {
+        String path = uri;
+        final String pathVariable = requestDTO.getPathVariable();
+        if (StringUtils.isNoneBlank(pathVariable)) {
+            path = path + "/" + pathVariable;
+        }
+        return path;
     }
 
     private MediaType buildMediaType() {
