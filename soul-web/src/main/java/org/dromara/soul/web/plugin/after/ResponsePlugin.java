@@ -19,6 +19,7 @@
 package org.dromara.soul.web.plugin.after;
 
 import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.exception.SoulException;
@@ -27,7 +28,6 @@ import org.dromara.soul.common.utils.JsonUtils;
 import org.dromara.soul.web.plugin.SoulPlugin;
 import org.dromara.soul.web.plugin.SoulPluginChain;
 import org.dromara.soul.web.request.RequestDTO;
-import org.springframework.core.Ordered;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.reactive.function.BodyExtractors;
@@ -108,7 +108,7 @@ public class ResponsePlugin implements SoulPlugin {
 
     @Override
     public int getOrder() {
-        return Ordered.LOWEST_PRECEDENCE;
+        return PluginEnum.RESPONSE.getCode();
     }
 
     /**
@@ -118,7 +118,7 @@ public class ResponsePlugin implements SoulPlugin {
      */
     @Override
     public String named() {
-        return "SoulResponse";
+        return PluginEnum.RESPONSE.getName();
     }
 
 }
