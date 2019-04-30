@@ -15,8 +15,6 @@
         <module>soul-web</module>
         <module>soul-configuration</module>
         <module>soul-spring-boot-starter</module>
-        <module>soul-extend-demo</module>
-        <module>soul-test</module>
         <module>soul-bootstrap</module>
     </modules>
 
@@ -296,7 +294,8 @@
                          </goals>
                      </execution>
                  </executions>
-             </plugin>-->
+             </plugin>
+              -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -323,6 +322,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

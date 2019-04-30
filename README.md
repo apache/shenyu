@@ -107,8 +107,17 @@
 
 [![Stargazers over time](https://starchart.cc/Dromara/soul.svg)](https://starchart.cc/Dromara/soul)
 
-  
+# Videos
+
+* [evn setup 01 ](http://www.iqiyi.com/w_19s6521605.html)
+
+* [evn setup 02 ](http://www.iqiyi.com/w_19s65203ap.html)
+
+* [source code debug](http://www.iqiyi.com/w_19s650tbol.html)
+
+* [plugins](http://www.iqiyi.com/w_19s651zyo9.html)
+
 # Support
 
- ![](https://yu199195.github.io/images/soul-qq.png)
+ ![](https://yu199195.github.io/images/soul-qq.png) ![](https://yu199195.github.io/images/public.jpg)
   

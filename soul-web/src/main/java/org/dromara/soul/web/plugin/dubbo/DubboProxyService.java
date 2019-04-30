@@ -86,6 +86,10 @@ public class DubboProxyService {
 
         try {
             genericService = referenceConfigCache.get(reference);
+            if (Objects.isNull(genericService)) {
+                referenceConfigCache.destroy(reference);
+                throw new SoulException("dubbo genericService has exception!");
+            }
         } catch (NullPointerException ex) {
             referenceConfigCache.destroy(reference);
             LogUtils.error(LOGGER, ex::getMessage);
