@@ -23,7 +23,7 @@ import org.I0Itec.zkclient.serialize.ZkSerializer;
 import org.dromara.soul.configuration.zookeeper.serializer.ZkSerializerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.SearchStrategy;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -33,6 +33,7 @@ import org.springframework.context.annotation.Configuration;
  * @author xiaoyu(Myth)
  */
 @Configuration
+@EnableConfigurationProperties(ZookeeperConfig.class)
 public class ZookeeperConfiguration {
 
     /**
@@ -41,7 +42,6 @@ public class ZookeeperConfiguration {
      * @return the zookeeper config
      */
     @Bean
-    @ConfigurationProperties(prefix = "spring.zookeeper")
     public ZookeeperConfig zookeeperConfig() {
         return new ZookeeperConfig();
     }
