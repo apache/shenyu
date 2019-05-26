@@ -90,7 +90,7 @@ public class UpstreamCacheManager {
      */
     @PostConstruct
     public void init() {
-        synchronized (LOGGER) {
+        synchronized (UpstreamCacheManager.class) {
             ExecutorService executorService = new ThreadPoolExecutor(MAX_THREAD, MAX_THREAD,
                     0L, TimeUnit.MILLISECONDS,
                     new LinkedBlockingQueue<>(),
@@ -168,7 +168,7 @@ public class UpstreamCacheManager {
                     final SelectorZkDTO selectorZkDTO = BLOCKING_QUEUE.take();
                     Optional.of(selectorZkDTO).ifPresent(UpstreamCacheManager.this::execute);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    LOGGER.warn("BLOCKING_QUEUE take operation was interrupted.", e);
                 }
             }
         }
