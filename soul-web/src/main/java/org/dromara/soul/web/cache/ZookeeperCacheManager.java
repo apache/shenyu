@@ -219,8 +219,7 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
                     final String realPath = buildRealPath(parentPath, addPath);
                     setRuleData(realPath);
                     return realPath;
-                })
-                        .forEach(this::subscribeRuleDataChanges);
+                }).forEach(this::subscribeRuleDataChanges);
             }
         });
     }
