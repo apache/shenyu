@@ -20,7 +20,6 @@ package org.dromara.soul.web.config;
 
 import org.dromara.soul.web.cache.UpstreamCacheManager;
 import org.dromara.soul.web.cache.ZookeeperCacheManager;
-import org.dromara.soul.web.disruptor.publisher.SoulEventPublisher;
 import org.dromara.soul.web.filter.BodyWebFilter;
 import org.dromara.soul.web.filter.ParamWebFilter;
 import org.dromara.soul.web.filter.TimeWebFilter;
@@ -28,7 +27,6 @@ import org.dromara.soul.web.filter.WebSocketWebFilter;
 import org.dromara.soul.web.handler.SoulHandlerMapping;
 import org.dromara.soul.web.handler.SoulWebHandler;
 import org.dromara.soul.web.plugin.SoulPlugin;
-import org.dromara.soul.web.plugin.after.MonitorPlugin;
 import org.dromara.soul.web.plugin.after.ResponsePlugin;
 import org.dromara.soul.web.plugin.before.GlobalPlugin;
 import org.dromara.soul.web.plugin.before.SignPlugin;
@@ -68,8 +66,6 @@ public class SoulConfiguration {
 
     private final ZookeeperCacheManager zookeeperCacheManager;
 
-    private final SoulEventPublisher soulEventPublisher;
-
     private final RedisRateLimiter redisRateLimiter;
 
     private final UpstreamCacheManager upstreamCacheManager;
@@ -78,17 +74,14 @@ public class SoulConfiguration {
      * Instantiates a new Soul configuration.
      *
      * @param zookeeperCacheManager the zookeeper cache manager
-     * @param soulEventPublisher    the soul event publisher
      * @param redisRateLimiter      the redis rate limiter
      * @param upstreamCacheManager  the upstream cache manager
      */
     @Autowired(required = false)
     public SoulConfiguration(final ZookeeperCacheManager zookeeperCacheManager,
-                             final SoulEventPublisher soulEventPublisher,
                              final RedisRateLimiter redisRateLimiter,
                              final UpstreamCacheManager upstreamCacheManager) {
         this.zookeeperCacheManager = zookeeperCacheManager;
-        this.soulEventPublisher = soulEventPublisher;
         this.redisRateLimiter = redisRateLimiter;
         this.upstreamCacheManager = upstreamCacheManager;
     }
@@ -124,15 +117,6 @@ public class SoulConfiguration {
         return new WafPlugin(zookeeperCacheManager);
     }
 
-    /**
-     * init monitor plugin.
-     *
-     * @return {@linkplain MonitorPlugin}
-     */
-    @Bean
-    public SoulPlugin monitorPlugin() {
-        return new MonitorPlugin(soulEventPublisher, zookeeperCacheManager);
-    }
 
     /**
      * init rateLimiterPlugin.
