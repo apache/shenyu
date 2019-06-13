@@ -18,6 +18,11 @@
 
 package org.dromara.soul.web.config;
 
+import org.dromara.soul.web.cache.ZookeeperCacheManager;
+import org.dromara.soul.web.disruptor.publisher.SoulEventPublisher;
+import org.dromara.soul.web.influxdb.service.InfluxDbService;
+import org.dromara.soul.web.plugin.SoulPlugin;
+import org.dromara.soul.web.plugin.after.MonitorPlugin;
 import org.influxdb.dto.Point;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -70,6 +75,43 @@ public class InfluxDbConfiguration {
     @Bean
     public DefaultInfluxDBTemplate defaultTemplate(final InfluxDBConnectionFactory connectionFactory) {
         return new DefaultInfluxDBTemplate(connectionFactory);
+    }
+
+    /**
+     * Influx db service influx db service.
+     *
+     * @param influxDBTemplate the influx db template
+     * @return the influx db service
+     */
+    @Bean
+    public InfluxDbService influxDbService(InfluxDBTemplate<Point> influxDBTemplate) {
+        return new InfluxDbService(influxDBTemplate);
+    }
+
+
+    /**
+     * Soul event publisher soul event publisher.
+     *
+     * @param influxDbService the influx db service
+     * @return the soul event publisher
+     */
+    @Bean
+    public SoulEventPublisher soulEventPublisher(InfluxDbService influxDbService) {
+        return new SoulEventPublisher(influxDbService);
+    }
+
+
+    /**
+     * Monitor plugin soul plugin.
+     *
+     * @param soulEventPublisher    the soul event publisher
+     * @param zookeeperCacheManager the zookeeper cache manager
+     * @return the soul plugin
+     */
+    @Bean
+    public SoulPlugin monitorPlugin(SoulEventPublisher soulEventPublisher,
+                                    ZookeeperCacheManager zookeeperCacheManager) {
+        return new MonitorPlugin(soulEventPublisher, zookeeperCacheManager);
     }
 
 }

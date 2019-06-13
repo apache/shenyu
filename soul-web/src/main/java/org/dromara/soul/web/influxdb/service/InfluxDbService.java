@@ -20,9 +20,7 @@ package org.dromara.soul.web.influxdb.service;
 
 import org.dromara.soul.web.influxdb.entity.MonitorDO;
 import org.influxdb.dto.Point;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.influxdb.InfluxDBTemplate;
-import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
 
@@ -31,19 +29,16 @@ import java.util.concurrent.TimeUnit;
  *
  * @author xiaoyu(Myth)
  */
-@Component
-@SuppressWarnings("unchecked")
 public class InfluxDbService {
 
-    private final InfluxDBTemplate influxDBTemplate;
+    private final InfluxDBTemplate<Point> influxDBTemplate;
 
     /**
      * Instantiates a new Influx db service.
      *
      * @param influxDBTemplate the influx db template
      */
-    @Autowired
-    public InfluxDbService(final InfluxDBTemplate influxDBTemplate) {
+    public InfluxDbService(final InfluxDBTemplate<Point> influxDBTemplate) {
         this.influxDBTemplate = influxDBTemplate;
     }
 
