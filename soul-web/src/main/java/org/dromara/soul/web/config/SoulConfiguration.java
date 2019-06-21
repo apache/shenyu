@@ -24,7 +24,6 @@ import org.dromara.soul.web.filter.BodyWebFilter;
 import org.dromara.soul.web.filter.ParamWebFilter;
 import org.dromara.soul.web.filter.TimeWebFilter;
 import org.dromara.soul.web.filter.WebSocketWebFilter;
-import org.dromara.soul.web.handler.SoulHandlerMapping;
 import org.dromara.soul.web.handler.SoulWebHandler;
 import org.dromara.soul.web.plugin.SoulPlugin;
 import org.dromara.soul.web.plugin.after.ResponsePlugin;
@@ -39,6 +38,7 @@ import org.dromara.soul.web.plugin.function.RewritePlugin;
 import org.dromara.soul.web.plugin.function.WebSocketPlugin;
 import org.dromara.soul.web.plugin.ratelimter.RedisRateLimiter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.autoconfigure.endpoint.web.WebEndpointProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.SearchStrategy;
@@ -177,7 +177,7 @@ public class SoulConfiguration {
      * @param plugins this plugins is All impl SoulPlugin.
      * @return {@linkplain SoulWebHandler}
      */
-    @Bean
+    @Bean("webHandler")
     public SoulWebHandler soulWebHandler(final List<SoulPlugin> plugins) {
         final List<SoulPlugin> soulPlugins = plugins.stream()
                 .sorted((m, n) -> {
@@ -189,18 +189,6 @@ public class SoulConfiguration {
                 }).collect(Collectors.toList());
         return new SoulWebHandler(soulPlugins);
     }
-
-    /**
-     * init  SoulHandlerMapping.
-     *
-     * @param soulWebHandler {@linkplain SoulWebHandler}
-     * @return {@linkplain SoulHandlerMapping}
-     */
-    @Bean
-    public SoulHandlerMapping soulHandlerMapping(final SoulWebHandler soulWebHandler) {
-        return new SoulHandlerMapping(soulWebHandler);
-    }
-
     /**
      * Body web filter web filter.
      *
@@ -219,8 +207,8 @@ public class SoulConfiguration {
      */
     @Bean
     @Order(1)
-    public WebFilter paramWebFilter() {
-        return new ParamWebFilter();
+    public WebFilter paramWebFilter(WebEndpointProperties endpointProperties) {
+        return new ParamWebFilter(endpointProperties.getBasePath());
     }
 
     /**
