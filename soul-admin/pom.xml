@@ -18,6 +18,12 @@
         <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>soul-configuration</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>spring-boot-starter-data-redis</artifactId>
+                    <groupId>org.springframework.boot</groupId>
+                </exclusion>
+            </exclusions>      
         </dependency>
 
         <dependency>
