@@ -26,14 +26,14 @@ import org.dromara.soul.admin.service.AppAuthService;
 import org.dromara.soul.admin.vo.AppAuthVO;
 import org.dromara.soul.common.result.SoulResult;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -64,12 +64,12 @@ public class AppAuthController {
      * @return {@linkplain Mono}
      */
     @GetMapping("")
-    public Mono<SoulResult> queryAppAuths(final String appKey, final Integer currentPage, final Integer pageSize) {
+    public SoulResult queryAppAuths(final String appKey, final Integer currentPage, final Integer pageSize) {
         try {
             CommonPager<AppAuthVO> commonPager = appAuthService.listByPage(new AppAuthQuery(appKey, new PageParameter(currentPage, pageSize)));
-            return Mono.create(soulResult -> soulResult.success(SoulResult.success("query application authorities success", commonPager)));
+            return SoulResult.success("query application authorities success", commonPager);
         } catch (Exception e) {
-            return Mono.create(soulResult -> soulResult.success(SoulResult.error("query application authorities exception")));
+            return SoulResult.error("query application authorities exception");
         }
     }
 
@@ -80,12 +80,12 @@ public class AppAuthController {
      * @return {@linkplain Mono}
      */
     @GetMapping("/{id}")
-    public Mono<SoulResult> detailAppAuth(@PathVariable("id") final String id) {
+    public SoulResult detailAppAuth(@PathVariable("id") final String id) {
         try {
             AppAuthVO appAuthVO = appAuthService.findById(id);
-            return Mono.create(soulResult -> soulResult.success(SoulResult.success("detail application authority success", appAuthVO)));
+            return SoulResult.success("detail application authority success", appAuthVO);
         } catch (Exception e) {
-            return Mono.create(soulResult -> soulResult.success(SoulResult.error("detail application authority exception")));
+            return SoulResult.error("detail application authority exception");
         }
     }
 
@@ -96,12 +96,12 @@ public class AppAuthController {
      * @return {@linkplain Mono}
      */
     @PostMapping("")
-    public Mono<SoulResult> createAppAuth(@RequestBody final AppAuthDTO appAuthDTO) {
+    public SoulResult createAppAuth(@RequestBody final AppAuthDTO appAuthDTO) {
         try {
             Integer createCount = appAuthService.createOrUpdate(appAuthDTO);
-            return Mono.create(soulResult -> soulResult.success(SoulResult.success("create application authority success", createCount)));
+            return SoulResult.success("create application authority success", createCount);
         } catch (Exception e) {
-            return Mono.create(soulResult -> soulResult.success(SoulResult.error("create application authority exception")));
+            return SoulResult.error("create application authority exception");
         }
     }
 
@@ -113,14 +113,14 @@ public class AppAuthController {
      * @return {@linkplain Mono}
      */
     @PutMapping("/{id}")
-    public Mono<SoulResult> updateAppAuth(@PathVariable("id") final String id, @RequestBody final AppAuthDTO appAuthDTO) {
+    public SoulResult updateAppAuth(@PathVariable("id") final String id, @RequestBody final AppAuthDTO appAuthDTO) {
         try {
             Objects.requireNonNull(appAuthDTO);
             appAuthDTO.setId(id);
             Integer updateCount = appAuthService.createOrUpdate(appAuthDTO);
-            return Mono.create(soulResult -> soulResult.success(SoulResult.success("update application authority success", updateCount)));
+            return SoulResult.success("update application authority success", updateCount);
         } catch (Exception e) {
-            return Mono.create(soulResult -> soulResult.success(SoulResult.error("update application authority exception")));
+            return SoulResult.error("update application authority exception");
         }
     }
 
@@ -131,12 +131,12 @@ public class AppAuthController {
      * @return {@linkplain Mono}
      */
     @DeleteMapping("/batch")
-    public Mono<SoulResult> deleteAppAuths(@RequestBody final List<String> ids) {
+    public SoulResult deleteAppAuths(@RequestBody final List<String> ids) {
         try {
             Integer deleteCount = appAuthService.delete(ids);
-            return Mono.create(soulResult -> soulResult.success(SoulResult.success("delete application authorities success", deleteCount)));
+            return SoulResult.success("delete application authorities success", deleteCount);
         } catch (Exception e) {
-            return Mono.create(soulResult -> soulResult.success(SoulResult.error("delete application authorities exception")));
+            return SoulResult.error("delete application authorities exception");
         }
     }
 }
