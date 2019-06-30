@@ -64,12 +64,12 @@ public class SelectorController {
      * @return {@linkplain Mono}
      */
     @GetMapping("")
-    public Mono<SoulResult> querySelectors(final String pluginId, final Integer currentPage, final Integer pageSize) {
+    public SoulResult querySelectors(final String pluginId, final Integer currentPage, final Integer pageSize) {
         try {
             CommonPager<SelectorVO> commonPager = selectorService.listByPage(new SelectorQuery(pluginId, new PageParameter(currentPage, pageSize)));
-            return Mono.create(soulResult -> soulResult.success(SoulResult.success("query selectors success", commonPager)));
+            return SoulResult.success("query selectors success", commonPager);
         } catch (Exception e) {
-            return Mono.create(soulResult -> soulResult.success(SoulResult.error("query selectors exception")));
+            return SoulResult.error("query selectors exception");
         }
     }
 
@@ -80,13 +80,13 @@ public class SelectorController {
      * @return {@linkplain Mono}
      */
     @GetMapping("/{id}")
-    public Mono<SoulResult> detailSelector(@PathVariable("id") final String id) {
+    public SoulResult detailSelector(@PathVariable("id") final String id) {
         try {
             SelectorVO selectorVO = selectorService.findById(id);
-            return Mono.create(soulResult -> soulResult.success(SoulResult.success("detail selector success", selectorVO)));
+            return SoulResult.success("detail selector success", selectorVO);
         } catch (Exception e) {
             e.printStackTrace();
-            return Mono.create(soulResult -> soulResult.success(SoulResult.error("detail selector exception")));
+            return SoulResult.error("detail selector exception");
         }
     }
 
@@ -97,12 +97,12 @@ public class SelectorController {
      * @return {@linkplain Mono}
      */
     @PostMapping("")
-    public Mono<SoulResult> createSelector(@RequestBody final SelectorDTO selectorDTO) {
+    public SoulResult createSelector(@RequestBody final SelectorDTO selectorDTO) {
         try {
             Integer createCount = selectorService.createOrUpdate(selectorDTO);
-            return Mono.create(soulResult -> soulResult.success(SoulResult.success("create selector success", createCount)));
+            return SoulResult.success("create selector success", createCount);
         } catch (Exception e) {
-            return Mono.create(soulResult -> soulResult.success(SoulResult.error("create selector exception")));
+            return SoulResult.error("create selector exception");
         }
     }
 
@@ -114,14 +114,14 @@ public class SelectorController {
      * @return {@linkplain Mono}
      */
     @PutMapping("/{id}")
-    public Mono<SoulResult> updateSelector(@PathVariable("id") final String id, @RequestBody final SelectorDTO selectorDTO) {
+    public SoulResult updateSelector(@PathVariable("id") final String id, @RequestBody final SelectorDTO selectorDTO) {
         try {
             Objects.requireNonNull(selectorDTO);
             selectorDTO.setId(id);
             Integer updateCount = selectorService.createOrUpdate(selectorDTO);
-            return Mono.create(soulResult -> soulResult.success(SoulResult.success("update selector success", updateCount)));
+            return SoulResult.success("update selector success", updateCount);
         } catch (Exception e) {
-            return Mono.create(soulResult -> soulResult.success(SoulResult.error("update selector exception")));
+            return SoulResult.error("update selector exception");
         }
     }
 
@@ -132,12 +132,12 @@ public class SelectorController {
      * @return {@linkplain Mono}
      */
     @DeleteMapping("/batch")
-    public Mono<SoulResult> deleteSelector(@RequestBody final List<String> ids) {
+    public SoulResult deleteSelector(@RequestBody final List<String> ids) {
         try {
             Integer deleteCount = selectorService.delete(ids);
-            return Mono.create(soulResult -> soulResult.success(SoulResult.success("delete selectors success", deleteCount)));
+            return SoulResult.success("delete selectors success", deleteCount);
         } catch (Exception e) {
-            return Mono.create(soulResult -> soulResult.success(SoulResult.error("delete selectors exception")));
+            return SoulResult.error("delete selectors exception");
         }
     }
 }
