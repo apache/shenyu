@@ -37,16 +37,6 @@ import org.springframework.context.annotation.Configuration;
 public class ZookeeperConfiguration {
 
     /**
-     * Zookeeper config zookeeper config.
-     *
-     * @return the zookeeper config
-     */
-    @Bean
-    public ZookeeperConfig zookeeperConfig() {
-        return new ZookeeperConfig();
-    }
-
-    /**
      * Zk serializer zk serializer.
      *
      * @param zookeeperConfig the zookeeper config
