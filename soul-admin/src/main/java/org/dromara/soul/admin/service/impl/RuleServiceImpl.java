@@ -17,6 +17,7 @@
  */
 
 package org.dromara.soul.admin.service.impl;
+import com.google.common.collect.Lists;
 
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.lang3.StringUtils;
@@ -38,9 +39,12 @@ import org.dromara.soul.admin.service.RuleService;
 import org.dromara.soul.admin.vo.RuleConditionVO;
 import org.dromara.soul.admin.vo.RuleVO;
 import org.dromara.soul.common.constant.ZkPathConstants;
+import org.dromara.soul.common.dto.ConditionData;
+import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.zk.ConditionZkDTO;
 import org.dromara.soul.common.dto.zk.RuleZkDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cglib.beans.BeanCopier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -177,6 +181,14 @@ public class RuleServiceImpl implements RuleService {
                         .collect(Collectors.toList()));
     }
 
+    @Override
+    public List<RuleData> listAll() {
+        List<RuleData> rules = ruleMapper.selectByQuery(new RuleQuery()).stream()
+                .map(ruleDO -> buildRuleData(ruleDO))
+                .collect(Collectors.toList());
+        return rules;
+    }
+
     private ConditionZkDTO buildConditionZkDTO(final RuleConditionDTO ruleConditionDTO) {
         return new ConditionZkDTO(ruleConditionDTO.getParamType(), ruleConditionDTO.getOperator(),
                 ruleConditionDTO.getParamName(), ruleConditionDTO.getParamValue());
@@ -188,4 +200,25 @@ public class RuleServiceImpl implements RuleService {
                 ruleDO.getMatchMode(), ruleDO.getSort(), ruleDO.getEnabled(), ruleDO.getLoged(), ruleDO.getHandle(),
                 conditionZkDTOList);
     }
+
+    private RuleData buildRuleData(final RuleDO ruleDO) {
+        // query for conditions
+        List<ConditionData> conditions = ruleConditionMapper.selectByQuery(
+                new RuleConditionQuery(ruleDO.getId()))
+                .stream()
+                .map(ruleConditionDO -> buildConditionData(ruleConditionDO))
+                .collect(Collectors.toList());
+
+        SelectorDO selectorDO = selectorMapper.selectById(ruleDO.getSelectorId());
+        PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
+        return new RuleData(ruleDO.getId(), pluginDO.getName(), ruleDO.getSelectorId(), ruleDO.getMatchMode(),
+                ruleDO.getSort(), ruleDO.getEnabled(), ruleDO.getLoged(),
+                ruleDO.getHandle(), conditions);
+    }
+
+    private ConditionData buildConditionData(final RuleConditionDO ruleConditionDO) {
+        return new ConditionData(ruleConditionDO.getParamType(), ruleConditionDO.getOperator(),
+                ruleConditionDO.getParamName(), ruleConditionDO.getParamValue());
+    }
+
 }

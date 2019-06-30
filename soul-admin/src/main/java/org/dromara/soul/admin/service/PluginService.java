@@ -22,6 +22,7 @@ import org.dromara.soul.admin.dto.PluginDTO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.PluginQuery;
 import org.dromara.soul.admin.vo.PluginVO;
+import org.dromara.soul.common.dto.PluginData;
 
 import java.util.List;
 
@@ -64,6 +65,11 @@ public interface PluginService {
      */
     CommonPager<PluginVO> listByPage(PluginQuery pluginQuery);
 
+    /**
+     * list all active plugins.
+     * @return {@link List<PluginVO>}
+     */
+    List<PluginData> listAll();
 
     /**
      * Sync plugin data for mysql.

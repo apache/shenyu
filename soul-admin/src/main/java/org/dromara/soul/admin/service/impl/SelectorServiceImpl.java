@@ -42,6 +42,8 @@ import org.dromara.soul.admin.service.SelectorService;
 import org.dromara.soul.admin.vo.SelectorConditionVO;
 import org.dromara.soul.admin.vo.SelectorVO;
 import org.dromara.soul.common.constant.ZkPathConstants;
+import org.dromara.soul.common.dto.ConditionData;
+import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.zk.ConditionZkDTO;
 import org.dromara.soul.common.dto.zk.SelectorZkDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -199,6 +201,15 @@ public class SelectorServiceImpl implements SelectorService {
                         .collect(Collectors.toList()));
     }
 
+    @Override
+    public List<SelectorData> listAll() {
+        List<SelectorData> selectors = selectorMapper.selectByQuery(new SelectorQuery())
+                .stream()
+                .map(selectorDO -> buildSelectorData(selectorDO))
+                .collect(Collectors.toList());
+        return selectors;
+    }
+
     private ConditionZkDTO buildConditionZkDTO(final SelectorConditionDTO selectorConditionDTO) {
         return new ConditionZkDTO(selectorConditionDTO.getParamType(),
                 selectorConditionDTO.getOperator(),
@@ -221,4 +232,35 @@ public class SelectorServiceImpl implements SelectorService {
                 selectorDO.getHandle(),
                 conditionZkDTOList);
     }
+
+    private SelectorData buildSelectorData(SelectorDO selectorDO) {
+
+        // find conditions
+        List<ConditionData> conditionDataList = selectorConditionMapper.selectByQuery(new SelectorConditionQuery(selectorDO.getId()))
+                .stream()
+                .map(conditionDO -> buildConditionData(conditionDO))
+                .collect(Collectors.toList());
+
+        PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
+        return new SelectorData(selectorDO.getId(),
+                selectorDO.getPluginId(),
+                pluginDO.getName(),
+                selectorDO.getName(),
+                selectorDO.getMatchMode(),
+                selectorDO.getType(),
+                selectorDO.getSort(),
+                selectorDO.getEnabled(),
+                selectorDO.getLoged(),
+                selectorDO.getContinued(),
+                selectorDO.getHandle(),
+                conditionDataList);
+    }
+
+    private ConditionData buildConditionData(final SelectorConditionDO selectorCondition) {
+        return new ConditionData(selectorCondition.getParamType(),
+                selectorCondition.getOperator(),
+                selectorCondition.getParamName(),
+                selectorCondition.getParamValue());
+    }
+
 }

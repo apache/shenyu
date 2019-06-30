@@ -25,6 +25,8 @@ import org.dromara.soul.admin.dto.PluginDTO;
 import org.dromara.soul.admin.entity.PluginDO;
 import org.dromara.soul.admin.entity.RuleDO;
 import org.dromara.soul.admin.entity.SelectorDO;
+import org.dromara.soul.admin.listener.DataChangedEvent;
+import org.dromara.soul.admin.listener.DataEventType;
 import org.dromara.soul.admin.mapper.PluginMapper;
 import org.dromara.soul.admin.mapper.RuleConditionMapper;
 import org.dromara.soul.admin.mapper.RuleMapper;
@@ -41,16 +43,20 @@ import org.dromara.soul.admin.service.PluginService;
 import org.dromara.soul.admin.vo.PluginVO;
 import org.dromara.soul.common.constant.AdminConstants;
 import org.dromara.soul.common.constant.ZkPathConstants;
+import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.zk.ConditionZkDTO;
 import org.dromara.soul.common.dto.zk.PluginZkDTO;
 import org.dromara.soul.common.dto.zk.RuleZkDTO;
 import org.dromara.soul.common.dto.zk.SelectorZkDTO;
+import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.enums.PluginRoleEnum;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -75,19 +81,23 @@ public class PluginServiceImpl implements PluginService {
 
     private final ZkClient zkClient;
 
+    private final ApplicationEventPublisher eventPublisher;
+
     @Autowired(required = false)
     public PluginServiceImpl(final PluginMapper pluginMapper,
                              final SelectorMapper selectorMapper,
                              final SelectorConditionMapper selectorConditionMapper,
                              final RuleMapper ruleMapper,
                              final RuleConditionMapper ruleConditionMapper,
-                             final ZkClient zkClient) {
+                             final ZkClient zkClient,
+                             ApplicationEventPublisher eventPublisher) {
         this.pluginMapper = pluginMapper;
         this.selectorMapper = selectorMapper;
         this.selectorConditionMapper = selectorConditionMapper;
         this.ruleMapper = ruleMapper;
         this.ruleConditionMapper = ruleConditionMapper;
         this.zkClient = zkClient;
+        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -104,18 +114,18 @@ public class PluginServiceImpl implements PluginService {
             return msg;
         }
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
+        DataEventType eventType = DataEventType.CREATE;
         if (StringUtils.isBlank(pluginDTO.getId())) {
             pluginMapper.insertSelective(pluginDO);
         } else {
+            eventType = DataEventType.UPDATE;
             pluginMapper.updateSelective(pluginDO);
         }
-        String pluginPath = ZkPathConstants.buildPluginPath(pluginDO.getName());
-        if (!zkClient.exists(pluginPath)) {
-            zkClient.createPersistent(pluginPath, true);
-        }
-        zkClient.writeData(pluginPath, new PluginZkDTO(pluginDO.getId(),
-                pluginDO.getName(), pluginDO.getRole(), pluginDO.getEnabled()));
-        return "";
+
+        // publish change event.
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, eventType, Collections.singletonList(new PluginData(pluginDTO.getId(),
+                pluginDTO.getName(), pluginDTO.getRole(), pluginDTO.getEnabled()))));
+        return StringUtils.EMPTY;
     }
 
     private String checkData(final PluginDTO pluginDTO) {
@@ -132,7 +142,7 @@ public class PluginServiceImpl implements PluginService {
                 return AdminConstants.PLUGIN_NAME_IS_EXIST;
             }
         }
-        return "";
+        return StringUtils.EMPTY;
     }
 
     /**
@@ -179,7 +189,7 @@ public class PluginServiceImpl implements PluginService {
                 zkClient.deleteRecursive(ruleParentPath);
             }
         }
-        return "";
+        return StringUtils.EMPTY;
     }
 
     @Override
@@ -202,7 +212,7 @@ public class PluginServiceImpl implements PluginService {
                     pluginDO.getName(), pluginDO.getRole(), pluginDO.getEnabled()));
 
         }
-        return "";
+        return StringUtils.EMPTY;
     }
 
 
@@ -232,6 +242,14 @@ public class PluginServiceImpl implements PluginService {
                 pluginMapper.selectByQuery(pluginQuery).stream()
                         .map(PluginVO::buildPluginVO)
                         .collect(Collectors.toList()));
+    }
+
+    @Override
+    public List<PluginData> listAll() {
+        PluginQuery query = new PluginQuery();
+        return pluginMapper.selectByQuery(query).stream()
+                .map(pluginDO -> new PluginData(pluginDO.getId(), pluginDO.getName(), pluginDO.getRole(), pluginDO.getEnabled()))
+                .collect(Collectors.toList());
     }
 
     /**
