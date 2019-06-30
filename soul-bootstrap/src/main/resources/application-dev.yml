@@ -25,15 +25,19 @@ spring:
         connect-timeout: 10
         read-timeout: 30
         write-timeout: 10
-   zookeeper:
-        url : localhost:2181
-        sessionTimeout: 5000
-        connectionTimeout : 2000
+
 soul:
     bufferSize: 2048
     timeVerify:
        timeDelay : 10
        enabled: false
+    cache:
+      type: zookeeper
+      zookeeper:
+        url: localhost:2181
+        sessionTimeout: 5000
+        connectionTimeout: 2000
+
 eureka:
   instance:
     leaseRenewalIntervalInSeconds: 10
