@@ -22,6 +22,7 @@ import org.dromara.soul.admin.dto.AppAuthDTO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.AppAuthQuery;
 import org.dromara.soul.admin.vo.AppAuthVO;
+import org.dromara.soul.common.dto.AppAuthData;
 
 import java.util.List;
 
@@ -63,4 +64,11 @@ public interface AppAuthService {
      * @return {@linkplain CommonPager}
      */
     CommonPager<AppAuthVO> listByPage(AppAuthQuery appAuthQuery);
+
+    /**
+     * find all AppAuth data
+     * @return {@linkplain List<AppAuthVO>}
+     */
+    List<AppAuthData> listAll();
+
 }

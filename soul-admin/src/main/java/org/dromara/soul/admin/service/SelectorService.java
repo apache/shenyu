@@ -22,6 +22,7 @@ import org.dromara.soul.admin.dto.SelectorDTO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.SelectorQuery;
 import org.dromara.soul.admin.vo.SelectorVO;
+import org.dromara.soul.common.dto.SelectorData;
 
 import java.util.List;
 
@@ -63,4 +64,11 @@ public interface SelectorService {
      * @return {@linkplain CommonPager}
      */
     CommonPager<SelectorVO> listByPage(SelectorQuery selectorQuery);
+
+    /**
+     * find all selector data
+     * @return {@linkplain List<SelectorVO>}
+     */
+    List<SelectorData> listAll();
+
 }

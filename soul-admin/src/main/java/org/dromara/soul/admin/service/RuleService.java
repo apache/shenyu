@@ -22,6 +22,7 @@ import org.dromara.soul.admin.dto.RuleDTO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.RuleQuery;
 import org.dromara.soul.admin.vo.RuleVO;
+import org.dromara.soul.common.dto.RuleData;
 
 import java.util.List;
 
@@ -63,4 +64,12 @@ public interface RuleService {
      * @return {@linkplain CommonPager}
      */
     CommonPager<RuleVO> listByPage(RuleQuery ruleQuery);
+
+    /**
+     * find all rule with the conditions
+     *
+     * @return {@linkplain List<RuleVO>}
+     */
+    List<RuleData> listAll();
+
 }
