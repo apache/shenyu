@@ -16,9 +16,10 @@
  *
  */
 
-package org.dromara.soul.web.config;
+package org.dromara.soul.web.configuration;
 
-import org.dromara.soul.web.cache.ZookeeperCacheManager;
+import org.dromara.soul.web.cache.LocalCacheManager;
+import org.dromara.soul.web.cache.ZookeeperSyncCache;
 import org.dromara.soul.web.plugin.SoulPlugin;
 import org.dromara.soul.web.plugin.function.SpringCloudPlugin;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,22 +43,22 @@ import org.springframework.web.reactive.DispatcherHandler;
 @AutoConfigureAfter(RibbonAutoConfiguration.class)
 @ConditionalOnProperty(prefix = "eureka.client.serviceUrl", name = "defaultZone")
 @EnableDiscoveryClient
-public class SpringCloudAutoConfiguration {
+public class SpringCloudConfiguration {
 
     private final LoadBalancerClient loadBalancerClient;
 
-    private final ZookeeperCacheManager zookeeperCacheManager;
+    private final LocalCacheManager localCacheManager;
 
     /**
-     * Instantiates a new Spring cloud auto configuration.
+     * Instantiates a new Spring cloud configuration.
      *
-     * @param loadBalancerClient    the load balancer client
-     * @param zookeeperCacheManager the zookeeper cache manager
+     * @param loadBalancerClient the load balancer client
+     * @param localCacheManager  the local cache manager
      */
     @Autowired(required = false)
-    public SpringCloudAutoConfiguration(final LoadBalancerClient loadBalancerClient, final ZookeeperCacheManager zookeeperCacheManager) {
+    public SpringCloudConfiguration(final LoadBalancerClient loadBalancerClient, final LocalCacheManager localCacheManager) {
         this.loadBalancerClient = loadBalancerClient;
-        this.zookeeperCacheManager = zookeeperCacheManager;
+        this.localCacheManager = localCacheManager;
     }
 
     /**
@@ -67,6 +68,6 @@ public class SpringCloudAutoConfiguration {
      */
     @Bean
     public SoulPlugin springCloudPlugin() {
-        return new SpringCloudPlugin(zookeeperCacheManager, loadBalancerClient);
+        return new SpringCloudPlugin(localCacheManager, loadBalancerClient);
     }
 }

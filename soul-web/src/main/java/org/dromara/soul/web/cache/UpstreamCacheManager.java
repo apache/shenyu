@@ -21,11 +21,11 @@ package org.dromara.soul.web.cache;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections4.CollectionUtils;
+import org.dromara.soul.common.concurrent.SoulThreadFactory;
+import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
-import org.dromara.soul.common.dto.zk.SelectorZkDTO;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.UrlUtils;
-import org.dromara.soul.web.concurrent.SoulThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,7 +52,7 @@ public class UpstreamCacheManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UpstreamCacheManager.class);
 
-    private static final BlockingQueue<SelectorZkDTO> BLOCKING_QUEUE = new LinkedBlockingQueue<>(1024);
+    private static final BlockingQueue<SelectorData> BLOCKING_QUEUE = new LinkedBlockingQueue<>(1024);
 
     private static final int MAX_THREAD = Runtime.getRuntime().availableProcessors() << 1;
 
@@ -108,30 +108,22 @@ public class UpstreamCacheManager {
     }
 
 
-    /**
-     * Submit.
-     *
-     * @param selectorZkDTO the selector zk dto
-     */
-    static void submit(final SelectorZkDTO selectorZkDTO) {
+
+    static void submit(final SelectorData selectorData) {
         try {
-            BLOCKING_QUEUE.put(selectorZkDTO);
+            BLOCKING_QUEUE.put(selectorData);
         } catch (InterruptedException e) {
             LOGGER.error(e.getMessage());
         }
     }
 
-    /**
-     * Execute.
-     *
-     * @param selectorZkDTO the selector zk dto
-     */
-    public void execute(final SelectorZkDTO selectorZkDTO) {
+
+    public void execute(final SelectorData selectorData) {
         final List<DivideUpstream> upstreamList =
-                GsonUtils.getInstance().fromList(selectorZkDTO.getHandle(), DivideUpstream[].class);
+                GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream[].class);
         if (CollectionUtils.isNotEmpty(upstreamList)) {
-            SCHEDULED_MAP.put(selectorZkDTO.getId(), upstreamList);
-            UPSTREAM_MAP.put(selectorZkDTO.getId(), check(upstreamList));
+            SCHEDULED_MAP.put(selectorData.getId(), upstreamList);
+            UPSTREAM_MAP.put(selectorData.getId(), check(upstreamList));
         }
     }
 
@@ -165,8 +157,8 @@ public class UpstreamCacheManager {
         private void runTask() {
             while (true) {
                 try {
-                    final SelectorZkDTO selectorZkDTO = BLOCKING_QUEUE.take();
-                    Optional.of(selectorZkDTO).ifPresent(UpstreamCacheManager.this::execute);
+                    final SelectorData selectorData = BLOCKING_QUEUE.take();
+                    Optional.of(selectorData).ifPresent(UpstreamCacheManager.this::execute);
                 } catch (InterruptedException e) {
                     LOGGER.warn("BLOCKING_QUEUE take operation was interrupted.", e);
                 }

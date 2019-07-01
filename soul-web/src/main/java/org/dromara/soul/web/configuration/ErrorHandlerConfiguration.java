@@ -16,7 +16,7 @@
  *
  */
 
-package org.dromara.soul.web.config;
+package org.dromara.soul.web.configuration;
 
 import org.dromara.soul.web.handler.GlobalErrorHandler;
 import org.springframework.beans.factory.ObjectProvider;

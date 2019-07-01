@@ -18,7 +18,7 @@
 
 package org.dromara.soul.web.condition.strategy;
 
-import org.dromara.soul.common.dto.zk.ConditionZkDTO;
+import org.dromara.soul.common.dto.ConditionData;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.util.List;
@@ -33,9 +33,9 @@ public interface MatchStrategy {
     /**
      * this is condition match.
      *
-     * @param conditionZkDTOList condition list.
-     * @param exchange           {@linkplain ServerWebExchange}
+     * @param conditionDataList condition list.
+     * @param exchange          {@linkplain ServerWebExchange}
      * @return true is match , false is not match.
      */
-    Boolean match(List<ConditionZkDTO> conditionZkDTOList, ServerWebExchange exchange);
+    Boolean match(List<ConditionData> conditionDataList, ServerWebExchange exchange);
 }

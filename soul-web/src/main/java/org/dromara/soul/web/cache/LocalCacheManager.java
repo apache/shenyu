@@ -26,29 +26,44 @@ import java.util.List;
 
 /**
  * Abstract cache interface for support http, zookeeper, websocket, and others.
+ *
  * @author huangxiaofeng
+ * @author xiaoyu
  * @since 2.0.0
- * @date 2019/6/15 18:06
  */
-public interface LookupCacheManager {
+public interface LocalCacheManager {
+
 
     /**
-     * find auth data.
+     * Find auth data by app key app auth data.
+     *
+     * @param appKey the app key
+     * @return the app auth data
      */
     AppAuthData findAuthDataByAppKey(String appKey);
 
+
     /**
-     * find plugin.
+     * Find plugin by name plugin data.
+     *
+     * @param pluginName the plugin name
+     * @return the plugin data
      */
     PluginData findPluginByName(String pluginName);
 
     /**
-     * find selector list.
+     * Find selector by plugin name list.
+     *
+     * @param pluginName the plugin name
+     * @return the list
      */
     List<SelectorData> findSelectorByPluginName(String pluginName);
 
     /**
-     * find rule list.
+     * Find rule by selector id list.
+     *
+     * @param selectorId the selector id
+     * @return the list
      */
     List<RuleData> findRuleBySelectorId(String selectorId);
 

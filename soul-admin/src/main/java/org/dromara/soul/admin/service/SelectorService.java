@@ -37,7 +37,7 @@ public interface SelectorService {
      * create or update selector.
      *
      * @param selectorDTO {@linkplain SelectorDTO}
-     * @return rows
+     * @return rows int
      */
     int createOrUpdate(SelectorDTO selectorDTO);
 
@@ -45,7 +45,7 @@ public interface SelectorService {
      * delete selectors.
      *
      * @param ids primary key.
-     * @return rows
+     * @return rows int
      */
     int delete(List<String> ids);
 
@@ -66,8 +66,9 @@ public interface SelectorService {
     CommonPager<SelectorVO> listByPage(SelectorQuery selectorQuery);
 
     /**
-     * find all selector data
-     * @return {@linkplain List<SelectorVO>}
+     * List all list.
+     *
+     * @return the list
      */
     List<SelectorData> listAll();
 

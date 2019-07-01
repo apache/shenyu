@@ -20,16 +20,16 @@ package org.dromara.soul.web.plugin.function;
 
 import org.apache.commons.lang.StringUtils;
 import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.dto.RuleData;
+import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.rule.SpringCloudRuleHandle;
-import org.dromara.soul.common.dto.zk.RuleZkDTO;
-import org.dromara.soul.common.dto.zk.SelectorZkDTO;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.LogUtils;
-import org.dromara.soul.web.cache.ZookeeperCacheManager;
+import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.plugin.AbstractSoulPlugin;
 import org.dromara.soul.web.plugin.SoulPluginChain;
 import org.dromara.soul.web.plugin.hystrix.HttpCommand;
@@ -58,13 +58,19 @@ public class SpringCloudPlugin extends AbstractSoulPlugin {
 
     private final LoadBalancerClient loadBalancer;
 
-    public SpringCloudPlugin(final ZookeeperCacheManager zookeeperCacheManager, final LoadBalancerClient loadBalancer) {
-        super(zookeeperCacheManager);
+    /**
+     * Instantiates a new Spring cloud plugin.
+     *
+     * @param localCacheManager the local cache manager
+     * @param loadBalancer      the load balancer
+     */
+    public SpringCloudPlugin(final LocalCacheManager localCacheManager, final LoadBalancerClient loadBalancer) {
+        super(localCacheManager);
         this.loadBalancer = loadBalancer;
     }
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorZkDTO selector, final RuleZkDTO rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
         if (Objects.isNull(rule)) {
             return Mono.empty();
         }
@@ -86,7 +92,7 @@ public class SpringCloudPlugin extends AbstractSoulPlugin {
         }
 
         if (StringUtils.isBlank(serviceId) || StringUtils.isBlank(ruleHandle.getPath())) {
-            LogUtils.error(LOGGER, () -> "can not config spring cloud handle....");
+            LogUtils.error(LOGGER, () -> "can not configuration spring cloud handle....");
             return Mono.empty();
         }
 

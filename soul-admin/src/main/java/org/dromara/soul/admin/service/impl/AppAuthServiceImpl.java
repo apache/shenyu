@@ -132,10 +132,6 @@ public class AppAuthServiceImpl implements AppAuthService {
                         .collect(Collectors.toList()));
     }
 
-    /**
-     * find all AppAuth data
-     * @return {@linkplain List<AppAuthVO>}
-     */
     @Override
     public List<AppAuthData> listAll() {
         return appAuthMapper.selectByQuery(new AppAuthQuery())

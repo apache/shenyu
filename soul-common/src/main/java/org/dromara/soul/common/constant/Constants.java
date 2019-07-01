@@ -158,7 +158,7 @@ public interface Constants {
     /**
      * The constant UPSTREAM_NOT_FIND.
      */
-    String UPSTREAM_NOT_FIND = "this can not rule upstream please check you config!";
+    String UPSTREAM_NOT_FIND = "this can not rule upstream please check you configuration!";
 
     /**
      * The constant TOO_MANY_REQUESTS.

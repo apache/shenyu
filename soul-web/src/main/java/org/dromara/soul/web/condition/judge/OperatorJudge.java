@@ -18,7 +18,7 @@
 
 package org.dromara.soul.web.condition.judge;
 
-import org.dromara.soul.common.dto.zk.ConditionZkDTO;
+import org.dromara.soul.common.dto.ConditionData;
 
 /**
  * this is operator Judge.
@@ -29,12 +29,12 @@ import org.dromara.soul.common.dto.zk.ConditionZkDTO;
 public interface OperatorJudge {
 
     /**
-     * judge conditionZkDTO and realData is match.
+     * judge conditionData and realData is match.
      *
-     * @param conditionZkDTO {@linkplain ConditionZkDTO}
+     * @param conditionData {@linkplain ConditionData}
      * @param realData       realData
      * @return true is pass  false is not pass.
      */
-    Boolean judge(ConditionZkDTO conditionZkDTO, String realData);
+    Boolean judge(ConditionData conditionData, String realData);
 
 }

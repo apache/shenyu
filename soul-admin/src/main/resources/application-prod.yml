@@ -20,7 +20,7 @@ spring:
      sessionTimeout: 5000
      connectionTimeout : 2000
 mybatis:
-  config-location: classpath:/mybatis/mybatis-config.xml
+  config-location: classpath:/mybatis/mybatis-configuration.xml
   mapper-locations: classpath:/mappers/*.xml
 
 logging:

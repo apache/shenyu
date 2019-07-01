@@ -18,7 +18,7 @@
 
 package org.dromara.soul.web.condition.judge;
 
-import org.dromara.soul.common.dto.zk.ConditionZkDTO;
+import org.dromara.soul.common.dto.ConditionData;
 
 /**
  * this is like impl.
@@ -28,7 +28,7 @@ import org.dromara.soul.common.dto.zk.ConditionZkDTO;
 public class LikeOperatorJudge implements OperatorJudge {
 
     @Override
-    public Boolean judge(final ConditionZkDTO conditionZkDTO, final String realData) {
-        return realData.contains(conditionZkDTO.getParamValue().trim());
+    public Boolean judge(final ConditionData conditionData, final String realData) {
+        return realData.contains(conditionData.getParamValue().trim());
     }
 }

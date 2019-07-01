@@ -5,7 +5,6 @@ import java.util.concurrent.TimeUnit;
 /**
  * constants for http, including http long polling
  * @author huangxiaofeng
- * @date 2019/6/29 14:38
  * @since 2.0.0
  */
 public final class HttpConstants {

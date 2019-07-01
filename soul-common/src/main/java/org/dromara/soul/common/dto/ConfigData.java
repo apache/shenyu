@@ -19,18 +19,15 @@ package org.dromara.soul.common.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.util.List;
 
 /**
- * Data set, including {@link AppAuthData}、{@link ConditionData}、{@link PluginData}、{@link RuleData}、{@link SelectorData}
+ * Data set, including {@link AppAuthData}、{@link ConditionData}、{@link PluginData}、{@link RuleData}、{@link SelectorData}.
  * @author huangxiaofeng
- * @date 2019/6/28 23:34
  * @since 2.0.0
  */
 @Data

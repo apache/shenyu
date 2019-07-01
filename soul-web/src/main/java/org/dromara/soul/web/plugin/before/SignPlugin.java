@@ -21,16 +21,16 @@ package org.dromara.soul.web.plugin.before;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
-import org.dromara.soul.common.dto.zk.AppAuthZkDTO;
-import org.dromara.soul.common.dto.zk.RuleZkDTO;
-import org.dromara.soul.common.dto.zk.SelectorZkDTO;
+import org.dromara.soul.common.dto.AppAuthData;
+import org.dromara.soul.common.dto.RuleData;
+import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.result.SoulResult;
 import org.dromara.soul.common.utils.JsonUtils;
 import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.common.utils.SignUtils;
-import org.dromara.soul.web.cache.ZookeeperCacheManager;
+import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.plugin.AbstractSoulPlugin;
 import org.dromara.soul.web.plugin.SoulPluginChain;
 import org.dromara.soul.web.request.RequestDTO;
@@ -52,16 +52,17 @@ public class SignPlugin extends AbstractSoulPlugin {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SignPlugin.class);
 
-    private ZookeeperCacheManager zookeeperCacheManager;
+    private LocalCacheManager localCacheManager;
+
 
     /**
      * Instantiates a new Sign plugin.
      *
-     * @param zookeeperCacheManager the zookeeper cache manager
+     * @param localCacheManager the local cache manager
      */
-    public SignPlugin(final ZookeeperCacheManager zookeeperCacheManager) {
-        super(zookeeperCacheManager);
-        this.zookeeperCacheManager = zookeeperCacheManager;
+    public SignPlugin(final LocalCacheManager localCacheManager) {
+        super(localCacheManager);
+        this.localCacheManager = localCacheManager;
     }
 
     @Override
@@ -75,7 +76,7 @@ public class SignPlugin extends AbstractSoulPlugin {
     }
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorZkDTO selector, final RuleZkDTO rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
         final RequestDTO requestDTO = exchange.getAttribute(Constants.REQUESTDTO);
         final Boolean success = signVerify(Objects.requireNonNull(requestDTO));
         if (!success) {
@@ -98,18 +99,18 @@ public class SignPlugin extends AbstractSoulPlugin {
             LogUtils.error(LOGGER, () -> " app key can not incoming!");
             return false;
         }
-        final AppAuthZkDTO appAuthZkDTO = zookeeperCacheManager.findAuthDTOByAppKey(requestDTO.getAppKey());
-        if (Objects.isNull(appAuthZkDTO)
+        final AppAuthData appAuthData = localCacheManager.findAuthDataByAppKey(requestDTO.getAppKey());
+        if (Objects.isNull(appAuthData)
                 || StringUtils.isBlank(requestDTO.getSign())
                 || StringUtils.isBlank(requestDTO.getAppKey())
-                || StringUtils.isBlank(appAuthZkDTO.getAppKey())
-                || StringUtils.isBlank(appAuthZkDTO.getAppSecret())
-                || !appAuthZkDTO.getEnabled()) {
-            LogUtils.error(LOGGER, () -> requestDTO.getAppKey() + " can not config!");
+                || StringUtils.isBlank(appAuthData.getAppKey())
+                || StringUtils.isBlank(appAuthData.getAppSecret())
+                || !appAuthData.getEnabled()) {
+            LogUtils.error(LOGGER, () -> requestDTO.getAppKey() + " can not configuration!");
             return false;
         }
         return SignUtils.getInstance().isValid(requestDTO.getSign(),
-                buildParamsMap(requestDTO), appAuthZkDTO.getAppSecret());
+                buildParamsMap(requestDTO), appAuthData.getAppSecret());
     }
 
     /**

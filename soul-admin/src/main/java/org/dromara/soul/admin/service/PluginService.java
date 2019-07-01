@@ -65,10 +65,11 @@ public interface PluginService {
      */
     CommonPager<PluginVO> listByPage(PluginQuery pluginQuery);
 
+
     /**
-     * list all active plugins.
+     * List all list.
      *
-     * @return {@link List<PluginVO>}
+     * @return the list
      */
     List<PluginData> listAll();
 

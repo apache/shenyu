@@ -16,9 +16,10 @@
  *
  */
 
-package org.dromara.soul.web.config;
+package org.dromara.soul.web.configuration;
 
-import org.dromara.soul.web.cache.ZookeeperCacheManager;
+import org.dromara.soul.web.cache.LocalCacheManager;
+import org.dromara.soul.web.cache.ZookeeperSyncCache;
 import org.dromara.soul.web.plugin.SoulPlugin;
 import org.dromara.soul.web.plugin.dubbo.DubboProxyService;
 import org.dromara.soul.web.plugin.function.DubboPlugin;
@@ -36,18 +37,18 @@ public class DubboConfiguration {
 
     private final DubboProxyService dubboProxyService;
 
-    private final ZookeeperCacheManager zookeeperCacheManager;
+    private final LocalCacheManager localCacheManager;
 
     /**
      * Instantiates a new Dubbo configuration.
      *
-     * @param dubboProxyService     the dubbo proxy service
-     * @param zookeeperCacheManager the zookeeper cache manager
+     * @param dubboProxyService the dubbo proxy service
+     * @param localCacheManager the local cache manager
      */
     @Autowired(required = false)
-    public DubboConfiguration(final DubboProxyService dubboProxyService, final ZookeeperCacheManager zookeeperCacheManager) {
+    public DubboConfiguration(final DubboProxyService dubboProxyService, final LocalCacheManager localCacheManager) {
         this.dubboProxyService = dubboProxyService;
-        this.zookeeperCacheManager = zookeeperCacheManager;
+        this.localCacheManager = localCacheManager;
     }
 
     /**
@@ -57,7 +58,7 @@ public class DubboConfiguration {
      */
     @Bean
     public SoulPlugin dubboPlugin() {
-        return new DubboPlugin(zookeeperCacheManager, dubboProxyService);
+        return new DubboPlugin(localCacheManager, dubboProxyService);
     }
 
 }

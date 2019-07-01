@@ -18,7 +18,7 @@
 
 package org.dromara.soul.web.condition.judge;
 
-import org.dromara.soul.common.dto.zk.ConditionZkDTO;
+import org.dromara.soul.common.dto.ConditionData;
 
 import java.util.regex.Pattern;
 
@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
 public class RegExOperatorJudge implements OperatorJudge {
 
     @Override
-    public Boolean judge(final ConditionZkDTO conditionZkDTO, final String realData) {
-        return Pattern.matches(conditionZkDTO.getParamValue(), realData);
+    public Boolean judge(final ConditionData conditionData, final String realData) {
+        return Pattern.matches(conditionData.getParamValue(), realData);
     }
 }
