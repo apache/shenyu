@@ -31,29 +31,26 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * Implements the main method of LookupCacheManager, providing an API for updating cache operations.
+ *
  * @author huangxiaofeng
- * @date 2019/6/30 11:16
  */
-public abstract class AbstractLookupCacheManager implements LookupCacheManager {
+public abstract class AbstractLocalCacheManager implements LocalCacheManager {
 
     /**
-     * pluginName -> PluginData
+     * The constant PLUGIN_MAP.
      */
     protected static final ConcurrentMap<String, PluginData> PLUGIN_MAP = Maps.newConcurrentMap();
 
     /**
-     * pluginName -> List<SelectorData>
+     * The constant SELECTOR_MAP.
      */
     protected static final ConcurrentMap<String, List<SelectorData>> SELECTOR_MAP = Maps.newConcurrentMap();
 
     /**
-     * selectorId -> List<RuleData>
+     * The constant RULE_MAP.
      */
     protected static final ConcurrentMap<String, List<RuleData>> RULE_MAP = Maps.newConcurrentMap();
 
-    /**
-     * appKey -> AppAuthData
-     */
     protected static final ConcurrentMap<String, AppAuthData> AUTH_MAP = Maps.newConcurrentMap();
 
     protected static final ConcurrentHashMap<ConfigGroupEnum, ConfigData> GROUP_CACHE = new ConcurrentHashMap<>();
@@ -102,22 +99,43 @@ public abstract class AbstractLookupCacheManager implements LookupCacheManager {
         return RULE_MAP.get(selectorId);
     }
 
-    //TODO
+
+    /**
+     * Flush all plugin.
+     *
+     * @param pluginConfig the plugin config
+     */
+//TODO
     protected void flushAllPlugin(ConfigData<PluginData> pluginConfig) {
 
     }
 
-    //TODO
+    /**
+     * Flush all app auth.
+     *
+     * @param appAuthConfig the app auth config
+     */
+//TODO
     protected void flushAllAppAuth(ConfigData<AppAuthData> appAuthConfig) {
 
     }
 
-    //TODO
+    /**
+     * Flush all rule.
+     *
+     * @param ruleConfig the rule config
+     */
+//TODO
     protected void flushAllRule(ConfigData<RuleData> ruleConfig) {
 
     }
 
-    //TODO
+    /**
+     * Flush all selector.
+     *
+     * @param selectorConfig the selector config
+     */
+//TODO
     protected void flushAllSelector(ConfigData<SelectorData> selectorConfig) {
 
     }

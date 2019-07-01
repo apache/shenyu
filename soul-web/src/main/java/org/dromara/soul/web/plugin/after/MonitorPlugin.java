@@ -20,12 +20,12 @@ package org.dromara.soul.web.plugin.after;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
-import org.dromara.soul.common.dto.zk.RuleZkDTO;
-import org.dromara.soul.common.dto.zk.SelectorZkDTO;
+import org.dromara.soul.common.dto.RuleData;
+import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.enums.ResultEnum;
-import org.dromara.soul.web.cache.ZookeeperCacheManager;
+import org.dromara.soul.web.cache.ZookeeperSyncCache;
 import org.dromara.soul.web.disruptor.publisher.SoulEventPublisher;
 import org.dromara.soul.web.influxdb.entity.MonitorDO;
 import org.dromara.soul.web.plugin.AbstractSoulPlugin;
@@ -49,16 +49,16 @@ public class MonitorPlugin extends AbstractSoulPlugin {
      * Instantiates a new Monitor plugin.
      *
      * @param soulEventPublisher    the soul event publisher
-     * @param zookeeperCacheManager the zookeeper cache manager
+     * @param zookeeperSyncCache the zookeeper cache manager
      */
     public MonitorPlugin(final SoulEventPublisher soulEventPublisher,
-                         final ZookeeperCacheManager zookeeperCacheManager) {
-        super(zookeeperCacheManager);
+                         final ZookeeperSyncCache zookeeperSyncCache) {
+        super(zookeeperSyncCache);
         this.soulEventPublisher = soulEventPublisher;
     }
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorZkDTO selector, final RuleZkDTO rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
         soulEventPublisher.publishEvent(buildMonitorData(exchange));
         return chain.execute(exchange);
     }

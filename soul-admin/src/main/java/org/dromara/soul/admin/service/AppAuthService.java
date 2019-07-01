@@ -37,7 +37,7 @@ public interface AppAuthService {
      * create or update application authority.
      *
      * @param appAuthDTO {@linkplain AppAuthDTO}
-     * @return rows
+     * @return rows int
      */
     int createOrUpdate(AppAuthDTO appAuthDTO);
 
@@ -45,7 +45,7 @@ public interface AppAuthService {
      * delete application authorities.
      *
      * @param ids primary key.
-     * @return rows
+     * @return rows int
      */
     int delete(List<String> ids);
 
@@ -66,8 +66,9 @@ public interface AppAuthService {
     CommonPager<AppAuthVO> listByPage(AppAuthQuery appAuthQuery);
 
     /**
-     * find all AppAuth data
-     * @return {@linkplain List<AppAuthVO>}
+     * List all list.
+     *
+     * @return the list
      */
     List<AppAuthData> listAll();
 

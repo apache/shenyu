@@ -16,10 +16,10 @@
  *
  */
 
-package org.dromara.soul.web.config;
+package org.dromara.soul.web.configuration;
 
+import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.cache.UpstreamCacheManager;
-import org.dromara.soul.web.cache.ZookeeperCacheManager;
 import org.dromara.soul.web.filter.BodyWebFilter;
 import org.dromara.soul.web.filter.ParamWebFilter;
 import org.dromara.soul.web.filter.TimeWebFilter;
@@ -64,7 +64,7 @@ import java.util.stream.Collectors;
 @ComponentScan("org.dromara.soul")
 public class SoulConfiguration {
 
-    private final ZookeeperCacheManager zookeeperCacheManager;
+    private final LocalCacheManager localCacheManager;
 
     private final RedisRateLimiter redisRateLimiter;
 
@@ -73,15 +73,15 @@ public class SoulConfiguration {
     /**
      * Instantiates a new Soul configuration.
      *
-     * @param zookeeperCacheManager the zookeeper cache manager
-     * @param redisRateLimiter      the redis rate limiter
-     * @param upstreamCacheManager  the upstream cache manager
+     * @param localCacheManager    the local cache manager
+     * @param redisRateLimiter     the redis rate limiter
+     * @param upstreamCacheManager the upstream cache manager
      */
     @Autowired(required = false)
-    public SoulConfiguration(final ZookeeperCacheManager zookeeperCacheManager,
+    public SoulConfiguration(final LocalCacheManager localCacheManager,
                              final RedisRateLimiter redisRateLimiter,
                              final UpstreamCacheManager upstreamCacheManager) {
-        this.zookeeperCacheManager = zookeeperCacheManager;
+        this.localCacheManager = localCacheManager;
         this.redisRateLimiter = redisRateLimiter;
         this.upstreamCacheManager = upstreamCacheManager;
     }
@@ -104,7 +104,7 @@ public class SoulConfiguration {
      */
     @Bean
     public SoulPlugin signPlugin() {
-        return new SignPlugin(zookeeperCacheManager);
+        return new SignPlugin(localCacheManager);
     }
 
     /**
@@ -114,7 +114,7 @@ public class SoulConfiguration {
      */
     @Bean
     public SoulPlugin wafPlugin() {
-        return new WafPlugin(zookeeperCacheManager);
+        return new WafPlugin(localCacheManager);
     }
 
 
@@ -125,7 +125,7 @@ public class SoulConfiguration {
      */
     @Bean
     public SoulPlugin rateLimiterPlugin() {
-        return new RateLimiterPlugin(zookeeperCacheManager, redisRateLimiter);
+        return new RateLimiterPlugin(localCacheManager, redisRateLimiter);
     }
 
     /**
@@ -135,7 +135,7 @@ public class SoulConfiguration {
      */
     @Bean
     public SoulPlugin rewritePlugin() {
-        return new RewritePlugin(zookeeperCacheManager);
+        return new RewritePlugin(localCacheManager);
     }
 
     /**
@@ -145,7 +145,7 @@ public class SoulConfiguration {
      */
     @Bean
     public SoulPlugin dividePlugin() {
-        return new DividePlugin(zookeeperCacheManager, upstreamCacheManager);
+        return new DividePlugin(localCacheManager, upstreamCacheManager);
     }
 
     /**
@@ -158,7 +158,7 @@ public class SoulConfiguration {
     @Bean
     public WebSocketPlugin webSocketPlugin(final WebSocketClient webSocketClient,
                                            final WebSocketService webSocketService) {
-        return new WebSocketPlugin(zookeeperCacheManager, upstreamCacheManager, webSocketClient, webSocketService);
+        return new WebSocketPlugin(localCacheManager, upstreamCacheManager, webSocketClient, webSocketService);
     }
 
     /**
@@ -189,6 +189,7 @@ public class SoulConfiguration {
                 }).collect(Collectors.toList());
         return new SoulWebHandler(soulPlugins);
     }
+
     /**
      * Body web filter web filter.
      *
@@ -200,10 +201,12 @@ public class SoulConfiguration {
         return new BodyWebFilter();
     }
 
+
     /**
-     * init param web filter.
+     * Param web filter web filter.
      *
-     * @return {@linkplain ParamWebFilter}
+     * @param endpointProperties the endpoint properties
+     * @return the web filter
      */
     @Bean
     @Order(1)

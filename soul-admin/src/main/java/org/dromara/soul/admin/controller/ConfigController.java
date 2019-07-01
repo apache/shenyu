@@ -39,8 +39,9 @@ import java.util.Map;
 
 /**
  * This Controller only when HttpLongPollingDataChangedListener exist, will take effect.
+ *
  * @author huangxiaofeng
- * @date 2019/6/24 23:00
+ * @author xiaoyu
  */
 @ConditionalOnBean(HttpLongPollingDataChangedListener.class)
 @RestController
@@ -51,6 +52,12 @@ public class ConfigController {
     @Resource
     private HttpLongPollingDataChangedListener longPollingListener;
 
+    /**
+     * Fetch configs soul result.
+     *
+     * @param groupKeys the group keys
+     * @return the soul result
+     */
     @GetMapping(path = "", params = "groupKeys")
     public SoulResult fetchConfigs(@NotNull String[] groupKeys) {
         try {
@@ -67,7 +74,10 @@ public class ConfigController {
     }
 
     /**
-     * Listen for changes to group data.
+     * Listener.
+     *
+     * @param request  the request
+     * @param response the response
      */
     @PostMapping(value = "/listener")
     public void listener(HttpServletRequest request, HttpServletResponse response) {

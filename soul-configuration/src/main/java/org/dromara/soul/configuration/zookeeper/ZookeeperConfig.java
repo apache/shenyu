@@ -22,7 +22,7 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * The type Zookeeper config.
+ * The type Zookeeper configuration.
  *
  * @author xiaoyu(Myth)
  */

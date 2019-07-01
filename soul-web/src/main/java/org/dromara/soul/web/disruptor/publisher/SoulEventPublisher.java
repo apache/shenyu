@@ -23,7 +23,7 @@ import com.lmax.disruptor.IgnoreExceptionHandler;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
-import org.dromara.soul.web.concurrent.SoulThreadFactory;
+import org.dromara.soul.common.concurrent.SoulThreadFactory;
 import org.dromara.soul.web.disruptor.event.SoulDataEvent;
 import org.dromara.soul.web.disruptor.factory.SoulEventFactory;
 import org.dromara.soul.web.disruptor.handler.SoulDataHandler;
@@ -77,7 +77,7 @@ public class SoulEventPublisher implements InitializingBean, DisposableBean {
 
         final Executor executor = new ThreadPoolExecutor(threadSize, threadSize, 0, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(),
-                SoulThreadFactory.create("soul-log-disruptor", false),
+                SoulThreadFactory.create("monitor-disruptor", false),
                 new ThreadPoolExecutor.AbortPolicy());
 
         SoulDataHandler[] consumers = new SoulDataHandler[threadSize];

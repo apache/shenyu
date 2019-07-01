@@ -21,10 +21,10 @@ package org.dromara.soul.web.plugin.function;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.dto.RuleData;
+import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.dto.convert.rule.DivideRuleHandle;
-import org.dromara.soul.common.dto.zk.RuleZkDTO;
-import org.dromara.soul.common.dto.zk.SelectorZkDTO;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.enums.ResultEnum;
@@ -32,8 +32,8 @@ import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.web.balance.utils.LoadBalanceUtils;
+import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.cache.UpstreamCacheManager;
-import org.dromara.soul.web.cache.ZookeeperCacheManager;
 import org.dromara.soul.web.plugin.AbstractSoulPlugin;
 import org.dromara.soul.web.plugin.SoulPluginChain;
 import org.dromara.soul.web.plugin.hystrix.HttpCommand;
@@ -65,15 +65,16 @@ public class DividePlugin extends AbstractSoulPlugin {
     /**
      * Instantiates a new Divide plugin.
      *
-     * @param zookeeperCacheManager the zookeeper cache manager
+     * @param localCacheManager    the local cache manager
+     * @param upstreamCacheManager the upstream cache manager
      */
-    public DividePlugin(final ZookeeperCacheManager zookeeperCacheManager, final UpstreamCacheManager upstreamCacheManager) {
-        super(zookeeperCacheManager);
+    public DividePlugin(final LocalCacheManager localCacheManager, final UpstreamCacheManager upstreamCacheManager) {
+        super(localCacheManager);
         this.upstreamCacheManager = upstreamCacheManager;
     }
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorZkDTO selector, final RuleZkDTO rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
         final RequestDTO requestDTO = exchange.getAttribute(Constants.REQUESTDTO);
 
         final DivideRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), DivideRuleHandle.class);
@@ -89,7 +90,7 @@ public class DividePlugin extends AbstractSoulPlugin {
         final List<DivideUpstream> upstreamList =
                 upstreamCacheManager.findUpstreamListBySelectorId(selector.getId());
         if (CollectionUtils.isEmpty(upstreamList)) {
-            LogUtils.error(LOGGER, "divide upstream config error：{}", rule::toString);
+            LogUtils.error(LOGGER, "divide upstream configuration error：{}", rule::toString);
             return chain.execute(exchange);
         }
 

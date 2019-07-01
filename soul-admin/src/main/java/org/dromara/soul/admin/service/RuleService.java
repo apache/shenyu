@@ -37,7 +37,7 @@ public interface RuleService {
      * create or update rule.
      *
      * @param ruleDTO {@linkplain RuleDTO}
-     * @return rows
+     * @return rows int
      */
     int createOrUpdate(RuleDTO ruleDTO);
 
@@ -45,7 +45,7 @@ public interface RuleService {
      * delete rules.
      *
      * @param ids primary key.
-     * @return rows
+     * @return rows int
      */
     int delete(List<String> ids);
 
@@ -66,9 +66,9 @@ public interface RuleService {
     CommonPager<RuleVO> listByPage(RuleQuery ruleQuery);
 
     /**
-     * find all rule with the conditions
+     * List all list.
      *
-     * @return {@linkplain List<RuleVO>}
+     * @return the list
      */
     List<RuleData> listAll();
 

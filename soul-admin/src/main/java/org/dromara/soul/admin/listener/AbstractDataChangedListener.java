@@ -29,7 +29,7 @@ import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.utils.GsonUtils;
-import org.dromara.soul.common.utils.MD5Utils;
+import org.dromara.soul.common.utils.Md5Utils;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.InitializingBean;
 
@@ -53,10 +53,9 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
     private static final Logger logger = getLogger(AbstractDataChangedListener.class);
 
     /**
-     * groupKey -> cacheItem
+     * The constant CACHE.
      */
     protected static final ConcurrentHashMap<String, ConfigDataCache> CACHE = new ConcurrentHashMap<>();
-
 
     @Resource
     private AppAuthService appAuthService;
@@ -80,10 +79,10 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
     private SelectorService selectorService;
 
     /**
-     * fetch config from database.
+     * fetch configuration from database.
      *
      * @param groupKey the group key
-     * @return the config data
+     * @return the configuration data
      */
     public ConfigData<?> fetchConfig(ConfigGroupEnum groupKey) {
         ConfigDataCache config = CACHE.get(groupKey.name());
@@ -184,7 +183,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         try {
             String json = GsonUtils.getInstance().toJson(selectorService.listAll());
             String group = ConfigGroupEnum.SELECTOR.name();
-            CACHE.put(group, new ConfigDataCache(group, MD5Utils.md5(json), System.currentTimeMillis()));
+            CACHE.put(group, new ConfigDataCache(group, Md5Utils.md5(json), System.currentTimeMillis()));
         } catch (Exception e) {
             logger.warn("updateSelectorCache error.", e);
         }
@@ -197,7 +196,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         try {
             String json = GsonUtils.getInstance().toJson(ruleService.listAll());
             String group = ConfigGroupEnum.RULE.name();
-            CACHE.put(group, new ConfigDataCache(group, MD5Utils.md5(json), System.currentTimeMillis()));
+            CACHE.put(group, new ConfigDataCache(group, Md5Utils.md5(json), System.currentTimeMillis()));
         } catch (Exception e) {
             logger.warn("updateRuleCache error.", e);
         }
@@ -210,7 +209,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         try {
             String json = GsonUtils.getInstance().toJson(pluginService.listAll());
             String group = ConfigGroupEnum.PLUGIN.name();
-            CACHE.put(group, new ConfigDataCache(group, MD5Utils.md5(json), System.currentTimeMillis()));
+            CACHE.put(group, new ConfigDataCache(group, Md5Utils.md5(json), System.currentTimeMillis()));
         } catch (Exception e) {
             logger.warn("updatePluginCache error.", e);
         }
@@ -223,7 +222,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         try {
             String json = GsonUtils.getInstance().toJson(appAuthService.listAll());
             String group = ConfigGroupEnum.APP_AUTH.name();
-            CACHE.put(group, new ConfigDataCache(group, MD5Utils.md5(json), System.currentTimeMillis()));
+            CACHE.put(group, new ConfigDataCache(group, Md5Utils.md5(json), System.currentTimeMillis()));
         } catch (Exception e) {
             logger.warn("updateAppAuthCache error.", e);
         }

@@ -39,7 +39,7 @@ public class ZookeeperConfiguration {
     /**
      * Zk serializer zk serializer.
      *
-     * @param zookeeperConfig the zookeeper config
+     * @param zookeeperConfig the zookeeper configuration
      * @return the zk serializer
      */
     @Bean
@@ -51,7 +51,7 @@ public class ZookeeperConfiguration {
     /**
      * register zkClient in spring ioc.
      *
-     * @param zookeeperConfig the zookeeper config
+     * @param zookeeperConfig the zookeeper configuration
      * @param zkSerializer    the zk serializer
      * @return ZkClient {@linkplain ZkClient}
      */

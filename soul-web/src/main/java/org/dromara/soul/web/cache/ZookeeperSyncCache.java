@@ -20,25 +20,21 @@ package org.dromara.soul.web.cache;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.I0Itec.zkclient.IZkDataListener;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.common.constant.ZkPathConstants;
-import org.dromara.soul.common.dto.zk.AppAuthZkDTO;
-import org.dromara.soul.common.dto.zk.PluginZkDTO;
-import org.dromara.soul.common.dto.zk.RuleZkDTO;
-import org.dromara.soul.common.dto.zk.SelectorZkDTO;
+import org.dromara.soul.common.dto.AppAuthData;
+import org.dromara.soul.common.dto.PluginData;
+import org.dromara.soul.common.dto.RuleData;
+import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -47,16 +43,7 @@ import java.util.stream.Collectors;
  *
  * @author xiaoyu
  */
-@Component
-public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean {
-
-    private static final Map<String, PluginZkDTO> PLUGIN_MAP = Maps.newConcurrentMap();
-
-    private static final Map<String, List<SelectorZkDTO>> SELECTOR_MAP = Maps.newConcurrentMap();
-
-    private static final Map<String, List<RuleZkDTO>> RULE_MAP = Maps.newConcurrentMap();
-
-    private static final Map<String, AppAuthZkDTO> AUTH_MAP = Maps.newConcurrentMap();
+public class ZookeeperSyncCache extends AbstractLocalCacheManager implements CommandLineRunner, DisposableBean {
 
     private final ZkClient zkClient;
 
@@ -68,50 +55,10 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
      *
      * @param zkClient the zk client
      */
-    @Autowired(required = false)
-    public ZookeeperCacheManager(final ZkClient zkClient) {
+    public ZookeeperSyncCache(final ZkClient zkClient) {
         this.zkClient = zkClient;
     }
 
-    /**
-     * acquire AppAuthZkDTO by appKey with AUTH_MAP container.
-     *
-     * @param appKey this is appKey.
-     * @return AppAuthZkDTO {@linkplain AppAuthZkDTO}
-     */
-    public AppAuthZkDTO findAuthDTOByAppKey(final String appKey) {
-        return AUTH_MAP.get(appKey);
-    }
-
-    /**
-     * acquire PluginZkDTO by pluginName with PLUGIN_MAP container.
-     *
-     * @param pluginName this is plugin name.
-     * @return PluginZkDTO {@linkplain  PluginZkDTO}
-     */
-    public PluginZkDTO findPluginByName(final String pluginName) {
-        return PLUGIN_MAP.get(pluginName);
-    }
-
-    /**
-     * acquire SelectorZkDTO list  by pluginName with  SELECTOR_MAP HashMap container.
-     *
-     * @param pluginName this is plugin name.
-     * @return SelectorZkDTO list {@linkplain  SelectorZkDTO}
-     */
-    public List<SelectorZkDTO> findSelectorByPluginName(final String pluginName) {
-        return SELECTOR_MAP.get(pluginName);
-    }
-
-    /**
-     * acquire RuleZkDTO list by selectorId with  RULE_MAP HashMap container.
-     *
-     * @param selectorId this is selectorId.
-     * @return RuleZkDTO list {@linkplain  RuleZkDTO}
-     */
-    public List<RuleZkDTO> findRuleBySelectorId(final String selectorId) {
-        return RULE_MAP.get(selectorId);
-    }
 
     @Override
     public void run(final String... args) {
@@ -148,15 +95,15 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
         if (!zkClient.exists(pluginPath)) {
             zkClient.createPersistent(pluginPath, true);
         }
-        PluginZkDTO data = zkClient.readData(pluginPath);
-        Optional.ofNullable(data).ifPresent(d -> PLUGIN_MAP.put(pluginName, data));
+        PluginData data = zkClient.readData(pluginPath);
+        Optional.ofNullable(data).ifPresent(d -> PLUGIN_MAP.put(data.getName(), data));
         zkClient.subscribeDataChanges(pluginPath, new IZkDataListener() {
             @Override
             public void handleDataChange(final String dataPath, final Object data) {
                 Optional.ofNullable(data)
-                        .ifPresent(o -> {
-                            PluginZkDTO dto = (PluginZkDTO) o;
-                            PLUGIN_MAP.put(dto.getName(), dto);
+                        .ifPresent(d -> {
+                            PluginData pluginData = (PluginData) d;
+                            PLUGIN_MAP.put(pluginData.getName(), pluginData);
                         });
             }
 
@@ -224,31 +171,25 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
         });
     }
 
-    /**
-     * set  SelectorMap by key.
-     *
-     * @param key           SELECTOR_MAP key.
-     * @param selectorZkDTO data.
-     */
-    private void setSelectorMapByKey(final String key, final SelectorZkDTO selectorZkDTO) {
+    private void setSelectorMapByKey(final String key, final SelectorData selectorData) {
         Optional.ofNullable(key)
                 .ifPresent(k -> {
-                    if (selectorZkDTO.getPluginName().equals(PluginEnum.DIVIDE.getName())) {
-                        UpstreamCacheManager.submit(selectorZkDTO);
+                    if (selectorData.getPluginName().equals(PluginEnum.DIVIDE.getName())) {
+                        UpstreamCacheManager.submit(selectorData);
                     }
                     if (SELECTOR_MAP.containsKey(k)) {
-                        final List<SelectorZkDTO> selectorZkDTOList = SELECTOR_MAP.get(key);
-                        final List<SelectorZkDTO> resultList = selectorZkDTOList.stream()
+                        final List<SelectorData> selectorZkDTOList = SELECTOR_MAP.get(key);
+                        final List<SelectorData> resultList = selectorZkDTOList.stream()
                                 .filter(r -> !r.getId()
-                                        .equals(selectorZkDTO.getId()))
+                                        .equals(selectorData.getId()))
                                 .collect(Collectors.toList());
-                        resultList.add(selectorZkDTO);
-                        final List<SelectorZkDTO> collect = resultList.stream()
-                                .sorted(Comparator.comparing(SelectorZkDTO::getSort))
+                        resultList.add(selectorData);
+                        final List<SelectorData> collect = resultList.stream()
+                                .sorted(Comparator.comparing(SelectorData::getSort))
                                 .collect(Collectors.toList());
                         SELECTOR_MAP.put(key, collect);
                     } else {
-                        SELECTOR_MAP.put(key, Lists.newArrayList(selectorZkDTO));
+                        SELECTOR_MAP.put(key, Lists.newArrayList(selectorData));
                     }
                 });
     }
@@ -257,7 +198,7 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
         zkClient.subscribeDataChanges(path, new IZkDataListener() {
             @Override
             public void handleDataChange(final String dataPath, final Object data) {
-                Optional.ofNullable(data).ifPresent(d -> selectorDataChange((SelectorZkDTO) d));
+                Optional.ofNullable(data).ifPresent(d -> selectorDataChange((SelectorData) d));
             }
 
             @Override
@@ -267,48 +208,48 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
                 final String str = dataPath.substring(ZkPathConstants.SELECTOR_PARENT.length());
                 final String key = str.substring(1, str.length() - id.length() - 1);
                 Optional.of(key).ifPresent(k -> {
-                    final List<SelectorZkDTO> selectorZkDTOList = SELECTOR_MAP.get(k);
-                    selectorZkDTOList.removeIf(e -> e.getId().equals(id));
+                    final List<SelectorData> selectorDataList = SELECTOR_MAP.get(k);
+                    selectorDataList.removeIf(e -> e.getId().equals(id));
                 });
             }
         });
     }
 
     private void setSelectorData(final String realPath) {
-        final SelectorZkDTO selectorZkDTO = zkClient.readData(realPath);
-        Optional.ofNullable(selectorZkDTO)
-                .ifPresent(dto -> {
-                    final String key = dto.getPluginName();
-                    setSelectorMapByKey(key, dto);
+        final SelectorData selectorData = zkClient.readData(realPath);
+        Optional.ofNullable(selectorData)
+                .ifPresent(s -> {
+                    final String key = s.getPluginName();
+                    setSelectorMapByKey(key, s);
                 });
     }
 
     private void setRuleData(final String rulePath) {
-        final RuleZkDTO ruleZkDTO = zkClient.readData(rulePath);
-        Optional.ofNullable(ruleZkDTO)
+        final RuleData ruleData = zkClient.readData(rulePath);
+        Optional.ofNullable(ruleData)
                 .ifPresent(dto -> {
                     String key = dto.getSelectorId();
-                    setRuleMapByKey(key, ruleZkDTO);
+                    setRuleMapByKey(key, ruleData);
                 });
     }
 
-    private void setRuleMapByKey(final String key, final RuleZkDTO ruleZkDTO) {
+    private void setRuleMapByKey(final String key, final RuleData ruleData) {
         Optional.ofNullable(key)
                 .ifPresent(k -> {
                     if (RULE_MAP.containsKey(k)) {
-                        final List<RuleZkDTO> ruleZkDTOList = RULE_MAP.get(key);
-                        final List<RuleZkDTO> resultList = ruleZkDTOList.stream()
+                        final List<RuleData> ruleZkDTOList = RULE_MAP.get(key);
+                        final List<RuleData> resultList = ruleZkDTOList.stream()
                                 .filter(r -> !r.getId()
-                                        .equals(ruleZkDTO.getId()))
+                                        .equals(ruleData.getId()))
                                 .collect(Collectors.toList());
-                        resultList.add(ruleZkDTO);
-                        final List<RuleZkDTO> collect = resultList.stream()
-                                .sorted(Comparator.comparing(RuleZkDTO::getSort))
+                        resultList.add(ruleData);
+                        final List<RuleData> collect = resultList.stream()
+                                .sorted(Comparator.comparing(RuleData::getSort))
                                 .collect(Collectors.toList());
                         RULE_MAP.put(key, collect);
 
                     } else {
-                        RULE_MAP.put(key, Lists.newArrayList(ruleZkDTO));
+                        RULE_MAP.put(key, Lists.newArrayList(ruleData));
                     }
                 });
     }
@@ -317,7 +258,7 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
         zkClient.subscribeDataChanges(path, new IZkDataListener() {
             @Override
             public void handleDataChange(final String dataPath, final Object data) {
-                Optional.ofNullable(data).ifPresent(d -> ruleDataChange((RuleZkDTO) d));
+                Optional.ofNullable(data).ifPresent(d -> ruleDataChange((RuleData) d));
             }
 
             @Override
@@ -329,25 +270,25 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
                 final String id = list.get(1);
                 UpstreamCacheManager.removeByKey(id);
                 Optional.ofNullable(key).ifPresent(k -> {
-                    final List<RuleZkDTO> ruleZkDTOList = RULE_MAP.get(k);
-                    ruleZkDTOList.removeIf(e -> e.getId().equals(id));
+                    final List<RuleData> ruleDataList = RULE_MAP.get(k);
+                    ruleDataList.removeIf(e -> e.getId().equals(id));
                 });
             }
         });
     }
 
-    private void selectorDataChange(final SelectorZkDTO dto) {
+    private void selectorDataChange(final SelectorData dto) {
         if (dto.getPluginName().equals(PluginEnum.DIVIDE.getName())) {
             UpstreamCacheManager.submit(dto);
         }
         final String key = dto.getPluginName();
-        final List<SelectorZkDTO> selectorZkDTOList = SELECTOR_MAP.get(key);
-        if (CollectionUtils.isNotEmpty(selectorZkDTOList)) {
-            final List<SelectorZkDTO> resultList =
-                    selectorZkDTOList.stream().filter(r -> !r.getId().equals(dto.getId())).collect(Collectors.toList());
+        final List<SelectorData> selectorDataList = SELECTOR_MAP.get(key);
+        if (CollectionUtils.isNotEmpty(selectorDataList)) {
+            final List<SelectorData> resultList =
+                    selectorDataList.stream().filter(r -> !r.getId().equals(dto.getId())).collect(Collectors.toList());
             resultList.add(dto);
-            final List<SelectorZkDTO> collect = resultList.stream()
-                    .sorted(Comparator.comparing(SelectorZkDTO::getSort))
+            final List<SelectorData> collect = resultList.stream()
+                    .sorted(Comparator.comparing(SelectorData::getSort))
                     .collect(Collectors.toList());
             SELECTOR_MAP.put(key, collect);
         } else {
@@ -355,20 +296,20 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
         }
     }
 
-    private void ruleDataChange(final RuleZkDTO dto) {
-        final String key = dto.getSelectorId();
-        final List<RuleZkDTO> ruleZkDTOList = RULE_MAP.get(key);
-        if (CollectionUtils.isNotEmpty(ruleZkDTOList)) {
-            final List<RuleZkDTO> resultList = ruleZkDTOList.stream()
+    private void ruleDataChange(final RuleData ruleData) {
+        final String key = ruleData.getSelectorId();
+        final List<RuleData> ruleDataList = RULE_MAP.get(key);
+        if (CollectionUtils.isNotEmpty(ruleDataList)) {
+            final List<RuleData> resultList = ruleDataList.stream()
                     .filter(r -> !r.getId()
-                            .equals(dto.getId())).collect(Collectors.toList());
-            resultList.add(dto);
-            final List<RuleZkDTO> collect = resultList.stream()
-                    .sorted(Comparator.comparing(RuleZkDTO::getSort))
+                            .equals(ruleData.getId())).collect(Collectors.toList());
+            resultList.add(ruleData);
+            final List<RuleData> collect = resultList.stream()
+                    .sorted(Comparator.comparing(RuleData::getSort))
                     .collect(Collectors.toList());
             RULE_MAP.put(key, collect);
         } else {
-            RULE_MAP.put(key, Lists.newArrayList(dto));
+            RULE_MAP.put(key, Lists.newArrayList(ruleData));
         }
     }
 
@@ -399,8 +340,8 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
     }
 
     private void setAuthData(final String realPath) {
-        final AppAuthZkDTO appAuthZkDTO = zkClient.readData(realPath);
-        Optional.ofNullable(appAuthZkDTO)
+        final AppAuthData appAuthData = zkClient.readData(realPath);
+        Optional.ofNullable(appAuthData)
                 .ifPresent(dto -> AUTH_MAP.put(dto.getAppKey(), dto));
     }
 
@@ -409,7 +350,7 @@ public class ZookeeperCacheManager implements CommandLineRunner, DisposableBean 
             @Override
             public void handleDataChange(final String dataPath, final Object data) {
                 Optional.ofNullable(data)
-                        .ifPresent(o -> AUTH_MAP.put(((AppAuthZkDTO) o).getAppKey(), (AppAuthZkDTO) o));
+                        .ifPresent(o -> AUTH_MAP.put(((AppAuthData) o).getAppKey(), (AppAuthData) o));
             }
 
             @Override

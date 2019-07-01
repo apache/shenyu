@@ -23,7 +23,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * The springCloud plugin config for eureka.
+ * The springCloud plugin configuration for eureka.
  *
  * @author xiaoyu(Myth)
  */

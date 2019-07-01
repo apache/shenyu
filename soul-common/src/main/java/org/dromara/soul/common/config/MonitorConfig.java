@@ -23,7 +23,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * The monitor config for influxdb.
+ * The monitor configuration for influxdb.
  *
  * @author xiaoyu(Myth)
  */

@@ -23,7 +23,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * The rateLimiter config for redis.
+ * The rateLimiter configuration for redis.
  *
  * @author xiaoyu(Myth)
  */
