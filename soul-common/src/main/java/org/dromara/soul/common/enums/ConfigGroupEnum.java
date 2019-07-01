@@ -19,8 +19,8 @@ package org.dromara.soul.common.enums;
 
 /**
  * config group
+ *
  * @author huangxiaofeng
- * @date 2019/6/29 23:03
  */
 public enum ConfigGroupEnum {
 

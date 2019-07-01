@@ -67,30 +67,15 @@ public interface PluginService {
 
     /**
      * list all active plugins.
+     *
      * @return {@link List<PluginVO>}
      */
     List<PluginData> listAll();
 
     /**
-     * Sync plugin data for mysql.
-     *
-     * @param pluginId the plugin id
-     * @return the int
-     */
-    int syncPluginData(String pluginId);
-
-    /**
-     * sync plugins.
-     *
-     * @return rows int
-     */
-    int syncPluginAll();
-
-
-    /**
      * Enabled string.
      *
-     * @param ids    the ids
+     * @param ids     the ids
      * @param enabled the enable
      * @return the string
      */

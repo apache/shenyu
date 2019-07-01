@@ -26,15 +26,14 @@ import org.dromara.soul.admin.service.SelectorService;
 import org.dromara.soul.admin.vo.SelectorVO;
 import org.dromara.soul.common.result.SoulResult;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import reactor.core.publisher.Mono;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Objects;
@@ -61,7 +60,7 @@ public class SelectorController {
      * @param pluginId    plugin id.
      * @param currentPage current page.
      * @param pageSize    page size.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @GetMapping("")
     public SoulResult querySelectors(final String pluginId, final Integer currentPage, final Integer pageSize) {
@@ -77,7 +76,7 @@ public class SelectorController {
      * detail selector.
      *
      * @param id selector id.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @GetMapping("/{id}")
     public SoulResult detailSelector(@PathVariable("id") final String id) {
@@ -94,7 +93,7 @@ public class SelectorController {
      * create selector.
      *
      * @param selectorDTO selector.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @PostMapping("")
     public SoulResult createSelector(@RequestBody final SelectorDTO selectorDTO) {
@@ -111,7 +110,7 @@ public class SelectorController {
      *
      * @param id          primary key.
      * @param selectorDTO selector.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @PutMapping("/{id}")
     public SoulResult updateSelector(@PathVariable("id") final String id, @RequestBody final SelectorDTO selectorDTO) {
@@ -129,7 +128,7 @@ public class SelectorController {
      * delete Selectors.
      *
      * @param ids primary key.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @DeleteMapping("/batch")
     public SoulResult deleteSelector(@RequestBody final List<String> ids) {

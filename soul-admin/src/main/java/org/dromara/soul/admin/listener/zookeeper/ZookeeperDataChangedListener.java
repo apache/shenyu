@@ -5,7 +5,7 @@
  *   The ASF licenses this file to You under the Apache License, Version 2.0
  *   (the "License"); you may not use this file except in compliance with
  *   the License.  You may obtain a copy of the License at
- *   
+ *
  *       http://www.apache.org/licenses/LICENSE-2.0
  *
  *   Unless required by applicable law or agreed to in writing, software
@@ -18,7 +18,7 @@
 package org.dromara.soul.admin.listener.zookeeper;
 
 import org.I0Itec.zkclient.ZkClient;
-import org.dromara.soul.admin.listener.AbstractDataChangedListener;
+import org.dromara.soul.admin.listener.DataChangedListener;
 import org.dromara.soul.admin.listener.DataEventType;
 import org.dromara.soul.common.constant.ZkPathConstants;
 import org.dromara.soul.common.dto.AppAuthData;
@@ -30,22 +30,23 @@ import java.util.List;
 
 /**
  * Use zookeeper to push data changes.
+ *
  * @author huangxiaofeng
- * @date 2019/6/30 0:02
+ * @author xiaoyu
  */
-public class ZookeeperDataChangedListener extends AbstractDataChangedListener {
+public class ZookeeperDataChangedListener implements DataChangedListener {
 
     private final ZkClient zkClient;
 
-    public ZookeeperDataChangedListener(ZkClient zkClient) {
+    public ZookeeperDataChangedListener(final ZkClient zkClient) {
         this.zkClient = zkClient;
     }
 
     @Override
-    protected void afterAppAuthChanged(List<AppAuthData> changed, DataEventType eventType) {
+    public void onAppAuthChanged(final List<AppAuthData> changed, final DataEventType eventType) {
         for (AppAuthData data : changed) {
             // delete
-            if ( eventType == DataEventType.DELETE ) {
+            if (eventType == DataEventType.DELETE) {
                 String pluginPath = ZkPathConstants.buildAppAuthPath(data.getAppKey());
                 if (zkClient.exists(pluginPath)) {
                     zkClient.delete(pluginPath);
@@ -63,13 +64,21 @@ public class ZookeeperDataChangedListener extends AbstractDataChangedListener {
     }
 
     @Override
-    protected void afterPluginChanged(List<PluginData> changed, DataEventType eventType) {
+    public void onPluginChanged(final List<PluginData> changed, final DataEventType eventType) {
         for (PluginData data : changed) {
             // delete
-            if ( eventType == DataEventType.DELETE ) {
+            if (eventType == DataEventType.DELETE) {
                 String pluginPath = ZkPathConstants.buildPluginPath(data.getName());
                 if (zkClient.exists(pluginPath)) {
-                    zkClient.delete(pluginPath);
+                    zkClient.deleteRecursive(pluginPath);
+                }
+                String selectorParentPath = ZkPathConstants.buildSelectorParentPath(data.getName());
+                if (zkClient.exists(selectorParentPath)) {
+                    zkClient.deleteRecursive(selectorParentPath);
+                }
+                String ruleParentPath = ZkPathConstants.buildRuleParentPath(data.getName());
+                if (zkClient.exists(ruleParentPath)) {
+                    zkClient.deleteRecursive(ruleParentPath);
                 }
                 continue;
             }
@@ -79,19 +88,52 @@ public class ZookeeperDataChangedListener extends AbstractDataChangedListener {
             if (!zkClient.exists(pluginPath)) {
                 zkClient.createPersistent(pluginPath, true);
             }
-            zkClient.writeData(pluginPath, new PluginData(data.getId(),
-                    data.getName(), data.getRole(), data.getEnabled()));
+            zkClient.writeData(pluginPath, data);
         }
     }
 
     @Override
-    protected void afterRuleChanged(List<RuleData> changed, DataEventType eventType) {
-
+    public void onSelectorChanged(final List<SelectorData> changed, final DataEventType eventType) {
+        for (SelectorData data : changed) {
+            if (eventType == DataEventType.DELETE) {
+                String selectorRealPath = ZkPathConstants.buildSelectorRealPath(data.getName(), data.getId());
+                if (zkClient.exists(selectorRealPath)) {
+                    zkClient.delete(selectorRealPath);
+                }
+                continue;
+            }
+            String selectorParentPath = ZkPathConstants.buildSelectorParentPath(data.getName());
+            if (!zkClient.exists(selectorParentPath)) {
+                zkClient.createPersistent(selectorParentPath, true);
+            }
+            String selectorRealPath = ZkPathConstants.buildSelectorRealPath(data.getName(), data.getId());
+            if (!zkClient.exists(selectorRealPath)) {
+                zkClient.createPersistent(selectorRealPath, true);
+            }
+            zkClient.writeData(selectorRealPath, data);
+        }
     }
 
     @Override
-    protected void afterSelectorChanged(List<SelectorData> changed, DataEventType eventType) {
-
+    public void onRuleChanged(final List<RuleData> changed, final DataEventType eventType) {
+        for (RuleData data : changed) {
+            if (eventType == DataEventType.DELETE) {
+                final String rulePath = ZkPathConstants.buildRulePath(data.getName(), data.getSelectorId(), data.getId());
+                if (zkClient.exists(rulePath)) {
+                    zkClient.delete(rulePath);
+                }
+                continue;
+            }
+            String ruleParentPath = ZkPathConstants.buildRuleParentPath(data.getName());
+            if (!zkClient.exists(ruleParentPath)) {
+                zkClient.createPersistent(ruleParentPath, true);
+            }
+            String ruleRealPath = ZkPathConstants.buildRulePath(data.getName(), data.getSelectorId(), data.getId());
+            if (!zkClient.exists(ruleRealPath)) {
+                zkClient.createPersistent(ruleRealPath, true);
+            }
+            zkClient.writeData(ruleRealPath, data);
+        }
     }
 
 }

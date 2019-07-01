@@ -32,10 +32,10 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Event forwarders, which forward the changed events to each ConfigEventListener
+ * Event forwarders, which forward the changed events to each ConfigEventListener.
  *
  * @author huangxiaofeng
- * @date 2019/6/25 18:26
+ * @author xiaoyu
  */
 @Component
 public class DataChangedEventDispatcher implements ApplicationListener<DataChangedEvent>, InitializingBean {
@@ -44,12 +44,13 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
 
     private List<DataChangedListener> listeners;
 
-    public DataChangedEventDispatcher(ApplicationContext applicationContext) {
+    public DataChangedEventDispatcher(final ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
     }
 
     @Override
-    public void onApplicationEvent(DataChangedEvent event) {
+    @SuppressWarnings("unchecked")
+    public void onApplicationEvent(final DataChangedEvent event) {
         for (DataChangedListener listener : listeners) {
             switch (event.getGroupKey()) {
                 case APP_AUTH:
@@ -65,7 +66,7 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
                     listener.onSelectorChanged((List<SelectorData>) event.getSource(), event.getEventType());
                     break;
                 default:
-                    throw new IllegalStateException("Unexpected value: "+event.getGroupKey());
+                    throw new IllegalStateException("Unexpected value: " + event.getGroupKey());
             }
         }
     }

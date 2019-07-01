@@ -17,6 +17,11 @@
 
 package org.dromara.soul.admin.listener;
 
+/**
+ * The enum Data event type.
+ *
+ * @author xiaoyu
+ */
 public enum DataEventType {
 
     /**

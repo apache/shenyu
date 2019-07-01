@@ -34,7 +34,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Objects;
@@ -61,7 +60,7 @@ public class DashboardUserController {
      * @param userName    user name
      * @param currentPage current page
      * @param pageSize    page size
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @GetMapping("")
     public SoulResult queryDashboardUsers(final String userName, final Integer currentPage, final Integer pageSize) {
@@ -77,7 +76,7 @@ public class DashboardUserController {
      * detail dashboard user.
      *
      * @param id dashboard user id.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @GetMapping("/{id}")
     public SoulResult detailDashboardUser(@PathVariable("id") final String id) {
@@ -93,7 +92,7 @@ public class DashboardUserController {
      * create dashboard user.
      *
      * @param dashboardUserDTO dashboard user.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @PostMapping("")
     public SoulResult createDashboardUser(@RequestBody final DashboardUserDTO dashboardUserDTO) {
@@ -110,7 +109,7 @@ public class DashboardUserController {
      *
      * @param id               primary key.
      * @param dashboardUserDTO dashboard user.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @PutMapping("/{id}")
     public SoulResult updateDashboardUser(@PathVariable("id") final String id, @RequestBody final DashboardUserDTO dashboardUserDTO) {
@@ -128,7 +127,7 @@ public class DashboardUserController {
      * delete dashboard users.
      *
      * @param ids primary key.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @DeleteMapping("/batch")
     public SoulResult deleteDashboardUser(@RequestBody final List<String> ids) {

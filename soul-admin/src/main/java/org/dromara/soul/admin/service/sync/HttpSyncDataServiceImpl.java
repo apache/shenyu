@@ -16,34 +16,22 @@
  *
  */
 
-package org.dromara.soul.common.config;
+package org.dromara.soul.admin.service.sync;
 
-import lombok.Data;
-
-import java.io.Serializable;
+import org.dromara.soul.admin.service.SyncDataService;
 
 /**
- * The monitor config for influxdb.
- *
  * @author xiaoyu(Myth)
  */
-@Data
-public class MonitorConfig implements Serializable {
+public class HttpSyncDataServiceImpl implements SyncDataService {
 
-    private String influxdbUrl;
+    @Override
+    public boolean syncAll() {
+        return false;
+    }
 
-    private String userName;
-
-    private String password;
-
-    private String database;
-
-    private String retentionPolicy;
-
-    private Integer connectTimeout;
-
-    private Integer readTimeout;
-
-    private Integer writeTimeout;
-
+    @Override
+    public boolean syncPluginData(String pluginId) {
+        return false;
+    }
 }

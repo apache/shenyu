@@ -34,7 +34,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Objects;
@@ -61,10 +60,10 @@ public class AppAuthController {
      * @param appKey      application key.
      * @param currentPage current page.
      * @param pageSize    page size.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @GetMapping("")
-    public SoulResult queryAppAuths(final String appKey, final Integer currentPage, final Integer pageSize) {
+    public SoulResult queryAppAuthList(final String appKey, final Integer currentPage, final Integer pageSize) {
         try {
             CommonPager<AppAuthVO> commonPager = appAuthService.listByPage(new AppAuthQuery(appKey, new PageParameter(currentPage, pageSize)));
             return SoulResult.success("query application authorities success", commonPager);
@@ -77,7 +76,7 @@ public class AppAuthController {
      * detail application authority.
      *
      * @param id application authority id.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @GetMapping("/{id}")
     public SoulResult detailAppAuth(@PathVariable("id") final String id) {
@@ -93,7 +92,7 @@ public class AppAuthController {
      * create application authority.
      *
      * @param appAuthDTO appAuth.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @PostMapping("")
     public SoulResult createAppAuth(@RequestBody final AppAuthDTO appAuthDTO) {
@@ -110,7 +109,7 @@ public class AppAuthController {
      *
      * @param id         primary key.
      * @param appAuthDTO AppAuth.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @PutMapping("/{id}")
     public SoulResult updateAppAuth(@PathVariable("id") final String id, @RequestBody final AppAuthDTO appAuthDTO) {
@@ -128,7 +127,7 @@ public class AppAuthController {
      * delete application authorities.
      *
      * @param ids primary key.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @DeleteMapping("/batch")
     public SoulResult deleteAppAuths(@RequestBody final List<String> ids) {

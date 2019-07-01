@@ -23,6 +23,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.dromara.soul.admin.listener.AbstractDataChangedListener;
 import org.dromara.soul.admin.listener.ConfigDataCache;
 import org.dromara.soul.admin.listener.DataEventType;
+import org.dromara.soul.common.concurrent.SoulThreadFactory;
 import org.dromara.soul.common.constant.HttpConstants;
 import org.dromara.soul.common.dto.AppAuthData;
 import org.dromara.soul.common.dto.PluginData;
@@ -55,23 +56,35 @@ import java.util.concurrent.TimeUnit;
  * and informs the client of group information about data changes
  * when there are data changes. If there is no data change after the specified time,
  * the client will make a listening request again.
+ *
  * @author huangxiaofeng
- * @date 2019/6/29 22:27
  * @since 2.0.0
  */
 public class HttpLongPollingDataChangedListener extends AbstractDataChangedListener {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpLongPollingDataChangedListener.class);
 
-    public HttpLongPollingDataChangedListener() {
+    private static final String X_REAL_IP = "X-Real-IP";
 
+    private static final String X_FORWARDED_FOR = "X-Forwarded-For";
+
+    private static final String X_FORWARDED_FOR_SPLIT_SYMBOL = ",";
+
+    /**
+     * Blocked client.
+     */
+    private final BlockingQueue<LongPollingClient> clients;
+
+    private final ScheduledExecutorService scheduler;
+
+
+    /**
+     * Instantiates a new Http long polling data changed listener.
+     */
+    public HttpLongPollingDataChangedListener() {
         this.clients = new ArrayBlockingQueue<>(1024);
-        this.scheduler = new ScheduledThreadPoolExecutor(1, runnable -> {
-            Thread t = new Thread(runnable);
-            t.setDaemon(true);
-            t.setName("soul-http-long-polling");
-            return t;
-        });
+        this.scheduler = new ScheduledThreadPoolExecutor(1,
+                SoulThreadFactory.create("long-polling", true));
 
         // Periodically check the data for changes and update the cache
         scheduler.scheduleWithFixedDelay(() -> {
@@ -86,6 +99,9 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
     /**
      * If the configuration data changes, the group information for the change is immediately responded.
      * Otherwise, the client's request thread is blocked until any data changes or the specified timeout is reached.
+     *
+     * @param request  the request
+     * @param response the response
      */
     public void doLongPolling(HttpServletRequest request, HttpServletResponse response) {
 
@@ -95,7 +111,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
 
         // response immediately.
         if (CollectionUtils.isNotEmpty(changedGroup)) {
-            this.generateResponse(request, response, changedGroup);
+            this.generateResponse(response, changedGroup);
             logger.info("send response with the changed group, ip={}, group={}", clientIp, changedGroup);
             return;
         }
@@ -130,17 +146,12 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         scheduler.execute(new DataChangeTask(ConfigGroupEnum.SELECTOR));
     }
 
-    /**
-     * compare client's md5 and lastModifyTime with server's cache
-     * @param request
-     * @return
-     */
     private static List<ConfigGroupEnum> compareMD5(HttpServletRequest request) {
         List<ConfigGroupEnum> changedGroup = new ArrayList<>(4);
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
             // md5,lastModifyTime
             String[] params = StringUtils.split(request.getParameter(group.name()), ',');
-            if ( params == null || params.length != 2 ) {
+            if (params == null || params.length != 2) {
                 throw new SoulException("group param invalid:" + request.getParameter(group.name()));
             }
             String clientMd5 = params[0];
@@ -154,13 +165,6 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
     }
 
     /**
-     * Blocked client.
-     */
-    private final BlockingQueue<LongPollingClient> clients;
-
-    private final ScheduledExecutorService scheduler;
-
-    /**
      * When a group's data changes, the thread is created to notify the client asynchronously.
      */
     class DataChangeTask implements Runnable {
@@ -169,8 +173,16 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
          * The Group where the data has changed
          */
         final ConfigGroupEnum groupKey;
+        /**
+         * The Change time.
+         */
         final long changeTime = System.currentTimeMillis();
 
+        /**
+         * Instantiates a new Data change task.
+         *
+         * @param groupKey the group key
+         */
         DataChangeTask(ConfigGroupEnum groupKey) {
             this.groupKey = groupKey;
         }
@@ -198,12 +210,34 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
      */
     class LongPollingClient implements Runnable {
 
+        /**
+         * The Async context.
+         */
         final AsyncContext asyncContext;
+        /**
+         * The Create time.
+         */
         final long createTime;
+        /**
+         * The Ip.
+         */
         final String ip;
+        /**
+         * The Timeout time.
+         */
         final long timeoutTime;
+        /**
+         * The Async timeout future.
+         */
         Future<?> asyncTimeoutFuture;
 
+        /**
+         * Instantiates a new Long polling client.
+         *
+         * @param ac          the ac
+         * @param ip          the ip
+         * @param timeoutTime the timeout time
+         */
         LongPollingClient(AsyncContext ac, String ip, long timeoutTime) {
             this.asyncContext = ac;
             this.createTime = System.currentTimeMillis();
@@ -221,20 +255,28 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             clients.add(this);
         }
 
+        /**
+         * Send response.
+         *
+         * @param changedGroups the changed groups
+         */
         void sendResponse(List<ConfigGroupEnum> changedGroups) {
             // cancel scheduler
             if (null != asyncTimeoutFuture) {
                 asyncTimeoutFuture.cancel(false);
             }
-            generateResponse((HttpServletRequest)asyncContext.getRequest(), (HttpServletResponse) asyncContext.getResponse(), changedGroups);
+            generateResponse((HttpServletResponse) asyncContext.getResponse(), changedGroups);
             asyncContext.complete();
         }
     }
 
     /**
      * Send response datagram
+     *
+     * @param response      the response
+     * @param changedGroups the changed groups
      */
-    void generateResponse(HttpServletRequest request, HttpServletResponse response, List<ConfigGroupEnum> changedGroups) {
+    private void generateResponse(HttpServletResponse response, List<ConfigGroupEnum> changedGroups) {
         try {
             String respString = GsonUtils.getInstance().toJson(SoulResult.success("success", changedGroups));
             response.setHeader("Pragma", "no-cache");
@@ -248,14 +290,14 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         }
     }
 
-    private static final String X_REAL_IP = "X-Real-IP";
-    private static final String X_FORWARDED_FOR = "X-Forwarded-For";
-    private static final String X_FORWARDED_FOR_SPLIT_SYMBOL = ",";
 
     /**
      * get real client ip
+     *
+     * @param request the request
+     * @return the remote ip
      */
-    public static String getRemoteIp(HttpServletRequest request) {
+    private static String getRemoteIp(HttpServletRequest request) {
         String xForwardedFor = request.getHeader(X_FORWARDED_FOR);
         if (!StringUtils.isBlank(xForwardedFor)) {
             return xForwardedFor.split(X_FORWARDED_FOR_SPLIT_SYMBOL)[0].trim();

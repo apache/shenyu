@@ -25,6 +25,7 @@ import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.PluginQuery;
 import org.dromara.soul.admin.service.PluginService;
+import org.dromara.soul.admin.service.SyncDataService;
 import org.dromara.soul.admin.vo.PluginVO;
 import org.dromara.soul.common.result.SoulResult;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +37,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Objects;
@@ -52,14 +52,18 @@ public class PluginController {
 
     private final PluginService pluginService;
 
+    private final SyncDataService syncDataService;
+
     /**
      * Instantiates a new Plugin controller.
      *
      * @param pluginService the plugin service
      */
     @Autowired(required = false)
-    public PluginController(final PluginService pluginService) {
+    public PluginController(final PluginService pluginService,
+                            final SyncDataService syncDataService) {
         this.pluginService = pluginService;
+        this.syncDataService = syncDataService;
     }
 
     /**
@@ -68,7 +72,7 @@ public class PluginController {
      * @param name        plugin name.
      * @param currentPage current page.
      * @param pageSize    page size.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @GetMapping("")
     public SoulResult queryPlugins(final String name, final Integer currentPage, final Integer pageSize) {
@@ -84,7 +88,7 @@ public class PluginController {
      * detail plugin.
      *
      * @param id plugin id.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @GetMapping("/{id}")
     public SoulResult detailPlugin(@PathVariable("id") final String id) {
@@ -100,7 +104,7 @@ public class PluginController {
      * create plugin.
      *
      * @param pluginDTO plugin.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @PostMapping("")
     public SoulResult createPlugin(@RequestBody final PluginDTO pluginDTO) {
@@ -120,7 +124,7 @@ public class PluginController {
      *
      * @param id        primary key.
      * @param pluginDTO plugin.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @PutMapping("/{id}")
     public SoulResult updatePlugin(@PathVariable("id") final String id, @RequestBody final PluginDTO pluginDTO) {
@@ -141,7 +145,7 @@ public class PluginController {
      * delete plugins.
      *
      * @param ids primary key.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @DeleteMapping("/batch")
     public SoulResult deletePlugins(@RequestBody final List<String> ids) {
@@ -180,22 +184,25 @@ public class PluginController {
     /**
      * sync plugins.
      *
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @PostMapping("/syncPluginAll")
     public SoulResult syncPluginAll() {
         try {
-            Integer syncCount = pluginService.syncPluginAll();
-            return SoulResult.success("sync plugins success", syncCount);
+            boolean success = syncDataService.syncAll();
+            if (success) {
+                return SoulResult.success("sync plugins success");
+            } else {
+                return SoulResult.success("sync plugins fail");
+            }
         } catch (Exception e) {
-            e.printStackTrace();
             return SoulResult.error("sync plugins exception");
         }
     }
 
 
     /**
-     * Sync plugin data mono.
+     * Sync plugin data.
      *
      * @param id the id
      * @return the mono
@@ -203,8 +210,12 @@ public class PluginController {
     @PutMapping("/syncPluginData/{id}")
     public SoulResult syncPluginData(@PathVariable("id") final String id) {
         try {
-            Integer syncCount = pluginService.syncPluginData(id);
-            return SoulResult.success("sync plugins success", syncCount);
+            boolean success = syncDataService.syncPluginData(id);
+            if (success) {
+                return SoulResult.success("sync plugins success");
+            } else {
+                return SoulResult.success("sync plugins fail");
+            }
         } catch (Exception e) {
             return SoulResult.error("sync plugins exception");
         }

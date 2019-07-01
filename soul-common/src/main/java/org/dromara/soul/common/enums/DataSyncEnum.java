@@ -16,34 +16,52 @@
  *
  */
 
-package org.dromara.soul.common.config;
+package org.dromara.soul.common.enums;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-import java.io.Serializable;
+import java.util.Arrays;
 
 /**
- * The monitor config for influxdb.
+ * The enum Data sync enum.
  *
  * @author xiaoyu(Myth)
  */
-@Data
-public class MonitorConfig implements Serializable {
+@RequiredArgsConstructor
+@Getter
+public enum DataSyncEnum {
 
-    private String influxdbUrl;
 
-    private String userName;
+    /**
+     * Http data sync enum.
+     */
+    HTTP("http"),
 
-    private String password;
+    /**
+     * Zookeeper data sync enum.
+     */
+    ZOOKEEPER("zookeeper"),
 
-    private String database;
+    /**
+     * Websocket data sync enum.
+     */
+    WEBSOCKET("websocket"),;
 
-    private String retentionPolicy;
+    private final String name;
 
-    private Integer connectTimeout;
 
-    private Integer readTimeout;
+    /**
+     * Acquire by name data sync enum.
+     *
+     * @param name the name
+     * @return the data sync enum
+     */
+    public static DataSyncEnum acquireByName(final String name) {
+        return Arrays.stream(DataSyncEnum.values())
+                .filter(e -> e.getName().equals(name)).findFirst()
+                .orElse(DataSyncEnum.HTTP);
+    }
 
-    private Integer writeTimeout;
 
 }

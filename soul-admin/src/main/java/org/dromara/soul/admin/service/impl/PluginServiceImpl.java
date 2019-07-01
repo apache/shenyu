@@ -18,8 +18,6 @@
 
 package org.dromara.soul.admin.service.impl;
 
-import org.I0Itec.zkclient.ZkClient;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.PluginDTO;
 import org.dromara.soul.admin.entity.PluginDO;
@@ -40,14 +38,10 @@ import org.dromara.soul.admin.query.RuleQuery;
 import org.dromara.soul.admin.query.SelectorConditionQuery;
 import org.dromara.soul.admin.query.SelectorQuery;
 import org.dromara.soul.admin.service.PluginService;
+import org.dromara.soul.admin.transfer.PluginTransfer;
 import org.dromara.soul.admin.vo.PluginVO;
 import org.dromara.soul.common.constant.AdminConstants;
-import org.dromara.soul.common.constant.ZkPathConstants;
 import org.dromara.soul.common.dto.PluginData;
-import org.dromara.soul.common.dto.zk.ConditionZkDTO;
-import org.dromara.soul.common.dto.zk.PluginZkDTO;
-import org.dromara.soul.common.dto.zk.RuleZkDTO;
-import org.dromara.soul.common.dto.zk.SelectorZkDTO;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.enums.PluginRoleEnum;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,8 +73,6 @@ public class PluginServiceImpl implements PluginService {
 
     private final RuleConditionMapper ruleConditionMapper;
 
-    private final ZkClient zkClient;
-
     private final ApplicationEventPublisher eventPublisher;
 
     @Autowired(required = false)
@@ -89,14 +81,12 @@ public class PluginServiceImpl implements PluginService {
                              final SelectorConditionMapper selectorConditionMapper,
                              final RuleMapper ruleMapper,
                              final RuleConditionMapper ruleConditionMapper,
-                             final ZkClient zkClient,
-                             ApplicationEventPublisher eventPublisher) {
+                             final ApplicationEventPublisher eventPublisher) {
         this.pluginMapper = pluginMapper;
         this.selectorMapper = selectorMapper;
         this.selectorConditionMapper = selectorConditionMapper;
         this.ruleMapper = ruleMapper;
         this.ruleConditionMapper = ruleConditionMapper;
-        this.zkClient = zkClient;
         this.eventPublisher = eventPublisher;
     }
 
@@ -123,8 +113,8 @@ public class PluginServiceImpl implements PluginService {
         }
 
         // publish change event.
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, eventType, Collections.singletonList(new PluginData(pluginDTO.getId(),
-                pluginDTO.getName(), pluginDTO.getRole(), pluginDTO.getEnabled()))));
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, eventType,
+                Collections.singletonList(PluginTransfer.INSTANCE.mapToData(pluginDO))));
         return StringUtils.EMPTY;
     }
 
@@ -135,11 +125,8 @@ public class PluginServiceImpl implements PluginService {
                 return AdminConstants.PLUGIN_NAME_IS_EXIST;
             }
         } else {
-            if (Objects.isNull(exist)) {
+            if (Objects.isNull(exist) || !exist.getId().equals(pluginDTO.getId())) {
                 return AdminConstants.PLUGIN_NAME_NOT_EXIST;
-            }
-            if (!exist.getId().equals(pluginDTO.getId())) {
-                return AdminConstants.PLUGIN_NAME_IS_EXIST;
             }
         }
         return StringUtils.EMPTY;
@@ -175,19 +162,9 @@ public class PluginServiceImpl implements PluginService {
                 selectorMapper.delete(selectorDO.getId());
                 selectorConditionMapper.deleteByQuery(new SelectorConditionQuery(selectorDO.getId()));
             });
-
-            String pluginPath = ZkPathConstants.buildPluginPath(pluginDO.getName());
-            if (zkClient.exists(pluginPath)) {
-                zkClient.deleteRecursive(pluginPath);
-            }
-            String selectorParentPath = ZkPathConstants.buildSelectorParentPath(pluginDO.getName());
-            if (zkClient.exists(selectorParentPath)) {
-                zkClient.deleteRecursive(selectorParentPath);
-            }
-            String ruleParentPath = ZkPathConstants.buildRuleParentPath(pluginDO.getName());
-            if (zkClient.exists(ruleParentPath)) {
-                zkClient.deleteRecursive(ruleParentPath);
-            }
+            // publish change event.
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventType.DELETE,
+                    Collections.singletonList(PluginTransfer.INSTANCE.mapToData(pluginDO))));
         }
         return StringUtils.EMPTY;
     }
@@ -201,16 +178,11 @@ public class PluginServiceImpl implements PluginService {
             }
             pluginDO.setDateUpdated(new Timestamp(System.currentTimeMillis()));
             pluginDO.setEnabled(enabled);
-
             pluginMapper.updateEnable(pluginDO);
 
-            String pluginPath = ZkPathConstants.buildPluginPath(pluginDO.getName());
-            if (!zkClient.exists(pluginPath)) {
-                zkClient.createPersistent(pluginPath, true);
-            }
-            zkClient.writeData(pluginPath, new PluginZkDTO(pluginDO.getId(),
-                    pluginDO.getName(), pluginDO.getRole(), pluginDO.getEnabled()));
-
+            // publish change event.
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventType.UPDATE,
+                    Collections.singletonList(PluginTransfer.INSTANCE.mapToData(pluginDO))));
         }
         return StringUtils.EMPTY;
     }
@@ -248,133 +220,7 @@ public class PluginServiceImpl implements PluginService {
     public List<PluginData> listAll() {
         PluginQuery query = new PluginQuery();
         return pluginMapper.selectByQuery(query).stream()
-                .map(pluginDO -> new PluginData(pluginDO.getId(), pluginDO.getName(), pluginDO.getRole(), pluginDO.getEnabled()))
+                .map(PluginTransfer.INSTANCE::mapToData)
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * sync plugin.
-     *
-     * @param pluginId {@linkplain String}
-     * @return isNull
-     */
-    @Override
-    public int syncPluginData(final String pluginId) {
-        PluginDO pluginDO = pluginMapper.selectById(pluginId);
-        if (pluginDO != null) {
-            syncPlugin(pluginDO);
-            return 1;
-        }
-        return 0;
-    }
-
-
-    /**
-     * sync plugins.
-     *
-     * @return rows
-     */
-    @Override
-    public int syncPluginAll() {
-        List<PluginDO> pluginDOs = pluginMapper.selectByQuery(new PluginQuery());
-        if (CollectionUtils.isNotEmpty(pluginDOs)) {
-            String pluginPath = ZkPathConstants.buildPluginParentPath();
-            if (!zkClient.exists(pluginPath)) {
-                zkClient.createPersistent(pluginPath, true);
-            }
-            List<String> pluginZKs = zkClient.getChildren(ZkPathConstants.buildPluginParentPath());
-            pluginDOs.forEach(pluginDO -> {
-                if (CollectionUtils.isNotEmpty(pluginZKs)) {
-                    pluginZKs.remove(pluginDO.getName());
-                }
-                syncPlugin(pluginDO);
-            });
-
-            pluginZKs.forEach(pluginZK -> {
-                zkClient.delete(ZkPathConstants.buildPluginPath(pluginZK));
-                String selectorParentPath = ZkPathConstants.buildSelectorParentPath(pluginZK);
-                if (zkClient.exists(selectorParentPath)) {
-                    zkClient.delete(selectorParentPath);
-                }
-                String ruleParentPath = ZkPathConstants.buildRuleParentPath(pluginZK);
-                if (zkClient.exists(ruleParentPath)) {
-                    zkClient.delete(ruleParentPath);
-                }
-            });
-            return pluginDOs.size();
-        }
-
-        return 0;
-    }
-
-
-    /**
-     * sync plugin.
-     *
-     * @param pluginDO {@linkplain PluginDO}
-     */
-    private void syncPlugin(final PluginDO pluginDO) {
-        String pluginPath = ZkPathConstants.buildPluginPath(pluginDO.getName());
-        if (!zkClient.exists(pluginPath)) {
-            zkClient.createPersistent(pluginPath, true);
-        }
-        zkClient.writeData(pluginPath, new PluginZkDTO(pluginDO.getId(),
-                pluginDO.getName(), pluginDO.getRole(), pluginDO.getEnabled()));
-
-        final String selectorParentPath = ZkPathConstants.buildSelectorParentPath(pluginDO.getName());
-
-        if (!zkClient.exists(selectorParentPath)) {
-            zkClient.createPersistent(selectorParentPath, true);
-        }
-
-        List<String> selectorZKs = zkClient.getChildren(selectorParentPath);
-        selectorMapper.selectByQuery(new SelectorQuery(pluginDO.getId(), null)).forEach(selectorDO -> {
-            if (CollectionUtils.isNotEmpty(selectorZKs)) {
-                selectorZKs.remove(selectorDO.getId());
-            }
-            String selectorRealPath = ZkPathConstants.buildSelectorRealPath(pluginDO.getName(), selectorDO.getId());
-            if (!zkClient.exists(selectorRealPath)) {
-                zkClient.createPersistent(selectorRealPath, true);
-            }
-            List<ConditionZkDTO> selectorConditionZkDTOs = selectorConditionMapper.selectByQuery(new SelectorConditionQuery(selectorDO.getId())).stream()
-                    .map(selectorConditionDO -> new ConditionZkDTO(selectorConditionDO.getParamType(), selectorConditionDO.getOperator(),
-                            selectorConditionDO.getParamName(), selectorConditionDO.getParamValue())).collect(Collectors.toList());
-            zkClient.writeData(selectorRealPath, new SelectorZkDTO(selectorDO.getId(), selectorDO.getPluginId(), pluginDO.getName(),
-                    selectorDO.getName(), selectorDO.getMatchMode(), selectorDO.getType(), selectorDO.getSort(), selectorDO.getEnabled(),
-                    selectorDO.getLoged(), selectorDO.getContinued(), selectorDO.getHandle(), selectorConditionZkDTOs));
-
-            final String ruleParentPath = ZkPathConstants.buildRuleParentPath(pluginDO.getName());
-
-            if (!zkClient.exists(ruleParentPath)) {
-                zkClient.createPersistent(ruleParentPath, true);
-            }
-            List<String> ruleZKs = zkClient.getChildren(ruleParentPath);
-            ruleMapper.selectByQuery(new RuleQuery(selectorDO.getId(), null)).forEach(ruleDO -> {
-                if (CollectionUtils.isNotEmpty(ruleZKs)) {
-                    ruleZKs.remove(selectorDO.getId() + ZkPathConstants.SELECTOR_JOIN_RULE + ruleDO.getId());
-                }
-                String ruleRealPath = ZkPathConstants.buildRulePath(pluginDO.getName(), selectorDO.getId(), ruleDO.getId());
-                if (!zkClient.exists(ruleRealPath)) {
-                    zkClient.createPersistent(ruleRealPath, true);
-                }
-                List<ConditionZkDTO> ruleConditionZkDTOs = ruleConditionMapper.selectByQuery(new RuleConditionQuery(ruleDO.getId())).stream()
-                        .map(ruleConditionDO -> new ConditionZkDTO(ruleConditionDO.getParamType(), ruleConditionDO.getOperator(),
-                                ruleConditionDO.getParamName(), ruleConditionDO.getParamValue())).collect(Collectors.toList());
-                zkClient.writeData(ruleRealPath, new RuleZkDTO(ruleDO.getId(), pluginDO.getName(), ruleDO.getSelectorId(),
-                        ruleDO.getMatchMode(), ruleDO.getSort(), ruleDO.getEnabled(), ruleDO.getLoged(), ruleDO.getHandle(), ruleConditionZkDTOs));
-            });
-
-            ruleZKs.forEach(ruleZK -> zkClient.delete(ZkPathConstants.buildRulePath(pluginDO.getName(), selectorDO.getId(), ruleZK)));
-        });
-
-        selectorZKs.forEach(selectorZK -> {
-            zkClient.delete(ZkPathConstants.buildSelectorRealPath(pluginDO.getName(), selectorZK));
-            String ruleParentPath = ZkPathConstants.buildRuleParentPath(pluginDO.getName());
-            zkClient.getChildren(ruleParentPath).forEach(selectorRulePath -> {
-                if (selectorRulePath.split(ZkPathConstants.SELECTOR_JOIN_RULE)[0].equals(selectorZK)) {
-                    zkClient.delete(ruleParentPath + "/" + selectorRulePath);
-                }
-            });
-        });
     }
 }
