@@ -26,7 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Mono;
 
 /**
  * this is platform controller.
@@ -52,7 +51,7 @@ public class PlatformController {
      *
      * @param userName user name
      * @param password user password
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @GetMapping("/login")
     public SoulResult loginDashboardUser(final String userName, final String password) {
@@ -67,7 +66,7 @@ public class PlatformController {
     /**
      * query enums.
      *
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @GetMapping("/enum")
     public SoulResult queryEnums() {

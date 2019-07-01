@@ -36,6 +36,7 @@ import org.springframework.context.annotation.Import;
 
 /**
  * Automatic data cache configuration for caching {@link AppAuthData}、{@link PluginData}、{@link RuleData}、{@link SelectorData}
+ *
  * @author huangxiaofeng
  * @date 2019/6/26 14:40
  */

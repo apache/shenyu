@@ -29,28 +29,48 @@ import java.util.List;
  * used to support HTTP, websocket, zookeeper and other event notifications.
  *
  * @author huangxiaofeng
- * @date 2019/6/25 17:25
+ * @author xiaoyu
  */
 public interface DataChangedListener {
 
     /**
      * invoke this method when AppAuth was received.
+     *
+     * @param changed   the changed
+     * @param eventType the event type
      */
-    default void onAppAuthChanged(List<AppAuthData> changed, DataEventType eventType){};
+    default void onAppAuthChanged(List<AppAuthData> changed, DataEventType eventType) {
+    }
+
 
     /**
      * invoke this method when Plugin was received.
+     *
+     * @param changed   the changed
+     * @param eventType the event type
      */
-    default void onPluginChanged(List<PluginData> changed, DataEventType eventType){};
+    default void onPluginChanged(List<PluginData> changed, DataEventType eventType) {
+    }
 
-    /**
-     * invoke this method when Rule was received.
-     */
-    default void onRuleChanged(List<RuleData> changed, DataEventType eventType){};
 
     /**
      * invoke this method when Selector was received.
+     *
+     * @param changed   the changed
+     * @param eventType the event type
      */
-    default void onSelectorChanged(List<SelectorData> changed, DataEventType eventType){};
+    default void onSelectorChanged(List<SelectorData> changed, DataEventType eventType) {
+    }
+
+
+    /**
+     * invoke this method when Rule was received.
+     *
+     * @param changed   the changed
+     * @param eventType the event type
+     */
+    default void onRuleChanged(List<RuleData> changed, DataEventType eventType) {
+    }
+
 
 }

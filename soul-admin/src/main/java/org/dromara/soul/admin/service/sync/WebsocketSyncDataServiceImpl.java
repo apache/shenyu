@@ -16,35 +16,24 @@
  *
  */
 
-package org.dromara.soul.admin.listener;
+package org.dromara.soul.admin.service.sync;
 
-import lombok.Data;
+import org.dromara.soul.admin.service.SyncDataService;
 
 /**
- * The type Domain.
+ * The type Websocket sync data service.
  *
- * @author xiaoyu
+ * @author xiaoyu(Myth)
  */
-@Data
-public final class Domain {
+public class WebsocketSyncDataServiceImpl implements SyncDataService {
 
-    private static final Domain HTTP_PATH = new Domain();
-
-    /**
-     * ip:port.
-     */
-    private String httpPath;
-
-    private Domain() {
+    @Override
+    public boolean syncAll() {
+        return false;
     }
 
-    /**
-     * Gets instance.
-     *
-     * @return the instance
-     */
-    public static Domain getInstance() {
-        return HTTP_PATH;
+    @Override
+    public boolean syncPluginData(String pluginId) {
+        return false;
     }
-
 }

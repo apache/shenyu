@@ -18,7 +18,6 @@
 
 package org.dromara.soul.admin.service.impl;
 
-import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.SelectorConditionDTO;
@@ -27,6 +26,8 @@ import org.dromara.soul.admin.entity.PluginDO;
 import org.dromara.soul.admin.entity.RuleDO;
 import org.dromara.soul.admin.entity.SelectorConditionDO;
 import org.dromara.soul.admin.entity.SelectorDO;
+import org.dromara.soul.admin.listener.DataChangedEvent;
+import org.dromara.soul.admin.listener.DataEventType;
 import org.dromara.soul.admin.mapper.PluginMapper;
 import org.dromara.soul.admin.mapper.RuleConditionMapper;
 import org.dromara.soul.admin.mapper.RuleMapper;
@@ -39,17 +40,18 @@ import org.dromara.soul.admin.query.RuleQuery;
 import org.dromara.soul.admin.query.SelectorConditionQuery;
 import org.dromara.soul.admin.query.SelectorQuery;
 import org.dromara.soul.admin.service.SelectorService;
+import org.dromara.soul.admin.transfer.ConditionTransfer;
 import org.dromara.soul.admin.vo.SelectorConditionVO;
 import org.dromara.soul.admin.vo.SelectorVO;
-import org.dromara.soul.common.constant.ZkPathConstants;
 import org.dromara.soul.common.dto.ConditionData;
 import org.dromara.soul.common.dto.SelectorData;
-import org.dromara.soul.common.dto.zk.ConditionZkDTO;
-import org.dromara.soul.common.dto.zk.SelectorZkDTO;
+import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -57,6 +59,7 @@ import java.util.stream.Collectors;
  * SelectorServiceImpl.
  *
  * @author jiangxiaofeng(Nicholas)
+ * @author xiaoyu
  */
 @Service("selectorService")
 public class SelectorServiceImpl implements SelectorService {
@@ -69,23 +72,23 @@ public class SelectorServiceImpl implements SelectorService {
 
     private final RuleConditionMapper ruleConditionMapper;
 
-    private PluginMapper pluginMapper;
+    private final PluginMapper pluginMapper;
 
-    private final ZkClient zkClient;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Autowired(required = false)
     public SelectorServiceImpl(final SelectorMapper selectorMapper,
                                final SelectorConditionMapper selectorConditionMapper,
                                final PluginMapper pluginMapper,
-                               final ZkClient zkClient,
                                final RuleMapper ruleMapper,
-                               final RuleConditionMapper ruleConditionMapper) {
+                               final RuleConditionMapper ruleConditionMapper,
+                               final ApplicationEventPublisher eventPublisher) {
         this.selectorMapper = selectorMapper;
         this.selectorConditionMapper = selectorConditionMapper;
         this.pluginMapper = pluginMapper;
-        this.zkClient = zkClient;
         this.ruleMapper = ruleMapper;
         this.ruleConditionMapper = ruleConditionMapper;
+        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -116,21 +119,12 @@ public class SelectorServiceImpl implements SelectorService {
                 selectorConditionMapper.insertSelective(selectorConditionDO);
             });
         }
-
         PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
-        String selectorParentPath = ZkPathConstants.buildSelectorParentPath(pluginDO.getName());
-        if (!zkClient.exists(selectorParentPath)) {
-            zkClient.createPersistent(selectorParentPath, true);
-        }
-
-        String selectorRealPath = ZkPathConstants.buildSelectorRealPath(pluginDO.getName(), selectorDO.getId());
-        if (!zkClient.exists(selectorRealPath)) {
-            zkClient.createPersistent(selectorRealPath, true);
-        }
-
-        List<ConditionZkDTO> conditionZkDTOs =
-                selectorConditionDTOs.stream().map(this::buildConditionZkDTO).collect(Collectors.toList());
-        zkClient.writeData(selectorRealPath, buildSelectorZkDTO(selectorDO, pluginDO.getName(), conditionZkDTOs));
+        List<ConditionData> conditionDataList =
+                selectorConditionDTOs.stream().map(ConditionTransfer.INSTANCE::mapToSelectorDTO).collect(Collectors.toList());
+        // publish change event.
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventType.UPDATE,
+                Collections.singletonList(SelectorDO.transFrom(selectorDO, pluginDO.getName(), conditionDataList))));
         return selectorCount;
     }
 
@@ -151,22 +145,20 @@ public class SelectorServiceImpl implements SelectorService {
             selectorMapper.delete(id);
             selectorConditionMapper.deleteByQuery(new SelectorConditionQuery(id));
 
-            //清除zookeeper上的选择器
-            String selectorRealPath = ZkPathConstants.buildSelectorRealPath(pluginDO.getName(), selectorDO.getId());
-            if (zkClient.exists(selectorRealPath)) {
-                zkClient.delete(selectorRealPath);
-            }
+            //发送删除选择器事件
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventType.DELETE,
+                    Collections.singletonList(SelectorDO.transFrom(selectorDO, pluginDO.getName(), null))));
+
             //清除规则与规则条件
             final List<RuleDO> ruleDOList = ruleMapper.selectByQuery(new RuleQuery(id, null));
             if (CollectionUtils.isNotEmpty(ruleDOList)) {
                 for (RuleDO ruleDO : ruleDOList) {
                     ruleMapper.delete(ruleDO.getId());
                     ruleConditionMapper.deleteByQuery(new RuleConditionQuery(ruleDO.getId()));
-                    //清除zookeeper上的规则
-                    final String rulePath = ZkPathConstants.buildRulePath(pluginDO.getName(), id, ruleDO.getId());
-                    if (zkClient.exists(rulePath)) {
-                        zkClient.delete(rulePath);
-                    }
+                    //发送删除选择器事件
+                    eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventType.DELETE,
+                            Collections.singletonList(RuleDO.transFrom(ruleDO, pluginDO.getName(), null))));
+
                 }
             }
         }
@@ -181,8 +173,12 @@ public class SelectorServiceImpl implements SelectorService {
      */
     @Override
     public SelectorVO findById(final String id) {
-        return SelectorVO.buildSelectorVO(selectorMapper.selectById(id), selectorConditionMapper.selectByQuery(
-                new SelectorConditionQuery(id)).stream().map(SelectorConditionVO::buildSelectorConditionVO).collect(Collectors.toList()));
+        return SelectorVO.buildSelectorVO(selectorMapper.selectById(id),
+                selectorConditionMapper.selectByQuery(
+                        new SelectorConditionQuery(id))
+                        .stream()
+                        .map(SelectorConditionVO::buildSelectorConditionVO)
+                        .collect(Collectors.toList()));
     }
 
     /**
@@ -195,7 +191,8 @@ public class SelectorServiceImpl implements SelectorService {
     public CommonPager<SelectorVO> listByPage(final SelectorQuery selectorQuery) {
         PageParameter pageParameter = selectorQuery.getPageParameter();
         return new CommonPager<>(
-                new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), selectorMapper.countByQuery(selectorQuery)),
+                new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(),
+                        selectorMapper.countByQuery(selectorQuery)),
                 selectorMapper.selectByQuery(selectorQuery).stream()
                         .map(SelectorVO::buildSelectorVO)
                         .collect(Collectors.toList()));
@@ -203,64 +200,22 @@ public class SelectorServiceImpl implements SelectorService {
 
     @Override
     public List<SelectorData> listAll() {
-        List<SelectorData> selectors = selectorMapper.selectByQuery(new SelectorQuery())
+        return selectorMapper.selectByQuery(new SelectorQuery())
                 .stream()
-                .map(selectorDO -> buildSelectorData(selectorDO))
+                .map(this::buildSelectorData)
                 .collect(Collectors.toList());
-        return selectors;
     }
 
-    private ConditionZkDTO buildConditionZkDTO(final SelectorConditionDTO selectorConditionDTO) {
-        return new ConditionZkDTO(selectorConditionDTO.getParamType(),
-                selectorConditionDTO.getOperator(),
-                selectorConditionDTO.getParamName(),
-                selectorConditionDTO.getParamValue());
-    }
-
-    private SelectorZkDTO buildSelectorZkDTO(final SelectorDO selectorDO, final String pluginName,
-                                             final List<ConditionZkDTO> conditionZkDTOList) {
-        return new SelectorZkDTO(selectorDO.getId(),
-                selectorDO.getPluginId(),
-                pluginName,
-                selectorDO.getName(),
-                selectorDO.getMatchMode(),
-                selectorDO.getType(),
-                selectorDO.getSort(),
-                selectorDO.getEnabled(),
-                selectorDO.getLoged(),
-                selectorDO.getContinued(),
-                selectorDO.getHandle(),
-                conditionZkDTOList);
-    }
-
-    private SelectorData buildSelectorData(SelectorDO selectorDO) {
-
+    private SelectorData buildSelectorData(final SelectorDO selectorDO) {
         // find conditions
-        List<ConditionData> conditionDataList = selectorConditionMapper.selectByQuery(new SelectorConditionQuery(selectorDO.getId()))
+        List<ConditionData> conditionDataList = selectorConditionMapper
+                .selectByQuery(new SelectorConditionQuery(selectorDO.getId()))
                 .stream()
-                .map(conditionDO -> buildConditionData(conditionDO))
+                .map(ConditionTransfer.INSTANCE::mapToSelectorDO)
                 .collect(Collectors.toList());
-
         PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
-        return new SelectorData(selectorDO.getId(),
-                selectorDO.getPluginId(),
-                pluginDO.getName(),
-                selectorDO.getName(),
-                selectorDO.getMatchMode(),
-                selectorDO.getType(),
-                selectorDO.getSort(),
-                selectorDO.getEnabled(),
-                selectorDO.getLoged(),
-                selectorDO.getContinued(),
-                selectorDO.getHandle(),
-                conditionDataList);
-    }
 
-    private ConditionData buildConditionData(final SelectorConditionDO selectorCondition) {
-        return new ConditionData(selectorCondition.getParamType(),
-                selectorCondition.getOperator(),
-                selectorCondition.getParamName(),
-                selectorCondition.getParamValue());
+        return SelectorDO.transFrom(selectorDO, pluginDO.getName(), conditionDataList);
     }
 
 }

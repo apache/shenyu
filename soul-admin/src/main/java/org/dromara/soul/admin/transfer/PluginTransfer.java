@@ -16,34 +16,35 @@
  *
  */
 
-package org.dromara.soul.common.config;
+package org.dromara.soul.admin.transfer;
 
-import lombok.Data;
 
-import java.io.Serializable;
+import org.dromara.soul.admin.entity.PluginDO;
+import org.dromara.soul.common.dto.PluginData;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
 
 /**
- * The monitor config for influxdb.
+ * The interface Plugin transfer.
  *
  * @author xiaoyu(Myth)
  */
-@Data
-public class MonitorConfig implements Serializable {
+@Mapper
+public interface PluginTransfer {
 
-    private String influxdbUrl;
+    /**
+     * The constant INSTANCE.
+     */
+    PluginTransfer INSTANCE = Mappers.getMapper(PluginTransfer.class);
 
-    private String userName;
 
-    private String password;
+    /**
+     * Map to data plugin data.
+     *
+     * @param pluginDO the plugin do
+     * @return the plugin data
+     */
+    PluginData mapToData(PluginDO pluginDO);
 
-    private String database;
-
-    private String retentionPolicy;
-
-    private Integer connectTimeout;
-
-    private Integer readTimeout;
-
-    private Integer writeTimeout;
 
 }

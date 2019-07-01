@@ -26,15 +26,14 @@ import org.dromara.soul.admin.service.RuleService;
 import org.dromara.soul.admin.vo.RuleVO;
 import org.dromara.soul.common.result.SoulResult;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import reactor.core.publisher.Mono;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Objects;
@@ -61,7 +60,7 @@ public class RuleController {
      * @param selectorId  selector id.
      * @param currentPage current page.
      * @param pageSize    page size.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @GetMapping("")
     public SoulResult queryRules(final String selectorId, final Integer currentPage, final Integer pageSize) {
@@ -77,7 +76,7 @@ public class RuleController {
      * detail rule.
      *
      * @param id rule id.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @GetMapping("/{id}")
     public SoulResult detailRule(@PathVariable("id") final String id) {
@@ -93,7 +92,7 @@ public class RuleController {
      * create rule.
      *
      * @param ruleDTO rule.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @PostMapping("")
     public SoulResult createRule(@RequestBody final RuleDTO ruleDTO) {
@@ -110,7 +109,7 @@ public class RuleController {
      *
      * @param id      primary key.
      * @param ruleDTO rule.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @PutMapping("/{id}")
     public SoulResult updateRule(@PathVariable("id") final String id, @RequestBody final RuleDTO ruleDTO) {
@@ -128,7 +127,7 @@ public class RuleController {
      * delete rules.
      *
      * @param ids primary key.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @DeleteMapping("/batch")
     public SoulResult deleteRules(@RequestBody final List<String> ids) {

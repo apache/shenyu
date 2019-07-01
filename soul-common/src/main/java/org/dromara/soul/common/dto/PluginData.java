@@ -26,7 +26,7 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 
 /**
- * PluginDTO.
+ * PluginData.
  *
  * @author xiaoyu(Myth)
  * @author huangxiaofeng

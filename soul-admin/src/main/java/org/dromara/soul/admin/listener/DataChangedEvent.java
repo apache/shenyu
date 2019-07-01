@@ -26,7 +26,7 @@ import java.util.List;
  * Data change event.
  *
  * @author huangxiaofeng
- * @date 2019/6/29 23:55
+ * @author xiaoyu
  * @see DataChangedEventDispatcher
  * @since 2.0.0
  */
@@ -36,13 +36,25 @@ public class DataChangedEvent extends ApplicationEvent {
 
     private ConfigGroupEnum groupKey;
 
+    /**
+     * Instantiates a new Data changed event.
+     *
+     * @param groupKey the group key
+     * @param type     the type
+     * @param source   the source
+     */
     public DataChangedEvent(ConfigGroupEnum groupKey, DataEventType type, List<?> source) {
         super(source);
         this.eventType = type;
         this.groupKey = groupKey;
     }
 
-    public DataEventType getEventType() {
+    /**
+     * Gets event type.
+     *
+     * @return the event type
+     */
+    DataEventType getEventType() {
         return eventType;
     }
 
@@ -51,6 +63,11 @@ public class DataChangedEvent extends ApplicationEvent {
         return (List<?>) super.getSource();
     }
 
+    /**
+     * Gets group key.
+     *
+     * @return the group key
+     */
     public ConfigGroupEnum getGroupKey() {
         return this.groupKey;
     }

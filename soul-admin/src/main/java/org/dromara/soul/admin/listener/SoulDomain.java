@@ -16,34 +16,35 @@
  *
  */
 
-package org.dromara.soul.common.config;
+package org.dromara.soul.admin.listener;
 
 import lombok.Data;
 
-import java.io.Serializable;
-
 /**
- * The monitor config for influxdb.
+ * The Soul Domain.
  *
- * @author xiaoyu(Myth)
+ * @author xiaoyu
  */
 @Data
-public class MonitorConfig implements Serializable {
+public final class SoulDomain {
 
-    private String influxdbUrl;
+    private static final SoulDomain HTTP_PATH = new SoulDomain();
 
-    private String userName;
+    /**
+     * ip:port.
+     */
+    private String httpPath;
 
-    private String password;
+    private SoulDomain() {
+    }
 
-    private String database;
-
-    private String retentionPolicy;
-
-    private Integer connectTimeout;
-
-    private Integer readTimeout;
-
-    private Integer writeTimeout;
+    /**
+     * Gets instance.
+     *
+     * @return the instance
+     */
+    public static SoulDomain getInstance() {
+        return HTTP_PATH;
+    }
 
 }
