@@ -32,7 +32,6 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
-
 import java.util.Objects;
 
 /**
@@ -42,10 +41,20 @@ import java.util.Objects;
  */
 public class ParamWebFilter extends AbstractWebFilter {
 
+    private final String ignoreUrlPrefix;
+
+    public ParamWebFilter(String ignoreUrlPrefix) {
+        this.ignoreUrlPrefix = ignoreUrlPrefix;
+    }
+
     @Override
     protected Mono<Boolean> doFilter(final ServerWebExchange exchange, final WebFilterChain chain) {
         final ServerHttpRequest request = exchange.getRequest();
         final HttpHeaders headers = request.getHeaders();
+        final String urlPath = request.getURI().getPath();
+        if (urlPath.contains(ignoreUrlPrefix)) {
+            return Mono.just(true);
+        }
         final String upgrade = headers.getFirst("Upgrade");
         if (StringUtils.isBlank(upgrade) || !RpcTypeEnum.WEB_SOCKET.getName().equals(upgrade)) {
             final RequestDTO requestDTO = RequestDTO.transform(request);

@@ -32,9 +32,7 @@ import org.dromara.soul.web.influxdb.entity.MonitorDO;
 import org.dromara.soul.web.influxdb.service.InfluxDbService;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -47,8 +45,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author xiaoyu(Myth)
  */
-@Component
-public class  SoulEventPublisher implements InitializingBean, DisposableBean {
+public class SoulEventPublisher implements InitializingBean, DisposableBean {
 
     private Disruptor<SoulDataEvent> disruptor;
 
@@ -65,7 +62,6 @@ public class  SoulEventPublisher implements InitializingBean, DisposableBean {
      *
      * @param influxDbService the influx db service
      */
-    @Autowired
     public SoulEventPublisher(final InfluxDbService influxDbService) {
         this.influxDbService = influxDbService;
     }
