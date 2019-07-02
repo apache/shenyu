@@ -39,21 +39,21 @@ public abstract class AbstractLocalCacheManager implements LocalCacheManager {
     /**
      * The constant PLUGIN_MAP.
      */
-    protected static final ConcurrentMap<String, PluginData> PLUGIN_MAP = Maps.newConcurrentMap();
+    static final ConcurrentMap<String, PluginData> PLUGIN_MAP = Maps.newConcurrentMap();
 
     /**
      * The constant SELECTOR_MAP.
      */
-    protected static final ConcurrentMap<String, List<SelectorData>> SELECTOR_MAP = Maps.newConcurrentMap();
+    static final ConcurrentMap<String, List<SelectorData>> SELECTOR_MAP = Maps.newConcurrentMap();
 
     /**
      * The constant RULE_MAP.
      */
-    protected static final ConcurrentMap<String, List<RuleData>> RULE_MAP = Maps.newConcurrentMap();
+    static final ConcurrentMap<String, List<RuleData>> RULE_MAP = Maps.newConcurrentMap();
 
-    protected static final ConcurrentMap<String, AppAuthData> AUTH_MAP = Maps.newConcurrentMap();
+    static final ConcurrentMap<String, AppAuthData> AUTH_MAP = Maps.newConcurrentMap();
 
-    protected static final ConcurrentHashMap<ConfigGroupEnum, ConfigData> GROUP_CACHE = new ConcurrentHashMap<>();
+    static final ConcurrentHashMap<ConfigGroupEnum, ConfigData> GROUP_CACHE = new ConcurrentHashMap<>();
 
     /**
      * acquire AppAuthData by appKey with AUTH_MAP container.

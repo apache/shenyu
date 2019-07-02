@@ -30,7 +30,6 @@ import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.springframework.beans.factory.DisposableBean;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 
 import java.util.Comparator;
@@ -47,9 +46,6 @@ public class ZookeeperSyncCache extends AbstractLocalCacheManager implements Com
 
     private final ZkClient zkClient;
 
-    @Value("${soul.upstream.time:30}")
-    private int upstreamTime;
-
     /**
      * Instantiates a new Zookeeper cache manager.
      *
@@ -58,7 +54,6 @@ public class ZookeeperSyncCache extends AbstractLocalCacheManager implements Com
     public ZookeeperSyncCache(final ZkClient zkClient) {
         this.zkClient = zkClient;
     }
-
 
     @Override
     public void run(final String... args) {

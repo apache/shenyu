@@ -36,9 +36,14 @@ public class PluginDTO implements Serializable {
     private String id;
 
     /**
-     * plugin code.
+     * plugin name.
      */
     private String name;
+
+    /**
+     * plugin config.
+     */
+    private String config;
 
     /**
      * plugin role.
