@@ -49,6 +49,7 @@ DROP TABLE IF EXISTS `plugin`;
 CREATE TABLE `plugin` (
   `id` varchar(128) NOT NULL COMMENT '主键id',
   `name` varchar(62) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '插件名称',
+  `config` text COLLATE utf8mb4_unicode_ci COMMENT '插件配置',
   `role` int(4) NOT NULL COMMENT '插件角色',
   `enabled` tinyint(4) NOT NULL DEFAULT '0' COMMENT '是否开启（0，未开启，1开启）',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '创建时间',

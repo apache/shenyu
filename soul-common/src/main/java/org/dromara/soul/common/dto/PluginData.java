@@ -41,6 +41,8 @@ public class PluginData implements Serializable {
 
     private String name;
 
+    private String config;
+
     private Integer role;
 
     private Boolean enabled;

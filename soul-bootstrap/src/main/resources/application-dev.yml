@@ -31,12 +31,12 @@ soul:
     timeVerify:
        timeDelay : 10
        enabled: false
-    cache:
-      type: zookeeper
-      zookeeper:
-        url: localhost:2181
-        sessionTimeout: 5000
-        connectionTimeout: 2000
+    sync:
+       strategy: zookeeper
+       zookeeper:
+         url: localhost:2181
+         sessionTimeout: 5000
+         connectionTimeout: 2000
 
 eureka:
   instance:

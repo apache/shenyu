@@ -10,27 +10,36 @@ import org.dromara.soul.common.dto.SelectorData;
 import java.util.List;
 
 /**
+ * The type Websocket data changed listener.
+ *
  * @author xiaoyu(Myth)
  */
 public class WebsocketDataChangedListener implements DataChangedListener {
 
-    @Override
-    public void onAppAuthChanged(List<AppAuthData> changed, DataEventType eventType) {
+    /**
+     * Instantiates a new Websocket data changed listener.
+     */
+    public WebsocketDataChangedListener() {
 
     }
 
     @Override
-    public void onPluginChanged(List<PluginData> changed, DataEventType eventType) {
+    public void onPluginChanged(final List<PluginData> changed, final DataEventType eventType) {
 
     }
 
     @Override
-    public void onSelectorChanged(List<SelectorData> changed, DataEventType eventType) {
+    public void onSelectorChanged(final List<SelectorData> changed, final DataEventType eventType) {
 
     }
 
     @Override
-    public void onRuleChanged(List<RuleData> changed, DataEventType eventType) {
+    public void onRuleChanged(final List<RuleData> changed, final DataEventType eventType) {
+
+    }
+
+    @Override
+    public void onAppAuthChanged(final List<AppAuthData> changed, final DataEventType eventType) {
 
     }
 
