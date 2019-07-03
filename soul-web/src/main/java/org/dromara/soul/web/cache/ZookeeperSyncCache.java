@@ -261,12 +261,12 @@ public class ZookeeperSyncCache extends AbstractLocalCacheManager implements Com
                 //规定路径 key-id key为selectorId, id为规则id
                 final List<String> list = Splitter.on(ZkPathConstants.SELECTOR_JOIN_RULE)
                         .splitToList(dataPath.substring(dataPath.lastIndexOf("/") + 1));
-                final String key = list.get(0);
-                final String id = list.get(1);
-                UpstreamCacheManager.removeByKey(id);
-                Optional.ofNullable(key).ifPresent(k -> {
-                    final List<RuleData> ruleDataList = RULE_MAP.get(k);
-                    ruleDataList.removeIf(e -> e.getId().equals(id));
+                final String selectorId = list.get(0);
+                final String ruleId = list.get(1);
+                Optional.ofNullable(selectorId).ifPresent(k -> {
+                    UpstreamCacheManager.removeByKey(selectorId);
+                    final List<RuleData> ruleDataList = RULE_MAP.get(selectorId);
+                    ruleDataList.removeIf(rule -> rule.getId().equals(ruleId));
                 });
             }
         });

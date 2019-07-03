@@ -18,16 +18,20 @@
 package org.dromara.soul.web.cache;
 
 import com.google.common.collect.Maps;
+import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.common.dto.AppAuthData;
-import org.dromara.soul.common.dto.ConfigData;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
-import org.dromara.soul.common.enums.ConfigGroupEnum;
+import org.dromara.soul.common.enums.PluginEnum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 /**
  * Implements the main method of LookupCacheManager, providing an API for updating cache operations.
@@ -37,23 +41,26 @@ import java.util.concurrent.ConcurrentMap;
 public abstract class AbstractLocalCacheManager implements LocalCacheManager {
 
     /**
-     * The constant PLUGIN_MAP.
+     * pluginName -> PluginData
      */
     static final ConcurrentMap<String, PluginData> PLUGIN_MAP = Maps.newConcurrentMap();
 
     /**
-     * The constant SELECTOR_MAP.
+     * pluginName -> List&lt;SelectorData&gt;
      */
     static final ConcurrentMap<String, List<SelectorData>> SELECTOR_MAP = Maps.newConcurrentMap();
 
     /**
-     * The constant RULE_MAP.
+     * selectorId -> List&lt;RuleData&gt;
      */
     static final ConcurrentMap<String, List<RuleData>> RULE_MAP = Maps.newConcurrentMap();
 
+    /**
+     * appKey -> AppAuthData
+     */
     static final ConcurrentMap<String, AppAuthData> AUTH_MAP = Maps.newConcurrentMap();
 
-    static final ConcurrentHashMap<ConfigGroupEnum, ConfigData> GROUP_CACHE = new ConcurrentHashMap<>();
+    private static final Logger logger = LoggerFactory.getLogger(AbstractLocalCacheManager.class);
 
     /**
      * acquire AppAuthData by appKey with AUTH_MAP container.
@@ -101,23 +108,32 @@ public abstract class AbstractLocalCacheManager implements LocalCacheManager {
 
 
     /**
-     * Flush all plugin.
+     * Flush all plugin. If the collection is empty, the cache will be emptied.
      *
      * @param pluginConfig the plugin config
      */
-//TODO
-    protected void flushAllPlugin(ConfigData<PluginData> pluginConfig) {
-
+    protected void flushAllPlugin(List<PluginData> pluginConfig) {
+        if (CollectionUtils.isEmpty(pluginConfig)) {
+            logger.info("clear all plugin cache, old cache:{}", PLUGIN_MAP);
+            PLUGIN_MAP.clear();
+        } else {
+            PLUGIN_MAP.clear();
+            pluginConfig.forEach(pluginData -> PLUGIN_MAP.put(pluginData.getName(), pluginData));
+        }
     }
 
     /**
      * Flush all app auth.
-     *
      * @param appAuthConfig the app auth config
      */
-//TODO
-    protected void flushAllAppAuth(ConfigData<AppAuthData> appAuthConfig) {
-
+    protected void flushAllAppAuth(List<AppAuthData> appAuthConfig) {
+        if (CollectionUtils.isEmpty(appAuthConfig)) {
+            logger.info("clear all appAuth cache, old cache:{}", AUTH_MAP);
+            AUTH_MAP.clear();
+        } else {
+            AUTH_MAP.clear();
+            appAuthConfig.forEach(appAuth -> AUTH_MAP.put(appAuth.getAppKey(), appAuth));
+        }
     }
 
     /**
@@ -125,9 +141,21 @@ public abstract class AbstractLocalCacheManager implements LocalCacheManager {
      *
      * @param ruleConfig the rule config
      */
-//TODO
-    protected void flushAllRule(ConfigData<RuleData> ruleConfig) {
-
+    protected void flushAllRule(List<RuleData> ruleConfig) {
+        if (CollectionUtils.isEmpty(ruleConfig)) {
+            logger.info("clear all rule cache, old cache:{}", RULE_MAP);
+            RULE_MAP.clear();
+        } else {
+            // group by selectorId, then sort by sort value
+            Map<String, List<RuleData>> selectorToRules = ruleConfig.stream().collect(Collectors.groupingBy(RuleData::getSelectorId));
+            selectorToRules.keySet().forEach(selectorId -> {
+                List<RuleData> sorted = selectorToRules.get(selectorId).stream()
+                        .sorted(Comparator.comparing(RuleData::getSort)).collect(Collectors.toList());
+                selectorToRules.put(selectorId, sorted);
+            });
+            RULE_MAP.clear();
+            RULE_MAP.putAll(selectorToRules);
+        }
     }
 
     /**
@@ -135,9 +163,35 @@ public abstract class AbstractLocalCacheManager implements LocalCacheManager {
      *
      * @param selectorConfig the selector config
      */
-//TODO
-    protected void flushAllSelector(ConfigData<SelectorData> selectorConfig) {
+    protected void flushAllSelector(List<SelectorData> selectorConfig) {
+        if (CollectionUtils.isEmpty(selectorConfig)) {
+            logger.info("clear all selector cache, old cache:{}", SELECTOR_MAP);
+            SELECTOR_MAP.keySet().forEach(selectorId -> UpstreamCacheManager.removeByKey(selectorId));
+            SELECTOR_MAP.clear();
+        } else {
+            
+            // update cache for UpstreamCacheManager
+            SELECTOR_MAP.values().forEach(selectors -> selectors.forEach(selector -> {
+                if ( PluginEnum.DIVIDE.getName().equals(selector.getPluginName()) ) {
+                    UpstreamCacheManager.removeByKey(selector.getId());
+                }
+            }));
+            selectorConfig.forEach(selector -> {
+                if ( PluginEnum.DIVIDE.getName().equals(selector.getPluginName()) ) {
+                    UpstreamCacheManager.submit(selector);
+                }
+            });
 
+            // group by pluginName, then sort by sort value
+            Map<String, List<SelectorData>> pluginNameToSelectors = selectorConfig.stream().collect(Collectors.groupingBy(SelectorData::getPluginName));
+            pluginNameToSelectors.keySet().forEach(pluginName -> {
+                List<SelectorData> sorted = pluginNameToSelectors.get(pluginName).stream()
+                        .sorted(Comparator.comparing(SelectorData::getSort)).collect(Collectors.toList());
+                pluginNameToSelectors.put(pluginName, sorted);
+            });
+            SELECTOR_MAP.clear();
+            SELECTOR_MAP.putAll(pluginNameToSelectors);
+        }
     }
 
 }

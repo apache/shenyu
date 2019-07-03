@@ -46,6 +46,8 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -64,6 +66,11 @@ public class HttpLongPollSyncCache extends AbstractLocalCacheManager implements 
     private static final Logger logger = LoggerFactory.getLogger(HttpLongPollSyncCache.class);
 
     private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
+
+    /**
+     * cache group config with md5 info.
+     */
+    private static final ConcurrentMap<ConfigGroupEnum, ConfigData> GROUP_CACHE = new ConcurrentHashMap<>();
 
     /**
      * default: 10s
@@ -155,7 +162,8 @@ public class HttpLongPollSyncCache extends AbstractLocalCacheManager implements 
         if (configData != null) {
             ConfigData<AppAuthData> result = configData.toJavaObject(new TypeReference<ConfigData<AppAuthData>>() {
             });
-            this.flushAllAppAuth(result);
+            GROUP_CACHE.put(ConfigGroupEnum.APP_AUTH, result);
+            this.flushAllAppAuth(result.getData());
         }
 
         // plugin
@@ -163,7 +171,8 @@ public class HttpLongPollSyncCache extends AbstractLocalCacheManager implements 
         if (configData != null) {
             ConfigData<PluginData> result = configData.toJavaObject(new TypeReference<ConfigData<PluginData>>() {
             });
-            this.flushAllPlugin(result);
+            GROUP_CACHE.put(ConfigGroupEnum.PLUGIN, result);
+            this.flushAllPlugin(result.getData());
         }
 
         // rule
@@ -171,7 +180,8 @@ public class HttpLongPollSyncCache extends AbstractLocalCacheManager implements 
         if (configData != null) {
             ConfigData<RuleData> result = configData.toJavaObject(new TypeReference<ConfigData<RuleData>>() {
             });
-            this.flushAllRule(result);
+            GROUP_CACHE.put(ConfigGroupEnum.RULE, result);
+            this.flushAllRule(result.getData());
         }
 
         // selector
@@ -179,7 +189,8 @@ public class HttpLongPollSyncCache extends AbstractLocalCacheManager implements 
         if (configData != null) {
             ConfigData<SelectorData> result = configData.toJavaObject(new TypeReference<ConfigData<SelectorData>>() {
             });
-            this.flushAllSelector(result);
+            GROUP_CACHE.put(ConfigGroupEnum.SELECTOR, result);
+            this.flushAllSelector(result.getData());
         }
 
     }
@@ -195,7 +206,7 @@ public class HttpLongPollSyncCache extends AbstractLocalCacheManager implements 
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         HttpEntity httpEntity = new HttpEntity(params, headers);
 
-        SoulException ex = new SoulException("Init cache error");
+        SoulException ex = null;
         for (String server : httpConfig.getServerList()) {
             String url = server + "/listener";
             logger.info("request listener configs: [{}]", url);
@@ -208,14 +219,17 @@ public class HttpLongPollSyncCache extends AbstractLocalCacheManager implements 
                     List<ConfigGroupEnum> changedGroups = groupJson.toJavaList(ConfigGroupEnum.class);
                     executor.execute(() -> fetchGroupConfig(changedGroups.toArray(new ConfigGroupEnum[0])));
                 }
-                return;
+                break;
             } catch (RestClientException e) {
                 logger.warn("listener configs fail, server:[{}]", server);
                 ex = new SoulException("Init cache error, serverList:" + httpConfig.getServerList(), e);
                 // try next server, if have another one.
             }
         }
-        throw ex;
+
+        if ( ex != null ) {
+            throw ex;
+        }
     }
 
 
