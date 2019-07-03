@@ -20,6 +20,7 @@ package org.dromara.soul.web.cache;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.google.common.base.Splitter;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.concurrent.SoulThreadFactory;
 import org.dromara.soul.common.constant.HttpConstants;
@@ -63,7 +64,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class HttpLongPollSyncCache extends AbstractLocalCacheManager implements CommandLineRunner, DisposableBean {
 
-    private static final Logger logger = LoggerFactory.getLogger(HttpLongPollSyncCache.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HttpLongPollSyncCache.class);
 
     private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
 
@@ -73,12 +74,12 @@ public class HttpLongPollSyncCache extends AbstractLocalCacheManager implements 
     private static final ConcurrentMap<ConfigGroupEnum, ConfigData> GROUP_CACHE = new ConcurrentHashMap<>();
 
     /**
-     * default: 10s
+     * default: 10s.
      */
     private Duration connectionTimeout = Duration.ofSeconds(10);
 
     /**
-     * only use for http long polling, init by {@link  CommandLineRunner()}
+     * only use for http long polling, init by {@link  CommandLineRunner}.
      */
     private RestTemplate httpClient;
 
@@ -86,12 +87,15 @@ public class HttpLongPollSyncCache extends AbstractLocalCacheManager implements 
 
     private HttpConfig httpConfig;
 
-    public HttpLongPollSyncCache(HttpConfig httpConfig) {
+    private List<String> serverList;
+
+    public HttpLongPollSyncCache(final HttpConfig httpConfig) {
         this.httpConfig = httpConfig;
+        serverList = Splitter.on(",").splitToList(httpConfig.getUrl());
     }
 
     @Override
-    public void run(String... args) {
+    public void run(final String... args) {
         OkHttp3ClientHttpRequestFactory factory = new OkHttp3ClientHttpRequestFactory();
         factory.setConnectTimeout((int) this.connectionTimeout.toMillis());
         factory.setReadTimeout((int) HttpConstants.CLIENT_POLLING_READ_TIMEOUT);
@@ -112,12 +116,21 @@ public class HttpLongPollSyncCache extends AbstractLocalCacheManager implements 
             // start long polling.
             this.executor.execute(new HttpLongPollingTask());
         } else {
-            logger.info("soul http long polling was started, executor=[{}]", executor);
+            LOGGER.info("soul http long polling was started, executor=[{}]", executor);
         }
     }
 
+    @Override
+    public void destroy() {
+        RUNNING.set(false);
+        if (executor != null) {
+            executor.shutdownNow();
+            // help gc
+            executor = null;
+        }
+    }
 
-    private void fetchGroupConfig(ConfigGroupEnum... groups) throws SoulException {
+    private void fetchGroupConfig(final ConfigGroupEnum... groups) throws SoulException {
         StringBuilder params = new StringBuilder();
         for (ConfigGroupEnum groupKey : groups) {
             params.append("groupKey")
@@ -127,17 +140,17 @@ public class HttpLongPollSyncCache extends AbstractLocalCacheManager implements 
         }
 
         SoulException ex = null;
-        for (String server : httpConfig.getServerList()) {
+        for (String server : serverList) {
             String url = server + "?" + StringUtils.removeEnd(params.toString(), "&");
-            logger.info("request configs: [{}]", url);
+            LOGGER.info("request configs: [{}]", url);
             try {
                 String json = this.httpClient.getForObject(url, String.class);
-                logger.info("get configs: [{}]", json);
+                LOGGER.info("get configs: [{}]", json);
                 updateCacheWithJson(json);
                 return;
             } catch (Exception e) {
-                logger.warn("request configs fail, server:[{}]", server);
-                ex = new SoulException("Init cache error, serverList:" + httpConfig.getServerList(), e);
+                LOGGER.warn("request configs fail, server:[{}]", server);
+                ex = new SoulException("Init cache error, serverList:" + httpConfig.getUrl(), e);
                 // try next server, if have another one.
             }
         }
@@ -152,11 +165,9 @@ public class HttpLongPollSyncCache extends AbstractLocalCacheManager implements 
      *
      * @param json {@linkplain org.dromara.soul.common.result.SoulResult}
      */
-    private void updateCacheWithJson(String json) {
-
+    private void updateCacheWithJson(final String json) {
         JSONObject jsonObject = JSONObject.parseObject(json);
         JSONObject data = jsonObject.getJSONObject("data");
-
         // appAuth
         JSONObject configData = data.getJSONObject(ConfigGroupEnum.APP_AUTH.name());
         if (configData != null) {
@@ -195,9 +206,9 @@ public class HttpLongPollSyncCache extends AbstractLocalCacheManager implements 
 
     }
 
+    @SuppressWarnings("unchecked")
     private void doLongPolling() {
-
-        Map<String, String> params = new HashMap<>();
+        Map<String, String> params = new HashMap<>(16);
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
             ConfigData<?> cacheConfig = GROUP_CACHE.get(group);
             params.put(group.name(), String.join(",", cacheConfig.getMd5(), String.valueOf(cacheConfig.getLastModifyTime())));
@@ -207,12 +218,12 @@ public class HttpLongPollSyncCache extends AbstractLocalCacheManager implements 
         HttpEntity httpEntity = new HttpEntity(params, headers);
 
         SoulException ex = null;
-        for (String server : httpConfig.getServerList()) {
+        for (String server : serverList) {
             String url = server + "/listener";
-            logger.info("request listener configs: [{}]", url);
+            LOGGER.info("request listener configs: [{}]", url);
             try {
                 String json = this.httpClient.postForObject(url, httpEntity, String.class);
-                logger.info("listener result: [{}]", json);
+                LOGGER.info("listener result: [{}]", json);
                 JSONArray groupJson = JSONObject.parseObject(json).getJSONArray("data");
                 if (groupJson != null) {
                     // fetch group configuration async.
@@ -221,17 +232,16 @@ public class HttpLongPollSyncCache extends AbstractLocalCacheManager implements 
                 }
                 break;
             } catch (RestClientException e) {
-                logger.warn("listener configs fail, server:[{}]", server);
-                ex = new SoulException("Init cache error, serverList:" + httpConfig.getServerList(), e);
+                LOGGER.warn("listener configs fail, server:[{}]", server);
+                ex = new SoulException("Init cache error, serverList:" + serverList, e);
                 // try next server, if have another one.
             }
         }
 
-        if ( ex != null ) {
+        if (ex != null) {
             throw ex;
         }
     }
-
 
     class HttpLongPollingTask implements Runnable {
         @Override
@@ -240,21 +250,10 @@ public class HttpLongPollSyncCache extends AbstractLocalCacheManager implements 
                 try {
                     doLongPolling();
                 } catch (Exception e) {
-                    // just logger
-                    logger.error(e.getMessage(), e);
+                    LOGGER.error(e.getMessage(), e);
                 }
             }
-            logger.warn("Stop http long polling.");
-        }
-    }
-
-    @Override
-    public void destroy() {
-        RUNNING.set(false);
-        if (executor != null) {
-            executor.shutdownNow();
-            // help gc
-            executor = null;
+            LOGGER.warn("Stop http long polling.");
         }
     }
 
