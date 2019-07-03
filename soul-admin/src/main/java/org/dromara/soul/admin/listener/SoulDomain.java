@@ -28,7 +28,7 @@ import lombok.Data;
 @Data
 public final class SoulDomain {
 
-    private static final SoulDomain HTTP_PATH = new SoulDomain();
+    private static final SoulDomain SOUL_DOMAIN = new SoulDomain();
 
     /**
      * ip:port.
@@ -44,7 +44,7 @@ public final class SoulDomain {
      * @return the instance
      */
     public static SoulDomain getInstance() {
-        return HTTP_PATH;
+        return SOUL_DOMAIN;
     }
 
 }
