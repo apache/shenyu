@@ -18,19 +18,21 @@ import java.util.Objects;
 
 
 /**
- * author: kl @kailing.pub
- * date: 2019/6/12
+ * The type Health filter.
+ *
+ * @author xiaoyu
+ * @author kl @kailing.pub
  */
 @Component
 @Order(-99)
-public class HealthFilter implements WebFilter {
+public final class HealthFilter implements WebFilter {
 
     private static final String FILTER_TAG = "/actuator/health";
 
     private final HealthEndpoint healthEndpoint;
 
     @Autowired
-    private HealthFilter(HealthEndpoint endpoint) {
+    private HealthFilter(final HealthEndpoint endpoint) {
         healthEndpoint = endpoint;
     }
 
