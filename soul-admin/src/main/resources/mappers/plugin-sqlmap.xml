@@ -6,7 +6,7 @@
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
         <result column="name" jdbcType="VARCHAR" property="name"/>
-        <result column="config" jdbcType="VARCHAR" property="name"/>
+        <result column="config" jdbcType="VARCHAR" property="config"/>
         <result column="role" jdbcType="INTEGER" property="role"/>
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
     </resultMap>

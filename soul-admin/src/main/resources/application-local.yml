@@ -17,12 +17,12 @@ spring:
        driver-class-name: com.mysql.jdbc.Driver
 
 mybatis:
-  config-location: classpath:/mybatis/mybatis-configuration.xml
+  config-location: classpath:/mybatis/mybatis-config.xml
   mapper-locations: classpath:/mappers/*.xml
 
 soul:
   sync:
-      strategy: http
+      strategy: websocket
 
 
 logging:
