@@ -210,8 +210,8 @@ public class SoulConfiguration {
      */
     @Bean
     @Order(1)
-    public WebFilter paramWebFilter(WebEndpointProperties endpointProperties) {
-        return new ParamWebFilter(endpointProperties.getBasePath());
+    public WebFilter paramWebFilter() {
+        return new ParamWebFilter();
     }
 
     /**
