@@ -38,7 +38,6 @@ import org.dromara.soul.web.plugin.function.RewritePlugin;
 import org.dromara.soul.web.plugin.function.WebSocketPlugin;
 import org.dromara.soul.web.plugin.ratelimter.RedisRateLimiter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.autoconfigure.endpoint.web.WebEndpointProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.SearchStrategy;
@@ -205,7 +204,6 @@ public class SoulConfiguration {
     /**
      * Param web filter web filter.
      *
-     * @param endpointProperties the endpoint properties
      * @return the web filter
      */
     @Bean
