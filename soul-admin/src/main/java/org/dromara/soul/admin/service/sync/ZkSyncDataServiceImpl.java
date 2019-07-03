@@ -136,7 +136,7 @@ public class ZkSyncDataServiceImpl implements SyncDataService {
             zkClient.createPersistent(pluginPath, true);
         }
         zkClient.writeData(pluginPath, new PluginData(pluginDO.getId(),
-                pluginDO.getName(), pluginDO.getRole(), pluginDO.getEnabled()));
+                pluginDO.getName(), pluginDO.getConfig(), pluginDO.getRole(), pluginDO.getEnabled()));
 
         final String selectorParentPath = ZkPathConstants.buildSelectorParentPath(pluginDO.getName());
 
