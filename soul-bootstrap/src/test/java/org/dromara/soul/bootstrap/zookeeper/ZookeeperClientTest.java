@@ -93,7 +93,7 @@ public class ZookeeperClientTest extends BaseTest {
         if (!zkClient.exists(ROOT_PATH)) {
             zkClient.createPersistent(ROOT_PATH, true);
         }
-        zkClient.writeData(ROOT_PATH, new PluginData("1", PluginEnum.DIVIDE.getName(), 0, Boolean.TRUE));
+        zkClient.writeData(ROOT_PATH, new PluginData("1", PluginEnum.DIVIDE.getName(), "", 0, Boolean.TRUE));
         final Object o = zkClient.readData(ROOT_PATH);
         System.out.println(o.toString());
     }
@@ -434,11 +434,11 @@ public class ZookeeperClientTest extends BaseTest {
     @Test
     public void testUpdatePlugin() {
         String divide = PLUGIN + "/" + PluginEnum.DIVIDE.getName();
-        PluginData divideDTO = new PluginData("3", PluginEnum.DIVIDE.getName(), 0, false);
+        PluginData divideDTO = new PluginData("3", PluginEnum.DIVIDE.getName(), "", 0, false);
         zkClient.writeData(divide, divideDTO);
 
         String global = PLUGIN + "/" + PluginEnum.GLOBAL.getName();
-        PluginData globalDTO = new PluginData("4", PluginEnum.GLOBAL.getName(), 0, false);
+        PluginData globalDTO = new PluginData("4", PluginEnum.GLOBAL.getName(), "", 0, false);
         zkClient.writeData(global, globalDTO);
 
 
@@ -483,7 +483,7 @@ public class ZookeeperClientTest extends BaseTest {
     @Test
     public void testPluginUpdate() {
         final Map<String, PluginData> map = buildMap();
-        map.put(PluginEnum.DIVIDE.getName(), new PluginData("2", PluginEnum.DIVIDE.getName(), 0, Boolean.FALSE));
+        map.put(PluginEnum.DIVIDE.getName(), new PluginData("2", PluginEnum.DIVIDE.getName(), "", 0, Boolean.FALSE));
         zkClient.writeData(PLUGIN, map);
     }
 
@@ -541,9 +541,9 @@ public class ZookeeperClientTest extends BaseTest {
 
     private Map<String, PluginData> buildMap() {
         Map<String, PluginData> pluginMap = Maps.newHashMap();
-        pluginMap.put(PluginEnum.DIVIDE.getName(), new PluginData("6", PluginEnum.DIVIDE.getName(), 0, Boolean.TRUE));
-        pluginMap.put(PluginEnum.GLOBAL.getName(), new PluginData("7", PluginEnum.GLOBAL.getName(), 0, Boolean.TRUE));
-        pluginMap.put(PluginEnum.MONITOR.getName(), new PluginData("8", PluginEnum.MONITOR.getName(), 0, Boolean.TRUE));
+        pluginMap.put(PluginEnum.DIVIDE.getName(), new PluginData("6", PluginEnum.DIVIDE.getName(), "", 0, Boolean.TRUE));
+        pluginMap.put(PluginEnum.GLOBAL.getName(), new PluginData("7", PluginEnum.GLOBAL.getName(), "", 0, Boolean.TRUE));
+        pluginMap.put(PluginEnum.MONITOR.getName(), new PluginData("8", PluginEnum.MONITOR.getName(), "", 0, Boolean.TRUE));
         return pluginMap;
     }
 }

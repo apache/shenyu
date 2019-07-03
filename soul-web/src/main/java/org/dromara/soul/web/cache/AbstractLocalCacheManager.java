@@ -41,26 +41,26 @@ import java.util.stream.Collectors;
 public abstract class AbstractLocalCacheManager implements LocalCacheManager {
 
     /**
-     * pluginName -> PluginData
+     * pluginName -> PluginData.
      */
     static final ConcurrentMap<String, PluginData> PLUGIN_MAP = Maps.newConcurrentMap();
 
     /**
-     * pluginName -> List&lt;SelectorData&gt;
+     * pluginName -> SelectorData.
      */
     static final ConcurrentMap<String, List<SelectorData>> SELECTOR_MAP = Maps.newConcurrentMap();
 
     /**
-     * selectorId -> List&lt;RuleData&gt;
+     * selectorId -> RuleData.
      */
     static final ConcurrentMap<String, List<RuleData>> RULE_MAP = Maps.newConcurrentMap();
 
     /**
-     * appKey -> AppAuthData
+     * appKey -> AppAuthData.
      */
     static final ConcurrentMap<String, AppAuthData> AUTH_MAP = Maps.newConcurrentMap();
 
-    private static final Logger logger = LoggerFactory.getLogger(AbstractLocalCacheManager.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractLocalCacheManager.class);
 
     /**
      * acquire AppAuthData by appKey with AUTH_MAP container.
@@ -112,9 +112,9 @@ public abstract class AbstractLocalCacheManager implements LocalCacheManager {
      *
      * @param pluginConfig the plugin config
      */
-    protected void flushAllPlugin(List<PluginData> pluginConfig) {
+    void flushAllPlugin(final List<PluginData> pluginConfig) {
         if (CollectionUtils.isEmpty(pluginConfig)) {
-            logger.info("clear all plugin cache, old cache:{}", PLUGIN_MAP);
+            LOGGER.info("clear all plugin cache, old cache:{}", PLUGIN_MAP);
             PLUGIN_MAP.clear();
         } else {
             PLUGIN_MAP.clear();
@@ -124,11 +124,12 @@ public abstract class AbstractLocalCacheManager implements LocalCacheManager {
 
     /**
      * Flush all app auth.
+     *
      * @param appAuthConfig the app auth config
      */
-    protected void flushAllAppAuth(List<AppAuthData> appAuthConfig) {
+    void flushAllAppAuth(final List<AppAuthData> appAuthConfig) {
         if (CollectionUtils.isEmpty(appAuthConfig)) {
-            logger.info("clear all appAuth cache, old cache:{}", AUTH_MAP);
+            LOGGER.info("clear all appAuth cache, old cache:{}", AUTH_MAP);
             AUTH_MAP.clear();
         } else {
             AUTH_MAP.clear();
@@ -141,9 +142,9 @@ public abstract class AbstractLocalCacheManager implements LocalCacheManager {
      *
      * @param ruleConfig the rule config
      */
-    protected void flushAllRule(List<RuleData> ruleConfig) {
+    void flushAllRule(final List<RuleData> ruleConfig) {
         if (CollectionUtils.isEmpty(ruleConfig)) {
-            logger.info("clear all rule cache, old cache:{}", RULE_MAP);
+            LOGGER.info("clear all rule cache, old cache:{}", RULE_MAP);
             RULE_MAP.clear();
         } else {
             // group by selectorId, then sort by sort value
@@ -163,21 +164,21 @@ public abstract class AbstractLocalCacheManager implements LocalCacheManager {
      *
      * @param selectorConfig the selector config
      */
-    protected void flushAllSelector(List<SelectorData> selectorConfig) {
+    void flushAllSelector(final List<SelectorData> selectorConfig) {
         if (CollectionUtils.isEmpty(selectorConfig)) {
-            logger.info("clear all selector cache, old cache:{}", SELECTOR_MAP);
-            SELECTOR_MAP.keySet().forEach(selectorId -> UpstreamCacheManager.removeByKey(selectorId));
+            LOGGER.info("clear all selector cache, old cache:{}", SELECTOR_MAP);
+            SELECTOR_MAP.keySet().forEach(UpstreamCacheManager::removeByKey);
             SELECTOR_MAP.clear();
         } else {
-            
+
             // update cache for UpstreamCacheManager
             SELECTOR_MAP.values().forEach(selectors -> selectors.forEach(selector -> {
-                if ( PluginEnum.DIVIDE.getName().equals(selector.getPluginName()) ) {
+                if (PluginEnum.DIVIDE.getName().equals(selector.getPluginName())) {
                     UpstreamCacheManager.removeByKey(selector.getId());
                 }
             }));
             selectorConfig.forEach(selector -> {
-                if ( PluginEnum.DIVIDE.getName().equals(selector.getPluginName()) ) {
+                if (PluginEnum.DIVIDE.getName().equals(selector.getPluginName())) {
                     UpstreamCacheManager.submit(selector);
                 }
             });
