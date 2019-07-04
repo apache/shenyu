@@ -72,4 +72,12 @@ public interface RuleService {
      */
     List<RuleData> listAll();
 
+    /**
+     * Find by selector id list.
+     *
+     * @param selectorId the selector id
+     * @return the list
+     */
+    List<RuleData> findBySelectorId(String selectorId);
+
 }

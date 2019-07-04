@@ -16,24 +16,35 @@
  *
  */
 
-package org.dromara.soul.admin.service.sync;
+package org.dromara.soul.admin.transfer;
 
-import org.dromara.soul.admin.service.SyncDataService;
+
+import org.dromara.soul.admin.entity.SelectorDO;
+import org.dromara.soul.common.dto.SelectorData;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
 
 /**
- * The type Websocket sync data service.
+ * The interface Plugin transfer.
  *
  * @author xiaoyu(Myth)
  */
-public class WebsocketSyncDataServiceImpl implements SyncDataService {
+@Mapper
+public interface SelectorTransfer {
 
-    @Override
-    public boolean syncAll() {
-        return false;
-    }
+    /**
+     * The constant INSTANCE.
+     */
+    SelectorTransfer INSTANCE = Mappers.getMapper(SelectorTransfer.class);
 
-    @Override
-    public boolean syncPluginData(String pluginId) {
-        return false;
-    }
+
+    /**
+     * Map to data selector data.
+     *
+     * @param selectorDO the selector do
+     * @return the selector data
+     */
+    SelectorData mapToData(SelectorDO selectorDO);
+
+
 }

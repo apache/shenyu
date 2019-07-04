@@ -65,6 +65,15 @@ public interface SelectorService {
      */
     CommonPager<SelectorVO> listByPage(SelectorQuery selectorQuery);
 
+
+    /**
+     * Find by plugin id list.
+     *
+     * @param pluginId the plugin id
+     * @return the list
+     */
+    List<SelectorData> findByPluginId(String pluginId);
+
     /**
      * List all list.
      *
