@@ -310,6 +310,16 @@ public class PluginServiceImpl implements PluginService {
         }
 
         List<String> selectorZKs = zkClient.getChildren(selectorParentPath);
+
+        selectorZKs.forEach(selectorZK -> {
+            zkClient.delete(ZkPathConstants.buildSelectorRealPath(pluginDO.getName(), selectorZK));
+            String ruleParentPath = ZkPathConstants.buildRuleParentPath(pluginDO.getName());
+            zkClient.getChildren(ruleParentPath).forEach(selectorRulePath -> {
+                if (selectorRulePath.split(ZkPathConstants.SELECTOR_JOIN_RULE)[0].equals(selectorZK)) {
+                    zkClient.delete(ruleParentPath + "/" + selectorRulePath);
+                }
+            });
+        });
         selectorMapper.selectByQuery(new SelectorQuery(pluginDO.getId(), null)).forEach(selectorDO -> {
             if (CollectionUtils.isNotEmpty(selectorZKs)) {
                 selectorZKs.remove(selectorDO.getId());
@@ -347,16 +357,6 @@ public class PluginServiceImpl implements PluginService {
             });
 
             ruleZKs.forEach(ruleZK -> zkClient.delete(ZkPathConstants.buildRulePath(pluginDO.getName(), selectorDO.getId(), ruleZK)));
-        });
-
-        selectorZKs.forEach(selectorZK -> {
-            zkClient.delete(ZkPathConstants.buildSelectorRealPath(pluginDO.getName(), selectorZK));
-            String ruleParentPath = ZkPathConstants.buildRuleParentPath(pluginDO.getName());
-            zkClient.getChildren(ruleParentPath).forEach(selectorRulePath -> {
-                if (selectorRulePath.split(ZkPathConstants.SELECTOR_JOIN_RULE)[0].equals(selectorZK)) {
-                    zkClient.delete(ruleParentPath + "/" + selectorRulePath);
-                }
-            });
         });
     }
 }
