@@ -31,6 +31,4 @@ import java.io.Serializable;
 public class WebsocketConfig implements Serializable {
 
     private String url;
-
-    private Integer delayTime;
 }

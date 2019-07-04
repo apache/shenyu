@@ -199,6 +199,12 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     @Override
+    public List<SelectorData> findByPluginId(String pluginId) {
+        return selectorMapper.findByPluginId(pluginId).stream()
+                .map(this::buildSelectorData).collect(Collectors.toList());
+    }
+
+    @Override
     public List<SelectorData> listAll() {
         return selectorMapper.selectByQuery(new SelectorQuery())
                 .stream()
@@ -214,7 +220,6 @@ public class SelectorServiceImpl implements SelectorService {
                 .map(ConditionTransfer.INSTANCE::mapToSelectorDO)
                 .collect(Collectors.toList());
         PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
-
         return SelectorDO.transFrom(selectorDO, pluginDO.getName(), conditionDataList);
     }
 

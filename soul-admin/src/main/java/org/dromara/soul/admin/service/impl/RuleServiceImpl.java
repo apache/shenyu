@@ -181,7 +181,16 @@ public class RuleServiceImpl implements RuleService {
 
     @Override
     public List<RuleData> listAll() {
-        return ruleMapper.selectByQuery(new RuleQuery()).stream()
+        return ruleMapper.selectByQuery(new RuleQuery())
+                .stream()
+                .map(this::buildRuleData)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<RuleData> findBySelectorId(String selectorId) {
+        return ruleMapper.findBySelectorId(selectorId)
+                .stream()
                 .map(this::buildRuleData)
                 .collect(Collectors.toList());
     }

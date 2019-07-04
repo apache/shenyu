@@ -5,15 +5,6 @@ import org.dromara.soul.admin.listener.DataChangedListener;
 import org.dromara.soul.admin.listener.http.HttpLongPollingDataChangedListener;
 import org.dromara.soul.admin.listener.websocket.WebsocketDataChangedListener;
 import org.dromara.soul.admin.listener.zookeeper.ZookeeperDataChangedListener;
-import org.dromara.soul.admin.mapper.PluginMapper;
-import org.dromara.soul.admin.mapper.RuleConditionMapper;
-import org.dromara.soul.admin.mapper.RuleMapper;
-import org.dromara.soul.admin.mapper.SelectorConditionMapper;
-import org.dromara.soul.admin.mapper.SelectorMapper;
-import org.dromara.soul.admin.service.SyncDataService;
-import org.dromara.soul.admin.service.sync.HttpSyncDataServiceImpl;
-import org.dromara.soul.admin.service.sync.WebsocketSyncDataServiceImpl;
-import org.dromara.soul.admin.service.sync.ZkSyncDataServiceImpl;
 import org.dromara.soul.configuration.zookeeper.ZookeeperConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -49,16 +40,6 @@ public class DataSyncConfiguration {
             return new HttpLongPollingDataChangedListener();
         }
 
-        /**
-         * Sync data service sync data service.
-         *
-         * @return the sync data service
-         */
-        @Bean
-        public SyncDataService syncDataService() {
-            return new HttpSyncDataServiceImpl();
-        }
-
     }
 
     /**
@@ -79,28 +60,6 @@ public class DataSyncConfiguration {
         @Bean
         public DataChangedListener configEventListener(final ZkClient zkClient) {
             return new ZookeeperDataChangedListener(zkClient);
-        }
-
-        /**
-         * Sync data service sync data service.
-         *
-         * @param zkClient                the zk client
-         * @param pluginMapper            the plugin mapper
-         * @param selectorMapper          the selector mapper
-         * @param selectorConditionMapper the selector condition mapper
-         * @param ruleMapper              the rule mapper
-         * @param ruleConditionMapper     the rule condition mapper
-         * @return the sync data service
-         */
-        @Bean
-        public SyncDataService syncDataService(final ZkClient zkClient,
-                                               final PluginMapper pluginMapper,
-                                               final SelectorMapper selectorMapper,
-                                               final SelectorConditionMapper selectorConditionMapper,
-                                               final RuleMapper ruleMapper,
-                                               final RuleConditionMapper ruleConditionMapper) {
-            return new ZkSyncDataServiceImpl(zkClient, pluginMapper, selectorMapper,
-                    selectorConditionMapper, ruleMapper, ruleConditionMapper);
         }
     }
 
@@ -131,16 +90,6 @@ public class DataSyncConfiguration {
         @Bean
         public ServerEndpointExporter serverEndpointExporter() {
             return new ServerEndpointExporter();
-        }
-
-        /**
-         * Sync data service sync data service.
-         *
-         * @return the sync data service
-         */
-        @Bean
-        public SyncDataService syncDataService() {
-            return new WebsocketSyncDataServiceImpl();
         }
     }
 
