@@ -24,7 +24,7 @@ import org.dromara.soul.admin.entity.PluginDO;
 import org.dromara.soul.admin.entity.RuleDO;
 import org.dromara.soul.admin.entity.SelectorDO;
 import org.dromara.soul.admin.listener.DataChangedEvent;
-import org.dromara.soul.admin.listener.DataEventType;
+import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.admin.mapper.PluginMapper;
 import org.dromara.soul.admin.mapper.RuleConditionMapper;
 import org.dromara.soul.admin.mapper.RuleMapper;
@@ -104,11 +104,11 @@ public class PluginServiceImpl implements PluginService {
             return msg;
         }
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
-        DataEventType eventType = DataEventType.CREATE;
+        DataEventTypeEnum eventType = DataEventTypeEnum.CREATE;
         if (StringUtils.isBlank(pluginDTO.getId())) {
             pluginMapper.insertSelective(pluginDO);
         } else {
-            eventType = DataEventType.UPDATE;
+            eventType = DataEventTypeEnum.UPDATE;
             pluginMapper.updateSelective(pluginDO);
         }
 
@@ -163,7 +163,7 @@ public class PluginServiceImpl implements PluginService {
                 selectorConditionMapper.deleteByQuery(new SelectorConditionQuery(selectorDO.getId()));
             });
             // publish change event.
-            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventType.DELETE,
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.DELETE,
                     Collections.singletonList(PluginTransfer.INSTANCE.mapToData(pluginDO))));
         }
         return StringUtils.EMPTY;
@@ -181,7 +181,7 @@ public class PluginServiceImpl implements PluginService {
             pluginMapper.updateEnable(pluginDO);
 
             // publish change event.
-            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventType.UPDATE,
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
                     Collections.singletonList(PluginTransfer.INSTANCE.mapToData(pluginDO))));
         }
         return StringUtils.EMPTY;

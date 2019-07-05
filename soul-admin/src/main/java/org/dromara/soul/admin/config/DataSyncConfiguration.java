@@ -5,6 +5,7 @@ import org.dromara.soul.admin.listener.DataChangedListener;
 import org.dromara.soul.admin.listener.http.HttpLongPollingDataChangedListener;
 import org.dromara.soul.admin.listener.websocket.WebsocketDataChangedListener;
 import org.dromara.soul.admin.listener.zookeeper.ZookeeperDataChangedListener;
+import org.dromara.soul.admin.service.SyncDataService;
 import org.dromara.soul.configuration.zookeeper.ZookeeperConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -75,11 +76,12 @@ public class DataSyncConfiguration {
         /**
          * Config event listener data changed listener.
          *
+         * @param syncDataService the sync data service
          * @return the data changed listener
          */
         @Bean
-        public DataChangedListener configEventListener() {
-            return new WebsocketDataChangedListener();
+        public DataChangedListener configEventListener(final SyncDataService syncDataService) {
+            return new WebsocketDataChangedListener(syncDataService);
         }
 
         /**

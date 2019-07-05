@@ -15,28 +15,42 @@
  *   limitations under the License.
  */
 
-package org.dromara.soul.admin.listener;
+package org.dromara.soul.common.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
+
+import java.io.Serializable;
+import java.util.List;
 
 /**
- * The enum Data event type.
+ * Data set, including {@link AppAuthData}、{@link ConditionData}、{@link PluginData}、{@link RuleData}、{@link SelectorData}.
  *
+ * @param <T> the type parameter
  * @author xiaoyu
+ * @since 2.0.0
  */
-public enum DataEventType {
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Accessors(chain = true)
+public class WebsocketData<T> implements Serializable {
 
     /**
-     * delete event
+     * {@linkplain org.dromara.soul.common.enums.ConfigGroupEnum}
      */
-    DELETE,
+    private String groupType;
 
     /**
-     * insert event
+     * {@linkplain org.dromara.soul.common.enums.DataEventTypeEnum}
      */
-    CREATE,
+    private String eventType;
 
     /**
-     * update event
+     * {@link AppAuthData}、{@link ConditionData}、{@link PluginData}、{@link RuleData}、{@link SelectorData}.
      */
-    UPDATE
+    private List<T> data;
 
 }

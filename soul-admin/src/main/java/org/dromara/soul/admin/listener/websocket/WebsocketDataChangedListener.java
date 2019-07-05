@@ -1,17 +1,21 @@
 package org.dromara.soul.admin.listener.websocket;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.listener.DataChangedListener;
-import org.dromara.soul.admin.listener.DataEventType;
+import org.dromara.soul.admin.service.SyncDataService;
 import org.dromara.soul.common.dto.AppAuthData;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
+import org.dromara.soul.common.dto.WebsocketData;
+import org.dromara.soul.common.enums.ConfigGroupEnum;
+import org.dromara.soul.common.enums.DataEventTypeEnum;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
-import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
@@ -32,21 +36,16 @@ public class WebsocketDataChangedListener implements DataChangedListener {
 
     private static final Set<Session> SESSION_MAP = new HashSet<>();
 
+    private final SyncDataService syncDataService;
+
+    public WebsocketDataChangedListener(SyncDataService syncDataService) {
+        this.syncDataService = syncDataService;
+    }
+
     @OnOpen
     public void onOpen(Session session) {
         SESSION_MAP.add(session);
-        send("Hello, connection opened!");
-    }
-
-    @OnMessage
-    public void onMessage(final String message, final Session session) {
-        for (Session entry : SESSION_MAP) {
-            LOGGER.info("session.id={}", session.getId());
-
-            break;
-        }
-        LOGGER.info("接收到消息：{}", message);
-
+        syncDataService.syncAll();
     }
 
     @OnClose
@@ -61,31 +60,41 @@ public class WebsocketDataChangedListener implements DataChangedListener {
     }
 
     @Override
-    public void onPluginChanged(final List<PluginData> changed, final DataEventType eventType) {
-
+    public void onPluginChanged(final List<PluginData> pluginDataList, final DataEventTypeEnum eventType) {
+        WebsocketData<PluginData> websocketData =
+                new WebsocketData<>(ConfigGroupEnum.PLUGIN.name(), eventType.name(), pluginDataList);
+        send(GsonUtils.getInstance().toJson(websocketData));
     }
 
     @Override
-    public void onSelectorChanged(final List<SelectorData> changed, final DataEventType eventType) {
-
+    public void onSelectorChanged(final List<SelectorData> selectorDataList, final DataEventTypeEnum eventType) {
+        WebsocketData<SelectorData> websocketData =
+                new WebsocketData<>(ConfigGroupEnum.SELECTOR.name(), eventType.name(), selectorDataList);
+        send(GsonUtils.getInstance().toJson(websocketData));
     }
 
     @Override
-    public void onRuleChanged(final List<RuleData> changed, final DataEventType eventType) {
-
+    public void onRuleChanged(final List<RuleData> ruleDataList, final DataEventTypeEnum eventType) {
+        WebsocketData<RuleData> configData =
+                new WebsocketData<>(ConfigGroupEnum.RULE.name(), eventType.name(), ruleDataList);
+        send(GsonUtils.getInstance().toJson(configData));
     }
 
     @Override
-    public void onAppAuthChanged(final List<AppAuthData> changed, final DataEventType eventType) {
-
+    public void onAppAuthChanged(final List<AppAuthData> appAuthDataList, final DataEventTypeEnum eventType) {
+        WebsocketData<AppAuthData> configData =
+                new WebsocketData<>(ConfigGroupEnum.APP_AUTH.name(), eventType.name(), appAuthDataList);
+        send(GsonUtils.getInstance().toJson(configData));
     }
 
     private void send(final String message) {
-        for (Session session : SESSION_MAP) {
-            try {
-                session.getBasicRemote().sendText(message);
-            } catch (IOException e) {
-                LOGGER.error("websocket send exception:{}", e);
+        if (StringUtils.isNotBlank(message)) {
+            for (Session session : SESSION_MAP) {
+                try {
+                    session.getBasicRemote().sendText(message);
+                } catch (IOException e) {
+                    LOGGER.error("websocket send result is exception :{}", e);
+                }
             }
         }
     }
