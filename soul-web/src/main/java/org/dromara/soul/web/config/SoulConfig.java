@@ -20,6 +20,8 @@ package org.dromara.soul.web.config;
 
 import lombok.Data;
 import org.dromara.soul.configuration.zookeeper.ZookeeperConfig;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 
@@ -29,19 +31,20 @@ import java.io.Serializable;
  * @author xiaoyu(Myth)
  */
 @Data
+@Component("soulConfig")
+@ConfigurationProperties(prefix = "org.dromara.soul",
+        ignoreInvalidFields = true)
 public class SoulConfig implements Serializable {
 
-    private Integer acceptBufferSize;
+    private Integer filterTime = 10;
 
-    private Integer monitorBufferSize;
+    private Boolean filterTimeEnable = false;
 
-    private Integer filterTime;
-
-    private Boolean filterTimeEnable;
-
-    private Integer upstreamScheduledTime;
+    private Integer upstreamScheduledTime = 30;
 
     private Sync sync;
+
+    private Disruptor disruptor;
 
 
     /**
@@ -52,11 +55,41 @@ public class SoulConfig implements Serializable {
 
         private String strategy;
 
-        private ZookeeperConfig zookeeperConfig;
+        private ZookeeperConfig zookeeper;
 
-        private HttpConfig httpConfig;
+        private HttpConfig http;
 
-        private WebsocketConfig websocketConfig;
+        private WebsocketConfig websocket;
+
+    }
+
+    @Data
+    public static class HttpConfig {
+
+        private String url;
+
+        private Integer delayTime;
+
+        private Integer connectionTimeout;
+
+    }
+
+    @Data
+    public static class WebsocketConfig {
+
+        private String url;
+    }
+
+    @Data
+    public static class Disruptor {
+
+        private Integer acceptBufferSize;
+
+        private Integer acceptThread;
+
+        private Integer monitorBufferSize;
+
+        private Integer monitorThread;
 
     }
 

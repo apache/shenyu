@@ -26,9 +26,10 @@ import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.UrlUtils;
+import org.dromara.soul.web.config.SoulConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -62,8 +63,8 @@ public class UpstreamCacheManager {
 
     private static final Integer DELAY_INIT = 30;
 
-    @Value("${soul.upstream.scheduledTime:10}")
-    private Integer scheduledTime;
+    @Autowired
+    private SoulConfig soulConfig;
 
     /**
      * Find upstream list by selector id list.
@@ -103,7 +104,7 @@ public class UpstreamCacheManager {
             new ScheduledThreadPoolExecutor(MAX_THREAD,
                     SoulThreadFactory.create("scheduled-upstream-task", false))
                     .scheduleWithFixedDelay(this::scheduled,
-                            DELAY_INIT, scheduledTime, TimeUnit.SECONDS);
+                            DELAY_INIT, soulConfig.getUpstreamScheduledTime(), TimeUnit.SECONDS);
         }
     }
 

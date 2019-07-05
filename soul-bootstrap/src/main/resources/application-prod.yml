@@ -18,15 +18,24 @@ spring:
         connect-timeout: 10
         read-timeout: 30
         write-timeout: 10
-   zookeeper:
-        url : localhost:2181
-        sessionTimeout: 5000
-        connectionTimeout : 2000
-soul:
-    timeDelay: 1000
-    bufferSize: 2048
-    timeVerify:
-       enabled: true
+
+
+org:
+   dromara :
+        soul :
+           filterTimeEnable : true
+           filterTime : 10
+           sync:
+             strategy: websocket
+             websocket :
+                url: ws://localhost:8888/websocket
+#             zookeeper:
+#                 url: localhost:2181
+#                 sessionTimeout: 5000
+#                 connectionTimeout: 2000
+#             http :
+#                url : localhost:8888
+
 logging:
     level:
         root: info

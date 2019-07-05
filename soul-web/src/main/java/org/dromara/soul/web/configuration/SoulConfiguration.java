@@ -20,6 +20,7 @@ package org.dromara.soul.web.configuration;
 
 import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.cache.UpstreamCacheManager;
+import org.dromara.soul.web.config.SoulConfig;
 import org.dromara.soul.web.filter.BodyWebFilter;
 import org.dromara.soul.web.filter.ParamWebFilter;
 import org.dromara.soul.web.filter.TimeWebFilter;
@@ -219,9 +220,9 @@ public class SoulConfiguration {
      */
     @Bean
     @Order(2)
-    @ConditionalOnProperty(name = "soul.timeVerify.enabled", matchIfMissing = true)
-    public WebFilter timeWebFilter() {
-        return new TimeWebFilter();
+    @ConditionalOnProperty(name = "org.dromara.soul.filterTimeEnable", matchIfMissing = true)
+    public WebFilter timeWebFilter(SoulConfig soulConfig) {
+        return new TimeWebFilter(soulConfig);
     }
 
 

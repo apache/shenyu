@@ -7,7 +7,7 @@ import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.WebsocketData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.utils.GsonUtils;
-import org.dromara.soul.web.config.WebsocketConfig;
+import org.dromara.soul.web.config.SoulConfig;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
@@ -37,7 +37,7 @@ public class WebsocketSyncCache extends WebsocketCacheHandler {
      *
      * @param websocketConfig the websocket config
      */
-    public WebsocketSyncCache(WebsocketConfig websocketConfig) {
+    public WebsocketSyncCache(SoulConfig.WebsocketConfig websocketConfig) {
         CompletableFuture.runAsync(() -> {
             try {
                 client = new WebSocketClient(new URI(websocketConfig.getUrl())) {
