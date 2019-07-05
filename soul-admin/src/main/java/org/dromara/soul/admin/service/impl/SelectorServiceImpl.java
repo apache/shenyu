@@ -27,7 +27,6 @@ import org.dromara.soul.admin.entity.RuleDO;
 import org.dromara.soul.admin.entity.SelectorConditionDO;
 import org.dromara.soul.admin.entity.SelectorDO;
 import org.dromara.soul.admin.listener.DataChangedEvent;
-import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.admin.mapper.PluginMapper;
 import org.dromara.soul.admin.mapper.RuleConditionMapper;
 import org.dromara.soul.admin.mapper.RuleMapper;
@@ -46,6 +45,7 @@ import org.dromara.soul.admin.vo.SelectorVO;
 import org.dromara.soul.common.dto.ConditionData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
+import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -53,6 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -200,14 +201,17 @@ public class SelectorServiceImpl implements SelectorService {
 
     @Override
     public List<SelectorData> findByPluginId(String pluginId) {
-        return selectorMapper.findByPluginId(pluginId).stream()
-                .map(this::buildSelectorData).collect(Collectors.toList());
+        return selectorMapper.findByPluginId(pluginId)
+                .stream()
+                .map(this::buildSelectorData)
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<SelectorData> listAll() {
         return selectorMapper.selectByQuery(new SelectorQuery())
                 .stream()
+                .filter(Objects::nonNull)
                 .map(this::buildSelectorData)
                 .collect(Collectors.toList());
     }
@@ -217,9 +221,13 @@ public class SelectorServiceImpl implements SelectorService {
         List<ConditionData> conditionDataList = selectorConditionMapper
                 .selectByQuery(new SelectorConditionQuery(selectorDO.getId()))
                 .stream()
+                .filter(Objects::nonNull)
                 .map(ConditionTransfer.INSTANCE::mapToSelectorDO)
                 .collect(Collectors.toList());
         PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
+        if (Objects.isNull(pluginDO)) {
+            return null;
+        }
         return SelectorDO.transFrom(selectorDO, pluginDO.getName(), conditionDataList);
     }
 
