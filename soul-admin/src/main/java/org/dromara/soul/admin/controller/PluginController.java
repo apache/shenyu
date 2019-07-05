@@ -217,7 +217,8 @@ public class PluginController {
                 return SoulResult.success("sync plugins fail");
             }
         } catch (Exception e) {
-            return SoulResult.error("sync plugins exception");
+            e.printStackTrace();
+            return SoulResult.error("sync plugins exception{}");
         }
     }
 }

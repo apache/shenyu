@@ -60,8 +60,7 @@ public class UpstreamCacheManager {
 
     private static final Map<String, List<DivideUpstream>> SCHEDULED_MAP = Maps.newConcurrentMap();
 
-    @Value("${soul.upstream.delayInit:30}")
-    private Integer delayInit;
+    private static final Integer DELAY_INIT = 30;
 
     @Value("${soul.upstream.scheduledTime:10}")
     private Integer scheduledTime;
@@ -104,7 +103,7 @@ public class UpstreamCacheManager {
             new ScheduledThreadPoolExecutor(MAX_THREAD,
                     SoulThreadFactory.create("scheduled-upstream-task", false))
                     .scheduleWithFixedDelay(this::scheduled,
-                            delayInit, scheduledTime, TimeUnit.SECONDS);
+                            DELAY_INIT, scheduledTime, TimeUnit.SECONDS);
         }
     }
 
@@ -139,7 +138,7 @@ public class UpstreamCacheManager {
      */
     public void execute(final SelectorData selectorData) {
         final List<DivideUpstream> upstreamList =
-                GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream[].class);
+                GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream.class);
         if (CollectionUtils.isNotEmpty(upstreamList)) {
             SCHEDULED_MAP.put(selectorData.getId(), upstreamList);
             UPSTREAM_MAP.put(selectorData.getId(), check(upstreamList));
