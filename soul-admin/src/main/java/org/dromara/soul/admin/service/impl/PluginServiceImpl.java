@@ -24,7 +24,6 @@ import org.dromara.soul.admin.entity.PluginDO;
 import org.dromara.soul.admin.entity.RuleDO;
 import org.dromara.soul.admin.entity.SelectorDO;
 import org.dromara.soul.admin.listener.DataChangedEvent;
-import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.admin.mapper.PluginMapper;
 import org.dromara.soul.admin.mapper.RuleConditionMapper;
 import org.dromara.soul.admin.mapper.RuleMapper;
@@ -43,6 +42,7 @@ import org.dromara.soul.admin.vo.PluginVO;
 import org.dromara.soul.common.constant.AdminConstants;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
+import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.enums.PluginRoleEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -219,7 +219,9 @@ public class PluginServiceImpl implements PluginService {
     @Override
     public List<PluginData> listAll() {
         PluginQuery query = new PluginQuery();
-        return pluginMapper.selectByQuery(query).stream()
+        return pluginMapper.selectByQuery(query)
+                .stream()
+                .filter(Objects::nonNull)
                 .map(PluginTransfer.INSTANCE::mapToData)
                 .collect(Collectors.toList());
     }

@@ -26,7 +26,6 @@ import org.dromara.soul.admin.entity.RuleConditionDO;
 import org.dromara.soul.admin.entity.RuleDO;
 import org.dromara.soul.admin.entity.SelectorDO;
 import org.dromara.soul.admin.listener.DataChangedEvent;
-import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.admin.mapper.PluginMapper;
 import org.dromara.soul.admin.mapper.RuleConditionMapper;
 import org.dromara.soul.admin.mapper.RuleMapper;
@@ -42,6 +41,7 @@ import org.dromara.soul.admin.vo.RuleVO;
 import org.dromara.soul.common.dto.ConditionData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
+import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -49,6 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -183,6 +184,7 @@ public class RuleServiceImpl implements RuleService {
     public List<RuleData> listAll() {
         return ruleMapper.selectByQuery(new RuleQuery())
                 .stream()
+                .filter(Objects::nonNull)
                 .map(this::buildRuleData)
                 .collect(Collectors.toList());
     }
@@ -191,6 +193,7 @@ public class RuleServiceImpl implements RuleService {
     public List<RuleData> findBySelectorId(String selectorId) {
         return ruleMapper.findBySelectorId(selectorId)
                 .stream()
+                .filter(Objects::nonNull)
                 .map(this::buildRuleData)
                 .collect(Collectors.toList());
     }
@@ -200,10 +203,17 @@ public class RuleServiceImpl implements RuleService {
         List<ConditionData> conditions = ruleConditionMapper.selectByQuery(
                 new RuleConditionQuery(ruleDO.getId()))
                 .stream()
+                .filter(Objects::nonNull)
                 .map(ConditionTransfer.INSTANCE::mapToRuleDO)
                 .collect(Collectors.toList());
         SelectorDO selectorDO = selectorMapper.selectById(ruleDO.getSelectorId());
+        if (Objects.isNull(selectorDO)) {
+            return null;
+        }
         PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
+        if (Objects.isNull(pluginDO)) {
+            return null;
+        }
         return RuleDO.transFrom(ruleDO, pluginDO.getName(), conditions);
     }
 
