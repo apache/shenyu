@@ -32,7 +32,6 @@ import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.web.cache.LocalCacheManager;
-import org.dromara.soul.web.cache.ZookeeperSyncCache;
 import org.dromara.soul.web.plugin.AbstractSoulPlugin;
 import org.dromara.soul.web.plugin.SoulPluginChain;
 import org.dromara.soul.web.plugin.dubbo.DubboProxyService;

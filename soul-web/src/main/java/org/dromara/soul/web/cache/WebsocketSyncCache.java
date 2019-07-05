@@ -8,6 +8,7 @@ import org.dromara.soul.common.dto.WebsocketData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.web.config.WebsocketConfig;
+import org.java_websocket.WebSocket;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.slf4j.Logger;
@@ -62,6 +63,11 @@ public class WebsocketSyncCache extends WebsocketCacheHandler {
             LOGGER.error("websocket url is error :{}", e);
         }
         client.connect();
+
+        while (!client.getReadyState().equals(WebSocket.READYSTATE.OPEN)) {
+            LOGGER.info("websocket connection...start..");
+        }
+        LOGGER.info("websocket connection...successful....");
     }
 
     private void handleResult(final String result) {

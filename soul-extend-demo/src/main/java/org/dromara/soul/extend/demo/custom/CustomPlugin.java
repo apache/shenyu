@@ -18,8 +18,8 @@
 
 package org.dromara.soul.extend.demo.custom;
 
-import org.dromara.soul.common.dto.zk.RuleZkDTO;
-import org.dromara.soul.common.dto.zk.SelectorZkDTO;
+import org.dromara.soul.common.dto.RuleData;
+import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.extend.demo.entity.Test;
@@ -100,7 +100,7 @@ public class CustomPlugin extends AbstractSoulPlugin {
     }
 
     @Override
-    protected Mono<Void> doExecute(ServerWebExchange exchange, SoulPluginChain chain, SelectorZkDTO selector, RuleZkDTO rule) {
+    protected Mono<Void> doExecute(ServerWebExchange exchange, SoulPluginChain chain, SelectorData selector, RuleData rule) {
         LOGGER.debug(".......... function plugin start..............");
 
         /*

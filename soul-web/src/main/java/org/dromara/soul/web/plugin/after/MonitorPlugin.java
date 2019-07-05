@@ -25,7 +25,7 @@ import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.enums.ResultEnum;
-import org.dromara.soul.web.cache.ZookeeperSyncCache;
+import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.disruptor.publisher.SoulEventPublisher;
 import org.dromara.soul.web.influxdb.entity.MonitorDO;
 import org.dromara.soul.web.plugin.AbstractSoulPlugin;
@@ -45,15 +45,16 @@ public class MonitorPlugin extends AbstractSoulPlugin {
 
     private final SoulEventPublisher soulEventPublisher;
 
+
     /**
      * Instantiates a new Monitor plugin.
      *
-     * @param soulEventPublisher    the soul event publisher
-     * @param zookeeperSyncCache the zookeeper cache manager
+     * @param soulEventPublisher the soul event publisher
+     * @param localCacheManager  the local cache manager
      */
     public MonitorPlugin(final SoulEventPublisher soulEventPublisher,
-                         final ZookeeperSyncCache zookeeperSyncCache) {
-        super(zookeeperSyncCache);
+                         final LocalCacheManager localCacheManager) {
+        super(localCacheManager);
         this.soulEventPublisher = soulEventPublisher;
     }
 

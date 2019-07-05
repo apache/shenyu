@@ -16,13 +16,13 @@ import org.slf4j.LoggerFactory;
 
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
+import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * The type Websocket data changed listener.
@@ -34,9 +34,13 @@ public class WebsocketDataChangedListener implements DataChangedListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WebsocketDataChangedListener.class);
 
-    private static final Set<Session> SESSION_MAP = new HashSet<>();
+    private static final CopyOnWriteArraySet<Session> SESSION_SET = new CopyOnWriteArraySet<>();
 
-    private final SyncDataService syncDataService;
+    private SyncDataService syncDataService;
+
+    public WebsocketDataChangedListener() {
+        System.out.println("why......");
+    }
 
     public WebsocketDataChangedListener(SyncDataService syncDataService) {
         this.syncDataService = syncDataService;
@@ -44,18 +48,22 @@ public class WebsocketDataChangedListener implements DataChangedListener {
 
     @OnOpen
     public void onOpen(Session session) {
-        SESSION_MAP.add(session);
+        SESSION_SET.add(session);
+    }
+
+    @OnMessage
+    public void onMessage(String message, Session session) {
         syncDataService.syncAll();
     }
 
     @OnClose
     public void onClose(final Session session) {
-        SESSION_MAP.remove(session);
+        SESSION_SET.remove(session);
     }
 
     @OnError
     public void onError(final Session session, final Throwable error) {
-        SESSION_MAP.remove(session);
+        SESSION_SET.remove(session);
         LOGGER.error("websocket collection error:{}", error);
     }
 
@@ -89,7 +97,7 @@ public class WebsocketDataChangedListener implements DataChangedListener {
 
     private void send(final String message) {
         if (StringUtils.isNotBlank(message)) {
-            for (Session session : SESSION_MAP) {
+            for (Session session : SESSION_SET) {
                 try {
                     session.getBasicRemote().sendText(message);
                 } catch (IOException e) {
@@ -98,5 +106,4 @@ public class WebsocketDataChangedListener implements DataChangedListener {
             }
         }
     }
-
 }

@@ -52,7 +52,7 @@ public class LocalCacheConfiguration {
     @ConditionalOnMissingBean(LocalCacheManager.class)
     @ConditionalOnProperty(name = "soul.sync.strategy", havingValue = "zookeeper")
     @Import(ZookeeperConfiguration.class)
-    static class Zookeeper {
+    static class ZookeeperCacheManager {
 
         /**
          * Zookeeper cache manager local cache manager.
@@ -61,7 +61,7 @@ public class LocalCacheConfiguration {
          * @return the local cache manager
          */
         @Bean
-        public LocalCacheManager zookeeperCacheManager(ZkClient zkClient) {
+        public LocalCacheManager localCacheManager(ZkClient zkClient) {
             return new ZookeeperSyncCache(zkClient);
         }
     }
@@ -93,7 +93,7 @@ public class LocalCacheConfiguration {
          * @return the local cache manager
          */
         @Bean
-        public LocalCacheManager configEventListener(final HttpConfig httpConfig) {
+        public LocalCacheManager localCacheManager(final HttpConfig httpConfig) {
             return new HttpLongPollSyncCache(httpConfig);
         }
 
@@ -125,7 +125,7 @@ public class LocalCacheConfiguration {
          * @return the local cache manager
          */
         @Bean
-        public LocalCacheManager configEventListener(final WebsocketConfig websocketConfig) {
+        public LocalCacheManager localCacheManager(final WebsocketConfig websocketConfig) {
             return new WebsocketSyncCache(websocketConfig);
         }
 

@@ -37,7 +37,7 @@ public class DataSyncConfiguration {
          * @return the http long polling data changed listener
          */
         @Bean
-        public HttpLongPollingDataChangedListener configEventListener() {
+        public DataChangedListener dataChangedListener() {
             return new HttpLongPollingDataChangedListener();
         }
 
@@ -59,7 +59,7 @@ public class DataSyncConfiguration {
          * @return the data changed listener
          */
         @Bean
-        public DataChangedListener configEventListener(final ZkClient zkClient) {
+        public DataChangedListener dataChangedListener(final ZkClient zkClient) {
             return new ZookeeperDataChangedListener(zkClient);
         }
     }
@@ -76,11 +76,10 @@ public class DataSyncConfiguration {
         /**
          * Config event listener data changed listener.
          *
-         * @param syncDataService the sync data service
          * @return the data changed listener
          */
         @Bean
-        public DataChangedListener configEventListener(final SyncDataService syncDataService) {
+        public DataChangedListener dataChangedListener(SyncDataService syncDataService) {
             return new WebsocketDataChangedListener(syncDataService);
         }
 
