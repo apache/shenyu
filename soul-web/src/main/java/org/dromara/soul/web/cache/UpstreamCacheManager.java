@@ -82,6 +82,7 @@ public class UpstreamCacheManager {
      * @param key the key
      */
     static void removeByKey(final String key) {
+        SCHEDULED_MAP.remove(key);
         UPSTREAM_MAP.remove(key);
     }
 
@@ -108,7 +109,11 @@ public class UpstreamCacheManager {
     }
 
 
-
+    /**
+     * Submit.
+     *
+     * @param selectorData the selector data
+     */
     static void submit(final SelectorData selectorData) {
         try {
             BLOCKING_QUEUE.put(selectorData);
@@ -118,6 +123,20 @@ public class UpstreamCacheManager {
     }
 
 
+    /**
+     * Clear.
+     */
+    static void clear() {
+        SCHEDULED_MAP.clear();
+        UPSTREAM_MAP.clear();
+    }
+
+
+    /**
+     * Execute.
+     *
+     * @param selectorData the selector data
+     */
     public void execute(final SelectorData selectorData) {
         final List<DivideUpstream> upstreamList =
                 GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream[].class);

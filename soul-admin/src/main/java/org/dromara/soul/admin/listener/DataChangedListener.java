@@ -21,6 +21,7 @@ import org.dromara.soul.common.dto.AppAuthData;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
+import org.dromara.soul.common.enums.DataEventTypeEnum;
 
 import java.util.List;
 
@@ -39,7 +40,7 @@ public interface DataChangedListener {
      * @param changed   the changed
      * @param eventType the event type
      */
-    default void onAppAuthChanged(List<AppAuthData> changed, DataEventType eventType) {
+    default void onAppAuthChanged(List<AppAuthData> changed, DataEventTypeEnum eventType) {
     }
 
 
@@ -49,7 +50,7 @@ public interface DataChangedListener {
      * @param changed   the changed
      * @param eventType the event type
      */
-    default void onPluginChanged(List<PluginData> changed, DataEventType eventType) {
+    default void onPluginChanged(List<PluginData> changed, DataEventTypeEnum eventType) {
     }
 
 
@@ -59,7 +60,7 @@ public interface DataChangedListener {
      * @param changed   the changed
      * @param eventType the event type
      */
-    default void onSelectorChanged(List<SelectorData> changed, DataEventType eventType) {
+    default void onSelectorChanged(List<SelectorData> changed, DataEventTypeEnum eventType) {
     }
 
 
@@ -69,7 +70,7 @@ public interface DataChangedListener {
      * @param changed   the changed
      * @param eventType the event type
      */
-    default void onRuleChanged(List<RuleData> changed, DataEventType eventType) {
+    default void onRuleChanged(List<RuleData> changed, DataEventTypeEnum eventType) {
     }
 
 

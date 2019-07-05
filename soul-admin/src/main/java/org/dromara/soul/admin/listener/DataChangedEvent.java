@@ -18,6 +18,7 @@
 package org.dromara.soul.admin.listener;
 
 import org.dromara.soul.common.enums.ConfigGroupEnum;
+import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.springframework.context.ApplicationEvent;
 
 import java.util.List;
@@ -32,7 +33,7 @@ import java.util.List;
  */
 public class DataChangedEvent extends ApplicationEvent {
 
-    private DataEventType eventType;
+    private DataEventTypeEnum eventType;
 
     private ConfigGroupEnum groupKey;
 
@@ -43,7 +44,7 @@ public class DataChangedEvent extends ApplicationEvent {
      * @param type     the type
      * @param source   the source
      */
-    public DataChangedEvent(ConfigGroupEnum groupKey, DataEventType type, List<?> source) {
+    public DataChangedEvent(ConfigGroupEnum groupKey, DataEventTypeEnum type, List<?> source) {
         super(source);
         this.eventType = type;
         this.groupKey = groupKey;
@@ -54,7 +55,7 @@ public class DataChangedEvent extends ApplicationEvent {
      *
      * @return the event type
      */
-    DataEventType getEventType() {
+    DataEventTypeEnum getEventType() {
         return eventType;
     }
 

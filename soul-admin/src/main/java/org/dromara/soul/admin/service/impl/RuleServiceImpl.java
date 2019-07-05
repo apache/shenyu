@@ -26,7 +26,7 @@ import org.dromara.soul.admin.entity.RuleConditionDO;
 import org.dromara.soul.admin.entity.RuleDO;
 import org.dromara.soul.admin.entity.SelectorDO;
 import org.dromara.soul.admin.listener.DataChangedEvent;
-import org.dromara.soul.admin.listener.DataEventType;
+import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.admin.mapper.PluginMapper;
 import org.dromara.soul.admin.mapper.RuleConditionMapper;
 import org.dromara.soul.admin.mapper.RuleMapper;
@@ -118,7 +118,7 @@ public class RuleServiceImpl implements RuleService {
         List<ConditionData> conditionDataList =
                 ruleConditions.stream().map(ConditionTransfer.INSTANCE::mapToRuleDTO).collect(Collectors.toList());
         // publish change event.
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventType.UPDATE,
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.UPDATE,
                 Collections.singletonList(RuleDO.transFrom(ruleDO, pluginDO.getName(), conditionDataList))));
 
         return ruleCount;
@@ -141,7 +141,7 @@ public class RuleServiceImpl implements RuleService {
             ruleConditionMapper.deleteByQuery(new RuleConditionQuery(id));
 
             //发送删规则事件
-            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventType.DELETE,
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.DELETE,
                     Collections.singletonList(RuleDO.transFrom(ruleDO, pluginDO.getName(), null))));
         }
         return ids.size();

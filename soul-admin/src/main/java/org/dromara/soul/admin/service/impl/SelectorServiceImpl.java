@@ -27,7 +27,7 @@ import org.dromara.soul.admin.entity.RuleDO;
 import org.dromara.soul.admin.entity.SelectorConditionDO;
 import org.dromara.soul.admin.entity.SelectorDO;
 import org.dromara.soul.admin.listener.DataChangedEvent;
-import org.dromara.soul.admin.listener.DataEventType;
+import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.admin.mapper.PluginMapper;
 import org.dromara.soul.admin.mapper.RuleConditionMapper;
 import org.dromara.soul.admin.mapper.RuleMapper;
@@ -123,7 +123,7 @@ public class SelectorServiceImpl implements SelectorService {
         List<ConditionData> conditionDataList =
                 selectorConditionDTOs.stream().map(ConditionTransfer.INSTANCE::mapToSelectorDTO).collect(Collectors.toList());
         // publish change event.
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventType.UPDATE,
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
                 Collections.singletonList(SelectorDO.transFrom(selectorDO, pluginDO.getName(), conditionDataList))));
         return selectorCount;
     }
@@ -146,7 +146,7 @@ public class SelectorServiceImpl implements SelectorService {
             selectorConditionMapper.deleteByQuery(new SelectorConditionQuery(id));
 
             //发送删除选择器事件
-            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventType.DELETE,
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.DELETE,
                     Collections.singletonList(SelectorDO.transFrom(selectorDO, pluginDO.getName(), null))));
 
             //清除规则与规则条件
@@ -156,7 +156,7 @@ public class SelectorServiceImpl implements SelectorService {
                     ruleMapper.delete(ruleDO.getId());
                     ruleConditionMapper.deleteByQuery(new RuleConditionQuery(ruleDO.getId()));
                     //发送删除选择器事件
-                    eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventType.DELETE,
+                    eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.DELETE,
                             Collections.singletonList(RuleDO.transFrom(ruleDO, pluginDO.getName(), null))));
 
                 }

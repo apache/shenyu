@@ -62,7 +62,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author xiaoyu
  * @since 2.0.0
  */
-public class HttpLongPollSyncCache extends AbstractLocalCacheManager implements CommandLineRunner, DisposableBean {
+public class HttpLongPollSyncCache extends HttpCacheHandler implements CommandLineRunner, DisposableBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpLongPollSyncCache.class);
 

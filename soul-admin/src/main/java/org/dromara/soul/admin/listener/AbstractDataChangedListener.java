@@ -28,6 +28,7 @@ import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
+import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.Md5Utils;
 import org.slf4j.Logger;
@@ -101,7 +102,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
     }
 
     @Override
-    public void onAppAuthChanged(List<AppAuthData> changed, DataEventType eventType) {
+    public void onAppAuthChanged(List<AppAuthData> changed, DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
@@ -115,10 +116,10 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * @param changed   the changed
      * @param eventType the event type
      */
-    protected abstract void afterAppAuthChanged(List<AppAuthData> changed, DataEventType eventType);
+    protected abstract void afterAppAuthChanged(List<AppAuthData> changed, DataEventTypeEnum eventType);
 
     @Override
-    public void onPluginChanged(List<PluginData> changed, DataEventType eventType) {
+    public void onPluginChanged(List<PluginData> changed, DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
@@ -132,10 +133,10 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * @param changed   the changed
      * @param eventType the event type
      */
-    protected abstract void afterPluginChanged(List<PluginData> changed, DataEventType eventType);
+    protected abstract void afterPluginChanged(List<PluginData> changed, DataEventTypeEnum eventType);
 
     @Override
-    public void onRuleChanged(List<RuleData> changed, DataEventType eventType) {
+    public void onRuleChanged(List<RuleData> changed, DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
@@ -149,10 +150,10 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * @param changed   the changed
      * @param eventType the event type
      */
-    protected abstract void afterRuleChanged(List<RuleData> changed, DataEventType eventType);
+    protected abstract void afterRuleChanged(List<RuleData> changed, DataEventTypeEnum eventType);
 
     @Override
-    public void onSelectorChanged(List<SelectorData> changed, DataEventType eventType) {
+    public void onSelectorChanged(List<SelectorData> changed, DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {
             return;
         }
@@ -166,7 +167,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * @param changed   the changed
      * @param eventType the event type
      */
-    protected abstract void afterSelectorChanged(List<SelectorData> changed, DataEventType eventType);
+    protected abstract void afterSelectorChanged(List<SelectorData> changed, DataEventTypeEnum eventType);
 
     @Override
     public final void afterPropertiesSet() {

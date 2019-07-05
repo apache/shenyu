@@ -23,42 +23,43 @@ import java.util.Arrays;
 import java.util.Objects;
 
 /**
- * configuration group
+ * The enum Data event type.
  *
- * @author huangxiaofeng
+ * @author xiaoyu
  */
-public enum ConfigGroupEnum {
+public enum DataEventTypeEnum {
 
     /**
-     * {@link org.dromara.soul.common.dto.AppAuthData AppAuthData} Group
+     * delete event
      */
-    APP_AUTH,
+    DELETE,
 
     /**
-     * {@link org.dromara.soul.common.dto.PluginData PluginData} Group
+     * insert event
      */
-    PLUGIN,
+    CREATE,
 
     /**
-     * {@link org.dromara.soul.common.dto.RuleData RuleData} Group
+     * update event
      */
-    RULE,
+    UPDATE,
 
     /**
-     * {@link org.dromara.soul.common.dto.SelectorData SelectorData} Group
+     * REFRESH data event type enum.
      */
-    SELECTOR;
+    REFRESH;
+
 
     /**
-     * Acquire by name config group enum.
+     * Acquire by name data event type enum.
      *
      * @param name the name
-     * @return the config group enum
+     * @return the data event type enum
      */
-    public static ConfigGroupEnum acquireByName(final String name) {
-        return Arrays.stream(ConfigGroupEnum.values())
+    public static DataEventTypeEnum acquireByName(final String name) {
+        return Arrays.stream(DataEventTypeEnum.values())
                 .filter(e -> Objects.equals(e.name(), name))
-                .findFirst().orElseThrow(() -> new SoulException(" this ConfigGroupEnum can not support!"));
+                .findFirst().orElseThrow(() -> new SoulException(" this DataEventTypeEnum can not support!"));
     }
 
 

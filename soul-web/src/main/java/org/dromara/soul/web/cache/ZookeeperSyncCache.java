@@ -205,6 +205,7 @@ public class ZookeeperSyncCache extends AbstractLocalCacheManager implements Com
                 Optional.of(key).ifPresent(k -> {
                     final List<SelectorData> selectorDataList = SELECTOR_MAP.get(k);
                     selectorDataList.removeIf(e -> e.getId().equals(id));
+                    UpstreamCacheManager.removeByKey(k);
                 });
             }
         });

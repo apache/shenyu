@@ -22,7 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.AppAuthDTO;
 import org.dromara.soul.admin.entity.AppAuthDO;
 import org.dromara.soul.admin.listener.DataChangedEvent;
-import org.dromara.soul.admin.listener.DataEventType;
+import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.admin.mapper.AppAuthMapper;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
@@ -68,13 +68,13 @@ public class AppAuthServiceImpl implements AppAuthService {
         int appAuthCount;
 
         AppAuthDO appAuthDO = AppAuthDO.buildAppAuthDO(appAuthDTO);
-        DataEventType eventType;
+        DataEventTypeEnum eventType;
         if (StringUtils.isEmpty(appAuthDTO.getId())) {
             appAuthCount = appAuthMapper.insertSelective(appAuthDO);
-            eventType = DataEventType.CREATE;
+            eventType = DataEventTypeEnum.CREATE;
         } else {
             appAuthCount = appAuthMapper.updateSelective(appAuthDO);
-            eventType = DataEventType.UPDATE;
+            eventType = DataEventTypeEnum.UPDATE;
         }
 
         // publish AppAuthData's event
@@ -100,7 +100,7 @@ public class AppAuthServiceImpl implements AppAuthService {
 
             // publish delete event of AppAuthData
             AppAuthData data = new AppAuthData(appAuthDO.getAppKey(), appAuthDO.getAppSecret(), appAuthDO.getEnabled());
-            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventType.DELETE, Collections.singletonList(data)));
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.DELETE, Collections.singletonList(data)));
         }
         return appAuthCount;
     }

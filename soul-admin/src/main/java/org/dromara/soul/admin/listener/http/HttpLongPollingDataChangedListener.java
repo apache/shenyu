@@ -22,7 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.dromara.soul.admin.listener.AbstractDataChangedListener;
 import org.dromara.soul.admin.listener.ConfigDataCache;
-import org.dromara.soul.admin.listener.DataEventType;
+import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.concurrent.SoulThreadFactory;
 import org.dromara.soul.common.constant.HttpConstants;
 import org.dromara.soul.common.dto.AppAuthData;
@@ -126,22 +126,22 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
     }
 
     @Override
-    protected void afterAppAuthChanged(final List<AppAuthData> changed, final DataEventType eventType) {
+    protected void afterAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
         scheduler.execute(new DataChangeTask(ConfigGroupEnum.APP_AUTH));
     }
 
     @Override
-    protected void afterPluginChanged(final List<PluginData> changed, final DataEventType eventType) {
+    protected void afterPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType) {
         scheduler.execute(new DataChangeTask(ConfigGroupEnum.PLUGIN));
     }
 
     @Override
-    protected void afterRuleChanged(final List<RuleData> changed, final DataEventType eventType) {
+    protected void afterRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
         scheduler.execute(new DataChangeTask(ConfigGroupEnum.RULE));
     }
 
     @Override
-    protected void afterSelectorChanged(final List<SelectorData> changed, final DataEventType eventType) {
+    protected void afterSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
         scheduler.execute(new DataChangeTask(ConfigGroupEnum.SELECTOR));
     }
 

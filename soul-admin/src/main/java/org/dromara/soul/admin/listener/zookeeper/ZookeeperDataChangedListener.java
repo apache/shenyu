@@ -19,7 +19,7 @@ package org.dromara.soul.admin.listener.zookeeper;
 
 import org.I0Itec.zkclient.ZkClient;
 import org.dromara.soul.admin.listener.DataChangedListener;
-import org.dromara.soul.admin.listener.DataEventType;
+import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.constant.ZkPathConstants;
 import org.dromara.soul.common.dto.AppAuthData;
 import org.dromara.soul.common.dto.PluginData;
@@ -43,10 +43,10 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
     }
 
     @Override
-    public void onAppAuthChanged(final List<AppAuthData> changed, final DataEventType eventType) {
+    public void onAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
         for (AppAuthData data : changed) {
             // delete
-            if (eventType == DataEventType.DELETE) {
+            if (eventType == DataEventTypeEnum.DELETE) {
                 String pluginPath = ZkPathConstants.buildAppAuthPath(data.getAppKey());
                 if (zkClient.exists(pluginPath)) {
                     zkClient.delete(pluginPath);
@@ -64,10 +64,10 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
     }
 
     @Override
-    public void onPluginChanged(final List<PluginData> changed, final DataEventType eventType) {
+    public void onPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType) {
         for (PluginData data : changed) {
             // delete
-            if (eventType == DataEventType.DELETE) {
+            if (eventType == DataEventTypeEnum.DELETE) {
                 String pluginPath = ZkPathConstants.buildPluginPath(data.getName());
                 if (zkClient.exists(pluginPath)) {
                     zkClient.deleteRecursive(pluginPath);
@@ -93,9 +93,9 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
     }
 
     @Override
-    public void onSelectorChanged(final List<SelectorData> changed, final DataEventType eventType) {
+    public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
         for (SelectorData data : changed) {
-            if (eventType == DataEventType.DELETE) {
+            if (eventType == DataEventTypeEnum.DELETE) {
                 String selectorRealPath = ZkPathConstants.buildSelectorRealPath(data.getName(), data.getId());
                 if (zkClient.exists(selectorRealPath)) {
                     zkClient.delete(selectorRealPath);
@@ -115,9 +115,9 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
     }
 
     @Override
-    public void onRuleChanged(final List<RuleData> changed, final DataEventType eventType) {
+    public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
         for (RuleData data : changed) {
-            if (eventType == DataEventType.DELETE) {
+            if (eventType == DataEventTypeEnum.DELETE) {
                 final String rulePath = ZkPathConstants.buildRulePath(data.getName(), data.getSelectorId(), data.getId());
                 if (zkClient.exists(rulePath)) {
                     zkClient.delete(rulePath);

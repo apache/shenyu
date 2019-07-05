@@ -20,7 +20,7 @@ package org.dromara.soul.admin.service.sync;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.admin.listener.DataChangedEvent;
-import org.dromara.soul.admin.listener.DataEventType;
+import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.admin.service.AppAuthService;
 import org.dromara.soul.admin.service.PluginService;
 import org.dromara.soul.admin.service.RuleService;
@@ -94,21 +94,21 @@ public class SyncDataServiceImpl implements SyncDataService {
         List<AppAuthData> authDataList = appAuthService.listAll();
 
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH,
-                DataEventType.UPDATE, authDataList));
+                DataEventTypeEnum.REFRESH, authDataList));
 
         List<PluginData> pluginDataList = pluginService.listAll();
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN,
-                DataEventType.UPDATE,
+                DataEventTypeEnum.REFRESH,
                 pluginDataList));
 
         List<SelectorData> selectorDataList = selectorService.listAll();
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR,
-                DataEventType.UPDATE,
+                DataEventTypeEnum.REFRESH,
                 selectorDataList));
 
         List<RuleData> ruleDataList = ruleService.listAll();
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE,
-                DataEventType.UPDATE,
+                DataEventTypeEnum.REFRESH,
                 ruleDataList));
 
         return true;
@@ -117,17 +117,17 @@ public class SyncDataServiceImpl implements SyncDataService {
     @Override
     public boolean syncPluginData(String pluginId) {
         PluginVO pluginVO = pluginService.findById(pluginId);
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventType.UPDATE,
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
                 Collections.singletonList(PluginTransfer.INSTANCE.mapDataTOVO(pluginVO))));
         List<SelectorData> selectorDataList = selectorService.findByPluginId(pluginId);
         if (CollectionUtils.isNotEmpty(selectorDataList)) {
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR,
-                    DataEventType.UPDATE,
+                    DataEventTypeEnum.UPDATE,
                     selectorDataList));
             for (SelectorData selectData : selectorDataList) {
                 List<RuleData> ruleDataList = ruleService.findBySelectorId(selectData.getId());
                 eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE,
-                        DataEventType.UPDATE,
+                        DataEventTypeEnum.UPDATE,
                         ruleDataList));
             }
         }
