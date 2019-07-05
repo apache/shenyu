@@ -26,17 +26,21 @@ spring:
         read-timeout: 30
         write-timeout: 10
 
-soul:
-    bufferSize: 2048
-    timeVerify:
-       timeDelay : 10
-       enabled: false
-    sync:
-       strategy: zookeeper
-       zookeeper:
-         url: localhost:2181
-         sessionTimeout: 5000
-         connectionTimeout: 2000
+org:
+   dromara :
+        soul :
+           filterTimeEnable : true
+           filterTime : 10
+           sync:
+             strategy: websocket
+             websocket :
+                url: ws://localhost:8888/websocket
+#             zookeeper:
+#                 url: localhost:2181
+#                 sessionTimeout: 5000
+#                 connectionTimeout: 2000
+#             http :
+#                url : localhost:8888
 
 eureka:
   instance:

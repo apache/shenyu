@@ -27,8 +27,7 @@ import org.dromara.soul.web.cache.HttpLongPollSyncCache;
 import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.cache.WebsocketSyncCache;
 import org.dromara.soul.web.cache.ZookeeperSyncCache;
-import org.dromara.soul.web.config.HttpConfig;
-import org.dromara.soul.web.config.WebsocketConfig;
+import org.dromara.soul.web.config.SoulConfig;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -50,7 +49,7 @@ public class LocalCacheConfiguration {
      */
     @Configuration
     @ConditionalOnMissingBean(LocalCacheManager.class)
-    @ConditionalOnProperty(name = "soul.sync.strategy", havingValue = "zookeeper")
+    @ConditionalOnProperty(name = "org.dromara.soul.sync.strategy", havingValue = "zookeeper")
     @Import(ZookeeperConfiguration.class)
     static class ZookeeperCacheManager {
 
@@ -72,7 +71,7 @@ public class LocalCacheConfiguration {
      */
     @Configuration
     @ConditionalOnMissingBean(LocalCacheManager.class)
-    @ConditionalOnProperty(name = "soul.sync.strategy", havingValue = "http", matchIfMissing = true)
+    @ConditionalOnProperty(name = "org.dromara.soul.sync.strategy", havingValue = "http", matchIfMissing = true)
     static class HttpCacheManager {
 
         /**
@@ -80,10 +79,10 @@ public class LocalCacheConfiguration {
          *
          * @return the http config
          */
-        @ConfigurationProperties(prefix = "soul.sync.http")
+        @ConfigurationProperties(prefix = "org.dromara.soul.sync.http")
         @Bean
-        public HttpConfig httpConfig() {
-            return new HttpConfig();
+        public SoulConfig.HttpConfig httpConfig() {
+            return new SoulConfig.HttpConfig();
         }
 
         /**
@@ -93,7 +92,7 @@ public class LocalCacheConfiguration {
          * @return the local cache manager
          */
         @Bean
-        public LocalCacheManager localCacheManager(final HttpConfig httpConfig) {
+        public LocalCacheManager localCacheManager(final SoulConfig.HttpConfig httpConfig) {
             return new HttpLongPollSyncCache(httpConfig);
         }
 
@@ -104,7 +103,7 @@ public class LocalCacheConfiguration {
      */
     @Configuration
     @ConditionalOnMissingBean(LocalCacheManager.class)
-    @ConditionalOnProperty(name = "soul.sync.strategy", havingValue = "websocket")
+    @ConditionalOnProperty(name = "org.dromara.soul.sync.strategy", havingValue = "websocket")
     static class WebsocketCacheManager {
 
         /**
@@ -112,10 +111,10 @@ public class LocalCacheConfiguration {
          *
          * @return the websocket config
          */
-        @ConfigurationProperties(prefix = "soul.sync.websocket")
+        @ConfigurationProperties(prefix = "org.dromara.soul.sync.websocket")
         @Bean
-        public WebsocketConfig httpConfig() {
-            return new WebsocketConfig();
+        public SoulConfig.WebsocketConfig httpConfig() {
+            return new SoulConfig.WebsocketConfig();
         }
 
         /**
@@ -125,7 +124,7 @@ public class LocalCacheConfiguration {
          * @return the local cache manager
          */
         @Bean
-        public LocalCacheManager localCacheManager(final WebsocketConfig websocketConfig) {
+        public LocalCacheManager localCacheManager(final SoulConfig.WebsocketConfig websocketConfig) {
             return new WebsocketSyncCache(websocketConfig);
         }
 

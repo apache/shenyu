@@ -31,7 +31,7 @@ import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.exception.SoulException;
-import org.dromara.soul.web.config.HttpConfig;
+import org.dromara.soul.web.config.SoulConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -85,11 +85,11 @@ public class HttpLongPollSyncCache extends HttpCacheHandler implements CommandLi
 
     private ExecutorService executor;
 
-    private HttpConfig httpConfig;
+    private SoulConfig.HttpConfig httpConfig;
 
     private List<String> serverList;
 
-    public HttpLongPollSyncCache(final HttpConfig httpConfig) {
+    public HttpLongPollSyncCache(final SoulConfig.HttpConfig httpConfig) {
         this.httpConfig = httpConfig;
         serverList = Splitter.on(",").splitToList(httpConfig.getUrl());
     }

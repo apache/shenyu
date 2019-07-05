@@ -23,8 +23,8 @@ import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.result.SoulResult;
 import org.dromara.soul.common.utils.DateUtils;
 import org.dromara.soul.common.utils.GsonUtils;
+import org.dromara.soul.web.config.SoulConfig;
 import org.dromara.soul.web.request.RequestDTO;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
@@ -41,8 +41,11 @@ import java.util.Objects;
  */
 public class TimeWebFilter extends AbstractWebFilter {
 
-    @Value("${soul.timeVerify.timeDelay:10}")
-    private long timeDelay;
+    private SoulConfig soulConfig;
+
+    public TimeWebFilter(final SoulConfig soulConfig) {
+        this.soulConfig = soulConfig;
+    }
 
     @Override
     protected Mono<Boolean> doFilter(final ServerWebExchange exchange, final WebFilterChain chain) {
@@ -53,7 +56,7 @@ public class TimeWebFilter extends AbstractWebFilter {
         final LocalDateTime start = DateUtils.parseLocalDateTime(requestDTO.getTimestamp());
         final LocalDateTime now = LocalDateTime.now();
         final long between = DateUtils.acquireMinutesBetween(start, now);
-        if (between < timeDelay) {
+        if (between < soulConfig.getFilterTime()) {
             return Mono.just(true);
         }
         return Mono.just(false);
