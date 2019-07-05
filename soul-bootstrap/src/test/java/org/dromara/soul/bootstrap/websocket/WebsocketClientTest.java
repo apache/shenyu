@@ -4,7 +4,6 @@ package org.dromara.soul.bootstrap.websocket;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -44,18 +43,7 @@ public class WebsocketClientTest {
         }
 
         client.connect();
-        try {
-            Thread.sleep(100000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        try {
-            send("hello world".getBytes("utf-8"));
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        client.send("hello world");
-        client.close();
+
     }
 
 
