@@ -18,7 +18,7 @@
 
 package org.dromara.soul.web.configuration;
 
-import org.dromara.soul.web.cache.ZookeeperSyncCache;
+import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.disruptor.publisher.SoulEventPublisher;
 import org.dromara.soul.web.influxdb.service.InfluxDbService;
 import org.dromara.soul.web.plugin.SoulPlugin;
@@ -104,14 +104,14 @@ public class InfluxDbConfiguration {
     /**
      * Monitor plugin soul plugin.
      *
-     * @param soulEventPublisher    the soul event publisher
-     * @param zookeeperSyncCache the zookeeper cache manager
+     * @param soulEventPublisher the soul event publisher
+     * @param localCacheManager  the local cache manager
      * @return the soul plugin
      */
     @Bean
     public SoulPlugin monitorPlugin(SoulEventPublisher soulEventPublisher,
-                                    ZookeeperSyncCache zookeeperSyncCache) {
-        return new MonitorPlugin(soulEventPublisher, zookeeperSyncCache);
+                                    LocalCacheManager localCacheManager) {
+        return new MonitorPlugin(soulEventPublisher, localCacheManager);
     }
 
 }

@@ -37,7 +37,6 @@ public final class HealthFilter implements WebFilter {
     }
 
     @Override
-    @Nullable
     public Mono<Void> filter(@Nullable final ServerWebExchange exchange, @Nullable final WebFilterChain chain) {
         ServerHttpRequest request = Objects.requireNonNull(exchange).getRequest();
         String urlPath = request.getURI().getPath();

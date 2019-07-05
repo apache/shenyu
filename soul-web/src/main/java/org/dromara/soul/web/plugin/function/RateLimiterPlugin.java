@@ -28,7 +28,6 @@ import org.dromara.soul.common.result.SoulResult;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.JsonUtils;
 import org.dromara.soul.web.cache.LocalCacheManager;
-import org.dromara.soul.web.cache.ZookeeperSyncCache;
 import org.dromara.soul.web.plugin.AbstractSoulPlugin;
 import org.dromara.soul.web.plugin.SoulPluginChain;
 import org.dromara.soul.web.plugin.ratelimter.RedisRateLimiter;

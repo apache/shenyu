@@ -19,7 +19,6 @@
 package org.dromara.soul.web.configuration;
 
 import org.dromara.soul.web.cache.LocalCacheManager;
-import org.dromara.soul.web.cache.ZookeeperSyncCache;
 import org.dromara.soul.web.plugin.SoulPlugin;
 import org.dromara.soul.web.plugin.dubbo.DubboProxyService;
 import org.dromara.soul.web.plugin.function.DubboPlugin;

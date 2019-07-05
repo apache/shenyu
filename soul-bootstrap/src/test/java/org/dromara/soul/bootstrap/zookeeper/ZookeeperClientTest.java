@@ -52,7 +52,6 @@ import org.junit.After;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -70,7 +69,6 @@ public class ZookeeperClientTest extends BaseTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperClientTest.class);
 
-    @Autowired
     private ZkClient zkClient;
 
     private static final String ROOT_PATH = "/xiaoyu";
