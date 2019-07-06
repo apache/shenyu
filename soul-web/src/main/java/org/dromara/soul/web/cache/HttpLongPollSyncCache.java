@@ -17,10 +17,14 @@
 
 package org.dromara.soul.web.cache;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.concurrent.SoulThreadFactory;
 import org.dromara.soul.common.constant.HttpConstants;
@@ -40,13 +44,13 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.OkHttp3ClientHttpRequestFactory;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
@@ -73,6 +77,8 @@ public class HttpLongPollSyncCache extends HttpCacheHandler implements CommandLi
      */
     private static final ConcurrentMap<ConfigGroupEnum, ConfigData> GROUP_CACHE = new ConcurrentHashMap<>();
 
+    private static final Gson GSON = new Gson();
+
     /**
      * default: 10s.
      */
@@ -96,10 +102,13 @@ public class HttpLongPollSyncCache extends HttpCacheHandler implements CommandLi
 
     @Override
     public void run(final String... args) {
+
+        // init RestTemplate
         OkHttp3ClientHttpRequestFactory factory = new OkHttp3ClientHttpRequestFactory();
         factory.setConnectTimeout((int) this.connectionTimeout.toMillis());
         factory.setReadTimeout((int) HttpConstants.CLIENT_POLLING_READ_TIMEOUT);
-        this.httpClient = new RestTemplate(factory);
+        RestTemplate restTemplate = new RestTemplate(factory);
+        this.httpClient = restTemplate;
 
         // It could be initialized multiple times, so you need to control that.
         if (RUNNING.compareAndSet(false, true)) {
@@ -108,7 +117,6 @@ public class HttpLongPollSyncCache extends HttpCacheHandler implements CommandLi
             this.fetchGroupConfig(ConfigGroupEnum.values());
 
             // one thread for listener, another one for fetch configuration data.
-
             this.executor = new ThreadPoolExecutor(3, 3, 0L, TimeUnit.MILLISECONDS,
                     new LinkedBlockingQueue<>(),
                     SoulThreadFactory.create("http-long-polling", true));
@@ -133,7 +141,7 @@ public class HttpLongPollSyncCache extends HttpCacheHandler implements CommandLi
     private void fetchGroupConfig(final ConfigGroupEnum... groups) throws SoulException {
         StringBuilder params = new StringBuilder();
         for (ConfigGroupEnum groupKey : groups) {
-            params.append("groupKey")
+            params.append("groupKeys")
                     .append("=")
                     .append(groupKey.name())
                     .append("&");
@@ -141,7 +149,7 @@ public class HttpLongPollSyncCache extends HttpCacheHandler implements CommandLi
 
         SoulException ex = null;
         for (String server : serverList) {
-            String url = server + "?" + StringUtils.removeEnd(params.toString(), "&");
+            String url = server + "/configs/fetch?" + StringUtils.removeEnd(params.toString(), "&");
             LOGGER.info("request configs: [{}]", url);
             try {
                 String json = this.httpClient.getForObject(url, String.class);
@@ -168,6 +176,7 @@ public class HttpLongPollSyncCache extends HttpCacheHandler implements CommandLi
     private void updateCacheWithJson(final String json) {
         JSONObject jsonObject = JSONObject.parseObject(json);
         JSONObject data = jsonObject.getJSONObject("data");
+
         // appAuth
         JSONObject configData = data.getJSONObject(ConfigGroupEnum.APP_AUTH.name());
         if (configData != null) {
@@ -208,10 +217,11 @@ public class HttpLongPollSyncCache extends HttpCacheHandler implements CommandLi
 
     @SuppressWarnings("unchecked")
     private void doLongPolling() {
-        Map<String, String> params = new HashMap<>(16);
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>(16);
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
             ConfigData<?> cacheConfig = GROUP_CACHE.get(group);
-            params.put(group.name(), String.join(",", cacheConfig.getMd5(), String.valueOf(cacheConfig.getLastModifyTime())));
+            String value = String.join(",", cacheConfig.getMd5(), String.valueOf(cacheConfig.getLastModifyTime()));
+            params.put(group.name(), Lists.newArrayList(value));
         }
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -219,20 +229,22 @@ public class HttpLongPollSyncCache extends HttpCacheHandler implements CommandLi
 
         SoulException ex = null;
         for (String server : serverList) {
-            String url = server + "/listener";
-            LOGGER.info("request listener configs: [{}]", url);
+            String listenerUrl = server + "/configs/listener";
+            LOGGER.info("request listener configs: [{}]", listenerUrl);
             try {
-                String json = this.httpClient.postForObject(url, httpEntity, String.class);
+                String json = this.httpClient.postForEntity(listenerUrl, httpEntity, String.class).getBody();
                 LOGGER.info("listener result: [{}]", json);
-                JSONArray groupJson = JSONObject.parseObject(json).getJSONArray("data");
+                JsonArray groupJson = GSON.fromJson(json, JsonObject.class).getAsJsonArray("data");
                 if (groupJson != null) {
                     // fetch group configuration async.
-                    List<ConfigGroupEnum> changedGroups = groupJson.toJavaList(ConfigGroupEnum.class);
-                    executor.execute(() -> fetchGroupConfig(changedGroups.toArray(new ConfigGroupEnum[0])));
+                    ConfigGroupEnum[] changedGroups = GSON.fromJson(groupJson, ConfigGroupEnum[].class);
+                    if (ArrayUtils.isNotEmpty(changedGroups)) {
+                        executor.execute(() -> fetchGroupConfig(changedGroups));
+                    }
                 }
                 break;
             } catch (RestClientException e) {
-                LOGGER.warn("listener configs fail, server:[{}]", server);
+                LOGGER.warn("listener configs fail, server:[{}]", listenerUrl);
                 ex = new SoulException("Init cache error, serverList:" + serverList, e);
                 // try next server, if have another one.
             }

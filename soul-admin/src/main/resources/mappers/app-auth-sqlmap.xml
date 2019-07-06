@@ -43,6 +43,12 @@
         </if>
     </select>
 
+    <select id="selectAll" resultType="org.dromara.soul.admin.entity.AppAuthDO" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from app_auth
+    </select>
+
     <insert id="insert" parameterType="org.dromara.soul.admin.entity.AppAuthDO">
         insert into app_auth (id, date_created, date_updated,
         app_key, app_secret, enabled)

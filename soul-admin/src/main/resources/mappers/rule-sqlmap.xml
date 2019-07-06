@@ -52,6 +52,12 @@
         </if>
     </select>
 
+    <select id="selectAll" resultType="org.dromara.soul.admin.entity.RuleDO" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from rule
+    </select>
+
     <insert id="insert" parameterType="org.dromara.soul.admin.entity.RuleDO">
         insert into rule (id, date_created, date_updated,
         selector_id, name, match_mode, sort, enabled,

@@ -218,10 +218,7 @@ public class PluginServiceImpl implements PluginService {
 
     @Override
     public List<PluginData> listAll() {
-        PluginQuery query = new PluginQuery();
-        return pluginMapper.selectByQuery(query)
-                .stream()
-                .filter(Objects::nonNull)
+        return pluginMapper.selectAll().stream()
                 .map(PluginTransfer.INSTANCE::mapToData)
                 .collect(Collectors.toList());
     }

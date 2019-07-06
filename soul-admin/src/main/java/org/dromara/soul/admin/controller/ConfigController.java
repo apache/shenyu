@@ -29,11 +29,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -58,7 +56,7 @@ public class ConfigController {
      * @param groupKeys the group keys
      * @return the soul result
      */
-    @GetMapping(path = "", params = "groupKeys")
+    @GetMapping("/fetch")
     public SoulResult fetchConfigs(@NotNull String[] groupKeys) {
         try {
             Map<String, ConfigData> result = new HashMap<>();

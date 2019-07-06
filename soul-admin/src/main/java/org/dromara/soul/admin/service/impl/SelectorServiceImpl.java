@@ -209,7 +209,7 @@ public class SelectorServiceImpl implements SelectorService {
 
     @Override
     public List<SelectorData> listAll() {
-        return selectorMapper.selectByQuery(new SelectorQuery())
+        return selectorMapper.selectAll()
                 .stream()
                 .filter(Objects::nonNull)
                 .map(this::buildSelectorData)
