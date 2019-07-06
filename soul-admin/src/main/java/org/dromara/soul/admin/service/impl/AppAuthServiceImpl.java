@@ -22,7 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.AppAuthDTO;
 import org.dromara.soul.admin.entity.AppAuthDO;
 import org.dromara.soul.admin.listener.DataChangedEvent;
-import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.admin.mapper.AppAuthMapper;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
@@ -31,6 +30,7 @@ import org.dromara.soul.admin.service.AppAuthService;
 import org.dromara.soul.admin.vo.AppAuthVO;
 import org.dromara.soul.common.dto.AppAuthData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
+import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -134,7 +134,7 @@ public class AppAuthServiceImpl implements AppAuthService {
 
     @Override
     public List<AppAuthData> listAll() {
-        return appAuthMapper.selectByQuery(new AppAuthQuery())
+        return appAuthMapper.selectAll()
                 .stream()
                 .map(appAuthDO -> new AppAuthData(appAuthDO.getAppKey(), appAuthDO.getAppSecret(), appAuthDO.getEnabled()))
                 .collect(Collectors.toList());

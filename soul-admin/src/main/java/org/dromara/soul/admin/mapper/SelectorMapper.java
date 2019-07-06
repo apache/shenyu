@@ -112,4 +112,12 @@ public interface SelectorMapper {
      * @return the int
      */
     int deleteByPluginId(String pluginId);
+
+    /**
+     * list all {@linkplain SelectorDO}
+     *
+     * @return {@linkplain List}
+     */
+    List<SelectorDO> selectAll();
+
 }

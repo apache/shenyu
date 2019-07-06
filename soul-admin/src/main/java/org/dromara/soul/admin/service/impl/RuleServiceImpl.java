@@ -182,7 +182,7 @@ public class RuleServiceImpl implements RuleService {
 
     @Override
     public List<RuleData> listAll() {
-        return ruleMapper.selectByQuery(new RuleQuery())
+        return ruleMapper.selectAll()
                 .stream()
                 .filter(Objects::nonNull)
                 .map(this::buildRuleData)

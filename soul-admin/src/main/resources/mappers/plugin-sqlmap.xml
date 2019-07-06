@@ -53,6 +53,11 @@
             where name = #{name,jdbcType=VARCHAR}
         </if>
     </select>
+    <select id="selectAll" resultType="org.dromara.soul.admin.entity.PluginDO" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from plugin
+    </select>
 
     <insert id="insert" parameterType="org.dromara.soul.admin.entity.PluginDO">
         insert into plugin (id, date_created, date_updated,

@@ -56,6 +56,12 @@
         </if>
     </select>
 
+    <select id="selectAll" resultType="org.dromara.soul.admin.entity.SelectorDO" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from selector
+    </select>
+
     <insert id="insert" parameterType="org.dromara.soul.admin.entity.SelectorDO">
         insert into selector (id, date_created, date_updated,
         plugin_id, name, match_mode, type, sort, enabled,

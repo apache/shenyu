@@ -103,4 +103,11 @@ public interface RuleMapper {
      * @return rows int
      */
     int delete(String id);
+
+    /**
+     * list all {@linkplain RuleDO}
+     *
+     * @return {@linkplain List}
+     */
+    List<RuleDO> selectAll();
 }
