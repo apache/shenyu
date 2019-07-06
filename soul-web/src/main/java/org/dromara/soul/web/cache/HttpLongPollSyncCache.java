@@ -17,13 +17,12 @@
 
 package org.dromara.soul.web.cache;
 
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.TypeReference;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.concurrent.SoulThreadFactory;
@@ -174,41 +173,38 @@ public class HttpLongPollSyncCache extends HttpCacheHandler implements CommandLi
      * @param json {@linkplain org.dromara.soul.common.result.SoulResult}
      */
     private void updateCacheWithJson(final String json) {
-        JSONObject jsonObject = JSONObject.parseObject(json);
-        JSONObject data = jsonObject.getJSONObject("data");
+
+        JsonObject jsonObject = GSON.fromJson(json, JsonObject.class);
+        JsonObject data = jsonObject.getAsJsonObject("data");
 
         // appAuth
-        JSONObject configData = data.getJSONObject(ConfigGroupEnum.APP_AUTH.name());
+        JsonObject configData = data.getAsJsonObject(ConfigGroupEnum.APP_AUTH.name());
         if (configData != null) {
-            ConfigData<AppAuthData> result = configData.toJavaObject(new TypeReference<ConfigData<AppAuthData>>() {
-            });
+            ConfigData<AppAuthData> result = GSON.fromJson(configData, new TypeToken<ConfigData<AppAuthData>>(){}.getType());
             GROUP_CACHE.put(ConfigGroupEnum.APP_AUTH, result);
             this.flushAllAppAuth(result.getData());
         }
 
         // plugin
-        configData = data.getJSONObject(ConfigGroupEnum.PLUGIN.name());
+        configData = data.getAsJsonObject(ConfigGroupEnum.PLUGIN.name());
         if (configData != null) {
-            ConfigData<PluginData> result = configData.toJavaObject(new TypeReference<ConfigData<PluginData>>() {
-            });
+            ConfigData<PluginData> result = GSON.fromJson(configData, new TypeToken<ConfigData<PluginData>>(){}.getType());
             GROUP_CACHE.put(ConfigGroupEnum.PLUGIN, result);
             this.flushAllPlugin(result.getData());
         }
 
         // rule
-        configData = data.getJSONObject(ConfigGroupEnum.RULE.name());
+        configData = data.getAsJsonObject(ConfigGroupEnum.RULE.name());
         if (configData != null) {
-            ConfigData<RuleData> result = configData.toJavaObject(new TypeReference<ConfigData<RuleData>>() {
-            });
+            ConfigData<RuleData> result = GSON.fromJson(configData, new TypeToken<ConfigData<RuleData>>(){}.getType());
             GROUP_CACHE.put(ConfigGroupEnum.RULE, result);
             this.flushAllRule(result.getData());
         }
 
         // selector
-        configData = data.getJSONObject(ConfigGroupEnum.SELECTOR.name());
+        configData = data.getAsJsonObject(ConfigGroupEnum.SELECTOR.name());
         if (configData != null) {
-            ConfigData<SelectorData> result = configData.toJavaObject(new TypeReference<ConfigData<SelectorData>>() {
-            });
+            ConfigData<SelectorData> result = GSON.fromJson(configData, new TypeToken<ConfigData<SelectorData>>(){}.getType());
             GROUP_CACHE.put(ConfigGroupEnum.SELECTOR, result);
             this.flushAllSelector(result.getData());
         }
