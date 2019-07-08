@@ -66,7 +66,7 @@ public class UpstreamCacheManager {
     private final SoulConfig soulConfig;
 
     @Autowired(required = false)
-    public UpstreamCacheManager(SoulConfig soulConfig) {
+    public UpstreamCacheManager(final SoulConfig soulConfig) {
         this.soulConfig = soulConfig;
     }
 

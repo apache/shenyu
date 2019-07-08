@@ -216,12 +216,13 @@ public class SoulConfiguration {
     /**
      * init time web filter.
      *
+     * @param soulConfig the soul config
      * @return {@linkplain TimeWebFilter}
      */
     @Bean
     @Order(2)
-    @ConditionalOnProperty(name = "org.dromara.soul.filterTimeEnable", matchIfMissing = true)
-    public WebFilter timeWebFilter(SoulConfig soulConfig) {
+    @ConditionalOnProperty(name = "soul.filterTimeEnable", matchIfMissing = true)
+    public WebFilter timeWebFilter(final SoulConfig soulConfig) {
         return new TimeWebFilter(soulConfig);
     }
 
@@ -268,6 +269,5 @@ public class SoulConfiguration {
     public WebSocketService webSocketService() {
         return new HandshakeWebSocketService();
     }
-
 
 }

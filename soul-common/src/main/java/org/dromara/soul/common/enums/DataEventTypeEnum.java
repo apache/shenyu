@@ -47,8 +47,12 @@ public enum DataEventTypeEnum {
     /**
      * REFRESH data event type enum.
      */
-    REFRESH;
+    REFRESH,
 
+    /**
+     * Myself data event type enum.
+     */
+    MYSELF;
 
     /**
      * Acquire by name data event type enum.

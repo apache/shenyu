@@ -46,15 +46,21 @@ class WebsocketCacheHandler extends CommonCacheHandler {
      */
     void handlePlugin(final List<PluginData> pluginDataList, final String eventType) {
         if (CollectionUtils.isNotEmpty(pluginDataList)) {
-            if (eventType.equals(DataEventTypeEnum.REFRESH.name())) {
-                PLUGIN_MAP.clear();
-                pluginDataList.forEach(e -> PLUGIN_MAP.put(e.getName(), e));
-            } else if (eventType.equals(DataEventTypeEnum.DELETE.name())) {
-                for (PluginData pluginData : pluginDataList) {
-                    PLUGIN_MAP.remove(pluginData.getName());
-                }
-            } else {
-                pluginDataList.forEach(e -> PLUGIN_MAP.put(e.getName(), e));
+            DataEventTypeEnum eventTypeEnum = DataEventTypeEnum.acquireByName(eventType);
+            switch (eventTypeEnum) {
+                case REFRESH:
+                case MYSELF:
+                    PLUGIN_MAP.clear();
+                    pluginDataList.forEach(e -> PLUGIN_MAP.put(e.getName(), e));
+                    break;
+                case DELETE:
+                    pluginDataList.forEach(e -> PLUGIN_MAP.remove(e.getName()));
+                case UPDATE:
+                case CREATE:
+                    pluginDataList.forEach(e -> PLUGIN_MAP.put(e.getName(), e));
+                    break;
+                default:
+                    break;
             }
         }
     }
@@ -70,11 +76,14 @@ class WebsocketCacheHandler extends CommonCacheHandler {
             DataEventTypeEnum eventTypeEnum = DataEventTypeEnum.acquireByName(eventType);
             switch (eventTypeEnum) {
                 case REFRESH:
+                case MYSELF:
                     SELECTOR_MAP.clear();
-                    Map<String, List<SelectorData>> allMap = selectorDataList.stream()
-                            .filter(Objects::nonNull)
-                            .collect(Collectors.groupingBy(SelectorData::getPluginName,
-                                    Collectors.toCollection(ArrayList::new)));
+                    Map<String, List<SelectorData>> allMap =
+                            selectorDataList
+                                    .stream()
+                                    .filter(Objects::nonNull)
+                                    .collect(Collectors.groupingBy(SelectorData::getPluginName,
+                                            Collectors.toCollection(ArrayList::new)));
                     SELECTOR_MAP.putAll(allMap);
                     UpstreamCacheManager.clear();
                     for (SelectorData selectorData : selectorDataList) {
@@ -107,11 +116,14 @@ class WebsocketCacheHandler extends CommonCacheHandler {
             DataEventTypeEnum eventTypeEnum = DataEventTypeEnum.acquireByName(eventType);
             switch (eventTypeEnum) {
                 case REFRESH:
+                case MYSELF:
                     RULE_MAP.clear();
-                    Map<String, List<RuleData>> allMap = ruleDataList.stream()
-                            .filter(Objects::nonNull)
-                            .collect(Collectors.groupingBy(RuleData::getSelectorId,
-                                    Collectors.toCollection(ArrayList::new)));
+                    Map<String, List<RuleData>> allMap =
+                            ruleDataList
+                                    .stream()
+                                    .filter(Objects::nonNull)
+                                    .collect(Collectors.groupingBy(RuleData::getSelectorId,
+                                            Collectors.toCollection(ArrayList::new)));
                     RULE_MAP.putAll(allMap);
                     break;
                 case DELETE:
@@ -138,15 +150,21 @@ class WebsocketCacheHandler extends CommonCacheHandler {
      */
     void handleAppAuth(final List<AppAuthData> appAuthDataList, final String eventType) {
         if (CollectionUtils.isNotEmpty(appAuthDataList)) {
-            if (eventType.equals(DataEventTypeEnum.REFRESH.name())) {
-                AUTH_MAP.clear();
-                appAuthDataList.forEach(e -> AUTH_MAP.put(e.getAppKey(), e));
-            } else if (eventType.equals(DataEventTypeEnum.DELETE.name())) {
-                for (AppAuthData appAuthData : appAuthDataList) {
-                    AUTH_MAP.remove(appAuthData.getAppKey());
-                }
-            } else {
-                appAuthDataList.forEach(e -> AUTH_MAP.put(e.getAppKey(), e));
+            DataEventTypeEnum eventTypeEnum = DataEventTypeEnum.acquireByName(eventType);
+            switch (eventTypeEnum) {
+                case REFRESH:
+                case MYSELF:
+                    AUTH_MAP.clear();
+                    appAuthDataList.forEach(e -> AUTH_MAP.put(e.getAppKey(), e));
+                    break;
+                case DELETE:
+                    appAuthDataList.forEach(e -> AUTH_MAP.remove(e.getAppKey()));
+                case UPDATE:
+                case CREATE:
+                    appAuthDataList.forEach(e -> AUTH_MAP.put(e.getAppKey(), e));
+                    break;
+                default:
+                    break;
             }
         }
     }

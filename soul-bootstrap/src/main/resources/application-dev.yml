@@ -27,7 +27,7 @@ spring:
         write-timeout: 10
 
 soul :
-    filterTimeEnable : true
+    filterTimeEnable : false
     filterTime : 10
     sync:
         strategy: websocket

@@ -20,7 +20,6 @@ package org.dromara.soul.admin.service.sync;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.admin.listener.DataChangedEvent;
-import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.admin.service.AppAuthService;
 import org.dromara.soul.admin.service.PluginService;
 import org.dromara.soul.admin.service.RuleService;
@@ -33,6 +32,7 @@ import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
+import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -90,25 +90,25 @@ public class SyncDataServiceImpl implements SyncDataService {
     }
 
     @Override
-    public boolean syncAll() {
+    public boolean syncAll(DataEventTypeEnum type) {
         List<AppAuthData> authDataList = appAuthService.listAll();
 
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH,
-                DataEventTypeEnum.REFRESH, authDataList));
+                type, authDataList));
 
         List<PluginData> pluginDataList = pluginService.listAll();
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN,
-                DataEventTypeEnum.REFRESH,
+                type,
                 pluginDataList));
 
         List<SelectorData> selectorDataList = selectorService.listAll();
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR,
-                DataEventTypeEnum.REFRESH,
+                type,
                 selectorDataList));
 
         List<RuleData> ruleDataList = ruleService.listAll();
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE,
-                DataEventTypeEnum.REFRESH,
+                type,
                 ruleDataList));
 
         return true;
