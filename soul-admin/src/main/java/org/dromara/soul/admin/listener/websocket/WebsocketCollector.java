@@ -18,7 +18,6 @@
 package org.dromara.soul.admin.listener.websocket;
 
 import org.apache.commons.lang3.StringUtils;
-import org.dromara.soul.admin.service.SyncDataService;
 import org.dromara.soul.admin.spring.SpringBeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,24 +28,27 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * The type Websocket data changed listener.
  *
  * @author xiaoyu(Myth)
+ * @author huangxiaofeng
+ * @since 2.0.0
  */
 @ServerEndpoint("/websocket")
 public class WebsocketCollector {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WebsocketCollector.class);
 
-    private static final CopyOnWriteArraySet<Session> SESSION_SET = new CopyOnWriteArraySet<>();
+    private static final Set<Session> SESSION_SET = new CopyOnWriteArraySet<>();
 
     @OnOpen
     public void onOpen(Session session) {
         SESSION_SET.add(session);
-        SpringBeanUtils.getInstance().getBean(SyncDataService.class).syncAll();
+        SpringBeanUtils.getInstance().getBean(WebsocketDataChangedListener.class).onWebsocketConnect(session);
     }
 
     @OnClose
@@ -60,7 +62,7 @@ public class WebsocketCollector {
         LOGGER.error("websocket collection error:{}", error);
     }
 
-    public static void send(final String message) {
+    protected static void send(final String message) {
         if (StringUtils.isNotBlank(message)) {
             for (Session session : SESSION_SET) {
                 try {
