@@ -19,7 +19,6 @@
 package org.dromara.soul.web.cache;
 
 import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
 import org.I0Itec.zkclient.IZkDataListener;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.collections4.CollectionUtils;
@@ -28,11 +27,9 @@ import org.dromara.soul.common.dto.AppAuthData;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
-import org.dromara.soul.common.enums.PluginEnum;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.CommandLineRunner;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -42,7 +39,7 @@ import java.util.stream.Collectors;
  *
  * @author xiaoyu
  */
-public class ZookeeperSyncCache extends AbstractLocalCacheManager implements CommandLineRunner, DisposableBean {
+public class ZookeeperSyncCache extends CommonCacheHandler implements CommandLineRunner, DisposableBean {
 
     private final ZkClient zkClient;
 
@@ -166,34 +163,11 @@ public class ZookeeperSyncCache extends AbstractLocalCacheManager implements Com
         });
     }
 
-    private void setSelectorMapByKey(final String key, final SelectorData selectorData) {
-        Optional.ofNullable(key)
-                .ifPresent(k -> {
-                    if (selectorData.getPluginName().equals(PluginEnum.DIVIDE.getName())) {
-                        UpstreamCacheManager.submit(selectorData);
-                    }
-                    if (SELECTOR_MAP.containsKey(k)) {
-                        final List<SelectorData> selectorZkDTOList = SELECTOR_MAP.get(key);
-                        final List<SelectorData> resultList = selectorZkDTOList.stream()
-                                .filter(r -> !r.getId()
-                                        .equals(selectorData.getId()))
-                                .collect(Collectors.toList());
-                        resultList.add(selectorData);
-                        final List<SelectorData> collect = resultList.stream()
-                                .sorted(Comparator.comparing(SelectorData::getSort))
-                                .collect(Collectors.toList());
-                        SELECTOR_MAP.put(key, collect);
-                    } else {
-                        SELECTOR_MAP.put(key, Lists.newArrayList(selectorData));
-                    }
-                });
-    }
-
     private void subscribeSelectorDataChanges(final String path) {
         zkClient.subscribeDataChanges(path, new IZkDataListener() {
             @Override
             public void handleDataChange(final String dataPath, final Object data) {
-                Optional.ofNullable(data).ifPresent(d -> selectorDataChange((SelectorData) d));
+                Optional.ofNullable(data).ifPresent(d -> cacheSelectorData((SelectorData) d));
             }
 
             @Override
@@ -214,47 +188,20 @@ public class ZookeeperSyncCache extends AbstractLocalCacheManager implements Com
     private void setSelectorData(final String realPath) {
         final SelectorData selectorData = zkClient.readData(realPath);
         Optional.ofNullable(selectorData)
-                .ifPresent(s -> {
-                    final String key = s.getPluginName();
-                    setSelectorMapByKey(key, s);
-                });
+                .ifPresent(s -> cacheSelectorData(selectorData));
     }
 
     private void setRuleData(final String rulePath) {
         final RuleData ruleData = zkClient.readData(rulePath);
         Optional.ofNullable(ruleData)
-                .ifPresent(dto -> {
-                    String key = dto.getSelectorId();
-                    setRuleMapByKey(key, ruleData);
-                });
-    }
-
-    private void setRuleMapByKey(final String key, final RuleData ruleData) {
-        Optional.ofNullable(key)
-                .ifPresent(k -> {
-                    if (RULE_MAP.containsKey(k)) {
-                        final List<RuleData> ruleZkDTOList = RULE_MAP.get(key);
-                        final List<RuleData> resultList = ruleZkDTOList.stream()
-                                .filter(r -> !r.getId()
-                                        .equals(ruleData.getId()))
-                                .collect(Collectors.toList());
-                        resultList.add(ruleData);
-                        final List<RuleData> collect = resultList.stream()
-                                .sorted(Comparator.comparing(RuleData::getSort))
-                                .collect(Collectors.toList());
-                        RULE_MAP.put(key, collect);
-
-                    } else {
-                        RULE_MAP.put(key, Lists.newArrayList(ruleData));
-                    }
-                });
+                .ifPresent(this::cacheRuleData);
     }
 
     private void subscribeRuleDataChanges(final String path) {
         zkClient.subscribeDataChanges(path, new IZkDataListener() {
             @Override
             public void handleDataChange(final String dataPath, final Object data) {
-                Optional.ofNullable(data).ifPresent(d -> ruleDataChange((RuleData) d));
+                Optional.ofNullable(data).ifPresent(d -> cacheRuleData((RuleData) d));
             }
 
             @Override
@@ -271,42 +218,6 @@ public class ZookeeperSyncCache extends AbstractLocalCacheManager implements Com
                 });
             }
         });
-    }
-
-    private void selectorDataChange(final SelectorData dto) {
-        if (dto.getPluginName().equals(PluginEnum.DIVIDE.getName())) {
-            UpstreamCacheManager.submit(dto);
-        }
-        final String key = dto.getPluginName();
-        final List<SelectorData> selectorDataList = SELECTOR_MAP.get(key);
-        if (CollectionUtils.isNotEmpty(selectorDataList)) {
-            final List<SelectorData> resultList =
-                    selectorDataList.stream().filter(r -> !r.getId().equals(dto.getId())).collect(Collectors.toList());
-            resultList.add(dto);
-            final List<SelectorData> collect = resultList.stream()
-                    .sorted(Comparator.comparing(SelectorData::getSort))
-                    .collect(Collectors.toList());
-            SELECTOR_MAP.put(key, collect);
-        } else {
-            SELECTOR_MAP.put(key, Lists.newArrayList(dto));
-        }
-    }
-
-    private void ruleDataChange(final RuleData ruleData) {
-        final String key = ruleData.getSelectorId();
-        final List<RuleData> ruleDataList = RULE_MAP.get(key);
-        if (CollectionUtils.isNotEmpty(ruleDataList)) {
-            final List<RuleData> resultList = ruleDataList.stream()
-                    .filter(r -> !r.getId()
-                            .equals(ruleData.getId())).collect(Collectors.toList());
-            resultList.add(ruleData);
-            final List<RuleData> collect = resultList.stream()
-                    .sorted(Comparator.comparing(RuleData::getSort))
-                    .collect(Collectors.toList());
-            RULE_MAP.put(key, collect);
-        } else {
-            RULE_MAP.put(key, Lists.newArrayList(ruleData));
-        }
     }
 
     private void watchAppAuth() {

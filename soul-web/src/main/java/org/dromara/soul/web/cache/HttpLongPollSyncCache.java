@@ -106,8 +106,7 @@ public class HttpLongPollSyncCache extends HttpCacheHandler implements CommandLi
         OkHttp3ClientHttpRequestFactory factory = new OkHttp3ClientHttpRequestFactory();
         factory.setConnectTimeout((int) this.connectionTimeout.toMillis());
         factory.setReadTimeout((int) HttpConstants.CLIENT_POLLING_READ_TIMEOUT);
-        RestTemplate restTemplate = new RestTemplate(factory);
-        this.httpClient = restTemplate;
+        this.httpClient = new RestTemplate(factory);
 
         // It could be initialized multiple times, so you need to control that.
         if (RUNNING.compareAndSet(false, true)) {

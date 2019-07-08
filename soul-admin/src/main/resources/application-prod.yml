@@ -32,4 +32,4 @@ logging:
         org.dromara.soul.lottery: debug
         org.dromara.soul: debug
 
-    path: "./logs/admin"
+    path: "./logs/soul-admin"
