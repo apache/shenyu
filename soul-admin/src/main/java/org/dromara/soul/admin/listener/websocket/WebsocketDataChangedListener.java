@@ -27,10 +27,7 @@ import org.dromara.soul.common.dto.WebsocketData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.websocket.Session;
 import java.util.List;
 
 /**
@@ -42,57 +39,32 @@ import java.util.List;
  */
 public class WebsocketDataChangedListener extends AbstractDataChangedListener implements DataChangedListener {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(WebsocketDataChangedListener.class);
-
     @Override
     public void onPluginChanged(final List<PluginData> pluginDataList, final DataEventTypeEnum eventType) {
         WebsocketData<PluginData> websocketData =
                 new WebsocketData<>(ConfigGroupEnum.PLUGIN.name(), eventType.name(), pluginDataList);
-        WebsocketCollector.send(GsonUtils.getInstance().toJson(websocketData));
+        WebsocketCollector.send(GsonUtils.getInstance().toJson(websocketData), eventType);
     }
 
     @Override
     public void onSelectorChanged(final List<SelectorData> selectorDataList, final DataEventTypeEnum eventType) {
         WebsocketData<SelectorData> websocketData =
                 new WebsocketData<>(ConfigGroupEnum.SELECTOR.name(), eventType.name(), selectorDataList);
-        WebsocketCollector.send(GsonUtils.getInstance().toJson(websocketData));
+        WebsocketCollector.send(GsonUtils.getInstance().toJson(websocketData), eventType);
     }
 
     @Override
     public void onRuleChanged(final List<RuleData> ruleDataList, final DataEventTypeEnum eventType) {
         WebsocketData<RuleData> configData =
                 new WebsocketData<>(ConfigGroupEnum.RULE.name(), eventType.name(), ruleDataList);
-        WebsocketCollector.send(GsonUtils.getInstance().toJson(configData));
+        WebsocketCollector.send(GsonUtils.getInstance().toJson(configData), eventType);
     }
 
     @Override
     public void onAppAuthChanged(final List<AppAuthData> appAuthDataList, final DataEventTypeEnum eventType) {
         WebsocketData<AppAuthData> configData =
                 new WebsocketData<>(ConfigGroupEnum.APP_AUTH.name(), eventType.name(), appAuthDataList);
-        WebsocketCollector.send(GsonUtils.getInstance().toJson(configData));
-    }
-
-    /**
-     * Called when a websocket connection is created to push the full configuration data.
-     * @param session Websocket Session
-     */
-    public void onWebsocketConnect(Session session) {
-
-        // list data
-        List<?> pluginList = this.fetchConfig(ConfigGroupEnum.PLUGIN).getData();
-        List<?> appAuthList = this.fetchConfig(ConfigGroupEnum.APP_AUTH).getData();
-        List<?> selectorList = this.fetchConfig(ConfigGroupEnum.SELECTOR).getData();
-        List<?> ruleList = this.fetchConfig(ConfigGroupEnum.RULE).getData();
-
-        try {
-            session.getBasicRemote().sendText(GsonUtils.getInstance().toJson(pluginList));
-            session.getBasicRemote().sendText(GsonUtils.getInstance().toJson(appAuthList));
-            session.getBasicRemote().sendText(GsonUtils.getInstance().toJson(selectorList));
-            session.getBasicRemote().sendText(GsonUtils.getInstance().toJson(ruleList));
-        } catch (Exception e) {
-            LOGGER.error("websocket send result error.", e);
-        }
-
+        WebsocketCollector.send(GsonUtils.getInstance().toJson(configData), eventType);
     }
 
 }

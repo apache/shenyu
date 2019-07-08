@@ -27,6 +27,7 @@ import org.dromara.soul.admin.query.PluginQuery;
 import org.dromara.soul.admin.service.PluginService;
 import org.dromara.soul.admin.service.SyncDataService;
 import org.dromara.soul.admin.vo.PluginVO;
+import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.result.SoulResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -189,7 +190,7 @@ public class PluginController {
     @PostMapping("/syncPluginAll")
     public SoulResult syncPluginAll() {
         try {
-            boolean success = syncDataService.syncAll();
+            boolean success = syncDataService.syncAll(DataEventTypeEnum.REFRESH);
             if (success) {
                 return SoulResult.success("sync plugins success");
             } else {

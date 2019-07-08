@@ -95,8 +95,6 @@ class HttpCacheHandler extends AbstractLocalCacheManager {
             });
             SELECTOR_MAP.clear();
             SELECTOR_MAP.putAll(pluginNameToSelectors);
-
-
         }
     }
 

@@ -21,7 +21,7 @@ spring:
 
 
 soul :
-    filterTimeEnable : true
+    filterTimeEnable : false
     filterTime : 10
     sync:
         strategy: websocket

@@ -59,10 +59,10 @@ class CommonCacheHandler extends AbstractLocalCacheManager {
         String key = selectorData.getPluginName();
         if (SELECTOR_MAP.containsKey(key)) {
             List<SelectorData> existList = SELECTOR_MAP.get(key);
-            final List<SelectorData> resultList = existList.stream()
-                    .filter(r -> !r.getId()
-                            .equals(selectorData.getId()))
-                    .collect(Collectors.toList());
+            final List<SelectorData> resultList =
+                    existList.stream()
+                            .filter(r -> !r.getId().equals(selectorData.getId()))
+                            .collect(Collectors.toList());
             resultList.add(selectorData);
             final List<SelectorData> collect = resultList.stream()
                     .sorted(Comparator.comparing(SelectorData::getSort))
@@ -82,10 +82,10 @@ class CommonCacheHandler extends AbstractLocalCacheManager {
         String key = ruleData.getSelectorId();
         if (RULE_MAP.containsKey(key)) {
             List<RuleData> existList = RULE_MAP.get(key);
-            final List<RuleData> resultList = existList.stream()
-                    .filter(r -> !r.getId()
-                            .equals(ruleData.getId()))
-                    .collect(Collectors.toList());
+            final List<RuleData> resultList =
+                    existList.stream()
+                            .filter(r -> !r.getId().equals(ruleData.getId()))
+                            .collect(Collectors.toList());
             resultList.add(ruleData);
             final List<RuleData> collect = resultList.stream()
                     .sorted(Comparator.comparing(RuleData::getSort))
@@ -94,7 +94,5 @@ class CommonCacheHandler extends AbstractLocalCacheManager {
         } else {
             RULE_MAP.put(key, Lists.newArrayList(ruleData));
         }
-
-
     }
 }

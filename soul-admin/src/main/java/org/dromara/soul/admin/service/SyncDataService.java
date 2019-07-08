@@ -18,6 +18,8 @@
 
 package org.dromara.soul.admin.service;
 
+import org.dromara.soul.common.enums.DataEventTypeEnum;
+
 /**
  * The interface Sync data service.
  *
@@ -28,9 +30,10 @@ public interface SyncDataService {
     /**
      * Sync all boolean.
      *
+     * @param type the type
      * @return the boolean
      */
-    boolean syncAll();
+    boolean syncAll(DataEventTypeEnum type);
 
     /**
      * Sync plugin data boolean.
@@ -39,4 +42,6 @@ public interface SyncDataService {
      * @return the boolean
      */
     boolean syncPluginData(String pluginId);
+
+
 }

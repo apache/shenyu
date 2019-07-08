@@ -6,6 +6,7 @@ import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.WebsocketData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
+import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.web.config.SoulConfig;
 import org.java_websocket.client.WebSocketClient;
@@ -30,23 +31,23 @@ public class WebsocketSyncCache extends WebsocketCacheHandler {
     /**
      * The Client.
      */
-    public WebSocketClient client;
+    private WebSocketClient client;
 
     /**
      * Instantiates a new Websocket sync cache.
      *
      * @param websocketConfig the websocket config
      */
-    public WebsocketSyncCache(SoulConfig.WebsocketConfig websocketConfig) {
+    public WebsocketSyncCache(final SoulConfig.WebsocketConfig websocketConfig) {
         CompletableFuture.runAsync(() -> {
             try {
                 client = new WebSocketClient(new URI(websocketConfig.getUrl())) {
                     @Override
-                    public void onOpen(ServerHandshake serverHandshake) {
+                    public void onOpen(final ServerHandshake serverHandshake) {
                     }
 
                     @Override
-                    public void onMessage(String result) {
+                    public void onMessage(final String result) {
                         try {
                             handleResult(result);
                         } catch (Exception e) {
@@ -55,7 +56,7 @@ public class WebsocketSyncCache extends WebsocketCacheHandler {
                     }
 
                     @Override
-                    public void onClose(int i, String s, boolean b) {
+                    public void onClose(final int i, final String s, final boolean b) {
                         client.close();
                         try {
                             client.reconnectBlocking();
@@ -65,12 +66,12 @@ public class WebsocketSyncCache extends WebsocketCacheHandler {
                     }
 
                     @Override
-                    public void onError(Exception e) {
+                    public void onError(final Exception e) {
                         client.close();
                         try {
                             client.reconnectBlocking();
-                        } catch (InterruptedException e1) {
-                            LOGGER.error("websocket reconnectBlocking exception :{}", e1);
+                        } catch (InterruptedException interruptedException) {
+                            LOGGER.error("websocket reconnectBlocking exception :{}", interruptedException);
                         }
                     }
                 };
@@ -78,13 +79,16 @@ public class WebsocketSyncCache extends WebsocketCacheHandler {
                 LOGGER.error("websocket url is error :{}", e);
             }
             try {
-                client.connectBlocking();
+                boolean success = client.connectBlocking();
+                if (success) {
+                    LOGGER.info("websocket connection is successful.....");
+                    client.send(DataEventTypeEnum.MYSELF.name());
+                }
             } catch (InterruptedException e) {
                 LOGGER.info("websocket connection...exception....{}", e);
             }
 
         });
-
     }
 
     private void handleResult(final String result) {
