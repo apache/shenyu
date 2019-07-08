@@ -95,28 +95,25 @@ public class WebsocketSyncCache extends WebsocketCacheHandler {
             case PLUGIN:
                 String pluginData = GsonUtils.getInstance().toJson(websocketData.getData());
                 List<PluginData> pluginDataList =
-                        GsonUtils.getInstance().fromList(pluginData,
-                                PluginData.class);
+                        GsonUtils.getInstance().fromList(pluginData, PluginData.class);
                 handlePlugin(pluginDataList, eventType);
                 break;
             case SELECTOR:
                 String selectorData = GsonUtils.getInstance().toJson(websocketData.getData());
                 List<SelectorData> selectorDataList =
-                        GsonUtils.getInstance().fromList(selectorData,
-                                SelectorData.class);
+                        GsonUtils.getInstance().fromList(selectorData, SelectorData.class);
                 handleSelector(selectorDataList, eventType);
                 break;
             case RULE:
                 String ruleData = GsonUtils.getInstance().toJson(websocketData.getData());
                 List<RuleData> ruleDataList =
-                        GsonUtils.getInstance().fromList(ruleData,
-                                RuleData.class);
+                        GsonUtils.getInstance().fromList(ruleData, RuleData.class);
                 handleRule(ruleDataList, eventType);
                 break;
             case APP_AUTH:
+                String appAuthData = GsonUtils.getInstance().toJson(websocketData.getData());
                 List<AppAuthData> appAuthDataList =
-                        GsonUtils.getInstance().fromList(websocketData.getData().toString(),
-                                AppAuthData.class);
+                        GsonUtils.getInstance().fromList(appAuthData, AppAuthData.class);
                 handleAppAuth(appAuthDataList, eventType);
                 break;
             default:

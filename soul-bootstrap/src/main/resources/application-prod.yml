@@ -20,21 +20,20 @@ spring:
         write-timeout: 10
 
 
-org:
-   dromara :
-        soul :
-           filterTimeEnable : true
-           filterTime : 10
-           sync:
-             strategy: websocket
-             websocket :
-                url: ws://localhost:8888/websocket
-#             zookeeper:
-#                 url: localhost:2181
-#                 sessionTimeout: 5000
-#                 connectionTimeout: 2000
-#             http :
-#                url : localhost:8888
+soul :
+    filterTimeEnable : true
+    filterTime : 10
+    sync:
+        strategy: websocket
+        websocket :
+             url: ws://localhost:8888/websocket
+#        zookeeper:
+#             url: localhost:2181
+#             sessionTimeout: 5000
+#             connectionTimeout: 2000
+#        http:
+#             url : localhost:8888
+
 
 logging:
     level:

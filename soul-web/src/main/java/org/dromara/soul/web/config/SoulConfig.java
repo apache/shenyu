@@ -32,7 +32,7 @@ import java.io.Serializable;
  */
 @Data
 @Component("soulConfig")
-@ConfigurationProperties(prefix = "org.dromara.soul",
+@ConfigurationProperties(prefix = "soul",
         ignoreInvalidFields = true)
 public class SoulConfig implements Serializable {
 

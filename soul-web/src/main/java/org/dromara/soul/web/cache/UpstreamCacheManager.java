@@ -63,8 +63,12 @@ public class UpstreamCacheManager {
 
     private static final Integer DELAY_INIT = 30;
 
-    @Autowired
-    private SoulConfig soulConfig;
+    private final SoulConfig soulConfig;
+
+    @Autowired(required = false)
+    public UpstreamCacheManager(SoulConfig soulConfig) {
+        this.soulConfig = soulConfig;
+    }
 
     /**
      * Find upstream list by selector id list.

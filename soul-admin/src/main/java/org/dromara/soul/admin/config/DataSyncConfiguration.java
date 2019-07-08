@@ -30,7 +30,8 @@ public class DataSyncConfiguration {
     @ConditionalOnMissingBean(DataChangedListener.class)
     @ConditionalOnProperty(name = "soul.sync.strategy", havingValue = "http", matchIfMissing = true)
     @Import(HttpLongPollingDataChangedListener.class)
-    static class HttpLongPollingListener {  }
+    static class HttpLongPollingListener {
+    }
 
     /**
      * The type Zookeeper listener.
@@ -89,9 +90,7 @@ public class DataSyncConfiguration {
          */
         @Bean
         public ServerEndpointExporter serverEndpointExporter() {
-            ServerEndpointExporter exporter = new ServerEndpointExporter();
-            exporter.setAnnotatedEndpointClasses(WebsocketDataChangedListener.class);
-            return exporter;
+            return new ServerEndpointExporter();
         }
     }
 

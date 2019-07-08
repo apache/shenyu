@@ -26,7 +26,6 @@ import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.enums.PluginEnum;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -37,7 +36,7 @@ import java.util.stream.Collectors;
  *
  * @author xiaoyu(Myth)
  */
-class WebsocketCacheHandler extends AbstractLocalCacheManager {
+class WebsocketCacheHandler extends CommonCacheHandler {
 
     /**
      * Handle plugin.
@@ -85,47 +84,11 @@ class WebsocketCacheHandler extends AbstractLocalCacheManager {
                     }
                     break;
                 case DELETE:
-                    for (SelectorData selectorData : selectorDataList) {
-                        if (selectorData.getPluginName().equals(PluginEnum.DIVIDE.getName())) {
-                            UpstreamCacheManager.removeByKey(selectorData.getId());
-                        }
-                        List<SelectorData> existList = SELECTOR_MAP.get(selectorData.getPluginName());
-                        existList.removeIf(e -> e.getId().equals(selectorData.getId()));
-                    }
+                    selectorDataList.forEach(this::deleteSelectorData);
                     break;
                 case CREATE:
-                    for (SelectorData selectorData : selectorDataList) {
-                        if (selectorData.getPluginName().equals(PluginEnum.DIVIDE.getName())) {
-                            UpstreamCacheManager.submit(selectorData);
-                        }
-                        String key = selectorData.getPluginName();
-                        if (SELECTOR_MAP.containsKey(key)) {
-                            List<SelectorData> existList = SELECTOR_MAP.get(key);
-                            existList.add(selectorData);
-                            final List<SelectorData> resultList = existList.stream()
-                                    .sorted(Comparator.comparing(SelectorData::getSort))
-                                    .collect(Collectors.toList());
-                            SELECTOR_MAP.put(key, resultList);
-                        }
-                    }
-                    break;
                 case UPDATE:
-                    for (SelectorData selectorData : selectorDataList) {
-                        if (selectorData.getPluginName().equals(PluginEnum.DIVIDE.getName())) {
-                            UpstreamCacheManager.submit(selectorData);
-                        }
-                        String key = selectorData.getPluginName();
-                        List<SelectorData> existList = SELECTOR_MAP.get(key);
-                        final List<SelectorData> resultList = existList.stream()
-                                .filter(r -> !r.getId()
-                                        .equals(selectorData.getId()))
-                                .collect(Collectors.toList());
-                        resultList.add(selectorData);
-                        final List<SelectorData> collect = existList.stream()
-                                .sorted(Comparator.comparing(SelectorData::getSort))
-                                .collect(Collectors.toList());
-                        SELECTOR_MAP.put(key, collect);
-                    }
+                    selectorDataList.forEach(this::cacheSelectorData);
                     break;
                 default:
                     break;
@@ -158,32 +121,8 @@ class WebsocketCacheHandler extends AbstractLocalCacheManager {
                     }
                     break;
                 case CREATE:
-                    for (RuleData ruleData : ruleDataList) {
-                        String key = ruleData.getSelectorId();
-                        if (RULE_MAP.containsKey(key)) {
-                            List<RuleData> existList = RULE_MAP.get(key);
-                            existList.add(ruleData);
-                            final List<RuleData> resultList = existList.stream()
-                                    .sorted(Comparator.comparing(RuleData::getSort))
-                                    .collect(Collectors.toList());
-                            RULE_MAP.put(key, resultList);
-                        }
-                    }
-                    break;
                 case UPDATE:
-                    for (RuleData ruleData : ruleDataList) {
-                        String key = ruleData.getSelectorId();
-                        List<RuleData> existList = RULE_MAP.get(key);
-                        final List<RuleData> resultList = existList.stream()
-                                .filter(r -> !r.getId()
-                                        .equals(ruleData.getId()))
-                                .collect(Collectors.toList());
-                        resultList.add(ruleData);
-                        final List<RuleData> collect = existList.stream()
-                                .sorted(Comparator.comparing(RuleData::getSort))
-                                .collect(Collectors.toList());
-                        RULE_MAP.put(key, collect);
-                    }
+                    ruleDataList.forEach(this::cacheRuleData);
                     break;
                 default:
                     break;

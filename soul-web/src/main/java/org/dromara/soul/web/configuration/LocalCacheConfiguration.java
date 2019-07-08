@@ -49,7 +49,7 @@ public class LocalCacheConfiguration {
      */
     @Configuration
     @ConditionalOnMissingBean(LocalCacheManager.class)
-    @ConditionalOnProperty(name = "org.dromara.soul.sync.strategy", havingValue = "zookeeper")
+    @ConditionalOnProperty(name = "soul.sync.strategy", havingValue = "zookeeper")
     @Import(ZookeeperConfiguration.class)
     static class ZookeeperCacheManager {
 
@@ -71,7 +71,7 @@ public class LocalCacheConfiguration {
      */
     @Configuration
     @ConditionalOnMissingBean(LocalCacheManager.class)
-    @ConditionalOnProperty(name = "org.dromara.soul.sync.strategy", havingValue = "http", matchIfMissing = true)
+    @ConditionalOnProperty(name = "soul.sync.strategy", havingValue = "http", matchIfMissing = true)
     static class HttpCacheManager {
 
         /**
@@ -79,7 +79,7 @@ public class LocalCacheConfiguration {
          *
          * @return the http config
          */
-        @ConfigurationProperties(prefix = "org.dromara.soul.sync.http")
+        @ConfigurationProperties(prefix = "soul.sync.http")
         @Bean
         public SoulConfig.HttpConfig httpConfig() {
             return new SoulConfig.HttpConfig();
@@ -103,7 +103,7 @@ public class LocalCacheConfiguration {
      */
     @Configuration
     @ConditionalOnMissingBean(LocalCacheManager.class)
-    @ConditionalOnProperty(name = "org.dromara.soul.sync.strategy", havingValue = "websocket")
+    @ConditionalOnProperty(name = "soul.sync.strategy", havingValue = "websocket")
     static class WebsocketCacheManager {
 
         /**
@@ -111,7 +111,7 @@ public class LocalCacheConfiguration {
          *
          * @return the websocket config
          */
-        @ConfigurationProperties(prefix = "org.dromara.soul.sync.websocket")
+        @ConfigurationProperties(prefix = "soul.sync.websocket")
         @Bean
         public SoulConfig.WebsocketConfig httpConfig() {
             return new SoulConfig.WebsocketConfig();

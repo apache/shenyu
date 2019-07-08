@@ -73,7 +73,7 @@ public class GenericParamServiceImpl implements GenericParamService {
             objectMap.forEach((k, v) -> {
                 //如果v是数组类型
                 if (v instanceof JsonArray) {
-                    List<String> arg = GsonUtils.getInstance().fromJson(v.toString(), List.class);
+                    List<String> arg = GsonUtils.getInstance().fromList(v.toString(), String.class);
                     arg.forEach(j -> {
                         paramList.add(k);
                         args.add(j);

@@ -17,6 +17,7 @@
 
 package org.dromara.soul.admin.controller;
 
+import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.admin.listener.http.HttpLongPollingDataChangedListener;
 import org.dromara.soul.common.dto.ConfigData;
@@ -32,7 +33,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -59,10 +59,10 @@ public class ConfigController {
     @GetMapping("/fetch")
     public SoulResult fetchConfigs(@NotNull String[] groupKeys) {
         try {
-            Map<String, ConfigData> result = new HashMap<>();
+            Map<String, ConfigData> result = Maps.newConcurrentMap();
             for (String groupKey : groupKeys) {
-                ConfigData data = longPollingListener.fetchConfig( ConfigGroupEnum.valueOf(groupKey) );
-                result.put( groupKey, data );
+                ConfigData data = longPollingListener.fetchConfig(ConfigGroupEnum.valueOf(groupKey));
+                result.put(groupKey, data);
             }
             return SoulResult.success("success", result);
         } catch (Exception e) {
