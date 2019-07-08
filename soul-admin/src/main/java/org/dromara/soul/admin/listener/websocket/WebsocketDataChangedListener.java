@@ -17,6 +17,7 @@
 
 package org.dromara.soul.admin.listener.websocket;
 
+import org.dromara.soul.admin.listener.AbstractDataChangedListener;
 import org.dromara.soul.admin.listener.DataChangedListener;
 import org.dromara.soul.common.dto.AppAuthData;
 import org.dromara.soul.common.dto.PluginData;
@@ -26,15 +27,22 @@ import org.dromara.soul.common.dto.WebsocketData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.websocket.Session;
 import java.util.List;
 
 /**
  * The type Websocket data changed listener.
  *
  * @author xiaoyu(Myth)
+ * @author huangxiaofeng
+ * @since 2.0.0
  */
-public class WebsocketDataChangedListener implements DataChangedListener {
+public class WebsocketDataChangedListener extends AbstractDataChangedListener implements DataChangedListener {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(WebsocketDataChangedListener.class);
 
     @Override
     public void onPluginChanged(final List<PluginData> pluginDataList, final DataEventTypeEnum eventType) {
@@ -63,4 +71,28 @@ public class WebsocketDataChangedListener implements DataChangedListener {
                 new WebsocketData<>(ConfigGroupEnum.APP_AUTH.name(), eventType.name(), appAuthDataList);
         WebsocketCollector.send(GsonUtils.getInstance().toJson(configData));
     }
+
+    /**
+     * Called when a websocket connection is created to push the full configuration data.
+     * @param session Websocket Session
+     */
+    public void onWebsocketConnect(Session session) {
+
+        // list data
+        List<?> pluginList = this.fetchConfig(ConfigGroupEnum.PLUGIN).getData();
+        List<?> appAuthList = this.fetchConfig(ConfigGroupEnum.APP_AUTH).getData();
+        List<?> selectorList = this.fetchConfig(ConfigGroupEnum.SELECTOR).getData();
+        List<?> ruleList = this.fetchConfig(ConfigGroupEnum.RULE).getData();
+
+        try {
+            session.getBasicRemote().sendText(GsonUtils.getInstance().toJson(pluginList));
+            session.getBasicRemote().sendText(GsonUtils.getInstance().toJson(appAuthList));
+            session.getBasicRemote().sendText(GsonUtils.getInstance().toJson(selectorList));
+            session.getBasicRemote().sendText(GsonUtils.getInstance().toJson(ruleList));
+        } catch (Exception e) {
+            LOGGER.error("websocket send result error.", e);
+        }
+
+    }
+
 }
