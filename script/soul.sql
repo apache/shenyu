@@ -17,9 +17,7 @@ CREATE DATABASE /*!32312 IF NOT EXISTS*/`soul` /*!40100 DEFAULT CHARACTER SET ut
 USE `soul`;
 
 /*Table structure for table `app_auth` */
-DROP TABLE IF EXISTS `app_auth`;
-
-CREATE TABLE `app_auth` (
+CREATE TABLE IF NOT EXISTS `app_auth` (
   `id` varchar(128) NOT NULL COMMENT '主键id',
   `app_key` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '应用标识key',
   `app_secret` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '加密算法secret',
@@ -30,9 +28,7 @@ CREATE TABLE `app_auth` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Table structure for table `dashboard_user` */
-DROP TABLE IF EXISTS `dashboard_user`;
-
-CREATE TABLE `dashboard_user` (
+CREATE TABLE IF NOT EXISTS `dashboard_user` (
   `id` varchar(128) NOT NULL COMMENT '主键id',
   `user_name` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '用户名',
   `password` varchar(128) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '用户密码',
@@ -44,9 +40,7 @@ CREATE TABLE `dashboard_user` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Table structure for table `plugin` */
-DROP TABLE IF EXISTS `plugin`;
-
-CREATE TABLE `plugin` (
+CREATE TABLE IF NOT EXISTS `plugin` (
   `id` varchar(128) NOT NULL COMMENT '主键id',
   `name` varchar(62) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '插件名称',
   `config` text COLLATE utf8mb4_unicode_ci COMMENT '插件配置',
@@ -58,9 +52,7 @@ CREATE TABLE `plugin` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Table structure for table `rule` */
-DROP TABLE IF EXISTS `rule`;
-
-CREATE TABLE `rule` (
+CREATE TABLE IF NOT EXISTS `rule` (
   `id` varchar(128) NOT NULL COMMENT '主键id',
   `selector_id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '选择器id',
   `match_mode` int(2) NOT NULL COMMENT '匹配方式（0 and  1 or)',
@@ -75,9 +67,7 @@ CREATE TABLE `rule` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Table structure for table `rule_condition` */
-DROP TABLE IF EXISTS `rule_condition`;
-
-CREATE TABLE `rule_condition` (
+CREATE TABLE IF NOT EXISTS `rule_condition` (
   `id` varchar(128) NOT NULL COMMENT '主键id',
   `rule_id` varchar(128) NOT NULL COMMENT '规则id',
   `param_type` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '参数类型（post  query  uri等）',
@@ -90,9 +80,7 @@ CREATE TABLE `rule_condition` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Table structure for table `selector` */
-DROP TABLE IF EXISTS `selector`;
-
-CREATE TABLE `selector` (
+CREATE TABLE IF NOT EXISTS `selector` (
   `id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '主键id varchar',
   `plugin_id` varchar(128) NOT NULL COMMENT '插件id',
   `name` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '选择器名称',
@@ -109,9 +97,7 @@ CREATE TABLE `selector` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*Table structure for table `selector_condition` */
-DROP TABLE IF EXISTS `selector_condition`;
-
-CREATE TABLE `selector_condition` (
+CREATE TABLE IF NOT EXISTS `selector_condition` (
   `id` varchar(128) NOT NULL COMMENT '主键id',
   `selector_id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '选择器id',
   `param_type` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '参数类型（post  query  uri等）',
@@ -124,13 +110,14 @@ CREATE TABLE `selector_condition` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 /*plugin*/
-INSERT INTO `soul`.`plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('1', 'sign','0', '0', '2018-06-14 10:17:35', '2018-06-14 10:17:35');
-INSERT INTO `soul`.`plugin` (`id`, `name`,`role`,`enabled`, `date_created`, `date_updated`) VALUES ('2', 'waf', '0','0', '2018-06-23 10:26:30', '2018-06-13 15:43:10');
-INSERT INTO `soul`.`plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('3', 'rewrite', '0','0', '2018-06-23 10:26:34', '2018-06-25 13:59:31');
-INSERT INTO `soul`.`plugin` (`id`, `name`,`role`,`enabled`, `date_created`, `date_updated`) VALUES ('4', 'rate_limiter','0', '0', '2018-06-23 10:26:37', '2018-06-13 15:34:48');
-INSERT INTO `soul`.`plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('5', 'divide', '0','1', '2018-06-25 10:19:10', '2018-06-13 13:56:04');
-INSERT INTO `soul`.`plugin` (`id`, `name`,`role`,`enabled`, `date_created`, `date_updated`) VALUES ('6', 'dubbo','0', '1', '2018-06-23 10:26:41', '2018-06-11 10:11:47');
-INSERT INTO `soul`.`plugin` (`id`, `name`,`role`,`enabled`, `date_created`, `date_updated`) VALUES ('7', 'monitor', '0','0', '2018-06-25 13:47:57', '2018-06-25 13:47:57');
-INSERT INTO `soul`.`plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('8', 'springCloud','0', '1', '2018-06-25 13:47:57', '2018-06-25 13:47:57');
+INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('1', 'sign','0', '0', '2018-06-14 10:17:35', '2018-06-14 10:17:35');
+INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`,`enabled`, `date_created`, `date_updated`) VALUES ('2', 'waf', '0','0', '2018-06-23 10:26:30', '2018-06-13 15:43:10');
+INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('3', 'rewrite', '0','0', '2018-06-23 10:26:34', '2018-06-25 13:59:31');
+INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`,`enabled`, `date_created`, `date_updated`) VALUES ('4', 'rate_limiter','0', '0', '2018-06-23 10:26:37', '2018-06-13 15:34:48');
+INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('5', 'divide', '0','1', '2018-06-25 10:19:10', '2018-06-13 13:56:04');
+INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`,`enabled`, `date_created`, `date_updated`) VALUES ('6', 'dubbo','0', '1', '2018-06-23 10:26:41', '2018-06-11 10:11:47');
+INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`,`enabled`, `date_created`, `date_updated`) VALUES ('7', 'monitor', '0','0', '2018-06-25 13:47:57', '2018-06-25 13:47:57');
+INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('8', 'springCloud','0', '1', '2018-06-25 13:47:57', '2018-06-25 13:47:57');
+
 /**user**/
-INSERT INTO `soul`.`dashboard_user` (`id`, `user_name`, `password`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('1', 'admin', '123456', '1', '1', '2018-06-23 15:12:22', '2018-06-23 15:12:23');
+INSERT IGNORE INTO `soul`.`dashboard_user` (`id`, `user_name`, `password`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('1', 'admin', '123456', '1', '1', '2018-06-23 15:12:22', '2018-06-23 15:12:23');
