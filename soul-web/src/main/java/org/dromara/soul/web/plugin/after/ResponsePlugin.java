@@ -24,6 +24,7 @@ import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.exception.SoulException;
 import org.dromara.soul.common.result.SoulResult;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.JsonUtils;
 import org.dromara.soul.web.plugin.SoulPlugin;
 import org.dromara.soul.web.plugin.SoulPluginChain;
@@ -72,7 +73,7 @@ public class ResponsePlugin implements SoulPlugin {
                                         .toJson(SoulResult.error(Constants.DUBBO_ERROR_RESULT))).getBytes())));
                     }
                     return response.writeWith(Mono.just(exchange.getResponse()
-                            .bufferFactory().wrap(Objects.requireNonNull(JsonUtils.toJson(result)).getBytes())));
+                            .bufferFactory().wrap(Objects.requireNonNull(JsonUtils.dubboResultJson(result)).getBytes())));
                 } catch (SoulException e) {
                     return Mono.empty();
                 }
