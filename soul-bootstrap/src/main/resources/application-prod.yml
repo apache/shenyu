@@ -5,28 +5,15 @@ server:
 spring:
    main:
      allow-bean-definition-overriding: true
-   redis:
-     host: localhost
-     password: 123456
-     port: 6379
-   influxdb:
-        url: http://localhost:8086
-        username: test
-        password: test
-        database: test
-        retention-policy: autogen
-        connect-timeout: 10
-        read-timeout: 30
-        write-timeout: 10
-
-
+    application:
+      name: soul-bootstrap
 soul :
     filterTimeEnable : false
     filterTime : 10
     sync:
         strategy: websocket
         websocket :
-             url: ws://localhost:8888/websocket
+             url: ws://localhost:8887/websocket
 #        zookeeper:
 #             url: localhost:2181
 #             sessionTimeout: 5000

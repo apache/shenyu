@@ -16,43 +16,48 @@
  *
  */
 
-package org.dromara.soul.common.config;
+package org.dromara.soul.web.plugin.config;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
-import java.io.Serializable;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * The rateLimiter configuration for redis.
+ * Singleton.
  *
- * @author xiaoyu(Myth)
+ * @author xiaoyu
  */
-@Data
-@EqualsAndHashCode
-public class RateLimiterConfig implements Serializable {
-
-    private Boolean cluster = false;
-
-    private Boolean sentinel = false;
+public enum Singleton {
+    /**
+     * Inst singleton.
+     */
+    INST;
 
     /**
-     * cluster url example:ip:port;ip:port.
+     * The Singles.
      */
-    private String clusterUrl;
+    private static final Map<String, Object> SINGLES = new ConcurrentHashMap<>();
+
 
     /**
-     * sentinel url example:ip:port;ip:port.
+     * Single.
+     *
+     * @param clazz the clazz
+     * @param o     the o
      */
-    private String sentinelUrl;
+    public void single(final Class clazz, final Object o) {
+        SINGLES.put(clazz.getName(), o);
 
-    private String master;
+    }
 
-    private int database = 0;
-
-    private String host;
-
-    private int port;
-
-    private String password;
+    /**
+     * Get t.
+     *
+     * @param <T>   the type parameter
+     * @param clazz the clazz
+     * @return the t
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T get(final Class<T> clazz) {
+        return (T) SINGLES.get(clazz.getName());
+    }
 }

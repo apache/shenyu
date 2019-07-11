@@ -19,10 +19,14 @@
 package org.dromara.soul.web.plugin.ratelimter;
 
 import org.dromara.soul.common.utils.LogUtils;
+import org.dromara.soul.web.plugin.config.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.scripting.support.ResourceScriptSource;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -47,21 +51,15 @@ public class RedisRateLimiter {
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisRateLimiter.class);
 
-    private ReactiveRedisTemplate<String, String> redisTemplate;
-
     private RedisScript<List<Long>> script;
 
     private AtomicBoolean initialized = new AtomicBoolean(false);
 
     /**
      * Instantiates a new Redis rate limiter.
-     *
-     * @param redisTemplate the redis template
-     * @param script        the script
      */
-    public RedisRateLimiter(final ReactiveRedisTemplate<String, String> redisTemplate, final RedisScript<List<Long>> script) {
-        this.redisTemplate = redisTemplate;
-        this.script = script;
+    public RedisRateLimiter() {
+        this.script = redisScript();
         initialized.compareAndSet(false, true);
     }
 
@@ -84,7 +82,7 @@ public class RedisRateLimiter {
             List<String> keys = getKeys(id);
             List<String> scriptArgs = Arrays.asList(replenishRate + "", burstCapacity + "",
                     Instant.now().getEpochSecond() + "", "1");
-            Flux<List<Long>> resultFlux = this.redisTemplate.execute(this.script, keys, scriptArgs);
+            Flux<List<Long>> resultFlux = Singleton.INST.get(ReactiveRedisTemplate.class).execute(this.script, keys, scriptArgs);
             return resultFlux.onErrorResume(throwable -> Flux.just(Arrays.asList(1L, -1L)))
                     .reduce(new ArrayList<Long>(), (longs, l) -> {
                         longs.addAll(l);
@@ -109,5 +107,14 @@ public class RedisRateLimiter {
         String timestampKey = prefix + "}.timestamp";
         return Arrays.asList(tokenKey, timestampKey);
     }
+
+    @SuppressWarnings("unchecked")
+    private RedisScript<List<Long>> redisScript() {
+        DefaultRedisScript redisScript = new DefaultRedisScript<>();
+        redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("/META-INF/scripts/request_rate_limiter.lua")));
+        redisScript.setResultType(List.class);
+        return redisScript;
+    }
+
 
 }

@@ -37,11 +37,11 @@ import org.springframework.web.reactive.DispatcherHandler;
  *
  * @author xiaoyu(Myth)
  */
-@Configuration
 @ConditionalOnClass({LoadBalancerClient.class, RibbonAutoConfiguration.class, DispatcherHandler.class})
 @AutoConfigureAfter(RibbonAutoConfiguration.class)
 @ConditionalOnProperty(prefix = "eureka.client.serviceUrl", name = "defaultZone")
 @EnableDiscoveryClient
+@Configuration
 public class SpringCloudConfiguration {
 
     private final LoadBalancerClient loadBalancerClient;

@@ -21,8 +21,12 @@ package org.dromara.soul.web.configuration;
 import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.plugin.SoulPlugin;
 import org.dromara.soul.web.plugin.dubbo.DubboProxyService;
+import org.dromara.soul.web.plugin.dubbo.GenericParamService;
+import org.dromara.soul.web.plugin.dubbo.GenericParamServiceImpl;
 import org.dromara.soul.web.plugin.function.DubboPlugin;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.SearchStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -31,33 +35,28 @@ import org.springframework.context.annotation.Configuration;
  *
  * @author xiaoyu(Myth)
  */
-@Configuration
 public class DubboConfiguration {
 
-    private final DubboProxyService dubboProxyService;
-
-    private final LocalCacheManager localCacheManager;
-
     /**
-     * Instantiates a new Dubbo configuration.
+     * Generic param service generic param service.
      *
-     * @param dubboProxyService the dubbo proxy service
-     * @param localCacheManager the local cache manager
+     * @return the generic param service
      */
-    @Autowired(required = false)
-    public DubboConfiguration(final DubboProxyService dubboProxyService, final LocalCacheManager localCacheManager) {
-        this.dubboProxyService = dubboProxyService;
-        this.localCacheManager = localCacheManager;
+    @Bean
+    @ConditionalOnMissingBean(value = GenericParamService.class, search = SearchStrategy.ALL)
+    public GenericParamService genericParamService() {
+        return new GenericParamServiceImpl();
     }
 
     /**
      * init dubboPlugin.
      *
+     * @param localCacheManager the local cache manager
      * @return {@linkplain DubboPlugin}
      */
     @Bean
-    public SoulPlugin dubboPlugin() {
-        return new DubboPlugin(localCacheManager, dubboProxyService);
+    public SoulPlugin dubboPlugin(LocalCacheManager localCacheManager) {
+        return new DubboPlugin(localCacheManager, new DubboProxyService(genericParamService()));
     }
 
 }
