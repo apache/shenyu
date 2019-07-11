@@ -35,8 +35,6 @@ import org.dromara.soul.common.exception.SoulException;
 import org.dromara.soul.common.utils.LogUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.util.Map;
 import java.util.Objects;
@@ -47,7 +45,6 @@ import java.util.Optional;
  *
  * @author xiaoyu(Myth)
  */
-@Service
 public class DubboProxyService {
 
     /**
@@ -61,7 +58,6 @@ public class DubboProxyService {
 
     private final GenericParamService genericParamService;
 
-    @Autowired(required = false)
     public DubboProxyService(GenericParamService genericParamService) {
         this.genericParamService = genericParamService;
     }

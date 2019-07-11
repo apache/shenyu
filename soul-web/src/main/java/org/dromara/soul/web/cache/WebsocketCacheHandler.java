@@ -51,12 +51,14 @@ class WebsocketCacheHandler extends CommonCacheHandler {
                 case REFRESH:
                 case MYSELF:
                     PLUGIN_MAP.clear();
+                    configPlugin(pluginDataList);
                     pluginDataList.forEach(e -> PLUGIN_MAP.put(e.getName(), e));
                     break;
                 case DELETE:
                     pluginDataList.forEach(e -> PLUGIN_MAP.remove(e.getName()));
                 case UPDATE:
                 case CREATE:
+                    configPlugin(pluginDataList);
                     pluginDataList.forEach(e -> PLUGIN_MAP.put(e.getName(), e));
                     break;
                 default:

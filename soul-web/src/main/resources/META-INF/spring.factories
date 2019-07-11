@@ -1,10 +1,5 @@
 # Auto Configure
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.dromara.soul.web.configuration.InfluxDbConfiguration,\
-org.dromara.soul.web.configuration.SoulConfiguration,\
-org.dromara.soul.web.configuration.RedisConfiguration,\
-org.dromara.soul.web.configuration.DubboConfiguration,\
-org.dromara.soul.web.configuration.SpringCloudConfiguration
-
+org.dromara.soul.web.configuration.SoulConfiguration
 org.springframework.context.ApplicationListener=\
 org.dromara.soul.web.logo.SoulLogo

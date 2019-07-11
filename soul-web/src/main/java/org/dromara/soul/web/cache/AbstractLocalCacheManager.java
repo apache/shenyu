@@ -22,6 +22,7 @@ import org.dromara.soul.common.dto.AppAuthData;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
+import org.dromara.soul.web.plugin.config.PluginConfigHandler;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentMap;
@@ -95,6 +96,15 @@ public abstract class AbstractLocalCacheManager implements LocalCacheManager {
     @Override
     public List<RuleData> findRuleBySelectorId(final String selectorId) {
         return RULE_MAP.get(selectorId);
+    }
+
+    /**
+     * Config plugin.
+     *
+     * @param pluginDataList the plugin data list
+     */
+    void configPlugin(final List<PluginData> pluginDataList) {
+        PluginConfigHandler.INS.initPluginConfig(pluginDataList);
     }
 
 }

@@ -30,6 +30,7 @@ import org.dromara.soul.common.dto.SelectorData;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.CommandLineRunner;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -88,13 +89,17 @@ public class ZookeeperSyncCache extends CommonCacheHandler implements CommandLin
             zkClient.createPersistent(pluginPath, true);
         }
         PluginData data = zkClient.readData(pluginPath);
-        Optional.ofNullable(data).ifPresent(d -> PLUGIN_MAP.put(data.getName(), data));
+        Optional.ofNullable(data).ifPresent(d -> {
+            configPlugin(Collections.singletonList(d));
+            PLUGIN_MAP.put(data.getName(), data);
+        });
         zkClient.subscribeDataChanges(pluginPath, new IZkDataListener() {
             @Override
             public void handleDataChange(final String dataPath, final Object data) {
                 Optional.ofNullable(data)
                         .ifPresent(d -> {
                             PluginData pluginData = (PluginData) d;
+                            configPlugin(Collections.singletonList(pluginData));
                             PLUGIN_MAP.put(pluginData.getName(), pluginData);
                         });
             }

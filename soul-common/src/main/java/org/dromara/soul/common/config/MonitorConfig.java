@@ -19,6 +19,7 @@
 package org.dromara.soul.common.config;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 
@@ -28,9 +29,10 @@ import java.io.Serializable;
  * @author xiaoyu(Myth)
  */
 @Data
+@EqualsAndHashCode
 public class MonitorConfig implements Serializable {
 
-    private String influxdbUrl;
+    private String url;
 
     private String userName;
 
@@ -45,5 +47,7 @@ public class MonitorConfig implements Serializable {
     private Integer readTimeout;
 
     private Integer writeTimeout;
+
+    private boolean gzip = false;
 
 }

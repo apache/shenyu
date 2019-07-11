@@ -22,7 +22,6 @@ import org.dromara.soul.web.plugin.ratelimter.RedisRateLimiter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
@@ -44,10 +43,10 @@ import java.util.List;
  *
  * @author xiaoyu
  */
-@Configuration
+/*@Configuration
 @AutoConfigureBefore(SoulConfiguration.class)
-@ConditionalOnClass({ RedisTemplate.class, DispatcherHandler.class })
-@SuppressWarnings("unchecked")
+@ConditionalOnClass({RedisTemplate.class, DispatcherHandler.class})
+@SuppressWarnings("unchecked")*/
 public class RedisConfiguration {
 
     /**
@@ -56,7 +55,6 @@ public class RedisConfiguration {
      * @return {@linkplain RedisScript}
      */
     @Bean
-    @SuppressWarnings("unchecked")
     public RedisScript redisScript() {
         DefaultRedisScript redisScript = new DefaultRedisScript<>();
         redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("/META-INF/scripts/request_rate_limiter.lua")));
@@ -85,15 +83,4 @@ public class RedisConfiguration {
                 serializationContext);
     }
 
-    /**
-     * init RedisRateLimiter.
-     *
-     * @param reactiveRedisTemplate this.stringReactiveRedisTemplate
-     * @return {@linkplain RedisRateLimiter}
-     */
-    @Bean
-    @ConditionalOnMissingBean
-    public RedisRateLimiter redisRateLimiter(@Qualifier("reactiveRedisTemplate") final ReactiveRedisTemplate<String, String> reactiveRedisTemplate) {
-        return new RedisRateLimiter(reactiveRedisTemplate, redisScript());
-    }
 }

@@ -19,9 +19,11 @@
 package org.dromara.soul.web.influxdb.service;
 
 import org.dromara.soul.web.influxdb.entity.MonitorDO;
+import org.dromara.soul.web.plugin.config.Singleton;
 import org.influxdb.dto.Point;
 import org.springframework.data.influxdb.InfluxDBTemplate;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -31,33 +33,26 @@ import java.util.concurrent.TimeUnit;
  */
 public class InfluxDbService {
 
-    private final InfluxDBTemplate<Point> influxDBTemplate;
-
-    /**
-     * Instantiates a new Influx db service.
-     *
-     * @param influxDBTemplate the influx db template
-     */
-    public InfluxDbService(final InfluxDBTemplate<Point> influxDBTemplate) {
-        this.influxDBTemplate = influxDBTemplate;
-    }
-
     /**
      * save data in influxDb.
      *
      * @param monitorDO {@linkplain MonitorDO}
      */
     public void writeData(final MonitorDO monitorDO) {
-        final Point.Builder builder = Point.measurement("monitorDO")
-                .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS);
-        builder.tag("host", monitorDO.getHost())
-                .tag("ip", monitorDO.getIp())
-                .tag("method", monitorDO.getMethod())
-                .tag("module", monitorDO.getModule())
-                .tag("resultType", monitorDO.getResultType())
-                .tag("rpcType", monitorDO.getRpcType())
-                .addField("count", monitorDO.getCount());
-        final Point point = builder.build();
-        influxDBTemplate.write(point);
+        InfluxDBTemplate<Point> influxDBTemplate = Singleton.INST.get(InfluxDBTemplate.class);
+        if (Objects.nonNull(influxDBTemplate)) {
+            final Point.Builder builder = Point.measurement("monitorDO")
+                    .time(System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+            builder.tag("host", monitorDO.getHost())
+                    .tag("ip", monitorDO.getIp())
+                    .tag("method", monitorDO.getMethod())
+                    .tag("module", monitorDO.getModule())
+                    .tag("resultType", monitorDO.getResultType())
+                    .tag("rpcType", monitorDO.getRpcType())
+                    .addField("count", monitorDO.getCount());
+            final Point point = builder.build();
+            influxDBTemplate.write(point);
+        }
+
     }
 }

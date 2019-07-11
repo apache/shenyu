@@ -21,18 +21,19 @@ package org.dromara.soul.web.configuration;
 import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.cache.UpstreamCacheManager;
 import org.dromara.soul.web.config.SoulConfig;
+import org.dromara.soul.web.disruptor.publisher.SoulEventPublisher;
 import org.dromara.soul.web.filter.BodyWebFilter;
 import org.dromara.soul.web.filter.ParamWebFilter;
 import org.dromara.soul.web.filter.TimeWebFilter;
 import org.dromara.soul.web.filter.WebSocketWebFilter;
 import org.dromara.soul.web.handler.SoulWebHandler;
+import org.dromara.soul.web.influxdb.service.InfluxDbService;
 import org.dromara.soul.web.plugin.SoulPlugin;
+import org.dromara.soul.web.plugin.after.MonitorPlugin;
 import org.dromara.soul.web.plugin.after.ResponsePlugin;
 import org.dromara.soul.web.plugin.before.GlobalPlugin;
 import org.dromara.soul.web.plugin.before.SignPlugin;
 import org.dromara.soul.web.plugin.before.WafPlugin;
-import org.dromara.soul.web.plugin.dubbo.GenericParamService;
-import org.dromara.soul.web.plugin.dubbo.GenericParamServiceImpl;
 import org.dromara.soul.web.plugin.function.DividePlugin;
 import org.dromara.soul.web.plugin.function.RateLimiterPlugin;
 import org.dromara.soul.web.plugin.function.RewritePlugin;
@@ -41,10 +42,10 @@ import org.dromara.soul.web.plugin.ratelimter.RedisRateLimiter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.condition.SearchStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
 import org.springframework.web.reactive.socket.client.WebSocketClient;
@@ -62,11 +63,10 @@ import java.util.stream.Collectors;
  */
 @Configuration
 @ComponentScan("org.dromara.soul")
+@Import(value = {DubboConfiguration.class})
 public class SoulConfiguration {
 
     private final LocalCacheManager localCacheManager;
-
-    private final RedisRateLimiter redisRateLimiter;
 
     private final UpstreamCacheManager upstreamCacheManager;
 
@@ -74,15 +74,12 @@ public class SoulConfiguration {
      * Instantiates a new Soul configuration.
      *
      * @param localCacheManager    the local cache manager
-     * @param redisRateLimiter     the redis rate limiter
      * @param upstreamCacheManager the upstream cache manager
      */
     @Autowired(required = false)
     public SoulConfiguration(final LocalCacheManager localCacheManager,
-                             final RedisRateLimiter redisRateLimiter,
                              final UpstreamCacheManager upstreamCacheManager) {
         this.localCacheManager = localCacheManager;
-        this.redisRateLimiter = redisRateLimiter;
         this.upstreamCacheManager = upstreamCacheManager;
     }
 
@@ -125,7 +122,19 @@ public class SoulConfiguration {
      */
     @Bean
     public SoulPlugin rateLimiterPlugin() {
-        return new RateLimiterPlugin(localCacheManager, redisRateLimiter);
+        return new RateLimiterPlugin(localCacheManager, redisRateLimiter());
+    }
+
+
+    /**
+     * Redis rate limiter redis rate limiter.
+     *
+     * @return the redis rate limiter
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public RedisRateLimiter redisRateLimiter() {
+        return new RedisRateLimiter();
     }
 
     /**
@@ -159,6 +168,38 @@ public class SoulConfiguration {
     public WebSocketPlugin webSocketPlugin(final WebSocketClient webSocketClient,
                                            final WebSocketService webSocketService) {
         return new WebSocketPlugin(localCacheManager, upstreamCacheManager, webSocketClient, webSocketService);
+    }
+
+    /**
+     * Influx db service influx db service.
+     *
+     * @return the influx db service
+     */
+    @Bean
+    public InfluxDbService influxDbService() {
+        return new InfluxDbService();
+    }
+
+    /**
+     * Soul event publisher soul event publisher.
+     *
+     * @param influxDbService the influx db service
+     * @return the soul event publisher
+     */
+    @Bean
+    public SoulEventPublisher soulEventPublisher(InfluxDbService influxDbService) {
+        return new SoulEventPublisher(influxDbService);
+    }
+
+    /**
+     * Monitor plugin soul plugin.
+     *
+     * @param soulEventPublisher the soul event publisher
+     * @return the soul plugin
+     */
+    @Bean
+    public SoulPlugin monitorPlugin(SoulEventPublisher soulEventPublisher) {
+        return new MonitorPlugin(soulEventPublisher, localCacheManager);
     }
 
     /**
@@ -236,17 +277,6 @@ public class SoulConfiguration {
     @Order(2)
     public WebFilter webSocketWebFilter() {
         return new WebSocketWebFilter();
-    }
-
-    /**
-     * Generic param service generic param service.
-     *
-     * @return the generic param service
-     */
-    @Bean
-    @ConditionalOnMissingBean(value = GenericParamService.class, search = SearchStrategy.ALL)
-    public GenericParamService genericParamService() {
-        return new GenericParamServiceImpl();
     }
 
 

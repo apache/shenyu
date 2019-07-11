@@ -116,7 +116,7 @@ INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`, `enabled`, `date_create
 INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`,`enabled`, `date_created`, `date_updated`) VALUES ('4', 'rate_limiter','0', '0', '2018-06-23 10:26:37', '2018-06-13 15:34:48');
 INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('5', 'divide', '0','1', '2018-06-25 10:19:10', '2018-06-13 13:56:04');
 INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`,`enabled`, `date_created`, `date_updated`) VALUES ('6', 'dubbo','0', '1', '2018-06-23 10:26:41', '2018-06-11 10:11:47');
-INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`,`enabled`, `date_created`, `date_updated`) VALUES ('7', 'monitor', '0','0', '2018-06-25 13:47:57', '2018-06-25 13:47:57');
+INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`,`config`,`enabled`, `date_created`, `date_updated`) VALUES ('7', 'monitor', '0','{"url":"http://localhost:8086","userName":"xiaoyu","password":"test","database":"databases","retentionPolicy":"autogen","connectTimeout":100,"readTimeout":30,"writeTimeout":30,"gzip":false}','0', '2018-06-25 13:47:57', '2018-06-25 13:47:57');
 INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('8', 'springCloud','0', '1', '2018-06-25 13:47:57', '2018-06-25 13:47:57');
 
 /**user**/

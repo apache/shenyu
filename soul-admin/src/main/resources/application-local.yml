@@ -1,5 +1,5 @@
 server:
-  port: 8888
+  port: 8887
   address: 0.0.0.0
 
 spring:

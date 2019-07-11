@@ -53,6 +53,7 @@ class HttpCacheHandler extends AbstractLocalCacheManager {
             PLUGIN_MAP.clear();
         } else {
             PLUGIN_MAP.clear();
+            configPlugin(pluginDataList);
             pluginDataList.forEach(pluginData -> PLUGIN_MAP.put(pluginData.getName(), pluginData));
         }
     }
