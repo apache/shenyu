@@ -33,7 +33,7 @@ import java.io.Serializable;
 @EqualsAndHashCode
 public class RateLimiterConfig implements Serializable {
 
-    private int database = 0;
+    private Integer database = 0;
 
     private String master;
 
