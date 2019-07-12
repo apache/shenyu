@@ -113,10 +113,10 @@ CREATE TABLE IF NOT EXISTS `selector_condition` (
 INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('1', 'sign','0', '0', '2018-06-14 10:17:35', '2018-06-14 10:17:35');
 INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`,`enabled`, `date_created`, `date_updated`) VALUES ('2', 'waf', '0','0', '2018-06-23 10:26:30', '2018-06-13 15:43:10');
 INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('3', 'rewrite', '0','0', '2018-06-23 10:26:34', '2018-06-25 13:59:31');
-INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`,`enabled`, `date_created`, `date_updated`) VALUES ('4', 'rate_limiter','0', '0', '2018-06-23 10:26:37', '2018-06-13 15:34:48');
+INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`,`config`,`enabled`, `date_created`, `date_updated`) VALUES ('4', 'rate_limiter','0','{"master":"mymaster","mode":"Standalone","url":"192.168.1.1:6379","password":"abc"}', '0', '2018-06-23 10:26:37', '2018-06-13 15:34:48');
 INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('5', 'divide', '0','1', '2018-06-25 10:19:10', '2018-06-13 13:56:04');
 INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`,`enabled`, `date_created`, `date_updated`) VALUES ('6', 'dubbo','0', '1', '2018-06-23 10:26:41', '2018-06-11 10:11:47');
-INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`,`config`,`enabled`, `date_created`, `date_updated`) VALUES ('7', 'monitor', '0','{"url":"http://localhost:8086","userName":"xiaoyu","password":"test","database":"databases","retentionPolicy":"autogen","connectTimeout":100,"readTimeout":30,"writeTimeout":30,"gzip":false}','0', '2018-06-25 13:47:57', '2018-06-25 13:47:57');
+INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`,`config`,`enabled`, `date_created`, `date_updated`) VALUES ('7', 'monitor', '0','{"userName":"xiaoyu","database":"databases","url":"http://localhost:8086","password":"test222"}','0', '2018-06-25 13:47:57', '2018-06-25 13:47:57');
 INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('8', 'springCloud','0', '1', '2018-06-25 13:47:57', '2018-06-25 13:47:57');
 
 /**user**/
