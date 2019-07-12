@@ -90,6 +90,9 @@ public class GsonUtils {
             .registerTypeAdapter(String.class, STRING)
             .create();
 
+    private static final Gson GSON_MAP = new GsonBuilder().serializeNulls().registerTypeHierarchyAdapter(new TypeToken<Map<String, Object>>() {
+    }.getRawType(), new MapDeserializer<String, Object>()).create();
+
     private static final String DOT = ".";
 
     private static final String E = "e";
@@ -196,13 +199,11 @@ public class GsonUtils {
      * @return the map
      */
     public Map<String, Object> toObjectMap(final String json) {
-        TypeToken typeToken = new TypeToken<Map<String, Object>>() {
-        };
-        Gson gson = new GsonBuilder().serializeNulls().registerTypeHierarchyAdapter(typeToken.getRawType(), new MapDeserializer<String, Object>()).create();
-        return gson.fromJson(json, typeToken.getType());
+        return GSON_MAP.fromJson(json, new TypeToken<Map<String, Object>>() {
+        }.getType());
     }
 
-    private class MapDeserializer<T, U> implements JsonDeserializer<Map<T, U>> {
+    private static class MapDeserializer<T, U> implements JsonDeserializer<Map<T, U>> {
 
         @Override
         public Map<T, U> deserialize(final JsonElement json, final Type type, final JsonDeserializationContext context) throws JsonParseException {

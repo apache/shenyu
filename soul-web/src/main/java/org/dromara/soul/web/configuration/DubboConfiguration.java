@@ -24,11 +24,9 @@ import org.dromara.soul.web.plugin.dubbo.DubboProxyService;
 import org.dromara.soul.web.plugin.dubbo.GenericParamService;
 import org.dromara.soul.web.plugin.dubbo.GenericParamServiceImpl;
 import org.dromara.soul.web.plugin.function.DubboPlugin;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.SearchStrategy;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 /**
  * the dubbo configuration.

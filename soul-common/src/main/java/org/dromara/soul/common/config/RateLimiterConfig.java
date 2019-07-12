@@ -20,6 +20,7 @@ package org.dromara.soul.common.config;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.dromara.soul.common.enums.RedisModeEnum;
 
 import java.io.Serializable;
 
@@ -32,27 +33,17 @@ import java.io.Serializable;
 @EqualsAndHashCode
 public class RateLimiterConfig implements Serializable {
 
-    private Boolean cluster = false;
-
-    private Boolean sentinel = false;
-
-    /**
-     * cluster url example:ip:port;ip:port.
-     */
-    private String clusterUrl;
-
-    /**
-     * sentinel url example:ip:port;ip:port.
-     */
-    private String sentinelUrl;
+    private int database = 0;
 
     private String master;
 
-    private int database = 0;
+    private String mode = RedisModeEnum.STANDALONE.getName();
 
-    private String host;
+    /**
+     * 如果是集群或者哨兵模式;分隔.
+     */
+    private String url;
 
-    private int port;
 
     private String password;
 }

@@ -28,6 +28,7 @@ import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.cache.WebsocketSyncCache;
 import org.dromara.soul.web.cache.ZookeeperSyncCache;
 import org.dromara.soul.web.config.SoulConfig;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -41,7 +42,7 @@ import org.springframework.context.annotation.Import;
  * @author huangxiaofeng
  * @author xiaoyu
  */
-@Configuration
+@AutoConfigureBefore(SoulConfiguration.class)
 public class LocalCacheConfiguration {
 
     /**

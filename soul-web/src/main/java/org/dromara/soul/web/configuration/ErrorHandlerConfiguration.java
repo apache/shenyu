@@ -27,7 +27,6 @@ import org.springframework.boot.web.reactive.error.ErrorAttributes;
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.codec.ServerCodecConfigurer;
@@ -45,7 +44,6 @@ import java.util.List;
  *
  * @author xiaoyu(Myth)
  */
-@Configuration
 @EnableConfigurationProperties({ServerProperties.class, ResourceProperties.class})
 public class ErrorHandlerConfiguration {
 

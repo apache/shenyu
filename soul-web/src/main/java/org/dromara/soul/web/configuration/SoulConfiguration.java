@@ -63,7 +63,7 @@ import java.util.stream.Collectors;
  */
 @Configuration
 @ComponentScan("org.dromara.soul")
-@Import(value = {DubboConfiguration.class})
+@Import(value = {DubboConfiguration.class, LocalCacheConfiguration.class, ErrorHandlerConfiguration.class})
 public class SoulConfiguration {
 
     private final LocalCacheManager localCacheManager;
