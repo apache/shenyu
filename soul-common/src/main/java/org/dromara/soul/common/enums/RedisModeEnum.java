@@ -16,38 +16,35 @@
  *
  */
 
-package org.dromara.soul.common.config;
+package org.dromara.soul.common.enums;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
-import java.io.Serializable;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
- * The monitor configuration for influxdb.
+ * The enum Redis mode enum.
  *
  * @author xiaoyu(Myth)
  */
-@Data
-@EqualsAndHashCode
-public class MonitorConfig implements Serializable {
+@RequiredArgsConstructor
+@Getter
+public enum RedisModeEnum {
 
-    private String url;
+    /**
+     * Cluster redis mode enum.
+     */
+    CLUSTER("cluster"),
 
-    private String userName;
+    /**
+     * Sentinel redis mode enum.
+     */
+    SENTINEL("sentinel"),
 
-    private String password;
+    /**
+     * Standalone redis mode enum.
+     */
+    STANDALONE("Standalone");
 
-    private String database;
-
-    private String retentionPolicy = "autogen";
-
-    private Integer connectTimeout = 10;
-
-    private Integer readTimeout = 30;
-
-    private Integer writeTimeout = 10;
-
-    private Boolean gzip = false;
+    private final String name;
 
 }

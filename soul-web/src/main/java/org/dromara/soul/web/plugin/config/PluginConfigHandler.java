@@ -23,6 +23,7 @@ import org.dromara.soul.common.config.MonitorConfig;
 import org.dromara.soul.common.config.RateLimiterConfig;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.enums.PluginEnum;
+import org.dromara.soul.common.enums.RedisModeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.influxdb.dto.Point;
 import org.springframework.data.influxdb.InfluxDBConnectionFactory;
@@ -58,7 +59,6 @@ public enum PluginConfigHandler {
      */
     INS;
 
-
     /**
      * Init plugin config.
      *
@@ -86,6 +86,7 @@ public enum PluginConfigHandler {
                                 || Objects.isNull(Singleton.INST.get(RateLimiterConfig.class))
                                 || !rateLimiterConfig.equals(Singleton.INST.get(RateLimiterConfig.class))) {
                             LettuceConnectionFactory lettuceConnectionFactory = createLettuceConnectionFactory(rateLimiterConfig);
+                            lettuceConnectionFactory.afterPropertiesSet();
                             RedisSerializer<String> serializer = new StringRedisSerializer();
                             RedisSerializationContext<String, String> serializationContext = RedisSerializationContext
                                     .<String, String>newSerializationContext()
@@ -103,19 +104,10 @@ public enum PluginConfigHandler {
 
     }
 
-    public static void main(String[] args) {
-        RateLimiterConfig config = new RateLimiterConfig();
-        config.setSentinel(true);
-        config.setMaster("mymaster");
-        config.setPassword("foobaredbbexONE123");
-        config.setSentinelUrl("192.168.1.91:26379;192.168.1.92:26379;192.168.1.93:26379");
-        System.out.println(GsonUtils.getInstance().toJson(config));
-    }
-
     private LettuceConnectionFactory createLettuceConnectionFactory(final RateLimiterConfig rateLimiterConfig) {
-        if (rateLimiterConfig.getSentinel()) {
+        if (RedisModeEnum.SENTINEL.getName().equals(rateLimiterConfig.getMode())) {
             return new LettuceConnectionFactory(redisSentinelConfiguration(rateLimiterConfig));
-        } else if (rateLimiterConfig.getCluster()) {
+        } else if (RedisModeEnum.CLUSTER.getName().equals(rateLimiterConfig.getMode())) {
             return new LettuceConnectionFactory(redisClusterConfiguration(rateLimiterConfig));
         }
         return new LettuceConnectionFactory(redisStandaloneConfiguration(rateLimiterConfig));
@@ -123,8 +115,10 @@ public enum PluginConfigHandler {
 
     protected final RedisStandaloneConfiguration redisStandaloneConfiguration(final RateLimiterConfig rateLimiterConfig) {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
-        config.setHostName(rateLimiterConfig.getHost());
-        config.setPort(rateLimiterConfig.getPort());
+        String[] parts = StringUtils.split(rateLimiterConfig.getUrl(), ":");
+        assert parts != null;
+        config.setHostName(parts[0]);
+        config.setPort(Integer.parseInt(parts[1]));
         if (rateLimiterConfig.getPassword() != null) {
             config.setPassword(RedisPassword.of(rateLimiterConfig.getPassword()));
         }
@@ -134,17 +128,17 @@ public enum PluginConfigHandler {
 
     private RedisClusterConfiguration redisClusterConfiguration(final RateLimiterConfig rateLimiterConfig) {
         RedisClusterConfiguration config = new RedisClusterConfiguration();
-        config.setClusterNodes(createRedisNode(rateLimiterConfig.getClusterUrl()));
+        config.setClusterNodes(createRedisNode(rateLimiterConfig.getUrl()));
         if (rateLimiterConfig.getPassword() != null) {
             config.setPassword(RedisPassword.of(rateLimiterConfig.getPassword()));
         }
         return config;
     }
 
-    private RedisSentinelConfiguration redisSentinelConfiguration(RateLimiterConfig rateLimiterConfig) {
+    private RedisSentinelConfiguration redisSentinelConfiguration(final RateLimiterConfig rateLimiterConfig) {
         RedisSentinelConfiguration config = new RedisSentinelConfiguration();
         config.master(rateLimiterConfig.getMaster());
-        config.setSentinels(createRedisNode(rateLimiterConfig.getSentinelUrl()));
+        config.setSentinels(createRedisNode(rateLimiterConfig.getUrl()));
         if (rateLimiterConfig.getPassword() != null) {
             config.setPassword(RedisPassword.of(rateLimiterConfig.getPassword()));
         }
@@ -152,7 +146,7 @@ public enum PluginConfigHandler {
         return config;
     }
 
-    private List<RedisNode> createRedisNode(String url) {
+    private List<RedisNode> createRedisNode(final String url) {
         List<RedisNode> redisNodes = new ArrayList<>();
         List<String> nodes = Splitter.on(";").splitToList(url);
         for (String node : nodes) {
@@ -178,7 +172,7 @@ public enum PluginConfigHandler {
         influxDBProperties.setReadTimeout(monitorConfig.getReadTimeout());
         influxDBProperties.setRetentionPolicy(monitorConfig.getRetentionPolicy());
         influxDBProperties.setWriteTimeout(monitorConfig.getWriteTimeout());
-        influxDBProperties.setGzip(monitorConfig.isGzip());
+        influxDBProperties.setGzip(monitorConfig.getGzip());
         return influxDBProperties;
     }
 }

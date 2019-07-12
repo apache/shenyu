@@ -1,5 +1,6 @@
 package org.dromara.soul.web.cache;
 
+import org.dromara.soul.common.concurrent.SoulThreadFactory;
 import org.dromara.soul.common.dto.AppAuthData;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
@@ -8,6 +9,7 @@ import org.dromara.soul.common.dto.WebsocketData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
+import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.web.config.SoulConfig;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -17,7 +19,8 @@ import org.slf4j.LoggerFactory;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The type Websocket sync cache.
@@ -33,62 +36,66 @@ public class WebsocketSyncCache extends WebsocketCacheHandler {
      */
     private WebSocketClient client;
 
+    private volatile boolean alreadySync = Boolean.FALSE;
+
     /**
      * Instantiates a new Websocket sync cache.
      *
      * @param websocketConfig the websocket config
      */
     public WebsocketSyncCache(final SoulConfig.WebsocketConfig websocketConfig) {
-        CompletableFuture.runAsync(() -> {
-            try {
-                client = new WebSocketClient(new URI(websocketConfig.getUrl())) {
-                    @Override
-                    public void onOpen(final ServerHandshake serverHandshake) {
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1,
+                SoulThreadFactory.create("websocket-connect", true));
+        try {
+            client = new WebSocketClient(new URI(websocketConfig.getUrl())) {
+                @Override
+                public void onOpen(final ServerHandshake serverHandshake) {
+                    if (!alreadySync) {
+                        client.send(DataEventTypeEnum.MYSELF.name());
+                        alreadySync = true;
                     }
+                }
 
-                    @Override
-                    public void onMessage(final String result) {
-                        try {
-                            handleResult(result);
-                        } catch (Exception e) {
-                            LOGGER.error("websocket handle data exception :{}", e);
-                        }
+                @Override
+                public void onMessage(final String result) {
+                    try {
+                        handleResult(result);
+                    } catch (Exception e) {
+                        LOGGER.error("websocket handle data exception :{}", e);
                     }
+                }
 
-                    @Override
-                    public void onClose(final int i, final String s, final boolean b) {
-                        client.close();
-                        try {
-                            client.reconnectBlocking();
-                        } catch (InterruptedException e) {
-                            LOGGER.error("websocket reconnectBlocking exception :{}", e);
-                        }
-                    }
+                @Override
+                public void onClose(final int code, final String msg, final boolean b) {
+                    client.close();
+                }
 
-                    @Override
-                    public void onError(final Exception e) {
-                        client.close();
-                        try {
-                            client.reconnectBlocking();
-                        } catch (InterruptedException interruptedException) {
-                            LOGGER.error("websocket reconnectBlocking exception :{}", interruptedException);
-                        }
-                    }
-                };
-            } catch (URISyntaxException e) {
-                LOGGER.error("websocket url is error :{}", e);
+                @Override
+                public void onError(final Exception e) {
+                    client.close();
+                }
+            };
+        } catch (URISyntaxException e) {
+            LOGGER.error("websocket url is error :{}", e);
+        }
+        try {
+            boolean success = client.connectBlocking();
+            if (success) {
+                LogUtils.info(LOGGER, () -> "websocket connection is successful.....");
             }
+        } catch (InterruptedException e) {
+            LOGGER.info("websocket connection...exception....{}", e);
+        }
+        executor.scheduleAtFixedRate(() -> {
             try {
-                boolean success = client.connectBlocking();
-                if (success) {
-                    LOGGER.info("websocket connection is successful.....");
-                    client.send(DataEventTypeEnum.MYSELF.name());
+                if (client != null && client.isClosed()) {
+                    client.reconnectBlocking();
                 }
             } catch (InterruptedException e) {
-                LOGGER.info("websocket connection...exception....{}", e);
+                LOGGER.error("websocket connect is error :{}", e.getMessage());
             }
 
-        });
+        }, 10, 30, TimeUnit.SECONDS);
     }
 
     private void handleResult(final String result) {
