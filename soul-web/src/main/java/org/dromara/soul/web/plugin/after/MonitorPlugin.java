@@ -35,6 +35,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * the monitor plugin.
@@ -60,7 +61,7 @@ public class MonitorPlugin extends AbstractSoulPlugin {
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
-        soulEventPublisher.publishEvent(buildMonitorData(exchange));
+        Optional.ofNullable(buildMonitorData(exchange)).ifPresent(soulEventPublisher::publishEvent);
         return chain.execute(exchange);
     }
 
@@ -76,20 +77,21 @@ public class MonitorPlugin extends AbstractSoulPlugin {
 
     private MonitorDO buildMonitorData(final ServerWebExchange exchange) {
         final RequestDTO requestDTO = exchange.getAttribute(Constants.REQUESTDTO);
-        MonitorDO visitorDO = new MonitorDO();
-        String result = exchange.getAttribute(Constants.CLIENT_RESPONSE_RESULT_TYPE);
-        if (StringUtils.isBlank(result)) {
-            visitorDO.setResultType(ResultEnum.ERROR.getName());
-        } else {
-            visitorDO.setResultType(result);
+        if (Objects.isNull(requestDTO) || Objects.isNull(exchange.getRequest().getRemoteAddress())) {
+            return null;
         }
-        visitorDO.setRpcType(Objects.requireNonNull(requestDTO).getRpcType());
-        visitorDO.setCount(1);
-        visitorDO.setModule(requestDTO.getModule());
-        visitorDO.setMethod(requestDTO.getMethod());
-        visitorDO.setIp(Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress());
-        visitorDO.setHost(exchange.getRequest().getRemoteAddress().getHostString());
-        return visitorDO;
+        String resultType = exchange.getAttribute(Constants.CLIENT_RESPONSE_RESULT_TYPE);
+        if (StringUtils.isBlank(resultType)) {
+            resultType = ResultEnum.ERROR.getName();
+        }
+        return MonitorDO.builder().resultType(resultType)
+                .rpcType(requestDTO.getRpcType())
+                .count(1)
+                .module(requestDTO.getModule())
+                .method(requestDTO.getMethod())
+                .ip(exchange.getRequest().getRemoteAddress().getAddress().getHostAddress())
+                .host(exchange.getRequest().getRemoteAddress().getHostString())
+                .build();
     }
 
     /**

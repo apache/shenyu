@@ -83,13 +83,9 @@ public class SoulConfig implements Serializable {
     @Data
     public static class Disruptor {
 
-        private Integer acceptBufferSize;
+        private Integer bufferSize;
 
-        private Integer acceptThread;
-
-        private Integer monitorBufferSize;
-
-        private Integer monitorThread;
+        private Integer threadSize;
 
     }
 

@@ -18,7 +18,10 @@
 
 package org.dromara.soul.web.influxdb.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -28,6 +31,9 @@ import java.io.Serializable;
  * @author xiaoyu(Myth)
  */
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class MonitorDO implements Serializable {
 
     private String module;
@@ -41,11 +47,11 @@ public class MonitorDO implements Serializable {
     private Integer count;
 
     /**
-     *  success /error /timeout.
+     * success /error /timeout.
      */
     private String resultType;
 
     private String rpcType;
-    
+
 
 }
