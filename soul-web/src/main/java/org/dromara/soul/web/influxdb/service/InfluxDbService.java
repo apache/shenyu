@@ -38,6 +38,7 @@ public class InfluxDbService {
      *
      * @param monitorDO {@linkplain MonitorDO}
      */
+    @SuppressWarnings("unchecked")
     public void writeData(final MonitorDO monitorDO) {
         InfluxDBTemplate<Point> influxDBTemplate = Singleton.INST.get(InfluxDBTemplate.class);
         if (Objects.nonNull(influxDBTemplate)) {
