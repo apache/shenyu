@@ -179,7 +179,8 @@ public class HttpLongPollSyncCache extends HttpCacheHandler implements CommandLi
         // appAuth
         JsonObject configData = data.getAsJsonObject(ConfigGroupEnum.APP_AUTH.name());
         if (configData != null) {
-            ConfigData<AppAuthData> result = GSON.fromJson(configData, new TypeToken<ConfigData<AppAuthData>>(){}.getType());
+            ConfigData<AppAuthData> result = GSON.fromJson(configData, new TypeToken<ConfigData<AppAuthData>>() {
+            }.getType());
             GROUP_CACHE.put(ConfigGroupEnum.APP_AUTH, result);
             this.flushAllAppAuth(result.getData());
         }
@@ -187,7 +188,8 @@ public class HttpLongPollSyncCache extends HttpCacheHandler implements CommandLi
         // plugin
         configData = data.getAsJsonObject(ConfigGroupEnum.PLUGIN.name());
         if (configData != null) {
-            ConfigData<PluginData> result = GSON.fromJson(configData, new TypeToken<ConfigData<PluginData>>(){}.getType());
+            ConfigData<PluginData> result = GSON.fromJson(configData, new TypeToken<ConfigData<PluginData>>() {
+            }.getType());
             GROUP_CACHE.put(ConfigGroupEnum.PLUGIN, result);
             this.flushAllPlugin(result.getData());
         }
@@ -195,7 +197,8 @@ public class HttpLongPollSyncCache extends HttpCacheHandler implements CommandLi
         // rule
         configData = data.getAsJsonObject(ConfigGroupEnum.RULE.name());
         if (configData != null) {
-            ConfigData<RuleData> result = GSON.fromJson(configData, new TypeToken<ConfigData<RuleData>>(){}.getType());
+            ConfigData<RuleData> result = GSON.fromJson(configData, new TypeToken<ConfigData<RuleData>>() {
+            }.getType());
             GROUP_CACHE.put(ConfigGroupEnum.RULE, result);
             this.flushAllRule(result.getData());
         }
@@ -203,7 +206,8 @@ public class HttpLongPollSyncCache extends HttpCacheHandler implements CommandLi
         // selector
         configData = data.getAsJsonObject(ConfigGroupEnum.SELECTOR.name());
         if (configData != null) {
-            ConfigData<SelectorData> result = GSON.fromJson(configData, new TypeToken<ConfigData<SelectorData>>(){}.getType());
+            ConfigData<SelectorData> result = GSON.fromJson(configData, new TypeToken<ConfigData<SelectorData>>() {
+            }.getType());
             GROUP_CACHE.put(ConfigGroupEnum.SELECTOR, result);
             this.flushAllSelector(result.getData());
         }
@@ -221,8 +225,6 @@ public class HttpLongPollSyncCache extends HttpCacheHandler implements CommandLi
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         HttpEntity httpEntity = new HttpEntity(params, headers);
-
-        SoulException ex = null;
         for (String server : serverList) {
             String listenerUrl = server + "/configs/listener";
             LOGGER.info("request listener configs: [{}]", listenerUrl);
@@ -239,14 +241,10 @@ public class HttpLongPollSyncCache extends HttpCacheHandler implements CommandLi
                 }
                 break;
             } catch (RestClientException e) {
-                LOGGER.warn("listener configs fail, server:[{}]", listenerUrl);
-                ex = new SoulException("Init cache error, serverList:" + serverList, e);
+                LOGGER.error("listener configs fail, can not connection this server:[{}]", listenerUrl);
+                /*  ex = new SoulException("Init cache error, serverList:" + serverList, e);*/
                 // try next server, if have another one.
             }
-        }
-
-        if (ex != null) {
-            throw ex;
         }
     }
 

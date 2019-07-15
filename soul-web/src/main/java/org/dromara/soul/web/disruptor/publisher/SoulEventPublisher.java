@@ -38,7 +38,6 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * disruptor start and publishEvent.
@@ -70,14 +69,14 @@ public class SoulEventPublisher implements InitializingBean, DisposableBean {
      * disruptor start with bufferSize.
      */
     private void start() {
-        disruptor = new Disruptor<>(new SoulEventFactory(), bufferSize, r -> {
-            AtomicInteger index = new AtomicInteger(1);
-            return new Thread(null, r, "disruptor-thread-" + index.getAndIncrement());
-        }, ProducerType.MULTI, new BlockingWaitStrategy());
+        disruptor = new Disruptor<>(new SoulEventFactory(), bufferSize,
+                SoulThreadFactory.create("monitor-disruptor-thread-", false),
+                ProducerType.MULTI,
+                new BlockingWaitStrategy());
 
         final Executor executor = new ThreadPoolExecutor(threadSize, threadSize, 0, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(),
-                SoulThreadFactory.create("monitor-disruptor", false),
+                SoulThreadFactory.create("monitor-disruptor-executor", false),
                 new ThreadPoolExecutor.AbortPolicy());
 
         SoulDataHandler[] consumers = new SoulDataHandler[threadSize];
