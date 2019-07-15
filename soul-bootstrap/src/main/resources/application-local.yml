@@ -12,15 +12,15 @@ soul :
     filterTimeEnable : false
     filterTime : 10
     sync:
-        strategy: websocket
-        websocket :
-             url: ws://localhost:8887/websocket
+        strategy: http
+#        websocket :
+#             url: ws://localhost:8887/websocket
 #        zookeeper:
 #             url: localhost:2181
 #             sessionTimeout: 5000
 #             connectionTimeout: 2000
-#        http:
-#             url : localhost:8888
+        http:
+             url : http://localhost:8887
 
 
 eureka:

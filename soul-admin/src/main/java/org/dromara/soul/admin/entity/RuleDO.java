@@ -103,6 +103,7 @@ public class RuleDO extends BaseDO {
 
     public static RuleData transFrom(final RuleDO ruleDO, final String pluginName, final List<ConditionData> conditionDataList) {
         return new RuleData(ruleDO.getId(),
+                ruleDO.getName(),
                 pluginName,
                 ruleDO.getSelectorId(),
                 ruleDO.getMatchMode(),

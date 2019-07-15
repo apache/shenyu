@@ -44,6 +44,8 @@ public class RuleData implements Serializable {
 
     private String name;
 
+    private String pluginName;
+
     private String selectorId;
 
     /**

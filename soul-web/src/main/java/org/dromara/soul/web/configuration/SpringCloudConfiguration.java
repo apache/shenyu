@@ -21,7 +21,6 @@ package org.dromara.soul.web.configuration;
 import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.plugin.SoulPlugin;
 import org.dromara.soul.web.plugin.function.SpringCloudPlugin;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -44,29 +43,15 @@ import org.springframework.web.reactive.DispatcherHandler;
 @Configuration
 public class SpringCloudConfiguration {
 
-    private final LoadBalancerClient loadBalancerClient;
-
-    private final LocalCacheManager localCacheManager;
-
-    /**
-     * Instantiates a new Spring cloud configuration.
-     *
-     * @param loadBalancerClient the load balancer client
-     * @param localCacheManager  the local cache manager
-     */
-    @Autowired(required = false)
-    public SpringCloudConfiguration(final LoadBalancerClient loadBalancerClient, final LocalCacheManager localCacheManager) {
-        this.loadBalancerClient = loadBalancerClient;
-        this.localCacheManager = localCacheManager;
-    }
-
     /**
      * init springCloud plugin.
      *
+     * @param loadBalancerClient the load balancer client
+     * @param localCacheManager  the local cache manager
      * @return {@linkplain SpringCloudPlugin}
      */
     @Bean
-    public SoulPlugin springCloudPlugin() {
+    public SoulPlugin springCloudPlugin(final LoadBalancerClient loadBalancerClient, final LocalCacheManager localCacheManager) {
         return new SpringCloudPlugin(localCacheManager, loadBalancerClient);
     }
 }

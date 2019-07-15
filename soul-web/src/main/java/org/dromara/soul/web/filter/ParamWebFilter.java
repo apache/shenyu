@@ -41,7 +41,6 @@ import java.util.Objects;
  */
 public class ParamWebFilter extends AbstractWebFilter {
 
-
     @Override
     protected Mono<Boolean> doFilter(final ServerWebExchange exchange, final WebFilterChain chain) {
         final ServerHttpRequest request = exchange.getRequest();
