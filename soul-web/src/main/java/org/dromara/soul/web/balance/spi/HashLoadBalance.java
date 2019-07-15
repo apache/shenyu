@@ -35,12 +35,12 @@ import java.util.TreeMap;
  *
  * @author xiaoyu(Myth)
  */
-public class HashLoadBalance implements LoadBalance {
+public class HashLoadBalance extends AbstractLoadBalance {
 
     private static final int VIRTUAL_NODE_NUM = 5;
 
     @Override
-    public DivideUpstream select(final List<DivideUpstream> upstreamList, final String ip) {
+    public DivideUpstream doSelect(final List<DivideUpstream> upstreamList, final String ip) {
         final TreeMap<Long, DivideUpstream> treeMap = new TreeMap<>();
         for (DivideUpstream address : upstreamList) {
             for (int i = 0; i < VIRTUAL_NODE_NUM; i++) {
