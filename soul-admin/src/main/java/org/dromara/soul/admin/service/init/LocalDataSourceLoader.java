@@ -36,20 +36,18 @@ import java.sql.DriverManager;
  * for execute schema sql file
  *
  * @author huangxiaofeng
- * @date 2019/7/6 23:05
- * @since 2.0.0
  */
 @Component
 public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcessor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LocalDataSourceLoader.class);
-    
-    public static final String SCHEMA_SQL_FILE = "META-INF/schema.sql";
+
+    private static final String SCHEMA_SQL_FILE = "META-INF/schema.sql";
 
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-        if ( bean instanceof DataSourceProperties) {
-            this.init((DataSourceProperties)bean);
+        if (bean instanceof DataSourceProperties) {
+            this.init((DataSourceProperties) bean);
         }
         return bean;
     }

@@ -58,7 +58,8 @@ public class PluginController {
     /**
      * Instantiates a new Plugin controller.
      *
-     * @param pluginService the plugin service
+     * @param pluginService   the plugin service
+     * @param syncDataService the sync data service
      */
     @Autowired(required = false)
     public PluginController(final PluginService pluginService,
