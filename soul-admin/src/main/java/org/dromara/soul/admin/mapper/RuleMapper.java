@@ -49,6 +49,14 @@ public interface RuleMapper {
     List<RuleDO> selectByQuery(RuleQuery ruleQuery);
 
     /**
+     * Find by selector id list.
+     *
+     * @param selectorId the selector id
+     * @return the list
+     */
+    List<RuleDO> findBySelectorId(String selectorId);
+
+    /**
      * count rule by query.
      *
      * @param ruleQuery {@linkplain RuleQuery}
@@ -60,7 +68,7 @@ public interface RuleMapper {
      * insert rule.
      *
      * @param ruleDO {@linkplain RuleDO}
-     * @return rows
+     * @return rows int
      */
     int insert(RuleDO ruleDO);
 
@@ -68,7 +76,7 @@ public interface RuleMapper {
      * insert selective rule.
      *
      * @param ruleDO {@linkplain RuleDO}
-     * @return rows
+     * @return rows int
      */
     int insertSelective(RuleDO ruleDO);
 
@@ -76,7 +84,7 @@ public interface RuleMapper {
      * update rule.
      *
      * @param ruleDO {@linkplain RuleDO}
-     * @return rows
+     * @return rows int
      */
     int update(RuleDO ruleDO);
 
@@ -84,7 +92,7 @@ public interface RuleMapper {
      * update selective rule.
      *
      * @param ruleDO {@linkplain RuleDO}
-     * @return rows
+     * @return rows int
      */
     int updateSelective(RuleDO ruleDO);
 
@@ -92,7 +100,14 @@ public interface RuleMapper {
      * delete rule.
      *
      * @param id primary key.
-     * @return rows
+     * @return rows int
      */
     int delete(String id);
+
+    /**
+     * list all {@linkplain RuleDO}
+     *
+     * @return {@linkplain List}
+     */
+    List<RuleDO> selectAll();
 }

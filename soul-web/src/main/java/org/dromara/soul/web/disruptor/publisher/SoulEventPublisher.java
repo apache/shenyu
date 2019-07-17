@@ -23,7 +23,7 @@ import com.lmax.disruptor.IgnoreExceptionHandler;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
-import org.dromara.soul.web.concurrent.SoulThreadFactory;
+import org.dromara.soul.common.concurrent.SoulThreadFactory;
 import org.dromara.soul.web.disruptor.event.SoulDataEvent;
 import org.dromara.soul.web.disruptor.factory.SoulEventFactory;
 import org.dromara.soul.web.disruptor.handler.SoulDataHandler;
@@ -32,23 +32,19 @@ import org.dromara.soul.web.influxdb.entity.MonitorDO;
 import org.dromara.soul.web.influxdb.service.InfluxDbService;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * disruptor start and publishEvent.
  *
  * @author xiaoyu(Myth)
  */
-@Component
-public class  SoulEventPublisher implements InitializingBean, DisposableBean {
+public class SoulEventPublisher implements InitializingBean, DisposableBean {
 
     private Disruptor<SoulDataEvent> disruptor;
 
@@ -65,7 +61,6 @@ public class  SoulEventPublisher implements InitializingBean, DisposableBean {
      *
      * @param influxDbService the influx db service
      */
-    @Autowired
     public SoulEventPublisher(final InfluxDbService influxDbService) {
         this.influxDbService = influxDbService;
     }
@@ -74,14 +69,14 @@ public class  SoulEventPublisher implements InitializingBean, DisposableBean {
      * disruptor start with bufferSize.
      */
     private void start() {
-        disruptor = new Disruptor<>(new SoulEventFactory(), bufferSize, r -> {
-            AtomicInteger index = new AtomicInteger(1);
-            return new Thread(null, r, "disruptor-thread-" + index.getAndIncrement());
-        }, ProducerType.MULTI, new BlockingWaitStrategy());
+        disruptor = new Disruptor<>(new SoulEventFactory(), bufferSize,
+                SoulThreadFactory.create("monitor-disruptor-thread-", false),
+                ProducerType.MULTI,
+                new BlockingWaitStrategy());
 
         final Executor executor = new ThreadPoolExecutor(threadSize, threadSize, 0, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(),
-                SoulThreadFactory.create("soul-log-disruptor", false),
+                SoulThreadFactory.create("monitor-disruptor-executor", false),
                 new ThreadPoolExecutor.AbortPolicy());
 
         SoulDataHandler[] consumers = new SoulDataHandler[threadSize];
@@ -101,6 +96,7 @@ public class  SoulEventPublisher implements InitializingBean, DisposableBean {
     public void publishEvent(final MonitorDO monitorDO) {
         final RingBuffer<SoulDataEvent> ringBuffer = disruptor.getRingBuffer();
         ringBuffer.publishEvent(new SoulEventTranslator(), monitorDO);
+
     }
 
     @Override

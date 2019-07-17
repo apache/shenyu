@@ -18,7 +18,7 @@
 
 package org.dromara.soul.admin.controller;
 
-import org.dromara.soul.admin.listener.Domain;
+import org.dromara.soul.admin.listener.SoulDomain;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,7 +40,7 @@ public class IndexController {
      */
     @RequestMapping("/index")
     public String index(final Model model) {
-        model.addAttribute("domain", Domain.getInstance().getHttpPath());
+        model.addAttribute("domain", SoulDomain.getInstance().getHttpPath());
         return "index";
     }
 

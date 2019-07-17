@@ -28,7 +28,11 @@
         <if test="appKey != null">
             where app_key = #{appKey,jdbcType=VARCHAR}
         </if>
-        limit #{pageParameter.offset},#{pageParameter.pageSize}
+
+        <if test="pageParameter != null">
+            limit #{pageParameter.offset},#{pageParameter.pageSize}
+        </if>
+
     </select>
 
     <select id="countByQuery" parameterType="org.dromara.soul.admin.query.AppAuthQuery" resultType="java.lang.Integer">
@@ -37,6 +41,12 @@
         <if test="appKey != null">
             where app_key = #{appKey,jdbcType=VARCHAR}
         </if>
+    </select>
+
+    <select id="selectAll" resultType="org.dromara.soul.admin.entity.AppAuthDO" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from app_auth
     </select>
 
     <insert id="insert" parameterType="org.dromara.soul.admin.entity.AppAuthDO">

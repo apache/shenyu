@@ -39,6 +39,23 @@ public interface DubboTestService {
 
 
     /**
+     * Find all dubbo test.
+     *
+     * @return the dubbo test
+     */
+    DubboTest findAll();
+
+
+    /**
+     * Find by long dubbo test.
+     *
+     * @param id the id
+     * @return the dubbo test
+     */
+    String findByLong(Long id);
+
+
+    /**
      * Insert dubbo test.
      *
      * @param dubboTest the dubbo test

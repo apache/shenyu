@@ -7,33 +7,20 @@ spring:
      allow-bean-definition-overriding: true
    application:
     name: soul-bootstrap
-   redis:
-    password: foobaredbbexONE123
-    timeout: 300000ms
-    sentinel:
-          master: mymaster
-          nodes:
-              - 192.168.1.91:26379
-              - 192.168.1.92:26379
-              - 192.168.1.93:26379
-   influxdb:
-        url: http://localhost:8086
-        username: test
-        password: test
-        database: test
-        retention-policy: autogen
-        connect-timeout: 10
-        read-timeout: 30
-        write-timeout: 10
-   zookeeper:
-        url : localhost:2181
-        sessionTimeout: 5000
-        connectionTimeout : 2000
-soul:
-    bufferSize: 2048
-    timeVerify:
-       timeDelay : 10
-       enabled: false
+soul :
+    filterTimeEnable : false
+    filterTime : 10
+    sync:
+        strategy: websocket
+        websocket :
+             url: ws://localhost:8887/websocket
+#        zookeeper:
+#             url: localhost:2181
+#             sessionTimeout: 5000
+#             connectionTimeout: 2000
+#        http:
+#             url : localhost:8888
+
 eureka:
   instance:
     leaseRenewalIntervalInSeconds: 10

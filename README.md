@@ -86,6 +86,31 @@
   
   Node design for zookeeper [zookeeper-node](https://dromara.org/website/zh-cn/docs/soul/config.html)
  
+# Quick Start
+ * get `soul-admin.jar`
+ 
+```
+> wget  https://yu199195.github.io/jar/soul-admin.jar
+```
+
+* start `soul-admin.jar`
+```java
+java -jar soul-admin.jar -Dspring.datasource.url="your mysql url"  
+-Dspring.datasource.username='you username'  -Dspring.datasource.password='you password'
+```
+* visit : http://localhost:8887/index.html  username:admin  password :123456
+
+* get `soul-bootstrap.jar`
+
+```java
+> wget  https://yu199195.github.io/jar/soul-bootstrap.jar
+```
+
+*  start `soul-bootstrap.jar`  
+
+```xml
+ java -jar soul-bootstrap.jar
+```
 
 # Prerequisite
  
@@ -101,14 +126,23 @@
    
    In double 11, we deployed 6 clusters, which supported a large volume of our business.
    
-   If you want to use it, you can see [Quick Start](https://dromara.org/website/zh-cn/docs/soul/soul.html)
+   If you want to use it, you can see [more](https://dromara.org/website/zh-cn/docs/soul/soul.html)
      
 # Stargazers over time
 
 [![Stargazers over time](https://starchart.cc/Dromara/soul.svg)](https://starchart.cc/Dromara/soul)
 
-  
+# Videos
+
+* [evn setup 01 ](http://www.iqiyi.com/w_19s6521605.html)
+
+* [evn setup 02 ](http://www.iqiyi.com/w_19s65203ap.html)
+
+* [source code debug](http://www.iqiyi.com/w_19s650tbol.html)
+
+* [plugins](http://www.iqiyi.com/w_19s651zyo9.html)
+
 # Support
 
- ![](https://yu199195.github.io/images/soul-qq.png)
+ ![](https://yu199195.github.io/images/soul-qq.png) ![](https://yu199195.github.io/images/public.jpg)
   

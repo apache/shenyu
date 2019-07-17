@@ -1,36 +1,49 @@
+/*
+ *   Licensed to the Apache Software Foundation (ASF) under one or more
+ *   contributor license agreements.  See the NOTICE file distributed with
+ *   this work for additional information regarding copyright ownership.
+ *   The ASF licenses this file to You under the Apache License, Version 2.0
+ *   (the "License"); you may not use this file except in compliance with
+ *   the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ */
+
 package org.dromara.soul.common.config;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.dromara.soul.common.enums.RedisModeEnum;
 
 import java.io.Serializable;
 
 /**
- * The rateLimiter config for redis.
+ * The rateLimiter configuration for redis.
  *
  * @author xiaoyu(Myth)
  */
 @Data
+@EqualsAndHashCode
 public class RateLimiterConfig implements Serializable {
 
-    private Boolean cluster = false;
+    private Integer database = 0;
 
-    private Boolean sentinel = false;
+    private String master;
 
-    /**
-     * cluster url example:ip:port;ip:port.
-     */
-    private String clusterUrl;
+    private String mode = RedisModeEnum.STANDALONE.getName();
 
     /**
-     * sentinel url example:ip:port;ip:port.
+     * 如果是集群或者哨兵模式;分隔.
      */
-    private String sentinelUrl;
+    private String url;
 
-    private String masterName;
-
-    private String hostName;
-
-    private int port;
 
     private String password;
 }

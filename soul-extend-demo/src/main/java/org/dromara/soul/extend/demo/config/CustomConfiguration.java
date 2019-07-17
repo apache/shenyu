@@ -18,14 +18,17 @@
 
 package org.dromara.soul.extend.demo.config;
 
+import org.dromara.soul.extend.demo.cors.CrossFilter;
 import org.dromara.soul.extend.demo.custom.CustomPlugin;
 import org.dromara.soul.extend.demo.dubbo.CustomGenericParamServiceImpl;
-import org.dromara.soul.web.cache.ZookeeperCacheManager;
+import org.dromara.soul.web.cache.ZookeeperSyncCache;
 import org.dromara.soul.web.plugin.SoulPlugin;
 import org.dromara.soul.web.plugin.dubbo.GenericParamService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.web.server.WebFilter;
 
 /**
  * CustomConfiguration.
@@ -35,16 +38,16 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class CustomConfiguration {
 
-    private final ZookeeperCacheManager zookeeperCacheManager;
+    private final ZookeeperSyncCache zookeeperSyncCache;
 
     /**
      * Instantiates a new Custom configuration.
      *
-     * @param zookeeperCacheManager the zookeeper cache manager
+     * @param zookeeperSyncCache the zookeeper cache manager
      */
     @Autowired(required = false)
-    public CustomConfiguration(final ZookeeperCacheManager zookeeperCacheManager) {
-        this.zookeeperCacheManager = zookeeperCacheManager;
+    public CustomConfiguration(final ZookeeperSyncCache zookeeperSyncCache) {
+        this.zookeeperSyncCache = zookeeperSyncCache;
     }
 
     /**
@@ -54,7 +57,7 @@ public class CustomConfiguration {
      */
     @Bean
     public SoulPlugin functionPlugin() {
-        return new CustomPlugin(zookeeperCacheManager);
+        return new CustomPlugin(zookeeperSyncCache);
     }
 
     /**
@@ -67,5 +70,20 @@ public class CustomConfiguration {
         return new CustomGenericParamServiceImpl();
     }
 
+
+    /**
+     * Cross filter web filter.
+     * if you application has cross-domain.
+     * this is demo.
+     * 1. Customize webflux's cross-domain requests.
+     * 2. Spring bean Sort is greater than -1.
+     *
+     * @return the web filter
+     */
+    @Bean
+    @Order(-100)
+    public WebFilter crossFilter() {
+        return new CrossFilter();
+    }
 
 }

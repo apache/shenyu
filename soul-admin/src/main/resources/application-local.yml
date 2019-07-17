@@ -1,5 +1,5 @@
 server:
-  port: 8888
+  port: 8887
   address: 0.0.0.0
 
 spring:
@@ -15,14 +15,19 @@ spring:
      password: 123456
      dbcp2:
        driver-class-name: com.mysql.jdbc.Driver
-   zookeeper:
-     url : localhost:2181
-     sessionTimeout: 5000
-     connectionTimeout : 2000
 
 mybatis:
   config-location: classpath:/mybatis/mybatis-config.xml
   mapper-locations: classpath:/mappers/*.xml
+
+soul:
+  sync:
+      strategy: http
+#      zookeeper:
+#        url: localhost:2181
+#        sessionTimeout: 5000
+#        connectionTimeout: 2000
+
 
 logging:
     level:
@@ -33,4 +38,4 @@ logging:
         org.dromara.soul.lottery: debug
         org.dromara.soul: debug
 
-    path: "./logs/admin"
+    path: "./logs/soul-admin"

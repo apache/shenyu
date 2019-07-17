@@ -19,7 +19,7 @@
 package org.dromara.soul.web.condition.strategy;
 
 import org.dromara.soul.common.constant.Constants;
-import org.dromara.soul.common.dto.zk.ConditionZkDTO;
+import org.dromara.soul.common.dto.ConditionData;
 import org.dromara.soul.common.enums.ParamTypeEnum;
 import org.dromara.soul.common.utils.ReflectUtils;
 import org.dromara.soul.web.request.RequestDTO;
@@ -45,7 +45,7 @@ abstract class AbstractMatchStrategy {
      * @param exchange  the exchange
      * @return the string
      */
-    String buildRealData(final ConditionZkDTO condition, final ServerWebExchange exchange) {
+    String buildRealData(final ConditionData condition, final ServerWebExchange exchange) {
         String realData = "";
         if (condition.getParamType().equals(ParamTypeEnum.QUERY.getName())) {
             final MultiValueMap<String, String> queryParams = exchange.getRequest().getQueryParams();

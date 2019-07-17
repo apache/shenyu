@@ -28,6 +28,7 @@ import org.dromara.soul.common.enums.OperatorEnum;
 import org.dromara.soul.common.enums.ParamTypeEnum;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
+import org.dromara.soul.common.enums.RedisModeEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.enums.SelectorTypeEnum;
 import org.dromara.soul.common.enums.SerializeEnum;
@@ -97,6 +98,10 @@ public class EnumServiceImpl implements EnumService {
                 .map(wafEnum -> new EnumVO(wafEnum.getCode(), wafEnum.getName(), true))
                 .collect(Collectors.toList());
 
+        List<EnumVO> redisModeEnums = Arrays.stream(RedisModeEnum.values())
+                .map(redisModeEnum -> new EnumVO(null, redisModeEnum.getName(), true))
+                .collect(Collectors.toList());
+
         Map<String, List<EnumVO>> enums = Maps.newHashMap();
         enums.put("httpMethodEnums", httpMethodEnums);
         enums.put("loadBalanceEnums", loadBalanceEnums);
@@ -109,6 +114,7 @@ public class EnumServiceImpl implements EnumService {
         enums.put("selectorTypeEnums", selectorTypeEnums);
         enums.put("serializeEnums", serializeEnums);
         enums.put("wafEnums", wafEnums);
+        enums.put("redisModeEnums", redisModeEnums);
         return enums;
     }
 }

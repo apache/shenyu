@@ -5,7 +5,7 @@
     <parent>
         <artifactId>soul</artifactId>
         <groupId>org.dromara</groupId>
-        <version>1.0.5-RELEASE</version>
+        <version>2.0.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>soul-admin</artifactId>
@@ -18,16 +18,27 @@
         <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>soul-configuration</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>spring-boot-starter-data-redis</artifactId>
+                    <groupId>org.springframework.boot</groupId>
+                </exclusion>
+            </exclusions>      
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-webflux</artifactId>
+            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-logging</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
         </dependency>
 
         <dependency>
@@ -124,6 +135,16 @@
             <artifactId>fastjson</artifactId>
             <version>1.2.40</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct-jdk8</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct-processor</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>

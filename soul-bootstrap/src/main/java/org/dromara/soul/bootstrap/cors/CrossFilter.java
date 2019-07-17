@@ -47,6 +47,7 @@ public class CrossFilter implements WebFilter {
     private static final String MAX_AGE = "18000L";
 
     @Override
+    @SuppressWarnings("all")
     public Mono<Void> filter(final ServerWebExchange exchange, final WebFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         if (CorsUtils.isCorsRequest(request)) {

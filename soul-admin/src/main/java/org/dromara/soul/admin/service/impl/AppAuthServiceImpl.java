@@ -18,21 +18,24 @@
 
 package org.dromara.soul.admin.service.impl;
 
-import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.AppAuthDTO;
 import org.dromara.soul.admin.entity.AppAuthDO;
+import org.dromara.soul.admin.listener.DataChangedEvent;
 import org.dromara.soul.admin.mapper.AppAuthMapper;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.AppAuthQuery;
 import org.dromara.soul.admin.service.AppAuthService;
 import org.dromara.soul.admin.vo.AppAuthVO;
-import org.dromara.soul.common.constant.ZkPathConstants;
-import org.dromara.soul.common.dto.zk.AppAuthZkDTO;
+import org.dromara.soul.common.dto.AppAuthData;
+import org.dromara.soul.common.enums.ConfigGroupEnum;
+import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,12 +49,12 @@ public class AppAuthServiceImpl implements AppAuthService {
 
     private final AppAuthMapper appAuthMapper;
 
-    private final ZkClient zkClient;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Autowired(required = false)
-    public AppAuthServiceImpl(final AppAuthMapper appAuthMapper, final ZkClient zkClient) {
+    public AppAuthServiceImpl(final AppAuthMapper appAuthMapper, final ApplicationEventPublisher eventPublisher) {
         this.appAuthMapper = appAuthMapper;
-        this.zkClient = zkClient;
+        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -65,17 +68,19 @@ public class AppAuthServiceImpl implements AppAuthService {
         int appAuthCount;
 
         AppAuthDO appAuthDO = AppAuthDO.buildAppAuthDO(appAuthDTO);
+        DataEventTypeEnum eventType;
         if (StringUtils.isEmpty(appAuthDTO.getId())) {
             appAuthCount = appAuthMapper.insertSelective(appAuthDO);
+            eventType = DataEventTypeEnum.CREATE;
         } else {
             appAuthCount = appAuthMapper.updateSelective(appAuthDO);
+            eventType = DataEventTypeEnum.UPDATE;
         }
 
-        String appAuthPath = ZkPathConstants.buildAppAuthPath(appAuthDO.getAppKey());
-        if (!zkClient.exists(appAuthPath)) {
-            zkClient.createPersistent(appAuthPath, true);
-        }
-        zkClient.writeData(appAuthPath, new AppAuthZkDTO(appAuthDO.getAppKey(), appAuthDO.getAppSecret(), appAuthDO.getEnabled()));
+        // publish AppAuthData's event
+        AppAuthData data = new AppAuthData(appAuthDO.getAppKey(), appAuthDO.getAppSecret(), appAuthDO.getEnabled());
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, eventType, Collections.singletonList(data)));
+
         return appAuthCount;
     }
 
@@ -93,10 +98,9 @@ public class AppAuthServiceImpl implements AppAuthService {
             AppAuthDO appAuthDO = appAuthMapper.selectById(id);
             appAuthCount += appAuthMapper.delete(id);
 
-            String pluginPath = ZkPathConstants.buildAppAuthPath(appAuthDO.getAppKey());
-            if (zkClient.exists(pluginPath)) {
-                zkClient.delete(pluginPath);
-            }
+            // publish delete event of AppAuthData
+            AppAuthData data = new AppAuthData(appAuthDO.getAppKey(), appAuthDO.getAppSecret(), appAuthDO.getEnabled());
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.DELETE, Collections.singletonList(data)));
         }
         return appAuthCount;
     }
@@ -126,5 +130,13 @@ public class AppAuthServiceImpl implements AppAuthService {
                 appAuthMapper.selectByQuery(appAuthQuery).stream()
                         .map(AppAuthVO::buildAppAuthVO)
                         .collect(Collectors.toList()));
+    }
+
+    @Override
+    public List<AppAuthData> listAll() {
+        return appAuthMapper.selectAll()
+                .stream()
+                .map(appAuthDO -> new AppAuthData(appAuthDO.getAppKey(), appAuthDO.getAppSecret(), appAuthDO.getEnabled()))
+                .collect(Collectors.toList());
     }
 }

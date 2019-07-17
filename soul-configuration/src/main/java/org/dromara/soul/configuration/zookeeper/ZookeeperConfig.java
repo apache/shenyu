@@ -19,13 +19,15 @@
 package org.dromara.soul.configuration.zookeeper;
 
 import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * The type Zookeeper config.
+ * The type Zookeeper configuration.
  *
  * @author xiaoyu(Myth)
  */
 @Data
+@ConfigurationProperties(prefix = "soul.sync.zookeeper")
 public class ZookeeperConfig {
 
     private String url;

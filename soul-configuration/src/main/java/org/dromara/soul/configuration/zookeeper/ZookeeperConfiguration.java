@@ -23,33 +23,21 @@ import org.I0Itec.zkclient.serialize.ZkSerializer;
 import org.dromara.soul.configuration.zookeeper.serializer.ZkSerializerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.SearchStrategy;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 /**
  * ZookeeperConfiguration .
  *
  * @author xiaoyu(Myth)
  */
-@Configuration
+@EnableConfigurationProperties(ZookeeperConfig.class)
 public class ZookeeperConfiguration {
-
-    /**
-     * Zookeeper config zookeeper config.
-     *
-     * @return the zookeeper config
-     */
-    @Bean
-    @ConfigurationProperties(prefix = "spring.zookeeper")
-    public ZookeeperConfig zookeeperConfig() {
-        return new ZookeeperConfig();
-    }
 
     /**
      * Zk serializer zk serializer.
      *
-     * @param zookeeperConfig the zookeeper config
+     * @param zookeeperConfig the zookeeper configuration
      * @return the zk serializer
      */
     @Bean
@@ -61,7 +49,7 @@ public class ZookeeperConfiguration {
     /**
      * register zkClient in spring ioc.
      *
-     * @param zookeeperConfig the zookeeper config
+     * @param zookeeperConfig the zookeeper configuration
      * @param zkSerializer    the zk serializer
      * @return ZkClient {@linkplain ZkClient}
      */

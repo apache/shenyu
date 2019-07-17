@@ -18,7 +18,7 @@
 
 package org.dromara.soul.web.condition.judge;
 
-import org.dromara.soul.common.dto.zk.ConditionZkDTO;
+import org.dromara.soul.common.dto.ConditionData;
 
 import java.util.Objects;
 
@@ -30,7 +30,7 @@ import java.util.Objects;
 public class EqOperatorJudge implements OperatorJudge {
 
     @Override
-    public Boolean judge(final ConditionZkDTO conditionZkDTO, final String realData) {
-        return Objects.equals(realData, conditionZkDTO.getParamValue().trim());
+    public Boolean judge(final ConditionData conditionData, final String realData) {
+        return Objects.equals(realData, conditionData.getParamValue().trim());
     }
 }
