@@ -45,6 +45,7 @@ import reactor.core.publisher.Mono;
 import rx.Observable;
 import rx.RxReactiveStreams;
 
+import java.net.URI;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
@@ -106,7 +107,7 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
         if (requestDTO.getHttpMethod().equals(HttpMethodEnum.GET.getName())) {
             final String uri = getUrl(buildRealURL());
             LogUtils.debug(LOGGER, "you get request,The resulting url is :{}", () -> uri);
-            return WEB_CLIENT.get().uri(uri)
+            return WEB_CLIENT.get().uri(URI.create(uri))
                     .headers(httpHeaders -> {
                         httpHeaders.addAll(exchange.getRequest().getHeaders());
                         httpHeaders.remove(HttpHeaders.HOST);

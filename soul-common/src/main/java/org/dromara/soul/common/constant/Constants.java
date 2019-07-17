@@ -61,6 +61,11 @@ public interface Constants {
     String DECODE = "UTF-8";
 
     /**
+     * The constant ENCODE.
+     */
+    String ENCODE = "UTF-8";
+
+    /**
      * The constant MODULE.
      */
     String MODULE = "module";
