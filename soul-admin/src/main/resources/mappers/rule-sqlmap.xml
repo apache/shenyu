@@ -38,12 +38,24 @@
         </if>
     </select>
 
+    <select id="findBySelectorId" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from rule where selector_id = #{selectorId,jdbcType=VARCHAR}
+    </select>
+
     <select id="countByQuery" parameterType="org.dromara.soul.admin.query.RuleQuery" resultType="java.lang.Integer">
         select count(1)
         from rule
         <if test="selectorId != null">
             where selector_id = #{selectorId,jdbcType=VARCHAR}
         </if>
+    </select>
+
+    <select id="selectAll" resultType="org.dromara.soul.admin.entity.RuleDO" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from rule
     </select>
 
     <insert id="insert" parameterType="org.dromara.soul.admin.entity.RuleDO">

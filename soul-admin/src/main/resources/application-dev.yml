@@ -4,26 +4,32 @@ server:
 
 spring:
    thymeleaf:
-      cache: true
-      encoding: utf-8
-      enabled: true
-      prefix: classpath:/static/
-      suffix: .html
+       cache: true
+       encoding: utf-8
+       enabled: true
+       prefix: classpath:/static/
+       suffix: .html
    datasource:
      url: jdbc:mysql://192.168.1.82:3306/soul?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=CONVERT_TO_NULL&failOverReadOnly=false&autoReconnect=true
      username: root
      password: 123456
      dbcp2:
        driver-class-name: com.mysql.jdbc.Driver
-   zookeeper:
-     url : localhost:2181
-     sessionTimeout: 5000
-     connectionTimeout : 2000
 
 mybatis:
   config-location: classpath:/mybatis/mybatis-config.xml
   type-aliases-package: org.dromara.soul.admin.entity
   mapper-locations: classpath:/mappers/*.xml
+
+soul:
+  sync:
+      strategy: zookeeper
+      zookeeper:
+        url: localhost:2181
+        sessionTimeout: 5000
+        connectionTimeout: 2000
+
+
 
 logging:
     level:
@@ -34,4 +40,5 @@ logging:
         org.dromara.soul.lottery: debug
         org.dromara.soul: debug
 
-    path: "./logs/admin"
+    path: "./logs/soul-admin"
+

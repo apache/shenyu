@@ -18,82 +18,153 @@
 
 package org.dromara.soul.web.balance.spi;
 
-import com.alibaba.dubbo.common.utils.AtomicPositiveInteger;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.enums.LoadBalanceEnum;
-import org.dromara.soul.web.balance.LoadBalance;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * RoundRobin  LoadBalance Impl.
  *
- * @author xiaoyu(Myth)
+ * @author xiaoyu
  */
-public class RoundRobinLoadBalance implements LoadBalance {
+public class RoundRobinLoadBalance extends AbstractLoadBalance {
 
-    private final ConcurrentMap<String, AtomicPositiveInteger> sequences = new ConcurrentHashMap<>();
+    private final int recyclePeriod = 60000;
 
-    private final ConcurrentMap<String, AtomicPositiveInteger> weightSequences = new ConcurrentHashMap<>();
+    private ConcurrentMap<String, ConcurrentMap<String, WeightedRoundRobin>> methodWeightMap = new ConcurrentHashMap<>(16);
+
+    private AtomicBoolean updateLock = new AtomicBoolean();
 
     @Override
-    public DivideUpstream select(final List<DivideUpstream> upstreamList, final String ip) {
-        List<DivideUpstream> resultUpstreamList = upstreamList;
-        String key = resultUpstreamList.get(0).getUpstreamUrl();
-        // 总个数
-        int length = resultUpstreamList.size();
-        // 最大权重
-        int maxWeight = 0;
-        // 最小权重
-        int minWeight = Integer.MAX_VALUE;
-        for (int i = 0; i < length; i++) {
-            int weight = resultUpstreamList.get(i).getWeight();
-            // 累计最大权重
-            maxWeight = Math.max(maxWeight, weight);
-            // 累计最小权重
-            minWeight = Math.min(minWeight, weight);
+    public DivideUpstream doSelect(final List<DivideUpstream> upstreamList, final String ip) {
+        String key = upstreamList.get(0).getUpstreamUrl();
+        ConcurrentMap<String, WeightedRoundRobin> map = methodWeightMap.get(key);
+        if (map == null) {
+            methodWeightMap.putIfAbsent(key, new ConcurrentHashMap<>(16));
+            map = methodWeightMap.get(key);
         }
-        // 权重不一样
-        if (maxWeight > 0 && minWeight < maxWeight) {
-            AtomicPositiveInteger weightSequence = weightSequences.get(key);
-            if (weightSequence == null) {
-                weightSequences.putIfAbsent(key, new AtomicPositiveInteger());
-                weightSequence = weightSequences.get(key);
+        int totalWeight = 0;
+        long maxCurrent = Long.MIN_VALUE;
+        long now = System.currentTimeMillis();
+        DivideUpstream selectedInvoker = null;
+        WeightedRoundRobin selectedWRR = null;
+        for (DivideUpstream upstream : upstreamList) {
+            String rKey = upstream.getUpstreamUrl();
+            WeightedRoundRobin weightedRoundRobin = map.get(rKey);
+            int weight = upstream.getWeight();
+            if (weightedRoundRobin == null) {
+                weightedRoundRobin = new WeightedRoundRobin();
+                weightedRoundRobin.setWeight(weight);
+                map.putIfAbsent(rKey, weightedRoundRobin);
             }
-            int currentWeight = weightSequence.getAndIncrement() % maxWeight;
-            //筛选权重大于当前权重基数的Invoker
-
-            final List<DivideUpstream> weightInvokers =
-                    resultUpstreamList.stream()
-                            .filter(divideHandle -> divideHandle.getWeight() > currentWeight)
-                            .collect(Collectors.toList());
-            int weightLength = weightInvokers.size();
-            if (weightLength == 1) {
-                return weightInvokers.get(0);
-            } else if (weightLength > 1) {
-                resultUpstreamList = weightInvokers;
-                length = resultUpstreamList.size();
+            if (weight != weightedRoundRobin.getWeight()) {
+                //weight changed
+                weightedRoundRobin.setWeight(weight);
+            }
+            long cur = weightedRoundRobin.increaseCurrent();
+            weightedRoundRobin.setLastUpdate(now);
+            if (cur > maxCurrent) {
+                maxCurrent = cur;
+                selectedInvoker = upstream;
+                selectedWRR = weightedRoundRobin;
+            }
+            totalWeight += weight;
+        }
+        if (!updateLock.get() && upstreamList.size() != map.size()) {
+            if (updateLock.compareAndSet(false, true)) {
+                try {
+                    // copy -> modify -> update reference
+                    ConcurrentMap<String, WeightedRoundRobin> newMap = new ConcurrentHashMap<>(map);
+                    newMap.entrySet().removeIf(item -> now - item.getValue().getLastUpdate() > recyclePeriod);
+                    methodWeightMap.put(key, newMap);
+                } finally {
+                    updateLock.set(false);
+                }
             }
         }
-        AtomicPositiveInteger sequence = sequences.get(key);
-        if (sequence == null) {
-            sequences.putIfAbsent(key, new AtomicPositiveInteger());
-            sequence = sequences.get(key);
+        if (selectedInvoker != null) {
+            selectedWRR.sel(totalWeight);
+            return selectedInvoker;
         }
-        // 取模轮循
-        return resultUpstreamList.get(sequence.getAndIncrement() % length);
+        // should not happen here
+        return upstreamList.get(0);
     }
 
-    /**
-     *  get algorithm name.
-     *
-     * @return algorithm name
-     */
     @Override
     public String algorithm() {
         return LoadBalanceEnum.ROUND_ROBIN.getName();
     }
+
+    /**
+     * The type Weighted round robin.
+     */
+    protected static class WeightedRoundRobin {
+
+        private int weight;
+
+        private AtomicLong current = new AtomicLong(0);
+
+        private long lastUpdate;
+
+        /**
+         * Gets weight.
+         *
+         * @return the weight
+         */
+        int getWeight() {
+            return weight;
+        }
+
+        /**
+         * Sets weight.
+         *
+         * @param weight the weight
+         */
+        void setWeight(final int weight) {
+            this.weight = weight;
+            current.set(0);
+        }
+
+        /**
+         * Increase current long.
+         *
+         * @return the long
+         */
+        long increaseCurrent() {
+            return current.addAndGet(weight);
+        }
+
+        /**
+         * Sel.
+         *
+         * @param total the total
+         */
+        void sel(final int total) {
+            current.addAndGet(-1 * total);
+        }
+
+        /**
+         * Gets last update.
+         *
+         * @return the last update
+         */
+        long getLastUpdate() {
+            return lastUpdate;
+        }
+
+        /**
+         * Sets last update.
+         *
+         * @param lastUpdate the last update
+         */
+        void setLastUpdate(final long lastUpdate) {
+            this.lastUpdate = lastUpdate;
+        }
+    }
+
 }

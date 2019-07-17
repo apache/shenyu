@@ -39,12 +39,27 @@
         </if>
     </select>
 
+    <select id="findByPluginId" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from selector
+        where plugin_id = #{pluginId,jdbcType=VARCHAR}
+
+    </select>
+
+
     <select id="countByQuery" parameterType="org.dromara.soul.admin.query.SelectorQuery" resultType="java.lang.Integer">
         select count(1)
         from selector
         <if test="pluginId != null">
             where plugin_id = #{pluginId,jdbcType=VARCHAR}
         </if>
+    </select>
+
+    <select id="selectAll" resultType="org.dromara.soul.admin.entity.SelectorDO" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from selector
     </select>
 
     <insert id="insert" parameterType="org.dromara.soul.admin.entity.SelectorDO">

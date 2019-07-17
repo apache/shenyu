@@ -20,12 +20,12 @@ package org.dromara.soul.web.plugin.after;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
-import org.dromara.soul.common.dto.zk.RuleZkDTO;
-import org.dromara.soul.common.dto.zk.SelectorZkDTO;
+import org.dromara.soul.common.dto.RuleData;
+import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.enums.ResultEnum;
-import org.dromara.soul.web.cache.ZookeeperCacheManager;
+import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.disruptor.publisher.SoulEventPublisher;
 import org.dromara.soul.web.influxdb.entity.MonitorDO;
 import org.dromara.soul.web.plugin.AbstractSoulPlugin;
@@ -35,6 +35,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * the monitor plugin.
@@ -45,21 +46,22 @@ public class MonitorPlugin extends AbstractSoulPlugin {
 
     private final SoulEventPublisher soulEventPublisher;
 
+
     /**
      * Instantiates a new Monitor plugin.
      *
-     * @param soulEventPublisher    the soul event publisher
-     * @param zookeeperCacheManager the zookeeper cache manager
+     * @param soulEventPublisher the soul event publisher
+     * @param localCacheManager  the local cache manager
      */
     public MonitorPlugin(final SoulEventPublisher soulEventPublisher,
-                         final ZookeeperCacheManager zookeeperCacheManager) {
-        super(zookeeperCacheManager);
+                         final LocalCacheManager localCacheManager) {
+        super(localCacheManager);
         this.soulEventPublisher = soulEventPublisher;
     }
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorZkDTO selector, final RuleZkDTO rule) {
-        soulEventPublisher.publishEvent(buildMonitorData(exchange));
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
+        Optional.ofNullable(buildMonitorData(exchange)).ifPresent(soulEventPublisher::publishEvent);
         return chain.execute(exchange);
     }
 
@@ -75,20 +77,21 @@ public class MonitorPlugin extends AbstractSoulPlugin {
 
     private MonitorDO buildMonitorData(final ServerWebExchange exchange) {
         final RequestDTO requestDTO = exchange.getAttribute(Constants.REQUESTDTO);
-        MonitorDO visitorDO = new MonitorDO();
-        String result = exchange.getAttribute(Constants.CLIENT_RESPONSE_RESULT_TYPE);
-        if (StringUtils.isBlank(result)) {
-            visitorDO.setResultType(ResultEnum.ERROR.getName());
-        } else {
-            visitorDO.setResultType(result);
+        if (Objects.isNull(requestDTO) || Objects.isNull(exchange.getRequest().getRemoteAddress())) {
+            return null;
         }
-        visitorDO.setRpcType(Objects.requireNonNull(requestDTO).getRpcType());
-        visitorDO.setCount(1);
-        visitorDO.setModule(requestDTO.getModule());
-        visitorDO.setMethod(requestDTO.getMethod());
-        visitorDO.setIp(Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress());
-        visitorDO.setHost(exchange.getRequest().getRemoteAddress().getHostString());
-        return visitorDO;
+        String resultType = exchange.getAttribute(Constants.CLIENT_RESPONSE_RESULT_TYPE);
+        if (StringUtils.isBlank(resultType)) {
+            resultType = ResultEnum.ERROR.getName();
+        }
+        return MonitorDO.builder().resultType(resultType)
+                .rpcType(requestDTO.getRpcType())
+                .count(1)
+                .module(requestDTO.getModule())
+                .method(requestDTO.getMethod())
+                .ip(exchange.getRequest().getRemoteAddress().getAddress().getHostAddress())
+                .host(exchange.getRequest().getRemoteAddress().getHostString())
+                .build();
     }
 
     /**

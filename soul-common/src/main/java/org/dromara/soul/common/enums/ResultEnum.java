@@ -23,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * ResultEnum.
+ *
  * @author xiaoyu(Myth)
  */
 @RequiredArgsConstructor

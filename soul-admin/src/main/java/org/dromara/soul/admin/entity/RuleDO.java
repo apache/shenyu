@@ -21,10 +21,12 @@ package org.dromara.soul.admin.entity;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.RuleDTO;
+import org.dromara.soul.common.dto.ConditionData;
+import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
-import java.util.Date;
+import java.util.List;
 
 /**
  * RuleDO.
@@ -97,5 +99,18 @@ public class RuleDO extends BaseDO {
             return ruleDO;
         }
         return null;
+    }
+
+    public static RuleData transFrom(final RuleDO ruleDO, final String pluginName, final List<ConditionData> conditionDataList) {
+        return new RuleData(ruleDO.getId(),
+                ruleDO.getName(),
+                pluginName,
+                ruleDO.getSelectorId(),
+                ruleDO.getMatchMode(),
+                ruleDO.getSort(),
+                ruleDO.getEnabled(),
+                ruleDO.getLoged(),
+                ruleDO.getHandle(),
+                conditionDataList);
     }
 }

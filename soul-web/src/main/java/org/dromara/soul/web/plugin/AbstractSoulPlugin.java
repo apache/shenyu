@@ -21,15 +21,15 @@ package org.dromara.soul.web.plugin;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.common.constant.Constants;
-import org.dromara.soul.common.dto.zk.PluginZkDTO;
-import org.dromara.soul.common.dto.zk.RuleZkDTO;
-import org.dromara.soul.common.dto.zk.SelectorZkDTO;
+import org.dromara.soul.common.dto.PluginData;
+import org.dromara.soul.common.dto.RuleData;
+import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.SelectorTypeEnum;
 import org.dromara.soul.common.result.SoulResult;
 import org.dromara.soul.common.utils.JsonUtils;
 import org.dromara.soul.common.utils.LogUtils;
-import org.dromara.soul.web.cache.ZookeeperCacheManager;
+import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.condition.strategy.MatchStrategyFactory;
 import org.dromara.soul.web.request.RequestDTO;
 import org.slf4j.Logger;
@@ -55,18 +55,18 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSoulPlugin.class);
 
-    private final ZookeeperCacheManager zookeeperCacheManager;
+    private final LocalCacheManager localCacheManager;
 
     /**
      * this is Template Method child has Implement your own logic.
      *
      * @param exchange exchange the current server exchange {@linkplain ServerWebExchange}
      * @param chain    chain the current chain  {@linkplain ServerWebExchange}
-     * @param selector selector    {@linkplain SelectorZkDTO}
-     * @param rule     rule    {@linkplain RuleZkDTO}
+     * @param selector selector    {@linkplain SelectorData}
+     * @param rule     rule    {@linkplain RuleData}
      * @return {@code Mono<Void>} to indicate when request handling is complete
      */
-    protected abstract Mono<Void> doExecute(ServerWebExchange exchange, SoulPluginChain chain, SelectorZkDTO selector, RuleZkDTO rule);
+    protected abstract Mono<Void> doExecute(ServerWebExchange exchange, SoulPluginChain chain, SelectorData selector, RuleData rule);
 
 
     /**
@@ -79,32 +79,32 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
      */
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final SoulPluginChain chain) {
-        final PluginZkDTO pluginZkDTO = zookeeperCacheManager.findPluginByName(named());
-        if (!(skip(exchange) || pluginZkDTO == null || !pluginZkDTO.getEnabled())) {
+        final PluginData pluginData = localCacheManager.findPluginByName(named());
+        if (!(skip(exchange) || pluginData == null || !pluginData.getEnabled())) {
             //获取selector
-            final List<SelectorZkDTO> selectors = zookeeperCacheManager.findSelectorByPluginName(named());
+            final List<SelectorData> selectors = localCacheManager.findSelectorByPluginName(named());
             if (CollectionUtils.isEmpty(selectors)) {
                 return chain.execute(exchange);
             }
-            final SelectorZkDTO selectorZkDTO = selectors.stream()
+            final SelectorData selectorData = selectors.stream()
                     .filter(selector -> selector.getEnabled() && filterSelector(selector, exchange))
                     .findFirst().orElse(null);
 
-            if (Objects.isNull(selectorZkDTO)) {
+            if (Objects.isNull(selectorData)) {
                 return chain.execute(exchange);
             }
 
-            if (selectorZkDTO.getLoged()) {
+            if (selectorData.getLoged()) {
                 LogUtils.info(LOGGER, named()
-                        + " selector success selector name :{}", selectorZkDTO::getName);
+                        + " selector success selector name :{}", selectorData::getName);
             }
-            final List<RuleZkDTO> rules =
-                    zookeeperCacheManager.findRuleBySelectorId(selectorZkDTO.getId());
+            final List<RuleData> rules =
+                    localCacheManager.findRuleBySelectorId(selectorData.getId());
             if (CollectionUtils.isEmpty(rules)) {
                 return chain.execute(exchange);
             }
 
-            RuleZkDTO rule = filterRule(exchange, rules);
+            RuleData rule = filterRule(exchange, rules);
 
             final RequestDTO request = exchange.getAttribute(Constants.REQUESTDTO);
 
@@ -129,27 +129,27 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
                         + " rule is name :"
                         + rule.getName());
             }
-            return doExecute(exchange, chain, selectorZkDTO, rule);
+            return doExecute(exchange, chain, selectorData, rule);
         }
         return chain.execute(exchange);
     }
 
-    private Boolean filterSelector(final SelectorZkDTO selector, final ServerWebExchange exchange) {
+    private Boolean filterSelector(final SelectorData selector, final ServerWebExchange exchange) {
         if (selector.getType() == SelectorTypeEnum.CUSTOM_FLOW.getCode()) {
-            if (CollectionUtils.isEmpty(selector.getConditionZkDTOList())) {
+            if (CollectionUtils.isEmpty(selector.getConditionList())) {
                 return false;
             }
             return MatchStrategyFactory.of(selector.getMatchMode())
-                    .match(selector.getConditionZkDTOList(), exchange);
+                    .match(selector.getConditionList(), exchange);
         }
         return true;
     }
 
-    private RuleZkDTO filterRule(final ServerWebExchange exchange, final List<RuleZkDTO> rules) {
+    private RuleData filterRule(final ServerWebExchange exchange, final List<RuleData> rules) {
         return rules.stream()
                 .filter(rule -> Objects.nonNull(rule) && rule.getEnabled())
-                .filter((RuleZkDTO ruleZkDTO) -> MatchStrategyFactory.of(ruleZkDTO.getMatchMode())
-                        .match(ruleZkDTO.getConditionZkDTOList(), exchange))
+                .filter(ruleData -> MatchStrategyFactory.of(ruleData.getMatchMode())
+                        .match(ruleData.getConditionDataList(), exchange))
                 .findFirst().orElse(null);
     }
 }

@@ -49,6 +49,12 @@ public interface AppAuthMapper {
     List<AppAuthDO> selectByQuery(AppAuthQuery appAuthQuery);
 
     /**
+     * select all {@linkplain AppAuthDO}
+     * @return {@linkplain List}
+     */
+    List<AppAuthDO> selectAll();
+
+    /**
      * count application authority by query.
      *
      * @param appAuthQuery {@linkplain AppAuthQuery}

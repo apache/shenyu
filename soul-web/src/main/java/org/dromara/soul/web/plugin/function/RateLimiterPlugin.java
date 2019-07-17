@@ -19,15 +19,15 @@
 package org.dromara.soul.web.plugin.function;
 
 import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.dto.RuleData;
+import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.RateLimiterHandle;
-import org.dromara.soul.common.dto.zk.RuleZkDTO;
-import org.dromara.soul.common.dto.zk.SelectorZkDTO;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.result.SoulResult;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.JsonUtils;
-import org.dromara.soul.web.cache.ZookeeperCacheManager;
+import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.plugin.AbstractSoulPlugin;
 import org.dromara.soul.web.plugin.SoulPluginChain;
 import org.dromara.soul.web.plugin.ratelimter.RedisRateLimiter;
@@ -49,12 +49,12 @@ public class RateLimiterPlugin extends AbstractSoulPlugin {
     /**
      * Instantiates a new Rate limiter plugin.
      *
-     * @param zookeeperCacheManager the zookeeper cache manager
-     * @param redisRateLimiter      the redis rate limiter
+     * @param localCacheManager the local cache manager
+     * @param redisRateLimiter  the redis rate limiter
      */
-    public RateLimiterPlugin(final ZookeeperCacheManager zookeeperCacheManager,
+    public RateLimiterPlugin(final LocalCacheManager localCacheManager,
                              final RedisRateLimiter redisRateLimiter) {
-        super(zookeeperCacheManager);
+        super(localCacheManager);
         this.redisRateLimiter = redisRateLimiter;
     }
 
@@ -79,7 +79,7 @@ public class RateLimiterPlugin extends AbstractSoulPlugin {
     }
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorZkDTO selector, final RuleZkDTO rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
 
         final String handle = rule.getHandle();
 

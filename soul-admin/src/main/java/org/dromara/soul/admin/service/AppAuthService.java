@@ -22,6 +22,7 @@ import org.dromara.soul.admin.dto.AppAuthDTO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.AppAuthQuery;
 import org.dromara.soul.admin.vo.AppAuthVO;
+import org.dromara.soul.common.dto.AppAuthData;
 
 import java.util.List;
 
@@ -36,7 +37,7 @@ public interface AppAuthService {
      * create or update application authority.
      *
      * @param appAuthDTO {@linkplain AppAuthDTO}
-     * @return rows
+     * @return rows int
      */
     int createOrUpdate(AppAuthDTO appAuthDTO);
 
@@ -44,7 +45,7 @@ public interface AppAuthService {
      * delete application authorities.
      *
      * @param ids primary key.
-     * @return rows
+     * @return rows int
      */
     int delete(List<String> ids);
 
@@ -63,4 +64,12 @@ public interface AppAuthService {
      * @return {@linkplain CommonPager}
      */
     CommonPager<AppAuthVO> listByPage(AppAuthQuery appAuthQuery);
+
+    /**
+     * List all list.
+     *
+     * @return the list
+     */
+    List<AppAuthData> listAll();
+
 }

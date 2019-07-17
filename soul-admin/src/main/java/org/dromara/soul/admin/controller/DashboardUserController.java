@@ -34,7 +34,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Objects;
@@ -61,15 +60,15 @@ public class DashboardUserController {
      * @param userName    user name
      * @param currentPage current page
      * @param pageSize    page size
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @GetMapping("")
-    public Mono<SoulResult> queryDashboardUsers(final String userName, final Integer currentPage, final Integer pageSize) {
+    public SoulResult queryDashboardUsers(final String userName, final Integer currentPage, final Integer pageSize) {
         try {
             CommonPager<DashboardUserVO> commonPager = dashboardUserService.listByPage(new DashboardUserQuery(userName, new PageParameter(currentPage, pageSize)));
-            return Mono.create(soulResult -> soulResult.success(SoulResult.success("query dashboard users success", commonPager)));
+            return SoulResult.success("query dashboard users success", commonPager);
         } catch (Exception e) {
-            return Mono.create(soulResult -> soulResult.success(SoulResult.error("query dashboard users exception")));
+            return SoulResult.error("query dashboard users exception");
         }
     }
 
@@ -77,15 +76,15 @@ public class DashboardUserController {
      * detail dashboard user.
      *
      * @param id dashboard user id.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @GetMapping("/{id}")
-    public Mono<SoulResult> detailDashboardUser(@PathVariable("id") final String id) {
+    public SoulResult detailDashboardUser(@PathVariable("id") final String id) {
         try {
             DashboardUserVO dashboardUserVO = dashboardUserService.findById(id);
-            return Mono.create(soulResult -> soulResult.success(SoulResult.success("detail dashboard user success", dashboardUserVO)));
+            return SoulResult.success("detail dashboard user success", dashboardUserVO);
         } catch (Exception e) {
-            return Mono.create(soulResult -> soulResult.success(SoulResult.error("detail dashboard user exception")));
+            return SoulResult.error("detail dashboard user exception");
         }
     }
 
@@ -93,15 +92,15 @@ public class DashboardUserController {
      * create dashboard user.
      *
      * @param dashboardUserDTO dashboard user.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @PostMapping("")
-    public Mono<SoulResult> createDashboardUser(@RequestBody final DashboardUserDTO dashboardUserDTO) {
+    public SoulResult createDashboardUser(@RequestBody final DashboardUserDTO dashboardUserDTO) {
         try {
             Integer createCount = dashboardUserService.createOrUpdate(dashboardUserDTO);
-            return Mono.create(soulResult -> soulResult.success(SoulResult.success("create dashboard user success", createCount)));
+            return SoulResult.success("create dashboard user success", createCount);
         } catch (Exception e) {
-            return Mono.create(soulResult -> soulResult.success(SoulResult.error("create dashboard user exception")));
+            return SoulResult.error("create dashboard user exception");
         }
     }
 
@@ -110,17 +109,17 @@ public class DashboardUserController {
      *
      * @param id               primary key.
      * @param dashboardUserDTO dashboard user.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @PutMapping("/{id}")
-    public Mono<SoulResult> updateDashboardUser(@PathVariable("id") final String id, @RequestBody final DashboardUserDTO dashboardUserDTO) {
+    public SoulResult updateDashboardUser(@PathVariable("id") final String id, @RequestBody final DashboardUserDTO dashboardUserDTO) {
         try {
             Objects.requireNonNull(dashboardUserDTO);
             dashboardUserDTO.setId(id);
             Integer updateCount = dashboardUserService.createOrUpdate(dashboardUserDTO);
-            return Mono.create(soulResult -> soulResult.success(SoulResult.success("update dashboard user success", updateCount)));
+            return SoulResult.success("update dashboard user success", updateCount);
         } catch (Exception e) {
-            return Mono.create(soulResult -> soulResult.success(SoulResult.error("update dashboard user exception")));
+            return SoulResult.error("update dashboard user exception");
         }
     }
 
@@ -128,15 +127,15 @@ public class DashboardUserController {
      * delete dashboard users.
      *
      * @param ids primary key.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulResult}
      */
     @DeleteMapping("/batch")
-    public Mono<SoulResult> deleteDashboardUser(@RequestBody final List<String> ids) {
+    public SoulResult deleteDashboardUser(@RequestBody final List<String> ids) {
         try {
             Integer deleteCount = dashboardUserService.delete(ids);
-            return Mono.create(soulResult -> soulResult.success(SoulResult.success("delete dashboard users success", deleteCount)));
+            return SoulResult.success("delete dashboard users success", deleteCount);
         } catch (Exception e) {
-            return Mono.create(soulResult -> soulResult.success(SoulResult.error("delete dashboard users exception")));
+            return SoulResult.error("delete dashboard users exception");
         }
     }
 }

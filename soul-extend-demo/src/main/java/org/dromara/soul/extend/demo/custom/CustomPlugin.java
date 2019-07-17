@@ -18,12 +18,12 @@
 
 package org.dromara.soul.extend.demo.custom;
 
-import org.dromara.soul.common.dto.zk.RuleZkDTO;
-import org.dromara.soul.common.dto.zk.SelectorZkDTO;
+import org.dromara.soul.common.dto.RuleData;
+import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.extend.demo.entity.Test;
-import org.dromara.soul.web.cache.ZookeeperCacheManager;
+import org.dromara.soul.web.cache.ZookeeperSyncCache;
 import org.dromara.soul.web.plugin.AbstractSoulPlugin;
 import org.dromara.soul.web.plugin.SoulPluginChain;
 import org.slf4j.Logger;
@@ -46,7 +46,7 @@ public class CustomPlugin extends AbstractSoulPlugin {
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(CustomPlugin.class);
 
-    public CustomPlugin(final ZookeeperCacheManager dataCacheManager) {
+    public CustomPlugin(final ZookeeperSyncCache dataCacheManager) {
         super(dataCacheManager);
     }
 
@@ -100,7 +100,7 @@ public class CustomPlugin extends AbstractSoulPlugin {
     }
 
     @Override
-    protected Mono<Void> doExecute(ServerWebExchange exchange, SoulPluginChain chain, SelectorZkDTO selector, RuleZkDTO rule) {
+    protected Mono<Void> doExecute(ServerWebExchange exchange, SoulPluginChain chain, SelectorData selector, RuleData rule) {
         LOGGER.debug(".......... function plugin start..............");
 
         /*

@@ -22,6 +22,7 @@ import org.dromara.soul.admin.dto.SelectorDTO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.SelectorQuery;
 import org.dromara.soul.admin.vo.SelectorVO;
+import org.dromara.soul.common.dto.SelectorData;
 
 import java.util.List;
 
@@ -36,7 +37,7 @@ public interface SelectorService {
      * create or update selector.
      *
      * @param selectorDTO {@linkplain SelectorDTO}
-     * @return rows
+     * @return rows int
      */
     int createOrUpdate(SelectorDTO selectorDTO);
 
@@ -44,7 +45,7 @@ public interface SelectorService {
      * delete selectors.
      *
      * @param ids primary key.
-     * @return rows
+     * @return rows int
      */
     int delete(List<String> ids);
 
@@ -63,4 +64,21 @@ public interface SelectorService {
      * @return {@linkplain CommonPager}
      */
     CommonPager<SelectorVO> listByPage(SelectorQuery selectorQuery);
+
+
+    /**
+     * Find by plugin id list.
+     *
+     * @param pluginId the plugin id
+     * @return the list
+     */
+    List<SelectorData> findByPluginId(String pluginId);
+
+    /**
+     * List all list.
+     *
+     * @return the list
+     */
+    List<SelectorData> listAll();
+
 }

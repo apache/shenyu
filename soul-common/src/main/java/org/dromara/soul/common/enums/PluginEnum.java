@@ -85,7 +85,12 @@ public enum PluginEnum {
     /**
      * Monitor plugin enum.
      */
-    MONITOR(80, 0, "monitor");
+    MONITOR(80, 0, "monitor"),
+
+    /**
+     * Response plugin enum.
+     */
+    RESPONSE(100, 0, "response");
 
     private final int code;
 

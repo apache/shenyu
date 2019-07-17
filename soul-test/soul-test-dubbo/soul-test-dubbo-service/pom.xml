@@ -23,7 +23,7 @@
     <parent>
         <artifactId>soul-test-dubbo</artifactId>
         <groupId>org.dromara</groupId>
-        <version>1.0.4-RELEASE</version>
+        <version>1.0.5</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -61,11 +61,13 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>dubbo</artifactId>
+            <version>2.6.0</version>
         </dependency>
         <!-- zkclient  -->
         <dependency>
             <groupId>com.101tec</groupId>
             <artifactId>zkclient</artifactId>
+            <version>0.10</version>
         </dependency>
         <!--  zookeeper -->
 
@@ -77,6 +79,7 @@
         <dependency>
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
+            <version>3.4.9</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -97,18 +100,14 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>${jdk.version}</source>
-                    <target>${jdk.version}</target>
-                    <encoding>${project.build.sourceEncoding}</encoding>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <mainClass>org.dromara.soul.test.dubbo.service.TestDubboApplication</mainClass>
-                    <executable>true</executable>
-                </configuration>
             </plugin>
         </plugins>
     </build>

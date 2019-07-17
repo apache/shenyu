@@ -20,6 +20,8 @@ package org.dromara.soul.web.handler;
 
 import com.google.common.collect.Maps;
 import org.dromara.soul.common.exception.CommonErrorCode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.web.ErrorProperties;
 import org.springframework.boot.autoconfigure.web.ResourceProperties;
 import org.springframework.boot.autoconfigure.web.reactive.error.DefaultErrorWebExceptionHandler;
@@ -41,6 +43,8 @@ import java.util.Map;
  */
 public class GlobalErrorHandler extends DefaultErrorWebExceptionHandler {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(GlobalErrorHandler.class);
+
     /**
      * Instantiates a new Global error handler.
      *
@@ -58,8 +62,7 @@ public class GlobalErrorHandler extends DefaultErrorWebExceptionHandler {
 
     @Override
     protected Map<String, Object> getErrorAttributes(final ServerRequest request, final boolean includeStackTrace) {
-        Throwable error = super.getError(request);
-        error.printStackTrace();
+        logError(request);
         return response(HttpStatus.INTERNAL_SERVER_ERROR.value());
     }
 
@@ -80,6 +83,19 @@ public class GlobalErrorHandler extends DefaultErrorWebExceptionHandler {
         map.put("message", CommonErrorCode.ERROR_MSG);
         map.put("data", null);
         return map;
+    }
+
+    private void logError(final ServerRequest request) {
+        Throwable ex = getError(request);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(request.exchange().getLogPrefix() + formatError(ex, request));
+        }
+    }
+
+    private String formatError(final Throwable ex, final ServerRequest request) {
+        String reason = ex.getClass().getSimpleName() + ": " + ex.getMessage();
+        return "Resolved [" + reason + "] for HTTP " + request.methodName() + " "
+                + request.path();
     }
 
 }

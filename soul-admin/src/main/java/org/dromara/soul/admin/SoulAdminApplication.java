@@ -18,11 +18,8 @@
 
 package org.dromara.soul.admin;
 
-import org.dromara.soul.configuration.zookeeper.ZookeeperConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Import;
 
 /**
  * soul admin start.
@@ -30,8 +27,6 @@ import org.springframework.context.annotation.Import;
  * @author xiaoyu(Myth)
  */
 @SpringBootApplication
-@ComponentScan("org.dromara.soul")
-@Import(value = {ZookeeperConfiguration.class})
 public class SoulAdminApplication {
 
     /**

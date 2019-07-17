@@ -20,15 +20,15 @@ package org.dromara.soul.web.plugin.function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.dto.RuleData;
+import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.RewriteHandle;
-import org.dromara.soul.common.dto.zk.RuleZkDTO;
-import org.dromara.soul.common.dto.zk.SelectorZkDTO;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.LogUtils;
-import org.dromara.soul.web.cache.ZookeeperCacheManager;
+import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.plugin.AbstractSoulPlugin;
 import org.dromara.soul.web.plugin.SoulPluginChain;
 import org.dromara.soul.web.request.RequestDTO;
@@ -55,10 +55,10 @@ public class RewritePlugin extends AbstractSoulPlugin {
     /**
      * Instantiates a new Rewrite plugin.
      *
-     * @param zookeeperCacheManager the zookeeper cache manager
+     * @param localCacheManager the local cache manager
      */
-    public RewritePlugin(final ZookeeperCacheManager zookeeperCacheManager) {
-        super(zookeeperCacheManager);
+    public RewritePlugin(final LocalCacheManager localCacheManager) {
+        super(localCacheManager);
     }
 
     /**
@@ -72,14 +72,14 @@ public class RewritePlugin extends AbstractSoulPlugin {
     }
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorZkDTO selector, final RuleZkDTO rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
 
         @NotBlank final String handle = rule.getHandle();
 
         final RewriteHandle rewriteHandle = GsonUtils.getInstance().fromJson(handle, RewriteHandle.class);
 
         if (Objects.isNull(rewriteHandle) || StringUtils.isBlank(rewriteHandle.getRewriteURI())) {
-            LogUtils.error(LOGGER, "uri rewrite rule can not config：{}", () -> handle);
+            LogUtils.error(LOGGER, "uri rewrite rule can not configuration：{}", () -> handle);
             return chain.execute(exchange);
         }
         exchange.getAttributes().put(Constants.REWRITE_URI, rewriteHandle.getRewriteURI());

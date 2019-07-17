@@ -45,7 +45,7 @@ public class GenericParamServiceImpl implements GenericParamService {
         //如果参数里面包含class字段
         if (paramMap.containsKey(DubboParamConstants.PARAM_CLASS)) {
             List<String> clazz = GsonUtils.getInstance()
-                    .fromList(paramMap.get(DubboParamConstants.PARAM_CLASS).toString(), String[].class);
+                    .fromList(paramMap.get(DubboParamConstants.PARAM_CLASS).toString(), String.class);
             //设置参数为class 类型
             AtomicBoolean hasList = new AtomicBoolean(false);
             clazz.forEach(c -> {
@@ -73,7 +73,7 @@ public class GenericParamServiceImpl implements GenericParamService {
             objectMap.forEach((k, v) -> {
                 //如果v是数组类型
                 if (v instanceof JsonArray) {
-                    List<String> arg = GsonUtils.getInstance().fromJson(v.toString(), List.class);
+                    List<String> arg = GsonUtils.getInstance().fromList(v.toString(), String.class);
                     arg.forEach(j -> {
                         paramList.add(k);
                         args.add(j);

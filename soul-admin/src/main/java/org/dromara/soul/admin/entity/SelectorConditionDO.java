@@ -24,7 +24,6 @@ import org.dromara.soul.admin.dto.SelectorConditionDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
-import java.util.Date;
 
 /**
  * SelectorConditionDO.

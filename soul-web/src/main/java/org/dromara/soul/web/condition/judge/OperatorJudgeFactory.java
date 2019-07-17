@@ -20,7 +20,7 @@ package org.dromara.soul.web.condition.judge;
 
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
-import org.dromara.soul.common.dto.zk.ConditionZkDTO;
+import org.dromara.soul.common.dto.ConditionData;
 import org.dromara.soul.common.enums.OperatorEnum;
 
 import java.util.Map;
@@ -44,14 +44,14 @@ public class OperatorJudgeFactory {
 
     /**
      * judge request realData has by pass.
-     * @param conditionZkDTO condition data
+     * @param conditionData condition data
      * @param realData       realData
      * @return is true pass   is false not pass
      */
-    public static Boolean judge(final ConditionZkDTO conditionZkDTO, final String realData) {
-        if (Objects.isNull(conditionZkDTO) || StringUtils.isBlank(realData)) {
+    public static Boolean judge(final ConditionData conditionData, final String realData) {
+        if (Objects.isNull(conditionData) || StringUtils.isBlank(realData)) {
             return false;
         }
-        return OPERATOR_JUDGE_MAP.get(conditionZkDTO.getOperator()).judge(conditionZkDTO, realData);
+        return OPERATOR_JUDGE_MAP.get(conditionData.getOperator()).judge(conditionData, realData);
     }
 }

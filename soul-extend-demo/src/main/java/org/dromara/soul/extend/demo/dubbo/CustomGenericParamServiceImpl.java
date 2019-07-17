@@ -48,7 +48,7 @@ public class CustomGenericParamServiceImpl implements GenericParamService {
         List<Object> args = Lists.newArrayList();
         if (paramMap.containsKey(DubboParamConstants.PARAM_CLASS)) {
             List<String> clazz = GsonUtils.getInstance()
-                    .fromList(paramMap.get(DubboParamConstants.PARAM_CLASS).toString(), String[].class);
+                    .fromList(paramMap.get(DubboParamConstants.PARAM_CLASS).toString(), String.class);
             paramType.addAll(clazz);
             final Object classParams = paramMap.get(DubboParamConstants.CLASS_PARAMS);
             args.addAll(GsonUtils.getInstance()

@@ -26,6 +26,11 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.assertj.core.util.Lists;
 import org.dromara.soul.bootstrap.BaseTest;
 import org.dromara.soul.common.constant.ZkPathConstants;
+import org.dromara.soul.common.dto.AppAuthData;
+import org.dromara.soul.common.dto.ConditionData;
+import org.dromara.soul.common.dto.PluginData;
+import org.dromara.soul.common.dto.RuleData;
+import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.dto.convert.RateLimiterHandle;
 import org.dromara.soul.common.dto.convert.RewriteHandle;
@@ -35,11 +40,6 @@ import org.dromara.soul.common.dto.convert.rule.DubboRuleHandle;
 import org.dromara.soul.common.dto.convert.rule.SpringCloudRuleHandle;
 import org.dromara.soul.common.dto.convert.selector.DubboSelectorHandle;
 import org.dromara.soul.common.dto.convert.selector.SpringCloudSelectorHandle;
-import org.dromara.soul.common.dto.zk.AppAuthZkDTO;
-import org.dromara.soul.common.dto.zk.ConditionZkDTO;
-import org.dromara.soul.common.dto.zk.PluginZkDTO;
-import org.dromara.soul.common.dto.zk.RuleZkDTO;
-import org.dromara.soul.common.dto.zk.SelectorZkDTO;
 import org.dromara.soul.common.enums.LoadBalanceEnum;
 import org.dromara.soul.common.enums.MatchModeEnum;
 import org.dromara.soul.common.enums.OperatorEnum;
@@ -52,7 +52,6 @@ import org.junit.After;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -70,18 +69,17 @@ public class ZookeeperClientTest extends BaseTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperClientTest.class);
 
-    @Autowired
     private ZkClient zkClient;
 
     private static final String ROOT_PATH = "/xiaoyu";
 
     private static final String PLUGIN = "/soul/plugin";
 
-    private static Map<String, PluginZkDTO> pluginZkDTOMap = Maps.newConcurrentMap();
+    private static Map<String, PluginData> pluginZkDTOMap = Maps.newConcurrentMap();
 
 
     @Test
-    public void testSerize(){
+    public void testSerize() {
     }
 
     /**
@@ -93,13 +91,13 @@ public class ZookeeperClientTest extends BaseTest {
         if (!zkClient.exists(ROOT_PATH)) {
             zkClient.createPersistent(ROOT_PATH, true);
         }
-        zkClient.writeData(ROOT_PATH, new PluginZkDTO("1", PluginEnum.DIVIDE.getName(), 0, Boolean.TRUE));
+        zkClient.writeData(ROOT_PATH, new PluginData("1", PluginEnum.DIVIDE.getName(), "", 0, Boolean.TRUE));
         final Object o = zkClient.readData(ROOT_PATH);
         System.out.println(o.toString());
     }
 
     @Test
-    public void readData(){
+    public void readData() {
         final Object o = zkClient.readData(ROOT_PATH);
         System.out.println(o.toString());
     }
@@ -109,7 +107,7 @@ public class ZookeeperClientTest extends BaseTest {
      */
     @Test
     public void testInsertAppAuth() {
-        AppAuthZkDTO appAuthZkDTO = new AppAuthZkDTO();
+        AppAuthData appAuthZkDTO = new AppAuthData();
         appAuthZkDTO.setAppKey("gateway");
         appAuthZkDTO.setAppSecret("123456");
         appAuthZkDTO.setEnabled(true);
@@ -133,9 +131,9 @@ public class ZookeeperClientTest extends BaseTest {
     @Test
     public void testWriteDivideSelector() {
 
-        final SelectorZkDTO selectorZkDTO = buildSelectorZkDTO("eee", "eeex", PluginEnum.DIVIDE.getName());
+        final SelectorData selectorData = buildSelectorData("eee", "eeex", PluginEnum.DIVIDE.getName());
 
-        writeSelector(selectorZkDTO);
+        writeSelector(selectorData);
 
     }
 
@@ -178,11 +176,11 @@ public class ZookeeperClientTest extends BaseTest {
     }
 
     private void writeSelectorAndRule(String pluginName) {
-        final SelectorZkDTO selectorZkDTO = buildSelectorZkDTO("aaa", "aaa", pluginName);
+        final SelectorData selectorZkDTO = buildSelectorData("aaa", "aaa", pluginName);
 
         writeSelector(selectorZkDTO);
 
-        final RuleZkDTO ruleZkDTO = buildRuleDTO("xxx", selectorZkDTO.getId(), selectorZkDTO.getPluginName());
+        final RuleData ruleZkDTO = buildRuleDTO("xxx", selectorZkDTO.getId(), selectorZkDTO.getPluginName());
 
         final String rulePath = ZkPathConstants
                 .buildRulePath(selectorZkDTO.getPluginName(), ruleZkDTO.getSelectorId(), ruleZkDTO.getId());
@@ -195,7 +193,7 @@ public class ZookeeperClientTest extends BaseTest {
      */
     @Test
     public void testInsertRule() {
-        final RuleZkDTO ruleZkDTO = buildRuleDTO("aaa", "eee", PluginEnum.DIVIDE.getName());
+        final RuleData ruleZkDTO = buildRuleDTO("aaa", "eee", PluginEnum.DIVIDE.getName());
         final String rulePath = ZkPathConstants
                 .buildRulePath(PluginEnum.DIVIDE.getName(), ruleZkDTO.getSelectorId(), ruleZkDTO.getId());
         if (!zkClient.exists(rulePath)) {
@@ -204,12 +202,12 @@ public class ZookeeperClientTest extends BaseTest {
 
         zkClient.writeData(rulePath, ruleZkDTO);
 
-        final RuleZkDTO zkDTO = zkClient.readData(rulePath);
+        final RuleData zkDTO = zkClient.readData(rulePath);
         LOGGER.info(zkDTO.toString());
 
     }
 
-    private void writeRule(String rulePath, RuleZkDTO ruleZkDTO) {
+    private void writeRule(String rulePath, RuleData ruleZkDTO) {
         if (!zkClient.exists(rulePath)) {
             zkClient.createPersistent(rulePath, true);
         }
@@ -218,38 +216,38 @@ public class ZookeeperClientTest extends BaseTest {
     }
 
 
-    private void writeSelector(SelectorZkDTO selectorZkDTO) {
+    private void writeSelector(SelectorData selectorData) {
         final String selectorRealPath =
-                ZkPathConstants.buildSelectorRealPath(selectorZkDTO.getPluginName(), selectorZkDTO.getId());
+                ZkPathConstants.buildSelectorRealPath(selectorData.getPluginName(), selectorData.getId());
         if (!zkClient.exists(selectorRealPath)) {
             zkClient.createPersistent(selectorRealPath, true);
         }
-        zkClient.writeData(selectorRealPath, selectorZkDTO);
+        zkClient.writeData(selectorRealPath, selectorData);
     }
 
 
-    private SelectorZkDTO buildSelectorZkDTO(String id, String name, String pluginName) {
-        SelectorZkDTO selectorZkDTO = new SelectorZkDTO();
-        selectorZkDTO.setId(id);
-        selectorZkDTO.setName(name);
-        selectorZkDTO.setSort(1);
-        selectorZkDTO.setContinued(Boolean.TRUE);
-        selectorZkDTO.setLoged(Boolean.TRUE);
-        selectorZkDTO.setEnabled(Boolean.TRUE);
-        selectorZkDTO.setPluginName(pluginName);
-        selectorZkDTO.setType(SelectorTypeEnum.FULL_FLOW.getCode());
-        selectorZkDTO.setMatchMode(MatchModeEnum.AND.getCode());
-        final ConditionZkDTO conditionZkDTO = buildConditionZkDTO();
-        selectorZkDTO.setConditionZkDTOList(Collections.singletonList(conditionZkDTO));
-        return selectorZkDTO;
+    private SelectorData buildSelectorData(String id, String name, String pluginName) {
+        SelectorData selectorData = new SelectorData();
+        selectorData.setId(id);
+        selectorData.setName(name);
+        selectorData.setSort(1);
+        selectorData.setContinued(Boolean.TRUE);
+        selectorData.setLoged(Boolean.TRUE);
+        selectorData.setEnabled(Boolean.TRUE);
+        selectorData.setPluginName(pluginName);
+        selectorData.setType(SelectorTypeEnum.FULL_FLOW.getCode());
+        selectorData.setMatchMode(MatchModeEnum.AND.getCode());
+        final ConditionData conditionZkDTO = buildConditionZkDTO();
+        selectorData.setConditionList(Collections.singletonList(conditionZkDTO));
+        return selectorData;
     }
 
-    private RuleZkDTO buildRuleDTO(String id, String selectorId, String pluginName) {
-        RuleZkDTO dto1 = new RuleZkDTO();
+    private RuleData buildRuleDTO(String id, String selectorId, String pluginName) {
+        RuleData dto1 = new RuleData();
         dto1.setId(id);
         dto1.setSelectorId(selectorId);
         dto1.setName("宇测试");
-        dto1.setConditionZkDTOList(Collections.singletonList(buildConditionZkDTO()));
+        dto1.setConditionDataList(Collections.singletonList(buildConditionZkDTO()));
         dto1.setEnabled(true);
         dto1.setLoged(Boolean.TRUE);
         dto1.setMatchMode(MatchModeEnum.AND.getCode());
@@ -359,8 +357,8 @@ public class ZookeeperClientTest extends BaseTest {
     }
 
 
-    private ConditionZkDTO buildConditionZkDTO() {
-        ConditionZkDTO condition = new ConditionZkDTO();
+    private ConditionData buildConditionZkDTO() {
+        ConditionData condition = new ConditionData();
         condition.setOperator(OperatorEnum.EQ.getAlias());
         condition.setParamName("module");
         condition.setParamValue("pdm");
@@ -381,7 +379,7 @@ public class ZookeeperClientTest extends BaseTest {
                 zkClient.createPersistent(pluginPath, true);
             }
             zkClient.writeData(pluginPath, buildByName(pluginEnum.getName()));
-            PluginZkDTO data = zkClient.readData(pluginPath);
+            PluginData data = zkClient.readData(pluginPath);
             LOGGER.debug(data.toString());
         });
 
@@ -397,7 +395,7 @@ public class ZookeeperClientTest extends BaseTest {
     public void testLoadPluginData() throws InterruptedException {
         Arrays.stream(PluginEnum.values()).forEach(pluginEnum -> {
             String pluginPath = PLUGIN + "/" + pluginEnum.getName();
-            PluginZkDTO data = zkClient.readData(pluginPath);
+            PluginData data = zkClient.readData(pluginPath);
             pluginZkDTOMap.put(pluginEnum.getName(), data);
 
             zkClient.subscribeDataChanges(pluginPath, new IZkDataListener() {
@@ -408,7 +406,7 @@ public class ZookeeperClientTest extends BaseTest {
                     LOGGER.info("data=>" + data);
                     final String key = dataPath
                             .substring(dataPath.lastIndexOf("/") + 1, dataPath.length());
-                    pluginZkDTOMap.put(key, (PluginZkDTO) data);
+                    pluginZkDTOMap.put(key, (PluginData) data);
                 }
 
                 @Override
@@ -434,23 +432,23 @@ public class ZookeeperClientTest extends BaseTest {
     @Test
     public void testUpdatePlugin() {
         String divide = PLUGIN + "/" + PluginEnum.DIVIDE.getName();
-        PluginZkDTO divideDTO = new PluginZkDTO("3", PluginEnum.DIVIDE.getName(), 0, false);
+        PluginData divideDTO = new PluginData("3", PluginEnum.DIVIDE.getName(), "", 0, false);
         zkClient.writeData(divide, divideDTO);
 
         String global = PLUGIN + "/" + PluginEnum.GLOBAL.getName();
-        PluginZkDTO globalDTO = new PluginZkDTO("4", PluginEnum.GLOBAL.getName(), 0, false);
+        PluginData globalDTO = new PluginData("4", PluginEnum.GLOBAL.getName(), "", 0, false);
         zkClient.writeData(global, globalDTO);
 
 
     }
 
 
-    private PluginZkDTO buildByName(String name) {
-        PluginZkDTO pluginZkDTO = new PluginZkDTO();
-        pluginZkDTO.setEnabled(true);
-        pluginZkDTO.setId("1");
-        pluginZkDTO.setName(name);
-        return pluginZkDTO;
+    private PluginData buildByName(String name) {
+        PluginData pluginData = new PluginData();
+        pluginData.setEnabled(true);
+        pluginData.setId("1");
+        pluginData.setName(name);
+        return pluginData;
     }
 
 
@@ -463,7 +461,7 @@ public class ZookeeperClientTest extends BaseTest {
             zkClient.createPersistent(PLUGIN, true);
         }
         zkClient.writeData(PLUGIN, buildMap());
-        Map<String, PluginZkDTO> resultMap = zkClient.readData(PLUGIN);
+        Map<String, PluginData> resultMap = zkClient.readData(PLUGIN);
         resultMap.forEach((k, v) -> LOGGER.debug(k + ":" + v.toString()));
 
     }
@@ -482,8 +480,8 @@ public class ZookeeperClientTest extends BaseTest {
      */
     @Test
     public void testPluginUpdate() {
-        final Map<String, PluginZkDTO> map = buildMap();
-        map.put(PluginEnum.DIVIDE.getName(), new PluginZkDTO("2", PluginEnum.DIVIDE.getName(), 0, Boolean.FALSE));
+        final Map<String, PluginData> map = buildMap();
+        map.put(PluginEnum.DIVIDE.getName(), new PluginData("2", PluginEnum.DIVIDE.getName(), "", 0, Boolean.FALSE));
         zkClient.writeData(PLUGIN, map);
     }
 
@@ -501,8 +499,8 @@ public class ZookeeperClientTest extends BaseTest {
                 LOGGER.info("node data changed!");
                 LOGGER.info("path=>" + path);
                 LOGGER.info("data=>" + o);
-                Map<String, PluginZkDTO> map;
-                map = (Map<String, PluginZkDTO>) o;
+                Map<String, PluginData> map;
+                map = (Map<String, PluginData>) o;
                 LOGGER.info(map.toString());
                 LOGGER.info("--------------");
             }
@@ -526,7 +524,7 @@ public class ZookeeperClientTest extends BaseTest {
 
 
     /**
-     * Test update config.
+     * Test update configuration.
      */
     @Test
     public void testUpdateConfig() {
@@ -539,11 +537,11 @@ public class ZookeeperClientTest extends BaseTest {
         zkClient.delete(ROOT_PATH);//删除一个不存在的node，并不会报错
     }
 
-    private Map<String, PluginZkDTO> buildMap() {
-        Map<String, PluginZkDTO> pluginMap = Maps.newHashMap();
-        pluginMap.put(PluginEnum.DIVIDE.getName(), new PluginZkDTO("6", PluginEnum.DIVIDE.getName(), 0, Boolean.TRUE));
-        pluginMap.put(PluginEnum.GLOBAL.getName(), new PluginZkDTO("7", PluginEnum.GLOBAL.getName(), 0, Boolean.TRUE));
-        pluginMap.put(PluginEnum.MONITOR.getName(), new PluginZkDTO("8", PluginEnum.MONITOR.getName(), 0, Boolean.TRUE));
+    private Map<String, PluginData> buildMap() {
+        Map<String, PluginData> pluginMap = Maps.newHashMap();
+        pluginMap.put(PluginEnum.DIVIDE.getName(), new PluginData("6", PluginEnum.DIVIDE.getName(), "", 0, Boolean.TRUE));
+        pluginMap.put(PluginEnum.GLOBAL.getName(), new PluginData("7", PluginEnum.GLOBAL.getName(), "", 0, Boolean.TRUE));
+        pluginMap.put(PluginEnum.MONITOR.getName(), new PluginData("8", PluginEnum.MONITOR.getName(), "", 0, Boolean.TRUE));
         return pluginMap;
     }
 }
