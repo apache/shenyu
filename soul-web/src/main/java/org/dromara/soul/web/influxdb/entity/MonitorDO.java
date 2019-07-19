@@ -53,5 +53,7 @@ public class MonitorDO implements Serializable {
 
     private String rpcType;
 
+    private long elapsedTime;
+
 
 }
