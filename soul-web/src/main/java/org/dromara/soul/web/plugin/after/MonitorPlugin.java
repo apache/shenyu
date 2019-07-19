@@ -34,6 +34,7 @@ import org.dromara.soul.web.request.RequestDTO;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -91,6 +92,7 @@ public class MonitorPlugin extends AbstractSoulPlugin {
                 .method(requestDTO.getMethod())
                 .ip(exchange.getRequest().getRemoteAddress().getAddress().getHostAddress())
                 .host(exchange.getRequest().getRemoteAddress().getHostString())
+                .elapsedTime(new Date().getTime() - requestDTO.getStartDateTime().getTime())
                 .build();
     }
 
