@@ -115,8 +115,6 @@ java -jar soul-admin.jar -Dspring.datasource.url="your mysql url"
 # Prerequisite
  
    * JDK 1.8+
-
-   * Zookeeper
    
    * Mysql
    
