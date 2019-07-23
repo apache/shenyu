@@ -224,8 +224,9 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
             }
         } else if (exception instanceof HystrixTimeoutException) {
             exchange.getResponse().setStatusCode(HttpStatus.GATEWAY_TIMEOUT);
-        } else
+        } else {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
         final SoulResult error = SoulResult.error(Constants.HTTP_ERROR_RESULT);
         return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
                 .bufferFactory().wrap(Objects.requireNonNull(JsonUtils.toJson(error)).getBytes())));
