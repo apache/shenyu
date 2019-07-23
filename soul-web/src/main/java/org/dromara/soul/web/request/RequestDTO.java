@@ -26,7 +26,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.MultiValueMap;
 
 import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * the soul request DTO .
@@ -96,7 +96,7 @@ public class RequestDTO implements Serializable {
     /**
      * startDateTime
      */
-    private Date startDateTime;
+    private LocalDateTime startDateTime;
 
     /**
      * ServerHttpRequest transform RequestDTO .
@@ -124,7 +124,7 @@ public class RequestDTO implements Serializable {
         requestDTO.setTimestamp(timestamp);
         requestDTO.setExtInfo(extInfo);
         requestDTO.setPathVariable(pathVariable);
-        requestDTO.setStartDateTime(new Date());
+        requestDTO.setStartDateTime(LocalDateTime.now());
         return requestDTO;
     }
 
