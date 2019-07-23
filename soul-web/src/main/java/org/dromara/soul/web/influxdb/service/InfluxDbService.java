@@ -50,6 +50,7 @@ public class InfluxDbService {
                     .tag("module", monitorDO.getModule())
                     .tag("resultType", monitorDO.getResultType())
                     .tag("rpcType", monitorDO.getRpcType())
+                    .tag("elapsedTime", String.valueOf(monitorDO.getElapsedTime()))
                     .addField("count", monitorDO.getCount());
             final Point point = builder.build();
             influxDBTemplate.write(point);
