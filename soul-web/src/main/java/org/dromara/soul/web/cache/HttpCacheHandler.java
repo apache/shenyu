@@ -17,6 +17,7 @@
 
 package org.dromara.soul.web.cache;
 
+import com.netflix.hystrix.strategy.properties.HystrixPropertiesFactory;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.common.dto.AppAuthData;
 import org.dromara.soul.common.dto.PluginData;
@@ -119,6 +120,8 @@ class HttpCacheHandler extends AbstractLocalCacheManager {
             });
             RULE_MAP.clear();
             RULE_MAP.putAll(selectorToRules);
+            //Reset the HystrixPropertiesFactory cache, and HystrixProperties becomes dynamic
+            HystrixPropertiesFactory.reset();
         }
     }
 
