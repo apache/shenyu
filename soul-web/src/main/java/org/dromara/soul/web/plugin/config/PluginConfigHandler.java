@@ -19,6 +19,7 @@
 package org.dromara.soul.web.plugin.config;
 
 import com.google.common.base.Splitter;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.dromara.soul.common.config.MonitorConfig;
 import org.dromara.soul.common.config.RateLimiterConfig;
 import org.dromara.soul.common.dto.PluginData;
@@ -35,7 +36,9 @@ import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettucePoolingClientConfiguration;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -105,12 +108,31 @@ public enum PluginConfigHandler {
     }
 
     private LettuceConnectionFactory createLettuceConnectionFactory(final RateLimiterConfig rateLimiterConfig) {
+        LettuceClientConfiguration lettuceClientConfiguration = getLettuceClientConfiguration(rateLimiterConfig);
         if (RedisModeEnum.SENTINEL.getName().equals(rateLimiterConfig.getMode())) {
-            return new LettuceConnectionFactory(redisSentinelConfiguration(rateLimiterConfig));
+            return new LettuceConnectionFactory(redisSentinelConfiguration(rateLimiterConfig), lettuceClientConfiguration);
         } else if (RedisModeEnum.CLUSTER.getName().equals(rateLimiterConfig.getMode())) {
-            return new LettuceConnectionFactory(redisClusterConfiguration(rateLimiterConfig));
+            return new LettuceConnectionFactory(redisClusterConfiguration(rateLimiterConfig), lettuceClientConfiguration);
         }
-        return new LettuceConnectionFactory(redisStandaloneConfiguration(rateLimiterConfig));
+        return new LettuceConnectionFactory(redisStandaloneConfiguration(rateLimiterConfig), lettuceClientConfiguration);
+    }
+
+
+    private LettuceClientConfiguration getLettuceClientConfiguration(final RateLimiterConfig rateLimiterConfig) {
+        return LettucePoolingClientConfiguration.builder()
+                .poolConfig(getPoolConfig(rateLimiterConfig))
+                .build();
+    }
+
+    private GenericObjectPoolConfig<?> getPoolConfig(final RateLimiterConfig rateLimiterConfig) {
+        GenericObjectPoolConfig<?> config = new GenericObjectPoolConfig<>();
+        config.setMaxTotal(rateLimiterConfig.getMaxActive());
+        config.setMaxIdle(rateLimiterConfig.getMaxIdle());
+        config.setMinIdle(rateLimiterConfig.getMinIdle());
+        if (rateLimiterConfig.getMaxWait() != null) {
+            config.setMaxWaitMillis(rateLimiterConfig.getMaxWait().toMillis());
+        }
+        return config;
     }
 
     protected final RedisStandaloneConfiguration redisStandaloneConfiguration(final RateLimiterConfig rateLimiterConfig) {

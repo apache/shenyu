@@ -23,7 +23,7 @@ import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.extend.demo.entity.Test;
-import org.dromara.soul.web.cache.ZookeeperSyncCache;
+import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.plugin.AbstractSoulPlugin;
 import org.dromara.soul.web.plugin.SoulPluginChain;
 import org.slf4j.Logger;
@@ -46,7 +46,7 @@ public class CustomPlugin extends AbstractSoulPlugin {
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(CustomPlugin.class);
 
-    public CustomPlugin(final ZookeeperSyncCache dataCacheManager) {
+    public CustomPlugin(final LocalCacheManager dataCacheManager) {
         super(dataCacheManager);
     }
 

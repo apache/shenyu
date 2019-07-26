@@ -21,7 +21,7 @@ package org.dromara.soul.extend.demo.config;
 import org.dromara.soul.extend.demo.cors.CrossFilter;
 import org.dromara.soul.extend.demo.custom.CustomPlugin;
 import org.dromara.soul.extend.demo.dubbo.CustomGenericParamServiceImpl;
-import org.dromara.soul.web.cache.ZookeeperSyncCache;
+import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.plugin.SoulPlugin;
 import org.dromara.soul.web.plugin.dubbo.GenericParamService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,16 +38,11 @@ import org.springframework.web.server.WebFilter;
 @Configuration
 public class CustomConfiguration {
 
-    private final ZookeeperSyncCache zookeeperSyncCache;
+    private final LocalCacheManager localCacheManager;
 
-    /**
-     * Instantiates a new Custom configuration.
-     *
-     * @param zookeeperSyncCache the zookeeper cache manager
-     */
     @Autowired(required = false)
-    public CustomConfiguration(final ZookeeperSyncCache zookeeperSyncCache) {
-        this.zookeeperSyncCache = zookeeperSyncCache;
+    public CustomConfiguration(final LocalCacheManager localCacheManager) {
+        this.localCacheManager = localCacheManager;
     }
 
     /**
@@ -57,7 +52,7 @@ public class CustomConfiguration {
      */
     @Bean
     public SoulPlugin functionPlugin() {
-        return new CustomPlugin(zookeeperSyncCache);
+        return new CustomPlugin(localCacheManager);
     }
 
     /**
