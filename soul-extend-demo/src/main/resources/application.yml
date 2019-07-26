@@ -11,24 +11,25 @@ spring:
      host: localhost
      password: 123456
      port: 6379
-   influxdb:
-        url: http://localhost:8086
-        username: test
-        password: test
-        database: test
-        retention-policy: autogen
-        connect-timeout: 10
-        read-timeout: 30
-        write-timeout: 10
-   zookeeper:
-        url : localhost:2181
-        sessionTimeout: 5000
-        connectionTimeout : 2000
-soul:
-    bufferSize: 4096
-    timeVerify:
-       timeDelay : 10
-       enabled: false
+     Lettuce:
+       pool :
+          max-wait: 100
+
+
+soul :
+    filterTimeEnable : false
+    filterTime : 10
+    sync:
+        strategy: websocket
+        websocket :
+             url: ws://localhost:8887/websocket
+#        zookeeper:
+#             url: localhost:2181
+#             sessionTimeout: 5000
+#             connectionTimeout: 2000
+#        http:
+#             url : localhost:8888
+
 logging:
     level:
         root: info
