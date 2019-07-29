@@ -130,11 +130,6 @@
             <artifactId>hessian</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>1.2.40</version>
-        </dependency>
 
         <dependency>
             <groupId>org.mapstruct</groupId>
