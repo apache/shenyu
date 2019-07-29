@@ -46,8 +46,6 @@ public class ZkSerializerFactory {
                 return new HessianSerializer();
             case PROTOSTUFF:
                 return new ProtostuffSerializer();
-            case FAST_JSON:
-                return new FastJsonSerializer();
             default:
                 return new JavaSerializer();
         }
