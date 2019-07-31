@@ -27,6 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author xiaoyu
  */
 public enum Singleton {
+
     /**
      * Inst singleton.
      */
