@@ -6,7 +6,6 @@
 [![Build Status](https://travis-ci.org/Dromara/soul.svg?branch=master)](https://travis-ci.org/Dromara/soul)
 [![Maven Central](https://img.shields.io/maven-central/v/org.dromara/soul.svg?label=maven%20central)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22org.dromara%22%20AND%soul)
 [![QQ群](https://img.shields.io/badge/chat-on%20QQ-ff69b4.svg?style=flat-square)](https://shang.qq.com/wpa/qunwpa?idkey=03bbb6f74b3257989316c0a8cf07cec117314dbdfe4fa7a20870b298b7db2c3b)
-[![JetBrains](https://yu199195.github.io/images/jetbrains.svg)](https://www.jetbrains.com/?from=Soul)
 
 
 ### Reactive gateway based on webflux
@@ -144,7 +143,7 @@ java -jar soul-admin.jar -Dspring.datasource.url="your mysql url"
 
 # Support  
 
- 
-
  ![](https://yu199195.github.io/images/soul-qq.png) ![](https://yu199195.github.io/images/public.jpg)
   
+ [![JetBrains](https://yu199195.github.io/images/jetbrains.svg)](https://www.jetbrains.com/?from=soul)
+ 
