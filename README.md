@@ -119,14 +119,14 @@ java -jar soul-admin.jar -Dspring.datasource.url="your mysql url"
    
    * Mysql
    
-# About
+# About & Document
   
    Soul Has been used in our production environment,Its performance and flexibility allow us to use up very cool.
    
    In double 11, we deployed 6 clusters, which supported a large volume of our business.
    
-   If you want to use it, you can see [more](https://dromara.org/website/zh-cn/docs/soul/soul.html)
-     
+   If you want to use it, you can see [Document](https://dromara.org/website/zh-cn/docs/soul/soul.html)
+        
 # Stargazers over time
 
 [![Stargazers over time](https://starchart.cc/Dromara/soul.svg)](https://starchart.cc/Dromara/soul)
