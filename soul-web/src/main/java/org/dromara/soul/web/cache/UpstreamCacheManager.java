@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -55,8 +54,6 @@ public class UpstreamCacheManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(UpstreamCacheManager.class);
 
     private static final BlockingQueue<SelectorData> BLOCKING_QUEUE = new LinkedBlockingQueue<>(1024);
-
-    private static final int MAX_THREAD = Runtime.getRuntime().availableProcessors() << 1;
 
     private static final Map<String, List<DivideUpstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
 
@@ -96,23 +93,17 @@ public class UpstreamCacheManager {
      */
     @PostConstruct
     public void init() {
-        synchronized (UpstreamCacheManager.class) {
-            ExecutorService executorService = new ThreadPoolExecutor(MAX_THREAD, MAX_THREAD,
-                    0L, TimeUnit.MILLISECONDS,
-                    new LinkedBlockingQueue<>(),
-                    SoulThreadFactory.create("save-upstream-task", false));
-
-            for (int i = 0; i < MAX_THREAD; i++) {
-                executorService.execute(new Worker());
-            }
-
-            new ScheduledThreadPoolExecutor(MAX_THREAD,
-                    SoulThreadFactory.create("scheduled-upstream-task", false))
-                    .scheduleWithFixedDelay(this::scheduled,
-                            DELAY_INIT, soulConfig.getUpstreamScheduledTime(), TimeUnit.SECONDS);
-        }
+        new ThreadPoolExecutor(1, 1,
+                0L, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<>(),
+                SoulThreadFactory.create("save-upstream-task", false))
+                .execute(new Worker());
+        new ScheduledThreadPoolExecutor(1,
+                SoulThreadFactory.create("scheduled-upstream-task", false))
+                .scheduleWithFixedDelay(this::scheduled,
+                        DELAY_INIT, soulConfig.getUpstreamScheduledTime(),
+                        TimeUnit.SECONDS);
     }
-
 
     /**
      * Submit.
@@ -163,7 +154,7 @@ public class UpstreamCacheManager {
             final boolean pass = UrlUtils.checkUrl(divideUpstream.getUpstreamUrl());
             if (pass) {
                 resultList.add(divideUpstream);
-            }else{
+            } else {
                 LogUtils.error(LOGGER, "check the url={} is fail ", divideUpstream::getUpstreamUrl);
             }
         }
@@ -181,7 +172,7 @@ public class UpstreamCacheManager {
         }
 
         private void runTask() {
-            while (true) {
+            for (;;) {
                 try {
                     final SelectorData selectorData = BLOCKING_QUEUE.take();
                     Optional.of(selectorData).ifPresent(UpstreamCacheManager.this::execute);
