@@ -75,7 +75,7 @@
   The selector and the rule match only once, and the match is returned. So the coarsest granularity should be sorted last.
    
   
-# Data Caching 
+# Data Caching  & Data Sync
  
   All data is cached ConcurrentHashMap in the JVM So it's very fast.
   
@@ -83,6 +83,9 @@
   
   Soul dynamically updates the cache by listening to the zookeeper node, websocket push,http longPull.
   
+  ![Data Sync](https://bestkobe.gitee.io/images/soul/soul-config-processor.png?_t=201908032316)
+  
+  ![Sync Flow](https://bestkobe.gitee.io/images/soul/config-strage-processor.png?_t=201908032339)
  
 # Quick Start
  * get `soul-admin.jar`
