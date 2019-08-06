@@ -77,15 +77,12 @@
   
 # Data Caching 
  
-  All data is cached HashMap in the JVM So it's very fast.
+  All data is cached ConcurrentHashMap in the JVM So it's very fast.
   
   When the user is managing changes in the background,
   
-  Soul dynamically updates the cache by listening to the zookeeper node.
+  Soul dynamically updates the cache by listening to the zookeeper node, websocket push,http longPull.
   
-  This solution might rely on zookeeper,It may be replaced in the future [issues](https://github.com/Dromara/soul/issues/35)
-  
-  Node design for zookeeper [zookeeper-node](https://dromara.org/website/zh-cn/docs/soul/config.html)
  
 # Quick Start
  * get `soul-admin.jar`
