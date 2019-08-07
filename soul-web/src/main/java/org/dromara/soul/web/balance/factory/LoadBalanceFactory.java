@@ -46,6 +46,6 @@ public class LoadBalanceFactory {
         return StreamSupport.stream(SERVICE_LOADER.spliterator(), false)
                 .filter(service ->
                         Objects.equals(service.algorithm(),
-                                algorithm)).findFirst().orElse(new RandomLoadBalance());
+                                algorithm)).findFirst().orElseGet(() -> new RandomLoadBalance());
     }
 }
