@@ -44,8 +44,7 @@ public class LoadBalanceFactory {
      */
     public static LoadBalance of(final String algorithm) {
         return StreamSupport.stream(SERVICE_LOADER.spliterator(), false)
-                .filter(service ->
-                        Objects.equals(service.algorithm(),
-                                algorithm)).findFirst().orElseGet(() -> new RandomLoadBalance());
+                .filter(service -> Objects.equals(service.algorithm(), algorithm))
+                .findFirst().orElseGet(RandomLoadBalance::new);
     }
 }
