@@ -10,6 +10,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>soul-configuration</artifactId>
+    <packaging>pom</packaging>
+    <modules>
+        <module>soul-configuration-api</module>
+    </modules>
 
 
 </project>
