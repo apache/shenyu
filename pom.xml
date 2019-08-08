@@ -20,7 +20,7 @@
         <module>soul-mvc</module>
         <module>soul-register</module>
         <module>soul-store</module>
-        <module>soul-configuration</module>
+        <module>soul-config</module>
     </modules>
 
     <organization>
