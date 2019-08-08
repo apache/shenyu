@@ -1,3 +1,0 @@
-org.dromara.soul.web.balance.spi.RandomLoadBalance
-org.dromara.soul.web.balance.spi.RoundRobinLoadBalance
-org.dromara.soul.web.balance.spi.HashLoadBalance

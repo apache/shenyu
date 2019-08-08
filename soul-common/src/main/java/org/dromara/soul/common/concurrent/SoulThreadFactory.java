@@ -52,6 +52,16 @@ public final class SoulThreadFactory implements ThreadFactory {
         return new SoulThreadFactory(namePrefix, daemon);
     }
 
+    /**
+     * create custom thread factory.
+     *
+     * @param namePrefix prefix
+     * @return {@linkplain ThreadFactory}
+     */
+    public static ThreadFactory create(final String namePrefix) {
+        return create(namePrefix, false);
+    }
+
     @Override
     public Thread newThread(final Runnable runnable) {
         Thread thread = new Thread(THREAD_GROUP, runnable,
