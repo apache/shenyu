@@ -14,6 +14,47 @@
     <description>Built-in plugin</description>
     <modules>
         <module>soul-plugins-api</module>
-        <module>soul-plguins-limiter</module>
+        <module>soul-plugins-limiter</module>
+        <module>soul-plugins-dubbo</module>
+        <module>soul-plugins-http</module>
+        <module>soul-plugins-websocket</module>
     </modules>
+
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>soul-plugins-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>soul-plugins-limiter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>soul-plugins-dubbo</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>soul-plugins-http</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>soul-plugins-websocket</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+        </dependencies>
+
+    </dependencyManagement>
+
 </project>

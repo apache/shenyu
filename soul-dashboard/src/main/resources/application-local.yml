@@ -1,0 +1,41 @@
+server:
+  port: 8887
+  address: 0.0.0.0
+
+spring:
+   thymeleaf:
+       cache: true
+       encoding: utf-8
+       enabled: true
+       prefix: classpath:/static/
+       suffix: .html
+   datasource:
+     url: jdbc:mysql://192.168.1.82:3306/soul?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=CONVERT_TO_NULL&failOverReadOnly=false&autoReconnect=true
+     username: root
+     password: 123456
+     dbcp2:
+       driver-class-name: com.mysql.jdbc.Driver
+
+mybatis:
+  config-location: classpath:/mybatis/mybatis-config.xml
+  mapper-locations: classpath:/mappers/*.xml
+
+soul:
+  sync:
+      strategy: http
+#      zookeeper:
+#        url: localhost:2181
+#        sessionTimeout: 5000
+#        connectionTimeout: 2000
+
+
+logging:
+    level:
+        root: info
+        org.springframework.boot: info
+        org.apache.ibatis: info
+        org.dromara.soul.bonuspoint: info
+        org.dromara.soul.lottery: debug
+        org.dromara.soul: debug
+
+    path: "./logs/soul-admin"

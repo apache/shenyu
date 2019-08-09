@@ -11,5 +11,12 @@
 
     <artifactId>soul-plguins-limiter</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-plugins-api</artifactId>
+        </dependency>
+    </dependencies>
+
 
 </project>

@@ -65,7 +65,7 @@ public enum PluginEnum {
     /**
      * Divide plugin enum.
      */
-    DIVIDE(50, 0, "divide"),
+    HTTP(50, 0, "divide"),
 
     /**
      * webSocket plugin enum.
@@ -92,7 +92,7 @@ public enum PluginEnum {
      */
     RESPONSE(100, 0, "response");
 
-    private final int code;
+    private final int order;
 
     private final int role;
 

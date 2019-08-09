@@ -22,6 +22,7 @@
         <module>soul-store</module>
         <module>soul-config</module>
         <module>soul-cache</module>
+        <module>soul-dashboard</module>
     </modules>
 
     <organization>
