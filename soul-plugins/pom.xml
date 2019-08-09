@@ -16,5 +16,4 @@
         <module>soul-plugins-api</module>
         <module>soul-plguins-limiter</module>
     </modules>
-
 </project>

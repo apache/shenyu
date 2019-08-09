@@ -15,13 +15,16 @@
  * limitations under the License.
  */
 
-package org.dromara.config.api;
+package org.dromara.soul.bootstrap;
 
 /**
- * Configuration .
- * Different configuration adaptation processes are implemented by configuring interfaces.
+ * SoulBootstrap .
+ * soul main.
  *
  * @author sixh
  */
-public interface Configuration {
+public class SoulBootstrap {
+    public static void main(String[] args) {
+
+    }
 }
