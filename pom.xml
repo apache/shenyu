@@ -21,6 +21,7 @@
         <module>soul-register</module>
         <module>soul-store</module>
         <module>soul-config</module>
+        <module>soul-cache</module>
     </modules>
 
     <organization>

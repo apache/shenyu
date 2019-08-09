@@ -3,18 +3,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>soul</artifactId>
+        <artifactId>soul-plugins</artifactId>
         <groupId>org.dromara</groupId>
         <version>3.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>soul-plugins</artifactId>
-    <packaging>pom</packaging>
-    <description>Built-in plugin</description>
-    <modules>
-        <module>soul-plugins-api</module>
-        <module>soul-plguins-limiter</module>
-    </modules>
+    <artifactId>soul-plguins-limiter</artifactId>
+
 
 </project>

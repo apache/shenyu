@@ -9,12 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>soul-plugins</artifactId>
-    <packaging>pom</packaging>
-    <description>Built-in plugin</description>
-    <modules>
-        <module>soul-plugins-api</module>
-        <module>soul-plguins-limiter</module>
-    </modules>
+    <artifactId>soul-cache</artifactId>
+
 
 </project>
