@@ -71,12 +71,6 @@
         </developer>
     </developers>
 
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.1.2.RELEASE</version>
-    </parent>
-
     <properties>
         <jdk.version>1.8</jdk.version>
         <hutool.version>4.0.8</hutool.version>
@@ -84,13 +78,12 @@
         <jasypt.version>1.9.2</jasypt.version>
         <lombok.version>1.16.20</lombok.version>
         <springfox.version>2.6.1</springfox.version>
-        <mybatis.starter.version>1.1.1</mybatis.starter.version>
+
         <mysql.version>8.0.11</mysql.version>
         <druid.version>1.0.29</druid.version>
         <commons-lang3.version>3.3.2</commons-lang3.version>
         <guava.version>21.0</guava.version>
         <commons-collections4.version>4.1</commons-collections4.version>
-        <reactor-spring.version>1.0.1.RELEASE</reactor-spring.version>
         <commons-dbcp.version>1.2.1</commons-dbcp.version>
         <disruptor.version>3.4.0</disruptor.version>
         <hessian.version>4.0.38</hessian.version>
@@ -133,12 +126,6 @@
             <dependency>
                 <groupId>org.dromara</groupId>
                 <artifactId>soul-bootstrap</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.dromara</groupId>
-                <artifactId>soul-spring-boot-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

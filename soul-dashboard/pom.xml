@@ -27,7 +27,10 @@
 
     <artifactId>soul-dashboard</artifactId>
 
-
+    <properties>
+        <spring.boot.version>2.1.2.RELEASE</spring.boot.version>
+        <mybatis.starter.version>1.1.1</mybatis.starter.version>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>org.dromara</groupId>
@@ -36,6 +39,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+            <version>${spring.boot.version}</version>
         </dependency>
 
         <dependency>
@@ -55,6 +59,7 @@
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>
             <artifactId>mybatis-spring-boot-starter</artifactId>
+            <version>${mybatis.starter.version}</version>
         </dependency>
 
         <dependency>
