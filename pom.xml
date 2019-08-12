@@ -78,7 +78,6 @@
         <jasypt.version>1.9.2</jasypt.version>
         <lombok.version>1.16.20</lombok.version>
         <springfox.version>2.6.1</springfox.version>
-
         <mysql.version>8.0.11</mysql.version>
         <druid.version>1.0.29</druid.version>
         <commons-lang3.version>3.3.2</commons-lang3.version>
@@ -94,41 +93,20 @@
         <gson.version>2.8.0</gson.version>
         <okhttp.version>3.7.0</okhttp.version>
         <mapstruct.version>1.2.0.Final</mapstruct.version>
+        <mockito.version>1.10.19</mockito.version>
+        <junit.version>4.12</junit.version>
+        <logback.version>1.2.1</logback.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
-
             <dependency>
                 <groupId>org.dromara</groupId>
-                <artifactId>soul-admin</artifactId>
-                <version>${project.version}</version>
+                <artifactId>soul-bom</artifactId>
+                <version>3.0.0-SNAPSHOT</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
-
-            <dependency>
-                <groupId>org.dromara</groupId>
-                <artifactId>soul-common</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.dromara</groupId>
-                <artifactId>soul-configuration</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.dromara</groupId>
-                <artifactId>soul-web</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.dromara</groupId>
-                <artifactId>soul-bootstrap</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
             <dependency>
                 <groupId>org.mapstruct</groupId>
                 <artifactId>mapstruct-processor</artifactId>
@@ -157,13 +135,6 @@
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
                 <version>${lombok.version}</version>
-            </dependency>
-
-
-            <dependency>
-                <groupId>com.alibaba</groupId>
-                <artifactId>dubbo</artifactId>
-                <version>${dubbo.version}</version>
             </dependency>
 
             <dependency>
@@ -260,9 +231,41 @@
                 <artifactId>pagehelper</artifactId>
                 <version>${pagehelper.version}</version>
             </dependency>
-
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-all</artifactId>
+                <version>${mockito.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${junit.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
 
     <distributionManagement>
         <snapshotRepository>
@@ -277,31 +280,6 @@
 
     <build>
         <plugins>
-            <!-- <plugin>
-                 <groupId>org.sonatype.plugins</groupId>
-                 <artifactId>nexus-staging-maven-plugin</artifactId>
-                 <version>1.6.3</version>
-                 <extensions>true</extensions>
-                 <configuration>
-                     <serverId>ossrh</serverId>
-                     <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
-                 </configuration>
-             </plugin>
-             <plugin>
-                 <groupId>org.apache.maven.plugins</groupId>
-                 <artifactId>maven-gpg-plugin</artifactId>
-                 <version>1.5</version>
-                 <executions>
-                     <execution>
-                         <phase>verify</phase>
-                         <goals>
-                             <goal>sign</goal>
-                         </goals>
-                     </execution>
-                 </executions>
-             </plugin>
-              -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>

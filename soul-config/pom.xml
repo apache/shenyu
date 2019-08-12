@@ -15,25 +15,4 @@
         <module>soul-config-api</module>
         <module>soul-config-local</module>
     </modules>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.dromara</groupId>
-                <artifactId>soul-config-api</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.dromara</groupId>
-                <artifactId>soul-config-local</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.dromara</groupId>
-                <artifactId>soul-common</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 </project>
