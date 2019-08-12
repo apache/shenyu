@@ -45,25 +45,11 @@ public class Config {
      * 使用方自定义的配置扩展信息.
      */
     private List<Consumer> consumers;
-
-    @Data
-    public static class Consumer {
-        /**
-         * 怕个可以为null, 只会返回一个Map集合.
-         */
-        private String clazz;
-
-        /**
-         * 具体的配置信息.
-         */
-        private Map<String, Object> args;
-    }
-
     /**
      * 配置的数据库.
      */
     @Data
-    public class DataBase {
+    public static class DataBase {
 
         /**
          * The Url.
@@ -79,7 +65,7 @@ public class Config {
      * The type Server.
      */
     @Data
-    public class Server {
+    public static class Server {
         /**
          * 配置中心的模式.
          */
