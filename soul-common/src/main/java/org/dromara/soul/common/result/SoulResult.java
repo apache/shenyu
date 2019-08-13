@@ -20,7 +20,7 @@ package org.dromara.soul.common.result;
 
 import lombok.Data;
 import org.dromara.soul.common.exception.CommonErrorCode;
-import org.springframework.http.HttpStatus;
+//import org.springframework.http.HttpStatus;
 
 import java.io.Serializable;
 
@@ -130,7 +130,7 @@ public class SoulResult implements Serializable {
      * @return {@linkplain SoulResult}
      */
     public static SoulResult timeout(final String msg) {
-        return error(HttpStatus.REQUEST_TIMEOUT.value(), msg);
+        return error(300, msg);
     }
 
     private static SoulResult get(final int code, final String msg, final Object data) {

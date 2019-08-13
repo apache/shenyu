@@ -17,24 +17,24 @@
 
 package org.dromara.config.local;
 
-import org.dromara.config.api.AbstractConfigLoader;
 import org.dromara.config.api.BaseConfig;
-import org.dromara.config.api.PropertySource;
+import org.dromara.config.api.ConfigLoader;
+import org.junit.Test;
 
-import java.util.List;
+import static org.junit.Assert.assertEquals;
 
-/**
- * LocalConfigLoader .
- * Loading local yml file processing.
- *
- * @author sixh
- */
-public class LocalConfigLoader extends AbstractConfigLoader {
+public class LocalConfigLoaderTest {
 
-    @Override
-    public BaseConfig load0(List<PropertySource<?>> config) {
-        BaseConfig baseConfig = new BaseConfig();
-        System.out.println(baseConfig);
-        return baseConfig;
+    @Test
+    public void testLoad() {
+        ConfigLoader configLoader = new LocalConfigLoader();
+
+    }
+
+    @Test
+    public void testLoadConsumer() {
+        ConfigLoader configLoader = new LocalConfigLoader();
+        BaseConfig config = configLoader.load();
+        System.out.println(config);
     }
 }

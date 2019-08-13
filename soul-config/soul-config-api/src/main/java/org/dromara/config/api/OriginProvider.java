@@ -15,26 +15,22 @@
  * limitations under the License.
  */
 
-package org.dromara.config.local;
-
-import org.dromara.config.api.AbstractConfigLoader;
-import org.dromara.config.api.BaseConfig;
-import org.dromara.config.api.PropertySource;
-
-import java.util.List;
+package org.dromara.config.api;
 
 /**
- * LocalConfigLoader .
- * Loading local yml file processing.
+ * Interface to provide access to the origin of an item.
  *
- * @author sixh
+ * @author Phillip Webb
+ * @since 2.0.0
+ * @see Origin
  */
-public class LocalConfigLoader extends AbstractConfigLoader {
+@FunctionalInterface
+public interface OriginProvider {
 
-    @Override
-    public BaseConfig load0(List<PropertySource<?>> config) {
-        BaseConfig baseConfig = new BaseConfig();
-        System.out.println(baseConfig);
-        return baseConfig;
-    }
+	/**
+	 * Return the source origin or {@code null} if the origin is not known.
+	 * @return the origin or {@code null}
+	 */
+	Origin getOrigin();
+
 }

@@ -15,26 +15,24 @@
  * limitations under the License.
  */
 
-package org.dromara.config.local;
+package org.dromara.config.api;
 
-import org.dromara.config.api.AbstractConfigLoader;
-import org.dromara.config.api.BaseConfig;
-import org.dromara.config.api.PropertySource;
-
-import java.util.List;
+import lombok.Data;
 
 /**
- * LocalConfigLoader .
- * Loading local yml file processing.
+ * PropertySource .
  *
  * @author sixh
  */
-public class LocalConfigLoader extends AbstractConfigLoader {
+@Data
+public abstract class PropertySource<T> {
 
-    @Override
-    public BaseConfig load0(List<PropertySource<?>> config) {
-        BaseConfig baseConfig = new BaseConfig();
-        System.out.println(baseConfig);
-        return baseConfig;
+    protected final String name;
+
+    protected final T source;
+
+    public PropertySource(String name, T source) {
+        this.name = name;
+        this.source = source;
     }
 }

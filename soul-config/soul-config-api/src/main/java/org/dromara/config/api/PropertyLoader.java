@@ -15,26 +15,32 @@
  * limitations under the License.
  */
 
-package org.dromara.config.local;
+package org.dromara.config.api;
 
-import org.dromara.config.api.AbstractConfigLoader;
-import org.dromara.config.api.BaseConfig;
-import org.dromara.config.api.PropertySource;
-
+import java.io.InputStream;
 import java.util.List;
 
 /**
- * LocalConfigLoader .
- * Loading local yml file processing.
- *
- * @author sixh
+ * PropertyLoader .
+ * 1. 加载不同类型的参数处理.
+ * * @author sixh
  */
-public class LocalConfigLoader extends AbstractConfigLoader {
+public interface PropertyLoader {
 
-    @Override
-    public BaseConfig load0(List<PropertySource<?>> config) {
-        BaseConfig baseConfig = new BaseConfig();
-        System.out.println(baseConfig);
-        return baseConfig;
-    }
+    /**
+     * Check file boolean.
+     *
+     * @param fileName the file name
+     * @return the boolean
+     */
+    boolean checkFile(String fileName);
+
+    /**
+     * 读取的文件
+     *
+     * @param name   the name
+     * @param stream 处理流.
+     * @return the property sources
+     */
+    List<PropertySource<?>> load(String name, InputStream stream);
 }

@@ -15,26 +15,12 @@
  * limitations under the License.
  */
 
-package org.dromara.config.local;
-
-import org.dromara.config.api.AbstractConfigLoader;
-import org.dromara.config.api.BaseConfig;
-import org.dromara.config.api.PropertySource;
-
-import java.util.List;
+package org.dromara.config.api;
 
 /**
- * LocalConfigLoader .
- * Loading local yml file processing.
+ * BindPrimitive .
  *
  * @author sixh
  */
-public class LocalConfigLoader extends AbstractConfigLoader {
-
-    @Override
-    public BaseConfig load0(List<PropertySource<?>> config) {
-        BaseConfig baseConfig = new BaseConfig();
-        System.out.println(baseConfig);
-        return baseConfig;
-    }
+public class BindPrimitive {
 }

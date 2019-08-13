@@ -17,19 +17,42 @@
 
 package org.dromara.config.api;
 
+import org.dromara.soul.common.utils.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * Consumer .
+ * ConfigParent .
  * <p>
  * <p>
  * 2019-08-12 20:45
  *
  * @author chenbin sixh
  */
-public interface Consumer {
+public interface ConfigParent {
+
+    /**
+     * The constant PRIMITIVES.
+     */
+    List<BindPrimitive> PRIMITIVES = new ArrayList<>();
+
     /**
      * yml file properties prefix.
      *
-     * @return string.
+     * @return string. string
      */
     String prefix();
+
+    /**
+     * Add primitives.
+     */
+    default void addPrimitives() {
+        Class<? extends ConfigParent> clazz = this.getClass();
+        BindPrimitive bp = new BindPrimitive();
+        if (StringUtils.isBlank(prefix())) {
+            return;
+        }
+        PRIMITIVES.add(bp);
+    }
 }

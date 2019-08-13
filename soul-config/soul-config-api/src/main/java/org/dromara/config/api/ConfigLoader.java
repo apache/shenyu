@@ -32,5 +32,5 @@ public interface ConfigLoader {
      *
      * @return 配置信息.
      */
-    Config load();
+    BaseConfig load();
 }

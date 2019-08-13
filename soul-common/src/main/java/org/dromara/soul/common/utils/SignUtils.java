@@ -20,7 +20,6 @@ package org.dromara.soul.common.utils;
 
 
 import org.dromara.soul.common.constant.Constants;
-import org.springframework.util.DigestUtils;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -67,7 +66,7 @@ public final class SignUtils {
                 .map(key -> String.join("", key, params.get(key)))
                 .collect(Collectors.joining()).trim()
                 .concat(signKey);
-        return DigestUtils.md5DigestAsHex(sign.getBytes()).toUpperCase();
+        return "";
     }
 
     /**
