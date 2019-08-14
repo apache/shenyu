@@ -15,45 +15,24 @@
  * limitations under the License.
  */
 
-package org.dromara.config.api;
-
-import lombok.Data;
+package org.dromara.config.api.bind;
 
 /**
- * PropertySource .
+ * Binder that can be used by {@link BeanBinder} implementations to recursively bind bean
+ * properties.
  *
- * @param <T> the type parameter
- * @author sixh
+ * @author Phillip Webb
+ * @author Madhura Bhave
  */
-@Data
-public abstract class PropertySource<T> {
+interface BeanPropertyBinder {
 
-    /**
-     * The Name.
-     */
-    protected final String name;
+	/**
+	 * Bind the given property.
+	 * @param propertyName the property name (in lowercase dashed form, e.g.
+	 * {@code first-name})
+	 * @param target the target bindable
+	 * @return the bound value or {@code null}
+	 */
+	Object bindProperty(String propertyName, BindData<?> target);
 
-    /**
-     * The Source.
-     */
-    protected final T source;
-
-    /**
-     * Instantiates a new Property source.
-     *
-     * @param name   the name
-     * @param source the source
-     */
-    public PropertySource(String name, T source) {
-        this.name = name;
-        this.source = source;
-    }
-
-    /**
-     * Gets property.
-     *
-     * @param propertySourceName the property source name
-     * @return the property
-     */
-    public abstract Object getProperty(String propertySourceName);
 }

@@ -15,45 +15,41 @@
  * limitations under the License.
  */
 
-package org.dromara.config.api;
+package org.dromara.config.api.source;
 
 import lombok.Data;
 
 /**
- * PropertySource .
+ * PropertyKey .
  *
- * @param <T> the type parameter
  * @author sixh
  */
 @Data
-public abstract class PropertySource<T> {
+public class PropertyKey {
+
+    private String propertyName;
+
+    private PropertyName propertyNameObj;
 
     /**
-     * The Name.
-     */
-    protected final String name;
-
-    /**
-     * The Source.
-     */
-    protected final T source;
-
-    /**
-     * Instantiates a new Property source.
+     * Instantiates a new Property key.
      *
-     * @param name   the name
-     * @param source the source
+     * @param propertyName    the property name
+     * @param propertyNameObj the property name obj
      */
-    public PropertySource(String name, T source) {
-        this.name = name;
-        this.source = source;
+    public PropertyKey(String propertyName, PropertyName propertyNameObj) {
+        this.propertyName = propertyName;
+        this.propertyNameObj = propertyNameObj;
     }
 
     /**
-     * Gets property.
+     * Return if this mapping is applicable for the given
+     * {@link ConfigurationPropertyName}.
      *
-     * @param propertySourceName the property source name
-     * @return the property
+     * @param name the name to check
+     * @return if the mapping is applicable
      */
-    public abstract Object getProperty(String propertySourceName);
+    public boolean isApplicable(PropertyName name) {
+        return this.propertyNameObj.equals(name);
+    }
 }

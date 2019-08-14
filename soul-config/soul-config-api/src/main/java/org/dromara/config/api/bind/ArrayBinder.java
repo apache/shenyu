@@ -27,5 +27,9 @@ package org.dromara.config.api.bind;
  *
  * @author chenbin sixh
  */
-public class ArrayBinder extends IndexedBinder<Object>{
+public class ArrayBinder extends IndexedBinder<Object> {
+
+    public ArrayBinder(Binder.Evn evn) {
+        super(evn);
+    }
 }

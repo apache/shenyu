@@ -30,4 +30,8 @@ import java.util.Map;
  * @author chenbin sixh
  */
 public class MapBinder extends AggregateBinder<Map> {
+
+    public MapBinder(Binder.Evn evn) {
+        super(evn);
+    }
 }

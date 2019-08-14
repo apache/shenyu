@@ -27,12 +27,19 @@ import java.util.Map;
  * @see OriginTrackedValue
  * @since 2.0.0
  */
-public final class OriginTrackedMapPropertySource extends PropertySource {
+public final class OriginTrackedMapPropertySource extends PropertySource<Map<String, Object>> {
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public OriginTrackedMapPropertySource(String name, Map source) {
+
+    public OriginTrackedMapPropertySource(String name, Map<String, Object> source) {
         super(name, source);
     }
 
-
+    @Override
+    public Object getProperty(String propertySourceName) {
+        Object value = this.source.get(propertySourceName);
+        if (value instanceof OriginTrackedValue) {
+            return ((OriginTrackedValue) value).getValue();
+        }
+        return value;
+    }
 }

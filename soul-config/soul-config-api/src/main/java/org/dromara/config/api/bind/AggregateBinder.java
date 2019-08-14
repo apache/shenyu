@@ -19,6 +19,8 @@
 
 package org.dromara.config.api.bind;
 
+import org.dromara.config.api.source.PropertyName;
+
 /**
  * AggregateBinder .
  * <p>
@@ -28,6 +30,17 @@ package org.dromara.config.api.bind;
  * @author chenbin sixh
  */
 public abstract class AggregateBinder<T> {
+
+    private Binder.Evn evn;
+
+    public Binder.Evn getEvn() {
+        return evn;
+    }
+
+    public AggregateBinder(Binder.Evn evn) {
+        this.evn = evn;
+    }
+
     public Object bind(PropertyName name, BindData<?> target) {
         return null;
     }

@@ -30,4 +30,8 @@ import java.util.Collection;
  * @author chenbin sixh
  */
 public class CollectionBinder extends IndexedBinder<Collection<Object>> {
+
+    public CollectionBinder(Binder.Evn evn) {
+        super(evn);
+    }
 }

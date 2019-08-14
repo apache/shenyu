@@ -15,45 +15,29 @@
  * limitations under the License.
  */
 
-package org.dromara.config.api;
-
-import lombok.Data;
+package org.dromara.config.api.source;
 
 /**
- * PropertySource .
+ * PropertyKeyMapper .
  *
- * @param <T> the type parameter
  * @author sixh
  */
-@Data
-public abstract class PropertySource<T> {
+public interface PropertyKeyMapper {
 
     /**
-     * The Name.
-     */
-    protected final String name;
-
-    /**
-     * The Source.
-     */
-    protected final T source;
-
-    /**
-     * Instantiates a new Property source.
+     * Map property key [ ].
      *
-     * @param name   the name
-     * @param source the source
+     * @param propertyName the property name
+     * @return the property key [ ]
      */
-    public PropertySource(String name, T source) {
-        this.name = name;
-        this.source = source;
-    }
+    PropertyKey[] map(PropertyName propertyName);
+
 
     /**
-     * Gets property.
+     * Map property key [ ].
      *
-     * @param propertySourceName the property source name
-     * @return the property
+     * @param name the name
+     * @return the property key [ ]
      */
-    public abstract Object getProperty(String propertySourceName);
+    PropertyKey[] map(String name);
 }

@@ -9,6 +9,7 @@
     <packaging>pom</packaging>
     <version>3.0.0-SNAPSHOT</version>
     <name>soul</name>
+
     <modules>
         <module>soul-bom</module>
         <module>soul-common</module>
@@ -266,7 +267,6 @@
         </dependency>
 
     </dependencies>
-
     <distributionManagement>
         <snapshotRepository>
             <id>ossrh</id>

@@ -17,12 +17,18 @@
 
 package org.dromara.config.api;
 
+import lombok.Data;
+
 /**
  * BaseConfig .
  *
  * @author sixh
  */
-public class BaseConfig implements ConfigParent{
+@Data
+public class BaseConfig implements ConfigParent {
+
+    private String http;
+
     @Override
     public String prefix() {
         return "soul";

@@ -28,4 +28,8 @@ package org.dromara.config.api.bind;
  * @author chenbin sixh
  */
 public abstract class IndexedBinder<T> extends AggregateBinder<T>{
+
+    public IndexedBinder(Binder.Evn evn) {
+        super(evn);
+    }
 }

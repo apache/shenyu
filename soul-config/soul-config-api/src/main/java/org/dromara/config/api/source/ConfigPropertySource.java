@@ -15,45 +15,24 @@
  * limitations under the License.
  */
 
-package org.dromara.config.api;
-
-import lombok.Data;
+package org.dromara.config.api.source;
 
 /**
- * PropertySource .
+ * ConfigPropertySource .
  *
- * @param <T> the type parameter
  * @author sixh
  */
-@Data
-public abstract class PropertySource<T> {
+public interface ConfigPropertySource {
 
     /**
-     * The Name.
-     */
-    protected final String name;
-
-    /**
-     * The Source.
-     */
-    protected final T source;
-
-    /**
-     * Instantiates a new Property source.
+     * 查询相关的属性.
      *
-     * @param name   the name
-     * @param source the source
+     * @param name the name
+     * @return config property
      */
-    public PropertySource(String name, T source) {
-        this.name = name;
-        this.source = source;
+    ConfigProperty findProperty(PropertyName name);
+
+    default boolean containsDescendantOf(PropertyName name) {
+        return false;
     }
-
-    /**
-     * Gets property.
-     *
-     * @param propertySourceName the property source name
-     * @return the property
-     */
-    public abstract Object getProperty(String propertySourceName);
 }

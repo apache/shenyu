@@ -19,6 +19,7 @@
 
 package org.dromara.config.api.bind;
 
+import com.fasterxml.jackson.databind.introspect.AnnotatedMember;
 import lombok.Data;
 
 import java.lang.reflect.Type;
@@ -34,10 +35,25 @@ import java.util.function.Supplier;
  */
 @Data
 public class BindData<T> {
-    private final Type type;
 
-    private final Type boxedType;
+    private Type type;
 
-    private final Supplier<T> inst;
+    private Type boxedType;
 
+    private Supplier<T> inst;
+
+    public BindData(Type type, Type boxedType, Supplier<T> inst) {
+        this.type = type;
+        this.boxedType = boxedType;
+        this.inst = inst;
+    }
+
+    public static <T> BindData<T> of(Type type) {
+
+        return new BindData<>(type, type, null);
+    }
+
+    public <T> BindData<T> withSuppliedValue(Supplier<T> value) {
+        return new BindData<>(this.type, this.type, value);
+    }
 }

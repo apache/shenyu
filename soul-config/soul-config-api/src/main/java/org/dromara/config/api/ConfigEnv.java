@@ -17,43 +17,29 @@
 
 package org.dromara.config.api;
 
-import lombok.Data;
+import org.dromara.config.api.source.ConfigPropertySource;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
 
 /**
- * PropertySource .
+ * ConfigEnv .
+ * 配置文件的处理.
  *
- * @param <T> the type parameter
  * @author sixh
  */
-@Data
-public abstract class PropertySource<T> {
+public class ConfigEnv {
+
+    private List<ConfigPropertySource> source = new ArrayList<>();
 
     /**
-     * The Name.
-     */
-    protected final String name;
-
-    /**
-     * The Source.
-     */
-    protected final T source;
-
-    /**
-     * Instantiates a new Property source.
+     * Stream stream.
      *
-     * @param name   the name
-     * @param source the source
+     * @return the stream
      */
-    public PropertySource(String name, T source) {
-        this.name = name;
-        this.source = source;
+    public Stream<ConfigPropertySource> stream() {
+        return source.stream();
     }
 
-    /**
-     * Gets property.
-     *
-     * @param propertySourceName the property source name
-     * @return the property
-     */
-    public abstract Object getProperty(String propertySourceName);
 }

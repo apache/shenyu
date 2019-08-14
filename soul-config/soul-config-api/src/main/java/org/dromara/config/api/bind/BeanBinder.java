@@ -19,6 +19,8 @@
 
 package org.dromara.config.api.bind;
 
+import org.dromara.config.api.source.PropertyName;
+
 /**
  * BeanBinder .
  * <p>
@@ -28,4 +30,18 @@ package org.dromara.config.api.bind;
  * @author chenbin sixh
  */
 public interface BeanBinder {
+    /**
+     * Return a bound bean instance or {@code null} if the {@link BeanBinder} does not
+     * support the specified {@link Bindable}.
+     *
+     * @param <T>            The source type
+     * @param name           the name being bound
+     * @param target         the bindable to bind
+     * @param evn            the evn
+     * @param propertyBinder property binder
+     * @return a bound instance or {@code null}
+     */
+    <T> T bind(PropertyName name, BindData<T> target, Binder.Evn evn,
+               BeanPropertyBinder propertyBinder);
+
 }
