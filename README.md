@@ -96,8 +96,8 @@
 
 * start `soul-admin.jar`
 ```java
-java -jar soul-admin.jar -Dspring.datasource.url="your mysql url"  
--Dspring.datasource.username='you username'  -Dspring.datasource.password='you password'
+java -jar soul-admin.jar --spring.datasource.url="your mysql url"  
+--spring.datasource.username='you username'  --spring.datasource.password='you password'
 ```
 * visit : http://localhost:8887/index.html  username:admin  password :123456
 
