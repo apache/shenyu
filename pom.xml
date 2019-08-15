@@ -58,7 +58,17 @@
             <email>549477611@qq.com</email>
             <organization>org.dromara</organization>
             <roles>
-                <role>Developer</role>
+                <role>PPMC</role>
+            </roles>
+        </developer>
+
+        <developer>
+            <id>chenbin</id>
+            <name>chenbin</name>
+            <email>chenbin@qq.com</email>
+            <organization>org.dromara</organization>
+            <roles>
+                <role>PPMC</role>
             </roles>
         </developer>
 
@@ -67,14 +77,22 @@
             <name>jiangxiaofeng(Nicholas)</name>
             <organization>org.dromara</organization>
             <roles>
-                <role>Developer</role>
+                <role>member</role>
+            </roles>
+        </developer>
+
+        <developer>
+            <id>huangxiaofeng</id>
+            <name>huangxiaofeng</name>
+            <organization>org.dromara</organization>
+            <roles>
+                <role>member</role>
             </roles>
         </developer>
     </developers>
 
     <properties>
         <jdk.version>1.8</jdk.version>
-        <hutool.version>4.0.8</hutool.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jasypt.version>1.9.2</jasypt.version>
         <lombok.version>1.16.20</lombok.version>
