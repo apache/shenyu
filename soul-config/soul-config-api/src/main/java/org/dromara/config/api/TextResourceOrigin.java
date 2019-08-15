@@ -27,7 +27,7 @@ import java.io.InputStream;
  * @author Phillip Webb
  * @since 2.0.0
  */
-public class TextResourceOrigin implements Origin {
+public class TextResourceOrigin {
 
     private final InputStream resource;
 

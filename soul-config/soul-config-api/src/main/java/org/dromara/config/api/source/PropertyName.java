@@ -17,9 +17,10 @@
 
 package org.dromara.config.api.source;
 
-import lombok.Data;
-import org.dromara.soul.common.exception.SoulException;
+import org.dromara.config.api.ConfigException;
 import org.dromara.soul.common.utils.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,20 +36,56 @@ import java.util.function.Function;
  *
  * @author chenbin sixh
  */
-@Data
 public class PropertyName {
 
-    private String name;
 
-    private String[] elements;
-
+    /**
+     * The constant EMPTY.
+     */
     public static final PropertyName EMPTY = new PropertyName(
             new String[0]);
 
-    private PropertyName(String[] elements) {
+    private static final char NAME_JOIN = '.';
+
+    private static Logger logger = LoggerFactory.getLogger(PropertyName.class);
+
+    private String name;
+
+    private CharSequence[] elements;
+
+    private PropertyName(CharSequence[] elements) {
         this.elements = elements;
     }
 
+    private PropertyName(String name, CharSequence[] elements) {
+        this.elements = elements;
+        this.name = name;
+    }
+
+    /**
+     * Sets name.
+     *
+     * @param name the name
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /**
+     * Get elements string [ ].
+     *
+     * @return the string [ ]
+     */
+    public CharSequence[] getElements() {
+        return elements;
+    }
+
+
+    /**
+     * Gets name.
+     *
+     * @return the name
+     */
     public String getName() {
         if (name == null) {
             name = toString(this.elements);
@@ -56,12 +93,163 @@ public class PropertyName {
         return name;
     }
 
+    /**
+     * Return if the element in the name is indexed and numeric.
+     *
+     * @param elementIndex the index of the element
+     * @return {@code true} if the element is indexed and numeric
+     */
+    public boolean isNumericIndex(int elementIndex) {
+        return isIndexed(elementIndex)
+                && isNumeric(getElement(elementIndex));
+    }
+
+    private boolean isNumeric(CharSequence element) {
+        for (int i = 0; i < element.length(); i++) {
+            if (!Character.isDigit(element.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Return a new {@link PropertyName} by chopping this name to the given
+     * {@code size}. For example, {@code chop(1)} on the name {@code foo.bar} will return
+     * {@code foo}.
+     *
+     * @param size the size to chop
+     * @return the chopped name
+     */
+    public PropertyName chop(int size) {
+        if (size >= getElementsLength()) {
+            return this;
+        }
+        CharSequence[] elements = new CharSequence[size];
+        System.arraycopy(this.elements, 0, elements, 0, size);
+        return new PropertyName(elements);
+    }
+
+    /**
+     * Return if the element in the name is indexed.
+     *
+     * @param elementIndex the index of the element
+     * @return {@code true} if the element is indexed
+     */
+    boolean isIndexed(int elementIndex) {
+        return isIndexed(this.elements[elementIndex]);
+    }
+
+    /**
+     * Return the last element in the name in the given form.
+     *
+     * @return the last element
+     */
+    public String getLastElement() {
+        int size = getElementsLength();
+        return (size != 0 ? getElement(size - 1) : "");
+    }
+
+    /**
+     * Return an element in the name in the given form.
+     *
+     * @param elementIndex the element index
+     * @return the last element
+     */
+    public String getElement(int elementIndex) {
+        CharSequence result = this.elements[elementIndex];
+        if (isIndexed(result)) {
+            result = result.subSequence(1, result.length() - 1);
+        }
+        return result.toString();
+    }
+
+
+    /**
+     * Return if the last element in the name is indexed.
+     *
+     * @return {@code true} if the last element is indexed
+     */
+    public boolean isLastElementIndexed() {
+        int size = getElementsLength();
+        return (size > 0 && isIndexed(this.elements[size - 1]));
+    }
+
+    public boolean isParentOf(PropertyName name) {
+        if (this.getElementsLength() != name.getElementsLength() - 1) {
+            return false;
+        }
+        return isAncestorOf(name);
+    }
+
+    /**
+     * Gets elements length.
+     *
+     * @return the elements length
+     */
+    public int getElementsLength() {
+        return this.elements.length;
+    }
+
+    /**
+     * Determine if the node name of the pointing is a parent. If yes, return true.
+     *
+     * @param name name.
+     * @return boolean boolean
+     */
+    public boolean isAncestorOf(PropertyName name) {
+        if (this.getElements().length >= name.getElements().length) {
+            return false;
+        }
+        for (int i = 0; i < this.elements.length; i++) {
+            if (!elementEquals(this.elements[i], name.elements[i])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean elementEquals(CharSequence e1, CharSequence e2) {
+        int l1 = e1.length();
+        int l2 = e2.length();
+        boolean indexed1 = isIndexed(e1);
+        int offset1 = (indexed1 ? 1 : 0);
+        boolean indexed2 = isIndexed(e2);
+        int offset2 = (indexed2 ? 1 : 0);
+        int i1 = offset1;
+        int i2 = offset2;
+        while (i1 < l1 - offset1) {
+            if (i2 >= l2 - offset2) {
+                return false;
+            }
+            char ch1 = (indexed1 ? e1.charAt(i1) : Character.toLowerCase(e1.charAt(i1)));
+            char ch2 = (indexed2 ? e2.charAt(i2) : Character.toLowerCase(e2.charAt(i2)));
+            if (ch1 == '-' || ch1 == '_') {
+                i1++;
+            } else if (ch2 == '-' || ch2 == '_') {
+                i2++;
+            } else if (ch1 != ch2) {
+                return false;
+            } else {
+                i1++;
+                i2++;
+            }
+        }
+        while (i2 < l2 - offset2) {
+            char ch = e2.charAt(i2++);
+            if (ch != '-' && ch != '_') {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private String toString(CharSequence[] elements) {
         StringBuilder result = new StringBuilder();
         for (CharSequence element : elements) {
             boolean indexed = isIndexed(element);
             if (result.length() > 0 && !indexed) {
-                result.append(".");
+                result.append(NAME_JOIN);
             }
             if (indexed) {
                 result.append(element);
@@ -76,21 +264,31 @@ public class PropertyName {
     }
 
 
+    /**
+     * Of property name.
+     *
+     * @param name the name
+     * @return the property name
+     */
     public static PropertyName of(String name) {
-        if (name.length() >= 1
-                && (name.charAt(0) == '.' || name.charAt(name.length() - 1) == '.')) {
-            throw new SoulException("abc");
+        if (StringUtils.isBlank(name)) {
+            throw new NullPointerException("name is null");
         }
-        if (name.length() == 0) {
+        int length = name.length();
+
+        if (length >= 1 && (name.charAt(0) == NAME_JOIN || name.charAt(name.length() - 1) == '.')) {
+            throw new ConfigException("name is null");
+        }
+        if (length == 0) {
             return new PropertyName(new String[0]);
         }
         List<CharSequence> elements = new ArrayList<>(10);
-        process(name, '.', (elementValue, start, end, indexed) -> {
+        process(name, NAME_JOIN, (elementValue, start, end, indexed) -> {
             if (elementValue.length() > 0) {
                 elements.add(elementValue);
             }
         });
-        return new PropertyName(elements.toArray(new String[0]));
+        return new PropertyName(name, elements.toArray(new CharSequence[0]));
     }
 
     /**
@@ -119,12 +317,12 @@ public class PropertyName {
      * @param elementValueProcessor a function to process element values
      * @return a {@link PropertyName}
      */
-    static PropertyName adapt(String name, char separator,
-                              Function<String, String> elementValueProcessor) {
+    static PropertyName adapt(CharSequence name, char separator,
+                              Function<CharSequence, CharSequence> elementValueProcessor) {
         if (name.length() == 0) {
             return EMPTY;
         }
-        List<String> elements = new ArrayList<>();
+        List<CharSequence> elements = new ArrayList<>();
         process(name, separator, (elementValue, start, end, indexed) -> {
             elementValue = elementValueProcessor.apply(elementValue);
             if (!isIndexed(elementValue)) {
@@ -137,15 +335,17 @@ public class PropertyName {
                 elements.add(elementValue);
             }
         });
-        return new PropertyName(elements.toArray(new String[0]));
+        return new PropertyName(elements.toArray(new CharSequence[0]));
     }
 
-
+    /**
+     * Whether the parameter of the index type list array.
+     */
     private static boolean isIndexed(CharSequence element) {
         return element.charAt(0) == '[' && element.charAt(element.length() - 1) == ']';
     }
 
-    private static void process(String name, char separator,
+    private static void process(CharSequence name, char separator,
                                 ElementProcessor processor) {
         int start = 0;
         boolean indexed = false;
@@ -175,39 +375,38 @@ public class PropertyName {
         processElement(processor, name, start, length, false);
     }
 
-    private static void processElement(ElementProcessor processor, String name,
+    private static void processElement(ElementProcessor processor, CharSequence name,
                                        int start, int end, boolean indexed) {
         if ((end - start) >= 1) {
-            processor.process(name.substring(start, end), start, end, indexed);
+            processor.process(name.subSequence(start, end), start, end, indexed);
         }
     }
 
     /**
-     * Create a new {@link ConfigurationPropertyName} by appending the given element
-     * value.
+     * Append property name.
      *
-     * @param elementValue the single element value to append
-     * @return a new {@link ConfigurationPropertyName}
-     * @throws InvalidConfigurationPropertyNameException if elementValue is not valid
+     * @param elementValue the element value
+     * @return the property name
      */
-    public PropertyName append(String elementValue) {
+    public PropertyName append(CharSequence elementValue) {
         if (elementValue == null) {
             return this;
         }
-        process(elementValue, '.', (value, start, end, indexed) -> {
+        process(elementValue, NAME_JOIN, (value, start, end, indexed) -> {
             if (start == 0) {
-
+                logger.warn("{} Did not find the corresponding property.", elementValue);
             }
         });
         if (!isIndexed(elementValue)) {
-
+            List<Character> invalidChars = ElementValidator.getInvalidChars(elementValue);
+            if (!invalidChars.isEmpty()) {
+                throw new ConfigException("config property name " + elementValue + " is not valid");
+            }
         }
         int length = this.elements.length;
-        String[] elements = new String[length + 1];
+        CharSequence[] elements = new String[length + 1];
         System.arraycopy(this.elements, 0, elements, 0, length);
         elements[length] = elementValue;
-        CharSequence[] uniformElements = new CharSequence[length + 1];
-        System.arraycopy(this.elements, 0, uniformElements, 0, length);
         return new PropertyName(elements);
     }
 
@@ -231,14 +430,105 @@ public class PropertyName {
         return result;
     }
 
+    /**
+     * Is empty boolean.
+     *
+     * @return the boolean
+     */
     public boolean isEmpty() {
-        return StringUtils.isBlank(name) || elements.length <= 0;
+        return elements.length <= 0;
     }
 
     @FunctionalInterface
     private interface ElementProcessor {
 
-        void process(String elementValue, int start, int end, boolean indexed);
+        /**
+         * Process.
+         *
+         * @param elementValue the element value
+         * @param start        the start
+         * @param end          the end
+         * @param indexed      the indexed
+         */
+        void process(CharSequence elementValue, int start, int end, boolean indexed);
+
+    }
+
+    /**
+     * {@link ElementProcessor} that checks if a name is valid.
+     */
+    private static class ElementValidator implements ElementProcessor {
+
+        private boolean valid = true;
+
+        @Override
+        public void process(CharSequence elementValue, int start, int end,
+                            boolean indexed) {
+            if (this.valid && !indexed) {
+                this.valid = isValidElement(elementValue);
+            }
+        }
+
+        /**
+         * Is valid boolean.
+         *
+         * @return the boolean
+         */
+        public boolean isValid() {
+            return this.valid;
+        }
+
+        /**
+         * Is valid element boolean.
+         *
+         * @param elementValue the element value
+         * @return the boolean
+         */
+        public static boolean isValidElement(CharSequence elementValue) {
+            for (int i = 0; i < elementValue.length(); i++) {
+                char ch = elementValue.charAt(i);
+                if (!isValidChar(ch, i)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /**
+         * Gets invalid chars.
+         *
+         * @param elementValue the element value
+         * @return the invalid chars
+         */
+        public static List<Character> getInvalidChars(CharSequence elementValue) {
+            List<Character> chars = new ArrayList<>();
+            for (int i = 0; i < elementValue.length(); i++) {
+                char ch = elementValue.charAt(i);
+                if (!isValidChar(ch, i)) {
+                    chars.add(ch);
+                }
+            }
+            return chars;
+        }
+
+        /**
+         * Is valid char boolean.
+         *
+         * @param ch    the ch
+         * @param index the index
+         * @return the boolean
+         */
+        public static boolean isValidChar(char ch, int index) {
+            return isAlpha(ch) || isNumeric(ch) || (index != 0 && ch == '-');
+        }
+
+        private static boolean isAlpha(char ch) {
+            return ch >= 'a' && ch <= 'z';
+        }
+
+        private static boolean isNumeric(char ch) {
+            return ch >= '0' && ch <= '9';
+        }
 
     }
 }

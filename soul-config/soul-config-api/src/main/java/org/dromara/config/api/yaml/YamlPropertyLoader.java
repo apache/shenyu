@@ -17,7 +17,7 @@
 
 package org.dromara.config.api.yaml;
 
-import org.dromara.config.api.OriginTrackedMapPropertySource;
+import org.dromara.config.api.TrackedMapPropertySource;
 import org.dromara.config.api.PropertyLoader;
 import org.dromara.config.api.PropertySource;
 
@@ -52,7 +52,7 @@ public class YamlPropertyLoader implements PropertyLoader {
         }
         List<PropertySource<?>> propertySources = new ArrayList<>(loaded.size());
         for (int i = 0; i < loaded.size(); i++) {
-            propertySources.add(new OriginTrackedMapPropertySource(
+            propertySources.add(new TrackedMapPropertySource(
                     name + (loaded.size() != 1 ? " (document #" + i + ")" : ""),
                     loaded.get(i)));
         }

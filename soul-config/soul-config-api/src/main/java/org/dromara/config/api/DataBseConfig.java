@@ -17,31 +17,19 @@
 
 package org.dromara.config.api;
 
-import lombok.Data;
-
-import java.util.List;
-import java.util.Map;
-
 /**
- * BaseConfig .
+ * DataBseConfig .
  *
  * @author sixh
  */
-@Data
-public class BaseConfig implements ConfigParent {
+public class DataBseConfig implements ConfigParent {
 
-    private String http;
+    private String url;
 
-    private Integer host;
-
-    private List<String> abs;
-
-    private Map<Integer, Integer> adf;
-
-    private Integer[] str;
+    private String drClass;
 
     @Override
     public String prefix() {
-        return "soul";
+        return "database";
     }
 }

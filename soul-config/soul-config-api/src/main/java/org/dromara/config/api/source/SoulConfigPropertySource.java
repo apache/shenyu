@@ -19,6 +19,11 @@ package org.dromara.config.api.source;
 
 import org.dromara.config.api.PropertySource;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Stream;
+
 /**
  * SoulConfigPropertySource .
  *
@@ -42,6 +47,11 @@ public class SoulConfigPropertySource implements ConfigPropertySource {
         return find(map, name);
     }
 
+    @Override
+    public Stream<PropertyName> stream() {
+        return getPropertyNames().stream();
+    }
+
     private final ConfigProperty find(PropertyKey[] mappings,
                                       PropertyName name) {
         for (PropertyKey candidate : mappings) {
@@ -53,6 +63,33 @@ public class SoulConfigPropertySource implements ConfigPropertySource {
             }
         }
         return null;
+    }
+
+    private List<PropertyName> getPropertyNames() {
+        List<PropertyKey> propertyKeys = getPropertyKeys();
+        List<PropertyName> names = new ArrayList<>(propertyKeys.size());
+        propertyKeys.forEach(propertyKey -> names.add(propertyKey.getPropertyNameObj()));
+        return names;
+    }
+
+    private List<PropertyKey> getPropertyKeys() {
+        List<String> names = getPropertySource().getPropertyKeys();
+        List<PropertyKey> mappings = new ArrayList<>(names.size() * 2);
+        for (String name : names) {
+            mappings.addAll(Arrays.asList(getMapper().map(name)));
+        }
+        return mappings;
+    }
+
+    @Override
+    public boolean containsDescendantOf(PropertyName name) {
+        List<PropertyName> propertyNames = getPropertyNames();
+        for (PropertyName thisName : propertyNames) {
+            if (thisName.isAncestorOf(name)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private ConfigProperty find(PropertyKey mapping) {

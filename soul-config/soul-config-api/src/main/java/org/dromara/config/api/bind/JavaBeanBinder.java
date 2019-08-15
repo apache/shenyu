@@ -19,10 +19,10 @@
 
 package org.dromara.config.api.bind;
 
+import org.dromara.config.api.ConfigException;
 import org.dromara.config.api.source.PropertyName;
 
 import java.beans.Introspector;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -41,8 +41,9 @@ import java.util.function.Supplier;
  * @author chenbin sixh
  */
 public class JavaBeanBinder implements BeanBinder {
+
     @Override
-    public <T> T bind(PropertyName name, BindData<T> target, Binder.Evn evn, BeanPropertyBinder propertyBinder) {
+    public <T> T bind(PropertyName name, BindData<T> target, Binder.Env env, BeanPropertyBinder propertyBinder) {
         boolean hasKnownBindableProperties = true;
         Bean<T> bean = Bean.get(target, hasKnownBindableProperties);
         if (bean == null) {
@@ -67,8 +68,8 @@ public class JavaBeanBinder implements BeanBinder {
         String propertyName = property.getName();
         Type type = property.getType();
         Supplier<Object> value = property.getValue(beanSupplier);
-        Object bound = propertyBinder.bindProperty(propertyName,
-                BindData.of(type).withSuppliedValue(value));
+        BindData<Object> bindData = BindData.of(type).withField(property.getField()).withSuppliedValue(value);
+        Object bound = propertyBinder.bindProperty(propertyName, bindData);
         if (bound == null) {
             return false;
         }
@@ -87,12 +88,9 @@ public class JavaBeanBinder implements BeanBinder {
 
         private final Class<?> type;
 
-        private final Type resolvableType;
-
         private final Map<String, JavaBeanBinder.BeanProperty> properties = new LinkedHashMap<>();
 
-        Bean(Type resolvableType, Class<?> type) {
-            this.resolvableType = resolvableType;
+        Bean(Class<?> type) {
             this.type = type;
             putProperties(type);
         }
@@ -138,7 +136,7 @@ public class JavaBeanBinder implements BeanBinder {
         }
 
         private JavaBeanBinder.BeanProperty getBeanProperty(String name) {
-            return new BeanProperty(name, this.resolvableType);
+            return new BeanProperty(name);
         }
 
         private void addField(Field field) {
@@ -148,16 +146,16 @@ public class JavaBeanBinder implements BeanBinder {
             }
         }
 
-        public Class<?> getType() {
+        Class<?> getType() {
             return this.type;
         }
 
-        public Map<String, BeanProperty> getProperties() {
+        Map<String, BeanProperty> getProperties() {
             return this.properties;
         }
 
         @SuppressWarnings("unchecked")
-        public BeanSupplier<T> getSupplier(BindData<T> target) {
+        BeanSupplier<T> getSupplier(BindData<T> target) {
             return new BeanSupplier<>(() -> {
                 T instance = null;
                 if (target.getInst() != null) {
@@ -166,10 +164,8 @@ public class JavaBeanBinder implements BeanBinder {
                 if (instance == null) {
                     try {
                         instance = (T) this.type.newInstance();
-                    } catch (InstantiationException e) {
-
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
+                    } catch (InstantiationException | IllegalAccessException e) {
+                        throw new ConfigException(e);
                     }
                 }
                 return instance;
@@ -177,8 +173,8 @@ public class JavaBeanBinder implements BeanBinder {
         }
 
         @SuppressWarnings("unchecked")
-        public static <T> Bean<T> get(BindData<T> bindable, boolean canCallGetValue) {
-            Class<?> type = bindable.getType().getClass();
+        static <T> Bean<T> get(BindData<T> bindable, boolean canCallGetValue) {
+            Class<?> type = bindable.getTypeClass();
             Supplier<T> value = bindable.getInst();
             T instance = null;
             if (canCallGetValue && value != null) {
@@ -190,7 +186,7 @@ public class JavaBeanBinder implements BeanBinder {
             }
             Bean<?> bean = Bean.cached;
             if (bean == null || !type.equals(bean.getType())) {
-                bean = new Bean<>(bindable.getType(), type);
+                bean = new Bean<>(type);
                 cached = bean;
             }
             return (Bean<T>) bean;
@@ -237,62 +233,51 @@ public class JavaBeanBinder implements BeanBinder {
 
         private final String name;
 
-        private final Type declaringClassType;
-
         private Method getter;
 
         private Method setter;
 
         private Field field;
 
-        BeanProperty(String name, Type declaringClassType) {
-            this.name = declaringClassType.getTypeName();
-            this.declaringClassType = declaringClassType;
+        BeanProperty(String name) {
+            this.name = BeanPropertyName.toDashedForm(name);
         }
 
-        public void addGetter(Method getter) {
+        void addGetter(Method getter) {
             if (this.getter == null) {
                 this.getter = getter;
             }
         }
 
-        public void addSetter(Method setter) {
+        void addSetter(Method setter) {
             if (this.setter == null) {
                 this.setter = setter;
             }
         }
 
-        public void addField(Field field) {
+        void addField(Field field) {
             if (this.field == null) {
                 this.field = field;
             }
+        }
+
+        public Field getField() {
+            return field;
         }
 
         public String getName() {
             return this.name;
         }
 
-        public Type getType() {
-           /* if (this.setter != null) {
-                MethodParameter methodParameter = new MethodParameter(this.setter, 0);
-                return ResolvableType.forMethodParameter(methodParameter,
-                        this.declaringClassType);
+        Type getType() {
+            if (this.setter != null) {
+                Class<?>[] parameterTypes = this.setter.getParameterTypes();
+                return parameterTypes[0];
             }
-            MethodParameter methodParameter = new MethodParameter(this.getter, -1);
-            return ResolvableType.forMethodParameter(methodParameter,
-                    this.declaringClassType);*/
-            return String.class;
+            return this.getter.getReturnType();
         }
 
-        public Annotation[] getAnnotations() {
-            try {
-                return (this.field != null ? this.field.getDeclaredAnnotations() : null);
-            } catch (Exception ex) {
-                return null;
-            }
-        }
-
-        public Supplier<Object> getValue(Supplier<?> instance) {
+        Supplier<Object> getValue(Supplier<?> instance) {
             if (this.getter == null) {
                 return null;
             }
@@ -307,11 +292,11 @@ public class JavaBeanBinder implements BeanBinder {
             };
         }
 
-        public boolean isSettable() {
+        boolean isSettable() {
             return this.setter != null;
         }
 
-        public void setValue(Supplier<?> instance, Object value) {
+        void setValue(Supplier<?> instance, Object value) {
             try {
                 this.setter.setAccessible(true);
                 this.setter.invoke(instance.get(), value);

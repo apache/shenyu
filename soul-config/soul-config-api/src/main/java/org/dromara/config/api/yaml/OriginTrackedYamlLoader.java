@@ -17,6 +17,15 @@
 
 package org.dromara.config.api.yaml;
 
+import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.LoaderOptions;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.BaseConstructor;
+import org.yaml.snakeyaml.constructor.Constructor;
+import org.yaml.snakeyaml.nodes.*;
+import org.yaml.snakeyaml.representer.Representer;
+import org.yaml.snakeyaml.resolver.Resolver;
+
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,135 +33,108 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.dromara.config.api.Origin;
-import org.dromara.config.api.OriginTrackedValue;
-import org.dromara.config.api.TextResourceOrigin;
-import org.yaml.snakeyaml.DumperOptions;
-import org.yaml.snakeyaml.LoaderOptions;
-import org.yaml.snakeyaml.Yaml;
-import org.yaml.snakeyaml.constructor.BaseConstructor;
-import org.yaml.snakeyaml.constructor.Constructor;
-import org.yaml.snakeyaml.error.Mark;
-import org.yaml.snakeyaml.nodes.MappingNode;
-import org.yaml.snakeyaml.nodes.Node;
-import org.yaml.snakeyaml.nodes.NodeTuple;
-import org.yaml.snakeyaml.nodes.ScalarNode;
-import org.yaml.snakeyaml.nodes.Tag;
-import org.yaml.snakeyaml.representer.Representer;
-import org.yaml.snakeyaml.resolver.Resolver;
-
 /**
  * Class to load {@code .yml} files into a map of {@code String} to
- * {@link OriginTrackedValue}.
  *
  * @author Madhura Bhave
  * @author Phillip Webb
  */
 class OriginTrackedYamlLoader extends YamlProcessor {
 
-	private final InputStream resource;
+    private final InputStream resource;
 
-	OriginTrackedYamlLoader(InputStream resource) {
-		this.resource = resource;
-		setResources(resource);
-	}
+    OriginTrackedYamlLoader(InputStream resource) {
+        this.resource = resource;
+        setResources(resource);
+    }
 
-	@Override
-	protected Yaml createYaml() {
-		BaseConstructor constructor = new OriginTrackingConstructor();
-		Representer representer = new Representer();
-		DumperOptions dumperOptions = new DumperOptions();
-		LimitedResolver resolver = new LimitedResolver();
-		LoaderOptions loaderOptions = new LoaderOptions();
-		loaderOptions.setAllowDuplicateKeys(false);
-		return new Yaml(constructor, representer, dumperOptions, loaderOptions, resolver);
-	}
+    @Override
+    protected Yaml createYaml() {
+        BaseConstructor constructor = new OriginTrackingConstructor();
+        Representer representer = new Representer();
+        DumperOptions dumperOptions = new DumperOptions();
+        LimitedResolver resolver = new LimitedResolver();
+        LoaderOptions loaderOptions = new LoaderOptions();
+        loaderOptions.setAllowDuplicateKeys(false);
+        return new Yaml(constructor, representer, dumperOptions, loaderOptions, resolver);
+    }
 
-	public List<Map<String, Object>> load() {
-		final List<Map<String, Object>> result = new ArrayList<>();
-		process((properties, map) -> result.add(getFlattenedMap(map)));
-		return result;
-	}
+    public List<Map<String, Object>> load() {
+        final List<Map<String, Object>> result = new ArrayList<>();
+        process((properties, map) -> result.add(getFlattenedMap(map)));
+        return result;
+    }
 
-	/**
-	 * {@link Constructor} that tracks property origins.
-	 */
-	private class OriginTrackingConstructor extends Constructor {
+    /**
+     * {@link Constructor} that tracks property origins.
+     */
+    private class OriginTrackingConstructor extends Constructor {
 
-		@Override
-		protected Object constructObject(Node node) {
-			if (node instanceof ScalarNode) {
-				if (!(node instanceof KeyScalarNode)) {
-					return constructTrackedObject(node, super.constructObject(node));
-				}
-			}
-			else if (node instanceof MappingNode) {
-				replaceMappingNodeKeys((MappingNode) node);
-			}
-			return super.constructObject(node);
-		}
+        @Override
+        protected Object constructObject(Node node) {
+            if (node instanceof ScalarNode) {
+                if (!(node instanceof KeyScalarNode)) {
+                    return constructTrackedObject(node, super.constructObject(node));
+                }
+            } else if (node instanceof MappingNode) {
+                replaceMappingNodeKeys((MappingNode) node);
+            }
+            return super.constructObject(node);
+        }
 
-		private void replaceMappingNodeKeys(MappingNode node) {
-			node.setValue(node.getValue().stream().map(KeyScalarNode::get)
-					.collect(Collectors.toList()));
-		}
+        private void replaceMappingNodeKeys(MappingNode node) {
+            node.setValue(node.getValue().stream().map(KeyScalarNode::get)
+                    .collect(Collectors.toList()));
+        }
 
-		private Object constructTrackedObject(Node node, Object value) {
-			Origin origin = getOrigin(node);
-			return OriginTrackedValue.of(getValue(value), origin);
-		}
+        private Object constructTrackedObject(Node node, Object value) {
+            return value;
+        }
 
-		private Object getValue(Object value) {
-			return (value != null ? value : "");
-		}
+        private Object getValue(Object value) {
+            return (value != null ? value : "");
+        }
 
-		private Origin getOrigin(Node node) {
-			Mark mark = node.getStartMark();
-			TextResourceOrigin.Location location = new TextResourceOrigin.Location(mark.getLine(), mark.getColumn());
-			return new TextResourceOrigin(OriginTrackedYamlLoader.this.resource,
-					location);
-		}
+    }
 
-	}
+    /**
+     * {@link ScalarNode} that replaces the key node in a {@link NodeTuple}.
+     */
+    private static class KeyScalarNode extends ScalarNode {
 
-	/**
-	 * {@link ScalarNode} that replaces the key node in a {@link NodeTuple}.
-	 */
-	private static class KeyScalarNode extends ScalarNode {
+        KeyScalarNode(ScalarNode node) {
+            super(node.getTag(), node.getValue(), node.getStartMark(), node.getEndMark(),
+                    node.getStyle());
+        }
 
-		KeyScalarNode(ScalarNode node) {
-			super(node.getTag(), node.getValue(), node.getStartMark(), node.getEndMark(),
-					node.getStyle());
-		}
+        public static NodeTuple get(NodeTuple nodeTuple) {
+            Node keyNode = nodeTuple.getKeyNode();
+            Node valueNode = nodeTuple.getValueNode();
+            return new NodeTuple(KeyScalarNode.get(keyNode), valueNode);
+        }
 
-		public static NodeTuple get(NodeTuple nodeTuple) {
-			Node keyNode = nodeTuple.getKeyNode();
-			Node valueNode = nodeTuple.getValueNode();
-			return new NodeTuple(KeyScalarNode.get(keyNode), valueNode);
-		}
+        private static Node get(Node node) {
+            if (node instanceof ScalarNode) {
+                return new KeyScalarNode((ScalarNode) node);
+            }
+            return node;
+        }
 
-		private static Node get(Node node) {
-			if (node instanceof ScalarNode) {
-				return new KeyScalarNode((ScalarNode) node);
-			}
-			return node;
-		}
+    }
 
-	}
+    /**
+     * {@link Resolver} that limits {@link Tag#TIMESTAMP} tags.
+     */
+    private static class LimitedResolver extends Resolver {
 
-	/**
-	 * {@link Resolver} that limits {@link Tag#TIMESTAMP} tags.
-	 */
-	private static class LimitedResolver extends Resolver {
+        @Override
+        public void addImplicitResolver(Tag tag, Pattern regexp, String first) {
+            if (tag == Tag.TIMESTAMP) {
+                return;
+            }
+            super.addImplicitResolver(tag, regexp, first);
+        }
 
-		@Override
-		public void addImplicitResolver(Tag tag, Pattern regexp, String first) {
-			if (tag == Tag.TIMESTAMP) {
-				return;
-			}
-			super.addImplicitResolver(tag, regexp, first);
-		}
-
-	}
+    }
 
 }

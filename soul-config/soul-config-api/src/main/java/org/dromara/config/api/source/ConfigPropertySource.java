@@ -17,6 +17,8 @@
 
 package org.dromara.config.api.source;
 
+import java.util.stream.Stream;
+
 /**
  * ConfigPropertySource .
  *
@@ -32,6 +34,19 @@ public interface ConfigPropertySource {
      */
     ConfigProperty findProperty(PropertyName name);
 
+    /**
+     * Stream stream.
+     *
+     * @return the stream
+     */
+    Stream<PropertyName> stream();
+
+    /**
+     * Contains descendant of boolean.
+     *
+     * @param name the name
+     * @return the boolean
+     */
     default boolean containsDescendantOf(PropertyName name) {
         return false;
     }

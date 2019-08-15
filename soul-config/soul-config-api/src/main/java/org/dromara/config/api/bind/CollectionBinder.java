@@ -19,7 +19,14 @@
 
 package org.dromara.config.api.bind;
 
+import org.dromara.config.api.source.PropertyName;
+import org.dromara.soul.common.utils.CollectionUtils;
+
+import java.lang.reflect.Type;
 import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * CollectionBinder .
@@ -31,7 +38,60 @@ import java.util.Collection;
  */
 public class CollectionBinder extends IndexedBinder<Collection<Object>> {
 
-    public CollectionBinder(Binder.Evn evn) {
-        super(evn);
+    public CollectionBinder(Binder.Env env) {
+        super(env);
+    }
+
+    @Override
+    Object bindAggregate(PropertyName name, BindData<?> target, AggregateElementBinder elementBinder) {
+        Class<?> collectionType = (target.getInst() != null ? List.class
+                : target.getTypeClass());
+        Type aggregateType = collectionType;
+        Type elementType = target.getGenerics().length > 0 ? target.getGenerics()[0] : Object.class;
+        IndexedCollectionSupplier result = new IndexedCollectionSupplier(
+                () -> CollectionUtils.createFactory().create(collectionType, 0));
+        bindIndexed(name, target, elementBinder, aggregateType, elementType, result);
+        if (result.wasSupplied()) {
+            return result.get();
+        }
+        return null;
+    }
+
+    @Override
+    Collection<Object> assemble(Supplier<?> inst, Collection<Object> additional) {
+        Collection<Object> existingCollection = getExistingIfPossible(inst);
+        if (existingCollection == null) {
+            return additional;
+        }
+        try {
+            existingCollection.clear();
+            existingCollection.addAll(additional);
+            return copyIfPossible(existingCollection);
+        } catch (UnsupportedOperationException ex) {
+            return createNewCollection(additional);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Collection<Object> getExistingIfPossible(Supplier<?> existing) {
+        try {
+            return (Collection<Object>) existing.get();
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    private Collection<Object> copyIfPossible(Collection<Object> collection) {
+        try {
+            return createNewCollection(collection);
+        } catch (Exception ex) {
+            return collection;
+        }
+    }
+
+    private Collection<Object> createNewCollection(Collection<Object> collection) {
+        Collection<Object> result = CollectionUtils.createFactory().create(collection.getClass(), collection.size());
+        result.addAll(collection);
+        return result;
     }
 }

@@ -20,10 +20,10 @@
 package org.dromara.config.api.bind;
 
 import org.apache.commons.lang3.ClassUtils;
+import org.dromara.config.api.ConfigException;
 import org.dromara.config.api.source.ConfigProperty;
 import org.dromara.config.api.source.ConfigPropertySource;
 import org.dromara.config.api.source.PropertyName;
-import org.dromara.soul.common.exception.SoulException;
 
 import java.lang.reflect.Type;
 import java.util.*;
@@ -53,33 +53,31 @@ public final class Binder {
     }
 
     public final <T> Object bind(PropertyName name, BindData<T> target) {
-        Evn env = new Evn();
-        Object bind = bind(name, target, env, false);
-        return bind;
+        Env env = new Env();
+        return bind(name, target, env, false);
     }
 
     protected final <T> T bind(PropertyName name, BindData<T> target,
-                               Evn context, boolean allowRecursiveBinding) {
+                               Env context, boolean allowRecursiveBinding) {
         Object bound = bindObject(name, target, allowRecursiveBinding, context);
         return (T) bound;
 
     }
 
-
     private <T> Object bindObject(PropertyName name, BindData<T> target,
-                                  boolean allowRecursiveBinding, Evn env) {
+                                  boolean allowRecursiveBinding, Env env) {
         ConfigProperty property = findProperty(name, env);
         if (property == null && containsNoDescendantOf(env.stream(), name)) {
             return null;
         }
         AggregateBinder<?> aggregateBinder = getAggregateBinder(target, env);
         if (aggregateBinder != null) {
-            return bindAggregate(name, target, aggregateBinder);
+            return bindAggregate(name, target, aggregateBinder, env);
         }
         if (property != null) {
             try {
-                return bindProperty(target, property, env);
-            } catch (SoulException ex) {
+                return bindProperty(property, env);
+            } catch (ConfigException ex) {
                 // We might still be able to bind it as a bean
                 Object bean = bindBean(name, target,
                         allowRecursiveBinding, env);
@@ -93,13 +91,13 @@ public final class Binder {
     }
 
 
-    private <T> Object bindProperty(BindData<T> target, ConfigProperty property, Evn evn) {
-        evn.setProperty(property);
+    private <T> Object bindProperty(ConfigProperty property, Env env) {
+        env.setProperty(property);
         return property.getValue();
     }
 
     private ConfigProperty findProperty(PropertyName name,
-                                        Evn env) {
+                                        Env env) {
         if (name.isEmpty()) {
             return null;
         }
@@ -108,48 +106,60 @@ public final class Binder {
                 .filter(Objects::nonNull).findFirst().orElse(null);
     }
 
-    private <T> Object bindBean(PropertyName name, BindData<T> target, boolean allowRecursiveBinding, Evn evn) {
-        if (containsNoDescendantOf(evn.stream(), name)
-                || isUnbindableBean(name, target, evn)) {
+    private <T> Object bindBean(PropertyName name, BindData<T> target, boolean allowRecursiveBinding, Env env) {
+        if (containsNoDescendantOf(env.stream(), name)
+                || isUnbindableBean(name, target, env)) {
             return null;
         }
         BeanPropertyBinder propertyBinder = (propertyName, propertyTarget) -> bind(
-                name.append(propertyName), propertyTarget, evn, false);
-        Class<?> type = target.getType().getClass();
-        if (!allowRecursiveBinding && evn.hasBoundBean(type)) {
+                name.append(propertyName), propertyTarget, env, false);
+        Class<?> type = target.getTypeClass();
+        if (!allowRecursiveBinding && env.hasBoundBean(type)) {
             return null;
         }
-        return evn.withBean(type, () -> beanBinder.bind(name, target, evn, propertyBinder));
+        return env.withBean(type, () -> beanBinder.bind(name, target, env, propertyBinder));
     }
 
     private boolean containsNoDescendantOf(Stream<ConfigPropertySource> sources,
                                            PropertyName name) {
         return sources.allMatch(
-                (s) -> false);
+                (s) -> s.containsDescendantOf(name));
     }
 
     private boolean isUnbindableBean(PropertyName name, BindData<?> target,
-                                     Evn context) {
+                                     Env env) {
+        if (env.stream().anyMatch((s) -> s
+                .containsDescendantOf(name))) {
+            return false;
+        }
         String packageName = ClassUtils.getPackageName(target.getType().getTypeName());
         return packageName.startsWith("java.");
     }
 
 
     private <T> Object bindAggregate(PropertyName name, BindData<T> target,
-                                     AggregateBinder<?> aggregateBinder) {
-        return null;
+                                     AggregateBinder<?> aggregateBinder, Env env) {
+        AggregateElementBinder elementBinder = (itemName, itemTarget, source) -> {
+            boolean allowRecursiveBinding = aggregateBinder
+                    .isAllowRecursiveBinding(source);
+            Supplier<?> supplier = () -> bind(itemName, itemTarget, env,
+                    allowRecursiveBinding);
+            return env.withSource(source, supplier);
+        };
+        return env.withIncreasedDepth(
+                () -> aggregateBinder.bind(name, target, elementBinder));
     }
 
-    private AggregateBinder<?> getAggregateBinder(BindData<?> target, Evn evn) {
-        Type type = target.getType();
-        if (Map.class.isAssignableFrom(type.getClass())) {
-            return new MapBinder(evn);
+    private AggregateBinder<?> getAggregateBinder(BindData<?> target, Env env) {
+        Class type = target.getTypeClass();
+        if (Map.class.isAssignableFrom(type)) {
+            return new MapBinder(env);
         }
-        if (Collection.class.isAssignableFrom(type.getClass())) {
-            return new CollectionBinder(evn);
+        if (Collection.class.isAssignableFrom(type)) {
+            return new CollectionBinder(env);
         }
         if (isArray(type)) {
-            return new ArrayBinder(evn);
+            return new ArrayBinder(env);
         }
         return null;
     }
@@ -158,14 +168,32 @@ public final class Binder {
         return (type instanceof Class && ((Class<?>) type).isArray());
     }
 
-    class Evn {
+    class Env {
 
         private ConfigProperty property;
 
         private int depth;
 
-
         private final Deque<Class<?>> beans = new ArrayDeque<>();
+
+        private final List<ConfigPropertySource> source = Arrays
+                .asList((ConfigPropertySource) null);
+
+        private int sourcePushCount;
+
+        private <T> T withSource(ConfigPropertySource source,
+                                 Supplier<T> supplier) {
+            if (source == null) {
+                return supplier.get();
+            }
+            this.source.set(0, source);
+            this.sourcePushCount++;
+            try {
+                return supplier.get();
+            } finally {
+                this.sourcePushCount--;
+            }
+        }
 
         private <T> T withBean(Class<?> bean, Supplier<T> supplier) {
             this.beans.push(bean);
@@ -209,8 +237,18 @@ public final class Binder {
          *
          * @return the stream
          */
-        public Stream<ConfigPropertySource> stream() {
+        Stream<ConfigPropertySource> stream() {
+            if (this.sourcePushCount > 0) {
+                return this.source.stream();
+            }
             return Binder.this.source.stream();
+        }
+
+        public List<ConfigPropertySource> getSources() {
+            if (this.sourcePushCount > 0) {
+                return this.source;
+            }
+            return Binder.this.source;
         }
     }
 }

@@ -16,6 +16,9 @@
 
 package org.dromara.config.api;
 
+import com.google.common.collect.Lists;
+
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -27,19 +30,20 @@ import java.util.Map;
  * @see OriginTrackedValue
  * @since 2.0.0
  */
-public final class OriginTrackedMapPropertySource extends PropertySource<Map<String, Object>> {
+public final class TrackedMapPropertySource extends PropertySource<Map<String, Object>> {
 
 
-    public OriginTrackedMapPropertySource(String name, Map<String, Object> source) {
+    public TrackedMapPropertySource(String name, Map<String, Object> source) {
         super(name, source);
     }
 
     @Override
     public Object getProperty(String propertySourceName) {
-        Object value = this.source.get(propertySourceName);
-        if (value instanceof OriginTrackedValue) {
-            return ((OriginTrackedValue) value).getValue();
-        }
-        return value;
+        return this.source.get(propertySourceName);
+    }
+
+    @Override
+    public List<String> getPropertyKeys() {
+        return Lists.newArrayList(this.source.keySet());
     }
 }

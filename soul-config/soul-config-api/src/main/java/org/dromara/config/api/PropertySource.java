@@ -19,8 +19,11 @@ package org.dromara.config.api;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * PropertySource .
+ * 属性数据源.
  *
  * @param <T> the type parameter
  * @author sixh
@@ -56,4 +59,11 @@ public abstract class PropertySource<T> {
      * @return the property
      */
     public abstract Object getProperty(String propertySourceName);
+
+    /**
+     * 获取所有的keys.
+     *
+     * @return lsit.
+     */
+    public abstract List<String> getPropertyKeys();
 }

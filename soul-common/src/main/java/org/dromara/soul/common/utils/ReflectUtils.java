@@ -21,6 +21,8 @@ package org.dromara.soul.common.utils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 
 /**
  * The type Reflect utils.
@@ -47,6 +49,19 @@ public class ReflectUtils {
             }
         }
         return null;
+    }
+
+    /**
+     * 获取一个对象的泛型真实类型.
+     *
+     * @return type [ ]
+     */
+    public static Type[] getGenericType(Type type) {
+        if (type instanceof ParameterizedType) {
+            ParameterizedType pt = (ParameterizedType) type;
+            return pt.getActualTypeArguments();
+        }
+        return new Type[0];
     }
 
     /**

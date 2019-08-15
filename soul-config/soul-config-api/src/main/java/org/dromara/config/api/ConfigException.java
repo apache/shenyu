@@ -17,20 +17,24 @@
 
 package org.dromara.config.api;
 
+import org.dromara.soul.common.exception.SoulException;
+
 /**
- * Interface to provide access to the origin of an item.
+ * ConfigException .
  *
- * @author Phillip Webb
- * @since 2.0.0
- * @see Origin
+ * @author sixh
  */
-@FunctionalInterface
-public interface OriginProvider {
+public class ConfigException extends SoulException {
 
-	/**
-	 * Return the source origin or {@code null} if the origin is not known.
-	 * @return the origin or {@code null}
-	 */
-	Origin getOrigin();
+    public ConfigException(Throwable e) {
+        super(e);
+    }
 
+    public ConfigException(String message) {
+        super(message);
+    }
+
+    public ConfigException(String message, Throwable throwable) {
+        super(message, throwable);
+    }
 }
