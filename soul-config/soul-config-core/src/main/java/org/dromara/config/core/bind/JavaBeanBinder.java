@@ -306,8 +306,6 @@ public class JavaBeanBinder extends BeanBinder {
                         "Unable to set value for property " + this.name, ex);
             }
         }
-
     }
-
 
 }

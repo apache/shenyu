@@ -21,50 +21,61 @@ import org.dromara.config.core.bind.BindData;
 import org.dromara.config.core.bind.Binder;
 import org.dromara.config.core.bind.DataType;
 import org.dromara.config.core.property.*;
+import org.junit.Assert;
 import org.junit.Test;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
 public class BinderTest {
 
     @Test
-    public void testBind() throws InterruptedException {
+    public void testJavaBeanBind() throws InterruptedException {
         String name = "soul.yml";
         Map<String, Object> map = new HashMap<>();
-        map.put("soul.http", "123");
-        map.put("soul.host", 456);
-        map.put("soul.list[0]", "1234");
-        map.put("soul.list[1]", "123");
-        map.put("soul.array[1]", 123);
-        map.put("soul.array[0]", 456);
-        map.put("soul.map.ast", 456);
-        map.put("soul.map.abc", 456);
+        map.put("soul.stringTest", "123");
+        map.put("soul.integerTest", 456);
+        map.put("soul.doubleTest", 42.12);
+        map.put("soul.longTest", 100L);
+        map.put("soul.chartTest", 'a');
+        map.put("soul.floatTest", 12.1F);
+        map.put("soul.boolTest", true);
         PropertyKeySource<?> propertySource = new MapPropertyKeySource(name, map);
         ConfigPropertySource configPropertySource = new DefaultConfigPropertySource(propertySource, PropertyKeyParse.INSTANCE);
         Binder binder = Binder.of(configPropertySource);
-        BindData<BaseConfig> data = BindData.of(DataType.of(BaseConfig.class), BaseConfig::new);
-        Object bind = binder.bind("soul", data);
-//        Thread.sleep(10000);
-        System.out.println(bind + "--------------->" + "1111111111111");
+        BindData<JavaBeanBinderTest> data = BindData.of(DataType.of(JavaBeanBinderTest.class), JavaBeanBinderTest::new);
+        JavaBeanBinderTest bind = binder.bind("soul", data);
+        Assert.assertEquals(map.get("soul.stringTest"), bind.getStringTest());
+        Assert.assertEquals(map.get("soul.integerTest"), bind.getIntegerTest());
+        Assert.assertEquals(map.get("soul.doubleTest"), bind.getDoubleTest());
+        Assert.assertEquals(map.get("soul.chartTest"), bind.getChartTest());
+        Assert.assertEquals(map.get("soul.longTest"), bind.getLongTest());
+        Assert.assertEquals(map.get("soul.floatTest"), bind.getFloatTest());
+        Assert.assertEquals(map.get("soul.boolTest"), bind.getBoolTest());
     }
 
     @Test
-    public void test002() {
-        Class<BaseConfig> baseConfigClass = BaseConfig.class;
-        Field[] declaredFields = baseConfigClass.getDeclaredFields();
-        for (Field declaredField : declaredFields) {
-            declaredField.setAccessible(true);
-            Type genericType = declaredField.getGenericType();
-            if (genericType instanceof ParameterizedType) {
-                ParameterizedType pt = (ParameterizedType) genericType;
-                //得到泛型里的class类型对象
-                Class<?> accountPrincipalApproveClazz = (Class<?>) pt.getActualTypeArguments()[0];
-                System.out.println(accountPrincipalApproveClazz);
-            }
-        }
+    public void testJavaBeanBindParse() {
+        String name = "soul.yml";
+        Map<String, Object> map = new HashMap<>();
+        map.put("soul.stringTest", 123);
+        map.put("soul.integerTest", "123");
+        map.put("soul.doubleTest", "123");
+        map.put("soul.longTest", "123");
+        map.put("soul.chartTest", "A");
+        map.put("soul.floatTest", "123");
+        map.put("soul.boolTest", "true");
+        PropertyKeySource<?> propertySource = new MapPropertyKeySource(name, map);
+        ConfigPropertySource configPropertySource = new DefaultConfigPropertySource(propertySource, PropertyKeyParse.INSTANCE);
+        Binder binder = Binder.of(configPropertySource);
+        BindData<JavaBeanBinderTest> data = BindData.of(DataType.of(JavaBeanBinderTest.class), JavaBeanBinderTest::new);
+        JavaBeanBinderTest bind = binder.bind("soul", data);
+        Assert.assertEquals("123", bind.getStringTest());
+        Assert.assertEquals(Integer.valueOf(123), bind.getIntegerTest());
+        Assert.assertEquals(Double.valueOf(123), bind.getDoubleTest());
+        Assert.assertEquals(Character.valueOf('A'), bind.getChartTest());
+        Assert.assertEquals(Long.valueOf(123), bind.getLongTest());
+        Assert.assertEquals(Float.valueOf(123), bind.getFloatTest());
+        Assert.assertEquals(Boolean.TRUE, bind.getBoolTest());
     }
 }

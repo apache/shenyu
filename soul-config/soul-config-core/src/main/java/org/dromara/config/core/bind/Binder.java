@@ -19,6 +19,8 @@
 
 package org.dromara.config.core.bind;
 
+import ch.qos.logback.core.pattern.ConverterUtil;
+import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.dromara.config.core.property.ConfigProperty;
 import org.dromara.config.core.property.ConfigPropertySource;
@@ -109,7 +111,7 @@ public class Binder {
         }
         if (property != null) {
             try {
-                return bindProperty(property, env);
+                return bindProperty(property, target, env);
             } catch (Exception ex) {
                 // We might still be able to bind it as a bean
                 Object bean = bindBean(propertyName, target, allowRecursiveBinding, env);
@@ -133,9 +135,10 @@ public class Binder {
         return env.withIncreasedDepth(() -> aggregateBinder.bind(name, target, elementBinder));
     }
 
-    private Object bindProperty(ConfigProperty property, Env env) {
+    private <T> Object bindProperty(ConfigProperty property, BindData<T> target, Env env) {
         env.setProperty(property);
-        return property.getValue();
+        Object value = property.getValue();
+        return ConvertUtils.convert(value, target.getType().getTypeClass());
     }
 
     private <T> Object bindBean(PropertyName name, BindData<T> target, boolean allowRecursiveBinding, Env env) {

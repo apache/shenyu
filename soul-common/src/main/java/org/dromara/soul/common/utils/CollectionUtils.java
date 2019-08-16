@@ -148,7 +148,8 @@ public class CollectionUtils {
          * @param size    the size
          * @return the map
          */
-        public <K, V> Map<K, V> createMap(Class<?> mapType, Class<?> keyType, int size) {
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        <K, V> Map<K, V> createMap(Class<?> mapType, Class<?> keyType, int size) {
             if (mapType.isInterface()) {
                 if (Map.class == mapType) {
                     return new LinkedHashMap<>(size);

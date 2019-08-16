@@ -176,8 +176,7 @@ public final class Binder {
 
         private final Deque<Class<?>> beans = new ArrayDeque<>();
 
-        private final List<ConfigPropertySource> source = Arrays
-                .asList((ConfigPropertySource) null);
+        private final List<ConfigPropertySource> source = Arrays.asList((ConfigPropertySource) null);
 
         private int sourcePushCount;
 
@@ -207,7 +206,9 @@ public final class Binder {
         private void increaseDepth() {
             this.depth++;
         }
-
+        private void decreaseDepth() {
+            this.depth--;
+        }
 
         private <T> T withIncreasedDepth(Supplier<T> supplier) {
             increaseDepth();
@@ -218,9 +219,7 @@ public final class Binder {
             }
         }
 
-        private void decreaseDepth() {
-            this.depth--;
-        }
+
 
 
         public void setProperty(ConfigProperty property) {

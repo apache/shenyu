@@ -14,5 +14,6 @@
     <modules>
         <module>soul-config-api</module>
         <module>soul-config-local</module>
+        <module>soul-config-core</module>
     </modules>
 </project>

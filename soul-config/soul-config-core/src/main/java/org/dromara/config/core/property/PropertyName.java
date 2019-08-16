@@ -19,7 +19,6 @@
 
 package org.dromara.config.core.property;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import lombok.Data;
 import org.dromara.soul.common.exception.SoulException;
@@ -83,7 +82,7 @@ public class PropertyName {
                 result.append(element);
             } else {
                 for (int i = 0; i < element.length(); i++) {
-                    char ch = Character.toLowerCase(element.charAt(i));
+                    char ch = element.charAt(i);
                     result.append(ch != '_' ? ch : "");
                 }
             }
@@ -388,7 +387,7 @@ public class PropertyName {
         }
 
         private static boolean isAlpha(char ch) {
-            return ch >= 'a' && ch <= 'z';
+            return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
         }
 
         private static boolean isNumeric(char ch) {

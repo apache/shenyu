@@ -19,24 +19,25 @@ package org.dromara.config.api.bind;
 
 import lombok.Data;
 
-import java.util.List;
-import java.util.Map;
-
 /**
- * BaseConfig .
+ * JavaBeanBinderTest .
  *
  * @author sixh
  */
 @Data
-public class BaseConfig {
+public class JavaBeanBinderTest {
 
-    private String http;
+    private String stringTest;
 
-    private Integer host;
+    private Integer integerTest;
 
-    private List<String> list;
+    private Double doubleTest;
 
-    private Map<Integer, Integer> map;
+    private Long longTest;
 
-    private Integer[] array;
+    private Character chartTest;
+
+    private Float floatTest;
+
+    private Boolean boolTest;
 }
