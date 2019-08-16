@@ -37,6 +37,26 @@ public class CollectionUtils {
     }
 
     /**
+     * Is empty boolean.
+     *
+     * @param coll the coll
+     * @return the boolean
+     */
+    public static boolean isEmpty(Collection<?> coll) {
+        return coll == null || coll.isEmpty();
+    }
+
+    /**
+     * Is not empty boolean.
+     *
+     * @param coll the coll
+     * @return the boolean
+     */
+    public static boolean isNotEmpty(Collection<?> coll) {
+        return !isEmpty(coll);
+    }
+
+    /**
      * The type Collection factory.
      */
     public static class CollectionFactory {
@@ -90,6 +110,15 @@ public class CollectionUtils {
             }
         }
 
+        /**
+         * Create map map.
+         *
+         * @param <K>      the type parameter
+         * @param <V>      the type parameter
+         * @param mapType  the map type
+         * @param capacity the capacity
+         * @return the map
+         */
         public <K, V> Map<K, V> createMap(Class<?> mapType, int capacity) {
             return createMap(mapType, null, capacity);
         }
@@ -109,6 +138,16 @@ public class CollectionUtils {
             return enumType.asSubclass(Enum.class);
         }
 
+        /**
+         * Create map map.
+         *
+         * @param <K>     the type parameter
+         * @param <V>     the type parameter
+         * @param mapType the map type
+         * @param keyType the key type
+         * @param size    the size
+         * @return the map
+         */
         public <K, V> Map<K, V> createMap(Class<?> mapType, Class<?> keyType, int size) {
             if (mapType.isInterface()) {
                 if (Map.class == mapType) {
