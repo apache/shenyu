@@ -17,50 +17,37 @@
  *
  */
 
-package org.dromara.config.core.property;
+package org.dromara.config.api.property;
 
-import java.util.Set;
+import java.util.stream.Stream;
 
 /**
- * PropertyKeySource .
- * 查找配置已经初始化的Key 对应的 value值.
+ * ConfingPropertySource .
  * 2019-08-15
  *
  * @author sixh
  */
-public abstract class PropertyKeySource<T> {
-
+public interface ConfigPropertySource {
     /**
-     * The Name.
-     */
-    protected final String name;
-
-    /**
-     * The Source.
-     */
-    protected final T source;
-
-    public T getSource() {
-        return source;
-    }
-
-    public PropertyKeySource(String name, T source) {
-        this.name = name;
-        this.source = source;
-    }
-
-    /**
-     * 根据key找到对应的value.
+     * Lookup property.
      *
-     * @param key key.
-     * @return obj.
+     * @param propertyName name.
+     * @return the config property
      */
-    public abstract Object getValue(String key);
+    ConfigProperty findProperty(PropertyName propertyName);
 
     /**
-     * 获取所有的KEY.
+     * PropertyName stream.
      *
-     * @return key.
+     * @return the stream
      */
-    public abstract Set<String> getKeys();
+    Stream<PropertyName> stream();
+
+    /**
+     * Is there a node that contains the current node link propertyName.
+     *
+     * @param propertyName the property name
+     * @return the boolean
+     */
+    boolean containsDescendantOf(PropertyName propertyName);
 }

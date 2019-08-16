@@ -19,22 +19,24 @@
 
 package org.dromara.config.api.bind;
 
-import org.dromara.config.api.source.ConfigPropertySource;
-import org.dromara.config.api.source.PropertyName;
+import org.dromara.config.api.property.PropertyName;
 
 import java.util.function.Supplier;
 
 /**
  * AggregateBinder .
- * <p>
- * <p>
- * 2019-08-13 21:09
+ * 关于聚合内的binder操作.
  *
- * @param <T> the type parameter
- * @author chenbin sixh
+ * @author sixh
+ * @see java.util.Map
+ * @see java.lang.reflect.Array
+ * @see java.util.Collection
  */
 public abstract class AggregateBinder<T> {
 
+    /**
+     * The Env.
+     */
     private Binder.Env env;
 
     /**
@@ -65,41 +67,55 @@ public abstract class AggregateBinder<T> {
      */
     @SuppressWarnings("unchecked")
     public Object bind(PropertyName name, BindData<?> target, AggregateElementBinder elementBinder) {
-        Object result = bindAggregate(name, target, elementBinder);
-        Supplier<?> inst = target.getInst();
-        if (result == null || inst == null) {
+        Object result = bind(name, target, getEnv(), elementBinder);
+        Supplier<?> targetValue = target.getValue();
+        if (result == null || targetValue == null) {
             return result;
         }
-        return assemble(inst, (T) result);
+        return merge(targetValue, (T)result);
     }
 
     /**
-     * 是否可以递归处理.
+     * AggregateBinder Bind object.
      *
-     * @param source the source
-     * @return boolean
-     */
-    protected abstract boolean isAllowRecursiveBinding(
-            ConfigPropertySource source);
-
-    /**
-     * Bind aggregate object.
-     *
-     * @param name          the name
+     * @param propertyName  the property name
      * @param target        the target
+     * @param env           the env
      * @param elementBinder the element binder
      * @return the object
      */
-    abstract Object bindAggregate(PropertyName name, BindData<?> target, AggregateElementBinder elementBinder);
+    abstract Object bind(PropertyName propertyName, BindData<?> target, Binder.Env env, AggregateElementBinder elementBinder);
 
     /**
-     * 给合元素.
+     * Merge object.
      *
-     * @param inst       组合数据的原始类型.
-     * @param additional 需要给合的原始数据.
-     * @return the t
+     * @param targetValue the target value
+     * @param object      the object
+     * @return the object
      */
-    abstract T assemble(Supplier<?> inst, T additional);
+    abstract Object merge(Supplier<?> targetValue, T object);
+
+    /**
+     * 获取一个聚合的绑定器.
+     *
+     * @param target ta
+     * @param env    the env
+     * @return aggregate binder
+     */
+    static AggregateBinder binder(BindData<?> target, Binder.Env env) {
+        DataType type = target.getType();
+        //如果map集合.
+        if (type.isMap()) {
+            return new MapBinder(env);
+        } else if (type.isCollection()) {
+            return new CollectionBinder(env);
+        } else if (type.isArray()) {
+            return new ArrayBinder(env);
+        }
+        return null;
+    }
+
+    public abstract boolean isAllowRecursiveBinding(Binder.Env source);
 
     /**
      * Internal class used to supply the aggregate and cache the value.
@@ -112,10 +128,20 @@ public abstract class AggregateBinder<T> {
 
         private T supplied;
 
+        /**
+         * Instantiates a new Aggregate supplier.
+         *
+         * @param supplier the supplier
+         */
         public AggregateSupplier(Supplier<T> supplier) {
             this.supplier = supplier;
         }
 
+        /**
+         * Get t.
+         *
+         * @return the t
+         */
         public T get() {
             if (this.supplied == null) {
                 this.supplied = this.supplier.get();
@@ -123,6 +149,11 @@ public abstract class AggregateBinder<T> {
             return this.supplied;
         }
 
+        /**
+         * Was supplied boolean.
+         *
+         * @return the boolean
+         */
         public boolean wasSupplied() {
             return this.supplied != null;
         }

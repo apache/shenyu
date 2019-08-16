@@ -17,39 +17,30 @@
  *
  */
 
-package org.dromara.config.core.property;
+package org.dromara.config.api.property;
 
-import lombok.Data;
-
-import java.util.Optional;
+import java.util.Map;
+import java.util.Set;
 
 /**
- * ConfigProperty .
- * <p>
+ * MapPropertyKeySource .
  *
- * <p>
- * 2019-08-15 21:20
- *
- * @author chenbin sixh
+ * @author sixh
  */
-@Data
-public class ConfigProperty {
-    /**
-     * 属性名秒.
-     */
-    private PropertyName name;
+public class MapPropertyKeySource extends PropertyKeySource<Map<String, Object>> {
 
-    /**
-     * 属性值.
-     */
-    private Object value;
 
-    public ConfigProperty(PropertyName name, Object value) {
-        this.name = name;
-        this.value = value;
+    public MapPropertyKeySource(String name, Map<String, Object> source) {
+        super(name, source);
     }
 
-    public static ConfigProperty of(PropertyName name, Object value) {
-        return Optional.ofNullable(value).map(cf -> new ConfigProperty(name, cf)).orElse(null);
+    @Override
+    public Object getValue(String key) {
+        return getSource().get(key);
+    }
+
+    @Override
+    public Set<String> getKeys() {
+        return getSource().keySet();
     }
 }

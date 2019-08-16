@@ -19,55 +19,47 @@
 
 package org.dromara.config.api.bind;
 
-import org.apache.commons.lang3.ClassUtils;
-import org.dromara.config.api.source.ConfigProperty;
-import org.dromara.config.api.source.ConfigPropertySource;
-import org.dromara.config.api.source.PropertyName;
+import org.dromara.config.api.property.ConfigPropertySource;
+import org.dromara.config.api.property.PropertyName;
 import org.dromara.soul.common.utils.CollectionUtils;
 
-import java.lang.reflect.Type;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
 /**
  * MapBinder .
- * <p>
- * <p>
- * 2019-08-13 21:10
  *
- * @author chenbin sixh
+ * @author sixh
  */
-public class MapBinder extends AggregateBinder<Map> {
+public final class MapBinder extends AggregateBinder<Map<Object, Object>> {
 
+    MapBinder(Binder.Env env) {
+        super(env);
+    }
 
     @Override
-    Object bindAggregate(PropertyName name, BindData<?> target, AggregateElementBinder elementBinder) {
-        Map<Object, Object> map = new HashMap<>();
-        boolean hasDescendants = getEnv().stream().anyMatch((source) -> source
-                .containsDescendantOf(name));
+    Object bind(PropertyName propertyName, BindData<?> target, Binder.Env env, AggregateElementBinder elementBinder) {
+        Map<Object, Object> map = new HashMap<>(16);
+        boolean hasDescendants = env.getSource().containsDescendantOf(propertyName);
         if (!hasDescendants) {
-            for (ConfigPropertySource source : getEnv().getSources()) {
-                new EntryBinder(name, target, elementBinder).bindEntries(source, map);
-            }
+            new EntryBinder(propertyName, target, env, elementBinder).bindEntries(env.getSource(), map);
         }
         return (map.isEmpty() ? null : map);
     }
 
-
     @Override
-    Map assemble(Supplier<?> inst, Map additional) {
-        Map<Object, Object> existingMap = getExistingIfPossible(inst);
+    Object merge(Supplier<?> targetValue, Map<Object, Object> object) {
+        Map<Object, Object> existingMap = getExistingIfPossible(targetValue);
         if (existingMap == null) {
-            return additional;
+            return object;
         }
         try {
-            existingMap.putAll(additional);
+            existingMap.putAll(object);
             return copyIfPossible(existingMap);
         } catch (UnsupportedOperationException ex) {
-            Map<Object, Object> result = createNewMap(additional.getClass(), existingMap);
-            result.putAll(additional);
+            Map<Object, Object> result = createNewMap(object.getClass(), existingMap);
+            result.putAll(object);
             return result;
         }
     }
@@ -95,40 +87,40 @@ public class MapBinder extends AggregateBinder<Map> {
         return result;
     }
 
-    public MapBinder(Binder.Env env) {
-        super(env);
-    }
-
     @Override
-    protected boolean isAllowRecursiveBinding(ConfigPropertySource source) {
+    public boolean isAllowRecursiveBinding(Binder.Env source) {
         return false;
     }
 
-    private class EntryBinder {
+    private static class EntryBinder {
 
         private final PropertyName root;
 
         private final AggregateElementBinder elementBinder;
 
-        private final Type mapType;
+        private final DataType mapType;
 
-        private final Type keyType;
+        private final DataType keyType;
 
-        private final Type valueType;
+        private final DataType valueType;
 
-        EntryBinder(PropertyName root, BindData<?> target,
+        private final Binder.Env env;
+
+        EntryBinder(PropertyName root,
+                    BindData<?> target,
+                    Binder.Env env,
                     AggregateElementBinder elementBinder) {
             this.root = root;
             this.elementBinder = elementBinder;
             this.mapType = target.getType();
-            Type[] generics = target.getGenerics();
-
-            this.keyType = generics.length > 1 ? generics[0] : Object.class;
-            this.valueType = generics.length > 1 ? generics[1] : Object.class;
+            DataType[] generics = target.getType().getGenerics();
+            this.keyType = generics.length > 1 ? generics[0] : DataType.of(Object.class);
+            this.valueType = generics.length > 1 ? generics[1] : DataType.of(Object.class);
+            this.env = env;
         }
 
-        public void bindEntries(ConfigPropertySource source,
-                                Map<Object, Object> map) {
+        void bindEntries(ConfigPropertySource source,
+                         Map<Object, Object> map) {
             source.stream().forEach(name -> {
                 boolean ancestorOf = root.isAncestorOf(name);
                 if (ancestorOf) {
@@ -136,7 +128,7 @@ public class MapBinder extends AggregateBinder<Map> {
                     PropertyName entryName = getEntryName(source, name);
                     Object key = getKeyName(entryName);
                     map.computeIfAbsent(key,
-                            (k) -> this.elementBinder.bind(entryName, valueBindData));
+                            (k) -> this.elementBinder.bind(entryName, valueBindData, this.env));
                 }
             });
         }
@@ -148,27 +140,20 @@ public class MapBinder extends AggregateBinder<Map> {
             return BindData.of(this.valueType);
         }
 
-        private PropertyName getEntryName(ConfigPropertySource source,
-                                          PropertyName name) {
-            Class<?> resolved = (Class<?>) valueType;
-            if (Collection.class.isAssignableFrom(resolved) || isArray(valueType)) {
+        private PropertyName getEntryName(ConfigPropertySource source, PropertyName name) {
+            if (valueType.isCollection() || valueType.isArray()) {
                 return chopNameAtNumericIndex(name);
             }
-            if (!this.root.isParentOf(name)
-                    && (isValueTreatedAsNestedMap() || !isScalarValue(source, name))) {
-                return name.chop(this.root.getElementsLength() + 1);
+            if (!this.root.isParentOf(name) && (isValueTreatedAsNestedMap() || !isScalarValue(source, name))) {
+                return name.chop(this.root.getElementSize() + 1);
             }
             return name;
         }
 
-        private boolean isArray(Type type) {
-            return (type instanceof Class && ((Class<?>) type).isArray());
-        }
-
         private PropertyName chopNameAtNumericIndex(
                 PropertyName name) {
-            int start = this.root.getElementsLength() + 1;
-            int size = name.getElementsLength();
+            int start = this.root.getElementSize() + 1;
+            int size = name.getElementSize();
             for (int i = start; i < size; i++) {
                 if (name.isNumericIndex(i)) {
                     return name.chop(i);
@@ -181,26 +166,14 @@ public class MapBinder extends AggregateBinder<Map> {
             return false;
         }
 
-        private boolean isScalarValue(ConfigPropertySource source,
-                                      PropertyName name) {
+        private boolean isScalarValue(ConfigPropertySource source, PropertyName name) {
             return true;
-            /*Class<?> resolved = this.valueType.resolve(Object.class);
-            String packageName = ClassUtils.getPackageName(resolved);
-            if (!packageName.startsWith("java.lang") && !resolved.isEnum()) {
-                return false;
-            }
-            ConfigProperty property = source.findProperty(name);
-            if (property == null) {
-                return false;
-            }
-            Object value = property.getValue();
-            return getEnv().getConverter().canConvert(value, this.valueType);*/
         }
 
         private String getKeyName(PropertyName name) {
             StringBuilder result = new StringBuilder();
-            for (int i = this.root.getElementsLength(); i < name
-                    .getElementsLength(); i++) {
+            for (int i = this.root.getElementSize(); i < name
+                    .getElementSize(); i++) {
                 result.append(result.length() != 0 ? "." : "");
                 result.append(name.getElement(i));
             }
@@ -208,4 +181,5 @@ public class MapBinder extends AggregateBinder<Map> {
         }
 
     }
+
 }

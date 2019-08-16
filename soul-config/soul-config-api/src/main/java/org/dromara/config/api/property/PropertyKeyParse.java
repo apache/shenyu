@@ -17,7 +17,7 @@
  *
  */
 
-package org.dromara.config.core.property;
+package org.dromara.config.api.property;
 
 import org.dromara.soul.common.utils.ObjectUtils;
 
@@ -84,11 +84,11 @@ public enum PropertyKeyParse {
             this.keys = keys;
         }
 
-        public boolean isFrom(T from) {
+        boolean isFrom(T from) {
             return ObjectUtils.nullSafeEquals(from, this.from);
         }
 
-        public PropertyKey[] getKeys() {
+        PropertyKey[] getKeys() {
             return this.keys;
         }
     }

@@ -17,7 +17,7 @@
  *
  */
 
-package org.dromara.config.core.property;
+package org.dromara.config.api.property;
 
 import com.google.common.base.Splitter;
 import lombok.Data;
@@ -270,8 +270,8 @@ public class PropertyName {
             return this;
         }
         process(elementValue, (e, indexed) -> {
-            if (StringUtils.isBlank(e.get())) {
-                logger.warn("{} Did not find the corresponding property.", elementValue);
+            if (StringUtils.isBlank(e.get()) && logger.isDebugEnabled()) {
+                logger.debug("{} Did not find the corresponding property.", elementValue);
             }
         });
         if (!isIndexed(elementValue)) {

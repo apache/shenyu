@@ -17,6 +17,8 @@
 
 package org.dromara.config.api;
 
+import org.dromara.config.api.property.PropertyKeySource;
+
 import java.io.InputStream;
 import java.util.List;
 
@@ -42,5 +44,5 @@ public interface PropertyLoader {
      * @param stream 处理流.
      * @return the property sources
      */
-    List<PropertySource<?>> load(String name, InputStream stream);
+    List<PropertyKeySource<?>> load(String name, InputStream stream);
 }

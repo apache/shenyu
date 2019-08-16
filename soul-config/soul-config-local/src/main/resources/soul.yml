@@ -1,0 +1,15 @@
+#配置的读取模式. local彩用的是yml方式，disconf， 表示可以从选程读取配置信息.
+server:
+  mode: local
+  cluster: local
+  serverId: local001
+  host: host
+
+#  如果server.mode eq local 的时候才会读取到这里的配置信息.
+dataBase:
+  url: jdbc:mysql://192.168.1.82:3306/calvin_account?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&useSSL=false
+  userName: root
+  password: 123456
+consumer:
+  - 12
+  - 13

@@ -19,179 +19,232 @@
 
 package org.dromara.config.api.bind;
 
+import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.lang3.ClassUtils;
-import org.dromara.config.api.ConfigException;
-import org.dromara.config.api.source.ConfigProperty;
-import org.dromara.config.api.source.ConfigPropertySource;
-import org.dromara.config.api.source.PropertyName;
-
-import java.lang.reflect.Type;
-import java.util.*;
+import org.dromara.config.api.property.ConfigProperty;
+import org.dromara.config.api.property.ConfigPropertySource;
+import org.dromara.config.api.property.PropertyName;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 /**
  * Binder .
- * <p>
- * <p>
- * 2019-08-13 20:53
+ * property binder.
+ * 2019-08-15 22:11
  *
- * @author chenbin sixh
+ * @author sixh
  */
-public final class Binder {
+public class Binder {
 
-    private List<ConfigPropertySource> source;
+    private ConfigPropertySource source;
 
-    private JavaBeanBinder beanBinder = new JavaBeanBinder();
+    private BeanBinder beanBinder = new JavaBeanBinder();
 
-    public Binder(List<ConfigPropertySource> source) {
+    private Binder(ConfigPropertySource source) {
         this.source = source;
     }
 
-    public final <T> Object bind(String sf, BindData<T> target) {
-        return bind(PropertyName.of(sf), target);
+    /**
+     * 构造一个属性binder器.
+     *
+     * @param source source.
+     * @return binder binder
+     */
+    public static Binder of(ConfigPropertySource source) {
+        return new Binder(source);
     }
 
-    public final <T> Object bind(PropertyName name, BindData<T> target) {
+    /**
+     * 绑定一个
+     *
+     * @param <T>          the type parameter
+     * @param propertyName the property name
+     * @param target       the target
+     * @return t t
+     */
+    public <T> T bind(String propertyName, BindData<T> target) {
+        return bind(PropertyName.of(propertyName), target);
+    }
+
+    /**
+     * Bind t.
+     *
+     * @param <T>          the type parameter
+     * @param propertyName the property name
+     * @param target       the target
+     * @return the t
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T bind(PropertyName propertyName, BindData<T> target) {
         Env env = new Env();
-        return bind(name, target, env, false);
+        return (T) bind(propertyName, target, env, false);
     }
 
-    protected final <T> T bind(PropertyName name, BindData<T> target,
-                               Env context, boolean allowRecursiveBinding) {
-        Object bound = bindObject(name, target, allowRecursiveBinding, context);
-        return (T) bound;
-
+    /**
+     * Bind object.
+     *
+     * @param <T>                   the type parameter
+     * @param name                  the name
+     * @param target                the target
+     * @param env                   the env
+     * @param allowRecursiveBinding the allow recursive binding
+     * @return the object
+     */
+    protected final <T> Object bind(PropertyName name, BindData<T> target, Env env, boolean allowRecursiveBinding) {
+        return bindObject(name, target, env, allowRecursiveBinding);
     }
 
-    private <T> Object bindObject(PropertyName name, BindData<T> target,
-                                  boolean allowRecursiveBinding, Env env) {
-        ConfigProperty property = findProperty(name, env);
-        if (property == null && containsNoDescendantOf(env.stream(), name)) {
+    private <T> Object bindObject(PropertyName propertyName, BindData<T> target, Env env, boolean allowRecursiveBinding) {
+        ConfigProperty property = findProperty(propertyName, env);
+
+        //查找属性，并判断不是一个属结点.
+        if (property == null && env.getSource().containsDescendantOf(propertyName)) {
             return null;
         }
-        AggregateBinder<?> aggregateBinder = getAggregateBinder(target, env);
-        if (aggregateBinder != null) {
-            return bindAggregate(name, target, aggregateBinder, env);
+        // 判断是否为aggregate binder.
+        AggregateBinder binder = getAggregateBinder(target, env);
+        if (binder != null) {
+            return bindAggregate(propertyName, target, binder, env);
         }
         if (property != null) {
             try {
-                return bindProperty(property, env);
-            } catch (ConfigException ex) {
+                return bindProperty(property, target, env);
+            } catch (Exception ex) {
                 // We might still be able to bind it as a bean
-                Object bean = bindBean(name, target,
-                        allowRecursiveBinding, env);
+                Object bean = bindBean(propertyName, target, allowRecursiveBinding, env);
                 if (bean != null) {
                     return bean;
                 }
                 throw ex;
             }
+
         }
-        return bindBean(name, target, allowRecursiveBinding, env);
+        return bindBean(propertyName, target, allowRecursiveBinding, env);
     }
 
+    private <T> Object bindAggregate(PropertyName name, BindData<T> target,
+                                     AggregateBinder<?> aggregateBinder, Env env) {
+        AggregateElementBinder elementBinder = (itemName, itemTarget, source) -> {
+            boolean allowRecursiveBinding = aggregateBinder.isAllowRecursiveBinding(source);
+            Supplier<?> value = () -> bind(itemName, itemTarget, env, allowRecursiveBinding);
+            return env.setSource(source.getSource(), value);
+        };
+        return env.withIncreasedDepth(() -> aggregateBinder.bind(name, target, elementBinder));
+    }
 
-    private <T> Object bindProperty(ConfigProperty property, Env env) {
+    private <T> Object bindProperty(ConfigProperty property, BindData<T> target, Env env) {
         env.setProperty(property);
-        return property.getValue();
-    }
-
-    private ConfigProperty findProperty(PropertyName name,
-                                        Env env) {
-        if (name.isEmpty()) {
-            return null;
-        }
-        return env.stream()
-                .map((source) -> source.findProperty(name))
-                .filter(Objects::nonNull).findFirst().orElse(null);
+        Object value = property.getValue();
+        return ConvertUtils.convert(value, target.getType().getTypeClass());
     }
 
     private <T> Object bindBean(PropertyName name, BindData<T> target, boolean allowRecursiveBinding, Env env) {
-        if (containsNoDescendantOf(env.stream(), name)
+        if (containsNoDescendantOf(env, name)
                 || isUnbindableBean(name, target, env)) {
             return null;
         }
-        BeanPropertyBinder propertyBinder = (propertyName, propertyTarget) -> bind(
+        BeanBinder.PropertyBinder propertyBinder = (propertyName, propertyTarget) -> bind(
                 name.append(propertyName), propertyTarget, env, false);
-        Class<?> type = target.getTypeClass();
+        Class<?> type = target.getType().getTypeClass();
         if (!allowRecursiveBinding && env.hasBoundBean(type)) {
             return null;
         }
         return env.withBean(type, () -> beanBinder.bind(name, target, env, propertyBinder));
     }
 
-    private boolean containsNoDescendantOf(Stream<ConfigPropertySource> sources,
+    private boolean containsNoDescendantOf(Env env,
                                            PropertyName name) {
-        return sources.allMatch(
-                (s) -> s.containsDescendantOf(name));
+        return env.getSource().containsDescendantOf(name);
     }
 
     private boolean isUnbindableBean(PropertyName name, BindData<?> target,
                                      Env env) {
-        if (env.stream().anyMatch((s) -> s
-                .containsDescendantOf(name))) {
+        if (env.getSource().containsDescendantOf(name)) {
             return false;
         }
-        String packageName = ClassUtils.getPackageName(target.getType().getTypeName());
+        String packageName = ClassUtils.getPackageName(target.getType().getType().getTypeName());
         return packageName.startsWith("java.");
     }
 
-
-    private <T> Object bindAggregate(PropertyName name, BindData<T> target,
-                                     AggregateBinder<?> aggregateBinder, Env env) {
-        AggregateElementBinder elementBinder = (itemName, itemTarget, source) -> {
-            boolean allowRecursiveBinding = aggregateBinder
-                    .isAllowRecursiveBinding(source);
-            Supplier<?> supplier = () -> bind(itemName, itemTarget, env,
-                    allowRecursiveBinding);
-            return env.withSource(source, supplier);
-        };
-        return env.withIncreasedDepth(
-                () -> aggregateBinder.bind(name, target, elementBinder));
+    private AggregateBinder getAggregateBinder(BindData<?> target, Env env) {
+        return AggregateBinder.binder(target, env);
     }
 
-    private AggregateBinder<?> getAggregateBinder(BindData<?> target, Env env) {
-        Class type = target.getTypeClass();
-        if (Map.class.isAssignableFrom(type)) {
-            return new MapBinder(env);
+    private static ConfigProperty findProperty(PropertyName propertyName, Env env) {
+        if (propertyName.isEmpty()) {
+            return null;
         }
-        if (Collection.class.isAssignableFrom(type)) {
-            return new CollectionBinder(env);
-        }
-        if (isArray(type)) {
-            return new ArrayBinder(env);
-        }
-        return null;
+        return env.getSource().findProperty(propertyName);
     }
 
-    private boolean isArray(Type type) {
-        return (type instanceof Class && ((Class<?>) type).isArray());
-    }
-
+    /**
+     * The type Env.
+     */
     class Env {
+        /**
+         * sources.
+         */
+        private ConfigPropertySource source;
 
         private ConfigProperty property;
 
-        private int depth;
-
         private final Deque<Class<?>> beans = new ArrayDeque<>();
 
-        private final List<ConfigPropertySource> source = Arrays.asList((ConfigPropertySource) null);
+        private int depth;
 
-        private int sourcePushCount;
+        private void increaseDepth() {
+            this.depth++;
+        }
 
-        private <T> T withSource(ConfigPropertySource source,
-                                 Supplier<T> supplier) {
+        private void decreaseDepth() {
+            this.depth--;
+        }
+
+        /**
+         * Sets source.
+         *
+         * @param source the source
+         * @param value  the value
+         * @return the source
+         */
+        Object setSource(ConfigPropertySource source, Supplier<?> value) {
+            this.source = source;
+            return value.get();
+        }
+
+        private boolean hasBoundBean(Class<?> bean) {
+            return this.beans.contains(bean);
+        }
+
+        /**
+         * Sets property.
+         *
+         * @param property the property
+         */
+        public void setProperty(ConfigProperty property) {
+            this.property = property;
+        }
+
+        /**
+         * Gets source.
+         *
+         * @return the source
+         */
+        ConfigPropertySource getSource() {
             if (source == null) {
-                return supplier.get();
+                return Binder.this.source;
             }
-            this.source.set(0, source);
-            this.sourcePushCount++;
-            try {
-                return supplier.get();
-            } finally {
-                this.sourcePushCount--;
-            }
+            return source;
+        }
+
+        /**
+         * Gets property.
+         *
+         * @return the property
+         */
+        public ConfigProperty getProperty() {
+            return property;
         }
 
         private <T> T withBean(Class<?> bean, Supplier<T> supplier) {
@@ -203,13 +256,6 @@ public final class Binder {
             }
         }
 
-        private void increaseDepth() {
-            this.depth++;
-        }
-        private void decreaseDepth() {
-            this.depth--;
-        }
-
         private <T> T withIncreasedDepth(Supplier<T> supplier) {
             increaseDepth();
             try {
@@ -217,37 +263,6 @@ public final class Binder {
             } finally {
                 decreaseDepth();
             }
-        }
-
-
-
-
-        public void setProperty(ConfigProperty property) {
-            this.property = property;
-        }
-
-
-        private boolean hasBoundBean(Class<?> bean) {
-            return this.beans.contains(bean);
-        }
-
-        /**
-         * Stream stream.
-         *
-         * @return the stream
-         */
-        Stream<ConfigPropertySource> stream() {
-            if (this.sourcePushCount > 0) {
-                return this.source.stream();
-            }
-            return Binder.this.source.stream();
-        }
-
-        public List<ConfigPropertySource> getSources() {
-            if (this.sourcePushCount > 0) {
-                return this.source;
-            }
-            return Binder.this.source;
         }
     }
 }

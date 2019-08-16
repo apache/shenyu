@@ -19,38 +19,34 @@
 
 package org.dromara.config.api.bind;
 
-import org.dromara.config.api.source.PropertyName;
+import org.dromara.config.api.property.PropertyName;
 import org.dromara.soul.common.utils.CollectionUtils;
 
-import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
  * CollectionBinder .
- * <p>
- * <p>
- * 2019-08-13 21:11
  *
- * @author chenbin sixh
+ * @author sixh
  */
-public class CollectionBinder extends IndexedBinder<Collection<Object>> {
+public final class CollectionBinder extends IndexedBinder<Collection<Object>> {
 
-    public CollectionBinder(Binder.Env env) {
+    CollectionBinder(Binder.Env env) {
         super(env);
     }
 
     @Override
-    Object bindAggregate(PropertyName name, BindData<?> target, AggregateElementBinder elementBinder) {
-        Class<?> collectionType = (target.getInst() != null ? List.class
-                : target.getTypeClass());
-        Type aggregateType = collectionType;
-        Type elementType = target.getGenerics().length > 0 ? target.getGenerics()[0] : Object.class;
-        IndexedCollectionSupplier result = new IndexedCollectionSupplier(
+    Object bind(PropertyName propertyName, BindData<?> target, Binder.Env env, AggregateElementBinder elementBinder) {
+        DataType type = target.getType();
+        Class<?> collectionType = (target.getValue() != null ? List.class
+                : type.getTypeClass());
+        DataType aggregateType = DataType.of(collectionType);
+        DataType elementType = type.getGenerics().length > 0 ? type.getGenerics()[0] : DataType.of(Object.class);
+        IndexedBinder.IndexedCollectionSupplier result = new IndexedBinder.IndexedCollectionSupplier(
                 () -> CollectionUtils.createFactory().create(collectionType, 0));
-        bindIndexed(name, target, elementBinder, aggregateType, elementType, result);
+        bindIndexed(propertyName, target, elementBinder, aggregateType, elementType, result);
         if (result.wasSupplied()) {
             return result.get();
         }
@@ -58,17 +54,17 @@ public class CollectionBinder extends IndexedBinder<Collection<Object>> {
     }
 
     @Override
-    Collection<Object> assemble(Supplier<?> inst, Collection<Object> additional) {
-        Collection<Object> existingCollection = getExistingIfPossible(inst);
+    Object merge(Supplier<?> targetValue, Collection<Object> object) {
+        Collection<Object> existingCollection = getExistingIfPossible(targetValue);
         if (existingCollection == null) {
-            return additional;
+            return object;
         }
         try {
             existingCollection.clear();
-            existingCollection.addAll(additional);
+            existingCollection.addAll(object);
             return copyIfPossible(existingCollection);
         } catch (UnsupportedOperationException ex) {
-            return createNewCollection(additional);
+            return createNewCollection(object);
         }
     }
 

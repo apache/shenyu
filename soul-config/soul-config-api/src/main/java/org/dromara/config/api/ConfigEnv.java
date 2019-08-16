@@ -17,11 +17,11 @@
 
 package org.dromara.config.api;
 
-        import org.dromara.config.api.source.ConfigPropertySource;
+import org.dromara.config.api.property.PropertyKeySource;
 
-        import java.util.ArrayList;
-        import java.util.List;
-        import java.util.stream.Stream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * ConfigEnv .
@@ -31,14 +31,14 @@ package org.dromara.config.api;
  */
 public class ConfigEnv {
 
-    private List<ConfigPropertySource> source = new ArrayList<>();
+    private List<PropertyKeySource> source = new ArrayList<>();
 
     /**
      * Stream stream.
      *
      * @return the stream
      */
-    public Stream<ConfigPropertySource> stream() {
+    public Stream<PropertyKeySource> stream() {
         return source.stream();
     }
 

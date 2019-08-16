@@ -17,7 +17,7 @@
  *
  */
 
-package org.dromara.config.core.bind;
+package org.dromara.config.api.bind;
 
 import lombok.Data;
 

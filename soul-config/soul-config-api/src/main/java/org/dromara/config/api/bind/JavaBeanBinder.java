@@ -19,8 +19,8 @@
 
 package org.dromara.config.api.bind;
 
-import org.dromara.config.api.ConfigException;
-import org.dromara.config.api.source.PropertyName;
+import org.dromara.config.api.property.PropertyName;
+import org.dromara.soul.common.exception.SoulException;
 
 import java.beans.Introspector;
 import java.lang.reflect.Field;
@@ -40,11 +40,11 @@ import java.util.function.Supplier;
  *
  * @author chenbin sixh
  */
-public class JavaBeanBinder implements BeanBinder {
+public class JavaBeanBinder extends BeanBinder {
 
     @Override
-    public <T> T bind(PropertyName name, BindData<T> target, Binder.Env env, BeanPropertyBinder propertyBinder) {
-        boolean hasKnownBindableProperties = true;
+    <T> T bind(PropertyName name, BindData<T> target, Binder.Env env, PropertyBinder propertyBinder) {
+        boolean hasKnownBindableProperties = env.getSource().containsDescendantOf(name);
         Bean<T> bean = Bean.get(target, hasKnownBindableProperties);
         if (bean == null) {
             return null;
@@ -54,7 +54,8 @@ public class JavaBeanBinder implements BeanBinder {
         return (bound ? beanSupplier.get() : null);
     }
 
-    private <T> boolean bind(BeanPropertyBinder propertyBinder, Bean<T> bean,
+
+    private <T> boolean bind(PropertyBinder propertyBinder, Bean<T> bean,
                              BeanSupplier<T> beanSupplier) {
         boolean bound = false;
         for (Map.Entry<String, BeanProperty> entry : bean.getProperties().entrySet()) {
@@ -64,11 +65,11 @@ public class JavaBeanBinder implements BeanBinder {
     }
 
     private <T> boolean bind(BeanSupplier<T> beanSupplier,
-                             BeanPropertyBinder propertyBinder, BeanProperty property) {
+                             PropertyBinder propertyBinder, BeanProperty property) {
         String propertyName = property.getName();
-        Type type = property.getType();
+        DataType type = property.getType().withGenerics(property.getField());
         Supplier<Object> value = property.getValue(beanSupplier);
-        BindData<Object> bindData = BindData.of(type).withField(property.getField()).withSuppliedValue(value);
+        BindData<Object> bindData = BindData.of(type).withValue(value);
         Object bound = propertyBinder.bindProperty(propertyName, bindData);
         if (bound == null) {
             return false;
@@ -88,7 +89,7 @@ public class JavaBeanBinder implements BeanBinder {
 
         private final Class<?> type;
 
-        private final Map<String, JavaBeanBinder.BeanProperty> properties = new LinkedHashMap<>();
+        private final Map<String, BeanProperty> properties = new LinkedHashMap<>();
 
         Bean(Class<?> type) {
             this.type = type;
@@ -158,14 +159,14 @@ public class JavaBeanBinder implements BeanBinder {
         BeanSupplier<T> getSupplier(BindData<T> target) {
             return new BeanSupplier<>(() -> {
                 T instance = null;
-                if (target.getInst() != null) {
-                    instance = target.getInst().get();
+                if (target.getValue() != null) {
+                    instance = target.getValue().get();
                 }
                 if (instance == null) {
                     try {
                         instance = (T) this.type.newInstance();
                     } catch (InstantiationException | IllegalAccessException e) {
-                        throw new ConfigException(e);
+                        throw new SoulException(e);
                     }
                 }
                 return instance;
@@ -174,8 +175,8 @@ public class JavaBeanBinder implements BeanBinder {
 
         @SuppressWarnings("unchecked")
         static <T> Bean<T> get(BindData<T> bindable, boolean canCallGetValue) {
-            Class<?> type = bindable.getTypeClass();
-            Supplier<T> value = bindable.getInst();
+            Class<?> type = bindable.getType().getTypeClass();
+            Supplier<T> value = bindable.getValue();
             T instance = null;
             if (canCallGetValue && value != null) {
                 instance = value.get();
@@ -240,7 +241,7 @@ public class JavaBeanBinder implements BeanBinder {
         private Field field;
 
         BeanProperty(String name) {
-            this.name = BeanPropertyName.toDashedForm(name);
+            this.name = name;
         }
 
         void addGetter(Method getter) {
@@ -269,12 +270,14 @@ public class JavaBeanBinder implements BeanBinder {
             return this.name;
         }
 
-        Type getType() {
+        DataType getType() {
             if (this.setter != null) {
-                Class<?>[] parameterTypes = this.setter.getParameterTypes();
-                return parameterTypes[0];
+                Type[] parameterTypes = this.setter.getParameterTypes();
+                if (parameterTypes.length > 0) {
+                    return DataType.of(parameterTypes[0]);
+                }
             }
-            return this.getter.getReturnType();
+            return DataType.of(this.getter.getReturnType());
         }
 
         Supplier<Object> getValue(Supplier<?> instance) {
@@ -305,8 +308,6 @@ public class JavaBeanBinder implements BeanBinder {
                         "Unable to set value for property " + this.name, ex);
             }
         }
-
     }
-
 
 }

@@ -19,37 +19,32 @@
 
 package org.dromara.config.api.bind;
 
-import org.dromara.config.api.source.PropertyName;
+import org.dromara.config.api.property.PropertyName;
 
 import java.lang.reflect.Array;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
 /**
  * ArrayBinder .
- * <p>
- * <p>
- * 2019-08-13 21:10
  *
- * @author chenbin sixh
+ * @author sixh
  */
-public class ArrayBinder extends IndexedBinder<Object> {
+public final class ArrayBinder extends IndexedBinder<Object> {
 
-    public ArrayBinder(Binder.Env env) {
+    ArrayBinder(Binder.Env env) {
         super(env);
     }
 
-
     @Override
-    Object bindAggregate(PropertyName name, BindData<?> target, AggregateElementBinder elementBinder) {
-        IndexedCollectionSupplier result = new IndexedCollectionSupplier(ArrayList::new);
-        Type aggregateType = target.getType();
-        bindIndexed(name, target, elementBinder, aggregateType, Object.class, result);
+    Object bind(PropertyName propertyName, BindData<?> target, Binder.Env env, AggregateElementBinder elementBinder) {
+        IndexedBinder.IndexedCollectionSupplier result = new IndexedBinder.IndexedCollectionSupplier(ArrayList::new);
+        DataType aggregateType = target.getType();
+        bindIndexed(propertyName, target, elementBinder, aggregateType, DataType.of(Object.class), result);
         if (result.wasSupplied()) {
             List<Object> list = (List<Object>) result.get();
-            Object array = Array.newInstance(target.getComponentType(), list.size());
+            Object array = Array.newInstance(aggregateType.getComponentType(), list.size());
             for (int i = 0; i < list.size(); i++) {
                 Array.set(array, i, list.get(i));
             }
@@ -59,7 +54,7 @@ public class ArrayBinder extends IndexedBinder<Object> {
     }
 
     @Override
-    Object assemble(Supplier<?> inst, Object additional) {
-        return additional;
+    Object merge(Supplier<?> targetValue, Object object) {
+        return object;
     }
 }

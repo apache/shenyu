@@ -17,9 +17,9 @@
 
 package org.dromara.config.api.yaml;
 
-import org.dromara.config.api.TrackedMapPropertySource;
 import org.dromara.config.api.PropertyLoader;
-import org.dromara.config.api.PropertySource;
+import org.dromara.config.api.property.MapPropertyKeySource;
+import org.dromara.config.api.property.PropertyKeySource;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -42,7 +42,7 @@ public class YamlPropertyLoader implements PropertyLoader {
     }
 
     @Override
-    public List<PropertySource<?>> load(String name, InputStream resource) {
+    public List<PropertyKeySource<?>> load(String name, InputStream resource) {
         if (!checkFile(name)) {
             return Collections.emptyList();
         }
@@ -50,14 +50,12 @@ public class YamlPropertyLoader implements PropertyLoader {
         if (loaded.isEmpty()) {
             return Collections.emptyList();
         }
-        List<PropertySource<?>> propertySources = new ArrayList<>(loaded.size());
+        List<PropertyKeySource<?>> propertySources = new ArrayList<>(loaded.size());
         for (int i = 0; i < loaded.size(); i++) {
-            propertySources.add(new TrackedMapPropertySource(
+            propertySources.add(new MapPropertyKeySource(
                     name + (loaded.size() != 1 ? " (document #" + i + ")" : ""),
                     loaded.get(i)));
         }
         return propertySources;
     }
-
-
 }

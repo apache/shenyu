@@ -17,6 +17,7 @@
 
 package org.dromara.config.api;
 
+import org.dromara.config.api.property.PropertyKeySource;
 import org.dromara.config.api.yaml.YamlPropertyLoader;
 import org.dromara.soul.common.exception.SoulException;
 import org.dromara.soul.common.utils.StringUtils;
@@ -71,7 +72,7 @@ public abstract class AbstractConfigLoader implements ConfigLoader {
         }
         try (FileInputStream inputStream = new FileInputStream(configFile)) {
             for (PropertyLoader loader : loaders) {
-                List<PropertySource<?>> load = loader.load(filePath, inputStream);
+                List<PropertyKeySource<?>> load = loader.load(filePath, inputStream);
                 System.out.println(load);
             }
         } catch (IOException e) {
@@ -87,7 +88,7 @@ public abstract class AbstractConfigLoader implements ConfigLoader {
      * @param config Loaded basic configuration information.
      * @return Completed configuration information.
      */
-    public abstract BaseConfig load0(List<PropertySource<?>> config);
+    public abstract BaseConfig load0(List<PropertyKeySource<?>> config);
 
     /**
      * Get the current project path.

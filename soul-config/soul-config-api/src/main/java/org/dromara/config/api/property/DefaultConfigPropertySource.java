@@ -17,7 +17,7 @@
  *
  */
 
-package org.dromara.config.core.property;
+package org.dromara.config.api.property;
 
 
 import com.google.common.collect.Lists;

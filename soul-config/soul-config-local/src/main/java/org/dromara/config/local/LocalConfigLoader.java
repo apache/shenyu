@@ -19,7 +19,6 @@ package org.dromara.config.local;
 
 import org.dromara.config.api.AbstractConfigLoader;
 import org.dromara.config.api.BaseConfig;
-import org.dromara.config.api.PropertySource;
 
 import java.util.List;
 

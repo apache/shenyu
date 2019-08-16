@@ -17,38 +17,50 @@
  *
  */
 
-package org.dromara.config.core.property;
+package org.dromara.config.api.property;
 
-import lombok.Data;
+import java.util.Set;
 
 /**
- * PropertyKey .
- * <p>
+ * PropertyKeySource .
+ * 查找配置已经初始化的Key 对应的 value值.
  * 2019-08-15
  *
  * @author sixh
  */
-@Data
-public class PropertyKey {
+public abstract class PropertyKeySource<T> {
 
-    private String key;
+    /**
+     * The Name.
+     */
+    protected final String name;
 
-    private PropertyName propertyName;
+    /**
+     * The Source.
+     */
+    protected final T source;
 
-    public PropertyKey(String key, PropertyName propertyName) {
-        this.key = key;
-        this.propertyName = propertyName;
+    public T getSource() {
+        return source;
+    }
+
+    PropertyKeySource(String name, T source) {
+        this.name = name;
+        this.source = source;
     }
 
     /**
-     * 是适用的.
+     * 根据key找到对应的value.
      *
-     * @param name eq {@link PropertyName#equals}
-     * @return true else false.
+     * @param key key.
+     * @return obj.
      */
-    public boolean isAvailable(PropertyName name) {
-        return propertyName.equals(name);
-    }
+    public abstract Object getValue(String key);
+
+    /**
+     * 获取所有的KEY.
+     *
+     * @return key.
+     */
+    public abstract Set<String> getKeys();
 }
-
-

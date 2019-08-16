@@ -17,15 +17,38 @@
  *
  */
 
-package org.dromara.config.core;
+package org.dromara.config.api.property;
+
+import lombok.Data;
 
 /**
- * Base .
+ * PropertyKey .
  * <p>
- * <p>
- * 2019-08-15 21:19
+ * 2019-08-15
  *
- * @author chenbin sixh
+ * @author sixh
  */
-public class Base {
+@Data
+public class PropertyKey {
+
+    private String key;
+
+    private PropertyName propertyName;
+
+    public PropertyKey(String key, PropertyName propertyName) {
+        this.key = key;
+        this.propertyName = propertyName;
+    }
+
+    /**
+     * 是适用的.
+     *
+     * @param name eq {@link PropertyName#equals}
+     * @return true else false.
+     */
+    public boolean isAvailable(PropertyName name) {
+        return propertyName.equals(name);
+    }
 }
+
+

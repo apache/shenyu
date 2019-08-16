@@ -19,20 +19,19 @@
 
 package org.dromara.config.api.bind;
 
-import org.dromara.config.api.source.PropertyName;
+import org.dromara.config.api.property.PropertyName;
 
 /**
  * BeanBinder .
- * <p>
- * <p>
- * 2019-08-13 21:09
+ * java bean binder.
  *
- * @author chenbin sixh
+ * @author sixh
  */
-public interface BeanBinder {
+public abstract class BeanBinder {
+
     /**
      * Return a bound bean instance or {@code null} if the {@link BeanBinder} does not
-     * support the specified {@link Bindable}.
+     * support the specified {@link BindData}.
      *
      * @param <T>            The source type
      * @param name           the name being bound
@@ -41,6 +40,22 @@ public interface BeanBinder {
      * @param propertyBinder property binder
      * @return a bound instance or {@code null}
      */
-    <T> T bind(PropertyName name, BindData<T> target, Binder.Env env, BeanPropertyBinder propertyBinder);
+    abstract <T> T bind(PropertyName name, BindData<T> target, Binder.Env env, PropertyBinder propertyBinder);
+
+
+    @FunctionalInterface
+    interface PropertyBinder {
+
+        /**
+         * Bind the given property.
+         *
+         * @param propertyName the property name (in lowercase dashed form, e.g.
+         *                     {@code first-name})
+         * @param target       the target bindable
+         * @return the bound value or {@code null}
+         */
+        Object bindProperty(String propertyName, BindData<?> target);
+
+    }
 
 }

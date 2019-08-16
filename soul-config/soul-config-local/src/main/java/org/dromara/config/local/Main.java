@@ -17,37 +17,23 @@
  *
  */
 
-package org.dromara.config.core.property;
+package org.dromara.config.local;
 
-import java.util.stream.Stream;
+import org.dromara.config.api.BaseConfig;
+import org.dromara.config.api.ConfigLoader;
 
 /**
- * ConfingPropertySource .
- * 2019-08-15
+ * Main .
+ * <p>
+ * <p>
+ * 2019-08-12 20:49
  *
- * @author sixh
+ * @author chenbin sixh
  */
-public interface ConfigPropertySource {
-    /**
-     * Lookup property.
-     *
-     * @param propertyName name.
-     * @return the config property
-     */
-    ConfigProperty findProperty(PropertyName propertyName);
-
-    /**
-     * PropertyName stream.
-     *
-     * @return the stream
-     */
-    Stream<PropertyName> stream();
-
-    /**
-     * Is there a node that contains the current node link propertyName.
-     *
-     * @param propertyName the property name
-     * @return the boolean
-     */
-    boolean containsDescendantOf(PropertyName propertyName);
+public class Main {
+    public static void main(String[] args) {
+        ConfigLoader loader = new LocalConfigLoader();
+        BaseConfig load = loader.load();
+        System.out.println(load);
+    }
 }

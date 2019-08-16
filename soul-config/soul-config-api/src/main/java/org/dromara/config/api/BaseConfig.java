@@ -36,12 +36,19 @@ public class BaseConfig implements ConfigParent {
 
     private List<String> abs;
 
-    private Map<Integer, Integer> adf;
+    private Map<String, Test> adf;
 
     private Integer[] str;
+
+    private Test test;
 
     @Override
     public String prefix() {
         return "soul";
+    }
+
+    @Data
+    public static class Test {
+        private String name;
     }
 }
