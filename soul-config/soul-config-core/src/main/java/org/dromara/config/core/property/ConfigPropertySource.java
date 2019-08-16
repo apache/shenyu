@@ -19,20 +19,35 @@
 
 package org.dromara.config.core.property;
 
-import org.dromara.config.core.bind.Binder;
+import java.util.stream.Stream;
 
 /**
  * ConfingPropertySource .
- * <p>
  * 2019-08-15
  *
  * @author sixh
  */
 public interface ConfigPropertySource {
     /**
-     * 查找属性.
+     * Lookup property.
      *
      * @param propertyName name.
+     * @return the config property
      */
     ConfigProperty findProperty(PropertyName propertyName);
+
+    /**
+     * PropertyName stream.
+     *
+     * @return the stream
+     */
+    Stream<PropertyName> stream();
+
+    /**
+     * Is there a node that contains the current node link propertyName.
+     *
+     * @param propertyName the property name
+     * @return the boolean
+     */
+    boolean containsDescendantOf(PropertyName propertyName);
 }

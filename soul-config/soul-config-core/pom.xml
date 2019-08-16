@@ -30,6 +30,7 @@
 
     <artifactId>soul-config-core</artifactId>
     <dependencies>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>

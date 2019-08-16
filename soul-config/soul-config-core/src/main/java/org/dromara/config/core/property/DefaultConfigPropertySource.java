@@ -20,9 +20,16 @@
 package org.dromara.config.core.property;
 
 
+import com.google.common.collect.Lists;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
+
 /**
  * DefaultConfigPropertySource .
- * <p>
+ * 默认的ConfigProperty处理.
  * 2019-08-15
  *
  * @author sixh
@@ -33,12 +40,33 @@ public class DefaultConfigPropertySource implements ConfigPropertySource {
 
     private PropertyKeyParse keyParse;
 
+    /**
+     * Gets key source.
+     *
+     * @return the key source
+     */
     public PropertyKeySource getKeySource() {
         return keySource;
     }
 
+    /**
+     * Gets key parse.
+     *
+     * @return the key parse
+     */
     public PropertyKeyParse getKeyParse() {
         return keyParse;
+    }
+
+    /**
+     * Instantiates a new Default config property source.
+     *
+     * @param keySource the key source
+     * @param keyParse  the key parse
+     */
+    public DefaultConfigPropertySource(PropertyKeySource keySource, PropertyKeyParse keyParse) {
+        this.keySource = keySource;
+        this.keyParse = keyParse;
     }
 
     @Override
@@ -56,6 +84,31 @@ public class DefaultConfigPropertySource implements ConfigPropertySource {
             }
         }
         return null;
+    }
+
+    @Override
+    public Stream<PropertyName> stream() {
+        return getPropertyNames().stream();
+    }
+
+    @Override
+    public boolean containsDescendantOf(PropertyName propertyName) {
+        List<PropertyName> propertyNames = getPropertyNames();
+        return propertyNames.stream().anyMatch(e -> e.isAncestorOf(propertyName));
+    }
+
+    private List<PropertyName> getPropertyNames() {
+        List<PropertyKey> propertyKeys = getPropertyKeys();
+        List<PropertyName> names = new ArrayList<>(propertyKeys.size());
+        propertyKeys.forEach(propertyKey -> names.add(propertyKey.getPropertyName()));
+        return names;
+    }
+
+    private List<PropertyKey> getPropertyKeys() {
+        Set<String> keys = getKeySource().getKeys();
+        List<PropertyKey> propertyKeys = new ArrayList<>(keys.size());
+        keys.forEach(key -> propertyKeys.addAll(Lists.newArrayList(getKeyParse().parse(key))));
+        return propertyKeys;
     }
 
     private ConfigProperty find(PropertyKey key) {

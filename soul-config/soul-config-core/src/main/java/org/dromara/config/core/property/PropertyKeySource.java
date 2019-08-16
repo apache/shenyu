@@ -19,6 +19,8 @@
 
 package org.dromara.config.core.property;
 
+import java.util.Set;
+
 /**
  * PropertyKeySource .
  * 查找配置已经初始化的Key 对应的 value值.
@@ -26,7 +28,26 @@ package org.dromara.config.core.property;
  *
  * @author sixh
  */
-public abstract class PropertyKeySource {
+public abstract class PropertyKeySource<T> {
+
+    /**
+     * The Name.
+     */
+    protected final String name;
+
+    /**
+     * The Source.
+     */
+    protected final T source;
+
+    public T getSource() {
+        return source;
+    }
+
+    public PropertyKeySource(String name, T source) {
+        this.name = name;
+        this.source = source;
+    }
 
     /**
      * 根据key找到对应的value.
@@ -35,4 +56,11 @@ public abstract class PropertyKeySource {
      * @return obj.
      */
     public abstract Object getValue(String key);
+
+    /**
+     * 获取所有的KEY.
+     *
+     * @return key.
+     */
+    public abstract Set<String> getKeys();
 }
