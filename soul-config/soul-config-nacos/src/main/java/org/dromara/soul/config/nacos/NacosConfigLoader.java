@@ -41,6 +41,7 @@ import java.util.function.Supplier;
 public class NacosConfigLoader extends ConfigLoader<NacosConfig> {
 
     private static final Logger logger = LoggerFactory.getLogger(NacosConfigLoader.class);
+    private NacosClient client = new NacosClient();
     private Map<String, PropertyLoader> loaders = new HashMap<>();
 
     {
@@ -51,6 +52,11 @@ public class NacosConfigLoader extends ConfigLoader<NacosConfig> {
         ConfigEnv.getInstance().putBean(new NacosConfig());
     }
 
+    public NacosConfigLoader(NacosClient client) {
+        this();
+        this.client = client;
+    }
+
     @Override
     public void load(Supplier<Context> context, LoaderHandler<NacosConfig> handler) {
         LoaderHandler<NacosConfig> nacosHandler = (c, config) -> nacosLoad(c, handler, config);
@@ -59,10 +65,8 @@ public class NacosConfigLoader extends ConfigLoader<NacosConfig> {
 
     private void nacosLoad(Supplier<Context> context, LoaderHandler<NacosConfig> handler, NacosConfig config) {
         if (config != null) {
-            handler.finish(context, config);
             check(config);
             logger.info("loader nacos config: {}", config);
-            NacosClient client = new NacosClient();
             String fileExtension = config.getFileExtension();
             PropertyLoader propertyLoader = loaders.get(fileExtension);
             if (propertyLoader == null) {
@@ -72,13 +76,14 @@ public class NacosConfigLoader extends ConfigLoader<NacosConfig> {
             Optional.ofNullable(pull)
                     .map(e -> propertyLoader.load("soul.nacos.properties", e))
                     .ifPresent(e -> context.get().getOriginal().load(() -> context.get().withSources(e), this::nacosFinish));
+            handler.finish(context, config);
         } else {
             throw new ConfigException("nacos config is null");
         }
     }
 
     private void nacosFinish(Supplier<Context> context, ConfigParent config) {
-        System.out.println("加载完成后的数据" + config);
+        logger.info("nacos loader config {}:{}", config != null ? config.prefix() : "", config);
     }
 
     private void check(NacosConfig config) {

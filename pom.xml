@@ -113,6 +113,7 @@
         <okhttp.version>3.7.0</okhttp.version>
         <mapstruct.version>1.2.0.Final</mapstruct.version>
         <mockito.version>1.10.19</mockito.version>
+        <powermock.versioin>1.7.4</powermock.versioin>
         <junit.version>4.12</junit.version>
         <logback.version>1.2.1</logback.version>
     </properties>
@@ -256,6 +257,16 @@
                 <version>${mockito.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-api-mockito</artifactId>
+                <version>${powermock.versioin}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-module-junit4</artifactId>
+                <version>${powermock.versioin}</version>
+            </dependency>
+            <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>${junit.version}</version>
@@ -283,7 +294,16 @@
             <artifactId>mockito-all</artifactId>
             <scope>test</scope>
         </dependency>
-
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <distributionManagement>
         <snapshotRepository>
