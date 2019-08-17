@@ -17,12 +17,14 @@
  *
  */
 
-package org.dromara.soul.config.api.yaml;
+package org.dromara.soul.config.api.properties;
 
+import org.dromara.soul.config.api.ConfigException;
 import org.dromara.soul.config.api.PropertyLoader;
 import org.dromara.soul.config.api.property.MapPropertyKeySource;
 import org.dromara.soul.config.api.property.PropertyKeySource;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,34 +32,36 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * YamlPropertyLoader .
+ * PropertiesLoader .
+ * properties file load.
+ * 2019/8/17
  *
  * @author sixh
  */
-public class YamlPropertyLoader implements PropertyLoader {
-
+public class PropertiesLoader implements PropertyLoader {
     @Override
     public boolean checkFile(String fileName) {
         String fileExtName = fileName.substring(fileName.lastIndexOf("."));
-        String extName = ".yml";
+        String extName = ".properties";
         return extName.equals(fileExtName);
     }
 
     @Override
-    public List<PropertyKeySource<?>> load(String name, InputStream resource) {
+    public List<PropertyKeySource<?>> load(String name, InputStream stream) {
         if (!checkFile(name)) {
             return Collections.emptyList();
         }
-        List<Map<String, Object>> loaded = new OriginTrackedYamlLoader(resource).load();
-        if (loaded.isEmpty()) {
+        Map<String, Object> loaded;
+        try {
+            loaded = new OriginTrackedPropertiesLoader(stream).load();
+        } catch (IOException e) {
+            throw new ConfigException(e);
+        }
+        if (loaded == null || loaded.isEmpty()) {
             return Collections.emptyList();
         }
         List<PropertyKeySource<?>> propertySources = new ArrayList<>(loaded.size());
-        for (int i = 0; i < loaded.size(); i++) {
-            propertySources.add(new MapPropertyKeySource(
-                    name + (loaded.size() != 1 ? " (document #" + i + ")" : ""),
-                    loaded.get(i)));
-        }
+        propertySources.add(new MapPropertyKeySource(name, loaded));
         return propertySources;
     }
 }

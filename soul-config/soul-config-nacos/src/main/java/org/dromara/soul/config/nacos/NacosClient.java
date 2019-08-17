@@ -22,34 +22,44 @@ package org.dromara.soul.config.nacos;
 import com.alibaba.nacos.api.NacosFactory;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.exception.NacosException;
+import org.dromara.soul.common.utils.StringUtils;
 import org.dromara.soul.config.api.ConfigException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.Properties;
 
 /**
  * NacosClient .
+ * nacos client pull config content.
  * 2019/8/17
  *
  * @author sixh
  */
 public class NacosClient {
-
+    private static final Logger logger = LoggerFactory.getLogger(NacosClient.class);
     private static final String NACOS_SERVER_ADDR_KEY = "serverAddr";
-    private static final String NACOS_DATA_ID_KEY = "dataId";
-    private static final String NACOS_GROUP_KEY = "group";
 
     /**
      * 拉取nacos的配置信息.
      *
      * @param config nacos.
      */
-    public void pull(NacosConfig config) {
+    InputStream pull(NacosConfig config) {
         Properties properties = new Properties();
         properties.put(NACOS_SERVER_ADDR_KEY, config.getServer());
         try {
             ConfigService configService = NacosFactory.createConfigService(properties);
-            String config1 = configService.getConfig(config.getDataId(), config.getGroup(), 5000);
-            System.out.println(config1);
+            String content = configService.getConfig(config.getDataId(), config.getGroup(), 5000);
+            if (logger.isDebugEnabled()) {
+                logger.debug("nacos content {}", content);
+            }
+            if (StringUtils.isBlank(content)) {
+                return null;
+            }
+            return new ByteArrayInputStream(content.getBytes());
         } catch (NacosException e) {
             throw new ConfigException(e);
         }

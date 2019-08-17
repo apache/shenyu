@@ -20,10 +20,15 @@
 package org.dromara.soul.config.nacos;
 
 import org.dromara.soul.common.utils.StringUtils;
-import org.dromara.soul.config.api.ConfigEnv;
-import org.dromara.soul.config.api.ConfigException;
-import org.dromara.soul.config.api.ConfigLoader;
+import org.dromara.soul.config.api.*;
+import org.dromara.soul.config.api.properties.PropertiesLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
@@ -35,25 +40,45 @@ import java.util.function.Supplier;
  */
 public class NacosConfigLoader extends ConfigLoader<NacosConfig> {
 
+    private static final Logger logger = LoggerFactory.getLogger(NacosConfigLoader.class);
+    private Map<String, PropertyLoader> loaders = new HashMap<>();
+
+    {
+        loaders.put("properties", new PropertiesLoader());
+    }
+
     public NacosConfigLoader() {
         ConfigEnv.getInstance().putBean(new NacosConfig());
     }
 
     @Override
     public void load(Supplier<Context> context, LoaderHandler<NacosConfig> handler) {
-        LoaderHandler<NacosConfig> nacosHandler = this::nacosLoad;
+        LoaderHandler<NacosConfig> nacosHandler = (c, config) -> nacosLoad(c, handler, config);
         againLoad(context, nacosHandler, NacosConfig.class);
     }
 
-    private void nacosLoad(Supplier<Context> context, NacosConfig config) {
+    private void nacosLoad(Supplier<Context> context, LoaderHandler<NacosConfig> handler, NacosConfig config) {
         if (config != null) {
+            handler.finish(context, config);
             check(config);
-            System.out.println("nacos" + config);
+            logger.info("loader nacos config: {}", config);
             NacosClient client = new NacosClient();
-            client.pull(config);
+            String fileExtension = config.getFileExtension();
+            PropertyLoader propertyLoader = loaders.get(fileExtension);
+            if (propertyLoader == null) {
+                throw new ConfigException("nacos.fileExtension setting error, The loader was not found");
+            }
+            InputStream pull = client.pull(config);
+            Optional.ofNullable(pull)
+                    .map(e -> propertyLoader.load("soul.nacos.properties", e))
+                    .ifPresent(e -> context.get().getOriginal().load(() -> context.get().withSources(e), this::nacosFinish));
         } else {
             throw new ConfigException("nacos config is null");
         }
+    }
+
+    private void nacosFinish(Supplier<Context> context, ConfigParent config) {
+        System.out.println("加载完成后的数据" + config);
     }
 
     private void check(NacosConfig config) {

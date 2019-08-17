@@ -82,6 +82,10 @@ public abstract class ConfigLoader<T extends ConfigParent> {
             return new Context(original, sources);
         }
 
+        public Context withSources(List<PropertyKeySource<?>> sources) {
+            return with(sources, this.original);
+        }
+
         public ConfigLoader<ConfigParent> getOriginal() {
             return original;
         }
