@@ -14,6 +14,6 @@
     <modules>
         <module>soul-config-api</module>
         <module>soul-config-local</module>
-        <module>soul-config-core</module>
+        <module>soul-config-nacos</module>
     </modules>
 </project>

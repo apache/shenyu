@@ -7,12 +7,8 @@ soul:
     host: host
     monitorPort: 8002
     port: 8003
-
-  #  如果server.mode eq local 的时候才会读取到这里的配置信息.
+  #dabase的配置
   database:
     url: jdbc:mysql://192.168.1.82:3306/calvin_account?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&useSSL=false
     userName: root
     password: 123456
-  register:
-    address: zookeeper:mysql//123456:33/abc
-    model: zookeeper

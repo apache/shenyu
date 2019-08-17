@@ -1,12 +1,17 @@
 #配置的读取模式. local彩用的是yml方式，disconf， 表示可以从选程读取配置信息.
 soul:
   server:
-    configMode: local
+    configMode: nacos
     cluster: local
     serverId: local001
     host: host
     monitorPort: 8002
     port: 8003
+  nacos:
+    server: 127.0.0.1
+    dataId: soul.properties
+    group: DEFAULT_GROUP
+    fileExtension: properties
 
   #  如果server.mode eq local 的时候才会读取到这里的配置信息.
   database:
