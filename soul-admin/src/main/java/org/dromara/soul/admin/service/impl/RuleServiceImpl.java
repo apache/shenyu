@@ -95,21 +95,13 @@ public class RuleServiceImpl implements RuleService {
             });
         } else {
             ruleCount = ruleMapper.updateSelective(ruleDO);
-            List<RuleConditionDO> ruleConditions = ruleConditionMapper.selectByQuery(
-                    new RuleConditionQuery(ruleDO.getId()));
+            //delete rule condition then add
+            ruleConditionMapper.deleteByQuery(new RuleConditionQuery(ruleDO.getId()));
             ruleConditionDTOs.forEach(ruleConditionDTO -> {
                 ruleConditionDTO.setRuleId(ruleDO.getId());
                 RuleConditionDO ruleConditionDO = RuleConditionDO.buildRuleConditionDO(ruleConditionDTO);
-                if (StringUtils.isEmpty(ruleConditionDTO.getId())) {
-                    ruleConditionMapper.insertSelective(ruleConditionDO);
-                } else {
-                    ruleConditionMapper.updateSelective(ruleConditionDO);
-                }
+                ruleConditionMapper.insertSelective(ruleConditionDO);
             });
-            ruleConditions.stream().filter(ruleConditionDO -> ruleConditionDTOs.stream()
-                    .filter(ruleConditionDTO -> StringUtils.isNoneEmpty(ruleConditionDTO.getId()))
-                    .anyMatch(ruleConditionDTO -> !ruleConditionDO.getId().equals(ruleConditionDTO.getId())))
-                    .forEach(ruleConditionDO -> ruleConditionMapper.delete(ruleConditionDO.getId()));
         }
 
         SelectorDO selectorDO = selectorMapper.selectById(ruleDO.getSelectorId());
@@ -124,11 +116,9 @@ public class RuleServiceImpl implements RuleService {
             zkClient.createPersistent(ruleRealPath, true);
         }
 
-        List<ConditionZkDTO> conditionZkDTOs = ruleConditionDTOs.stream().map(ruleConditionDTO ->
-                new ConditionZkDTO(ruleConditionDTO.getParamType(), ruleConditionDTO.getOperator(),
-                        ruleConditionDTO.getParamName(), ruleConditionDTO.getParamValue())).collect(Collectors.toList());
-        zkClient.writeData(ruleRealPath, new RuleZkDTO(ruleDO.getId(), pluginDO.getName(), ruleDO.getSelectorId(),
-                ruleDO.getMatchMode(), ruleDO.getSort(), ruleDO.getEnabled(), ruleDO.getLoged(), ruleDO.getHandle(), conditionZkDTOs));
+        List<ConditionZkDTO> conditionZkDTOs = ruleConditionDTOs.stream()
+                .map(this::buildConditionZkDTO).collect(Collectors.toList());
+        zkClient.writeData(ruleRealPath, buildRuleZkDTO(ruleDO, pluginDO.getName(), conditionZkDTOs));
         return ruleCount;
     }
 
@@ -185,5 +175,17 @@ public class RuleServiceImpl implements RuleService {
                 ruleMapper.selectByQuery(ruleQuery).stream()
                         .map(RuleVO::buildRuleVO)
                         .collect(Collectors.toList()));
+    }
+
+    private ConditionZkDTO buildConditionZkDTO(final RuleConditionDTO ruleConditionDTO) {
+        return new ConditionZkDTO(ruleConditionDTO.getParamType(), ruleConditionDTO.getOperator(),
+                ruleConditionDTO.getParamName(), ruleConditionDTO.getParamValue());
+    }
+
+    private RuleZkDTO buildRuleZkDTO(final RuleDO ruleDO, final String pluginName,
+                                     final List<ConditionZkDTO> conditionZkDTOList) {
+        return new RuleZkDTO(ruleDO.getId(), pluginName, ruleDO.getSelectorId(),
+                ruleDO.getMatchMode(), ruleDO.getSort(), ruleDO.getEnabled(), ruleDO.getLoged(), ruleDO.getHandle(),
+                conditionZkDTOList);
     }
 }

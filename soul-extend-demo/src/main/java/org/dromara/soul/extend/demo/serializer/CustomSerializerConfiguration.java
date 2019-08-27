@@ -19,7 +19,6 @@
 package org.dromara.soul.extend.demo.serializer;
 
 import org.I0Itec.zkclient.serialize.ZkSerializer;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
@@ -35,7 +34,6 @@ public class CustomSerializerConfiguration {
      *
      * @return the zk serializer
      */
-    @Bean
     public ZkSerializer zkSerializer(){
         return new CustomSerializer();
     }
