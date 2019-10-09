@@ -28,6 +28,7 @@ public class SpiExtensionFactory implements ExtensionFactory {
     @Override
     public <T> T getExtension(String key, Class<T> clazz) {
         if (clazz.isInterface() && clazz.isAnnotationPresent(SPI.class)) {
+            ExtensionLoader<T> extensionLoader = ExtensionLoader.getExtensionLoader(clazz);
 
         }
         return null;

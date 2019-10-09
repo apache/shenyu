@@ -17,8 +17,23 @@
 package org.dromara.soul.common.extension;
 
 /**
+ * The type Extension loader.
+ *
+ * @param <T> the type parameter
  * @author xiaoyu(Myth)
+ * @author sixh.
  */
-public class ExtensionLoader {
+public class ExtensionLoader<T> {
+    private static final String SOUL_DIRECTORY = "META-INF/soul";
 
+    /**
+     * Gets extension loader.
+     *
+     * @param <T>   the type parameter
+     * @param clazz the clazz
+     * @return the extension loader
+     */
+    public static <T> ExtensionLoader<T> getExtensionLoader(Class<T> clazz) {
+        return null;
+    }
 }
