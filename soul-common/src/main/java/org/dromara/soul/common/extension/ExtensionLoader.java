@@ -16,6 +16,10 @@
 
 package org.dromara.soul.common.extension;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
+
 /**
  * The type Extension loader.
  *
@@ -25,6 +29,15 @@ package org.dromara.soul.common.extension;
  */
 public class ExtensionLoader<T> {
     private static final String SOUL_DIRECTORY = "META-INF/soul";
+    private static final Map<Class<?>, ExtensionLoader<?>> LOADRES = new ConcurrentHashMap<>();
+
+    private final Class<T> clazz;
+
+    private ReentrantLock lock = new ReentrantLock();
+
+    public ExtensionLoader(Class<T> clazz) {
+        this.clazz = clazz;
+    }
 
     /**
      * Gets extension loader.
@@ -33,7 +46,26 @@ public class ExtensionLoader<T> {
      * @param clazz the clazz
      * @return the extension loader
      */
+    @SuppressWarnings("unchecked")
     public static <T> ExtensionLoader<T> getExtensionLoader(Class<T> clazz) {
+        if (clazz == null) {
+            throw new NullPointerException("extension clazz is null");
+        }
+        if (!clazz.isInterface()) {
+            throw new IllegalArgumentException("extension clazz (" + clazz + "is not interface!");
+        }
+        if (!clazz.isAnnotationPresent(SPI.class)) {
+            throw new IllegalArgumentException("extension clazz (" + clazz + "without @" + SPI.class + "Annotation");
+        }
+        ExtensionLoader<T> extensionLoader = (ExtensionLoader<T>) LOADRES.get(clazz);
+        if (extensionLoader != null) {
+            return extensionLoader;
+        }
+        LOADRES.putIfAbsent(clazz, new ExtensionLoader<>(clazz));
+        return (ExtensionLoader<T>) LOADRES.get(clazz);
+    }
+
+    public T getJoin() {
         return null;
     }
 }

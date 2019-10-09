@@ -29,7 +29,7 @@ public class SpiExtensionFactory implements ExtensionFactory {
     public <T> T getExtension(String key, Class<T> clazz) {
         if (clazz.isInterface() && clazz.isAnnotationPresent(SPI.class)) {
             ExtensionLoader<T> extensionLoader = ExtensionLoader.getExtensionLoader(clazz);
-
+            return extensionLoader.getJoin();
         }
         return null;
     }
