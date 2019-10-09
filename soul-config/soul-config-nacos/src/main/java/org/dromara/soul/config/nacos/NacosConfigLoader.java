@@ -19,6 +19,7 @@
 
 package org.dromara.soul.config.nacos;
 
+import org.dromara.soul.common.extension.Join;
 import org.dromara.soul.common.utils.StringUtils;
 import org.dromara.soul.config.api.*;
 import org.dromara.soul.config.api.properties.PropertiesLoader;
@@ -33,11 +34,12 @@ import java.util.function.Supplier;
 
 /**
  * NacosConfigLoader .
- * nacos 配置加载信息.
+ * nacos Configuration load information.
  * 2019/8/17
  *
  * @author sixh
  */
+@Join
 public class NacosConfigLoader extends ConfigLoader<NacosConfig> {
 
     private static final Logger logger = LoggerFactory.getLogger(NacosConfigLoader.class);
@@ -48,10 +50,18 @@ public class NacosConfigLoader extends ConfigLoader<NacosConfig> {
         loaders.put("properties", new PropertiesLoader());
     }
 
+    /**
+     * Instantiates a new Nacos config loader.
+     */
     public NacosConfigLoader() {
         ConfigEnv.getInstance().putBean(new NacosConfig());
     }
 
+    /**
+     * Instantiates a new Nacos config loader.
+     *
+     * @param client the client
+     */
     public NacosConfigLoader(NacosClient client) {
         this();
         this.client = client;

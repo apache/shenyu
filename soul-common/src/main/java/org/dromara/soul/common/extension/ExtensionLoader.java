@@ -20,4 +20,5 @@ package org.dromara.soul.common.extension;
  * @author xiaoyu(Myth)
  */
 public class ExtensionLoader {
+
 }

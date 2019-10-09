@@ -19,6 +19,7 @@
 
 package org.dromara.soul.config.local;
 
+import org.dromara.soul.common.extension.Join;
 import org.dromara.soul.config.api.ConfigLoader;
 import org.dromara.soul.config.api.ConfigParent;
 
@@ -30,6 +31,7 @@ import java.util.function.Supplier;
  *
  * @author sixh
  */
+@Join
 public class LocalConfigLoader extends ConfigLoader<ConfigParent> {
 
     @Override

@@ -20,36 +20,44 @@
 package org.dromara.soul.config.api;
 
 
+import java.util.List;
+import java.util.function.Supplier;
+import org.dromara.soul.common.extension.SPI;
 import org.dromara.soul.config.api.bind.BindData;
 import org.dromara.soul.config.api.bind.Binder;
 import org.dromara.soul.config.api.bind.DataType;
-import org.dromara.soul.config.api.original.OriginalConfigLoader;
 import org.dromara.soul.config.api.property.ConfigPropertySource;
 import org.dromara.soul.config.api.property.DefaultConfigPropertySource;
 import org.dromara.soul.config.api.property.PropertyKeyParse;
 import org.dromara.soul.config.api.property.PropertyKeySource;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Supplier;
 
 /**
  * ConfigLoader .
  * Different configuration adaptation processes are implemented by configuring interfaces.
  * 1. Custom implementation.
  *
+ * @param <T> the type parameter
  * @author sixh
  */
+@SPI("local")
 public abstract class ConfigLoader<T extends ConfigParent> {
-
 
     /**
      * Load related configuration information.
      *
-     * @return 配置信息.
+     * @param context the context
+     * @param handler the handler
+     * @return Configuration information.
      */
     public abstract void load(Supplier<Context> context, LoaderHandler<T> handler);
 
+    /**
+     * Again load.
+     *
+     * @param context the context
+     * @param handler the handler
+     * @param tClass  the t class
+     */
     protected void againLoad(Supplier<Context> context, LoaderHandler<T> handler, Class<T> tClass) {
         T config = ConfigEnv.getInstance().getConfig(tClass);
         for (PropertyKeySource<?> propertyKeySource : context.get().getSource()) {
@@ -60,47 +68,93 @@ public abstract class ConfigLoader<T extends ConfigParent> {
         }
     }
 
+    /**
+     * The type Context.
+     */
     public static class Context {
 
         private ConfigLoader<ConfigParent> original;
 
         private List<PropertyKeySource<?>> propertyKeySources;
 
+        /**
+         * Instantiates a new Context.
+         */
         public Context() {
         }
 
+        /**
+         * Instantiates a new Context.
+         *
+         * @param propertyKeySources the property key sources
+         */
         public Context(List<PropertyKeySource<?>> propertyKeySources) {
             this(null, propertyKeySources);
         }
 
+        /**
+         * Instantiates a new Context.
+         *
+         * @param original           the original
+         * @param propertyKeySources the property key sources
+         */
         public Context(ConfigLoader<ConfigParent> original, List<PropertyKeySource<?>> propertyKeySources) {
             this.original = original;
             this.propertyKeySources = propertyKeySources;
         }
 
+        /**
+         * With context.
+         *
+         * @param sources  the sources
+         * @param original the original
+         * @return the context
+         */
         public Context with(List<PropertyKeySource<?>> sources, ConfigLoader<ConfigParent> original) {
             return new Context(original, sources);
         }
 
+        /**
+         * With sources context.
+         *
+         * @param sources the sources
+         * @return the context
+         */
         public Context withSources(List<PropertyKeySource<?>> sources) {
             return with(sources, this.original);
         }
 
+        /**
+         * Gets original.
+         *
+         * @return the original
+         */
         public ConfigLoader<ConfigParent> getOriginal() {
             return original;
         }
 
+        /**
+         * Gets source.
+         *
+         * @return the source
+         */
         public List<PropertyKeySource<?>> getSource() {
             return propertyKeySources;
         }
     }
 
+    /**
+     * The interface Loader handler.
+     *
+     * @param <T> the type parameter
+     */
     @FunctionalInterface
     public interface LoaderHandler<T extends ConfigParent> {
         /**
          * 加载完成后要做的事情啊.
          *
-         * @param config config.
+         * @param context the context
+         * @param config  config.
          */
         void finish(Supplier<Context> context, T config);
     }

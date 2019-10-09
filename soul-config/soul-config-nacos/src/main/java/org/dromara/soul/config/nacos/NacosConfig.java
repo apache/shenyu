@@ -23,8 +23,8 @@ import lombok.Data;
 import org.dromara.soul.config.api.ConfigParent;
 
 /**
- * NocasConfig .
- * nocas 服务配置.
+ * NacosConfig .
+ * nacos 服务配置.
  * 2019/8/17
  *
  * @author sixh
