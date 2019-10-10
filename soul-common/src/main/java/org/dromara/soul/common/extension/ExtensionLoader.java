@@ -16,27 +16,48 @@
 
 package org.dromara.soul.common.extension;
 
+import java.io.IOException;
+import java.net.URL;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.regex.Pattern;
+import org.dromara.soul.common.utils.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The type Extension loader.
+ * This is done by loading the properties file.
  *
  * @param <T> the type parameter
  * @author xiaoyu(Myth)
  * @author sixh.
  */
 public class ExtensionLoader<T> {
-    private static final String SOUL_DIRECTORY = "META-INF/soul";
-    private static final Map<Class<?>, ExtensionLoader<?>> LOADRES = new ConcurrentHashMap<>();
-
+    private Logger logger = LoggerFactory.getLogger(ExtensionLoader.class);
+    private static final String SOUL_DIRECTORY = "META-INF/soul/";
+    private static final Map<Class<?>, ExtensionLoader<?>> LOADERS = new ConcurrentHashMap<>();
     private final Class<T> clazz;
+    private final String nameRegex = "\\s*[a-zA-Z]+\\s*";
+    private final Pattern namePattern = Pattern.compile(nameRegex);
+    private final Holder<Map<String, Class<?>>> cachedClasses = new Holder<>();
+    private final Map<String, Holder<Object>> cachedInstances = new ConcurrentHashMap<>();
+    private final Map<Class<?>, Object> joinInstances = new ConcurrentHashMap<>();
+    private String cachedDefaultName;
 
-    private ReentrantLock lock = new ReentrantLock();
-
+    /**
+     * Instantiates a new Extension loader.
+     *
+     * @param clazz the clazz
+     */
     public ExtensionLoader(Class<T> clazz) {
         this.clazz = clazz;
+        if (clazz != ExtensionFactory.class) {
+            ExtensionLoader.getExtensionLoader(ExtensionFactory.class).getExtensionClasses();
+        }
     }
 
     /**
@@ -57,15 +78,192 @@ public class ExtensionLoader<T> {
         if (!clazz.isAnnotationPresent(SPI.class)) {
             throw new IllegalArgumentException("extension clazz (" + clazz + "without @" + SPI.class + "Annotation");
         }
-        ExtensionLoader<T> extensionLoader = (ExtensionLoader<T>) LOADRES.get(clazz);
+        ExtensionLoader<T> extensionLoader = (ExtensionLoader<T>) LOADERS.get(clazz);
         if (extensionLoader != null) {
             return extensionLoader;
         }
-        LOADRES.putIfAbsent(clazz, new ExtensionLoader<>(clazz));
-        return (ExtensionLoader<T>) LOADRES.get(clazz);
+        LOADERS.putIfAbsent(clazz, new ExtensionLoader<>(clazz));
+        return (ExtensionLoader<T>) LOADERS.get(clazz);
     }
 
-    public T getJoin() {
-        return null;
+    /**
+     * Gets default join.
+     *
+     * @return the default join
+     */
+    public T getDefaultJoin() {
+        getExtensionClasses();
+        if (StringUtils.isBlank(cachedDefaultName)) {
+            return null;
+        }
+        return getJoin(cachedDefaultName);
+    }
+
+    /**
+     * Gets join.
+     *
+     * @param name the name
+     * @return the join
+     */
+    @SuppressWarnings("unchecked")
+    public T getJoin(String name) {
+        if (StringUtils.isBlank(name)) {
+            throw new NullPointerException("get join name is null");
+        }
+        try {
+            Holder<Object> objectHolder = cachedInstances.get(name);
+            if (objectHolder == null) {
+                cachedInstances.putIfAbsent(name, new Holder<>());
+                objectHolder = cachedInstances.get(name);
+            }
+            Object value = objectHolder.getValue();
+            if (value == null) {
+                synchronized (cachedInstances) {
+                    value = objectHolder.getValue();
+                    if (value == null) {
+                        value = createExtension(name);
+                        objectHolder.setValue(value);
+                    }
+                }
+            }
+            return (T) value;
+        } catch (Exception e) {
+            throw new IllegalArgumentException("According to the name [" + name + "] Can't find class");
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private T createExtension(String name) {
+        Class<?> aClass = getExtensionClasses().get(name);
+        if (aClass == null) {
+            throw new IllegalArgumentException("name is error");
+        }
+        Object o = joinInstances.get(aClass);
+        if (o == null) {
+            try {
+                joinInstances.putIfAbsent(aClass, aClass.newInstance());
+                o = joinInstances.get(aClass);
+            } catch (Exception e) {
+                throw new IllegalStateException("Extension instance(name: " + name + ", class: " +
+                                                aClass + ")  could not be instantiated: " + e.getMessage(), e);
+            }
+        }
+        return (T) o;
+    }
+
+    private Map<String, Class<?>> getExtensionClasses() {
+        Map<String, Class<?>> classes = cachedClasses.getValue();
+        if (classes == null) {
+            synchronized (cachedClasses) {
+                classes = cachedClasses.getValue();
+                if (classes == null) {
+                    classes = loadExtensionClass();
+                    cachedClasses.setValue(classes);
+                }
+            }
+        }
+        return classes;
+    }
+
+    private Map<String, Class<?>> loadExtensionClass() {
+        SPI annotation = clazz.getAnnotation(SPI.class);
+        if (annotation != null) {
+            String value = annotation.value();
+            if (StringUtils.isBlank(value = value.trim()) || !namePattern.matcher(value).matches()) {
+                throw new IllegalStateException("default extension name is null or empty");
+            }
+            cachedDefaultName = value;
+        }
+        Map<String, Class<?>> classes = new HashMap<>(16);
+        loadDirectory(classes);
+        return classes;
+    }
+
+    /**
+     * Load files under SOUL_DIRECTORY.
+     */
+    private void loadDirectory(Map<String, Class<?>> classes) {
+        String fileName = SOUL_DIRECTORY + clazz.getName();
+        try {
+            ClassLoader classLoader = ExtensionLoader.class.getClassLoader();
+            Enumeration<URL> urls;
+            if (classLoader != null) {
+                urls = classLoader.getResources(fileName);
+            } else {
+                urls = ClassLoader.getSystemResources(fileName);
+            }
+            if (urls != null) {
+                while (urls.hasMoreElements()) {
+                    URL url = urls.nextElement();
+                    loadResources(classes, url);
+                }
+            }
+        } catch (Throwable t) {
+            logger.error("load extension class error {}", fileName, t);
+        }
+    }
+
+    private void loadResources(Map<String, Class<?>> classes, URL url) {
+        Properties properties = new Properties();
+        try {
+            properties.load(url.openStream());
+            properties.forEach((k, v) -> {
+                String name = (String) k, classPath = (String) v;
+                if (StringUtils.isNotBlank(name) && StringUtils.isNotBlank(classPath)) {
+                    try {
+                        loadClass(classes, name, classPath);
+                    } catch (Exception e) {
+                        throw new IllegalStateException("load extension resources error", e);
+                    }
+                }
+
+            });
+        } catch (IOException e) {
+            throw new IllegalStateException("load extension resources error", e);
+        }
+    }
+
+    private void loadClass(Map<String, Class<?>> classes, String name, String classPath) throws ClassNotFoundException {
+        Class<?> subClass = Class.forName(classPath);
+        if (!clazz.isAssignableFrom(subClass)) {
+            throw new IllegalStateException("load extension resources error," + subClass + " subtype is not of " + clazz);
+        }
+        Join annotation = subClass.getAnnotation(Join.class);
+        if (annotation == null) {
+            throw new IllegalStateException("load extension resources error," + subClass + "with Join annotation");
+        }
+        Class<?> oldClass = classes.get(name);
+        if (oldClass == null) {
+            classes.put(name, subClass);
+        } else if (oldClass != subClass) {
+            throw new IllegalStateException("load extension resources error,Duplicate class " + clazz.getName() + "name " + name + " on " + oldClass.getName() + " or" + subClass.getName());
+        }
+    }
+
+    /**
+     * The type Holder.
+     *
+     * @param <T> the type parameter
+     */
+    public static class Holder<T> {
+        private volatile T value;
+
+        /**
+         * Gets value.
+         *
+         * @return the value
+         */
+        public T getValue() {
+            return value;
+        }
+
+        /**
+         * Sets value.
+         *
+         * @param value the value
+         */
+        public void setValue(T value) {
+            this.value = value;
+        }
     }
 }

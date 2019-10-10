@@ -19,10 +19,12 @@
 
 package org.dromara.soul.config.nacos;
 
+import java.io.ByteArrayInputStream;
+import java.util.function.Supplier;
+import org.dromara.soul.common.extension.ExtensionLoader;
 import org.dromara.soul.common.utils.StringUtils;
 import org.dromara.soul.config.api.ConfigEnv;
 import org.dromara.soul.config.api.ConfigLoader;
-import org.dromara.soul.config.api.ConfigParent;
 import org.dromara.soul.config.api.original.ServerConfigLoader;
 import org.dromara.soul.config.api.original.SoulDataBase;
 import org.junit.Assert;
@@ -32,9 +34,6 @@ import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.io.ByteArrayInputStream;
-import java.util.function.Supplier;
 
 import static org.mockito.Matchers.any;
 
@@ -54,8 +53,8 @@ public class NacosConfigLoaderTest {
     @Before
     public void setUp() {
         String str = "soul.database.url=jdbc:mysql://127.0.0.1:3306/calvin_account?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&useSSL=false\n" +
-                "soul.database.userName=root\n" +
-                "soul.database.password=root";
+                     "soul.database.userName=root\n" +
+                     "soul.database.password=root";
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(str.getBytes());
         try {
             PowerMockito.when(client.pull(any())).thenReturn(byteArrayInputStream);
@@ -91,5 +90,12 @@ public class NacosConfigLoaderTest {
         Assert.assertEquals(config.getUrl(), "jdbc:mysql://127.0.0.1:3306/calvin_account?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&useSSL=false");
         Assert.assertEquals(config.getUserName(), "root");
         Assert.assertEquals(config.getPassword(), "root");
+    }
+
+    @Test
+    public void testExtension() {
+        ExtensionLoader<ConfigLoader> extensionLoader = ExtensionLoader.getExtensionLoader(ConfigLoader.class);
+        ConfigLoader join = extensionLoader.getJoin("nacos");
+        Assert.assertEquals(join.getClass().getName(), NacosConfigLoader.class.getName());
     }
 }

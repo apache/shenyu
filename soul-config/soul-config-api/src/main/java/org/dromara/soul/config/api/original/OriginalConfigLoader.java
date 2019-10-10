@@ -20,7 +20,6 @@
 package org.dromara.soul.config.api.original;
 
 import org.dromara.soul.config.api.ConfigEnv;
-import org.dromara.soul.config.api.ConfigLoader;
 import org.dromara.soul.config.api.ConfigParent;
 import org.dromara.soul.config.api.bind.BindData;
 import org.dromara.soul.config.api.bind.Binder;
@@ -40,7 +39,7 @@ import java.util.function.Supplier;
  *
  * @author sixh
  */
-public class OriginalConfigLoader extends ConfigLoader<ConfigParent> {
+public class OriginalConfigLoader implements org.dromara.soul.config.api.ConfigLoader<ConfigParent> {
 
     public OriginalConfigLoader() {
         ConfigEnv.getInstance().putBean(new SoulDataBase());

@@ -24,12 +24,13 @@ package org.dromara.soul.common.extension;
  *
  * @author sixh
  */
+@Join
 public class SpiExtensionFactory implements ExtensionFactory {
     @Override
     public <T> T getExtension(String key, Class<T> clazz) {
         if (clazz.isInterface() && clazz.isAnnotationPresent(SPI.class)) {
             ExtensionLoader<T> extensionLoader = ExtensionLoader.getExtensionLoader(clazz);
-            return extensionLoader.getJoin();
+            return extensionLoader.getDefaultJoin();
         }
         return null;
     }

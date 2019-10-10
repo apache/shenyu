@@ -19,6 +19,12 @@
 
 package org.dromara.soul.config.api.original;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.URL;
+import java.util.List;
+import java.util.function.Supplier;
 import org.dromara.soul.common.utils.StringUtils;
 import org.dromara.soul.config.api.ConfigEnv;
 import org.dromara.soul.config.api.ConfigException;
@@ -26,20 +32,13 @@ import org.dromara.soul.config.api.ConfigLoader;
 import org.dromara.soul.config.api.property.PropertyKeySource;
 import org.dromara.soul.config.api.yaml.YamlPropertyLoader;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.net.URL;
-import java.util.List;
-import java.util.function.Supplier;
-
 /**
  * ParentConfigLoader .
  * Read basic BaseConfig information processing.
  *
  * @author sixh
  */
-public class ServerConfigLoader extends ConfigLoader<Server> {
+public class ServerConfigLoader implements ConfigLoader<Server> {
 
     private YamlPropertyLoader propertyLoader = new YamlPropertyLoader();
 
@@ -81,12 +80,6 @@ public class ServerConfigLoader extends ConfigLoader<Server> {
         } catch (IOException e) {
             throw new ConfigException("ConfigLoader:loader config error,file path:" + filePath);
         }
-    }
-
-    @Override
-    protected void againLoad(Supplier<Context> context, LoaderHandler<Server> handler, Class<Server> serverClass) {
-        //            initOriginal();
-        super.againLoad(context, handler, serverClass);
     }
 
     /**

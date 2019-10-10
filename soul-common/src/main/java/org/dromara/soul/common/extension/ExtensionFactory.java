@@ -21,7 +21,7 @@ package org.dromara.soul.common.extension;
  *
  * @author xiaoyu(Myth)
  */
-@SPI
+@SPI("spi")
 public interface ExtensionFactory {
     /**
      * Gets Extension.

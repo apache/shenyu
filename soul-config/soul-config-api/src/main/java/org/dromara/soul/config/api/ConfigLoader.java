@@ -1,24 +1,22 @@
 /*
  *
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.You may obtain a copy of the License at
+ *   Licensed to the Apache Software Foundation (ASF) under one or more
+ *   contributor license agreements.See the NOTICE file distributed with
+ *   this work for additional information regarding copyright ownership.
+ *   The ASF licenses this file to You under the Apache License, Version 2.0
+ *   (the "License"); you may not use this file except in compliance with
+ *   the License.You may obtain a copy of the License at
  *
- *  http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
  */
 
 package org.dromara.soul.config.api;
-
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -32,16 +30,13 @@ import org.dromara.soul.config.api.property.PropertyKeyParse;
 import org.dromara.soul.config.api.property.PropertyKeySource;
 
 /**
- * ConfigLoader .
- * Different configuration adaptation processes are implemented by configuring interfaces.
- * 1. Custom implementation.
+ * ConfigLoader
+ * CreateDate: 2019/10/10 15:05
  *
- * @param <T> the type parameter
  * @author sixh
  */
 @SPI("local")
-public abstract class ConfigLoader<T extends ConfigParent> {
-
+public interface ConfigLoader<T extends ConfigParent> {
     /**
      * Load related configuration information.
      *
@@ -49,7 +44,7 @@ public abstract class ConfigLoader<T extends ConfigParent> {
      * @param handler the handler
      * @return Configuration information.
      */
-    public abstract void load(Supplier<Context> context, LoaderHandler<T> handler);
+    void load(Supplier<Context> context, LoaderHandler<T> handler);
 
     /**
      * Again load.
@@ -58,7 +53,7 @@ public abstract class ConfigLoader<T extends ConfigParent> {
      * @param handler the handler
      * @param tClass  the t class
      */
-    protected void againLoad(Supplier<Context> context, LoaderHandler<T> handler, Class<T> tClass) {
+    default void againLoad(Supplier<Context> context, LoaderHandler<T> handler, Class<T> tClass) {
         T config = ConfigEnv.getInstance().getConfig(tClass);
         for (PropertyKeySource<?> propertyKeySource : context.get().getSource()) {
             ConfigPropertySource configPropertySource = new DefaultConfigPropertySource(propertyKeySource, PropertyKeyParse.INSTANCE);
@@ -68,10 +63,11 @@ public abstract class ConfigLoader<T extends ConfigParent> {
         }
     }
 
+
     /**
      * The type Context.
      */
-    public static class Context {
+    class Context {
 
         private ConfigLoader<ConfigParent> original;
 

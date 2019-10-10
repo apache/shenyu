@@ -40,7 +40,7 @@ import java.util.function.Supplier;
  * @author sixh
  */
 @Join
-public class NacosConfigLoader extends ConfigLoader<NacosConfig> {
+public class NacosConfigLoader implements ConfigLoader<NacosConfig> {
 
     private static final Logger logger = LoggerFactory.getLogger(NacosConfigLoader.class);
     private NacosClient client = new NacosClient();
