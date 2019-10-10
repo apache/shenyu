@@ -47,6 +47,11 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>soul-config-local</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.mapstruct</groupId>
                 <artifactId>mapstruct-processor</artifactId>
                 <version>${mapstruct.version}</version>

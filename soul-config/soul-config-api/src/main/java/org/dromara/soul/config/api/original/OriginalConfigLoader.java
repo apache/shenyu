@@ -19,7 +19,10 @@
 
 package org.dromara.soul.config.api.original;
 
+import java.util.Objects;
+import java.util.function.Supplier;
 import org.dromara.soul.config.api.ConfigEnv;
+import org.dromara.soul.config.api.ConfigLoader;
 import org.dromara.soul.config.api.ConfigParent;
 import org.dromara.soul.config.api.bind.BindData;
 import org.dromara.soul.config.api.bind.Binder;
@@ -29,17 +32,14 @@ import org.dromara.soul.config.api.property.DefaultConfigPropertySource;
 import org.dromara.soul.config.api.property.PropertyKeyParse;
 import org.dromara.soul.config.api.property.PropertyKeySource;
 
-import java.util.Objects;
-import java.util.function.Supplier;
-
 /**
- * OrginConfigLoader .
+ * OriginalConfigLoader .
  * <p>
  * 2019/8/17
  *
  * @author sixh
  */
-public class OriginalConfigLoader implements org.dromara.soul.config.api.ConfigLoader<ConfigParent> {
+public class OriginalConfigLoader implements ConfigLoader<ConfigParent> {
 
     public OriginalConfigLoader() {
         ConfigEnv.getInstance().putBean(new SoulDataBase());

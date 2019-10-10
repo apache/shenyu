@@ -16,7 +16,10 @@
             <groupId>org.dromara</groupId>
             <artifactId>soul-config-api</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-config-local</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>soul-common</artifactId>

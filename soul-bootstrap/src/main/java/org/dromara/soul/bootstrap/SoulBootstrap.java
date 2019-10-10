@@ -25,6 +25,6 @@ package org.dromara.soul.bootstrap;
  */
 public class SoulBootstrap {
     public static void main(String[] args) {
-
+        new SoulServer().start();
     }
 }
