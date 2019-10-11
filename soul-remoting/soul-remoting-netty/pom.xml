@@ -28,6 +28,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>soul-remoting-netty</artifactId>
-
+    <dependencies>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-remoting-api</artifactId>
+        </dependency>
+    </dependencies>
 
 </project>

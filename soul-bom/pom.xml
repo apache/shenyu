@@ -33,6 +33,7 @@
         <powermock.versioin>1.7.4</powermock.versioin>
         <junit.version>4.12</junit.version>
         <logback.version>1.2.1</logback.version>
+        <netty.version>4.1.34.Final</netty.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -50,6 +51,22 @@
                 <groupId>org.dromara</groupId>
                 <artifactId>soul-config-local</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>soul-config-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>soul-remoting-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <!-- The third party -->
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-all</artifactId>
+                <version>${netty.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.mapstruct</groupId>
