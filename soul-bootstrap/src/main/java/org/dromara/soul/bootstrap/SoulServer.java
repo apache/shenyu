@@ -46,7 +46,7 @@ public class SoulServer {
             if (config != null) {
                 if (StringUtils.isNotBlank(config.getConfigMode())) {
                     String configMode = config.getConfigMode();
-                    ConfigLoader configLoader = extensionLoader.getJoin(configMode);
+                    ConfigLoader<?> configLoader = extensionLoader.getJoin(configMode);
                     logger.info("Load the configuration【{}】information...", configMode);
                     configLoader.load(context, (context1, config1) -> {
                         logger.info("Configuration information: {}", config1);

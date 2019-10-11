@@ -18,10 +18,7 @@ package org.dromara.soul.common.extension;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import org.dromara.soul.common.utils.StringUtils;
@@ -53,7 +50,7 @@ public class ExtensionLoader<T> {
      *
      * @param clazz the clazz
      */
-    public ExtensionLoader(Class<T> clazz) {
+    private ExtensionLoader(Class<T> clazz) {
         this.clazz = clazz;
         if (clazz != ExtensionFactory.class) {
             ExtensionLoader.getExtensionLoader(ExtensionFactory.class).getExtensionClasses();
@@ -97,6 +94,15 @@ public class ExtensionLoader<T> {
             return null;
         }
         return getJoin(cachedDefaultName);
+    }
+
+    /**
+     * Gets joins.
+     *
+     * @return the joins
+     */
+    public List<T> getJoins() {
+        return Collections.emptyList();
     }
 
     /**

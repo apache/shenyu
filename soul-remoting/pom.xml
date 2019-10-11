@@ -10,6 +10,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>soul-remoting</artifactId>
+    <packaging>pom</packaging>
+    <modules>
+        <module>soul-remoting-api</module>
+        <module>soul-remoting-netty</module>
+        <module>soul-remoting-mina</module>
+        <module>soul-remoting-tio</module>
+    </modules>
 
 
 </project>
