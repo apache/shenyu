@@ -19,43 +19,12 @@
 package org.dromara.soul.remoting.api;
 
 /**
- * ChannelHandler
- * CreateDate: 2019/10/11 15:49
+ * ChannelCacheLister
+ * CreateDate: 2019/10/12 17:25
  *
  * @author sixh
  */
-public interface ChannelHandler {
-    /**
-     * Connection.
-     *
-     * @param channel the channel
-     */
-    void connected(Channel channel);
-
-    /**
-     * Send.
-     *
-     * @param channel the channel
-     * @param message the message
-     */
-    void sent(Channel channel,Object message);
-
-    /**
-     * Received.
-     *
-     * @param channel the channel
-     * @param message the message
-     */
-    void received(Channel channel, Object message);
-
-    /**
-     * Exception caught.
-     *
-     * @param channel the channel
-     * @param cause   the cause
-     */
-    void exceptionCaught(Channel channel, Throwable cause);
-
+public interface ChannelCacheListener {
     /**
      * Timeout.
      *

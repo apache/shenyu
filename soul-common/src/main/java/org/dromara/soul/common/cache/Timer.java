@@ -16,50 +16,36 @@
  *   limitations under the License.
  */
 
-package org.dromara.soul.remoting.api;
+package org.dromara.soul.common.cache;
+
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
- * ChannelHandler
- * CreateDate: 2019/10/11 15:49
- *
- * @author sixh
+ * Timer.
+ * @author chenbin
  */
-public interface ChannelHandler {
-    /**
-     * Connection.
-     *
-     * @param channel the channel
-     */
-    void connected(Channel channel);
+public interface Timer {
 
     /**
-     * Send.
+     * Schedules the specified {@link TimerTask} for one-time execution after
+     * the specified delay.
+     * @param task timeTask
+     * @param delay delay time;
+     * @param unit time unit;
+     * @return a handle which is associated with the specified task
      *
-     * @param channel the channel
-     * @param message the message
+     * @throws IllegalStateException if this timer has been
+     *                               {@linkplain #stop() stopped} already
      */
-    void sent(Channel channel,Object message);
+    Timeout newTimeout(TimerTask task, long delay, TimeUnit unit);
 
     /**
-     * Received.
+     * Releases all resources acquired by this {@link Timer} and cancels all
+     * tasks which were scheduled but not executed yet.
      *
-     * @param channel the channel
-     * @param message the message
+     * @return the handles associated with the tasks which were canceled by
+     *         this method
      */
-    void received(Channel channel, Object message);
-
-    /**
-     * Exception caught.
-     *
-     * @param channel the channel
-     * @param cause   the cause
-     */
-    void exceptionCaught(Channel channel, Throwable cause);
-
-    /**
-     * Timeout.
-     *
-     * @param channel the channel
-     */
-    void timeout(Channel channel);
+    Set<Timeout> stop();
 }

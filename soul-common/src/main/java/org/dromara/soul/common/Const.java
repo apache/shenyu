@@ -16,50 +16,16 @@
  *   limitations under the License.
  */
 
-package org.dromara.soul.remoting.api;
+package org.dromara.soul.common;
 
 /**
- * ChannelHandler
- * CreateDate: 2019/10/11 15:49
+ * Const
+ * CreateDate: 2019/10/12 15:09
  *
  * @author sixh
  */
-public interface ChannelHandler {
-    /**
-     * Connection.
-     *
-     * @param channel the channel
-     */
-    void connected(Channel channel);
-
-    /**
-     * Send.
-     *
-     * @param channel the channel
-     * @param message the message
-     */
-    void sent(Channel channel,Object message);
-
-    /**
-     * Received.
-     *
-     * @param channel the channel
-     * @param message the message
-     */
-    void received(Channel channel, Object message);
-
-    /**
-     * Exception caught.
-     *
-     * @param channel the channel
-     * @param cause   the cause
-     */
-    void exceptionCaught(Channel channel, Throwable cause);
-
-    /**
-     * Timeout.
-     *
-     * @param channel the channel
-     */
-    void timeout(Channel channel);
+public class Const {
+    public static final String HOST_KEY = "host";
+    public static final String PORT_KEY = "port";
+    public static final String IO_THREADS_KEY = "io_threads";
 }

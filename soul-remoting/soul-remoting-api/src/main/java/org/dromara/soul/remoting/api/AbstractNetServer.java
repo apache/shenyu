@@ -19,6 +19,8 @@
 package org.dromara.soul.remoting.api;
 
 import java.util.Collection;
+import org.dromara.soul.common.Attribute;
+import org.dromara.soul.common.Const;
 
 /**
  * AbstractNetServer
@@ -31,9 +33,26 @@ public abstract class AbstractNetServer implements NetServer, ChannelHandler {
     private ChannelHandler handler;
 
     private Collection<Channel> channels;
+    private Attribute attribute;
 
-    public AbstractNetServer(ChannelHandler handler) {
+    private final String host;
+    private final Integer port;
+    private final Integer defPort = 2087;
+    private final String defHost = "0.0.0.0";
+    private final Integer ioThreads;
+
+    /**
+     * Instantiates a new Abstract net server.
+     *
+     * @param attribute the properties
+     * @param handler   the handler
+     */
+    public AbstractNetServer(Attribute attribute, ChannelHandler handler) {
         this.handler = handler;
+        this.attribute = attribute;
+        host = attribute.getProperty(Const.HOST_KEY, defHost);
+        port = attribute.getProperty(Const.PORT_KEY, defPort);
+        ioThreads = attribute.getProperty(Const.IO_THREADS_KEY, Runtime.getRuntime().availableProcessors() << 1);
     }
 
     @Override
@@ -56,4 +75,44 @@ public abstract class AbstractNetServer implements NetServer, ChannelHandler {
 
     }
 
+    /**
+     * Close.
+     */
+    protected abstract void close();
+
+    /**
+     * Gets host.
+     *
+     * @return the host
+     */
+    protected String getHost() {
+        return host;
+    }
+
+    /**
+     * Gets port.
+     *
+     * @return the port
+     */
+    protected Integer getPort() {
+        return port;
+    }
+
+    /**
+     * Gets io threads.
+     *
+     * @return the io threads
+     */
+    protected Integer getIoThreads() {
+        return ioThreads;
+    }
+
+    /**
+     * Gets attribute.
+     *
+     * @return the attribute
+     */
+    public Attribute getAttribute() {
+        return attribute;
+    }
 }

@@ -18,21 +18,47 @@
 
 package org.dromara.soul.remoting.api;
 
+import org.dromara.soul.common.Attribute;
+
 /**
  * AbstractNetClient
  * CreateDate: 2019/10/11 15:51
  *
  * @author sixh
  */
-public class AbstractNetClient implements NetClient {
+public class AbstractNetClient implements NetClient, ChannelHandler {
 
     /**
      * The Channel handler.
      */
     private ChannelHandler channelHandler;
 
+    public AbstractNetClient(Attribute properties, ChannelHandler channelHandler) {
+        this.channelHandler = channelHandler;
+    }
+
     @Override
     public void connection() {
+
+    }
+
+    @Override
+    public void connected(Channel channel) {
+
+    }
+
+    @Override
+    public void sent(Channel channel, Object message) {
+
+    }
+
+    @Override
+    public void received(Channel channel, Object message) {
+
+    }
+
+    @Override
+    public void exceptionCaught(Channel channel, Throwable cause) {
 
     }
 }

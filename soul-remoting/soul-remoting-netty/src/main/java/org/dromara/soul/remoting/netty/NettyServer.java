@@ -18,7 +18,18 @@
 
 package org.dromara.soul.remoting.netty;
 
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import java.util.Collection;
+import org.dromara.soul.common.Attribute;
+import org.dromara.soul.common.concurrent.SoulThreadFactory;
 import org.dromara.soul.remoting.api.AbstractNetServer;
 import org.dromara.soul.remoting.api.Channel;
 import org.dromara.soul.remoting.api.ChannelHandler;
@@ -31,17 +42,53 @@ import org.dromara.soul.remoting.api.ChannelHandler;
  */
 public class NettyServer extends AbstractNetServer {
 
-    public NettyServer(ChannelHandler handler) {
-        super(handler);
+    private EventLoopGroup boosGroup;
+    private EventLoopGroup workGroup;
+    private ServerBootstrap bootstrap;
+    private Channel channel;
+
+    public NettyServer(Attribute attribute, ChannelHandler handler) {
+        super(attribute, handler);
     }
 
     @Override
     public void bind() {
-
+        boosGroup = new NioEventLoopGroup(1, SoulThreadFactory.create("nettyServerBoss", false));
+        workGroup = new NioEventLoopGroup(getIoThreads(), SoulThreadFactory.create("nettyServerWork", false));
+        NettyServerHandler serverHandler = new NettyServerHandler(getAttribute(), this);
+        ChannelFuture future = bootstrap.group(boosGroup, workGroup)
+                .channel(NioServerSocketChannel.class)
+                .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE)
+                .childOption(ChannelOption.SO_REUSEADDR, Boolean.TRUE)
+                .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                .childHandler(new ChannelInitializer<NioSocketChannel>() {
+                    @Override
+                    protected void initChannel(NioSocketChannel channel) throws Exception {
+                        channel.pipeline().addLast(serverHandler);
+                    }
+                }).bind(getHost(), getPort());
+        io.netty.channel.Channel channel = future.syncUninterruptibly().channel();
+        this.channel = new NettyChannel(channel);
     }
 
     @Override
     public Collection<Channel> getChannels() {
         return null;
+    }
+
+    @Override
+    protected void close() {
+        if (channel != null) {
+            channel.close();
+        }
+        if (getChannels() != null) {
+            for (Channel channel1 : getChannels()) {
+                channel1.close();
+            }
+        }
+        if (bootstrap != null) {
+            boosGroup.shutdownGracefully();
+            workGroup.shutdownGracefully();
+        }
     }
 }

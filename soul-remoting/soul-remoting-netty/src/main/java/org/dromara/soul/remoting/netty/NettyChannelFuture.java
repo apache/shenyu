@@ -16,34 +16,36 @@
  *   limitations under the License.
  */
 
-package org.dromara.soul.remoting.api;
+package org.dromara.soul.remoting.netty;
+
+import org.dromara.soul.remoting.api.Channel;
+import org.dromara.soul.remoting.api.ChannelFuture;
 
 /**
- * Future
- * CreateDate: 2019/10/11 16:09
+ * NettyChannelFuture
+ * CreateDate: 2019/10/12 15:59
  *
  * @author sixh
  */
-public interface Future {
+public class NettyChannelFuture implements ChannelFuture {
+    private io.netty.channel.ChannelFuture future;
 
-    /**
-     * Is successfully boolean.
-     *
-     * @return the boolean
-     */
-    boolean isSuccessfully();
+    public NettyChannelFuture(io.netty.channel.ChannelFuture future) {
+        this.future = future;
+    }
 
-    /**
-     * Cause throwable.
-     *
-     * @return the throwable
-     */
-    Throwable cause();
+    @Override
+    public Channel channel() {
+        return new NettyChannel(future.channel());
+    }
 
-    /**
-     * Gets channel.
-     *
-     * @return the channel
-     */
-    Channel getChannel();
+    @Override
+    public boolean isDone() {
+        return this.future.isDone();
+    }
+
+    @Override
+    public Throwable cause() {
+        return this.future.cause();
+    }
 }

@@ -28,6 +28,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>soul-remoting-api</artifactId>
+    <dependencies>
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-common</artifactId>
+        </dependency>
+    </dependencies>
 
 
 </project>

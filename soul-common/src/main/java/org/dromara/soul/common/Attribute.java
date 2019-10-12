@@ -16,50 +16,29 @@
  *   limitations under the License.
  */
 
-package org.dromara.soul.remoting.api;
+package org.dromara.soul.common;
+
+import java.util.Properties;
 
 /**
- * ChannelHandler
- * CreateDate: 2019/10/11 15:49
+ * Attribute.
+ * <p>
+ * CreateDate: 2019/10/12 15:02
  *
  * @author sixh
  */
-public interface ChannelHandler {
+public class Attribute extends Properties {
     /**
-     * Connection.
+     * Gets property.
      *
-     * @param channel the channel
+     * @param <T> the type parameter
+     * @param key the key
+     * @param def the def 默认值.
+     * @return the property
      */
-    void connected(Channel channel);
-
-    /**
-     * Send.
-     *
-     * @param channel the channel
-     * @param message the message
-     */
-    void sent(Channel channel,Object message);
-
-    /**
-     * Received.
-     *
-     * @param channel the channel
-     * @param message the message
-     */
-    void received(Channel channel, Object message);
-
-    /**
-     * Exception caught.
-     *
-     * @param channel the channel
-     * @param cause   the cause
-     */
-    void exceptionCaught(Channel channel, Throwable cause);
-
-    /**
-     * Timeout.
-     *
-     * @param channel the channel
-     */
-    void timeout(Channel channel);
+    @SuppressWarnings("unchecked")
+    public <T> T getProperty(String key, T def) {
+        String val = super.getProperty(key);
+        return (T) ((val == null) ? def : val);
+    }
 }

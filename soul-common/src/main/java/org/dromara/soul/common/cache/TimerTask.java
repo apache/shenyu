@@ -16,50 +16,23 @@
  *   limitations under the License.
  */
 
-package org.dromara.soul.remoting.api;
+package org.dromara.soul.common.cache;
+
+import java.util.concurrent.TimeUnit;
 
 /**
- * ChannelHandler
- * CreateDate: 2019/10/11 15:49
+ * A task which is executed after the delay specified with
+ * {@link Timer#newTimeout(TimerTask, long, TimeUnit)}.
  *
- * @author sixh
+ * @author chenbin
  */
-public interface ChannelHandler {
-    /**
-     * Connection.
-     *
-     * @param channel the channel
-     */
-    void connected(Channel channel);
+public interface TimerTask {
 
     /**
-     * Send.
+     * Executed after the delay specified with
+     * {@link Timer#newTimeout(TimerTask, long, TimeUnit)}.
      *
-     * @param channel the channel
-     * @param message the message
+     * @param timeout a handle which is associated with this task
      */
-    void sent(Channel channel,Object message);
-
-    /**
-     * Received.
-     *
-     * @param channel the channel
-     * @param message the message
-     */
-    void received(Channel channel, Object message);
-
-    /**
-     * Exception caught.
-     *
-     * @param channel the channel
-     * @param cause   the cause
-     */
-    void exceptionCaught(Channel channel, Throwable cause);
-
-    /**
-     * Timeout.
-     *
-     * @param channel the channel
-     */
-    void timeout(Channel channel);
+    void run(Timeout timeout);
 }

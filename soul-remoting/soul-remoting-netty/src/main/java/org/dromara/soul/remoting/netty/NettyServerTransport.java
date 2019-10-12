@@ -16,50 +16,24 @@
  *   limitations under the License.
  */
 
-package org.dromara.soul.remoting.api;
+package org.dromara.soul.remoting.netty;
+
+import org.dromara.soul.common.Attribute;
+import org.dromara.soul.common.extension.Join;
+import org.dromara.soul.remoting.api.ChannelHandler;
+import org.dromara.soul.remoting.api.NetServer;
+import org.dromara.soul.remoting.api.ServerTransport;
 
 /**
- * ChannelHandler
- * CreateDate: 2019/10/11 15:49
+ * NettyServerTransport
+ * CreateDate: 2019/10/12 15:17
  *
  * @author sixh
  */
-public interface ChannelHandler {
-    /**
-     * Connection.
-     *
-     * @param channel the channel
-     */
-    void connected(Channel channel);
-
-    /**
-     * Send.
-     *
-     * @param channel the channel
-     * @param message the message
-     */
-    void sent(Channel channel,Object message);
-
-    /**
-     * Received.
-     *
-     * @param channel the channel
-     * @param message the message
-     */
-    void received(Channel channel, Object message);
-
-    /**
-     * Exception caught.
-     *
-     * @param channel the channel
-     * @param cause   the cause
-     */
-    void exceptionCaught(Channel channel, Throwable cause);
-
-    /**
-     * Timeout.
-     *
-     * @param channel the channel
-     */
-    void timeout(Channel channel);
+@Join
+public class NettyServerTransport implements ServerTransport {
+    @Override
+    public NetServer bind(Attribute attribute, ChannelHandler handler) {
+        return new NettyServer(attribute, handler);
+    }
 }

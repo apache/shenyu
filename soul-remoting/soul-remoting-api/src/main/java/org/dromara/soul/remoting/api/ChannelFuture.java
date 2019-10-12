@@ -45,5 +45,5 @@ public interface ChannelFuture {
      *
      * @return the boolean
      */
-    boolean cause();
+    Throwable cause();
 }

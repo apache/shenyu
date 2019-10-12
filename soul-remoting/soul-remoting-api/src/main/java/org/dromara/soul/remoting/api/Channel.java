@@ -70,4 +70,11 @@ public interface Channel {
      * @return the channel future
      */
     ChannelFuture close();
+
+    /**
+     * Gets id.
+     *
+     * @return the id
+     */
+    String getId();
 }
