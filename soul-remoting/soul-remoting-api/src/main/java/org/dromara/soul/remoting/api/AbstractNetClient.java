@@ -48,6 +48,11 @@ public class AbstractNetClient implements NetClient, ChannelHandler {
     }
 
     @Override
+    public void disconnected(Channel channel) {
+
+    }
+
+    @Override
     public void sent(Channel channel, Object message) {
 
     }
@@ -59,6 +64,11 @@ public class AbstractNetClient implements NetClient, ChannelHandler {
 
     @Override
     public void exceptionCaught(Channel channel, Throwable cause) {
+
+    }
+
+    @Override
+    public void timeout(Channel channel) {
 
     }
 }

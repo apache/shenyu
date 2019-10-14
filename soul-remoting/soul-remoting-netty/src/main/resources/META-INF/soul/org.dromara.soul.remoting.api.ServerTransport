@@ -1,0 +1,1 @@
+netty=org.dromara.soul.remoting.netty.NettyServerTransport

@@ -33,6 +33,13 @@ public interface ChannelHandler {
     void connected(Channel channel);
 
     /**
+     * Disconnected.
+     *
+     * @param channel the channel
+     */
+    void disconnected(Channel channel);
+
+    /**
      * Send.
      *
      * @param channel the channel

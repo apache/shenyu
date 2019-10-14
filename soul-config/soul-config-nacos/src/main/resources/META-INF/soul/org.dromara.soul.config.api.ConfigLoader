@@ -1,1 +1,1 @@
-#nacos=org.dromara.soul.config.nacos.NacosConfigLoader
+nacos=org.dromara.soul.config.nacos.NacosConfigLoader

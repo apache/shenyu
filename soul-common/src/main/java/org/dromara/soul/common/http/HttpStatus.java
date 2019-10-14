@@ -16,17 +16,19 @@
  *   limitations under the License.
  */
 
-package org.dromara.soul.common;
+package org.dromara.soul.common.http;
 
 /**
- * Const
- * CreateDate: 2019/10/12 15:09
+ * HttpStatus.
+ * CreateDate: 2019/10/14 17:25
  *
  * @author sixh
  */
-public class Const {
-    public static final String HOST_KEY = "host";
-    public static final String PORT_KEY = "port";
-    public static final String IO_THREADS_KEY = "io_threads";
-    public static final String NET_TIMEOUT_KEY = "net_timeout";
+public class HttpStatus {
+    /**
+     * time out.
+     */
+    public static final Integer TIME_OUT = 504;
+    public static final Integer OK = 200;
+    public static final Integer NOT_FOUND = 404;
 }

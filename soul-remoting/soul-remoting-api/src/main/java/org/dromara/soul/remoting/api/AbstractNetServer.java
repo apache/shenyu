@@ -18,7 +18,6 @@
 
 package org.dromara.soul.remoting.api;
 
-import java.util.Collection;
 import org.dromara.soul.common.Attribute;
 import org.dromara.soul.common.Const;
 
@@ -32,7 +31,6 @@ public abstract class AbstractNetServer implements NetServer, ChannelHandler {
 
     private ChannelHandler handler;
 
-    private Collection<Channel> channels;
     private Attribute attribute;
 
     private final String host;
@@ -57,22 +55,32 @@ public abstract class AbstractNetServer implements NetServer, ChannelHandler {
 
     @Override
     public void connected(Channel channel) {
+        handler.connected(channel);
+    }
 
+    @Override
+    public void disconnected(Channel channel) {
+        handler.disconnected(channel);
     }
 
     @Override
     public void sent(Channel channel, Object message) {
-
+        handler.sent(channel, message);
     }
 
     @Override
     public void received(Channel channel, Object message) {
-
+        handler.received(channel, message);
     }
 
     @Override
     public void exceptionCaught(Channel channel, Throwable cause) {
+        handler.exceptionCaught(channel, cause);
+    }
 
+    @Override
+    public void timeout(Channel channel) {
+        handler.timeout(channel);
     }
 
     /**

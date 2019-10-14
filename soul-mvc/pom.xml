@@ -10,5 +10,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>soul-mvc</artifactId>
+    <dependencies>
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-remoting-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-common</artifactId>
+        </dependency>
+    </dependencies>
 
 </project>

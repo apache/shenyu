@@ -16,17 +16,45 @@
  *   limitations under the License.
  */
 
-package org.dromara.soul.common;
+package org.dromara.soul.mvc;
+
+import org.dromara.soul.remoting.api.Channel;
+import org.dromara.soul.remoting.api.ChannelHandler;
 
 /**
- * Const
- * CreateDate: 2019/10/12 15:09
+ * MvcChannelHandler
+ * CreateDate: 2019/10/14 17:22
  *
  * @author sixh
  */
-public class Const {
-    public static final String HOST_KEY = "host";
-    public static final String PORT_KEY = "port";
-    public static final String IO_THREADS_KEY = "io_threads";
-    public static final String NET_TIMEOUT_KEY = "net_timeout";
+public class MvcChannelHandler implements ChannelHandler {
+    @Override
+    public void connected(Channel channel) {
+
+    }
+
+    @Override
+    public void disconnected(Channel channel) {
+
+    }
+
+    @Override
+    public void sent(Channel channel, Object message) {
+
+    }
+
+    @Override
+    public void received(Channel channel, Object message) {
+
+    }
+
+    @Override
+    public void exceptionCaught(Channel channel, Throwable cause) {
+
+    }
+
+    @Override
+    public void timeout(Channel channel) {
+        
+    }
 }

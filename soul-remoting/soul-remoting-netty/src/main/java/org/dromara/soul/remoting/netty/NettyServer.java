@@ -27,6 +27,10 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
+import io.netty.handler.stream.ChunkedWriteHandler;
 import java.util.Collection;
 import org.dromara.soul.common.Attribute;
 import org.dromara.soul.common.concurrent.SoulThreadFactory;
@@ -46,6 +50,7 @@ public class NettyServer extends AbstractNetServer {
     private EventLoopGroup workGroup;
     private ServerBootstrap bootstrap;
     private Channel channel;
+    private NettyServerHandler serverHandler;
 
     public NettyServer(Attribute attribute, ChannelHandler handler) {
         super(attribute, handler);
@@ -55,8 +60,8 @@ public class NettyServer extends AbstractNetServer {
     public void bind() {
         boosGroup = new NioEventLoopGroup(1, SoulThreadFactory.create("nettyServerBoss", false));
         workGroup = new NioEventLoopGroup(getIoThreads(), SoulThreadFactory.create("nettyServerWork", false));
-        NettyServerHandler serverHandler = new NettyServerHandler(getAttribute(), this);
-        ChannelFuture future = bootstrap.group(boosGroup, workGroup)
+        serverHandler = new NettyServerHandler(getAttribute(), this);
+        bootstrap = new ServerBootstrap().group(boosGroup, workGroup)
                 .channel(NioServerSocketChannel.class)
                 .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE)
                 .childOption(ChannelOption.SO_REUSEADDR, Boolean.TRUE)
@@ -64,16 +69,21 @@ public class NettyServer extends AbstractNetServer {
                 .childHandler(new ChannelInitializer<NioSocketChannel>() {
                     @Override
                     protected void initChannel(NioSocketChannel channel) throws Exception {
+                        channel.pipeline().addLast("http", new HttpServerCodec());
+                        channel.pipeline().addLast("websocket", new WebSocketServerCompressionHandler());
+                        channel.pipeline().addLast("http-aggregator", new HttpObjectAggregator(1024 * 1024 * 64));
+                        channel.pipeline().addLast("chunkedWriter", new ChunkedWriteHandler());
                         channel.pipeline().addLast(serverHandler);
                     }
-                }).bind(getHost(), getPort());
+                });
+        ChannelFuture future = bootstrap.bind(getHost(), getPort());
         io.netty.channel.Channel channel = future.syncUninterruptibly().channel();
         this.channel = new NettyChannel(channel);
     }
 
     @Override
     public Collection<Channel> getChannels() {
-        return null;
+        return serverHandler.getChannels();
     }
 
     @Override

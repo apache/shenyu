@@ -62,6 +62,11 @@
                 <artifactId>soul-remoting-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>soul-remoting-netty</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <!-- The third party -->
             <dependency>
                 <groupId>io.netty</groupId>
