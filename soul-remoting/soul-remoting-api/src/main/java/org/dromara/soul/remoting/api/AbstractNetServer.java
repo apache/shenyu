@@ -18,6 +18,7 @@
 
 package org.dromara.soul.remoting.api;
 
+import java.net.InetSocketAddress;
 import org.dromara.soul.common.Attribute;
 import org.dromara.soul.common.Const;
 
@@ -95,6 +96,10 @@ public abstract class AbstractNetServer implements NetServer, ChannelHandler {
      */
     protected String getHost() {
         return host;
+    }
+
+    public InetSocketAddress bindSocketAddress() {
+        return new InetSocketAddress(getHost(), getPort());
     }
 
     /**

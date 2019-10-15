@@ -34,6 +34,7 @@
         <junit.version>4.12</junit.version>
         <logback.version>1.2.1</logback.version>
         <netty.version>4.1.34.Final</netty.version>
+        <mina.version>2.1.3</mina.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -68,6 +69,16 @@
                 <version>${project.version}</version>
             </dependency>
             <!-- The third party -->
+            <dependency>
+                <groupId>org.apache.mina</groupId>
+                <artifactId>mina-core</artifactId>
+                <version>${mina.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.mina</groupId>
+                <artifactId>mina-http</artifactId>
+                <version>${mina.version}</version>
+            </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-all</artifactId>
