@@ -19,10 +19,32 @@
 package org.dromara.soul.common.http;
 
 /**
- * Response
- * CreateDate: 2019/10/14 18:30
+ * HttpMethod
+ * CreateDate: 2019/10/15 16:28
  *
  * @author sixh
  */
-public class Response {
+public enum HttpMethod {
+    /**
+     * Get http method.
+     */
+    GET,
+    /**
+     * Post http method.
+     */
+    POST,
+    /**
+     * Put http method.
+     */
+    PUT;
+
+    /**
+     * Parse http method.
+     *
+     * @param method the method
+     * @return the http method
+     */
+    public static HttpMethod parse(String method) {
+        return HttpMethod.valueOf(method.toUpperCase());
+    }
 }

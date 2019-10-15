@@ -16,33 +16,36 @@
  *   limitations under the License.
  */
 
-package org.dromara.soul.common.http;
+package org.dromara.soul.remoting.api.codec;
 
-import lombok.Data;
+import org.dromara.soul.common.http.HttpSoulRequest;
+import org.dromara.soul.common.http.HttpSoulResponse;
+import org.dromara.soul.remoting.api.Channel;
 
 /**
- * HttpStatus.
- * CreateDate: 2019/10/14 17:25
+ * Codec
+ * CreateDate: 2019/10/15 15:10
  *
+ * @param <Request>  the type parameter
+ * @param <Response> the type parameter
  * @author sixh
  */
-@Data
-public class HttpStatus {
-    private Integer code;
-    private String codeAsText;
+public interface Codec<Request, Response> {
+    /**
+     * Encode.
+     *
+     * @param channel the channel
+     * @param message the message
+     * @return the response
+     */
+    Response encode(Channel channel, HttpSoulResponse message);
 
-    public HttpStatus(Integer code, String codeAsText) {
-        this.code = code;
-        this.codeAsText = codeAsText;
-    }
     /**
-     * time out.
+     * Decode object.
+     *
+     * @param channel the channel
+     * @param request the request
+     * @return the object
      */
-    public static final HttpStatus TIME_OUT = new HttpStatus(504,"");
-    public static final HttpStatus OK = new HttpStatus(200,"ok");
-    /**
-     * 400 Bad Request
-     */
-    public static final HttpStatus BAD_REQUEST = new HttpStatus(400,"Bad Request");
-    public static final HttpStatus NOT_FOUND = new HttpStatus(404,"Not Found");
+    HttpSoulRequest decode(Channel channel, Request request);
 }

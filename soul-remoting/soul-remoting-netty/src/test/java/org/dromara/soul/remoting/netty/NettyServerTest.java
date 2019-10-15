@@ -20,6 +20,8 @@ package org.dromara.soul.remoting.netty;
 
 import org.dromara.soul.common.Attribute;
 import org.dromara.soul.common.extension.ExtensionLoader;
+import org.dromara.soul.common.http.HttpSoulResponse;
+import org.dromara.soul.common.http.HttpStatus;
 import org.dromara.soul.remoting.api.Channel;
 import org.dromara.soul.remoting.api.ChannelHandler;
 import org.dromara.soul.remoting.api.NetServer;
@@ -51,12 +53,16 @@ public class NettyServerTest {
 
             @Override
             public void sent(Channel channel, Object message) {
-
+                System.out.println(message);
             }
 
             @Override
             public void received(Channel channel, Object message) {
-
+                System.out.println(message);
+                HttpSoulResponse response = new HttpSoulResponse();
+                response.setStatus(HttpStatus.OK.getCode());
+                response.setBody("{name:123}");
+                channel.send(response);
             }
 
             @Override

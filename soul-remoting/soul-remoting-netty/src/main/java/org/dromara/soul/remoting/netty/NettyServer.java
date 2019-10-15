@@ -61,6 +61,7 @@ public class NettyServer extends AbstractNetServer {
         boosGroup = new NioEventLoopGroup(1, SoulThreadFactory.create("nettyServerBoss", false));
         workGroup = new NioEventLoopGroup(getIoThreads(), SoulThreadFactory.create("nettyServerWork", false));
         serverHandler = new NettyServerHandler(getAttribute(), this);
+
         bootstrap = new ServerBootstrap().group(boosGroup, workGroup)
                 .channel(NioServerSocketChannel.class)
                 .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE)
@@ -69,9 +70,12 @@ public class NettyServer extends AbstractNetServer {
                 .childHandler(new ChannelInitializer<NioSocketChannel>() {
                     @Override
                     protected void initChannel(NioSocketChannel channel) throws Exception {
+                        NettyCodec codec = new NettyCodec();
                         channel.pipeline().addLast("http", new HttpServerCodec());
                         channel.pipeline().addLast("websocket", new WebSocketServerCompressionHandler());
                         channel.pipeline().addLast("http-aggregator", new HttpObjectAggregator(1024 * 1024 * 64));
+                        channel.pipeline().addLast("encode", codec.getEncoder());
+                        channel.pipeline().addLast("decode", codec.getDecoder());
                         channel.pipeline().addLast("chunkedWriter", new ChunkedWriteHandler());
                         channel.pipeline().addLast(serverHandler);
                     }

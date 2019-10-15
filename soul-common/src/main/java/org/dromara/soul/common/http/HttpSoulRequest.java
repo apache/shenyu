@@ -18,6 +18,7 @@
 
 package org.dromara.soul.common.http;
 
+import java.util.Map;
 import lombok.Data;
 
 /**
@@ -27,11 +28,24 @@ import lombok.Data;
  * @author sixh
  */
 @Data
-public class Request {
+public class HttpSoulRequest {
     /**
      * 请求的id;
      */
     private String id;
 
     private String url;
+
+    private HttpMethod method;
+    /**
+     * json string.
+     */
+    private String body;
+
+    /**
+     * The Headers.
+     */
+    Map<String, String> headers;
+
+    private HttpStatus status;
 }

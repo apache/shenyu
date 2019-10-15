@@ -18,6 +18,8 @@
 
 package org.dromara.soul.mvc;
 
+import org.dromara.soul.common.http.HttpSoulRequest;
+import org.dromara.soul.common.http.HttpSoulResponse;
 import org.dromara.soul.remoting.api.Channel;
 import org.dromara.soul.remoting.api.ChannelHandler;
 
@@ -40,12 +42,16 @@ public class MvcChannelHandler implements ChannelHandler {
 
     @Override
     public void sent(Channel channel, Object message) {
+        if (message instanceof HttpSoulRequest) {
 
+        }
     }
 
     @Override
     public void received(Channel channel, Object message) {
+        if (message instanceof HttpSoulResponse) {
 
+        }
     }
 
     @Override
@@ -55,6 +61,6 @@ public class MvcChannelHandler implements ChannelHandler {
 
     @Override
     public void timeout(Channel channel) {
-        
+
     }
 }
