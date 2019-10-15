@@ -16,15 +16,13 @@
  *   limitations under the License.
  */
 
-package org.dromara.soul.remoting.api.codec;
+package org.dromara.soul.common.http;
 
 /**
- * CodecFactory
- * CreateDate: 2019/10/12 14:59
+ * Response
+ * CreateDate: 2019/10/14 18:30
  *
  * @author sixh
  */
-public class CodecFactory {
-
-    public void ecodec();
+public class Response {
 }

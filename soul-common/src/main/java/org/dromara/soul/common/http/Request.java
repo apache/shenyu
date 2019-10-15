@@ -16,15 +16,22 @@
  *   limitations under the License.
  */
 
-package org.dromara.soul.remoting.api.codec;
+package org.dromara.soul.common.http;
+
+import lombok.Data;
 
 /**
- * CodecFactory
- * CreateDate: 2019/10/12 14:59
+ * Request
+ * CreateDate: 2019/10/14 18:29
  *
  * @author sixh
  */
-public class CodecFactory {
+@Data
+public class Request {
+    /**
+     * 请求的id;
+     */
+    private String id;
 
-    public void ecodec();
+    private String url;
 }
