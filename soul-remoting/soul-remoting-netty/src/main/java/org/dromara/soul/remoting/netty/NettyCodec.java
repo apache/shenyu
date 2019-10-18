@@ -25,15 +25,15 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import io.netty.handler.codec.MessageToMessageEncoder;
 import io.netty.handler.codec.http.*;
+
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import org.dromara.soul.common.http.*;
 import org.dromara.soul.common.http.HttpMethod;
-import org.dromara.soul.common.http.HttpSoulRequest;
-import org.dromara.soul.common.http.HttpSoulResponse;
-import org.dromara.soul.common.http.HttpStatus;
 import org.dromara.soul.remoting.api.Channel;
 import org.dromara.soul.remoting.api.codec.Codec;
 
@@ -80,7 +80,11 @@ public class NettyCodec implements Codec<FullHttpRequest, FullHttpResponse> {
     @Override
     public HttpSoulRequest decode(Channel channel, FullHttpRequest fullHttpRequest) {
         HttpSoulRequest request = new HttpSoulRequest();
-        request.setUrl(fullHttpRequest.uri());
+        String uri = fullHttpRequest.uri();
+        URL url = URL.parse(uri);
+        request.setPath(url.getFull());
+        request.setUrl(url);
+        request.setParams(url.getParameters());
         String body = fullHttpRequest.content().toString(StandardCharsets.UTF_8);
         request.setBody(body);
         HttpHeaders headers = fullHttpRequest.headers();

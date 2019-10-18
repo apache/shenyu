@@ -28,6 +28,9 @@ import org.dromara.soul.remoting.api.NetServer;
 import org.dromara.soul.remoting.api.ServerTransport;
 import org.junit.Test;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 /**
  * NettyServerTest
  * CreateDate: 2019/10/14 15:32
@@ -77,5 +80,10 @@ public class NettyServerTest {
         });
         bind.bind();
         Thread.sleep(Integer.MAX_VALUE);
+    }
+    @Test
+    public void testUrl() throws MalformedURLException {
+        URL url = new URL("http://www.baidu.com/proxy/abc?a=12&b=12");
+        System.out.println(url);
     }
 }

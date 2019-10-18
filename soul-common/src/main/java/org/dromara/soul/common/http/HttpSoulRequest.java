@@ -19,6 +19,7 @@
 package org.dromara.soul.common.http;
 
 import java.util.Map;
+
 import lombok.Data;
 
 /**
@@ -34,18 +35,19 @@ public class HttpSoulRequest {
      */
     private String id;
 
-    private String url;
+    private String path;
 
     private HttpMethod method;
     /**
      * json string.
      */
     private String body;
-
     /**
      * The Headers.
      */
-    Map<String, String> headers;
+    private Map<String, String> headers;
 
+    private Map<String, String> params;
+    private URL url;
     private HttpStatus status;
 }
