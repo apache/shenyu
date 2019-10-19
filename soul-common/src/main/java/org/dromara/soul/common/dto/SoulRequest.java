@@ -16,10 +16,13 @@
 
 package org.dromara.soul.common.dto;
 
+import lombok.Data;
+
 import java.io.Serializable;
 
 /**
  * @author xiaoyu(Myth)
  */
+@Data
 public class SoulRequest implements Serializable {
 }
