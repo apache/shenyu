@@ -23,7 +23,6 @@ import org.dromara.soul.common.extension.SPI;
 
 /**
  * ServerTransport
- * CreateDate: 2019/10/12 15:16
  *
  * @author sixh
  */
@@ -36,5 +35,5 @@ public interface ServerTransport {
      * @param handler   the handler
      * @return the net server
      */
-    public NetServer bind(Attribute attribute, ChannelHandler handler);
+    NetServer bind(Attribute attribute, ChannelHandler handler);
 }

@@ -10,6 +10,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>soul-store</artifactId>
-
+    <packaging>pom</packaging>
+    <modules>
+        <module>soul-store-api</module>
+        <module>soul-store-service</module>
+    </modules>
 
 </project>

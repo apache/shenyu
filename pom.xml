@@ -24,6 +24,7 @@
         <module>soul-config</module>
         <module>soul-cache</module>
         <module>soul-dashboard</module>
+        <module>soul-client</module>
     </modules>
 
     <organization>
