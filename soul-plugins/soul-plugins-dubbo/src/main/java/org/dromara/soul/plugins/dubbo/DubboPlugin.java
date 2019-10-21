@@ -18,6 +18,8 @@ package org.dromara.soul.plugins.dubbo;
 
 import org.dromara.plugins.api.AbstractSoulPlugin;
 import org.dromara.plugins.api.SoulPluginChain;
+import org.dromara.soul.cache.api.data.SelectorData;
+import org.dromara.soul.cache.api.service.CacheService;
 import org.dromara.soul.common.dto.SoulRequest;
 import org.dromara.soul.common.dto.SoulResponse;
 import org.dromara.soul.common.enums.PluginEnum;
@@ -28,9 +30,8 @@ import org.dromara.soul.common.enums.PluginTypeEnum;
  */
 public class DubboPlugin extends AbstractSoulPlugin {
 
-    @Override
-    protected SoulResponse doExecute(SoulRequest soulRequest, SoulPluginChain chain) {
-        return null;
+    public DubboPlugin(CacheService cacheService) {
+        super(cacheService);
     }
 
     @Override
@@ -51,5 +52,10 @@ public class DubboPlugin extends AbstractSoulPlugin {
     @Override
     public Boolean skip(SoulRequest soulRequest) {
         return false;
+    }
+
+    @Override
+    protected SoulResponse doExecute(SoulRequest soulRequest, SelectorData selectorData, SoulPluginChain chain) {
+        return null;
     }
 }

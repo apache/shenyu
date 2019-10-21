@@ -51,11 +51,12 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
     /**
      * this is Template Method child has Implement your own logic.
      *
-     * @param soulRequest exchange the current server exchange {@linkplain SoulRequest}
-     * @param chain       chain the current chain  {@linkplain SoulPluginChain}
+     * @param soulRequest  the soul request  {@linkplain SoulRequest}
+     * @param selectorData the soul selector data {@linkplain SelectorData}
+     * @param chain        chain the current chain  {@linkplain SoulPluginChain}
      * @return {@linkplain SoulResponse} to indicate when request handling is complete
      */
-    protected abstract SoulResponse doExecute(SoulRequest soulRequest, SoulPluginChain chain);
+    protected abstract SoulResponse doExecute(SoulRequest soulRequest, SelectorData selectorData, SoulPluginChain chain);
 
     @Override
     public SoulResponse execute(SoulRequest soulRequest, SoulPluginChain chain) {
@@ -78,7 +79,7 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
                 LogUtils.info(LOGGER, named()
                         + " selector success selector name :{}", selectorData::getName);
             }
-            return doExecute(soulRequest, chain);
+            return doExecute(soulRequest, selectorData, chain);
         }
         return chain.execute(soulRequest);
     }

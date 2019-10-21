@@ -1,0 +1,3 @@
+random=org.dromara.soul.plugins.http.balance.RandomLoadBalance
+roundrobin=org.dromara.soul.plugins.http.balance.RoundRobinLoadBalance
+hash=org.dromara.soul.plugins.http.balance.HashLoadBalance
