@@ -17,25 +17,47 @@
  *
  */
 
-package org.dromara.soul.stroe.api.service;
+package org.dromara.soul.stroe.api.dto;
 
-import org.dromara.soul.common.extension.SPI;
-import org.dromara.soul.stroe.api.dto.SelectorDTO;
+import lombok.Data;
+
+import java.io.Serializable;
 
 /**
- * The interface Repository service.
+ * this SelectorConditionDTO.
  *
  * @author xiaoyu
  */
-@SPI("jdbc")
-public interface RepositoryService {
+@Data
+public class SelectorConditionDTO implements Serializable {
 
     /**
-     * Save or update selector int.
-     *
-     * @param selectorDTO the selector dto
-     * @return the int
+     * primary key.
      */
-    int saveOrUpdateSelector(SelectorDTO selectorDTO);
+    private String id;
 
+    /**
+     * selector id.
+     */
+    private String selectorId;
+
+    /**
+     * parameter type.
+     */
+    private String paramType;
+
+    /**
+     * match operator.
+     */
+    private String operator;
+
+    /**
+     * parameter name.
+     */
+    private String paramName;
+
+    /**
+     * parameter value.
+     */
+    private String paramValue;
 }

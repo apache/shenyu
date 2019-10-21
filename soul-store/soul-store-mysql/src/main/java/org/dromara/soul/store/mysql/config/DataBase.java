@@ -17,25 +17,31 @@
  *
  */
 
-package org.dromara.soul.stroe.api.service;
+package org.dromara.soul.store.mysql.config;
 
-import org.dromara.soul.common.extension.SPI;
-import org.dromara.soul.stroe.api.dto.SelectorDTO;
+import lombok.Data;
+import org.dromara.soul.config.api.ConfigParent;
 
 /**
- * The interface Repository service.
+ * SoulDataBase .
+ * <p>
+ * 2019-08-16
  *
- * @author xiaoyu
+ * @author sixh
  */
-@SPI("jdbc")
-public interface RepositoryService {
+@Data
+public class DataBase extends ConfigParent {
 
-    /**
-     * Save or update selector int.
-     *
-     * @param selectorDTO the selector dto
-     * @return the int
-     */
-    int saveOrUpdateSelector(SelectorDTO selectorDTO);
+    private String url;
 
+    private String drClass;
+
+    private String userName;
+
+    private String password;
+
+    @Override
+    public String prefix() {
+        return "soul.store.database";
+    }
 }

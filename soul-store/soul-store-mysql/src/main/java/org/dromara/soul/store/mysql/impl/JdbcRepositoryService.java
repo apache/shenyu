@@ -17,15 +17,17 @@
  *
  */
 
-package org.dromara.soul.store.service.impl;
+package org.dromara.soul.store.mysql.impl;
 
 import com.zaxxer.hikari.HikariDataSource;
 import org.dromara.soul.config.api.ConfigEnv;
 import org.dromara.soul.config.api.original.SoulDataBase;
+import org.dromara.soul.store.mysql.config.DataBase;
+import org.dromara.soul.stroe.api.dto.SelectorDTO;
 import org.dromara.soul.stroe.api.service.RepositoryService;
 
 import javax.sql.DataSource;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.sql.DatabaseMetaData;
 
 /**
  * The type Jdbc repository service.
@@ -34,19 +36,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class JdbcRepositoryService extends AbstractJdbcRepositoryService implements RepositoryService {
 
-    private volatile AtomicBoolean isInit = new AtomicBoolean(false);
-
-    @Override
-    public void init() {
-        if (!isInit.compareAndSet(false, true)) {
-            return;
-        }
+    public JdbcRepositoryService() {
         setDataSource(buildDataSource());
         executeScript();
     }
 
     private DataSource buildDataSource() {
-        SoulDataBase dataBase = ConfigEnv.getInstance().getConfig(SoulDataBase.class);
+        DataBase dataBase = ConfigEnv.getInstance().getConfig(DataBase.class);
         HikariDataSource hikariDataSource = new HikariDataSource();
         hikariDataSource.setJdbcUrl(dataBase.getUrl());
         hikariDataSource.setDriverClassName(dataBase.getDrClass());
@@ -55,6 +51,8 @@ public class JdbcRepositoryService extends AbstractJdbcRepositoryService impleme
         return hikariDataSource;
     }
 
-
-
+    @Override
+    public int saveOrUpdateSelector(SelectorDTO selectorDTO) {
+        return 0;
+    }
 }

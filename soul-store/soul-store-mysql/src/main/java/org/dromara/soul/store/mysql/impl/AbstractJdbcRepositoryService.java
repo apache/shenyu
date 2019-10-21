@@ -17,7 +17,7 @@
  *
  */
 
-package org.dromara.soul.store.service.impl;
+package org.dromara.soul.store.mysql.impl;
 
 import com.google.common.collect.Maps;
 import org.apache.ibatis.io.Resources;

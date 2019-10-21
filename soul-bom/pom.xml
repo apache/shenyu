@@ -74,7 +74,7 @@
 
             <dependency>
                 <groupId>org.dromara</groupId>
-                <artifactId>soul-store-service</artifactId>
+                <artifactId>soul-store-mysql</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

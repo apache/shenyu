@@ -17,25 +17,42 @@
  *
  */
 
-package org.dromara.soul.stroe.api.service;
+package org.dromara.soul.stroe.api.dto;
 
-import org.dromara.soul.common.extension.SPI;
-import org.dromara.soul.stroe.api.dto.SelectorDTO;
+import lombok.Data;
+
+import java.io.Serializable;
 
 /**
- * The interface Repository service.
+ * this PluginDTO.
  *
  * @author xiaoyu
  */
-@SPI("jdbc")
-public interface RepositoryService {
+@Data
+public class PluginDTO implements Serializable {
 
     /**
-     * Save or update selector int.
-     *
-     * @param selectorDTO the selector dto
-     * @return the int
+     * primary key.
      */
-    int saveOrUpdateSelector(SelectorDTO selectorDTO);
+    private String id;
 
+    /**
+     * plugin name.
+     */
+    private String name;
+
+    /**
+     * plugin config.
+     */
+    private String config;
+
+    /**
+     * plugin role.
+     */
+    private Integer role;
+
+    /**
+     * whether enabled.
+     */
+    private Boolean enabled;
 }
