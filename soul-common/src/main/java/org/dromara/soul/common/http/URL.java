@@ -87,6 +87,7 @@ public class URL {
         if (StringUtils.isNotBlank(protocol)) {
 
         }
+        return "";
     }
 
     public static URL parse(String url) {
