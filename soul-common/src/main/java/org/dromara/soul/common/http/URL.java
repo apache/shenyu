@@ -19,6 +19,7 @@ package org.dromara.soul.common.http;
 
 import lombok.Getter;
 import org.dromara.soul.common.exception.SoulException;
+import org.dromara.soul.common.utils.CollectionUtils;
 import org.dromara.soul.common.utils.StringUtils;
 import sun.net.util.IPAddressUtil;
 
@@ -33,6 +34,8 @@ import java.util.Map;
  * HTTP URL 处理.
  *
  * @author sixh
+ * @see java.net.URL
+ * @see java.net.URI;
  */
 @Getter
 
@@ -65,13 +68,16 @@ public class URL {
      * @param parameters parameters.
      * @return URL.
      */
-    public static URL valueOf(String protocol, String host, Integer port, String path, Map<String, String> parameters) {
+    public static URL valueOf(String protocol,
+                              String host,
+                              Integer port,
+                              String path,
+                              Map<String, String> parameters) {
         protocol = protocol.toLowerCase();
         URL url = new URL();
         url.protocol = protocol;
         if (host != null) {
-
-            if (host.indexOf(':') >= 0 && !host.startsWith("[")) {
+            if (host.indexOf(COLON) >= 0 && !host.startsWith("[")) {
                 host = "[" + host + "]";
             }
             url.host = host;
@@ -79,24 +85,84 @@ public class URL {
         }
         url.path = path;
         url.parameters = parameters != null ? Collections.unmodifiableMap(parameters) : Collections.emptyMap();
+        url.query = buildQuery(parameters);
         return url;
+    }
+
+    public static URL valueOf(String protocol,
+                              String host,
+                              Integer port,
+                              String path,
+                              String query) {
+        Map<String, String> params = queryToMap(query);
+        return valueOf(protocol, host, port, path, params);
+    }
+
+    public static URL valueOf(String protocol, String hostAndPort, String path, String query) {
+        Map<String, String> params = queryToMap(query);
+        return valueOf(protocol, hostAndPort, path, params);
+
+    }
+
+    public static URL valueOf(String protocol, String hostAndPort, String path, Map<String, String> parameters) {
+        if (StringUtils.isBlank(hostAndPort) || hostAndPort.indexOf(COLON) < 0) {
+            throw new IllegalArgumentException("hostAndPort error, le: 127.0.0.1:2222");
+        }
+        String[] split = hostAndPort.split(String.valueOf(COLON));
+        String host = split[0];
+        Integer port = Integer.valueOf(split[1]);
+        return valueOf(protocol, host, port, path, parameters);
     }
 
     public String fullString() {
         StringBuilder sb = new StringBuilder();
-        if (StringUtils.isNotBlank(protocol)) {
+        if (StringUtils.isBlank(protocol)) {
+            throw new IllegalArgumentException("protocol is null");
+        }
+        if (StringUtils.isBlank(host)) {
+            throw new IllegalArgumentException("host is null");
+        }
+        sb.append(protocol).append("://");
+        sb.append(host);
+        if (port > 0) {
+            sb.append(COLON);
+            sb.append(port);
+        }
+        if (StringUtils.isBlank(path)) {
+            path = String.valueOf(VIRGULE);
+        }
 
+        if (path.indexOf(VIRGULE) == 0) {
+            sb.append(path);
+        } else {
+            sb.append(VIRGULE).append(path);
+        }
+        sb.append(query);
+        return sb.toString();
+    }
+
+    private static String buildQuery(Map<String, String> parameters) {
+        if (CollectionUtils.isNotEmptyMap(parameters)) {
+            StringBuilder sb = new StringBuilder();
+            int next = -1;
+            for (String key : parameters.keySet()) {
+                String value = parameters.get(key);
+                next++;
+                if (next == 0) {
+                    sb.append("?");
+                } else {
+                    sb.append("&");
+                }
+                sb.append(key).append("=").append(value);
+            }
+            return sb.toString();
         }
         return "";
     }
 
-    public static URL parse(String url) {
-        URL newUrl = new URL();
-        try {
-            newUrl.url(url);
-            newUrl.full = url;
-            String query = newUrl.query;
-            if (query != null && query.trim().length() > 0) {
+    private static Map<String, String> queryToMap(String query) {
+        if (StringUtils.isNotBlank(query)) {
+            if (query.trim().length() > 0) {
                 String[] split = query.split(AMPERSAND);
                 Map<String, String> params = new HashMap<>(split.length);
                 Arrays.stream(split)
@@ -111,9 +177,19 @@ public class URL {
                                 params.put(e, "");
                             }
                         });
-                newUrl.parameters = params;
+                return params;
             }
+        }
+        return Collections.emptyMap();
+    }
 
+    public static URL parse(String url) {
+        URL newUrl = new URL();
+        try {
+            newUrl.url(url);
+            newUrl.full = url;
+            String query = newUrl.query;
+            newUrl.parameters = newUrl.queryToMap(query);
         } catch (Exception e) {
             throw new IllegalArgumentException("invalid url");
         }

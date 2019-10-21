@@ -47,6 +47,16 @@ public class CollectionUtils {
     }
 
     /**
+     * Is empty boolean.
+     *
+     * @param coll the coll
+     * @return the boolean
+     */
+    public static boolean isEmptyMap(Map<?, ?> coll) {
+        return coll == null || coll.isEmpty();
+    }
+
+    /**
      * Is not empty boolean.
      *
      * @param coll the coll
@@ -55,6 +65,17 @@ public class CollectionUtils {
     public static boolean isNotEmpty(Collection<?> coll) {
         return !isEmpty(coll);
     }
+
+    /**
+     * Is not empty boolean.
+     *
+     * @param coll the coll
+     * @return the boolean
+     */
+    public static boolean isNotEmptyMap(Map<?, ?> coll) {
+        return !isEmptyMap(coll);
+    }
+
 
     /**
      * The type Collection factory.

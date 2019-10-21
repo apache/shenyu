@@ -20,6 +20,9 @@ package org.dromara.soul.common.http;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class URLTest {
 
 
@@ -50,6 +53,7 @@ public class URLTest {
         Assert.assertEquals(parse.getParameters().get("abc"), "1");
         Assert.assertEquals(parse.getParameters().get("cdf"), "2");
     }
+
     @Test
     public void testParse3() {
         String s = "dubbo://root:admin@127.0.0.1:8080/proxy/abc?abc=1&cdf=2";
@@ -62,5 +66,14 @@ public class URLTest {
         Assert.assertEquals(parse.getParameters().size(), 2);
         Assert.assertEquals(parse.getParameters().get("abc"), "1");
         Assert.assertEquals(parse.getParameters().get("cdf"), "2");
+    }
+
+    @Test
+    public void testValueOf() {
+        Map<String, String> params = new HashMap<>();
+        params.put("abc","123");
+        params.put("adf","456");
+        URL url = URL.valueOf("dubbo", "127.0.0.1", 9999, "/proxy", params);
+        System.out.println(url.fullString());
     }
 }
