@@ -44,7 +44,20 @@ public class URLTest {
         Assert.assertEquals(parse.getFull(), s);
         Assert.assertEquals(parse.getHost(), "127.0.0.1");
         Assert.assertEquals(parse.getPath(), "/proxy/abc");
-        Assert.assertEquals(parse.getProtocol(), "http");
+        Assert.assertEquals(parse.getProtocol(), "dubbo");
+        Assert.assertEquals(parse.getPort(), Integer.valueOf(8080));
+        Assert.assertEquals(parse.getParameters().size(), 2);
+        Assert.assertEquals(parse.getParameters().get("abc"), "1");
+        Assert.assertEquals(parse.getParameters().get("cdf"), "2");
+    }
+    @Test
+    public void testParse3() {
+        String s = "dubbo://root:admin@127.0.0.1:8080/proxy/abc?abc=1&cdf=2";
+        URL parse = URL.parse(s);
+        Assert.assertEquals(parse.getFull(), s);
+        Assert.assertEquals(parse.getHost(), "127.0.0.1");
+        Assert.assertEquals(parse.getPath(), "/proxy/abc");
+        Assert.assertEquals(parse.getProtocol(), "dubbo");
         Assert.assertEquals(parse.getPort(), Integer.valueOf(8080));
         Assert.assertEquals(parse.getParameters().size(), 2);
         Assert.assertEquals(parse.getParameters().get("abc"), "1");
