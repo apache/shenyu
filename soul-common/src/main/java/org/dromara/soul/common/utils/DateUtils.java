@@ -26,6 +26,7 @@ import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
@@ -37,6 +38,9 @@ import java.util.Date;
  */
 public class DateUtils {
 
+    /**
+     * The constant LOGGER.
+     */
     public static final Logger LOGGER = LoggerFactory.getLogger(DateUtils.class);
 
     private static final String DATE_FORMAT_DATETIME = "yyyy-MM-dd HH:mm:ss";
@@ -46,13 +50,18 @@ public class DateUtils {
      * out put format:yyyy-MM-dd HH:mm:ss
      *
      * @param str date String
-     * @return yyyy-MM-dd HH:mm:ss
+     * @return yyyy -MM-dd HH:mm:ss
      * @see LocalDateTime
      */
     public static LocalDateTime parseLocalDateTime(final String str) {
         return LocalDateTime.parse(str, DateTimeFormatter.ofPattern(DATE_FORMAT_DATETIME));
     }
 
+    /**
+     * Gets date yyyy.
+     *
+     * @return the date yyyy
+     */
     public static Date getDateYYYY() {
         LocalDateTime localDateTime = parseLocalDateTime(getCurrentDateTime());
         ZoneId zone = ZoneId.systemDefault();
@@ -60,6 +69,11 @@ public class DateUtils {
         return Date.from(instant);
     }
 
+    /**
+     * Gets current date time.
+     *
+     * @return the current date time
+     */
     public static String getCurrentDateTime() {
         return LocalDateTime.now().format(DateTimeFormatter.ofPattern(DATE_FORMAT_DATETIME));
     }
@@ -76,4 +90,14 @@ public class DateUtils {
         return start.until(end, ChronoUnit.MINUTES);
     }
 
+
+    /**
+     * Format local date time from timestamp local date time.
+     *
+     * @param timestamp the timestamp
+     * @return the local date time
+     */
+    public static LocalDateTime formatLocalDateTimeFromTimestamp(Long timestamp) {
+        return LocalDateTime.ofEpochSecond(timestamp / 1000, 0, ZoneOffset.ofHours(8));
+    }
 }

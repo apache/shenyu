@@ -17,33 +17,28 @@
  *
  */
 
-package org.dromara.soul.cache.local.impl;
+package org.dromara.soul.cache.api.data;
 
-import org.dromara.soul.cache.api.data.AppAuthData;
-import org.dromara.soul.cache.api.data.PluginData;
-import org.dromara.soul.cache.api.data.SelectorData;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.io.Serializable;
 
 /**
- * The type Local cache service.
+ * AppAuthDTO.
  *
- * @author xiaoyu
+ * @author xiaoyu(Myth)
  */
-public class LocalCacheService extends AbstractLocalService {
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class AppAuthData implements Serializable {
 
-    @Override
-    public PluginData findPluginByName(String pluginName) {
-        return PLUGIN_MAP.get(pluginName);
-    }
+    private String accessKey;
 
-    @Override
-    public List<SelectorData> findSelectorByPluginName(String pluginName) {
-        return SELECTOR_MAP.get(pluginName);
-    }
+    private String secretKey;
 
-    @Override
-    public AppAuthData findByAccessKey(String accessKey) {
-        return AUTH_DATA.get(accessKey);
-    }
+    private Boolean enabled;
+
 }

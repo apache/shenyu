@@ -20,12 +20,53 @@
 package org.dromara.plugins.api.dto;
 
 import lombok.Data;
+import org.dromara.soul.common.enums.HttpMethodEnum;
+import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.dromara.soul.common.http.HttpMethod;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.Map;
 
 /**
  * @author xiaoyu(Myth)
  */
 @Data
 public class SoulRequest implements Serializable {
+
+
+    /**
+     * is rpcType data. now we only support "http","dubbo" "springCloud".
+     * {@linkplain RpcTypeEnum}
+     */
+    private String rpcType;
+
+    private HttpMethod httpMethod;
+
+    /**
+     * The Headers.
+     */
+    private Map<String, String> headers;
+
+    /**
+     * this is sign .
+     */
+    private String sign;
+
+    /**
+     * timestamp .
+     */
+    private String timestamp;
+
+    /**
+     * accessKey .
+     */
+    private String accessKey;
+
+    /**
+     * startDateTime
+     */
+    private LocalDateTime startDateTime;
+
+    private String httpPath;
 }

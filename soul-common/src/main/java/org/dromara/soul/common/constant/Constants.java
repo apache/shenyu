@@ -110,6 +110,8 @@ public interface Constants {
      */
     String TIMESTAMP = "timestamp";
 
+    String PATH = "path";
+
     /**
      * The constant RETRY.
      */
@@ -204,6 +206,12 @@ public interface Constants {
      * The constant COLONS.
      */
     String COLONS = ":";
+
+    String SING_TIME_IS_TIMEOUT = "签名时间戳已经超过5分钟";
+
+    String SIGN_PARAMS_ERROR = "认证参数传入不完整!";
+
+    String SIGN_APP_KEY_IS_NOT_EXIST = "认证签名APP_KEY,不存在";
 
 
 }

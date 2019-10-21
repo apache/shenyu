@@ -135,6 +135,12 @@
 
             <dependency>
                 <groupId>org.dromara</groupId>
+                <artifactId>soul-plugins-auth</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.dromara</groupId>
                 <artifactId>soul-plugins-websocket</artifactId>
                 <version>${project.version}</version>
             </dependency>

@@ -40,7 +40,7 @@ public enum PluginEnum {
     /**
      * Sign plugin enum.
      */
-    SIGN(2, 0, "sign"),
+    AUTH(2, 0, "auth"),
 
     /**
      * Waf plugin enum.

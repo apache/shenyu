@@ -18,6 +18,7 @@
         <module>soul-plugins-dubbo</module>
         <module>soul-plugins-http</module>
         <module>soul-plugins-websocket</module>
+        <module>soul-plugins-auth</module>
     </modules>
 
     <dependencies>

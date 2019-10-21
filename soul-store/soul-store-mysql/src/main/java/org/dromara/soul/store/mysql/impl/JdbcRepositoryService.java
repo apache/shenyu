@@ -21,13 +21,12 @@ package org.dromara.soul.store.mysql.impl;
 
 import com.zaxxer.hikari.HikariDataSource;
 import org.dromara.soul.config.api.ConfigEnv;
-import org.dromara.soul.config.api.original.SoulDataBase;
 import org.dromara.soul.store.mysql.config.DataBase;
 import org.dromara.soul.stroe.api.dto.SelectorDTO;
 import org.dromara.soul.stroe.api.service.RepositoryService;
 
 import javax.sql.DataSource;
-import java.sql.DatabaseMetaData;
+import java.time.LocalDateTime;
 
 /**
  * The type Jdbc repository service.
@@ -41,6 +40,26 @@ public class JdbcRepositoryService extends AbstractJdbcRepositoryService impleme
         executeScript();
     }
 
+    @Override
+    public int saveSelector(SelectorDTO selectorDTO) {
+        String insert = "insert into selector" + "(id,plugin_id,name,match_mode,"
+                + "type,sort,handle,enabled,loged,continued,date_created,date_updated)"
+                + " values(?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        return executeUpdate(insert,
+                selectorDTO.getId(),
+                selectorDTO.getPluginId(),
+                selectorDTO.getName(),
+                selectorDTO.getMatchMode(),
+                selectorDTO.getType(),
+                selectorDTO.getSort(),
+                selectorDTO.getHandle(),
+                selectorDTO.getEnabled(),
+                selectorDTO.getLoged(),
+                selectorDTO.getContinued(),
+                LocalDateTime.now(),
+                LocalDateTime.now());
+    }
+
     private DataSource buildDataSource() {
         DataBase dataBase = ConfigEnv.getInstance().getConfig(DataBase.class);
         HikariDataSource hikariDataSource = new HikariDataSource();
@@ -49,10 +68,5 @@ public class JdbcRepositoryService extends AbstractJdbcRepositoryService impleme
         hikariDataSource.setUsername(dataBase.getUserName());
         hikariDataSource.setPassword(dataBase.getPassword());
         return hikariDataSource;
-    }
-
-    @Override
-    public int saveOrUpdateSelector(SelectorDTO selectorDTO) {
-        return 0;
     }
 }

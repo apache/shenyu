@@ -36,6 +36,6 @@ public interface RepositoryService {
      * @param selectorDTO the selector dto
      * @return the int
      */
-    int saveOrUpdateSelector(SelectorDTO selectorDTO);
+    int saveSelector(SelectorDTO selectorDTO);
 
 }

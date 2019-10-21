@@ -20,6 +20,7 @@
 package org.dromara.soul.cache.local.impl;
 
 import com.google.common.collect.Maps;
+import org.dromara.soul.cache.api.data.AppAuthData;
 import org.dromara.soul.cache.api.data.PluginData;
 import org.dromara.soul.cache.api.data.SelectorData;
 import org.dromara.soul.cache.api.service.CacheService;
@@ -30,7 +31,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * @author xiaoyu(Myth)
  */
-public abstract class AbstractLocalService implements CacheService {
+abstract class AbstractLocalService implements CacheService {
 
     /**
      * pluginName -> PluginData.
@@ -41,5 +42,10 @@ public abstract class AbstractLocalService implements CacheService {
      * pluginName -> SelectorData.
      */
     static final ConcurrentMap<String, List<SelectorData>> SELECTOR_MAP = Maps.newConcurrentMap();
+
+    /**
+     * accessKey->AppAuthData
+     */
+    static final ConcurrentMap<String, AppAuthData> AUTH_DATA = Maps.newConcurrentMap();
 
 }

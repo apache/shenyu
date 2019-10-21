@@ -20,6 +20,7 @@
 package org.dromara.soul.cache.api.service;
 
 
+import org.dromara.soul.cache.api.data.AppAuthData;
 import org.dromara.soul.cache.api.data.PluginData;
 import org.dromara.soul.cache.api.data.SelectorData;
 import org.dromara.soul.common.extension.SPI;
@@ -27,6 +28,8 @@ import org.dromara.soul.common.extension.SPI;
 import java.util.List;
 
 /**
+ * The interface Cache service.
+ *
  * @author xiaoyu
  */
 @SPI("local")
@@ -47,4 +50,12 @@ public interface CacheService {
      * @return the list
      */
     List<SelectorData> findSelectorByPluginName(String pluginName);
+
+    /**
+     * Find by access key app auth data.
+     *
+     * @param accessKey the access key
+     * @return the app auth data
+     */
+    AppAuthData findByAccessKey(String accessKey);
 }
