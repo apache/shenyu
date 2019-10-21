@@ -19,21 +19,18 @@ package org.dromara.soul.plugins.http;
 import com.netflix.hystrix.HystrixCommand;
 import org.dromara.plugins.api.AbstractSoulPlugin;
 import org.dromara.plugins.api.SoulPluginChain;
-import org.dromara.soul.cache.api.data.SelectorData;
-import org.dromara.soul.cache.api.service.CacheService;
 import org.dromara.plugins.api.dto.SoulRequest;
 import org.dromara.plugins.api.dto.SoulResponse;
+import org.dromara.soul.cache.api.data.SelectorData;
+import org.dromara.soul.cache.api.service.CacheService;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.extension.ExtensionLoader;
-import org.dromara.soul.plugins.http.hystrix.HttpHystrix;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugins.http.balance.LoadBalance;
 import org.dromara.soul.plugins.http.hystrix.HttpCommand;
+import org.dromara.soul.plugins.http.hystrix.HttpHystrix;
 import org.dromara.soul.plugins.http.hystrix.HystrixBuilder;
-
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 /**
  * The type Http plugin.
@@ -79,16 +76,9 @@ public class HttpPlugin extends AbstractSoulPlugin {
 
         HystrixCommand.Setter setter = HystrixBuilder.build(httpHystrix);
 
-        HttpCommand command = new HttpCommand(setter);
-        Future<Object> future = command.queue();
+        HttpCommand command = new HttpCommand(setter, soulRequest);
+        Object result = command.execute();
 
-        try {
-            Object result = future.get();
-
-            //结果处理
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
         return chain.execute(soulRequest);
     }
 }

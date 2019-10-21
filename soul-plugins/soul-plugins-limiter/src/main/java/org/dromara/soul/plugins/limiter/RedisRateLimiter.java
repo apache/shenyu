@@ -89,8 +89,7 @@ class RedisRateLimiter {
                     Instant.now().getEpochSecond() + "", "1");
             return (RateLimiterResponse) jedisClient.evalsha(script, keys, scriptArgs);
         } catch (Exception e) {
-            e.printStackTrace();
-            LogUtils.error(LOGGER, () -> "Error determining if user allowed from redis" + e.getMessage());
+            LOGGER.error("Error determining if user allowed from redis exception:", e);
         }
         return new RateLimiterResponse(true, -1);
     }

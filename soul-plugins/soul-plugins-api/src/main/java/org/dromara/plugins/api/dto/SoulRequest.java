@@ -26,6 +26,7 @@ import org.dromara.soul.common.http.HttpMethod;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -69,4 +70,9 @@ public class SoulRequest implements Serializable {
     private LocalDateTime startDateTime;
 
     private String httpPath;
+
+    /**
+     * http body ，is json...
+     */
+    private String body;
 }
