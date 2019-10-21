@@ -30,7 +30,7 @@ import java.io.InputStreamReader;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -62,18 +62,11 @@ class RedisRateLimiter {
         initialized.compareAndSet(false, true);
         this.jedisClient = jedisClient;
         InputStream inputStream = RedisRateLimiter.class.getClassLoader()
-                .getResourceAsStream("request_rate_limiter.lua");
-        try {
-            script = new BufferedReader(new InputStreamReader(Optional.ofNullable(inputStream).orElse(new InputStream() {
-                @Override
-                public int read() {
-                    return 0;
-                }
-            }))).lines().collect(Collectors.joining(System.lineSeparator()));
-        } catch (Exception e) {
-            e.printStackTrace();
+                .getResourceAsStream("scripts/request_rate_limiter.lua");
+        if (Objects.nonNull(inputStream)) {
+            script = new BufferedReader(new InputStreamReader(inputStream)).lines()
+                    .collect(Collectors.joining(System.lineSeparator()));
         }
-
     }
 
     /**
