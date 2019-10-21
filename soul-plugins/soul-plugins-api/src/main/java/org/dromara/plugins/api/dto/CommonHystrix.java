@@ -17,7 +17,7 @@
  *
  */
 
-package org.dromara.soul.common.hystrix;
+package org.dromara.plugins.api.dto;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

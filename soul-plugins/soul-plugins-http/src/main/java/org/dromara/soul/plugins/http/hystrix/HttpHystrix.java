@@ -17,41 +17,30 @@
  *
  */
 
-package org.dromara.soul.common.hystrix;
+package org.dromara.soul.plugins.http.hystrix;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
+import org.dromara.plugins.api.dto.CommonHystrix;
 
 import java.io.Serializable;
 
 /**
- * The type Dubbo rule handle.
+ * The type Divide rule handle.
  *
  * @author xiaoyu(Myth)
  */
-@Getter
-@Setter
-@ToString
-public class DubboHystrix extends CommonHystrix implements Serializable {
+@Data
+public class HttpHystrix extends CommonHystrix implements Serializable {
 
     /**
-     * version.
-     */
-    private String version;
-
-    /**
-     * group.
-     */
-    private String group;
-
-    /**
-     * retries.
-     */
-    private Integer retries;
-
-    /**
+     * loadBalance.
      * {@linkplain org.dromara.soul.common.enums.LoadBalanceEnum}
      */
     private String loadBalance;
+
+    /**
+     * http retry.
+     */
+    private int retry;
+
 }

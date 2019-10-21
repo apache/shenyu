@@ -20,7 +20,7 @@
 package org.dromara.plugins.api.condition.strategy;
 
 import org.dromara.soul.cache.api.data.ConditionData;
-import org.dromara.soul.common.dto.SoulRequest;
+import org.dromara.plugins.api.dto.SoulRequest;
 
 /**
  * AbstractMatchStrategy.

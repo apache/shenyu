@@ -19,11 +19,11 @@ package org.dromara.plugins.api;
 
 import lombok.RequiredArgsConstructor;
 import org.dromara.plugins.api.condition.strategy.MatchStrategyFactory;
+import org.dromara.plugins.api.dto.SoulRequest;
+import org.dromara.plugins.api.dto.SoulResponse;
 import org.dromara.soul.cache.api.data.PluginData;
 import org.dromara.soul.cache.api.data.SelectorData;
 import org.dromara.soul.cache.api.service.CacheService;
-import org.dromara.soul.common.dto.SoulRequest;
-import org.dromara.soul.common.dto.SoulResponse;
 import org.dromara.soul.common.enums.SelectorTypeEnum;
 import org.dromara.soul.common.utils.CollectionUtils;
 import org.dromara.soul.common.utils.LogUtils;

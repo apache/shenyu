@@ -17,29 +17,15 @@
  *
  */
 
-package org.dromara.soul.common.hystrix;
+package org.dromara.plugins.api.dto;
 
 import lombok.Data;
 
 import java.io.Serializable;
 
 /**
- * The type Divide rule handle.
- *
  * @author xiaoyu(Myth)
  */
 @Data
-public class HttpHystrix extends CommonHystrix implements Serializable {
-
-    /**
-     * loadBalance.
-     * {@linkplain org.dromara.soul.common.enums.LoadBalanceEnum}
-     */
-    private String loadBalance;
-
-    /**
-     * http retry.
-     */
-    private int retry;
-
+public class SoulRequest implements Serializable {
 }

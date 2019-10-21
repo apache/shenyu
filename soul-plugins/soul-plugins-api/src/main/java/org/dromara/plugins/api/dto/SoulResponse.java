@@ -17,25 +17,12 @@
  *
  */
 
-package org.dromara.plugins.api.condition.strategy;
+package org.dromara.plugins.api.dto;
 
-import org.dromara.plugins.api.condition.judge.OperatorJudgeFactory;
-import org.dromara.soul.cache.api.data.ConditionData;
-import org.dromara.plugins.api.dto.SoulRequest;
-
-import java.util.List;
+import java.io.Serializable;
 
 /**
- * this is and match Strategy.
- *
  * @author xiaoyu(Myth)
  */
-public class AndMatchStrategy extends AbstractMatchStrategy implements MatchStrategy {
-
-    @Override
-    public Boolean match(final List<ConditionData> conditionDataList, SoulRequest soulRequest) {
-        return conditionDataList
-                .stream()
-                .allMatch(condition -> OperatorJudgeFactory.judge(condition, buildRealData(condition, soulRequest)));
-    }
+public class SoulResponse implements Serializable {
 }

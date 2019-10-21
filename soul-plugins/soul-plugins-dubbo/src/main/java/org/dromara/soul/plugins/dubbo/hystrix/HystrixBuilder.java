@@ -17,15 +17,15 @@
  *
  */
 
-package org.dromara.soul.plugins.http.hystrix;
+package org.dromara.soul.plugins.dubbo.hystrix;
 
 import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixCommandKey;
 import com.netflix.hystrix.HystrixCommandProperties;
 import com.netflix.hystrix.HystrixObservableCommand;
-import org.dromara.soul.common.constant.Constants;
 import org.dromara.plugins.api.dto.CommonHystrix;
+import org.dromara.soul.common.constant.Constants;
 
 /**
  * the hystrix builder.

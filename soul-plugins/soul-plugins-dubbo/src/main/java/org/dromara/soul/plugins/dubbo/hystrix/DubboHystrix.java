@@ -17,25 +17,42 @@
  *
  */
 
-package org.dromara.plugins.api.condition.strategy;
+package org.dromara.soul.plugins.dubbo.hystrix;
 
-import org.dromara.plugins.api.condition.judge.OperatorJudgeFactory;
-import org.dromara.soul.cache.api.data.ConditionData;
-import org.dromara.plugins.api.dto.SoulRequest;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import org.dromara.plugins.api.dto.CommonHystrix;
 
-import java.util.List;
+import java.io.Serializable;
 
 /**
- * this is and match Strategy.
+ * The type Dubbo rule handle.
  *
  * @author xiaoyu(Myth)
  */
-public class AndMatchStrategy extends AbstractMatchStrategy implements MatchStrategy {
+@Getter
+@Setter
+@ToString
+public class DubboHystrix extends CommonHystrix implements Serializable {
 
-    @Override
-    public Boolean match(final List<ConditionData> conditionDataList, SoulRequest soulRequest) {
-        return conditionDataList
-                .stream()
-                .allMatch(condition -> OperatorJudgeFactory.judge(condition, buildRealData(condition, soulRequest)));
-    }
+    /**
+     * version.
+     */
+    private String version;
+
+    /**
+     * group.
+     */
+    private String group;
+
+    /**
+     * retries.
+     */
+    private Integer retries;
+
+    /**
+     * {@linkplain org.dromara.soul.common.enums.LoadBalanceEnum}
+     */
+    private String loadBalance;
 }

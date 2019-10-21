@@ -24,7 +24,7 @@ import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.DefaultAsyncHttpClient;
 import org.asynchttpclient.DefaultAsyncHttpClientConfig;
 import org.dromara.plugins.api.SoulPluginChain;
-import org.dromara.soul.common.dto.SoulRequest;
+import org.dromara.plugins.api.dto.SoulRequest;
 
 /**
  * @author xiaoyu

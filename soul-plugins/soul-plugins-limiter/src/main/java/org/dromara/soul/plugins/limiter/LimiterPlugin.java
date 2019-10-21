@@ -23,15 +23,12 @@ import org.dromara.plugins.api.AbstractSoulPlugin;
 import org.dromara.plugins.api.SoulPluginChain;
 import org.dromara.soul.cache.api.data.SelectorData;
 import org.dromara.soul.cache.api.service.CacheService;
-import org.dromara.soul.common.constant.Constants;
-import org.dromara.soul.common.dto.SoulRequest;
-import org.dromara.soul.common.dto.SoulResponse;
+import org.dromara.plugins.api.dto.SoulRequest;
+import org.dromara.plugins.api.dto.SoulResponse;
 import org.dromara.soul.common.dto.convert.RateLimiterHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
-import org.dromara.soul.common.result.SoulResult;
 import org.dromara.soul.common.utils.GsonUtils;
-import org.dromara.soul.common.utils.JsonUtils;
 import org.dromara.soul.config.api.ConfigEnv;
 import org.dromara.soul.plugins.limiter.config.RedisConfig;
 import org.dromara.soul.plugins.limiter.jedis.JedisClient;
@@ -47,9 +44,7 @@ import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.JedisSentinelPool;
 
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**

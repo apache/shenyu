@@ -17,8 +17,8 @@
 package org.dromara.plugins.api;
 
 
-import org.dromara.soul.common.dto.SoulRequest;
-import org.dromara.soul.common.dto.SoulResponse;
+import org.dromara.plugins.api.dto.SoulRequest;
+import org.dromara.plugins.api.dto.SoulResponse;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 
 /**
