@@ -32,6 +32,7 @@ import org.dromara.soul.cache.api.service.CacheService;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
+import org.dromara.soul.common.extension.ExtensionLoader;
 import org.dromara.soul.common.utils.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,15 +46,15 @@ import java.util.Objects;
  *
  * @author xiaoyu
  */
-@RequiredArgsConstructor
 public class AuthPlugin implements SoulPlugin {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthPlugin.class);
 
-    private final CacheService cacheService;
+    private CacheService cacheService;
 
     @Override
     public SoulResponse execute(SoulRequest soulRequest, SoulPluginChain chain) {
+        cacheService = ExtensionLoader.getExtensionLoader(CacheService.class).getJoin("local");
         String result = checkSignParam(soulRequest);
         if (StringUtils.isNoneBlank(result)) {
 

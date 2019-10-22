@@ -20,6 +20,7 @@
 package org.dromara.soul.stroe.api.entity;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * AppAuthDO.
@@ -27,6 +28,7 @@ import lombok.Data;
  * @author xiaoyu(Myth)
  */
 @Data
+@EqualsAndHashCode(callSuper = false)
 public class AppAuthDO extends BaseDO {
 
     /**

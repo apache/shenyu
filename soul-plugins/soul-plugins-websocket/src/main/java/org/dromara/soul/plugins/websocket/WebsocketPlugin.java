@@ -29,9 +29,6 @@ import org.dromara.soul.common.enums.PluginTypeEnum;
  * @author xiaoyu(Myth)
  */
 public class WebsocketPlugin extends AbstractSoulPlugin {
-    public WebsocketPlugin(CacheService cacheService) {
-        super(cacheService);
-    }
 
     @Override
     public PluginTypeEnum pluginType() {

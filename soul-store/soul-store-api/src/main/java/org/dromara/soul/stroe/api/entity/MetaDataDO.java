@@ -19,33 +19,59 @@
 
 package org.dromara.soul.stroe.api.entity;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
 
 /**
- * BaseDO.
+ * The type Meta data do.
  *
- * @author xiaoyu(Myth)
+ * @author xiaoyu
  */
-@Getter
-@Setter
-class BaseDO implements Serializable {
+@Data
+@EqualsAndHashCode(callSuper = false)
+public class MetaDataDO extends BaseDO implements Serializable {
 
     /**
-     * primary key.
+     * The application name.
      */
-    private String id;
+    private String appName;
 
     /**
-     * created time.
+     * the request api gateway path.
      */
-    private Timestamp dateCreated;
+    private String path;
 
     /**
-     * updated time.
+     * the rpcType {@linkplain org.dromara.soul.common.enums.RpcTypeEnum}
      */
-    private Timestamp dateUpdated;
+    private String rpcType;
+
+    /**
+     * The Full path package name of the service.
+     */
+    private String serviceName;
+
+    /**
+     * The methodName.
+     */
+    private String methodName;
+
+    /**
+     * The parameter Types,Full path package name of the service,please use ','separation.
+     */
+    private String parameterTypes;
+
+    /**
+     * The rpc ext param, please save json data.
+     */
+    private String rpcExt;
+
+    /**
+     * whether enabled.
+     */
+    private Boolean enabled;
+
+
 }

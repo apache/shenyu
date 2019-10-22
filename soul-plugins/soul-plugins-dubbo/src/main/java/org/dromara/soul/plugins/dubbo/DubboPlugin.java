@@ -18,21 +18,18 @@ package org.dromara.soul.plugins.dubbo;
 
 import org.dromara.plugins.api.AbstractSoulPlugin;
 import org.dromara.plugins.api.SoulPluginChain;
-import org.dromara.soul.cache.api.data.SelectorData;
-import org.dromara.soul.cache.api.service.CacheService;
 import org.dromara.plugins.api.dto.SoulRequest;
 import org.dromara.plugins.api.dto.SoulResponse;
+import org.dromara.soul.cache.api.data.SelectorData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 
 /**
+ * The type Dubbo plugin.
+ *
  * @author xiaoyu(Myth)
  */
 public class DubboPlugin extends AbstractSoulPlugin {
-
-    public DubboPlugin(CacheService cacheService) {
-        super(cacheService);
-    }
 
     @Override
     public PluginTypeEnum pluginType() {

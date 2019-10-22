@@ -17,7 +17,6 @@
 
 package org.dromara.plugins.api;
 
-import lombok.RequiredArgsConstructor;
 import org.dromara.plugins.api.condition.strategy.MatchStrategyFactory;
 import org.dromara.plugins.api.dto.SoulRequest;
 import org.dromara.plugins.api.dto.SoulResponse;
@@ -25,6 +24,7 @@ import org.dromara.soul.cache.api.data.PluginData;
 import org.dromara.soul.cache.api.data.SelectorData;
 import org.dromara.soul.cache.api.service.CacheService;
 import org.dromara.soul.common.enums.SelectorTypeEnum;
+import org.dromara.soul.common.extension.ExtensionLoader;
 import org.dromara.soul.common.utils.CollectionUtils;
 import org.dromara.soul.common.utils.LogUtils;
 import org.slf4j.Logger;
@@ -38,15 +38,12 @@ import java.util.Objects;
  *
  * @author xiaoyu(Myth)
  */
-@RequiredArgsConstructor
 public abstract class AbstractSoulPlugin implements SoulPlugin {
 
     /**
      * logger.
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSoulPlugin.class);
-
-    private final CacheService cacheService;
 
     /**
      * this is Template Method child has Implement your own logic.
@@ -60,6 +57,7 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
 
     @Override
     public SoulResponse execute(SoulRequest soulRequest, SoulPluginChain chain) {
+        CacheService cacheService = ExtensionLoader.getExtensionLoader(CacheService.class).getJoin("local");
         PluginData pluginData = cacheService.findPluginByName(named());
         if (!(skip(soulRequest) || pluginData == null || !pluginData.getEnabled())) {
             //获取selector

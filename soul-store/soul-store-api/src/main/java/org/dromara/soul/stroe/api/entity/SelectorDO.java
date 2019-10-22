@@ -20,11 +20,12 @@
 package org.dromara.soul.stroe.api.entity;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
-import org.dromara.soul.admin.dto.SelectorDTO;
 import org.dromara.soul.common.dto.ConditionData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.utils.UUIDUtils;
+import org.dromara.soul.stroe.api.dto.SelectorDTO;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -35,6 +36,7 @@ import java.util.List;
  * @author jiangxiaofeng(Nicholas)
  */
 @Data
+@EqualsAndHashCode(callSuper = false)
 public class SelectorDO extends BaseDO {
 
     /**
@@ -90,7 +92,7 @@ public class SelectorDO extends BaseDO {
             SelectorDO selectorDO = new SelectorDO();
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             if (StringUtils.isEmpty(selectorDTO.getId())) {
-                selectorDO.setId( UUIDUtils.getInstance().generateShortUuid());
+                selectorDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 selectorDO.setDateCreated(currentTime);
             } else {
                 selectorDO.setId(selectorDTO.getId());

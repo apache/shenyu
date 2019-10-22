@@ -20,10 +20,20 @@
 package org.dromara.soul.test.dubbo.service.impl;
 
 
+import org.dromara.soul.test.dubbo.api.entity.User;
+import org.dromara.soul.test.dubbo.api.service.HelloService;
+import org.springframework.stereotype.Service;
+
 /**
  * @author xiaoyu
  */
 @Service("helloService")
 public class HelloServiceImpl implements HelloService {
 
+    @Override
+    public User insert(User user) {
+        user.setId("xiaoyu");
+        user.setName("xiaoyu");
+        return user;
+    }
 }

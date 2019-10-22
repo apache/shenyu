@@ -24,11 +24,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.io.Reader;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 
@@ -45,7 +46,7 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
     private static final String SCHEMA_SQL_FILE = "META-INF/schema.sql";
 
     @Override
-    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+    public Object postProcessAfterInitialization(@NonNull Object bean, @NonNull String beanName) throws BeansException {
         if (bean instanceof DataSourceProperties) {
             this.init((DataSourceProperties) bean);
         }
@@ -70,7 +71,7 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
         ScriptRunner runner = new ScriptRunner(conn);
         // doesn't print logger
         runner.setLogWriter(null);
-        Resources.setCharset(Charset.forName("UTF-8"));
+        Resources.setCharset(StandardCharsets.UTF_8);
         Reader read = Resources.getResourceAsReader(SCHEMA_SQL_FILE);
         LOGGER.info("execute soul schema sql: {}", SCHEMA_SQL_FILE);
         runner.runScript(read);

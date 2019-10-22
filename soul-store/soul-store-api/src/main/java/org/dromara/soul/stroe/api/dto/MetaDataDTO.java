@@ -17,38 +17,62 @@
  *
  */
 
-package org.dromara.soul.stroe.api.entity;
+package org.dromara.soul.stroe.api.dto;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.io.Serializable;
+
 /**
- * The PluginDO.
- *
+ * The type Meta data dto.
  * @author xiaoyu
  */
 @Data
-@EqualsAndHashCode(callSuper = false)
-public class PluginDO extends BaseDO {
+@EqualsAndHashCode
+public class MetaDataDTO implements Serializable {
+
+    private String id;
 
     /**
-     * plugin name.
+     * The application name.
      */
-    private String name;
+    private String appName;
 
     /**
-     * plugin config @see 2.0
+     * the request api gateway path.
      */
-    private String config;
+    private String path;
+
+    /**
+     * the rpcType {@linkplain org.dromara.soul.common.enums.RpcTypeEnum}
+     */
+    private String rpcType;
+
+    /**
+     * The Full path package name of the service.
+     */
+    private String serviceName;
+
+    /**
+     * The methodName.
+     */
+    private String methodName;
+
+    /**
+     * The parameter Types,Full path package name of the service,please use ','separation.
+     */
+    private String parameterTypes;
+
+    /**
+     * The rpc ext param, please save json data.
+     */
+    private String rpcExt;
 
     /**
      * whether enabled.
      */
     private Boolean enabled;
 
-    /**
-     * {@linkplain org.dromara.soul.common.enums.PluginRoleEnum}
-     */
-    private Integer role;
 
 }

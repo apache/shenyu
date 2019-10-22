@@ -20,6 +20,7 @@
 package org.dromara.soul.stroe.api.service;
 
 import org.dromara.soul.common.extension.SPI;
+import org.dromara.soul.stroe.api.dto.MetaDataDTO;
 import org.dromara.soul.stroe.api.dto.SelectorDTO;
 
 /**
@@ -37,5 +38,13 @@ public interface RepositoryService {
      * @return the int
      */
     int saveSelector(SelectorDTO selectorDTO);
+
+    /**
+     * Save or update meta data int.
+     *
+     * @param metaDataDTO the meta data dto
+     * @return the int
+     */
+    int saveOrUpdateMetaData(MetaDataDTO metaDataDTO);
 
 }

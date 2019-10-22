@@ -20,8 +20,11 @@
 package org.dromara.soul.store.mysql.impl;
 
 import com.zaxxer.hikari.HikariDataSource;
+import org.dromara.soul.common.utils.StringUtils;
 import org.dromara.soul.config.api.ConfigEnv;
 import org.dromara.soul.store.mysql.config.DataBase;
+import org.dromara.soul.stroe.api.dto.MetaDataDTO;
+import org.dromara.soul.stroe.api.dto.SelectorConditionDTO;
 import org.dromara.soul.stroe.api.dto.SelectorDTO;
 import org.dromara.soul.stroe.api.service.RepositoryService;
 
@@ -35,6 +38,21 @@ import java.time.LocalDateTime;
  */
 public class JdbcRepositoryService extends AbstractJdbcRepositoryService implements RepositoryService {
 
+    private static final String INSERT_SELECTOR = "insert into selector "
+            + " (id,plugin_id,name,match_mode,"
+            + " type,sort,handle,enabled,loged,continued,date_created,date_updated)"
+            + " values(?,?,?,?,?,?,?,?,?,?,?,?,?)";
+
+    private static final String INSERT_CONDITION = "insert into selector_condition "
+            + " (id,selector_id,param_type,operator,"
+            + " param_name,param_value,date_created,date_updated)"
+            + " values(?,?,?,?,?,?,?,?,?)";
+
+    private static final String INSERT_META_DATA = "insert into meta_data "
+            + " (id,app_name,path,rpc_type,"
+            + " service_name,method_name,parameter_types,rpc_ext,date_created,date_updated,enabled)"
+            + " values(?,?,?,?,?,?,?,?,?,?,?,?)";
+
     public JdbcRepositoryService() {
         setDataSource(buildDataSource());
         executeScript();
@@ -42,10 +60,7 @@ public class JdbcRepositoryService extends AbstractJdbcRepositoryService impleme
 
     @Override
     public int saveSelector(SelectorDTO selectorDTO) {
-        String insert = "insert into selector" + "(id,plugin_id,name,match_mode,"
-                + "type,sort,handle,enabled,loged,continued,date_created,date_updated)"
-                + " values(?,?,?,?,?,?,?,?,?,?,?,?,?)";
-        return executeUpdate(insert,
+        int rows = executeUpdate(INSERT_SELECTOR,
                 selectorDTO.getId(),
                 selectorDTO.getPluginId(),
                 selectorDTO.getName(),
@@ -58,6 +73,27 @@ public class JdbcRepositoryService extends AbstractJdbcRepositoryService impleme
                 selectorDTO.getContinued(),
                 LocalDateTime.now(),
                 LocalDateTime.now());
+        for (SelectorConditionDTO conditionDTO : selectorDTO.getSelectorConditions()) {
+            executeUpdate(INSERT_CONDITION, conditionDTO.getId(), conditionDTO.getSelectorId(),
+                    conditionDTO.getParamType(), conditionDTO.getOperator(),
+                    conditionDTO.getParamName(), conditionDTO.getParamValue(),
+                    LocalDateTime.now(),
+                    LocalDateTime.now());
+        }
+        return rows;
+    }
+
+    @Override
+    public int saveOrUpdateMetaData(MetaDataDTO metaDataDTO) {
+        int rows = 0;
+        if (StringUtils.isBlank(metaDataDTO.getId())) {
+            rows = executeUpdate(INSERT_META_DATA,
+                    metaDataDTO.getId(), metaDataDTO.getAppName(), metaDataDTO.getPath(),
+                    metaDataDTO.getRpcType(), metaDataDTO.getServiceName(), metaDataDTO.getMethodName(),
+                    metaDataDTO.getParameterTypes(), metaDataDTO.getRpcExt(),
+                    LocalDateTime.now(), LocalDateTime.now(), metaDataDTO.getEnabled());
+        }
+        return rows;
     }
 
     private DataSource buildDataSource() {

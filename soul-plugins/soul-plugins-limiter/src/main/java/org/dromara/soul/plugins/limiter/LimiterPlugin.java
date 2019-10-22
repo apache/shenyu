@@ -21,10 +21,9 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.plugins.api.AbstractSoulPlugin;
 import org.dromara.plugins.api.SoulPluginChain;
-import org.dromara.soul.cache.api.data.SelectorData;
-import org.dromara.soul.cache.api.service.CacheService;
 import org.dromara.plugins.api.dto.SoulRequest;
 import org.dromara.plugins.api.dto.SoulResponse;
+import org.dromara.soul.cache.api.data.SelectorData;
 import org.dromara.soul.common.dto.convert.RateLimiterHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
@@ -48,19 +47,20 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
+ * The type Limiter plugin.
+ *
  * @author xiaoyu(Myth)
  */
 public class LimiterPlugin extends AbstractSoulPlugin {
 
-    /**
-     * logger.
-     */
     private static final Logger LOGGER = LoggerFactory.getLogger(LimiterPlugin.class);
 
     private RedisRateLimiter redisRateLimiter;
 
-    public LimiterPlugin(CacheService cacheService) {
-        super(cacheService);
+    /**
+     * Instantiates a new Limiter plugin.
+     */
+    public LimiterPlugin() {
         RedisConfig redisConfig = ConfigEnv.getInstance().getConfig(RedisConfig.class);
         initJedisClient(redisConfig);
         redisRateLimiter = new RedisRateLimiter(initJedisClient(redisConfig));

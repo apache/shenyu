@@ -20,6 +20,7 @@
 package org.dromara.soul.stroe.api.entity;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * SelectorConditionDO.
@@ -27,6 +28,7 @@ import lombok.Data;
  * @author xiaoyu
  */
 @Data
+@EqualsAndHashCode(callSuper = false)
 public class SelectorConditionDO extends BaseDO {
 
     /**

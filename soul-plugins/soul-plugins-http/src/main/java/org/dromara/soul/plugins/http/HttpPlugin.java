@@ -39,10 +39,6 @@ import org.dromara.soul.plugins.http.hystrix.HystrixBuilder;
  */
 public class HttpPlugin extends AbstractSoulPlugin {
 
-    public HttpPlugin(CacheService cacheService) {
-        super(cacheService);
-    }
-
     @Override
     public PluginTypeEnum pluginType() {
         return PluginTypeEnum.FUNCTION;

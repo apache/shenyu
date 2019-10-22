@@ -1,18 +1,19 @@
 /*
- *   Licensed to the Apache Software Foundation (ASF) under one or more
- *   contributor license agreements.  See the NOTICE file distributed with
- *   this work for additional information regarding copyright ownership.
- *   The ASF licenses this file to You under the Apache License, Version 2.0
- *   (the "License"); you may not use this file except in compliance with
- *   the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * Contributor license agreements.See the NOTICE file distributed with
+ * This work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * he License.You may obtain a copy of the License at
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  */
 
@@ -47,6 +48,8 @@ public final class UUIDUtils {
 
     private static final long SEQUENCE_MASK = ~(-1L << SEQUENCE_BITS);
 
+    private static final UUIDUtils ID_WORKER_UTILS = new UUIDUtils();
+
     private long workerId;
 
     private long datacenterId;
@@ -71,6 +74,15 @@ public final class UUIDUtils {
         this.workerId = workerId;
         this.datacenterId = datacenterId;
         this.idepoch = idepoch;
+    }
+
+    /**
+     * Gets instance.
+     *
+     * @return the instance
+     */
+    public static UUIDUtils getInstance() {
+        return ID_WORKER_UTILS;
     }
 
     private synchronized long nextId() {
@@ -111,7 +123,7 @@ public final class UUIDUtils {
      *
      * @return short uuid.
      */
-    public static String generateShortUuid() {
-        return String.valueOf(new UUIDUtils().nextId());
+    public  String generateShortUuid() {
+        return String.valueOf(ID_WORKER_UTILS.nextId());
     }
 }
