@@ -36,6 +36,19 @@ import java.util.Map;
 public class SoulRequest implements Serializable {
 
     /**
+     * is rpcType data. now we only support "http","dubbo" "springCloud".
+     * {@linkplain RpcTypeEnum}
+     */
+    private String rpcType;
+
+    private HttpMethod httpMethod;
+
+    /**
+     * The Headers.
+     */
+    private Map<String, String> headers;
+
+    /**
      * The parameters. http headers, parameters.
      */
     private Map<String, String> parameters;
@@ -51,4 +64,23 @@ public class SoulRequest implements Serializable {
      * http body ，is json...
      */
     private String body;
+
+    private String httpPath;
+
+    private String url;
+
+    /**
+     * accessKey .
+     */
+    private String accessKey;
+
+    /**
+     * this is sign .
+     */
+    private String sign;
+
+    /**
+     * timestamp .
+     */
+    private String timestamp;
 }

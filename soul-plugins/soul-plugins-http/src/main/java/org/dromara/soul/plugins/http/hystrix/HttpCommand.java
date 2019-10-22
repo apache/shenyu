@@ -23,16 +23,20 @@ import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import com.netflix.hystrix.exception.HystrixTimeoutException;
 import org.asynchttpclient.AsyncHttpClient;
+import org.asynchttpclient.BoundRequestBuilder;
 import org.asynchttpclient.DefaultAsyncHttpClient;
 import org.asynchttpclient.DefaultAsyncHttpClientConfig;
 import org.asynchttpclient.Response;
 import org.dromara.plugins.api.dto.SoulRequest;
+import org.dromara.soul.common.http.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 
 /**
+ * The type Http command.
+ *
  * @author xiaoyu
  */
 public class HttpCommand extends HystrixCommand<Object> {
@@ -47,7 +51,12 @@ public class HttpCommand extends HystrixCommand<Object> {
 
     private SoulRequest soulRequest;
 
-
+    /**
+     * Instantiates a new Http command.
+     *
+     * @param setter      the setter
+     * @param soulRequest the soul request
+     */
     public HttpCommand(final Setter setter, final SoulRequest soulRequest) {
         super(setter);
         this.soulRequest = soulRequest;
@@ -76,9 +85,16 @@ public class HttpCommand extends HystrixCommand<Object> {
 
     @Override
     protected Object run() {
-        CompletableFuture<Response> whenResponse = asyncHttpClient
-                .prepare(soulRequest.getHttpMethod().name(), "http://www.example.com/")
-                .setBody(soulRequest.getBody())
+        BoundRequestBuilder boundRequestBuilder;
+        if (soulRequest.getHttpMethod() == HttpMethod.GET) {
+            boundRequestBuilder = asyncHttpClient.prepareGet(soulRequest.getUrl());
+        } else if (soulRequest.getHttpMethod() == HttpMethod.POST) {
+            boundRequestBuilder = asyncHttpClient.preparePost(soulRequest.getUrl());
+            boundRequestBuilder.setBody(soulRequest.getBody());
+        } else {
+            boundRequestBuilder = asyncHttpClient.preparePut(soulRequest.getUrl());
+        }
+        CompletableFuture<Response> whenResponse = boundRequestBuilder
                 .setSingleHeaders(soulRequest.getHeaders())
                 .execute()
                 .toCompletableFuture()

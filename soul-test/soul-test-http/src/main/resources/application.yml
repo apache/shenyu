@@ -1,0 +1,20 @@
+server:
+  port: 8003
+  address: 0.0.0.0
+  servlet:
+    context-path: "/test"
+
+#logging:
+#    level:
+#        root: info
+#        org.springframework.boot: info
+#        org.apache.ibatis: info
+#        org.dromara.soul.bonuspoint: info
+#        org.dromara.soul.lottery: debug
+#        org.dromara.soul: debug
+#
+#    path: "./logs"
+spring:
+  application:
+    name: soul-test-http
+

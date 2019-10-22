@@ -72,7 +72,7 @@ public final class AuthUtils {
     }
 
     private String md5(String inStr) {
-        MessageDigest md5 = null;
+        MessageDigest md5;
         try {
             md5 = MessageDigest.getInstance("MD5");
         } catch (Exception e) {
