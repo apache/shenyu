@@ -26,6 +26,8 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 import io.netty.handler.codec.MessageToMessageEncoder;
 import io.netty.handler.codec.http.*;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -71,7 +73,8 @@ public class NettyCodec implements Codec<FullHttpRequest, FullHttpResponse> {
     @Override
     public FullHttpResponse encode(Channel channel, HttpSoulResponse message) {
         ByteBuf byteBuf = Unpooled.copiedBuffer(message.getBody(), StandardCharsets.UTF_8);
-        FullHttpResponse rsp = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.valueOf(message.getStatus()), byteBuf);
+        FullHttpResponse rsp = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1,
+                HttpResponseStatus.valueOf(message.getStatus()), byteBuf);
         rsp.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json; charset=UTF-8");
         HttpUtil.setContentLength(rsp, byteBuf.readableBytes());
         return rsp;
@@ -81,6 +84,7 @@ public class NettyCodec implements Codec<FullHttpRequest, FullHttpResponse> {
     public HttpSoulRequest decode(Channel channel, FullHttpRequest fullHttpRequest) {
         HttpSoulRequest request = new HttpSoulRequest();
         String uri = fullHttpRequest.uri();
+        String httpUrl = "http://" + ((InetSocketAddress) channel.remoteAddress()).getHostString() + uri;
         String body = fullHttpRequest.content().toString(StandardCharsets.UTF_8);
         request.setBody(body);
         HttpHeaders headers = fullHttpRequest.headers();
@@ -93,8 +97,7 @@ public class NettyCodec implements Codec<FullHttpRequest, FullHttpResponse> {
         request.setHeaders(newHeaders);
         request.setMethod(HttpMethod.parse(fullHttpRequest.method().name()));
         request.setStatus(fullHttpRequest.decoderResult().isSuccess() ? HttpStatus.OK : HttpStatus.BAD_REQUEST);
-        URL url = URL.parse(uri);
-        request.setPath(url.getFull());
+        URL url = URL.parse(httpUrl);
         request.setUrl(url);
         request.setParams(url.getParameters());
         return request;

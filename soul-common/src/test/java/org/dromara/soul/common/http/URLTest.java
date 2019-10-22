@@ -30,7 +30,7 @@ public class URLTest {
     public void parse() {
         String s = "http://127.0.0.1:8080/proxy/abc?abc=1&cdf=2";
         URL parse = URL.parse(s);
-        Assert.assertEquals(parse.getFull(), s);
+        Assert.assertEquals(parse.fullString(), s);
         Assert.assertEquals(parse.getHost(), "127.0.0.1");
         Assert.assertEquals(parse.getPath(), "/proxy/abc");
         Assert.assertEquals(parse.getProtocol(), "http");
@@ -44,7 +44,7 @@ public class URLTest {
     public void testParse2() {
         String s = "dubbo://127.0.0.1:8080/proxy/abc?abc=1&cdf=2";
         URL parse = URL.parse(s);
-        Assert.assertEquals(parse.getFull(), s);
+        Assert.assertEquals(parse.fullString(), s);
         Assert.assertEquals(parse.getHost(), "127.0.0.1");
         Assert.assertEquals(parse.getPath(), "/proxy/abc");
         Assert.assertEquals(parse.getProtocol(), "dubbo");
@@ -58,7 +58,7 @@ public class URLTest {
     public void testParse3() {
         String s = "dubbo://root:admin@127.0.0.1:8080/proxy/abc?abc=1&cdf=2";
         URL parse = URL.parse(s);
-        Assert.assertEquals(parse.getFull(), s);
+        Assert.assertEquals(parse.fullString(), s);
         Assert.assertEquals(parse.getHost(), "127.0.0.1");
         Assert.assertEquals(parse.getPath(), "/proxy/abc");
         Assert.assertEquals(parse.getProtocol(), "dubbo");
@@ -71,9 +71,15 @@ public class URLTest {
     @Test
     public void testValueOf() {
         Map<String, String> params = new HashMap<>();
-        params.put("abc","123");
-        params.put("adf","456");
+        params.put("abc", "123");
+        params.put("adf", "456");
         URL url = URL.valueOf("dubbo", "127.0.0.1", 9999, "/proxy", params);
-        System.out.println(url.fullString());
+        Assert.assertEquals(url.fullString(),"dubbo://127.0.0.1:9999/proxy?abc=123&adf=456");
     }
+    @Test
+    public void testValueOf2() {
+        URL url = URL.valueOf("dubbo", "127.0.0.1", 9999, "/proxy", "abc=123&adf=456");
+        Assert.assertEquals(url.fullString(),"dubbo://127.0.0.1:9999/proxy?abc=123&adf=456");
+    }
+
 }

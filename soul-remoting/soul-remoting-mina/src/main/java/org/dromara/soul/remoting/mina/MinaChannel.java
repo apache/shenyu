@@ -19,6 +19,9 @@
 package org.dromara.soul.remoting.mina;
 
 import java.net.SocketAddress;
+
+import org.apache.mina.core.future.IoFuture;
+import org.apache.mina.core.future.IoFutureListener;
 import org.apache.mina.core.future.WriteFuture;
 import org.apache.mina.core.session.IoSession;
 import org.dromara.soul.remoting.api.Channel;
@@ -62,7 +65,13 @@ public class MinaChannel implements Channel {
     public ChannelFuture send(Object message) {
         try {
             WriteFuture future = this.session.write(message);
-            boolean b = future.awaitUninterruptibly(3000);
+            future.addListener(new IoFutureListener<IoFuture>() {
+                @Override
+                public void operationComplete(IoFuture future) {
+                    System.out.println("完成.....");
+                }
+            });
+//            boolean b = future.awaitUninterruptibly(3000);
             return new MinaChannelFuture(future);
         } catch (Throwable e) {
             throw new RuntimeException("Failed to send message " + message + " to " + remoteAddress() + ", cause: " + e.getMessage());

@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
+
 import org.apache.mina.core.filterchain.DefaultIoFilterChainBuilder;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.http.HttpServerCodec;
@@ -67,9 +68,11 @@ public class MinaServer extends AbstractNetServer {
         // set thread pool.
         minaServerHandler = new MinaServerHandler(getAttribute(), this);
         acceptor = new NioSocketAcceptor(getIoThreads());
+        MinaCodec minaCodec = new MinaCodec();
         DefaultIoFilterChainBuilder filterChain = acceptor.getFilterChain();
+        filterChain.addFirst("encode", new MinaCodec().getEncode());
         filterChain.addLast("http_codec", new HttpServerCodec());
-        filterChain.addLast("encode", new MinaCodec());
+        filterChain.addLast("decode", new MinaCodec().getEncode());
         acceptor.setHandler(minaServerHandler);
         try {
             acceptor.bind(this.bindSocketAddress());

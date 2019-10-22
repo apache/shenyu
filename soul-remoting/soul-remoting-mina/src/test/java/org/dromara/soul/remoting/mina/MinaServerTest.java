@@ -34,7 +34,7 @@ import org.junit.Test;
  *
  * @author sixh
  */
-public class NettyServerTest {
+public class MinaServerTest {
     @Test
     public void testServer() throws InterruptedException {
         ExtensionLoader<ServerTransport> extensionLoader = ExtensionLoader.getExtensionLoader(ServerTransport.class);

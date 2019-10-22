@@ -35,8 +35,6 @@ public class HttpSoulRequest {
      */
     private String id;
 
-    private String path;
-
     private HttpMethod method;
     /**
      * json string.

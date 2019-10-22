@@ -18,16 +18,13 @@
 package org.dromara.soul.common.http;
 
 import lombok.Getter;
-import org.dromara.soul.common.exception.SoulException;
 import org.dromara.soul.common.utils.CollectionUtils;
 import org.dromara.soul.common.utils.StringUtils;
 import sun.net.util.IPAddressUtil;
 
 import java.net.MalformedURLException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Supplier;
 
 /**
  * URL .
@@ -46,7 +43,6 @@ public class URL {
     private String path;
     private String query;
     private Map<String, String> parameters;
-    private String full;
     private static final String AMPERSAND = "&";
     private static final char NUMBER = '#';
     private static final char COLON = ':';
@@ -77,18 +73,17 @@ public class URL {
         URL url = new URL();
         url.protocol = protocol;
         if (host != null) {
-            if (host.indexOf(COLON) >= 0 && !host.startsWith("[")) {
-                host = "[" + host + "]";
+            if (host.indexOf(COLON) >= 0 && !host.startsWith(String.valueOf(SQUARE_BRACKETS_LEFT))) {
+                host = SQUARE_BRACKETS_LEFT + host + SQUARE_BRACKETS_RIGHT;
             }
             url.host = host;
             url.port = port < 0 ? 0 : port;
         }
         url.path = path;
-        url.parameters = parameters != null ? Collections.unmodifiableMap(parameters) : Collections.emptyMap();
-        url.query = buildQuery(parameters);
+        url.parameters = Optional.ofNullable(parameters).map(TreeMap::new).orElse(new TreeMap<>());
+        url.query = buildQuery(url.parameters);
         return url;
     }
-
     public static URL valueOf(String protocol,
                               String host,
                               Integer port,
@@ -131,13 +126,14 @@ public class URL {
         if (StringUtils.isBlank(path)) {
             path = String.valueOf(VIRGULE);
         }
-
         if (path.indexOf(VIRGULE) == 0) {
             sb.append(path);
         } else {
             sb.append(VIRGULE).append(path);
         }
-        sb.append(query);
+        if (StringUtils.isNotBlank(query)) {
+            sb.append(QUESTION_MARK).append(query);
+        }
         return sb.toString();
     }
 
@@ -148,12 +144,10 @@ public class URL {
             for (String key : parameters.keySet()) {
                 String value = parameters.get(key);
                 next++;
-                if (next == 0) {
-                    sb.append("?");
-                } else {
-                    sb.append("&");
+                if (next != 0) {
+                    sb.append(AMPERSAND);
                 }
-                sb.append(key).append("=").append(value);
+                sb.append(key).append(EQ).append(value);
             }
             return sb.toString();
         }
@@ -164,7 +158,7 @@ public class URL {
         if (StringUtils.isNotBlank(query)) {
             if (query.trim().length() > 0) {
                 String[] split = query.split(AMPERSAND);
-                Map<String, String> params = new HashMap<>(split.length);
+                Map<String, String> params = new TreeMap<>();
                 Arrays.stream(split)
                         .filter(e -> e.length() > 0)
                         .forEach(e -> {
@@ -187,9 +181,8 @@ public class URL {
         URL newUrl = new URL();
         try {
             newUrl.url(url);
-            newUrl.full = url;
             String query = newUrl.query;
-            newUrl.parameters = newUrl.queryToMap(query);
+            newUrl.parameters = queryToMap(query);
         } catch (Exception e) {
             throw new IllegalArgumentException("invalid url");
         }
@@ -395,6 +388,6 @@ public class URL {
 
     @Override
     public String toString() {
-        return full;
+        return fullString();
     }
 }

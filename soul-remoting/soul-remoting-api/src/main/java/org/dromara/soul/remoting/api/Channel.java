@@ -18,6 +18,7 @@
 
 package org.dromara.soul.remoting.api;
 
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
 /**
