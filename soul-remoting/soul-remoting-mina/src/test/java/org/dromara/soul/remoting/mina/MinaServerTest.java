@@ -22,10 +22,7 @@ import org.dromara.soul.common.Attribute;
 import org.dromara.soul.common.extension.ExtensionLoader;
 import org.dromara.soul.common.http.HttpSoulResponse;
 import org.dromara.soul.common.http.HttpStatus;
-import org.dromara.soul.remoting.api.Channel;
-import org.dromara.soul.remoting.api.ChannelHandler;
-import org.dromara.soul.remoting.api.NetServer;
-import org.dromara.soul.remoting.api.ServerTransport;
+import org.dromara.soul.remoting.api.*;
 import org.junit.Test;
 
 /**
@@ -62,7 +59,13 @@ public class MinaServerTest {
                 HttpSoulResponse response = new HttpSoulResponse();
                 response.setStatus(HttpStatus.OK.getCode());
                 response.setBody("{name:123}");
-                channel.send(response);
+                channel.send(response).addListener(new ChannelFutureListener() {
+                    @Override
+                    public void complete() {
+                        System.out.println("完成，通道关闭");
+                        channel.close();
+                    }
+                });
             }
 
             @Override

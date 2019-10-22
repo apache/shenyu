@@ -20,6 +20,7 @@ package org.dromara.soul.remoting.netty;
 
 import org.dromara.soul.remoting.api.Channel;
 import org.dromara.soul.remoting.api.ChannelFuture;
+import org.dromara.soul.remoting.api.ChannelFutureListener;
 
 /**
  * NettyChannelFuture
@@ -47,5 +48,14 @@ public class NettyChannelFuture implements ChannelFuture {
     @Override
     public Throwable cause() {
         return this.future.cause();
+    }
+
+    @Override
+    public void addListener(ChannelFutureListener futureListener) {
+        future.addListener(future -> {
+            if (future.isSuccess()) {
+                futureListener.complete();
+            }
+        });
     }
 }

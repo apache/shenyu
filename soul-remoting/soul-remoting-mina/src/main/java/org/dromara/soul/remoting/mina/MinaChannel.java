@@ -65,13 +65,6 @@ public class MinaChannel implements Channel {
     public ChannelFuture send(Object message) {
         try {
             WriteFuture future = this.session.write(message);
-            future.addListener(new IoFutureListener<IoFuture>() {
-                @Override
-                public void operationComplete(IoFuture future) {
-                    System.out.println("完成.....");
-                }
-            });
-//            boolean b = future.awaitUninterruptibly(3000);
             return new MinaChannelFuture(future);
         } catch (Throwable e) {
             throw new RuntimeException("Failed to send message " + message + " to " + remoteAddress() + ", cause: " + e.getMessage());

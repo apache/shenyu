@@ -46,4 +46,6 @@ public interface ChannelFuture {
      * @return the boolean
      */
     Throwable cause();
+
+    void addListener(ChannelFutureListener futureListener);
 }

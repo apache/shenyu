@@ -66,6 +66,7 @@ public class NettyServerTest {
                 response.setStatus(HttpStatus.OK.getCode());
                 response.setBody("{name:123}");
                 channel.send(response);
+                channel.close();
             }
 
             @Override

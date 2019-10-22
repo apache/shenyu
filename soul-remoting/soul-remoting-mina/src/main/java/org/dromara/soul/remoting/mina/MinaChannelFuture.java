@@ -19,9 +19,11 @@
 package org.dromara.soul.remoting.mina;
 
 import org.apache.mina.core.future.IoFuture;
+import org.apache.mina.core.future.IoFutureListener;
 import org.apache.mina.core.future.WriteFuture;
 import org.dromara.soul.remoting.api.Channel;
 import org.dromara.soul.remoting.api.ChannelFuture;
+import org.dromara.soul.remoting.api.ChannelFutureListener;
 
 /**
  * MinaChannelFuture
@@ -54,5 +56,17 @@ public class MinaChannelFuture implements ChannelFuture {
             return wf.getException();
         }
         return null;
+    }
+
+    @Override
+    public void addListener(ChannelFutureListener futureListener) {
+        future.addListener(new IoFutureListener<IoFuture>() {
+            @Override
+            public void operationComplete(IoFuture future) {
+                if (future.isDone()) {
+                    futureListener.complete();
+                }
+            }
+        });
     }
 }
