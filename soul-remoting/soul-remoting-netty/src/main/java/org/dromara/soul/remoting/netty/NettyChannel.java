@@ -18,11 +18,10 @@
 
 package org.dromara.soul.remoting.netty;
 
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-
 import org.dromara.soul.remoting.api.Channel;
 import org.dromara.soul.remoting.api.ChannelFuture;
+
+import java.net.SocketAddress;
 
 /**
  * NettyChannel
