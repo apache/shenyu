@@ -17,43 +17,32 @@
  *
  */
 
-package org.dromara.soul.stroe.api.entity;
+package org.dromara.soul.dashboard.query;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import org.dromara.soul.dashboard.page.PageParameter;
+
+import java.io.Serializable;
 
 /**
- * SelectorConditionDO.
+ * this is selector query.
  *
- * @author xiaoyu
+ * @author jiangxiaofeng(Nicholas)
  */
 @Data
-@EqualsAndHashCode(callSuper = false)
-public class SelectorConditionDO extends BaseDO {
+@AllArgsConstructor
+@NoArgsConstructor
+public class SelectorQuery implements Serializable {
 
     /**
-     * selector id.
+     * plugin id.
      */
-    private String selectorId;
+    private String pluginId;
 
     /**
-     * parameter type.
+     * page parameter.
      */
-    private String paramType;
-
-    /**
-     * match operator.
-     */
-    private String operator;
-
-    /**
-     * parameter name.
-     */
-    private String paramName;
-
-    /**
-     * parameter value.
-     */
-    private String paramValue;
-
+    private PageParameter pageParameter;
 }

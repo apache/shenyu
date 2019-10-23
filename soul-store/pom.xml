@@ -13,7 +13,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>soul-store-api</module>
-        <module>soul-store-service</module>
+        <module>soul-store-mysql</module>
     </modules>
 
 </project>

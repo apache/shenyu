@@ -17,38 +17,14 @@
  *
  */
 
-package org.dromara.soul.stroe.api.entity;
+package org.dromara.soul.dashboard.service.impl;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import org.dromara.soul.dashboard.service.PluginService;
+import org.springframework.stereotype.Service;
 
 /**
- * The PluginDO.
- *
  * @author xiaoyu
  */
-@Data
-@EqualsAndHashCode(callSuper = false)
-public class PluginDO extends BaseDO {
-
-    /**
-     * plugin name.
-     */
-    private String name;
-
-    /**
-     * plugin config @see 2.0
-     */
-    private String config;
-
-    /**
-     * whether enabled.
-     */
-    private Boolean enabled;
-
-    /**
-     * {@linkplain org.dromara.soul.common.enums.PluginRoleEnum}
-     */
-    private Integer role;
-
+@Service("pluginService")
+public class PluginServiceImpl implements PluginService {
 }

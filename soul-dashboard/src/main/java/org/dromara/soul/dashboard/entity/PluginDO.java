@@ -17,38 +17,38 @@
  *
  */
 
-package org.dromara.soul.stroe.api.entity;
+package org.dromara.soul.dashboard.entity;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * AppAuthDO.
+ * The PluginDO.
  *
- * @author xiaoyu(Myth)
+ * @author xiaoyu
  */
 @Data
-@EqualsAndHashCode(callSuper = false)
-public class AppAuthDO extends BaseDO {
+@EqualsAndHashCode
+public class PluginDO extends BaseDO {
 
     /**
-     * the application name。
+     * plugin name.
      */
-    private String appName;
+    private String name;
 
     /**
-     * The accessKey.
+     * plugin config @see 2.0
      */
-    private String accessKey;
-
-    /**
-     * The secretKey .
-     */
-    private String secretKey;
+    private String config;
 
     /**
      * whether enabled.
      */
     private Boolean enabled;
+
+    /**
+     * {@linkplain org.dromara.soul.common.enums.PluginRoleEnum}
+     */
+    private Integer role;
 
 }

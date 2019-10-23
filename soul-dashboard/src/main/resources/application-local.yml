@@ -20,14 +20,6 @@ mybatis:
   config-location: classpath:/mybatis/mybatis-config.xml
   mapper-locations: classpath:/mappers/*.xml
 
-soul:
-  sync:
-      strategy: http
-#      zookeeper:
-#        url: localhost:2181
-#        sessionTimeout: 5000
-#        connectionTimeout: 2000
-
 
 logging:
     level:

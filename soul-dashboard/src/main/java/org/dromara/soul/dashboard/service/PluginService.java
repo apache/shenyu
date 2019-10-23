@@ -17,35 +17,10 @@
  *
  */
 
-package org.dromara.soul.stroe.api.entity;
-
-import lombok.Getter;
-import lombok.Setter;
-
-import java.io.Serializable;
-import java.sql.Timestamp;
+package org.dromara.soul.dashboard.service;
 
 /**
- * BaseDO.
- *
- * @author xiaoyu(Myth)
+ * @author xiaoyu
  */
-@Getter
-@Setter
-class BaseDO implements Serializable {
-
-    /**
-     * primary key.
-     */
-    private String id;
-
-    /**
-     * created time.
-     */
-    private Timestamp dateCreated;
-
-    /**
-     * updated time.
-     */
-    private Timestamp dateUpdated;
+public interface PluginService {
 }

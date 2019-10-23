@@ -41,6 +41,12 @@
     </properties>
     <dependencyManagement>
         <dependencies>
+
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>soul-dashboard</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.dromara</groupId>
                 <artifactId>soul-common</artifactId>
