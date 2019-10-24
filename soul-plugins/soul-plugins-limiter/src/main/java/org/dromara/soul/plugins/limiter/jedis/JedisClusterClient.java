@@ -19,30 +19,27 @@
 
 package org.dromara.soul.plugins.limiter.jedis;
 
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisSentinelPool;
+import redis.clients.jedis.JedisCluster;
 
 import java.util.List;
 import java.util.Set;
 
 /**
- * JedisClientSentinel.
+ * JedisClientCluster.
  *
  * @author xiaoyu(Myth)
  */
-public class JedisClientSentinel implements JedisClient {
+public class JedisClusterClient implements JedisClient {
 
-    private JedisSentinelPool jedisSentinelPool;
+    private JedisCluster jedisCluster;
 
-    JedisClientSentinel(final JedisSentinelPool jedisSentinelPool) {
-        this.jedisSentinelPool = jedisSentinelPool;
+    JedisClusterClient(final JedisCluster jedisCluster) {
+        this.jedisCluster = jedisCluster;
     }
 
     @Override
     public Object evalsha(String sha1, List<String> keys, List<String> args) {
-        try (Jedis jedis = jedisSentinelPool.getResource()) {
-            return jedis.eval(sha1, keys, args);
-        }
+        return jedisCluster.eval(sha1, keys, args);
     }
 
 }

@@ -79,7 +79,7 @@ public class Jedis implements RedisClientSide {
                             .stream()
                             .map(HostAndPort::parseString).collect(Collectors.toSet());
             JedisCluster jedisCluster = new JedisCluster(hostAndPorts, config);
-            return new JedisClientCluster(jedisCluster);
+            return new JedisClusterClient(jedisCluster);
         } else if (redisConfig.getSentinel()) {
             final String sentinelUrl = redisConfig.getSentinelUrl();
             final Set<String> hostAndPorts =
@@ -87,14 +87,14 @@ public class Jedis implements RedisClientSide {
             JedisSentinelPool pool =
                     new JedisSentinelPool(redisConfig.getMasterName(), hostAndPorts,
                             config, redisConfig.getTimeOut(), redisConfig.getPassword());
-            return new JedisClientSentinel(pool);
+            return new JedisSentinelClient(pool);
         } else {
             if (StringUtils.isNoneBlank(redisConfig.getPassword())) {
                 jedisPool = new JedisPool(config, redisConfig.getHost(), redisConfig.getPort(), redisConfig.getTimeOut(), redisConfig.getPassword());
             } else {
                 jedisPool = new JedisPool(config, redisConfig.getHost(), redisConfig.getPort(), redisConfig.getTimeOut());
             }
-            return new JedisClientSingle(jedisPool);
+            return new JedisSingleClient(jedisPool);
         }
     }
 }

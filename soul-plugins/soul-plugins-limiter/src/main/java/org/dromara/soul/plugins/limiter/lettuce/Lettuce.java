@@ -23,15 +23,18 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
-import io.lettuce.core.ScriptOutputType;
-import io.lettuce.core.api.sync.RedisScriptingCommands;
+import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.cluster.RedisClusterClient;
+import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
+import io.lettuce.core.resource.ClientResources;
+import io.lettuce.core.support.ConnectionPoolSupport;
+import org.apache.commons.pool2.impl.GenericObjectPool;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.dromara.soul.common.utils.StringUtils;
 import org.dromara.soul.config.api.ConfigEnv;
 import org.dromara.soul.plugins.limiter.config.RedisConfig;
 import org.dromara.soul.plugins.limiter.redis.RedisClientSide;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -43,38 +46,47 @@ import java.util.Optional;
  */
 public class Lettuce implements RedisClientSide {
 
-    private RedisScriptingCommands<String, String> redisScriptingCommands;
+    private LettuceClient lettuceClient;
 
     /**
      * Instantiates a new Lettuce.
      */
     public Lettuce() {
         RedisConfig redisConfig = ConfigEnv.getInstance().getConfig(RedisConfig.class);
+        GenericObjectPoolConfig poolConfig = new GenericObjectPoolConfig();
         if (redisConfig.getSentinel()) {
             List<RedisNode> redisNode = createRedisNode(redisConfig.getSentinelUrl());
             RedisURI redisURI = sentinelRedisURI(redisNode, redisConfig.getMasterName());
             toOptional(redisConfig.getPassword()).ifPresent(redisURI::setPassword);
-            redisURI.setTimeout(Duration.ofMillis(redisConfig.getTimeOut()));
-            redisScriptingCommands = RedisClient.create(redisURI).connect().sync();
+            RedisClient redisClient = RedisClient.create(ClientResources.create(), redisURI);
+            GenericObjectPool<StatefulRedisConnection<String, String>> pool
+                    = ConnectionPoolSupport.createGenericObjectPool(redisClient::connect, poolConfig);
+            lettuceClient = new LettuceSentinelClient(pool);
         } else if (redisConfig.getCluster()) {
             List<RedisNode> redisNode = createRedisNode(redisConfig.getClusterUrl());
             List<RedisURI> initialUris = new ArrayList<>();
             for (RedisNode node : redisNode) {
                 initialUris.add(createRedisUR(node, redisConfig.getPassword()));
             }
-            redisScriptingCommands = RedisClusterClient.create(initialUris).connect().sync();
+            RedisClusterClient redisClusterClient = RedisClusterClient.create(ClientResources.create(), initialUris);
+            GenericObjectPool<StatefulRedisClusterConnection<String, String>> pool
+                    = ConnectionPoolSupport.createGenericObjectPool(redisClusterClient::connect, poolConfig);
+            lettuceClient = new LettuceClusterClient(pool);
+
         } else {
             RedisURI redisURI = RedisURI.builder().withHost(redisConfig.getHost()).withPort(redisConfig.getPort()).build();
             toOptional(redisConfig.getPassword()).ifPresent(redisURI::setPassword);
-            redisScriptingCommands = RedisClient.create(redisURI).connect().sync();
+            RedisClient redisClient = RedisClient.create(ClientResources.create(), redisURI);
+            GenericObjectPool<StatefulRedisConnection<String, String>> pool
+                    = ConnectionPoolSupport.createGenericObjectPool(redisClient::connect, poolConfig);
+            lettuceClient = new LettuceSentinelClient(pool);
         }
     }
 
-
     @Override
     public Object evalsha(String script, List<String> keys, List<String> args) {
-        return redisScriptingCommands.evalsha(script, ScriptOutputType.VALUE,
-                keys.toArray(new String[0]) ,args.toArray(new String[0]));
+        return lettuceClient.evalsha(script, keys, args);
+
     }
 
     private Optional<String> toOptional(String password) {
