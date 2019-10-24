@@ -46,7 +46,7 @@ public class RedisConfig  extends ConfigParent {
 
     private String masterName;
 
-    private String hostName;
+    private String host;
 
     private int port;
 

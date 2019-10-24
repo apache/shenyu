@@ -19,8 +19,8 @@
 
 package org.dromara.soul.plugins.limiter;
 
-import org.dromara.soul.common.utils.LogUtils;
-import org.dromara.soul.plugins.limiter.jedis.JedisClient;
+import org.dromara.soul.common.extension.ExtensionLoader;
+import org.dromara.soul.plugins.limiter.redis.RedisClientSide;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,16 +51,13 @@ class RedisRateLimiter {
 
     private AtomicBoolean initialized = new AtomicBoolean(false);
 
-    private JedisClient jedisClient;
-
     private String script;
 
     /**
      * Instantiates a new Redis rate limiter.
      */
-    RedisRateLimiter(JedisClient jedisClient) {
+    RedisRateLimiter() {
         initialized.compareAndSet(false, true);
-        this.jedisClient = jedisClient;
         InputStream inputStream = RedisRateLimiter.class.getClassLoader()
                 .getResourceAsStream("scripts/request_rate_limiter.lua");
         if (Objects.nonNull(inputStream)) {
@@ -87,7 +84,8 @@ class RedisRateLimiter {
             List<String> keys = getKeys(id);
             List<String> scriptArgs = Arrays.asList(replenishRate + "", burstCapacity + "",
                     Instant.now().getEpochSecond() + "", "1");
-            return (RateLimiterResponse) jedisClient.evalsha(script, keys, scriptArgs);
+            RedisClientSide redisClient = ExtensionLoader.getExtensionLoader(RedisClientSide.class).getDefaultJoin();
+            return (RateLimiterResponse) redisClient.evalsha(script, keys, scriptArgs);
         } catch (Exception e) {
             LOGGER.error("Error determining if user allowed from redis exception:", e);
         }

@@ -17,18 +17,19 @@
  *
  */
 
-package org.dromara.soul.plugins.limiter.jedis;
+package org.dromara.soul.plugins.limiter.redis;
+
+import org.dromara.soul.common.extension.SPI;
 
 import java.util.List;
-import java.util.Set;
 
 /**
- * JedisClient.
+ * The interface Redis client.
  *
- * @author xiaoyu(Myth)
+ * @author xiaoyu
  */
-public interface JedisClient {
-
+@SPI("jedis")
+public interface RedisClientSide {
 
     /**
      * Evalsha object.
@@ -39,6 +40,4 @@ public interface JedisClient {
      * @return the object
      */
     Object evalsha(final String script, final List<String> keys, final List<String> args);
-
-
 }

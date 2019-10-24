@@ -38,6 +38,7 @@
         <hikaricp.version>3.2.0</hikaricp.version>
         <jedis.version>3.1.0</jedis.version>
         <async.http.client.version>2.10.4</async.http.client.version>
+        <lettuce.version>5.1.8.RELEASE</lettuce.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -244,6 +245,12 @@
                 <groupId>redis.clients</groupId>
                 <artifactId>jedis</artifactId>
                 <version>${jedis.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.lettuce</groupId>
+                <artifactId>lettuce-core</artifactId>
+                <version>${lettuce.version}</version>
             </dependency>
 
             <dependency>

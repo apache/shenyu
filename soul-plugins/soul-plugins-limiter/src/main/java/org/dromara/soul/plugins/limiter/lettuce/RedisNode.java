@@ -17,28 +17,25 @@
  *
  */
 
-package org.dromara.soul.plugins.limiter.jedis;
+package org.dromara.soul.plugins.limiter.lettuce;
 
-import java.util.List;
-import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
 
 /**
- * JedisClient.
+ * The type Redis node.
  *
- * @author xiaoyu(Myth)
+ * @author xiaoyu
  */
-public interface JedisClient {
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+class RedisNode implements Serializable {
 
+    private String host;
 
-    /**
-     * Evalsha object.
-     *
-     * @param script the script
-     * @param keys   the keys
-     * @param args   the args
-     * @return the object
-     */
-    Object evalsha(final String script, final List<String> keys, final List<String> args);
-
-
+    private int port;
 }
