@@ -17,28 +17,35 @@
  *
  */
 
-package org.dromara.soul.dashboard.query;
+package org.dromara.soul.dashboard.listener;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.dromara.soul.dashboard.page.PageRequest;
-
-import java.io.Serializable;
 
 /**
- * this is dashboard user query.
+ * The Soul Domain.
  *
- * @author jiangxiaofeng(Nicholas)
+ * @author xiaoyu
  */
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class DashboardUserQuery extends PageRequest implements Serializable {
+public final class SoulDomain {
+
+    private static final SoulDomain SOUL_DOMAIN = new SoulDomain();
 
     /**
-     * user name.
+     * ip:port.
      */
-    private String userName;
+    private String httpPath;
+
+    private SoulDomain() {
+    }
+
+    /**
+     * Gets instance.
+     *
+     * @return the instance
+     */
+    public static SoulDomain getInstance() {
+        return SOUL_DOMAIN;
+    }
 
 }

@@ -17,28 +17,17 @@
  *
  */
 
-package org.dromara.soul.dashboard.query;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.dromara.soul.dashboard.page.PageRequest;
-
-import java.io.Serializable;
+package org.dromara.soul.dashboard.listener;
 
 /**
- * this is dashboard user query.
+ * Event listener, used to send notification of event changes,
+ * used to support HTTP, websocket, zookeeper and other event notifications.
  *
- * @author jiangxiaofeng(Nicholas)
+ * @author huangxiaofeng
+ * @author xiaoyu
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class DashboardUserQuery extends PageRequest implements Serializable {
+public interface DataChangedListener {
 
-    /**
-     * user name.
-     */
-    private String userName;
+
 
 }

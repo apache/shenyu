@@ -17,28 +17,31 @@
  *
  */
 
-package org.dromara.soul.dashboard.query;
+package org.dromara.soul.dashboard.page;
 
-import lombok.AllArgsConstructor;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.dromara.soul.dashboard.page.PageRequest;
 
 import java.io.Serializable;
 
 /**
- * this is dashboard user query.
+ * The type Page request.
  *
- * @author jiangxiaofeng(Nicholas)
+ * @author xiaoyu
  */
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class DashboardUserQuery extends PageRequest implements Serializable {
+public class PageRequest implements Serializable {
 
     /**
-     * user name.
+     * currentPage.
      */
-    private String userName;
+    @ApiModelProperty(value="page param, currentPage",dataType = "Integer",required = false,example = "1")
+    private Integer currentPage = 1;
+
+    /**
+     * pageSize.
+     */
+    @ApiModelProperty(value="page param, pageSize",dataType = "Integer",required = false,example = "15")
+    private Integer pageSize = 15;
 
 }

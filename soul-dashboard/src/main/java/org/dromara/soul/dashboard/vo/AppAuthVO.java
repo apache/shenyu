@@ -17,28 +17,51 @@
  *
  */
 
-package org.dromara.soul.dashboard.query;
+package org.dromara.soul.dashboard.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.dromara.soul.dashboard.page.PageRequest;
 
 import java.io.Serializable;
 
 /**
- * this is dashboard user query.
+ * this is application authority view to web front.
  *
- * @author jiangxiaofeng(Nicholas)
+ * @author xiaoyu(Myth)
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class DashboardUserQuery extends PageRequest implements Serializable {
+public class AppAuthVO extends CommonVO implements Serializable {
 
     /**
-     * user name.
+     * primary key.
      */
-    private String userName;
+    private String id;
 
+    /**
+     * application key.
+     */
+    private String appKey;
+
+    /**
+     * encryption secret.
+     */
+    private String appSecret;
+
+    /**
+     * whether enabled.
+     */
+    private Boolean enabled;
+
+    /**
+     * created time.
+     */
+    private String dateCreated;
+
+    /**
+     * updated time.
+     */
+    private String dateUpdated;
 }

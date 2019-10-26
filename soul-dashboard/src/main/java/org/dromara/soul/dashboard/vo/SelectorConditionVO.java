@@ -17,28 +17,61 @@
  *
  */
 
-package org.dromara.soul.dashboard.query;
+package org.dromara.soul.dashboard.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.dromara.soul.dashboard.page.PageRequest;
 
 import java.io.Serializable;
 
 /**
- * this is dashboard user query.
+ * this is selector condition view to web front.
  *
  * @author jiangxiaofeng(Nicholas)
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class DashboardUserQuery extends PageRequest implements Serializable {
+class SelectorConditionVO implements Serializable {
 
     /**
-     * user name.
+     * primary key.
      */
-    private String userName;
+    private String id;
 
+    /**
+     * selector id.
+     */
+    private String selectorId;
+
+    /**
+     * parameter type code.
+     */
+    private String paramType;
+
+    /**
+     * parameter type name.
+     */
+    private String paramTypeName;
+
+    /**
+     * match operator code.
+     */
+    private String operator;
+
+    /**
+     * match operator name.
+     */
+    private String operatorName;
+
+    /**
+     * parameter name.
+     */
+    private String paramName;
+
+    /**
+     * parameter value.
+     */
+    private String paramValue;
 }

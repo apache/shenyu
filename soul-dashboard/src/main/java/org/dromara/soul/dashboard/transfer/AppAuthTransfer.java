@@ -17,28 +17,46 @@
  *
  */
 
-package org.dromara.soul.dashboard.query;
+package org.dromara.soul.dashboard.transfer;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.dromara.soul.dashboard.page.PageRequest;
 
-import java.io.Serializable;
+import org.dromara.soul.dashboard.entity.AppAuthDO;
+import org.dromara.soul.dashboard.vo.AppAuthVO;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
+
+import java.util.List;
 
 /**
- * this is dashboard user query.
+ * The interface Meta data transfer.
  *
- * @author jiangxiaofeng(Nicholas)
+ * @author xiaoyu(Myth)
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class DashboardUserQuery extends PageRequest implements Serializable {
+@Mapper
+public interface AppAuthTransfer {
 
     /**
-     * user name.
+     * The constant INSTANCE.
      */
-    private String userName;
+    AppAuthTransfer INSTANCE = Mappers.getMapper(AppAuthTransfer.class);
+
+    /**
+     * Map to vo app auth vo.
+     *
+     * @param appAuthDO the app auth do
+     * @return the app auth vo
+     */
+    AppAuthVO mapToVO(AppAuthDO appAuthDO);
+
+
+    /**
+     * Map to vo app auth vo.
+     *
+     * @param appAuthDOList the app auth list.
+     * @return the app auth vo
+     */
+    List<AppAuthVO> mapToListVO(List<AppAuthDO> appAuthDOList);
+
+
 
 }

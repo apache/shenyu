@@ -17,28 +17,47 @@
  *
  */
 
-package org.dromara.soul.dashboard.query;
+package org.dromara.soul.dashboard.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.dromara.soul.dashboard.page.PageRequest;
 
 import java.io.Serializable;
 
 /**
- * this is dashboard user query.
+ * this is plugin view to web front.
  *
- * @author jiangxiaofeng(Nicholas)
+ * @author xiaoyu
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class DashboardUserQuery extends PageRequest implements Serializable {
+public class PluginVO extends CommonVO implements Serializable {
 
     /**
-     * user name.
+     * plugin code.
      */
-    private String userName;
+    private Integer code;
+
+    /**
+     * plugin role.
+     */
+    private Integer role;
+
+    /**
+     * plugin name.
+     */
+    private String name;
+
+    /**
+     * plugin config.
+     */
+    private String config;
+
+    /**
+     * whether enabled.
+     */
+    private Boolean enabled;
 
 }

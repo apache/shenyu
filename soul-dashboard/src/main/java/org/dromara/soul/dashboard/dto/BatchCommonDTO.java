@@ -17,28 +17,22 @@
  *
  */
 
-package org.dromara.soul.dashboard.query;
+package org.dromara.soul.dashboard.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.dromara.soul.dashboard.page.PageRequest;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
- * this is dashboard user query.
+ * The type Batch common dto.
  *
- * @author jiangxiaofeng(Nicholas)
+ * @author xiaoyu(Myth)
  */
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class DashboardUserQuery extends PageRequest implements Serializable {
+public class BatchCommonDTO implements Serializable {
 
-    /**
-     * user name.
-     */
-    private String userName;
+    private List<String> ids;
 
+    private Boolean enabled;
 }

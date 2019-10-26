@@ -20,6 +20,7 @@
 package org.dromara.soul.dashboard.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.dromara.soul.dashboard.entity.AppAuthDO;
 import org.dromara.soul.dashboard.query.AppAuthQuery;
 
@@ -33,13 +34,30 @@ import java.util.List;
 @Mapper
 public interface AppAuthMapper {
 
+
+    /**
+     * insert application authority.
+     *
+     * @param appAuthDO {@linkplain AppAuthDO}
+     * @return rows int
+     */
+    int insert(AppAuthDO appAuthDO);
+
+    /**
+     * update application authority.
+     *
+     * @param appAuthDO {@linkplain AppAuthDO}
+     * @return rows int
+     */
+    int update(AppAuthDO appAuthDO);
+
     /**
      * select application authority by id.
      *
      * @param id pk.
      * @return {@linkplain AppAuthDO}
      */
-    AppAuthDO selectById(String id);
+    AppAuthDO findById(String id);
 
     /**
      * select application authority by query.
@@ -47,10 +65,11 @@ public interface AppAuthMapper {
      * @param appAuthQuery {@linkplain AppAuthQuery}
      * @return {@linkplain List}
      */
-    List<AppAuthDO> selectByQuery(AppAuthQuery appAuthQuery);
+    List<AppAuthDO> findListByQuery(AppAuthQuery appAuthQuery);
 
     /**
      * select all {@linkplain AppAuthDO}
+     *
      * @return {@linkplain List}
      */
     List<AppAuthDO> selectAll();
@@ -64,42 +83,19 @@ public interface AppAuthMapper {
     Integer countByQuery(AppAuthQuery appAuthQuery);
 
     /**
-     * insert application authority.
-     *
-     * @param appAuthDO {@linkplain AppAuthDO}
-     * @return rows
-     */
-    int insert(AppAuthDO appAuthDO);
-
-    /**
-     * insert selective application authority.
-     *
-     * @param appAuthDO {@linkplain AppAuthDO}
-     * @return rows
-     */
-    int insertSelective(AppAuthDO appAuthDO);
-
-    /**
-     * update application authority.
-     *
-     * @param appAuthDO {@linkplain AppAuthDO}
-     * @return rows
-     */
-    int update(AppAuthDO appAuthDO);
-
-    /**
-     * update selective application authority.
-     *
-     * @param appAuthDO {@linkplain AppAuthDO}
-     * @return rows
-     */
-    int updateSelective(AppAuthDO appAuthDO);
-
-    /**
      * delete application authority.
      *
-     * @param id primary key.
-     * @return rows
+     * @param ids primary key list.
+     * @return rows int
      */
-    int delete(String id);
+    int batchDelete(@Param("ids") List<String> ids);
+
+    /**
+     * Batch enable int.
+     *
+     * @param ids    the ids
+     * @param enabled the enabled
+     * @return the int
+     */
+    int batchEnable(@Param("ids") List<String> ids, @Param("enabled") Boolean enabled);
 }

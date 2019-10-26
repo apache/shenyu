@@ -19,62 +19,61 @@
 
 package org.dromara.soul.dashboard.service;
 
-import org.dromara.soul.dashboard.dto.PluginDTO;
-import org.dromara.soul.dashboard.query.PluginQuery;
+import org.dromara.soul.dashboard.dto.AppAuthDTO;
+import org.dromara.soul.dashboard.dto.BatchCommonDTO;
+import org.dromara.soul.dashboard.query.AppAuthQuery;
 import org.dromara.soul.dashboard.result.CommonPageResponse;
 import org.dromara.soul.dashboard.result.CommonResponse;
-import org.dromara.soul.dashboard.vo.PluginVO;
+import org.dromara.soul.dashboard.vo.AppAuthVO;
 
 import java.util.List;
 
 /**
- * The interface Plugin service.
+ * this is application authority service.
  *
- * @author xiaoyu
+ * @author xiaoyu(Myth)
  */
-public interface PluginService {
+public interface AppAuthService {
 
     /**
-     * Save or update common result.
+     * save or update application authority.
      *
-     * @param pluginDTO the plugin dto
-     * @return the common result
+     * @param appAuthDTO {@linkplain AppAuthDTO}
+     * @return rows int
      */
-    CommonResponse saveOrUpdate(PluginDTO pluginDTO);
+    CommonResponse saveOrUpdate(AppAuthDTO appAuthDTO);
 
     /**
-     * Delete string.
+     * delete application authorities.
      *
-     * @param ids the ids
-     * @return the string
+     * @param ids primary key.
+     * @return rows int
      */
     CommonResponse batchDelete(List<String> ids);
 
-
     /**
-     * Enabled string.
+     * Batch enabled common result.
      *
-     * @param ids     the ids
-     * @param enabled the enable
-     * @return the string
+     * @param batchCommonDTO the batch common dto
+     * @return the common result
      */
-    CommonResponse batchEnabled(List<String> ids, Boolean enabled);
+    CommonResponse batchEnabled(BatchCommonDTO batchCommonDTO);
 
     /**
-     * find plugin by id.
+     * find application authority by id.
      *
-     * @param id pk.
-     * @return {@linkplain PluginVO}
+     * @param id primary key.
+     * @return {@linkplain AppAuthVO}
      */
-    PluginVO findById(String id);
+    AppAuthVO findById(String id);
 
     /**
-     * find page of plugin by query.
+     * find page of application authority by query.
      *
-     * @param pluginQuery {@linkplain PluginQuery}
+     * @param appAuthQuery {@linkplain AppAuthQuery}
      * @return {@linkplain CommonPageResponse}
      */
-    CommonPageResponse<PluginVO> listPageByQuery(PluginQuery pluginQuery);
+    CommonPageResponse<AppAuthVO> listPageByQuery(AppAuthQuery appAuthQuery);
 
 
 }

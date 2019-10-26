@@ -17,28 +17,35 @@
  *
  */
 
-package org.dromara.soul.dashboard.query;
+package org.dromara.soul.dashboard.transfer;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.dromara.soul.dashboard.page.PageRequest;
 
-import java.io.Serializable;
+import org.dromara.soul.admin.entity.SelectorDO;
+import org.dromara.soul.common.dto.SelectorData;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
 
 /**
- * this is dashboard user query.
+ * The interface Plugin transfer.
  *
- * @author jiangxiaofeng(Nicholas)
+ * @author xiaoyu(Myth)
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class DashboardUserQuery extends PageRequest implements Serializable {
+@Mapper
+public interface SelectorTransfer {
 
     /**
-     * user name.
+     * The constant INSTANCE.
      */
-    private String userName;
+    SelectorTransfer INSTANCE = Mappers.getMapper(SelectorTransfer.class);
+
+
+    /**
+     * Map to data selector data.
+     *
+     * @param selectorDO the selector do
+     * @return the selector data
+     */
+    SelectorData mapToData(SelectorDO selectorDO);
+
 
 }

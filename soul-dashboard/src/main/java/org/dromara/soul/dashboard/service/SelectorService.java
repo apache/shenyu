@@ -19,62 +19,52 @@
 
 package org.dromara.soul.dashboard.service;
 
-import org.dromara.soul.dashboard.dto.PluginDTO;
-import org.dromara.soul.dashboard.query.PluginQuery;
+import org.dromara.soul.dashboard.dto.SelectorDTO;
+import org.dromara.soul.dashboard.query.SelectorQuery;
 import org.dromara.soul.dashboard.result.CommonPageResponse;
 import org.dromara.soul.dashboard.result.CommonResponse;
-import org.dromara.soul.dashboard.vo.PluginVO;
+import org.dromara.soul.dashboard.vo.SelectorVO;
 
 import java.util.List;
 
 /**
- * The interface Plugin service.
+ * this is selector service.
  *
- * @author xiaoyu
+ * @author jiangxiaofeng(Nicholas)
  */
-public interface PluginService {
+public interface SelectorService {
 
     /**
-     * Save or update common result.
+     * create or update selector.
      *
-     * @param pluginDTO the plugin dto
-     * @return the common result
+     * @param selectorDTO {@linkplain SelectorDTO}
+     * @return rows int
      */
-    CommonResponse saveOrUpdate(PluginDTO pluginDTO);
+    CommonResponse saveOrUpdate(SelectorDTO selectorDTO);
 
     /**
-     * Delete string.
+     * Batch delete common result.
      *
      * @param ids the ids
-     * @return the string
+     * @return the common result
      */
     CommonResponse batchDelete(List<String> ids);
 
-
     /**
-     * Enabled string.
+     * find selector by id.
      *
-     * @param ids     the ids
-     * @param enabled the enable
-     * @return the string
+     * @param id primary key.
+     * @return {@linkplain SelectorVO}
      */
-    CommonResponse batchEnabled(List<String> ids, Boolean enabled);
+    SelectorVO findById(String id);
 
     /**
-     * find plugin by id.
+     * find page of selector by query.
      *
-     * @param id pk.
-     * @return {@linkplain PluginVO}
-     */
-    PluginVO findById(String id);
-
-    /**
-     * find page of plugin by query.
-     *
-     * @param pluginQuery {@linkplain PluginQuery}
+     * @param selectorQuery {@linkplain SelectorQuery}
      * @return {@linkplain CommonPageResponse}
      */
-    CommonPageResponse<PluginVO> listPageByQuery(PluginQuery pluginQuery);
+    CommonPageResponse<SelectorVO> listPageByQuery(SelectorQuery selectorQuery);
 
 
 }

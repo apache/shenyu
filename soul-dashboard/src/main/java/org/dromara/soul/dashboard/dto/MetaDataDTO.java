@@ -17,29 +17,62 @@
  *
  */
 
-package org.dromara.soul.dashboard.query;
+package org.dromara.soul.dashboard.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.dromara.soul.dashboard.page.PageParameter;
-import org.dromara.soul.dashboard.page.PageRequest;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 
 /**
- * this is application authority query.
- *
- * @author xiaoyu(Myth)
+ * The type Meta data dto.
+ * @author xiaoyu
  */
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class AppAuthQuery extends PageRequest implements Serializable {
+@EqualsAndHashCode
+public class MetaDataDTO implements Serializable {
+
+    private String id;
 
     /**
-     * application Name.
+     * The application name.
      */
     private String appName;
+
+    /**
+     * the request api gateway path.
+     */
+    private String path;
+
+    /**
+     * the rpcType {@linkplain org.dromara.soul.common.enums.RpcTypeEnum}
+     */
+    private String rpcType;
+
+    /**
+     * The Full path package name of the service.
+     */
+    private String serviceName;
+
+    /**
+     * The methodName.
+     */
+    private String methodName;
+
+    /**
+     * The parameter Types,Full path package name of the service,please use ','separation.
+     */
+    private String parameterTypes;
+
+    /**
+     * The rpc ext param, please save json data.
+     */
+    private String rpcExt;
+
+    /**
+     * whether enabled.
+     */
+    private Boolean enabled;
+
 
 }

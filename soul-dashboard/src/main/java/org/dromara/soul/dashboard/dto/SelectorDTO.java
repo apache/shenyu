@@ -17,28 +17,70 @@
  *
  */
 
-package org.dromara.soul.dashboard.query;
+package org.dromara.soul.dashboard.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.dromara.soul.dashboard.page.PageRequest;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
- * this is dashboard user query.
+ * The SelectorDTO.
  *
- * @author jiangxiaofeng(Nicholas)
+ * @author xiaoyu
  */
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class DashboardUserQuery extends PageRequest implements Serializable {
+public class SelectorDTO implements Serializable {
 
     /**
-     * user name.
+     * primary key.
      */
-    private String userName;
+    private String id;
 
+    /**
+     * plugin id.
+     */
+    private String pluginId;
+
+    /**
+     * selector name.
+     */
+    private String name;
+
+    /**
+     * match mode.
+     */
+    private Integer matchMode;
+
+    /**
+     * selector type.
+     */
+    private Integer type;
+
+    /**
+     * sort type.
+     */
+    private Integer sort;
+
+    /**
+     * whether enabled.
+     */
+    private Boolean enabled;
+
+    /**
+     * whether loged.
+     */
+    private Boolean loged;
+
+    /**
+     * whether continued.
+     */
+    private Boolean continued;
+
+    private String handle;
+
+    /**
+     * selector conditions.
+     */
+    private List<SelectorConditionDTO> selectorConditions;
 }

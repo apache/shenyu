@@ -19,23 +19,26 @@
 
 package org.dromara.soul.dashboard.service.impl;
 
-import org.dromara.soul.dashboard.dto.PluginDTO;
-import org.dromara.soul.dashboard.query.PluginQuery;
+import org.dromara.soul.dashboard.dto.SelectorDTO;
+import org.dromara.soul.dashboard.query.SelectorQuery;
 import org.dromara.soul.dashboard.result.CommonPageResponse;
 import org.dromara.soul.dashboard.result.CommonResponse;
-import org.dromara.soul.dashboard.service.PluginService;
-import org.dromara.soul.dashboard.vo.PluginVO;
+import org.dromara.soul.dashboard.service.SelectorService;
+import org.dromara.soul.dashboard.vo.SelectorVO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 /**
+ * The type Selector service.
+ *
  * @author xiaoyu
  */
-@Service("pluginService")
-public class PluginServiceImpl implements PluginService {
+@Service("selectorService")
+public class SelectorServiceImpl implements SelectorService {
+
     @Override
-    public CommonResponse saveOrUpdate(PluginDTO pluginDTO) {
+    public CommonResponse saveOrUpdate(SelectorDTO selectorDTO) {
         return null;
     }
 
@@ -45,17 +48,12 @@ public class PluginServiceImpl implements PluginService {
     }
 
     @Override
-    public CommonResponse batchEnabled(List<String> ids, Boolean enabled) {
+    public SelectorVO findById(String id) {
         return null;
     }
 
     @Override
-    public PluginVO findById(String id) {
-        return null;
-    }
-
-    @Override
-    public CommonPageResponse<PluginVO> listPageByQuery(PluginQuery pluginQuery) {
+    public CommonPageResponse<SelectorVO> listPageByQuery(SelectorQuery selectorQuery) {
         return null;
     }
 }

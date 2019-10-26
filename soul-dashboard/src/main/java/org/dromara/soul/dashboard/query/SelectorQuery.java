@@ -22,7 +22,7 @@ package org.dromara.soul.dashboard.query;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.dromara.soul.dashboard.page.PageParameter;
+import org.dromara.soul.dashboard.page.PageRequest;
 
 import java.io.Serializable;
 
@@ -34,15 +34,11 @@ import java.io.Serializable;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SelectorQuery implements Serializable {
+public class SelectorQuery extends PageRequest implements Serializable {
 
     /**
      * plugin id.
      */
     private String pluginId;
 
-    /**
-     * page parameter.
-     */
-    private PageParameter pageParameter;
 }

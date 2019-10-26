@@ -17,28 +17,32 @@
  *
  */
 
-package org.dromara.soul.dashboard.query;
+package org.dromara.soul.dashboard.vo;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.dromara.soul.dashboard.page.PageRequest;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 
 /**
- * this is dashboard user query.
- *
- * @author jiangxiaofeng(Nicholas)
+ * @author xiaoyu
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class DashboardUserQuery extends PageRequest implements Serializable {
+@Getter
+@Setter
+class CommonVO implements Serializable {
 
     /**
-     * user name.
+     * primary key.
      */
-    private String userName;
+    private String id;
 
+    /**
+     * created time.
+     */
+    private String dateCreated;
+
+    /**
+     * updated time.
+     */
+    private String dateUpdated;
 }

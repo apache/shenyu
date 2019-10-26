@@ -17,7 +17,7 @@
  *
  */
 
-package org.dromara.soul.dashboard.page;
+package org.dromara.soul.dashboard.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -27,23 +27,72 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * common Pager.
- * @author xiaoyu(Myth)
+ * this is selector view to web front.
+ *
+ * @author xiaoyu
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CommonPager<T> implements Serializable {
-
-    private static final long serialVersionUID = -1220101004792874251L;
+public class SelectorVO implements Serializable {
 
     /**
-     * page.
+     * plugin id.
      */
-    private PageParameter page;
+    private String pluginId;
 
     /**
-     * data.
+     * selector name.
      */
-    private List<T> dataList;
+    private String name;
+
+    /**
+     * match mode code.
+     */
+    private Integer matchMode;
+
+    /**
+     * match mode name.
+     */
+    private String matchModeName;
+
+    /**
+     * selector type code.
+     */
+    private Integer type;
+
+    /**
+     * selector type name.
+     */
+    private String typeName;
+
+    /**
+     * sort type.
+     */
+    private Integer sort;
+
+    /**
+     * whether enabled.
+     */
+    private Boolean enabled;
+
+    /**
+     * whether loged.
+     */
+    private Boolean loged;
+
+    /**
+     * whether continued.
+     */
+    private Boolean continued;
+
+    /**
+     * the json handle data.
+     */
+    private String handle;
+
+    /**
+     * selector conditions.
+     */
+    private List<SelectorConditionVO> selectorConditions;
 }
