@@ -35,7 +35,7 @@ import java.util.function.Supplier;
 public class HystrixService implements FusingService {
 
     @Override
-    public Object execute(FusingConfig config, Supplier<Object> execute, Function<? super Throwable, ? extends Object> fallback) {
+    public Object execute(FusingConfig config, Supplier<Object> execute, Function<? super Throwable, Object> fallback) {
         HystrixCommand.Setter setter = HystrixBuilder.build(config);
         HttpCommand httpCommand = new HttpCommand(setter, execute, fallback);
         return httpCommand.execute();

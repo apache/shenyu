@@ -42,5 +42,5 @@ public interface FusingService {
      * @param fallback the fallback
      * @return the object
      */
-    Object execute(FusingConfig config, Supplier<Object> execute, Function<? super Throwable, ? extends Object> fallback);
+    Object execute(FusingConfig config, Supplier<Object> execute, Function<? super Throwable, Object> fallback);
 }
