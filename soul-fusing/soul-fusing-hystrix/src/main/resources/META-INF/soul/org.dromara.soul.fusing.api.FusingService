@@ -1,0 +1,1 @@
+hystrix=org.dromara.soul.fusing.hystrix.HystrixService

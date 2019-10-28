@@ -17,30 +17,27 @@
  *
  */
 
-package org.dromara.soul.plugins.http.hystrix;
+package org.dromara.soul.fusing.hystrix;
 
-import lombok.Data;
-import org.dromara.plugins.api.dto.CommonHystrix;
+import com.netflix.hystrix.HystrixCommand;
+import org.dromara.soul.fusing.api.FusingService;
+import org.dromara.soul.fusing.api.config.FusingConfig;
+import org.dromara.soul.fusing.hystrix.builder.HystrixBuilder;
 
-import java.io.Serializable;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
- * The type Divide rule handle.
+ * The type Hystrix service.
  *
- * @author xiaoyu(Myth)
+ * @author xiaoyu
  */
-@Data
-public class HttpHystrix extends CommonHystrix implements Serializable {
+public class HystrixService implements FusingService {
 
-    /**
-     * loadBalance.
-     * {@linkplain org.dromara.soul.common.enums.LoadBalanceEnum}
-     */
-    private String loadBalance;
-
-    /**
-     * http retry.
-     */
-    private int retry;
-
+    @Override
+    public Object execute(FusingConfig config, Supplier<Object> execute, Function<? super Throwable, ? extends Object> fallback) {
+        HystrixCommand.Setter setter = HystrixBuilder.build(config);
+        HttpCommand httpCommand = new HttpCommand(setter, execute, fallback);
+        return httpCommand.execute();
+    }
 }

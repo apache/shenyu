@@ -16,21 +16,27 @@
 
 package org.dromara.soul.plugins.http;
 
-import com.netflix.hystrix.HystrixCommand;
+import org.asynchttpclient.AsyncHttpClient;
+import org.asynchttpclient.BoundRequestBuilder;
+import org.asynchttpclient.DefaultAsyncHttpClient;
+import org.asynchttpclient.DefaultAsyncHttpClientConfig;
+import org.asynchttpclient.Response;
 import org.dromara.plugins.api.AbstractSoulPlugin;
 import org.dromara.plugins.api.SoulPluginChain;
 import org.dromara.plugins.api.dto.SoulRequest;
 import org.dromara.plugins.api.dto.SoulResponse;
 import org.dromara.soul.cache.api.data.SelectorData;
-import org.dromara.soul.cache.api.service.CacheService;
+import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.extension.ExtensionLoader;
+import org.dromara.soul.common.http.HttpMethod;
 import org.dromara.soul.common.utils.GsonUtils;
+import org.dromara.soul.fusing.api.FusingService;
+import org.dromara.soul.fusing.api.config.FusingConfig;
 import org.dromara.soul.plugins.http.balance.LoadBalance;
-import org.dromara.soul.plugins.http.hystrix.HttpCommand;
-import org.dromara.soul.plugins.http.hystrix.HttpHystrix;
-import org.dromara.soul.plugins.http.hystrix.HystrixBuilder;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * The type Http plugin.
@@ -38,6 +44,12 @@ import org.dromara.soul.plugins.http.hystrix.HystrixBuilder;
  * @author xiaoyu(Myth)
  */
 public class HttpPlugin extends AbstractSoulPlugin {
+
+    private static final AsyncHttpClient asyncHttpClient =
+            new DefaultAsyncHttpClient(new DefaultAsyncHttpClientConfig.Builder()
+                    .setConnectTimeout(3000)
+                    .setRequestTimeout(3000)
+                    .build());
 
     @Override
     public PluginTypeEnum pluginType() {
@@ -64,16 +76,33 @@ public class HttpPlugin extends AbstractSoulPlugin {
 
         String handle = selectorData.getHandle();
 
-        final HttpHystrix httpHystrix = GsonUtils.getInstance().fromJson(handle, HttpHystrix.class);
+        final FusingConfig fusingConfig = GsonUtils.getInstance().fromJson(handle, FusingConfig.class);
 
-        LoadBalance loadBalance = ExtensionLoader.getExtensionLoader(LoadBalance.class).getJoin(httpHystrix.getLoadBalance());
+        LoadBalance loadBalance = ExtensionLoader.getExtensionLoader(LoadBalance.class).getDefaultJoin();
 
-        loadBalance.select(null, "");
+        DivideUpstream divideUpstream = loadBalance.select(null, "");
 
-        HystrixCommand.Setter setter = HystrixBuilder.build(httpHystrix);
+        FusingService fusingService = ExtensionLoader.getExtensionLoader(FusingService.class).getDefaultJoin();
 
-        HttpCommand command = new HttpCommand(setter, soulRequest);
-        Object result = command.execute();
+        Object result = fusingService.execute(fusingConfig, () -> {
+            BoundRequestBuilder boundRequestBuilder;
+            if (soulRequest.getHttpMethod() == HttpMethod.GET) {
+                boundRequestBuilder = asyncHttpClient.prepareGet(soulRequest.getUrl());
+            } else if (soulRequest.getHttpMethod() == HttpMethod.POST) {
+                boundRequestBuilder = asyncHttpClient.preparePost(soulRequest.getUrl());
+                boundRequestBuilder.setBody(soulRequest.getBody());
+            } else {
+                boundRequestBuilder = asyncHttpClient.preparePut(soulRequest.getUrl());
+            }
+            CompletableFuture<Response> whenResponse = boundRequestBuilder
+                    .setSingleHeaders(soulRequest.getHeaders())
+                    .execute()
+                    .toCompletableFuture()
+                    .thenApply(response -> response);
+            return whenResponse.join().getResponseBody();
+        }, throwable -> {
+            return null;
+        });
 
         return chain.execute(soulRequest);
     }

@@ -17,15 +17,14 @@
  *
  */
 
-package org.dromara.soul.plugins.http.hystrix;
+package org.dromara.soul.fusing.hystrix.builder;
 
 import com.netflix.hystrix.HystrixCommand;
 import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixCommandKey;
 import com.netflix.hystrix.HystrixCommandProperties;
 import com.netflix.hystrix.HystrixObservableCommand;
-import org.dromara.soul.common.constant.Constants;
-import org.dromara.plugins.api.dto.CommonHystrix;
+import org.dromara.soul.fusing.api.config.FusingConfig;
 
 /**
  * the hystrix builder.
@@ -40,19 +39,19 @@ public class HystrixBuilder {
      * @param commonHystrix {@linkplain CommonHystrix}
      * @return {@linkplain HystrixObservableCommand.Setter}
      */
-    public static HystrixCommand.Setter build(final CommonHystrix commonHystrix) {
+    public static HystrixCommand.Setter build(final FusingConfig commonHystrix) {
 
         if (commonHystrix.getMaxConcurrentRequests() == 0) {
-            commonHystrix.setMaxConcurrentRequests(Constants.MAX_CONCURRENT_REQUESTS);
+            commonHystrix.setMaxConcurrentRequests(DefaultHystrix.MAX_CONCURRENT_REQUESTS);
         }
         if (commonHystrix.getErrorThresholdPercentage() == 0) {
-            commonHystrix.setErrorThresholdPercentage(Constants.ERROR_THRESHOLD_PERCENTAGE);
+            commonHystrix.setErrorThresholdPercentage(DefaultHystrix.ERROR_THRESHOLD_PERCENTAGE);
         }
         if (commonHystrix.getRequestVolumeThreshold() == 0) {
-            commonHystrix.setRequestVolumeThreshold(Constants.REQUEST_VOLUME_THRESHOLD);
+            commonHystrix.setRequestVolumeThreshold(DefaultHystrix.REQUEST_VOLUME_THRESHOLD);
         }
         if (commonHystrix.getSleepWindowInMilliseconds() == 0) {
-            commonHystrix.setSleepWindowInMilliseconds(Constants.SLEEP_WINDOW_INMILLISECONDS);
+            commonHystrix.setSleepWindowInMilliseconds(DefaultHystrix.SLEEP_WINDOW_INMILLISECONDS);
         }
 
         HystrixCommandGroupKey groupKey = HystrixCommandGroupKey.Factory.asKey(commonHystrix.getGroupKey());
