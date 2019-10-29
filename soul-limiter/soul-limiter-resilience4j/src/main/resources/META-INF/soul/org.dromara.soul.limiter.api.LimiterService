@@ -1,0 +1,1 @@
+resilience4j=org.dromara.soul.limiter.resilience4j.Resilience4jLimiterService

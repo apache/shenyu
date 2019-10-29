@@ -24,7 +24,9 @@ import org.dromara.soul.cache.api.data.SelectorData;
 import org.dromara.soul.common.dto.convert.RateLimiterHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
+import org.dromara.soul.common.extension.ExtensionLoader;
 import org.dromara.soul.common.utils.GsonUtils;
+import org.dromara.soul.limiter.api.LimiterService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,22 +38,19 @@ import org.slf4j.LoggerFactory;
 public class LimiterPlugin extends AbstractSoulPlugin {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LimiterPlugin.class);
-
-    private RedisRateLimiter redisRateLimiter;
-
     /**
      * Instantiates a new Limiter plugin.
      */
     public LimiterPlugin() {
-        redisRateLimiter = new RedisRateLimiter();
     }
 
     @Override
     protected SoulResponse doExecute(SoulRequest soulRequest, SelectorData selectorData, SoulPluginChain chain) {
         String handle = selectorData.getHandle();
         final RateLimiterHandle limiterHandle = GsonUtils.getInstance().fromJson(handle, RateLimiterHandle.class);
-        RateLimiterResponse response = redisRateLimiter.isAllowed(selectorData.getId(), limiterHandle.getReplenishRate(), limiterHandle.getBurstCapacity());
-        if (!response.isAllowed()) {
+        LimiterService limiterService = ExtensionLoader.getExtensionLoader(LimiterService.class).getDefaultJoin();
+        Boolean allowed = limiterService.isAllowed(selectorData.getId(), limiterHandle.getReplenishRate(), limiterHandle.getBurstCapacity());
+        if (!allowed) {
             //已经被限流 处理
         }
         return chain.execute(soulRequest);

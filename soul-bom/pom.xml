@@ -39,6 +39,8 @@
         <jedis.version>3.1.0</jedis.version>
         <async.http.client.version>2.10.4</async.http.client.version>
         <lettuce.version>5.1.8.RELEASE</lettuce.version>
+        <resilience4j.version>1.1.0</resilience4j.version>
+        <hystrix.version>1.5.18</hystrix.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -166,10 +168,34 @@
 
             <dependency>
                 <groupId>org.dromara</groupId>
-                <artifactId>soul-plugins-resilience4j</artifactId>
+                <artifactId>soul-fusing-resilience4j</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>soul-limiter-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>soul-limiter-resilience4j</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>soul-limiter-guava</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>soul-limiter-redis</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <!-- The third party -->
             <dependency>
@@ -355,6 +381,33 @@
                 <artifactId>logback-classic</artifactId>
                 <version>${logback.version}</version>
             </dependency>
+
+            <!--resilience4j start-->
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-circuitbreaker</artifactId>
+                <version>${resilience4j.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-ratelimiter</artifactId>
+                <version>${resilience4j.version}</version>
+            </dependency>
+            <!--resilience4j end -->
+
+            <!--hystrix start-->
+            <dependency>
+                <groupId>com.netflix.hystrix</groupId>
+                <artifactId>hystrix-core</artifactId>
+                <version>${hystrix.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.netflix.hystrix</groupId>
+                <artifactId>hystrix-metrics-event-stream</artifactId>
+                <version>${hystrix.version}</version>
+            </dependency>
+            <!--hystrix end-->
         </dependencies>
     </dependencyManagement>
 

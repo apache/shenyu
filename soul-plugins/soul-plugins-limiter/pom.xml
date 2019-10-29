@@ -18,18 +18,8 @@
         </dependency>
 
         <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>io.lettuce</groupId>
-            <artifactId>lettuce-core</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.dromara</groupId>
-            <artifactId>soul-config-api</artifactId>
+            <artifactId>soul-limiter-api</artifactId>
         </dependency>
     </dependencies>
 

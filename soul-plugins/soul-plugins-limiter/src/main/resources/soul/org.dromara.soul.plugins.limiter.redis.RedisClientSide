@@ -1,2 +1,0 @@
-jedis=org.dromara.soul.plugins.limiter.jedis.Jedis
-lettuce=org.dromara.soul.plugins.limiter.lettuce.Lettuce

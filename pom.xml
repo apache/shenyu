@@ -26,6 +26,7 @@
         <module>soul-dashboard</module>
         <module>soul-client</module>
         <module>soul-fusing</module>
+        <module>soul-limiter</module>
     </modules>
 
     <organization>

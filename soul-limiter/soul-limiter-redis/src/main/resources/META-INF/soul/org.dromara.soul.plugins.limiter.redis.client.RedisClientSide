@@ -1,0 +1,2 @@
+jedis=org.dromara.soul.limiter.redis.client.jedis.JedisClient
+lettuce=org.dromara.soul.limiter.redis.client.lettuce.LettuceClient
