@@ -42,6 +42,8 @@ class ApolloClient {
         Map<String, Object> resultMap = new HashMap<>();
         System.setProperty(ConfigConsts.APOLLO_META_KEY, apolloConfig.getMetaServer());
         System.setProperty("app.id", apolloConfig.getAppId());
+      /*  System.setProperty("env", "dev");
+        System.setProperty("apollo.configService", "http://121.43.171.129:8080");*/
         if (StringUtils.isNotBlank(apolloConfig.getApplication())) {
             System.setProperty(ConfigConsts.NAMESPACE_APPLICATION, apolloConfig.getApplication());
         }

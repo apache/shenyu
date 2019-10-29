@@ -66,6 +66,11 @@ public class ApolloConfigLoaderTest {
     private void test(Supplier supplier, ApolloConfig parent) {
         Assert.assertNotNull(parent);
         Assert.assertEquals(parent.prefix(), "soul.apollo");
+        SoulDataBase config = ConfigEnv.getInstance().getConfig(SoulDataBase.class);
+        Assert.assertNotNull(config);
+        Assert.assertEquals(config.getUrl(), "jdbc:mysql://127.0.0.1:3306/calvin_account?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&useSSL=false");
+        Assert.assertEquals(config.getUserName(), "root");
+        Assert.assertEquals(config.getPassword(), "123456");
     }
 
     @Test

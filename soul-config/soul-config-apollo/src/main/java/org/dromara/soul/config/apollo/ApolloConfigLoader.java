@@ -21,6 +21,7 @@ package org.dromara.soul.config.apollo;
 
 import org.dromara.soul.common.extension.Join;
 import org.dromara.soul.common.utils.StringUtils;
+import org.dromara.soul.config.api.ConfigEnv;
 import org.dromara.soul.config.api.ConfigException;
 import org.dromara.soul.config.api.ConfigLoader;
 import org.dromara.soul.config.api.ConfigParent;
@@ -43,6 +44,10 @@ import java.util.function.Supplier;
 public class ApolloConfigLoader implements ConfigLoader<ApolloConfig> {
 
     private static final Logger logger = LoggerFactory.getLogger(ApolloConfigLoader.class);
+
+    public ApolloConfigLoader() {
+        ConfigEnv.getInstance().putBean(new ApolloConfig());
+    }
 
     @Override
     public void load(Supplier<Context> context, LoaderHandler<ApolloConfig> handler) {
