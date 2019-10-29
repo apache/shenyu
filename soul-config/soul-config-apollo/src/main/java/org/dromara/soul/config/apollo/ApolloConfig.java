@@ -30,9 +30,11 @@ import org.dromara.soul.config.api.ConfigParent;
 @Data
 public class ApolloConfig extends ConfigParent {
 
-    private String metaServer;
+    private String application;
 
     private String appId;
+
+    private String metaServer;
 
     @Override
     public String prefix() {

@@ -21,7 +21,11 @@ package org.dromara.soul.config.apollo;
 
 import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.ConfigService;
+import com.ctrip.framework.apollo.core.ConfigConsts;
+import org.dromara.soul.common.utils.StringUtils;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -29,16 +33,24 @@ import java.util.Set;
  *
  * @author xiaoyu
  */
-public class ApolloClient {
+class ApolloClient {
 
     /**
      * Pull.
      */
-    public void pull() {
+    static Map<String, Object> pull(ApolloConfig apolloConfig) {
+        Map<String, Object> resultMap = new HashMap<>();
+        System.setProperty(ConfigConsts.APOLLO_META_KEY, apolloConfig.getMetaServer());
+        System.setProperty("app.id", apolloConfig.getAppId());
+        if (StringUtils.isNotBlank(apolloConfig.getApplication())) {
+            System.setProperty(ConfigConsts.NAMESPACE_APPLICATION, apolloConfig.getApplication());
+        }
         Config config = ConfigService.getAppConfig();
         Set<String> propertyNames = config.getPropertyNames();
         for (String propertyName : propertyNames) {
             String value = config.getProperty(propertyName, "");
+            resultMap.put(propertyName, value);
         }
+        return resultMap;
     }
 }
