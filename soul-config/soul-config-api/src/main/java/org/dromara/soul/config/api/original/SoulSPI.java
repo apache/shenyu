@@ -17,29 +17,33 @@
  *
  */
 
-package org.dromara.soul.fusing.hystrix;
+package org.dromara.soul.config.api.original;
 
-import com.netflix.hystrix.HystrixCommand;
-import org.dromara.soul.common.extension.Join;
-import org.dromara.soul.fusing.api.FusingService;
-import org.dromara.soul.fusing.api.config.FusingConfig;
-import org.dromara.soul.fusing.hystrix.builder.HystrixBuilder;
-
-import java.util.function.Function;
-import java.util.function.Supplier;
+import lombok.Getter;
+import lombok.Setter;
+import org.dromara.soul.config.api.ConfigParent;
+import org.dromara.soul.config.api.constant.DefaultConstants;
+import org.dromara.soul.config.api.constant.PrefixConstants;
 
 /**
- * The type Hystrix service.
+ * The type Soul spi config.
  *
  * @author xiaoyu
  */
-@Join
-public class HystrixService implements FusingService {
+@Getter
+@Setter
+public class SoulSPI extends ConfigParent {
+
+    private String fusing = DefaultConstants.DEFAULT_FUSING;
+
+    private String limiter = DefaultConstants.DEFAULT_LIMITER;
+
+    private String remoting = DefaultConstants.DEFAULT_REMOTING;
+
+    private String register;
 
     @Override
-    public Object execute(FusingConfig config, Supplier<Object> execute, Function<? super Throwable, Object> fallback) {
-        HystrixCommand.Setter setter = HystrixBuilder.build(config);
-        HttpCommand httpCommand = new HttpCommand(setter, execute, fallback);
-        return httpCommand.execute();
+    public String prefix() {
+        return PrefixConstants.SPI_PREFIX;
     }
 }

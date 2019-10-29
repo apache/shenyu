@@ -19,6 +19,9 @@
 
 package org.dromara.soul.config.apollo;
 
+import com.ctrip.framework.apollo.Config;
+import com.ctrip.framework.apollo.ConfigService;
+import com.ctrip.framework.apollo.model.ConfigChange;
 import org.dromara.soul.common.extension.Join;
 import org.dromara.soul.common.utils.StringUtils;
 import org.dromara.soul.config.api.ConfigEnv;
@@ -31,8 +34,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -60,15 +65,30 @@ public class ApolloConfigLoader implements ConfigLoader<ApolloConfig> {
             check(apolloConfig);
             logger.info("loader apollo config: {}", apolloConfig);
             Map<String, Object> resultMap = ApolloClient.pull(apolloConfig);
-            if (resultMap.size() > 0) {
-                List<PropertyKeySource<?>> propertySources = new ArrayList<>();
-                propertySources.add(new MapPropertyKeySource("apollo", resultMap));
-                context.get().getOriginal().load(() -> context.get().withSources(propertySources), this::apolloFinish);
-            }
-            handler.finish(context, apolloConfig);
+            Config config = ConfigService.getAppConfig();
+            config.addChangeListener(changeEvent -> {
+                Map<String, Object> changeMap = new HashMap<>();
+                for (String key : changeEvent.changedKeys()) {
+                    ConfigChange change = changeEvent.getChange(key);
+                    changeMap.put(change.getPropertyName(), change.getNewValue());
+                }
+               // refresh changeMap ？
+            });
+
+            handlerResult(resultMap, context, handler, apolloConfig);
         } else {
             throw new ConfigException("apollo config is null");
         }
+    }
+
+    private void handlerResult(Map<String, Object> resultMap, Supplier<Context> context,
+                               LoaderHandler<ApolloConfig> handler, ApolloConfig apolloConfig) {
+        if (resultMap.size() > 0) {
+            List<PropertyKeySource<?>> propertySources = new ArrayList<>();
+            propertySources.add(new MapPropertyKeySource("apollo", resultMap));
+            context.get().getOriginal().load(() -> context.get().withSources(propertySources), this::apolloFinish);
+        }
+        handler.finish(context, apolloConfig);
     }
 
     private void apolloFinish(Supplier<Context> context, ConfigParent config) {

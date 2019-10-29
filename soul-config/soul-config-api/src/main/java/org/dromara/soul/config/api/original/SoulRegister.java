@@ -19,17 +19,19 @@
 
 package org.dromara.soul.config.api.original;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.dromara.soul.config.api.ConfigParent;
+import org.dromara.soul.config.api.constant.PrefixConstants;
 
 /**
- * SoulRegester .
- * <p>
- * 2019-08-17
+ * The SoulRegister config .
  *
+ * @author xiaoyu
  * @author sixh
  */
-@Data
+@Getter
+@Setter
 public class SoulRegister extends ConfigParent {
 
     private String address;
@@ -38,6 +40,6 @@ public class SoulRegister extends ConfigParent {
 
     @Override
     public String prefix() {
-        return "soul.register";
+        return PrefixConstants.REGISTER_PREFIX;
     }
 }

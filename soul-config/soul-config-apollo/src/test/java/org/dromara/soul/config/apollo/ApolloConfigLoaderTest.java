@@ -25,6 +25,7 @@ import org.dromara.soul.config.api.ConfigEnv;
 import org.dromara.soul.config.api.ConfigLoader;
 import org.dromara.soul.config.api.original.ServerConfigLoader;
 import org.dromara.soul.config.api.original.SoulDataBase;
+import org.dromara.soul.config.api.original.SoulSPI;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,6 +35,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.function.Supplier;
 
 import static org.mockito.Matchers.any;
@@ -48,7 +50,7 @@ import static org.mockito.Matchers.any;
 public class ApolloConfigLoaderTest {
 
     @Test
-    public void testApolloLoad() {
+    public void testApolloLoad() throws IOException {
         ServerConfigLoader loader = new ServerConfigLoader();
         ApolloConfigLoader apolloConfigLoader = new ApolloConfigLoader();
         loader.load(ConfigLoader.Context::new, (context, config) -> {
@@ -61,6 +63,7 @@ public class ApolloConfigLoaderTest {
                 }
             }
         });
+        System.in.read();
     }
 
     private void test(Supplier supplier, ApolloConfig parent) {
@@ -68,9 +71,8 @@ public class ApolloConfigLoaderTest {
         Assert.assertEquals(parent.prefix(), "soul.apollo");
         SoulDataBase config = ConfigEnv.getInstance().getConfig(SoulDataBase.class);
         Assert.assertNotNull(config);
-        Assert.assertEquals(config.getUrl(), "jdbc:mysql://127.0.0.1:3306/calvin_account?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&useSSL=false");
-        Assert.assertEquals(config.getUserName(), "root");
-        Assert.assertEquals(config.getPassword(), "123456");
+        SoulSPI soulSPI = ConfigEnv.getInstance().getConfig(SoulSPI.class);
+        Assert.assertNotNull(soulSPI);
     }
 
     @Test

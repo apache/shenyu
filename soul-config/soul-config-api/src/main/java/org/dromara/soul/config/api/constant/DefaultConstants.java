@@ -17,29 +17,27 @@
  *
  */
 
-package org.dromara.soul.fusing.hystrix;
-
-import com.netflix.hystrix.HystrixCommand;
-import org.dromara.soul.common.extension.Join;
-import org.dromara.soul.fusing.api.FusingService;
-import org.dromara.soul.fusing.api.config.FusingConfig;
-import org.dromara.soul.fusing.hystrix.builder.HystrixBuilder;
-
-import java.util.function.Function;
-import java.util.function.Supplier;
+package org.dromara.soul.config.api.constant;
 
 /**
- * The type Hystrix service.
+ * The interface Default constants.
  *
  * @author xiaoyu
  */
-@Join
-public class HystrixService implements FusingService {
+public interface DefaultConstants {
 
-    @Override
-    public Object execute(FusingConfig config, Supplier<Object> execute, Function<? super Throwable, Object> fallback) {
-        HystrixCommand.Setter setter = HystrixBuilder.build(config);
-        HttpCommand httpCommand = new HttpCommand(setter, execute, fallback);
-        return httpCommand.execute();
-    }
+    /**
+     * The constant DEFAULT_FUSING.
+     */
+    String DEFAULT_FUSING = "hystrix";
+
+    /**
+     * The constant DEFAULT_LIMITER.
+     */
+    String DEFAULT_LIMITER = "redis";
+
+    /**
+     * The constant DEFAULT_REMOTING.
+     */
+    String DEFAULT_REMOTING = "netty";
 }

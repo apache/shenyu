@@ -20,8 +20,11 @@
 package org.dromara.soul.config.apollo;
 
 import com.ctrip.framework.apollo.Config;
+import com.ctrip.framework.apollo.ConfigChangeListener;
 import com.ctrip.framework.apollo.ConfigService;
 import com.ctrip.framework.apollo.core.ConfigConsts;
+import com.ctrip.framework.apollo.model.ConfigChange;
+import com.ctrip.framework.apollo.model.ConfigChangeEvent;
 import org.dromara.soul.common.utils.StringUtils;
 
 import java.util.HashMap;
@@ -42,8 +45,8 @@ class ApolloClient {
         Map<String, Object> resultMap = new HashMap<>();
         System.setProperty(ConfigConsts.APOLLO_META_KEY, apolloConfig.getMetaServer());
         System.setProperty("app.id", apolloConfig.getAppId());
-      /*  System.setProperty("env", "dev");
-        System.setProperty("apollo.configService", "http://121.43.171.129:8080");*/
+        System.setProperty("env", "dev");
+        System.setProperty("apollo.configService", "http://121.43.171.129:8080");
         if (StringUtils.isNotBlank(apolloConfig.getApplication())) {
             System.setProperty(ConfigConsts.NAMESPACE_APPLICATION, apolloConfig.getApplication());
         }

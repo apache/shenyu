@@ -21,6 +21,7 @@ package org.dromara.soul.config.api.original;
 
 import java.util.Objects;
 import java.util.function.Supplier;
+
 import org.dromara.soul.config.api.ConfigEnv;
 import org.dromara.soul.config.api.ConfigLoader;
 import org.dromara.soul.config.api.ConfigParent;
@@ -34,9 +35,8 @@ import org.dromara.soul.config.api.property.PropertyKeySource;
 
 /**
  * OriginalConfigLoader .
- * <p>
- * 2019/8/17
  *
+ * @author xiaoyu
  * @author sixh
  */
 public class OriginalConfigLoader implements ConfigLoader<ConfigParent> {
@@ -44,6 +44,7 @@ public class OriginalConfigLoader implements ConfigLoader<ConfigParent> {
     public OriginalConfigLoader() {
         ConfigEnv.getInstance().putBean(new SoulDataBase());
         ConfigEnv.getInstance().putBean(new SoulRegister());
+        ConfigEnv.getInstance().putBean(new SoulSPI());
     }
 
     @Override

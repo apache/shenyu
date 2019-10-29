@@ -19,8 +19,10 @@
 
 package org.dromara.soul.config.api.original;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.dromara.soul.config.api.ConfigParent;
+import org.dromara.soul.config.api.constant.PrefixConstants;
 
 import java.util.List;
 
@@ -29,7 +31,8 @@ import java.util.List;
  *
  * @author sixh
  */
-@Data
+@Getter
+@Setter
 public class Server extends ConfigParent {
 
     private String configMode;
@@ -44,13 +47,10 @@ public class Server extends ConfigParent {
 
     private String monitorPort;
 
-    /**
-     * 需要加载的配置类.
-     */
     private List<String> configs;
 
     @Override
     public String prefix() {
-        return "soul.server";
+        return PrefixConstants.SERVER_PREFIX;
     }
 }

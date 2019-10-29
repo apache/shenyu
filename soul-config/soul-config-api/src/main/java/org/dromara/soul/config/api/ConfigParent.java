@@ -19,14 +19,14 @@
 
 package org.dromara.soul.config.api;
 
+import java.io.Serializable;
+
 /**
  * ConfigParent .
- * 所有自定义的配置信息的父类.
- * 2019-08-12 20:45
- *
+ * @author xiaoyu
  * @author chenbin sixh
  */
-public abstract class ConfigParent {
+public abstract class ConfigParent implements Serializable {
 
     private volatile boolean isLoad = false;
 

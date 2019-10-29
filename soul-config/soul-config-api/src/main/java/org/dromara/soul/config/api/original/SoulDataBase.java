@@ -20,16 +20,18 @@
 package org.dromara.soul.config.api.original;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.dromara.soul.config.api.ConfigParent;
+import org.dromara.soul.config.api.constant.PrefixConstants;
 
 /**
- * SoulDataBase .
- * <p>
- * 2019-08-16
+ * The SoulDataBase config .
  *
+ * @author xiaoyu
  * @author sixh
  */
 @Data
+@EqualsAndHashCode
 public class SoulDataBase extends ConfigParent {
 
     private String url;
@@ -42,6 +44,6 @@ public class SoulDataBase extends ConfigParent {
 
     @Override
     public String prefix() {
-        return "soul.database";
+        return PrefixConstants.DATA_BASE_PREFIX;
     }
 }
