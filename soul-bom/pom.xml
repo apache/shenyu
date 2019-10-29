@@ -44,37 +44,66 @@
     </properties>
     <dependencyManagement>
         <dependencies>
-
             <dependency>
                 <groupId>org.dromara</groupId>
                 <artifactId>soul-dashboard</artifactId>
                 <version>${project.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>org.dromara</groupId>
                 <artifactId>soul-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.dromara</groupId>
-                <artifactId>soul-config-local</artifactId>
-                <version>${project.version}</version>
-            </dependency>
+
             <dependency>
                 <groupId>org.dromara</groupId>
                 <artifactId>soul-config-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>soul-config-local</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>soul-config-nacos</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>soul-config-apollo</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>org.dromara</groupId>
                 <artifactId>soul-remoting-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>org.dromara</groupId>
                 <artifactId>soul-remoting-netty</artifactId>
                 <version>${project.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>soul-remoting-mina</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>soul-remoting-tio</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>org.dromara</groupId>
                 <artifactId>soul-store-api</artifactId>
@@ -189,7 +218,6 @@
                 <artifactId>soul-limiter-guava</artifactId>
                 <version>${project.version}</version>
             </dependency>
-
 
             <dependency>
                 <groupId>org.dromara</groupId>
