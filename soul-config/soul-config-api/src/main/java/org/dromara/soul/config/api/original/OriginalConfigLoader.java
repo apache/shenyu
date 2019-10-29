@@ -41,7 +41,7 @@ import org.dromara.soul.config.api.property.PropertyKeySource;
  */
 public class OriginalConfigLoader implements ConfigLoader<ConfigParent> {
 
-    public OriginalConfigLoader() {
+    OriginalConfigLoader() {
         ConfigEnv.getInstance().putBean(new SoulDataBase());
         ConfigEnv.getInstance().putBean(new SoulRegister());
         ConfigEnv.getInstance().putBean(new SoulSPI());

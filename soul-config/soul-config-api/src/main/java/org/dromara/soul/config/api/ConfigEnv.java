@@ -38,8 +38,11 @@ import java.util.stream.Stream;
 public class ConfigEnv {
 
     private static final ConfigEnv INST = new ConfigEnv();
+
     private static final Logger logger = LoggerFactory.getLogger(ConfigEnv.class);
+
     private final Map<Class, ConfigParent> configBeans = new ConcurrentHashMap<>();
+
     /**
      * 保存一些自定义的配置信息.
      */

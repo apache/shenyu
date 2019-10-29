@@ -21,7 +21,6 @@ package org.dromara.soul.config.apollo;
 
 import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.ConfigService;
-import com.ctrip.framework.apollo.model.ConfigChange;
 import org.dromara.soul.common.extension.Join;
 import org.dromara.soul.common.utils.StringUtils;
 import org.dromara.soul.config.api.ConfigEnv;
@@ -68,13 +67,16 @@ public class ApolloConfigLoader implements ConfigLoader<ApolloConfig> {
             Config config = ConfigService.getAppConfig();
             config.addChangeListener(changeEvent -> {
                 Map<String, Object> changeMap = new HashMap<>();
-                for (String key : changeEvent.changedKeys()) {
-                    ConfigChange change = changeEvent.getChange(key);
-                    changeMap.put(change.getPropertyName(), change.getNewValue());
+                Set<String> propertyNames = config.getPropertyNames();
+                for (String propertyName : propertyNames) {
+                    String value = config.getProperty(propertyName, "");
+                    changeMap.put(propertyName, value);
                 }
-               // refresh changeMap ？
+                //refresh changeMap
+              /*  handlerResult(changeMap, context, handler, apolloConfig);
+                SoulSPI soulSPI = ConfigEnv.getInstance().getConfig(SoulSPI.class);
+                System.out.println(soulSPI.getFusing());*/
             });
-
             handlerResult(resultMap, context, handler, apolloConfig);
         } else {
             throw new ConfigException("apollo config is null");
