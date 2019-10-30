@@ -21,6 +21,7 @@ package org.dromara.soul.config.apollo;
 
 import lombok.Data;
 import org.dromara.soul.config.api.ConfigParent;
+import org.dromara.soul.config.api.constant.PrefixConstants;
 
 /**
  * The type Apollo config.
@@ -38,6 +39,6 @@ public class ApolloConfig extends ConfigParent {
 
     @Override
     public String prefix() {
-        return "soul.apollo";
+        return PrefixConstants.APOLLO_PREFIX;
     }
 }

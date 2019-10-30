@@ -45,4 +45,19 @@ public interface PrefixConstants {
      * The constant SPI_PREFIX.
      */
     String SPI_PREFIX = "soul.spi";
+
+    /**
+     * The constant APOLLO_PREFIX.
+     */
+    String APOLLO_PREFIX = "soul.apollo";
+
+    /**
+     * The constant NACOS_PREFIX.
+     */
+    String NACOS_PREFIX = "soul.nacos";
+
+    /**
+     * The constant DISCONF_PREFIX.
+     */
+    String DISCONF_PREFIX = "soul.disconf";
 }

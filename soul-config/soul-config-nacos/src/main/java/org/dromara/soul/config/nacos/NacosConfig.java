@@ -21,11 +21,10 @@ package org.dromara.soul.config.nacos;
 
 import lombok.Data;
 import org.dromara.soul.config.api.ConfigParent;
+import org.dromara.soul.config.api.constant.PrefixConstants;
 
 /**
  * NacosConfig .
- * nacos 服务配置.
- * 2019/8/17
  *
  * @author sixh
  */
@@ -42,6 +41,6 @@ public class NacosConfig extends ConfigParent {
 
     @Override
     public String prefix() {
-        return "soul.nacos";
+        return PrefixConstants.NACOS_PREFIX;
     }
 }

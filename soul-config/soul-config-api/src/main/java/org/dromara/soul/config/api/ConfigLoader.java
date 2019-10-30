@@ -20,6 +20,7 @@ package org.dromara.soul.config.api;
 
 import java.util.List;
 import java.util.function.Supplier;
+
 import org.dromara.soul.common.extension.SPI;
 import org.dromara.soul.config.api.bind.BindData;
 import org.dromara.soul.config.api.bind.Binder;
@@ -31,18 +32,17 @@ import org.dromara.soul.config.api.property.PropertyKeySource;
 
 /**
  * ConfigLoader
- * CreateDate: 2019/10/10 15:05
  *
  * @author sixh
  */
 @SPI("local")
 public interface ConfigLoader<T extends ConfigParent> {
+
     /**
      * Load related configuration information.
      *
      * @param context the context
      * @param handler the handler
-     * @return Configuration information.
      */
     void load(Supplier<Context> context, LoaderHandler<T> handler);
 
@@ -62,7 +62,6 @@ public interface ConfigLoader<T extends ConfigParent> {
             handler.finish(context, bind);
         }
     }
-
 
     /**
      * The type Context.
@@ -145,7 +144,7 @@ public interface ConfigLoader<T extends ConfigParent> {
      * @param <T> the type parameter
      */
     @FunctionalInterface
-    public interface LoaderHandler<T extends ConfigParent> {
+    interface LoaderHandler<T extends ConfigParent> {
         /**
          * 加载完成后要做的事情啊.
          *
