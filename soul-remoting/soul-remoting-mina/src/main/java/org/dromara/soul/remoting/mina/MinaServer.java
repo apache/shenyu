@@ -25,7 +25,6 @@ import java.util.Map;
 
 import org.apache.mina.core.filterchain.DefaultIoFilterChainBuilder;
 import org.apache.mina.core.session.IoSession;
-import org.apache.mina.http.HttpServerCodec;
 import org.apache.mina.transport.socket.SocketAcceptor;
 import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 import org.dromara.soul.common.Attribute;
@@ -44,7 +43,6 @@ import org.slf4j.LoggerFactory;
 public class MinaServer extends AbstractNetServer {
     private Logger logger = LoggerFactory.getLogger(MinaServer.class);
     private SocketAcceptor acceptor;
-    private MinaServerHandler minaServerHandler;
 
     /**
      * Instantiates a new Abstract net server.
@@ -66,13 +64,14 @@ public class MinaServer extends AbstractNetServer {
     @Override
     public void bind() {
         // set thread pool.
-        minaServerHandler = new MinaServerHandler(getAttribute(), this);
+        MinaServerHandler minaServerHandler = new MinaServerHandler(getAttribute(), this);
         acceptor = new NioSocketAcceptor(getIoThreads());
-        MinaCodec minaCodec = new MinaCodec();
         DefaultIoFilterChainBuilder filterChain = acceptor.getFilterChain();
         filterChain.addFirst("encode", new MinaCodec().getEncode());
-        filterChain.addLast("http_codec", new HttpServerCodec());
-        filterChain.addLast("decode", new MinaCodec().getEncode());
+        filterChain.addLast("decode", new MinaCodec().getDecode());
+        acceptor.getSessionConfig().setReuseAddress(true);
+        acceptor.getSessionConfig().setTcpNoDelay(true);
+        acceptor.getSessionConfig().setKeepAlive(true);
         acceptor.setHandler(minaServerHandler);
         try {
             acceptor.bind(this.bindSocketAddress());

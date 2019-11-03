@@ -84,7 +84,7 @@ public class NettyCodec implements Codec<FullHttpRequest, FullHttpResponse> {
     public HttpSoulRequest decode(Channel channel, FullHttpRequest fullHttpRequest) {
         HttpSoulRequest request = new HttpSoulRequest();
         String uri = fullHttpRequest.uri();
-        String httpUrl = "http://" + ((InetSocketAddress) channel.remoteAddress()).getHostString() + uri;
+        String httpUrl = "http://" + ((InetSocketAddress) channel.localAddress()).getHostString() + uri;
         String body = fullHttpRequest.content().toString(StandardCharsets.UTF_8);
         request.setBody(body);
         HttpHeaders headers = fullHttpRequest.headers();

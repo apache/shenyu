@@ -25,8 +25,28 @@ package org.dromara.soul.common;
  * @author sixh
  */
 public class Const {
+    /**
+     * Remote service host.
+     */
     public static final String HOST_KEY = "host";
+
+    /**
+     * The constant PORT_KEY.
+     */
     public static final String PORT_KEY = "port";
+
+    /**
+     * The constant PORT_KEY.
+     */
+    public static final String USE_EPOLL_NATIVE = "use_epoll_native";
+
+    /**
+     * The constant IO_THREADS_KEY.
+     */
     public static final String IO_THREADS_KEY = "io_threads";
+
+    /**
+     * The constant NET_TIMEOUT_KEY.
+     */
     public static final String NET_TIMEOUT_KEY = "net_timeout";
 }

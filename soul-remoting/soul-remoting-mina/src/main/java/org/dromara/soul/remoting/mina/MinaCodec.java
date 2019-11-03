@@ -31,9 +31,11 @@ import org.apache.mina.http.api.HttpVersion;
 import org.dromara.soul.common.http.HttpMethod;
 import org.dromara.soul.common.http.HttpSoulRequest;
 import org.dromara.soul.common.http.HttpSoulResponse;
+import org.dromara.soul.common.http.URL;
 import org.dromara.soul.remoting.api.Channel;
 import org.dromara.soul.remoting.api.codec.Codec;
 
+import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -69,16 +71,15 @@ public class MinaCodec implements Codec<HttpRequestImpl, HttpResponseMessage> {
     @Override
     public HttpSoulRequest decode(Channel channel, HttpRequestImpl httpRequest) {
         HttpSoulRequest request = new HttpSoulRequest();
-//        request.setUrl(httpRequest.getRequestPath());
-        String body = httpRequest.getQueryString();
-        request.setBody(body);
+        URL url = URL.valueOf("http", ((InetSocketAddress) channel.remoteAddress()).getHostString(), -1, httpRequest.getRequestPath(), httpRequest.getQueryString());
+        request.setUrl(url);
+        request.setBody("");
         Map<String, String> headers = httpRequest.getHeaders();
         request.setHeaders(headers);
         request.setMethod(HttpMethod.parse(httpRequest.getMethod().name()));
         request.setStatus(org.dromara.soul.common.http.HttpStatus.OK);
         return request;
     }
-
 
     public class Encode extends IoFilterAdapter {
 

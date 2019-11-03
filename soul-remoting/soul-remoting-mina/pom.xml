@@ -36,9 +36,7 @@
         <dependency>
             <groupId>org.apache.mina</groupId>
             <artifactId>mina-http</artifactId>
-            <version>2.1.3</version>
         </dependency>
-
         <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>soul-remoting-api</artifactId>

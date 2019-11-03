@@ -25,15 +25,14 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.WriteBufferWaterMark;
 import io.netty.channel.epoll.Epoll;
-import io.netty.channel.epoll.EpollChannelOption;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.ServerSocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 import org.dromara.soul.common.Attribute;
 import org.dromara.soul.common.concurrent.SoulThreadFactory;
+import org.dromara.soul.common.utils.OsUtils;
 import org.dromara.soul.remoting.api.AbstractNetServer;
 import org.dromara.soul.remoting.api.Channel;
 import org.dromara.soul.remoting.api.ChannelHandler;
@@ -58,20 +57,42 @@ public class NettyServer extends AbstractNetServer {
 
     private NettyServerHandler serverHandler;
 
+    private Class<? extends ServerSocketChannel> serverSocketChannelClass;
+
     NettyServer(Attribute attribute, ChannelHandler handler) {
         super(attribute, handler);
+        init();
+    }
+
+    private void init() {
+        this.serverHandler = new NettyServerHandler(getAttribute(), this);
+        this.bootstrap = new ServerBootstrap();
+        if (useEpoll()) {
+            this.bossGroup = new EpollEventLoopGroup(1, SoulThreadFactory.create("netty-epoll-ServerBoss", false));
+            this.workerGroup = new EpollEventLoopGroup(getIoThreads(), SoulThreadFactory.create("netty-epoll-ServerWork", false));
+            serverSocketChannelClass = EpollServerSocketChannel.class;
+        } else {
+            this.bossGroup = new NioEventLoopGroup(1, SoulThreadFactory.create("netty-nio-ServerBoss", false));
+            this.workerGroup = new NioEventLoopGroup(getIoThreads(), SoulThreadFactory.create("netty-nio-ServerWork", false));
+            serverSocketChannelClass = NioServerSocketChannel.class;
+        }
+    }
+
+    private boolean useEpoll() {
+        return Epoll.isAvailable() && OsUtils.isLinux() && getUseEpollNative();
     }
 
     @Override
     public void bind() {
-        serverHandler = new NettyServerHandler(getAttribute(), this);
-        bootstrap = new ServerBootstrap();
-        bossGroup = createEventLoopGroup();
-        if (bossGroup instanceof EpollEventLoopGroup) {
-            groupsEpoll(bootstrap, serverHandler);
-        } else {
-            groupsNio(bootstrap, serverHandler);
-        }
+        this.bootstrap.group(bossGroup, workerGroup)
+                .channel(serverSocketChannelClass)
+                .option(ChannelOption.SO_BACKLOG, 1024)
+                .option(ChannelOption.SO_REUSEADDR, true)
+                .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(8 * 1024 * 1024, 16 * 1024 * 1024))
+                .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                .childOption(ChannelOption.TCP_NODELAY, true)
+                .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                .childHandler(new NettyServerInitializer(serverHandler));
         ChannelFuture future = bootstrap.bind(getHost(), getPort());
         io.netty.channel.Channel channel = future.syncUninterruptibly().channel();
         this.channel = new NettyChannel(channel);
@@ -96,38 +117,5 @@ public class NettyServer extends AbstractNetServer {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
         }
-    }
-
-    private void groupsEpoll(final ServerBootstrap bootstrap, final NettyServerHandler serverHandler) {
-        workerGroup = new EpollEventLoopGroup(getIoThreads(), SoulThreadFactory.create("netty-nio-ServerWork", false));
-        bootstrap.group(bossGroup, workerGroup)
-                .channel(EpollServerSocketChannel.class)
-                .option(EpollChannelOption.SO_BACKLOG, 128)
-                .option(EpollChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(8 * 1024 * 1024, 16 * 1024 * 1024))
-                .option(EpollChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                .childOption(EpollChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                .childOption(EpollChannelOption.TCP_NODELAY, true)
-                .handler(new LoggingHandler(LogLevel.INFO))
-                .childHandler(new NettyServerInitializer(serverHandler));
-    }
-
-    private void groupsNio(final ServerBootstrap bootstrap, final NettyServerHandler serverHandler) {
-        workerGroup = new NioEventLoopGroup(getIoThreads(), SoulThreadFactory.create("netty-nio-ServerWork", false));
-        bootstrap.group(bossGroup, workerGroup)
-                .channel(NioServerSocketChannel.class)
-                .option(ChannelOption.SO_BACKLOG, 128)
-                .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(8 * 1024 * 1024, 16 * 1024 * 1024))
-                .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                .childOption(ChannelOption.TCP_NODELAY, true)
-                .handler(new LoggingHandler(LogLevel.INFO))
-                .childHandler(new NettyServerInitializer(serverHandler));
-    }
-
-
-    private EventLoopGroup createEventLoopGroup() {
-        return Epoll.isAvailable() ?
-                new EpollEventLoopGroup(1, SoulThreadFactory.create("netty-epoll-ServerBoss", false)) :
-                new NioEventLoopGroup(1, SoulThreadFactory.create("netty-nio-ServerBoss", false));
     }
 }

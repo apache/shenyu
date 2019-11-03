@@ -20,6 +20,7 @@
 package org.dromara.soul.remoting.netty;
 
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
@@ -31,7 +32,7 @@ import io.netty.handler.stream.ChunkedWriteHandler;
  *
  * @author xiaoyu
  */
-public class NettyServerInitializer extends ChannelInitializer<NioSocketChannel> {
+public class NettyServerInitializer extends ChannelInitializer<SocketChannel> {
 
     private final NettyServerHandler serverHandler;
 
@@ -45,7 +46,7 @@ public class NettyServerInitializer extends ChannelInitializer<NioSocketChannel>
     }
 
     @Override
-    protected void initChannel(NioSocketChannel channel) {
+    protected void initChannel(SocketChannel channel) {
         NettyCodec codec = new NettyCodec();
         channel.pipeline().addLast("http", new HttpServerCodec());
         channel.pipeline().addLast("websocket", new WebSocketServerCompressionHandler());
