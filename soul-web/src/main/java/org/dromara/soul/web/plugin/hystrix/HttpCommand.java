@@ -21,6 +21,9 @@ package org.dromara.soul.web.plugin.hystrix;
 import com.netflix.hystrix.HystrixObservableCommand;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import com.netflix.hystrix.exception.HystrixTimeoutException;
+import io.netty.channel.ChannelOption;
+import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.handler.timeout.WriteTimeoutHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.HttpMethodEnum;
@@ -37,17 +40,22 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClient;
+import reactor.netty.resources.ConnectionProvider;
+import reactor.netty.tcp.TcpClient;
 import rx.Observable;
 import rx.RxReactiveStreams;
 
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 /**
  * the spring cloud command.
@@ -61,7 +69,7 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpCommand.class);
 
-    private static final WebClient WEB_CLIENT = WebClient.create();
+    private static final WebClient WEB_CLIENT;
 
     private final ServerWebExchange exchange;
 
@@ -72,6 +80,16 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
     private final String url;
 
     private final Integer timeout;
+
+    static {
+        // configure tcp pool
+        long acquireTimeout = Math.min(ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT, 5000);
+        ConnectionProvider fixedPool = ConnectionProvider.fixed("soul-tcp-pool", ConnectionProvider.DEFAULT_POOL_MAX_CONNECTIONS, acquireTimeout);
+        TcpClient tcpClient = TcpClient.create(fixedPool);
+        WEB_CLIENT = WebClient.builder()
+                .clientConnector(new ReactorClientHttpConnector(HttpClient.from(tcpClient)))
+                .build();
+    }
 
     /**
      * Instantiates a new Http command.
