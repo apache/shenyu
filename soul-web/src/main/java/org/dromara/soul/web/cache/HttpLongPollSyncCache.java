@@ -151,7 +151,7 @@ public class HttpLongPollSyncCache extends HttpCacheHandler implements CommandLi
             LOGGER.info("request configs: [{}]", url);
             try {
                 String json = this.httpClient.getForObject(url, String.class);
-                LOGGER.info("get configs: [{}]", json);
+                LOGGER.info("get latest configs: [{}]", json);
                 updateCacheWithJson(json);
                 return;
             } catch (Exception e) {
@@ -227,16 +227,17 @@ public class HttpLongPollSyncCache extends HttpCacheHandler implements CommandLi
         HttpEntity httpEntity = new HttpEntity(params, headers);
         for (String server : serverList) {
             String listenerUrl = server + "/configs/listener";
-            LOGGER.info("request listener configs: [{}]", listenerUrl);
+            LOGGER.debug("request listener configs: [{}]", listenerUrl);
             try {
                 String json = this.httpClient.postForEntity(listenerUrl, httpEntity, String.class).getBody();
-                LOGGER.info("listener result: [{}]", json);
+                LOGGER.debug("listener result: [{}]", json);
                 JsonArray groupJson = GSON.fromJson(json, JsonObject.class).getAsJsonArray("data");
                 if (groupJson != null) {
                     // fetch group configuration async.
                     ConfigGroupEnum[] changedGroups = GSON.fromJson(groupJson, ConfigGroupEnum[].class);
                     if (ArrayUtils.isNotEmpty(changedGroups)) {
-                        executor.execute(() -> fetchGroupConfig(changedGroups));
+                        LOGGER.info("Group config changed: {}", changedGroups);
+                        this.fetchGroupConfig(changedGroups);
                     }
                 }
                 break;
