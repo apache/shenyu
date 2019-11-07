@@ -21,9 +21,6 @@ package org.dromara.soul.web.plugin.hystrix;
 import com.netflix.hystrix.HystrixObservableCommand;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import com.netflix.hystrix.exception.HystrixTimeoutException;
-import io.netty.channel.ChannelOption;
-import io.netty.handler.timeout.ReadTimeoutHandler;
-import io.netty.handler.timeout.WriteTimeoutHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.HttpMethodEnum;
@@ -55,7 +52,6 @@ import rx.RxReactiveStreams;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 /**
  * the spring cloud command.
@@ -83,7 +79,7 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
 
     static {
         // configure tcp pool
-        long acquireTimeout = Math.min(ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT, 5000);
+        long acquireTimeout = Math.min(ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT, 3000);
         ConnectionProvider fixedPool = ConnectionProvider.fixed("soul-tcp-pool", ConnectionProvider.DEFAULT_POOL_MAX_CONNECTIONS, acquireTimeout);
         TcpClient tcpClient = TcpClient.create(fixedPool);
         WEB_CLIENT = WebClient.builder()
