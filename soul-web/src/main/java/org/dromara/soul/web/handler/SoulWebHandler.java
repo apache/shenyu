@@ -23,6 +23,8 @@ import org.dromara.soul.web.plugin.SoulPluginChain;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebHandler;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.List;
 
@@ -35,6 +37,8 @@ public final class SoulWebHandler implements WebHandler {
 
     private List<SoulPlugin> plugins;
 
+    private Scheduler fixedPool;
+
     /**
      * Instantiates a new Soul web handler.
      *
@@ -42,6 +46,7 @@ public final class SoulWebHandler implements WebHandler {
      */
     public SoulWebHandler(final List<SoulPlugin> plugins) {
         this.plugins = plugins;
+        fixedPool = Schedulers.newParallel("soul-work-threads", (Runtime.getRuntime().availableProcessors() << 1) + 1);
     }
 
     /**
@@ -53,8 +58,7 @@ public final class SoulWebHandler implements WebHandler {
     @Override
     public Mono<Void> handle(final ServerWebExchange exchange) {
         return new DefaultSoulPluginChain(plugins)
-                .execute(exchange)
-                .doOnError(Throwable::printStackTrace);
+                .execute(exchange).subscribeOn(fixedPool);
     }
 
     private static class DefaultSoulPluginChain implements SoulPluginChain {
@@ -80,12 +84,14 @@ public final class SoulWebHandler implements WebHandler {
          */
         @Override
         public Mono<Void> execute(final ServerWebExchange exchange) {
-            if (this.index < plugins.size()) {
-                SoulPlugin plugin = plugins.get(this.index++);
-                return plugin.execute(exchange, this);
-            } else {
-                return Mono.empty();
-            }
+            return Mono.defer(() -> {
+                if (this.index < plugins.size()) {
+                    SoulPlugin plugin = plugins.get(this.index++);
+                    return plugin.execute(exchange, this);
+                } else {
+                    return Mono.empty();
+                }
+            });
         }
     }
 }
