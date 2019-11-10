@@ -46,7 +46,7 @@ public class HttpTestController {
      * @return the user dto
      */
     @PostMapping("/payment")
-    public UserDTO post(final UserDTO userDTO) {
+    public UserDTO post(@RequestBody final UserDTO userDTO) {
         return userDTO;
     }
 
