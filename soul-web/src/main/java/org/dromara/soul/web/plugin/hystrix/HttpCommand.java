@@ -129,51 +129,32 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
                     .doOnError(e -> LogUtils.error(LOGGER, e::getMessage))
                     .timeout(Duration.ofMillis(timeout))
                     .flatMap(this::doNext);
+
         } else if (requestDTO.getHttpMethod().equals(HttpMethodEnum.PUT.getName())) {
+
             final String pathVariable = pathVariable(buildRealURL());
             LogUtils.debug(LOGGER, "you put request,The resulting url is :{}", () -> pathVariable);
-            return WEB_CLIENT.put().uri(pathVariable)
-                    .headers(httpHeaders -> {
-                        httpHeaders.addAll(exchange.getRequest().getHeaders());
-                        httpHeaders.remove(HttpHeaders.HOST);
-                    })
-                    .contentType(buildMediaType())
-                    .body(BodyInserters.fromDataBuffers(exchange.getRequest().getBody()))
-                    .exchange()
-                    .doOnError(e -> LogUtils.error(LOGGER, e::getMessage))
-                    .timeout(Duration.ofMillis(timeout))
-                    .flatMap(this::doNext);
+            WebClient.RequestBodySpec requestBodySpec = WEB_CLIENT.put().uri(pathVariable);
+
+            return handleRequestBody(requestBodySpec);
 
         } else if (requestDTO.getHttpMethod().equals(HttpMethodEnum.DELETE.getName())) {
+
             final String pathVariable = pathVariable(buildRealURL());
             LogUtils.debug(LOGGER, "you delete request,The resulting url is:{}", () -> pathVariable);
-            return WEB_CLIENT.method(HttpMethod.DELETE).uri(pathVariable)
-                    .headers(httpHeaders -> {
-                        httpHeaders.addAll(exchange.getRequest().getHeaders());
-                        httpHeaders.remove(HttpHeaders.HOST);
-                    })
-                    .contentType(buildMediaType())
-                    .body(BodyInserters.fromDataBuffers(exchange.getRequest().getBody()))
-                    .exchange()
-                    .doOnError(e -> LogUtils.error(LOGGER, e::getMessage))
-                    .timeout(Duration.ofMillis(timeout))
-                    .flatMap(this::doNext);
+            WebClient.RequestBodySpec requestBodySpec = WEB_CLIENT.method(HttpMethod.DELETE).uri(pathVariable);
+
+            return handleRequestBody(requestBodySpec);
 
         } else if (requestDTO.getHttpMethod().equals(HttpMethodEnum.POST.getName())) {
+
             final String uri = buildRealURL();
             LogUtils.debug(LOGGER, "you post request,The resulting url is :{}", () -> uri);
-            return WEB_CLIENT.post().uri(uri)
-                    .headers(httpHeaders -> {
-                        httpHeaders.addAll(exchange.getRequest().getHeaders());
-                        httpHeaders.remove(HttpHeaders.HOST);
-                    })
-                    .contentType(buildMediaType())
-                    .body(BodyInserters.fromDataBuffers(exchange.getRequest().getBody()))
-                    .exchange()
-                    .doOnError(e -> LogUtils.error(LOGGER, e::getMessage))
-                    .timeout(Duration.ofMillis(timeout))
-                    .flatMap(this::doNext);
+            WebClient.RequestBodySpec requestBodySpec = WEB_CLIENT.post().uri(uri);
+
+            return handleRequestBody(requestBodySpec);
         }
+
         return Mono.empty();
     }
 
@@ -245,4 +226,18 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
         return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
                 .bufferFactory().wrap(Objects.requireNonNull(JsonUtils.toJson(error)).getBytes())));
     }
+
+    private Mono<Void> handleRequestBody(WebClient.RequestBodySpec requestBodySpec) {
+        return requestBodySpec.headers(httpHeaders -> {
+            httpHeaders.addAll(exchange.getRequest().getHeaders());
+            httpHeaders.remove(HttpHeaders.HOST);
+        })
+                .contentType(buildMediaType())
+                .body(BodyInserters.fromDataBuffers(exchange.getRequest().getBody()))
+                .exchange()
+                .doOnError(e -> LogUtils.error(LOGGER, e::getMessage))
+                .timeout(Duration.ofMillis(timeout))
+                .flatMap(this::doNext);
+    }
+
 }
