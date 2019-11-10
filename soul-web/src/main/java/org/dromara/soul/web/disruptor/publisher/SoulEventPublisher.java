@@ -56,6 +56,9 @@ public class SoulEventPublisher implements InitializingBean, DisposableBean {
     @Value("${soul.disruptor.threadSize:16}")
     private int threadSize;
 
+    @Value("${soul.disruptor.taskQueueSize:4096}")
+    private int threadPoolQueueSize;
+
     /**
      * Instantiates a new Soul event publisher.
      *
@@ -75,7 +78,7 @@ public class SoulEventPublisher implements InitializingBean, DisposableBean {
                 new BlockingWaitStrategy());
 
         final Executor executor = new ThreadPoolExecutor(threadSize, threadSize, 0, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(),
+                new LinkedBlockingQueue<>(threadPoolQueueSize),
                 SoulThreadFactory.create("monitor-disruptor-executor", false),
                 new ThreadPoolExecutor.AbortPolicy());
 
