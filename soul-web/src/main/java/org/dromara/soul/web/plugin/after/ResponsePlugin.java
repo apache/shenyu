@@ -91,6 +91,7 @@ public class ResponsePlugin implements SoulPlugin {
                     return response.writeWith(Mono.just(exchange.getResponse()
                             .bufferFactory().wrap(Objects.requireNonNull(result).getBytes())));
                 }
+                response.getHeaders().putAll(clientResponse.headers().asHttpHeaders());
                 return response.writeWith(clientResponse.body(BodyExtractors.toDataBuffers()));
             }
         }));
