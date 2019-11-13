@@ -59,7 +59,6 @@ public class SoulNettyWebServerFactory {
             return httpServer
                     .tcpConfiguration(tcpServer -> tcpServer
                             .runOn(LoopResources.create("soul-netty", 1, DEFAULT_IO_WORKER_COUNT, true), false)
-                            .selectorOption(ChannelOption.SO_BACKLOG, 65535)
                             .selectorOption(ChannelOption.SO_REUSEADDR, true)
                             .selectorOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                             .option(ChannelOption.TCP_NODELAY, true)
