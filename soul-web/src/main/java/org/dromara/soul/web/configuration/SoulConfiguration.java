@@ -23,6 +23,7 @@ import org.dromara.soul.web.cache.UpstreamCacheManager;
 import org.dromara.soul.web.config.SoulConfig;
 import org.dromara.soul.web.disruptor.publisher.SoulEventPublisher;
 import org.dromara.soul.web.filter.BodyWebFilter;
+import org.dromara.soul.web.filter.FileSizeFilter;
 import org.dromara.soul.web.filter.ParamWebFilter;
 import org.dromara.soul.web.filter.TimeWebFilter;
 import org.dromara.soul.web.filter.WebSocketWebFilter;
@@ -229,6 +230,17 @@ public class SoulConfiguration {
                     }
                 }).collect(Collectors.toList());
         return new SoulWebHandler(soulPlugins);
+    }
+
+    /**
+     * Body web filter web filter.
+     *
+     * @return the web filter
+     */
+    @Bean
+    @Order(-2)
+    public WebFilter bodySizeFilter() {
+        return new FileSizeFilter();
     }
 
     /**
