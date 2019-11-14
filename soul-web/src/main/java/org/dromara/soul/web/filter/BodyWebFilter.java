@@ -20,13 +20,16 @@ import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.springframework.http.MediaType;
+import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -36,13 +39,19 @@ import java.util.Map;
  */
 public class BodyWebFilter implements WebFilter {
 
+    private final List<HttpMessageReader<?>> messageReaders;
+
+    public BodyWebFilter() {
+        this.messageReaders = HandlerStrategies.withDefaults().messageReaders();
+    }
+
     @Override
     public Mono<Void> filter(final ServerWebExchange exchange, final WebFilterChain chain) {
-        ServerRequest serverRequest = new DefaultServerRequest(exchange);
         final ServerHttpRequest request = exchange.getRequest();
         final String rpcType = request.getHeaders().getFirst(Constants.RPC_TYPE);
         if (RpcTypeEnum.DUBBO.getName().equals(rpcType)) {
             MediaType mediaType = request.getHeaders().getContentType();
+            ServerRequest serverRequest = ServerRequest.create(exchange, messageReaders);
             return serverRequest.bodyToMono(String.class)
                     .flatMap(body -> {
                         if (MediaType.APPLICATION_JSON.isCompatibleWith(mediaType)) {
