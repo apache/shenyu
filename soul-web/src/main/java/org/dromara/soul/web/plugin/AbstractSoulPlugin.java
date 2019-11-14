@@ -81,9 +81,10 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
     public Mono<Void> execute(final ServerWebExchange exchange, final SoulPluginChain chain) {
         final PluginData pluginData = localCacheManager.findPluginByName(named());
         if (!(skip(exchange) || pluginData == null || !pluginData.getEnabled())) {
-            //获取selector
+            final RequestDTO request = exchange.getAttribute(Constants.REQUESTDTO);
             final List<SelectorData> selectors = localCacheManager.findSelectorByPluginName(named());
             if (CollectionUtils.isEmpty(selectors)) {
+                LOGGER.error("can not find selector data :{},params:{}", named(), Objects.requireNonNull(request).toString());
                 return chain.execute(exchange);
             }
             final SelectorData selectorData = selectors.stream()
@@ -91,22 +92,22 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
                     .findFirst().orElse(null);
 
             if (Objects.isNull(selectorData)) {
+                LOGGER.error("can not match selector data :{},params:{}", named(), Objects.requireNonNull(request).toString());
                 return chain.execute(exchange);
             }
 
             if (selectorData.getLoged()) {
-                LogUtils.info(LOGGER, named()
-                        + " selector success selector name :{}", selectorData::getName);
+                LogUtils.info(LOGGER, named() + " selector success selector name :{}", selectorData::getName);
+
             }
             final List<RuleData> rules =
                     localCacheManager.findRuleBySelectorId(selectorData.getId());
             if (CollectionUtils.isEmpty(rules)) {
+                LOGGER.error("can not match rule data :{},params:{}", named(), Objects.requireNonNull(request).toString());
                 return chain.execute(exchange);
             }
 
             RuleData rule = filterRule(exchange, rules);
-
-            final RequestDTO request = exchange.getAttribute(Constants.REQUESTDTO);
 
             if (Objects.isNull(rule)) {
                 //If the divide or dubbo or spring cloud plug-in does not match, return directly
