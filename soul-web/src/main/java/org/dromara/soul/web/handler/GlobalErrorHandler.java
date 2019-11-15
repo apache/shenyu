@@ -87,9 +87,7 @@ public class GlobalErrorHandler extends DefaultErrorWebExceptionHandler {
 
     private void logError(final ServerRequest request) {
         Throwable ex = getError(request);
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(request.exchange().getLogPrefix() + formatError(ex, request));
-        }
+        LOGGER.error(request.exchange().getLogPrefix() + formatError(ex, request));
     }
 
     private String formatError(final Throwable ex, final ServerRequest request) {
