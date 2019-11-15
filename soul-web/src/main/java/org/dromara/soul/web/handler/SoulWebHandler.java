@@ -35,6 +35,11 @@ import java.util.List;
  */
 public final class SoulWebHandler implements WebHandler {
 
+    private static final int DEFAULT_IO_WORKER_COUNT = Integer.parseInt(System.getProperty(
+            "soul.work.threads",
+            "" + Math.max(Runtime.getRuntime()
+                    .availableProcessors() << 1, 16)));
+
     private List<SoulPlugin> plugins;
 
     private Scheduler fixedPool;
@@ -46,7 +51,7 @@ public final class SoulWebHandler implements WebHandler {
      */
     public SoulWebHandler(final List<SoulPlugin> plugins) {
         this.plugins = plugins;
-        fixedPool = Schedulers.newParallel("soul-work-threads", (Runtime.getRuntime().availableProcessors() << 1) + 1);
+        fixedPool = Schedulers.newParallel("soul-work-threads", DEFAULT_IO_WORKER_COUNT);
     }
 
     /**
