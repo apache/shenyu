@@ -64,12 +64,8 @@ public class SelectorController {
      */
     @GetMapping("")
     public SoulResult querySelectors(final String pluginId, final Integer currentPage, final Integer pageSize) {
-        try {
-            CommonPager<SelectorVO> commonPager = selectorService.listByPage(new SelectorQuery(pluginId, new PageParameter(currentPage, pageSize)));
-            return SoulResult.success("query selectors success", commonPager);
-        } catch (Exception e) {
-            return SoulResult.error("query selectors exception");
-        }
+        CommonPager<SelectorVO> commonPager = selectorService.listByPage(new SelectorQuery(pluginId, new PageParameter(currentPage, pageSize)));
+        return SoulResult.success("query selectors success", commonPager);
     }
 
     /**
@@ -80,13 +76,8 @@ public class SelectorController {
      */
     @GetMapping("/{id}")
     public SoulResult detailSelector(@PathVariable("id") final String id) {
-        try {
-            SelectorVO selectorVO = selectorService.findById(id);
-            return SoulResult.success("detail selector success", selectorVO);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return SoulResult.error("detail selector exception");
-        }
+        SelectorVO selectorVO = selectorService.findById(id);
+        return SoulResult.success("detail selector success", selectorVO);
     }
 
     /**
@@ -97,12 +88,8 @@ public class SelectorController {
      */
     @PostMapping("")
     public SoulResult createSelector(@RequestBody final SelectorDTO selectorDTO) {
-        try {
-            Integer createCount = selectorService.createOrUpdate(selectorDTO);
-            return SoulResult.success("create selector success", createCount);
-        } catch (Exception e) {
-            return SoulResult.error("create selector exception");
-        }
+        Integer createCount = selectorService.createOrUpdate(selectorDTO);
+        return SoulResult.success("create selector success", createCount);
     }
 
     /**
@@ -114,14 +101,10 @@ public class SelectorController {
      */
     @PutMapping("/{id}")
     public SoulResult updateSelector(@PathVariable("id") final String id, @RequestBody final SelectorDTO selectorDTO) {
-        try {
-            Objects.requireNonNull(selectorDTO);
-            selectorDTO.setId(id);
-            Integer updateCount = selectorService.createOrUpdate(selectorDTO);
-            return SoulResult.success("update selector success", updateCount);
-        } catch (Exception e) {
-            return SoulResult.error("update selector exception");
-        }
+        Objects.requireNonNull(selectorDTO);
+        selectorDTO.setId(id);
+        Integer updateCount = selectorService.createOrUpdate(selectorDTO);
+        return SoulResult.success("update selector success", updateCount);
     }
 
     /**
@@ -132,11 +115,7 @@ public class SelectorController {
      */
     @DeleteMapping("/batch")
     public SoulResult deleteSelector(@RequestBody final List<String> ids) {
-        try {
-            Integer deleteCount = selectorService.delete(ids);
-            return SoulResult.success("delete selectors success", deleteCount);
-        } catch (Exception e) {
-            return SoulResult.error("delete selectors exception");
-        }
+        Integer deleteCount = selectorService.delete(ids);
+        return SoulResult.success("delete selectors success", deleteCount);
     }
 }

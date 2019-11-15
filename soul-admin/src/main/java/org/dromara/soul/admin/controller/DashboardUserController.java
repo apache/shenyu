@@ -64,12 +64,8 @@ public class DashboardUserController {
      */
     @GetMapping("")
     public SoulResult queryDashboardUsers(final String userName, final Integer currentPage, final Integer pageSize) {
-        try {
-            CommonPager<DashboardUserVO> commonPager = dashboardUserService.listByPage(new DashboardUserQuery(userName, new PageParameter(currentPage, pageSize)));
-            return SoulResult.success("query dashboard users success", commonPager);
-        } catch (Exception e) {
-            return SoulResult.error("query dashboard users exception");
-        }
+        CommonPager<DashboardUserVO> commonPager = dashboardUserService.listByPage(new DashboardUserQuery(userName, new PageParameter(currentPage, pageSize)));
+        return SoulResult.success("query dashboard users success", commonPager);
     }
 
     /**
@@ -80,12 +76,8 @@ public class DashboardUserController {
      */
     @GetMapping("/{id}")
     public SoulResult detailDashboardUser(@PathVariable("id") final String id) {
-        try {
-            DashboardUserVO dashboardUserVO = dashboardUserService.findById(id);
-            return SoulResult.success("detail dashboard user success", dashboardUserVO);
-        } catch (Exception e) {
-            return SoulResult.error("detail dashboard user exception");
-        }
+        DashboardUserVO dashboardUserVO = dashboardUserService.findById(id);
+        return SoulResult.success("detail dashboard user success", dashboardUserVO);
     }
 
     /**
@@ -96,12 +88,8 @@ public class DashboardUserController {
      */
     @PostMapping("")
     public SoulResult createDashboardUser(@RequestBody final DashboardUserDTO dashboardUserDTO) {
-        try {
-            Integer createCount = dashboardUserService.createOrUpdate(dashboardUserDTO);
-            return SoulResult.success("create dashboard user success", createCount);
-        } catch (Exception e) {
-            return SoulResult.error("create dashboard user exception");
-        }
+        Integer createCount = dashboardUserService.createOrUpdate(dashboardUserDTO);
+        return SoulResult.success("create dashboard user success", createCount);
     }
 
     /**
@@ -113,14 +101,10 @@ public class DashboardUserController {
      */
     @PutMapping("/{id}")
     public SoulResult updateDashboardUser(@PathVariable("id") final String id, @RequestBody final DashboardUserDTO dashboardUserDTO) {
-        try {
-            Objects.requireNonNull(dashboardUserDTO);
-            dashboardUserDTO.setId(id);
-            Integer updateCount = dashboardUserService.createOrUpdate(dashboardUserDTO);
-            return SoulResult.success("update dashboard user success", updateCount);
-        } catch (Exception e) {
-            return SoulResult.error("update dashboard user exception");
-        }
+        Objects.requireNonNull(dashboardUserDTO);
+        dashboardUserDTO.setId(id);
+        Integer updateCount = dashboardUserService.createOrUpdate(dashboardUserDTO);
+        return SoulResult.success("update dashboard user success", updateCount);
     }
 
     /**
@@ -131,11 +115,7 @@ public class DashboardUserController {
      */
     @DeleteMapping("/batch")
     public SoulResult deleteDashboardUser(@RequestBody final List<String> ids) {
-        try {
-            Integer deleteCount = dashboardUserService.delete(ids);
-            return SoulResult.success("delete dashboard users success", deleteCount);
-        } catch (Exception e) {
-            return SoulResult.error("delete dashboard users exception");
-        }
+        Integer deleteCount = dashboardUserService.delete(ids);
+        return SoulResult.success("delete dashboard users success", deleteCount);
     }
 }

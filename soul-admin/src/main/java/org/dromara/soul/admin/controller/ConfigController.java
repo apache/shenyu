@@ -58,17 +58,12 @@ public class ConfigController {
      */
     @GetMapping("/fetch")
     public SoulResult fetchConfigs(@NotNull String[] groupKeys) {
-        try {
-            Map<String, ConfigData> result = Maps.newConcurrentMap();
-            for (String groupKey : groupKeys) {
-                ConfigData data = longPollingListener.fetchConfig(ConfigGroupEnum.valueOf(groupKey));
-                result.put(groupKey, data);
-            }
-            return SoulResult.success("success", result);
-        } catch (Exception e) {
-            log.error("fetch all configs error.", e);
-            return SoulResult.error("fetch all configs error: " + e.getMessage());
+        Map<String, ConfigData> result = Maps.newConcurrentMap();
+        for (String groupKey : groupKeys) {
+            ConfigData data = longPollingListener.fetchConfig(ConfigGroupEnum.valueOf(groupKey));
+            result.put(groupKey, data);
         }
+        return SoulResult.success("success", result);
     }
 
     /**

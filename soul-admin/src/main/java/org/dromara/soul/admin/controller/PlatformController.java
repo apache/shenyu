@@ -55,12 +55,8 @@ public class PlatformController {
      */
     @GetMapping("/login")
     public SoulResult loginDashboardUser(final String userName, final String password) {
-        try {
-            DashboardUserVO dashboardUserVO = dashboardUserService.findByQuery(userName, password);
-            return SoulResult.success("login dashboard user success", dashboardUserVO);
-        } catch (Exception e) {
-            return SoulResult.error("login dashboard user exception");
-        }
+        DashboardUserVO dashboardUserVO = dashboardUserService.findByQuery(userName, password);
+        return SoulResult.success("login dashboard user success", dashboardUserVO);
     }
 
     /**
