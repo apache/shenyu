@@ -64,12 +64,8 @@ public class RuleController {
      */
     @GetMapping("")
     public SoulResult queryRules(final String selectorId, final Integer currentPage, final Integer pageSize) {
-        try {
-            CommonPager<RuleVO> commonPager = ruleService.listByPage(new RuleQuery(selectorId, new PageParameter(currentPage, pageSize)));
-            return SoulResult.success("query rules success", commonPager);
-        } catch (Exception e) {
-            return SoulResult.error("query rules exception");
-        }
+        CommonPager<RuleVO> commonPager = ruleService.listByPage(new RuleQuery(selectorId, new PageParameter(currentPage, pageSize)));
+        return SoulResult.success("query rules success", commonPager);
     }
 
     /**
@@ -80,12 +76,8 @@ public class RuleController {
      */
     @GetMapping("/{id}")
     public SoulResult detailRule(@PathVariable("id") final String id) {
-        try {
-            RuleVO ruleVO = ruleService.findById(id);
-            return SoulResult.success("detail rule success", ruleVO);
-        } catch (Exception e) {
-            return SoulResult.error("detail rule exception");
-        }
+        RuleVO ruleVO = ruleService.findById(id);
+        return SoulResult.success("detail rule success", ruleVO);
     }
 
     /**
@@ -96,12 +88,8 @@ public class RuleController {
      */
     @PostMapping("")
     public SoulResult createRule(@RequestBody final RuleDTO ruleDTO) {
-        try {
-            Integer createCount = ruleService.createOrUpdate(ruleDTO);
-            return SoulResult.success("create rule success", createCount);
-        } catch (Exception e) {
-            return SoulResult.error("create rule exception");
-        }
+        Integer createCount = ruleService.createOrUpdate(ruleDTO);
+        return SoulResult.success("create rule success", createCount);
     }
 
     /**
@@ -113,14 +101,10 @@ public class RuleController {
      */
     @PutMapping("/{id}")
     public SoulResult updateRule(@PathVariable("id") final String id, @RequestBody final RuleDTO ruleDTO) {
-        try {
-            Objects.requireNonNull(ruleDTO);
-            ruleDTO.setId(id);
-            Integer updateCount = ruleService.createOrUpdate(ruleDTO);
-            return SoulResult.success("update rule success", updateCount);
-        } catch (Exception e) {
-            return SoulResult.error("update rule exception");
-        }
+        Objects.requireNonNull(ruleDTO);
+        ruleDTO.setId(id);
+        Integer updateCount = ruleService.createOrUpdate(ruleDTO);
+        return SoulResult.success("update rule success", updateCount);
     }
 
     /**
@@ -131,11 +115,7 @@ public class RuleController {
      */
     @DeleteMapping("/batch")
     public SoulResult deleteRules(@RequestBody final List<String> ids) {
-        try {
-            Integer deleteCount = ruleService.delete(ids);
-            return SoulResult.success("delete rule success", deleteCount);
-        } catch (Exception e) {
-            return SoulResult.error("delete rule exception");
-        }
+        Integer deleteCount = ruleService.delete(ids);
+        return SoulResult.success("delete rule success", deleteCount);
     }
 }

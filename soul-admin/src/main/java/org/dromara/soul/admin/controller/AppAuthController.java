@@ -64,12 +64,8 @@ public class AppAuthController {
      */
     @GetMapping("")
     public SoulResult queryAppAuthList(final String appKey, final Integer currentPage, final Integer pageSize) {
-        try {
-            CommonPager<AppAuthVO> commonPager = appAuthService.listByPage(new AppAuthQuery(appKey, new PageParameter(currentPage, pageSize)));
-            return SoulResult.success("query application authorities success", commonPager);
-        } catch (Exception e) {
-            return SoulResult.error("query application authorities exception");
-        }
+        CommonPager<AppAuthVO> commonPager = appAuthService.listByPage(new AppAuthQuery(appKey, new PageParameter(currentPage, pageSize)));
+        return SoulResult.success("query application authorities success", commonPager);
     }
 
     /**
@@ -80,12 +76,8 @@ public class AppAuthController {
      */
     @GetMapping("/{id}")
     public SoulResult detailAppAuth(@PathVariable("id") final String id) {
-        try {
-            AppAuthVO appAuthVO = appAuthService.findById(id);
-            return SoulResult.success("detail application authority success", appAuthVO);
-        } catch (Exception e) {
-            return SoulResult.error("detail application authority exception");
-        }
+        AppAuthVO appAuthVO = appAuthService.findById(id);
+        return SoulResult.success("detail application authority success", appAuthVO);
     }
 
     /**
@@ -96,12 +88,8 @@ public class AppAuthController {
      */
     @PostMapping("")
     public SoulResult createAppAuth(@RequestBody final AppAuthDTO appAuthDTO) {
-        try {
-            Integer createCount = appAuthService.createOrUpdate(appAuthDTO);
-            return SoulResult.success("create application authority success", createCount);
-        } catch (Exception e) {
-            return SoulResult.error("create application authority exception");
-        }
+        Integer createCount = appAuthService.createOrUpdate(appAuthDTO);
+        return SoulResult.success("create application authority success", createCount);
     }
 
     /**
@@ -113,14 +101,10 @@ public class AppAuthController {
      */
     @PutMapping("/{id}")
     public SoulResult updateAppAuth(@PathVariable("id") final String id, @RequestBody final AppAuthDTO appAuthDTO) {
-        try {
-            Objects.requireNonNull(appAuthDTO);
-            appAuthDTO.setId(id);
-            Integer updateCount = appAuthService.createOrUpdate(appAuthDTO);
-            return SoulResult.success("update application authority success", updateCount);
-        } catch (Exception e) {
-            return SoulResult.error("update application authority exception");
-        }
+        Objects.requireNonNull(appAuthDTO);
+        appAuthDTO.setId(id);
+        Integer updateCount = appAuthService.createOrUpdate(appAuthDTO);
+        return SoulResult.success("update application authority success", updateCount);
     }
 
     /**
@@ -131,11 +115,7 @@ public class AppAuthController {
      */
     @DeleteMapping("/batch")
     public SoulResult deleteAppAuths(@RequestBody final List<String> ids) {
-        try {
-            Integer deleteCount = appAuthService.delete(ids);
-            return SoulResult.success("delete application authorities success", deleteCount);
-        } catch (Exception e) {
-            return SoulResult.error("delete application authorities exception");
-        }
+        Integer deleteCount = appAuthService.delete(ids);
+        return SoulResult.success("delete application authorities success", deleteCount);
     }
 }

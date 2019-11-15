@@ -78,12 +78,8 @@ public class PluginController {
      */
     @GetMapping("")
     public SoulResult queryPlugins(final String name, final Integer currentPage, final Integer pageSize) {
-        try {
-            CommonPager<PluginVO> commonPager = pluginService.listByPage(new PluginQuery(name, new PageParameter(currentPage, pageSize)));
-            return SoulResult.success("query plugins success", commonPager);
-        } catch (Exception e) {
-            return SoulResult.error("query plugins exception");
-        }
+        CommonPager<PluginVO> commonPager = pluginService.listByPage(new PluginQuery(name, new PageParameter(currentPage, pageSize)));
+        return SoulResult.success("query plugins success", commonPager);
     }
 
     /**
@@ -94,12 +90,8 @@ public class PluginController {
      */
     @GetMapping("/{id}")
     public SoulResult detailPlugin(@PathVariable("id") final String id) {
-        try {
-            PluginVO pluginVO = pluginService.findById(id);
-            return SoulResult.success("detail plugin success", pluginVO);
-        } catch (Exception e) {
-            return SoulResult.error("detail plugin exception");
-        }
+        PluginVO pluginVO = pluginService.findById(id);
+        return SoulResult.success("detail plugin success", pluginVO);
     }
 
     /**
@@ -110,15 +102,11 @@ public class PluginController {
      */
     @PostMapping("")
     public SoulResult createPlugin(@RequestBody final PluginDTO pluginDTO) {
-        try {
-            String result = pluginService.createOrUpdate(pluginDTO);
-            if (StringUtils.isNoneBlank()) {
-                return SoulResult.error(result);
-            }
-            return SoulResult.success("create plugin success");
-        } catch (Exception e) {
-            return SoulResult.error("create plugin exception");
+        String result = pluginService.createOrUpdate(pluginDTO);
+        if (StringUtils.isNoneBlank()) {
+            return SoulResult.error(result);
         }
+        return SoulResult.success("create plugin success");
     }
 
     /**
@@ -130,17 +118,13 @@ public class PluginController {
      */
     @PutMapping("/{id}")
     public SoulResult updatePlugin(@PathVariable("id") final String id, @RequestBody final PluginDTO pluginDTO) {
-        try {
-            Objects.requireNonNull(pluginDTO);
-            pluginDTO.setId(id);
-            final String result = pluginService.createOrUpdate(pluginDTO);
-            if (StringUtils.isNoneBlank(result)) {
-                return SoulResult.error(result);
-            }
-            return SoulResult.success("update plugin success");
-        } catch (Exception e) {
-            return SoulResult.error("update plugin exception");
+        Objects.requireNonNull(pluginDTO);
+        pluginDTO.setId(id);
+        final String result = pluginService.createOrUpdate(pluginDTO);
+        if (StringUtils.isNoneBlank(result)) {
+            return SoulResult.error(result);
         }
+        return SoulResult.success("update plugin success");
     }
 
     /**
@@ -151,15 +135,11 @@ public class PluginController {
      */
     @DeleteMapping("/batch")
     public SoulResult deletePlugins(@RequestBody final List<String> ids) {
-        try {
-            final String result = pluginService.delete(ids);
-            if (StringUtils.isNoneBlank(result)) {
-                return SoulResult.error(result);
-            }
-            return SoulResult.success("delete plugins success");
-        } catch (Exception e) {
-            return SoulResult.error("delete plugins exception");
+        final String result = pluginService.delete(ids);
+        if (StringUtils.isNoneBlank(result)) {
+            return SoulResult.error(result);
         }
+        return SoulResult.success("delete plugins success");
     }
 
 
@@ -171,15 +151,11 @@ public class PluginController {
      */
     @PostMapping("/enabled")
     public SoulResult enabled(@RequestBody final BatchCommonDTO batchCommonDTO) {
-        try {
-            final String result = pluginService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled());
-            if (StringUtils.isNoneBlank(result)) {
-                return SoulResult.error(result);
-            }
-            return SoulResult.success("enable plugins success");
-        } catch (Exception e) {
-            return SoulResult.error("enable plugins exception");
+        final String result = pluginService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled());
+        if (StringUtils.isNoneBlank(result)) {
+            return SoulResult.error(result);
         }
+        return SoulResult.success("enable plugins success");
     }
 
 
@@ -190,15 +166,11 @@ public class PluginController {
      */
     @PostMapping("/syncPluginAll")
     public SoulResult syncPluginAll() {
-        try {
-            boolean success = syncDataService.syncAll(DataEventTypeEnum.REFRESH);
-            if (success) {
-                return SoulResult.success("sync plugins success");
-            } else {
-                return SoulResult.success("sync plugins fail");
-            }
-        } catch (Exception e) {
-            return SoulResult.error("sync plugins exception");
+        boolean success = syncDataService.syncAll(DataEventTypeEnum.REFRESH);
+        if (success) {
+            return SoulResult.success("sync plugins success");
+        } else {
+            return SoulResult.success("sync plugins fail");
         }
     }
 
@@ -211,16 +183,11 @@ public class PluginController {
      */
     @PutMapping("/syncPluginData/{id}")
     public SoulResult syncPluginData(@PathVariable("id") final String id) {
-        try {
-            boolean success = syncDataService.syncPluginData(id);
-            if (success) {
-                return SoulResult.success("sync plugins success");
-            } else {
-                return SoulResult.success("sync plugins fail");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return SoulResult.error("sync plugins exception{}");
+        boolean success = syncDataService.syncPluginData(id);
+        if (success) {
+            return SoulResult.success("sync plugins success");
+        } else {
+            return SoulResult.success("sync plugins fail");
         }
     }
 }
