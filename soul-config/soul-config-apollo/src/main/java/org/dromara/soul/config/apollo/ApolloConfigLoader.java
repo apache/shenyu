@@ -21,23 +21,17 @@ package org.dromara.soul.config.apollo;
 
 import com.ctrip.framework.apollo.Config;
 import com.ctrip.framework.apollo.ConfigService;
+import java.util.*;
+import java.util.function.Supplier;
 import org.dromara.soul.common.extension.Join;
 import org.dromara.soul.common.utils.StringUtils;
 import org.dromara.soul.config.api.ConfigEnv;
 import org.dromara.soul.config.api.ConfigException;
 import org.dromara.soul.config.api.ConfigLoader;
-import org.dromara.soul.config.api.ConfigParent;
 import org.dromara.soul.config.api.property.MapPropertyKeySource;
 import org.dromara.soul.config.api.property.PropertyKeySource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Supplier;
 
 /**
  * The type Apollo config loader.
@@ -93,7 +87,7 @@ public class ApolloConfigLoader implements ConfigLoader<ApolloConfig> {
         handler.finish(context, apolloConfig);
     }
 
-    private void apolloFinish(Supplier<Context> context, ConfigParent config) {
+    private void apolloFinish(Supplier<Context> context, org.dromara.soul.config.api.Config config) {
         logger.info("apollo loader config {}:{}", config != null ? config.prefix() : "", config);
     }
 

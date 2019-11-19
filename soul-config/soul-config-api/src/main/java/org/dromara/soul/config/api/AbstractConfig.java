@@ -27,22 +27,18 @@ import java.io.Serializable;
  * @author xiaoyu
  * @author chenbin sixh
  */
-public abstract class ConfigParent implements Serializable {
+public abstract class AbstractConfig implements Config, Serializable {
 
     private volatile boolean isLoad = false;
 
+    @Override
     public void flagLoad() {
         isLoad = true;
     }
 
+    @Override
     public boolean isLoad() {
         return isLoad;
     }
 
-    /**
-     * yml file properties prefix.
-     *
-     * @return string. string
-     */
-    public abstract String prefix();
 }

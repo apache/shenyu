@@ -41,7 +41,7 @@ public class ConfigEnv {
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigEnv.class);
 
-    private final Map<Class, ConfigParent> configBeans = new ConcurrentHashMap<>();
+    private final Map<Class, Config> configBeans = new ConcurrentHashMap<>();
 
     /**
      * Save some custom configuration information.
@@ -78,8 +78,8 @@ public class ConfigEnv {
         }
         try {
             Class<?> clazz = Class.forName(classPath);
-            if (clazz.getSuperclass().isAssignableFrom(ConfigParent.class)) {
-                ConfigParent configParent = (ConfigParent) clazz.newInstance();
+            if (clazz.getSuperclass().isAssignableFrom(AbstractConfig.class)) {
+                AbstractConfig configParent = (AbstractConfig) clazz.newInstance();
                 putBean(configParent);
                 configClassName.add(classPath);
             }
@@ -89,7 +89,7 @@ public class ConfigEnv {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends ConfigParent> T getConfig(Class<T> clazz) {
+    public <T extends Config> T getConfig(Class<T> clazz) {
         return (T) configBeans.get(clazz);
     }
 
@@ -98,7 +98,7 @@ public class ConfigEnv {
      *
      * @param parent parent.
      */
-    public void putBean(ConfigParent parent) {
+    public void putBean(Config parent) {
         if (parent != null && StringUtils.isNotBlank(parent.prefix())) {
             if (configBeans.containsKey(parent.getClass())) {
                 return;
@@ -113,7 +113,7 @@ public class ConfigEnv {
      *
      * @return stream.
      */
-    public Stream<ConfigParent> stream() {
+    public Stream<Config> stream() {
         return configBeans.values().stream().filter(e -> !e.isLoad());
     }
 }

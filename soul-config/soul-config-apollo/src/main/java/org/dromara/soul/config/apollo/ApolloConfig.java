@@ -20,7 +20,8 @@
 package org.dromara.soul.config.apollo;
 
 import lombok.Data;
-import org.dromara.soul.config.api.ConfigParent;
+import org.dromara.soul.common.extension.Join;
+import org.dromara.soul.config.api.AbstractConfig;
 import org.dromara.soul.config.api.constant.PrefixConstants;
 
 /**
@@ -29,7 +30,8 @@ import org.dromara.soul.config.api.constant.PrefixConstants;
  * @author xiaoyu
  */
 @Data
-public class ApolloConfig extends ConfigParent {
+@Join
+public class ApolloConfig extends AbstractConfig {
 
     private String application;
 

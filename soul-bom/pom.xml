@@ -88,6 +88,12 @@
 
             <dependency>
                 <groupId>org.dromara</groupId>
+                <artifactId>soul-register-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.dromara</groupId>
                 <artifactId>soul-remoting-netty</artifactId>
                 <version>${project.version}</version>
             </dependency>

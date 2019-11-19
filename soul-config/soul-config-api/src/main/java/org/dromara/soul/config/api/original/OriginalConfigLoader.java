@@ -21,10 +21,9 @@ package org.dromara.soul.config.api.original;
 
 import java.util.Objects;
 import java.util.function.Supplier;
-
+import org.dromara.soul.config.api.Config;
 import org.dromara.soul.config.api.ConfigEnv;
 import org.dromara.soul.config.api.ConfigLoader;
-import org.dromara.soul.config.api.ConfigParent;
 import org.dromara.soul.config.api.bind.BindData;
 import org.dromara.soul.config.api.bind.Binder;
 import org.dromara.soul.config.api.bind.DataType;
@@ -39,19 +38,20 @@ import org.dromara.soul.config.api.property.PropertyKeySource;
  * @author xiaoyu
  * @author sixh
  */
-public class OriginalConfigLoader implements ConfigLoader<ConfigParent> {
+public class OriginalConfigLoader implements ConfigLoader<Config> {
 
     OriginalConfigLoader() {
+
     }
 
     @Override
-    public void load(Supplier<Context> context, LoaderHandler<ConfigParent> handler) {
+    public void load(Supplier<Context> context, LoaderHandler<Config> handler) {
         for (PropertyKeySource<?> propertyKeySource : context.get().getSource()) {
             ConfigPropertySource configPropertySource = new DefaultConfigPropertySource(propertyKeySource, PropertyKeyParse.INSTANCE);
             ConfigEnv.getInstance().stream().map(e -> {
                 Binder binder = Binder.of(configPropertySource);
                 return binder.bind(e.prefix(), BindData.of(DataType.of(e.getClass()), () -> e));
-            }).filter(Objects::nonNull).peek(ConfigParent::flagLoad).forEach(e -> handler.finish(context, e));
+            }).filter(Objects::nonNull).peek(Config::flagLoad).forEach(e -> handler.finish(context, e));
         }
     }
 }

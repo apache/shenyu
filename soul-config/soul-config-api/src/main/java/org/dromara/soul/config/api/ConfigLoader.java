@@ -36,7 +36,7 @@ import org.dromara.soul.config.api.property.PropertyKeySource;
  * @author sixh
  */
 @SPI("local")
-public interface ConfigLoader<T extends ConfigParent> {
+public interface ConfigLoader<T extends Config> {
 
     /**
      * Load related configuration information.
@@ -68,7 +68,7 @@ public interface ConfigLoader<T extends ConfigParent> {
      */
     class Context {
 
-        private ConfigLoader<ConfigParent> original;
+        private ConfigLoader<Config> original;
 
         private List<PropertyKeySource<?>> propertyKeySources;
 
@@ -93,7 +93,7 @@ public interface ConfigLoader<T extends ConfigParent> {
          * @param original           the original
          * @param propertyKeySources the property key sources
          */
-        public Context(ConfigLoader<ConfigParent> original, List<PropertyKeySource<?>> propertyKeySources) {
+        public Context(ConfigLoader<Config> original, List<PropertyKeySource<?>> propertyKeySources) {
             this.original = original;
             this.propertyKeySources = propertyKeySources;
         }
@@ -103,9 +103,9 @@ public interface ConfigLoader<T extends ConfigParent> {
          *
          * @param sources  the sources
          * @param original the original
-         * @return the context
+         * @return the context.
          */
-        public Context with(List<PropertyKeySource<?>> sources, ConfigLoader<ConfigParent> original) {
+        public Context with(List<PropertyKeySource<?>> sources, ConfigLoader<Config> original) {
             return new Context(original, sources);
         }
 
@@ -113,7 +113,7 @@ public interface ConfigLoader<T extends ConfigParent> {
          * With sources context.
          *
          * @param sources the sources
-         * @return the context
+         * @return the context.
          */
         public Context withSources(List<PropertyKeySource<?>> sources) {
             return with(sources, this.original);
@@ -124,7 +124,7 @@ public interface ConfigLoader<T extends ConfigParent> {
          *
          * @return the original
          */
-        public ConfigLoader<ConfigParent> getOriginal() {
+        public ConfigLoader<Config> getOriginal() {
             return original;
         }
 
@@ -144,7 +144,7 @@ public interface ConfigLoader<T extends ConfigParent> {
      * @param <T> the type parameter
      */
     @FunctionalInterface
-    interface LoaderHandler<T extends ConfigParent> {
+    interface LoaderHandler<T extends Config> {
         /**
          * 加载完成后要做的事情啊.
          *

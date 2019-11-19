@@ -101,8 +101,18 @@ public class ExtensionLoader<T> {
      *
      * @return the joins
      */
-    public List<T> getJoins() {
-        return Collections.emptyList();
+    public Map<String, Class<?>> getJoins() {
+        Map<String, Class<?>> classes = cachedClasses.getValue();
+        if (classes == null) {
+            synchronized (cachedClasses) {
+                classes = cachedClasses.getValue();
+                if (classes == null) {
+                    classes = loadExtensionClass();
+                    cachedClasses.setValue(classes);
+                }
+            }
+        }
+        return classes;
     }
 
     /**
@@ -175,10 +185,9 @@ public class ExtensionLoader<T> {
         SPI annotation = clazz.getAnnotation(SPI.class);
         if (annotation != null) {
             String value = annotation.value();
-            if (StringUtils.isBlank(value = value.trim()) || !namePattern.matcher(value).matches()) {
-                throw new IllegalStateException("default extension name is null or empty");
+            if (StringUtils.isNotBlank(value)) {
+                cachedDefaultName = value;
             }
-            cachedDefaultName = value;
         }
         Map<String, Class<?>> classes = new HashMap<>(16);
         loadDirectory(classes);

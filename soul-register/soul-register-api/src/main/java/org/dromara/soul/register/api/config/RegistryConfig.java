@@ -18,16 +18,18 @@
 package org.dromara.soul.register.api.config;
 
 import lombok.Data;
-import org.dromara.soul.config.api.ConfigParent;
+import org.dromara.soul.config.api.AbstractConfig;
 
 /**
  * RegistryConfig
- * 1. 注册信息的一些配置处理.
+ * 1. Some configuration processing of registration information.
+ * 2. url Registration is processed according to different protocols.
+ * 3. case: zookeeper://192.168.1.32:33?cluster=192.168.1.33:5555,192.168.1.33:5555
  *
  * @author sixh
  */
 @Data
-public class RegistryConfig extends ConfigParent {
+public class RegistryConfig extends AbstractConfig {
 
     private String url;
 

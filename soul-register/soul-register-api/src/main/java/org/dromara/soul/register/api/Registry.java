@@ -26,18 +26,18 @@ import org.dromara.soul.common.http.URL;
  * @author sixh
  */
 public interface Registry {
-    
+
     /**
      * Register.
      *
-     * @param url the url.
+     * @param serverUrl the url.
      */
-    void register(URL url);
+    void register(URL serverUrl);
 
     /**
      * Unregister.
      *
-     * @param url the url.
+     * @param serverUrl the url.
      */
-    void unregister(URL url);
+    void unregister(URL serverUrl);
 }

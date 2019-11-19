@@ -19,12 +19,11 @@
 
 package org.dromara.soul.config.api.original;
 
-import java.util.List;
 import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
-import org.dromara.soul.common.extension.JoinConfig;
-import org.dromara.soul.config.api.ConfigParent;
+import org.dromara.soul.common.extension.Join;
+import org.dromara.soul.config.api.AbstractConfig;
 import org.dromara.soul.config.api.constant.PrefixConstants;
 
 /**
@@ -34,8 +33,8 @@ import org.dromara.soul.config.api.constant.PrefixConstants;
  */
 @Getter
 @Setter
-@JoinConfig
-public class Server extends ConfigParent {
+@Join
+public class Server extends AbstractConfig {
 
     private String configMode;
 
@@ -48,8 +47,6 @@ public class Server extends ConfigParent {
     private Integer port;
 
     private String monitorPort;
-
-    private List<String> configs;
 
     private Set<String> baseScan;
 

@@ -21,8 +21,8 @@ package org.dromara.soul.config.api.original;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.dromara.soul.common.extension.JoinConfig;
-import org.dromara.soul.config.api.ConfigParent;
+import org.dromara.soul.common.extension.Join;
+import org.dromara.soul.config.api.AbstractConfig;
 import org.dromara.soul.config.api.constant.DefaultConstants;
 import org.dromara.soul.config.api.constant.PrefixConstants;
 
@@ -33,8 +33,8 @@ import org.dromara.soul.config.api.constant.PrefixConstants;
  */
 @Getter
 @Setter
-@JoinConfig
-public class SoulSPI extends ConfigParent {
+@Join
+public class SoulSPI extends AbstractConfig {
 
     private String fusing = DefaultConstants.DEFAULT_FUSING;
 

@@ -16,7 +16,7 @@
         <module>soul-register-dubbo64</module>
         <module>soul-register-dubbo70</module>
         <module>soul-register-spring</module>
-        <module>soul-register-store-api</module>
+        <module>soul-register-zookeeper</module>
     </modules>
 
 

@@ -20,7 +20,8 @@
 package org.dromara.soul.config.nacos;
 
 import lombok.Data;
-import org.dromara.soul.config.api.ConfigParent;
+import org.dromara.soul.common.extension.Join;
+import org.dromara.soul.config.api.AbstractConfig;
 import org.dromara.soul.config.api.constant.PrefixConstants;
 
 /**
@@ -29,7 +30,8 @@ import org.dromara.soul.config.api.constant.PrefixConstants;
  * @author sixh
  */
 @Data
-public class NacosConfig extends ConfigParent {
+@Join
+public class NacosConfig extends AbstractConfig {
 
     private String server;
 

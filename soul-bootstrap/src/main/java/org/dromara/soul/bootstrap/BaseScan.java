@@ -17,12 +17,14 @@
 
 package org.dromara.soul.bootstrap;
 
+import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
-import org.dromara.soul.common.extension.JoinConfig;
-import org.dromara.soul.common.metadata.MetadataContext;
+import org.dromara.soul.common.extension.ExtensionLoader;
 import org.dromara.soul.common.utils.ReflectUtils;
+import org.dromara.soul.config.api.AbstractConfig;
+import org.dromara.soul.config.api.Config;
 import org.dromara.soul.config.api.ConfigEnv;
-import org.dromara.soul.config.api.ConfigParent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,23 +34,29 @@ import org.slf4j.LoggerFactory;
  *
  * @author sixh
  */
-public class BaseScan {
+final class BaseScan {
 
     private Logger logger = LoggerFactory.getLogger(BaseScan.class);
 
-    public void scan(Set<String> baseScan) {
-        MetadataContext.INSTANCE.scan(baseScan);
-        Set<Class<?>> classes = MetadataContext.INSTANCE.getAnnotationClass(JoinConfig.class);
+    private ExtensionLoader<Config> extensionLoader = ExtensionLoader.getExtensionLoader(Config.class);
+
+    void scan(Set<String> baseScan) {
+        Collection<Class<?>> classes = scanSpi();
         for (Class<?> clazz : classes) {
             try {
                 Object parent = ReflectUtils.instance(clazz);
-                if (parent instanceof ConfigParent) {
-                    ConfigParent configObj = (ConfigParent) parent;
+                if (parent instanceof AbstractConfig) {
+                    AbstractConfig configObj = (AbstractConfig) parent;
                     ConfigEnv.getInstance().putBean(configObj);
                 }
             } catch (IllegalAccessException | InstantiationException e) {
                 logger.warn("scan config error {}", clazz.getName(), e);
             }
         }
+    }
+
+    private Collection<Class<?>> scanSpi() {
+        Map<String, Class<?>> joins = extensionLoader.getJoins();
+        return joins.values();
     }
 }

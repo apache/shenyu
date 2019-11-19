@@ -15,20 +15,33 @@
  *     limitations under the License.
  */
 
-package org.dromara.soul.common.metadata;
+package org.dromara.soul.config.api;
+
+import org.dromara.soul.common.extension.SPI;
 
 /**
- * AnnotatedTypeMetadata
+ * Config
  *
  * @author sixh
  */
-public interface AnnotatedTypeMetadata {
+@SPI
+public interface Config {
+    /**
+     * yml file properties prefix.
+     *
+     * @return string. string
+     */
+    String prefix();
 
     /**
-     * Is annotated boolean.
+     * Is load boolean.
      *
-     * @param annotationName the annotation name
      * @return the boolean
      */
-    boolean isAnnotated(String annotationName);
+    boolean isLoad();
+
+    /**
+     * Flag load boolean.
+     */
+    void flagLoad();
 }

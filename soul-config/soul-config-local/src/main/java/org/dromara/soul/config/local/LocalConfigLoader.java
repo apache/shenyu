@@ -21,8 +21,8 @@ package org.dromara.soul.config.local;
 
 import java.util.function.Supplier;
 import org.dromara.soul.common.extension.Join;
+import org.dromara.soul.config.api.Config;
 import org.dromara.soul.config.api.ConfigLoader;
-import org.dromara.soul.config.api.ConfigParent;
 
 /**
  * LocalConfigLoader .
@@ -31,11 +31,11 @@ import org.dromara.soul.config.api.ConfigParent;
  * @author sixh
  */
 @Join
-public class LocalConfigLoader implements ConfigLoader<ConfigParent> {
+public class LocalConfigLoader implements ConfigLoader<Config> {
 
     @Override
-    public void load(Supplier<Context> context, LoaderHandler<ConfigParent> handler) {
-        ConfigLoader<ConfigParent> original = context.get().getOriginal();
+    public void load(Supplier<Context> context, LoaderHandler<Config> handler) {
+        ConfigLoader<Config> original = context.get().getOriginal();
         original.load(context, handler);
     }
 }

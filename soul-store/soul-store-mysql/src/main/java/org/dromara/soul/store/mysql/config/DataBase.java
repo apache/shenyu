@@ -20,7 +20,7 @@
 package org.dromara.soul.store.mysql.config;
 
 import lombok.Data;
-import org.dromara.soul.config.api.ConfigParent;
+import org.dromara.soul.config.api.AbstractConfig;
 
 /**
  * SoulDataBase .
@@ -30,7 +30,7 @@ import org.dromara.soul.config.api.ConfigParent;
  * @author sixh
  */
 @Data
-public class DataBase extends ConfigParent {
+public class DataBase extends AbstractConfig {
 
     private String url;
 

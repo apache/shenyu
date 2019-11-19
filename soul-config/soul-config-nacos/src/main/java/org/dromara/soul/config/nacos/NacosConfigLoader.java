@@ -54,7 +54,6 @@ public class NacosConfigLoader implements ConfigLoader<NacosConfig> {
      * Instantiates a new Nacos config loader.
      */
     public NacosConfigLoader() {
-        ConfigEnv.getInstance().putBean(new NacosConfig());
     }
 
     /**
@@ -92,7 +91,7 @@ public class NacosConfigLoader implements ConfigLoader<NacosConfig> {
         }
     }
 
-    private void nacosFinish(Supplier<Context> context, ConfigParent config) {
+    private void nacosFinish(Supplier<Context> context, Config config) {
         logger.info("nacos loader config {}:{}", config != null ? config.prefix() : "", config);
     }
 
