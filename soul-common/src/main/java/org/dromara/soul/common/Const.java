@@ -20,7 +20,6 @@ package org.dromara.soul.common;
 
 /**
  * Const
- * CreateDate: 2019/10/12 15:09
  *
  * @author sixh
  */

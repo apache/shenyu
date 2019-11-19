@@ -10,6 +10,14 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>soul-register</artifactId>
+    <packaging>pom</packaging>
+    <modules>
+        <module>soul-register-api</module>
+        <module>soul-register-dubbo64</module>
+        <module>soul-register-dubbo70</module>
+        <module>soul-register-spring</module>
+        <module>soul-register-store-api</module>
+    </modules>
 
 
 </project>

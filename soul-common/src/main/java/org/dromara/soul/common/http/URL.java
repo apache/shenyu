@@ -17,14 +17,12 @@
 
 package org.dromara.soul.common.http;
 
+import java.net.MalformedURLException;
+import java.util.*;
 import lombok.Getter;
 import org.dromara.soul.common.utils.CollectionUtils;
 import org.dromara.soul.common.utils.StringUtils;
 import sun.net.util.IPAddressUtil;
-
-import java.net.MalformedURLException;
-import java.util.*;
-import java.util.function.Supplier;
 
 /**
  * URL .

@@ -21,6 +21,7 @@ package org.dromara.soul.config.api.original;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.dromara.soul.common.extension.JoinConfig;
 import org.dromara.soul.config.api.ConfigParent;
 import org.dromara.soul.config.api.constant.PrefixConstants;
 
@@ -32,6 +33,7 @@ import org.dromara.soul.config.api.constant.PrefixConstants;
  */
 @Data
 @EqualsAndHashCode
+@JoinConfig
 public class SoulDataBase extends ConfigParent {
 
     private String url;

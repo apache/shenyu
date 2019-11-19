@@ -31,7 +31,7 @@ import java.util.stream.Stream;
 
 /**
  * ConfigEnv .
- * 配置文件的处理.
+ * Configuration file processing.
  *
  * @author sixh
  */
@@ -44,7 +44,7 @@ public class ConfigEnv {
     private final Map<Class, ConfigParent> configBeans = new ConcurrentHashMap<>();
 
     /**
-     * 保存一些自定义的配置信息.
+     * Save some custom configuration information.
      */
     private final Set<String> configClassName = new HashSet<>();
 
@@ -65,7 +65,7 @@ public class ConfigEnv {
      */
     public void addConfigClassPath(String classPath) {
         if (classPath.startsWith("java.")) {
-            logger.warn("config class path 忽略的 {}", classPath);
+            logger.warn("config class path Ignore {}", classPath);
             return;
         }
         addConfigClassPath(classPath, true);
@@ -94,7 +94,7 @@ public class ConfigEnv {
     }
 
     /**
-     * 注删一个需要解释配置信息的对象 .
+     * Register an object that needs to interpret configuration information .
      *
      * @param parent parent.
      */
@@ -109,7 +109,7 @@ public class ConfigEnv {
     }
 
     /**
-     * 获取所有已经加载的配置信息.
+     * Gets all loaded configuration information.
      *
      * @return stream.
      */

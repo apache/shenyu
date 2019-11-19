@@ -54,6 +54,7 @@ public class ReflectUtils {
     /**
      * 获取一个对象的泛型真实类型.
      *
+     * @param type the type
      * @return type [ ]
      */
     public static Type[] getGenericType(Type type) {
@@ -98,6 +99,19 @@ public class ReflectUtils {
             e.printStackTrace();
         }
         return result;
+    }
+
+    /**
+     * Instance t.
+     *
+     * @param <T>   the type parameter
+     * @param clazz the clazz
+     * @return the t
+     * @throws IllegalAccessException the illegal access exception
+     * @throws InstantiationException the instantiation exception
+     */
+    public static <T> T instance(Class<T> clazz) throws IllegalAccessException, InstantiationException {
+     return clazz.newInstance();
     }
 
 }

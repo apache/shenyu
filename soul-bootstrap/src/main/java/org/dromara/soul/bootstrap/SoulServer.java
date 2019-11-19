@@ -34,6 +34,7 @@ public class SoulServer {
     private Logger logger = LoggerFactory.getLogger(SoulServer.class);
 
     public void start() {
+        //扫描实现.
         loadConfig();
     }
 
@@ -44,6 +45,8 @@ public class SoulServer {
         ServerConfigLoader loader = new ServerConfigLoader();
         loader.load(ConfigLoader.Context::new, (context, config) -> {
             if (config != null) {
+                // Start processing the associated parameters.
+                new BaseScan().scan(config.getBaseScan());
                 if (StringUtils.isNotBlank(config.getConfigMode())) {
                     String configMode = config.getConfigMode();
                     ConfigLoader<?> configLoader = extensionLoader.getJoin(configMode);

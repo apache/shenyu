@@ -31,7 +31,7 @@ import lombok.Data;
 @Data
 public class HttpSoulRequest {
     /**
-     * 请求的id;
+     * Requested id;
      */
     private String id;
 
@@ -46,6 +46,8 @@ public class HttpSoulRequest {
     private Map<String, String> headers;
 
     private Map<String, String> params;
+
     private URL url;
+
     private HttpStatus status;
 }

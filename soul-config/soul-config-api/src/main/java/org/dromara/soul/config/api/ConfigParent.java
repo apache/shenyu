@@ -23,6 +23,7 @@ import java.io.Serializable;
 
 /**
  * ConfigParent .
+ *
  * @author xiaoyu
  * @author chenbin sixh
  */

@@ -19,6 +19,8 @@
 
 package org.dromara.soul.config.apollo;
 
+import java.io.IOException;
+import java.util.function.Supplier;
 import org.dromara.soul.common.extension.ExtensionLoader;
 import org.dromara.soul.common.utils.StringUtils;
 import org.dromara.soul.config.api.ConfigEnv;
@@ -27,18 +29,9 @@ import org.dromara.soul.config.api.original.ServerConfigLoader;
 import org.dromara.soul.config.api.original.SoulDataBase;
 import org.dromara.soul.config.api.original.SoulSPI;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.function.Supplier;
-
-import static org.mockito.Matchers.any;
 
 
 /**

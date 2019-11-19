@@ -23,7 +23,6 @@ import java.util.Properties;
 /**
  * Attribute.
  * <p>
- * CreateDate: 2019/10/12 15:02
  *
  * @author sixh
  */

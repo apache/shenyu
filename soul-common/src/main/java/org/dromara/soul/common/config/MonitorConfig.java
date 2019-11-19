@@ -18,10 +18,9 @@
 
 package org.dromara.soul.common.config;
 
+import java.io.Serializable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import java.io.Serializable;
 
 /**
  * The monitor configuration for influxdb.

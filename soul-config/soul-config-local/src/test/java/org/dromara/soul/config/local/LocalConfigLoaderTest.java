@@ -28,8 +28,6 @@ import org.dromara.soul.config.api.original.SoulDataBase;
 import org.dromara.soul.config.api.original.SoulRegister;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
 /**
  * Created by apa7 on 2019/10/10.
  */

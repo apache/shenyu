@@ -24,6 +24,15 @@ package org.dromara.soul.common.utils;
  * @author sixh
  */
 public class StringUtils {
+    private static final String FOLDER_SEPARATOR = "/";
+
+    private static final String WINDOWS_FOLDER_SEPARATOR = "\\";
+
+    private static final String TOP_PATH = "..";
+
+    private static final String CURRENT_PATH = ".";
+
+    private static final char EXTENSION_SEPARATOR = '.';
 
     /**
      * 判断字符串是否为空.
@@ -43,5 +52,15 @@ public class StringUtils {
      */
     public static boolean isNotBlank(final String arg) {
         return !isBlank(arg);
+    }
+
+    /**
+     * Has length boolean.
+     *
+     * @param str the str
+     * @return the boolean
+     */
+    public static boolean hasLength(CharSequence str) {
+        return (str != null && str.length() > 0);
     }
 }
