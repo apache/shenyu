@@ -15,45 +15,26 @@
  *     limitations under the License.
  */
 
-package org.dromara.soul.register.api.config;
+package org.dromara.soul.register.dubbo64;
 
-import com.google.common.base.Splitter;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.Data;
 import org.dromara.soul.common.extension.Join;
-import org.dromara.soul.common.http.URL;
 import org.dromara.soul.config.api.AbstractConfig;
-import org.dromara.soul.register.api.RegisterConst;
 
 /**
- * RegistryConfig
- * 1. Some configuration processing of registration information.
- * 2. url Registration is processed according to different protocols.
- * 3. case: zookeeper://192.168.1.32:1281?cluster=192.168.1.33:1281,192.168.1.34:1281
+ * DubboConfig.
+ * dubbo Some configuration information for the registry.
  *
  * @author sixh
  */
-@Data
 @Join
-public class RegistryConfig extends AbstractConfig {
+@Data
+public class DubboConfig extends AbstractConfig {
 
-    private String url;
-
-    /**
-     * Gets cluster to getParameters.
-     *
-     * @return the cluster
-     */
-    @SuppressWarnings("all")
-    public static List<String> getCluster(URL url) {
-        String cluster = url.getParameters().get(RegisterConst.URL_CLUSTER_KEY);
-        List<String> lists = Splitter.on(RegisterConst.URL_SPLIT_SYMBOL_KEY).splitToList(cluster);
-        return new ArrayList<>(lists);
-    }
+    private String registryConfig;
 
     @Override
     public String prefix() {
-        return "soul.registry";
+        return "soul.dubbo";
     }
 }

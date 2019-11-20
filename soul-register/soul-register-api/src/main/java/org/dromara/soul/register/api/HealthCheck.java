@@ -17,28 +17,19 @@
 
 package org.dromara.soul.register.api;
 
-
-import org.dromara.soul.common.extension.SPI;
-import org.dromara.soul.common.http.URL;
+import java.util.concurrent.Future;
 
 /**
- * Registry
+ * HealthCheck
  *
  * @author sixh
  */
-@SPI("zookeeper")
-public interface Registry {
+public interface HealthCheck {
     /**
-     * Register.
+     * check if the service path Whether it is healthy.
      *
-     * @param url the url.
+     * @param path the path
+     * @return the future
      */
-    void register(URL url);
-
-    /**
-     * Unregister.
-     *
-     * @param url the url.
-     */
-    void unregister(URL url);
+    Future<Boolean> isHealthy(Path path);
 }

@@ -15,30 +15,26 @@
  *     limitations under the License.
  */
 
-package org.dromara.soul.register.api;
+package org.dromara.soul.register.dubbo64;
 
-
-import org.dromara.soul.common.extension.SPI;
-import org.dromara.soul.common.http.URL;
+import org.dromara.soul.config.api.ConfigEnv;
+import org.dromara.soul.register.api.RegisterDirectory;
+import org.junit.Test;
 
 /**
- * Registry
- *
- * @author sixh
+ * Created by apa7 on 2019/11/20.
  */
-@SPI("zookeeper")
-public interface Registry {
-    /**
-     * Register.
-     *
-     * @param url the url.
-     */
-    void register(URL url);
+public class DubboRegisterDirectoryTest {
 
-    /**
-     * Unregister.
-     *
-     * @param url the url.
-     */
-    void unregister(URL url);
+    @Test
+    public void test001() throws InterruptedException {
+        DubboConfig config = new DubboConfig();
+        config.setRegistryConfig("zookeeper://192.168.1.84:2181?client=curator");
+        ConfigEnv.getInstance().putBean(config);
+        RegisterDirectory directory = new DubboRegisterDirectory();
+        directory.listener(path -> {
+            System.out.println("服务监听-------->" + path);
+        });
+        Thread.sleep(Integer.MAX_VALUE);
+    }
 }

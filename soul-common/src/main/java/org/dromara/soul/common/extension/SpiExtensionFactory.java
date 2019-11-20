@@ -20,7 +20,6 @@ package org.dromara.soul.common.extension;
 
 /**
  * SpiExtensionFactory
- * CreateDate: 2019/10/9 16:12
  *
  * @author sixh
  */

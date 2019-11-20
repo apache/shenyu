@@ -42,7 +42,7 @@ public enum HttpMethod {
      * Parse http method.
      *
      * @param method the method
-     * @return the http method
+     * @return the http method.
      */
     public static HttpMethod parse(String method) {
         return HttpMethod.valueOf(method.toUpperCase());

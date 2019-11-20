@@ -15,30 +15,38 @@
  *     limitations under the License.
  */
 
-package org.dromara.soul.register.api;
+package org.dromara.soul.remoting.api;
 
-
-import org.dromara.soul.common.extension.SPI;
-import org.dromara.soul.common.http.URL;
+import org.dromara.soul.common.constant.Constants;
 
 /**
- * Registry
+ * RemotingConst
  *
  * @author sixh
  */
-@SPI("zookeeper")
-public interface Registry {
+public class RemotingConst implements Constants {
     /**
-     * Register.
-     *
-     * @param url the url.
+     * Remote service host.
      */
-    void register(URL url);
+    public static final String HOST_KEY = "host";
 
     /**
-     * Unregister.
-     *
-     * @param url the url.
+     * The constant PORT_KEY.
      */
-    void unregister(URL url);
+    public static final String PORT_KEY = "port";
+
+    /**
+     * The constant PORT_KEY.
+     */
+    public static final String USE_EPOLL_NATIVE = "use_epoll_native";
+
+    /**
+     * The constant IO_THREADS_KEY.
+     */
+    public static final String IO_THREADS_KEY = "io_threads";
+
+    /**
+     * The constant NET_TIMEOUT_KEY.
+     */
+    public static final String NET_TIMEOUT_KEY = "net_timeout";
 }

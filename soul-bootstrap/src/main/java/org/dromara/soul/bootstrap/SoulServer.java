@@ -42,11 +42,11 @@ public class SoulServer {
      * oad configuration information.
      */
     private void loadConfig() {
+        // Start processing the associated parameters.
+        new BaseScan().scan();
         ServerConfigLoader loader = new ServerConfigLoader();
         loader.load(ConfigLoader.Context::new, (context, config) -> {
             if (config != null) {
-                // Start processing the associated parameters.
-                new BaseScan().scan(config.getBaseScan());
                 if (StringUtils.isNotBlank(config.getConfigMode())) {
                     String configMode = config.getConfigMode();
                     ConfigLoader<?> configLoader = extensionLoader.getJoin(configMode);

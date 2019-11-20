@@ -15,27 +15,28 @@
  *     limitations under the License.
  */
 
-package org.dromara.soul.register.dubbo64;
+package org.dromara.soul.register.api;
 
-import lombok.Data;
-import org.dromara.soul.register.api.Path;
+import org.dromara.soul.common.http.URL;
 
 /**
- * Dubbo64OnlyPath .
- * Dubbo 64 version related, path processing.
+ * EmptyPath
  *
  * @author sixh
  */
-@Data
-public class Dubbo64OnlyPath implements Path {
+public class EmptyPath implements Path {
+    @Override
+    public URL getSoulPath() {
+        return null;
+    }
 
-    private String application;
+    @Override
+    public Integer status() {
+        return null;
+    }
 
-    private String group;
-
-    private String service;
-
-    private String method;
-
-    private String version;
+    @Override
+    public <T extends Path> T getPathObj(URL url) {
+        return null;
+    }
 }

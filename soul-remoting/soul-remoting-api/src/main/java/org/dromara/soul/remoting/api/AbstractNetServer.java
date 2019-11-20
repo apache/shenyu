@@ -21,7 +21,6 @@ package org.dromara.soul.remoting.api;
 import java.net.InetSocketAddress;
 
 import org.dromara.soul.common.Attribute;
-import org.dromara.soul.common.Const;
 
 /**
  * AbstractNetServer
@@ -44,17 +43,17 @@ public abstract class AbstractNetServer implements NetServer, ChannelHandler {
      * Instantiates a new Abstract net server.
      *
      * @param attribute the properties
-     * @param handler   the handler
+     * @param handler   the handler.
      */
     public AbstractNetServer(Attribute attribute, ChannelHandler handler) {
         this.handler = handler;
         this.attribute = attribute;
         String defHost = "0.0.0.0";
-        host = attribute.getProperty(Const.HOST_KEY, defHost);
+        host = attribute.getProperty(RemotingConst.HOST_KEY, defHost);
         Integer defPort = 2087;
-        port = attribute.getProperty(Const.PORT_KEY, defPort);
-        useEpollNative = attribute.getProperty(Const.USE_EPOLL_NATIVE, true);
-        ioThreads = attribute.getProperty(Const.IO_THREADS_KEY, Runtime.getRuntime().availableProcessors() << 1);
+        port = attribute.getProperty(RemotingConst.PORT_KEY, defPort);
+        useEpollNative = attribute.getProperty(RemotingConst.USE_EPOLL_NATIVE, true);
+        ioThreads = attribute.getProperty(RemotingConst.IO_THREADS_KEY, Runtime.getRuntime().availableProcessors() << 1);
     }
 
 

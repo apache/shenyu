@@ -26,7 +26,6 @@ import java.net.URL;
 import java.util.List;
 import java.util.function.Supplier;
 import org.dromara.soul.common.utils.StringUtils;
-import org.dromara.soul.config.api.ConfigEnv;
 import org.dromara.soul.config.api.ConfigException;
 import org.dromara.soul.config.api.ConfigLoader;
 import org.dromara.soul.config.api.property.PropertyKeySource;
@@ -43,7 +42,6 @@ public class ServerConfigLoader implements ConfigLoader<Server> {
     private YamlPropertyLoader propertyLoader = new YamlPropertyLoader();
 
     public ServerConfigLoader() {
-        ConfigEnv.getInstance().putBean(new Server());
     }
 
     @Override

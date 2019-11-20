@@ -24,7 +24,7 @@ import lombok.Data;
 
 /**
  * Request
- * CreateDate: 2019/10/14 18:29
+ * soul request object.
  *
  * @author sixh
  */

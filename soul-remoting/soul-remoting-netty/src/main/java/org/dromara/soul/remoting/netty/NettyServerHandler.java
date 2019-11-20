@@ -25,10 +25,10 @@ import io.netty.channel.ChannelPromise;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import org.dromara.soul.common.Attribute;
-import org.dromara.soul.common.Const;
 import org.dromara.soul.remoting.api.Channel;
 import org.dromara.soul.remoting.api.ChannelCache;
 import org.dromara.soul.remoting.api.ChannelCacheListener;
+import org.dromara.soul.remoting.api.RemotingConst;
 
 /**
  * NettyServerHandler
@@ -53,7 +53,7 @@ public class NettyServerHandler extends ChannelDuplexHandler implements ChannelC
         this.channelHandler = channelHandler;
         this.attribute = attribute;
         //超时处理.
-        Integer timeOut = this.attribute.getProperty(Const.NET_TIMEOUT_KEY, 3);
+        Integer timeOut = this.attribute.getProperty(RemotingConst.NET_TIMEOUT_KEY, 3);
         channelCache = new ChannelCache(timeOut, TimeUnit.SECONDS, "nettyChannelCache", this);
     }
 

@@ -17,28 +17,24 @@
 
 package org.dromara.soul.register.api;
 
-
-import org.dromara.soul.common.extension.SPI;
-import org.dromara.soul.common.http.URL;
-
 /**
- * Registry
+ * RegisterDirectoryListener
  *
  * @author sixh
  */
-@SPI("zookeeper")
-public interface Registry {
-    /**
-     * Register.
-     *
-     * @param url the url.
-     */
-    void register(URL url);
+@FunctionalInterface
+public interface RegisterDirectoryListener {
+
+    Integer ADD = 1;
+
+    Integer REMOVE = 2;
+
+    Integer REMOVE_ALL = 3;
 
     /**
-     * Unregister.
+     * Listener.
      *
-     * @param url the url.
+     * @param path the path.
      */
-    void unregister(URL url);
+    void apply(Path path);
 }

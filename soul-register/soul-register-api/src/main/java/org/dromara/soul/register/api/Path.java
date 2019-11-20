@@ -17,12 +17,40 @@
 
 package org.dromara.soul.register.api;
 
+import org.dromara.soul.common.http.URL;
+
 /**
- * OnlyPath .
+ * Path .
  * Determination of the unique path associated with RPC.
  *
  * @author sixh
  */
 public interface Path {
+    /**
+     * Returns an url that the soul can read.
+     *
+     * @return soul path.
+     */
+    URL getSoulPath();
 
+    /**
+     * Gets a status message for the current service.
+     * 1.If the status eq {@link RegisterDirectoryListener#REMOVE_ALL} return {@link EmptyPath}.
+     * {@link RegisterDirectoryListener#ADD}
+     * {@link RegisterDirectoryListener#REMOVE}
+     * {@link RegisterDirectoryListener#REMOVE_ALL}
+     *
+     * @return status.
+     * @see RegisterDirectoryListener
+     */
+    Integer status();
+
+    /**
+     * Returns an object handler that can be adapted based on the url.
+     *
+     * @param <T> the type parameter
+     * @param url the url
+     * @return the path obj.
+     */
+    <T extends Path> T getPathObj(URL url);
 }

@@ -20,6 +20,7 @@
 package org.dromara.soul.limiter.redis.config;
 
 import lombok.Data;
+import org.dromara.soul.common.extension.Join;
 import org.dromara.soul.config.api.AbstractConfig;
 
 /**
@@ -28,6 +29,7 @@ import org.dromara.soul.config.api.AbstractConfig;
  * @author xiaoyu
  */
 @Data
+@Join
 public class RedisConfig extends AbstractConfig {
 
     private Boolean cluster = false;

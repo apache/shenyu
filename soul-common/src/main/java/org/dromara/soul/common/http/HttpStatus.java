@@ -22,7 +22,6 @@ import lombok.Data;
 
 /**
  * HttpStatus.
- * CreateDate: 2019/10/14 17:25
  *
  * @author sixh
  */
@@ -35,14 +34,15 @@ public class HttpStatus {
         this.code = code;
         this.codeAsText = codeAsText;
     }
+
     /**
      * time out.
      */
-    public static final HttpStatus TIME_OUT = new HttpStatus(504,"");
-    public static final HttpStatus OK = new HttpStatus(200,"ok");
+    public static final HttpStatus TIME_OUT = new HttpStatus(504, "");
+    public static final HttpStatus OK = new HttpStatus(200, "ok");
     /**
      * 400 Bad Request
      */
-    public static final HttpStatus BAD_REQUEST = new HttpStatus(400,"Bad Request");
-    public static final HttpStatus NOT_FOUND = new HttpStatus(404,"Not Found");
+    public static final HttpStatus BAD_REQUEST = new HttpStatus(400, "Bad Request");
+    public static final HttpStatus NOT_FOUND = new HttpStatus(404, "Not Found");
 }

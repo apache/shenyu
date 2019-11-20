@@ -17,10 +17,13 @@
 package org.dromara.soul.common.extension;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
-import java.util.*;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Pattern;
 import org.dromara.soul.common.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,8 +31,9 @@ import org.slf4j.LoggerFactory;
 /**
  * The type Extension loader.
  * This is done by loading the properties file.
+ * https://github.com/apache/dubbo/blob/master/dubbo-common/src/main/java/org/apache/dubbo/common/extension/ExtensionLoader.java
  *
- * @param <T> the type parameter
+ * @param <T> the type parameter.
  * @author xiaoyu(Myth)
  * @author sixh.
  */
@@ -38,9 +42,8 @@ public class ExtensionLoader<T> {
     private static final String SOUL_DIRECTORY = "META-INF/soul/";
     private static final Map<Class<?>, ExtensionLoader<?>> LOADERS = new ConcurrentHashMap<>();
     private final Class<T> clazz;
-    private final String nameRegex = "\\s*[a-zA-Z]+\\s*";
-    private final Pattern namePattern = Pattern.compile(nameRegex);
     private final Holder<Map<String, Class<?>>> cachedClasses = new Holder<>();
+    private final Holder<Map<String, String>> cachedClassesMap = new Holder<>();
     private final Map<String, Holder<Object>> cachedInstances = new ConcurrentHashMap<>();
     private final Map<Class<?>, Object> joinInstances = new ConcurrentHashMap<>();
     private String cachedDefaultName;
@@ -48,7 +51,7 @@ public class ExtensionLoader<T> {
     /**
      * Instantiates a new Extension loader.
      *
-     * @param clazz the clazz
+     * @param clazz the clazz.
      */
     private ExtensionLoader(Class<T> clazz) {
         this.clazz = clazz;
@@ -62,7 +65,7 @@ public class ExtensionLoader<T> {
      *
      * @param <T>   the type parameter
      * @param clazz the clazz
-     * @return the extension loader
+     * @return the extension loader.
      */
     @SuppressWarnings("unchecked")
     public static <T> ExtensionLoader<T> getExtensionLoader(Class<T> clazz) {
@@ -86,7 +89,7 @@ public class ExtensionLoader<T> {
     /**
      * Gets default join.
      *
-     * @return the default join
+     * @return the default join.
      */
     public T getDefaultJoin() {
         getExtensionClasses();
@@ -97,29 +100,10 @@ public class ExtensionLoader<T> {
     }
 
     /**
-     * Gets joins.
-     *
-     * @return the joins
-     */
-    public Map<String, Class<?>> getJoins() {
-        Map<String, Class<?>> classes = cachedClasses.getValue();
-        if (classes == null) {
-            synchronized (cachedClasses) {
-                classes = cachedClasses.getValue();
-                if (classes == null) {
-                    classes = loadExtensionClass();
-                    cachedClasses.setValue(classes);
-                }
-            }
-        }
-        return classes;
-    }
-
-    /**
      * Gets join.
      *
      * @param name the name
-     * @return the join
+     * @return the join.
      */
     @SuppressWarnings("unchecked")
     public T getJoin(String name) {
@@ -167,7 +151,7 @@ public class ExtensionLoader<T> {
         return (T) o;
     }
 
-    private Map<String, Class<?>> getExtensionClasses() {
+    public Map<String, Class<?>> getExtensionClasses() {
         Map<String, Class<?>> classes = cachedClasses.getValue();
         if (classes == null) {
             synchronized (cachedClasses) {
@@ -201,12 +185,8 @@ public class ExtensionLoader<T> {
         String fileName = SOUL_DIRECTORY + clazz.getName();
         try {
             ClassLoader classLoader = ExtensionLoader.class.getClassLoader();
-            Enumeration<URL> urls;
-            if (classLoader != null) {
-                urls = classLoader.getResources(fileName);
-            } else {
-                urls = ClassLoader.getSystemResources(fileName);
-            }
+            Enumeration<URL> urls = classLoader != null ? classLoader.getResources(fileName)
+                    : ClassLoader.getSystemResources(fileName);
             if (urls != null) {
                 while (urls.hasMoreElements()) {
                     URL url = urls.nextElement();
@@ -218,10 +198,10 @@ public class ExtensionLoader<T> {
         }
     }
 
-    private void loadResources(Map<String, Class<?>> classes, URL url) {
+    private void loadResources(Map<String, Class<?>> classes, URL url) throws IOException {
         Properties properties = new Properties();
-        try {
-            properties.load(url.openStream());
+        try (InputStream inputStream = url.openStream()) {
+            properties.load(inputStream);
             properties.forEach((k, v) -> {
                 String name = (String) k, classPath = (String) v;
                 if (StringUtils.isNotBlank(name) && StringUtils.isNotBlank(classPath)) {
@@ -238,7 +218,8 @@ public class ExtensionLoader<T> {
         }
     }
 
-    private void loadClass(Map<String, Class<?>> classes, String name, String classPath) throws ClassNotFoundException {
+    private void loadClass(Map<String, Class<?>> classes,
+                           String name, String classPath) throws ClassNotFoundException {
         Class<?> subClass = Class.forName(classPath);
         if (!clazz.isAssignableFrom(subClass)) {
             throw new IllegalStateException("load extension resources error," + subClass + " subtype is not of " + clazz);
@@ -258,7 +239,7 @@ public class ExtensionLoader<T> {
     /**
      * The type Holder.
      *
-     * @param <T> the type parameter
+     * @param <T> the type parameter.
      */
     public static class Holder<T> {
         private volatile T value;

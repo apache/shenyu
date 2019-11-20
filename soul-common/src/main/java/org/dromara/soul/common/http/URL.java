@@ -17,7 +17,10 @@
 
 package org.dromara.soul.common.http;
 
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.*;
 import lombok.Getter;
 import org.dromara.soul.common.utils.CollectionUtils;
@@ -26,14 +29,13 @@ import sun.net.util.IPAddressUtil;
 
 /**
  * URL .
- * HTTP URL 处理.
+ * HTTP URL processing.
  *
  * @author sixh
  * @see java.net.URL
- * @see java.net.URI;
+ * @see java.net.URI
  */
 @Getter
-
 public class URL {
     private String protocol;
     private String host;
@@ -56,11 +58,12 @@ public class URL {
     /**
      * 生成一个url .
      *
+     * @param protocol   the protocol
      * @param host       host.
      * @param port       port.
      * @param path       path.
      * @param parameters parameters.
-     * @return URL.
+     * @return URL. url
      */
     public static URL valueOf(String protocol,
                               String host,
@@ -82,6 +85,27 @@ public class URL {
         url.query = buildQuery(url.parameters);
         return url;
     }
+
+    /**
+     * Gets parameter.
+     *
+     * @param key the key
+     * @return the parameter.
+     */
+    public String getParameter(String key) {
+        return this.getParameters().get(key);
+    }
+
+    /**
+     * Value of url.
+     *
+     * @param protocol the protocol
+     * @param host     the host
+     * @param port     the port
+     * @param path     the path
+     * @param query    the query
+     * @return the url.
+     */
     public static URL valueOf(String protocol,
                               String host,
                               Integer port,
@@ -91,12 +115,30 @@ public class URL {
         return valueOf(protocol, host, port, path, params);
     }
 
+    /**
+     * Value of url.
+     *
+     * @param protocol    the protocol
+     * @param hostAndPort the host and port
+     * @param path        the path
+     * @param query       the query
+     * @return the url
+     */
     public static URL valueOf(String protocol, String hostAndPort, String path, String query) {
         Map<String, String> params = queryToMap(query);
         return valueOf(protocol, hostAndPort, path, params);
 
     }
 
+    /**
+     * Value of url.
+     *
+     * @param protocol    the protocol
+     * @param hostAndPort the host and port
+     * @param path        the path
+     * @param parameters  the parameters
+     * @return the url
+     */
     public static URL valueOf(String protocol, String hostAndPort, String path, Map<String, String> parameters) {
         if (StringUtils.isBlank(hostAndPort) || hostAndPort.indexOf(COLON) < 0) {
             throw new IllegalArgumentException("hostAndPort error, le: 127.0.0.1:2222");
@@ -107,6 +149,11 @@ public class URL {
         return valueOf(protocol, host, port, path, parameters);
     }
 
+    /**
+     * Full string string.
+     *
+     * @return the string
+     */
     public String fullString() {
         StringBuilder sb = new StringBuilder();
         if (StringUtils.isBlank(protocol)) {
@@ -175,6 +222,12 @@ public class URL {
         return Collections.emptyMap();
     }
 
+    /**
+     * Parse url.
+     *
+     * @param url the url
+     * @return the url
+     */
     public static URL parse(String url) {
         URL newUrl = new URL();
         try {
@@ -185,6 +238,32 @@ public class URL {
             throw new IllegalArgumentException("invalid url");
         }
         return newUrl;
+    }
+
+    /**
+     * Encode string.
+     *
+     * @return the string
+     */
+    public String encode() {
+        try {
+            return URLEncoder.encode(this.fullString(), "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            return "";
+        }
+    }
+
+    /**
+     * Decode string.
+     *
+     * @return the string
+     */
+    public String decode() {
+        try {
+            return URLDecoder.decode(this.fullString(), "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            return "";
+        }
     }
 
     private void url(String spec) {
@@ -212,7 +291,7 @@ public class URL {
                 aRef = true;
             }
             for (i = start; !aRef && (i < limit) &&
-                    ((c = spec.charAt(i)) != VIRGULE); i++) {
+                            ((c = spec.charAt(i)) != VIRGULE); i++) {
                 if (c == COLON) {
 
                     String s = spec.substring(start, i).toLowerCase();
@@ -258,12 +337,12 @@ public class URL {
         }
         int i;
         boolean isUncName = (start <= limit - 4) &&
-                (spec.charAt(start) == VIRGULE) &&
-                (spec.charAt(start + 1) == VIRGULE) &&
-                (spec.charAt(start + 2) == VIRGULE) &&
-                (spec.charAt(start + 3) == VIRGULE);
+                            (spec.charAt(start) == VIRGULE) &&
+                            (spec.charAt(start + 1) == VIRGULE) &&
+                            (spec.charAt(start + 2) == VIRGULE) &&
+                            (spec.charAt(start + 3) == VIRGULE);
         if (!isUncName && (start <= limit - 2) && (spec.charAt(start) == VIRGULE) &&
-                (spec.charAt(start + 1) == VIRGULE)) {
+            (spec.charAt(start + 1) == VIRGULE)) {
             start += 2;
             i = spec.indexOf(VIRGULE, start);
             if (i < 0 || i > limit) {
@@ -328,7 +407,7 @@ public class URL {
             }
             if (port < -1) {
                 throw new IllegalArgumentException("Invalid port number :" +
-                        port);
+                                                   port);
             }
             start = i;
             if (host.length() > 0) {
@@ -377,7 +456,7 @@ public class URL {
         for (int i = 1; i < len; i++) {
             c = protocol.charAt(i);
             if (!Character.isLetterOrDigit(c) && c != '.' && c != '+' &&
-                    c != '-') {
+                c != '-') {
                 return false;
             }
         }

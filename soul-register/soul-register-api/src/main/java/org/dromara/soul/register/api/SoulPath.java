@@ -15,19 +15,49 @@
  *     limitations under the License.
  */
 
-package org.dromara.soul.register.dubbo64;
+package org.dromara.soul.register.api;
 
-import org.dromara.soul.register.api.HttpProduce;
+import lombok.Data;
+import org.dromara.soul.common.http.URL;
+import org.dromara.soul.common.utils.AttrMap;
 
 /**
- * Dubbo64HttpProduce .
- * Dubbo64 Related version processing.
+ * SoulPath
+ * Path defined by soul.
  *
  * @author sixh
  */
-public class Dubbo64HttpProduce implements HttpProduce<Dubbo64OnlyPath> {
-    @Override
-    public void produce(Dubbo64OnlyPath path) {
+@Data
+public class SoulPath implements Path {
 
+    private String key;
+
+    private Path nativePath;
+
+    private String protocol;
+
+    private String host;
+
+    private String port;
+
+    private String path;
+
+    private AttrMap<String, String> params;
+
+    private Integer status;
+
+    @Override
+    public Integer status() {
+        return status;
+    }
+
+    @Override
+    public URL getSoulPath() {
+        return null;
+    }
+
+    @Override
+    public <T extends Path> T getPathObj(URL url) {
+        return null;
     }
 }

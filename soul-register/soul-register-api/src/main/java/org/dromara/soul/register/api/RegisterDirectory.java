@@ -17,28 +17,36 @@
 
 package org.dromara.soul.register.api;
 
-
+import java.util.HashSet;
+import java.util.Set;
 import org.dromara.soul.common.extension.SPI;
-import org.dromara.soul.common.http.URL;
 
 /**
- * Registry
+ * RegisterDirectory
+ * 1. Listen to the service interface for the relevant registration processing.
  *
  * @author sixh
  */
-@SPI("zookeeper")
-public interface Registry {
-    /**
-     * Register.
-     *
-     * @param url the url.
-     */
-    void register(URL url);
+@SPI
+public abstract class RegisterDirectory implements HealthCheck {
+
+    private Set<RegisterDirectoryListener> listeners = new HashSet<>();
 
     /**
-     * Unregister.
+     * Listener.
      *
-     * @param url the url.
+     * @param listener the listener.
      */
-    void unregister(URL url);
+    public void listener(RegisterDirectoryListener listener) {
+        listeners.add(listener);
+    }
+
+    /**
+     * Redress.
+     *
+     * @param path the path.
+     */
+    protected void redress(Path path) {
+        listeners.forEach(listener -> listener.apply(path));
+    }
 }

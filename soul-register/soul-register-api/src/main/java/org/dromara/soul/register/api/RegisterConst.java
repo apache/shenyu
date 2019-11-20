@@ -17,28 +17,33 @@
 
 package org.dromara.soul.register.api;
 
-
-import org.dromara.soul.common.extension.SPI;
-import org.dromara.soul.common.http.URL;
+import org.dromara.soul.common.constant.Constants;
 
 /**
- * Registry
+ * RegisterConst
  *
  * @author sixh
  */
-@SPI("zookeeper")
-public interface Registry {
+public class RegisterConst implements Constants {
     /**
-     * Register.
+     * The constant URL_CLUSTER_KEY.
      *
-     * @param url the url.
+     * @see org.dromara.soul.register.api.config.RegistryConfig
      */
-    void register(URL url);
+    public static final String URL_CLUSTER_KEY = "cluster";
 
     /**
-     * Unregister.
+     * The constant URL_SPLIT_SYMBOL_KEY.
      *
-     * @param url the url.
+     * @see org.dromara.soul.register.api.config.RegistryConfig
      */
-    void unregister(URL url);
+    public static final String URL_SPLIT_SYMBOL_KEY = ",";
+    /**
+     * The constant URL_SPLIT_SYMBOL_KEY.
+     *
+     * @see org.dromara.soul.common.http.URL
+     */
+    public static final String BASE_URL_PATH_KEY = "/";
+
+    public static final String EPHEMERAL_KEY = "ephemeral";
 }

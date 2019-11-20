@@ -27,7 +27,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>soul-register-dubbo64</artifactId>
-
+    <properties>
+        <curator.version>4.0.1</curator.version>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>org.dromara</groupId>
@@ -37,6 +39,31 @@
             <groupId>org.dromara</groupId>
             <artifactId>soul-register-api</artifactId>
             <version>3.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>dubbo</artifactId>
+            <version>2.6.7</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-client</artifactId>
+            <version>${curator.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-framework</artifactId>
+            <version>${curator.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
+            <version>${curator.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.dubbo</groupId>
+            <artifactId>dubbo</artifactId>
+            <version>2.7.4</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

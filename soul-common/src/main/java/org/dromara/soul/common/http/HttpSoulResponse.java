@@ -22,7 +22,6 @@ import lombok.Data;
 
 /**
  * Response
- * CreateDate: 2019/10/14 18:30
  *
  * @author sixh
  */

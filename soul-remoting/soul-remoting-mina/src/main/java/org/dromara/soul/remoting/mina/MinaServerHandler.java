@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit;
 import org.apache.mina.core.service.IoHandlerAdapter;
 import org.apache.mina.core.session.IoSession;
 import org.dromara.soul.common.Attribute;
-import org.dromara.soul.common.Const;
 import org.dromara.soul.remoting.api.Channel;
 import org.dromara.soul.remoting.api.ChannelCache;
 import org.dromara.soul.remoting.api.ChannelCacheListener;

@@ -15,30 +15,19 @@
  *     limitations under the License.
  */
 
-package org.dromara.soul.register.api;
+package org.dromara.soul.register.dubbo64;
 
-
-import org.dromara.soul.common.extension.SPI;
-import org.dromara.soul.common.http.URL;
+import org.dromara.soul.register.api.HttpProduce;
 
 /**
- * Registry
+ * DubboHttpProduce .
+ * Dubbo Related version processing.
  *
  * @author sixh
  */
-@SPI("zookeeper")
-public interface Registry {
-    /**
-     * Register.
-     *
-     * @param url the url.
-     */
-    void register(URL url);
+public class DubboHttpProduce implements HttpProduce<DubboPath> {
+    @Override
+    public void produce(DubboPath path) {
 
-    /**
-     * Unregister.
-     *
-     * @param url the url.
-     */
-    void unregister(URL url);
+    }
 }

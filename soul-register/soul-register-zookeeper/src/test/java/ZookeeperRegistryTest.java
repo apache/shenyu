@@ -15,30 +15,35 @@
  *     limitations under the License.
  */
 
-package org.dromara.soul.register.api;
-
-
-import org.dromara.soul.common.extension.SPI;
 import org.dromara.soul.common.http.URL;
+import org.dromara.soul.register.api.RegisterConst;
+import org.dromara.soul.register.api.Registry;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
- * Registry
- *
- * @author sixh
+ * Created by apa7 on 2019/11/20.
  */
-@SPI("zookeeper")
-public interface Registry {
-    /**
-     * Register.
-     *
-     * @param url the url.
-     */
-    void register(URL url);
+public class ZookeeperRegistryTest {
 
-    /**
-     * Unregister.
-     *
-     * @param url the url.
-     */
-    void unregister(URL url);
+    private String address = "zookeeper://192.168.1.84:2181?cluster=192.168.1.85:2181,192.168.1.86:2181";
+
+    Registry registry;
+
+    @Before
+    public void setUp() {
+        registry = new ZookeeperRegistry(URL.parse(address));
+    }
+
+    @Test
+    public void register() {
+        String url = "soul://192.168.1.100:8888/soul/server?" + RegisterConst.EPHEMERAL_KEY + "=false";
+        registry.register(URL.parse(url));
+    }
+
+    @Test
+    public void unregister() {
+        String url = "soul://192.168.1.100:8888/soul/server?" + RegisterConst.EPHEMERAL_KEY + "=false";
+        registry.unregister(URL.parse(url));
+    }
 }

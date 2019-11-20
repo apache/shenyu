@@ -15,30 +15,13 @@
  *     limitations under the License.
  */
 
-package org.dromara.soul.register.api;
-
-
-import org.dromara.soul.common.extension.SPI;
-import org.dromara.soul.common.http.URL;
+package org.dromara.soul.register.dubbo64;
 
 /**
- * Registry
+ * ReferenceConfigUtils
  *
  * @author sixh
  */
-@SPI("zookeeper")
-public interface Registry {
-    /**
-     * Register.
-     *
-     * @param url the url.
-     */
-    void register(URL url);
-
-    /**
-     * Unregister.
-     *
-     * @param url the url.
-     */
-    void unregister(URL url);
+public class ReferenceConfigUtils {
+    
 }

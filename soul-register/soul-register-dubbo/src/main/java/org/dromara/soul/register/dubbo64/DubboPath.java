@@ -15,30 +15,58 @@
  *     limitations under the License.
  */
 
-package org.dromara.soul.register.api;
+package org.dromara.soul.register.dubbo64;
 
-
-import org.dromara.soul.common.extension.SPI;
+import lombok.Builder;
+import lombok.Data;
 import org.dromara.soul.common.http.URL;
+import org.dromara.soul.register.api.Path;
 
 /**
- * Registry
+ * DubboPath .
+ * Dubbo 64 version related, path processing.
  *
  * @author sixh
  */
-@SPI("zookeeper")
-public interface Registry {
-    /**
-     * Register.
-     *
-     * @param url the url.
-     */
-    void register(URL url);
+@Data
+@Builder
+public class DubboPath implements Path {
 
-    /**
-     * Unregister.
-     *
-     * @param url the url.
-     */
-    void unregister(URL url);
+    private String application;
+
+    private String group;
+
+    private String service;
+
+    private String method;
+
+    private String version;
+
+    private String serviceKey;
+
+    private URL nativeUrl;
+
+    private Integer status;
+
+    private boolean registerServer;
+
+    public boolean isRegisterServer() {
+        return registerServer;
+    }
+
+    @Override
+    public Integer status() {
+        return status;
+    }
+
+    @Override
+    public URL getSoulPath() {
+        return null;
+    }
+
+    @Override
+    public <T extends Path> T getPathObj(URL url) {
+        return null;
+    }
+
 }

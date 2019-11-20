@@ -15,30 +15,45 @@
  *     limitations under the License.
  */
 
-package org.dromara.soul.register.api;
+package org.dromara.soul.register.dubbo64;
 
 
-import org.dromara.soul.common.extension.SPI;
 import org.dromara.soul.common.http.URL;
 
 /**
- * Registry
+ * URLAdapter
  *
  * @author sixh
  */
-@SPI("zookeeper")
-public interface Registry {
-    /**
-     * Register.
-     *
-     * @param url the url.
-     */
-    void register(URL url);
+public class UrlAdapter {
 
     /**
-     * Unregister.
+     * Parse url.
      *
-     * @param url the url.
+     * @param url the url
+     * @return the url
      */
-    void unregister(URL url);
+    public static URL parse(com.alibaba.dubbo.common.URL url) {
+        return URL.parse(url.toString());
+    }
+
+    /**
+     * Parse alibaba com . alibaba . dubbo . common . url.
+     *
+     * @param url the url
+     * @return the com . alibaba . dubbo . common . url
+     */
+    public static com.alibaba.dubbo.common.URL parseAlibaba(URL url) {
+        return com.alibaba.dubbo.common.URL.valueOf(url.fullString());
+    }
+
+    /**
+     * Parse url.
+     *
+     * @param url the url
+     * @return the url
+     */
+    public static URL parse(org.apache.dubbo.common.URL url) {
+        return URL.parse(url.toString());
+    }
 }

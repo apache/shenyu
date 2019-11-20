@@ -19,15 +19,12 @@
 
 package org.dromara.soul.config.api;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 import org.dromara.soul.common.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Stream;
 
 /**
  * ConfigEnv .
@@ -35,7 +32,7 @@ import java.util.stream.Stream;
  *
  * @author sixh
  */
-public class ConfigEnv {
+public final class ConfigEnv {
 
     private static final ConfigEnv INST = new ConfigEnv();
 
@@ -46,8 +43,6 @@ public class ConfigEnv {
     /**
      * Save some custom configuration information.
      */
-    private final Set<String> configClassName = new HashSet<>();
-
     private ConfigEnv() {
         if (INST != null) {
             throw new ConfigException("repeated configEnv object.");
@@ -59,7 +54,7 @@ public class ConfigEnv {
     }
 
     /**
-     * 增加一个需要处理的class Path.
+     * Add a class Path that needs to be processed.
      *
      * @param classPath class path.
      */
@@ -68,23 +63,22 @@ public class ConfigEnv {
             logger.warn("config class path Ignore {}", classPath);
             return;
         }
-        addConfigClassPath(classPath, true);
-    }
-
-    private void addConfigClassPath(String classPath, boolean instantiation) {
-        if (!instantiation) {
-            configClassName.add(classPath);
-            return;
-        }
         try {
             Class<?> clazz = Class.forName(classPath);
-            if (clazz.getSuperclass().isAssignableFrom(AbstractConfig.class)) {
+            addConfigClass(clazz);
+        } catch (ClassNotFoundException e) {
+            throw new ConfigException(e);
+        }
+    }
+
+    public void addConfigClass(Class<?> clazz) {
+        if (clazz.getSuperclass().isAssignableFrom(AbstractConfig.class)) {
+            try {
                 AbstractConfig configParent = (AbstractConfig) clazz.newInstance();
                 putBean(configParent);
-                configClassName.add(classPath);
+            } catch (IllegalAccessException | InstantiationException e) {
+                throw new ConfigException(e);
             }
-        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
-            throw new ConfigException(e);
         }
     }
 
@@ -104,7 +98,6 @@ public class ConfigEnv {
                 return;
             }
             configBeans.put(parent.getClass(), parent);
-            addConfigClassPath(parent.getClass().getName(), false);
         }
     }
 
