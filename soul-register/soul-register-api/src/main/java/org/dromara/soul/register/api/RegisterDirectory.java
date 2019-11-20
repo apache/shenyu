@@ -20,6 +20,7 @@ package org.dromara.soul.register.api;
 import java.util.HashSet;
 import java.util.Set;
 import org.dromara.soul.common.extension.SPI;
+import org.dromara.soul.register.api.path.Path;
 
 /**
  * RegisterDirectory

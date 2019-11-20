@@ -15,9 +15,10 @@
  *     limitations under the License.
  */
 
-package org.dromara.soul.register.api;
+package org.dromara.soul.register.api.path;
 
 import org.dromara.soul.common.http.URL;
+import org.dromara.soul.register.api.RegisterDirectoryListener;
 
 /**
  * EmptyPath
@@ -25,6 +26,13 @@ import org.dromara.soul.common.http.URL;
  * @author sixh
  */
 public class EmptyPath implements Path {
+
+    private String key;
+
+    public void setKey(String key) {
+        this.key = key;
+    }
+
     @Override
     public URL getSoulPath() {
         return null;
@@ -32,7 +40,7 @@ public class EmptyPath implements Path {
 
     @Override
     public Integer status() {
-        return null;
+        return RegisterDirectoryListener.REMOVE_ALL;
     }
 
     @Override

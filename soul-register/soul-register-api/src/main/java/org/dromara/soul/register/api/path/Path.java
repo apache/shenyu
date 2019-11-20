@@ -15,9 +15,10 @@
  *     limitations under the License.
  */
 
-package org.dromara.soul.register.api;
+package org.dromara.soul.register.api.path;
 
 import org.dromara.soul.common.http.URL;
+import org.dromara.soul.register.api.RegisterDirectoryListener;
 
 /**
  * Path .

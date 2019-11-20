@@ -17,6 +17,8 @@
 
 package org.dromara.soul.register.api;
 
+import org.dromara.soul.register.api.path.Path;
+
 /**
  * HttpProduce .
  * Finally, provide the process for the http want to close.

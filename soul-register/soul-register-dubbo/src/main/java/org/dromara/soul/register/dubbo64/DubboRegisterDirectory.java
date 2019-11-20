@@ -33,7 +33,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import org.dromara.soul.common.exception.SoulException;
 import org.dromara.soul.common.extension.Join;
-import org.dromara.soul.register.api.Path;
+import org.dromara.soul.register.api.path.EmptyPath;
+import org.dromara.soul.register.api.path.Path;
 import org.dromara.soul.register.api.RegisterDirectory;
 import org.dromara.soul.register.api.RegisterDirectoryListener;
 import org.slf4j.Logger;
@@ -98,12 +99,12 @@ public class DubboRegisterDirectory extends RegisterDirectory implements NotifyL
         String serviceName = "";
         for (URL url : urls) {
             //得到dubbo的version
-            String groupRep = url.getParameter(Constants.GROUP_KEY);
+            String group = url.getParameter(Constants.GROUP_KEY);
+            String version = url.getParameter(Constants.VERSION_KEY);
             String category = url.getParameter(Constants.CATEGORY_KEY, Constants.PROVIDERS_CATEGORY);
+            serviceName = url.getServiceInterface();
             //如果是dubbo协议，再确定
             if (Constants.DEFAULT_PROTOCOL.equalsIgnoreCase(url.getProtocol()) && category.equals(Constants.PROVIDERS_CATEGORY)) {
-                serviceName = url.getServiceInterface();
-                String version = url.getParameter(Constants.VERSION_KEY);
                 String methodsKey = url.getParameter(Constants.METHODS_KEY);
                 String application = url.getParameter(Constants.APPLICATION_KEY);
                 List<String> methods = Splitter.on(",").splitToList(methodsKey);
@@ -118,7 +119,7 @@ public class DubboRegisterDirectory extends RegisterDirectory implements NotifyL
                             .service(serviceName)
                             .version(version)
                             .method(methodName)
-                            .group(groupRep)
+                            .group(group)
                             .serviceKey(serviceKey)
                             .registerServer(false).build();
                     set.add(config);
@@ -134,23 +135,11 @@ public class DubboRegisterDirectory extends RegisterDirectory implements NotifyL
                 }
                 //如果为空的协议者清除缓存存在
             } else if (Constants.EMPTY_PROTOCOL.equalsIgnoreCase(url.getProtocol()) && category.equals(Constants.PROVIDERS_CATEGORY)) {
-               /* String groupKey = DubboTool.getGroup(key);
-                String versionKey = DubboTool.getVersion(key);
-                String interfaceName = DubboTool.getInterface(key);
-                //如果groupkey == * 或者 version==*  表示下线所有服务
-                if (Constants.ANY_VALUE.equals(groupKey)
-                    && Constants.ANY_VALUE.equals(versionKey)) {
-                    *//*
-                     查询需要下线的所有有务
-                      通知Proxy下线服务
-                     *//*
-                    offLineNotifyProxy(interfaceName);
-                    //清除本地缓存
-                    CACHE.remove(interfaceName);
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("服务{}全部下线，已经没有存活任何group与version的服务", interfaceName);
-                    }
-                }*/
+                //group == * 或者 version==*  表示下线所有服务
+                if (Constants.ANY_VALUE.equals(group)
+                    && Constants.ANY_VALUE.equals(version)) {
+                    offlineOff(serviceName);
+                }
             }
         }
         if (!categories.isEmpty()) {
@@ -193,5 +182,14 @@ public class DubboRegisterDirectory extends RegisterDirectory implements NotifyL
                 }));
             }
         }
+    }
+
+    private void offlineOff(String serviceName) {
+        //清除本地缓存
+        SetMultimap<String, DubboPath> caches = CACHE.get(serviceName);
+        EmptyPath path = new EmptyPath();
+        path.setKey(serviceName);
+        redress(path);
+        CACHE.remove(serviceName);
     }
 }

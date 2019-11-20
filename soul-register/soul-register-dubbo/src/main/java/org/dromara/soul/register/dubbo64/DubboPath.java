@@ -20,7 +20,7 @@ package org.dromara.soul.register.dubbo64;
 import lombok.Builder;
 import lombok.Data;
 import org.dromara.soul.common.http.URL;
-import org.dromara.soul.register.api.Path;
+import org.dromara.soul.register.api.path.Path;
 
 /**
  * DubboPath .

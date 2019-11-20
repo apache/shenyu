@@ -18,6 +18,7 @@
 package org.dromara.soul.register.api;
 
 import java.util.concurrent.Future;
+import org.dromara.soul.register.api.path.Path;
 
 /**
  * HealthCheck

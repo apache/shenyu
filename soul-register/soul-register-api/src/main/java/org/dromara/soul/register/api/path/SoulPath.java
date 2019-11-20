@@ -15,7 +15,7 @@
  *     limitations under the License.
  */
 
-package org.dromara.soul.register.api;
+package org.dromara.soul.register.api.path;
 
 import lombok.Data;
 import org.dromara.soul.common.http.URL;

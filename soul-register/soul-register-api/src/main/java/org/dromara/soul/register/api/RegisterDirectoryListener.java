@@ -17,6 +17,8 @@
 
 package org.dromara.soul.register.api;
 
+import org.dromara.soul.register.api.path.Path;
+
 /**
  * RegisterDirectoryListener
  *
