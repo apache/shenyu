@@ -84,6 +84,21 @@ public class RuleServiceImpl implements RuleService {
         this.eventPublisher = eventPublisher;
     }
 
+    @Override
+    public String register(RuleDTO ruleDTO) {
+        RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
+        List<RuleConditionDTO> ruleConditions = ruleDTO.getRuleConditions();
+        if (StringUtils.isEmpty(ruleDTO.getId())) {
+            ruleMapper.insertSelective(ruleDO);
+            ruleConditions.forEach(ruleConditionDTO -> {
+                ruleConditionDTO.setRuleId(ruleDO.getId());
+                ruleConditionMapper.insertSelective(RuleConditionDO.buildRuleConditionDO(ruleConditionDTO));
+            });
+        }
+        publishEvent(ruleDO, ruleConditions);
+        return ruleDO.getId();
+    }
+
     /**
      * create or update rule.
      *
@@ -112,16 +127,7 @@ public class RuleServiceImpl implements RuleService {
                 ruleConditionMapper.insertSelective(ruleConditionDO);
             });
         }
-
-        SelectorDO selectorDO = selectorMapper.selectById(ruleDO.getSelectorId());
-        PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
-
-        List<ConditionData> conditionDataList =
-                ruleConditions.stream().map(ConditionTransfer.INSTANCE::mapToRuleDTO).collect(Collectors.toList());
-        // publish change event.
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.UPDATE,
-                Collections.singletonList(RuleDO.transFrom(ruleDO, pluginDO.getName(), conditionDataList))));
-
+        publishEvent(ruleDO, ruleConditions);
         return ruleCount;
     }
 
@@ -196,6 +202,17 @@ public class RuleServiceImpl implements RuleService {
                 .filter(Objects::nonNull)
                 .map(this::buildRuleData)
                 .collect(Collectors.toList());
+    }
+
+    private void publishEvent(RuleDO ruleDO, List<RuleConditionDTO> ruleConditions) {
+        SelectorDO selectorDO = selectorMapper.selectById(ruleDO.getSelectorId());
+        PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
+
+        List<ConditionData> conditionDataList =
+                ruleConditions.stream().map(ConditionTransfer.INSTANCE::mapToRuleDTO).collect(Collectors.toList());
+        // publish change event.
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.UPDATE,
+                Collections.singletonList(RuleDO.transFrom(ruleDO, pluginDO.getName(), conditionDataList))));
     }
 
     private RuleData buildRuleData(final RuleDO ruleDO) {

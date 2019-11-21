@@ -92,6 +92,21 @@ public class SelectorServiceImpl implements SelectorService {
         this.eventPublisher = eventPublisher;
     }
 
+    @Override
+    public String register(SelectorDTO selectorDTO) {
+        SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
+        List<SelectorConditionDTO> selectorConditionDTOs = selectorDTO.getSelectorConditions();
+        if (StringUtils.isEmpty(selectorDTO.getId())) {
+            selectorMapper.insertSelective(selectorDO);
+            selectorConditionDTOs.forEach(selectorConditionDTO -> {
+                selectorConditionDTO.setSelectorId(selectorDO.getId());
+                selectorConditionMapper.insertSelective(SelectorConditionDO.buildSelectorConditionDO(selectorConditionDTO));
+            });
+        }
+        publishEvent(selectorDO, selectorConditionDTOs);
+        return selectorDO.getId();
+    }
+
     /**
      * create or update selector.
      *
@@ -182,6 +197,17 @@ public class SelectorServiceImpl implements SelectorService {
                         .collect(Collectors.toList()));
     }
 
+    @Override
+    public SelectorDO findByName(String name) {
+        return selectorMapper.selectByName(name);
+    }
+
+    @Override
+    public SelectorData buildByName(String name) {
+        SelectorDO selectorDO = selectorMapper.selectByName(name);
+        return buildSelectorData(selectorDO);
+    }
+
     /**
      * find page of selector by query.
      *
@@ -214,6 +240,15 @@ public class SelectorServiceImpl implements SelectorService {
                 .filter(Objects::nonNull)
                 .map(this::buildSelectorData)
                 .collect(Collectors.toList());
+    }
+
+    private void publishEvent(SelectorDO selectorDO, List<SelectorConditionDTO> selectorConditionDTOs) {
+        PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
+        List<ConditionData> conditionDataList =
+                selectorConditionDTOs.stream().map(ConditionTransfer.INSTANCE::mapToSelectorDTO).collect(Collectors.toList());
+        // publish change event.
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
+                Collections.singletonList(SelectorDO.transFrom(selectorDO, pluginDO.getName(), conditionDataList))));
     }
 
     private SelectorData buildSelectorData(final SelectorDO selectorDO) {

@@ -65,7 +65,7 @@ public class DashboardUserDO extends BaseDO {
             DashboardUserDO dashboardUserDO = new DashboardUserDO();
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             if (StringUtils.isEmpty(dashboardUserDTO.getId())) {
-                dashboardUserDO.setId(UUIDUtils.generateShortUuid());
+                dashboardUserDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 dashboardUserDO.setEnabled(true);
                 dashboardUserDO.setDateCreated(currentTime);
             } else {

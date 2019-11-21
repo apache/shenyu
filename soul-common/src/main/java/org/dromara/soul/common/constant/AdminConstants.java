@@ -30,6 +30,10 @@ public final class AdminConstants {
      */
     public static final String PLUGIN_NAME_IS_EXIST = "插件名称已经存在，不能重复添加!";
 
+    /**
+     * The constant ID_NOT_EXIST.
+     */
+    public static final String ID_NOT_EXIST = "id不存在！";
 
     /**
      * The constant PLUGIN_NAME_NOT_EXIST.
@@ -46,6 +50,17 @@ public final class AdminConstants {
      * The constant SYS_PLUGIN_ID_NOT_EXIST.
      */
     public static final String SYS_PLUGIN_ID_NOT_EXIST = "插件id不存在！";
+
+    /**
+     * The constant DATA_PATH_IS_EXIST.
+     */
+    public static final String DATA_PATH_IS_EXIST = "路径已经存在，不能重复添加!";
+
+
+    /**
+     * The constant PARAMS_ERROR.
+     */
+    public static final String PARAMS_ERROR = "参数不完整！";
 
 
 }

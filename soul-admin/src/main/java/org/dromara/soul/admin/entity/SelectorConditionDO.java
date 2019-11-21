@@ -69,7 +69,7 @@ public class SelectorConditionDO extends BaseDO {
             SelectorConditionDO selectorConditionDO = new SelectorConditionDO();
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             if (StringUtils.isEmpty(selectorConditionDTO.getId())) {
-                selectorConditionDO.setId(UUIDUtils.generateShortUuid());
+                selectorConditionDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 selectorConditionDO.setDateCreated(currentTime);
             } else {
                 selectorConditionDO.setId(selectorConditionDTO.getId());

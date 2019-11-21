@@ -18,6 +18,7 @@
 package org.dromara.soul.admin.listener;
 
 import org.dromara.soul.common.dto.AppAuthData;
+import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
@@ -64,6 +65,9 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
                     break;
                 case SELECTOR:
                     listener.onSelectorChanged((List<SelectorData>) event.getSource(), event.getEventType());
+                    break;
+                case META_DATA:
+                    listener.onMetaDataChanged((List<MetaData>) event.getSource(), event.getEventType());
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + event.getGroupKey());

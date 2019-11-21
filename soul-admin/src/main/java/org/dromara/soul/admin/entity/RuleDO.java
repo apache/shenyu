@@ -82,7 +82,7 @@ public class RuleDO extends BaseDO {
             RuleDO ruleDO = new RuleDO();
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             if (StringUtils.isEmpty(ruleDTO.getId())) {
-                ruleDO.setId(UUIDUtils.generateShortUuid());
+                ruleDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 ruleDO.setDateCreated(currentTime);
             } else {
                 ruleDO.setId(ruleDTO.getId());

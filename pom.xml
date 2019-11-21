@@ -16,6 +16,7 @@
         <module>soul-configuration</module>
         <module>soul-spring-boot-starter</module>
         <module>soul-bootstrap</module>
+        <module>soul-client</module>
     </modules>
 
     <organization>
