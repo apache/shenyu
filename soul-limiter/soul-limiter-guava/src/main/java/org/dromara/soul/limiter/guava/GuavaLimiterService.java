@@ -29,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author xiaoyu
  */
+@SuppressWarnings("all")
 public class GuavaLimiterService implements LimiterService {
 
     private static final ConcurrentHashMap<String, RateLimiter> LIMITER_MAP = new ConcurrentHashMap<>();

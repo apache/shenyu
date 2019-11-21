@@ -24,6 +24,7 @@ import com.netflix.hystrix.HystrixCommandGroupKey;
 import com.netflix.hystrix.HystrixCommandKey;
 import com.netflix.hystrix.HystrixCommandProperties;
 import com.netflix.hystrix.HystrixObservableCommand;
+import org.dromara.soul.fusing.api.config.DefaultConfig;
 import org.dromara.soul.fusing.api.config.FusingConfig;
 
 /**
@@ -36,22 +37,22 @@ public class HystrixBuilder {
     /**
      * this is build HystrixObservableCommand.Setter.
      *
-     * @param commonHystrix {@linkplain CommonHystrix}
+     * @param commonHystrix {@linkplain DefaultConfig}
      * @return {@linkplain HystrixObservableCommand.Setter}
      */
     public static HystrixCommand.Setter build(final FusingConfig commonHystrix) {
 
         if (commonHystrix.getMaxConcurrentRequests() == 0) {
-            commonHystrix.setMaxConcurrentRequests(DefaultHystrix.MAX_CONCURRENT_REQUESTS);
+            commonHystrix.setMaxConcurrentRequests(DefaultConfig.MAX_CONCURRENT_REQUESTS);
         }
         if (commonHystrix.getErrorThresholdPercentage() == 0) {
-            commonHystrix.setErrorThresholdPercentage(DefaultHystrix.ERROR_THRESHOLD_PERCENTAGE);
+            commonHystrix.setErrorThresholdPercentage(DefaultConfig.ERROR_THRESHOLD_PERCENTAGE);
         }
         if (commonHystrix.getRequestVolumeThreshold() == 0) {
-            commonHystrix.setRequestVolumeThreshold(DefaultHystrix.REQUEST_VOLUME_THRESHOLD);
+            commonHystrix.setRequestVolumeThreshold(DefaultConfig.REQUEST_VOLUME_THRESHOLD);
         }
         if (commonHystrix.getSleepWindowInMilliseconds() == 0) {
-            commonHystrix.setSleepWindowInMilliseconds(DefaultHystrix.SLEEP_WINDOW_INMILLISECONDS);
+            commonHystrix.setSleepWindowInMilliseconds(DefaultConfig.SLEEP_WINDOW_INMILLISECONDS);
         }
 
         HystrixCommandGroupKey groupKey = HystrixCommandGroupKey.Factory.asKey(commonHystrix.getGroupKey());
