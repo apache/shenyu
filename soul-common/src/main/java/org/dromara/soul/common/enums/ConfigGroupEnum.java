@@ -47,7 +47,13 @@ public enum ConfigGroupEnum {
     /**
      * {@link org.dromara.soul.common.dto.SelectorData SelectorData} Group
      */
-    SELECTOR;
+    SELECTOR,
+
+    /**
+     * {@link org.dromara.soul.common.dto.MetaData MetaData} Group
+     */
+    META_DATA
+    ;
 
     /**
      * Acquire by name config group enum.

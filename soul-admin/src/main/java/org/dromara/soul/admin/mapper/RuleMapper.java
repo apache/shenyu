@@ -57,6 +57,14 @@ public interface RuleMapper {
     List<RuleDO> findBySelectorId(String selectorId);
 
     /**
+     * select rule by name
+     *
+     * @param name the name
+     * @return rule do
+     */
+    RuleDO findByName(String name);
+
+    /**
      * count rule by query.
      *
      * @param ruleQuery {@linkplain RuleQuery}

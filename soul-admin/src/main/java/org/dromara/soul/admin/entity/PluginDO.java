@@ -66,7 +66,7 @@ public class PluginDO extends BaseDO {
             PluginDO pluginDO = new PluginDO();
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             if (StringUtils.isEmpty(pluginDTO.getId())) {
-                pluginDO.setId(UUIDUtils.generateShortUuid());
+                pluginDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 pluginDO.setDateCreated(currentTime);
             } else {
                 pluginDO.setId(pluginDTO.getId());

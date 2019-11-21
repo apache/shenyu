@@ -60,7 +60,7 @@ public class AppAuthDO extends BaseDO {
             AppAuthDO appAuthDO = new AppAuthDO();
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             if (StringUtils.isEmpty(appAuthDTO.getId())) {
-                appAuthDO.setId(UUIDUtils.generateShortUuid());
+                appAuthDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 appAuthDO.setDateCreated(currentTime);
             } else {
                 appAuthDO.setId(appAuthDTO.getId());

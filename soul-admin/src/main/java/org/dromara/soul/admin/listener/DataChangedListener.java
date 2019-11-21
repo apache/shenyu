@@ -18,6 +18,7 @@
 package org.dromara.soul.admin.listener;
 
 import org.dromara.soul.common.dto.AppAuthData;
+import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
@@ -61,6 +62,16 @@ public interface DataChangedListener {
      * @param eventType the event type
      */
     default void onSelectorChanged(List<SelectorData> changed, DataEventTypeEnum eventType) {
+    }
+
+    /**
+     * On meta data changed.
+     *
+     * @param changed   the changed
+     * @param eventType the event type
+     */
+    default void onMetaDataChanged(List<MetaData> changed, DataEventTypeEnum eventType) {
+
     }
 
 

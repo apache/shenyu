@@ -34,6 +34,14 @@ import java.util.List;
 public interface RuleService {
 
     /**
+     * Register string.
+     *
+     * @param ruleDTO the rule dto
+     * @return the string
+     */
+    String register(RuleDTO ruleDTO);
+
+    /**
      * create or update rule.
      *
      * @param ruleDTO {@linkplain RuleDTO}

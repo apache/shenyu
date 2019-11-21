@@ -19,6 +19,7 @@
 package org.dromara.soul.admin.service;
 
 import org.dromara.soul.admin.dto.SelectorDTO;
+import org.dromara.soul.admin.entity.SelectorDO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.SelectorQuery;
 import org.dromara.soul.admin.vo.SelectorVO;
@@ -32,6 +33,15 @@ import java.util.List;
  * @author jiangxiaofeng(Nicholas)
  */
 public interface SelectorService {
+
+
+    /**
+     * Register string.
+     *
+     * @param selectorDTO the selector dto
+     * @return the string
+     */
+    String register(SelectorDTO selectorDTO);
 
     /**
      * create or update selector.
@@ -56,6 +66,22 @@ public interface SelectorService {
      * @return {@linkplain SelectorVO}
      */
     SelectorVO findById(String id);
+
+    /**
+     * find selector by name
+     *
+     * @param name the name
+     * @return selector do
+     */
+    SelectorDO findByName(String name);
+
+    /**
+     * Build by name selector data.
+     *
+     * @param name the name
+     * @return the selector data
+     */
+    SelectorData buildByName(String name);
 
     /**
      * find page of selector by query.

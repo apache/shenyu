@@ -89,7 +89,7 @@ public class SelectorDO extends BaseDO {
             SelectorDO selectorDO = new SelectorDO();
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             if (StringUtils.isEmpty(selectorDTO.getId())) {
-                selectorDO.setId(UUIDUtils.generateShortUuid());
+                selectorDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 selectorDO.setDateCreated(currentTime);
             } else {
                 selectorDO.setId(selectorDTO.getId());

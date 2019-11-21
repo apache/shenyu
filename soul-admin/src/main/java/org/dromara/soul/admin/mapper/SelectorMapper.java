@@ -57,6 +57,15 @@ public interface SelectorMapper {
      */
     List<SelectorDO> findByPluginId(String  pluginId);
 
+
+    /**
+     * select select by name
+     *
+     * @param name the name
+     * @return selector do
+     */
+    SelectorDO selectByName(String name);
+
     /**
      * count selector by query.
      *
