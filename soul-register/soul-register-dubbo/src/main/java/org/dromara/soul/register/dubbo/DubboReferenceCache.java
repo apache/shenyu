@@ -15,7 +15,7 @@
  *     limitations under the License.
  */
 
-package org.dromara.soul.register;
+package org.dromara.soul.register.dubbo;
 
 import com.alibaba.dubbo.config.ReferenceConfig;
 import com.google.common.cache.CacheBuilder;

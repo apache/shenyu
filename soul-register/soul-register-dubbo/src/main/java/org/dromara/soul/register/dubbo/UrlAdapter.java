@@ -15,38 +15,35 @@
  *     limitations under the License.
  */
 
-package org.dromara.soul.register.api;
+package org.dromara.soul.register.dubbo;
 
-import java.util.Set;
-import org.dromara.soul.register.api.path.Path;
+
+import org.dromara.soul.common.http.URL;
 
 /**
- * RegisterDirectoryListener
+ * URLAdapter
  *
  * @author sixh
  */
-@FunctionalInterface
-public interface RegisterDirectoryListener {
+public class UrlAdapter {
 
     /**
-     * The constant ADD.
-     */
-    Integer ADD = 1;
-
-    /**
-     * The constant REMOVE.
-     */
-    Integer REMOVE = 2;
-
-    /**
-     * The constant REMOVE_ALL.
-     */
-    Integer REMOVE_ALL = 3;
-
-    /**
-     * Listener.
+     * Parse url.
      *
-     * @param paths the paths.
+     * @param url the url
+     * @return the url
      */
-    void apply(Set<Path> paths);
+    public static URL parse(com.alibaba.dubbo.common.URL url) {
+        return URL.parse(url.toString());
+    }
+
+    /**
+     * Parse alibaba com . alibaba . dubbo . common . url.
+     *
+     * @param url the url
+     * @return the com . alibaba . dubbo . common . url
+     */
+    public static com.alibaba.dubbo.common.URL parseAlibaba(URL url) {
+        return com.alibaba.dubbo.common.URL.valueOf(url.fullString());
+    }
 }

@@ -16,6 +16,5 @@
         <module>soul-config-local</module>
         <module>soul-config-nacos</module>
         <module>soul-config-apollo</module>
-        <module>soul-config-disconf</module>
     </modules>
 </project>

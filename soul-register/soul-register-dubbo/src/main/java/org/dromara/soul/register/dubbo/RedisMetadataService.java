@@ -15,38 +15,18 @@
  *     limitations under the License.
  */
 
-package org.dromara.soul.register.api;
-
-import java.util.Set;
-import org.dromara.soul.register.api.path.Path;
+package org.dromara.soul.register.dubbo;
 
 /**
- * RegisterDirectoryListener
+ * RedisMetadataService
  *
  * @author sixh
  */
-@FunctionalInterface
-public interface RegisterDirectoryListener {
+public class RedisMetadataService implements DubboMetadataService {
 
-    /**
-     * The constant ADD.
-     */
-    Integer ADD = 1;
 
-    /**
-     * The constant REMOVE.
-     */
-    Integer REMOVE = 2;
-
-    /**
-     * The constant REMOVE_ALL.
-     */
-    Integer REMOVE_ALL = 3;
-
-    /**
-     * Listener.
-     *
-     * @param paths the paths.
-     */
-    void apply(Set<Path> paths);
+    @Override
+    public String getMetadata(DubboPath path) {
+        return null;
+    }
 }

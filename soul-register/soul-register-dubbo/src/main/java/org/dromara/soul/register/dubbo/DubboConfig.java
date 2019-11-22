@@ -15,13 +15,29 @@
  *     limitations under the License.
  */
 
-package org.dromara.soul.register.dubbo64;
+package org.dromara.soul.register.dubbo;
+
+import java.util.List;
+import lombok.Data;
+import org.dromara.soul.common.extension.Join;
+import org.dromara.soul.config.api.AbstractConfig;
 
 /**
- * ReferenceConfigUtils
+ * DubboConfig.
+ * dubbo Some configuration information for the registry.
  *
  * @author sixh
  */
-public class ReferenceConfigUtils {
-    
+@Join
+@Data
+public class DubboConfig extends AbstractConfig {
+
+    private List<String> registry;
+
+    private List<String> metadataAddress;
+
+    @Override
+    public String prefix() {
+        return "soul.dubbo";
+    }
 }

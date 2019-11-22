@@ -18,23 +18,13 @@
 
 package org.dromara.soul.common.utils;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ser.FilterProvider;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Map;
 
 /**
  * JsonUtils.
@@ -85,6 +75,26 @@ public final class JsonUtils {
         }
     }
 
+    /**
+     * json To map.
+     *
+     * @param json the json
+     * @return the map.
+     */
+    public static Map toMap(String json) {
+        try {
+            return mapper.readValue(json, HashMap.class);
+        } catch (IOException e) {
+            return Collections.emptyMap();
+        }
+    }
+
+    /**
+     * Dubbo result json string.
+     *
+     * @param object the object
+     * @return the string
+     */
     public static String dubboResultJson(Object object) {
         try {
             if (object instanceof Map) {

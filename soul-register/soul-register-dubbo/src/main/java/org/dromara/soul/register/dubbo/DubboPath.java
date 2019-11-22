@@ -15,11 +15,13 @@
  *     limitations under the License.
  */
 
-package org.dromara.soul.register;
+package org.dromara.soul.register.dubbo;
 
+import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 import org.dromara.soul.common.http.URL;
+import org.dromara.soul.register.api.PathMethod;
 import org.dromara.soul.register.api.path.Path;
 
 /**
@@ -53,6 +55,8 @@ public class DubboPath implements Path {
     private String env;
 
     private boolean registerServer;
+
+    private List<PathMethod> pathMethods;
 
     public boolean isRegisterServer() {
         return registerServer;

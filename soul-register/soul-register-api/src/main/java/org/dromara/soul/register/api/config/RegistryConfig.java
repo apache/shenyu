@@ -40,17 +40,7 @@ public class RegistryConfig extends AbstractConfig {
 
     private String url;
 
-    /**
-     * Gets cluster to getParameters.
-     *
-     * @return the cluster
-     */
-    @SuppressWarnings("all")
-    public static List<String> getCluster(URL url) {
-        String cluster = url.getParameters().get(RegisterConst.URL_CLUSTER_KEY);
-        List<String> lists = Splitter.on(RegisterConst.URL_SPLIT_SYMBOL_KEY).splitToList(cluster);
-        return new ArrayList<>(lists);
-    }
+
 
     @Override
     public String prefix() {

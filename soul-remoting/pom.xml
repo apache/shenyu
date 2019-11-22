@@ -16,6 +16,7 @@
         <module>soul-remoting-netty</module>
         <module>soul-remoting-mina</module>
         <module>soul-remoting-tio</module>
+        <module>soul-remoting-zookeeper</module>
     </modules>
 
 

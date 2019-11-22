@@ -15,20 +15,15 @@
  *     limitations under the License.
  */
 
-import com.google.common.base.Joiner;
-import java.util.List;
 import java.util.Optional;
-import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.framework.state.ConnectionState;
-import org.apache.curator.retry.RetryNTimes;
-import org.apache.zookeeper.CreateMode;
 import org.dromara.soul.common.exception.SoulException;
 import org.dromara.soul.common.extension.Join;
 import org.dromara.soul.common.http.URL;
 import org.dromara.soul.register.api.AbstractRegistry;
 import org.dromara.soul.register.api.RegisterConst;
-import org.dromara.soul.register.api.config.RegistryConfig;
+import org.dromara.soul.remoting.zookeeper.ZookeeperClient;
+import org.dromara.soul.remoting.zookeeper.ZookeeperClientCache;
+import org.dromara.soul.remoting.zookeeper.ZookeeperStatusCallback;
 
 import static org.dromara.soul.register.api.RegisterConst.BASE_URL_PATH_KEY;
 
@@ -41,63 +36,16 @@ import static org.dromara.soul.register.api.RegisterConst.BASE_URL_PATH_KEY;
 @Join
 public class ZookeeperRegistry extends AbstractRegistry {
 
-    private final CuratorFramework client;
+    private final ZookeeperClient client;
 
     public ZookeeperRegistry(URL url) {
         super(url);
-        String host = url.getHost();
-        Integer port = url.getPort();
-        List<String> cluster = RegistryConfig.getCluster(url);
-        cluster.add(host + RegisterConst.COLONS + port);
-        String connectString = Joiner.on(RegisterConst.URL_SPLIT_SYMBOL_KEY).join(cluster);
-        CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder()
-                .connectString(connectString)
-                .retryPolicy(new RetryNTimes(1, 1000))
-                .connectionTimeoutMs(5000);
-        client = builder.build();
-        client.getConnectionStateListenable().addListener((curatorFramework, connectionState) -> {
-            if (connectionState == ConnectionState.RECONNECTED) {
+        client = ZookeeperClientCache.getClient(url);
+        client.statusChange(connectionState -> {
+            if (connectionState.equals(ZookeeperStatusCallback.RECONNECTED)) {
                 retry();
             }
         });
-        client.start();
-    }
-
-    private void create(String path, boolean ephemeral) {
-        if (!ephemeral && checkExists(path)) {
-            return;
-        }
-        int i = path.lastIndexOf(BASE_URL_PATH_KEY);
-        if (i > 0) {
-            create(path.substring(0, i), false);
-        }
-        if (ephemeral) {
-            createEphemeral(path);
-        } else {
-            createPersistent(path);
-        }
-    }
-
-    private void createEphemeral(String path) {
-        try {
-            client.create().withMode(CreateMode.EPHEMERAL).forPath(path);
-        } catch (Exception ignored) {
-        }
-    }
-
-    private void createPersistent(String path) {
-        try {
-            client.create().withMode(CreateMode.PERSISTENT).forPath(path);
-        } catch (Exception ignored) {
-        }
-    }
-
-    private boolean checkExists(String path) {
-        try {
-            return client.checkExists().forPath(path) != null;
-        } catch (Exception e) {
-            return false;
-        }
     }
 
     @Override
@@ -120,7 +68,7 @@ public class ZookeeperRegistry extends AbstractRegistry {
     public void register(URL url) {
         try {
             String path = toPath(url);
-            create(path, isEphemeral(url));
+            client.create(path, isEphemeral(url));
         } catch (Throwable e) {
             throw new SoulException("register failed " + url + "to zookeeper " + getRemoteUrl());
         }
@@ -136,7 +84,7 @@ public class ZookeeperRegistry extends AbstractRegistry {
     @Override
     public void unregister(URL url) {
         try {
-            client.delete().forPath(toPath(url));
+            client.delete(toPath(url));
         } catch (Throwable e) {
             throw new SoulException("unregister failed " + url + "to zookeeper " + getRemoteUrl());
         }

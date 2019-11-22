@@ -15,7 +15,7 @@
  *     limitations under the License.
  */
 
-package org.dromara.soul.register;
+package org.dromara.soul.register.dubbo;
 
 import com.alibaba.dubbo.config.ApplicationConfig;
 import com.alibaba.dubbo.config.RegistryConfig;

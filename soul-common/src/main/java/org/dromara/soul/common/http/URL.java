@@ -97,6 +97,16 @@ public class URL {
     }
 
     /**
+     * Put parameter.
+     *
+     * @param key   the key
+     * @param value the value
+     */
+    public void putParameter(String key, String value) {
+        this.parameters.put(key, value);
+    }
+
+    /**
      * Value of url.
      *
      * @param protocol the protocol

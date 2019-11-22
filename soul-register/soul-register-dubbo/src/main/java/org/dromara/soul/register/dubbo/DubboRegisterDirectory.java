@@ -15,12 +15,11 @@
  *     limitations under the License.
  */
 
-package org.dromara.soul.register.dubbo64;
+package org.dromara.soul.register.dubbo;
 
 import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.URL;
 import com.alibaba.dubbo.common.utils.NetUtils;
-import com.alibaba.dubbo.common.utils.StringUtils;
 import com.alibaba.dubbo.config.ReferenceConfig;
 import com.alibaba.dubbo.registry.NotifyListener;
 import com.alibaba.dubbo.registry.RegistryService;
@@ -31,9 +30,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import org.dromara.soul.common.exception.SoulException;
-import org.dromara.soul.register.DubboPath;
-import org.dromara.soul.register.DubboReferenceCache;
-import org.dromara.soul.register.UrlAdapter;
 import org.dromara.soul.register.api.RegisterDirectory;
 import org.dromara.soul.register.api.RegisterDirectoryListener;
 import org.dromara.soul.register.api.path.Path;
@@ -45,7 +41,7 @@ import static java.util.stream.Collectors.toSet;
  *
  * @author sixh
  */
-public class DubboRegisterDirectory extends RegisterDirectory implements NotifyListener {
+public class DubboRegisterDirectory extends RegisterDirectory implements NotifyListener, RegisterDirectoryListener {
 
     private static final ConcurrentHashMap<String, Map<String, Set<DubboPath>>> CACHE = new ConcurrentHashMap<>();
 
@@ -58,27 +54,30 @@ public class DubboRegisterDirectory extends RegisterDirectory implements NotifyL
                                                  Constants.ENABLED_KEY, Constants.ANY_VALUE,
                                                  Constants.CHECK_KEY, String.valueOf(false));
 
-    private final String defEnv = "def";
+    private DubboRegisterMetadataDirectory metadataDirectory;
 
-    private final String env;
-
-    private final org.dromara.soul.common.http.URL url;
+    /**
+     * Gets metadata directory.
+     *
+     * @return the metadata directory.
+     */
+    public RegisterDirectory getMetadataDirectory() {
+        return metadataDirectory;
+    }
 
     /**
      * Instantiates a new Dubbo register directory.
+     *
+     * @param registerUrl the register url
+     * @param metadataUrl the metadata url
+     * @param listeners   the listeners.
      */
-    DubboRegisterDirectory(URL url, Set<RegisterDirectoryListener> listeners) {
-        super(listeners);
-        String env = url.getParameter("env");
-        if (StringUtils.isBlank(env)) {
-            env = defEnv;
-            url.getParameter("env", env);
-        }
-        this.env = env;
-        this.url = UrlAdapter.parse(url);
+    DubboRegisterDirectory(URL registerUrl, URL metadataUrl, Set<RegisterDirectoryListener> listeners) {
+        super(UrlAdapter.parse(registerUrl), listeners);
+        metadataDirectory = new DubboRegisterMetadataDirectory(metadataUrl, this);
         DubboPath dubboPath = DubboPath.builder()
                 .registerServer(true)
-                .env(env)
+                .env(getEnv())
                 .registry(this.getUrl())
                 .service("com.alibaba.dubbo.registry.RegistryService")
                 .build();
@@ -90,8 +89,15 @@ public class DubboRegisterDirectory extends RegisterDirectory implements NotifyL
         registryService.subscribe(SUBSCRIBE, this);
     }
 
-    public DubboRegisterDirectory(URL url, RegisterDirectoryListener listener) {
-        this(url, Sets.newHashSet(listener));
+    /**
+     * Instantiates a new Dubbo register directory.
+     *
+     * @param registerUrl the register url
+     * @param metadataUrl the metadata url
+     * @param listener    the listener.
+     */
+    public DubboRegisterDirectory(URL registerUrl, URL metadataUrl, RegisterDirectoryListener listener) {
+        this(registerUrl, metadataUrl, Sets.newHashSet(listener));
     }
 
     @Override
@@ -161,7 +167,7 @@ public class DubboRegisterDirectory extends RegisterDirectory implements NotifyL
 
     private void refreshProviders(Map<String, Set<DubboPath>> oldMaps,
                                   Map<String, Set<DubboPath>> newMaps) {
-        Set<DubboPath> actions = new HashSet<>();
+        Set<Path> actions = new HashSet<>();
         if (oldMaps == null || oldMaps.isEmpty()) {
             Set<DubboPath> collect = newMaps.values().stream()
                     .flatMap(Collection::stream)
@@ -194,7 +200,7 @@ public class DubboRegisterDirectory extends RegisterDirectory implements NotifyL
                 actions.addAll(collect);
             });
         }
-        actions.forEach(this::redress);
+        redress(actions);
     }
 
     @SuppressWarnings("all")
@@ -218,7 +224,7 @@ public class DubboRegisterDirectory extends RegisterDirectory implements NotifyL
                     .method(method)
                     .group(group)
                     .registry(this.getUrl())
-                    .env(this.env)
+                    .env(this.getEnv())
                     .serviceKey(serviceKey)
                     .registerServer(false).build();
             set.add(config);
@@ -234,25 +240,24 @@ public class DubboRegisterDirectory extends RegisterDirectory implements NotifyL
         }
     }
 
+    @Override
+    protected void redress(Set<Path> paths) {
+        metadataDirectory.bindMetadata(paths);
+        super.redress(paths);
+    }
+
     private void destroyAll(URL provider) {
         String serviceInterface = provider.getServiceInterface();
         //清除本地缓存
         Map<String, Set<DubboPath>> map = CACHE.remove(serviceInterface);
         Set<DubboPath> actions = new HashSet<>();
         map.forEach((k, v) -> actions.addAll(v));
-        for (DubboPath path : actions) {
-            path.setStatus(RegisterDirectoryListener.REMOVE);
-            redress(path);
-        }
+        Set<Path> paths = actions.stream().peek(e -> e.setStatus(RegisterDirectoryListener.REMOVE)).collect(toSet());
+        redress(paths);
     }
 
     @Override
-    public String getEnv() {
-        return env;
-    }
+    public void apply(Set<Path> paths) {
 
-    @Override
-    public org.dromara.soul.common.http.URL getUrl() {
-        return url;
     }
 }

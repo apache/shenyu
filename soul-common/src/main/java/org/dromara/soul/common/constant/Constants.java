@@ -207,12 +207,23 @@ public interface Constants {
      */
     String COLONS = ":";
 
+    /**
+     * The constant URL_SPLIT_SYMBOL_KEY.
+     */
+    String URL_SPLIT_SYMBOL_KEY = ",";
+    /**
+     * The constant URL_SPLIT_SYMBOL_KEY.
+     *
+     * @see org.dromara.soul.common.http.URL
+     */
+    String BASE_URL_PATH_KEY = "/";
+
+
     String SING_TIME_IS_TIMEOUT = "签名时间戳已经超过5分钟";
 
     String SIGN_PARAMS_ERROR = "认证参数传入不完整!";
 
     String SIGN_APP_KEY_IS_NOT_EXIST = "认证签名APP_KEY,不存在";
-
 
 }
 

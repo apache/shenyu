@@ -15,45 +15,44 @@
  *     limitations under the License.
  */
 
-package org.dromara.soul.register;
-
-
-import org.dromara.soul.common.http.URL;
+package org.dromara.soul.remoting.zookeeper;
 
 /**
- * URLAdapter
+ * ZookeeperStatusCallback
  *
  * @author sixh
  */
-public class UrlAdapter {
+@FunctionalInterface
+public interface ZookeeperStatusCallback {
+    /**
+     * The constant CONNECTED.
+     */
+    Integer CONNECTED = 0;
 
     /**
-     * Parse url.
-     *
-     * @param url the url
-     * @return the url
+     * The constant SUSPENDED.
      */
-    public static URL parse(com.alibaba.dubbo.common.URL url) {
-        return URL.parse(url.toString());
-    }
+    Integer SUSPENDED = 1;
 
     /**
-     * Parse alibaba com . alibaba . dubbo . common . url.
-     *
-     * @param url the url
-     * @return the com . alibaba . dubbo . common . url
+     * The constant RECONNECTED.
      */
-    public static com.alibaba.dubbo.common.URL parseAlibaba(URL url) {
-        return com.alibaba.dubbo.common.URL.valueOf(url.fullString());
-    }
+    Integer RECONNECTED = 2;
 
     /**
-     * Parse url.
-     *
-     * @param url the url
-     * @return the url
+     * The constant LOST.
      */
-    public static URL parse(org.apache.dubbo.common.URL url) {
-        return URL.parse(url.toString());
-    }
+    Integer LOST = 3;
+
+    /**
+     * The constant READ_ONLY.
+     */
+    Integer READ_ONLY = 4;
+
+    /**
+     * Callback.
+     *
+     * @param status the status
+     */
+    void callback(Integer status);
 }

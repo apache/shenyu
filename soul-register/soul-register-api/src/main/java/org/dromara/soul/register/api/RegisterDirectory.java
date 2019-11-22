@@ -17,9 +17,12 @@
 
 package org.dromara.soul.register.api;
 
+import com.google.common.collect.Sets;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import org.dromara.soul.common.http.URL;
+import org.dromara.soul.common.utils.StringUtils;
 import org.dromara.soul.register.api.path.Path;
 
 /**
@@ -32,16 +35,39 @@ public abstract class RegisterDirectory implements HealthCheck {
 
     private Set<RegisterDirectoryListener> listeners = new HashSet<>();
 
-    public RegisterDirectory(Set<RegisterDirectoryListener> listeners) {
+    private String env;
+
+    private URL url;
+
+    private final String defEnv = "default";
+
+    /**
+     * Instantiates a new Register directory.
+     *
+     * @param url       the url.
+     * @param listeners the listeners.
+     */
+    public RegisterDirectory(URL url, Set<RegisterDirectoryListener> listeners) {
         if (listeners != null) {
             this.listeners.addAll(listeners);
         }
+        String env = url.getParameter("env");
+        if (StringUtils.isBlank(env)) {
+            env = defEnv;
+            url.putParameter("env", env);
+        }
+        this.env = env;
+        this.url = url;
     }
 
-    public RegisterDirectory(RegisterDirectoryListener listener) {
-        if (listener != null) {
-            addListener(listener);
-        }
+    /**
+     * Instantiates a new Register directory.
+     *
+     * @param url      the url
+     * @param listener the listener
+     */
+    public RegisterDirectory(URL url, RegisterDirectoryListener listener) {
+        this(url, Sets.newHashSet(listener));
     }
 
     /**
@@ -56,10 +82,10 @@ public abstract class RegisterDirectory implements HealthCheck {
     /**
      * Redress.
      *
-     * @param path the path.
+     * @param paths the paths
      */
-    protected void redress(Path path) {
-        listeners.forEach(listener -> listener.apply(path));
+    protected void redress(Set<Path> paths) {
+        listeners.forEach(listener -> listener.apply(paths));
     }
 
     /**
@@ -67,12 +93,16 @@ public abstract class RegisterDirectory implements HealthCheck {
      *
      * @return env env
      */
-    public abstract String getEnv();
+    public String getEnv() {
+        return env;
+    }
 
     /**
      * Registered address information.
      *
-     * @return url
+     * @return url url
      */
-    public abstract URL getUrl();
+    public URL getUrl() {
+        return url;
+    }
 }

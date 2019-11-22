@@ -15,38 +15,23 @@
  *     limitations under the License.
  */
 
-package org.dromara.soul.register.api;
+package org.dromara.soul.register.dubbo;
 
-import java.util.Set;
-import org.dromara.soul.register.api.path.Path;
+import org.dromara.soul.common.extension.SPI;
 
 /**
- * RegisterDirectoryListener
+ * DubboMetadataService
  *
  * @author sixh
  */
-@FunctionalInterface
-public interface RegisterDirectoryListener {
-
+@SPI
+public interface DubboMetadataService {
     /**
-     * The constant ADD.
-     */
-    Integer ADD = 1;
-
-    /**
-     * The constant REMOVE.
-     */
-    Integer REMOVE = 2;
-
-    /**
-     * The constant REMOVE_ALL.
-     */
-    Integer REMOVE_ALL = 3;
-
-    /**
-     * Listener.
+     * get dubbo Metadata.
      *
-     * @param paths the paths.
+     * @param path the path
+     * @return the metadata .
      */
-    void apply(Set<Path> paths);
+    String getMetadata(DubboPath path);
+
 }

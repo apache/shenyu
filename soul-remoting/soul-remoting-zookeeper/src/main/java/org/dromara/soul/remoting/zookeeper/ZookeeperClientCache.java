@@ -15,27 +15,32 @@
  *     limitations under the License.
  */
 
-package org.dromara.soul.register;
+package org.dromara.soul.remoting.zookeeper;
 
-import java.util.List;
-import lombok.Data;
-import org.dromara.soul.common.extension.Join;
-import org.dromara.soul.config.api.AbstractConfig;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import org.dromara.soul.common.http.URL;
 
 /**
- * DubboConfig.
- * dubbo Some configuration information for the registry.
+ * ZookeeperClientCache
  *
  * @author sixh
  */
-@Join
-@Data
-public class DubboConfig extends AbstractConfig {
+public class ZookeeperClientCache {
 
-    private List<String> registry;
+    private static final Map<URL, ZookeeperClient> CACHE = new ConcurrentHashMap<>(4);
 
-    @Override
-    public String prefix() {
-        return "soul.dubbo";
+    public static ZookeeperClient getClient(URL url) {
+        ZookeeperClient zookeeperClient = CACHE.get(url);
+        if (zookeeperClient == null) {
+            synchronized (CACHE) {
+                zookeeperClient = CACHE.get(url);
+                if (zookeeperClient == null) {
+                    zookeeperClient = new ZookeeperClient(url);
+                    CACHE.put(url, zookeeperClient);
+                }
+            }
+        }
+        return zookeeperClient;
     }
 }
