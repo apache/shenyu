@@ -20,37 +20,34 @@ package org.dromara.soul.register.dubbo64;
 import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.URL;
 import com.alibaba.dubbo.common.utils.NetUtils;
+import com.alibaba.dubbo.common.utils.StringUtils;
 import com.alibaba.dubbo.config.ReferenceConfig;
 import com.alibaba.dubbo.registry.NotifyListener;
 import com.alibaba.dubbo.registry.RegistryService;
 import com.google.common.base.Splitter;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.SetMultimap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.google.common.collect.Sets;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 import org.dromara.soul.common.exception.SoulException;
-import org.dromara.soul.common.extension.Join;
-import org.dromara.soul.register.api.path.EmptyPath;
-import org.dromara.soul.register.api.path.Path;
+import org.dromara.soul.register.DubboPath;
+import org.dromara.soul.register.DubboReferenceCache;
+import org.dromara.soul.register.UrlAdapter;
 import org.dromara.soul.register.api.RegisterDirectory;
 import org.dromara.soul.register.api.RegisterDirectoryListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.dromara.soul.register.api.path.Path;
+
+import static java.util.stream.Collectors.toSet;
 
 /**
  * DubboRegisterDirectory
  *
  * @author sixh
  */
-@Join
 public class DubboRegisterDirectory extends RegisterDirectory implements NotifyListener {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DubboRegisterDirectory.class);
-
-    private static final ConcurrentHashMap<String, SetMultimap<String, DubboPath>> CACHE = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, Map<String, Set<DubboPath>>> CACHE = new ConcurrentHashMap<>();
 
     private static final URL SUBSCRIBE = new URL(Constants.ADMIN_PROTOCOL, NetUtils.getLocalHost(), 0, "",
                                                  Constants.INTERFACE_KEY, Constants.ANY_VALUE,
@@ -60,25 +57,41 @@ public class DubboRegisterDirectory extends RegisterDirectory implements NotifyL
                                                  Constants.CATEGORY_KEY, Constants.PROVIDERS_CATEGORY,
                                                  Constants.ENABLED_KEY, Constants.ANY_VALUE,
                                                  Constants.CHECK_KEY, String.valueOf(false));
-    /**
-     * Dubbo's registration management.
-     */
-    private RegistryService registryService;
+
+    private final String defEnv = "def";
+
+    private final String env;
+
+    private final org.dromara.soul.common.http.URL url;
 
     /**
      * Instantiates a new Dubbo register directory.
      */
-    public DubboRegisterDirectory() {
+    DubboRegisterDirectory(URL url, Set<RegisterDirectoryListener> listeners) {
+        super(listeners);
+        String env = url.getParameter("env");
+        if (StringUtils.isBlank(env)) {
+            env = defEnv;
+            url.getParameter("env", env);
+        }
+        this.env = env;
+        this.url = UrlAdapter.parse(url);
         DubboPath dubboPath = DubboPath.builder()
                 .registerServer(true)
+                .env(env)
+                .registry(this.getUrl())
                 .service("com.alibaba.dubbo.registry.RegistryService")
                 .build();
         ReferenceConfig<RegistryService> registryServiceRef = DubboReferenceCache.INSTANCE.get(dubboPath);
         if (registryServiceRef == null) {
             throw new SoulException("init dubbo RegistryService error");
         }
-        this.registryService = registryServiceRef.get();
-        this.registryService.subscribe(SUBSCRIBE, this);
+        RegistryService registryService = registryServiceRef.get();
+        registryService.subscribe(SUBSCRIBE, this);
+    }
+
+    public DubboRegisterDirectory(URL url, RegisterDirectoryListener listener) {
+        this(url, Sets.newHashSet(listener));
     }
 
     @Override
@@ -92,6 +105,7 @@ public class DubboRegisterDirectory extends RegisterDirectory implements NotifyL
         if (urls == null || urls.isEmpty()) {
             return;
         }
+        List<URL> providres = new ArrayList<>();
         /*
          * //不同服务提供
          */
@@ -101,95 +115,144 @@ public class DubboRegisterDirectory extends RegisterDirectory implements NotifyL
             //得到dubbo的version
             String group = url.getParameter(Constants.GROUP_KEY);
             String version = url.getParameter(Constants.VERSION_KEY);
-            String category = url.getParameter(Constants.CATEGORY_KEY, Constants.PROVIDERS_CATEGORY);
+            String category = url.getParameter(Constants.CATEGORY_KEY, Constants.DEFAULT_CATEGORY);
             serviceName = url.getServiceInterface();
-            //如果是dubbo协议，再确定
-            if (Constants.DEFAULT_PROTOCOL.equalsIgnoreCase(url.getProtocol()) && category.equals(Constants.PROVIDERS_CATEGORY)) {
-                String methodsKey = url.getParameter(Constants.METHODS_KEY);
-                String application = url.getParameter(Constants.APPLICATION_KEY);
-                List<String> methods = Splitter.on(",").splitToList(methodsKey);
-                String serviceKey = url.getServiceKey();
-                Set<DubboPath> set = new HashSet<>(methods.size());
-                org.dromara.soul.common.http.URL soulUrl = UrlAdapter.parse(url);
-                for (String methodName : methods) {
-                    //表示可用的方法;
-                    DubboPath config = DubboPath.builder()
-                            .nativeUrl(soulUrl)
-                            .application(application)
-                            .service(serviceName)
-                            .version(version)
-                            .method(methodName)
-                            .group(group)
-                            .serviceKey(serviceKey)
-                            .registerServer(false).build();
-                    set.add(config);
+            if (Constants.PROVIDERS_CATEGORY.equals(category)) {
+                providres.add(url);
+            }
+        }
+        toProviders(providres);
+    }
+
+    private void toProviders(List<URL> providers) {
+        if (providers == null) {
+            return;
+        }
+        ConcurrentHashMap<String, Map<String, Set<DubboPath>>> categories = new ConcurrentHashMap<>(16);
+        for (URL provider : providers) {
+            String category = provider.getParameter(Constants.CATEGORY_KEY, Constants.PROVIDERS_CATEGORY);
+            String group = provider.getParameter(Constants.GROUP_KEY);
+            String version = provider.getParameter(Constants.VERSION_KEY);
+            String serviceName = provider.getServiceInterface();
+            if (Constants.EMPTY_PROTOCOL.equalsIgnoreCase(provider.getProtocol())
+                && category.equals(Constants.PROVIDERS_CATEGORY)
+                && Constants.ANY_VALUE.equals(group)
+                && Constants.ANY_VALUE.equals(version)) {
+                destroyAll(provider);
+            } else if (category.equals(Constants.PROVIDERS_CATEGORY)) {
+                Map<String, Set<DubboPath>> maps = categories.get(serviceName);
+                if (maps == null) {
+                    maps = new HashMap<>(16);
                 }
-                if (!set.isEmpty()) {
-                    if (categories.containsKey(serviceKey)) {
-                        Set<DubboPath> oldSet = categories.get(serviceKey);
-                        oldSet.addAll(set);
-                        categories.put(serviceKey, oldSet);
-                    } else {
-                        categories.put(serviceKey, set);
-                    }
-                }
-                //如果为空的协议者清除缓存存在
-            } else if (Constants.EMPTY_PROTOCOL.equalsIgnoreCase(url.getProtocol()) && category.equals(Constants.PROVIDERS_CATEGORY)) {
-                //group == * 或者 version==*  表示下线所有服务
-                if (Constants.ANY_VALUE.equals(group)
-                    && Constants.ANY_VALUE.equals(version)) {
-                    offlineOff(serviceName);
-                }
+                toProvider(provider, maps);
+                categories.put(serviceName, maps);
             }
         }
         if (!categories.isEmpty()) {
-            //通知服务上线或已经存在的服务进行下线
-            SetMultimap<String, DubboPath> multiCache = CACHE.get(serviceName);
-            SetMultimap<String, DubboPath> newMultiCache = HashMultimap.create();
-            String finalServiceName = serviceName;
-            categories.forEach((k, v) -> {
-                Set<DubboPath> sets = new HashSet<>();
-                if (multiCache != null) {
-                    sets = multiCache.get(k);
-                    //移除已存在的服务
-                    multiCache.removeAll(k);
-                }
-                HashSet<DubboPath> timeService = new HashSet<>(v);
-                newMultiCache.putAll(k, v);
-                CACHE.put(finalServiceName, newMultiCache);
-                if (sets.size() > v.size()) {
-                    //得到差集，需要下线的服务
-                    sets.removeAll(v);
-                    sets.forEach(e -> {
-                        e.setStatus(RegisterDirectoryListener.REMOVE);
-                        redress(e);
-                    });
-                } else if (sets.size() < v.size()) {
-                    //需要自动上线的服务
-                    //得到差集，需要上线的服务
-                    timeService.removeAll(sets);
-                    timeService.forEach(e -> {
-                        e.setStatus(RegisterDirectoryListener.ADD);
-                        redress(e);
-                    });
+            categories.forEach((serviceName, newMaps) -> {
+                if (newMaps != null && !newMaps.isEmpty()) {
+                    Map<String, Set<DubboPath>> oldMaps = CACHE.get(serviceName);
+                    refreshProviders(oldMaps, newMaps);
+                    CACHE.put(serviceName, newMaps);
                 }
             });
-            //下线已经不存在dubbo 提供者的服务
-            if (multiCache != null && !multiCache.isEmpty()) {
-                multiCache.keySet().forEach(key -> multiCache.get(key).forEach(e -> {
-                    e.setStatus(RegisterDirectoryListener.REMOVE);
-                    redress(e);
-                }));
+        }
+    }
+
+    private void refreshProviders(Map<String, Set<DubboPath>> oldMaps,
+                                  Map<String, Set<DubboPath>> newMaps) {
+        Set<DubboPath> actions = new HashSet<>();
+        if (oldMaps == null || oldMaps.isEmpty()) {
+            Set<DubboPath> collect = newMaps.values().stream()
+                    .flatMap(Collection::stream)
+                    .peek(e -> e.setStatus(RegisterDirectoryListener.ADD))
+                    .collect(toSet());
+            actions.addAll(collect);
+        } else {
+            oldMaps.forEach((k, value) -> {
+                Set<DubboPath> collect;
+                if (newMaps.containsKey(k)) {
+                    Sets.SetView<DubboPath> differenceSets = Sets.difference(value, newMaps.get(k));
+                    collect = differenceSets.stream().peek(e -> {
+                        e.setStatus(RegisterDirectoryListener.REMOVE);
+                    }).collect(Collectors.toSet());
+                } else {
+                    collect = value.stream().peek(e -> e.setStatus(RegisterDirectoryListener.REMOVE)).collect(toSet());
+                }
+                actions.addAll(collect);
+            });
+            newMaps.forEach((k, value) -> {
+                Set<DubboPath> collect;
+                if (oldMaps.containsKey(k)) {
+                    Sets.SetView<DubboPath> differenceSets = Sets.difference(value, oldMaps.get(k));
+                    collect = differenceSets.stream().peek(e -> {
+                        e.setStatus(RegisterDirectoryListener.ADD);
+                    }).collect(Collectors.toSet());
+                } else {
+                    collect = value.stream().peek(e -> e.setStatus(RegisterDirectoryListener.ADD)).collect(toSet());
+                }
+                actions.addAll(collect);
+            });
+        }
+        actions.forEach(this::redress);
+    }
+
+    @SuppressWarnings("all")
+    private void toProvider(URL provider, Map<String, Set<DubboPath>> categories) {
+        String methodsKey = provider.getParameter(Constants.METHODS_KEY);
+        String application = provider.getParameter(Constants.APPLICATION_KEY);
+        String serviceKey = provider.getServiceKey();
+        String serviceName = provider.getServiceInterface();
+        String version = provider.getParameter(Constants.VERSION_KEY);
+        String group = provider.getParameter(Constants.GROUP_KEY);
+        List<String> methods = Splitter.on(",").splitToList(methodsKey);
+        Set<DubboPath> set = new HashSet<>(methods.size());
+        org.dromara.soul.common.http.URL soulUrl = UrlAdapter.parse(provider);
+        methods.forEach(method -> {
+            //Represents the available methods;
+            DubboPath config = DubboPath.builder()
+                    .nativeUrl(soulUrl)
+                    .application(application)
+                    .service(serviceName)
+                    .version(version)
+                    .method(method)
+                    .group(group)
+                    .registry(this.getUrl())
+                    .env(this.env)
+                    .serviceKey(serviceKey)
+                    .registerServer(false).build();
+            set.add(config);
+        });
+        if (!set.isEmpty()) {
+            if (categories.containsKey(serviceKey)) {
+                Set<DubboPath> oldSet = categories.get(serviceKey);
+                oldSet.addAll(set);
+                categories.put(serviceKey, oldSet);
+            } else {
+                categories.put(serviceKey, set);
             }
         }
     }
 
-    private void offlineOff(String serviceName) {
+    private void destroyAll(URL provider) {
+        String serviceInterface = provider.getServiceInterface();
         //清除本地缓存
-        SetMultimap<String, DubboPath> caches = CACHE.get(serviceName);
-        EmptyPath path = new EmptyPath();
-        path.setKey(serviceName);
-        redress(path);
-        CACHE.remove(serviceName);
+        Map<String, Set<DubboPath>> map = CACHE.remove(serviceInterface);
+        Set<DubboPath> actions = new HashSet<>();
+        map.forEach((k, v) -> actions.addAll(v));
+        for (DubboPath path : actions) {
+            path.setStatus(RegisterDirectoryListener.REMOVE);
+            redress(path);
+        }
+    }
+
+    @Override
+    public String getEnv() {
+        return env;
+    }
+
+    @Override
+    public org.dromara.soul.common.http.URL getUrl() {
+        return url;
     }
 }

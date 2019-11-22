@@ -15,45 +15,27 @@
  *     limitations under the License.
  */
 
-package org.dromara.soul.register.dubbo64;
+package org.dromara.soul.register;
 
-
-import org.dromara.soul.common.http.URL;
+import java.util.List;
+import lombok.Data;
+import org.dromara.soul.common.extension.Join;
+import org.dromara.soul.config.api.AbstractConfig;
 
 /**
- * URLAdapter
+ * DubboConfig.
+ * dubbo Some configuration information for the registry.
  *
  * @author sixh
  */
-public class UrlAdapter {
+@Join
+@Data
+public class DubboConfig extends AbstractConfig {
 
-    /**
-     * Parse url.
-     *
-     * @param url the url
-     * @return the url
-     */
-    public static URL parse(com.alibaba.dubbo.common.URL url) {
-        return URL.parse(url.toString());
-    }
+    private List<String> registry;
 
-    /**
-     * Parse alibaba com . alibaba . dubbo . common . url.
-     *
-     * @param url the url
-     * @return the com . alibaba . dubbo . common . url
-     */
-    public static com.alibaba.dubbo.common.URL parseAlibaba(URL url) {
-        return com.alibaba.dubbo.common.URL.valueOf(url.fullString());
-    }
-
-    /**
-     * Parse url.
-     *
-     * @param url the url
-     * @return the url
-     */
-    public static URL parse(org.apache.dubbo.common.URL url) {
-        return URL.parse(url.toString());
+    @Override
+    public String prefix() {
+        return "soul.dubbo";
     }
 }

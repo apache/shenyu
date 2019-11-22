@@ -19,7 +19,7 @@ package org.dromara.soul.register.api;
 
 import java.util.HashSet;
 import java.util.Set;
-import org.dromara.soul.common.extension.SPI;
+import org.dromara.soul.common.http.URL;
 import org.dromara.soul.register.api.path.Path;
 
 /**
@@ -28,17 +28,28 @@ import org.dromara.soul.register.api.path.Path;
  *
  * @author sixh
  */
-@SPI
 public abstract class RegisterDirectory implements HealthCheck {
 
     private Set<RegisterDirectoryListener> listeners = new HashSet<>();
+
+    public RegisterDirectory(Set<RegisterDirectoryListener> listeners) {
+        if (listeners != null) {
+            this.listeners.addAll(listeners);
+        }
+    }
+
+    public RegisterDirectory(RegisterDirectoryListener listener) {
+        if (listener != null) {
+            addListener(listener);
+        }
+    }
 
     /**
      * Listener.
      *
      * @param listener the listener.
      */
-    public void listener(RegisterDirectoryListener listener) {
+    public void addListener(RegisterDirectoryListener listener) {
         listeners.add(listener);
     }
 
@@ -50,4 +61,18 @@ public abstract class RegisterDirectory implements HealthCheck {
     protected void redress(Path path) {
         listeners.forEach(listener -> listener.apply(path));
     }
+
+    /**
+     * Environmental parameters.
+     *
+     * @return env env
+     */
+    public abstract String getEnv();
+
+    /**
+     * Registered address information.
+     *
+     * @return url
+     */
+    public abstract URL getUrl();
 }

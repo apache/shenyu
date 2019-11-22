@@ -15,7 +15,7 @@
  *     limitations under the License.
  */
 
-package org.dromara.soul.register.dubbo64;
+package org.dromara.soul.register;
 
 import com.alibaba.dubbo.config.ReferenceConfig;
 import com.google.common.cache.CacheBuilder;
@@ -36,17 +36,12 @@ public final class DubboReferenceCache {
 
     private static final Logger LOG = LoggerFactory.getLogger(DubboReferenceCache.class);
 
-    /**
-     * The constant INSTANCE.
-     */
     public static final DubboReferenceCache INSTANCE = new DubboReferenceCache();
 
     /**
-     * 缓存引用对象5000.
+     * Cache reference object 5000.
      */
     private final int maxCount = 50000;
-
-    private RegistryReference registryReference;
 
     /**
      * 缓存初始化.
@@ -68,6 +63,7 @@ public final class DubboReferenceCache {
 
                 private ReferenceConfig buildReference(DubboPath path) {
                     if (path.isRegisterServer()) {
+                        RegistryReference registryReference = RegistryReference.get(path.getRegistry());
                         ReferenceConfig<?> referenceConfig = new ReferenceConfig<>();
                         referenceConfig.setApplication(registryReference.getApplicationConfig());
                         referenceConfig.setRegistry(registryReference.getRegistryConfig());
@@ -79,7 +75,7 @@ public final class DubboReferenceCache {
             });
 
     private DubboReferenceCache() {
-        registryReference = new RegistryReference();
+
     }
 
     /**

@@ -17,7 +17,11 @@
 
 package org.dromara.soul.register.dubbo64;
 
+import com.alibaba.dubbo.common.URL;
+import java.util.ArrayList;
+import java.util.List;
 import org.dromara.soul.config.api.ConfigEnv;
+import org.dromara.soul.register.DubboConfig;
 import org.dromara.soul.register.api.RegisterDirectory;
 import org.junit.Test;
 
@@ -29,12 +33,11 @@ public class DubboRegisterDirectoryTest {
     @Test
     public void test001() throws InterruptedException {
         DubboConfig config = new DubboConfig();
-        config.setRegistryConfig("zookeeper://192.168.1.84:2181?client=curator");
+        List<String> urls = new ArrayList<>();
+        urls.add("zookeeper://192.168.1.84:2181?client=curator");
+        config.setRegistry(urls);
         ConfigEnv.getInstance().putBean(config);
-        RegisterDirectory directory = new DubboRegisterDirectory();
-        directory.listener(path -> {
-            System.out.println("服务监听-------->" + path);
-        });
+        RegisterDirectory directory = new DubboRegisterDirectory(URL.valueOf("zookeeper://192.168.1.84:2181?client=curator"), System.out::println);
         Thread.sleep(Integer.MAX_VALUE);
     }
 }

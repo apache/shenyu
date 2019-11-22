@@ -60,4 +60,9 @@ public class SoulPath implements Path {
     public <T extends Path> T getPathObj(URL url) {
         return null;
     }
+
+    @Override
+    public String getEvn() {
+        return null;
+    }
 }

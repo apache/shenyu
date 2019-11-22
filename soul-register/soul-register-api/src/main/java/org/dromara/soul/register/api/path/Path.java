@@ -41,7 +41,7 @@ public interface Path {
      * {@link RegisterDirectoryListener#REMOVE}
      * {@link RegisterDirectoryListener#REMOVE_ALL}
      *
-     * @return status.
+     * @return status. integer
      * @see RegisterDirectoryListener
      */
     Integer status();
@@ -54,4 +54,11 @@ public interface Path {
      * @return the path obj.
      */
     <T extends Path> T getPathObj(URL url);
+
+    /**
+     * Returns an environment parameter.
+     *
+     * @return evn.
+     */
+    String getEvn();
 }

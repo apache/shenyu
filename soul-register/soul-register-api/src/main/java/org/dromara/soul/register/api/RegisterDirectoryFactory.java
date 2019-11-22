@@ -15,26 +15,22 @@
  *     limitations under the License.
  */
 
-package org.dromara.soul.register.dubbo64;
+package org.dromara.soul.register.api;
 
-import lombok.Data;
-import org.dromara.soul.common.extension.Join;
-import org.dromara.soul.config.api.AbstractConfig;
+import org.dromara.soul.common.extension.SPI;
 
 /**
- * DubboConfig.
- * dubbo Some configuration information for the registry.
+ * RegisterDirectoryFactory
  *
  * @author sixh
  */
-@Join
-@Data
-public class DubboConfig extends AbstractConfig {
+@SPI
+public interface RegisterDirectoryFactory {
 
-    private String registryConfig;
-
-    @Override
-    public String prefix() {
-        return "soul.dubbo";
-    }
+    /**
+     * Create directory register directory.
+     *
+     * @return the register directory.
+     */
+    RegisterDirectory createDirectory();
 }

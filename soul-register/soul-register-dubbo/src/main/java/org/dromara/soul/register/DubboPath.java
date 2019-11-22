@@ -15,7 +15,7 @@
  *     limitations under the License.
  */
 
-package org.dromara.soul.register.dubbo64;
+package org.dromara.soul.register;
 
 import lombok.Builder;
 import lombok.Data;
@@ -46,7 +46,11 @@ public class DubboPath implements Path {
 
     private URL nativeUrl;
 
+    private URL registry;
+
     private Integer status;
+
+    private String env;
 
     private boolean registerServer;
 
@@ -66,7 +70,13 @@ public class DubboPath implements Path {
 
     @Override
     public <T extends Path> T getPathObj(URL url) {
+
         return null;
+    }
+
+    @Override
+    public String getEvn() {
+        return env;
     }
 
 }
