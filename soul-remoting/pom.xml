@@ -17,6 +17,7 @@
         <module>soul-remoting-mina</module>
         <module>soul-remoting-tio</module>
         <module>soul-remoting-zookeeper</module>
+        <module>soul-remoting-redis</module>
     </modules>
 
 
