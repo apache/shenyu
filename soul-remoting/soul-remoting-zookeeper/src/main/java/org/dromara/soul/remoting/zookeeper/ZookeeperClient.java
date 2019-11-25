@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
  * zookeeper The relevant client to process.
  *
  * @author sixh
+ * @see URL zookeeper://192.168.1.2:2181?cluster=192.168.1.3:2181,192.168.1.4:2181
  */
 public class ZookeeperClient {
     private Logger logger = LoggerFactory.getLogger(ZookeeperClient.class);

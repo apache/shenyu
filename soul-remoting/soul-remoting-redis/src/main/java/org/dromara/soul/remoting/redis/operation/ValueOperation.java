@@ -25,16 +25,46 @@ import java.util.concurrent.TimeUnit;
  * ValueOperation .
  * redis string command.
  *
+ * @param <K> the type parameter
+ * @param <V> the type parameter
  * @author sixh
  * @see <a href="http://redis.io/commands#String">Redis Documentation: String Commands</a>
  */
 public interface ValueOperation<K, V> {
 
+    /**
+     * Set.
+     *
+     * @param key   the key
+     * @param value the value
+     */
     void set(K key, V value);
 
+    /**
+     * Set.
+     *
+     * @param key   the key
+     * @param value the value
+     * @param ttl   the ttl
+     * @param unit  the unit
+     */
     void set(K key, V value, long ttl, TimeUnit unit);
 
-    V get(K key);
+    /**
+     * Get v.
+     *
+     * @param key   the key
+     * @param clazz the clazz
+     * @return the v
+     */
+    V get(K key, Class<V> clazz);
 
+    /**
+     * Gets and set.
+     *
+     * @param key   the key
+     * @param value the value
+     * @return the and set
+     */
     V getAndSet(K key, V value);
 }

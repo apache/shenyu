@@ -40,8 +40,6 @@ public abstract class RedisConnection implements RedisCommands {
         stringsCommands().set(key, value);
     }
 
-
-
     /**
      * string commands.
      *

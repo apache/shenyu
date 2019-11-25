@@ -19,6 +19,8 @@
 
 package org.dromara.soul.remoting.redis.command;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Redis .
  * redis string commands.
@@ -31,15 +33,26 @@ public interface RedisStringsCommands {
      * get command.
      *
      * @param key key.
-     * @return value.
+     * @return value. byte [ ]
      * @see <a href="#"> strings get command</>
      */
     byte[] get(byte[] key);
 
     /**
      * set command.
-     * @param key
-     * @param value
+     *
+     * @param key   the key
+     * @param value the value
      */
     void set(byte[] key, byte[] value);
+
+    /**
+     * Set.
+     *
+     * @param key   the key
+     * @param value the value
+     * @param ttl   the ttl
+     * @param unit  the unit
+     */
+    void set(byte[] key, byte[] value, long ttl, TimeUnit unit);
 }

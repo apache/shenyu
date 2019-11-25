@@ -19,15 +19,14 @@
 
 package org.dromara.soul.remoting.redis.jedis;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
-import org.dromara.soul.remoting.redis.*;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.dromara.soul.common.exception.SoulException;
+import org.dromara.soul.remoting.redis.RedisModule;
+import org.dromara.soul.remoting.redis.RemotingRedisConst;
 import org.dromara.soul.remoting.redis.operation.*;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.JedisPoolConfig;
-
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * JedisClient .
@@ -36,42 +35,46 @@ import java.util.stream.Collectors;
  *
  * @author sixh
  */
-class JedisOperation implements RedisOperation {
+class JedisOperation<K,V> implements RedisOperation<K,V> {
 
     private JedisConnection connection;
 
     public JedisOperation(RedisModule module) {
-        initJedisClient(module);
+        this.connection = initJedisClient(module);
     }
 
-    private RedisConnection initJedisClient(final RedisModule redisConfig) {
+    private JedisConnection initJedisClient(final RedisModule module) {
         JedisPoolConfig config = new JedisPoolConfig();
-        config.setMaxIdle(redisConfig.getMaxIdle());
-        config.setMinIdle(redisConfig.getMinIdle());
-        config.setMaxTotal(redisConfig.getMaxTotal());
-        config.setMaxWaitMillis(redisConfig.getMaxWaitMillis());
-        config.setTestOnBorrow(redisConfig.getTestOnBorrow());
-        config.setTestOnReturn(redisConfig.getTestOnReturn());
-        config.setTestWhileIdle(redisConfig.getTestWhileIdle());
-        config.setMinEvictableIdleTimeMillis(redisConfig.getMinEvictableIdleTimeMillis());
-        config.setSoftMinEvictableIdleTimeMillis(redisConfig.getSoftMinEvictableIdleTimeMillis());
-        config.setTimeBetweenEvictionRunsMillis(redisConfig.getTimeBetweenEvictionRunsMillis());
-        config.setNumTestsPerEvictionRun(redisConfig.getNumTestsPerEvictionRun());
-        Set<HostAndPort> hosts = getHost(redisConfig.getHosts());
-        if (redisConfig.getCluster()) {
+        config.setMaxIdle(module.getMaxIdle());
+        config.setMinIdle(module.getMinIdle());
+        config.setMaxTotal(module.getMaxTotal());
+        config.setMaxWaitMillis(module.getMaxWaitMillis());
+        config.setTestOnBorrow(module.getTestOnBorrow());
+        config.setTestOnReturn(module.getTestOnReturn());
+        config.setTestWhileIdle(module.getTestWhileIdle());
+        config.setMinEvictableIdleTimeMillis(module.getMinEvictableIdleTimeMillis());
+        config.setSoftMinEvictableIdleTimeMillis(module.getSoftMinEvictableIdleTimeMillis());
+        config.setTimeBetweenEvictionRunsMillis(module.getTimeBetweenEvictionRunsMillis());
+        config.setNumTestsPerEvictionRun(module.getNumTestsPerEvictionRun());
+        Set<HostAndPort> hosts = getHost(module.getHosts());
+        if (RemotingRedisConst.MODE_CLUSTER.equals(module.getMode())) {
             return JedisClusterConnection.build(config, hosts);
-        } else if (redisConfig.getSentinel()) {
-            return JedisSentinelConnection.build(redisConfig, config, hosts);
+        } else if (RemotingRedisConst.MODE_SENTINEL.equals(module.getMode())) {
+            return JedisSentinelConnection.build(module, config, hosts);
+        } else if (RemotingRedisConst.MODE_DEFAULT.equals(module.getMode())) {
+            return JedisSingleConnection.build(module, config, hosts);
         } else {
-            return JedisSingleConnection.build(redisConfig, config, hosts);
+            throw new SoulException("redis mode unknown, Need is one of them(default, cluster, sentinel)");
         }
     }
 
-    Set<HostAndPort> getHost(String hostsStr) {
-        return
-                Lists.newArrayList(Splitter.on(",").trimResults().split(hostsStr))
-                        .stream()
-                        .map(HostAndPort::parseString).collect(Collectors.toSet());
+    private Set<HostAndPort> getHost(Set<String> hosts) {
+        return hosts.stream()
+                .map(HostAndPort::parseString).collect(Collectors.toSet());
+    }
+
+    public JedisConnection getConnection() {
+        return connection;
     }
 
     @Override
@@ -91,7 +94,7 @@ class JedisOperation implements RedisOperation {
 
     @Override
     public ValueOperation valueOperation() {
-        return null;
+        return new DefaultValueOperation<>(this.getConnection());
     }
 
     @Override

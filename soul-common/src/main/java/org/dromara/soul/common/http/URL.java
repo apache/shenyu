@@ -23,6 +23,7 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.*;
 import lombok.Getter;
+import org.dromara.soul.common.utils.AttrMap;
 import org.dromara.soul.common.utils.CollectionUtils;
 import org.dromara.soul.common.utils.StringUtils;
 import sun.net.util.IPAddressUtil;
@@ -94,6 +95,14 @@ public class URL {
      */
     public String getParameter(String key) {
         return this.getParameters().get(key);
+    }
+
+    public AttrMap<String, Object> toAttrMap() {
+        if (this.getParameters() != null) {
+            return new AttrMap<>(this.getParameters());
+        } else {
+            return new AttrMap<>();
+        }
     }
 
     /**

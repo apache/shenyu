@@ -20,6 +20,7 @@
 package org.dromara.soul.remoting.redis.operation;
 
 import java.util.concurrent.TimeUnit;
+import org.dromara.soul.remoting.redis.RedisConnection;
 
 /**
  * DefaultValueOperation .
@@ -28,21 +29,28 @@ import java.util.concurrent.TimeUnit;
  *
  * @author sixh
  */
-public class DefaultValueOperation<V> extends BaseOperation implements ValueOperation<String, V> {
+public class DefaultValueOperation<V> extends BaseOperation<V> implements ValueOperation<String, V> {
+
+    private RedisConnection connection;
+
+    public DefaultValueOperation(RedisConnection connection) {
+        this.connection = connection;
+    }
 
     @Override
     public void set(String key, V value) {
-
+        connection.set(rawKey(key), rawValue(value));
     }
 
     @Override
     public void set(String key, V value, long ttl, TimeUnit unit) {
-
+        connection.set(rawKey(key), rawValue(value), ttl, unit);
     }
 
     @Override
-    public V get(String key) {
-        return null;
+    public V get(String key, Class<V> clazz) {
+        byte[] bytes = connection.get(rawKey(key));
+        return deserializeValue(bytes, clazz);
     }
 
     @Override

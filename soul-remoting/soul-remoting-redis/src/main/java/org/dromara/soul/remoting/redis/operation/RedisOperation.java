@@ -23,20 +23,52 @@ package org.dromara.soul.remoting.redis.operation;
  * RedisOperation .
  * Redis related operation implementation type.
  *
+ * @param <K> the type parameter
+ * @param <V> the type parameter
  * @author sixh
  */
-public interface RedisOperation {
+public interface RedisOperation<K, V> {
 
-    MapOperation mapOperation();
+    /**
+     * Map operation map operation.
+     *
+     * @return the map operation
+     */
+    MapOperation<K, V> mapOperation();
 
-    ListOperation listOperation();
+    /**
+     * List operation list operation.
+     *
+     * @return the list operation
+     */
+    ListOperation<K, V> listOperation();
 
-    SetOperation setOperation();
+    /**
+     * Sets operation.
+     *
+     * @return the operation
+     */
+    SetOperation<K, V> setOperation();
 
-    ValueOperation valueOperation();
+    /**
+     * Value operation value operation.
+     *
+     * @return the value operation
+     */
+    ValueOperation<K, V> valueOperation();
 
-    ZsetOperation zsetOperation();
+    /**
+     * Zset operation zset operation.
+     *
+     * @return the zset operation
+     */
+    ZsetOperation<K, V> zsetOperation();
 
-    ScriptOperation scriptOperation();
+    /**
+     * Script operation script operation.
+     *
+     * @return the script operation
+     */
+    ScriptOperation<K, V> scriptOperation();
 }
 

@@ -23,11 +23,18 @@ import redis.clients.jedis.JedisCluster;
 
 /**
  * RedisExecuteCommand .
+ * redis client jedis cluster Command execution interface definition.
  *
  * @author sixh
  */
 @FunctionalInterface
 public interface JedisClusterExecuteCommand {
 
+    /**
+     * .
+     *
+     * @param jc the jc
+     * @return the object
+     */
     Object execute(JedisCluster jc);
 }

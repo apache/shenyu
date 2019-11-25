@@ -19,12 +19,60 @@
 
 package org.dromara.soul.remoting.redis.operation;
 
+import org.dromara.soul.remoting.redis.serializer.ObjectSerializer;
+import org.dromara.soul.remoting.redis.serializer.Serializer;
+import org.dromara.soul.remoting.redis.serializer.ValueSerializer;
+
 /**
  * BaseOperation .
  * <p>
  * 2019/11/23
  *
+ * @param <V> the type parameter
  * @author sixh
  */
-public class BaseOperation {
+public class BaseOperation<V> {
+
+    /**
+     * value serializer.
+     */
+    private Serializer<V> valueSerializer;
+
+    public BaseOperation() {
+        this.valueSerializer = new ValueSerializer<>(new ObjectSerializer<>());
+    }
+
+    /**
+     * Raw value byte [ ].
+     *
+     * @param value the value
+     * @return the byte [ ]
+     */
+    byte[] rawValue(V value) {
+        if (valueSerializer == null && value instanceof byte[]) {
+            return (byte[]) value;
+        }
+        return valueSerializer.serialize(value);
+    }
+
+    /**
+     * Raw key byte [ ].
+     *
+     * @param key the key
+     * @return the byte [ ]
+     */
+    byte[] rawKey(String key) {
+        return key.getBytes();
+    }
+
+    /**
+     * Deserialize value v.
+     *
+     * @param bytes the bytes
+     * @param clazz the clazz
+     * @return the v
+     */
+    V deserializeValue(byte[] bytes, Class<V> clazz) {
+        return valueSerializer.deserialize(bytes, clazz);
+    }
 }

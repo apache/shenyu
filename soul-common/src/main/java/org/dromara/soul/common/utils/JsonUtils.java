@@ -75,6 +75,14 @@ public final class JsonUtils {
         }
     }
 
+    public static <V> V toObject(byte[] bytes, Class<V> clazz) {
+        try {
+            return mapper.readValue(bytes, clazz);
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
     /**
      * json To map.
      *

@@ -24,5 +24,5 @@ package org.dromara.soul.remoting.redis.operation;
  *
  * @author sixh
  */
-public interface ListOperation {
+public interface ListOperation<K,V> {
 }

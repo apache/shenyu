@@ -19,6 +19,7 @@
 
 package org.dromara.soul.remoting.redis;
 
+import java.util.Set;
 import lombok.Data;
 
 /**
@@ -30,43 +31,27 @@ import lombok.Data;
 @Data
 public final class RedisModule {
 
-    private String hosts;
+    private String mode;
 
-    private Boolean cluster = false;
-
-    private Boolean sentinel = false;
-
-    /**
-     * cluster url example:ip:port;ip:port.
-     */
-    private String clusterUrl;
-
-    /**
-     * sentinel url example:ip:port;ip:port.
-     */
-    private String sentinelUrl;
+    private Set<String> hosts;
 
     private String masterName;
 
-    private String host;
-
-    private int port;
-
     private String password;
 
-    private int maxTotal = 8;
+    private Integer maxTotal = 8;
 
-    private int maxIdle = 8;
+    private Integer maxIdle = 8;
 
-    private int minIdle;
+    private Integer minIdle;
 
-    private long maxWaitMillis = -1L;
+    private Long maxWaitMillis = -1L;
 
-    private long minEvictableIdleTimeMillis = 1800000L;
+    private Long minEvictableIdleTimeMillis = 1800000L;
 
-    private long softMinEvictableIdleTimeMillis = 1800000L;
+    private Long softMinEvictableIdleTimeMillis = 1800000L;
 
-    private int numTestsPerEvictionRun = 3;
+    private Integer numTestsPerEvictionRun = 3;
 
     private Boolean testOnCreate = false;
 
@@ -76,9 +61,9 @@ public final class RedisModule {
 
     private Boolean testWhileIdle = false;
 
-    private long timeBetweenEvictionRunsMillis = -1L;
+    private Long timeBetweenEvictionRunsMillis = -1L;
 
-    private boolean blockWhenExhausted = true;
+    private Boolean blockWhenExhausted = true;
 
-    private int timeOut = 10000;
+    private Integer timeOut = 10000;
 }

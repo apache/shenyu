@@ -26,5 +26,5 @@ package org.dromara.soul.remoting.redis.operation;
  *
  * @author sixh
  */
-public interface MapOperation {
+public interface MapOperation<K,V> {
 }

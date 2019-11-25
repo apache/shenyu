@@ -26,5 +26,5 @@ package org.dromara.soul.remoting.redis.operation;
  *
  * @author sixh
  */
-public interface ZsetOperation {
+public interface ZsetOperation<K,V> {
 }

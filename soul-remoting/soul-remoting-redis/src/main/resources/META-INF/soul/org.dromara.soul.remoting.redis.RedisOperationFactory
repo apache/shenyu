@@ -1,0 +1,1 @@
+jedis=org.dromara.soul.remoting.redis.jedis.JedisOperationFactory
