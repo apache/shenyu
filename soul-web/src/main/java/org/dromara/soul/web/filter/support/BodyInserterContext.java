@@ -44,7 +44,6 @@ public class BodyInserterContext implements BodyInserter.Context {
         this.exchangeStrategies = ExchangeStrategies.withDefaults();
     }
 
-
     @Override
     public List<HttpMessageWriter<?>> messageWriters() {
         return exchangeStrategies.messageWriters();

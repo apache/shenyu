@@ -68,7 +68,7 @@ public interface SelectorService {
     SelectorVO findById(String id);
 
     /**
-     * find selector by name
+     * find selector by name.
      *
      * @param name the name
      * @return selector do

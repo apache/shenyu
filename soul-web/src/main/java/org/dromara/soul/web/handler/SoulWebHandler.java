@@ -27,6 +27,7 @@ import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * this is web handler request starter.
@@ -35,14 +36,9 @@ import java.util.List;
  */
 public final class SoulWebHandler implements WebHandler {
 
-    private static final int DEFAULT_IO_WORKER_COUNT = Integer.parseInt(System.getProperty(
-            "soul.work.threads",
-            "" + Math.max(Runtime.getRuntime()
-                    .availableProcessors() << 1, 16)));
-
     private List<SoulPlugin> plugins;
 
-    private Scheduler fixedPool;
+    private Scheduler scheduler;
 
     /**
      * Instantiates a new Soul web handler.
@@ -51,7 +47,16 @@ public final class SoulWebHandler implements WebHandler {
      */
     public SoulWebHandler(final List<SoulPlugin> plugins) {
         this.plugins = plugins;
-        fixedPool = Schedulers.newParallel("soul-work-threads", DEFAULT_IO_WORKER_COUNT);
+        String schedulerType = System.getProperty("soul.scheduler.type", "fixed");
+        if (Objects.equals(schedulerType, "fixed")) {
+            int threads = Integer.parseInt(System.getProperty(
+                    "soul.work.threads",
+                    "" + Math.max((Runtime.getRuntime()
+                            .availableProcessors() << 1) + 1, 16)));
+            scheduler = Schedulers.newParallel("soul-work-threads", threads);
+        } else {
+            scheduler = Schedulers.elastic();
+        }
     }
 
     /**
@@ -63,7 +68,7 @@ public final class SoulWebHandler implements WebHandler {
     @Override
     public Mono<Void> handle(final ServerWebExchange exchange) {
         return new DefaultSoulPluginChain(plugins)
-                .execute(exchange).subscribeOn(fixedPool);
+                .execute(exchange).subscribeOn(scheduler);
     }
 
     private static class DefaultSoulPluginChain implements SoulPluginChain {
@@ -92,7 +97,12 @@ public final class SoulWebHandler implements WebHandler {
             return Mono.defer(() -> {
                 if (this.index < plugins.size()) {
                     SoulPlugin plugin = plugins.get(this.index++);
-                    return plugin.execute(exchange, this);
+                    Boolean skip = plugin.skip(exchange);
+                    if (skip) {
+                        return this.execute(exchange);
+                    } else {
+                        return plugin.execute(exchange, this);
+                    }
                 } else {
                     return Mono.empty();
                 }

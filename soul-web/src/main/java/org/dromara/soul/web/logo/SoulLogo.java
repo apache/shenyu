@@ -63,7 +63,7 @@ public class SoulLogo implements ApplicationListener<ApplicationEnvironmentPrepa
                 + Constants.LINE_SEPARATOR
                 + SOUL_LOGO
                 + Constants.LINE_SEPARATOR
-                + " :: Soul :: (v" + VersionUtils.getVersion(getClass(), "1.0.2") + ")"
+                + " :: Soul :: (v" + VersionUtils.getVersion(getClass(), "2.0.2") + ")"
                 + Constants.LINE_SEPARATOR;
     }
 

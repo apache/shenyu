@@ -22,18 +22,18 @@ import org.dromara.soul.admin.dto.DashboardUserDTO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.DashboardUserQuery;
+import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.service.DashboardUserService;
 import org.dromara.soul.admin.vo.DashboardUserVO;
-import org.dromara.soul.common.result.SoulResult;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Objects;
@@ -60,36 +60,36 @@ public class DashboardUserController {
      * @param userName    user name
      * @param currentPage current page
      * @param pageSize    page size
-     * @return {@linkplain SoulResult}
+     * @return {@linkplain SoulAdminResult}
      */
     @GetMapping("")
-    public SoulResult queryDashboardUsers(final String userName, final Integer currentPage, final Integer pageSize) {
+    public SoulAdminResult queryDashboardUsers(final String userName, final Integer currentPage, final Integer pageSize) {
         CommonPager<DashboardUserVO> commonPager = dashboardUserService.listByPage(new DashboardUserQuery(userName, new PageParameter(currentPage, pageSize)));
-        return SoulResult.success("query dashboard users success", commonPager);
+        return SoulAdminResult.success("query dashboard users success", commonPager);
     }
 
     /**
      * detail dashboard user.
      *
      * @param id dashboard user id.
-     * @return {@linkplain SoulResult}
+     * @return {@linkplain SoulAdminResult}
      */
     @GetMapping("/{id}")
-    public SoulResult detailDashboardUser(@PathVariable("id") final String id) {
+    public SoulAdminResult detailDashboardUser(@PathVariable("id") final String id) {
         DashboardUserVO dashboardUserVO = dashboardUserService.findById(id);
-        return SoulResult.success("detail dashboard user success", dashboardUserVO);
+        return SoulAdminResult.success("detail dashboard user success", dashboardUserVO);
     }
 
     /**
      * create dashboard user.
      *
      * @param dashboardUserDTO dashboard user.
-     * @return {@linkplain SoulResult}
+     * @return {@linkplain SoulAdminResult}
      */
     @PostMapping("")
-    public SoulResult createDashboardUser(@RequestBody final DashboardUserDTO dashboardUserDTO) {
+    public SoulAdminResult createDashboardUser(@RequestBody final DashboardUserDTO dashboardUserDTO) {
         Integer createCount = dashboardUserService.createOrUpdate(dashboardUserDTO);
-        return SoulResult.success("create dashboard user success", createCount);
+        return SoulAdminResult.success("create dashboard user success", createCount);
     }
 
     /**
@@ -97,25 +97,25 @@ public class DashboardUserController {
      *
      * @param id               primary key.
      * @param dashboardUserDTO dashboard user.
-     * @return {@linkplain SoulResult}
+     * @return {@linkplain SoulAdminResult}
      */
     @PutMapping("/{id}")
-    public SoulResult updateDashboardUser(@PathVariable("id") final String id, @RequestBody final DashboardUserDTO dashboardUserDTO) {
+    public SoulAdminResult updateDashboardUser(@PathVariable("id") final String id, @RequestBody final DashboardUserDTO dashboardUserDTO) {
         Objects.requireNonNull(dashboardUserDTO);
         dashboardUserDTO.setId(id);
         Integer updateCount = dashboardUserService.createOrUpdate(dashboardUserDTO);
-        return SoulResult.success("update dashboard user success", updateCount);
+        return SoulAdminResult.success("update dashboard user success", updateCount);
     }
 
     /**
      * delete dashboard users.
      *
      * @param ids primary key.
-     * @return {@linkplain SoulResult}
+     * @return {@linkplain SoulAdminResult}
      */
     @DeleteMapping("/batch")
-    public SoulResult deleteDashboardUser(@RequestBody final List<String> ids) {
+    public SoulAdminResult deleteDashboardUser(@RequestBody final List<String> ids) {
         Integer deleteCount = dashboardUserService.delete(ids);
-        return SoulResult.success("delete dashboard users success", deleteCount);
+        return SoulAdminResult.success("delete dashboard users success", deleteCount);
     }
 }

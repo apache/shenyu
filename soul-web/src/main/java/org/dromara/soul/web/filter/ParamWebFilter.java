@@ -22,9 +22,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.HttpMethodEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
-import org.dromara.soul.common.result.SoulResult;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.web.request.RequestDTO;
+import org.dromara.soul.web.result.SoulResultEnum;
+import org.dromara.soul.web.result.SoulResultUtils;
+import org.dromara.soul.web.result.SoulResultWarp;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -62,9 +64,8 @@ public class ParamWebFilter extends AbstractWebFilter {
     protected Mono<Void> doDenyResponse(final ServerWebExchange exchange) {
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(HttpStatus.BAD_REQUEST);
-        final SoulResult result = SoulResult.error("you param is error please check with doc!");
-        return response.writeWith(Mono.just(response.bufferFactory()
-                .wrap(GsonUtils.getInstance().toJson(result).getBytes())));
+        Object error = SoulResultWarp.error(SoulResultEnum.PARAM_ERROR.getCode(), SoulResultEnum.PARAM_ERROR.getMsg(), null);
+        return SoulResultUtils.result(exchange, error);
     }
 
     private Boolean verify(final RequestDTO requestDTO, final ServerWebExchange exchange) {
@@ -81,10 +82,8 @@ public class ParamWebFilter extends AbstractWebFilter {
         if (Objects.equals(rpcTypeEnum.getName(), RpcTypeEnum.DUBBO.getName())) {
             final Object param = exchange.getAttributes().get(Constants.DUBBO_PARAMS);
             return !Objects.isNull(param);
-        } else {
-            return !StringUtils.isBlank(requestDTO.getHttpMethod())
-                    && !Objects.isNull(HttpMethodEnum.acquireByName(requestDTO.getHttpMethod()));
         }
+        return true;
     }
 
 }

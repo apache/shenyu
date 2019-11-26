@@ -41,7 +41,6 @@ import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.MonoSink;
 import rx.Subscription;
 
 import java.net.URI;
@@ -74,40 +73,33 @@ public class SpringCloudPlugin extends AbstractSoulPlugin {
         if (Objects.isNull(rule)) {
             return Mono.empty();
         }
-
         final RequestDTO requestDTO = exchange.getAttribute(Constants.REQUESTDTO);
-
         assert requestDTO != null;
-
         final SpringCloudRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), SpringCloudRuleHandle.class);
-
         final String serviceId = selector.getHandle();
-
         if (StringUtils.isBlank(ruleHandle.getGroupKey())) {
             ruleHandle.setGroupKey(requestDTO.getModule());
         }
-
         if (StringUtils.isBlank(ruleHandle.getCommandKey())) {
             ruleHandle.setCommandKey(requestDTO.getMethod());
         }
-
         if (StringUtils.isBlank(serviceId) || StringUtils.isBlank(ruleHandle.getPath())) {
             LogUtils.error(LOGGER, () -> "can not configuration spring cloud handle....");
             return Mono.empty();
         }
 
         final ServiceInstance serviceInstance = loadBalancer.choose(serviceId);
-
         if (Objects.isNull(serviceInstance)) {
             LogUtils.error(LOGGER, () -> "eureka never register this serviceId " + serviceId);
             return Mono.empty();
         }
+        final URI uri = loadBalancer.reconstructURI(serviceInstance, URI.create(requestDTO.getRealUrl()));
 
-        final URI uri = loadBalancer.reconstructURI(serviceInstance, URI.create(ruleHandle.getPath()));
+        exchange.getAttributes().put(Constants.HTTP_URL, uri.toString());
+        //设置下超时时间
+        exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
 
-        HttpCommand command =
-                new HttpCommand(HystrixBuilder.build(ruleHandle),
-                        exchange, chain, requestDTO, uri.toString(), ruleHandle.getTimeout());
+        HttpCommand command = new HttpCommand(HystrixBuilder.build(ruleHandle), exchange, chain);
 
         return Mono.create(s -> {
             Subscription sub = command.toObservable().subscribe(s::success,

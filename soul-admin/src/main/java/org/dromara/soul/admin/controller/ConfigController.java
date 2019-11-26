@@ -20,9 +20,9 @@ package org.dromara.soul.admin.controller;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.admin.listener.http.HttpLongPollingDataChangedListener;
+import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.common.dto.ConfigData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
-import org.dromara.soul.common.result.SoulResult;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -57,13 +57,13 @@ public class ConfigController {
      * @return the soul result
      */
     @GetMapping("/fetch")
-    public SoulResult fetchConfigs(@NotNull String[] groupKeys) {
+    public SoulAdminResult fetchConfigs(@NotNull String[] groupKeys) {
         Map<String, ConfigData> result = Maps.newConcurrentMap();
         for (String groupKey : groupKeys) {
             ConfigData data = longPollingListener.fetchConfig(ConfigGroupEnum.valueOf(groupKey));
             result.put(groupKey, data);
         }
-        return SoulResult.success("success", result);
+        return SoulAdminResult.success("success", result);
     }
 
     /**
@@ -73,7 +73,7 @@ public class ConfigController {
      * @param response the response
      */
     @PostMapping(value = "/listener")
-    public void listener(HttpServletRequest request, HttpServletResponse response) {
+    public void listener(final HttpServletRequest request, final HttpServletResponse response) {
         longPollingListener.doLongPolling(request, response);
     }
 

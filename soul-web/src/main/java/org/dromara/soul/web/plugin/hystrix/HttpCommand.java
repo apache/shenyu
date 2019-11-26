@@ -21,37 +21,17 @@ package org.dromara.soul.web.plugin.hystrix;
 import com.netflix.hystrix.HystrixObservableCommand;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import com.netflix.hystrix.exception.HystrixTimeoutException;
-import org.apache.commons.lang3.StringUtils;
-import org.dromara.soul.common.constant.Constants;
-import org.dromara.soul.common.enums.HttpMethodEnum;
-import org.dromara.soul.common.enums.ResultEnum;
-import org.dromara.soul.common.result.SoulResult;
-import org.dromara.soul.common.utils.GsonUtils;
-import org.dromara.soul.common.utils.JsonUtils;
-import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.web.plugin.SoulPluginChain;
-import org.dromara.soul.web.request.RequestDTO;
+import org.dromara.soul.web.result.SoulResultEnum;
+import org.dromara.soul.web.result.SoulResultUtils;
+import org.dromara.soul.web.result.SoulResultWarp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.ClientResponse;
-import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import reactor.netty.http.client.HttpClient;
-import reactor.netty.resources.ConnectionProvider;
-import reactor.netty.tcp.TcpClient;
 import rx.Observable;
 import rx.RxReactiveStreams;
-
-import java.time.Duration;
-import java.util.Objects;
-import java.util.Optional;
 
 /**
  * the spring cloud command.
@@ -65,97 +45,29 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpCommand.class);
 
-    private static final WebClient WEB_CLIENT;
-
     private final ServerWebExchange exchange;
 
     private final SoulPluginChain chain;
 
-    private final RequestDTO requestDTO;
-
-    private final String url;
-
-    private final Integer timeout;
-
-    static {
-        // configure tcp pool
-        long acquireTimeout = Math.min(ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT, 3000);
-        ConnectionProvider fixedPool = ConnectionProvider.fixed("soul-tcp-pool", ConnectionProvider.DEFAULT_POOL_MAX_CONNECTIONS, acquireTimeout);
-        TcpClient tcpClient = TcpClient.create(fixedPool);
-        WEB_CLIENT = WebClient.builder()
-                .clientConnector(new ReactorClientHttpConnector(HttpClient.from(tcpClient)))
-                .build();
-    }
-
     /**
      * Instantiates a new Http command.
      *
-     * @param setter     the setter
-     * @param exchange   the exchange
-     * @param chain      the chain
-     * @param requestDTO the request dto
-     * @param url        the url
-     * @param timeout    the timeout
+     * @param setter   the setter
+     * @param exchange the exchange
+     * @param chain    the chain
      */
     public HttpCommand(final Setter setter,
                        final ServerWebExchange exchange,
-                       final SoulPluginChain chain,
-                       final RequestDTO requestDTO,
-                       final String url,
-                       final Integer timeout) {
+                       final SoulPluginChain chain) {
+
         super(setter);
         this.exchange = exchange;
         this.chain = chain;
-        this.requestDTO = requestDTO;
-        this.url = url;
-        this.timeout = timeout;
     }
 
     @Override
     protected Observable<Void> construct() {
-        return RxReactiveStreams.toObservable(doHttpInvoke());
-    }
-
-    private Mono<Void> doHttpInvoke() {
-        if (requestDTO.getHttpMethod().equals(HttpMethodEnum.GET.getName())) {
-            final String uri = getUrl(buildRealURL());
-            LogUtils.debug(LOGGER, "you get request,The resulting url is :{}", () -> uri);
-            return WEB_CLIENT.get().uri(uri)
-                    .headers(httpHeaders -> {
-                        httpHeaders.addAll(exchange.getRequest().getHeaders());
-                        httpHeaders.remove(HttpHeaders.HOST);
-                    })
-                    .exchange()
-                    .doOnError(e -> LogUtils.error(LOGGER, e::getMessage))
-                    .timeout(Duration.ofMillis(timeout))
-                    .flatMap(this::doNext);
-
-        } else if (requestDTO.getHttpMethod().equals(HttpMethodEnum.PUT.getName())) {
-
-            final String pathVariable = pathVariable(buildRealURL());
-            LogUtils.debug(LOGGER, "you put request,The resulting url is :{}", () -> pathVariable);
-            WebClient.RequestBodySpec requestBodySpec = WEB_CLIENT.put().uri(pathVariable);
-
-            return handleRequestBody(requestBodySpec);
-
-        } else if (requestDTO.getHttpMethod().equals(HttpMethodEnum.DELETE.getName())) {
-
-            final String pathVariable = pathVariable(buildRealURL());
-            LogUtils.debug(LOGGER, "you delete request,The resulting url is:{}", () -> pathVariable);
-            WebClient.RequestBodySpec requestBodySpec = WEB_CLIENT.method(HttpMethod.DELETE).uri(pathVariable);
-
-            return handleRequestBody(requestBodySpec);
-
-        } else if (requestDTO.getHttpMethod().equals(HttpMethodEnum.POST.getName())) {
-
-            final String uri = buildRealURL();
-            LogUtils.debug(LOGGER, "you post request,The resulting url is :{}", () -> uri);
-            WebClient.RequestBodySpec requestBodySpec = WEB_CLIENT.post().uri(uri);
-
-            return handleRequestBody(requestBodySpec);
-        }
-
-        return Mono.empty();
+        return RxReactiveStreams.toObservable(chain.execute(exchange));
     }
 
     @Override
@@ -163,51 +75,9 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
         return RxReactiveStreams.toObservable(doFallback());
     }
 
-    private String getUrl(final String uri) {
-        String url = pathVariable(uri);
-        if (StringUtils.isNoneBlank(requestDTO.getExtInfo())) {
-            url = url + "?" + GsonUtils.getInstance().toGetParam(requestDTO.getExtInfo());
-        }
-        return url;
-    }
-
-    private String pathVariable(final String uri) {
-        String path = uri;
-        final String pathVariable = requestDTO.getPathVariable();
-        if (StringUtils.isNoneBlank(pathVariable)) {
-            path = path + "/" + pathVariable;
-        }
-        return path;
-    }
-
-    private MediaType buildMediaType() {
-        return MediaType.valueOf(Optional.ofNullable(exchange
-                .getRequest()
-                .getHeaders().getFirst(HttpHeaders.CONTENT_TYPE))
-                .orElse(MediaType.APPLICATION_JSON_UTF8_VALUE));
-    }
-
-    private Mono<Void> doNext(final ClientResponse res) {
-        if (res.statusCode().is2xxSuccessful()) {
-            exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
-        } else {
-            exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.ERROR.getName());
-        }
-        exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);
-        return chain.execute(exchange);
-    }
-
-    private String buildRealURL() {
-        final String rewriteURI = (String) exchange.getAttributes().get(Constants.REWRITE_URI);
-        if (StringUtils.isBlank(rewriteURI)) {
-            return String.join("/", url, requestDTO.getMethod());
-        }
-        return String.join("/", url, rewriteURI);
-    }
-
     private Mono<Void> doFallback() {
         if (isFailedExecution()) {
-            LogUtils.error(LOGGER, "http execute have error:{}", () -> getExecutionException().getMessage());
+            LOGGER.error("http execute have error:", getExecutionException());
         }
         final Throwable exception = getExecutionException();
         if (exception instanceof HystrixRuntimeException) {
@@ -222,22 +92,8 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
         } else {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        final SoulResult error = SoulResult.error(Constants.HTTP_ERROR_RESULT);
-        return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
-                .bufferFactory().wrap(Objects.requireNonNull(JsonUtils.toJson(error)).getBytes())));
-    }
-
-    private Mono<Void> handleRequestBody(WebClient.RequestBodySpec requestBodySpec) {
-        return requestBodySpec.headers(httpHeaders -> {
-            httpHeaders.addAll(exchange.getRequest().getHeaders());
-            httpHeaders.remove(HttpHeaders.HOST);
-        })
-                .contentType(buildMediaType())
-                .body(BodyInserters.fromDataBuffers(exchange.getRequest().getBody()))
-                .exchange()
-                .doOnError(e -> LogUtils.error(LOGGER, e::getMessage))
-                .timeout(Duration.ofMillis(timeout))
-                .flatMap(this::doNext);
+        Object error = SoulResultWarp.error(SoulResultEnum.SERVICE_RESULT_ERROR.getCode(), SoulResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
+        return SoulResultUtils.result(exchange, error);
     }
 
 }

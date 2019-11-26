@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class GenericParamServiceImpl implements GenericParamService {
 
     @Override
-    public Pair<String[], Object[]> buildParameter(Map<String, Object> paramMap) {
+    public Pair<String[], Object[]> buildParameter(final Map<String, Object> paramMap) {
         List<String> paramList = Lists.newArrayList();
         List<Object> args = Lists.newArrayList();
         //如果参数里面包含class字段

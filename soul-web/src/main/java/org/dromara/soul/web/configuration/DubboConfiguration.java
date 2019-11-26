@@ -20,10 +20,12 @@ package org.dromara.soul.web.configuration;
 
 import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.plugin.SoulPlugin;
+import org.dromara.soul.web.plugin.after.DubboResponsePlugin;
 import org.dromara.soul.web.plugin.dubbo.DubboProxyService;
 import org.dromara.soul.web.plugin.dubbo.GenericParamService;
 import org.dromara.soul.web.plugin.dubbo.GenericParamServiceImpl;
 import org.dromara.soul.web.plugin.function.DubboPlugin;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.SearchStrategy;
 import org.springframework.context.annotation.Bean;
@@ -53,8 +55,18 @@ public class DubboConfiguration {
      * @return {@linkplain DubboPlugin}
      */
     @Bean
-    public SoulPlugin dubboPlugin(LocalCacheManager localCacheManager) {
+    public SoulPlugin dubboPlugin(@Qualifier("localCacheManager") final LocalCacheManager localCacheManager) {
         return new DubboPlugin(localCacheManager, new DubboProxyService(genericParamService()));
+    }
+
+    /**
+     * Dubbo response plugin soul plugin.
+     *
+     * @return the soul plugin
+     */
+    @Bean
+    public SoulPlugin dubboResponsePlugin() {
+        return new DubboResponsePlugin();
     }
 
 }

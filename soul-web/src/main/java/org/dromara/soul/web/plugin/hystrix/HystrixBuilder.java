@@ -28,7 +28,7 @@ import org.dromara.soul.common.dto.convert.HystrixHandle;
 /**
  * the hystrix builder.
  *
- * @author xiaoyu(549477611 @ qq.com)
+ * @author xiaoyu(Myth)
  */
 public class HystrixBuilder {
 
@@ -59,7 +59,7 @@ public class HystrixBuilder {
 
         final HystrixCommandProperties.Setter propertiesSetter =
                 HystrixCommandProperties.Setter()
-                        .withExecutionTimeoutInMilliseconds(hystrixHandle.getTimeout())
+                        .withExecutionTimeoutInMilliseconds((int) hystrixHandle.getTimeout())
                         .withCircuitBreakerEnabled(true)
                         .withExecutionIsolationStrategy(HystrixCommandProperties.ExecutionIsolationStrategy.SEMAPHORE)
                         .withExecutionIsolationSemaphoreMaxConcurrentRequests(hystrixHandle.getMaxConcurrentRequests())

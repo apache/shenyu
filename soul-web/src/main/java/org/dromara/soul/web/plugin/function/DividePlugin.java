@@ -39,8 +39,12 @@ import org.dromara.soul.web.plugin.SoulPluginChain;
 import org.dromara.soul.web.plugin.hystrix.HttpCommand;
 import org.dromara.soul.web.plugin.hystrix.HystrixBuilder;
 import org.dromara.soul.web.request.RequestDTO;
+import org.dromara.soul.web.result.SoulResultEnum;
+import org.dromara.soul.web.result.SoulResultUtils;
+import org.dromara.soul.web.result.SoulResultWarp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import rx.Subscription;
@@ -76,36 +80,36 @@ public class DividePlugin extends AbstractSoulPlugin {
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
         final RequestDTO requestDTO = exchange.getAttribute(Constants.REQUESTDTO);
-
+        assert requestDTO != null;
         final DivideRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), DivideRuleHandle.class);
-
         if (StringUtils.isBlank(ruleHandle.getGroupKey())) {
             ruleHandle.setGroupKey(Objects.requireNonNull(requestDTO).getModule());
         }
-
         if (StringUtils.isBlank(ruleHandle.getCommandKey())) {
             ruleHandle.setCommandKey(Objects.requireNonNull(requestDTO).getMethod());
         }
-
         final List<DivideUpstream> upstreamList =
                 upstreamCacheManager.findUpstreamListBySelectorId(selector.getId());
         if (CollectionUtils.isEmpty(upstreamList)) {
-            LogUtils.error(LOGGER, "divide upstream configuration error：{}", rule::toString);
-            return chain.execute(exchange);
+            LOGGER.error("divide upstream configuration error：{}", rule.toString());
+            Object error = SoulResultWarp.error(SoulResultEnum.CANNOT_FIND_URL.getCode(), SoulResultEnum.CANNOT_FIND_URL.getMsg(), null);
+            return SoulResultUtils.result(exchange, error);
         }
-
         final String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
-
         DivideUpstream divideUpstream =
                 LoadBalanceUtils.selector(upstreamList, ruleHandle.getLoadBalance(), ip);
-
         if (Objects.isNull(divideUpstream)) {
-            LogUtils.error(LOGGER, () -> "LoadBalance has error！");
-            return chain.execute(exchange);
+            LOGGER.error("divide has no upstream");
+            Object error = SoulResultWarp.error(SoulResultEnum.CANNOT_FIND_URL.getCode(), SoulResultEnum.CANNOT_FIND_URL.getMsg(), null);
+            return SoulResultUtils.result(exchange, error);
         }
-
-        HttpCommand command = new HttpCommand(HystrixBuilder.build(ruleHandle), exchange, chain,
-                requestDTO, buildRealURL(divideUpstream), ruleHandle.getTimeout());
+        //设置一下 http url
+        String domain = buildDomain(divideUpstream);
+        String realURL = buildRealURL(domain, requestDTO, exchange.getRequest().getURI().getQuery());
+        exchange.getAttributes().put(Constants.HTTP_URL, realURL);
+        //设置下超时时间
+        exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
+        HttpCommand command = new HttpCommand(HystrixBuilder.build(ruleHandle), exchange, chain);
         return Mono.create(s -> {
             Subscription sub = command.toObservable().subscribe(s::success,
                     s::error, s::success);
@@ -119,14 +123,6 @@ public class DividePlugin extends AbstractSoulPlugin {
                     ResultEnum.ERROR.getName());
             chain.execute(exchange);
         }).then();
-    }
-
-    private String buildRealURL(final DivideUpstream divideUpstream) {
-        String protocol = divideUpstream.getProtocol();
-        if (StringUtils.isBlank(protocol)) {
-            protocol = "http://";
-        }
-        return protocol + divideUpstream.getUpstreamUrl().trim();
     }
 
     @Override
@@ -158,6 +154,28 @@ public class DividePlugin extends AbstractSoulPlugin {
     @Override
     public int getOrder() {
         return PluginEnum.DIVIDE.getCode();
+    }
+
+    private String buildDomain(final DivideUpstream divideUpstream) {
+        String protocol = divideUpstream.getProtocol();
+        if (StringUtils.isBlank(protocol)) {
+            protocol = "http://";
+        }
+        return protocol + divideUpstream.getUpstreamUrl().trim();
+    }
+
+    private String buildRealURL(final String domain, final RequestDTO requestDTO, final String query) {
+        String path = domain;
+        final String realUrl = requestDTO.getRealUrl();
+        if (StringUtils.isNoneBlank(realUrl)) {
+            path = path + realUrl;
+        }
+        if (requestDTO.getHttpMethod().equals(HttpMethod.GET.name())) {
+            if (StringUtils.isNoneBlank(query)) {
+                return path + "?" + query;
+            }
+        }
+        return path;
     }
 
 }

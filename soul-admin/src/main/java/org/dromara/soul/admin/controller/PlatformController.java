@@ -18,10 +18,10 @@
 
 package org.dromara.soul.admin.controller;
 
+import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.service.DashboardUserService;
 import org.dromara.soul.admin.service.EnumService;
 import org.dromara.soul.admin.vo.DashboardUserVO;
-import org.dromara.soul.common.result.SoulResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -51,21 +51,21 @@ public class PlatformController {
      *
      * @param userName user name
      * @param password user password
-     * @return {@linkplain SoulResult}
+     * @return {@linkplain SoulAdminResult}
      */
     @GetMapping("/login")
-    public SoulResult loginDashboardUser(final String userName, final String password) {
+    public SoulAdminResult loginDashboardUser(final String userName, final String password) {
         DashboardUserVO dashboardUserVO = dashboardUserService.findByQuery(userName, password);
-        return SoulResult.success("login dashboard user success", dashboardUserVO);
+        return SoulAdminResult.success("login dashboard user success", dashboardUserVO);
     }
 
     /**
      * query enums.
      *
-     * @return {@linkplain SoulResult}
+     * @return {@linkplain SoulAdminResult}
      */
     @GetMapping("/enum")
-    public SoulResult queryEnums() {
-        return SoulResult.success(enumService.list());
+    public SoulAdminResult queryEnums() {
+        return SoulAdminResult.success(enumService.list());
     }
 }
