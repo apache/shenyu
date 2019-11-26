@@ -26,15 +26,15 @@ import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.SelectorTypeEnum;
-import org.dromara.soul.common.result.SoulResult;
-import org.dromara.soul.common.utils.JsonUtils;
 import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.condition.strategy.MatchStrategyFactory;
 import org.dromara.soul.web.request.RequestDTO;
+import org.dromara.soul.web.result.SoulResultEnum;
+import org.dromara.soul.web.result.SoulResultUtils;
+import org.dromara.soul.web.result.SoulResultWarp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -68,7 +68,6 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
      */
     protected abstract Mono<Void> doExecute(ServerWebExchange exchange, SoulPluginChain chain, SelectorData selector, RuleData rule);
 
-
     /**
      * Process the Web request and (optionally) delegate to the next
      * {@code WebFilter} through the given {@link SoulPluginChain}.
@@ -79,13 +78,15 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
      */
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final SoulPluginChain chain) {
-        final PluginData pluginData = localCacheManager.findPluginByName(named());
-        if (!(skip(exchange) || pluginData == null || !pluginData.getEnabled())) {
+        String pluginName = named();
+        final PluginData pluginData = localCacheManager.findPluginByName(pluginName);
+        if (pluginData != null && pluginData.getEnabled()) {
             final RequestDTO request = exchange.getAttribute(Constants.REQUESTDTO);
             final List<SelectorData> selectors = localCacheManager.findSelectorByPluginName(named());
             if (CollectionUtils.isEmpty(selectors)) {
                 LOGGER.error("can not find selector data :{},params:{}", named(), Objects.requireNonNull(request).toString());
-                return chain.execute(exchange);
+                Object error = SoulResultWarp.error(SoulResultEnum.CANNOT_FIND_SELECTOR.getCode(), SoulResultEnum.CANNOT_FIND_SELECTOR.getMsg(), null);
+                return SoulResultUtils.result(exchange, error);
             }
             final SelectorData selectorData = selectors.stream()
                     .filter(selector -> selector.getEnabled() && filterSelector(selector, exchange))
@@ -93,7 +94,8 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
 
             if (Objects.isNull(selectorData)) {
                 LOGGER.error("can not match selector data :{},params:{}", named(), Objects.requireNonNull(request).toString());
-                return chain.execute(exchange);
+                Object error = SoulResultWarp.error(SoulResultEnum.CANNOT_FIND_SELECTOR.getCode(), SoulResultEnum.CANNOT_FIND_SELECTOR.getMsg(), null);
+                return SoulResultUtils.result(exchange, error);
             }
 
             if (selectorData.getLoged()) {
@@ -106,25 +108,24 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
                 LOGGER.error("can not match rule data :{},params:{}", named(), Objects.requireNonNull(request).toString());
                 return chain.execute(exchange);
             }
-
-            RuleData rule = filterRule(exchange, rules);
-
+            RuleData rule;
+            if (selectorData.getType() == SelectorTypeEnum.FULL_FLOW.getCode()) {
+                //get last
+                rule = rules.get(rules.size() - 1);
+            } else {
+                rule = filterRule(exchange, rules);
+            }
             if (Objects.isNull(rule)) {
                 //If the divide or dubbo or spring cloud plug-in does not match, return directly
-                if (PluginEnum.DIVIDE.getName().equals(named())
-                        || PluginEnum.DUBBO.getName().equals(named())
-                        || PluginEnum.SPRING_CLOUD.getName().equals(named())) {
-                    LogUtils.info(LOGGER, () -> Objects.requireNonNull(request).getModule() + ":"
-                            + request.getMethod() + " not match  " + named() + "  rule");
-                    final SoulResult error = SoulResult.error(HttpStatus.NOT_FOUND.value(),
-                            Constants.UPSTREAM_NOT_FIND);
-                    return exchange.getResponse()
-                            .writeWith(Mono.just(exchange.getResponse().bufferFactory()
-                                    .wrap(Objects.requireNonNull(JsonUtils.toJson(error)).getBytes())));
+                if (PluginEnum.DIVIDE.getName().equals(pluginName)
+                        || PluginEnum.DUBBO.getName().equals(pluginName)
+                        || PluginEnum.SPRING_CLOUD.getName().equals(pluginName)) {
+                    LOGGER.error(Objects.requireNonNull(request).getModule() + ":" + request.getMethod() + " not match  " + pluginName + "  rule");
+                    Object error = SoulResultWarp.error(SoulResultEnum.RULE_NOT_FIND.getCode(), SoulResultEnum.RULE_NOT_FIND.getMsg(), null);
+                    return SoulResultUtils.result(exchange, error);
                 }
                 return chain.execute(exchange);
             }
-
             if (rule.getLoged()) {
                 LogUtils.info(LOGGER, () -> Objects.requireNonNull(request).getModule() + ":" + request.getMethod() + " match " + named()
                         + " rule is name :"

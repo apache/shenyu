@@ -61,9 +61,11 @@ abstract class AbstractMatchStrategy {
                 return realData;
             }
             realData = Objects.requireNonNull(headers.get(condition.getParamName())).stream().findFirst().orElse("");
-        }  else if (condition.getParamType().equals(ParamTypeEnum.POST.getName())) {
+        } else if (condition.getParamType().equals(ParamTypeEnum.POST.getName())) {
             final RequestDTO requestDTO = exchange.getAttribute(Constants.REQUESTDTO);
             realData = (String) ReflectUtils.getFieldValue(requestDTO, condition.getParamName());
+        } else if (condition.getParamType().equals(ParamTypeEnum.URI.getName())) {
+            realData = exchange.getRequest().getURI().getPath();
         }
         return realData;
     }

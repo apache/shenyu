@@ -29,6 +29,7 @@ import org.dromara.soul.common.concurrent.SoulThreadFactory;
 import org.dromara.soul.common.constant.HttpConstants;
 import org.dromara.soul.common.dto.AppAuthData;
 import org.dromara.soul.common.dto.ConfigData;
+import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
@@ -49,6 +50,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -96,7 +98,7 @@ public class HttpLongPollSyncCache extends HttpCacheHandler implements CommandLi
 
     public HttpLongPollSyncCache(final SoulConfig.HttpConfig httpConfig) {
         this.httpConfig = httpConfig;
-        serverList = Splitter.on(",").splitToList(httpConfig.getUrl());
+        serverList = Lists.newArrayList(Splitter.on(",").split(httpConfig.getUrl()));
     }
 
     @Override
@@ -166,11 +168,6 @@ public class HttpLongPollSyncCache extends HttpCacheHandler implements CommandLi
         }
     }
 
-    /**
-     * If the data for some nodes has not changed, the node is null.
-     *
-     * @param json {@linkplain org.dromara.soul.common.result.SoulResult}
-     */
     private void updateCacheWithJson(final String json) {
 
         JsonObject jsonObject = GSON.fromJson(json, JsonObject.class);
@@ -184,6 +181,16 @@ public class HttpLongPollSyncCache extends HttpCacheHandler implements CommandLi
             GROUP_CACHE.put(ConfigGroupEnum.APP_AUTH, result);
             this.flushAllAppAuth(result.getData());
         }
+
+        // metaData
+        JsonObject metaData = data.getAsJsonObject(ConfigGroupEnum.META_DATA.name());
+        if (metaData != null) {
+            ConfigData<MetaData> result = GSON.fromJson(metaData, new TypeToken<ConfigData<MetaData>>() {
+            }.getType());
+            GROUP_CACHE.put(ConfigGroupEnum.META_DATA, result);
+            this.flushMetaData(result.getData());
+        }
+
 
         // plugin
         configData = data.getAsJsonObject(ConfigGroupEnum.PLUGIN.name());
@@ -236,7 +243,7 @@ public class HttpLongPollSyncCache extends HttpCacheHandler implements CommandLi
                     // fetch group configuration async.
                     ConfigGroupEnum[] changedGroups = GSON.fromJson(groupJson, ConfigGroupEnum[].class);
                     if (ArrayUtils.isNotEmpty(changedGroups)) {
-                        LOGGER.info("Group config changed: {}", changedGroups);
+                        LOGGER.info("Group config changed: {}", Arrays.toString(changedGroups));
                         this.fetchGroupConfig(changedGroups);
                     }
                 }

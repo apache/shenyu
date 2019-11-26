@@ -25,9 +25,9 @@ import org.dromara.soul.admin.dto.MetaDataDTO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.MetaDataQuery;
+import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.service.MetaDataService;
 import org.dromara.soul.admin.vo.MetaDataVO;
-import org.dromara.soul.common.result.SoulResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -68,9 +68,9 @@ public class MetaDataController {
      * @return the soul result
      */
     @GetMapping("/queryList")
-    public SoulResult queryList(final String appName, final Integer currentPage, final Integer pageSize) {
+    public SoulAdminResult queryList(final String appName, final Integer currentPage, final Integer pageSize) {
         CommonPager<MetaDataVO> commonPager = metaDataService.listByPage(new MetaDataQuery(appName, new PageParameter(currentPage, pageSize)));
-        return SoulResult.success("query  success", commonPager);
+        return SoulAdminResult.success("query  success", commonPager);
     }
 
     /**
@@ -79,8 +79,8 @@ public class MetaDataController {
      * @return the soul result
      */
     @GetMapping("/findAll")
-    public SoulResult findAll() {
-        return SoulResult.success("query success", metaDataService.findAll());
+    public SoulAdminResult findAll() {
+        return SoulAdminResult.success("query success", metaDataService.findAll());
     }
 
     /**
@@ -89,8 +89,8 @@ public class MetaDataController {
      * @return the soul result
      */
     @GetMapping("/findAllGroup")
-    public SoulResult findAllGroup() {
-        return SoulResult.success("query success", metaDataService.findAllGroup());
+    public SoulAdminResult findAllGroup() {
+        return SoulAdminResult.success("query success", metaDataService.findAllGroup());
     }
 
 
@@ -101,9 +101,9 @@ public class MetaDataController {
      * @return the soul result
      */
     @GetMapping("/{id}")
-    public SoulResult editor(@PathVariable("id") final String id) {
+    public SoulAdminResult editor(@PathVariable("id") final String id) {
         MetaDataVO metaDataVO = metaDataService.findById(id);
-        return SoulResult.success("detail success", metaDataVO);
+        return SoulAdminResult.success("detail success", metaDataVO);
     }
 
     /**
@@ -113,12 +113,12 @@ public class MetaDataController {
      * @return the soul result
      */
     @PostMapping("/createOrUpdate")
-    public SoulResult createOrUpdate(@RequestBody final MetaDataDTO metaDataDTO) {
+    public SoulAdminResult createOrUpdate(@RequestBody final MetaDataDTO metaDataDTO) {
         String result = metaDataService.createOrUpdate(metaDataDTO);
         if (StringUtils.isNoneBlank(result)) {
-            return SoulResult.error(result);
+            return SoulAdminResult.error(result);
         }
-        return SoulResult.success("create success");
+        return SoulAdminResult.success("create success");
     }
 
 
@@ -141,9 +141,9 @@ public class MetaDataController {
      * @return the soul result
      */
     @PostMapping("/batchDeleted")
-    public SoulResult batchDeleted(@RequestBody final List<String> ids) {
+    public SoulAdminResult batchDeleted(@RequestBody final List<String> ids) {
         Integer deleteCount = metaDataService.delete(ids);
-        return SoulResult.success("delete  success", deleteCount);
+        return SoulAdminResult.success("delete  success", deleteCount);
     }
 
 
@@ -154,12 +154,12 @@ public class MetaDataController {
      * @return the soul result
      */
     @PostMapping("/batchEnabled")
-    public SoulResult batchEnabled(@RequestBody final BatchCommonDTO batchCommonDTO) {
+    public SoulAdminResult batchEnabled(@RequestBody final BatchCommonDTO batchCommonDTO) {
         final String result = metaDataService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled());
         if (StringUtils.isNoneBlank(result)) {
-            return SoulResult.error(result);
+            return SoulAdminResult.error(result);
         }
-        return SoulResult.success("enable success");
+        return SoulAdminResult.success("enable success");
     }
 
 
@@ -169,8 +169,8 @@ public class MetaDataController {
      * @return the soul result
      */
     @PostMapping("/syncData")
-    public SoulResult syncData() {
+    public SoulAdminResult syncData() {
         metaDataService.syncData();
-        return SoulResult.success();
+        return SoulAdminResult.success();
     }
 }

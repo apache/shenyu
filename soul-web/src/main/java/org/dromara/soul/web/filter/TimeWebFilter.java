@@ -20,11 +20,13 @@ package org.dromara.soul.web.filter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
-import org.dromara.soul.common.result.SoulResult;
 import org.dromara.soul.common.utils.DateUtils;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.web.config.SoulConfig;
 import org.dromara.soul.web.request.RequestDTO;
+import org.dromara.soul.web.result.SoulResultEnum;
+import org.dromara.soul.web.result.SoulResultUtils;
+import org.dromara.soul.web.result.SoulResultWarp;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
@@ -66,8 +68,7 @@ public class TimeWebFilter extends AbstractWebFilter {
     protected Mono<Void> doDenyResponse(final ServerWebExchange exchange) {
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(HttpStatus.REQUEST_TIMEOUT);
-        final SoulResult result = SoulResult.error("timestamp is not passed validation");
-        return response.writeWith(Mono.just(response.bufferFactory()
-                .wrap(GsonUtils.getInstance().toJson(result).getBytes())));
+        Object error = SoulResultWarp.error(SoulResultEnum.TIME_ERROR.getCode(), SoulResultEnum.TIME_ERROR.getMsg(), null);
+        return SoulResultUtils.result(exchange, error);
     }
 }

@@ -20,9 +20,10 @@ package org.dromara.soul.web.configuration;
 
 import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.cache.UpstreamCacheManager;
+import org.dromara.soul.web.config.HttpClientProperties;
 import org.dromara.soul.web.config.SoulConfig;
 import org.dromara.soul.web.disruptor.publisher.SoulEventPublisher;
-import org.dromara.soul.web.filter.BodyWebFilter;
+import org.dromara.soul.web.filter.DubboBodyWebFilter;
 import org.dromara.soul.web.filter.FileSizeFilter;
 import org.dromara.soul.web.filter.ParamWebFilter;
 import org.dromara.soul.web.filter.TimeWebFilter;
@@ -31,7 +32,6 @@ import org.dromara.soul.web.handler.SoulWebHandler;
 import org.dromara.soul.web.influxdb.service.InfluxDbService;
 import org.dromara.soul.web.plugin.SoulPlugin;
 import org.dromara.soul.web.plugin.after.MonitorPlugin;
-import org.dromara.soul.web.plugin.after.ResponsePlugin;
 import org.dromara.soul.web.plugin.before.GlobalPlugin;
 import org.dromara.soul.web.plugin.before.SignPlugin;
 import org.dromara.soul.web.plugin.before.WafPlugin;
@@ -41,8 +41,10 @@ import org.dromara.soul.web.plugin.function.RewritePlugin;
 import org.dromara.soul.web.plugin.function.WebSocketPlugin;
 import org.dromara.soul.web.plugin.ratelimter.RedisRateLimiter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -64,7 +66,9 @@ import java.util.stream.Collectors;
  */
 @Configuration
 @ComponentScan("org.dromara.soul")
-@Import(value = {DubboConfiguration.class, LocalCacheConfiguration.class, ErrorHandlerConfiguration.class})
+@Import(value = {DubboConfiguration.class, LocalCacheConfiguration.class, ErrorHandlerConfiguration.class,
+        SoulResultConfiguration.class, HttpClientConfiguration.class})
+@EnableConfigurationProperties({HttpClientProperties.class})
 public class SoulConfiguration {
 
     private final LocalCacheManager localCacheManager;
@@ -78,7 +82,7 @@ public class SoulConfiguration {
      * @param upstreamCacheManager the upstream cache manager
      */
     @Autowired(required = false)
-    public SoulConfiguration(final LocalCacheManager localCacheManager,
+    public SoulConfiguration(@Qualifier("localCacheManager") final LocalCacheManager localCacheManager,
                              final UpstreamCacheManager upstreamCacheManager) {
         this.localCacheManager = localCacheManager;
         this.upstreamCacheManager = upstreamCacheManager;
@@ -101,6 +105,7 @@ public class SoulConfiguration {
      * @return {@linkplain SignPlugin}
      */
     @Bean
+    @ConditionalOnMissingBean(SignPlugin.class)
     public SoulPlugin signPlugin() {
         return new SignPlugin(localCacheManager);
     }
@@ -188,7 +193,7 @@ public class SoulConfiguration {
      * @return the soul event publisher
      */
     @Bean
-    public SoulEventPublisher soulEventPublisher(InfluxDbService influxDbService) {
+    public SoulEventPublisher soulEventPublisher(final InfluxDbService influxDbService) {
         return new SoulEventPublisher(influxDbService);
     }
 
@@ -199,18 +204,8 @@ public class SoulConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin monitorPlugin(SoulEventPublisher soulEventPublisher) {
+    public SoulPlugin monitorPlugin(final SoulEventPublisher soulEventPublisher) {
         return new MonitorPlugin(soulEventPublisher, localCacheManager);
-    }
-
-    /**
-     * init responsePlugin.
-     *
-     * @return {@linkplain ResponsePlugin}
-     */
-    @Bean
-    public SoulPlugin responsePlugin() {
-        return new ResponsePlugin();
     }
 
     /**
@@ -251,9 +246,8 @@ public class SoulConfiguration {
     @Bean
     @Order(-1)
     public WebFilter bodyWebFilter() {
-        return new BodyWebFilter();
+        return new DubboBodyWebFilter();
     }
-
 
     /**
      * Param web filter web filter.
@@ -279,7 +273,6 @@ public class SoulConfiguration {
         return new TimeWebFilter(soulConfig);
     }
 
-
     /**
      * Web socket web filter web filter.
      *
@@ -290,7 +283,6 @@ public class SoulConfiguration {
     public WebFilter webSocketWebFilter() {
         return new WebSocketWebFilter();
     }
-
 
     /**
      * Reactor netty web socket client reactor netty web socket client.

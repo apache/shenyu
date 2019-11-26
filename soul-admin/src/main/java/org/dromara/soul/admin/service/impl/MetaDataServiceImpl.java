@@ -99,7 +99,12 @@ public class MetaDataServiceImpl implements MetaDataService {
     private final RuleConditionMapper ruleConditionMapper;
 
     @Autowired(required = false)
-    public MetaDataServiceImpl(MetaDataMapper metaDataMapper, ApplicationEventPublisher eventPublisher, SelectorService selectorService, RuleService ruleService, RuleMapper ruleMapper, RuleConditionMapper ruleConditionMapper) {
+    public MetaDataServiceImpl(final MetaDataMapper metaDataMapper,
+                               final ApplicationEventPublisher eventPublisher,
+                               final SelectorService selectorService,
+                               final RuleService ruleService,
+                               final RuleMapper ruleMapper,
+                               final RuleConditionMapper ruleConditionMapper) {
         this.metaDataMapper = metaDataMapper;
         this.eventPublisher = eventPublisher;
         this.selectorService = selectorService;
@@ -109,7 +114,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
-    public String createOrUpdate(MetaDataDTO metaDataDTO) {
+    public String createOrUpdate(final MetaDataDTO metaDataDTO) {
         String msg = checkData(metaDataDTO);
         if (StringUtils.isNoneBlank(msg)) {
             return msg;
@@ -137,7 +142,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
 
-    private Boolean checkParam(MetaDataDTO metaDataDTO) {
+    private Boolean checkParam(final MetaDataDTO metaDataDTO) {
         return !StringUtils.isEmpty(metaDataDTO.getAppName()) &&
                 !StringUtils.isEmpty(metaDataDTO.getPath()) &&
                 !StringUtils.isEmpty(metaDataDTO.getRpcType()) &&
@@ -147,7 +152,7 @@ public class MetaDataServiceImpl implements MetaDataService {
 
     @Override
     @Transactional
-    public String register(MetaDataDTO metaDataDTO) {
+    public String register(final MetaDataDTO metaDataDTO) {
         MetaDataDO byPath = metaDataMapper.findByPath(metaDataDTO.getPath());
         if (Objects.nonNull(byPath)
                 && (!byPath.getMethodName().equals(metaDataDTO.getMethodName())
@@ -216,7 +221,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
 
-    private void createSelectorAndRule(MetaDataDTO metaDataDTO) {
+    private void createSelectorAndRule(final MetaDataDTO metaDataDTO) {
         String path = metaDataDTO.getPath();
         String[] splitList = StringUtils.split(path, "/");
         String contextPath = "/" + splitList[0];
@@ -353,12 +358,12 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
-    public MetaDataVO findById(String id) {
+    public MetaDataVO findById(final String id) {
         return Optional.ofNullable(MetaDataTransfer.INSTANCE.mapToVO(metaDataMapper.selectById(id))).orElse(new MetaDataVO());
     }
 
     @Override
-    public CommonPager<MetaDataVO> listByPage(MetaDataQuery metaDataQuery) {
+    public CommonPager<MetaDataVO> listByPage(final MetaDataQuery metaDataQuery) {
         PageParameter pageParameter = metaDataQuery.getPageParameter();
         return new CommonPager<>(
                 new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(),
@@ -384,6 +389,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     public List<MetaData> listAll() {
         return metaDataMapper.selectAll()
                 .stream()
+                .filter(Objects::nonNull)
                 .map(MetaDataTransfer.INSTANCE::mapToData)
                 .collect(Collectors.toList());
     }

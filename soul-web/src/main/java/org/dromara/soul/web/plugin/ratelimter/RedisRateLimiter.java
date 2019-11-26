@@ -95,8 +95,7 @@ public class RedisRateLimiter {
                         return rateLimiterResponse;
                     });
         } catch (Exception e) {
-            e.printStackTrace();
-            LogUtils.error(LOGGER, () -> "Error determining if user allowed from redis" + e.getMessage());
+            LOGGER.error("Error determining if user allowed from redis:", e);
         }
         return Mono.just(new RateLimiterResponse(true, -1));
     }
@@ -115,6 +114,5 @@ public class RedisRateLimiter {
         redisScript.setResultType(List.class);
         return redisScript;
     }
-
 
 }

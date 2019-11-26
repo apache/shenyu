@@ -58,7 +58,7 @@ public class DubboProxyService {
 
     private final GenericParamService genericParamService;
 
-    public DubboProxyService(GenericParamService genericParamService) {
+    public DubboProxyService(final GenericParamService genericParamService) {
         this.genericParamService = genericParamService;
     }
 
@@ -106,7 +106,6 @@ public class DubboProxyService {
         }
     }
 
-
     private ReferenceConfig<GenericService> buildReferenceConfig(final DubboSelectorHandle dubboSelectorHandle, final DubboRuleHandle dubboRuleHandle, final String interfaceName) {
 
         ReferenceConfig<GenericService> reference = new ReferenceConfig<>();
@@ -144,7 +143,7 @@ public class DubboProxyService {
             }
         }
 
-        Optional.ofNullable(dubboRuleHandle.getTimeout()).ifPresent(reference::setTimeout);
+        Optional.of(dubboRuleHandle.getTimeout()).ifPresent(time -> reference.setTimeout(time.intValue()));
 
         Optional.ofNullable(dubboRuleHandle.getRetries()).ifPresent(reference::setRetries);
 

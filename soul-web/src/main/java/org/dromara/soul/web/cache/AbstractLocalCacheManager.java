@@ -19,6 +19,7 @@ package org.dromara.soul.web.cache;
 
 import com.google.common.collect.Maps;
 import org.dromara.soul.common.dto.AppAuthData;
+import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
@@ -53,6 +54,11 @@ public abstract class AbstractLocalCacheManager implements LocalCacheManager {
      * appKey -> AppAuthData.
      */
     static final ConcurrentMap<String, AppAuthData> AUTH_MAP = Maps.newConcurrentMap();
+
+    /**
+     * path-> MetaData.
+     */
+    static final ConcurrentMap<String, MetaData> META_DATA = Maps.newConcurrentMap();
 
     /**
      * acquire AppAuthData by appKey with AUTH_MAP container.

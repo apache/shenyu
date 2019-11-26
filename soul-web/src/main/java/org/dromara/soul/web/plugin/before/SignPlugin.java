@@ -26,14 +26,15 @@ import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
-import org.dromara.soul.common.result.SoulResult;
-import org.dromara.soul.common.utils.JsonUtils;
 import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.common.utils.SignUtils;
 import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.plugin.AbstractSoulPlugin;
 import org.dromara.soul.web.plugin.SoulPluginChain;
 import org.dromara.soul.web.request.RequestDTO;
+import org.dromara.soul.web.result.SoulResultEnum;
+import org.dromara.soul.web.result.SoulResultUtils;
+import org.dromara.soul.web.result.SoulResultWarp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -81,9 +82,8 @@ public class SignPlugin extends AbstractSoulPlugin {
         final Boolean success = signVerify(Objects.requireNonNull(requestDTO));
         if (!success) {
             exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            final SoulResult error = SoulResult.error(HttpStatus.UNAUTHORIZED.value(), Constants.SIGN_IS_NOT_PASS);
-            return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
-                    .bufferFactory().wrap(Objects.requireNonNull(JsonUtils.toJson(error)).getBytes())));
+            Object error = SoulResultWarp.error(SoulResultEnum.SIGN_IS_NOT_PASS.getCode(), SoulResultEnum.SIGN_IS_NOT_PASS.getMsg(), null);
+            return SoulResultUtils.result(exchange, error);
         }
         return chain.execute(exchange);
     }
@@ -101,12 +101,14 @@ public class SignPlugin extends AbstractSoulPlugin {
         }
         final AppAuthData appAuthData = localCacheManager.findAuthDataByAppKey(requestDTO.getAppKey());
         if (Objects.isNull(appAuthData)
-                || StringUtils.isBlank(requestDTO.getSign())
+                || !appAuthData.getEnabled()) {
+            LOGGER.error("appAuthData is null or is enabled");
+        }
+        if (StringUtils.isBlank(requestDTO.getSign())
                 || StringUtils.isBlank(requestDTO.getAppKey())
                 || StringUtils.isBlank(appAuthData.getAppKey())
-                || StringUtils.isBlank(appAuthData.getAppSecret())
-                || !appAuthData.getEnabled()) {
-            LogUtils.error(LOGGER, () -> requestDTO.getAppKey() + " can not configuration!");
+                || StringUtils.isBlank(appAuthData.getAppSecret())) {
+            LOGGER.error("sign param is error :{}", appAuthData.toString());
             return false;
         }
         return SignUtils.getInstance().isValid(requestDTO.getSign(),

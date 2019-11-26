@@ -37,11 +37,11 @@ import java.util.Map;
  *
  * @author xiaoyu(Myth)
  */
-public class BodyWebFilter implements WebFilter {
+public class DubboBodyWebFilter implements WebFilter {
 
     private final List<HttpMessageReader<?>> messageReaders;
 
-    public BodyWebFilter() {
+    public DubboBodyWebFilter() {
         this.messageReaders = HandlerStrategies.withDefaults().messageReaders();
     }
 

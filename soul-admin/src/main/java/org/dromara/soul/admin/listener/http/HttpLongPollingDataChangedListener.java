@@ -22,16 +22,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.dromara.soul.admin.listener.AbstractDataChangedListener;
 import org.dromara.soul.admin.listener.ConfigDataCache;
-import org.dromara.soul.common.enums.DataEventTypeEnum;
+import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.common.concurrent.SoulThreadFactory;
 import org.dromara.soul.common.constant.HttpConstants;
 import org.dromara.soul.common.dto.AppAuthData;
+import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
+import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.exception.SoulException;
-import org.dromara.soul.common.result.SoulResult;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,6 +92,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             this.updatePluginCache();
             this.updateRuleCache();
             this.updateSelectorCache();
+            this.updateMetaDataCache();
         }, 300, 300, TimeUnit.SECONDS);
 
     }
@@ -129,6 +131,12 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
     protected void afterAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
         scheduler.execute(new DataChangeTask(ConfigGroupEnum.APP_AUTH));
     }
+
+    @Override
+    protected void afterMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
+        scheduler.execute(new DataChangeTask(ConfigGroupEnum.META_DATA));
+    }
+
 
     @Override
     protected void afterPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType) {
@@ -176,7 +184,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             response.setHeader("Cache-Control", "no-cache,no-store");
             response.setContentType(MediaType.APPLICATION_JSON_UTF8_VALUE);
             response.setStatus(HttpServletResponse.SC_OK);
-            response.getWriter().println(GsonUtils.getInstance().toJson(SoulResult.success("success", changedGroups)));
+            response.getWriter().println(GsonUtils.getInstance().toJson(SoulAdminResult.success("success", changedGroups)));
         } catch (Exception ex) {
             LOGGER.error("Sending response failed.", ex);
         }

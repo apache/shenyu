@@ -26,13 +26,13 @@ import org.dromara.soul.common.dto.convert.WafHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.enums.WafEnum;
-import org.dromara.soul.common.result.SoulResult;
 import org.dromara.soul.common.utils.GsonUtils;
-import org.dromara.soul.common.utils.JsonUtils;
 import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.plugin.AbstractSoulPlugin;
 import org.dromara.soul.web.plugin.SoulPluginChain;
+import org.dromara.soul.web.result.SoulResultUtils;
+import org.dromara.soul.web.result.SoulResultWarp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -87,11 +87,8 @@ public class WafPlugin extends AbstractSoulPlugin {
         // if reject
         if (WafEnum.REJECT.getName().equals(wafHandle.getPermission())) {
             exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-            final SoulResult error = SoulResult.error(Integer.valueOf(wafHandle.getStatusCode()),
-                    Constants.REJECT_MSG);
-            return exchange.getResponse()
-                    .writeWith(Mono.just(exchange.getResponse().bufferFactory()
-                            .wrap(Objects.requireNonNull(JsonUtils.toJson(error)).getBytes())));
+            Object error = SoulResultWarp.error(Integer.parseInt(wafHandle.getStatusCode()), Constants.REJECT_MSG, null);
+            return SoulResultUtils.result(exchange, error);
         }
         return chain.execute(exchange);
     }

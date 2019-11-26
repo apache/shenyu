@@ -19,6 +19,7 @@
 package org.dromara.soul.web.plugin.config;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.dromara.soul.common.config.MonitorConfig;
 import org.dromara.soul.common.config.RateLimiterConfig;
@@ -117,7 +118,6 @@ public enum PluginConfigHandler {
         return new LettuceConnectionFactory(redisStandaloneConfiguration(rateLimiterConfig), lettuceClientConfiguration);
     }
 
-
     private LettuceClientConfiguration getLettuceClientConfiguration(final RateLimiterConfig rateLimiterConfig) {
         return LettucePoolingClientConfiguration.builder()
                 .poolConfig(getPoolConfig(rateLimiterConfig))
@@ -170,12 +170,12 @@ public enum PluginConfigHandler {
 
     private List<RedisNode> createRedisNode(final String url) {
         List<RedisNode> redisNodes = new ArrayList<>();
-        List<String> nodes = Splitter.on(";").splitToList(url);
+        List<String> nodes = Lists.newArrayList(Splitter.on(";").split(url));
         for (String node : nodes) {
             try {
                 String[] parts = StringUtils.split(node, ":");
                 Assert.state(Objects.requireNonNull(parts).length == 2, "Must be defined as 'host:port'");
-                redisNodes.add(new RedisNode(parts[0], Integer.valueOf(parts[1])));
+                redisNodes.add(new RedisNode(parts[0], Integer.parseInt(parts[1])));
             } catch (RuntimeException ex) {
                 throw new IllegalStateException(
                         "Invalid redis sentinel " + "property '" + node + "'", ex);

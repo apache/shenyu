@@ -23,37 +23,39 @@ import java.util.Arrays;
 import java.util.Objects;
 
 /**
- * configuration group
+ * configuration group.
  *
  * @author huangxiaofeng
  */
 public enum ConfigGroupEnum {
 
     /**
-     * {@link org.dromara.soul.common.dto.AppAuthData AppAuthData} Group
+     * App auth config group enum.
      */
     APP_AUTH,
 
+
     /**
-     * {@link org.dromara.soul.common.dto.PluginData PluginData} Group
+     * Plugin config group enum.
      */
     PLUGIN,
 
+
     /**
-     * {@link org.dromara.soul.common.dto.RuleData RuleData} Group
+     * Rule config group enum.
      */
     RULE,
 
+
     /**
-     * {@link org.dromara.soul.common.dto.SelectorData SelectorData} Group
+     * Selector config group enum.
      */
     SELECTOR,
 
     /**
-     * {@link org.dromara.soul.common.dto.MetaData MetaData} Group
+     * Meta data config group enum.
      */
-    META_DATA
-    ;
+    META_DATA;
 
     /**
      * Acquire by name config group enum.
@@ -66,6 +68,4 @@ public enum ConfigGroupEnum {
                 .filter(e -> Objects.equals(e.name(), name))
                 .findFirst().orElseThrow(() -> new SoulException(" this ConfigGroupEnum can not support!"));
     }
-
-
 }

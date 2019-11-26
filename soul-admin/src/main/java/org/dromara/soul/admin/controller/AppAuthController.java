@@ -22,9 +22,9 @@ import org.dromara.soul.admin.dto.AppAuthDTO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.AppAuthQuery;
+import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.service.AppAuthService;
 import org.dromara.soul.admin.vo.AppAuthVO;
-import org.dromara.soul.common.result.SoulResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -60,36 +60,36 @@ public class AppAuthController {
      * @param appKey      application key.
      * @param currentPage current page.
      * @param pageSize    page size.
-     * @return {@linkplain SoulResult}
+     * @return {@linkplain SoulAdminResult}
      */
     @GetMapping("")
-    public SoulResult queryAppAuthList(final String appKey, final Integer currentPage, final Integer pageSize) {
+    public SoulAdminResult queryAppAuthList(final String appKey, final Integer currentPage, final Integer pageSize) {
         CommonPager<AppAuthVO> commonPager = appAuthService.listByPage(new AppAuthQuery(appKey, new PageParameter(currentPage, pageSize)));
-        return SoulResult.success("query application authorities success", commonPager);
+        return SoulAdminResult.success("query application authorities success", commonPager);
     }
 
     /**
      * detail application authority.
      *
      * @param id application authority id.
-     * @return {@linkplain SoulResult}
+     * @return {@linkplain SoulAdminResult}
      */
     @GetMapping("/{id}")
-    public SoulResult detailAppAuth(@PathVariable("id") final String id) {
+    public SoulAdminResult detailAppAuth(@PathVariable("id") final String id) {
         AppAuthVO appAuthVO = appAuthService.findById(id);
-        return SoulResult.success("detail application authority success", appAuthVO);
+        return SoulAdminResult.success("detail application authority success", appAuthVO);
     }
 
     /**
      * create application authority.
      *
      * @param appAuthDTO appAuth.
-     * @return {@linkplain SoulResult}
+     * @return {@linkplain SoulAdminResult}
      */
     @PostMapping("")
-    public SoulResult createAppAuth(@RequestBody final AppAuthDTO appAuthDTO) {
+    public SoulAdminResult createAppAuth(@RequestBody final AppAuthDTO appAuthDTO) {
         Integer createCount = appAuthService.createOrUpdate(appAuthDTO);
-        return SoulResult.success("create application authority success", createCount);
+        return SoulAdminResult.success("create application authority success", createCount);
     }
 
     /**
@@ -97,25 +97,25 @@ public class AppAuthController {
      *
      * @param id         primary key.
      * @param appAuthDTO AppAuth.
-     * @return {@linkplain SoulResult}
+     * @return {@linkplain SoulAdminResult}
      */
     @PutMapping("/{id}")
-    public SoulResult updateAppAuth(@PathVariable("id") final String id, @RequestBody final AppAuthDTO appAuthDTO) {
+    public SoulAdminResult updateAppAuth(@PathVariable("id") final String id, @RequestBody final AppAuthDTO appAuthDTO) {
         Objects.requireNonNull(appAuthDTO);
         appAuthDTO.setId(id);
         Integer updateCount = appAuthService.createOrUpdate(appAuthDTO);
-        return SoulResult.success("update application authority success", updateCount);
+        return SoulAdminResult.success("update application authority success", updateCount);
     }
 
     /**
      * delete application authorities.
      *
      * @param ids primary key.
-     * @return {@linkplain SoulResult}
+     * @return {@linkplain SoulAdminResult}
      */
     @DeleteMapping("/batch")
-    public SoulResult deleteAppAuths(@RequestBody final List<String> ids) {
+    public SoulAdminResult deleteAppAuths(@RequestBody final List<String> ids) {
         Integer deleteCount = appAuthService.delete(ids);
-        return SoulResult.success("delete application authorities success", deleteCount);
+        return SoulAdminResult.success("delete application authorities success", deleteCount);
     }
 }

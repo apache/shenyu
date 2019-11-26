@@ -48,5 +48,5 @@ public class HystrixHandle {
     /**
      * timeout is required.
      */
-    private Integer timeout = Constants.TIME_OUT;
+    private long timeout = Constants.TIME_OUT;
 }

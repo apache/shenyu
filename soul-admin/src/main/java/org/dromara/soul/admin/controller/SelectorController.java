@@ -22,9 +22,9 @@ import org.dromara.soul.admin.dto.SelectorDTO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.SelectorQuery;
+import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.service.SelectorService;
 import org.dromara.soul.admin.vo.SelectorVO;
-import org.dromara.soul.common.result.SoulResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -60,36 +60,36 @@ public class SelectorController {
      * @param pluginId    plugin id.
      * @param currentPage current page.
      * @param pageSize    page size.
-     * @return {@linkplain SoulResult}
+     * @return {@linkplain SoulAdminResult}
      */
     @GetMapping("")
-    public SoulResult querySelectors(final String pluginId, final Integer currentPage, final Integer pageSize) {
+    public SoulAdminResult querySelectors(final String pluginId, final Integer currentPage, final Integer pageSize) {
         CommonPager<SelectorVO> commonPager = selectorService.listByPage(new SelectorQuery(pluginId, new PageParameter(currentPage, pageSize)));
-        return SoulResult.success("query selectors success", commonPager);
+        return SoulAdminResult.success("query selectors success", commonPager);
     }
 
     /**
      * detail selector.
      *
      * @param id selector id.
-     * @return {@linkplain SoulResult}
+     * @return {@linkplain SoulAdminResult}
      */
     @GetMapping("/{id}")
-    public SoulResult detailSelector(@PathVariable("id") final String id) {
+    public SoulAdminResult detailSelector(@PathVariable("id") final String id) {
         SelectorVO selectorVO = selectorService.findById(id);
-        return SoulResult.success("detail selector success", selectorVO);
+        return SoulAdminResult.success("detail selector success", selectorVO);
     }
 
     /**
      * create selector.
      *
      * @param selectorDTO selector.
-     * @return {@linkplain SoulResult}
+     * @return {@linkplain SoulAdminResult}
      */
     @PostMapping("")
-    public SoulResult createSelector(@RequestBody final SelectorDTO selectorDTO) {
+    public SoulAdminResult createSelector(@RequestBody final SelectorDTO selectorDTO) {
         Integer createCount = selectorService.createOrUpdate(selectorDTO);
-        return SoulResult.success("create selector success", createCount);
+        return SoulAdminResult.success("create selector success", createCount);
     }
 
     /**
@@ -97,25 +97,25 @@ public class SelectorController {
      *
      * @param id          primary key.
      * @param selectorDTO selector.
-     * @return {@linkplain SoulResult}
+     * @return {@linkplain SoulAdminResult}
      */
     @PutMapping("/{id}")
-    public SoulResult updateSelector(@PathVariable("id") final String id, @RequestBody final SelectorDTO selectorDTO) {
+    public SoulAdminResult updateSelector(@PathVariable("id") final String id, @RequestBody final SelectorDTO selectorDTO) {
         Objects.requireNonNull(selectorDTO);
         selectorDTO.setId(id);
         Integer updateCount = selectorService.createOrUpdate(selectorDTO);
-        return SoulResult.success("update selector success", updateCount);
+        return SoulAdminResult.success("update selector success", updateCount);
     }
 
     /**
      * delete Selectors.
      *
      * @param ids primary key.
-     * @return {@linkplain SoulResult}
+     * @return {@linkplain SoulAdminResult}
      */
     @DeleteMapping("/batch")
-    public SoulResult deleteSelector(@RequestBody final List<String> ids) {
+    public SoulAdminResult deleteSelector(@RequestBody final List<String> ids) {
         Integer deleteCount = selectorService.delete(ids);
-        return SoulResult.success("delete selectors success", deleteCount);
+        return SoulAdminResult.success("delete selectors success", deleteCount);
     }
 }

@@ -22,9 +22,9 @@ import org.dromara.soul.admin.dto.RuleDTO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.RuleQuery;
+import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.service.RuleService;
 import org.dromara.soul.admin.vo.RuleVO;
-import org.dromara.soul.common.result.SoulResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -60,36 +60,36 @@ public class RuleController {
      * @param selectorId  selector id.
      * @param currentPage current page.
      * @param pageSize    page size.
-     * @return {@linkplain SoulResult}
+     * @return {@linkplain SoulAdminResult}
      */
     @GetMapping("")
-    public SoulResult queryRules(final String selectorId, final Integer currentPage, final Integer pageSize) {
+    public SoulAdminResult queryRules(final String selectorId, final Integer currentPage, final Integer pageSize) {
         CommonPager<RuleVO> commonPager = ruleService.listByPage(new RuleQuery(selectorId, new PageParameter(currentPage, pageSize)));
-        return SoulResult.success("query rules success", commonPager);
+        return SoulAdminResult.success("query rules success", commonPager);
     }
 
     /**
      * detail rule.
      *
      * @param id rule id.
-     * @return {@linkplain SoulResult}
+     * @return {@linkplain SoulAdminResult}
      */
     @GetMapping("/{id}")
-    public SoulResult detailRule(@PathVariable("id") final String id) {
+    public SoulAdminResult detailRule(@PathVariable("id") final String id) {
         RuleVO ruleVO = ruleService.findById(id);
-        return SoulResult.success("detail rule success", ruleVO);
+        return SoulAdminResult.success("detail rule success", ruleVO);
     }
 
     /**
      * create rule.
      *
      * @param ruleDTO rule.
-     * @return {@linkplain SoulResult}
+     * @return {@linkplain SoulAdminResult}
      */
     @PostMapping("")
-    public SoulResult createRule(@RequestBody final RuleDTO ruleDTO) {
+    public SoulAdminResult createRule(@RequestBody final RuleDTO ruleDTO) {
         Integer createCount = ruleService.createOrUpdate(ruleDTO);
-        return SoulResult.success("create rule success", createCount);
+        return SoulAdminResult.success("create rule success", createCount);
     }
 
     /**
@@ -97,25 +97,25 @@ public class RuleController {
      *
      * @param id      primary key.
      * @param ruleDTO rule.
-     * @return {@linkplain SoulResult}
+     * @return {@linkplain SoulAdminResult}
      */
     @PutMapping("/{id}")
-    public SoulResult updateRule(@PathVariable("id") final String id, @RequestBody final RuleDTO ruleDTO) {
+    public SoulAdminResult updateRule(@PathVariable("id") final String id, @RequestBody final RuleDTO ruleDTO) {
         Objects.requireNonNull(ruleDTO);
         ruleDTO.setId(id);
         Integer updateCount = ruleService.createOrUpdate(ruleDTO);
-        return SoulResult.success("update rule success", updateCount);
+        return SoulAdminResult.success("update rule success", updateCount);
     }
 
     /**
      * delete rules.
      *
      * @param ids primary key.
-     * @return {@linkplain SoulResult}
+     * @return {@linkplain SoulAdminResult}
      */
     @DeleteMapping("/batch")
-    public SoulResult deleteRules(@RequestBody final List<String> ids) {
+    public SoulAdminResult deleteRules(@RequestBody final List<String> ids) {
         Integer deleteCount = ruleService.delete(ids);
-        return SoulResult.success("delete rule success", deleteCount);
+        return SoulAdminResult.success("delete rule success", deleteCount);
     }
 }

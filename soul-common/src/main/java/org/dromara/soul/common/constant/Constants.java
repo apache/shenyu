@@ -50,6 +50,28 @@ public interface Constants {
      */
     String CLIENT_RESPONSE_RESULT_TYPE = "webHandlerClientResponseResultType";
 
+
+    /**
+     * The constant CLIENT_RESPONSE_CONN_ATTR.
+     */
+    String CLIENT_RESPONSE_CONN_ATTR = "nettyClientResponseConnection";
+
+    /**
+     * The constant HTTP_TIME_OUT.
+     */
+    String HTTP_TIME_OUT = "httpTimeOut";
+
+    /**
+     * Original response Content-Type attribute name.
+     */
+    String ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR = "original_response_content_type";
+
+
+    /**
+     * The constant HTTP_URL.
+     */
+    String HTTP_URL = "httpUrl";
+
     /**
      * The constant DUBBO_PARAMS.
      */
@@ -69,11 +91,6 @@ public interface Constants {
      * The constant METHOD.
      */
     String METHOD = "method";
-
-    /**
-     * The constant CONTENT.
-     */
-    String CONTENT = "content";
 
     /**
      * The constant APP_KEY.
@@ -109,21 +126,6 @@ public interface Constants {
      * The constant TIMESTAMP.
      */
     String TIMESTAMP = "timestamp";
-
-    /**
-     * The constant RETRY.
-     */
-    int RETRY = 3;
-
-    /**
-     * The constant SOUL_DISRUPTOR_THREAD_NAME.
-     */
-    String SOUL_DISRUPTOR_THREAD_NAME = "soul-disruptor";
-
-    /**
-     * The constant SOUL_THREAD_NAME.
-     */
-    String SOUL_THREAD_NAME = "soul-thread";
 
     /**
      * The constant REJECT_MSG.
@@ -198,7 +200,7 @@ public interface Constants {
     /**
      * The constant TIME_OUT.
      */
-    int TIME_OUT = 3000;
+    long TIME_OUT = 3000;
 
     /**
      * The constant COLONS.

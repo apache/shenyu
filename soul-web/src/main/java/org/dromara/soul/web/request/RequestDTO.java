@@ -19,6 +19,7 @@
 package org.dromara.soul.web.request;
 
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.HttpMethodEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
@@ -27,6 +28,7 @@ import org.springframework.util.MultiValueMap;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 /**
  * the soul request DTO .
@@ -89,12 +91,17 @@ public class RequestDTO implements Serializable {
     private String extInfo;
 
     /**
-     * pathVariable
+     * pathVariable.
      */
     private String pathVariable;
 
     /**
-     * startDateTime
+     * realUrl.
+     */
+    private String realUrl;
+
+    /**
+     * startDateTime.
      */
     private LocalDateTime startDateTime;
 
@@ -115,11 +122,29 @@ public class RequestDTO implements Serializable {
         final String extInfo = request.getHeaders().getFirst(Constants.EXT_INFO);
         final String pathVariable = request.getHeaders().getFirst(Constants.PATH_VARIABLE);
         RequestDTO requestDTO = new RequestDTO();
-        requestDTO.setModule(module);
-        requestDTO.setMethod(method);
+        String path = request.getURI().getPath();
+        String[] splitList = StringUtils.split(path, "/");
+        if (splitList.length > 0) {
+            requestDTO.setModule(splitList[0]);
+            requestDTO.setMethod(path);
+            requestDTO.setRealUrl(path);
+        } else {
+            requestDTO.setModule(module);
+            requestDTO.setMethod(method);
+            requestDTO.setRealUrl(method);
+        }
+        String name = Objects.requireNonNull(request.getMethod()).name();
+        if (StringUtils.isEmpty(httpMethod)) {
+            requestDTO.setHttpMethod(name);
+        } else {
+            requestDTO.setHttpMethod(httpMethod);
+        }
         requestDTO.setAppKey(appKey);
-        requestDTO.setHttpMethod(httpMethod);
-        requestDTO.setRpcType(rpcType);
+        if (StringUtils.isEmpty(rpcType)) {
+            requestDTO.setRpcType(RpcTypeEnum.HTTP.getName());
+        } else {
+            requestDTO.setRpcType(rpcType);
+        }
         requestDTO.setSign(sign);
         requestDTO.setTimestamp(timestamp);
         requestDTO.setExtInfo(extInfo);
@@ -128,7 +153,13 @@ public class RequestDTO implements Serializable {
         return requestDTO;
     }
 
-    public static RequestDTO transformMap(MultiValueMap<String, String> queryParams) {
+    /**
+     * Transform map request dto.
+     *
+     * @param queryParams the query params
+     * @return the request dto
+     */
+    public static RequestDTO transformMap(final MultiValueMap<String, String> queryParams) {
         RequestDTO requestDTO = new RequestDTO();
         requestDTO.setModule(queryParams.getFirst(Constants.MODULE));
         requestDTO.setMethod(queryParams.getFirst(Constants.METHOD));

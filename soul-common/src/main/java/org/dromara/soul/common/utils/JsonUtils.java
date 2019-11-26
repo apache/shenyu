@@ -72,9 +72,7 @@ public final class JsonUtils {
                 .registerModule(javaTimeModule)
                 .setFilterProvider(filterProvider);
 
-
     }
-
 
     /**
      * To json string.
@@ -91,17 +89,24 @@ public final class JsonUtils {
         }
     }
 
-    public static String dubboResultJson(Object object) {
-        try {
-            if (object instanceof Map) {
-                Map map = (Map) object;
-                map.remove("class");
-                return mapper.writeValueAsString(map);
+    /**
+     * Remove class object.
+     *
+     * @param object the object
+     * @return the object
+     */
+    public static Object removeClass(Object object) {
+        if (object instanceof Map) {
+            Map map = (Map) object;
+            Object result = map.get("result");
+            if (result instanceof Map) {
+                Map resultMap = (Map) result;
+                resultMap.remove("class");
             }
-            return mapper.writeValueAsString(object);
-        } catch (IOException e) {
-            logger.warn("write to json string error:" + object, e);
-            return null;
+            map.remove("class");
+            return object;
+        } else {
+            return object;
         }
     }
 

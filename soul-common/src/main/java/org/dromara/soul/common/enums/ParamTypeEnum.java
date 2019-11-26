@@ -43,7 +43,7 @@ public enum ParamTypeEnum {
     /**
      * Uri param type enum.
      */
-    URI("uri", false),
+    URI("uri", true),
 
     /**
      * Query param type enum.

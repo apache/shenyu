@@ -19,6 +19,7 @@ package org.dromara.soul.web.cache;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.common.dto.AppAuthData;
+import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
@@ -134,6 +135,16 @@ class HttpCacheHandler extends AbstractLocalCacheManager {
         } else {
             AUTH_MAP.clear();
             appAuthDataList.forEach(appAuth -> AUTH_MAP.put(appAuth.getAppKey(), appAuth));
+        }
+    }
+
+    void flushMetaData(final List<MetaData> metaDataList) {
+        if (CollectionUtils.isEmpty(metaDataList)) {
+            LOGGER.info("clear all metaDataList cache, old cache:{}", AUTH_MAP);
+            META_DATA.clear();
+        } else {
+            META_DATA.clear();
+            metaDataList.forEach(metaData -> META_DATA.put(metaData.getPath(), metaData));
         }
     }
 }
