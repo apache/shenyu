@@ -17,46 +17,32 @@
  *
  */
 
-package org.dromara.soul.admin.dto;
+package org.dromara.soul.admin.query;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
- * this is application authority from by web front.
+ * this is application authority query.
  *
  * @author xiaoyu(Myth)
  */
 @Data
-public class AppAuthDTO implements Serializable {
-
-    /**
-     * primary key.
-     */
-    private String id;
+@AllArgsConstructor
+@NoArgsConstructor
+public class AppAuthQueryDTO implements Serializable {
 
     /**
      * application key.
      */
     private String appKey;
 
-    /**
-     * encryption secret.
-     */
-    private String appSecret;
-
-    private String userId;
-
     private String phone;
 
-    private String extInfo;
+    private Integer currentPage;
 
-    /**
-     * whether enabled.
-     */
-    private Boolean enabled;
-
-    private List<AuthParamDTO> authParamDTOList;
+    private Integer pageSize;
 }

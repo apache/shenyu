@@ -20,6 +20,7 @@ package org.dromara.soul.admin.listener.websocket;
 import org.dromara.soul.admin.listener.AbstractDataChangedListener;
 import org.dromara.soul.admin.listener.DataChangedListener;
 import org.dromara.soul.common.dto.AppAuthData;
+import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
@@ -64,6 +65,13 @@ public class WebsocketDataChangedListener extends AbstractDataChangedListener im
     public void onAppAuthChanged(final List<AppAuthData> appAuthDataList, final DataEventTypeEnum eventType) {
         WebsocketData<AppAuthData> configData =
                 new WebsocketData<>(ConfigGroupEnum.APP_AUTH.name(), eventType.name(), appAuthDataList);
+        WebsocketCollector.send(GsonUtils.getInstance().toJson(configData), eventType);
+    }
+
+    @Override
+    public void onMetaDataChanged(final List<MetaData> metaDataList, final DataEventTypeEnum eventType) {
+        WebsocketData<MetaData> configData =
+                new WebsocketData<>(ConfigGroupEnum.META_DATA.name(), eventType.name(), metaDataList);
         WebsocketCollector.send(GsonUtils.getInstance().toJson(configData), eventType);
     }
 
