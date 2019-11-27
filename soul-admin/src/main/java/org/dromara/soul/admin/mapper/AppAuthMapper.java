@@ -19,6 +19,7 @@
 package org.dromara.soul.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.dromara.soul.admin.entity.AppAuthDO;
 import org.dromara.soul.admin.query.AppAuthQuery;
 
@@ -49,7 +50,8 @@ public interface AppAuthMapper {
     List<AppAuthDO> selectByQuery(AppAuthQuery appAuthQuery);
 
     /**
-     * select all {@linkplain AppAuthDO}
+     * select all.
+     *
      * @return {@linkplain List}
      */
     List<AppAuthDO> selectAll();
@@ -66,7 +68,7 @@ public interface AppAuthMapper {
      * insert application authority.
      *
      * @param appAuthDO {@linkplain AppAuthDO}
-     * @return rows
+     * @return rows int
      */
     int insert(AppAuthDO appAuthDO);
 
@@ -74,7 +76,7 @@ public interface AppAuthMapper {
      * insert selective application authority.
      *
      * @param appAuthDO {@linkplain AppAuthDO}
-     * @return rows
+     * @return rows int
      */
     int insertSelective(AppAuthDO appAuthDO);
 
@@ -82,15 +84,34 @@ public interface AppAuthMapper {
      * update application authority.
      *
      * @param appAuthDO {@linkplain AppAuthDO}
-     * @return rows
+     * @return rows int
      */
     int update(AppAuthDO appAuthDO);
+
+
+    /**
+     * Update enable int.
+     *
+     * @param appAuthDO the app auth do
+     * @return the int
+     */
+    int updateEnable(AppAuthDO appAuthDO);
+
+
+    /**
+     * Update app secret by app key int.
+     *
+     * @param appKey    the app key
+     * @param appSecret the app secret
+     * @return the int
+     */
+    int updateAppSecretByAppKey(@Param("appKey") String appKey, @Param("appSecret") String appSecret);
 
     /**
      * update selective application authority.
      *
      * @param appAuthDO {@linkplain AppAuthDO}
-     * @return rows
+     * @return rows int
      */
     int updateSelective(AppAuthDO appAuthDO);
 
@@ -98,7 +119,15 @@ public interface AppAuthMapper {
      * delete application authority.
      *
      * @param id primary key.
-     * @return rows
+     * @return rows int
      */
     int delete(String id);
+
+    /**
+     * Find by app key app auth do.
+     *
+     * @param appKey the app key
+     * @return the app auth do
+     */
+    AppAuthDO findByAppKey(String appKey);
 }

@@ -20,43 +20,34 @@
 package org.dromara.soul.admin.dto;
 
 import lombok.Data;
+import org.dromara.soul.common.utils.JsonUtils;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * this is application authority from by web front.
+ * The type Auth apply dto.
  *
- * @author xiaoyu(Myth)
+ * @author xiaoyu
  */
 @Data
-public class AppAuthDTO implements Serializable {
+public class AuthApplyDTO implements Serializable {
 
-    /**
-     * primary key.
-     */
-    private String id;
-
-    /**
-     * application key.
-     */
     private String appKey;
-
-    /**
-     * encryption secret.
-     */
-    private String appSecret;
 
     private String userId;
 
     private String phone;
 
+    private String appName;
+
+    private String appParam;
+
     private String extInfo;
 
-    /**
-     * whether enabled.
-     */
-    private Boolean enabled;
+    private List<String> pathList;
 
-    private List<AuthParamDTO> authParamDTOList;
+
+
 }

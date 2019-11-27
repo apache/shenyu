@@ -51,6 +51,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author huangxiaofeng
  * @since 2.0.0
  */
+@SuppressWarnings("all")
 public abstract class AbstractDataChangedListener implements DataChangedListener, InitializingBean {
 
     /**

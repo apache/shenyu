@@ -50,12 +50,23 @@ public class WebsocketCollector {
 
     private static Session session;
 
+    /**
+     * On open.
+     *
+     * @param session the session
+     */
     @OnOpen
     public void onOpen(final Session session) {
         LOGGER.info("websocket on open successful....");
         SESSION_SET.add(session);
     }
 
+    /**
+     * On message.
+     *
+     * @param message the message
+     * @param session the session
+     */
     @OnMessage
     public void onMessage(final String message, final Session session) {
         if (message.equals(DataEventTypeEnum.MYSELF.name())) {
@@ -64,26 +75,43 @@ public class WebsocketCollector {
         }
     }
 
+    /**
+     * On close.
+     *
+     * @param session the session
+     */
     @OnClose
     public void onClose(final Session session) {
         SESSION_SET.remove(session);
         WebsocketCollector.session = null;
     }
 
+    /**
+     * On error.
+     *
+     * @param session the session
+     * @param error   the error
+     */
     @OnError
     public void onError(final Session session, final Throwable error) {
         SESSION_SET.remove(session);
         WebsocketCollector.session = null;
-        LOGGER.error("websocket collection error:{}", error);
+        LOGGER.error("websocket collection error:", error);
     }
 
+    /**
+     * Send.
+     *
+     * @param message the message
+     * @param type    the type
+     */
     public static void send(final String message, final DataEventTypeEnum type) {
         if (StringUtils.isNotBlank(message)) {
             if (DataEventTypeEnum.MYSELF == type) {
                 try {
                     session.getBasicRemote().sendText(message);
                 } catch (IOException e) {
-                    LOGGER.error("websocket send result is exception :{}", e);
+                    LOGGER.error("websocket send result is exception :", e);
                 }
                 return;
             }
@@ -91,7 +119,7 @@ public class WebsocketCollector {
                 try {
                     session.getBasicRemote().sendText(message);
                 } catch (IOException e) {
-                    LOGGER.error("websocket send result is exception :{}", e);
+                    LOGGER.error("websocket send result is exception :", e);
                 }
             }
         }

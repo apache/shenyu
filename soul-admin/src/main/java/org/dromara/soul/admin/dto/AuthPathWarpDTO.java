@@ -25,38 +25,14 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * this is application authority from by web front.
+ * The type Auth path warp dto.
  *
- * @author xiaoyu(Myth)
+ * @author xiaoyu
  */
 @Data
-public class AppAuthDTO implements Serializable {
+public class AuthPathWarpDTO implements Serializable {
 
-    /**
-     * primary key.
-     */
     private String id;
 
-    /**
-     * application key.
-     */
-    private String appKey;
-
-    /**
-     * encryption secret.
-     */
-    private String appSecret;
-
-    private String userId;
-
-    private String phone;
-
-    private String extInfo;
-
-    /**
-     * whether enabled.
-     */
-    private Boolean enabled;
-
-    private List<AuthParamDTO> authParamDTOList;
+    private List<AuthPathDTO> authPathDTOList;
 }

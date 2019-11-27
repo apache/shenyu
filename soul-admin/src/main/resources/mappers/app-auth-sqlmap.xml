@@ -3,15 +3,18 @@
 <mapper namespace="org.dromara.soul.admin.mapper.AppAuthMapper">
     <resultMap id="BaseResultMap" type="org.dromara.soul.admin.entity.AppAuthDO">
         <id column="id" jdbcType="VARCHAR" property="id"/>
-        <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
-        <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
         <result column="app_key" jdbcType="VARCHAR" property="appKey"/>
         <result column="app_secret" jdbcType="VARCHAR" property="appSecret"/>
+        <result column="user_id" jdbcType="VARCHAR" property="userId"/>
+        <result column="phone" jdbcType="VARCHAR" property="phone"/>
+        <result column="ext_info" jdbcType="VARCHAR" property="extInfo"/>
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
+        <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
+        <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, date_created, date_updated, app_key, app_secret, enabled
+        id,  app_key, app_secret,user_id, phone,ext_info,enabled,date_created, date_updated
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -21,12 +24,26 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
 
+    <select id="findByAppKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from app_auth
+        where app_key = #{appKey,jdbcType=VARCHAR}
+        limit 1
+    </select>
+
+
     <select id="selectByQuery" parameterType="org.dromara.soul.admin.query.AppAuthQuery" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
         from app_auth
+        where 1=1
         <if test="appKey != null">
-            where app_key = #{appKey,jdbcType=VARCHAR}
+            and app_key = #{appKey,jdbcType=VARCHAR}
+        </if>
+
+        <if test="phone != null">
+            and phone = #{phone,jdbcType=VARCHAR}
         </if>
 
         <if test="pageParameter != null">
@@ -50,10 +67,27 @@
     </select>
 
     <insert id="insert" parameterType="org.dromara.soul.admin.entity.AppAuthDO">
-        insert into app_auth (id, date_created, date_updated,
-        app_key, app_secret, enabled)
-        values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
-        #{appKey,jdbcType=VARCHAR}, #{appSecret,jdbcType=VARCHAR}, #{enabled,jdbcType=TINYINT})
+        insert into app_auth
+        (id,
+        app_key,
+        app_secret,
+        user_id,
+        phone,
+        ext_info,
+        enabled,
+        date_created,
+        date_updated)
+        values
+         (
+         #{id,jdbcType=VARCHAR},
+         #{appKey,jdbcType=VARCHAR},
+         #{appSecret,jdbcType=VARCHAR},
+         #{userId,jdbcType=VARCHAR},
+         #{phone,jdbcType=VARCHAR},
+         #{extInfo,jdbcType=VARCHAR},
+         #{enabled,jdbcType=TINYINT},
+         #{dateCreated,jdbcType=TIMESTAMP},
+         #{dateUpdated,jdbcType=TIMESTAMP})
     </insert>
 
     <insert id="insertSelective" parameterType="org.dromara.soul.admin.entity.AppAuthDO">
@@ -75,6 +109,15 @@
             <if test="enabled != null">
                 enabled,
             </if>
+            <if test="userId != null">
+                user_id,
+            </if>
+            <if test="phone != null">
+                phone,
+            </if>
+            <if test="extInfo != null">
+                ext_info,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             #{id,jdbcType=VARCHAR},
@@ -93,15 +136,24 @@
             <if test="enabled != null">
                 #{enabled,jdbcType=TINYINT},
             </if>
+            <if test="userId != null">
+                #{user_id,jdbcType=VARCHAR},
+            </if>
+            <if test="phone != null">
+                #{phone,jdbcType=VARCHAR},
+            </if>
+            <if test="extInfo != null">
+                #{ext_info,jdbcType=VARCHAR},
+            </if>
         </trim>
     </insert>
 
     <update id="update" parameterType="org.dromara.soul.admin.entity.AppAuthDO">
         update app_auth
-        set date_created = #{dateCreated,jdbcType=TIMESTAMP},
-        date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
-        app_key = #{appKey,jdbcType=VARCHAR},
+        set
         app_secret = #{appSecret,jdbcType=VARCHAR},
+        phone = #{phone,jdbcType=VARCHAR},
+        ext_info = #{extInfo,jdbcType=VARCHAR},
         enabled = #{enabled,jdbcType=TINYINT}
         where id = #{id,jdbcType=VARCHAR}
     </update>
@@ -109,17 +161,14 @@
     <update id="updateSelective" parameterType="org.dromara.soul.admin.entity.AppAuthDO">
         update app_auth
         <set>
-            <if test="dateCreated != null">
-                date_created = #{dateCreated,jdbcType=TIMESTAMP},
-            </if>
-            <if test="dateUpdated != null">
-                date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
-            </if>
-            <if test="appKey != null">
-                app_key = #{appKey,jdbcType=VARCHAR},
-            </if>
             <if test="appSecret != null">
                 app_secret = #{appSecret,jdbcType=VARCHAR},
+            </if>
+            <if test="phone != null">
+                phone = #{phone,jdbcType=VARCHAR},
+            </if>
+            <if test="extInfo != null">
+                ext_info = #{extInfo,jdbcType=VARCHAR},
             </if>
             <if test="enabled != null">
                 enabled = #{enabled,jdbcType=TINYINT},
@@ -132,4 +181,20 @@
         delete from app_auth
         where id = #{id,jdbcType=VARCHAR}
     </delete>
+
+
+    <update id="updateEnable" parameterType="org.dromara.soul.admin.entity.AppAuthDO">
+        update app_auth
+        set  enabled = #{enabled,jdbcType=TINYINT}
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+
+
+    <update id="updateAppSecretByAppKey">
+        update app_auth
+        set  app_secret = #{appSecret,jdbcType=VARCHAR}
+        where app_key = #{appKey,jdbcType=VARCHAR}
+    </update>
+
+
 </mapper>

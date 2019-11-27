@@ -21,6 +21,7 @@ import org.I0Itec.zkclient.ZkClient;
 import org.dromara.soul.admin.listener.DataChangedListener;
 import org.dromara.soul.common.constant.ZkPathConstants;
 import org.dromara.soul.common.dto.AppAuthData;
+import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
@@ -59,7 +60,28 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
             if (!zkClient.exists(appAuthPath)) {
                 zkClient.createPersistent(appAuthPath, true);
             }
-            zkClient.writeData(appAuthPath, new AppAuthData(data.getAppKey(), data.getAppSecret(), data.getEnabled()));
+            zkClient.writeData(appAuthPath, data);
+        }
+    }
+
+    @Override
+    public void onMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
+        for (MetaData data : changed) {
+            // delete
+            if (eventType == DataEventTypeEnum.DELETE) {
+                String path = ZkPathConstants.buildMetaDataPath(data.getAppName(), data.getServiceName(), data.getMethodName());
+                if (zkClient.exists(path)) {
+                    zkClient.delete(path);
+                }
+                continue;
+            }
+
+            // create or update
+            String metaDataPath = ZkPathConstants.buildMetaDataPath(data.getAppName(), data.getServiceName(), data.getMethodName());
+            if (!zkClient.exists(metaDataPath)) {
+                zkClient.createPersistent(metaDataPath, true);
+            }
+            zkClient.writeData(metaDataPath, data);
         }
     }
 
