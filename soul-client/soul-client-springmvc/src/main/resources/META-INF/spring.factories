@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.dromara.soul.client.springmvc.configuration.SoulSpringAutoConfiguration
+org.dromara.soul.client.springmvc.configuration.SoulSpringMvcAutoConfiguration

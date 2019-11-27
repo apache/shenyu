@@ -4,6 +4,8 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
+ * The type Dubbo rpc ext.
+ *
  * @author xiaoyu
  */
 @Data

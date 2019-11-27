@@ -27,6 +27,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -81,4 +82,14 @@ public final class SignUtils {
     public boolean isValid(final String sign, final Map<String, String> params, final String signKey) {
         return Objects.equals(sign, generateSign(signKey, params));
     }
+
+    /**
+     * Generate key string.
+     *
+     * @return the string
+     */
+    public String generateKey() {
+        return UUID.randomUUID().toString().replaceAll("-", "").toUpperCase();
+    }
+
 }

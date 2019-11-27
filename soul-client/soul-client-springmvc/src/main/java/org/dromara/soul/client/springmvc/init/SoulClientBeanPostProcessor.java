@@ -41,6 +41,8 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
+ * The type Soul client bean post processor.
+ *
  * @author xiaoyu(Myth)
  */
 @Slf4j
@@ -52,7 +54,13 @@ public class SoulClientBeanPostProcessor implements BeanPostProcessor {
 
     private SoulHttpConfig soulHttpConfig;
 
-    public SoulClientBeanPostProcessor(Environment env, SoulHttpConfig soulHttpConfig) {
+    /**
+     * Instantiates a new Soul client bean post processor.
+     *
+     * @param env            the env
+     * @param soulHttpConfig the soul http config
+     */
+    public SoulClientBeanPostProcessor(final Environment env, final SoulHttpConfig soulHttpConfig) {
         this.env = env;
         this.soulHttpConfig = soulHttpConfig;
     }
@@ -85,7 +93,7 @@ public class SoulClientBeanPostProcessor implements BeanPostProcessor {
     }
 
 
-    private void post(String json) {
+    private void post(final String json) {
         try {
             String result = OkHttpTools.getInstance().post(soulHttpConfig.getAdminUrl(), json);
             if (Objects.equals(result, "success")) {
@@ -98,7 +106,7 @@ public class SoulClientBeanPostProcessor implements BeanPostProcessor {
         }
     }
 
-    private String buildJsonParams(SoulClient soulClient, String contextPath, final Object bean, Method method, String beanName) {
+    private String buildJsonParams(final SoulClient soulClient, final String contextPath, final Object bean, final Method method, final String beanName) {
         String appName = soulHttpConfig.getAppName();
         if (appName == null || "".equals(appName)) {
             appName = env.getProperty("spring.application.name");

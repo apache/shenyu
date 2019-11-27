@@ -1,7 +1,27 @@
+/*
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * Contributor license agreements.See the NOTICE file distributed with
+ * This work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * he License.You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 package org.dromara.soul.web.cache;
 
 import org.dromara.soul.common.concurrent.SoulThreadFactory;
 import org.dromara.soul.common.dto.AppAuthData;
+import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
@@ -9,7 +29,6 @@ import org.dromara.soul.common.dto.WebsocketData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
-import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.web.config.SoulConfig;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
@@ -61,7 +80,7 @@ public class WebsocketSyncCache extends WebsocketCacheHandler {
                     try {
                         handleResult(result);
                     } catch (Exception e) {
-                        LOGGER.error("websocket handle data exception :{}", e);
+                        LOGGER.error("websocket handle data exception :", e);
                     }
                 }
 
@@ -76,20 +95,27 @@ public class WebsocketSyncCache extends WebsocketCacheHandler {
                 }
             };
         } catch (URISyntaxException e) {
-            LOGGER.error("websocket url is error :{}", e);
+            LOGGER.error("websocket url is error :", e);
         }
         try {
             boolean success = client.connectBlocking();
             if (success) {
-                LogUtils.info(LOGGER, () -> "websocket connection is successful.....");
+                LOGGER.info("websocket connection is successful.....");
+            } else {
+                LOGGER.info("websocket connection is error.....");
             }
         } catch (InterruptedException e) {
-            LOGGER.info("websocket connection...exception....{}", e);
+            LOGGER.info("websocket connection...exception....", e);
         }
         executor.scheduleAtFixedRate(() -> {
             try {
                 if (client != null && client.isClosed()) {
-                    client.reconnectBlocking();
+                    boolean success = client.reconnectBlocking();
+                    if (success) {
+                        LOGGER.info("websocket reconnect is successful.....");
+                    } else {
+                        LOGGER.info("websocket reconnection is error.....");
+                    }
                 }
             } catch (InterruptedException e) {
                 LOGGER.error("websocket connect is error :{}", e.getMessage());
@@ -127,6 +153,11 @@ public class WebsocketSyncCache extends WebsocketCacheHandler {
                         GsonUtils.getInstance().fromList(appAuthData, AppAuthData.class);
                 handleAppAuth(appAuthDataList, eventType);
                 break;
+            case META_DATA:
+                String metaData = GsonUtils.getInstance().toJson(websocketData.getData());
+                List<MetaData> metaDataList =
+                        GsonUtils.getInstance().fromList(metaData, MetaData.class);
+                handleMetaData(metaDataList, eventType);
             default:
                 break;
         }

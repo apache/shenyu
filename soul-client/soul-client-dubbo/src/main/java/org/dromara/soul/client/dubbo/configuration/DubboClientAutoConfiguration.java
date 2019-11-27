@@ -21,7 +21,7 @@ public class DubboClientAutoConfiguration {
 
     private final DubboConfig dubboConfig;
 
-    public DubboClientAutoConfiguration(DubboConfig dubboConfig) {
+    public DubboClientAutoConfiguration(final DubboConfig dubboConfig) {
         this.dubboConfig = dubboConfig;
     }
 

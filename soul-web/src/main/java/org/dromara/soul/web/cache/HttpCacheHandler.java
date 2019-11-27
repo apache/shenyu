@@ -143,7 +143,7 @@ class HttpCacheHandler extends AbstractLocalCacheManager {
             LOGGER.info("clear all metaDataList cache, old cache:{}", AUTH_MAP);
             META_DATA.clear();
         } else {
-            META_DATA.clear();
+            initDubboRef(metaDataList);
             metaDataList.forEach(metaData -> META_DATA.put(metaData.getPath(), metaData));
         }
     }

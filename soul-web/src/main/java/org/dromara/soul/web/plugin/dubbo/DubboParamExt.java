@@ -17,38 +17,25 @@
  *
  */
 
-package org.dromara.soul.admin.entity;
+package org.dromara.soul.web.plugin.dubbo;
 
 import lombok.Data;
 
-import java.io.Serializable;
-
 /**
- * The type Meta data do.
+ * The type Dubbo param ext.
+ *
+ * @author xiaoyu
  */
 @Data
-public class MetaDataDO extends BaseDO implements Serializable {
+public class DubboParamExt {
 
-    private String appName;
+    private String group;
 
-    private String path;
+    private String version;
 
-    private String pathDesc;
+    private String loadbalance;
 
-    private String rpcType;
+    private Integer retries;
 
-    private String serviceName;
-
-    private String methodName;
-
-    private String parameterTypes;
-
-    private String rpcExt;
-
-    /**
-     * whether enabled.
-     */
-    private Boolean enabled;
-
-
+    private Integer timeout;
 }

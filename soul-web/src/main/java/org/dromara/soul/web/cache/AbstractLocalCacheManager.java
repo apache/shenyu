@@ -23,9 +23,12 @@ import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
+import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.web.plugin.config.PluginConfigHandler;
+import org.dromara.soul.web.plugin.dubbo.ApplicationConfigCache;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentMap;
 
 /**
@@ -111,6 +114,40 @@ public abstract class AbstractLocalCacheManager implements LocalCacheManager {
      */
     void configPlugin(final List<PluginData> pluginDataList) {
         PluginConfigHandler.INS.initPluginConfig(pluginDataList);
+    }
+
+    /**
+     * Find path meta data.
+     *
+     * @param path the path
+     * @return the meta data
+     */
+    public static MetaData findPath(final String path) {
+        return META_DATA.get(path);
+    }
+
+    /**
+     * Init dubbo ref.
+     *
+     * @param metaDataList the meta data list
+     */
+    void initDubboRef(final List<MetaData> metaDataList) {
+        for (MetaData metaData : metaDataList) {
+            if (RpcTypeEnum.DUBBO.getName().equals(metaData.getRpcType())) {
+                MetaData exist = META_DATA.get(metaData.getPath());
+                if (Objects.isNull(exist)
+                        || Objects.isNull(ApplicationConfigCache.getInstance().get(exist.getServiceName()).isInit())) {
+                    //第一次初始化
+                    ApplicationConfigCache.getInstance().initRef(metaData);
+                } else {
+                    if (!exist.getServiceName().equals(metaData.getServiceName())
+                            || !exist.getRpcExt().equals(metaData.getRpcExt())) {
+                        //有更新
+                        ApplicationConfigCache.getInstance().build(metaData);
+                    }
+                }
+            }
+        }
     }
 
 }

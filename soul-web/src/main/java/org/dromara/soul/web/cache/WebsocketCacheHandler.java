@@ -19,11 +19,13 @@ package org.dromara.soul.web.cache;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.common.dto.AppAuthData;
+import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.enums.PluginEnum;
+import org.dromara.soul.web.plugin.dubbo.ApplicationConfigCache;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +38,7 @@ import java.util.stream.Collectors;
  *
  * @author xiaoyu(Myth)
  */
+@SuppressWarnings("all")
 class WebsocketCacheHandler extends CommonCacheHandler {
 
     /**
@@ -164,6 +167,33 @@ class WebsocketCacheHandler extends CommonCacheHandler {
                 case UPDATE:
                 case CREATE:
                     appAuthDataList.forEach(e -> AUTH_MAP.put(e.getAppKey(), e));
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    void handleMetaData(final List<MetaData> metaDataList, final String eventType) {
+        if (CollectionUtils.isNotEmpty(metaDataList)) {
+            DataEventTypeEnum eventTypeEnum = DataEventTypeEnum.acquireByName(eventType);
+            switch (eventTypeEnum) {
+                case REFRESH:
+                case MYSELF:
+                    initDubboRef(metaDataList);
+                    META_DATA.clear();
+                    metaDataList.forEach(e -> META_DATA.put(e.getPath(), e));
+                    break;
+                case DELETE:
+                    metaDataList.forEach(e -> {
+                        ApplicationConfigCache.getInstance().invalidate(e.getServiceName());
+                        META_DATA.remove(e.getPath());
+                    });
+                    break;
+                case UPDATE:
+                case CREATE:
+                    initDubboRef(metaDataList);
+                    metaDataList.forEach(e -> META_DATA.put(e.getPath(), e));
                     break;
                 default:
                     break;

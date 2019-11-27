@@ -36,13 +36,13 @@ public class DubboListener implements ApplicationListener {
     }
 
     @Override
-    public void onApplicationEvent(ApplicationEvent event) {
+    public void onApplicationEvent(final ApplicationEvent event) {
         if (event instanceof ServiceBeanExportedEvent) {
             executorService.execute(() -> handler((ServiceBeanExportedEvent) event));
         }
     }
 
-    private void handler(ServiceBeanExportedEvent event) {
+    private void handler(final ServiceBeanExportedEvent event) {
         ServiceBean serviceBean = event.getServiceBean();
         Class<?> clazz = serviceBean.getRef().getClass();
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
@@ -59,7 +59,7 @@ public class DubboListener implements ApplicationListener {
         }
     }
 
-    private String buildJsonParams(ServiceBean serviceBean, SoulClient soulClient, Method method) {
+    private String buildJsonParams(final ServiceBean serviceBean, final SoulClient soulClient, final Method method) {
         String appName = dubboConfig.getAppName();
         if (appName == null || "".equals(appName)) {
             appName = serviceBean.getApplication().getName();
@@ -86,7 +86,7 @@ public class DubboListener implements ApplicationListener {
 
     }
 
-    private String buildRpcExt(ServiceBean serviceBean) {
+    private String buildRpcExt(final ServiceBean serviceBean) {
         MetaDataDTO.RpcExt build = MetaDataDTO.RpcExt.builder()
                 .group(serviceBean.getGroup())
                 .version(serviceBean.getVersion())
@@ -98,7 +98,7 @@ public class DubboListener implements ApplicationListener {
 
     }
 
-    private void post(String json) {
+    private void post(final String json) {
         try {
             String result = OkHttpTools.getInstance().post(dubboConfig.getUrl(), json);
             if (Objects.equals(result, "success")) {

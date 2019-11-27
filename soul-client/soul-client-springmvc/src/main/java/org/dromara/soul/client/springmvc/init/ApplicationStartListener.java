@@ -41,7 +41,7 @@ public class ApplicationStartListener implements ApplicationListener<WebServerIn
 
     private SoulHttpConfig soulHttpConfig;
 
-    public ApplicationStartListener(SoulHttpConfig soulHttpConfig) {
+    public ApplicationStartListener(final SoulHttpConfig soulHttpConfig) {
         this.soulHttpConfig = soulHttpConfig;
     }
 
