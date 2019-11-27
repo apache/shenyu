@@ -17,38 +17,27 @@
  *
  */
 
-package org.dromara.soul.admin.entity;
+package org.dromara.soul.common.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
 /**
- * The type Meta data do.
+ * The type Auth param data.
+ *
+ * @author xiaoyu
  */
 @Data
-public class MetaDataDO extends BaseDO implements Serializable {
+@AllArgsConstructor
+@NoArgsConstructor
+public class AuthParamData implements Serializable {
 
     private String appName;
 
-    private String path;
-
-    private String pathDesc;
-
-    private String rpcType;
-
-    private String serviceName;
-
-    private String methodName;
-
-    private String parameterTypes;
-
-    private String rpcExt;
-
-    /**
-     * whether enabled.
-     */
-    private Boolean enabled;
+    private String appParam;
 
 
 }

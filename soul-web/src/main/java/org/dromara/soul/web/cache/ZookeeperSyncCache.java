@@ -19,14 +19,17 @@
 package org.dromara.soul.web.cache;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import org.I0Itec.zkclient.IZkDataListener;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.common.constant.ZkPathConstants;
 import org.dromara.soul.common.dto.AppAuthData;
+import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
+import org.dromara.soul.web.plugin.dubbo.ApplicationConfigCache;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.boot.CommandLineRunner;
 
@@ -57,6 +60,7 @@ public class ZookeeperSyncCache extends CommonCacheHandler implements CommandLin
     public void run(final String... args) {
         watcherData();
         watchAppAuth();
+        watchMetaData();
     }
 
     private void watcherData() {
@@ -211,9 +215,7 @@ public class ZookeeperSyncCache extends CommonCacheHandler implements CommandLin
 
             @Override
             public void handleDataDeleted(final String dataPath) {
-                //规定路径 key-id key为selectorId, id为规则id
-                final List<String> list = Splitter.on(ZkPathConstants.SELECTOR_JOIN_RULE)
-                        .splitToList(dataPath.substring(dataPath.lastIndexOf("/") + 1));
+                final List<String> list = Lists.newArrayList(Splitter.on(ZkPathConstants.SELECTOR_JOIN_RULE).split(dataPath.substring(dataPath.lastIndexOf("/") + 1)));
                 final String selectorId = list.get(0);
                 final String ruleId = list.get(1);
                 Optional.ofNullable(selectorId).ifPresent(k -> {
@@ -249,6 +251,61 @@ public class ZookeeperSyncCache extends CommonCacheHandler implements CommandLin
                 }).forEach(this::subscribeAppAuthDataChanges);
             }
         });
+    }
+
+    private void watchMetaData() {
+        final String metaDataPath = ZkPathConstants.META_DATA;
+        if (!zkClient.exists(metaDataPath)) {
+            zkClient.createPersistent(metaDataPath, true);
+        }
+        final List<String> childrenList = zkClient.getChildren(metaDataPath);
+        if (CollectionUtils.isNotEmpty(childrenList)) {
+            childrenList.forEach(children -> {
+                String realPath = buildRealPath(metaDataPath, children);
+                setMetaData(realPath);
+                subscribeMetaDataChanges(realPath);
+            });
+        }
+
+        zkClient.subscribeChildChanges(metaDataPath, (parentPath, currentChildren) -> {
+            if (CollectionUtils.isNotEmpty(currentChildren)) {
+                final List<String> addSubscribePath = addSubscribePath(childrenList, currentChildren);
+                addSubscribePath.stream().map(children -> {
+                    final String realPath = buildRealPath(parentPath, children);
+                    setMetaData(realPath);
+                    return realPath;
+                }).forEach(this::subscribeMetaDataChanges);
+            }
+        });
+    }
+
+    private void subscribeMetaDataChanges(final String realPath) {
+        zkClient.subscribeDataChanges(realPath, new IZkDataListener() {
+            @Override
+            public void handleDataChange(final String dataPath, final Object data) {
+                Optional.ofNullable((MetaData) data)
+                        .ifPresent(metaData -> {
+                            initDubboRef(Collections.singletonList(metaData));
+                            META_DATA.put(metaData.getPath(), metaData);
+                        });
+            }
+
+            @Override
+            public void handleDataDeleted(final String dataPath) {
+                final MetaData metaData = zkClient.readData(dataPath);
+                Optional.ofNullable(metaData).ifPresent(d -> {
+                    META_DATA.remove(d.getPath());
+                    ApplicationConfigCache.getInstance().invalidate(d.getServiceName());
+                });
+            }
+        });
+    }
+
+    private void setMetaData(final String realPath) {
+        final MetaData metaData = zkClient.readData(realPath);
+        initDubboRef(Collections.singletonList(metaData));
+        Optional.ofNullable(metaData)
+                .ifPresent(dto -> META_DATA.put(dto.getPath(), dto));
     }
 
     private void setAuthData(final String realPath) {

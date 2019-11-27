@@ -31,13 +31,18 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  */
 public class HttpServerConfig implements WebMvcConfigurer {
 
+    /**
+     * Param interceptor param interceptor.
+     *
+     * @return the param interceptor
+     */
     @Bean
     public ParamInterceptor paramInterceptor() {
         return new ParamInterceptor();
     }
 
     @Override
-    public void addInterceptors(InterceptorRegistry registry) {
+    public void addInterceptors(final InterceptorRegistry registry) {
         registry.addInterceptor(paramInterceptor());
     }
 }

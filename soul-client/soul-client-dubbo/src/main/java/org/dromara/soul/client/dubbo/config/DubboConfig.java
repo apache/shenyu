@@ -4,6 +4,8 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
+ * The type Dubbo config.
+ *
  * @author xiaoyu
  */
 @ConfigurationProperties(prefix = "soul.dubbo")
