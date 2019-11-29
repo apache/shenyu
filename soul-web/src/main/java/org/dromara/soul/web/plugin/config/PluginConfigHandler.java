@@ -21,12 +21,14 @@ package org.dromara.soul.web.plugin.config;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.dromara.soul.common.config.DubboRegisterConfig;
 import org.dromara.soul.common.config.MonitorConfig;
 import org.dromara.soul.common.config.RateLimiterConfig;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RedisModeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
+import org.dromara.soul.web.plugin.dubbo.ApplicationConfigCache;
 import org.influxdb.dto.Point;
 import org.springframework.data.influxdb.InfluxDBConnectionFactory;
 import org.springframework.data.influxdb.InfluxDBProperties;
@@ -102,6 +104,18 @@ public enum PluginConfigHandler {
                             ReactiveRedisTemplate<String, String> reactiveRedisTemplate = new ReactiveRedisTemplate<>(lettuceConnectionFactory, serializationContext);
                             Singleton.INST.single(ReactiveRedisTemplate.class, reactiveRedisTemplate);
                             Singleton.INST.single(RateLimiterConfig.class, rateLimiterConfig);
+                        }
+                    } else if (PluginEnum.DUBBO.getName().equals(pluginData.getName())) {
+                        DubboRegisterConfig dubboRegisterConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), DubboRegisterConfig.class);
+                        DubboRegisterConfig exist = Singleton.INST.get(DubboRegisterConfig.class);
+                        if (Objects.nonNull(dubboRegisterConfig)) {
+                            if (Objects.isNull(exist)
+                                    || !dubboRegisterConfig.equals(exist)) {
+                                //如果是空，进行初始化操作，
+                                ApplicationConfigCache.getInstance().init(dubboRegisterConfig.getRegister());
+                                ApplicationConfigCache.getInstance().invalidateAll();
+                            }
+                            Singleton.INST.single(DubboRegisterConfig.class, dubboRegisterConfig);
                         }
                     }
                 });

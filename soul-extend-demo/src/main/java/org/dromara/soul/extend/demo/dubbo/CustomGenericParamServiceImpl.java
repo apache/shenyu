@@ -18,42 +18,29 @@
 
 package org.dromara.soul.extend.demo.dubbo;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.dromara.soul.common.constant.DubboParamConstants;
-import org.dromara.soul.common.utils.GsonUtils;
-import org.dromara.soul.web.plugin.dubbo.GenericParamService;
-
-import java.util.List;
-import java.util.Map;
+import org.dromara.soul.web.plugin.dubbo.GenericParamResolveService;
 
 /**
  * The type Custom generic param service.
  *
  * @author xiaoyu(Myth)
  */
-public class CustomGenericParamServiceImpl implements GenericParamService {
+public class CustomGenericParamServiceImpl implements GenericParamResolveService {
+
 
     /**
      * It parses itself based on the json string passed in by the body.
      * Return dubbo GenericService Invoker need param
      * see {@linkplain com.alibaba.dubbo.rpc.service.GenericService}
-     * @param paramMap the param map
+     *
+     * @param body the body map
+     * @param body the parameterTypes
      * @return the left is  parameter type.  the right is  Parameter Values.
      */
     @Override
-    public Pair<String[], Object[]> buildParameter(final Map<String, Object> paramMap) {
-        List<String> paramType = Lists.newArrayList();
-        List<Object> args = Lists.newArrayList();
-        if (paramMap.containsKey(DubboParamConstants.PARAM_CLASS)) {
-            List<String> clazz = GsonUtils.getInstance()
-                    .fromList(paramMap.get(DubboParamConstants.PARAM_CLASS).toString(), String.class);
-            paramType.addAll(clazz);
-            final Object classParams = paramMap.get(DubboParamConstants.CLASS_PARAMS);
-            args.addAll(GsonUtils.getInstance()
-                    .fromJson(classParams.toString(), List.class));
-        }
-        return new ImmutablePair<>(paramType.toArray(new String[0]), args.toArray());
+    public Pair<String[], Object[]> buildParameter(final String body, final String parameterTypes) {
+        return new ImmutablePair<>(new String[]{body}, new Object[]{parameterTypes});
     }
 }

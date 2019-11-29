@@ -2,13 +2,20 @@ server:
   port: 8088
   address: 0.0.0.0
 
-logging:
-    level:
-        root: info
-        org.springframework.boot: info
-        org.apache.ibatis: info
-        org.dromara.soul.bonuspoint: info
-        org.dromara.soul.lottery: debug
-        org.dromara.soul: debug
 
-    path: "./logs"
+soul:
+  http:
+    adminUrl: http://localhost:9095
+    contextPath: /http
+    appName: http
+
+logging:
+  level:
+    root: info
+    org.springframework.boot: info
+    org.apache.ibatis: info
+    org.dromara.soul.bonuspoint: info
+    org.dromara.soul.lottery: debug
+    org.dromara.soul: debug
+
+  path: "./logs"

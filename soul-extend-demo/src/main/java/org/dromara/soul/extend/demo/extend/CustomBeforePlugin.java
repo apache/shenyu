@@ -18,7 +18,6 @@
 
 package org.dromara.soul.extend.demo.extend;
 
-
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.web.plugin.SoulPlugin;
 import org.dromara.soul.web.plugin.SoulPluginChain;
@@ -29,8 +28,9 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 /**
- *  This is your custom plugin.
- *  Before all plugins, implement your own functionality.
+ * This is your custom plugin.
+ * Before all plugins, implement your own functionality.
+ *
  * @author xiaoyu(Myth)
  */
 @Component
@@ -84,4 +84,5 @@ public class CustomBeforePlugin implements SoulPlugin {
     public String named() {
         return "custom before";
     }
+
 }

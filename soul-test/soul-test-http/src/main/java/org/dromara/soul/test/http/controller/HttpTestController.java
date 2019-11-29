@@ -18,9 +18,8 @@
 
 package org.dromara.soul.test.http.controller;
 
-
+import org.dromara.soul.client.common.annotation.SoulClient;
 import org.dromara.soul.test.http.dto.UserDTO;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -46,6 +45,7 @@ public class HttpTestController {
      * @return the user dto
      */
     @PostMapping("/payment")
+    @SoulClient(path = "/test/payment", desc = "支付接口")
     public UserDTO post(@RequestBody final UserDTO userDTO) {
         return userDTO;
     }
@@ -53,22 +53,13 @@ public class HttpTestController {
     /**
      * Find by user id string.
      *
+     * @param userId the user id
      * @return the string
      */
     @GetMapping("/findByUserId")
-    public String findByUserId() {
-        return "helloWorld!";
-    }
-
-    /**
-     * Test get integer.
-     *
-     * @param id the id
-     * @return the integer
-     */
-    @GetMapping("/id")
-    public Integer testGet(@RequestParam("id") Integer id) {
-        return id;
+    @SoulClient(path = "/test/findByUserId", desc = "获取用户id")
+    public String findByUserId(@RequestParam("userId") final String userId) {
+        return "hello :" + userId;
     }
 
     /**
@@ -79,7 +70,7 @@ public class HttpTestController {
      * @return the path variable
      */
     @GetMapping("/path/{id}")
-    public String getPathVariable(@PathVariable("id") String id, @RequestParam("name") String name) {
+    public String getPathVariable(@PathVariable("id") final String id, @RequestParam("name") final String name) {
         return id + "_" + name;
     }
 
@@ -91,31 +82,8 @@ public class HttpTestController {
      * @return the string
      */
     @PutMapping("/putPathBody/{id}")
-    public String putPathVariableAndBody(@PathVariable("id") String id, @RequestBody UserDTO userDTO) {
+    public String putPathVariableAndBody(@PathVariable("id") final String id, @RequestBody final UserDTO userDTO) {
         return id + "_" + userDTO.getUserName();
     }
-
-    /**
-     * Put path variable string.
-     *
-     * @param id the id
-     * @return the string
-     */
-    @PutMapping("/putPath/{id}")
-    public String putPathVariable(@PathVariable("id") String id) {
-        return id;
-    }
-
-    /**
-     * Delete path variable string.
-     *
-     * @param id the id
-     * @return the string
-     */
-    @DeleteMapping("/deletePath/{id}")
-    public String deletePathVariable(@PathVariable("id") String id) {
-        return id;
-    }
-
 
 }

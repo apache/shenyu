@@ -19,7 +19,6 @@
 package org.dromara.soul.web.handler;
 
 import org.dromara.soul.common.utils.GsonUtils;
-import org.dromara.soul.web.result.SoulResultEnum;
 import org.dromara.soul.web.result.SoulResultWarp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,12 +73,11 @@ public class GlobalErrorHandler extends DefaultErrorWebExceptionHandler {
 
     @Override
     protected HttpStatus getHttpStatus(final Map<String, Object> errorAttributes) {
-        int statusCode = (int) errorAttributes.get("code");
-        return HttpStatus.valueOf(statusCode);
+        return HttpStatus.INTERNAL_SERVER_ERROR;
     }
 
     private static Map<String, Object> response() {
-        Object error = SoulResultWarp.error(SoulResultEnum.FAIL.getCode(), SoulResultEnum.FAIL.getMsg(), null);
+        Object error = SoulResultWarp.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), null);
         return GsonUtils.getInstance().toObjectMap(GsonUtils.getInstance().toJson(error));
     }
 

@@ -57,7 +57,7 @@ public interface RuleMapper {
     List<RuleDO> findBySelectorId(String selectorId);
 
     /**
-     * select rule by name
+     * select rule by name.
      *
      * @param name the name
      * @return rule do

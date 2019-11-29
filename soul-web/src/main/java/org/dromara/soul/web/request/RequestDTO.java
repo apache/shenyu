@@ -21,6 +21,7 @@ package org.dromara.soul.web.request;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.enums.HttpMethodEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -61,11 +62,6 @@ public class RequestDTO implements Serializable {
     private String httpMethod;
 
     /**
-     * this is dubbo params.
-     */
-    private String dubboParams;
-
-    /**
      * this is sign .
      */
     private String sign;
@@ -81,19 +77,15 @@ public class RequestDTO implements Serializable {
     private String appKey;
 
     /**
-     * content is json data.
+     * path.
      */
-    private String content;
+    private String path;
+
 
     /**
-     * extInfo is json data .
+     * the contextPath.
      */
-    private String extInfo;
-
-    /**
-     * pathVariable.
-     */
-    private String pathVariable;
+    private String contextPath;
 
     /**
      * realUrl.
@@ -101,57 +93,19 @@ public class RequestDTO implements Serializable {
     private String realUrl;
 
     /**
+     * the metaData.
+     */
+    private MetaData metaData;
+
+    /**
+     * this is dubbo params.
+     */
+    private String dubboParams;
+
+    /**
      * startDateTime.
      */
     private LocalDateTime startDateTime;
-
-    /**
-     * ServerHttpRequest transform RequestDTO .
-     *
-     * @param request {@linkplain ServerHttpRequest}
-     * @return RequestDTO request dto
-     */
-    public static RequestDTO transform(final ServerHttpRequest request) {
-        final String module = request.getHeaders().getFirst(Constants.MODULE);
-        final String method = request.getHeaders().getFirst(Constants.METHOD);
-        final String appKey = request.getHeaders().getFirst(Constants.APP_KEY);
-        final String httpMethod = request.getHeaders().getFirst(Constants.HTTP_METHOD);
-        final String rpcType = request.getHeaders().getFirst(Constants.RPC_TYPE);
-        final String sign = request.getHeaders().getFirst(Constants.SIGN);
-        final String timestamp = request.getHeaders().getFirst(Constants.TIMESTAMP);
-        final String extInfo = request.getHeaders().getFirst(Constants.EXT_INFO);
-        final String pathVariable = request.getHeaders().getFirst(Constants.PATH_VARIABLE);
-        RequestDTO requestDTO = new RequestDTO();
-        String path = request.getURI().getPath();
-        String[] splitList = StringUtils.split(path, "/");
-        if (splitList.length > 0) {
-            requestDTO.setModule(splitList[0]);
-            requestDTO.setMethod(path);
-            requestDTO.setRealUrl(path);
-        } else {
-            requestDTO.setModule(module);
-            requestDTO.setMethod(method);
-            requestDTO.setRealUrl(method);
-        }
-        String name = Objects.requireNonNull(request.getMethod()).name();
-        if (StringUtils.isEmpty(httpMethod)) {
-            requestDTO.setHttpMethod(name);
-        } else {
-            requestDTO.setHttpMethod(httpMethod);
-        }
-        requestDTO.setAppKey(appKey);
-        if (StringUtils.isEmpty(rpcType)) {
-            requestDTO.setRpcType(RpcTypeEnum.HTTP.getName());
-        } else {
-            requestDTO.setRpcType(rpcType);
-        }
-        requestDTO.setSign(sign);
-        requestDTO.setTimestamp(timestamp);
-        requestDTO.setExtInfo(extInfo);
-        requestDTO.setPathVariable(pathVariable);
-        requestDTO.setStartDateTime(LocalDateTime.now());
-        return requestDTO;
-    }
 
     /**
      * Transform map request dto.

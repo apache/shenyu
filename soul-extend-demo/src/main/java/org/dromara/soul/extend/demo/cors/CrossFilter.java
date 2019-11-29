@@ -44,7 +44,7 @@ public class CrossFilter implements WebFilter {
 
     private static final String ALLOWED_EXPOSE = "*";
 
-    private static final String MAX_AGE = "18000L";
+    private static final String MAX_AGE = "18000";
 
     @Override
     public Mono<Void> filter(final ServerWebExchange exchange, final WebFilterChain chain) {

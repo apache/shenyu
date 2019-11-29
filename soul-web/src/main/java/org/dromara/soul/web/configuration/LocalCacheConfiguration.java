@@ -32,17 +32,19 @@ import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 /**
- * Automatic data cache configuration for caching {@link AppAuthData}、{@link PluginData}、{@link RuleData}、{@link SelectorData}
+ * Automatic data cache configuration for caching {@link AppAuthData}、{@link PluginData}、{@link RuleData}、{@link SelectorData}.
  *
  * @author huangxiaofeng
  * @author xiaoyu
  */
 @AutoConfigureBefore(SoulConfiguration.class)
+@EnableConfigurationProperties({SoulConfig.class})
 public class LocalCacheConfiguration {
 
     /**
@@ -61,7 +63,7 @@ public class LocalCacheConfiguration {
          * @return the local cache manager
          */
         @Bean
-        public LocalCacheManager localCacheManager(ZkClient zkClient) {
+        public LocalCacheManager localCacheManager(final ZkClient zkClient) {
             return new ZookeeperSyncCache(zkClient);
         }
     }
@@ -72,29 +74,18 @@ public class LocalCacheConfiguration {
      */
     @Configuration
     @ConditionalOnMissingBean(LocalCacheManager.class)
-    @ConditionalOnProperty(name = "soul.sync.strategy", havingValue = "http", matchIfMissing = true)
+    @ConditionalOnProperty(name = "soul.sync.strategy", havingValue = "http")
     static class HttpCacheManager {
 
         /**
-         * Http config http config.
+         * Local cache manager local cache manager.
          *
-         * @return the http config
-         */
-        @ConfigurationProperties(prefix = "soul.sync.http")
-        @Bean
-        public SoulConfig.HttpConfig httpConfig() {
-            return new SoulConfig.HttpConfig();
-        }
-
-        /**
-         * Config event listener local cache manager.
-         *
-         * @param httpConfig the http config
+         * @param soulConfig the soul config
          * @return the local cache manager
          */
         @Bean
-        public LocalCacheManager localCacheManager(final SoulConfig.HttpConfig httpConfig) {
-            return new HttpLongPollSyncCache(httpConfig);
+        public LocalCacheManager localCacheManager(final SoulConfig soulConfig) {
+            return new HttpLongPollSyncCache(soulConfig.getSync().getHttp());
         }
 
     }
@@ -104,29 +95,18 @@ public class LocalCacheConfiguration {
      */
     @Configuration
     @ConditionalOnMissingBean(LocalCacheManager.class)
-    @ConditionalOnProperty(name = "soul.sync.strategy", havingValue = "websocket")
+    @ConditionalOnProperty(name = "soul.sync.strategy", havingValue = "websocket", matchIfMissing = true)
     static class WebsocketCacheManager {
 
         /**
-         * Http config websocket config.
+         * Local cache manager local cache manager.
          *
-         * @return the websocket config
-         */
-        @ConfigurationProperties(prefix = "soul.sync.websocket")
-        @Bean
-        public SoulConfig.WebsocketConfig httpConfig() {
-            return new SoulConfig.WebsocketConfig();
-        }
-
-        /**
-         * Config event listener local cache manager.
-         *
-         * @param websocketConfig the websocket config
+         * @param soulConfig the soul config
          * @return the local cache manager
          */
         @Bean
-        public LocalCacheManager localCacheManager(final SoulConfig.WebsocketConfig websocketConfig) {
-            return new WebsocketSyncCache(websocketConfig);
+        public LocalCacheManager localCacheManager(final SoulConfig soulConfig) {
+            return new WebsocketSyncCache(soulConfig.getSync().getWebsocket());
         }
 
     }

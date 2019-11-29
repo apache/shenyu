@@ -1,6 +1,11 @@
 server:
-  port: 8087
+  port: 8011
   address: 0.0.0.0
   servlet:
     context-path: /
 
+soul:
+  dubbo:
+    adminUrl: http://localhost:9095
+    contextPath: /dubbo
+    appName: dubbo

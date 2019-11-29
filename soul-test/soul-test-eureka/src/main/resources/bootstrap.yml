@@ -1,0 +1,32 @@
+server:
+  port: 8761
+
+spring:
+  application:
+    name: springcloud-eureka
+
+eureka:
+  instance:
+    hostname: ${hostname:localhost}
+    preferIpAddress: true
+    lease-renewal-interval-in-seconds: 2
+    lease-expiration-duration-in-seconds: 6
+  server:
+    peerEurekaNodesUpdateIntervalMs: 60000
+    enableSelfPreservation: false
+    evictionIntervalTimerInMs: 5000
+  client:
+    registerWithEureka: false
+    fetchRegistry: false
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+    healthcheck:
+      enabled: true
+    eurekaServiceUrlPollIntervalSeconds: 60
+
+
+
+
+
+
+

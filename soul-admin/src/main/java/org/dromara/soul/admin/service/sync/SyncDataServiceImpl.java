@@ -115,7 +115,7 @@ public class SyncDataServiceImpl implements SyncDataService {
     }
 
     @Override
-    public boolean syncPluginData(String pluginId) {
+    public boolean syncPluginData(final String pluginId) {
         PluginVO pluginVO = pluginService.findById(pluginId);
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, DataEventTypeEnum.UPDATE,
                 Collections.singletonList(PluginTransfer.INSTANCE.mapDataTOVO(pluginVO))));

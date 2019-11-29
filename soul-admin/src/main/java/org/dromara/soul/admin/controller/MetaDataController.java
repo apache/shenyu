@@ -133,7 +133,6 @@ public class MetaDataController {
         return metaDataService.register(metaDataDTO);
     }
 
-
     /**
      * Batch deleted soul result.
      *

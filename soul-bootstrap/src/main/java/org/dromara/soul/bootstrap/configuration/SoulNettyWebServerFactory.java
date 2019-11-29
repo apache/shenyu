@@ -55,7 +55,7 @@ public class SoulNettyWebServerFactory {
     private static class EventLoopNettyCustomizer implements NettyServerCustomizer {
 
         @Override
-        public HttpServer apply(HttpServer httpServer) {
+        public HttpServer apply(final HttpServer httpServer) {
             return httpServer
                     .tcpConfiguration(tcpServer -> tcpServer
                             .runOn(LoopResources.create("soul-netty", 1, DEFAULT_IO_WORKER_COUNT, true), false)

@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -49,14 +50,15 @@ import java.util.stream.Collectors;
  *
  * @author xiaoyu
  */
-//@Component
+@Component
+@SuppressWarnings("all")
 public class HttpServiceDiscovery implements InitializingBean {
 
-    public static final String ROOT = "/soul/register";
+    private static final String ROOT = "/soul/register";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpServiceDiscovery.class);
 
-    private final ZkClient zkClient;
+    private ZkClient zkClient;
 
     private final SelectorService selectorService;
 
@@ -64,46 +66,52 @@ public class HttpServiceDiscovery implements InitializingBean {
 
     private final ApplicationEventPublisher eventPublisher;
 
+    private final Environment env;
+
     private volatile List<String> contextPathList;
 
     /**
      * Instantiates a new Http service discovery.
      *
-     * @param zkClient        the zk client
      * @param selectorService the selector service
      * @param selectorMapper  the selector mapper
      * @param eventPublisher  the event publisher
      */
-   // @Autowired(required = false)
-    public HttpServiceDiscovery(final ZkClient zkClient,
-                                final SelectorService selectorService,
+    @Autowired(required = false)
+    public HttpServiceDiscovery(final SelectorService selectorService,
                                 final SelectorMapper selectorMapper,
-                                final ApplicationEventPublisher eventPublisher) {
-        this.zkClient = zkClient;
+                                final ApplicationEventPublisher eventPublisher,
+                                final Environment env) {
         this.selectorService = selectorService;
         this.selectorMapper = selectorMapper;
         this.eventPublisher = eventPublisher;
+        this.env = env;
     }
 
     @Override
     public void afterPropertiesSet() {
         try {
-            boolean exists = zkClient.exists(ROOT);
-            if (!exists) {
-                // 创建父节点
-                zkClient.createPersistent(ROOT, true);
+            Boolean register = env.getProperty("soul.http.register", Boolean.class, false);
+            if (register) {
+                String zookeeperUrl = env.getProperty("soul.http.zookeeperUrl", "");
+                if (StringUtils.isNoneBlank(zookeeperUrl)) {
+                    zkClient = new ZkClient(zookeeperUrl, 5000, 2000);
+                    boolean exists = zkClient.exists(ROOT);
+                    if (!exists) {
+                        zkClient.createPersistent(ROOT, true);
+                    }
+                    contextPathList = zkClient.getChildren(ROOT);
+                    updateServerNode(contextPathList);
+                    zkClient.subscribeChildChanges(ROOT, (parentPath, childs) -> {
+                        final List<String> addSubscribePath = addSubscribePath(contextPathList, childs);
+                        updateServerNode(addSubscribePath);
+                        contextPathList = childs;
+                    });
+                }
             }
-            contextPathList = zkClient.getChildren(ROOT);
-            updateServerNode(contextPathList);
-            zkClient.subscribeChildChanges(ROOT, (parentPath, childs) -> {
-                final List<String> addSubscribePath = addSubscribePath(contextPathList, childs);
-                updateServerNode(addSubscribePath);
-                contextPathList = childs;
-            });
         } catch (Exception e) {
             LOGGER.error("soul admin 监听http服务注册节点异常：", e);
         }
-
     }
 
     private void updateServerNode(final List<String> serverNodeList) {

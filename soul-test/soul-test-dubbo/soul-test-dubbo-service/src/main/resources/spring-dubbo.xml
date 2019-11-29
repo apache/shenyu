@@ -27,13 +27,11 @@
 
     <dubbo:application name="test-dubbo-service"/>
 
-    <dubbo:registry protocol="zookeeper" address="localhost:2181"/>
+    <dubbo:registry address="zookeeper://localhost:2181"/>
 
-    <dubbo:protocol accesslog="true" name="dubbo" port="20889"/>
+    <dubbo:protocol name="dubbo" port="20888"/>
 
-    <dubbo:service interface="org.dromara.soul.test.dubbo.api.service.DubboTestService"
-                   ref="dubboTestService"/>
+    <dubbo:service interface="org.dromara.soul.test.dubbo.api.service.DubboTestService" ref="dubboTestService"/>
 
-    
 
 </beans>

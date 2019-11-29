@@ -20,6 +20,7 @@ package org.dromara.soul.web.plugin.hystrix;
 
 import com.netflix.hystrix.HystrixObservableCommand;
 import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.dto.convert.rule.DubboRuleHandle;
 import org.dromara.soul.common.dto.convert.selector.DubboSelectorHandle;
 import org.dromara.soul.common.enums.ResultEnum;
@@ -58,9 +59,9 @@ public class DubboCommand extends HystrixObservableCommand<Void> {
 
     private final DubboProxyService dubboProxyService;
 
-    private final Map<String, Object> paramMap;
+    private final String body;
 
-    private final DubboSelectorHandle dubboSelectorHandle;
+    private final MetaData metaData;
 
     private final DubboRuleHandle dubboRuleHandle;
 
@@ -68,25 +69,25 @@ public class DubboCommand extends HystrixObservableCommand<Void> {
      * Instantiates a new Dubbo command.
      *
      * @param setter              the setter
-     * @param paramMap            the param map
+     * @param body                the body json
      * @param exchange            the exchange
      * @param chain               the chain
      * @param dubboProxyService   the dubbo proxy service
-     * @param dubboSelectorHandle the dubbo selector handle
+     * @param metaData            the dubbo metaData
      * @param dubboRuleHandle     the dubbo rule handle
      */
-    public DubboCommand(final Setter setter, final Map<String, Object> paramMap,
+    public DubboCommand(final Setter setter, final String body,
                         final ServerWebExchange exchange,
                         final SoulPluginChain chain,
                         final DubboProxyService dubboProxyService,
-                        final DubboSelectorHandle dubboSelectorHandle,
+                        final MetaData metaData,
                         final DubboRuleHandle dubboRuleHandle) {
         super(setter);
         this.exchange = exchange;
-        this.paramMap = paramMap;
+        this.body = body;
         this.chain = chain;
         this.dubboProxyService = dubboProxyService;
-        this.dubboSelectorHandle = dubboSelectorHandle;
+        this.metaData = metaData;
         this.dubboRuleHandle = dubboRuleHandle;
     }
 
@@ -96,7 +97,7 @@ public class DubboCommand extends HystrixObservableCommand<Void> {
     }
 
     private Mono<Void> doRpcInvoke() {
-        final Object result = dubboProxyService.genericInvoker(paramMap, dubboSelectorHandle, dubboRuleHandle);
+        final Object result = dubboProxyService.genericInvoker(body, metaData, dubboRuleHandle);
         if (Objects.nonNull(result)) {
             exchange.getAttributes().put(Constants.DUBBO_RPC_RESULT, result);
         } else {

@@ -34,7 +34,7 @@ public class CustomSerializerConfiguration {
      *
      * @return the zk serializer
      */
-    public ZkSerializer zkSerializer(){
+    public ZkSerializer zkSerializer() {
         return new CustomSerializer();
     }
 }

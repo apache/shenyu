@@ -1,12 +1,11 @@
 package org.dromara.soul.client.springmvc.configuration;
 
 import org.dromara.soul.client.springmvc.config.SoulHttpConfig;
-import org.dromara.soul.client.springmvc.init.ApplicationStartListener;
-import org.dromara.soul.client.springmvc.init.SoulClientBeanPostProcessor;
+import org.dromara.soul.client.springmvc.spring.ApplicationStartListener;
+import org.dromara.soul.client.springmvc.spring.SoulClientBeanPostProcessor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 
 /**
@@ -15,7 +14,6 @@ import org.springframework.core.env.Environment;
  * @author xiaoyu
  */
 @Configuration
-@Import(HttpServerConfig.class)
 @EnableConfigurationProperties({SoulHttpConfig.class})
 public class SoulSpringMvcAutoConfiguration {
 

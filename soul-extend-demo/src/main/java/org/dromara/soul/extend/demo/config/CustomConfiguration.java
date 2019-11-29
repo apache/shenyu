@@ -23,8 +23,9 @@ import org.dromara.soul.extend.demo.custom.CustomPlugin;
 import org.dromara.soul.extend.demo.dubbo.CustomGenericParamServiceImpl;
 import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.plugin.SoulPlugin;
-import org.dromara.soul.web.plugin.dubbo.GenericParamService;
+import org.dromara.soul.web.plugin.dubbo.GenericParamResolveService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -41,7 +42,7 @@ public class CustomConfiguration {
     private final LocalCacheManager localCacheManager;
 
     @Autowired(required = false)
-    public CustomConfiguration(final LocalCacheManager localCacheManager) {
+    public CustomConfiguration(@Qualifier("localCacheManager") final LocalCacheManager localCacheManager) {
         this.localCacheManager = localCacheManager;
     }
 
@@ -61,7 +62,7 @@ public class CustomConfiguration {
      * @return the generic param service
      */
     @Bean
-    public GenericParamService genericParamService() {
+    public GenericParamResolveService genericParamService() {
         return new CustomGenericParamServiceImpl();
     }
 

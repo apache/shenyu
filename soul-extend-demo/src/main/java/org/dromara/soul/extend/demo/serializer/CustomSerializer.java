@@ -9,12 +9,12 @@ import org.I0Itec.zkclient.serialize.ZkSerializer;
 public class CustomSerializer implements ZkSerializer {
 
     @Override
-    public byte[] serialize(Object data) throws ZkMarshallingError {
+    public byte[] serialize(final Object data) throws ZkMarshallingError {
         return new byte[0];
     }
 
     @Override
-    public Object deserialize(byte[] bytes) throws ZkMarshallingError {
+    public Object deserialize(final byte[] bytes) throws ZkMarshallingError {
         System.out.println("自定义zk序列化方式");
         return null;
     }

@@ -26,6 +26,11 @@ package org.dromara.soul.common.constant;
 public interface Constants {
 
     /**
+     * The constant APP_PARAM.
+     */
+    String APP_PARAM = "appParam";
+
+    /**
      * The constant REQUESTDTO.
      */
     String REQUESTDTO = "requestDTO";
@@ -121,6 +126,26 @@ public interface Constants {
      * The constant SIGN.
      */
     String SIGN = "sign";
+
+    /**
+     * The constant PATH.
+     */
+    String PATH = "path";
+
+    /**
+     * The constant VERSION.
+     */
+    String VERSION = "version";
+
+    /**
+     * The constant SIGN_PARAMS_ERROR.
+     */
+    String SIGN_PARAMS_ERROR = "认证参数传入不完整!";
+
+    /**
+     * The constant SIGN_APP_KEY_IS_NOT_EXIST.
+     */
+    String SIGN_APP_KEY_IS_NOT_EXIST = "认证签名APP_KEY,不存在";
 
     /**
      * The constant TIMESTAMP.

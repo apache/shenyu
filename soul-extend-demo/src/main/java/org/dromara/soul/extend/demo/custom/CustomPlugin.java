@@ -100,7 +100,7 @@ public class CustomPlugin extends AbstractSoulPlugin {
     }
 
     @Override
-    protected Mono<Void> doExecute(ServerWebExchange exchange, SoulPluginChain chain, SelectorData selector, RuleData rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
         LOGGER.debug(".......... function plugin start..............");
 
         /*

@@ -47,7 +47,6 @@ public enum Singleton {
      */
     public void single(final Class clazz, final Object o) {
         SINGLES.put(clazz.getName(), o);
-
     }
 
     /**

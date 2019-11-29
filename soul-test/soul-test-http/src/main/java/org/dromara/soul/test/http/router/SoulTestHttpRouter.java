@@ -18,7 +18,6 @@
 
 package org.dromara.soul.test.http.router;
 
-import org.dromara.soul.test.http.dto.RequestDTO;
 import org.dromara.soul.test.http.result.ResultBean;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.RouterFunction;
@@ -26,7 +25,6 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -39,6 +37,8 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
 /**
+ * The type Soul test http router.
+ *
  * @author xiaoyu
  */
 @Component
@@ -46,58 +46,46 @@ public class SoulTestHttpRouter {
 
     private static final AtomicInteger ATOMIC_INTEGER = new AtomicInteger(1);
 
+    /**
+     * Routes router function.
+     *
+     * @return the router function
+     */
     public RouterFunction<ServerResponse> routes() {
         return nest(path("/test"),
                 route(POST("/helloWorld2").and(accept(APPLICATION_JSON)), this::postHandler)
-                        .and(route(POST("/helloWorld"), this::getHandler)
-                                .and(route(GET("/rewrite"), this::rewriteHandler))
-                                .and(route(GET("/pdm"), this::pdmHttpGet))
-                                .and(route(GET("/oms"), this::omsHttpGet))
-                                .and(route(GET("/timeout"), this::testRetry))));
+                        .and(route(GET("/rewrite"), this::rewriteHandler))
+                        .and(route(GET("/pdm"), this::pdmHttpGet))
+                        .and(route(GET("/oms"), this::omsHttpGet))
+                        .and(route(GET("/timeout"), this::testRetry)));
     }
 
-
-    private Mono<ServerResponse> testRetry(ServerRequest req) {
+    private Mono<ServerResponse> testRetry(final ServerRequest req) {
         int i = ATOMIC_INTEGER.incrementAndGet();
         System.out.println("Retry count: " + i);
         ResultBean resultBean = new ResultBean(1, "msg", "this is retry hello world");
         return ok().body(Mono.just(resultBean), ResultBean.class);
     }
 
-    private Mono<ServerResponse> pdmHttpGet(ServerRequest req) {
+    private Mono<ServerResponse> pdmHttpGet(final ServerRequest req) {
         ResultBean resultBean = new ResultBean(1, "msg", "this is pdm get hello world");
         return ok().body(Mono.just(resultBean), ResultBean.class);
     }
 
-
-    private Mono<ServerResponse> omsHttpGet(ServerRequest req) {
+    private Mono<ServerResponse> omsHttpGet(final ServerRequest req) {
         ResultBean resultBean = new ResultBean(1, "msg", "this is oms get hello world");
         return ok().body(Mono.just(resultBean), ResultBean.class);
     }
 
-
-    private Mono<ServerResponse> rewriteHandler(ServerRequest req) {
+    private Mono<ServerResponse> rewriteHandler(final ServerRequest req) {
         ResultBean resultBean = new ResultBean(1, "msg", "this is rewrite hello world");
         return ok().body(Mono.just(resultBean), ResultBean.class);
     }
 
-
-    private Mono<ServerResponse> postHandler(ServerRequest req) {
+    private Mono<ServerResponse> postHandler(final ServerRequest req) {
         final Mono<String> string = req.bodyToMono(String.class);
         //ResultBean resultBean = new ResultBean(1, "msg", "post hello world");
         return ok().body(string, String.class);
     }
-
-    private Mono<ServerResponse> getHandler(ServerRequest req) {
-        final Mono<RequestDTO> requestBeanMono = req.bodyToMono(RequestDTO.class);
-        try {
-            TimeUnit.SECONDS.sleep(1);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        ResultBean resultBean = new ResultBean(1, "msg", "post hello world 1s");
-        return ok().body(Mono.just(resultBean), ResultBean.class);
-    }
-
 
 }
