@@ -98,7 +98,7 @@ public class SpringCloudPlugin extends AbstractSoulPlugin {
         }
         final URI uri = loadBalancer.reconstructURI(serviceInstance, URI.create(requestDTO.getRealUrl()));
 
-        String realURL = buildRealURL(uri.getPath(), requestDTO.getHttpMethod(), exchange.getRequest().getURI().getQuery());
+        String realURL = buildRealURL(uri.toASCIIString(), requestDTO.getHttpMethod(), exchange.getRequest().getURI().getQuery());
 
         exchange.getAttributes().put(Constants.HTTP_URL, realURL);
         //设置下超时时间
