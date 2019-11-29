@@ -35,6 +35,9 @@ import org.dromara.soul.web.cache.UpstreamCacheManager;
 import org.dromara.soul.web.plugin.AbstractSoulPlugin;
 import org.dromara.soul.web.plugin.SoulPluginChain;
 import org.dromara.soul.web.request.RequestDTO;
+import org.dromara.soul.web.result.SoulResultEnum;
+import org.dromara.soul.web.result.SoulResultUtils;
+import org.dromara.soul.web.result.SoulResultWarp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -111,21 +114,25 @@ public class WebSocketPlugin extends AbstractSoulPlugin {
                 LoadBalanceUtils.selector(upstreamList, ruleHandle.getLoadBalance(), ip);
 
         if (Objects.isNull(divideUpstream)) {
-            LogUtils.error(LOGGER, () -> "LoadBalance has error！");
-            return chain.execute(exchange);
+            LOGGER.error("websocket has no upstream");
+            Object error = SoulResultWarp.error(SoulResultEnum.CANNOT_FIND_URL.getCode(), SoulResultEnum.CANNOT_FIND_URL.getMsg(), null);
+            return SoulResultUtils.result(exchange, error);
         }
         URI wsRequestUrl = UriComponentsBuilder
                 .fromUri(URI.create(buildWsRealPath(divideUpstream, requestDTO)))
-                .scheme(Optional.ofNullable(divideUpstream.getProtocol()).orElse("ws"))
                 .build().toUri();
-
+        LOGGER.info("you websocket urlPath is :{}", wsRequestUrl.toASCIIString());
         HttpHeaders headers = exchange.getRequest().getHeaders();
         return this.webSocketService.handleRequest(exchange, new SoulWebSocketHandler(
                 wsRequestUrl, this.webSocketClient, filterHeaders(headers), buildWsProtocols(headers)));
     }
 
     private String buildWsRealPath(final DivideUpstream divideUpstream, final RequestDTO requestDTO) {
-        return divideUpstream.getProtocol() + "://" + divideUpstream.getUpstreamUrl() + requestDTO.getMethod();
+        String protocol = divideUpstream.getProtocol();
+        if (StringUtils.isEmpty(protocol)) {
+            protocol = "ws://";
+        }
+        return protocol + divideUpstream.getUpstreamUrl() + requestDTO.getMethod();
     }
 
     private List<String> buildWsProtocols(final HttpHeaders headers) {
