@@ -31,9 +31,7 @@ import java.io.Serializable;
  * @author xiaoyu(Myth)
  */
 @Data
-@Component("soulConfig")
-@ConfigurationProperties(prefix = "soul",
-        ignoreInvalidFields = true)
+@ConfigurationProperties(prefix = "soul", ignoreInvalidFields = true)
 public class SoulConfig implements Serializable {
 
     private Integer filterTime = 10;

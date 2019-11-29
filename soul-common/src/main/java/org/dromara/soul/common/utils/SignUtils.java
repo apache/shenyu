@@ -58,7 +58,7 @@ public final class SignUtils {
      * @param params  params
      * @return sign
      */
-    private static String generateSign(final String signKey, final Map<String, String> params) {
+    public static String generateSign(final String signKey, final Map<String, String> params) {
         List<String> storedKeys = Arrays.stream(params.keySet()
                 .toArray(new String[]{}))
                 .sorted(Comparator.naturalOrder())

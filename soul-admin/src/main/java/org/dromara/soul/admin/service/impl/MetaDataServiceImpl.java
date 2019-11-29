@@ -50,7 +50,9 @@ import org.dromara.soul.common.dto.ConditionData;
 import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.dto.convert.rule.DivideRuleHandle;
 import org.dromara.soul.common.dto.convert.rule.DubboRuleHandle;
+import org.dromara.soul.common.dto.convert.rule.SpringCloudRuleHandle;
 import org.dromara.soul.common.dto.convert.selector.DubboSelectorHandle;
+import org.dromara.soul.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.enums.LoadBalanceEnum;
@@ -220,10 +222,12 @@ public class MetaDataServiceImpl implements MetaDataService {
 
     private void publishEvent(final RuleDO ruleDO, final List<ConditionData> conditionDataList, final String rpcType) {
         String pluginName;
-        if (rpcType.equals(RpcTypeEnum.DUBBO.getName())) {
+        if (RpcTypeEnum.DUBBO.getName().equals(rpcType)) {
             pluginName = PluginEnum.DUBBO.getName();
-        } else {
+        } else if (RpcTypeEnum.HTTP.getName().equals(rpcType)) {
             pluginName = PluginEnum.DIVIDE.getName();
+        } else {
+            pluginName = PluginEnum.SPRING_CLOUD.getName();
         }
         // publish change event.
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.UPDATE,
@@ -245,7 +249,7 @@ public class MetaDataServiceImpl implements MetaDataService {
             selectorDTO.setLoged(Boolean.TRUE);
             selectorDTO.setContinued(Boolean.TRUE);
             selectorDTO.setSort(1);
-            if (metaDataDTO.getRpcType().equals(RpcTypeEnum.DUBBO.getName())) {
+            if (RpcTypeEnum.DUBBO.getName().equals(metaDataDTO.getRpcType())) {
                 selectorDTO.setPluginId("6");
                 DubboSelectorHandle dubboSelectorHandle = new DubboSelectorHandle();
                 dubboSelectorHandle.setAppName(metaDataDTO.getAppName());
@@ -253,10 +257,15 @@ public class MetaDataServiceImpl implements MetaDataService {
                 dubboSelectorHandle.setPort(20888);
                 dubboSelectorHandle.setRegistry("zookeeper://localhost:2181");
                 selectorDTO.setHandle(JsonUtils.toJson(dubboSelectorHandle));
+            } else if (RpcTypeEnum.SPRING_CLOUD.getName().equals(metaDataDTO.getRpcType())) {
+                SpringCloudSelectorHandle cloudSelectorHandle = new SpringCloudSelectorHandle();
+                cloudSelectorHandle.setServiceId(metaDataDTO.getAppName());
+                selectorDTO.setPluginId("8");
+                selectorDTO.setHandle(JsonUtils.toJson(cloudSelectorHandle));
             } else {
+                //is springCloud
                 selectorDTO.setPluginId("5");
             }
-
             SelectorConditionDTO selectorConditionDTO = new SelectorConditionDTO();
             selectorConditionDTO.setParamType(ParamTypeEnum.URI.getName());
             selectorConditionDTO.setParamName("/");
@@ -291,11 +300,15 @@ public class MetaDataServiceImpl implements MetaDataService {
             dubboRuleHandle.setRetries(0);
             dubboRuleHandle.setTimeout(3000);
             ruleDTO.setHandle(JsonUtils.toJson(dubboRuleHandle));
-        } else {
+        } else if (rpcType.equals(RpcTypeEnum.HTTP.getName())) {
             DivideRuleHandle divideRuleHandle = new DivideRuleHandle();
             divideRuleHandle.setLoadBalance(LoadBalanceEnum.RANDOM.getName());
             divideRuleHandle.setRetry(0);
             ruleDTO.setHandle(JsonUtils.toJson(divideRuleHandle));
+        } else {
+            SpringCloudRuleHandle springCloudRuleHandle = new SpringCloudRuleHandle();
+            springCloudRuleHandle.setPath(path);
+            ruleDTO.setHandle(JsonUtils.toJson(springCloudRuleHandle));
         }
         ruleService.register(ruleDTO);
     }

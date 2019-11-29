@@ -198,12 +198,12 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     @Override
-    public SelectorDO findByName(String name) {
+    public SelectorDO findByName(final String name) {
         return selectorMapper.selectByName(name);
     }
 
     @Override
-    public SelectorData buildByName(String name) {
+    public SelectorData buildByName(final String name) {
         SelectorDO selectorDO = selectorMapper.selectByName(name);
         return buildSelectorData(selectorDO);
     }

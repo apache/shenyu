@@ -23,7 +23,7 @@
     <parent>
         <artifactId>soul-test</artifactId>
         <groupId>org.dromara</groupId>
-        <version>1.0.5</version>
+        <version>2.1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -37,6 +37,11 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-client-springcloud</artifactId>
+            <version>2.1.0-RELEASE</version>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.cloud</groupId>

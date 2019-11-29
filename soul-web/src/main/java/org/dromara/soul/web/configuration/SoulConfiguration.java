@@ -239,17 +239,6 @@ public class SoulConfiguration {
     }
 
     /**
-     * Body web filter web filter.
-     *
-     * @return the web filter
-     */
-    @Bean
-    @Order(-1)
-    public WebFilter bodyWebFilter() {
-        return new DubboBodyWebFilter();
-    }
-
-    /**
      * Param web filter web filter.
      *
      * @return the web filter
@@ -267,8 +256,8 @@ public class SoulConfiguration {
      * @return {@linkplain TimeWebFilter}
      */
     @Bean
-    @Order(2)
-    @ConditionalOnProperty(name = "soul.filterTimeEnable", matchIfMissing = true)
+    @Order(3)
+    @ConditionalOnProperty(name = "soul.filterTimeEnable")
     public WebFilter timeWebFilter(final SoulConfig soulConfig) {
         return new TimeWebFilter(soulConfig);
     }
@@ -279,7 +268,7 @@ public class SoulConfiguration {
      * @return the web filter
      */
     @Bean
-    @Order(2)
+    @Order(4)
     public WebFilter webSocketWebFilter() {
         return new WebSocketWebFilter();
     }

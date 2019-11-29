@@ -27,6 +27,13 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
 
+    <select id="selectByName" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from selector
+        where name = #{name,jdbcType=VARCHAR}
+    </select>
+
     <select id="selectByQuery" parameterType="org.dromara.soul.admin.query.SelectorQuery" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>

@@ -174,10 +174,37 @@ public class HttpLongPollSyncCache extends HttpCacheHandler implements CommandLi
         JsonObject jsonObject = GSON.fromJson(json, JsonObject.class);
         JsonObject data = jsonObject.getAsJsonObject("data");
 
+        // plugin
+        JsonObject pluginData = data.getAsJsonObject(ConfigGroupEnum.PLUGIN.name());
+        if (pluginData != null) {
+            ConfigData<PluginData> result = GSON.fromJson(pluginData, new TypeToken<ConfigData<PluginData>>() {
+            }.getType());
+            GROUP_CACHE.put(ConfigGroupEnum.PLUGIN, result);
+            this.flushAllPlugin(result.getData());
+        }
+
+        // rule
+        JsonObject ruleData = data.getAsJsonObject(ConfigGroupEnum.RULE.name());
+        if (ruleData != null) {
+            ConfigData<RuleData> result = GSON.fromJson(ruleData, new TypeToken<ConfigData<RuleData>>() {
+            }.getType());
+            GROUP_CACHE.put(ConfigGroupEnum.RULE, result);
+            this.flushAllRule(result.getData());
+        }
+
+        // selector
+        JsonObject selectorData = data.getAsJsonObject(ConfigGroupEnum.SELECTOR.name());
+        if (selectorData != null) {
+            ConfigData<SelectorData> result = GSON.fromJson(selectorData, new TypeToken<ConfigData<SelectorData>>() {
+            }.getType());
+            GROUP_CACHE.put(ConfigGroupEnum.SELECTOR, result);
+            this.flushAllSelector(result.getData());
+        }
+
         // appAuth
-        JsonObject configData = data.getAsJsonObject(ConfigGroupEnum.APP_AUTH.name());
-        if (configData != null) {
-            ConfigData<AppAuthData> result = GSON.fromJson(configData, new TypeToken<ConfigData<AppAuthData>>() {
+        JsonObject appAuthData = data.getAsJsonObject(ConfigGroupEnum.APP_AUTH.name());
+        if (appAuthData != null) {
+            ConfigData<AppAuthData> result = GSON.fromJson(appAuthData, new TypeToken<ConfigData<AppAuthData>>() {
             }.getType());
             GROUP_CACHE.put(ConfigGroupEnum.APP_AUTH, result);
             this.flushAllAppAuth(result.getData());
@@ -192,32 +219,9 @@ public class HttpLongPollSyncCache extends HttpCacheHandler implements CommandLi
             this.flushMetaData(result.getData());
         }
 
-        // plugin
-        configData = data.getAsJsonObject(ConfigGroupEnum.PLUGIN.name());
-        if (configData != null) {
-            ConfigData<PluginData> result = GSON.fromJson(configData, new TypeToken<ConfigData<PluginData>>() {
-            }.getType());
-            GROUP_CACHE.put(ConfigGroupEnum.PLUGIN, result);
-            this.flushAllPlugin(result.getData());
-        }
 
-        // rule
-        configData = data.getAsJsonObject(ConfigGroupEnum.RULE.name());
-        if (configData != null) {
-            ConfigData<RuleData> result = GSON.fromJson(configData, new TypeToken<ConfigData<RuleData>>() {
-            }.getType());
-            GROUP_CACHE.put(ConfigGroupEnum.RULE, result);
-            this.flushAllRule(result.getData());
-        }
 
-        // selector
-        configData = data.getAsJsonObject(ConfigGroupEnum.SELECTOR.name());
-        if (configData != null) {
-            ConfigData<SelectorData> result = GSON.fromJson(configData, new TypeToken<ConfigData<SelectorData>>() {
-            }.getType());
-            GROUP_CACHE.put(ConfigGroupEnum.SELECTOR, result);
-            this.flushAllSelector(result.getData());
-        }
+
 
     }
 

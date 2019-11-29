@@ -28,7 +28,7 @@ public class DataSyncConfiguration {
      */
     @Configuration
     @ConditionalOnMissingBean(DataChangedListener.class)
-    @ConditionalOnProperty(name = "soul.sync.strategy", havingValue = "http", matchIfMissing = true)
+    @ConditionalOnProperty(name = "soul.sync.strategy", havingValue = "http")
     @Import(HttpLongPollingDataChangedListener.class)
     static class HttpLongPollingListener {
     }
@@ -60,7 +60,7 @@ public class DataSyncConfiguration {
      */
     @Configuration
     @ConditionalOnMissingBean(DataChangedListener.class)
-    @ConditionalOnProperty(name = "soul.sync.strategy", havingValue = "websocket")
+    @ConditionalOnProperty(name = "soul.sync.strategy", havingValue = "websocket", matchIfMissing = true)
     static class WebsocketListener {
 
         /**

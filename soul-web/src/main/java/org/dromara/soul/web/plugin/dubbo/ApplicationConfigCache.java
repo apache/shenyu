@@ -217,9 +217,18 @@ public final class ApplicationConfigCache {
     public void invalidate(final String serviceName) {
         try {
             cache.invalidate(serviceName);
+
         } catch (Exception e) {
             throw new SoulException(e.getCause());
         }
+    }
+
+
+    /**
+     * Invalidate all.
+     */
+    public void invalidateAll(){
+        cache.invalidateAll();
     }
 
 

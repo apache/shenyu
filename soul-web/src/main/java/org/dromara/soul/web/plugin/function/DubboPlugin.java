@@ -20,11 +20,9 @@ package org.dromara.soul.web.plugin.function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
-import org.dromara.soul.common.constant.DubboParamConstants;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.rule.DubboRuleHandle;
-import org.dromara.soul.common.dto.convert.selector.DubboSelectorHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.enums.ResultEnum;
@@ -44,7 +42,6 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import rx.Subscription;
 
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -75,27 +72,25 @@ public class DubboPlugin extends AbstractSoulPlugin {
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
 
-        final Map<String, Object> paramMap = exchange.getAttribute(Constants.DUBBO_PARAMS);
+        final String body = exchange.getAttribute(Constants.DUBBO_PARAMS);
+
+        final RequestDTO requestDTO = exchange.getAttribute(Constants.REQUESTDTO);
+
+        assert requestDTO != null;
 
         final DubboRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), DubboRuleHandle.class);
 
-        final DubboSelectorHandle selectorHandle = GsonUtils.getInstance().fromJson(selector.getHandle(), DubboSelectorHandle.class);
-
         if (StringUtils.isBlank(ruleHandle.getGroupKey())) {
-            ruleHandle.setGroupKey(String.valueOf(Objects.requireNonNull(paramMap).get(DubboParamConstants.INTERFACE_NAME)));
+            ruleHandle.setGroupKey(requestDTO.getModule());
         }
 
         if (StringUtils.isBlank(ruleHandle.getCommandKey())) {
-            ruleHandle.setCommandKey(String.valueOf(Objects.requireNonNull(paramMap).get(DubboParamConstants.METHOD)));
-        }
-
-        if (!checkData(selectorHandle)) {
-            return chain.execute(exchange);
+            ruleHandle.setCommandKey(requestDTO.getMethod());
         }
 
         DubboCommand command =
-                new DubboCommand(HystrixBuilder.build(ruleHandle), paramMap,
-                        exchange, chain, dubboProxyService, selectorHandle, ruleHandle);
+                new DubboCommand(HystrixBuilder.build(ruleHandle), body,
+                        exchange, chain, dubboProxyService, requestDTO.getMetaData(), ruleHandle);
 
         return Mono.create(s -> {
             Subscription sub = command.toObservable().subscribe(s::success,
@@ -148,15 +143,6 @@ public class DubboPlugin extends AbstractSoulPlugin {
     @Override
     public int getOrder() {
         return PluginEnum.DUBBO.getCode();
-    }
-
-    private boolean checkData(final DubboSelectorHandle dubboSelectorHandle) {
-        if (StringUtils.isBlank(dubboSelectorHandle.getRegistry())
-                || StringUtils.isBlank(dubboSelectorHandle.getAppName())) {
-            LogUtils.error(LOGGER, () -> "dubbo handle require param not configuration!");
-            return false;
-        }
-        return true;
     }
 
 }

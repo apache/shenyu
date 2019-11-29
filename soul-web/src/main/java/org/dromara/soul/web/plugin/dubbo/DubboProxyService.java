@@ -21,18 +21,16 @@ package org.dromara.soul.web.plugin.dubbo;
 import com.alibaba.dubbo.config.ApplicationConfig;
 import com.alibaba.dubbo.config.ReferenceConfig;
 import com.alibaba.dubbo.config.RegistryConfig;
-import com.alibaba.dubbo.config.utils.ReferenceConfigCache;
 import com.alibaba.dubbo.rpc.service.GenericException;
 import com.alibaba.dubbo.rpc.service.GenericService;
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.dromara.soul.common.constant.DubboParamConstants;
+import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.dto.convert.rule.DubboRuleHandle;
 import org.dromara.soul.common.dto.convert.selector.DubboSelectorHandle;
 import org.dromara.soul.common.enums.LoadBalanceEnum;
 import org.dromara.soul.common.exception.SoulException;
-import org.dromara.soul.common.utils.LogUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,116 +54,53 @@ public class DubboProxyService {
 
     private static final Map<String, ApplicationConfig> APPLICATION_CONFIG_MAP = Maps.newConcurrentMap();
 
-    private final GenericParamService genericParamService;
+    private final GenericParamResolveService genericParamResolveService;
 
-    public DubboProxyService(final GenericParamService genericParamService) {
-        this.genericParamService = genericParamService;
+    /**
+     * Instantiates a new Dubbo proxy service.
+     *
+     * @param genericParamResolveService the generic param resolve service
+     */
+    public DubboProxyService(final GenericParamResolveService genericParamResolveService) {
+        this.genericParamResolveService = genericParamResolveService;
     }
 
     /**
      * Generic invoker object.
      *
-     * @param paramMap            the param map
-     * @param dubboSelectorHandle the dubbo selector handle
-     * @param dubboRuleHandle     the dubbo rule handle
+     * @param body            the body
+     * @param metaData        the meta data
+     * @param dubboRuleHandle the dubbo rule handle
      * @return the object
      * @throws SoulException the soul exception
      */
-    public Object genericInvoker(final Map<String, Object> paramMap, final DubboSelectorHandle dubboSelectorHandle, final DubboRuleHandle dubboRuleHandle) throws SoulException {
-
-        ReferenceConfig<GenericService> reference = buildReferenceConfig(dubboSelectorHandle, dubboRuleHandle,
-                paramMap.get(DubboParamConstants.INTERFACE_NAME).toString());
-
-        ReferenceConfigCache referenceConfigCache = ReferenceConfigCache.getCache();
-
+    public Object genericInvoker(final String body, final MetaData metaData, final DubboRuleHandle dubboRuleHandle) throws SoulException {
+        ReferenceConfig<GenericService> reference;
         GenericService genericService;
-
         try {
-            genericService = referenceConfigCache.get(reference);
-            if (Objects.isNull(genericService)) {
-                referenceConfigCache.destroy(reference);
-                throw new SoulException("dubbo genericService has exception!");
+            reference = ApplicationConfigCache.getInstance().get(metaData.getServiceName());
+            if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getInterface())) {
+                ApplicationConfigCache.getInstance().invalidate(metaData.getServiceName());
+                reference = ApplicationConfigCache.getInstance().initRef(metaData);
             }
-        } catch (NullPointerException ex) {
-            referenceConfigCache.destroy(reference);
-            LogUtils.error(LOGGER, ex::getMessage);
-            throw new SoulException(ex.getMessage());
+            genericService = reference.get();
+        } catch (Exception ex) {
+            LOGGER.error("dubbo 泛化初始化异常:", ex);
+            ApplicationConfigCache.getInstance().invalidate(metaData.getServiceName());
+            reference = ApplicationConfigCache.getInstance().initRef(metaData);
+            genericService = reference.get();
         }
-
-        // 用Map表示POJO参数，如果返回值为POJO也将自动转成Map
-        final String method = paramMap.get(DubboParamConstants.METHOD).toString();
-
-        final Pair<String[], Object[]> pair = genericParamService.buildParameter(paramMap);
-
         try {
-            // 基本类型以及Date,List,Map等不需要转换，直接调用
-            return genericService.$invoke(method, pair.getLeft(), pair.getRight());
+            if ("".equals(body) || "{}".equals(body) || "null".equals(body)) {
+                return genericService.$invoke(metaData.getMethodName(), new String[]{}, new Object[]{});
+            } else {
+                Pair<String[], Object[]> pair = genericParamResolveService.buildParameter(body, metaData.getParameterTypes());
+                return genericService.$invoke(metaData.getMethodName(), pair.getLeft(), pair.getRight());
+            }
         } catch (GenericException e) {
-            LogUtils.error(LOGGER, e::getExceptionMessage);
+            LOGGER.error("dubbo 泛化调用异常", e);
             throw new SoulException(e.getMessage());
         }
-    }
-
-    private ReferenceConfig<GenericService> buildReferenceConfig(final DubboSelectorHandle dubboSelectorHandle, final DubboRuleHandle dubboRuleHandle, final String interfaceName) {
-
-        ReferenceConfig<GenericService> reference = new ReferenceConfig<>();
-
-        reference.setGeneric(true);
-
-        final ApplicationConfig applicationConfig = cacheApplication(dubboSelectorHandle.getAppName());
-
-        reference.setApplication(applicationConfig);
-
-        reference.setRegistry(cacheRegistry(dubboSelectorHandle.getAppName(), dubboSelectorHandle.getRegistry()));
-
-        reference.setInterface(interfaceName);
-
-        if (StringUtils.isNoneBlank(dubboSelectorHandle.getProtocol())) {
-            reference.setProtocol(dubboSelectorHandle.getProtocol());
-        }
-
-        if (StringUtils.isNoneBlank(dubboRuleHandle.getVersion())) {
-            reference.setVersion(dubboRuleHandle.getVersion());
-        }
-
-        if (StringUtils.isNoneBlank(dubboRuleHandle.getGroup())) {
-            reference.setGroup(dubboRuleHandle.getGroup());
-        }
-
-        if (StringUtils.isNoneBlank(dubboRuleHandle.getLoadBalance())) {
-            final String loadBalance = dubboRuleHandle.getLoadBalance();
-            if (LoadBalanceEnum.HASH.getName().equals(loadBalance)) {
-                reference.setLoadbalance("consistenthash");
-            } else if (LoadBalanceEnum.ROUND_ROBIN.getName().equals(loadBalance)) {
-                reference.setLoadbalance("roundrobin");
-            } else {
-                reference.setLoadbalance(loadBalance);
-            }
-        }
-
-        Optional.of(dubboRuleHandle.getTimeout()).ifPresent(time -> reference.setTimeout(time.intValue()));
-
-        Optional.ofNullable(dubboRuleHandle.getRetries()).ifPresent(reference::setRetries);
-
-        return reference;
-    }
-
-    private ApplicationConfig cacheApplication(final String appName) {
-        ApplicationConfig applicationConfig = APPLICATION_CONFIG_MAP.get(appName);
-        if (Objects.isNull(applicationConfig)) {
-            applicationConfig = new ApplicationConfig(appName);
-            APPLICATION_CONFIG_MAP.put(appName, applicationConfig);
-        }
-        return applicationConfig;
-    }
-
-    private RegistryConfig cacheRegistry(final String appName, final String registry) {
-        RegistryConfig registryConfig = REGISTRY_CONFIG_MAP.get(appName);
-        if (Objects.isNull(registryConfig)) {
-            registryConfig = new RegistryConfig(registry);
-            REGISTRY_CONFIG_MAP.put(appName, registryConfig);
-        }
-        return registryConfig;
     }
 
 }

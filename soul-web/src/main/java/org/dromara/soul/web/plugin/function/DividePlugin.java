@@ -30,7 +30,6 @@ import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
-import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.web.balance.utils.LoadBalanceUtils;
 import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.cache.UpstreamCacheManager;
@@ -115,10 +114,10 @@ public class DividePlugin extends AbstractSoulPlugin {
                     s::error, s::success);
             s.onCancel(sub::unsubscribe);
             if (command.isCircuitBreakerOpen()) {
-                LogUtils.error(LOGGER, () -> ruleHandle.getGroupKey() + "....http:circuitBreaker is Open.... !");
+                LOGGER.error("http execute 过程中发生了熔断 circuitBreaker is Open! 组key为:{}", ruleHandle.getGroupKey());
             }
         }).doOnError(throwable -> {
-            throwable.printStackTrace();
+            LOGGER.error("http 调用异常:", throwable);
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE,
                     ResultEnum.ERROR.getName());
             chain.execute(exchange);

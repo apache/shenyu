@@ -1,5 +1,5 @@
 server:
-  port: 9001
+  port: 9195
   address: 0.0.0.0
 
 spring:
@@ -9,18 +9,16 @@ spring:
     name: soul-bootstrap
 
 soul :
-    filterTimeEnable : false
-    filterTime : 10
     sync:
         strategy: http
 #        websocket :
-#             url: ws://localhost:8887/websocket
+#             url: ws://localhost:9095/websocket
 #        zookeeper:
 #             url: localhost:2181
 #             sessionTimeout: 5000
 #             connectionTimeout: 2000
         http:
-             url : http://localhost:8887
+             url : http://localhost:9095
 
 
 eureka:
@@ -29,7 +27,7 @@ eureka:
     leaseExpirationDurationInSeconds: 30
   client:
     serviceUrl:
-      defaultZone: http://eureka.didispace.com/eureka/
+      defaultZone: http://localhost:8761/eureka/
 
 
 logging:
@@ -38,7 +36,7 @@ logging:
         org.springframework.boot: info
         org.apache.ibatis: info
         org.dromara.soul.bonuspoint: info
-        org.dromara.soul.lottery: debug
-        org.dromara.soul: debug
+        org.dromara.soul.lottery: info
+        org.dromara.soul: info
 
     path: "./logs/web"

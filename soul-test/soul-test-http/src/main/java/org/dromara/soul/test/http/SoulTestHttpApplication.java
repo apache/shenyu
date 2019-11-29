@@ -18,18 +18,23 @@
 
 package org.dromara.soul.test.http;
 
+import org.dromara.soul.client.springmvc.configuration.SoulSpringMvcAutoConfiguration;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
  * SoulTestHttpApplication.
+ *
  * @author xiaoyu
  */
 @SpringBootApplication
+@ImportAutoConfiguration(SoulSpringMvcAutoConfiguration.class)
 public class SoulTestHttpApplication {
 
     /**
-     *  main.
+     * main.
+     *
      * @param args args
      */
     public static void main(final String[] args) {

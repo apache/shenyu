@@ -19,6 +19,7 @@ package org.dromara.soul.web.filter;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
+import org.dromara.soul.web.request.RequestDTO;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -31,6 +32,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * The type Body web filter.
@@ -48,15 +50,14 @@ public class DubboBodyWebFilter implements WebFilter {
     @Override
     public Mono<Void> filter(final ServerWebExchange exchange, final WebFilterChain chain) {
         final ServerHttpRequest request = exchange.getRequest();
-        final String rpcType = request.getHeaders().getFirst(Constants.RPC_TYPE);
-        if (RpcTypeEnum.DUBBO.getName().equals(rpcType)) {
+        final RequestDTO requestDTO = exchange.getAttribute(Constants.REQUESTDTO);
+        if (Objects.nonNull(requestDTO) && RpcTypeEnum.DUBBO.getName().equals(requestDTO.getRpcType())) {
             MediaType mediaType = request.getHeaders().getContentType();
             ServerRequest serverRequest = ServerRequest.create(exchange, messageReaders);
             return serverRequest.bodyToMono(String.class)
                     .flatMap(body -> {
                         if (MediaType.APPLICATION_JSON.isCompatibleWith(mediaType)) {
-                            final Map<String, Object> paramMap = GsonUtils.getInstance().toObjectMap(body);
-                            exchange.getAttributes().put(Constants.DUBBO_PARAMS, paramMap);
+                            exchange.getAttributes().put(Constants.DUBBO_PARAMS, body);
                         }
                         return chain.filter(exchange);
                     });

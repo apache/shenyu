@@ -18,19 +18,14 @@
 
 package org.dromara.soul.web.cache;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.common.concurrent.SoulThreadFactory;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.utils.GsonUtils;
-import org.dromara.soul.common.utils.LogUtils;
-import org.dromara.soul.common.utils.UrlUtils;
-import org.dromara.soul.web.config.SoulConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -39,7 +34,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -57,17 +51,6 @@ public class UpstreamCacheManager {
 
     private static final Map<String, List<DivideUpstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
 
-    private static final Map<String, List<DivideUpstream>> SCHEDULED_MAP = Maps.newConcurrentMap();
-
-    private static final Integer DELAY_INIT = 30;
-
-    private final SoulConfig soulConfig;
-
-    @Autowired(required = false)
-    public UpstreamCacheManager(final SoulConfig soulConfig) {
-        this.soulConfig = soulConfig;
-    }
-
     /**
      * Find upstream list by selector id list.
      *
@@ -84,7 +67,6 @@ public class UpstreamCacheManager {
      * @param key the key
      */
     static void removeByKey(final String key) {
-        SCHEDULED_MAP.remove(key);
         UPSTREAM_MAP.remove(key);
     }
 
@@ -98,11 +80,6 @@ public class UpstreamCacheManager {
                 new LinkedBlockingQueue<>(),
                 SoulThreadFactory.create("save-upstream-task", false))
                 .execute(new Worker());
-        new ScheduledThreadPoolExecutor(1,
-                SoulThreadFactory.create("scheduled-upstream-task", false))
-                .scheduleWithFixedDelay(this::scheduled,
-                        DELAY_INIT, soulConfig.getUpstreamScheduledTime(),
-                        TimeUnit.SECONDS);
     }
 
     /**
@@ -118,12 +95,10 @@ public class UpstreamCacheManager {
         }
     }
 
-
     /**
      * Clear.
      */
     static void clear() {
-        SCHEDULED_MAP.clear();
         UPSTREAM_MAP.clear();
     }
 
@@ -137,28 +112,10 @@ public class UpstreamCacheManager {
         final List<DivideUpstream> upstreamList =
                 GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream.class);
         if (CollectionUtils.isNotEmpty(upstreamList)) {
-            SCHEDULED_MAP.put(selectorData.getId(), upstreamList);
-            UPSTREAM_MAP.put(selectorData.getId(), check(upstreamList));
+            UPSTREAM_MAP.put(selectorData.getId(), upstreamList);
+        } else {
+            UPSTREAM_MAP.remove(selectorData.getId());
         }
-    }
-
-    private void scheduled() {
-        if (SCHEDULED_MAP.size() > 0) {
-            SCHEDULED_MAP.forEach((k, v) -> UPSTREAM_MAP.put(k, check(v)));
-        }
-    }
-
-    private List<DivideUpstream> check(final List<DivideUpstream> upstreamList) {
-        List<DivideUpstream> resultList = Lists.newArrayListWithCapacity(upstreamList.size());
-        for (DivideUpstream divideUpstream : upstreamList) {
-            final boolean pass = UrlUtils.checkUrl(divideUpstream.getUpstreamUrl());
-            if (pass) {
-                resultList.add(divideUpstream);
-            } else {
-                LogUtils.error(LOGGER, "check the url={} is fail ", divideUpstream::getUpstreamUrl);
-            }
-        }
-        return resultList;
     }
 
     /**

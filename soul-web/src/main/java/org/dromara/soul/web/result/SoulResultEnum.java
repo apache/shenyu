@@ -96,7 +96,17 @@ public enum SoulResultEnum {
     /**
      * Cannot find selector soul result enum.
      */
-    CANNOT_FIND_SELECTOR(-107, "未能匹配选择器,请检查你的选择器配置！");
+    CANNOT_FIND_SELECTOR(-107, "未能匹配选择器,请检查你的选择器配置！"),
+
+    /**
+     * The Cannot config springcloud serviceid.
+     */
+    CANNOT_CONFIG_SPRINGCLOUD_SERVICEID(-108, "您并未配置或未匹配springcloud serviceId"),
+
+    /**
+     * The Springcloud serviceid is error.
+     */
+    SPRINGCLOUD_SERVICEID_IS_ERROR(-109, "springCloud serviceId 不存在或者配置错误！或者注册中心配置错误! ");
 
     private final int code;
 

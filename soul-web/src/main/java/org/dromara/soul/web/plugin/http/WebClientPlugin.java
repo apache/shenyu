@@ -104,8 +104,10 @@ public class WebClientPlugin implements SoulPlugin {
 
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
-        final RequestDTO body = exchange.getAttribute(Constants.REQUESTDTO);
-        return !Objects.equals(Objects.requireNonNull(body).getRpcType(), RpcTypeEnum.HTTP.getName());
+        final RequestDTO requestDTO = exchange.getAttribute(Constants.REQUESTDTO);
+        assert requestDTO != null;
+        return !Objects.equals(RpcTypeEnum.HTTP.getName(), requestDTO.getRpcType())
+                && !Objects.equals(RpcTypeEnum.SPRING_CLOUD.getName(), requestDTO.getRpcType());
     }
 
     private MediaType buildMediaType(final ServerWebExchange exchange) {

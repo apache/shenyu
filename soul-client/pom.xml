@@ -2,18 +2,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <parent>
-        <artifactId>soul</artifactId>
-        <groupId>org.dromara</groupId>
-        <version>2.0.1-SNAPSHOT</version>
-    </parent>
     <modelVersion>4.0.0</modelVersion>
+    <groupId>org.dromara</groupId>
+    <version>2.1.0-RELEASE</version>
     <artifactId>soul-client</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>soul-client-dubbo</module>
+        <module>soul-client-apache-dubbo</module>
+        <module>soul-client-alibaba-dubbo</module>
         <module>soul-client-springmvc</module>
         <module>soul-client-common</module>
+        <module>soul-client-springcloud</module>
     </modules>
 
     <dependencyManagement>
@@ -28,19 +27,25 @@
 
             <dependency>
                 <groupId>org.dromara</groupId>
-                <artifactId>soul-client-param</artifactId>
-                <version>1.0.5</version>
+                <artifactId>soul-client-apache-dubbo</artifactId>
+                <version>${project.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>org.dromara</groupId>
-                <artifactId>soul-client-dubbo</artifactId>
+                <artifactId>soul-client-alibaba-dubbo</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>org.dromara</groupId>
                 <artifactId>soul-client-springmvc</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>soul-client-springcloud</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

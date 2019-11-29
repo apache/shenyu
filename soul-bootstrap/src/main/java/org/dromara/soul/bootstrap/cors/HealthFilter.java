@@ -27,7 +27,7 @@ import java.util.Objects;
 @Order(-99)
 public final class HealthFilter implements WebFilter {
 
-    private static final String FILTER_TAG = "/actuator/health";
+    private static final String[] FILTER_TAG = {"/actuator/health", "/health_check"};
 
     private final HealthEndpoint healthEndpoint;
 
@@ -40,11 +40,13 @@ public final class HealthFilter implements WebFilter {
     public Mono<Void> filter(@Nullable final ServerWebExchange exchange, @Nullable final WebFilterChain chain) {
         ServerHttpRequest request = Objects.requireNonNull(exchange).getRequest();
         String urlPath = request.getURI().getPath();
-        if (FILTER_TAG.equals(urlPath)) {
-            Health health = healthEndpoint.health();
-            String result = Objects.requireNonNull(JsonUtils.toJson(health));
-            DataBuffer dataBuffer = exchange.getResponse().bufferFactory().wrap(result.getBytes());
-            return exchange.getResponse().writeWith(Mono.just(dataBuffer));
+        for (String check : FILTER_TAG) {
+            if (check.equals(urlPath)) {
+                Health health = healthEndpoint.health();
+                String result = Objects.requireNonNull(JsonUtils.toJson(health));
+                DataBuffer dataBuffer = exchange.getResponse().bufferFactory().wrap(result.getBytes());
+                return exchange.getResponse().writeWith(Mono.just(dataBuffer));
+            }
         }
         return Objects.requireNonNull(chain).filter(exchange);
     }
