@@ -19,7 +19,8 @@
 package org.dromara.soul.web.balance.utils;
 
 import org.dromara.soul.common.dto.convert.DivideUpstream;
-import org.dromara.soul.web.balance.factory.LoadBalanceFactory;
+import org.dromara.soul.common.extension.ExtensionLoader;
+import org.dromara.soul.web.balance.LoadBalance;
 
 import java.util.List;
 
@@ -34,12 +35,13 @@ public class LoadBalanceUtils {
      * Selector divide upstream.
      *
      * @param upstreamList the upstream list
-     * @param rule         the rule
+     * @param algorithm    the loadBalance algorithm
      * @param ip           the ip
      * @return the divide upstream
      */
-    public static DivideUpstream selector(final List<DivideUpstream> upstreamList, final String rule, final String ip) {
-        return LoadBalanceFactory.of(rule).select(upstreamList, ip);
+    public static DivideUpstream selector(final List<DivideUpstream> upstreamList, final String algorithm, final String ip) {
+        LoadBalance loadBalance = ExtensionLoader.getExtensionLoader(LoadBalance.class).getJoin(algorithm);
+        return loadBalance.select(upstreamList, ip);
     }
 
 }

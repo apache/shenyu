@@ -19,7 +19,7 @@
 package org.dromara.soul.web.balance.spi;
 
 import org.dromara.soul.common.dto.convert.DivideUpstream;
-import org.dromara.soul.common.enums.LoadBalanceEnum;
+import org.dromara.soul.common.extension.Join;
 
 import java.util.List;
 import java.util.Random;
@@ -29,6 +29,7 @@ import java.util.Random;
  *
  * @author xiaoyu(Myth)
  */
+@Join
 public class RandomLoadBalance extends AbstractLoadBalance {
 
     private static final Random RANDOM = new Random();
@@ -64,15 +65,5 @@ public class RandomLoadBalance extends AbstractLoadBalance {
         }
         // 如果权重相同或权重为0则均等随机
         return upstreamList.get(RANDOM.nextInt(length));
-    }
-
-    /**
-     * get algorithm name.
-     *
-     * @return this is algorithm name.
-     */
-    @Override
-    public String algorithm() {
-        return LoadBalanceEnum.RANDOM.getName();
     }
 }

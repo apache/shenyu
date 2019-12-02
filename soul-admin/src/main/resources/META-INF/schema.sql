@@ -16,8 +16,7 @@ CREATE DATABASE /*!32312 IF NOT EXISTS*/`soul` /*!40100 DEFAULT CHARACTER SET ut
 
 USE `soul`;
 
-DROP TABLE IF EXISTS `app_auth`;
-CREATE TABLE `app_auth`  (
+CREATE TABLE IF NOT EXISTS `app_auth`  (
   `id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '主键id',
   `app_key` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '应用标识key',
   `app_secret` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '加密算法secret',
@@ -30,8 +29,7 @@ CREATE TABLE `app_auth`  (
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
-DROP TABLE IF EXISTS `auth_param`;
-CREATE TABLE `auth_param`  (
+CREATE TABLE IF NOT EXISTS `auth_param`  (
   `id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '主键id',
   `auth_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '认证表id',
   `app_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '业务模块',
@@ -44,8 +42,7 @@ CREATE TABLE `auth_param`  (
 -- ----------------------------
 -- Table structure for auth_path
 -- ----------------------------
-DROP TABLE IF EXISTS `auth_path`;
-CREATE TABLE `auth_path`  (
+CREATE TABLE IF NOT EXISTS `auth_path`  (
   `id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '主键id',
   `auth_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'auth表id',
   `app_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '模块',

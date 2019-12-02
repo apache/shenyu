@@ -17,40 +17,35 @@
  *
  */
 
-package org.dromara.soul.web.result;
+package org.dromara.soul.web.support;
 
 import org.dromara.soul.web.spring.SpringBeanUtils;
+import org.springframework.web.server.ServerWebExchange;
 
 /**
- * The type Soul result warp.
+ * The type Host address utils.
  *
  * @author xiaoyu
  */
-public final class SoulResultWarp {
+public class HostAddressUtils {
 
     /**
-     * Success object.
+     * Acquire host string.
      *
-     * @param code    the code
-     * @param message the message
-     * @param object  the object
-     * @return the object
+     * @param exchange the exchange
+     * @return the string
      */
-    public static Object success(final int code, final String message, final Object object) {
-        SoulResult soulResult = SpringBeanUtils.getInstance().getBean(SoulResult.class);
-        return soulResult.success(code, message, object);
+    public static String acquireHost(final ServerWebExchange exchange) {
+        return SpringBeanUtils.getInstance().getBean(RemoteAddressResolver.class).resolve(exchange).getHostString();
     }
 
     /**
-     * Error object.
+     * Acquire ip string.
      *
-     * @param code    the code
-     * @param message the message
-     * @param object  the object
-     * @return the object
+     * @param exchange the exchange
+     * @return the string
      */
-    public static Object error(final int code, final String message, final Object object) {
-        SoulResult soulResult = SpringBeanUtils.getInstance().getBean(SoulResult.class);
-        return soulResult.error(code, message, object);
+    public static String acquireIp(final ServerWebExchange exchange) {
+        return SpringBeanUtils.getInstance().getBean(RemoteAddressResolver.class).resolve(exchange).getAddress().getHostAddress();
     }
 }

@@ -17,7 +17,7 @@
  *
  */
 
-package org.dromara.soul.web.result;
+package org.dromara.soul.web.spring;
 
 import org.springframework.context.ConfigurableApplicationContext;
 
@@ -54,7 +54,7 @@ public final class SpringBeanUtils {
      * @param <T>  class
      * @return bean
      */
-    <T> T getBean(final Class<T> type) {
+    public <T> T getBean(final Class<T> type) {
         return cfgContext.getBean(type);
     }
 

@@ -21,6 +21,7 @@ package org.dromara.soul.admin.service.sync;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.admin.listener.DataChangedEvent;
 import org.dromara.soul.admin.service.AppAuthService;
+import org.dromara.soul.admin.service.MetaDataService;
 import org.dromara.soul.admin.service.PluginService;
 import org.dromara.soul.admin.service.RuleService;
 import org.dromara.soul.admin.service.SelectorService;
@@ -50,6 +51,8 @@ public class SyncDataServiceImpl implements SyncDataService {
 
     private final AppAuthService appAuthService;
 
+    private final MetaDataService metaDataService;
+
     /**
      * The Plugin service.
      */
@@ -75,42 +78,37 @@ public class SyncDataServiceImpl implements SyncDataService {
      * @param selectorService the selector service
      * @param ruleService     the rule service
      * @param eventPublisher  the event publisher
+     * @param metaDataService the meta data service
      */
     @Autowired
     public SyncDataServiceImpl(final AppAuthService appAuthService,
                                final PluginService pluginService,
                                final SelectorService selectorService,
                                final RuleService ruleService,
-                               final ApplicationEventPublisher eventPublisher) {
+                               final ApplicationEventPublisher eventPublisher,
+                               final MetaDataService metaDataService) {
         this.appAuthService = appAuthService;
         this.pluginService = pluginService;
         this.selectorService = selectorService;
         this.ruleService = ruleService;
         this.eventPublisher = eventPublisher;
+        this.metaDataService = metaDataService;
     }
 
     @Override
-    public boolean syncAll(DataEventTypeEnum type) {
-        List<AppAuthData> authDataList = appAuthService.listAll();
+    public boolean syncAll(final DataEventTypeEnum type) {
+        appAuthService.syncData();
 
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH,
-                type, authDataList));
+        metaDataService.syncData();
 
         List<PluginData> pluginDataList = pluginService.listAll();
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN,
-                type,
-                pluginDataList));
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, type, pluginDataList));
 
         List<SelectorData> selectorDataList = selectorService.listAll();
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR,
-                type,
-                selectorDataList));
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, type, selectorDataList));
 
         List<RuleData> ruleDataList = ruleService.listAll();
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE,
-                type,
-                ruleDataList));
-
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, type, ruleDataList));
         return true;
     }
 

@@ -10,9 +10,9 @@ spring:
 
 soul :
     sync:
-        strategy: http
-#        websocket :
-#             url: ws://localhost:9095/websocket
+        strategy: websocket
+        websocket :
+             url: ws://localhost:9095/websocket
 #        zookeeper:
 #             url: localhost:2181
 #             sessionTimeout: 5000
@@ -21,13 +21,13 @@ soul :
              url : http://localhost:9095
 
 
-eureka:
-  instance:
-    leaseRenewalIntervalInSeconds: 10
-    leaseExpirationDurationInSeconds: 30
-  client:
-    serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
+#eureka:
+#  instance:
+#    leaseRenewalIntervalInSeconds: 10
+#    leaseExpirationDurationInSeconds: 30
+#  client:
+#    serviceUrl:
+#      defaultZone: http://localhost:8761/eureka/
 
 
 logging:

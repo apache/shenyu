@@ -20,6 +20,7 @@ package org.dromara.soul.web.balance.spi;
 
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.enums.LoadBalanceEnum;
+import org.dromara.soul.common.extension.Join;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,6 +33,7 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * @author xiaoyu
  */
+@Join
 public class RoundRobinLoadBalance extends AbstractLoadBalance {
 
     private final int recyclePeriod = 60000;
@@ -93,11 +95,6 @@ public class RoundRobinLoadBalance extends AbstractLoadBalance {
         }
         // should not happen here
         return upstreamList.get(0);
-    }
-
-    @Override
-    public String algorithm() {
-        return LoadBalanceEnum.ROUND_ROBIN.getName();
     }
 
     /**
