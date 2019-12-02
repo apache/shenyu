@@ -148,6 +148,16 @@ public interface Constants {
     String SIGN_APP_KEY_IS_NOT_EXIST = "认证签名APP_KEY,不存在";
 
     /**
+     * The constant SIGN_PATH_NOT_EXIST.
+     */
+    String SIGN_PATH_NOT_EXIST = "认证Key未配置路径获取未匹配";
+
+    /**
+     * The constant SIGN_VALUE_IS_ERROR.
+     */
+    String SIGN_VALUE_IS_ERROR = "签名值错误！";
+
+    /**
      * The constant TIMESTAMP.
      */
     String TIMESTAMP = "timestamp";

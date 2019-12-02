@@ -181,7 +181,6 @@ class WebsocketCacheHandler extends CommonCacheHandler {
                 case REFRESH:
                 case MYSELF:
                     initDubboRef(metaDataList);
-                    META_DATA.clear();
                     metaDataList.forEach(e -> META_DATA.put(e.getPath(), e));
                     break;
                 case DELETE:

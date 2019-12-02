@@ -19,6 +19,7 @@
 package org.dromara.soul.web.condition.strategy;
 
 import org.dromara.soul.common.dto.ConditionData;
+import org.dromara.soul.common.extension.SPI;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.util.List;
@@ -28,6 +29,7 @@ import java.util.List;
  *
  * @author xiaoyu(Myth)
  */
+@SPI
 public interface MatchStrategy {
 
     /**

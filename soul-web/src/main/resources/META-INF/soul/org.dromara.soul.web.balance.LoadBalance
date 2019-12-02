@@ -1,0 +1,3 @@
+random=org.dromara.soul.web.balance.spi.RandomLoadBalance
+roundRobin=org.dromara.soul.web.balance.spi.RoundRobinLoadBalance
+hash=org.dromara.soul.web.balance.spi.HashLoadBalance

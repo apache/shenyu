@@ -21,12 +21,9 @@ package org.dromara.soul.web.configuration;
 
 import org.dromara.soul.web.result.SoulDefaultResult;
 import org.dromara.soul.web.result.SoulResult;
-import org.dromara.soul.web.result.SpringBeanUtils;
-import org.springframework.beans.BeansException;
+import org.dromara.soul.web.support.RemoteAddressResolver;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.boot.autoconfigure.condition.SearchStrategy;
 import org.springframework.context.annotation.Bean;
 
 /**
@@ -34,17 +31,7 @@ import org.springframework.context.annotation.Bean;
  *
  * @author xiaoyu
  */
-public class SoulResultConfiguration {
-
-    /**
-     * Application context aware application context aware.
-     *
-     * @return the application context aware
-     */
-    @Bean
-    public ApplicationContextAware applicationContextAware() {
-        return new SoulApplicationContextAware();
-    }
+public class SoulExtConfiguration {
 
     /**
      * Soul result soul result.
@@ -52,18 +39,23 @@ public class SoulResultConfiguration {
      * @return the soul result
      */
     @Bean
-    @ConditionalOnMissingBean(SoulResult.class)
+    @ConditionalOnMissingBean(value = SoulResult.class, search = SearchStrategy.ALL)
     public SoulResult soulResult() {
         return new SoulDefaultResult();
     }
 
+
     /**
-     * The type Soul application context aware.
+     * Remote address resolver remote address resolver.
+     *
+     * @return the remote address resolver
      */
-    public static class SoulApplicationContextAware implements ApplicationContextAware {
-        @Override
-        public void setApplicationContext(final ApplicationContext applicationContext) throws BeansException {
-            SpringBeanUtils.getInstance().setCfgContext((ConfigurableApplicationContext) applicationContext);
-        }
+    @Bean
+    @ConditionalOnMissingBean(value = RemoteAddressResolver.class, search = SearchStrategy.ALL)
+    public RemoteAddressResolver remoteAddressResolver() {
+        return new RemoteAddressResolver() {
+        };
     }
+
+
 }

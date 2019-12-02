@@ -19,6 +19,7 @@
 package org.dromara.soul.web.condition.strategy;
 
 import org.dromara.soul.common.dto.ConditionData;
+import org.dromara.soul.common.extension.Join;
 import org.dromara.soul.web.condition.judge.OperatorJudgeFactory;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -29,6 +30,7 @@ import java.util.List;
  *
  * @author xiaoyu(Myth)
  */
+@Join
 public class AndMatchStrategy extends AbstractMatchStrategy implements MatchStrategy {
 
     @Override

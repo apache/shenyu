@@ -18,32 +18,31 @@
 
 package org.dromara.soul.web.condition.strategy;
 
-import com.google.common.collect.Maps;
+import org.dromara.soul.common.dto.ConditionData;
 import org.dromara.soul.common.enums.MatchModeEnum;
+import org.dromara.soul.common.extension.ExtensionLoader;
+import org.springframework.web.server.ServerWebExchange;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * MatchStrategyFactory.
  *
  * @author xiaoyu(Myth)
  */
-public class MatchStrategyFactory {
-
-    private static final Map<Integer, MatchStrategy> MATCH_STRATEGY_MAP = Maps.newHashMapWithExpectedSize(2);
-
-    static {
-        MATCH_STRATEGY_MAP.put(MatchModeEnum.AND.getCode(), new AndMatchStrategy());
-        MATCH_STRATEGY_MAP.put(MatchModeEnum.OR.getCode(), new OrMatchStrategy());
-    }
+public class MatchStrategyUtils {
 
     /**
-     * this factory of MatchStrategy.
+     * Match boolean.
      *
-     * @param strategy which is strategy
-     * @return {@linkplain MatchStrategy}
+     * @param strategy          the strategy
+     * @param conditionDataList the condition data list
+     * @param exchange          the exchange
+     * @return the boolean
      */
-    public static MatchStrategy of(final Integer strategy) {
-        return MATCH_STRATEGY_MAP.get(strategy);
+    public static boolean match(final Integer strategy, final List<ConditionData> conditionDataList, final ServerWebExchange exchange) {
+        String matchMode = MatchModeEnum.getMatchModeByCode(strategy);
+        MatchStrategy matchStrategy = ExtensionLoader.getExtensionLoader(MatchStrategy.class).getJoin(matchMode);
+        return matchStrategy.match(conditionDataList, exchange);
     }
 }

@@ -23,8 +23,9 @@ import org.dromara.soul.web.cache.UpstreamCacheManager;
 import org.dromara.soul.web.config.HttpClientProperties;
 import org.dromara.soul.web.config.SoulConfig;
 import org.dromara.soul.web.disruptor.publisher.SoulEventPublisher;
-import org.dromara.soul.web.filter.DubboBodyWebFilter;
+import org.dromara.soul.web.filter.DefaultParamService;
 import org.dromara.soul.web.filter.FileSizeFilter;
+import org.dromara.soul.web.filter.ParamService;
 import org.dromara.soul.web.filter.ParamWebFilter;
 import org.dromara.soul.web.filter.TimeWebFilter;
 import org.dromara.soul.web.filter.WebSocketWebFilter;
@@ -32,8 +33,10 @@ import org.dromara.soul.web.handler.SoulWebHandler;
 import org.dromara.soul.web.influxdb.service.InfluxDbService;
 import org.dromara.soul.web.plugin.SoulPlugin;
 import org.dromara.soul.web.plugin.after.MonitorPlugin;
+import org.dromara.soul.web.plugin.before.DefaultSignService;
 import org.dromara.soul.web.plugin.before.GlobalPlugin;
 import org.dromara.soul.web.plugin.before.SignPlugin;
+import org.dromara.soul.web.plugin.before.SignService;
 import org.dromara.soul.web.plugin.before.WafPlugin;
 import org.dromara.soul.web.plugin.function.DividePlugin;
 import org.dromara.soul.web.plugin.function.RateLimiterPlugin;
@@ -67,7 +70,7 @@ import java.util.stream.Collectors;
 @Configuration
 @ComponentScan("org.dromara.soul")
 @Import(value = {DubboConfiguration.class, LocalCacheConfiguration.class, ErrorHandlerConfiguration.class,
-        SoulResultConfiguration.class, HttpClientConfiguration.class})
+        SoulExtConfiguration.class, HttpClientConfiguration.class, SpringExtConfiguration.class})
 @EnableConfigurationProperties({HttpClientProperties.class})
 public class SoulConfiguration {
 
@@ -102,12 +105,23 @@ public class SoulConfiguration {
     /**
      * init sign plugin.
      *
+     * @param signService the sign service
      * @return {@linkplain SignPlugin}
      */
     @Bean
-    @ConditionalOnMissingBean(SignPlugin.class)
-    public SoulPlugin signPlugin() {
-        return new SignPlugin(localCacheManager);
+    public SoulPlugin signPlugin(final SignService signService) {
+        return new SignPlugin(signService);
+    }
+
+    /**
+     * Sign service sign service.
+     *
+     * @return the sign service
+     */
+    @Bean
+    @ConditionalOnMissingBean(SignService.class)
+    public SignService signService() {
+        return new DefaultSignService(localCacheManager);
     }
 
     /**
@@ -241,12 +255,24 @@ public class SoulConfiguration {
     /**
      * Param web filter web filter.
      *
+     * @param paramService the param service
      * @return the web filter
      */
     @Bean
     @Order(1)
-    public WebFilter paramWebFilter() {
-        return new ParamWebFilter();
+    public WebFilter paramWebFilter(final ParamService paramService) {
+        return new ParamWebFilter(paramService);
+    }
+
+    /**
+     * Param service param service.
+     *
+     * @return the param service
+     */
+    @Bean
+    @ConditionalOnMissingBean(ParamService.class)
+    public ParamService paramService() {
+        return new DefaultParamService();
     }
 
     /**

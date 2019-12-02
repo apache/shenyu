@@ -104,11 +104,12 @@ public class DividePlugin extends AbstractSoulPlugin {
         }
         //设置一下 http url
         String domain = buildDomain(divideUpstream);
-        String realURL = buildRealURL(domain, requestDTO, exchange.getRequest().getURI().getQuery());
+        String realURL = buildRealURL(domain, requestDTO, exchange);
         exchange.getAttributes().put(Constants.HTTP_URL, realURL);
         //设置下超时时间
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
         HttpCommand command = new HttpCommand(HystrixBuilder.build(ruleHandle), exchange, chain);
+
         return Mono.create(s -> {
             Subscription sub = command.toObservable().subscribe(s::success,
                     s::error, s::success);
@@ -163,13 +164,19 @@ public class DividePlugin extends AbstractSoulPlugin {
         return protocol + divideUpstream.getUpstreamUrl().trim();
     }
 
-    private String buildRealURL(final String domain, final RequestDTO requestDTO, final String query) {
+    private String buildRealURL(final String domain, final RequestDTO requestDTO, final ServerWebExchange exchange) {
         String path = domain;
-        final String realUrl = requestDTO.getRealUrl();
-        if (StringUtils.isNoneBlank(realUrl)) {
-            path = path + realUrl;
+        final String rewriteURI = (String) exchange.getAttributes().get(Constants.REWRITE_URI);
+        if (StringUtils.isNoneBlank(rewriteURI)) {
+            path = path + rewriteURI;
+        } else {
+            final String realUrl = requestDTO.getRealUrl();
+            if (StringUtils.isNoneBlank(realUrl)) {
+                path = path + realUrl;
+            }
         }
         if (requestDTO.getHttpMethod().equals(HttpMethod.GET.name())) {
+            String query = exchange.getRequest().getURI().getQuery();
             if (StringUtils.isNoneBlank(query)) {
                 return path + "?" + query;
             }

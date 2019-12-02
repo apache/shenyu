@@ -21,9 +21,11 @@ package org.dromara.soul.web.balance.spi;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.enums.LoadBalanceEnum;
 import org.dromara.soul.common.exception.SoulException;
+import org.dromara.soul.common.extension.Join;
 import org.dromara.soul.web.balance.LoadBalance;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -35,6 +37,7 @@ import java.util.TreeMap;
  *
  * @author xiaoyu(Myth)
  */
+@Join
 public class HashLoadBalance extends AbstractLoadBalance {
 
     private static final int VIRTUAL_NODE_NUM = 5;
@@ -56,16 +59,6 @@ public class HashLoadBalance extends AbstractLoadBalance {
         return treeMap.firstEntry().getValue();
     }
 
-    /**
-     * get algorithm name.
-     *
-     * @return this is algorithm name.
-     */
-    @Override
-    public String algorithm() {
-        return LoadBalanceEnum.HASH.getName();
-    }
-
     private static long hash(final String key) {
         // md5 byte
         MessageDigest md5;
@@ -76,11 +69,7 @@ public class HashLoadBalance extends AbstractLoadBalance {
         }
         md5.reset();
         byte[] keyBytes;
-        try {
-            keyBytes = key.getBytes("UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            throw new SoulException("Unknown string :" + key, e);
-        }
+        keyBytes = key.getBytes(StandardCharsets.UTF_8);
 
         md5.update(keyBytes);
         byte[] digest = md5.digest();

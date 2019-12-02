@@ -158,6 +158,7 @@ public class WebsocketSyncCache extends WebsocketCacheHandler {
                 List<MetaData> metaDataList =
                         GsonUtils.getInstance().fromList(metaData, MetaData.class);
                 handleMetaData(metaDataList, eventType);
+                break;
             default:
                 break;
         }

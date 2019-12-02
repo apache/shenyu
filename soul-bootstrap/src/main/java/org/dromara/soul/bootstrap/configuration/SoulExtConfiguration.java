@@ -19,6 +19,8 @@
 package org.dromara.soul.bootstrap.configuration;
 
 import org.dromara.soul.bootstrap.cors.CrossFilter;
+import org.dromara.soul.web.support.RemoteAddressResolver;
+import org.dromara.soul.web.support.XForwardedRemoteAddressResolver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -46,4 +48,19 @@ public class SoulExtConfiguration {
     public WebFilter crossFilter() {
         return new CrossFilter();
     }
+
+    /**
+     * Remote address resolver remote address resolver.
+     *
+     * @return the remote address resolver
+     */
+    @Bean
+    public RemoteAddressResolver remoteAddressResolver() {
+        return new XForwardedRemoteAddressResolver(1);
+    }
+
+   /* @Bean
+    public SignService signService() {
+        return (requestDTO, exchange) -> new Pair<>(true, "");
+    }*/
 }

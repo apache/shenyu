@@ -28,7 +28,7 @@ import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.SelectorTypeEnum;
 import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.web.cache.LocalCacheManager;
-import org.dromara.soul.web.condition.strategy.MatchStrategyFactory;
+import org.dromara.soul.web.condition.strategy.MatchStrategyUtils;
 import org.dromara.soul.web.request.RequestDTO;
 import org.dromara.soul.web.result.SoulResultEnum;
 import org.dromara.soul.web.result.SoulResultUtils;
@@ -141,8 +141,7 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
             if (CollectionUtils.isEmpty(selector.getConditionList())) {
                 return false;
             }
-            return MatchStrategyFactory.of(selector.getMatchMode())
-                    .match(selector.getConditionList(), exchange);
+            return MatchStrategyUtils.match(selector.getMatchMode(), selector.getConditionList(), exchange);
         }
         return true;
     }
@@ -150,8 +149,7 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
     private RuleData filterRule(final ServerWebExchange exchange, final List<RuleData> rules) {
         return rules.stream()
                 .filter(rule -> Objects.nonNull(rule) && rule.getEnabled())
-                .filter(ruleData -> MatchStrategyFactory.of(ruleData.getMatchMode())
-                        .match(ruleData.getConditionDataList(), exchange))
+                .filter(ruleData -> MatchStrategyUtils.match(ruleData.getMatchMode(), ruleData.getConditionDataList(), exchange))
                 .findFirst().orElse(null);
     }
 }

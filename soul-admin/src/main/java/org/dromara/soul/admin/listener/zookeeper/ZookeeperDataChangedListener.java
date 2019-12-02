@@ -75,7 +75,6 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
                 }
                 continue;
             }
-
             // create or update
             String metaDataPath = ZkPathConstants.buildMetaDataPath(data.getAppName(), data.getServiceName(), data.getMethodName());
             if (!zkClient.exists(metaDataPath)) {
