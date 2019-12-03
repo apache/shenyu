@@ -38,9 +38,6 @@ import java.util.List;
  * meets your security requirements.
  *
  * @author Andrew Fitzgerald
- * @see <a href=
- * "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For">X-Forwarded-For
- * reference</a>
  */
 public class XForwardedRemoteAddressResolver implements RemoteAddressResolver {
 
@@ -82,15 +79,6 @@ public class XForwardedRemoteAddressResolver implements RemoteAddressResolver {
      * should use a value of `1` for the `maxTrustedIndex`.
      * Given the X-Forwarded-For value of [0.0.0.1, 0.0.0.2, 0.0.0.3]:
      *
-     * <pre>
-     * maxTrustedIndex -> result
-     *
-     * [MIN_VALUE,0] -> IllegalArgumentException
-     * 1 -> 0.0.0.3
-     * 2 -> 0.0.0.2
-     * 3 -> 0.0.0.1
-     * [4, MAX_VALUE] -> 0.0.0.1
-     * </pre>
      *
      * @param maxTrustedIndex correlates to the number of trusted proxies expected in
      *                        front of Spring Cloud Gateway (index starts at 1).
