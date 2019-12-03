@@ -26,7 +26,7 @@ soul:
     register: false
     zookeeperUrl: localhost:2181
   sync:
-    strategy: http
+    strategy: websocket
 #      zookeeper:
 #        url: localhost:2181
 #        sessionTimeout: 5000

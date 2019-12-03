@@ -46,7 +46,7 @@ public class DubboConfiguration {
      * @return the web filter
      */
     @Bean
-    @Order(2)
+    @Order(20)
     public WebFilter dubboBodyWebFilter() {
         return new DubboBodyWebFilter();
     }
