@@ -247,7 +247,7 @@ public class SoulConfiguration {
      * @return the web filter
      */
     @Bean
-    @Order(-2)
+    @Order(-10)
     public WebFilter bodySizeFilter() {
         return new FileSizeFilter();
     }
@@ -264,16 +264,6 @@ public class SoulConfiguration {
         return new ParamWebFilter(paramService);
     }
 
-    /**
-     * Param service param service.
-     *
-     * @return the param service
-     */
-    @Bean
-    @ConditionalOnMissingBean(ParamService.class)
-    public ParamService paramService() {
-        return new DefaultParamService();
-    }
 
     /**
      * init time web filter.
@@ -282,7 +272,7 @@ public class SoulConfiguration {
      * @return {@linkplain TimeWebFilter}
      */
     @Bean
-    @Order(3)
+    @Order(30)
     @ConditionalOnProperty(name = "soul.filterTimeEnable")
     public WebFilter timeWebFilter(final SoulConfig soulConfig) {
         return new TimeWebFilter(soulConfig);

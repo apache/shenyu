@@ -19,6 +19,10 @@
 
 package org.dromara.soul.web.configuration;
 
+import org.dromara.soul.web.filter.DefaultParamService;
+import org.dromara.soul.web.filter.ParamService;
+import org.dromara.soul.web.plugin.before.DefaultSignService;
+import org.dromara.soul.web.plugin.before.SignService;
 import org.dromara.soul.web.result.SoulDefaultResult;
 import org.dromara.soul.web.result.SoulResult;
 import org.dromara.soul.web.support.RemoteAddressResolver;
@@ -57,5 +61,15 @@ public class SoulExtConfiguration {
         };
     }
 
+    /**
+     * Param service param service.
+     *
+     * @return the param service
+     */
+    @Bean
+    @ConditionalOnMissingBean(ParamService.class)
+    public ParamService paramService() {
+        return new DefaultParamService();
+    }
 
 }

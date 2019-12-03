@@ -21,13 +21,13 @@ soul :
              url : http://localhost:9095
 
 
-#eureka:
-#  instance:
-#    leaseRenewalIntervalInSeconds: 10
-#    leaseExpirationDurationInSeconds: 30
-#  client:
-#    serviceUrl:
-#      defaultZone: http://localhost:8761/eureka/
+eureka:
+  instance:
+    leaseRenewalIntervalInSeconds: 10
+    leaseExpirationDurationInSeconds: 30
+  client:
+    serviceUrl:
+      defaultZone: http://eureka.didispace.com/eureka/
 
 
 logging:
