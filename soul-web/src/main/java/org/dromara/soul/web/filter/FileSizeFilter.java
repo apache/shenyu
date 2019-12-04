@@ -23,6 +23,7 @@ import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.web.filter.support.BodyInserterContext;
 import org.dromara.soul.web.filter.support.CachedBodyOutputMessage;
 import org.dromara.soul.web.result.SoulResultEnum;
+import org.dromara.soul.web.result.SoulResultUtils;
 import org.dromara.soul.web.result.SoulResultWarp;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -77,8 +78,7 @@ public class FileSizeFilter implements WebFilter {
                             ServerHttpResponse response = exchange.getResponse();
                             response.setStatusCode(HttpStatus.BAD_REQUEST);
                             Object error = SoulResultWarp.error(SoulResultEnum.PAYLOAD_TOO_LARGE.getCode(), SoulResultEnum.PAYLOAD_TOO_LARGE.getMsg(), null);
-                            return response.writeWith(Mono.just(response.bufferFactory()
-                                    .wrap(GsonUtils.getInstance().toJson(error).getBytes())));
+                            return SoulResultUtils.result(exchange, error);
                         }
                         BodyInserter bodyInserter = BodyInserters.fromPublisher(Mono.just(size), DataBuffer.class);
                         HttpHeaders headers = new HttpHeaders();
