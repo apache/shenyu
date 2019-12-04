@@ -28,6 +28,8 @@ import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.AppAuthData;
 import org.dromara.soul.common.dto.AuthParamData;
 import org.dromara.soul.common.dto.AuthPathData;
+import org.dromara.soul.common.dto.PluginData;
+import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.DateUtils;
 import org.dromara.soul.common.utils.SignUtils;
@@ -64,7 +66,11 @@ public class DefaultSignService implements SignService {
 
     @Override
     public Pair<Boolean, String> signVerify(final RequestDTO requestDTO, final ServerWebExchange exchange) {
-        return verify(requestDTO, exchange);
+        PluginData signData = localCacheManager.findPluginByName(PluginEnum.SIGN.getName());
+        if (signData != null && signData.getEnabled()) {
+            return verify(requestDTO, exchange);
+        }
+        return new Pair<>(Boolean.TRUE, "");
     }
 
     private Pair<Boolean, String> verify(final RequestDTO requestDTO, final ServerWebExchange exchange) {
