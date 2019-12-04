@@ -258,10 +258,8 @@ public class MetaDataServiceImpl implements MetaDataService {
                 dubboSelectorHandle.setRegistry("zookeeper://localhost:2181");
                 selectorDTO.setHandle(JsonUtils.toJson(dubboSelectorHandle));
             } else if (RpcTypeEnum.SPRING_CLOUD.getName().equals(metaDataDTO.getRpcType())) {
-                SpringCloudSelectorHandle cloudSelectorHandle = new SpringCloudSelectorHandle();
-                cloudSelectorHandle.setServiceId(metaDataDTO.getAppName());
                 selectorDTO.setPluginId("8");
-                selectorDTO.setHandle(JsonUtils.toJson(cloudSelectorHandle));
+                selectorDTO.setHandle(metaDataDTO.getAppName());
             } else {
                 //is springCloud
                 selectorDTO.setPluginId("5");
