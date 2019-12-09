@@ -95,10 +95,10 @@
 
 * start `soul-admin.jar`
 ```java
-java -jar soul-admin.jar --spring.datasource.url="your mysql url"  
---spring.datasource.username='you username'  --spring.datasource.password='you password'
+> java -jar soul-admin.jar --spring.datasource.url="jdbc:mysql://your ip:3306/soul?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=CONVERT_TO_NULL&failOverReadOnly=false&autoReconnect=true&useSSL=false"  
+  --spring.datasource.username='you username'  --spring.datasource.password='you password'
 ```
-* visit : http://localhost:8887/index.html  username:admin  password :123456
+* visit : http://localhost:9095/index.html  username:admin  password :123456
 
 * get `soul-bootstrap.jar`
 
