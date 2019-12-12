@@ -19,11 +19,34 @@
 
 package org.dromara.soul.remoting.redis.operation;
 
+import java.util.List;
+
 /**
  * ScriptOperation .
  *
+ * @param <K> the type parameter
+ * @param <V> the type parameter.
  * @author sixh
  */
-public interface ScriptOperation<K,V> {
-    
+public interface ScriptOperation<K, V> {
+
+    /**
+     * Eval object.
+     *
+     * @param script the script
+     * @param keys   the keys
+     * @param args   the args
+     * @return the object
+     */
+    Object eval(String script, List<String> keys, List<String> args);
+
+    /**
+     * Eval object.
+     *
+     * @param script the script
+     * @param keys   the keys
+     * @param args   the args
+     * @return the object
+     */
+    Object evalSha(String script, List<String> keys, List<String> args);
 }

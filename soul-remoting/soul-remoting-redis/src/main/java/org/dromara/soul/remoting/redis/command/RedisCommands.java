@@ -26,6 +26,6 @@ package org.dromara.soul.remoting.redis.command;
  *
  * @author sixh
  */
-public interface RedisCommands extends RedisKeyCommands, RedisStringsCommands {
+public interface RedisCommands extends RedisKeyCommands, RedisStringsCommands,RedisScriptCommands {
 
 }

@@ -88,4 +88,6 @@ public class JedisSingleConnection extends JedisConnection {
     public RedisKeyCommands keyCommands() {
         return null;
     }
+
+
 }

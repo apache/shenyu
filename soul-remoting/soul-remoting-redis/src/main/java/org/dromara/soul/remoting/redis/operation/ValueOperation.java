@@ -48,7 +48,17 @@ public interface ValueOperation<K, V> {
      * @param ttl   the ttl
      * @param unit  the unit
      */
-    void set(K key, V value, long ttl, TimeUnit unit);
+    void set(K key, V value, int ttl, TimeUnit unit);
+
+    /**
+     * Set.
+     *
+     * @param key   the key
+     * @param value the value
+     * @param ttl   the ttl
+     * @param unit  the unit
+     */
+    void setPx(K key, V value, long ttl, TimeUnit unit);
 
     /**
      * Get v.
@@ -66,5 +76,5 @@ public interface ValueOperation<K, V> {
      * @param value the value
      * @return the and set
      */
-    V getAndSet(K key, V value);
+    V getAndSet(K key, V value, Class<V> clazz);
 }

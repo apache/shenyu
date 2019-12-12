@@ -41,18 +41,22 @@ public class DefaultValueOperation<V> extends BaseOperation<V> implements ValueO
     }
 
     @Override
-    public void set(String key, V value, long ttl, TimeUnit unit) {
-        connection.set(rawKey(key), rawValue(value), ttl, unit);
+    public void set(String key, V value, int ttl, TimeUnit unit) {
+        connection.setEx(rawKey(key), rawValue(value), ttl, unit);
+    }
+
+    @Override
+    public void setPx(String key, V value, long ttl, TimeUnit unit) {
+        connection.setPx(rawKey(key), rawValue(value), ttl, unit);
     }
 
     @Override
     public V get(String key, Class<V> clazz) {
-        byte[] bytes = connection.get(rawKey(key));
-        return deserializeValue(bytes, clazz);
+        return deserializeValue(connection.get(rawKey(key)), clazz);
     }
 
     @Override
-    public V getAndSet(String key, V value) {
-        return null;
+    public V getAndSet(String key, V value, Class<V> clazz) {
+        return deserializeValue(connection.getAndSet(rawKey(key), rawValue(value)), clazz);
     }
 }

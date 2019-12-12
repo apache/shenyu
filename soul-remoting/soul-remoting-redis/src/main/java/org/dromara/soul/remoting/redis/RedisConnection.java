@@ -19,9 +19,11 @@
 
 package org.dromara.soul.remoting.redis;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.dromara.soul.remoting.redis.command.RedisCommands;
 import org.dromara.soul.remoting.redis.command.RedisKeyCommands;
+import org.dromara.soul.remoting.redis.command.RedisScriptCommands;
 import org.dromara.soul.remoting.redis.command.RedisStringsCommands;
 
 /**
@@ -66,17 +68,39 @@ public abstract class RedisConnection implements RedisCommands {
         stringsCommands().append(key, value);
     }
 
+    @Override
+    public byte[] getAndSet(byte[] key, byte[] value) {
+        return stringsCommands().getAndSet(key, value);
+    }
+
+    @Override
+    public Object evalSha(byte[] script, List<byte[]> keys, List<byte[]> args) {
+        return scriptCommands().evalSha(script, keys, args);
+    }
+
+    @Override
+    public Object eval(byte[] script, List<byte[]> keys, List<byte[]> args) {
+        return scriptCommands().eval(script, keys, args);
+    }
+
     /**
      * string commands.
      *
-     * @return commands.
+     * @return commands. redis strings commands.
      */
-    public abstract RedisStringsCommands stringsCommands();
+    protected abstract RedisStringsCommands stringsCommands();
 
     /**
      * keys commands.
      *
-     * @return commands.
+     * @return commands. redis key commands.
      */
-    public abstract RedisKeyCommands keyCommands();
+    protected abstract RedisKeyCommands keyCommands();
+
+    /**
+     * Script commands redis script commands.
+     *
+     * @return the redis script commands.
+     */
+    protected abstract RedisScriptCommands scriptCommands();
 }
