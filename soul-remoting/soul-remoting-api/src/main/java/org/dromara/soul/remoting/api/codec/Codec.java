@@ -24,7 +24,6 @@ import org.dromara.soul.remoting.api.Channel;
 
 /**
  * Codec
- * CreateDate: 2019/10/15 15:10
  *
  * @param <Request>  the type parameter
  * @param <Response> the type parameter

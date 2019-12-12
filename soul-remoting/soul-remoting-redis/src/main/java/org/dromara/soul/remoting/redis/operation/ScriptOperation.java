@@ -21,10 +21,9 @@ package org.dromara.soul.remoting.redis.operation;
 
 /**
  * ScriptOperation .
- * <p>
- * 2019/11/23
  *
  * @author sixh
  */
 public interface ScriptOperation<K,V> {
+    
 }

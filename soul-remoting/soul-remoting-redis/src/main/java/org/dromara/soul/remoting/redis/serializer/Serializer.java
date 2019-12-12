@@ -21,7 +21,7 @@ package org.dromara.soul.remoting.redis.serializer;
  * Serializer
  * About the processing of redis value serialization.
  *
- * @param <V> the type parameter
+ * @param <V> the type parameter.
  * @author sixh
  */
 public interface Serializer<V> {
@@ -30,8 +30,8 @@ public interface Serializer<V> {
      * deserialization.
      *
      * @param value value.
-     * @param clazz the clazz
-     * @return V. v
+     * @param clazz the clazz.
+     * @return V.
      */
     V deserialize(byte[] value, Class<V> clazz);
 

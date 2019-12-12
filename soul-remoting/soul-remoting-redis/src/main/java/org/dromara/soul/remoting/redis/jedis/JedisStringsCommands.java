@@ -19,8 +19,10 @@
 
 package org.dromara.soul.remoting.redis.jedis;
 
+import java.util.concurrent.TimeUnit;
 import org.dromara.soul.common.exception.SoulException;
 import org.dromara.soul.remoting.redis.command.RedisStringsCommands;
+import redis.clients.jedis.params.SetParams;
 
 /**
  * JedisStringsCommands .
@@ -48,6 +50,70 @@ public class JedisStringsCommands implements RedisStringsCommands {
     public void set(byte[] key, byte[] value) {
         try {
             connection.execute(jedis -> jedis.set(key, value));
+        } catch (RuntimeException ex) {
+            throw new SoulException(ex);
+        }
+    }
+
+    @Override
+    public void setEx(byte[] key, byte[] value, long ttl, TimeUnit unit) {
+        try {
+            int newTtl = (int) unit.toSeconds(ttl);
+            SetParams setParams = new SetParams();
+            setParams.ex(newTtl);
+            connection.execute(jedis -> jedis.set(key, value, setParams));
+        } catch (RuntimeException ex) {
+            throw new SoulException(ex);
+        }
+    }
+
+    @Override
+    public void setPx(byte[] key, byte[] value, long ttl, TimeUnit unit) {
+        try {
+            long newTtl = unit.toMillis(ttl);
+            SetParams setParams = new SetParams();
+            setParams.px(newTtl);
+            connection.execute(jedis -> jedis.set(key, value, setParams));
+        } catch (RuntimeException ex) {
+            throw new SoulException(ex);
+        }
+    }
+
+    @Override
+    public void setNx(byte[] key, byte[] value) {
+        try {
+            SetParams setParams = new SetParams();
+            setParams.nx();
+            connection.execute(jedis -> jedis.set(key, value, setParams));
+        } catch (RuntimeException ex) {
+            throw new SoulException(ex);
+        }
+    }
+
+    @Override
+    public void setXx(byte[] key, byte[] value) {
+        try {
+            SetParams setParams = new SetParams();
+            setParams.xx();
+            connection.execute(jedis -> jedis.set(key, value, setParams));
+        } catch (RuntimeException ex) {
+            throw new SoulException(ex);
+        }
+    }
+
+    @Override
+    public void append(byte[] key, byte[] value) {
+        try {
+            connection.execute(jedis -> jedis.append(key, value));
+        } catch (RuntimeException ex) {
+            throw new SoulException(ex);
+        }
+    }
+
+    @Override
+    public byte[] getAndSet(byte[] key, byte[] value) {
+        try {
+            return connection.execute(jedis -> jedis.getSet(key, value));
         } catch (RuntimeException ex) {
             throw new SoulException(ex);
         }

@@ -25,10 +25,8 @@ import org.dromara.soul.remoting.redis.serializer.ValueSerializer;
 
 /**
  * BaseOperation .
- * <p>
- * 2019/11/23
  *
- * @param <V> the type parameter
+ * @param <V> the type parameter.
  * @author sixh
  */
 public class BaseOperation<V> {

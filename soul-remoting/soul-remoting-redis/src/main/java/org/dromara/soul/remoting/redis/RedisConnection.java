@@ -19,6 +19,7 @@
 
 package org.dromara.soul.remoting.redis;
 
+import java.util.concurrent.TimeUnit;
 import org.dromara.soul.remoting.redis.command.RedisCommands;
 import org.dromara.soul.remoting.redis.command.RedisKeyCommands;
 import org.dromara.soul.remoting.redis.command.RedisStringsCommands;
@@ -38,6 +39,31 @@ public abstract class RedisConnection implements RedisCommands {
     @Override
     public void set(byte[] key, byte[] value) {
         stringsCommands().set(key, value);
+    }
+
+    @Override
+    public void setEx(byte[] key, byte[] value, long ttl, TimeUnit unit) {
+        stringsCommands().setEx(key, value, ttl, unit);
+    }
+
+    @Override
+    public void setPx(byte[] key, byte[] value, long ttl, TimeUnit unit) {
+        stringsCommands().setPx(key, value, ttl, unit);
+    }
+
+    @Override
+    public void setNx(byte[] key, byte[] value) {
+        stringsCommands().setNx(key, value);
+    }
+
+    @Override
+    public void setXx(byte[] key, byte[] value) {
+        stringsCommands().setXx(key, value);
+    }
+
+    @Override
+    public void append(byte[] key, byte[] value) {
+        stringsCommands().append(key, value);
     }
 
     /**

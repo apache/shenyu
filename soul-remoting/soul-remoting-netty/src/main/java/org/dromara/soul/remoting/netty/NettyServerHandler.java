@@ -52,7 +52,7 @@ public class NettyServerHandler extends ChannelDuplexHandler implements ChannelC
         }
         this.channelHandler = channelHandler;
         this.attribute = attribute;
-        //超时处理.
+        //Timeout handling.
         Integer timeOut = this.attribute.getProperty(RemotingConst.NET_TIMEOUT_KEY, 3);
         channelCache = new ChannelCache(timeOut, TimeUnit.SECONDS, "nettyChannelCache", this);
     }

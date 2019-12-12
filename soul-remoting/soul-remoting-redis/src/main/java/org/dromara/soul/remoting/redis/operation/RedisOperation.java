@@ -30,16 +30,16 @@ package org.dromara.soul.remoting.redis.operation;
 public interface RedisOperation<K, V> {
 
     /**
-     * Map operation map operation.
+     * Map operation.
      *
-     * @return the map operation
+     * @return the map operation.
      */
     MapOperation<K, V> mapOperation();
 
     /**
-     * List operation list operation.
+     * List operation.
      *
-     * @return the list operation
+     * @return the list operation.
      */
     ListOperation<K, V> listOperation();
 
@@ -51,23 +51,23 @@ public interface RedisOperation<K, V> {
     SetOperation<K, V> setOperation();
 
     /**
-     * Value operation value operation.
+     * Value operation.
      *
-     * @return the value operation
+     * @return the value operation.
      */
     ValueOperation<K, V> valueOperation();
 
     /**
-     * Zset operation zset operation.
+     * Zset operation.
      *
-     * @return the zset operation
+     * @return the zset operation.
      */
     ZsetOperation<K, V> zsetOperation();
 
     /**
-     * Script operation script operation.
+     * Script operation.
      *
-     * @return the script operation
+     * @return the script operation.
      */
     ScriptOperation<K, V> scriptOperation();
 }

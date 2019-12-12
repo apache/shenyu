@@ -19,16 +19,15 @@
 
 package org.dromara.soul.remoting.redis.jedis;
 
-import org.dromara.soul.remoting.redis.command.RedisKeyCommands;
+import java.util.Set;
 import org.dromara.soul.remoting.redis.RedisModule;
+import org.dromara.soul.remoting.redis.command.RedisKeyCommands;
 import org.dromara.soul.remoting.redis.command.RedisStringsCommands;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.util.Pool;
-
-import java.util.Set;
 
 /**
  * SinginConnection .

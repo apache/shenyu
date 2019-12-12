@@ -19,15 +19,13 @@
 
 package org.dromara.soul.remoting.redis.jedis;
 
+import java.util.Set;
 import org.dromara.soul.remoting.redis.RedisModule;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPoolConfig;
 import redis.clients.jedis.JedisSentinelPool;
-import redis.clients.jedis.commands.SentinelCommands;
 import redis.clients.jedis.util.Pool;
-
-import java.util.Set;
 
 import static java.util.stream.Collectors.toSet;
 

@@ -18,7 +18,7 @@
 package org.dromara.soul.remoting.redis.serializer;
 
 
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * ValueSerializer
@@ -36,11 +36,7 @@ public class ValueSerializer<V> implements Serializer<V> {
     @Override
     public V deserialize(byte[] value, Class<V> clazz) {
         if (clazz.getName().equals(String.class.getName())) {
-            try {
-                return (V) new String(value, "UTF-8");
-            } catch (UnsupportedEncodingException e) {
-                return null;
-            }
+            return (V) new String(value, StandardCharsets.UTF_8);
         }else {
             return objectSerializer.deserialize(value, clazz);
         }

@@ -21,8 +21,6 @@ package org.dromara.soul.remoting.redis.operation;
 
 /**
  * SetOperation .
- * <p>
- * 2019/11/23
  *
  * @author sixh
  */

@@ -30,8 +30,6 @@ import redis.clients.jedis.JedisPoolConfig;
 
 /**
  * JedisClient .
- * <p>
- * 2019/11/23
  *
  * @author sixh
  */

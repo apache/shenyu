@@ -24,8 +24,6 @@ import org.dromara.soul.remoting.redis.RedisConnection;
 
 /**
  * DefaultValueOperation .
- * <p>
- * 2019/11/23
  *
  * @author sixh
  */

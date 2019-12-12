@@ -22,14 +22,12 @@ import org.dromara.soul.remoting.redis.operation.ValueOperation;
 import org.junit.Before;
 
 /**
- * Created by apa7 on 2019/11/25.
  */
 public class RedisClientTest {
 
     private URL url;
 
     private RedisClient<String, String> client;
-
     @Before
     public void setUrl() {
         String urlStr = "redis://192.168.1.82:6379?&mode=default";

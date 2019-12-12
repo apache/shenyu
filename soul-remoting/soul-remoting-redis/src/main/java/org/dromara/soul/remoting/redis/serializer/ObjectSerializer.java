@@ -17,6 +17,7 @@
 
 package org.dromara.soul.remoting.redis.serializer;
 
+import java.nio.charset.StandardCharsets;
 import org.dromara.soul.common.utils.JsonUtils;
 
 /**
@@ -40,6 +41,6 @@ public class ObjectSerializer<V> implements Serializer<V> {
         if (json == null) {
             return new byte[0];
         }
-        return json.getBytes();
+        return json.getBytes(StandardCharsets.UTF_8);
     }
 }
