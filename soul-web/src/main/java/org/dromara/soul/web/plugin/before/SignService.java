@@ -19,7 +19,7 @@
 
 package org.dromara.soul.web.plugin.before;
 
-import javafx.util.Pair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.dromara.soul.web.request.RequestDTO;
 import org.springframework.web.server.ServerWebExchange;
 

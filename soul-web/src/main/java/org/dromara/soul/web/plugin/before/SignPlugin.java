@@ -19,14 +19,10 @@
 
 package org.dromara.soul.web.plugin.before;
 
-import javafx.util.Pair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.dromara.soul.common.constant.Constants;
-import org.dromara.soul.common.dto.RuleData;
-import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
-import org.dromara.soul.web.cache.LocalCacheManager;
-import org.dromara.soul.web.plugin.AbstractSoulPlugin;
 import org.dromara.soul.web.plugin.SoulPlugin;
 import org.dromara.soul.web.plugin.SoulPluginChain;
 import org.dromara.soul.web.request.RequestDTO;
@@ -69,8 +65,8 @@ public class SignPlugin implements SoulPlugin {
         final RequestDTO requestDTO = exchange.getAttribute(Constants.REQUESTDTO);
         assert requestDTO != null;
         Pair<Boolean, String> result = signService.signVerify(requestDTO, exchange);
-        if (!result.getKey()) {
-            Object error = SoulResultWarp.error(SoulResultEnum.SIGN_IS_NOT_PASS.getCode(), result.getValue(), null);
+        if (!result.getLeft()) {
+            Object error = SoulResultWarp.error(SoulResultEnum.SIGN_IS_NOT_PASS.getCode(), result.getRight(), null);
             return SoulResultUtils.result(exchange, error);
         }
         return chain.execute(exchange);
