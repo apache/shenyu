@@ -21,9 +21,9 @@ package org.dromara.soul.web.plugin.before;
 
 import com.alibaba.dubbo.rpc.RpcContext;
 import com.google.common.collect.Maps;
-import javafx.util.Pair;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.AppAuthData;
 import org.dromara.soul.common.dto.AuthParamData;
@@ -70,7 +70,7 @@ public class DefaultSignService implements SignService {
         if (signData != null && signData.getEnabled()) {
             return verify(requestDTO, exchange);
         }
-        return new Pair<>(Boolean.TRUE, "");
+        return Pair.of(Boolean.TRUE, "");
     }
 
     private Pair<Boolean, String> verify(final RequestDTO requestDTO, final ServerWebExchange exchange) {
@@ -78,13 +78,13 @@ public class DefaultSignService implements SignService {
                 || StringUtils.isBlank(requestDTO.getSign())
                 || StringUtils.isBlank(requestDTO.getTimestamp())) {
             LOGGER.error("认证参数不完整,{}", requestDTO);
-            return new Pair<>(Boolean.FALSE, Constants.SIGN_PARAMS_ERROR);
+            return Pair.of(Boolean.FALSE, Constants.SIGN_PARAMS_ERROR);
         }
         final LocalDateTime start = DateUtils.formatLocalDateTimeFromTimestamp(Long.parseLong(requestDTO.getTimestamp()));
         final LocalDateTime now = LocalDateTime.now();
         final long between = DateUtils.acquireMinutesBetween(start, now);
         if (between > delay) {
-            return new Pair<>(Boolean.FALSE, String.format(SoulResultEnum.SING_TIME_IS_TIMEOUT.getMsg(), delay));
+            return Pair.of(Boolean.FALSE, String.format(SoulResultEnum.SING_TIME_IS_TIMEOUT.getMsg(), delay));
         }
         return sign(requestDTO, exchange);
     }
@@ -99,43 +99,42 @@ public class DefaultSignService implements SignService {
         final AppAuthData appAuthData = localCacheManager.findAuthDataByAppKey(requestDTO.getAppKey());
         if (Objects.isNull(appAuthData) || !appAuthData.getEnabled()) {
             LOGGER.error("认证APP_kEY不存在,或者已经被禁用,{}", requestDTO.getAppKey());
-            return new Pair<>(Boolean.FALSE, Constants.SIGN_APP_KEY_IS_NOT_EXIST);
+            return Pair.of(Boolean.FALSE, Constants.SIGN_APP_KEY_IS_NOT_EXIST);
         }
         List<AuthPathData> pathDataList = appAuthData.getPathDataList();
         if (CollectionUtils.isEmpty(pathDataList)) {
             LOGGER.error("您尚未配置路径:{}", requestDTO.getAppKey());
-            return new Pair<>(Boolean.FALSE, Constants.SIGN_PATH_NOT_EXIST);
+            return Pair.of(Boolean.FALSE, Constants.SIGN_PATH_NOT_EXIST);
         }
         boolean match = pathDataList.stream().filter(AuthPathData::getEnabled)
                 .anyMatch(e -> e.getPath().equals(requestDTO.getPath()));
         if (!match) {
             LOGGER.error("您尚未配置路径:{},{}", requestDTO.getAppKey(), requestDTO.getRealUrl());
-            return new Pair<>(Boolean.FALSE, Constants.SIGN_PATH_NOT_EXIST);
+            return Pair.of(Boolean.FALSE, Constants.SIGN_PATH_NOT_EXIST);
         }
         String sigKey = SignUtils.generateSign(appAuthData.getAppSecret(), buildParamsMap(requestDTO));
         boolean result = Objects.equals(sigKey, requestDTO.getSign());
         if (!result) {
             LOGGER.error("签名插件得到的签名为:{},传入的签名值为:{}", sigKey, requestDTO.getSign());
-            return new Pair<>(Boolean.FALSE, Constants.SIGN_VALUE_IS_ERROR);
+            return Pair.of(Boolean.FALSE, Constants.SIGN_VALUE_IS_ERROR);
         } else {
             List<AuthParamData> paramDataList = appAuthData.getParamDataList();
-            if (CollectionUtils.isNotEmpty(paramDataList)) {
-                paramDataList.stream().filter(p ->
-                        ("/" + p.getAppName()).equals(requestDTO.getContextPath()))
-                        .map(AuthParamData::getAppParam).findFirst().ifPresent(param -> {
-                            if (StringUtils.isNoneBlank(param)) {
-                                if (RpcTypeEnum.HTTP.getName().equals(requestDTO.getRpcType())) {
-                                    exchange.getRequest().mutate().headers(httpHeaders -> httpHeaders.set(Constants.APP_PARAM, param)).build();
-                                } else if (RpcTypeEnum.DUBBO.getName().equals(requestDTO.getRpcType())) {
-                                    RpcContext.getContext().setAttachment(Constants.APP_PARAM, param);
-                                }
-                            }
-                        }
-                );
+            if (CollectionUtils.isEmpty(paramDataList)) {
+                return Pair.of(Boolean.TRUE, "");
             }
-
+            paramDataList.stream().filter(p ->
+                    ("/" + p.getAppName()).equals(requestDTO.getContextPath()))
+                    .map(AuthParamData::getAppParam)
+                    .filter(StringUtils::isNoneBlank).findFirst().ifPresent(param -> {
+                        if (RpcTypeEnum.HTTP.getName().equals(requestDTO.getRpcType())) {
+                            exchange.getRequest().mutate().headers(httpHeaders -> httpHeaders.set(Constants.APP_PARAM, param)).build();
+                        } else if (RpcTypeEnum.DUBBO.getName().equals(requestDTO.getRpcType())) {
+                            RpcContext.getContext().setAttachment(Constants.APP_PARAM, param);
+                        }
+                    }
+            );
         }
-        return new Pair<>(Boolean.TRUE, "");
+        return Pair.of(Boolean.TRUE, "");
     }
 
     private Map<String, String> buildParamsMap(final RequestDTO dto) {
