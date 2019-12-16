@@ -21,6 +21,7 @@ import com.alibaba.dubbo.common.URL;
 import java.util.*;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
+import org.dromara.soul.common.extension.ExtensionLoader;
 import org.dromara.soul.common.utils.JsonUtils;
 import org.dromara.soul.common.utils.StringUtils;
 import org.dromara.soul.register.api.PathMethod;
@@ -38,6 +39,8 @@ public class DubboRegisterMetadataDirectory extends RegisterDirectory {
 
     private DubboMetadataService service;
 
+    private final ExtensionLoader<DubboMetadataService> loader = ExtensionLoader.getExtensionLoader(DubboMetadataService.class);
+
     /**
      * Instantiates a new Dubbo register metadata directory.
      *
@@ -46,7 +49,7 @@ public class DubboRegisterMetadataDirectory extends RegisterDirectory {
      */
     public DubboRegisterMetadataDirectory(URL url, Set<RegisterDirectoryListener> listeners) {
         super(UrlAdapter.parse(url), listeners);
-        service = new ZookeeperMetadataService(getUrl());
+        service = loader.getJoin(getUrl().getProtocol());
     }
 
     /**
@@ -57,7 +60,7 @@ public class DubboRegisterMetadataDirectory extends RegisterDirectory {
      */
     public DubboRegisterMetadataDirectory(URL url, RegisterDirectoryListener listener) {
         super(UrlAdapter.parse(url), listener);
-        service = new ZookeeperMetadataService(getUrl());
+        service = loader.getJoin(getUrl().getProtocol());
     }
 
     public void bindMetadata(Set<Path> paths) {

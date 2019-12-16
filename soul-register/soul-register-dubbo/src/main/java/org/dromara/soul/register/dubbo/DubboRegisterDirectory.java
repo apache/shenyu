@@ -41,6 +41,7 @@ import static java.util.stream.Collectors.toSet;
  *
  * @author sixh
  */
+
 public class DubboRegisterDirectory extends RegisterDirectory implements NotifyListener, RegisterDirectoryListener {
 
     private static final ConcurrentHashMap<String, Map<String, Set<DubboPath>>> CACHE = new ConcurrentHashMap<>();
@@ -179,9 +180,7 @@ public class DubboRegisterDirectory extends RegisterDirectory implements NotifyL
                 Set<DubboPath> collect;
                 if (newMaps.containsKey(k)) {
                     Sets.SetView<DubboPath> differenceSets = Sets.difference(value, newMaps.get(k));
-                    collect = differenceSets.stream().peek(e -> {
-                        e.setStatus(RegisterDirectoryListener.REMOVE);
-                    }).collect(Collectors.toSet());
+                    collect = differenceSets.stream().peek(e -> e.setStatus(RegisterDirectoryListener.REMOVE)).collect(Collectors.toSet());
                 } else {
                     collect = value.stream().peek(e -> e.setStatus(RegisterDirectoryListener.REMOVE)).collect(toSet());
                 }
@@ -191,9 +190,7 @@ public class DubboRegisterDirectory extends RegisterDirectory implements NotifyL
                 Set<DubboPath> collect;
                 if (oldMaps.containsKey(k)) {
                     Sets.SetView<DubboPath> differenceSets = Sets.difference(value, oldMaps.get(k));
-                    collect = differenceSets.stream().peek(e -> {
-                        e.setStatus(RegisterDirectoryListener.ADD);
-                    }).collect(Collectors.toSet());
+                    collect = differenceSets.stream().peek(e -> e.setStatus(RegisterDirectoryListener.ADD)).collect(Collectors.toSet());
                 } else {
                     collect = value.stream().peek(e -> e.setStatus(RegisterDirectoryListener.ADD)).collect(toSet());
                 }

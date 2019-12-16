@@ -17,16 +17,41 @@
 
 package org.dromara.soul.register.dubbo;
 
+import com.google.common.base.Joiner;
+import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.extension.Join;
+import org.dromara.soul.common.http.URL;
+import org.dromara.soul.common.utils.StringUtils;
+import org.dromara.soul.remoting.redis.RedisClient;
+import org.dromara.soul.remoting.redis.operation.ValueOperation;
+
 /**
  * RedisMetadataService
  *
  * @author sixh
  */
+@Join
 public class RedisMetadataService implements DubboMetadataService {
 
+    RedisClient<String, String> redisClient;
+
+    public RedisMetadataService(URL url) {
+        this.redisClient = new RedisClient<>(url);
+    }
 
     @Override
     public String getMetadata(DubboPath path) {
-        return null;
+        ValueOperation<String, String> valueOperation = redisClient.valueOperation();
+        return valueOperation.get(toKey(path), String.class);
+    }
+
+    public String toKey(DubboPath path) {
+        String pathStr;
+        if (StringUtils.isNotBlank(path.getGroup())) {
+            pathStr = Joiner.on(Constants.COLONS).join("dubbo", "metadata", path.getService(), path.getVersion(), path.getGroup(), "provider", path.getApplication());
+        } else {
+            pathStr = Joiner.on(Constants.COLONS).join("dubbo", "metadata", path.getService(), path.getVersion(), "provider", path.getApplication());
+        }
+        return Constants.BASE_URL_PATH_KEY + pathStr;
     }
 }

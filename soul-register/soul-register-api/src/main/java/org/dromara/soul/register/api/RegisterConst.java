@@ -46,4 +46,6 @@ public class RegisterConst implements Constants {
     public static final String BASE_URL_PATH_KEY = "/";
 
     public static final String EPHEMERAL_KEY = "ephemeral";
+
+    public static final String EVN_KEY = "env";
 }

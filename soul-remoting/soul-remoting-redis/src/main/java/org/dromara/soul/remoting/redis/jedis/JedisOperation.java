@@ -31,12 +31,19 @@ import redis.clients.jedis.JedisPoolConfig;
 /**
  * JedisClient .
  *
+ * @param <K> the type parameter
+ * @param <V> the type parameter
  * @author sixh
  */
-class JedisOperation<K,V> implements RedisOperation<K,V> {
+final class JedisOperation<K, V> implements RedisOperation<K, V> {
 
     private JedisConnection connection;
 
+    /**
+     * Instantiates a new Jedis operation.
+     *
+     * @param module the module
+     */
     public JedisOperation(RedisModule module) {
         this.connection = initJedisClient(module);
     }
@@ -71,6 +78,11 @@ class JedisOperation<K,V> implements RedisOperation<K,V> {
                 .map(HostAndPort::parseString).collect(Collectors.toSet());
     }
 
+    /**
+     * Gets connection.
+     *
+     * @return the connection
+     */
     public JedisConnection getConnection() {
         return connection;
     }
@@ -102,6 +114,6 @@ class JedisOperation<K,V> implements RedisOperation<K,V> {
 
     @Override
     public ScriptOperation scriptOperation() {
-        return null;
+        return new DefaultScriptOperation(this.getConnection());
     }
 }

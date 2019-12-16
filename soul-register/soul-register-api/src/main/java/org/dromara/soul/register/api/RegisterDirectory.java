@@ -19,7 +19,6 @@ package org.dromara.soul.register.api;
 
 import com.google.common.collect.Sets;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import org.dromara.soul.common.http.URL;
 import org.dromara.soul.common.utils.StringUtils;
@@ -51,10 +50,10 @@ public abstract class RegisterDirectory implements HealthCheck {
         if (listeners != null) {
             this.listeners.addAll(listeners);
         }
-        String env = url.getParameter("env");
+        String env = url.getParameter(RegisterConst.EVN_KEY);
         if (StringUtils.isBlank(env)) {
             env = defEnv;
-            url.putParameter("env", env);
+            url.putParameter(RegisterConst.EVN_KEY, env);
         }
         this.env = env;
         this.url = url;

@@ -20,6 +20,7 @@ package org.dromara.soul.register.dubbo;
 
 import com.google.common.base.Joiner;
 import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.extension.Join;
 import org.dromara.soul.common.http.URL;
 import org.dromara.soul.common.utils.StringUtils;
 import org.dromara.soul.remoting.zookeeper.ZookeeperClient;
@@ -30,6 +31,7 @@ import org.dromara.soul.remoting.zookeeper.ZookeeperClientCache;
  *
  * @author sixh
  */
+@Join
 public class ZookeeperMetadataService implements DubboMetadataService {
 
     private ZookeeperClient client;

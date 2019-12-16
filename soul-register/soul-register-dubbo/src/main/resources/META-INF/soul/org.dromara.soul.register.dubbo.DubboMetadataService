@@ -1,0 +1,2 @@
+zookeeper=org.dromara.soul.register.dubbo.ZookeeperMetadataService
+redis=org.dromara.soul.register.dubbo.RedisMetadataService
