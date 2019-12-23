@@ -18,25 +18,18 @@
 
 package org.dromara.soul.web.plugin.dubbo;
 
-import com.alibaba.dubbo.config.ApplicationConfig;
 import com.alibaba.dubbo.config.ReferenceConfig;
-import com.alibaba.dubbo.config.RegistryConfig;
 import com.alibaba.dubbo.rpc.service.GenericException;
 import com.alibaba.dubbo.rpc.service.GenericService;
-import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.dto.convert.rule.DubboRuleHandle;
-import org.dromara.soul.common.dto.convert.selector.DubboSelectorHandle;
-import org.dromara.soul.common.enums.LoadBalanceEnum;
 import org.dromara.soul.common.exception.SoulException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * dubbo proxy service is  use GenericService.
@@ -49,10 +42,6 @@ public class DubboProxyService {
      * logger.
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(DubboProxyService.class);
-
-    private static final Map<String, RegistryConfig> REGISTRY_CONFIG_MAP = Maps.newConcurrentMap();
-
-    private static final Map<String, ApplicationConfig> APPLICATION_CONFIG_MAP = Maps.newConcurrentMap();
 
     private final GenericParamResolveService genericParamResolveService;
 
