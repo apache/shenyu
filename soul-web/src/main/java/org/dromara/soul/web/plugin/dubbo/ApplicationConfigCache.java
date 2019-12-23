@@ -126,7 +126,6 @@ public final class ApplicationConfigCache {
             if (StringUtils.isNoneBlank(referenceConfig.getInterface())) {
                 return referenceConfig;
             }
-
         } catch (Exception e) {
             LOG.error("init dubbo ref ex:{}", e.getMessage());
         }
@@ -217,12 +216,10 @@ public final class ApplicationConfigCache {
     public void invalidate(final String serviceName) {
         try {
             cache.invalidate(serviceName);
-
         } catch (Exception e) {
             throw new SoulException(e.getCause());
         }
     }
-
 
     /**
      * Invalidate all.
@@ -230,7 +227,6 @@ public final class ApplicationConfigCache {
     public void invalidateAll(){
         cache.invalidateAll();
     }
-
 
     /**
      * The type Application config cache instance.
