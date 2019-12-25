@@ -142,8 +142,23 @@
 
 # Known Users
 
-> 按照登记顺序排序，更多接入公司，欢迎在[https://github.com/Dromara/soul/issues/68](https://github.com/Dromara/soul/issues/68)登记（仅供开源用户参考）
-![思埠集团](https://yu199195.github.io/images/soul/users/sibu.jpg)
+按照登记顺序排序，更多接入公司，欢迎在[https://github.com/Dromara/soul/issues/68](https://github.com/Dromara/soul/issues/68)登记（仅供开源用户参考）
+
+<p align="center">
+	<img src="https://yu199195.github.io/images/soul/users/sibu.jpg" alt="Sample"  width="160" height="90">
+	
+</p>
+
+<p align="center">
+	<img src="https://yu199195.github.io/images/soul/users/keking.png" alt="Sample"  width="160" height="90">
+	
+</p>
+
+<p align="center">
+	<img src="https://yu199195.github.io/images/soul/users/caibeike.png" alt="Sample"  width="160" height="90">
+	
+</p>
+
 ![凯京集团](https://yu199195.github.io/images/soul/users/keking.png)
 ![上海彩贝壳](https://yu199195.github.io/images/soul/users/caibeike.png)
 ![江苏永钢集团](https://yu199195.github.io/images/soul/users/jiangsuyonggang.jpg)
