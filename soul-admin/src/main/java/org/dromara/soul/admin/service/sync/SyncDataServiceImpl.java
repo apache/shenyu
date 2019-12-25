@@ -98,17 +98,13 @@ public class SyncDataServiceImpl implements SyncDataService {
     @Override
     public boolean syncAll(final DataEventTypeEnum type) {
         appAuthService.syncData();
-
-        metaDataService.syncData();
-
         List<PluginData> pluginDataList = pluginService.listAll();
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, type, pluginDataList));
-
         List<SelectorData> selectorDataList = selectorService.listAll();
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, type, selectorDataList));
-
         List<RuleData> ruleDataList = ruleService.listAll();
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, type, ruleDataList));
+        metaDataService.syncData();
         return true;
     }
 
