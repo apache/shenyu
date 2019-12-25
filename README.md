@@ -140,6 +140,17 @@
 
 * [plugins](http://www.iqiyi.com/w_19s651zyo9.html)
 
+# Known Users
+
+> 按照登记顺序排序，更多接入公司，欢迎在[https://github.com/Dromara/soul/issues/68](https://github.com/Dromara/soul/issues/68)登记（仅供开源用户参考）
+![思埠集团](https://yu199195.github.io/images/soul/users/sibu.jpg)
+![凯京集团](https://yu199195.github.io/images/soul/users/keking.png)
+![上海彩贝壳](https://yu199195.github.io/images/soul/users/caibeike.png)
+![江苏永钢集团](https://yu199195.github.io/images/soul/users/jiangsuyonggang.jpg)
+![上海方付通](https://yu199195.github.io/images/soul/users/fangfutong.png)
+![上海理想集团](https://yu199195.github.io/images/soul/users/lixiang.jpg)
+![北京开普云](https://yu199195.github.io/images/soul/users/kaipuyun.png)
+
 # Support  
 
  [![芋道源码](http://www.iocoder.cn/images/common/erweima.jpg)](http://www.iocoder.cn/?from=soul) ![](https://yu199195.github.io/images/public.jpg)  ![](https://yu199195.github.io/images/soul-qq.png)   [![JetBrains](https://yu199195.github.io/images/jetbrains.svg)](https://www.jetbrains.com/?from=soul)
