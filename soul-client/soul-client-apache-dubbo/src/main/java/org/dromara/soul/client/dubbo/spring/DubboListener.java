@@ -9,6 +9,7 @@ import org.dromara.soul.client.common.annotation.SoulClient;
 import org.dromara.soul.client.dubbo.config.DubboConfig;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
 import java.io.IOException;
@@ -48,6 +49,15 @@ public class DubboListener implements ApplicationListener {
     private void handler(final ServiceBeanExportedEvent event) {
         ServiceBean serviceBean = event.getServiceBean();
         Class<?> clazz = serviceBean.getRef().getClass();
+        if(ClassUtils.isCglibProxyClass(clazz)){
+            String superClassName = clazz.getGenericSuperclass().getTypeName();
+            try {
+                clazz = Class.forName(superClassName);
+            } catch (ClassNotFoundException e) {
+                log.error(String.format("class not found: %s", superClassName) );
+                return;
+            }
+        }
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
             SoulClient soulClient = method.getAnnotation(SoulClient.class);
