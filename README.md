@@ -188,10 +188,10 @@
   </thead>
   <tbody>
     <tr>
-      <td><img src="http://www.iocoder.cn/images/common/erweima.jpg"  width="1800" height="90" alt="思埠集团"/>
-      <td><img src="https://yu199195.github.io/images/public.jpg"  width="1800" height="90" alt="凯京集团"/>
-      <td><img src="https://yu199195.github.io/images/soul-qq.png"  width="1800" height="90" alt="彩贝壳"/>
-      <td><img src="https://yu199195.github.io/images/jetbrains.svg"  width="1800" height="90" alt="江苏永钢集团"/>
+      <td><img src="http://www.iocoder.cn/images/common/erweima.jpg"  alt="芋道源码"/>
+      <td><img src="https://yu199195.github.io/images/public.jpg"   alt="微信公众号"/>
+      <td><img src="https://yu199195.github.io/images/soul-qq.png"  alt="QQ交流群"/>
+      <td><img src="https://yu199195.github.io/images/jetbrains.svg" alt="jetbrains"/>
     </tr>
   </tbody>
 </table>
