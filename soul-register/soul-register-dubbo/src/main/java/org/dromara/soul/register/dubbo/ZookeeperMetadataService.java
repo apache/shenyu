@@ -27,7 +27,7 @@ import org.dromara.soul.remoting.zookeeper.ZookeeperClient;
 import org.dromara.soul.remoting.zookeeper.ZookeeperClientCache;
 
 /**
- * ZookeeperMetadataService
+ * ZookeeperMetadataService.
  *
  * @author sixh
  */

@@ -25,8 +25,8 @@ import org.dromara.soul.common.extension.ExtensionLoader;
 import org.dromara.soul.common.utils.JsonUtils;
 import org.dromara.soul.common.utils.StringUtils;
 import org.dromara.soul.register.api.PathMethod;
-import org.dromara.soul.register.api.RegisterDirectory;
-import org.dromara.soul.register.api.RegisterDirectoryListener;
+import org.dromara.soul.register.api.RegisterDiscovery;
+import org.dromara.soul.register.api.RegisterDiscoveryListener;
 import org.dromara.soul.register.api.path.Path;
 
 /**
@@ -35,7 +35,7 @@ import org.dromara.soul.register.api.path.Path;
  *
  * @author sixh
  */
-public class DubboRegisterMetadataDirectory extends RegisterDirectory {
+public class DubboRegisterMetadataDiscovery extends RegisterDiscovery {
 
     private DubboMetadataService service;
 
@@ -47,7 +47,7 @@ public class DubboRegisterMetadataDirectory extends RegisterDirectory {
      * @param url       metadata address url.
      * @param listeners the listeners.
      */
-    public DubboRegisterMetadataDirectory(URL url, Set<RegisterDirectoryListener> listeners) {
+    public DubboRegisterMetadataDiscovery(URL url, Set<RegisterDiscoveryListener> listeners) {
         super(UrlAdapter.parse(url), listeners);
         service = loader.getJoin(getUrl().getProtocol());
     }
@@ -58,14 +58,14 @@ public class DubboRegisterMetadataDirectory extends RegisterDirectory {
      * @param url      metadata address url.
      * @param listener the listener.
      */
-    public DubboRegisterMetadataDirectory(URL url, RegisterDirectoryListener listener) {
+    public DubboRegisterMetadataDiscovery(URL url, RegisterDiscoveryListener listener) {
         super(UrlAdapter.parse(url), listener);
         service = loader.getJoin(getUrl().getProtocol());
     }
 
     public void bindMetadata(Set<Path> paths) {
         if (!paths.isEmpty()) {
-            List<Path> collect = paths.stream().filter(e -> e.status().equals(RegisterDirectoryListener.ADD)).collect(Collectors.toList());
+            List<Path> collect = paths.stream().filter(e -> e.status().equals(RegisterDiscoveryListener.ADD)).collect(Collectors.toList());
             Map<String, Map<String, List<PathMethod>>> temporary = new HashMap<>(16);
             for (Path path : collect) {
                 if (path instanceof DubboPath) {

@@ -18,7 +18,7 @@
 package org.dromara.soul.register.api.path;
 
 import org.dromara.soul.common.http.URL;
-import org.dromara.soul.register.api.RegisterDirectoryListener;
+import org.dromara.soul.register.api.RegisterDiscoveryListener;
 
 /**
  * Path .
@@ -36,13 +36,13 @@ public interface Path {
 
     /**
      * Gets a status message for the current service.
-     * 1.If the status eq {@link RegisterDirectoryListener#REMOVE_ALL} return {@link EmptyPath}.
-     * {@link RegisterDirectoryListener#ADD}
-     * {@link RegisterDirectoryListener#REMOVE}
-     * {@link RegisterDirectoryListener#REMOVE_ALL}
+     * 1.If the status eq {@link RegisterDiscoveryListener#REMOVE_ALL} return {@link EmptyPath}.
+     * {@link RegisterDiscoveryListener#ADD}
+     * {@link RegisterDiscoveryListener#REMOVE}
+     * {@link RegisterDiscoveryListener#REMOVE_ALL}
      *
      * @return status. integer
-     * @see RegisterDirectoryListener
+     * @see RegisterDiscoveryListener
      */
     Integer status();
 

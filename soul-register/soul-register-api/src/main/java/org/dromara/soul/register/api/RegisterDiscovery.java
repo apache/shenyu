@@ -30,9 +30,9 @@ import org.dromara.soul.register.api.path.Path;
  *
  * @author sixh
  */
-public abstract class RegisterDirectory implements HealthCheck {
+public abstract class RegisterDiscovery implements HealthCheck {
 
-    private Set<RegisterDirectoryListener> listeners = new HashSet<>();
+    private Set<RegisterDiscoveryListener> listeners = new HashSet<>();
 
     private String env;
 
@@ -46,7 +46,7 @@ public abstract class RegisterDirectory implements HealthCheck {
      * @param url       the url.
      * @param listeners the listeners.
      */
-    public RegisterDirectory(URL url, Set<RegisterDirectoryListener> listeners) {
+    public RegisterDiscovery(URL url, Set<RegisterDiscoveryListener> listeners) {
         if (listeners != null) {
             this.listeners.addAll(listeners);
         }
@@ -65,7 +65,7 @@ public abstract class RegisterDirectory implements HealthCheck {
      * @param url      the url
      * @param listener the listener
      */
-    public RegisterDirectory(URL url, RegisterDirectoryListener listener) {
+    public RegisterDiscovery(URL url, RegisterDiscoveryListener listener) {
         this(url, Sets.newHashSet(listener));
     }
 
@@ -74,7 +74,7 @@ public abstract class RegisterDirectory implements HealthCheck {
      *
      * @param listener the listener.
      */
-    public void addListener(RegisterDirectoryListener listener) {
+    public void addListener(RegisterDiscoveryListener listener) {
         listeners.add(listener);
     }
 

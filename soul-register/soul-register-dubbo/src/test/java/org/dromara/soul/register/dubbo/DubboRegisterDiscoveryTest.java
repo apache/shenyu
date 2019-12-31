@@ -26,7 +26,7 @@ import org.junit.Test;
 /**
  * Created by apa7 on 2019/11/20.
  */
-public class DubboRegisterDirectoryTest {
+public class DubboRegisterDiscoveryTest {
 
     @Test
     public void test001() throws InterruptedException {
@@ -35,7 +35,7 @@ public class DubboRegisterDirectoryTest {
         urls.add("zookeeper://192.168.1.84:2181?client=curator");
         config.setRegistry(urls);
         ConfigEnv.getInstance().putBean(config);
-        new DubboRegisterDirectory(URL.valueOf("zookeeper://192.168.1.84:2181?client=curator"),
+        new DubboRegisterDiscovery(URL.valueOf("zookeeper://192.168.1.84:2181?client=curator"),
                                    URL.valueOf("zookeeper://192.168.1.84:2181?client=curator"),
                                    paths -> paths.forEach(System.out::println));
         Thread.sleep(Integer.MAX_VALUE);

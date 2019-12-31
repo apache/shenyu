@@ -26,7 +26,7 @@ import org.dromara.soul.register.api.path.Path;
  * @author sixh
  */
 @FunctionalInterface
-public interface RegisterDirectoryListener {
+public interface RegisterDiscoveryListener {
 
     /**
      * The constant ADD.
