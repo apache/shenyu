@@ -18,6 +18,7 @@
 package org.dromara.soul.register.dubbo;
 
 import java.util.List;
+
 import lombok.Data;
 import org.dromara.soul.common.extension.Join;
 import org.dromara.soul.config.api.AbstractConfig;

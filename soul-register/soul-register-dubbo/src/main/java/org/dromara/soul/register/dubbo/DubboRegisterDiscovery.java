@@ -25,13 +25,15 @@ import com.alibaba.dubbo.registry.NotifyListener;
 import com.alibaba.dubbo.registry.RegistryService;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
+
 import org.dromara.soul.common.exception.SoulException;
-import org.dromara.soul.register.api.RegisterDirectory;
-import org.dromara.soul.register.api.RegisterDirectoryListener;
+import org.dromara.soul.register.api.RegisterDiscovery;
+import org.dromara.soul.register.api.RegisterDiscoveryListener;
 import org.dromara.soul.register.api.path.Path;
 
 import static java.util.stream.Collectors.toSet;
@@ -42,27 +44,27 @@ import static java.util.stream.Collectors.toSet;
  * @author sixh
  */
 
-public class DubboRegisterDirectory extends RegisterDirectory implements NotifyListener, RegisterDirectoryListener {
+public class DubboRegisterDiscovery extends RegisterDiscovery implements NotifyListener, RegisterDiscoveryListener {
 
     private static final ConcurrentHashMap<String, Map<String, Set<DubboPath>>> CACHE = new ConcurrentHashMap<>();
 
     private static final URL SUBSCRIBE = new URL(Constants.ADMIN_PROTOCOL, NetUtils.getLocalHost(), 0, "",
-                                                 Constants.INTERFACE_KEY, Constants.ANY_VALUE,
-                                                 Constants.GROUP_KEY, Constants.ANY_VALUE,
-                                                 Constants.VERSION_KEY, Constants.ANY_VALUE,
-                                                 Constants.CLASSIFIER_KEY, Constants.ANY_VALUE,
-                                                 Constants.CATEGORY_KEY, Constants.PROVIDERS_CATEGORY,
-                                                 Constants.ENABLED_KEY, Constants.ANY_VALUE,
-                                                 Constants.CHECK_KEY, String.valueOf(false));
+            Constants.INTERFACE_KEY, Constants.ANY_VALUE,
+            Constants.GROUP_KEY, Constants.ANY_VALUE,
+            Constants.VERSION_KEY, Constants.ANY_VALUE,
+            Constants.CLASSIFIER_KEY, Constants.ANY_VALUE,
+            Constants.CATEGORY_KEY, Constants.PROVIDERS_CATEGORY,
+            Constants.ENABLED_KEY, Constants.ANY_VALUE,
+            Constants.CHECK_KEY, String.valueOf(false));
 
-    private DubboRegisterMetadataDirectory metadataDirectory;
+    private DubboRegisterMetadataDiscovery metadataDirectory;
 
     /**
      * Gets metadata directory.
      *
      * @return the metadata directory.
      */
-    public RegisterDirectory getMetadataDirectory() {
+    public RegisterDiscovery getMetadataDirectory() {
         return metadataDirectory;
     }
 
@@ -73,9 +75,9 @@ public class DubboRegisterDirectory extends RegisterDirectory implements NotifyL
      * @param metadataUrl the metadata url
      * @param listeners   the listeners.
      */
-    DubboRegisterDirectory(URL registerUrl, URL metadataUrl, Set<RegisterDirectoryListener> listeners) {
+    DubboRegisterDiscovery(URL registerUrl, URL metadataUrl, Set<RegisterDiscoveryListener> listeners) {
         super(UrlAdapter.parse(registerUrl), listeners);
-        metadataDirectory = new DubboRegisterMetadataDirectory(metadataUrl, this);
+        metadataDirectory = new DubboRegisterMetadataDiscovery(metadataUrl, this);
         DubboPath dubboPath = DubboPath.builder()
                 .registerServer(true)
                 .env(getEnv())
@@ -97,7 +99,7 @@ public class DubboRegisterDirectory extends RegisterDirectory implements NotifyL
      * @param metadataUrl the metadata url
      * @param listener    the listener.
      */
-    public DubboRegisterDirectory(URL registerUrl, URL metadataUrl, RegisterDirectoryListener listener) {
+    public DubboRegisterDiscovery(URL registerUrl, URL metadataUrl, RegisterDiscoveryListener listener) {
         this(registerUrl, metadataUrl, Sets.newHashSet(listener));
     }
 
@@ -142,9 +144,9 @@ public class DubboRegisterDirectory extends RegisterDirectory implements NotifyL
             String version = provider.getParameter(Constants.VERSION_KEY);
             String serviceName = provider.getServiceInterface();
             if (Constants.EMPTY_PROTOCOL.equalsIgnoreCase(provider.getProtocol())
-                && category.equals(Constants.PROVIDERS_CATEGORY)
-                && Constants.ANY_VALUE.equals(group)
-                && Constants.ANY_VALUE.equals(version)) {
+                    && category.equals(Constants.PROVIDERS_CATEGORY)
+                    && Constants.ANY_VALUE.equals(group)
+                    && Constants.ANY_VALUE.equals(version)) {
                 destroyAll(provider);
             } else if (category.equals(Constants.PROVIDERS_CATEGORY)) {
                 Map<String, Set<DubboPath>> maps = categories.get(serviceName);
@@ -172,7 +174,7 @@ public class DubboRegisterDirectory extends RegisterDirectory implements NotifyL
         if (oldMaps == null || oldMaps.isEmpty()) {
             Set<DubboPath> collect = newMaps.values().stream()
                     .flatMap(Collection::stream)
-                    .peek(e -> e.setStatus(RegisterDirectoryListener.ADD))
+                    .peek(e -> e.setStatus(RegisterDiscoveryListener.ADD))
                     .collect(toSet());
             actions.addAll(collect);
         } else {
@@ -180,9 +182,9 @@ public class DubboRegisterDirectory extends RegisterDirectory implements NotifyL
                 Set<DubboPath> collect;
                 if (newMaps.containsKey(k)) {
                     Sets.SetView<DubboPath> differenceSets = Sets.difference(value, newMaps.get(k));
-                    collect = differenceSets.stream().peek(e -> e.setStatus(RegisterDirectoryListener.REMOVE)).collect(Collectors.toSet());
+                    collect = differenceSets.stream().peek(e -> e.setStatus(RegisterDiscoveryListener.REMOVE)).collect(Collectors.toSet());
                 } else {
-                    collect = value.stream().peek(e -> e.setStatus(RegisterDirectoryListener.REMOVE)).collect(toSet());
+                    collect = value.stream().peek(e -> e.setStatus(RegisterDiscoveryListener.REMOVE)).collect(toSet());
                 }
                 actions.addAll(collect);
             });
@@ -190,9 +192,9 @@ public class DubboRegisterDirectory extends RegisterDirectory implements NotifyL
                 Set<DubboPath> collect;
                 if (oldMaps.containsKey(k)) {
                     Sets.SetView<DubboPath> differenceSets = Sets.difference(value, oldMaps.get(k));
-                    collect = differenceSets.stream().peek(e -> e.setStatus(RegisterDirectoryListener.ADD)).collect(Collectors.toSet());
+                    collect = differenceSets.stream().peek(e -> e.setStatus(RegisterDiscoveryListener.ADD)).collect(Collectors.toSet());
                 } else {
-                    collect = value.stream().peek(e -> e.setStatus(RegisterDirectoryListener.ADD)).collect(toSet());
+                    collect = value.stream().peek(e -> e.setStatus(RegisterDiscoveryListener.ADD)).collect(toSet());
                 }
                 actions.addAll(collect);
             });
@@ -249,7 +251,7 @@ public class DubboRegisterDirectory extends RegisterDirectory implements NotifyL
         Map<String, Set<DubboPath>> map = CACHE.remove(serviceInterface);
         Set<DubboPath> actions = new HashSet<>();
         map.forEach((k, v) -> actions.addAll(v));
-        Set<Path> paths = actions.stream().peek(e -> e.setStatus(RegisterDirectoryListener.REMOVE)).collect(toSet());
+        Set<Path> paths = actions.stream().peek(e -> e.setStatus(RegisterDiscoveryListener.REMOVE)).collect(toSet());
         redress(paths);
     }
 

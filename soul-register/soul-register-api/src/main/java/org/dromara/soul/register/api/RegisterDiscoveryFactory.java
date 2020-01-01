@@ -25,12 +25,12 @@ import org.dromara.soul.common.extension.SPI;
  * @author sixh
  */
 @SPI
-public interface RegisterDirectoryFactory {
+public interface RegisterDiscoveryFactory {
 
     /**
      * Create directory register directory.
      *
      * @return the register directory.
      */
-    RegisterDirectory createDirectory();
+    RegisterDiscovery createDiscovery();
 }

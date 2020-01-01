@@ -18,7 +18,7 @@
 package org.dromara.soul.register.api.path;
 
 import org.dromara.soul.common.http.URL;
-import org.dromara.soul.register.api.RegisterDirectoryListener;
+import org.dromara.soul.register.api.RegisterDiscoveryListener;
 
 /**
  * EmptyPath
@@ -40,7 +40,7 @@ public class EmptyPath implements Path {
 
     @Override
     public Integer status() {
-        return RegisterDirectoryListener.REMOVE_ALL;
+        return RegisterDiscoveryListener.REMOVE_ALL;
     }
 
     @Override
