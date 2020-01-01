@@ -20,6 +20,7 @@
 package org.dromara.soul.remoting.redis.jedis;
 
 import org.dromara.soul.remoting.redis.command.RedisKeyCommands;
+import org.dromara.soul.remoting.redis.command.RedisScriptCommands;
 import org.dromara.soul.remoting.redis.command.RedisStringsCommands;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.JedisCluster;
@@ -35,6 +36,7 @@ import java.util.Set;
  * @author sixh
  */
 public class JedisClusterConnection extends JedisConnection {
+
 
     private JedisCluster jedisCluster;
 
@@ -60,6 +62,11 @@ public class JedisClusterConnection extends JedisConnection {
     @Override
     public void set(byte[] key, byte[] value) {
         stringsCommands().set(key, value);
+    }
+
+    @Override
+    protected RedisScriptCommands scriptCommands() {
+        return null;
     }
 
     @Override

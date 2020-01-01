@@ -29,5 +29,11 @@ import redis.clients.jedis.Jedis;
 @FunctionalInterface
 public interface JedisExecuteCommand {
 
+    /**
+     * Execute object.
+     *
+     * @param jedis the jedis
+     * @return the object
+     */
     Object execute(Jedis jedis);
 }
