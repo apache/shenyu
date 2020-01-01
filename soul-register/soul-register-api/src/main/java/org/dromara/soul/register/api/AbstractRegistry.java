@@ -35,7 +35,7 @@ public abstract class AbstractRegistry implements Registry {
     /**
      * Instantiates a new Abstract registry.
      *
-     * @param url the url
+     * @param url the url.
      */
     public AbstractRegistry(URL url) {
         setRemoteUrl(url);
@@ -81,4 +81,24 @@ public abstract class AbstractRegistry implements Registry {
      * @see org.dromara.soul.register.api.config.RegistryConfig
      */
     public abstract String urlProtocol();
+
+    @Override
+    public void register(URL url) {
+
+    }
+
+    @Override
+    public void unregister(URL url) {
+
+    }
+
+    @Override
+    public void subscribe(URL url) {
+
+    }
+
+    @Override
+    public void unsubscribe(URL url) {
+
+    }
 }

@@ -18,12 +18,14 @@
 package org.dromara.soul.register.api;
 
 import java.util.List;
+import lombok.Data;
 
 /**
  * PathMethod
  *
  * @author sixh
  */
+@Data
 public class PathMethod {
 
     private String methodName;
@@ -39,29 +41,5 @@ public class PathMethod {
                ", parameterTypes=" + parameterTypes +
                ", returnType='" + returnType + '\'' +
                '}';
-    }
-
-    public String getMethodName() {
-        return methodName;
-    }
-
-    public void setMethodName(String methodName) {
-        this.methodName = methodName;
-    }
-
-    public List<String> getParameterTypes() {
-        return parameterTypes;
-    }
-
-    public void setParameterTypes(List<String> parameterTypes) {
-        this.parameterTypes = parameterTypes;
-    }
-
-    public String getReturnType() {
-        return returnType;
-    }
-
-    public void setReturnType(String returnType) {
-        this.returnType = returnType;
     }
 }

@@ -52,7 +52,7 @@ public class SoulPath implements Path {
     }
 
     @Override
-    public URL getSoulPath() {
+    public URL getHttpPath() {
         return null;
     }
 

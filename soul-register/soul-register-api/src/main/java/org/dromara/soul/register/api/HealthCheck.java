@@ -30,7 +30,7 @@ public interface HealthCheck {
      * check if the service path Whether it is healthy.
      *
      * @param path the path
-     * @return the future
+     * @return the future.
      */
     Future<Boolean> isHealthy(Path path);
 }

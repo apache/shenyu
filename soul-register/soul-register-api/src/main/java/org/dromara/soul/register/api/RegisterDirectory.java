@@ -38,8 +38,6 @@ public abstract class RegisterDirectory implements HealthCheck {
 
     private URL url;
 
-    private final String defEnv = "default";
-
     /**
      * Instantiates a new Register directory.
      *
@@ -52,7 +50,7 @@ public abstract class RegisterDirectory implements HealthCheck {
         }
         String env = url.getParameter(RegisterConst.EVN_KEY);
         if (StringUtils.isBlank(env)) {
-            env = defEnv;
+            env = "default";
             url.putParameter(RegisterConst.EVN_KEY, env);
         }
         this.env = env;

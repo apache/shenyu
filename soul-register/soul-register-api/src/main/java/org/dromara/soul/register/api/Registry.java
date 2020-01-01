@@ -41,4 +41,19 @@ public interface Registry {
      * @param url the url.
      */
     void unregister(URL url);
+
+
+    /**
+     * Subscribe.
+     *
+     * @param url the url
+     */
+    void subscribe(URL url);
+
+    /**
+     * Unsubscribe.
+     *
+     * @param url the url
+     */
+    void unsubscribe(URL url);
 }

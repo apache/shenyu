@@ -17,14 +17,9 @@
 
 package org.dromara.soul.register.api.config;
 
-import com.google.common.base.Splitter;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.Data;
 import org.dromara.soul.common.extension.Join;
-import org.dromara.soul.common.http.URL;
 import org.dromara.soul.config.api.AbstractConfig;
-import org.dromara.soul.register.api.RegisterConst;
 
 /**
  * RegistryConfig
@@ -39,8 +34,6 @@ import org.dromara.soul.register.api.RegisterConst;
 public class RegistryConfig extends AbstractConfig {
 
     private String url;
-
-
 
     @Override
     public String prefix() {

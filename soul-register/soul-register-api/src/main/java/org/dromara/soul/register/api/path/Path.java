@@ -32,7 +32,7 @@ public interface Path {
      *
      * @return soul path.
      */
-    URL getSoulPath();
+    URL getHttpPath();
 
     /**
      * Gets a status message for the current service.

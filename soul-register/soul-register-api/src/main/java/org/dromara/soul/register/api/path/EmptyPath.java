@@ -34,7 +34,7 @@ public class EmptyPath implements Path {
     }
 
     @Override
-    public URL getSoulPath() {
+    public URL getHttpPath() {
         return null;
     }
 
