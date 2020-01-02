@@ -174,6 +174,20 @@
          <td><img src="https://yu199195.github.io/images/soul/users/songda.png"  width="1800" height="90" alt="江苏永钢集团"/>
        </tr>
     </tbody>
+     <thead>
+          <th>浙江翱游科技有限公司 </th>
+          <th>车易拍(北京)汽车技术服务有限公司</th>
+          <th>上海草帽科技</th>
+          <th>深圳竹云科技有限公司</th>
+       </thead>
+       <tbody>
+           <tr>
+             <td><img src="https://yu199195.github.io/images/soul/users/aoyou.jpg"  width="1800" height="90" alt="浙江翱游科技有限公司"/>
+             <td><img src="https://yu199195.github.io/images/soul/users/cheyipai.jpg"  width="1800" height="90" alt="车易拍(北京)汽车技术服务有限公司"/>
+             <td><img src="https://yu199195.github.io/images/soul/users/caomao.jpg"  width="1800" height="90" alt="上海草帽科技"/>
+             <td><img src="https://yu199195.github.io/images/soul/users/zuyun.jpg"  width="1800" height="90" alt="深圳竹云科技有限公司"/>
+           </tr>
+        </tbody>
 </table>
 
 
