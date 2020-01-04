@@ -17,52 +17,22 @@
 
 package org.dromara.soul.register.api;
 
-
 import java.util.List;
-import org.dromara.soul.common.extension.SPI;
 import org.dromara.soul.common.http.URL;
 
 /**
- * Registry
+ * RegisterNotifyListener.
  *
  * @author sixh
+ * @see Registry#subscribe(URL, RegisterNotifyListener)
  */
-@SPI("zookeeper")
-public interface Registry {
-    /**
-     * Register.
-     *
-     * @param url the url.
-     */
-    void register(URL url);
+@FunctionalInterface
+public interface RegisterNotifyListener {
 
     /**
-     * Unregister.
+     * Notify.
      *
-     * @param url the url.
+     * @param urls the urls.
      */
-    void unregister(URL url);
-
-    /**
-     * Subscribe.
-     *
-     * @param url      the url
-     * @param listener the listener.
-     */
-    void subscribe(URL url, RegisterNotifyListener listener);
-
-    /**
-     * Unsubscribe.
-     *
-     * @param url the url
-     */
-    void unsubscribe(URL url);
-
-    /**
-     * subscribe It's an active push through the server , pull It's a process of pulling information for yourself。
-     *
-     * @param url url.
-     * @return lists. list
-     */
-    List<URL> pull(URL url);
+    void notify(List<URL> urls);
 }

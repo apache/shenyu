@@ -17,6 +17,9 @@
 
 package org.dromara.soul.register.api;
 
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.dromara.soul.common.exception.SoulException;
 import org.dromara.soul.common.http.URL;
 
@@ -28,9 +31,22 @@ import org.dromara.soul.common.http.URL;
  */
 public abstract class AbstractRegistry implements Registry {
 
+    /**
+     * Register the server address.
+     */
     private URL remoteUrl;
 
     private String protocol;
+
+    /**
+     * The notifyUrls.
+     */
+    protected final Map<URL, RegisterNotifyListener> subscribed = new ConcurrentHashMap<>();
+
+    /**
+     * The Registered.
+     */
+    protected final Map<URL, Object> registered = new ConcurrentHashMap<>();
 
     /**
      * Instantiates a new Abstract registry.
@@ -52,6 +68,9 @@ public abstract class AbstractRegistry implements Registry {
         }
     }
 
+    /**
+     * Retry.
+     */
     public void retry() {
         //todo:重试.
     }
@@ -93,12 +112,17 @@ public abstract class AbstractRegistry implements Registry {
     }
 
     @Override
-    public void subscribe(URL url) {
+    public void subscribe(URL url, RegisterNotifyListener listener) {
 
     }
 
     @Override
     public void unsubscribe(URL url) {
 
+    }
+
+    @Override
+    public List<URL> pull(URL url) {
+        return null;
     }
 }
