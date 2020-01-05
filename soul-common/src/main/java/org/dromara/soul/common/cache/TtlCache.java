@@ -18,8 +18,12 @@
 
 package org.dromara.soul.common.cache;
 
-import java.util.concurrent.TimeUnit;
 import org.dromara.soul.common.concurrent.SoulThreadFactory;
+import org.dromara.soul.common.timer.HashedWheelTimer;
+import org.dromara.soul.common.timer.Timeout;
+import org.dromara.soul.common.timer.TimerTask;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * 实现一个关于时间的过期的缓存；当缓存的对象到期后，
@@ -94,14 +98,14 @@ public class TtlCache<K, V> {
      * @return Timeout
      */
     public Timeout put(K k, V v, long expire, TimeUnit unit) {
-        Node node = new Node(k, v, expire, unit);
-        return timer.newTimeout(node, expire, unit);
+        TtlCacheTimerTask ttlCacheTimerTask = new TtlCacheTimerTask(k, v, expire, unit);
+        return timer.newTimeout(ttlCacheTimerTask, expire, unit);
     }
 
     /**
      * 保存.
      */
-    public class Node implements TimerTask {
+    public class TtlCacheTimerTask implements TimerTask {
         /**
          * 缓存的KEY.
          */
@@ -135,7 +139,7 @@ public class TtlCache<K, V> {
          * @param expire 默认等待时间;
          * @param unit   默认等时间的单位;
          */
-        public Node(K key, V value, long expire, TimeUnit unit) {
+        TtlCacheTimerTask(K key, V value, long expire, TimeUnit unit) {
             this.key = key;
             this.value = value;
             time = System.nanoTime();

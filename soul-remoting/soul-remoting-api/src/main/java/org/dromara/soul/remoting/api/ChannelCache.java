@@ -107,10 +107,10 @@ public final class ChannelCache extends TtlCache<String, Channel> implements Ttl
     Channel get(String key) {
         Timeout timeout = CACHES.get(key);
         if (timeout != null && !timeout.isDefault()) {
-            Node node = (Node) timeout.task();
-            String sKey = node.getKey();
+            TtlCacheTimerTask ttlCacheTimerTask = (TtlCacheTimerTask) timeout.task();
+            String sKey = ttlCacheTimerTask.getKey();
             if (sKey.equals(key)) {
-                return node.getValue();
+                return ttlCacheTimerTask.getValue();
             }
         }
         return null;
@@ -154,6 +154,6 @@ public final class ChannelCache extends TtlCache<String, Channel> implements Ttl
 
     @SuppressWarnings("unchecked")
     public Collection<Channel> getAll() {
-        return CACHES.values().stream().map(e -> ((Node) e.task()).getValue()).collect(Collectors.toList());
+        return CACHES.values().stream().map(e -> ((TtlCacheTimerTask) e.task()).getValue()).collect(Collectors.toList());
     }
 }

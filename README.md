@@ -81,7 +81,7 @@
   
   When the user is managing changes in the background,
   
-  Soul dynamically updates the cache by listening to the zookeeper node, websocket push,http longPull.
+  Soul dynamically updates the cache by listening to the zookeeper ttlCacheTimerTask, websocket push,http longPull.
   
   ![Data Sync](https://bestkobe.gitee.io/images/soul/soul-config-processor.png?_t=201908032316)
   

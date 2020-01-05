@@ -17,11 +17,16 @@
 
 package org.dromara.soul.register.api;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import com.google.common.collect.Sets;
 import org.dromara.soul.common.exception.SoulException;
 import org.dromara.soul.common.http.URL;
+import org.dromara.soul.register.api.exception.RegisterException;
 
 /**
  * AbstractRegistry.
@@ -41,12 +46,12 @@ public abstract class AbstractRegistry implements Registry {
     /**
      * The notifyUrls.
      */
-    protected final Map<URL, RegisterNotifyListener> subscribed = new ConcurrentHashMap<>();
+    private final Map<URL, RegisterNotifyListener> subscribed = new ConcurrentHashMap<>();
 
     /**
      * The Registered.
      */
-    protected final Map<URL, Object> registered = new ConcurrentHashMap<>();
+    private final Set<URL> registered = Sets.newConcurrentHashSet();
 
     /**
      * Instantiates a new Abstract registry.
@@ -69,10 +74,21 @@ public abstract class AbstractRegistry implements Registry {
     }
 
     /**
-     * Retry.
+     * get subscribed.
+     *
+     * @return map.
      */
-    public void retry() {
-        //todo:重试.
+    Map<URL, RegisterNotifyListener> getSubscribed() {
+        return Collections.unmodifiableMap(subscribed);
+    }
+
+    /**
+     * get registered.
+     *
+     * @return set.
+     */
+    Set<URL> getRegistered() {
+        return Collections.unmodifiableSet(registered);
     }
 
     /**
@@ -89,7 +105,7 @@ public abstract class AbstractRegistry implements Registry {
      *
      * @return the remote url
      */
-    public URL getRemoteUrl() {
+    protected URL getRemoteUrl() {
         return remoteUrl;
     }
 
@@ -103,22 +119,38 @@ public abstract class AbstractRegistry implements Registry {
 
     @Override
     public void register(URL url) {
-
+        if (url == null) {
+            throw new RegisterException("url is null || url == null");
+        }
+        registered.add(url);
     }
+
 
     @Override
     public void unregister(URL url) {
-
+        if (url == null) {
+            throw new RegisterException("url is null || url == null");
+        }
+        registered.remove(url);
     }
 
     @Override
     public void subscribe(URL url, RegisterNotifyListener listener) {
-
+        if (url == null) {
+            throw new RegisterException("url is null || url == null");
+        }
+        if (listener == null) {
+            throw new RegisterException("listener is null || listener == null");
+        }
+        subscribed.putIfAbsent(url, listener);
     }
 
     @Override
     public void unsubscribe(URL url) {
-
+        if (url == null) {
+            throw new RegisterException("url is null || url == null");
+        }
+        subscribed.remove(url);
     }
 
     @Override

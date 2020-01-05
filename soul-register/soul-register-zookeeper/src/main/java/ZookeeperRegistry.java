@@ -15,15 +15,16 @@
  *     limitations under the License.
  */
 
-import java.util.Optional;
 import org.dromara.soul.common.exception.SoulException;
 import org.dromara.soul.common.extension.Join;
 import org.dromara.soul.common.http.URL;
-import org.dromara.soul.register.api.AbstractRegistry;
+import org.dromara.soul.register.api.FailbackRegistry;
 import org.dromara.soul.register.api.RegisterConst;
 import org.dromara.soul.remoting.zookeeper.ZookeeperClient;
 import org.dromara.soul.remoting.zookeeper.ZookeeperClientCache;
 import org.dromara.soul.remoting.zookeeper.ZookeeperStatusCallback;
+
+import java.util.Optional;
 
 import static org.dromara.soul.register.api.RegisterConst.BASE_URL_PATH_KEY;
 
@@ -34,7 +35,7 @@ import static org.dromara.soul.register.api.RegisterConst.BASE_URL_PATH_KEY;
  * @author sixh
  */
 @Join
-public class ZookeeperRegistry extends AbstractRegistry {
+public class ZookeeperRegistry extends FailbackRegistry {
 
     private final ZookeeperClient client;
 
@@ -43,7 +44,7 @@ public class ZookeeperRegistry extends AbstractRegistry {
         client = ZookeeperClientCache.getClient(url);
         client.statusChange(connectionState -> {
             if (connectionState.equals(ZookeeperStatusCallback.RECONNECTED)) {
-                retry();
+                recover();
             }
         });
     }
@@ -64,15 +65,6 @@ public class ZookeeperRegistry extends AbstractRegistry {
         return path + url.encode();
     }
 
-    @Override
-    public void register(URL url) {
-        try {
-            String path = toPath(url);
-            client.create(path, isEphemeral(url));
-        } catch (Throwable e) {
-            throw new SoulException("register failed " + url + "to zookeeper " + getRemoteUrl());
-        }
-    }
 
     private boolean isEphemeral(URL url) {
         String parameter = url.getParameter(RegisterConst.EPHEMERAL_KEY);
@@ -82,11 +74,31 @@ public class ZookeeperRegistry extends AbstractRegistry {
     }
 
     @Override
-    public void unregister(URL url) {
+    protected void doRegister(URL url) {
+        try {
+            String path = toPath(url);
+            client.create(path, isEphemeral(url));
+        } catch (Throwable e) {
+            throw new SoulException("register failed " + url + "to zookeeper " + getRemoteUrl());
+        }
+    }
+
+    @Override
+    protected void doUnRegister(URL url) {
         try {
             client.delete(toPath(url));
         } catch (Throwable e) {
             throw new SoulException("unregister failed " + url + "to zookeeper " + getRemoteUrl());
         }
+    }
+
+    @Override
+    protected void doSubscribe(URL url) {
+
+    }
+
+    @Override
+    protected void doUnSubscribe(URL url) {
+
     }
 }
