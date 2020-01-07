@@ -174,20 +174,34 @@
          <td><img src="https://yu199195.github.io/images/soul/users/songda.png"  width="1800" height="90" alt="江苏永钢集团"/>
        </tr>
     </tbody>
-     <thead>
+    <thead>
           <th>浙江翱游科技有限公司 </th>
           <th>车易拍(北京)汽车技术服务有限公司</th>
           <th>上海草帽科技</th>
           <th>深圳竹云科技有限公司</th>
-       </thead>
-       <tbody>
+    </thead>
+    <tbody>
            <tr>
              <td><img src="https://yu199195.github.io/images/soul/users/aoyou.jpg"  width="1800" height="90" alt="浙江翱游科技有限公司"/>
              <td><img src="https://yu199195.github.io/images/soul/users/cheyipai.jpg"  width="1800" height="90" alt="车易拍(北京)汽车技术服务有限公司"/>
              <td><img src="https://yu199195.github.io/images/soul/users/caomao.jpg"  width="1800" height="90" alt="上海草帽科技"/>
              <td><img src="https://yu199195.github.io/images/soul/users/zuyun.jpg"  width="1800" height="90" alt="深圳竹云科技有限公司"/>
            </tr>
-        </tbody>
+     </tbody>
+     <thead>
+               <th>深圳盒知科技 </th>
+               <th>杭州奇点云科技</th>
+               <th>深圳万威科技</th>
+               <th>武汉物易云通网络科技有限公司</th>
+      </thead>
+      <tbody>
+                <tr>
+                  <td><img src="https://yu199195.github.io/images/soul/users/hezhi.png"  width="1800" height="90" alt="深圳盒知科技"/>
+                  <td><img src="https://yu199195.github.io/images/soul/users/qidianyun.jpg"  width="1800" height="90" alt="杭州奇点云科技"/>
+                  <td><img src="https://yu199195.github.io/images/soul/users/wanwei.gif"  width="1800" height="90" alt="万威科技"/>
+                  <td><img src="https://yu199195.github.io/images/soul/users/wuyiyuntong.jpg"  width="1800" height="90" alt="武汉物易云通网络科技有限公司"/>
+                </tr>
+      </tbody>
 </table>
 
 
@@ -195,17 +209,15 @@
 
 <table>
   <thead>
-    <th>芋道源码</th>
     <th>微信公众号</th>
     <th>QQ交流群</th>
-    <th>jetbrains</th>
+    <th>芋道源码</th>
   </thead>
   <tbody>
     <tr>
-      <td><img src="http://www.iocoder.cn/images/common/erweima.jpg"  alt="芋道源码"/>
       <td><img src="https://yu199195.github.io/images/public.jpg"   alt="微信公众号"/>
       <td><img src="https://yu199195.github.io/images/soul-qq.png"  alt="QQ交流群"/>
-      <td><img src="https://yu199195.github.io/images/jetbrains.svg" alt="jetbrains"/>
+      <td><img src="http://www.iocoder.cn/images/common/erweima.jpg"  alt="芋道源码"/>
     </tr>
   </tbody>
 </table>
