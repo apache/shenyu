@@ -1,11 +1,12 @@
 server:
-  port: 8088
+  port: 8186
   address: 0.0.0.0
 
 
 soul:
   http:
     adminUrl: http://localhost:9095
+    zookeeperUrl: localhost:2181
     contextPath: /http
     appName: http
 

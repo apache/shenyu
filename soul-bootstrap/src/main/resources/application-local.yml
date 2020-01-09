@@ -17,8 +17,8 @@ soul :
 #             url: localhost:2181
 #             sessionTimeout: 5000
 #             connectionTimeout: 2000
-        http:
-             url : http://localhost:9095
+#        http:
+#             url : http://localhost:9095
 
 
 eureka:
