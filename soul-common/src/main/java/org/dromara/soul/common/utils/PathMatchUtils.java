@@ -36,14 +36,10 @@ public class PathMatchUtils {
      * @param args the input arguments
      */
     public static void main(final String[] args) {
-        String ignoreUrls = "/login/login,/login/verifyCode,/open-api/findAllMetaData,/volapi/**,/gatewayauth/seller/byphone,/seoEsConfig/get,/noauth/**";
+        String ignoreUrls = "/volapi/**";
         String noauth = "/noauth/findAllMetaData/ABC";
-        String login = "/login/login";
-        String tt = "/user/findById";
         String volapi = "/volapi/add";
         System.out.println(match(ignoreUrls, noauth));
-        System.out.println(match(ignoreUrls, login));
-        System.out.println(match(ignoreUrls, tt));
         System.out.println(match(ignoreUrls, volapi));
     }
 
