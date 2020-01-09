@@ -261,14 +261,17 @@ public class MetaDataServiceImpl implements MetaDataService {
                 selectorDTO.setPluginId("8");
                 selectorDTO.setHandle(metaDataDTO.getAppName());
             } else {
-                //is springCloud
+                //is divide
                 selectorDTO.setPluginId("5");
             }
             SelectorConditionDTO selectorConditionDTO = new SelectorConditionDTO();
             selectorConditionDTO.setParamType(ParamTypeEnum.URI.getName());
             selectorConditionDTO.setParamName("/");
             selectorConditionDTO.setOperator(OperatorEnum.MATCH.getAlias());
-            selectorConditionDTO.setParamValue(contextPath);
+//            FIX - MATCH匹配方式没有加通配符导致无法匹配选择器， 不追加/**可使用LIKE匹配
+            selectorConditionDTO.setParamValue(contextPath + "/**");
+//            selectorConditionDTO.setOperator(OperatorEnum.LIKE.getAlias());
+//            selectorConditionDTO.setParamValue(contextPath);
             selectorDTO.setSelectorConditions(Collections.singletonList(selectorConditionDTO));
             selectorId = selectorService.register(selectorDTO);
         } else {
