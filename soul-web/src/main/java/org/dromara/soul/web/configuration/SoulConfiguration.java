@@ -31,7 +31,7 @@ import org.dromara.soul.web.filter.WebSocketWebFilter;
 import org.dromara.soul.web.handler.SoulWebHandler;
 import org.dromara.soul.web.influxdb.service.InfluxDbService;
 import org.dromara.soul.web.plugin.SoulPlugin;
-import org.dromara.soul.web.plugin.after.MonitorPlugin;
+import org.dromara.soul.web.plugin.montior.MonitorPlugin;
 import org.dromara.soul.web.plugin.before.DefaultSignService;
 import org.dromara.soul.web.plugin.before.GlobalPlugin;
 import org.dromara.soul.web.plugin.before.SignPlugin;

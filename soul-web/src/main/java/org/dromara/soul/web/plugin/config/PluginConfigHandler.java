@@ -109,8 +109,7 @@ public enum PluginConfigHandler {
                         DubboRegisterConfig dubboRegisterConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), DubboRegisterConfig.class);
                         DubboRegisterConfig exist = Singleton.INST.get(DubboRegisterConfig.class);
                         if (Objects.nonNull(dubboRegisterConfig)) {
-                            if (Objects.isNull(exist)
-                                    || !dubboRegisterConfig.equals(exist)) {
+                            if (Objects.isNull(exist) || !dubboRegisterConfig.equals(exist)) {
                                 //如果是空，进行初始化操作，
                                 ApplicationConfigCache.getInstance().init(dubboRegisterConfig.getRegister());
                                 ApplicationConfigCache.getInstance().invalidateAll();

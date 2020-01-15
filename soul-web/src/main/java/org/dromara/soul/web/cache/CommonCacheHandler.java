@@ -81,9 +81,6 @@ class CommonCacheHandler extends AbstractLocalCacheManager {
      */
     void cacheRuleData(final RuleData ruleData) {
         String key = ruleData.getSelectorId();
-        if (PluginEnum.HYSTRIX.getName().equals(ruleData.getPluginName())) {
-            HystrixPropertiesFactory.reset();
-        }
         if (RULE_MAP.containsKey(key)) {
             List<RuleData> existList = RULE_MAP.get(key);
             final List<RuleData> resultList =
