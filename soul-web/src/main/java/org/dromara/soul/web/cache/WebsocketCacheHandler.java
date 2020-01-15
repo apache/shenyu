@@ -26,6 +26,7 @@ import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.web.plugin.dubbo.ApplicationConfigCache;
+import org.dromara.soul.web.plugin.hystrix.HystrixRefreshHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -139,6 +140,7 @@ class WebsocketCacheHandler extends CommonCacheHandler {
                     break;
                 case CREATE:
                 case UPDATE:
+                    HystrixRefreshHandler.INS.refreshHystrix(ruleDataList);
                     ruleDataList.forEach(this::cacheRuleData);
                     break;
                 default:

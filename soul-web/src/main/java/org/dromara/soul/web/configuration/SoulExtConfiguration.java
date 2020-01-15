@@ -64,7 +64,7 @@ public class SoulExtConfiguration {
      * @return the param service
      */
     @Bean
-    @ConditionalOnMissingBean(ParamService.class)
+    @ConditionalOnMissingBean(value = ParamService.class, search = SearchStrategy.ALL)
     public ParamService paramService() {
         return new DefaultParamService();
     }
