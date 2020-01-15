@@ -21,7 +21,7 @@ package org.dromara.soul.common.dto.convert.rule;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.dromara.soul.common.dto.convert.HystrixHandle;
+import org.dromara.soul.common.constant.Constants;
 
 import java.io.Serializable;
 
@@ -33,10 +33,15 @@ import java.io.Serializable;
 @ToString
 @Getter
 @Setter
-public class SpringCloudRuleHandle extends HystrixHandle implements Serializable {
+public class SpringCloudRuleHandle implements Serializable {
 
     /**
      * this remote uri path.
      */
     private String path;
+
+    /**
+     * timeout is required.
+     */
+    private long timeout = Constants.TIME_OUT;
 }

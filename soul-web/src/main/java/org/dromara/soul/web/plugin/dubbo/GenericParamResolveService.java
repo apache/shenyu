@@ -21,8 +21,6 @@ package org.dromara.soul.web.plugin.dubbo;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.Map;
-
 /**
  * The interface Generic param service.
  * This service is used to construct the parameters required for the dubbo generalization.

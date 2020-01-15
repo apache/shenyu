@@ -21,7 +21,6 @@ package org.dromara.soul.web.filter;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.RpcTypeEnum;
-import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.web.request.RequestDTO;
 import org.dromara.soul.web.result.SoulResultEnum;
 import org.dromara.soul.web.result.SoulResultUtils;

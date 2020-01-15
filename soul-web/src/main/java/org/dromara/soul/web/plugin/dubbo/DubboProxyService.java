@@ -18,13 +18,12 @@
 
 package org.dromara.soul.web.plugin.dubbo;
 
-import com.alibaba.dubbo.config.ReferenceConfig;
-import com.alibaba.dubbo.rpc.service.GenericException;
-import com.alibaba.dubbo.rpc.service.GenericService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.dubbo.config.ReferenceConfig;
+import org.apache.dubbo.rpc.service.GenericException;
+import org.apache.dubbo.rpc.service.GenericService;
 import org.dromara.soul.common.dto.MetaData;
-import org.dromara.soul.common.dto.convert.rule.DubboRuleHandle;
 import org.dromara.soul.common.exception.SoulException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,11 +58,10 @@ public class DubboProxyService {
      *
      * @param body            the body
      * @param metaData        the meta data
-     * @param dubboRuleHandle the dubbo rule handle
      * @return the object
      * @throws SoulException the soul exception
      */
-    public Object genericInvoker(final String body, final MetaData metaData, final DubboRuleHandle dubboRuleHandle) throws SoulException {
+    public Object genericInvoker(final String body, final MetaData metaData) throws SoulException {
         ReferenceConfig<GenericService> reference;
         GenericService genericService;
         try {

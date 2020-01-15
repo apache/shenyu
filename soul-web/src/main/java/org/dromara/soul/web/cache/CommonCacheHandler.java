@@ -18,6 +18,7 @@
 package org.dromara.soul.web.cache;
 
 import com.google.common.collect.Lists;
+import com.netflix.hystrix.strategy.properties.HystrixPropertiesFactory;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginEnum;
@@ -80,6 +81,9 @@ class CommonCacheHandler extends AbstractLocalCacheManager {
      */
     void cacheRuleData(final RuleData ruleData) {
         String key = ruleData.getSelectorId();
+        if (PluginEnum.HYSTRIX.getName().equals(ruleData.getPluginName())) {
+            HystrixPropertiesFactory.reset();
+        }
         if (RULE_MAP.containsKey(key)) {
             List<RuleData> existList = RULE_MAP.get(key);
             final List<RuleData> resultList =

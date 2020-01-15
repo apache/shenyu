@@ -19,7 +19,7 @@
 package org.dromara.soul.common.dto.convert.rule;
 
 import lombok.Data;
-import org.dromara.soul.common.dto.convert.HystrixHandle;
+import org.dromara.soul.common.constant.Constants;
 
 import java.io.Serializable;
 
@@ -29,7 +29,7 @@ import java.io.Serializable;
  * @author xiaoyu(Myth)
  */
 @Data
-public class DivideRuleHandle extends HystrixHandle implements Serializable {
+public class DivideRuleHandle implements Serializable {
 
     /**
      * loadBalance.
@@ -41,5 +41,10 @@ public class DivideRuleHandle extends HystrixHandle implements Serializable {
      * http retry.
      */
     private int retry;
+
+    /**
+     * timeout is required.
+     */
+    private long timeout = Constants.TIME_OUT;
 
 }

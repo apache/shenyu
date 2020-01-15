@@ -17,6 +17,7 @@
 
 package org.dromara.soul.web.cache;
 
+import com.netflix.hystrix.strategy.properties.HystrixPropertiesFactory;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.common.dto.AppAuthData;
 import org.dromara.soul.common.dto.MetaData;
@@ -110,6 +111,7 @@ class HttpCacheHandler extends AbstractLocalCacheManager {
             LOGGER.info("clear all rule cache, old cache:{}", RULE_MAP);
             RULE_MAP.clear();
         } else {
+            HystrixPropertiesFactory.reset();
             // group by selectorId, then sort by sort value
             Map<String, List<RuleData>> selectorToRules = ruleDataList.stream()
                     .collect(Collectors.groupingBy(RuleData::getSelectorId));

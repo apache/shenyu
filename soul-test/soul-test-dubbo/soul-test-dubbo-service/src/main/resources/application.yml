@@ -3,7 +3,9 @@ server:
   address: 0.0.0.0
   servlet:
     context-path: /
-
+spring:
+  main:
+    allow-bean-definition-overriding: true
 soul:
   dubbo:
     adminUrl: http://localhost:9095
