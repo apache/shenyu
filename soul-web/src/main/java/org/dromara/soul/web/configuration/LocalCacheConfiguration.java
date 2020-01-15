@@ -31,7 +31,6 @@ import org.dromara.soul.web.config.SoulConfig;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -44,7 +43,7 @@ import org.springframework.context.annotation.Import;
  * @author xiaoyu
  */
 @AutoConfigureBefore(SoulConfiguration.class)
-@EnableConfigurationProperties({SoulConfig.class})
+@EnableConfigurationProperties(SoulConfig.class)
 public class LocalCacheConfiguration {
 
     /**
@@ -68,7 +67,6 @@ public class LocalCacheConfiguration {
         }
     }
 
-
     /**
      * The type Http cache manager.
      */
@@ -87,7 +85,6 @@ public class LocalCacheConfiguration {
         public LocalCacheManager localCacheManager(final SoulConfig soulConfig) {
             return new HttpLongPollSyncCache(soulConfig.getSync().getHttp());
         }
-
     }
 
     /**
@@ -108,7 +105,6 @@ public class LocalCacheConfiguration {
         public LocalCacheManager localCacheManager(final SoulConfig soulConfig) {
             return new WebsocketSyncCache(soulConfig.getSync().getWebsocket());
         }
-
     }
 
 }

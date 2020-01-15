@@ -51,7 +51,6 @@ import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.dto.convert.rule.DivideRuleHandle;
 import org.dromara.soul.common.dto.convert.rule.DubboRuleHandle;
 import org.dromara.soul.common.dto.convert.rule.SpringCloudRuleHandle;
-import org.dromara.soul.common.dto.convert.selector.DubboSelectorHandle;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.enums.LoadBalanceEnum;
@@ -153,15 +152,6 @@ public class MetaDataServiceImpl implements MetaDataService {
         return StringUtils.EMPTY;
     }
 
-    private Boolean checkParam(final MetaDataDTO metaDataDTO) {
-        return !StringUtils.isEmpty(metaDataDTO.getAppName())
-                && !StringUtils.isEmpty(metaDataDTO.getPath())
-                && !StringUtils.isEmpty(metaDataDTO.getRpcType())
-                && !StringUtils.isEmpty(metaDataDTO.getServiceName())
-                && !StringUtils.isEmpty(metaDataDTO.getMethodName());
-
-    }
-
     @Override
     @Transactional
     public String register(final MetaDataDTO metaDataDTO) {
@@ -169,167 +159,17 @@ public class MetaDataServiceImpl implements MetaDataService {
         if (Objects.nonNull(byPath)
                 && (!byPath.getMethodName().equals(metaDataDTO.getMethodName())
                 || !byPath.getServiceName().equals(metaDataDTO.getServiceName()))) {
-            return "您的路径已经存在!";
+            return "you path already exist!";
         }
         final MetaDataDO exist = metaDataMapper.findByServiceNameAndMethod(metaDataDTO.getServiceName(), metaDataDTO.getMethodName());
-        DataEventTypeEnum eventType;
-        if (Objects.isNull(exist)) {
-            MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataDTO);
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            metaDataDO.setId(UUIDUtils.getInstance().generateShortUuid());
-            metaDataDO.setDateCreated(currentTime);
-            metaDataDO.setDateUpdated(currentTime);
-            metaDataMapper.insert(metaDataDO);
-            eventType = DataEventTypeEnum.CREATE;
-        } else {
-            MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataDTO);
-            metaDataDO.setId(exist.getId());
-            metaDataMapper.update(metaDataDO);
-            eventType = DataEventTypeEnum.UPDATE;
-        }
-        // publish AppAuthData's event
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, eventType,
-                Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDTO))));
 
-        if (eventType == DataEventTypeEnum.CREATE) {
-            createSelectorAndRule(metaDataDTO);
-        } else {
-            if (!exist.getPath().equals(metaDataDTO.getPath())) {
-                String oldPath = exist.getPath();
-                RuleDO ruleDO = ruleMapper.findByName(oldPath);
-                if (Objects.nonNull(ruleDO)) {
-                    ruleDO.setName(metaDataDTO.getPath());
-                    ruleMapper.updateSelective(ruleDO);
-                    List<RuleConditionDO> ruleConditionDOS = ruleConditionMapper.selectByQuery(new RuleConditionQuery(ruleDO.getId()));
-                    if (CollectionUtils.isNotEmpty(ruleConditionDOS)) {
-                        List<ConditionData> conditionDataList = new ArrayList<>();
-                        for (RuleConditionDO ruleConditionDO : ruleConditionDOS) {
-                            if (ruleConditionDO.getParamType().equals(ParamTypeEnum.URI.getName())) {
-                                ruleConditionDO.setParamValue(metaDataDTO.getPath());
-                                ruleConditionMapper.updateSelective(ruleConditionDO);
-                            }
-                            conditionDataList.add(ConditionTransfer.INSTANCE.mapToRuleDO(ruleConditionDO));
-                        }
+        saveOrUpdateMetaData(exist, metaDataDTO);
 
-                        publishEvent(ruleDO, conditionDataList, metaDataDTO.getRpcType());
-                    }
-                }
-            }
-        }
+        String selectorId = handlerSelector(metaDataDTO);
+
+        handlerRule(selectorId, metaDataDTO, exist);
+
         return "success";
-    }
-
-    private void publishEvent(final RuleDO ruleDO, final List<ConditionData> conditionDataList, final String rpcType) {
-        String pluginName;
-        if (RpcTypeEnum.DUBBO.getName().equals(rpcType)) {
-            pluginName = PluginEnum.DUBBO.getName();
-        } else if (RpcTypeEnum.HTTP.getName().equals(rpcType)) {
-            pluginName = PluginEnum.DIVIDE.getName();
-        } else {
-            pluginName = PluginEnum.SPRING_CLOUD.getName();
-        }
-        // publish change event.
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.UPDATE,
-                Collections.singletonList(RuleDO.transFrom(ruleDO, pluginName, conditionDataList))));
-    }
-
-    private void createSelectorAndRule(final MetaDataDTO metaDataDTO) {
-        String path = metaDataDTO.getPath();
-        String[] splitList = StringUtils.split(path, "/");
-        String contextPath = "/" + splitList[0];
-        SelectorDO selectorDO = selectorService.findByName(contextPath);
-        String selectorId;
-        if (Objects.isNull(selectorDO)) {
-            SelectorDTO selectorDTO = new SelectorDTO();
-            selectorDTO.setName(contextPath);
-            selectorDTO.setType(SelectorTypeEnum.CUSTOM_FLOW.getCode());
-            selectorDTO.setMatchMode(MatchModeEnum.AND.getCode());
-            selectorDTO.setEnabled(Boolean.TRUE);
-            selectorDTO.setLoged(Boolean.TRUE);
-            selectorDTO.setContinued(Boolean.TRUE);
-            selectorDTO.setSort(1);
-            if (RpcTypeEnum.DUBBO.getName().equals(metaDataDTO.getRpcType())) {
-                selectorDTO.setPluginId("6");
-                DubboSelectorHandle dubboSelectorHandle = new DubboSelectorHandle();
-                dubboSelectorHandle.setAppName(metaDataDTO.getAppName());
-                dubboSelectorHandle.setProtocol("dubbo");
-                dubboSelectorHandle.setPort(20888);
-                dubboSelectorHandle.setRegistry("zookeeper://localhost:2181");
-                selectorDTO.setHandle(JsonUtils.toJson(dubboSelectorHandle));
-            } else if (RpcTypeEnum.SPRING_CLOUD.getName().equals(metaDataDTO.getRpcType())) {
-                selectorDTO.setPluginId("8");
-                selectorDTO.setHandle(metaDataDTO.getAppName());
-            } else {
-                //is divide
-                selectorDTO.setPluginId("5");
-            }
-            SelectorConditionDTO selectorConditionDTO = new SelectorConditionDTO();
-            selectorConditionDTO.setParamType(ParamTypeEnum.URI.getName());
-            selectorConditionDTO.setParamName("/");
-            selectorConditionDTO.setOperator(OperatorEnum.MATCH.getAlias());
-//            FIX - MATCH匹配方式没有加通配符导致无法匹配选择器， 不追加/**可使用LIKE匹配
-            selectorConditionDTO.setParamValue(contextPath + "/**");
-//            selectorConditionDTO.setOperator(OperatorEnum.LIKE.getAlias());
-//            selectorConditionDTO.setParamValue(contextPath);
-            selectorDTO.setSelectorConditions(Collections.singletonList(selectorConditionDTO));
-            selectorId = selectorService.register(selectorDTO);
-        } else {
-            //如果已经有selector 那么就只需要插入rule
-            selectorId = selectorDO.getId();
-        }
-        registerRule(selectorId, metaDataDTO.getPath(), metaDataDTO.getRpcType());
-    }
-
-    private void registerRule(final String selectorId, final String path, final String rpcType) {
-        RuleDTO ruleDTO = new RuleDTO();
-        ruleDTO.setSelectorId(selectorId);
-        ruleDTO.setName(path);
-        ruleDTO.setMatchMode(MatchModeEnum.AND.getCode());
-        ruleDTO.setEnabled(Boolean.TRUE);
-        ruleDTO.setLoged(Boolean.TRUE);
-        ruleDTO.setSort(1);
-        RuleConditionDTO ruleConditionDTO = new RuleConditionDTO();
-        ruleConditionDTO.setParamType(ParamTypeEnum.URI.getName());
-        ruleConditionDTO.setParamName("/");
-        ruleConditionDTO.setOperator(OperatorEnum.EQ.getAlias());
-        ruleConditionDTO.setParamValue(path);
-        ruleDTO.setRuleConditions(Collections.singletonList(ruleConditionDTO));
-        if (rpcType.equals(RpcTypeEnum.DUBBO.getName())) {
-            DubboRuleHandle dubboRuleHandle = new DubboRuleHandle();
-            dubboRuleHandle.setLoadBalance(LoadBalanceEnum.RANDOM.getName());
-            dubboRuleHandle.setRetries(0);
-            dubboRuleHandle.setTimeout(3000);
-            ruleDTO.setHandle(JsonUtils.toJson(dubboRuleHandle));
-        } else if (rpcType.equals(RpcTypeEnum.HTTP.getName())) {
-            DivideRuleHandle divideRuleHandle = new DivideRuleHandle();
-            divideRuleHandle.setLoadBalance(LoadBalanceEnum.RANDOM.getName());
-            divideRuleHandle.setRetry(0);
-            ruleDTO.setHandle(JsonUtils.toJson(divideRuleHandle));
-        } else {
-            SpringCloudRuleHandle springCloudRuleHandle = new SpringCloudRuleHandle();
-            springCloudRuleHandle.setPath(path);
-            ruleDTO.setHandle(JsonUtils.toJson(springCloudRuleHandle));
-        }
-        ruleService.register(ruleDTO);
-    }
-
-    private String checkData(final MetaDataDTO metaDataDTO) {
-        Boolean success = checkParam(metaDataDTO);
-        if (!success) {
-            LOGGER.error("metaData create param is error,{}", metaDataDTO.toString());
-            return AdminConstants.PARAMS_ERROR;
-        }
-        final MetaDataDO exist = metaDataMapper.findByPath(metaDataDTO.getPath());
-        if (StringUtils.isBlank(metaDataDTO.getId())) {
-            if (Objects.nonNull(exist)) {
-                return AdminConstants.DATA_PATH_IS_EXIST;
-            }
-        } else {
-            if (Objects.isNull(exist) || !exist.getId().equals(metaDataDTO.getId())) {
-                return AdminConstants.DATA_PATH_IS_EXIST;
-            }
-        }
-        return StringUtils.EMPTY;
     }
 
     @Override
@@ -410,6 +250,177 @@ public class MetaDataServiceImpl implements MetaDataService {
                 .filter(Objects::nonNull)
                 .map(MetaDataTransfer.INSTANCE::mapToData)
                 .collect(Collectors.toList());
+    }
+
+    private String handlerSelector(final MetaDataDTO metaDataDTO) {
+        String contextPath = buildContextPath(metaDataDTO);
+        SelectorDO selectorDO = selectorService.findByName(contextPath);
+        String selectorId;
+        if (Objects.isNull(selectorDO)) {
+            //需要新增
+            selectorId = registerSelector(contextPath, metaDataDTO.getRpcType(), metaDataDTO.getAppName());
+        } else {
+            selectorId = selectorDO.getId();
+        }
+        return selectorId;
+    }
+
+    private void handlerRule(final String selectorId, final MetaDataDTO metaDataDTO, final MetaDataDO exist) {
+        RuleDO existRule = ruleMapper.findByName(metaDataDTO.getPath());
+        if (Objects.isNull(exist) || Objects.isNull(existRule)) {
+            //需要新增
+            registerRule(selectorId, metaDataDTO.getPath(), metaDataDTO.getRpcType());
+        } else {
+            //更新
+            if (!exist.getPath().equals(metaDataDTO.getPath())) {
+                RuleDO ruleDO = ruleMapper.findByName(exist.getPath());
+                if (Objects.isNull(ruleDO)) {
+                    return;
+                }
+                ruleDO.setName(metaDataDTO.getPath());
+                ruleMapper.updateSelective(ruleDO);
+                List<RuleConditionDO> ruleConditionDOS = ruleConditionMapper.selectByQuery(new RuleConditionQuery(ruleDO.getId()));
+                if (CollectionUtils.isEmpty(ruleConditionDOS)) {
+                    return;
+                }
+                List<ConditionData> conditionDataList = new ArrayList<>();
+                for (RuleConditionDO ruleConditionDO : ruleConditionDOS) {
+                    if (ruleConditionDO.getParamType().equals(ParamTypeEnum.URI.getName())) {
+                        ruleConditionDO.setParamValue(metaDataDTO.getPath());
+                        ruleConditionMapper.updateSelective(ruleConditionDO);
+                    }
+                    conditionDataList.add(ConditionTransfer.INSTANCE.mapToRuleDO(ruleConditionDO));
+                }
+                publishEvent(ruleDO, conditionDataList, metaDataDTO.getRpcType());
+            }
+        }
+    }
+
+    private String buildContextPath(final MetaDataDTO metaDataDTO) {
+        String path = metaDataDTO.getPath();
+        String[] splitList = StringUtils.split(path, "/");
+        return "/" + splitList[0];
+    }
+
+    private String registerSelector(final String contextPath, final String rpcType, final String appName) {
+        SelectorDTO selectorDTO = new SelectorDTO();
+        selectorDTO.setName(contextPath);
+        selectorDTO.setType(SelectorTypeEnum.CUSTOM_FLOW.getCode());
+        selectorDTO.setMatchMode(MatchModeEnum.AND.getCode());
+        selectorDTO.setEnabled(Boolean.TRUE);
+        selectorDTO.setLoged(Boolean.TRUE);
+        selectorDTO.setContinued(Boolean.TRUE);
+        selectorDTO.setSort(1);
+        if (RpcTypeEnum.DUBBO.getName().equals(rpcType)) {
+            selectorDTO.setPluginId("6");
+        } else if (RpcTypeEnum.SPRING_CLOUD.getName().equals(rpcType)) {
+            selectorDTO.setPluginId("8");
+            selectorDTO.setHandle(appName);
+        } else {
+            //is divide
+            selectorDTO.setPluginId("5");
+        }
+        SelectorConditionDTO selectorConditionDTO = new SelectorConditionDTO();
+        selectorConditionDTO.setParamType(ParamTypeEnum.URI.getName());
+        selectorConditionDTO.setParamName("/");
+        selectorConditionDTO.setOperator(OperatorEnum.MATCH.getAlias());
+        selectorConditionDTO.setParamValue(contextPath + "/**");
+        selectorDTO.setSelectorConditions(Collections.singletonList(selectorConditionDTO));
+        return selectorService.register(selectorDTO);
+    }
+
+    private void saveOrUpdateMetaData(final MetaDataDO exist, final MetaDataDTO metaDataDTO) {
+        DataEventTypeEnum eventType;
+        MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataDTO);
+        if (Objects.isNull(exist)) {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            metaDataDO.setId(UUIDUtils.getInstance().generateShortUuid());
+            metaDataDO.setDateCreated(currentTime);
+            metaDataDO.setDateUpdated(currentTime);
+            metaDataMapper.insert(metaDataDO);
+            eventType = DataEventTypeEnum.CREATE;
+        } else {
+            metaDataDO.setId(exist.getId());
+            metaDataMapper.update(metaDataDO);
+            eventType = DataEventTypeEnum.UPDATE;
+        }
+        // publish AppAuthData's event
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, eventType,
+                Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDTO))));
+    }
+
+    private void publishEvent(final RuleDO ruleDO, final List<ConditionData> conditionDataList, final String rpcType) {
+        String pluginName;
+        if (RpcTypeEnum.DUBBO.getName().equals(rpcType)) {
+            pluginName = PluginEnum.DUBBO.getName();
+        } else if (RpcTypeEnum.HTTP.getName().equals(rpcType)) {
+            pluginName = PluginEnum.DIVIDE.getName();
+        } else {
+            pluginName = PluginEnum.SPRING_CLOUD.getName();
+        }
+        // publish change event.
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.UPDATE,
+                Collections.singletonList(RuleDO.transFrom(ruleDO, pluginName, conditionDataList))));
+    }
+
+    private void registerRule(final String selectorId, final String path, final String rpcType) {
+        RuleDTO ruleDTO = new RuleDTO();
+        ruleDTO.setSelectorId(selectorId);
+        ruleDTO.setName(path);
+        ruleDTO.setMatchMode(MatchModeEnum.AND.getCode());
+        ruleDTO.setEnabled(Boolean.TRUE);
+        ruleDTO.setLoged(Boolean.TRUE);
+        ruleDTO.setSort(1);
+        RuleConditionDTO ruleConditionDTO = new RuleConditionDTO();
+        ruleConditionDTO.setParamType(ParamTypeEnum.URI.getName());
+        ruleConditionDTO.setParamName("/");
+        ruleConditionDTO.setOperator(OperatorEnum.EQ.getAlias());
+        ruleConditionDTO.setParamValue(path);
+        ruleDTO.setRuleConditions(Collections.singletonList(ruleConditionDTO));
+        if (rpcType.equals(RpcTypeEnum.DUBBO.getName())) {
+            DubboRuleHandle dubboRuleHandle = new DubboRuleHandle();
+            dubboRuleHandle.setLoadBalance(LoadBalanceEnum.RANDOM.getName());
+            dubboRuleHandle.setRetries(0);
+            dubboRuleHandle.setTimeout(3000);
+            ruleDTO.setHandle(JsonUtils.toJson(dubboRuleHandle));
+        } else if (rpcType.equals(RpcTypeEnum.HTTP.getName())) {
+            DivideRuleHandle divideRuleHandle = new DivideRuleHandle();
+            divideRuleHandle.setLoadBalance(LoadBalanceEnum.RANDOM.getName());
+            divideRuleHandle.setRetry(0);
+            ruleDTO.setHandle(JsonUtils.toJson(divideRuleHandle));
+        } else {
+            SpringCloudRuleHandle springCloudRuleHandle = new SpringCloudRuleHandle();
+            springCloudRuleHandle.setPath(path);
+            ruleDTO.setHandle(JsonUtils.toJson(springCloudRuleHandle));
+        }
+        ruleService.register(ruleDTO);
+    }
+
+    private String checkData(final MetaDataDTO metaDataDTO) {
+        Boolean success = checkParam(metaDataDTO);
+        if (!success) {
+            LOGGER.error("metaData create param is error,{}", metaDataDTO.toString());
+            return AdminConstants.PARAMS_ERROR;
+        }
+        final MetaDataDO exist = metaDataMapper.findByPath(metaDataDTO.getPath());
+        if (StringUtils.isBlank(metaDataDTO.getId())) {
+            if (Objects.nonNull(exist)) {
+                return AdminConstants.DATA_PATH_IS_EXIST;
+            }
+        } else {
+            if (Objects.isNull(exist) || !exist.getId().equals(metaDataDTO.getId())) {
+                return AdminConstants.DATA_PATH_IS_EXIST;
+            }
+        }
+        return StringUtils.EMPTY;
+    }
+
+    private Boolean checkParam(final MetaDataDTO metaDataDTO) {
+        return !StringUtils.isEmpty(metaDataDTO.getAppName())
+                && !StringUtils.isEmpty(metaDataDTO.getPath())
+                && !StringUtils.isEmpty(metaDataDTO.getRpcType())
+                && !StringUtils.isEmpty(metaDataDTO.getServiceName())
+                && !StringUtils.isEmpty(metaDataDTO.getMethodName());
     }
 
 }

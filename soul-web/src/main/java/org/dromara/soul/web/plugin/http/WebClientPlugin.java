@@ -28,7 +28,6 @@ import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.web.plugin.SoulPlugin;
 import org.dromara.soul.web.plugin.SoulPluginChain;
-import org.dromara.soul.web.plugin.hystrix.HttpCommand;
 import org.dromara.soul.web.request.RequestDTO;
 import org.dromara.soul.web.result.SoulResultEnum;
 import org.dromara.soul.web.result.SoulResultUtils;
@@ -58,7 +57,7 @@ public class WebClientPlugin implements SoulPlugin {
     /**
      * logger.
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(HttpCommand.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(WebClientPlugin.class);
 
     private final WebClient webClient;
 

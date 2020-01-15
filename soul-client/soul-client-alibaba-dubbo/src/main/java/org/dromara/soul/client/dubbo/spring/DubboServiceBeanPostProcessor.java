@@ -8,6 +8,7 @@ import org.dromara.soul.client.common.utils.OkHttpTools;
 import org.dromara.soul.client.dubbo.config.DubboConfig;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
 import java.io.IOException;
@@ -52,6 +53,15 @@ public class DubboServiceBeanPostProcessor implements BeanPostProcessor {
 
     private void handler(final ServiceBean serviceBean) {
         Class<?> clazz = serviceBean.getRef().getClass();
+        if (ClassUtils.isCglibProxyClass(clazz)) {
+            String superClassName = clazz.getGenericSuperclass().getTypeName();
+            try {
+                clazz = Class.forName(superClassName);
+            } catch (ClassNotFoundException e) {
+                log.error(String.format("class not found: %s", superClassName));
+                return;
+            }
+        }
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
             SoulClient soulClient = method.getAnnotation(SoulClient.class);

@@ -19,16 +19,16 @@
 
 package org.dromara.soul.web.plugin.dubbo;
 
-import com.alibaba.dubbo.config.ApplicationConfig;
-import com.alibaba.dubbo.config.ReferenceConfig;
-import com.alibaba.dubbo.config.RegistryConfig;
-import com.alibaba.dubbo.rpc.service.GenericService;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.Weigher;
 import org.apache.commons.lang3.StringUtils;
 
+import org.apache.dubbo.config.ApplicationConfig;
+import org.apache.dubbo.config.ReferenceConfig;
+import org.apache.dubbo.config.RegistryConfig;
+import org.apache.dubbo.rpc.service.GenericService;
 import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.enums.LoadBalanceEnum;
 import org.dromara.soul.common.exception.SoulException;

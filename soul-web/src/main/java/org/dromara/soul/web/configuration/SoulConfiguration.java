@@ -23,7 +23,6 @@ import org.dromara.soul.web.cache.UpstreamCacheManager;
 import org.dromara.soul.web.config.HttpClientProperties;
 import org.dromara.soul.web.config.SoulConfig;
 import org.dromara.soul.web.disruptor.publisher.SoulEventPublisher;
-import org.dromara.soul.web.filter.DefaultParamService;
 import org.dromara.soul.web.filter.FileSizeFilter;
 import org.dromara.soul.web.filter.ParamService;
 import org.dromara.soul.web.filter.ParamWebFilter;
@@ -42,6 +41,7 @@ import org.dromara.soul.web.plugin.function.DividePlugin;
 import org.dromara.soul.web.plugin.function.RateLimiterPlugin;
 import org.dromara.soul.web.plugin.function.RewritePlugin;
 import org.dromara.soul.web.plugin.function.WebSocketPlugin;
+import org.dromara.soul.web.plugin.hystrix.HystrixPlugin;
 import org.dromara.soul.web.plugin.ratelimter.RedisRateLimiter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -71,7 +71,7 @@ import java.util.stream.Collectors;
 @ComponentScan("org.dromara.soul")
 @Import(value = {DubboConfiguration.class, LocalCacheConfiguration.class, ErrorHandlerConfiguration.class,
         SoulExtConfiguration.class, HttpClientConfiguration.class, SpringExtConfiguration.class})
-@EnableConfigurationProperties({HttpClientProperties.class})
+@EnableConfigurationProperties(HttpClientProperties.class)
 public class SoulConfiguration {
 
     private final LocalCacheManager localCacheManager;
@@ -165,6 +165,16 @@ public class SoulConfiguration {
     @Bean
     public SoulPlugin rewritePlugin() {
         return new RewritePlugin(localCacheManager);
+    }
+
+    /**
+     * Hystrix plugin soul plugin.
+     *
+     * @return the soul plugin
+     */
+    @Bean
+    public SoulPlugin hystrixPlugin() {
+        return new HystrixPlugin(localCacheManager);
     }
 
     /**

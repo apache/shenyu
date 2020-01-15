@@ -1,18 +1,19 @@
 /*
- *   Licensed to the Apache Software Foundation (ASF) under one or more
- *   contributor license agreements.  See the NOTICE file distributed with
- *   this work for additional information regarding copyright ownership.
- *   The ASF licenses this file to You under the Apache License, Version 2.0
- *   (the "License"); you may not use this file except in compliance with
- *   the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * Contributor license agreements.See the NOTICE file distributed with
+ * This work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * he License.You may obtain a copy of the License at
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  */
 
@@ -34,16 +35,16 @@ import rx.Observable;
 import rx.RxReactiveStreams;
 
 /**
- * the spring cloud command.
+ * the Hystrix command.
  *
  * @author xiaoyu(Myth)
  */
-public class HttpCommand extends HystrixObservableCommand<Void> {
+public class HystrixCommand extends HystrixObservableCommand<Void> {
 
     /**
      * logger.
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(HttpCommand.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HystrixCommand.class);
 
     private final ServerWebExchange exchange;
 
@@ -56,9 +57,9 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
      * @param exchange the exchange
      * @param chain    the chain
      */
-    public HttpCommand(final Setter setter,
-                       final ServerWebExchange exchange,
-                       final SoulPluginChain chain) {
+    public HystrixCommand(final Setter setter,
+                          final ServerWebExchange exchange,
+                          final SoulPluginChain chain) {
 
         super(setter);
         this.exchange = exchange;
@@ -77,22 +78,26 @@ public class HttpCommand extends HystrixObservableCommand<Void> {
 
     private Mono<Void> doFallback() {
         if (isFailedExecution()) {
-            LOGGER.error("http execute have error:", getExecutionException());
+            LOGGER.error("hystrix execute have error:", getExecutionException());
         }
         final Throwable exception = getExecutionException();
+        Object error;
         if (exception instanceof HystrixRuntimeException) {
             HystrixRuntimeException e = (HystrixRuntimeException) getExecutionException();
             if (e.getFailureType() == HystrixRuntimeException.FailureType.TIMEOUT) {
                 exchange.getResponse().setStatusCode(HttpStatus.GATEWAY_TIMEOUT);
+                error = SoulResultWarp.error(SoulResultEnum.SERVICE_TIMEOUT.getCode(), SoulResultEnum.SERVICE_TIMEOUT.getMsg(), null);
             } else {
                 exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+                error = SoulResultWarp.error(SoulResultEnum.SERVICE_RESULT_ERROR.getCode(), SoulResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
             }
         } else if (exception instanceof HystrixTimeoutException) {
             exchange.getResponse().setStatusCode(HttpStatus.GATEWAY_TIMEOUT);
+            error = SoulResultWarp.error(SoulResultEnum.SERVICE_TIMEOUT.getCode(), SoulResultEnum.SERVICE_TIMEOUT.getMsg(), null);
         } else {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+            error = SoulResultWarp.error(SoulResultEnum.SERVICE_RESULT_ERROR.getCode(), SoulResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
         }
-        Object error = SoulResultWarp.error(SoulResultEnum.SERVICE_RESULT_ERROR.getCode(), SoulResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
         return SoulResultUtils.result(exchange, error);
     }
 

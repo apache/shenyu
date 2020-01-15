@@ -21,9 +21,10 @@ package org.dromara.soul.web.configuration;
 import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.plugin.SoulPlugin;
 import org.dromara.soul.web.plugin.function.SpringCloudPlugin;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.netflix.ribbon.RibbonAutoConfiguration;
@@ -37,8 +38,8 @@ import org.springframework.web.reactive.DispatcherHandler;
  * @author xiaoyu(Myth)
  */
 @ConditionalOnClass({LoadBalancerClient.class, RibbonAutoConfiguration.class, DispatcherHandler.class})
-@AutoConfigureAfter(RibbonAutoConfiguration.class)
-@ConditionalOnProperty(prefix = "eureka.client.serviceUrl", name = "defaultZone")
+@AutoConfigureAfter({RibbonAutoConfiguration.class, LocalCacheConfiguration.class})
+@ConditionalOnBean(LoadBalancerClient.class)
 @EnableDiscoveryClient
 @Configuration
 public class SpringCloudConfiguration {
@@ -51,7 +52,7 @@ public class SpringCloudConfiguration {
      * @return {@linkplain SpringCloudPlugin}
      */
     @Bean
-    public SoulPlugin springCloudPlugin(final LoadBalancerClient loadBalancerClient, final LocalCacheManager localCacheManager) {
+    public SoulPlugin springCloudPlugin(final LoadBalancerClient loadBalancerClient, @Qualifier("localCacheManager") final LocalCacheManager localCacheManager) {
         return new SpringCloudPlugin(localCacheManager, loadBalancerClient);
     }
 }

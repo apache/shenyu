@@ -27,7 +27,6 @@ import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.dto.convert.rule.DivideRuleHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
-import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.web.balance.utils.LoadBalanceUtils;
@@ -35,8 +34,6 @@ import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.cache.UpstreamCacheManager;
 import org.dromara.soul.web.plugin.AbstractSoulPlugin;
 import org.dromara.soul.web.plugin.SoulPluginChain;
-import org.dromara.soul.web.plugin.hystrix.HttpCommand;
-import org.dromara.soul.web.plugin.hystrix.HystrixBuilder;
 import org.dromara.soul.web.request.RequestDTO;
 import org.dromara.soul.web.result.SoulResultEnum;
 import org.dromara.soul.web.result.SoulResultUtils;
@@ -46,7 +43,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import rx.Subscription;
 
 import java.util.List;
 import java.util.Objects;
@@ -81,12 +77,6 @@ public class DividePlugin extends AbstractSoulPlugin {
         final RequestDTO requestDTO = exchange.getAttribute(Constants.REQUESTDTO);
         assert requestDTO != null;
         final DivideRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), DivideRuleHandle.class);
-        if (StringUtils.isBlank(ruleHandle.getGroupKey())) {
-            ruleHandle.setGroupKey(Objects.requireNonNull(requestDTO).getModule());
-        }
-        if (StringUtils.isBlank(ruleHandle.getCommandKey())) {
-            ruleHandle.setCommandKey(Objects.requireNonNull(requestDTO).getMethod());
-        }
         final List<DivideUpstream> upstreamList =
                 upstreamCacheManager.findUpstreamListBySelectorId(selector.getId());
         if (CollectionUtils.isEmpty(upstreamList)) {
@@ -108,21 +98,7 @@ public class DividePlugin extends AbstractSoulPlugin {
         exchange.getAttributes().put(Constants.HTTP_URL, realURL);
         //设置下超时时间
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
-        HttpCommand command = new HttpCommand(HystrixBuilder.build(ruleHandle), exchange, chain);
-
-        return Mono.create(s -> {
-            Subscription sub = command.toObservable().subscribe(s::success,
-                    s::error, s::success);
-            s.onCancel(sub::unsubscribe);
-            if (command.isCircuitBreakerOpen()) {
-                LOGGER.error("http execute 过程中发生了熔断 circuitBreaker is Open! 组key为:{}", ruleHandle.getGroupKey());
-            }
-        }).doOnError(throwable -> {
-            LOGGER.error("http 调用异常:", throwable);
-            exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE,
-                    ResultEnum.ERROR.getName());
-            chain.execute(exchange);
-        }).then();
+        return chain.execute(exchange);
     }
 
     @Override

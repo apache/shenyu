@@ -98,7 +98,12 @@ public class WebsocketSyncCache extends WebsocketCacheHandler {
             LOGGER.error("websocket url is error :", e);
         }
         try {
-            boolean success = client.connectBlocking();
+            assert client != null;
+            /* client.setProxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress("proxyaddress", 80)));*/
+            boolean success = client.connectBlocking(3000, TimeUnit.MILLISECONDS);
+            if (success) {
+                LOGGER.info("websocket connection success....");
+            }
             if (success) {
                 LOGGER.info("websocket connection is successful.....");
             } else {

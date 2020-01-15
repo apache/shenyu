@@ -70,10 +70,10 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
 
     /**
      * Process the Web request and (optionally) delegate to the next
-     * {@code WebFilter} through the given {@link SoulPluginChain}.
+     * {@code SoulPlugin} through the given {@link SoulPluginChain}.
      *
      * @param exchange the current server exchange
-     * @param chain    provides a way to delegate to the next filter
+     * @param chain    provides a way to delegate to the next plugin
      * @return {@code Mono<Void>} to indicate when request processing is complete
      */
     @Override
@@ -100,7 +100,6 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
 
             if (selectorData.getLoged()) {
                 LogUtils.info(LOGGER, named() + " selector success selector name :{}", selectorData::getName);
-
             }
             final List<RuleData> rules =
                     localCacheManager.findRuleBySelectorId(selectorData.getId());

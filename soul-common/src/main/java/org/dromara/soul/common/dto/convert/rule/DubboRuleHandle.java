@@ -21,7 +21,7 @@ package org.dromara.soul.common.dto.convert.rule;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.dromara.soul.common.dto.convert.HystrixHandle;
+import org.dromara.soul.common.constant.Constants;
 
 import java.io.Serializable;
 
@@ -33,7 +33,7 @@ import java.io.Serializable;
 @Getter
 @Setter
 @ToString
-public class DubboRuleHandle extends HystrixHandle implements Serializable {
+public class DubboRuleHandle implements Serializable {
 
     /**
      * version.
@@ -51,7 +51,13 @@ public class DubboRuleHandle extends HystrixHandle implements Serializable {
     private Integer retries;
 
     /**
+     * the loadBalance.
      * {@linkplain org.dromara.soul.common.enums.LoadBalanceEnum}
      */
     private String loadBalance;
+
+    /**
+     * timeout is required.
+     */
+    private long timeout = Constants.TIME_OUT;
 }
