@@ -374,7 +374,11 @@ public class MetaDataServiceImpl implements MetaDataService {
         RuleConditionDTO ruleConditionDTO = new RuleConditionDTO();
         ruleConditionDTO.setParamType(ParamTypeEnum.URI.getName());
         ruleConditionDTO.setParamName("/");
-        ruleConditionDTO.setOperator(OperatorEnum.EQ.getAlias());
+        if (path.indexOf("*") > 1) {
+            ruleConditionDTO.setOperator(OperatorEnum.MATCH.getAlias());
+        } else {
+            ruleConditionDTO.setOperator(OperatorEnum.EQ.getAlias());
+        }
         ruleConditionDTO.setParamValue(path);
         ruleDTO.setRuleConditions(Collections.singletonList(ruleConditionDTO));
         if (rpcType.equals(RpcTypeEnum.DUBBO.getName())) {

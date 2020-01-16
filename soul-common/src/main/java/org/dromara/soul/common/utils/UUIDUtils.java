@@ -123,7 +123,7 @@ public final class UUIDUtils {
      *
      * @return short uuid.
      */
-    public  String generateShortUuid() {
+    public String generateShortUuid() {
         return String.valueOf(ID_WORKER_UTILS.nextId());
     }
 }

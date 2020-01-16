@@ -70,9 +70,24 @@ public class HttpTestController {
      * @return the path variable
      */
     @GetMapping("/path/{id}")
+    @SoulClient(path = "/test/path/**", desc = "test restful get 风格支持")
     public String getPathVariable(@PathVariable("id") final String id, @RequestParam("name") final String name) {
         return id + "_" + name;
     }
+
+
+    /**
+     * Test rest ful string.
+     *
+     * @param id the id
+     * @return the string
+     */
+    @GetMapping("/path/{id}/name")
+    @SoulClient(path = "/test/path/**/name", desc = "test restful风格支持")
+    public String testRestFul(@PathVariable("id") final String id) {
+        return id;
+    }
+
 
     /**
      * Put path variable and body string.

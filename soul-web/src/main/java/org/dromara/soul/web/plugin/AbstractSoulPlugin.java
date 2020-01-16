@@ -84,7 +84,7 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
             final RequestDTO request = exchange.getAttribute(Constants.REQUESTDTO);
             final List<SelectorData> selectors = localCacheManager.findSelectorByPluginName(named());
             if (CollectionUtils.isEmpty(selectors)) {
-                LOGGER.error("can not find selector data :{},params:{}", named(), Objects.requireNonNull(request).toString());
+                LOGGER.error("can not find selector data :{},params:{}", pluginName, Objects.requireNonNull(request).toString());
                 Object error = SoulResultWarp.error(SoulResultEnum.CANNOT_FIND_SELECTOR.getCode(), SoulResultEnum.CANNOT_FIND_SELECTOR.getMsg(), null);
                 return SoulResultUtils.result(exchange, error);
             }
@@ -93,9 +93,14 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
                     .findFirst().orElse(null);
 
             if (Objects.isNull(selectorData)) {
-                LOGGER.error("can not match selector data :{},params:{}", named(), Objects.requireNonNull(request).toString());
-                Object error = SoulResultWarp.error(SoulResultEnum.CANNOT_FIND_SELECTOR.getCode(), SoulResultEnum.CANNOT_FIND_SELECTOR.getMsg(), null);
-                return SoulResultUtils.result(exchange, error);
+                if (PluginEnum.DIVIDE.getName().equals(pluginName)
+                        || PluginEnum.DUBBO.getName().equals(pluginName)
+                        || PluginEnum.SPRING_CLOUD.getName().equals(pluginName)) {
+                    LOGGER.error("can not match selector data :{},params:{}", pluginName, Objects.requireNonNull(request).toString());
+                    Object error = SoulResultWarp.error(SoulResultEnum.CANNOT_FIND_SELECTOR.getCode(), SoulResultEnum.CANNOT_FIND_SELECTOR.getMsg(), null);
+                    return SoulResultUtils.result(exchange, error);
+                }
+                return chain.execute(exchange);
             }
 
             if (selectorData.getLoged()) {

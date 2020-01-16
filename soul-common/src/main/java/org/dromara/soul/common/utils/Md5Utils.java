@@ -33,7 +33,7 @@ public class Md5Utils {
      * @param charset the charset
      * @return the string
      */
-    private static String md5(String src, String charset) {
+    private static String md5(final String src, final String charset) {
         MessageDigest md5;
         StringBuilder hexValue = new StringBuilder(32);
         try {
@@ -63,7 +63,7 @@ public class Md5Utils {
      * @param src the src
      * @return the string
      */
-    public static String md5(String src) {
+    public static String md5(final String src) {
         return md5(src, "UTF-8");
     }
 
