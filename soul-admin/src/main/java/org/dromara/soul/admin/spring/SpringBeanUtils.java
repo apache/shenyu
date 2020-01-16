@@ -39,7 +39,7 @@ public final class SpringBeanUtils {
     /**
      * get SpringBeanUtils.
      *
-     * @return SpringBeanUtils
+     * @return SpringBeanUtils instance
      */
     public static SpringBeanUtils getInstance() {
         return INSTANCE;
@@ -48,29 +48,12 @@ public final class SpringBeanUtils {
     /**
      * acquire spring bean.
      *
-     * @param type type
      * @param <T>  class
-     * @return bean
+     * @param type type
+     * @return bean bean
      */
     public <T> T getBean(final Class<T> type) {
         return cfgContext.getBean(type);
-    }
-
-    public <T> T getBean(final String beanName) {
-        return (T)cfgContext.getBean(beanName);
-    }
-
-    public <T> T getBean(final String beanName,Class<T> clazz) {
-        return cfgContext.getBean(beanName,clazz);
-    }
-    /**
-     * register bean in spring ioc.
-     *
-     * @param beanName bean name
-     * @param obj      bean
-     */
-    public void registerBean(final String beanName, final Object obj) {
-        cfgContext.getBeanFactory().registerSingleton(beanName, obj);
     }
 
     /**
@@ -78,7 +61,7 @@ public final class SpringBeanUtils {
      *
      * @param cfgContext application context
      */
-    public void setCfgContext(final ConfigurableApplicationContext cfgContext) {
+    void setCfgContext(final ConfigurableApplicationContext cfgContext) {
         this.cfgContext = cfgContext;
     }
 }

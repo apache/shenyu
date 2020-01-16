@@ -85,7 +85,7 @@ public class RuleServiceImpl implements RuleService {
     }
 
     @Override
-    public String register(RuleDTO ruleDTO) {
+    public String register(final RuleDTO ruleDTO) {
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         List<RuleConditionDTO> ruleConditions = ruleDTO.getRuleConditions();
         if (StringUtils.isEmpty(ruleDTO.getId())) {
@@ -196,7 +196,7 @@ public class RuleServiceImpl implements RuleService {
     }
 
     @Override
-    public List<RuleData> findBySelectorId(String selectorId) {
+    public List<RuleData> findBySelectorId(final String selectorId) {
         return ruleMapper.findBySelectorId(selectorId)
                 .stream()
                 .filter(Objects::nonNull)
@@ -204,7 +204,7 @@ public class RuleServiceImpl implements RuleService {
                 .collect(Collectors.toList());
     }
 
-    private void publishEvent(RuleDO ruleDO, List<RuleConditionDTO> ruleConditions) {
+    private void publishEvent(final RuleDO ruleDO, final List<RuleConditionDTO> ruleConditions) {
         SelectorDO selectorDO = selectorMapper.selectById(ruleDO.getSelectorId());
         PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
 

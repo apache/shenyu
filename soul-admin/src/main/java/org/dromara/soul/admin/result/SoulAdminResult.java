@@ -84,16 +84,6 @@ public class SoulAdminResult implements Serializable {
     /**
      * return success.
      *
-     * @param msg msg
-     * @return {@linkplain SoulAdminResult}
-     */
-    public static SoulAdminResult successMsg(final String msg) {
-        return success(null, msg);
-    }
-
-    /**
-     * return success.
-     *
      * @param data this is result data.
      * @return {@linkplain SoulAdminResult}
      */

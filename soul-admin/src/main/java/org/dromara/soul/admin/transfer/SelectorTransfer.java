@@ -18,7 +18,6 @@
 
 package org.dromara.soul.admin.transfer;
 
-
 import org.dromara.soul.admin.entity.SelectorDO;
 import org.dromara.soul.common.dto.SelectorData;
 import org.mapstruct.Mapper;
@@ -37,7 +36,6 @@ public interface SelectorTransfer {
      */
     SelectorTransfer INSTANCE = Mappers.getMapper(SelectorTransfer.class);
 
-
     /**
      * Map to data selector data.
      *
@@ -45,6 +43,5 @@ public interface SelectorTransfer {
      * @return the selector data
      */
     SelectorData mapToData(SelectorDO selectorDO);
-
 
 }

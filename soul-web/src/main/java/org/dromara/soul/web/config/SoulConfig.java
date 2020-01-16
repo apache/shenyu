@@ -21,7 +21,6 @@ package org.dromara.soul.web.config;
 import lombok.Data;
 import org.dromara.soul.configuration.zookeeper.ZookeeperConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 
@@ -86,6 +85,5 @@ public class SoulConfig implements Serializable {
         private Integer threadSize;
 
     }
-
 
 }

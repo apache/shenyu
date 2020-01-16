@@ -43,5 +43,4 @@ public interface SyncDataService {
      */
     boolean syncPluginData(String pluginId);
 
-
 }

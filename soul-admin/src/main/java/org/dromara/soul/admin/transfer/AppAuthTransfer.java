@@ -19,7 +19,6 @@
 
 package org.dromara.soul.admin.transfer;
 
-
 import org.dromara.soul.admin.dto.AppAuthDTO;
 import org.dromara.soul.admin.entity.AppAuthDO;
 import org.dromara.soul.admin.vo.AppAuthVO;
@@ -39,7 +38,6 @@ public interface AppAuthTransfer {
      */
     AppAuthTransfer INSTANCE = Mappers.getMapper(AppAuthTransfer.class);
 
-
     /**
      * Map to entity app auth do.
      *
@@ -48,7 +46,6 @@ public interface AppAuthTransfer {
      */
     AppAuthDO mapToEntity(AppAuthDTO appAuthDTO);
 
-
     /**
      * Map to vo app auth vo.
      *
@@ -56,6 +53,5 @@ public interface AppAuthTransfer {
      * @return the app auth vo
      */
     AppAuthVO mapToVO(AppAuthDO appAuthDO);
-
 
 }

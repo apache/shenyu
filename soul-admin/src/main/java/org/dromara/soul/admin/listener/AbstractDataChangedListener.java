@@ -118,7 +118,6 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         this.afterAppAuthChanged(changed, eventType);
     }
 
-
     @Override
     public void onMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {

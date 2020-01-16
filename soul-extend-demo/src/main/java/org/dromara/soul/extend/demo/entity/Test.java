@@ -38,7 +38,7 @@ public class Test {
      *
      * @param args the input arguments
      */
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         Test test = new Test();
         test.setId("1");
         test.setName("xiaoyu");

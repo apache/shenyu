@@ -30,9 +30,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class SoulAdminApplication {
 
     /**
-     * Main Entrance.
+     * Main.
      *
-     * @param args startup arguments
+     * @param args the args
      */
     public static void main(final String[] args) {
         SpringApplication.run(SoulAdminApplication.class, args);

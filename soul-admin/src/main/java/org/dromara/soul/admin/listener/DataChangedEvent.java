@@ -44,7 +44,7 @@ public class DataChangedEvent extends ApplicationEvent {
      * @param type     the type
      * @param source   the source
      */
-    public DataChangedEvent(ConfigGroupEnum groupKey, DataEventTypeEnum type, List<?> source) {
+    public DataChangedEvent(final ConfigGroupEnum groupKey, final DataEventTypeEnum type, final List<?> source) {
         super(source);
         this.eventType = type;
         this.groupKey = groupKey;

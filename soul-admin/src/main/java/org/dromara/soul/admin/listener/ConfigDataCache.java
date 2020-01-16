@@ -29,7 +29,7 @@ public class ConfigDataCache {
     /**
      * The Group.
      */
-    protected final String group;
+    private final String group;
 
     private volatile String md5;
 
@@ -42,7 +42,7 @@ public class ConfigDataCache {
      * @param md5            the md 5
      * @param lastModifyTime the last modify time
      */
-    ConfigDataCache(String group, String md5, long lastModifyTime) {
+    ConfigDataCache(final String group, final String md5, final long lastModifyTime) {
         this.group = group;
         this.md5 = md5;
         this.lastModifyTime = lastModifyTime;
@@ -54,7 +54,7 @@ public class ConfigDataCache {
      * @param md5            the md 5
      * @param lastModifyTime the last modify time
      */
-    protected synchronized void update(String md5, long lastModifyTime) {
+    protected synchronized void update(final String md5, final long lastModifyTime) {
         this.md5 = md5;
         this.lastModifyTime = lastModifyTime;
     }

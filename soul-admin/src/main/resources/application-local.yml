@@ -10,9 +10,9 @@ spring:
     prefix: classpath:/static/
     suffix: .html
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/soul?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=CONVERT_TO_NULL&failOverReadOnly=false&autoReconnect=true&useSSL=false
+    url: jdbc:mysql://rm-bp10o39k37lfxh090.mysql.rds.aliyuncs.com:3306/soul-open?useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT&failOverReadOnly=false&autoReconnect=true&useSSL=false
     username: root
-    password: root123
+    password: dev-mysql-R3ND7N4zvjYt0Wvw
     dbcp2:
       driver-class-name: com.mysql.jdbc.Driver
 
@@ -23,7 +23,7 @@ mybatis:
 
 soul:
   http:
-    register: true
+    register: false
     zookeeperUrl: localhost:2181
   sync:
     strategy: websocket

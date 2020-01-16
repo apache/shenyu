@@ -93,7 +93,7 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     @Override
-    public String register(SelectorDTO selectorDTO) {
+    public String register(final SelectorDTO selectorDTO) {
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
         List<SelectorConditionDTO> selectorConditionDTOs = selectorDTO.getSelectorConditions();
         if (StringUtils.isEmpty(selectorDTO.getId())) {
@@ -226,7 +226,7 @@ public class SelectorServiceImpl implements SelectorService {
     }
 
     @Override
-    public List<SelectorData> findByPluginId(String pluginId) {
+    public List<SelectorData> findByPluginId(final String pluginId) {
         return selectorMapper.findByPluginId(pluginId)
                 .stream()
                 .map(this::buildSelectorData)
@@ -242,7 +242,7 @@ public class SelectorServiceImpl implements SelectorService {
                 .collect(Collectors.toList());
     }
 
-    private void publishEvent(SelectorDO selectorDO, List<SelectorConditionDTO> selectorConditionDTOs) {
+    private void publishEvent(final SelectorDO selectorDO, final List<SelectorConditionDTO> selectorConditionDTOs) {
         PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
         List<ConditionData> conditionDataList =
                 selectorConditionDTOs.stream().map(ConditionTransfer.INSTANCE::mapToSelectorDTO).collect(Collectors.toList());

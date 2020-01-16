@@ -23,6 +23,7 @@ import org.dromara.soul.extend.demo.custom.CustomPlugin;
 import org.dromara.soul.extend.demo.dubbo.CustomGenericParamServiceImpl;
 import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.plugin.SoulPlugin;
+import org.dromara.soul.web.plugin.dubbo.DubboProxyService;
 import org.dromara.soul.web.plugin.dubbo.GenericParamResolveService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

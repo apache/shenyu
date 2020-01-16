@@ -35,6 +35,4 @@ public class CommonErrorCode {
      */
     public static final int SUCCESSFUL = 200;
 
-    public static final String ERROR_MSG = "soul have some exception!";
-
 }

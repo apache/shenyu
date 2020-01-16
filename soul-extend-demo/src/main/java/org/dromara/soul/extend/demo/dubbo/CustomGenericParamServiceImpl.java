@@ -33,7 +33,6 @@ public class CustomGenericParamServiceImpl implements GenericParamResolveService
     /**
      * It parses itself based on the json string passed in by the body.
      * Return dubbo GenericService Invoker need param
-     * see {@linkplain com.alibaba.dubbo.rpc.service.GenericService}
      *
      * @param body the body map
      * @param body the parameterTypes

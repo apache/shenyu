@@ -19,7 +19,6 @@
 package org.dromara.soul.web.balance.spi;
 
 import org.dromara.soul.common.dto.convert.DivideUpstream;
-import org.dromara.soul.common.enums.LoadBalanceEnum;
 import org.dromara.soul.common.extension.Join;
 
 import java.util.List;

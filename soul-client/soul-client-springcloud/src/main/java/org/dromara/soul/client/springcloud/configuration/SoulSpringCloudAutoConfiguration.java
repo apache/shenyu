@@ -32,7 +32,7 @@ import org.springframework.core.env.Environment;
  * @author xiaoyu
  */
 @Configuration
-@EnableConfigurationProperties({SoulSpringCloudConfig.class})
+@EnableConfigurationProperties(SoulSpringCloudConfig.class)
 public class SoulSpringCloudAutoConfiguration {
 
     private final Environment env;

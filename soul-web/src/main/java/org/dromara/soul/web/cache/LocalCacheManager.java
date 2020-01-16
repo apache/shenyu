@@ -33,7 +33,6 @@ import java.util.List;
  */
 public interface LocalCacheManager {
 
-
     /**
      * Find auth data by app key app auth data.
      *
@@ -41,7 +40,6 @@ public interface LocalCacheManager {
      * @return the app auth data
      */
     AppAuthData findAuthDataByAppKey(String appKey);
-
 
     /**
      * Find plugin by name plugin data.
