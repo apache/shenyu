@@ -31,6 +31,8 @@
  
  * soul-web : Core processing packages include plug-ins, request routing and forwarding, and so on
  
+ * soul-client : User fast access, automatic new metadata, rule selector
+ 
  * soul-extend-demo : Demo of the extension point
  
  * soul-test : the rpc test project
@@ -96,7 +98,7 @@
 * start `soul-admin.jar`
 ```java
 > java -jar soul-admin.jar --spring.datasource.url="jdbc:mysql://your ip:3306/soul?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=CONVERT_TO_NULL&failOverReadOnly=false&autoReconnect=true&useSSL=false"  
-  --spring.datasource.username='you username'  --spring.datasource.password='you password'
+  --spring.datasource.username="you username"  --spring.datasource.password="you password"
 ```
 * visit : http://localhost:9095/index.html  username:admin  password :123456
 
