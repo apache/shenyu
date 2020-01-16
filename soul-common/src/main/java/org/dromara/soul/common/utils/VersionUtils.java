@@ -28,7 +28,7 @@ import java.security.CodeSource;
  *
  * @author xiaoyu(Myth)
  */
-public class VersionUtils {
+public final class VersionUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(VersionUtils.class);
 

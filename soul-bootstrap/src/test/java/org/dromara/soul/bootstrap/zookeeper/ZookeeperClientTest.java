@@ -282,8 +282,6 @@ public class ZookeeperClientTest extends BaseTest {
         DivideRuleHandle ruleHandle = new DivideRuleHandle();
 
         ruleHandle.setLoadBalance(LoadBalanceEnum.ROUND_ROBIN.getName());
-        ruleHandle.setCommandKey("PDM");
-        ruleHandle.setGroupKey("pdm");
 
         ruleHandle.setTimeout(1000);
 
@@ -294,13 +292,8 @@ public class ZookeeperClientTest extends BaseTest {
         DubboSelectorHandle selectorHandle = new DubboSelectorHandle();
         selectorHandle.setAppName("local");
         selectorHandle.setRegistry("zookeeper://localhost:2181");
-
         DubboRuleHandle ruleHandle = new DubboRuleHandle();
-
         ruleHandle.setTimeout(3000);
-        ruleHandle.setGroupKey("xiaoyu");
-        ruleHandle.setCommandKey("xiaoyu");
-
         return new ImmutablePair<>(selectorHandle, ruleHandle);
     }
 

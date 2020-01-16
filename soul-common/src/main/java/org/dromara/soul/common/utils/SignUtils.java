@@ -18,7 +18,6 @@
 
 package org.dromara.soul.common.utils;
 
-
 import org.dromara.soul.common.constant.Constants;
 import org.springframework.util.DigestUtils;
 

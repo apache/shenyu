@@ -39,7 +39,7 @@ public class ReflectUtils {
      */
     public static Field getField(final Class<?> beanClass, final String name) throws SecurityException {
         final Field[] fields = beanClass.getDeclaredFields();
-        if (fields != null && fields.length != 0) {
+        if (fields.length != 0) {
             for (Field field : fields) {
                 if (name.equals(field.getName())) {
                     return field;

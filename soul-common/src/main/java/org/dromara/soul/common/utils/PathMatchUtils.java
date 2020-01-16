@@ -31,28 +31,15 @@ public class PathMatchUtils {
     private static final AntPathMatcher MATCHER = new AntPathMatcher();
 
     /**
-     * The entry point of application.
-     *
-     * @param args the input arguments
-     */
-    public static void main(final String[] args) {
-        String ignoreUrls = "/volapi/**";
-        String noauth = "/noauth/findAllMetaData/ABC";
-        String volapi = "/volapi/add";
-        System.out.println(match(ignoreUrls, noauth));
-        System.out.println(match(ignoreUrls, volapi));
-    }
-
-    /**
      * Match boolean.
      *
-     * @param ignoreUrls the ignore urls
-     * @param path       the path
+     * @param matchUrls the ignore urls
+     * @param path      the path
      * @return the boolean
      */
-    public static boolean match(final String ignoreUrls, final String path) {
-        String[] ignores = ignoreUrls.split(",");
-        for (String pattern : ignores) {
+    public static boolean match(final String matchUrls, final String path) {
+        String[] urlList = matchUrls.split(",");
+        for (String pattern : urlList) {
             boolean match = reg(pattern, path);
             if (match) {
                 return true;
