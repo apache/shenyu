@@ -10,7 +10,7 @@ spring:
     prefix: classpath:/static/
     suffix: .html
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/soul-open?useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT&failOverReadOnly=false&autoReconnect=true&useSSL=false
+    url: jdbc:mysql://127.0.0.1:3306/soul?useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT&failOverReadOnly=false&autoReconnect=true&useSSL=false
     username: root
     password: 123456
     dbcp2:
