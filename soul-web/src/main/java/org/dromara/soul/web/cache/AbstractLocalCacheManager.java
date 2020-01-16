@@ -118,24 +118,18 @@ public abstract class AbstractLocalCacheManager implements LocalCacheManager {
     }
 
     /**
-     * Find path meta data.
-     *
-     * @param path the path
-     * @return the meta data
-     */
-    public static MetaData findPath(final String path) {
-        return META_DATA.get(path);
-    }
-
-    /**
-     * Match meta data.
+     * Find  meta data by uri.
      *
      * @param uri the uri
      * @return the meta data
      */
-    public static MetaData matchUri(final String uri) {
-        String path = META_DATA.keySet().stream().filter(k -> PathMatchUtils.match(k, uri)).findFirst().orElse("");
-        return META_DATA.get(path);
+    public static MetaData findByUri(final String uri) {
+        MetaData metaData = META_DATA.get(uri);
+        if (Objects.isNull(metaData)) {
+            String key = META_DATA.keySet().stream().filter(k -> PathMatchUtils.match(k, uri)).findFirst().orElse("");
+            return META_DATA.get(key);
+        }
+        return metaData;
     }
 
     /**

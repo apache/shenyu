@@ -44,10 +44,7 @@ public class DefaultParamService implements ParamService {
     public Mono<Boolean> doParam(final ServerWebExchange exchange) {
         final ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
-        MetaData metaData = AbstractLocalCacheManager.findPath(path);
-        if (Objects.isNull(metaData)) {
-            metaData = AbstractLocalCacheManager.matchUri(path);
-        }
+        MetaData metaData = AbstractLocalCacheManager.findByUri(path);
         if (Objects.isNull(metaData) || !metaData.getEnabled()) {
             return Mono.just(false);
         }
