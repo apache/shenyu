@@ -18,7 +18,6 @@
 
 package org.dromara.soul.admin.transfer;
 
-
 import org.dromara.soul.admin.entity.PluginDO;
 import org.dromara.soul.admin.vo.PluginVO;
 import org.dromara.soul.common.dto.PluginData;
@@ -38,7 +37,6 @@ public interface PluginTransfer {
      */
     PluginTransfer INSTANCE = Mappers.getMapper(PluginTransfer.class);
 
-
     /**
      * Map to data plugin data.
      *
@@ -54,6 +52,5 @@ public interface PluginTransfer {
      * @return the plugin data
      */
     PluginData mapDataTOVO(PluginVO pluginVO);
-
 
 }

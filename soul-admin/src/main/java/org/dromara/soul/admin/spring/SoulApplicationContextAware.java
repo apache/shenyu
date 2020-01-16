@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
 public class SoulApplicationContextAware implements ApplicationContextAware {
 
     @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    public void setApplicationContext(final ApplicationContext applicationContext) throws BeansException {
         SpringBeanUtils.getInstance().setCfgContext((ConfigurableApplicationContext) applicationContext);
     }
 

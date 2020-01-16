@@ -121,7 +121,6 @@ public class CustomPlugin extends AbstractSoulPlugin {
 
         System.out.println(test.toString());
 
-
         return chain.execute(exchange);
     }
 }

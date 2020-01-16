@@ -224,7 +224,7 @@ public final class ApplicationConfigCache {
     /**
      * Invalidate all.
      */
-    public void invalidateAll(){
+    public void invalidateAll() {
         cache.invalidateAll();
     }
 

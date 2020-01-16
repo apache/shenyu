@@ -88,7 +88,6 @@ public interface AppAuthMapper {
      */
     int update(AppAuthDO appAuthDO);
 
-
     /**
      * Update enable int.
      *

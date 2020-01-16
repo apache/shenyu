@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Configuration;
  * @author xiaoyu
  */
 @Configuration
-@EnableConfigurationProperties({DubboConfig.class})
+@EnableConfigurationProperties(DubboConfig.class)
 public class DubboClientAutoConfiguration {
 
     private final DubboConfig dubboConfig;
@@ -28,7 +28,6 @@ public class DubboClientAutoConfiguration {
     public DubboClientAutoConfiguration(final DubboConfig dubboConfig) {
         this.dubboConfig = dubboConfig;
     }
-
 
     /**
      * Dubbo service bean post processor dubbo service bean post processor.

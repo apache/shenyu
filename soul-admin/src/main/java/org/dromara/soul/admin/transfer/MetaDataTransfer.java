@@ -19,7 +19,6 @@
 
 package org.dromara.soul.admin.transfer;
 
-
 import org.dromara.soul.admin.dto.MetaDataDTO;
 import org.dromara.soul.admin.entity.MetaDataDO;
 import org.dromara.soul.admin.vo.MetaDataVO;
@@ -42,7 +41,6 @@ public interface MetaDataTransfer {
      */
     MetaDataTransfer INSTANCE = Mappers.getMapper(MetaDataTransfer.class);
 
-
     /**
      * Map to entity meta data do.
      *
@@ -51,7 +49,6 @@ public interface MetaDataTransfer {
      */
     MetaDataDO mapToEntity(MetaDataDTO metaDataDTO);
 
-
     /**
      * Map to data meta data.
      *
@@ -59,7 +56,6 @@ public interface MetaDataTransfer {
      * @return the meta data
      */
     MetaData mapToData(MetaDataDTO metaDataDTO);
-
 
     /**
      * Map to data meta data.
@@ -77,7 +73,6 @@ public interface MetaDataTransfer {
      */
     List<MetaData> mapToDataAll(List<MetaDataDO> metaDataDOList);
 
-
     /**
      * Map to vo meta data vo.
      *
@@ -93,6 +88,5 @@ public interface MetaDataTransfer {
      * @return the list
      */
     List<MetaDataVO> mapToVOList(List<MetaDataDO> metaDataDOList);
-
 
 }

@@ -84,5 +84,4 @@ public interface DataChangedListener {
     default void onRuleChanged(List<RuleData> changed, DataEventTypeEnum eventType) {
     }
 
-
 }

@@ -61,7 +61,7 @@ public class RateLimiterConfig implements Serializable {
      * Target for the minimum number of idle connections to maintain in the pool. This
      * setting only has an effect if it is positive.
      */
-    private int minIdle = 0;
+    private int minIdle = '0';
 
     /**
      * Maximum number of connections that can be allocated by the pool at a given

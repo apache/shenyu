@@ -14,7 +14,7 @@ import org.springframework.core.env.Environment;
  * @author xiaoyu
  */
 @Configuration
-@EnableConfigurationProperties({SoulHttpConfig.class})
+@EnableConfigurationProperties(SoulHttpConfig.class)
 public class SoulSpringMvcAutoConfiguration {
 
     private final Environment env;

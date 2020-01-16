@@ -20,10 +20,8 @@
 package org.dromara.soul.admin.dto;
 
 import lombok.Data;
-import org.dromara.soul.common.utils.JsonUtils;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 /**

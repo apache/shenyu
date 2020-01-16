@@ -69,7 +69,7 @@ public class AppAuthController {
      * @return the soul result
      */
     @PostMapping("/apply")
-    public SoulAdminResult apply(@RequestBody AuthApplyDTO authApplyDTO) {
+    public SoulAdminResult apply(@RequestBody final AuthApplyDTO authApplyDTO) {
         if (StringUtils.isNoneBlank(authApplyDTO.getAppKey())) {
             return appAuthService.applyUpdate(authApplyDTO);
         } else {
@@ -85,7 +85,7 @@ public class AppAuthController {
      * @return the soul result
      */
     @GetMapping("/updateSk")
-    public SoulAdminResult updateSk(@RequestParam("appKey") String appKey, @RequestParam("appSecret") String appSecret) {
+    public SoulAdminResult updateSk(@RequestParam("appKey") final String appKey, @RequestParam("appSecret") final String appSecret) {
         return appAuthService.updateAppSecretByAppKey(appKey, appSecret);
     }
 
@@ -97,7 +97,7 @@ public class AppAuthController {
      * @return the soul result
      */
     @PostMapping("/findPageByQuery")
-    public SoulAdminResult findPageByQuery(@RequestBody AppAuthQueryDTO dto) {
+    public SoulAdminResult findPageByQuery(@RequestBody final AppAuthQueryDTO dto) {
         AppAuthQuery query = new AppAuthQuery();
         query.setPhone(dto.getPhone());
         query.setAppKey(dto.getAppKey());
@@ -113,7 +113,7 @@ public class AppAuthController {
      * @return the soul result
      */
     @GetMapping("/detail")
-    public SoulAdminResult detail(@RequestParam("id") String id) {
+    public SoulAdminResult detail(@RequestParam("id") final String id) {
         return SoulAdminResult.success("detail application authority success", appAuthService.findById(id));
     }
 

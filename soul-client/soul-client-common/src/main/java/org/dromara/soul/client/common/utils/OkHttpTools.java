@@ -18,7 +18,6 @@
 package org.dromara.soul.client.common.utils;
 
 import com.google.gson.Gson;
-import okhttp3.FormBody;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -62,27 +61,6 @@ public final class OkHttpTools {
      */
     public static OkHttpTools getInstance() {
         return OK_HTTP_TOOLS;
-    }
-
-    /**
-     * Build post request.
-     *
-     * @param url    the url
-     * @param params the params
-     * @return the request
-     */
-    private Request buildPost(String url, Map<String, String> params) {
-        FormBody.Builder formBuilder = new FormBody.Builder();
-        if (params != null) {
-            for (String key : params.keySet()) {
-                formBuilder.add(key, params.get(key));
-            }
-        }
-        return new Request.Builder()
-                .url(url)
-                .addHeader("Content-Type", "application/json; charset=utf-8")
-                .post(formBuilder.build())
-                .build();
     }
 
     /**
@@ -134,7 +112,7 @@ public final class OkHttpTools {
      * @return the string
      * @throws IOException the io exception
      */
-    public String post(String url, Map<String, String> params) throws IOException {
+    public String post(final String url, final Map<String, String> params) throws IOException {
         String json = GOSN.toJson(params);
         RequestBody body = RequestBody.create(JSON, json);
         Request request = new Request.Builder()
@@ -144,9 +122,13 @@ public final class OkHttpTools {
         return client.newCall(request).execute().body().string();
     }
 
+    /**
+     * Gets gosn.
+     *
+     * @return the gosn
+     */
     public Gson getGosn() {
         return GOSN;
     }
-
 
 }

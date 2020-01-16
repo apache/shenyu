@@ -42,7 +42,6 @@ public final class ZkPathConstants implements Constants {
      */
     public static final String SELECTOR_PARENT = PRE_FIX + "/selector";
 
-
     private static final String RULE_PARENT = PRE_FIX + "/rule";
 
     /**

@@ -42,7 +42,7 @@ public class ZookeeperConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(value = ZkSerializer.class, search = SearchStrategy.ALL)
-    public ZkSerializer zkSerializer(ZookeeperConfig zookeeperConfig) {
+    public ZkSerializer zkSerializer(final ZookeeperConfig zookeeperConfig) {
         return ZkSerializerFactory.of(zookeeperConfig.getSerializer());
     }
 
@@ -54,7 +54,7 @@ public class ZookeeperConfiguration {
      * @return ZkClient {@linkplain ZkClient}
      */
     @Bean
-    public ZkClient zkClient(ZookeeperConfig zookeeperConfig, ZkSerializer zkSerializer) {
+    public ZkClient zkClient(final ZookeeperConfig zookeeperConfig, final ZkSerializer zkSerializer) {
         return new ZkClient(zookeeperConfig.getUrl(),
                 zookeeperConfig.getSessionTimeout(),
                 zookeeperConfig.getConnectionTimeout(),

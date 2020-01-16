@@ -18,7 +18,6 @@
 
 package org.dromara.soul.admin.transfer;
 
-
 import org.dromara.soul.admin.dto.RuleConditionDTO;
 import org.dromara.soul.admin.dto.SelectorConditionDTO;
 import org.dromara.soul.admin.entity.RuleConditionDO;
@@ -40,7 +39,6 @@ public interface ConditionTransfer {
      */
     ConditionTransfer INSTANCE = Mappers.getMapper(ConditionTransfer.class);
 
-
     /**
      * Map to selector data condition data.
      *
@@ -48,7 +46,6 @@ public interface ConditionTransfer {
      * @return the condition data
      */
     ConditionData mapToSelectorDO(SelectorConditionDO selectorConditionDO);
-
 
     /**
      * Map to selector data dto condition data.
@@ -73,6 +70,5 @@ public interface ConditionTransfer {
      * @return the condition data
      */
     ConditionData mapToRuleDTO(RuleConditionDTO ruleConditionDTO);
-
 
 }

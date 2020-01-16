@@ -4,6 +4,8 @@ import org.I0Itec.zkclient.exception.ZkMarshallingError;
 import org.I0Itec.zkclient.serialize.ZkSerializer;
 
 /**
+ * The type Custom serializer.
+ *
  * @author xiaoyu(Myth)
  */
 public class CustomSerializer implements ZkSerializer {

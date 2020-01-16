@@ -108,7 +108,7 @@ public class ErrorHandlerConfiguration {
     public HiddenHttpMethodFilter hiddenHttpMethodFilter() {
         return new HiddenHttpMethodFilter() {
             @Override
-            public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+            public Mono<Void> filter(final ServerWebExchange exchange, final WebFilterChain chain) {
                 return chain.filter(exchange);
             }
         };

@@ -141,7 +141,6 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         scheduler.execute(new DataChangeTask(ConfigGroupEnum.META_DATA));
     }
 
-
     @Override
     protected void afterPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType) {
         scheduler.execute(new DataChangeTask(ConfigGroupEnum.PLUGIN));

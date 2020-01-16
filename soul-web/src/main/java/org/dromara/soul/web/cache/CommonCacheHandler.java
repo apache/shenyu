@@ -18,7 +18,6 @@
 package org.dromara.soul.web.cache;
 
 import com.google.common.collect.Lists;
-import com.netflix.hystrix.strategy.properties.HystrixPropertiesFactory;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginEnum;
