@@ -24,15 +24,11 @@ import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
-import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.SelectorTypeEnum;
-import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.condition.strategy.MatchStrategyUtils;
 import org.dromara.soul.web.request.RequestDTO;
-import org.dromara.soul.web.result.SoulResultEnum;
-import org.dromara.soul.web.result.SoulResultUtils;
-import org.dromara.soul.web.result.SoulResultWarp;
+import org.dromara.soul.web.support.SelectorAndRuleCheckUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
@@ -84,60 +80,41 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
             final RequestDTO request = exchange.getAttribute(Constants.REQUESTDTO);
             final List<SelectorData> selectors = localCacheManager.findSelectorByPluginName(named());
             if (CollectionUtils.isEmpty(selectors)) {
-                LOGGER.error("can not find selector data :{},params:{}", pluginName, Objects.requireNonNull(request).toString());
-                Object error = SoulResultWarp.error(SoulResultEnum.CANNOT_FIND_SELECTOR.getCode(), SoulResultEnum.CANNOT_FIND_SELECTOR.getMsg(), null);
-                return SoulResultUtils.result(exchange, error);
+                return SelectorAndRuleCheckUtils.checkSelector(pluginName, request, exchange, chain);
             }
-            final SelectorData selectorData = selectors.stream()
-                    .filter(selector -> selector.getEnabled() && filterSelector(selector, exchange))
-                    .findFirst().orElse(null);
-
+            final SelectorData selectorData = matchSelector(exchange, selectors);
             if (Objects.isNull(selectorData)) {
-                if (PluginEnum.DIVIDE.getName().equals(pluginName)
-                        || PluginEnum.DUBBO.getName().equals(pluginName)
-                        || PluginEnum.SPRING_CLOUD.getName().equals(pluginName)) {
-                    LOGGER.error("can not match selector data :{},params:{}", pluginName, Objects.requireNonNull(request).toString());
-                    Object error = SoulResultWarp.error(SoulResultEnum.CANNOT_FIND_SELECTOR.getCode(), SoulResultEnum.CANNOT_FIND_SELECTOR.getMsg(), null);
-                    return SoulResultUtils.result(exchange, error);
-                }
-                return chain.execute(exchange);
+                return SelectorAndRuleCheckUtils.checkSelector(pluginName, request, exchange, chain);
             }
-
             if (selectorData.getLoged()) {
-                LogUtils.info(LOGGER, named() + " selector success selector name :{}", selectorData::getName);
+                LOGGER.info("{} selector success match ,selector name :{}", pluginName, selectorData.getName());
             }
-            final List<RuleData> rules =
-                    localCacheManager.findRuleBySelectorId(selectorData.getId());
+            final List<RuleData> rules = localCacheManager.findRuleBySelectorId(selectorData.getId());
             if (CollectionUtils.isEmpty(rules)) {
-                LOGGER.error("can not match rule data :{},params:{}", named(), Objects.requireNonNull(request).toString());
-                return chain.execute(exchange);
+                return SelectorAndRuleCheckUtils.checkRule(pluginName, request, exchange, chain);
             }
             RuleData rule;
             if (selectorData.getType() == SelectorTypeEnum.FULL_FLOW.getCode()) {
                 //get last
                 rule = rules.get(rules.size() - 1);
             } else {
-                rule = filterRule(exchange, rules);
+                rule = matchRule(exchange, rules);
             }
             if (Objects.isNull(rule)) {
-                //If the divide or dubbo or spring cloud plug-in does not match, return directly
-                if (PluginEnum.DIVIDE.getName().equals(pluginName)
-                        || PluginEnum.DUBBO.getName().equals(pluginName)
-                        || PluginEnum.SPRING_CLOUD.getName().equals(pluginName)) {
-                    LOGGER.error(Objects.requireNonNull(request).getModule() + ":" + request.getMethod() + " not match  " + pluginName + "  rule");
-                    Object error = SoulResultWarp.error(SoulResultEnum.RULE_NOT_FIND.getCode(), SoulResultEnum.RULE_NOT_FIND.getMsg(), null);
-                    return SoulResultUtils.result(exchange, error);
-                }
-                return chain.execute(exchange);
+                return SelectorAndRuleCheckUtils.checkRule(pluginName, request, exchange, chain);
             }
             if (rule.getLoged()) {
-                LogUtils.info(LOGGER, () -> Objects.requireNonNull(request).getModule() + ":" + request.getMethod() + " match " + named()
-                        + " rule is name :"
-                        + rule.getName());
+                LOGGER.info("{} rule success match ,rule name :{}", pluginName, rule.getName());
             }
             return doExecute(exchange, chain, selectorData, rule);
         }
         return chain.execute(exchange);
+    }
+
+    private SelectorData matchSelector(final ServerWebExchange exchange, final List<SelectorData> selectors) {
+        return selectors.stream()
+                .filter(selector -> selector.getEnabled() && filterSelector(selector, exchange))
+                .findFirst().orElse(null);
     }
 
     private Boolean filterSelector(final SelectorData selector, final ServerWebExchange exchange) {
@@ -150,10 +127,14 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
         return true;
     }
 
-    private RuleData filterRule(final ServerWebExchange exchange, final List<RuleData> rules) {
+    private RuleData matchRule(final ServerWebExchange exchange, final List<RuleData> rules) {
         return rules.stream()
-                .filter(rule -> Objects.nonNull(rule) && rule.getEnabled())
-                .filter(ruleData -> MatchStrategyUtils.match(ruleData.getMatchMode(), ruleData.getConditionDataList(), exchange))
+                .filter(rule -> filterRule(rule, exchange))
                 .findFirst().orElse(null);
     }
+
+    private Boolean filterRule(final RuleData ruleData, final ServerWebExchange exchange) {
+        return ruleData.getEnabled() && MatchStrategyUtils.match(ruleData.getMatchMode(), ruleData.getConditionDataList(), exchange);
+    }
+
 }
