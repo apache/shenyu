@@ -40,7 +40,6 @@ import org.dromara.soul.web.result.SoulResultUtils;
 import org.dromara.soul.web.result.SoulResultWarp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpMethod;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -151,11 +150,9 @@ public class DividePlugin extends AbstractSoulPlugin {
                 path = path + realUrl;
             }
         }
-        if (requestDTO.getHttpMethod().equals(HttpMethod.GET.name())) {
-            String query = exchange.getRequest().getURI().getQuery();
-            if (StringUtils.isNoneBlank(query)) {
-                return path + "?" + query;
-            }
+        String query = exchange.getRequest().getURI().getQuery();
+        if (StringUtils.isNoneBlank(query)) {
+            return path + "?" + query;
         }
         return path;
     }
