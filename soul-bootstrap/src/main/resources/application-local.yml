@@ -14,7 +14,7 @@ spring:
 
 soul :
     sync:
-        strategy: websocket
+        strategy: nacos
         websocket :
              url: ws://localhost:9095/websocket
 #        zookeeper:
@@ -23,13 +23,24 @@ soul :
 #             connectionTimeout: 2000
 #        http:
 #             url : http://localhost:9095
+        nacos:
+              url: localhost:8848
+              namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
+              acm:
+                enabled: false
+                endpoint: acm.aliyun.com
+                namespace: 
+                accessKey: 
+                secretKey: 
 
 
-#eureka:
+eureka:
 #  instance:
 #    leaseRenewalIntervalInSeconds: 10
 #    leaseExpirationDurationInSeconds: 30
-#  client:
+  client:
+     registerWithEureka: false
+     fetchRegistry: false
 #    serviceUrl:
 #      defaultZone: http://eureka.didispace.com/eureka/
 

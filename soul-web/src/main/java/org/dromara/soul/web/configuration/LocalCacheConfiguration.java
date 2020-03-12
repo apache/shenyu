@@ -22,9 +22,11 @@ import org.dromara.soul.common.dto.AppAuthData;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
+import org.dromara.soul.configuration.nacos.NacosConfiguration;
 import org.dromara.soul.configuration.zookeeper.ZookeeperConfiguration;
 import org.dromara.soul.web.cache.HttpLongPollSyncCache;
 import org.dromara.soul.web.cache.LocalCacheManager;
+import org.dromara.soul.web.cache.NacosSyncCache;
 import org.dromara.soul.web.cache.WebsocketSyncCache;
 import org.dromara.soul.web.cache.ZookeeperSyncCache;
 import org.dromara.soul.web.config.SoulConfig;
@@ -35,6 +37,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+
+import com.alibaba.nacos.api.config.ConfigService;
 
 /**
  * Automatic data cache configuration for caching {@link AppAuthData}、{@link PluginData}、{@link RuleData}、{@link SelectorData}.
@@ -65,6 +69,30 @@ public class LocalCacheConfiguration {
         public LocalCacheManager localCacheManager(final ZkClient zkClient) {
             return new ZookeeperSyncCache(zkClient);
         }
+    }
+    /**
+     * The type Nacos.
+     * 
+     * @author Chenxj
+     * @date 2020年3月12日-下午2:33:30
+     */
+    @Configuration
+    @ConditionalOnMissingBean(LocalCacheManager.class)
+    @ConditionalOnProperty(name = "soul.sync.strategy", havingValue = "nacos")
+    @Import(NacosConfiguration.class)
+    static class NacosCacheManager{
+    	/**
+    	 * Nacos cache manager local cache manager.
+    	 * 
+    	 * @author chenxj
+    	 * @date 2020年3月12日 下午2:35:32
+    	 * @param configService the nacos config service
+    	 * @return the local cache manager
+    	 */
+    	@Bean
+        public LocalCacheManager localCacheManager(final ConfigService configService) {
+    		return new NacosSyncCache(configService);
+    	}
     }
 
     /**
