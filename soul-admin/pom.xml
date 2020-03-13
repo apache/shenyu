@@ -153,9 +153,6 @@
 		</dependency>
 
 	</dependencies>
-	<properties>
-		<m2e.apt.activation>jdt_apt</m2e.apt.activation>
-	</properties>
 	<!--多环境 Maven profile整合Spring profile -->
 	<profiles>
 		<profile>

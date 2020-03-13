@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
@@ -244,7 +245,15 @@ public class NacosDataChangedListener implements DataChangedListener{
 			META_DATA.keySet().removeAll(set);
 			break;
 		default:
-			changed.stream().forEach(meta->META_DATA.put(meta.getPath(), meta));
+			changed.stream().forEach(meta->{
+				META_DATA
+				.values()
+				.stream()
+				.filter(md->Objects.equals(md.getId(), meta.getId()))
+				.forEach(md->META_DATA.remove(md.getPath()));
+				
+				META_DATA.put(meta.getPath(), meta);
+			});
 			break;
 		}
 		publishConfig(gson, metaDataId, META_DATA);
