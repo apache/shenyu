@@ -43,17 +43,12 @@ public class NacosCacheHandler extends CommonCacheHandler {
 	protected void updateAuthMap(Gson gson,String configInfo,ErrorAction ea) {
 		try {
 			JsonObject jo=gson.fromJson(configInfo, JsonObject.class);
-			Set<String>newSet=new HashSet<>();
+			Set<String>set=new HashSet<>(AUTH_MAP.keySet());
 			for(Entry<String, JsonElement>e:jo.entrySet()) {
-				newSet.add(e.getKey());
+				set.remove(e.getKey());
 				AUTH_MAP.put(e.getKey(), gson.fromJson(e.getValue(), AppAuthData.class));
 			}
-			Set<String>set=new HashSet<>(AUTH_MAP.keySet());
-			set.removeAll(newSet);
-			//移除AUTH_MAP中多余keys
-			if(!set.isEmpty()) {
-				set.forEach(k->AUTH_MAP.remove(k));
-			}
+			AUTH_MAP.keySet().removeAll(set);
 		}catch (Exception e) {
 			if(ea!=null) {
 				ea.act(e);
@@ -63,17 +58,12 @@ public class NacosCacheHandler extends CommonCacheHandler {
 	protected void updatePluginMap(Gson gson,String configInfo,ErrorAction ea) {
 		try {
 			JsonObject jo=gson.fromJson(configInfo, JsonObject.class);
-			Set<String>newSet=new HashSet<>();
+			Set<String>set=new HashSet<>(PLUGIN_MAP.keySet());
 			for(Entry<String, JsonElement>e:jo.entrySet()) {
-				newSet.add(e.getKey());
+				set.remove(e.getKey());
 				PLUGIN_MAP.put(e.getKey(), gson.fromJson(e.getValue(), PluginData.class));
 			}
-			Set<String>set=new HashSet<>(PLUGIN_MAP.keySet());
-			set.removeAll(newSet);
-			//移除PLUGIN_MAP中多余keys
-			if(!set.isEmpty()) {
-				set.forEach(k->PLUGIN_MAP.remove(k));
-			}
+			PLUGIN_MAP.keySet().removeAll(set);
 		}catch (Exception e) {
 			if(ea!=null) {
 				ea.act(e);
@@ -83,19 +73,14 @@ public class NacosCacheHandler extends CommonCacheHandler {
 	protected void updateSelectorMap(Gson gson,String configInfo,ErrorAction ea) {
 		try {
 			JsonObject jo=gson.fromJson(configInfo, JsonObject.class);
-			Set<String>newSet=new HashSet<>();
+			Set<String>set=new HashSet<>(SELECTOR_MAP.keySet());
 			for(Entry<String, JsonElement>e:jo.entrySet()) {
+				set.remove(e.getKey());
 				List<SelectorData>ls=new ArrayList<>();
 				e.getValue().getAsJsonArray().forEach(je->ls.add(gson.fromJson(je, SelectorData.class)));
-				newSet.add(e.getKey());
 				SELECTOR_MAP.put(e.getKey(), ls);
 			}
-			Set<String>set=new HashSet<>(SELECTOR_MAP.keySet());
-			set.removeAll(newSet);
-			//移除SELECTOR_MAP中多余keys
-			if(!set.isEmpty()) {
-				set.forEach(k->SELECTOR_MAP.remove(k));
-			}
+			SELECTOR_MAP.keySet().removeAll(set);
 		}catch (Exception e) {
 			if(ea!=null) {
 				ea.act(e);
@@ -105,17 +90,12 @@ public class NacosCacheHandler extends CommonCacheHandler {
 	protected void updateMetaDataMap(Gson gson,String configInfo,ErrorAction ea) {
 		try {
 			JsonObject jo=gson.fromJson(configInfo, JsonObject.class);
-			Set<String>newSet=new HashSet<>();
+			Set<String>set=new HashSet<>(META_DATA.keySet());
 			for(Entry<String, JsonElement>e:jo.entrySet()) {
-				newSet.add(e.getKey());
+				set.remove(e.getKey());
 				META_DATA.put(e.getKey(), gson.fromJson(e.getValue(), MetaData.class));
 			}
-			Set<String>set=new HashSet<>(META_DATA.keySet());
-			set.removeAll(newSet);
-			//移除AUTH_MAP中多余keys
-			if(!set.isEmpty()) {
-				set.forEach(k->META_DATA.remove(k));
-			}
+			META_DATA.keySet().removeAll(set);
 		}catch (Exception e) {
 			if(ea!=null) {
 				ea.act(e);
@@ -125,19 +105,14 @@ public class NacosCacheHandler extends CommonCacheHandler {
 	protected void updateRuleMap(Gson gson,String configInfo,ErrorAction ea) {
 		try {
 			JsonObject jo=gson.fromJson(configInfo, JsonObject.class);
-			Set<String>newSet=new HashSet<>();
+			Set<String>set=new HashSet<>(RULE_MAP.keySet());
 			for(Entry<String, JsonElement>e:jo.entrySet()) {
+				set.remove(e.getKey());
 				List<RuleData>ls=new ArrayList<>();
 				e.getValue().getAsJsonArray().forEach(je->ls.add(gson.fromJson(je, RuleData.class)));
-				newSet.add(e.getKey());
 				RULE_MAP.put(e.getKey(), ls);
 			}
-			Set<String>set=new HashSet<>(RULE_MAP.keySet());
-			set.removeAll(newSet);
-			//移除RULE_MAP中多余keys
-			if(!set.isEmpty()) {
-				set.forEach(k->RULE_MAP.remove(k));
-			}
+			RULE_MAP.keySet().removeAll(set);
 		}catch (Exception e) {
 			if(ea!=null) {
 				ea.act(e);
