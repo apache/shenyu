@@ -57,9 +57,9 @@ public class HystrixCommand extends HystrixObservableCommand<Void> {
      * @param exchange the exchange
      * @param chain    the chain
      */
-    public HystrixCommand(final Setter setter,
-                          final ServerWebExchange exchange,
-                          final SoulPluginChain chain) {
+    HystrixCommand(final Setter setter,
+                   final ServerWebExchange exchange,
+                   final SoulPluginChain chain) {
 
         super(setter);
         this.exchange = exchange;

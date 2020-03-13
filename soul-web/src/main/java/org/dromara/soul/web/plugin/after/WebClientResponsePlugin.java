@@ -67,6 +67,7 @@ public class WebClientResponsePlugin implements SoulPlugin {
                 Object error = SoulResultWarp.error(SoulResultEnum.SERVICE_TIMEOUT.getCode(), SoulResultEnum.SERVICE_TIMEOUT.getMsg(), null);
                 return SoulResultUtils.result(exchange, error);
             }
+            response.setStatusCode(clientResponse.statusCode());
             response.getHeaders().putAll(clientResponse.headers().asHttpHeaders());
             return response.writeWith(clientResponse.body(BodyExtractors.toDataBuffers()));
         }));
