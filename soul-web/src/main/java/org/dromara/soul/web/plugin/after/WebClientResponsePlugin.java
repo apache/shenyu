@@ -68,6 +68,7 @@ public class WebClientResponsePlugin implements SoulPlugin {
                 return SoulResultUtils.result(exchange, error);
             }
             response.setStatusCode(clientResponse.statusCode());
+            response.getCookies().putAll(clientResponse.cookies());
             response.getHeaders().putAll(clientResponse.headers().asHttpHeaders());
             return response.writeWith(clientResponse.body(BodyExtractors.toDataBuffers()));
         }));
