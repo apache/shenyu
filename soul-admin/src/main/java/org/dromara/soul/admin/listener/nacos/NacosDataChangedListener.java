@@ -233,13 +233,12 @@ public class NacosDataChangedListener implements DataChangedListener{
 		Gson gson=new Gson();
 		updateMetaDataMap(gson, getConfig(metaDataId), null);
 		changed.stream().forEach(meta->{
-			String metaKey=buildMetaKey(meta);
 			switch (eventType) {
 			case DELETE:
-				META_DATA.remove(metaKey);
+				META_DATA.remove(meta.getPath());
 				break;
 			default:
-				META_DATA.put(metaKey, meta);
+				META_DATA.put(meta.getPath(), meta);
 				break;
 			}
 		});
@@ -273,9 +272,6 @@ public class NacosDataChangedListener implements DataChangedListener{
 		publishConfig(gson, ruleDataId, RULE_MAP);
 	}
 	
-	private String buildMetaKey(MetaData meta) {
-		return meta.getAppName()+'-'+meta.getServiceName()+meta.getMethodName();
-	}
 	private static interface ErrorAction{
 		public void act(Object o);
 	}

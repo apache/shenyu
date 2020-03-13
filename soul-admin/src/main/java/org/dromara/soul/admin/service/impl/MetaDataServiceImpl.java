@@ -407,14 +407,8 @@ public class MetaDataServiceImpl implements MetaDataService {
             return AdminConstants.PARAMS_ERROR;
         }
         final MetaDataDO exist = metaDataMapper.findByPath(metaDataDTO.getPath());
-        if (StringUtils.isBlank(metaDataDTO.getId())) {
-            if (Objects.nonNull(exist)) {
-                return AdminConstants.DATA_PATH_IS_EXIST;
-            }
-        } else {
-            if (Objects.isNull(exist) || !exist.getId().equals(metaDataDTO.getId())) {
-                return AdminConstants.DATA_PATH_IS_EXIST;
-            }
+        if(exist!=null&&!exist.getId().equals(metaDataDTO.getId())) {
+        	return AdminConstants.DATA_PATH_IS_EXIST;
         }
         return StringUtils.EMPTY;
     }
