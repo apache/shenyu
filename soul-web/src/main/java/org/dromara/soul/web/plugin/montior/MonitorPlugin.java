@@ -93,7 +93,7 @@ public class MonitorPlugin extends AbstractSoulPlugin {
                 .method(requestDTO.getMethod())
                 .ip(exchange.getRequest().getRemoteAddress().getAddress().getHostAddress())
                 .host(exchange.getRequest().getRemoteAddress().getHostString())
-                .elapsedTime(Duration.between(LocalDateTime.now(), requestDTO.getStartDateTime()).toMillis())
+                .elapsedTime(Duration.between(requestDTO.getStartDateTime(), LocalDateTime.now()).toMillis())
                 .build();
     }
 
