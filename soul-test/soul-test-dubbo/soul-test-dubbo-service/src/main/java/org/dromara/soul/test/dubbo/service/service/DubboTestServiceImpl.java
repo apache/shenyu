@@ -23,6 +23,8 @@ import org.dromara.soul.test.dubbo.api.entity.DubboTest;
 import org.dromara.soul.test.dubbo.api.service.DubboTestService;
 import org.springframework.stereotype.Service;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * DubboTestServiceImpl.
  *
@@ -56,6 +58,12 @@ public class DubboTestServiceImpl implements DubboTestService {
     @Override
     @SoulClient(path = "/insert", desc = "插入一条数据")
     public DubboTest insert(final DubboTest dubboTest) {
+        // 模拟阻塞
+        try {
+            TimeUnit.SECONDS.sleep(8);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         return dubboTest;
     }
 
