@@ -14,6 +14,7 @@
         <module>soul-client-apache-dubbo</module>
         <module>soul-client-alibaba-dubbo</module>
         <module>soul-client-springmvc</module>
+        <module>soul-client-springmvc3</module>
         <module>soul-client-common</module>
         <module>soul-client-springcloud</module>
     </modules>
