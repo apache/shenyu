@@ -13,6 +13,7 @@ import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
+import org.dromara.soul.web.plugin.dubbo.ApplicationConfigCache;
 
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.listener.Listener;
@@ -93,9 +94,15 @@ public class NacosCacheHandler extends CommonCacheHandler {
 			Set<String>set=new HashSet<>(META_DATA.keySet());
 			for(Entry<String, JsonElement>e:jo.entrySet()) {
 				set.remove(e.getKey());
-				META_DATA.put(e.getKey(), gson.fromJson(e.getValue(), MetaData.class));
+				MetaData metaData=gson.fromJson(e.getValue(), MetaData.class);
+				initDubboRef(metaData);
+				META_DATA.put(e.getKey(), metaData);
 			}
-			META_DATA.keySet().removeAll(set);
+			if(!set.isEmpty()) {
+				META_DATA.keySet().removeAll(set);
+				set.stream().forEach(key->ApplicationConfigCache.getInstance()
+						.invalidate(META_DATA.get(key).getServiceName()));
+			}
 		}catch (Exception e) {
 			if(ea!=null) {
 				ea.act(e);
