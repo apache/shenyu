@@ -118,6 +118,15 @@ public abstract class AbstractLocalCacheManager implements LocalCacheManager {
     }
 
     /**
+     * Config plugin.
+     *
+     * @param pluginDataList the plugin data
+     */
+    void configPlugin(final PluginData pluginData) {
+        PluginConfigHandler.INS.initPluginConfig(pluginData);
+    }
+
+    /**
      * Find  meta data by uri.
      *
      * @param uri the uri

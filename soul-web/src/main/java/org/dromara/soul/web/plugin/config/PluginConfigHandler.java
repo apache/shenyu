@@ -73,54 +73,62 @@ public enum PluginConfigHandler {
     public void initPluginConfig(final List<PluginData> pluginDataList) {
         pluginDataList.stream()
                 .filter(PluginData::getEnabled)
-                .forEach(pluginData -> {
-                    if (PluginEnum.MONITOR.getName().equals(pluginData.getName())) {
-                        MonitorConfig monitorConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), MonitorConfig.class);
-                        if (Objects.isNull(Singleton.INST.get(InfluxDBTemplate.class))
-                                || Objects.isNull(Singleton.INST.get(MonitorConfig.class))
-                                || !monitorConfig.equals(Singleton.INST.get(MonitorConfig.class))) {
-                            InfluxDBConnectionFactory connectionFactory = new InfluxDBConnectionFactory(buildByConfig(monitorConfig));
-                            InfluxDBTemplate<Point> influxDBTemplate = new InfluxDBTemplate<>(connectionFactory, new PointConverter());
-                            Singleton.INST.single(InfluxDBTemplate.class, influxDBTemplate);
-                            Singleton.INST.single(MonitorConfig.class, monitorConfig);
-                        }
-                    } else if (PluginEnum.RATE_LIMITER.getName().equals(pluginData.getName())) {
-                        //初始化redis
-                        RateLimiterConfig rateLimiterConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), RateLimiterConfig.class);
-                        //出来转换成spring data redisTemplate
-                        if (Objects.isNull(Singleton.INST.get(ReactiveRedisTemplate.class))
-                                || Objects.isNull(Singleton.INST.get(RateLimiterConfig.class))
-                                || !rateLimiterConfig.equals(Singleton.INST.get(RateLimiterConfig.class))) {
-                            LettuceConnectionFactory lettuceConnectionFactory = createLettuceConnectionFactory(rateLimiterConfig);
-                            lettuceConnectionFactory.afterPropertiesSet();
-                            RedisSerializer<String> serializer = new StringRedisSerializer();
-                            RedisSerializationContext<String, String> serializationContext = RedisSerializationContext
-                                    .<String, String>newSerializationContext()
-                                    .key(serializer)
-                                    .value(serializer)
-                                    .hashKey(serializer)
-                                    .hashValue(serializer)
-                                    .build();
-                            ReactiveRedisTemplate<String, String> reactiveRedisTemplate = new ReactiveRedisTemplate<>(lettuceConnectionFactory, serializationContext);
-                            Singleton.INST.single(ReactiveRedisTemplate.class, reactiveRedisTemplate);
-                            Singleton.INST.single(RateLimiterConfig.class, rateLimiterConfig);
-                        }
-                    } else if (PluginEnum.DUBBO.getName().equals(pluginData.getName())) {
-                        DubboRegisterConfig dubboRegisterConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), DubboRegisterConfig.class);
-                        DubboRegisterConfig exist = Singleton.INST.get(DubboRegisterConfig.class);
-                        if (Objects.nonNull(dubboRegisterConfig)) {
-                            if (Objects.isNull(exist) || !dubboRegisterConfig.equals(exist)) {
-                                //如果是空，进行初始化操作，
-                                ApplicationConfigCache.getInstance().init(dubboRegisterConfig.getRegister());
-                                ApplicationConfigCache.getInstance().invalidateAll();
-                            }
-                            Singleton.INST.single(DubboRegisterConfig.class, dubboRegisterConfig);
-                        }
-                    }
-                });
+                .forEach(this::initPluginConfig);
 
     }
 
+    /**
+     * Init plugin config.
+     *
+     * @param pluginDataList the plugin data
+     */
+    public void initPluginConfig(PluginData pluginData) {
+
+        if (PluginEnum.MONITOR.getName().equals(pluginData.getName())) {
+            MonitorConfig monitorConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), MonitorConfig.class);
+            if (Objects.isNull(Singleton.INST.get(InfluxDBTemplate.class))
+                    || Objects.isNull(Singleton.INST.get(MonitorConfig.class))
+                    || !monitorConfig.equals(Singleton.INST.get(MonitorConfig.class))) {
+                InfluxDBConnectionFactory connectionFactory = new InfluxDBConnectionFactory(buildByConfig(monitorConfig));
+                InfluxDBTemplate<Point> influxDBTemplate = new InfluxDBTemplate<>(connectionFactory, new PointConverter());
+                Singleton.INST.single(InfluxDBTemplate.class, influxDBTemplate);
+                Singleton.INST.single(MonitorConfig.class, monitorConfig);
+            }
+        } else if (PluginEnum.RATE_LIMITER.getName().equals(pluginData.getName())) {
+            //初始化redis
+            RateLimiterConfig rateLimiterConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), RateLimiterConfig.class);
+            //出来转换成spring data redisTemplate
+            if (Objects.isNull(Singleton.INST.get(ReactiveRedisTemplate.class))
+                    || Objects.isNull(Singleton.INST.get(RateLimiterConfig.class))
+                    || !rateLimiterConfig.equals(Singleton.INST.get(RateLimiterConfig.class))) {
+                LettuceConnectionFactory lettuceConnectionFactory = createLettuceConnectionFactory(rateLimiterConfig);
+                lettuceConnectionFactory.afterPropertiesSet();
+                RedisSerializer<String> serializer = new StringRedisSerializer();
+                RedisSerializationContext<String, String> serializationContext = RedisSerializationContext
+                        .<String, String>newSerializationContext()
+                        .key(serializer)
+                        .value(serializer)
+                        .hashKey(serializer)
+                        .hashValue(serializer)
+                        .build();
+                ReactiveRedisTemplate<String, String> reactiveRedisTemplate = new ReactiveRedisTemplate<>(lettuceConnectionFactory, serializationContext);
+                Singleton.INST.single(ReactiveRedisTemplate.class, reactiveRedisTemplate);
+                Singleton.INST.single(RateLimiterConfig.class, rateLimiterConfig);
+            }
+        } else if (PluginEnum.DUBBO.getName().equals(pluginData.getName())) {
+            DubboRegisterConfig dubboRegisterConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), DubboRegisterConfig.class);
+            DubboRegisterConfig exist = Singleton.INST.get(DubboRegisterConfig.class);
+            if (Objects.nonNull(dubboRegisterConfig)) {
+                if (Objects.isNull(exist) || !dubboRegisterConfig.equals(exist)) {
+                    //如果是空，进行初始化操作，
+                    ApplicationConfigCache.getInstance().init(dubboRegisterConfig.getRegister());
+                    ApplicationConfigCache.getInstance().invalidateAll();
+                }
+                Singleton.INST.single(DubboRegisterConfig.class, dubboRegisterConfig);
+            }
+        }
+    }
+    
     private LettuceConnectionFactory createLettuceConnectionFactory(final RateLimiterConfig rateLimiterConfig) {
         LettuceClientConfiguration lettuceClientConfiguration = getLettuceClientConfiguration(rateLimiterConfig);
         if (RedisModeEnum.SENTINEL.getName().equals(rateLimiterConfig.getMode())) {

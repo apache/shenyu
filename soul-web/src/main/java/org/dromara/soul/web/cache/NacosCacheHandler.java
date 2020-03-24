@@ -62,7 +62,9 @@ public class NacosCacheHandler extends CommonCacheHandler {
 			Set<String>set=new HashSet<>(PLUGIN_MAP.keySet());
 			for(Entry<String, JsonElement>e:jo.entrySet()) {
 				set.remove(e.getKey());
-				PLUGIN_MAP.put(e.getKey(), gson.fromJson(e.getValue(), PluginData.class));
+				PluginData pluginData=gson.fromJson(e.getValue(), PluginData.class);
+				configPlugin(pluginData);
+				PLUGIN_MAP.put(e.getKey(), pluginData);
 			}
 			PLUGIN_MAP.keySet().removeAll(set);
 		}catch (Exception e) {
