@@ -25,12 +25,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 /**
- * © 2015-2020 Chenxj Copyright
- * 类    名：NacosDataChangedListener
- * 类 描 述：
- * 作    者：Chenxj
- * 邮    箱：chenios@foxmail.com
- * 日    期：2020年3月12日-上午10:00:14
+ * Use nacos to push data changes.
+ *
+ * @author chenxj
+ * @date 2020年3月12日-上午10:00:14
  */
 public class NacosDataChangedListener implements DataChangedListener{
 	private static final ConcurrentMap<String, PluginData> PLUGIN_MAP = Maps.newConcurrentMap();
