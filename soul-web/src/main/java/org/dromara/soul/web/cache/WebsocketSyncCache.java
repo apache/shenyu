@@ -102,12 +102,9 @@ public class WebsocketSyncCache extends WebsocketCacheHandler {
             /* client.setProxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress("proxyaddress", 80)));*/
             boolean success = client.connectBlocking(3000, TimeUnit.MILLISECONDS);
             if (success) {
-                LOGGER.info("websocket connection success....");
-            }
-            if (success) {
                 LOGGER.info("websocket connection is successful.....");
             } else {
-                LOGGER.info("websocket connection is error.....");
+                LOGGER.error("websocket connection is error.....");
             }
         } catch (InterruptedException e) {
             LOGGER.info("websocket connection...exception....", e);
@@ -119,7 +116,7 @@ public class WebsocketSyncCache extends WebsocketCacheHandler {
                     if (success) {
                         LOGGER.info("websocket reconnect is successful.....");
                     } else {
-                        LOGGER.info("websocket reconnection is error.....");
+                        LOGGER.error("websocket reconnection is error.....");
                     }
                 }
             } catch (InterruptedException e) {
