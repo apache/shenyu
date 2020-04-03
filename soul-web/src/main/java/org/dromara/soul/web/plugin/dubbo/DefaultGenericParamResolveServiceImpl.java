@@ -39,10 +39,9 @@ public class DefaultGenericParamResolveServiceImpl implements GenericParamResolv
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultGenericParamResolveServiceImpl.class);
 
-    private static Map<String, Object> paramMap = new ConcurrentHashMap<>();
-
     @Override
     public Pair<String[], Object[]> buildParameter(final String body, final String parameterTypes) {
+        Map<String, Object> paramMap = new ConcurrentHashMap<>();
         try {
             paramMap = new ObjectMapper().readValue(body, Map.class);
             Class<?> c = Class.forName(parameterTypes);
@@ -53,13 +52,10 @@ public class DefaultGenericParamResolveServiceImpl implements GenericParamResolv
             if (isPrimitiveOrWrapped || c.equals(String.class)) {
                 return new ImmutablePair<>(new String[] {parameterTypes}, paramMap.values().toArray(new Object[0]));
             }
-
         } catch (Exception e) {
             LOG.error("dubbo param build fail, ex:{}", e.getMessage());
         }
-
         return new ImmutablePair<>(new String[] {parameterTypes}, new Object[] {paramMap});
-
     }
-
 }
+
