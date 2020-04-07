@@ -25,6 +25,7 @@ import org.dromara.soul.web.plugin.after.DubboResponsePlugin;
 import org.dromara.soul.web.plugin.dubbo.DefaultGenericParamResolveServiceImpl;
 import org.dromara.soul.web.plugin.dubbo.DubboProxyService;
 import org.dromara.soul.web.plugin.dubbo.GenericParamResolveService;
+import org.dromara.soul.web.plugin.dubbo.MultipleGenericParamResolveServiceImpl;
 import org.dromara.soul.web.plugin.function.DubboPlugin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -61,6 +62,16 @@ public class DubboConfiguration {
     @ConditionalOnMissingBean(value = GenericParamResolveService.class, search = SearchStrategy.ALL)
     public GenericParamResolveService genericParamResolveService() {
         return new DefaultGenericParamResolveServiceImpl();
+    }
+
+    /**
+     * Multiple generic param service.
+     *
+     * @return the generic param service
+     */
+    @Bean
+    public GenericParamResolveService multiGenericParamResolveService() {
+        return new MultipleGenericParamResolveServiceImpl();
     }
 
     /**
