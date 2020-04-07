@@ -33,5 +33,7 @@
 
     <dubbo:service timeout="10000" interface="org.dromara.soul.test.dubbo.api.service.DubboTestService" ref="dubboTestService"/>
 
+    <dubbo:service timeout="50000" interface="org.dromara.soul.test.dubbo.api.service.DubboMultiParamTestService"
+                   ref="dubboMultiParamTestService"/>
 
 </beans>
