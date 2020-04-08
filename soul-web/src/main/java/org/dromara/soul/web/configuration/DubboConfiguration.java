@@ -25,7 +25,9 @@ import org.dromara.soul.web.plugin.after.DubboResponsePlugin;
 import org.dromara.soul.web.plugin.dubbo.DefaultGenericParamResolveServiceImpl;
 import org.dromara.soul.web.plugin.dubbo.DubboProxyService;
 import org.dromara.soul.web.plugin.dubbo.GenericParamResolveService;
+import org.dromara.soul.web.plugin.dubbo.MultipleGenericParamResolveServiceImpl;
 import org.dromara.soul.web.plugin.function.DubboPlugin;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.SearchStrategy;
@@ -63,14 +65,24 @@ public class DubboConfiguration {
     }
 
     /**
+     * Multiple generic param service.
+     *
+     * @return the generic param service
+     */
+    @Bean
+    public GenericParamResolveService multiGenericParamResolveService() {
+        return new MultipleGenericParamResolveServiceImpl();
+    }
+
+    /**
      * init dubboPlugin.
      *
      * @param localCacheManager the local cache manager
      * @return {@linkplain DubboPlugin}
      */
     @Bean
-    public SoulPlugin dubboPlugin(@Qualifier("localCacheManager") final LocalCacheManager localCacheManager) {
-        return new DubboPlugin(localCacheManager, new DubboProxyService(genericParamResolveService()));
+    public SoulPlugin dubboPlugin(@Qualifier("localCacheManager") final LocalCacheManager localCacheManager, @Autowired final GenericParamResolveService genericParamResolveService) {
+        return new DubboPlugin(localCacheManager, new DubboProxyService(genericParamResolveService));
     }
 
     /**
