@@ -18,16 +18,12 @@
 
 package org.dromara.soul.web.plugin.function;
 
-import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
-import org.dromara.soul.common.dto.convert.rule.DubboRuleHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.PluginTypeEnum;
-import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
-import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.web.cache.LocalCacheManager;
 import org.dromara.soul.web.plugin.AbstractSoulPlugin;
 import org.dromara.soul.web.plugin.SoulPluginChain;
@@ -67,14 +63,8 @@ public class DubboPlugin extends AbstractSoulPlugin {
 
         assert requestDTO != null;
 
-        final Object result = dubboProxyService.genericInvoker(body, requestDTO.getMetaData());
-        if (Objects.nonNull(result)) {
-            exchange.getAttributes().put(Constants.DUBBO_RPC_RESULT, result);
-        } else {
-            exchange.getAttributes().put(Constants.DUBBO_RPC_RESULT, Constants.DUBBO_RPC_RESULT_EMPTY);
-        }
-        exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
-        return chain.execute(exchange);
+        final Mono<Object> result = dubboProxyService.genericInvoker(body, requestDTO.getMetaData(), exchange);
+        return result.then(chain.execute(exchange));
     }
 
     /**
