@@ -222,7 +222,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         if (CollectionUtils.isNotEmpty(appAuthDOList)) {
             List<AppAuthData> dataList = appAuthDOList.stream().map(this::buildByEntity).collect(Collectors.toList());
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH,
-                    DataEventTypeEnum.UPDATE,
+                    DataEventTypeEnum.REFRESH,
                     dataList));
         }
         return SoulAdminResult.success();

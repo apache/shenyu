@@ -118,6 +118,15 @@ public abstract class AbstractLocalCacheManager implements LocalCacheManager {
     }
 
     /**
+     * Config plugin.
+     *
+     * @param pluginDataList the plugin data
+     */
+    void configPlugin(final PluginData pluginData) {
+        PluginConfigHandler.INS.initPluginConfig(pluginData);
+    }
+
+    /**
      * Find  meta data by uri.
      *
      * @param uri the uri
@@ -139,18 +148,32 @@ public abstract class AbstractLocalCacheManager implements LocalCacheManager {
      */
     void initDubboRef(final List<MetaData> metaDataList) {
         for (MetaData metaData : metaDataList) {
-            if (RpcTypeEnum.DUBBO.getName().equals(metaData.getRpcType())) {
-                MetaData exist = META_DATA.get(metaData.getPath());
-                if (Objects.isNull(exist)
-                        || Objects.isNull(ApplicationConfigCache.getInstance().get(exist.getServiceName()).isInit())) {
-                    //第一次初始化
-                    ApplicationConfigCache.getInstance().initRef(metaData);
-                } else {
-                    if (!exist.getServiceName().equals(metaData.getServiceName())
-                            || !exist.getRpcExt().equals(metaData.getRpcExt())) {
-                        //有更新
-                        ApplicationConfigCache.getInstance().build(metaData);
-                    }
+            updateRubboRef(metaData);
+        }
+    }
+    /**
+     * Init dubbo ref.
+     *
+     * @param metaDataList the meta data array list
+     */
+    void initDubboRef(final MetaData...metaDataList) {
+        for (MetaData metaData : metaDataList) {
+            updateRubboRef(metaData);
+        }
+    }
+    
+    void updateRubboRef(MetaData metaData) {
+    	if (RpcTypeEnum.DUBBO.getName().equals(metaData.getRpcType())) {
+            MetaData exist = META_DATA.get(metaData.getPath());
+            if (Objects.isNull(exist)
+                    || Objects.isNull(ApplicationConfigCache.getInstance().get(exist.getServiceName()).isInit())) {
+                //第一次初始化
+                ApplicationConfigCache.getInstance().initRef(metaData);
+            } else {
+                if (!exist.getServiceName().equals(metaData.getServiceName())
+                        || !exist.getRpcExt().equals(metaData.getRpcExt())) {
+                    //有更新
+                    ApplicationConfigCache.getInstance().build(metaData);
                 }
             }
         }
