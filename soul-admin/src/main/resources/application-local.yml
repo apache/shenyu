@@ -26,20 +26,20 @@ soul:
     register: false
     zookeeperUrl: localhost:2181
   sync:
-    strategy: nacos
+    strategy: websocket
 #      zookeeper:
 #        url: localhost:2181
 #        sessionTimeout: 5000
 #        connectionTimeout: 2000
-    nacos:
-      url: localhost:8848
-      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
-      acm:
-        enabled: false
-        endpoint: acm.aliyun.com
-        namespace: 
-        accessKey: 
-        secretKey: 
+#    nacos:
+#      url: localhost:8848
+#      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
+#      acm:
+#        enabled: false
+#        endpoint: acm.aliyun.com
+#        namespace: 
+#        accessKey: 
+#        secretKey: 
 
 logging:
   level:
