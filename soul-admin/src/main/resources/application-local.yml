@@ -10,11 +10,11 @@ spring:
     prefix: classpath:/static/
     suffix: .html
   datasource:
-    url: jdbc:mysql://127.0.0.1:3306/soul?useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT&failOverReadOnly=false&autoReconnect=true&useSSL=false
+    url: jdbc:mysql://localhost:3306/soul?useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT&failOverReadOnly=false&autoReconnect=true&useSSL=false
     username: root
     password: 123456
     dbcp2:
-      driver-class-name: com.mysql.jdbc.Driver
+      driver-class-name: com.mysql.cj.jdbc.Driver
 
 mybatis:
   config-location: classpath:/mybatis/mybatis-config.xml
@@ -31,6 +31,15 @@ soul:
 #        url: localhost:2181
 #        sessionTimeout: 5000
 #        connectionTimeout: 2000
+#    nacos:
+#      url: localhost:8848
+#      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
+#      acm:
+#        enabled: false
+#        endpoint: acm.aliyun.com
+#        namespace: 
+#        accessKey: 
+#        secretKey: 
 
 logging:
   level:

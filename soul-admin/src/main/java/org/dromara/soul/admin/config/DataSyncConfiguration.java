@@ -3,9 +3,11 @@ package org.dromara.soul.admin.config;
 import org.I0Itec.zkclient.ZkClient;
 import org.dromara.soul.admin.listener.DataChangedListener;
 import org.dromara.soul.admin.listener.http.HttpLongPollingDataChangedListener;
+import org.dromara.soul.admin.listener.nacos.NacosDataChangedListener;
 import org.dromara.soul.admin.listener.websocket.WebsocketCollector;
 import org.dromara.soul.admin.listener.websocket.WebsocketDataChangedListener;
 import org.dromara.soul.admin.listener.zookeeper.ZookeeperDataChangedListener;
+import org.dromara.soul.configuration.nacos.NacosConfiguration;
 import org.dromara.soul.configuration.zookeeper.ZookeeperConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -13,6 +15,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.web.socket.server.standard.ServerEndpointExporter;
+
+import com.alibaba.nacos.api.config.ConfigService;
 
 /**
  * The type Data sync configuration.
@@ -54,6 +58,22 @@ public class DataSyncConfiguration {
         }
     }
 
+    /**
+     * The type Nacos listener
+     * 
+     * @author Chenxj
+     * @date 2020年3月12日-下午1:40:20
+     */
+    @Configuration
+    @ConditionalOnMissingBean(DataChangedListener.class)
+    @ConditionalOnProperty(name = "soul.sync.strategy", havingValue = "nacos")
+    @Import(NacosConfiguration.class)
+    static class NacosListener {
+        @Bean
+        public DataChangedListener dataChangedListener(final ConfigService configService) {
+        	return new NacosDataChangedListener(configService);
+        }
+    }
 
     /**
      * The WebsocketListener.
@@ -93,5 +113,4 @@ public class DataSyncConfiguration {
             return new ServerEndpointExporter();
         }
     }
-
 }

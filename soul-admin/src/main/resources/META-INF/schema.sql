@@ -1,7 +1,7 @@
 
-CREATE DATABASE  IF NOT EXISTS  `soul`  DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;
-
-USE `soul`;
+--CREATE DATABASE  IF NOT EXISTS  `soul`  DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;
+--
+--USE `soul`;
 
 CREATE TABLE IF NOT EXISTS `app_auth`  (
   `id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '主键id',
@@ -141,15 +141,15 @@ CREATE TABLE  IF NOT EXISTS `meta_data` (
 SET FOREIGN_KEY_CHECKS = 1;
 
 /*plugin*/
-INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('1', 'sign','0', '0', '2018-06-14 10:17:35', '2018-06-14 10:17:35');
-INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`,`enabled`, `date_created`, `date_updated`) VALUES ('2', 'waf', '0','0', '2018-06-23 10:26:30', '2018-06-13 15:43:10');
-INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('3', 'rewrite', '0','0', '2018-06-23 10:26:34', '2018-06-25 13:59:31');
-INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`,`config`,`enabled`, `date_created`, `date_updated`) VALUES ('4', 'rate_limiter','0','{"master":"mymaster","mode":"Standalone","url":"192.168.1.1:6379","password":"abc"}', '0', '2018-06-23 10:26:37', '2018-06-13 15:34:48');
-INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('5', 'divide', '0','1', '2018-06-25 10:19:10', '2018-06-13 13:56:04');
-INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`,`enabled`, `date_created`, `date_updated`) VALUES ('6', 'dubbo','0', '1', '2018-06-23 10:26:41', '2018-06-11 10:11:47');
-INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`,`config`,`enabled`, `date_created`, `date_updated`) VALUES ('7', 'monitor', '0','{"userName":"xiaoyu","database":"databases","url":"http://localhost:8086","password":"test222"}','0', '2018-06-25 13:47:57', '2018-06-25 13:47:57');
-INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('8', 'springCloud','0', '1', '2018-06-25 13:47:57', '2018-06-25 13:47:57');
-INSERT IGNORE INTO `soul`.`plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('9', 'hystrix', '0','1', '2020-01-15 10:19:10', '2020-01-15 10:19:10');
+INSERT IGNORE INTO `plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('1', 'sign','0', '0', '2018-06-14 10:17:35', '2018-06-14 10:17:35');
+INSERT IGNORE INTO `plugin` (`id`, `name`,`role`,`enabled`, `date_created`, `date_updated`) VALUES ('2', 'waf', '0','0', '2018-06-23 10:26:30', '2018-06-13 15:43:10');
+INSERT IGNORE INTO `plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('3', 'rewrite', '0','0', '2018-06-23 10:26:34', '2018-06-25 13:59:31');
+INSERT IGNORE INTO `plugin` (`id`, `name`,`role`,`config`,`enabled`, `date_created`, `date_updated`) VALUES ('4', 'rate_limiter','0','{"master":"mymaster","mode":"Standalone","url":"192.168.1.1:6379","password":"abc"}', '0', '2018-06-23 10:26:37', '2018-06-13 15:34:48');
+INSERT IGNORE INTO `plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('5', 'divide', '0','1', '2018-06-25 10:19:10', '2018-06-13 13:56:04');
+INSERT IGNORE INTO `plugin` (`id`, `name`,`role`,`enabled`, `date_created`, `date_updated`) VALUES ('6', 'dubbo','0', '1', '2018-06-23 10:26:41', '2018-06-11 10:11:47');
+INSERT IGNORE INTO `plugin` (`id`, `name`,`role`,`config`,`enabled`, `date_created`, `date_updated`) VALUES ('7', 'monitor', '0','{"userName":"xiaoyu","database":"databases","url":"http://localhost:8086","password":"test222"}','0', '2018-06-25 13:47:57', '2018-06-25 13:47:57');
+INSERT IGNORE INTO `plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('8', 'springCloud','0', '1', '2018-06-25 13:47:57', '2018-06-25 13:47:57');
+INSERT IGNORE INTO `plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('9', 'hystrix', '0','1', '2020-01-15 10:19:10', '2020-01-15 10:19:10');
 
 /**user**/
-INSERT IGNORE INTO `soul`.`dashboard_user` (`id`, `user_name`, `password`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('1', 'admin', '123456', '1', '1', '2018-06-23 15:12:22', '2018-06-23 15:12:23');
+INSERT IGNORE INTO `dashboard_user` (`id`, `user_name`, `password`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('1', 'admin', '123456', '1', '1', '2018-06-23 15:12:22', '2018-06-23 15:12:23');

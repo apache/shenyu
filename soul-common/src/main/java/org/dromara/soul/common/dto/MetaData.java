@@ -6,7 +6,8 @@ import java.io.Serializable;
 
 @Data
 public class MetaData implements Serializable {
-
+    private String id;
+    
     private String appName;
 
     private String path;

@@ -32,3 +32,4 @@ target
 *.tmp
 Thumbs.db
 *.DS_Store
+.factorypath
