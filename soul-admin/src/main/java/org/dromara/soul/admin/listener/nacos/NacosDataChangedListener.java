@@ -154,7 +154,10 @@ public class NacosDataChangedListener implements DataChangedListener{
 		case REFRESH:
 		case MYSELF:
 			Set<String>set=new HashSet<>(AUTH_MAP.keySet());
-			changed.stream().forEach(appAuth->set.remove(appAuth.getAppKey()));
+			changed.stream().forEach(appAuth->{
+				set.remove(appAuth.getAppKey());
+				AUTH_MAP.put(appAuth.getAppKey(), appAuth);
+			});
 			AUTH_MAP.keySet().removeAll(set);
 			break;
 		default:
@@ -174,7 +177,10 @@ public class NacosDataChangedListener implements DataChangedListener{
 		case REFRESH:
 		case MYSELF:
 			Set<String>set=new HashSet<>(PLUGIN_MAP.keySet());
-			changed.stream().forEach(plugin->set.remove(plugin.getName()));
+			changed.stream().forEach(plugin->{
+				set.remove(plugin.getName());
+				PLUGIN_MAP.put(plugin.getName(), plugin);
+			});
 			PLUGIN_MAP.keySet().removeAll(set);
 			break;
 		default:
@@ -239,7 +245,10 @@ public class NacosDataChangedListener implements DataChangedListener{
 		case REFRESH:
 		case MYSELF:
 			Set<String>set=new HashSet<>(META_DATA.keySet());
-			changed.stream().forEach(meta->set.remove(meta.getPath()));
+			changed.stream().forEach(meta->{
+				set.remove(meta.getPath());
+				META_DATA.put(meta.getPath(), meta);
+			});
 			META_DATA.keySet().removeAll(set);
 			break;
 		default:
