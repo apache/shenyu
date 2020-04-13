@@ -19,6 +19,7 @@
 
 package org.dromara.soul.common.utils;
 
+import com.google.common.base.Splitter;
 import org.springframework.util.AntPathMatcher;
 
 /**
@@ -27,9 +28,9 @@ import org.springframework.util.AntPathMatcher;
  * @author xiaoyu
  */
 public class PathMatchUtils {
-
+    
     private static final AntPathMatcher MATCHER = new AntPathMatcher();
-
+    
     /**
      * Match boolean.
      *
@@ -38,18 +39,11 @@ public class PathMatchUtils {
      * @return the boolean
      */
     public static boolean match(final String matchUrls, final String path) {
-        String[] urlList = matchUrls.split(",");
-        for (String pattern : urlList) {
-            boolean match = reg(pattern, path);
-            if (match) {
-                return true;
-            }
-        }
-        return false;
+        return Splitter.on(",").omitEmptyStrings().trimResults().splitToList(matchUrls).stream().anyMatch(url -> reg(url, path));
     }
-
+    
     private static boolean reg(final String pattern, final String path) {
         return MATCHER.match(pattern, path);
     }
-
+    
 }
