@@ -19,6 +19,8 @@
 package org.dromara.soul.bootstrap.configuration;
 
 import org.dromara.soul.bootstrap.cors.CrossFilter;
+import org.dromara.soul.bootstrap.dubbo.DubboMultiParameterResolveServiceImpl;
+import org.dromara.soul.web.plugin.dubbo.GenericParamResolveService;
 import org.dromara.soul.web.support.RemoteAddressResolver;
 import org.dromara.soul.web.support.XForwardedRemoteAddressResolver;
 import org.springframework.context.annotation.Bean;
@@ -33,7 +35,7 @@ import org.springframework.web.server.WebFilter;
  */
 @Configuration
 public class SoulExtConfiguration {
-
+    
     /**
      * Cross filter web filter.
      * if you application has cross-domain.
@@ -48,7 +50,7 @@ public class SoulExtConfiguration {
     public WebFilter crossFilter() {
         return new CrossFilter();
     }
-
+    
     /**
      * Remote address resolver remote address resolver.
      *
@@ -57,6 +59,16 @@ public class SoulExtConfiguration {
     @Bean
     public RemoteAddressResolver remoteAddressResolver() {
         return new XForwardedRemoteAddressResolver(1);
+    }
+    
+    /**
+     * Generic param resolve service generic param resolve service.
+     *
+     * @return the generic param resolve service
+     */
+    @Bean
+    public GenericParamResolveService genericParamResolveService() {
+        return  new DubboMultiParameterResolveServiceImpl();
     }
 
    /* @Bean
