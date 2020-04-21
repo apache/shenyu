@@ -80,7 +80,7 @@ public enum PluginConfigHandler {
     /**
      * Init plugin config.
      *
-     * @param pluginDataList the plugin data
+     * @param pluginData the plugin data
      */
     public void initPluginConfig(PluginData pluginData) {
 
