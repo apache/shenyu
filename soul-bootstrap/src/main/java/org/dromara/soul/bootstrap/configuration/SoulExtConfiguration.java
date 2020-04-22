@@ -23,6 +23,7 @@ import org.dromara.soul.bootstrap.dubbo.DubboMultiParameterResolveServiceImpl;
 import org.dromara.soul.web.plugin.dubbo.GenericParamResolveService;
 import org.dromara.soul.web.support.RemoteAddressResolver;
 import org.dromara.soul.web.support.XForwardedRemoteAddressResolver;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -67,6 +68,7 @@ public class SoulExtConfiguration {
      * @return the generic param resolve service
      */
     @Bean
+    @ConditionalOnProperty(name = "soul.dubbo.parameter", havingValue = "multi")
     public GenericParamResolveService genericParamResolveService() {
         return  new DubboMultiParameterResolveServiceImpl();
     }
