@@ -121,7 +121,7 @@ public enum PluginConfigHandler {
             if (Objects.nonNull(dubboRegisterConfig)) {
                 if (Objects.isNull(exist) || !dubboRegisterConfig.equals(exist)) {
                     //如果是空，进行初始化操作，
-                    ApplicationConfigCache.getInstance().init(dubboRegisterConfig.getRegister());
+                    ApplicationConfigCache.getInstance().init(dubboRegisterConfig);
                     ApplicationConfigCache.getInstance().invalidateAll();
                 }
                 Singleton.INST.single(DubboRegisterConfig.class, dubboRegisterConfig);

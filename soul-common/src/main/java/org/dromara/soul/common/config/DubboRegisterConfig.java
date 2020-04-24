@@ -34,4 +34,5 @@ import java.io.Serializable;
 public class DubboRegisterConfig implements Serializable {
 
     private String register;
+    private String group;
 }
