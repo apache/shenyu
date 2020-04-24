@@ -148,7 +148,7 @@ public abstract class AbstractLocalCacheManager implements LocalCacheManager {
      */
     void initDubboRef(final List<MetaData> metaDataList) {
         for (MetaData metaData : metaDataList) {
-            updateRubboRef(metaData);
+            updateDubboRef(metaData);
         }
     }
     /**
@@ -158,11 +158,11 @@ public abstract class AbstractLocalCacheManager implements LocalCacheManager {
      */
     void initDubboRef(final MetaData...metaDataList) {
         for (MetaData metaData : metaDataList) {
-            updateRubboRef(metaData);
+            updateDubboRef(metaData);
         }
     }
     
-    void updateRubboRef(MetaData metaData) {
+    void updateDubboRef(MetaData metaData) {
     	if (RpcTypeEnum.DUBBO.getName().equals(metaData.getRpcType())) {
             MetaData exist = META_DATA.get(metaData.getPath());
             if (Objects.isNull(exist)
