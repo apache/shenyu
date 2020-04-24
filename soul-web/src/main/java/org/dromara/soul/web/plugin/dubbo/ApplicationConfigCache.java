@@ -29,6 +29,7 @@ import org.apache.dubbo.config.ApplicationConfig;
 import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.dubbo.config.RegistryConfig;
 import org.apache.dubbo.rpc.service.GenericService;
+import org.dromara.soul.common.config.DubboRegisterConfig;
 import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.enums.LoadBalanceEnum;
 import org.dromara.soul.common.exception.SoulException;
@@ -101,7 +102,7 @@ public final class ApplicationConfigCache {
      *
      * @param register the register
      */
-    public void init(final String register) {
+    public void init(DubboRegisterConfig dubboRegisterConfig) {
         if (applicationConfig == null) {
             applicationConfig = new ApplicationConfig("soul_proxy");
         }
@@ -110,7 +111,8 @@ public final class ApplicationConfigCache {
             registryConfig.setProtocol("dubbo");
             registryConfig.setId("soul_proxy");
             registryConfig.setRegister(false);
-            registryConfig.setAddress(register);
+            registryConfig.setAddress(dubboRegisterConfig.getRegister());
+            Optional.ofNullable(dubboRegisterConfig.getGroup()).ifPresent(registryConfig::setGroup);
         }
     }
 
