@@ -36,13 +36,17 @@ import java.util.stream.Collectors;
  * @author xiaoyu
  */
 public class DubboMultiParameterResolveServiceImpl implements GenericParamResolveService {
-    
-    private Logger log = LoggerFactory.getLogger(getClass());
-    
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    /**
+     * ObjectMapper is a completely thread-safe service class, it is meant to be used as singleton across the lifetime of the application. It is also very expensive
+     * to create. ... It is also prudent to do a review of all usages of ObjectMapper and ensure that it is not instantiated every time. This is a performance killer
+     */
+    private final ObjectMapper om = new ObjectMapper();
+
     @SuppressWarnings("unchecked")
     @Override
     public Pair<String[], Object[]> buildParameter(final String body, final String parameterTypes) {
-        ObjectMapper om = new ObjectMapper();
         String[] types = splitParameterTypes(parameterTypes);
         Object[] params = new Object[types.length];
         if (types.length > 0) {
@@ -59,7 +63,7 @@ public class DubboMultiParameterResolveServiceImpl implements GenericParamResolv
         }
         return new ImmutablePair<>(types, params);
     }
-    
+
     private static String[] splitParameterTypes(String parameterTypes) {
         if (parameterTypes.length() == 0) {
             return new String[0];
