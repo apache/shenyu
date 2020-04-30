@@ -52,8 +52,8 @@ public class DubboBodyWebFilter implements WebFilter {
         if (Objects.nonNull(requestDTO) && RpcTypeEnum.DUBBO.getName().equals(requestDTO.getRpcType())) {
             MediaType mediaType = request.getHeaders().getContentType();
             ServerRequest serverRequest = ServerRequest.create(exchange, messageReaders);
-            //此处转换有问题，当请求body为空字符串时不报错，也不给错误提示，亦无法进入dubbo插件
             return serverRequest.bodyToMono(String.class)
+                    .switchIfEmpty(Mono.defer(() -> Mono.just("")))
                     .flatMap(body -> {
                         if (MediaType.APPLICATION_JSON.isCompatibleWith(mediaType)) {
                             exchange.getAttributes().put(Constants.DUBBO_PARAMS, body);
