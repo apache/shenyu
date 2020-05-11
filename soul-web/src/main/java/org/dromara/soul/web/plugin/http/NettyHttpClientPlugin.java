@@ -93,8 +93,7 @@ public class NettyHttpClientPlugin implements SoulPlugin {
         LOGGER.info("you request,The resulting urlPath is :{}", url);
         Flux<HttpClientResponse> responseFlux = this.httpClient.headers(headers -> headers.add(httpHeaders))
                 .request(method).uri(url).send((req, nettyOutbound) ->
-                        nettyOutbound.options(NettyPipeline.SendOptions::flushOnEach).send(
-                                request.getBody().map(dataBuffer -> ((NettyDataBuffer) dataBuffer).getNativeBuffer())))
+                        nettyOutbound.send( request.getBody().map(dataBuffer -> ((NettyDataBuffer) dataBuffer) .getNativeBuffer())))
                 .responseConnection((res, connection) -> {
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_CONN_ATTR, connection);

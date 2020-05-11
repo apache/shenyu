@@ -53,7 +53,7 @@ import java.util.List;
  */
 public class FileSizeFilter implements WebFilter {
 
-    private static final long BYTES_PER_MB = 1024 * 1024;
+    private static final int BYTES_PER_MB = 1024 * 1024;
 
     @Value("${file.size:10}")
     private int maxSize;
@@ -61,6 +61,7 @@ public class FileSizeFilter implements WebFilter {
     private final List<HttpMessageReader<?>> messageReaders;
 
     public FileSizeFilter() {
+        HandlerStrategies.builder().codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(maxSize * BYTES_PER_MB));
         this.messageReaders = HandlerStrategies.withDefaults().messageReaders();
     }
 
