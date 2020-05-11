@@ -94,6 +94,7 @@ public class HttpClientConfiguration {
                                     .to(builder::nonProxyHosts);
                         });
                     }
+                    tcpClient = tcpClient.option(ChannelOption.SO_TIMEOUT, 5000);
                     return tcpClient;
                 });
 

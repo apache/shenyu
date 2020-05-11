@@ -72,8 +72,8 @@ public class GlobalErrorHandler extends DefaultErrorWebExceptionHandler {
     }
 
     @Override
-    protected HttpStatus getHttpStatus(final Map<String, Object> errorAttributes) {
-        return HttpStatus.INTERNAL_SERVER_ERROR;
+    protected int getHttpStatus(final Map<String, Object> errorAttributes) {
+        return HttpStatus.INTERNAL_SERVER_ERROR.value();
     }
 
     private static Map<String, Object> response() {

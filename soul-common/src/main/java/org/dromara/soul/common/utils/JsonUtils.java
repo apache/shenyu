@@ -85,7 +85,7 @@ public final class JsonUtils {
             return mapper.writeValueAsString(object);
         } catch (IOException e) {
             logger.warn("write to json string error:" + object, e);
-            return null;
+            return "{}";
         }
     }
 
