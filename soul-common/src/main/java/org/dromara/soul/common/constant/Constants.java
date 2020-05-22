@@ -31,6 +31,11 @@ public interface Constants {
     String APP_PARAM = "appParam";
 
     /**
+     * The constant context.
+     */
+    String CONTEXT = "context";
+    
+    /**
      * The constant REQUESTDTO.
      */
     String REQUESTDTO = "requestDTO";

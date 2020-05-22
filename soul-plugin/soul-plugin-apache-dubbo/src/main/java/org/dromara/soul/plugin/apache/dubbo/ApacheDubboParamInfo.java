@@ -17,25 +17,25 @@
  *
  */
 
-package org.dromara.soul.common.config;
+package org.dromara.soul.plugin.apache.dubbo;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-
-import java.io.Serializable;
 
 /**
- * The type dubbo register config.
+ * The type Dubbo param ext.
  *
  * @author xiaoyu
  */
 @Data
-@EqualsAndHashCode
-public class DubboRegisterConfig implements Serializable {
+public class ApacheDubboParamInfo {
 
-    private String register;
-    
     private String group;
-    
-    private String protocol;
+
+    private String version;
+
+    private String loadbalance;
+
+    private Integer retries;
+
+    private Integer timeout;
 }

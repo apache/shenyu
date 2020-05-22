@@ -17,25 +17,25 @@
  *
  */
 
-package org.dromara.soul.common.config;
+package org.dromara.soul.extend.impl.dubbo;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+import org.dromara.soul.common.utils.GsonUtils;
+import org.dromara.soul.extend.api.dubbo.DubboParamResolveService;
 
-import java.io.Serializable;
+import java.util.Map;
 
 /**
- * The type dubbo register config.
+ * The type Default generic param resolve service.
  *
  * @author xiaoyu
  */
-@Data
-@EqualsAndHashCode
-public class DubboRegisterConfig implements Serializable {
-
-    private String register;
+public class DefaultDubboParamResolveService implements DubboParamResolveService {
     
-    private String group;
-    
-    private String protocol;
+    @Override
+    public Pair<String[], Object[]> buildParameter(final String body, final String parameterTypes) {
+        final Map<String, Object> paramMap = GsonUtils.getInstance().toObjectMap(body);
+        return new ImmutablePair<>(new String[]{parameterTypes}, new Object[]{paramMap});
+    }
 }
