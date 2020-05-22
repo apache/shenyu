@@ -17,6 +17,10 @@
         <module>soul-spring-boot-starter</module>
         <module>soul-bootstrap</module>
         <module>soul-client</module>
+        <module>soul-plugin</module>
+        <module>soul-cache</module>
+        <module>soul-extend</module>
+        <module>soul-metrics</module>
     </modules>
 
     <organization>
@@ -91,10 +95,12 @@
         <protostuff.version>1.0.8</protostuff.version>
         <kryo.version>4.0.0</kryo.version>
         <pagehelper.version>5.1.2</pagehelper.version>
-        <dubbo.version>2.7.5</dubbo.version>
+        <alibaba.dubbo.version>2.6.5</alibaba.dubbo.version>
+        <apache.dubbo.version>2.7.5</apache.dubbo.version>
         <gson.version>2.8.0</gson.version>
         <okhttp.version>3.7.0</okhttp.version>
         <mapstruct.version>1.2.0.Final</mapstruct.version>
+        <prometheus-java-client.version>0.6.0</prometheus-java-client.version>
     </properties>
 
     <dependencyManagement>
@@ -138,9 +144,59 @@
 
             <dependency>
                 <groupId>org.dromara</groupId>
+                <artifactId>soul-extend-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>soul-extend-impl</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>soul-cache-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>soul-plugin-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>soul-plugin-base</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.dromara</groupId>
                 <artifactId>soul-client</artifactId>
                 <version>${project.version}</version>
             </dependency>
+
+            <!--metrics project starter-->
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>soul-metrics-spi</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>soul-metrics-facade</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.dromara</groupId>
+                <artifactId>soul-metrics-prometheus</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <!--metrics project end-->
 
             <dependency>
                 <groupId>org.mapstruct</groupId>
@@ -172,11 +228,37 @@
                 <version>${lombok.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>io.prometheus</groupId>
+                <artifactId>simpleclient</artifactId>
+                <version>${prometheus-java-client.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.prometheus</groupId>
+                <artifactId>simpleclient_httpserver</artifactId>
+                <version>${prometheus-java-client.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>org.apache.dubbo</groupId>
                 <artifactId>dubbo</artifactId>
-                <version>${dubbo.version}</version>
+                <version>${apache.dubbo.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>dubbo</artifactId>
+                <version>${alibaba.dubbo.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
 
             <dependency>
@@ -276,6 +358,47 @@
 
         </dependencies>
     </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-library</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-inline</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+    </dependencies>
 
     <distributionManagement>
         <snapshotRepository>

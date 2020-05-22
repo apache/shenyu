@@ -1,0 +1,3 @@
+random=org.dromara.soul.plugin.divide.balance.spi.RandomLoadBalance
+roundRobin=org.dromara.soul.plugin.divide.balance.spi.RoundRobinLoadBalance
+hash=org.dromara.soul.plugin.divide.balance.spi.HashLoadBalance

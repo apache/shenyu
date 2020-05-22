@@ -1,0 +1,1 @@
+prometheus=org.dromara.soul.metrics.prometheus.PrometheusMetricsTrackerManager

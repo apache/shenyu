@@ -17,25 +17,30 @@
  *
  */
 
-package org.dromara.soul.common.config;
+package org.dromara.soul.plugin.base.utils;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import org.dromara.soul.common.utils.JsonUtils;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
 
-import java.io.Serializable;
+import java.util.Objects;
 
 /**
- * The type dubbo register config.
+ * The type Soul result utils.
  *
  * @author xiaoyu
  */
-@Data
-@EqualsAndHashCode
-public class DubboRegisterConfig implements Serializable {
+public final class ResultUtils {
 
-    private String register;
-    
-    private String group;
-    
-    private String protocol;
+    /**
+     * Error mono.
+     *
+     * @param exchange the exchange
+     * @param result    the result
+     * @return the mono
+     */
+    public static Mono<Void> result(final ServerWebExchange exchange, final Object result) {
+        return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
+                .bufferFactory().wrap(Objects.requireNonNull(JsonUtils.toJson(result)).getBytes())));
+    }
 }

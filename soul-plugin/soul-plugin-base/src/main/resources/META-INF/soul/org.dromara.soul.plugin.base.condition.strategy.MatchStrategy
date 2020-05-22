@@ -1,0 +1,2 @@
+and=org.dromara.soul.plugin.base.condition.strategy.AndMatchStrategy
+or=org.dromara.soul.plugin.base.condition.strategy.OrMatchStrategy
