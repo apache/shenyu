@@ -52,7 +52,7 @@ public class DubboMultiParameterResolveServiceImpl implements GenericParamResolv
         if (types.length > 0) {
             try {
                 Object o = om.readValue(body, Object.class);
-                if (o instanceof List) {
+                if (o instanceof List && types.length > 1) {
                     ((List<Object>) o).stream().limit(types.length).collect(Collectors.toList()).toArray(params);
                 } else {
                     params[0] = o;
