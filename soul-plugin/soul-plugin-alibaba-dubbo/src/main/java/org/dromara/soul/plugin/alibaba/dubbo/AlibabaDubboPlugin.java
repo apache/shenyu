@@ -18,16 +18,16 @@
 
 package org.dromara.soul.plugin.alibaba.dubbo;
 
-import org.dromara.soul.cache.api.LocalCacheManager;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.dromara.soul.plugin.alibaba.dubbo.proxy.AlibabaDubboProxyService;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
-import org.dromara.soul.plugin.base.context.SoulContext;
+import org.dromara.soul.plugin.api.context.SoulContext;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -39,30 +39,24 @@ import java.util.Objects;
  * @author xiaoyu(Myth)
  */
 public class AlibabaDubboPlugin extends AbstractSoulPlugin {
-
+    
     private final AlibabaDubboProxyService alibabaDubboProxyService;
-
+    
     /**
      * Instantiates a new Dubbo plugin.
      *
-     * @param localCacheManager the local cache manager
      * @param alibabaDubboProxyService the dubbo proxy service
      */
-    public AlibabaDubboPlugin(final LocalCacheManager localCacheManager, final AlibabaDubboProxyService alibabaDubboProxyService) {
-        super(localCacheManager);
+    public AlibabaDubboPlugin(final AlibabaDubboProxyService alibabaDubboProxyService) {
         this.alibabaDubboProxyService = alibabaDubboProxyService;
     }
-
+    
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
-
-        final String body = exchange.getAttribute(Constants.DUBBO_PARAMS);
-
-        final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-
+        String body = exchange.getAttribute(Constants.DUBBO_PARAMS);
+        SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
-    
-        final Object result = alibabaDubboProxyService.genericInvoker(body, soulContext.getMetaData());
+        Object result = alibabaDubboProxyService.genericInvoker(body, soulContext.getMetaData());
         if (Objects.nonNull(result)) {
             exchange.getAttributes().put(Constants.DUBBO_RPC_RESULT, result);
         } else {
@@ -72,7 +66,6 @@ public class AlibabaDubboPlugin extends AbstractSoulPlugin {
         return chain.execute(exchange);
     }
     
-
     /**
      * acquire plugin name.
      *
@@ -82,7 +75,7 @@ public class AlibabaDubboPlugin extends AbstractSoulPlugin {
     public String named() {
         return PluginEnum.DUBBO.getName();
     }
-
+    
     /**
      * plugin is execute.
      *
@@ -95,10 +88,10 @@ public class AlibabaDubboPlugin extends AbstractSoulPlugin {
         assert soulContext != null;
         return !Objects.equals(soulContext.getRpcType(), RpcTypeEnum.DUBBO.getName());
     }
-
+    
     @Override
     public int getOrder() {
         return PluginEnum.DUBBO.getCode();
     }
-
+    
 }

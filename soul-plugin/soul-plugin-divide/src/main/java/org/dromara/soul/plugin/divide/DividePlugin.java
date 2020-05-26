@@ -20,8 +20,6 @@ package org.dromara.soul.plugin.divide;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.dromara.soul.cache.api.LocalCacheManager;
-import org.dromara.soul.cache.api.UpstreamCacheManager;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
@@ -34,9 +32,10 @@ import org.dromara.soul.extend.impl.result.SoulResultEnum;
 import org.dromara.soul.extend.impl.result.SoulResultWarp;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
-import org.dromara.soul.plugin.base.context.SoulContext;
+import org.dromara.soul.plugin.api.context.SoulContext;
 import org.dromara.soul.plugin.base.utils.ResultUtils;
 import org.dromara.soul.plugin.divide.balance.utils.LoadBalanceUtils;
+import org.dromara.soul.plugin.divide.cache.UpstreamCacheManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
@@ -51,28 +50,15 @@ import java.util.Objects;
  * @author xiaoyu(Myth)
  */
 public class DividePlugin extends AbstractSoulPlugin {
-
-    /**
-     * logger.
-     */
+    
     private static final Logger LOGGER = LoggerFactory.getLogger(DividePlugin.class);
     
-    /**
-     * Instantiates a new Divide plugin.
-     *
-     * @param localCacheManager    the local cache manager
-     */
-    public DividePlugin(final LocalCacheManager localCacheManager) {
-        super(localCacheManager);
-    }
-
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
         final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
         final DivideRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), DivideRuleHandle.class);
-        final List<DivideUpstream> upstreamList =
-                UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
+        final List<DivideUpstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
         if (CollectionUtils.isEmpty(upstreamList)) {
             LOGGER.error("divide upstream configuration error：{}", rule.toString());
             Object error = SoulResultWarp.error(SoulResultEnum.CANNOT_FIND_URL.getCode(), SoulResultEnum.CANNOT_FIND_URL.getMsg(), null);
@@ -94,12 +80,12 @@ public class DividePlugin extends AbstractSoulPlugin {
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
         return chain.execute(exchange);
     }
-
+    
     @Override
     public String named() {
         return PluginEnum.DIVIDE.getName();
     }
-
+    
     /**
      * plugin is execute.
      *
@@ -110,12 +96,12 @@ public class DividePlugin extends AbstractSoulPlugin {
         final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         return !Objects.equals(Objects.requireNonNull(soulContext).getRpcType(), RpcTypeEnum.HTTP.getName());
     }
-
+    
     @Override
     public int getOrder() {
         return PluginEnum.DIVIDE.getCode();
     }
-
+    
     private String buildDomain(final DivideUpstream divideUpstream) {
         String protocol = divideUpstream.getProtocol();
         if (StringUtils.isBlank(protocol)) {
@@ -123,7 +109,7 @@ public class DividePlugin extends AbstractSoulPlugin {
         }
         return protocol + divideUpstream.getUpstreamUrl().trim();
     }
-
+    
     private String buildRealURL(final String domain, final SoulContext soulContext, final ServerWebExchange exchange) {
         String path = domain;
         final String rewriteURI = (String) exchange.getAttributes().get(Constants.REWRITE_URI);

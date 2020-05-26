@@ -18,12 +18,10 @@
 
 package org.dromara.soul.plugin.ratelimiter;
 
-import org.dromara.soul.cache.api.LocalCacheManager;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.RateLimiterHandle;
 import org.dromara.soul.common.enums.PluginEnum;
-import org.dromara.soul.common.enums.PluginTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.extend.impl.result.SoulResultEnum;
 import org.dromara.soul.extend.impl.result.SoulResultWarp;
@@ -46,11 +44,9 @@ public class RateLimiterPlugin extends AbstractSoulPlugin {
     /**
      * Instantiates a new Rate limiter plugin.
      *
-     * @param localCacheManager the local cache manager
      * @param redisRateLimiter  the redis rate limiter
      */
-    public RateLimiterPlugin(final LocalCacheManager localCacheManager, final RedisRateLimiter redisRateLimiter) {
-        super(localCacheManager);
+    public RateLimiterPlugin(final RedisRateLimiter redisRateLimiter) {
         this.redisRateLimiter = redisRateLimiter;
     }
 

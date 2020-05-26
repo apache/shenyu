@@ -39,16 +39,19 @@ import java.util.List;
 public class WebsocketData<T> implements Serializable {
 
     /**
+     * group type.
      * {@linkplain org.dromara.soul.common.enums.ConfigGroupEnum}
      */
     private String groupType;
 
     /**
+     * event type.
      * {@linkplain org.dromara.soul.common.enums.DataEventTypeEnum}
      */
     private String eventType;
 
     /**
+     * data list.
      * {@link AppAuthData}、{@link ConditionData}、{@link PluginData}、{@link RuleData}、{@link SelectorData}.
      */
     private List<T> data;

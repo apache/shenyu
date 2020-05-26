@@ -20,7 +20,6 @@ package org.dromara.soul.plugin.base;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
-import org.dromara.soul.cache.api.LocalCacheManager;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
@@ -28,6 +27,7 @@ import org.dromara.soul.common.enums.SelectorTypeEnum;
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 
+import org.dromara.soul.plugin.base.cache.BaseDataCache;
 import org.dromara.soul.plugin.base.utils.CheckUtils;
 import org.dromara.soul.plugin.base.utils.MatchStrategyUtils;
 import org.slf4j.Logger;
@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -51,9 +52,7 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
      * logger.
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSoulPlugin.class);
-
-    private final LocalCacheManager localCacheManager;
-
+    
     /**
      * this is Template Method child has Implement your own logic.
      *
@@ -76,9 +75,9 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final SoulPluginChain chain) {
         String pluginName = named();
-        final PluginData pluginData = localCacheManager.findPluginByName(pluginName);
+        final PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(pluginName);
         if (pluginData != null && pluginData.getEnabled()) {
-            final List<SelectorData> selectors = localCacheManager.findSelectorByPluginName(named());
+            final Collection<SelectorData> selectors = BaseDataCache.getInstance().obtainSelectorData(pluginName);
             if (CollectionUtils.isEmpty(selectors)) {
                 return CheckUtils.checkSelector(pluginName, exchange, chain);
             }
@@ -89,7 +88,7 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
             if (selectorData.getLoged()) {
                 LOGGER.info("{} selector success match ,selector name :{}", pluginName, selectorData.getName());
             }
-            final List<RuleData> rules = localCacheManager.findRuleBySelectorId(selectorData.getId());
+            final List<RuleData> rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
             if (CollectionUtils.isEmpty(rules)) {
                 return CheckUtils.checkRule(pluginName, exchange, chain);
             }
@@ -111,7 +110,7 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
         return chain.execute(exchange);
     }
 
-    private SelectorData matchSelector(final ServerWebExchange exchange, final List<SelectorData> selectors) {
+    private SelectorData matchSelector(final ServerWebExchange exchange, final Collection<SelectorData> selectors) {
         return selectors.stream()
                 .filter(selector -> selector.getEnabled() && filterSelector(selector, exchange))
                 .findFirst().orElse(null);
@@ -127,7 +126,7 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
         return true;
     }
 
-    private RuleData matchRule(final ServerWebExchange exchange, final List<RuleData> rules) {
+    private RuleData matchRule(final ServerWebExchange exchange, final Collection<RuleData> rules) {
         return rules.stream()
                 .filter(rule -> filterRule(rule, exchange))
                 .findFirst().orElse(null);

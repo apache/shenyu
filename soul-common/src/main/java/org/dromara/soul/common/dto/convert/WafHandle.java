@@ -29,7 +29,7 @@ import lombok.Data;
 public class WafHandle {
 
     /**
-     * permission
+     * permission.
      */
     private String permission;
 

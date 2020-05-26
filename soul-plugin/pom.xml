@@ -19,6 +19,13 @@
         <module>soul-plugin-apache-dubbo</module>
         <module>soul-plugin-ratelimiter</module>
         <module>soul-plugin-monitor</module>
+        <module>soul-plugin-sign</module>
+        <module>soul-plugin-hystrix</module>
+        <module>soul-plugin-springcloud</module>
+        <module>soul-plugin-httpclient</module>
+        <module>soul-plugin-rewrite</module>
+        <module>soul-plugin-waf</module>
+        <module>soul-plugin-global</module>
     </modules>
 
 

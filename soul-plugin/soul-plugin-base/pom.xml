@@ -32,22 +32,28 @@
         <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>soul-common</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>soul-plugin-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.dromara</groupId>
-            <artifactId>soul-cache-api</artifactId>
+            <artifactId>soul-sync-data-api</artifactId>
+            <version>${project.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>soul-extend-impl</artifactId>
+            <version>${project.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spi</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>

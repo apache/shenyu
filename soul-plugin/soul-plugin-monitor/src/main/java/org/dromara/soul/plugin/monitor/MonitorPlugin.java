@@ -19,7 +19,6 @@
 
 package org.dromara.soul.plugin.monitor;
 
-import org.dromara.soul.cache.api.LocalCacheManager;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginEnum;
@@ -30,24 +29,12 @@ import org.dromara.soul.plugin.base.AbstractSoulPlugin;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-
-import java.util.Optional;
-
 /**
  * the monitor plugin.
  *
  * @author xiaoyu(Myth)
  */
 public class MonitorPlugin extends AbstractSoulPlugin {
-    
-    /**
-     * Instantiates a new Monitor plugin.
-     *
-     * @param localCacheManager  the local cache manager
-     */
-    public MonitorPlugin(final LocalCacheManager localCacheManager) {
-        super(localCacheManager);
-    }
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {

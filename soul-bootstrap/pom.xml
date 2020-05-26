@@ -33,7 +33,8 @@
 
         <dependency>
             <groupId>org.dromara</groupId>
-            <artifactId>soul-spring-boot-starter</artifactId>
+            <artifactId>soul-spring-boot-starter-gateway</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
       <!--  <dependency>

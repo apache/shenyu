@@ -25,6 +25,7 @@
         <version>2.1.2-RELEASE</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
+    <packaging>pom</packaging>
 
     <artifactId>soul-metrics</artifactId>
     <modules>
@@ -32,6 +33,4 @@
         <module>soul-metrics-facade</module>
         <module>soul-metrics-prometheus</module>
     </modules>
-
-
 </project>
