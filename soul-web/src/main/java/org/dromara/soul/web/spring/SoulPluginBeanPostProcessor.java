@@ -9,19 +9,20 @@ import org.springframework.stereotype.Component;
 
 /**
  * SoulPluginBeanPostProcessor
- * 
+ *
  * @author Chenxj
  * @date 2020年3月13日-下午4:59:09
  */
 @Component
-public class SoulPluginBeanPostProcessor implements BeanPostProcessor{
-	private Logger log=LoggerFactory.getLogger(getClass());
-	@Override
-	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-		if(bean instanceof SoulPlugin) {
-			SoulPlugin sp=(SoulPlugin)bean;
-			log.info("find pluging:[{}]\t[ {} ]",sp.named(),sp.getClass().getName());
-		}
-		return bean;
-	}
+public class SoulPluginBeanPostProcessor implements BeanPostProcessor {
+    private Logger log = LoggerFactory.getLogger(getClass());
+    
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        if (bean instanceof SoulPlugin) {
+            SoulPlugin sp = (SoulPlugin) bean;
+            log.info("find pluging:[{}]\t[ {} ]", sp.named(), sp.getClass().getName());
+        }
+        return bean;
+    }
 }

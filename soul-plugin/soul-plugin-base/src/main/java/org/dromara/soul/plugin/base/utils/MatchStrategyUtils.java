@@ -19,8 +19,8 @@ package org.dromara.soul.plugin.base.utils;
 
 import org.dromara.soul.common.dto.ConditionData;
 import org.dromara.soul.common.enums.MatchModeEnum;
-import org.dromara.soul.common.extension.ExtensionLoader;
 import org.dromara.soul.plugin.base.condition.strategy.MatchStrategy;
+import org.dromara.soul.spi.ExtensionLoader;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.util.List;

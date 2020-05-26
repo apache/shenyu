@@ -39,7 +39,7 @@ public final class HttpRequestCounterMetricsTracker implements CounterMetricsTra
     
     @Override
     public String metricsLabel() {
-        return MetricsLabelEnum.HTTP_REQUEST_TYPE_TOTAL.getName();
+        return MetricsLabelEnum.HTTP_REQUEST_TOTAL.getName();
     }
 }
 

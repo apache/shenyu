@@ -27,7 +27,7 @@ import reactor.core.publisher.Mono;
  * @author xiaoyu
  */
 public interface SoulPlugin {
-
+    
     /**
      * Process the Web request and (optionally) delegate to the next
      * {@code WebFilter} through the given {@link SoulPluginChain}.
@@ -37,7 +37,7 @@ public interface SoulPlugin {
      * @return {@code Mono<Void>} to indicate when request processing is complete
      */
     Mono<Void> execute(ServerWebExchange exchange, SoulPluginChain chain);
-
+    
     /**
      * return plugin order .
      * This attribute To determine the plugin execution order in the same type plugin.
@@ -45,16 +45,18 @@ public interface SoulPlugin {
      * @return int order
      */
     int getOrder();
-
+    
     /**
      * acquire plugin name.
-     * this is plugin name define  if you extend {@linkplain AbstractSoulPlugin } you must Provide the right name.
+     * this is plugin name define you must Provide the right name.
      * if you impl AbstractSoulPlugin this attribute not use.
      *
      * @return plugin name.
      */
-    String named();
-
+    default String named() {
+        return "";
+    }
+    
     /**
      * plugin is execute.
      * if return true this plugin can not execute.
@@ -65,6 +67,6 @@ public interface SoulPlugin {
     default Boolean skip(ServerWebExchange exchange) {
         return false;
     }
-
+    
 }
 

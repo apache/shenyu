@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * RoundRobin  LoadBalance Impl.
+ * Round robin load balance impl.
  *
  * @author xiaoyu
  */

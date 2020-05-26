@@ -20,13 +20,13 @@ package org.dromara.soul.plugin.ratelimiter;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-import org.dromara.soul.cache.api.PluginDataSubscriber;
 import org.dromara.soul.common.config.RateLimiterConfig;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RedisModeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
-import org.dromara.soul.plugin.api.Singleton;
+import org.dromara.soul.plugin.base.utils.Singleton;
+import org.dromara.soul.plugin.base.cache.AbstractDataSubscriber;
 import org.springframework.data.redis.connection.*;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -42,14 +42,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class RateLimiterPluginDataSubscriber implements PluginDataSubscriber {
+public class RateLimiterPluginDataSubscriber extends AbstractDataSubscriber {
     
     @Override
-    public void onSubscribe(PluginData pluginData) {
-        if (Objects.nonNull(pluginData) && pluginData.getEnabled() && PluginEnum.RATE_LIMITER.getName().equals(pluginData.getName())) {
-            //初始化redis
+    protected void initPlugin(PluginData pluginData) {
+        if (Objects.nonNull(pluginData) && pluginData.getEnabled()) {
+            //init redis
             RateLimiterConfig rateLimiterConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), RateLimiterConfig.class);
-            //出来转换成spring data redisTemplate
+            //spring data redisTemplate
             if (Objects.isNull(Singleton.INST.get(ReactiveRedisTemplate.class))
                     || Objects.isNull(Singleton.INST.get(RateLimiterConfig.class))
                     || !rateLimiterConfig.equals(Singleton.INST.get(RateLimiterConfig.class))) {
@@ -63,6 +63,11 @@ public class RateLimiterPluginDataSubscriber implements PluginDataSubscriber {
                 Singleton.INST.single(RateLimiterConfig.class, rateLimiterConfig);
             }
         }
+    }
+    
+    @Override
+    public String pluginNamed() {
+        return PluginEnum.RATE_LIMITER.getName();
     }
     
     private LettuceConnectionFactory createLettuceConnectionFactory(final RateLimiterConfig rateLimiterConfig) {

@@ -19,7 +19,7 @@
 package org.dromara.soul.plugin.ratelimiter;
 
 import org.dromara.soul.common.utils.LogUtils;
-import org.dromara.soul.plugin.api.Singleton;
+import org.dromara.soul.plugin.base.utils.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;

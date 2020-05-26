@@ -18,9 +18,10 @@
         <module>soul-bootstrap</module>
         <module>soul-client</module>
         <module>soul-plugin</module>
-        <module>soul-cache</module>
+        <module>soul-sync-data-center</module>
         <module>soul-extend</module>
         <module>soul-metrics</module>
+        <module>soul-spi</module>
     </modules>
 
     <organization>
@@ -55,7 +56,7 @@
             <email>549477611@qq.com</email>
             <organization>org.dromara</organization>
             <roles>
-                <role>PPMC</role>
+                <role>author</role>
             </roles>
         </developer>
 
@@ -488,6 +489,25 @@
                 <artifactId>versions-maven-plugin</artifactId>
                 <version>2.5</version>
             </plugin>
+
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-checkstyle-plugin</artifactId>-->
+<!--                <version>3.1.0</version>-->
+<!--                <configuration>-->
+<!--                    <configLocation>/script/soul_checkstyle.xml</configLocation>-->
+<!--                    <includeTestSourceDirectory>true</includeTestSourceDirectory>-->
+<!--                </configuration>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>validate</id>-->
+<!--                        <phase>validate</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>check</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
         </plugins>
     </build>
 

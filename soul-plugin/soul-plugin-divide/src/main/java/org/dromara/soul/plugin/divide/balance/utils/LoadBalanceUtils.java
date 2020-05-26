@@ -19,8 +19,8 @@
 package org.dromara.soul.plugin.divide.balance.utils;
 
 import org.dromara.soul.common.dto.convert.DivideUpstream;
-import org.dromara.soul.common.extension.ExtensionLoader;
 import org.dromara.soul.plugin.divide.balance.LoadBalance;
+import org.dromara.soul.spi.ExtensionLoader;
 
 import java.util.List;
 

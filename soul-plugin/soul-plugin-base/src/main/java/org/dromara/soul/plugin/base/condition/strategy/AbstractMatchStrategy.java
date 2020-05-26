@@ -22,8 +22,8 @@ import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.ConditionData;
 import org.dromara.soul.common.enums.ParamTypeEnum;
 import org.dromara.soul.common.utils.ReflectUtils;
-import org.dromara.soul.web.request.RequestDTO;
-import org.dromara.soul.web.support.HostAddressUtils;
+import org.dromara.soul.plugin.api.context.SoulContext;
+import org.dromara.soul.plugin.base.utils.HostAddressUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.MultiValueMap;
@@ -72,8 +72,8 @@ abstract class AbstractMatchStrategy {
                 realData = HostAddressUtils.acquireIp(exchange);
                 break;
             case POST:
-                final RequestDTO requestDTO = exchange.getAttribute(Constants.REQUESTDTO);
-                realData = (String) ReflectUtils.getFieldValue(requestDTO, condition.getParamName());
+                final SoulContext soulContext = exchange.getAttribute(Constants.REQUESTDTO);
+                realData = (String) ReflectUtils.getFieldValue(soulContext, condition.getParamName());
                 break;
             default:
                 break;

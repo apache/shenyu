@@ -8,14 +8,13 @@
         <version>2.1.2-RELEASE</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
     <artifactId>soul-spring-boot-starter</artifactId>
+    <packaging>pom</packaging>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.dromara</groupId>
-            <artifactId>soul-web</artifactId>
-        </dependency>
-    </dependencies>
+    <modules>
+        <module>soul-spring-boot-starter-gateway</module>
+        <module>soul-spring-boot-starter-plugin</module>
+        <module>soul-spring-boot-starter-sync-data-center</module>
+    </modules>
 
 </project>

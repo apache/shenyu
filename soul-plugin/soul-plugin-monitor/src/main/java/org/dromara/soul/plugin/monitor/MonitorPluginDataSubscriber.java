@@ -17,23 +17,27 @@
 
 package org.dromara.soul.plugin.monitor;
 
-import org.dromara.soul.cache.api.PluginDataSubscriber;
-import org.dromara.soul.common.config.MonitorConfig;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.metrics.config.MetricsConfig;
 import org.dromara.soul.metrics.facade.MetricsTrackerFacade;
+import org.dromara.soul.plugin.base.cache.AbstractDataSubscriber;
 
 import java.util.Objects;
 
-public class MonitorPluginDataSubscriber implements PluginDataSubscriber {
+public class MonitorPluginDataSubscriber extends AbstractDataSubscriber {
     
     @Override
-    public void onSubscribe(PluginData pluginData) {
-        if (Objects.nonNull(pluginData) && pluginData.getEnabled() && PluginEnum.MONITOR.getName().equals(pluginData.getName())) {
+    protected void initPlugin(PluginData pluginData) {
+        if (Objects.nonNull(pluginData) && pluginData.getEnabled()) {
             MetricsConfig monitorConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), MetricsConfig.class);
             MetricsTrackerFacade.getInstance().init(monitorConfig);
         }
+    }
+    
+    @Override
+    public String pluginNamed() {
+        return  PluginEnum.MONITOR.getName();
     }
 }

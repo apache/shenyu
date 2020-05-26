@@ -49,8 +49,7 @@ public enum DataSyncEnum {
     WEBSOCKET("websocket"),;
 
     private final String name;
-
-
+    
     /**
      * Acquire by name data sync enum.
      *

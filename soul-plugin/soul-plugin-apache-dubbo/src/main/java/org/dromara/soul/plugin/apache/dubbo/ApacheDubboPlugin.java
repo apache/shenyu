@@ -18,15 +18,15 @@
 
 package org.dromara.soul.plugin.apache.dubbo;
 
-import org.dromara.soul.cache.api.LocalCacheManager;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.dromara.soul.plugin.apache.dubbo.proxy.ApacheDubboProxyService;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
-import org.dromara.soul.plugin.base.context.SoulContext;
+import org.dromara.soul.plugin.api.context.SoulContext;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -44,11 +44,9 @@ public class ApacheDubboPlugin extends AbstractSoulPlugin {
     /**
      * Instantiates a new Dubbo plugin.
      *
-     * @param localCacheManager the local cache manager
      * @param dubboProxyService the dubbo proxy service
      */
-    public ApacheDubboPlugin(final LocalCacheManager localCacheManager, final ApacheDubboProxyService dubboProxyService) {
-        super(localCacheManager);
+    public ApacheDubboPlugin(final ApacheDubboProxyService dubboProxyService) {
         this.dubboProxyService = dubboProxyService;
     }
 
