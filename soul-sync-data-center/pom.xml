@@ -31,6 +31,9 @@
     <modules>
         <module>soul-sync-data-api</module>
         <module>soul-sync-data-zookeeper</module>
+        <module>soul-sync-data-websocket</module>
+        <module>soul-sync-data-http</module>
+        <module>soul-sync-data-nacos</module>
     </modules>
 
 

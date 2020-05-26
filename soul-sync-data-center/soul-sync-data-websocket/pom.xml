@@ -25,7 +25,7 @@
         <version>2.1.2-RELEASE</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>soul-sync-data-zookeeper</artifactId>
+    <artifactId>soul-sync-data-websocket</artifactId>
 
     <dependencies>
         <dependency>
@@ -34,12 +34,14 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.101tec</groupId>
-            <artifactId>zkclient</artifactId>
+            <groupId>org.java-websocket</groupId>
+            <artifactId>Java-WebSocket</artifactId>
+            <version>1.5.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
         </dependency>
     </dependencies>
+
 </project>

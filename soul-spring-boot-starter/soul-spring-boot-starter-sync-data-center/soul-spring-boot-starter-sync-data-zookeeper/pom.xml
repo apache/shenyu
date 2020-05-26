@@ -29,7 +29,6 @@
     <artifactId>soul-spring-boot-starter-sync-data-zookeeper</artifactId>
 
     <dependencies>
-
         <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>soul-sync-data-zookeeper</artifactId>
@@ -40,5 +39,4 @@
             <artifactId>spring-boot-starter</artifactId>
         </dependency>
     </dependencies>
-
 </project>

@@ -59,7 +59,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
     public ZookeeperSyncDataService(final ZkClient zkClient, final List<PluginDataSubscriber> pluginDataSubscribers,
                                     final List<MetaDataSubscriber> metaDataSubscribers, final List<AuthDataSubscriber> authDataSubscribers) {
         this.zkClient = zkClient;
-        pluginDataSubscriberMap = pluginDataSubscribers.stream().collect(Collectors.toMap(PluginDataSubscriber::pluginNamed, e -> e));
+        this.pluginDataSubscriberMap = pluginDataSubscribers.stream().collect(Collectors.toMap(PluginDataSubscriber::pluginNamed, e -> e));
         this.metaDataSubscribers = metaDataSubscribers;
         this.authDataSubscribers = authDataSubscribers;
         watcherData();
@@ -326,6 +326,8 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
     
     @Override
     public void close() {
-        zkClient.close();
+        if (null != zkClient) {
+            zkClient.close();
+        }
     }
 }
