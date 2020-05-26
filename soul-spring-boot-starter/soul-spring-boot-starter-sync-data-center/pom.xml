@@ -30,6 +30,9 @@
 
     <modules>
         <module>soul-spring-boot-starter-sync-data-zookeeper</module>
+        <module>soul-spring-boot-starter-sync-data-websocket</module>
+        <module>soul-spring-boot-starter-sync-data-http</module>
+        <module>soul-spring-boot-starter-sync-data-nacos</module>
     </modules>
 
 
