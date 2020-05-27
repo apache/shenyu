@@ -17,16 +17,15 @@
 
 package org.dromara.soul.metrics.prometheus;
 
-
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.exporter.HTTPServer;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.dromara.soul.common.extension.Join;
 import org.dromara.soul.metrics.api.MetricsTrackerFactory;
 import org.dromara.soul.metrics.config.MetricsConfig;
 import org.dromara.soul.metrics.spi.MetricsTrackerManager;
+import org.dromara.soul.spi.Join;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

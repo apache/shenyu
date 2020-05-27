@@ -34,7 +34,7 @@ import java.util.Objects;
 public class DefaultSoulContextBuilder implements SoulContextBuilder {
     
     @Override
-    public SoulContext build(ServerWebExchange exchange) {
+    public SoulContext build(final ServerWebExchange exchange) {
         final ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
         MetaData metaData = MetaDataCache.getInstance().obtain(path);

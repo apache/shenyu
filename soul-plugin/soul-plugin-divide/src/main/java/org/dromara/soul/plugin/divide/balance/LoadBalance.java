@@ -19,7 +19,7 @@
 package org.dromara.soul.plugin.divide.balance;
 
 import org.dromara.soul.common.dto.convert.DivideUpstream;
-import org.dromara.soul.common.extension.SPI;
+import org.dromara.soul.spi.SPI;
 
 import java.util.List;
 
@@ -32,11 +32,11 @@ import java.util.List;
 public interface LoadBalance {
 
     /**
-     * this is select one for upstreamList .
+     * this is select one for upstream list.
      *
-     * @param upstreamList upstreamList
-     * @param ip           ip
-     * @return DivideUpstream divide upstream
+     * @param upstreamList upstream list
+     * @param ip ip
+     * @return divide upstream
      */
     DivideUpstream select(List<DivideUpstream> upstreamList, String ip);
 }

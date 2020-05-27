@@ -44,30 +44,29 @@ import java.util.concurrent.ExecutionException;
 /**
  * The type Application config cache.
  */
-@SuppressWarnings("all")
 public final class ApplicationConfigCache {
-
+    
     private static final Logger LOG = LoggerFactory.getLogger(ApplicationConfigCache.class);
-
+    
     private ApplicationConfig applicationConfig;
-
+    
     private RegistryConfig registryConfig;
-
+    
     private final int maxCount = 50000;
-
+    
     private final LoadingCache<String, ReferenceConfig<GenericService>> cache = CacheBuilder.newBuilder()
             .maximumWeight(maxCount)
             .weigher((Weigher<String, ReferenceConfig<GenericService>>) (string, ReferenceConfig) -> getSize())
             .removalListener(notification -> {
-                ReferenceConfig config = notification.getValue();
+                ReferenceConfig<GenericService> config = notification.getValue();
                 if (config != null) {
                     try {
-                        Class cz = config.getClass();
+                        Class<?> cz = config.getClass();
                         Field field = cz.getDeclaredField("ref");
                         field.setAccessible(true);
                         field.set(config, null);
                         //跟改配置之后dubbo 销毁该实例,但是未置空,如果不处理,重新初始化的时候将获取到NULL照成空指针问题.
-                    } catch (Exception e) {
+                    } catch (NoSuchFieldException | IllegalAccessException e) {
                         LOG.error("修改ref为null", e);
                     }
                 }
@@ -78,27 +77,27 @@ public final class ApplicationConfigCache {
                     return new ReferenceConfig<>();
                 }
             });
-
+    
     private ApplicationConfigCache() {
     }
-
+    
     private int getSize() {
         return (int) cache.size();
     }
-
+    
     /**
-     * 获取ApplicationConfigCache对象.
+     * Gets instance.
      *
-     * @return 对象 instance
+     * @return the instance
      */
     public static ApplicationConfigCache getInstance() {
         return ApplicationConfigCacheInstance.INSTANCE;
     }
-
+    
     /**
      * Init.
      *
-     * @param register the register
+     * @param dubboRegisterConfig the dubbo register config
      */
     public void init(final DubboRegisterConfig dubboRegisterConfig) {
         if (applicationConfig == null) {
@@ -113,7 +112,7 @@ public final class ApplicationConfigCache {
             Optional.ofNullable(dubboRegisterConfig.getGroup()).ifPresent(registryConfig::setGroup);
         }
     }
-
+    
     /**
      * Init ref reference config.
      *
@@ -126,13 +125,13 @@ public final class ApplicationConfigCache {
             if (StringUtils.isNoneBlank(referenceConfig.getInterface())) {
                 return referenceConfig;
             }
-        } catch (Exception e) {
+        } catch (ExecutionException e) {
             LOG.error("init dubbo ref ex:{}", e.getMessage());
         }
         return build(metaData);
-
+        
     }
-
+    
     /**
      * Build reference config.
      *
@@ -140,59 +139,46 @@ public final class ApplicationConfigCache {
      * @return the reference config
      */
     public ReferenceConfig<GenericService> build(final MetaData metaData) {
-
         ReferenceConfig<GenericService> reference = new ReferenceConfig<>();
-
         reference.setGeneric(true);
-
         reference.setApplication(applicationConfig);
-
         reference.setRegistry(registryConfig);
-
         reference.setInterface(metaData.getServiceName());
-
         reference.setProtocol("dubbo");
-
         String rpcExt = metaData.getRpcExt();
-
-        try {
-            DubboParamExtInfo dubboParamExtInfo = GsonUtils.getInstance().fromJson(rpcExt, DubboParamExtInfo.class);
-            if (Objects.nonNull(dubboParamExtInfo)) {
-                if (StringUtils.isNoneBlank(dubboParamExtInfo.getVersion())) {
-                    reference.setVersion(dubboParamExtInfo.getVersion());
-                }
-                if (StringUtils.isNoneBlank(dubboParamExtInfo.getGroup())) {
-                    reference.setGroup(dubboParamExtInfo.getGroup());
-                }
-                if (StringUtils.isNoneBlank(dubboParamExtInfo.getLoadbalance())) {
-                    final String loadBalance = dubboParamExtInfo.getLoadbalance();
-                    if (LoadBalanceEnum.HASH.getName().equals(loadBalance) || "consistenthash".equals(loadBalance)) {
-                        reference.setLoadbalance("consistenthash");
-                    } else if (LoadBalanceEnum.ROUND_ROBIN.getName().equals(loadBalance)) {
-                        reference.setLoadbalance("roundrobin");
-                    } else {
-                        reference.setLoadbalance(loadBalance);
-                    }
-                }
-                Optional.ofNullable(dubboParamExtInfo.getTimeout()).ifPresent(reference::setTimeout);
-                Optional.ofNullable(dubboParamExtInfo.getRetries()).ifPresent(reference::setRetries);
+        DubboParamExtInfo dubboParamExtInfo = GsonUtils.getInstance().fromJson(rpcExt, DubboParamExtInfo.class);
+        if (Objects.nonNull(dubboParamExtInfo)) {
+            if (StringUtils.isNoneBlank(dubboParamExtInfo.getVersion())) {
+                reference.setVersion(dubboParamExtInfo.getVersion());
             }
-        } catch (Exception e) {
-            LOG.error("rpc 扩展参数转成json异常,{}", metaData);
+            if (StringUtils.isNoneBlank(dubboParamExtInfo.getGroup())) {
+                reference.setGroup(dubboParamExtInfo.getGroup());
+            }
+            if (StringUtils.isNoneBlank(dubboParamExtInfo.getLoadbalance())) {
+                final String loadBalance = dubboParamExtInfo.getLoadbalance();
+                reference.setLoadbalance(buildLoadBalanceName(loadBalance));
+            }
+            Optional.ofNullable(dubboParamExtInfo.getTimeout()).ifPresent(reference::setTimeout);
+            Optional.ofNullable(dubboParamExtInfo.getRetries()).ifPresent(reference::setRetries);
         }
-        try {
-            Object obj = reference.get();
-            if (obj != null) {
-                LOG.info("初始化引用成功{}", metaData);
-                cache.put(metaData.getServiceName(), reference);
-            }
-        } catch (Exception ex) {
-            LOG.error("初始化引用没有找到提供者【{}】,ex:{}", metaData, ex.getMessage());
-
+        Object obj = reference.get();
+        if (obj != null) {
+            LOG.info("初始化引用成功{}", metaData);
+            cache.put(metaData.getServiceName(), reference);
         }
         return reference;
     }
-
+    
+    private String buildLoadBalanceName(final String loadBalance) {
+        if (LoadBalanceEnum.HASH.getName().equals(loadBalance) || "consistenthash".equals(loadBalance)) {
+            return "consistenthash";
+        } else if (LoadBalanceEnum.ROUND_ROBIN.getName().equals(loadBalance)) {
+            return "roundrobin";
+        } else {
+            return loadBalance;
+        }
+    }
+    
     /**
      * Get reference config.
      *
@@ -207,27 +193,23 @@ public final class ApplicationConfigCache {
             throw new SoulException(e.getCause());
         }
     }
-
+    
     /**
      * Invalidate.
      *
      * @param serviceName the service name
      */
     public void invalidate(final String serviceName) {
-        try {
-            cache.invalidate(serviceName);
-        } catch (Exception e) {
-            throw new SoulException(e.getCause());
-        }
+        cache.invalidate(serviceName);
     }
-
+    
     /**
      * Invalidate all.
      */
     public void invalidateAll() {
         cache.invalidateAll();
     }
-
+    
     /**
      * The type Application config cache instance.
      */
@@ -238,6 +220,9 @@ public final class ApplicationConfigCache {
         static final ApplicationConfigCache INSTANCE = new ApplicationConfigCache();
     }
     
+    /**
+     * The type Dubbo param ext info.
+     */
     @Data
     static class DubboParamExtInfo {
         

@@ -58,7 +58,7 @@ public interface PluginMapper {
     List<PluginDO> selectByQuery(PluginQuery pluginQuery);
 
     /**
-     * select all {@linkplain PluginQuery}
+     * select all.
      *
      * @return {@linkplain List}
      */

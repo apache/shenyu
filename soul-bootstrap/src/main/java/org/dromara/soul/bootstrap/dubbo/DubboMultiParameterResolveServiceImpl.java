@@ -19,12 +19,12 @@
 
 package org.dromara.soul.bootstrap.dubbo;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.dromara.soul.web.plugin.dubbo.GenericParamResolveService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.dromara.soul.extend.api.dubbo.DubboParamResolveService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,18 +32,17 @@ import java.util.stream.Collectors;
 
 /**
  * Dubbo multi parameter  resolve service impl.
- *
- * @author xiaoyu
  */
-public class DubboMultiParameterResolveServiceImpl implements GenericParamResolveService {
-
-    private final Logger log = LoggerFactory.getLogger(getClass());
+@Slf4j
+public class DubboMultiParameterResolveServiceImpl implements DubboParamResolveService {
+    
+    
     /**
      * ObjectMapper is a completely thread-safe service class, it is meant to be used as singleton across the lifetime of the application. It is also very expensive
      * to create. ... It is also prudent to do a review of all usages of ObjectMapper and ensure that it is not instantiated every time. This is a performance killer
      */
     private final ObjectMapper om = new ObjectMapper();
-
+    
     @SuppressWarnings("unchecked")
     @Override
     public Pair<String[], Object[]> buildParameter(final String body, final String parameterTypes) {
@@ -57,20 +56,21 @@ public class DubboMultiParameterResolveServiceImpl implements GenericParamResolv
                 } else {
                     params[0] = o;
                 }
-            } catch (Exception e) {
+            } catch (JsonProcessingException e) {
                 log.warn("body[{}] parsing failed cause by[{}]", body, e.getMessage());
             }
         }
         return new ImmutablePair<>(types, params);
     }
-
-    private static String[] splitParameterTypes(String parameterTypes) {
+    
+    private static String[] splitParameterTypes(final String parameterTypes) {
         if (parameterTypes.length() == 0) {
             return new String[0];
         }
         List<String> ls = new ArrayList<>();
         int pL = parameterTypes.length();
-        int i = 0, j = -1;
+        int i = 0;
+        int j = -1;
         for (; i < pL; i++) {
             if (parameterTypes.charAt(i) == ',' && i > j) {
                 if (i != j + 1) {

@@ -24,12 +24,12 @@ import io.netty.handler.codec.http.HttpMethod;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
-import org.dromara.soul.extend.impl.result.SoulResultEnum;
-import org.dromara.soul.extend.impl.result.SoulResultWarp;
+import org.dromara.soul.plugin.api.result.SoulResultEnum;
+import org.dromara.soul.plugin.base.utils.SoulResultWarp;
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
-import org.dromara.soul.plugin.base.utils.ResultUtils;
+import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.NettyDataBuffer;
@@ -86,12 +86,12 @@ public class NettyHttpClientPlugin implements SoulPlugin {
         String url = exchange.getAttribute(Constants.HTTP_URL);
         if (StringUtils.isEmpty(url)) {
             Object error = SoulResultWarp.error(SoulResultEnum.CANNOT_FIND_URL.getCode(), SoulResultEnum.CANNOT_FIND_URL.getMsg(), null);
-            return ResultUtils.result(exchange, error);
+            return WebFluxResultUtils.result(exchange, error);
         }
         LOGGER.info("you request,The resulting urlPath is :{}", url);
         Flux<HttpClientResponse> responseFlux = this.httpClient.headers(headers -> headers.add(httpHeaders))
                 .request(method).uri(url).send((req, nettyOutbound) ->
-                        nettyOutbound.send( request.getBody().map(dataBuffer -> ((NettyDataBuffer) dataBuffer) .getNativeBuffer())))
+                        nettyOutbound.send(request.getBody().map(dataBuffer -> ((NettyDataBuffer) dataBuffer) .getNativeBuffer())))
                 .responseConnection((res, connection) -> {
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, res);
                     exchange.getAttributes().put(Constants.CLIENT_RESPONSE_CONN_ATTR, connection);

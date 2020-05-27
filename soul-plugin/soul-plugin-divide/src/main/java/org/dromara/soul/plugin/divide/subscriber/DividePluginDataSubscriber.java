@@ -29,7 +29,7 @@ import org.dromara.soul.plugin.divide.cache.UpstreamCacheManager;
 public class DividePluginDataSubscriber extends AbstractDataSubscriber {
     
     @Override
-    protected void initPlugin(PluginData pluginData) {
+    protected void initPlugin(final PluginData pluginData) {
     
     }
     
@@ -40,7 +40,7 @@ public class DividePluginDataSubscriber extends AbstractDataSubscriber {
     }
     
     @Override
-    public void unSelectorSubscribe(SelectorData selectorData) {
+    public void unSelectorSubscribe(final SelectorData selectorData) {
         super.unSelectorSubscribe(selectorData);
         UpstreamCacheManager.getInstance().removeByKey(selectorData.getId());
     }

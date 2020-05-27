@@ -20,8 +20,7 @@
 package org.dromara.soul.plugin.base.utils;
 
 import org.dromara.soul.common.enums.PluginEnum;
-import org.dromara.soul.extend.impl.result.SoulResultEnum;
-import org.dromara.soul.extend.impl.result.SoulResultWarp;
+import org.dromara.soul.plugin.api.result.SoulResultEnum;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +53,7 @@ public class CheckUtils {
                 || PluginEnum.SPRING_CLOUD.getName().equals(pluginName)) {
             LOGGER.error("can not match selector data :{}", pluginName);
             Object error = SoulResultWarp.error(SoulResultEnum.CANNOT_FIND_SELECTOR.getCode(), SoulResultEnum.CANNOT_FIND_SELECTOR.getMsg(), null);
-            return ResultUtils.result(exchange, error);
+            return WebFluxResultUtils.result(exchange, error);
         }
         return chain.execute(exchange);
     }
@@ -73,7 +72,7 @@ public class CheckUtils {
                 || PluginEnum.SPRING_CLOUD.getName().equals(pluginName)) {
             LOGGER.error("can not match rule data :{}", pluginName);
             Object error = SoulResultWarp.error(SoulResultEnum.RULE_NOT_FIND.getCode(), SoulResultEnum.RULE_NOT_FIND.getMsg(), null);
-            return ResultUtils.result(exchange, error);
+            return WebFluxResultUtils.result(exchange, error);
         }
         return chain.execute(exchange);
     }

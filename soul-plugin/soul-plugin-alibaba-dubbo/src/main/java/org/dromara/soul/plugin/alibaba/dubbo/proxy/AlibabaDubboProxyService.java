@@ -25,10 +25,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.exception.SoulException;
-import org.dromara.soul.extend.api.dubbo.DubboParamResolveService;
+import org.dromara.soul.plugin.alibaba.dubbo.param.DubboParamResolveService;
 import org.dromara.soul.plugin.alibaba.dubbo.cache.ApplicationConfigCache;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
@@ -60,21 +58,12 @@ public class AlibabaDubboProxyService {
      * @throws SoulException the soul exception
      */
     public Object genericInvoker(final String body, final MetaData metaData) throws SoulException {
-        ReferenceConfig<GenericService> reference;
-        GenericService genericService;
-        try {
-            reference = ApplicationConfigCache.getInstance().get(metaData.getServiceName());
-            if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getInterface())) {
-                ApplicationConfigCache.getInstance().invalidate(metaData.getServiceName());
-                reference = ApplicationConfigCache.getInstance().initRef(metaData);
-            }
-            genericService = reference.get();
-        } catch (Exception ex) {
-            log.error("dubbo 泛化初始化异常:", ex);
+        ReferenceConfig<GenericService> reference = ApplicationConfigCache.getInstance().get(metaData.getServiceName());
+        if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getInterface())) {
             ApplicationConfigCache.getInstance().invalidate(metaData.getServiceName());
             reference = ApplicationConfigCache.getInstance().initRef(metaData);
-            genericService = reference.get();
         }
+        GenericService genericService = reference.get();
         try {
             if ("".equals(body) || "{}".equals(body) || "null".equals(body)) {
                 return genericService.$invoke(metaData.getMethodName(), new String[]{}, new Object[]{});

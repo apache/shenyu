@@ -19,7 +19,7 @@
 
 package org.dromara.soul.web.configuration;
 
-import org.dromara.soul.web.spring.SpringBeanUtils;
+import org.dromara.soul.plugin.base.utils.SpringBeanUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -32,7 +32,7 @@ import org.springframework.context.annotation.Bean;
  * @author xiaoyu
  */
 public class SpringExtConfiguration {
-
+    
     /**
      * Application context aware application context aware.
      *
@@ -42,15 +42,15 @@ public class SpringExtConfiguration {
     public ApplicationContextAware applicationContextAware() {
         return new SoulApplicationContextAware();
     }
-
+    
     /**
      * The type Soul application context aware.
      */
     public static class SoulApplicationContextAware implements ApplicationContextAware {
+        
         @Override
         public void setApplicationContext(final ApplicationContext applicationContext) throws BeansException {
             SpringBeanUtils.getInstance().setCfgContext((ConfigurableApplicationContext) applicationContext);
         }
     }
-
 }

@@ -23,11 +23,11 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginEnum;
-import org.dromara.soul.extend.impl.result.SoulResultEnum;
-import org.dromara.soul.extend.impl.result.SoulResultWarp;
+import org.dromara.soul.plugin.api.result.SoulResultEnum;
+import org.dromara.soul.plugin.base.utils.SoulResultWarp;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
-import org.dromara.soul.plugin.base.utils.ResultUtils;
+import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
 import org.dromara.soul.plugin.api.SignService;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -37,7 +37,7 @@ import reactor.core.publisher.Mono;
  *
  * @author xiaoyu(Myth)
  */
-public class SignPlugin  extends AbstractSoulPlugin {
+public class SignPlugin extends AbstractSoulPlugin {
 
     private final SignService signService;
 
@@ -61,11 +61,11 @@ public class SignPlugin  extends AbstractSoulPlugin {
     }
     
     @Override
-    protected Mono<Void> doExecute(ServerWebExchange exchange, SoulPluginChain chain, SelectorData selector, RuleData rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
         Pair<Boolean, String> result = signService.signVerify(exchange);
         if (!result.getLeft()) {
             Object error = SoulResultWarp.error(SoulResultEnum.SIGN_IS_NOT_PASS.getCode(), result.getRight(), null);
-            return ResultUtils.result(exchange, error);
+            return WebFluxResultUtils.result(exchange, error);
         }
         return chain.execute(exchange);
     }

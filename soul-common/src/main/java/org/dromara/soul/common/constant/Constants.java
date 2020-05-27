@@ -38,7 +38,7 @@ public interface Constants {
     /**
      * The constant META_DATA.
      */
-    String META_DATA ="metaData";
+    String META_DATA = "metaData";
     
     /**
      * The constant REQUESTDTO.
@@ -255,9 +255,7 @@ public interface Constants {
     /**
      * String q.
      */
-    default void StringQ() {
+    default void findConstants() {
     }
-    
-    
 }
 

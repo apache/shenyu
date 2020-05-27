@@ -53,23 +53,23 @@ import java.util.stream.Collectors;
 @Component
 @SuppressWarnings("all")
 public class HttpServiceDiscovery implements InitializingBean {
-
+    
     private static final String ROOT = "/soul/register";
-
+    
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpServiceDiscovery.class);
-
+    
     private ZkClient zkClient;
-
+    
     private final SelectorService selectorService;
-
+    
     private final SelectorMapper selectorMapper;
-
+    
     private final ApplicationEventPublisher eventPublisher;
-
+    
     private final Environment env;
-
+    
     private volatile List<String> contextPathList;
-
+    
     /**
      * Instantiates a new Http service discovery.
      *
@@ -87,33 +87,30 @@ public class HttpServiceDiscovery implements InitializingBean {
         this.eventPublisher = eventPublisher;
         this.env = env;
     }
-
+    
     @Override
     public void afterPropertiesSet() {
-        try {
-            Boolean register = env.getProperty("soul.http.register", Boolean.class, false);
-            if (register) {
-                String zookeeperUrl = env.getProperty("soul.http.zookeeperUrl", "");
-                if (StringUtils.isNoneBlank(zookeeperUrl)) {
-                    zkClient = new ZkClient(zookeeperUrl, 5000, 2000);
-                    boolean exists = zkClient.exists(ROOT);
-                    if (!exists) {
-                        zkClient.createPersistent(ROOT, true);
-                    }
-                    contextPathList = zkClient.getChildren(ROOT);
-                    updateServerNode(contextPathList);
-                    zkClient.subscribeChildChanges(ROOT, (parentPath, childs) -> {
-                        final List<String> addSubscribePath = addSubscribePath(contextPathList, childs);
-                        updateServerNode(addSubscribePath);
-                        contextPathList = childs;
-                    });
-                }
+        Boolean register = env.getProperty("soul.http.register", Boolean.class, false);
+        if (!register) {
+            return;
+        }
+        String zookeeperUrl = env.getProperty("soul.http.zookeeperUrl", "");
+        if (StringUtils.isNoneBlank(zookeeperUrl)) {
+            zkClient = new ZkClient(zookeeperUrl, 5000, 2000);
+            boolean exists = zkClient.exists(ROOT);
+            if (!exists) {
+                zkClient.createPersistent(ROOT, true);
             }
-        } catch (Exception e) {
-            LOGGER.error("soul admin 监听http服务注册节点异常：", e);
+            contextPathList = zkClient.getChildren(ROOT);
+            updateServerNode(contextPathList);
+            zkClient.subscribeChildChanges(ROOT, (parentPath, childs) -> {
+                final List<String> addSubscribePath = addSubscribePath(contextPathList, childs);
+                updateServerNode(addSubscribePath);
+                contextPathList = childs;
+            });
         }
     }
-
+    
     private void updateServerNode(final List<String> serverNodeList) {
         for (String children : serverNodeList) {
             String serverPath = buildServerPath(children);
@@ -123,7 +120,7 @@ public class HttpServiceDiscovery implements InitializingBean {
             subscribeChildChanges(serverPath);
         }
     }
-
+    
     private void subscribeChildChanges(final String children) {
         zkClient.subscribeChildChanges(children, (parentPath, currentChilds) -> {
             String[] split = StringUtils.split(parentPath, "/");
@@ -142,28 +139,24 @@ public class HttpServiceDiscovery implements InitializingBean {
             }
         });
     }
-
+    
     private List<String> addSubscribePath(final List<String> alreadyChildren, final List<String> currentChildren) {
         if (CollectionUtils.isEmpty(alreadyChildren)) {
             return currentChildren;
         }
         return currentChildren.stream().filter(current -> alreadyChildren.stream().noneMatch(current::equals)).collect(Collectors.toList());
     }
-
+    
     private void updateServiceList(final List<String> children, final String contextPath) {
-        try {
-            List<String> uriList = new ArrayList<>();
-            for (String subNode : children) {
-                // 读取节点内容
-                String data = zkClient.readData(subNode);
-                uriList.add(data);
-            }
-            updateSelectorHandler(contextPath, uriList);
-        } catch (Exception e) {
-            LOGGER.error("更新订阅服务失败....", e);
+        List<String> uriList = new ArrayList<>();
+        for (String subNode : children) {
+            // 读取节点内容
+            String data = zkClient.readData(subNode);
+            uriList.add(data);
         }
+        updateSelectorHandler(contextPath, uriList);
     }
-
+    
     private void updateSelectorHandler(final String contextPath, final List<String> uriList) {
         SelectorDO selector = selectorService.findByName(contextPath);
         if (Objects.nonNull(selector)) {
@@ -177,14 +170,14 @@ public class HttpServiceDiscovery implements InitializingBean {
                 selectorData.setHandle(handler);
             }
             selectorMapper.updateSelective(selector);
-
+            
             //发送更新事件
             // publish change event.
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
                     Collections.singletonList(selectorData)));
         }
     }
-
+    
     private List<DivideUpstream> buildDivideUpstream(final List<String> uriList) {
         return uriList.stream().map(uri -> {
             DivideUpstream divideUpstream = new DivideUpstream();
@@ -195,11 +188,11 @@ public class HttpServiceDiscovery implements InitializingBean {
             return divideUpstream;
         }).collect(Collectors.toList());
     }
-
+    
     private String buildServerPath(final String serverNode) {
         return ROOT + "/" + serverNode;
     }
-
+    
     private String buildRealPath(final String serverNode, final String path) {
         return ROOT + "/" + serverNode + "/" + path;
     }

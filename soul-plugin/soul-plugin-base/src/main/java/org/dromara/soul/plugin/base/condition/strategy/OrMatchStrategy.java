@@ -19,8 +19,8 @@
 package org.dromara.soul.plugin.base.condition.strategy;
 
 import org.dromara.soul.common.dto.ConditionData;
-import org.dromara.soul.common.extension.Join;
 import org.dromara.soul.plugin.base.condition.judge.OperatorJudgeFactory;
+import org.dromara.soul.spi.Join;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.util.List;

@@ -29,7 +29,7 @@ import java.util.Objects;
 public class MonitorPluginDataSubscriber extends AbstractDataSubscriber {
     
     @Override
-    protected void initPlugin(PluginData pluginData) {
+    protected void initPlugin(final PluginData pluginData) {
         if (Objects.nonNull(pluginData) && pluginData.getEnabled()) {
             MetricsConfig monitorConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), MetricsConfig.class);
             MetricsTrackerFacade.getInstance().init(monitorConfig);
@@ -38,6 +38,6 @@ public class MonitorPluginDataSubscriber extends AbstractDataSubscriber {
     
     @Override
     public String pluginNamed() {
-        return  PluginEnum.MONITOR.getName();
+        return PluginEnum.MONITOR.getName();
     }
 }

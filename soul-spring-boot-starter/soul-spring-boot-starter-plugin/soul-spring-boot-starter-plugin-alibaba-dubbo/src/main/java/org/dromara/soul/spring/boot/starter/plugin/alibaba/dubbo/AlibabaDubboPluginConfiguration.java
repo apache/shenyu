@@ -18,10 +18,10 @@
 
 package org.dromara.soul.spring.boot.starter.plugin.alibaba.dubbo;
 
-import org.dromara.soul.extend.api.dubbo.DubboParamResolveService;
-import org.dromara.soul.extend.impl.dubbo.DefaultDubboParamResolveService;
+import org.dromara.soul.plugin.alibaba.dubbo.param.DubboParamResolveService;
+import org.dromara.soul.plugin.alibaba.dubbo.param.DefaultDubboParamResolveService;
 import org.dromara.soul.plugin.alibaba.dubbo.AlibabaDubboPlugin;
-import org.dromara.soul.plugin.alibaba.dubbo.body.BodyParamPlugin;
+import org.dromara.soul.plugin.alibaba.dubbo.param.BodyParamPlugin;
 import org.dromara.soul.plugin.alibaba.dubbo.proxy.AlibabaDubboProxyService;
 import org.dromara.soul.plugin.alibaba.dubbo.response.DubboResponsePlugin;
 import org.dromara.soul.plugin.alibaba.dubbo.subscriber.AlibabaDubboMetaDataSubscriber;
@@ -92,7 +92,7 @@ public class AlibabaDubboPluginConfiguration {
      * @return the plugin data subscriber
      */
     @Bean
-    public PluginDataSubscriber pluginDataSubscriber(){
+    public PluginDataSubscriber pluginDataSubscriber() {
         return new AlibabaDubboPluginDataSubscriber();
     }
     
@@ -102,7 +102,7 @@ public class AlibabaDubboPluginConfiguration {
      * @return the meta data subscriber
      */
     @Bean
-    public MetaDataSubscriber metaDataSubscriber(){
+    public MetaDataSubscriber metaDataSubscriber() {
         return new AlibabaDubboMetaDataSubscriber();
     }
 }

@@ -17,6 +17,8 @@
 
 package org.dromara.soul.common.utils;
 
+import lombok.SneakyThrows;
+
 import java.security.MessageDigest;
 
 /**
@@ -33,26 +35,20 @@ public class Md5Utils {
      * @param charset the charset
      * @return the string
      */
+    @SneakyThrows
     private static String md5(final String src, final String charset) {
         MessageDigest md5;
         StringBuilder hexValue = new StringBuilder(32);
-        try {
-            md5 = MessageDigest.getInstance("MD5");
-
-            byte[] byteArray;
-            byteArray = src.getBytes(charset);
-
-            byte[] md5Bytes = md5.digest(byteArray);
-
-            for (byte md5Byte : md5Bytes) {
-                int val = ((int) md5Byte) & 0xff;
-                if (val < 16) {
-                    hexValue.append("0");
-                }
-                hexValue.append(Integer.toHexString(val));
+        md5 = MessageDigest.getInstance("MD5");
+        byte[] byteArray;
+        byteArray = src.getBytes(charset);
+        byte[] md5Bytes = md5.digest(byteArray);
+        for (byte md5Byte : md5Bytes) {
+            int val = ((int) md5Byte) & 0xff;
+            if (val < 16) {
+                hexValue.append("0");
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            hexValue.append(Integer.toHexString(val));
         }
         return hexValue.toString();
     }
@@ -66,5 +62,4 @@ public class Md5Utils {
     public static String md5(final String src) {
         return md5(src, "UTF-8");
     }
-
 }

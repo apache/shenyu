@@ -56,7 +56,7 @@ public class DividePluginConfiguration {
      * @return the plugin data subscriber
      */
     @Bean
-    public PluginDataSubscriber dataSubscriber(){
+    public PluginDataSubscriber dataSubscriber() {
         return new DividePluginDataSubscriber();
     }
     

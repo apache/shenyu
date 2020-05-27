@@ -27,26 +27,30 @@ import org.dromara.soul.plugin.base.cache.AbstractDataSubscriber;
 
 import java.util.Objects;
 
+/**
+ * The type Alibaba dubbo plugin data subscriber.
+ */
 public class AlibabaDubboPluginDataSubscriber extends AbstractDataSubscriber {
     
     @Override
-    protected void initPlugin(PluginData pluginData) {
+    protected void initPlugin(final PluginData pluginData) {
         if (null != pluginData && pluginData.getEnabled()) {
             DubboRegisterConfig dubboRegisterConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), DubboRegisterConfig.class);
             DubboRegisterConfig exist = Singleton.INST.get(DubboRegisterConfig.class);
-            if (Objects.nonNull(dubboRegisterConfig)) {
-                if (Objects.isNull(exist) || !dubboRegisterConfig.equals(exist)) {
-                    //如果是空，进行初始化操作，
-                    ApplicationConfigCache.getInstance().init(dubboRegisterConfig);
-                    ApplicationConfigCache.getInstance().invalidateAll();
-                }
-                Singleton.INST.single(DubboRegisterConfig.class, dubboRegisterConfig);
+            if (Objects.isNull(dubboRegisterConfig)) {
+                return;
             }
+            if (Objects.isNull(exist) || !dubboRegisterConfig.equals(exist)) {
+                //如果是空，进行初始化操作，
+                ApplicationConfigCache.getInstance().init(dubboRegisterConfig);
+                ApplicationConfigCache.getInstance().invalidateAll();
+            }
+            Singleton.INST.single(DubboRegisterConfig.class, dubboRegisterConfig);
         }
     }
     
     @Override
     public String pluginNamed() {
-        return  PluginEnum.DUBBO.getName();
+        return PluginEnum.DUBBO.getName();
     }
 }

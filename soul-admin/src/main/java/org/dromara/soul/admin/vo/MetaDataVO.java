@@ -56,9 +56,7 @@ public class MetaDataVO implements Serializable {
      * updated time.
      */
     private String dateUpdated;
-
-
+    
     private Boolean enabled;
-
-
+    
 }

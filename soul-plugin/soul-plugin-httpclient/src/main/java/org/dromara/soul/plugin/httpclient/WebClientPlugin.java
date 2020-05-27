@@ -19,20 +19,18 @@
 
 package org.dromara.soul.plugin.httpclient;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
-import org.dromara.soul.common.utils.LogUtils;
-import org.dromara.soul.extend.impl.result.SoulResultEnum;
-import org.dromara.soul.extend.impl.result.SoulResultWarp;
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
-import org.dromara.soul.plugin.base.utils.ResultUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.dromara.soul.plugin.api.result.SoulResultEnum;
+import org.dromara.soul.plugin.base.utils.SoulResultWarp;
+import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -51,12 +49,8 @@ import java.util.Optional;
  *
  * @author xiaoyu
  */
+@Slf4j
 public class WebClientPlugin implements SoulPlugin {
-
-    /**
-     * logger.
-     */
-    private static final Logger LOGGER = LoggerFactory.getLogger(WebClientPlugin.class);
 
     private final WebClient webClient;
 
@@ -69,7 +63,6 @@ public class WebClientPlugin implements SoulPlugin {
         this.webClient = webClient;
     }
     
-    
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final SoulPluginChain chain) {
         final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
@@ -77,10 +70,10 @@ public class WebClientPlugin implements SoulPlugin {
         String urlPath = exchange.getAttribute(Constants.HTTP_URL);
         if (StringUtils.isEmpty(urlPath)) {
             Object error = SoulResultWarp.error(SoulResultEnum.CANNOT_FIND_URL.getCode(), SoulResultEnum.CANNOT_FIND_URL.getMsg(), null);
-            return ResultUtils.result(exchange, error);
+            return WebFluxResultUtils.result(exchange, error);
         }
         long timeout = (long) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_TIME_OUT)).orElse(3000L);
-        LOGGER.info("you request,The resulting urlPath is :{}", urlPath);
+        log.info("you request,The resulting urlPath is :{}", urlPath);
         HttpMethod method = HttpMethod.valueOf(exchange.getRequest().getMethodValue());
         WebClient.RequestBodySpec requestBodySpec = webClient.method(method).uri(urlPath);
         return handleRequestBody(requestBodySpec, exchange, timeout, chain);
@@ -122,7 +115,7 @@ public class WebClientPlugin implements SoulPlugin {
                 .contentType(buildMediaType(exchange))
                 .body(BodyInserters.fromDataBuffers(exchange.getRequest().getBody()))
                 .exchange()
-                .doOnError(e -> LogUtils.error(LOGGER, e::getMessage))
+                .doOnError(e -> log.error(e.getMessage()))
                 .timeout(Duration.ofMillis(timeout))
                 .flatMap(e -> doNext(e, exchange, chain));
 

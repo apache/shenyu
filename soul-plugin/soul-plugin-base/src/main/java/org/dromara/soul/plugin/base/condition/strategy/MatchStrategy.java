@@ -19,7 +19,7 @@
 package org.dromara.soul.plugin.base.condition.strategy;
 
 import org.dromara.soul.common.dto.ConditionData;
-import org.dromara.soul.common.extension.SPI;
+import org.dromara.soul.spi.SPI;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.util.List;

@@ -45,16 +45,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author xiaoyu
  */
 public class RedisRateLimiter {
-
+    
     /**
      * logger.
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisRateLimiter.class);
-
+    
     private RedisScript<List<Long>> script;
-
+    
     private AtomicBoolean initialized = new AtomicBoolean(false);
-
+    
     /**
      * Instantiates a new Redis rate limiter.
      */
@@ -62,7 +62,7 @@ public class RedisRateLimiter {
         this.script = redisScript();
         initialized.compareAndSet(false, true);
     }
-
+    
     /**
      * This uses a basic token bucket algorithm and relies on the fact that Redis scripts
      * execute atomically. No other operations can run between fetching the count and
@@ -78,35 +78,31 @@ public class RedisRateLimiter {
         if (!this.initialized.get()) {
             throw new IllegalStateException("RedisRateLimiter is not initialized");
         }
-        try {
-            List<String> keys = getKeys(id);
-            List<String> scriptArgs = Arrays.asList(replenishRate + "", burstCapacity + "",
-                    Instant.now().getEpochSecond() + "", "1");
-            Flux<List<Long>> resultFlux = Singleton.INST.get(ReactiveRedisTemplate.class).execute(this.script, keys, scriptArgs);
-            return resultFlux.onErrorResume(throwable -> Flux.just(Arrays.asList(1L, -1L)))
-                    .reduce(new ArrayList<Long>(), (longs, l) -> {
-                        longs.addAll(l);
-                        return longs;
-                    }).map(results -> {
-                        boolean allowed = results.get(0) == 1L;
-                        Long tokensLeft = results.get(1);
-                        RateLimiterResponse rateLimiterResponse = new RateLimiterResponse(allowed, tokensLeft);
-                        LogUtils.debug(LOGGER, "RateLimiter response:{}", rateLimiterResponse::toString);
-                        return rateLimiterResponse;
-                    });
-        } catch (Exception e) {
-            LOGGER.error("Error determining if user allowed from redis:", e);
-        }
-        return Mono.just(new RateLimiterResponse(true, -1));
+        List<String> keys = getKeys(id);
+        List<String> scriptArgs = Arrays.asList(replenishRate + "", burstCapacity + "", Instant.now().getEpochSecond() + "", "1");
+        Flux<List<Long>> resultFlux = Singleton.INST.get(ReactiveRedisTemplate.class).execute(this.script, keys, scriptArgs);
+        return resultFlux.onErrorResume(throwable -> Flux.just(Arrays.asList(1L, -1L)))
+                .reduce(new ArrayList<Long>(), (longs, l) -> {
+                    longs.addAll(l);
+                    return longs;
+                }).map(results -> {
+                    boolean allowed = results.get(0) == 1L;
+                    Long tokensLeft = results.get(1);
+                    RateLimiterResponse rateLimiterResponse = new RateLimiterResponse(allowed, tokensLeft);
+                    LogUtils.debug(LOGGER, "RateLimiter response:{}", rateLimiterResponse::toString);
+                    return rateLimiterResponse;
+                }).doOnError(throwable -> {
+                    LOGGER.error("Error determining if user allowed from redis:{}", throwable.getMessage());
+                });
     }
-
+    
     private static List<String> getKeys(final String id) {
         String prefix = "request_rate_limiter.{" + id;
         String tokenKey = prefix + "}.tokens";
         String timestampKey = prefix + "}.timestamp";
         return Arrays.asList(tokenKey, timestampKey);
     }
-
+    
     @SuppressWarnings("unchecked")
     private RedisScript<List<Long>> redisScript() {
         DefaultRedisScript redisScript = new DefaultRedisScript<>();
@@ -114,5 +110,5 @@ public class RedisRateLimiter {
         redisScript.setResultType(List.class);
         return redisScript;
     }
-
+    
 }

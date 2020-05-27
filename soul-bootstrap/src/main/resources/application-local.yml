@@ -54,4 +54,3 @@ logging:
         org.dromara.soul.lottery: info
         org.dromara.soul: info
 
-    path: "./logs/web"

@@ -39,22 +39,23 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @SuppressWarnings("all")
 public final class ExtensionLoader<T> {
+    
     private static final Logger LOGGER = LoggerFactory.getLogger(ExtensionLoader.class);
-
+    
     private static final String SOUL_DIRECTORY = "META-INF/soul/";
-
+    
     private static final Map<Class<?>, ExtensionLoader<?>> LOADERS = new ConcurrentHashMap<>();
-
+    
     private final Class<T> clazz;
-
+    
     private final Holder<Map<String, Class<?>>> cachedClasses = new Holder<>();
-
+    
     private final Map<String, Holder<Object>> cachedInstances = new ConcurrentHashMap<>();
-
+    
     private final Map<Class<?>, Object> joinInstances = new ConcurrentHashMap<>();
-
+    
     private String cachedDefaultName;
-
+    
     /**
      * Instantiates a new Extension loader.
      *
@@ -66,7 +67,7 @@ public final class ExtensionLoader<T> {
             ExtensionLoader.getExtensionLoader(ExtensionFactory.class).getExtensionClasses();
         }
     }
-
+    
     /**
      * Gets extension loader.
      *
@@ -91,7 +92,7 @@ public final class ExtensionLoader<T> {
         LOADERS.putIfAbsent(clazz, new ExtensionLoader<>(clazz));
         return (ExtensionLoader<T>) LOADERS.get(clazz);
     }
-
+    
     /**
      * Gets default join.
      *
@@ -104,7 +105,7 @@ public final class ExtensionLoader<T> {
         }
         return getJoin(cachedDefaultName);
     }
-
+    
     /**
      * Gets join.
      *
@@ -115,28 +116,24 @@ public final class ExtensionLoader<T> {
         if (StringUtils.isBlank(name)) {
             throw new NullPointerException("get join name is null");
         }
-        try {
-            Holder<Object> objectHolder = cachedInstances.get(name);
-            if (objectHolder == null) {
-                cachedInstances.putIfAbsent(name, new Holder<>());
-                objectHolder = cachedInstances.get(name);
-            }
-            Object value = objectHolder.getValue();
-            if (value == null) {
-                synchronized (cachedInstances) {
-                    value = objectHolder.getValue();
-                    if (value == null) {
-                        value = createExtension(name);
-                        objectHolder.setValue(value);
-                    }
+        Holder<Object> objectHolder = cachedInstances.get(name);
+        if (objectHolder == null) {
+            cachedInstances.putIfAbsent(name, new Holder<>());
+            objectHolder = cachedInstances.get(name);
+        }
+        Object value = objectHolder.getValue();
+        if (value == null) {
+            synchronized (cachedInstances) {
+                value = objectHolder.getValue();
+                if (value == null) {
+                    value = createExtension(name);
+                    objectHolder.setValue(value);
                 }
             }
-            return (T) value;
-        } catch (Exception e) {
-            throw new IllegalArgumentException("According to the name [" + name + "] Can't find class");
         }
+        return (T) value;
     }
-
+    
     @SuppressWarnings("unchecked")
     private T createExtension(final String name) {
         Class<?> aClass = getExtensionClasses().get(name);
@@ -148,15 +145,15 @@ public final class ExtensionLoader<T> {
             try {
                 joinInstances.putIfAbsent(aClass, aClass.newInstance());
                 o = joinInstances.get(aClass);
-            } catch (Exception e) {
+            } catch (InstantiationException | IllegalAccessException e) {
                 throw new IllegalStateException("Extension instance(name: " + name + ", class: "
                         + aClass + ")  could not be instantiated: " + e.getMessage(), e);
-
+                
             }
         }
         return (T) o;
     }
-
+    
     /**
      * Gets extension classes.
      *
@@ -175,7 +172,7 @@ public final class ExtensionLoader<T> {
         }
         return classes;
     }
-
+    
     private Map<String, Class<?>> loadExtensionClass() {
         SPI annotation = clazz.getAnnotation(SPI.class);
         if (annotation != null) {
@@ -188,7 +185,7 @@ public final class ExtensionLoader<T> {
         loadDirectory(classes);
         return classes;
     }
-
+    
     /**
      * Load files under SOUL_DIRECTORY.
      */
@@ -204,31 +201,31 @@ public final class ExtensionLoader<T> {
                     loadResources(classes, url);
                 }
             }
-        } catch (Throwable t) {
+        } catch (IOException t) {
             LOGGER.error("load extension class error {}", fileName, t);
         }
     }
-
+    
     private void loadResources(final Map<String, Class<?>> classes, final URL url) throws IOException {
-        Properties properties = new Properties();
         try (InputStream inputStream = url.openStream()) {
+            Properties properties = new Properties();
             properties.load(inputStream);
             properties.forEach((k, v) -> {
-                String name = (String) k, classPath = (String) v;
+                String name = (String) k;
+                String classPath = (String) v;
                 if (StringUtils.isNotBlank(name) && StringUtils.isNotBlank(classPath)) {
                     try {
                         loadClass(classes, name, classPath);
-                    } catch (Exception e) {
+                    } catch (ClassNotFoundException e) {
                         throw new IllegalStateException("load extension resources error", e);
                     }
                 }
-
             });
         } catch (IOException e) {
             throw new IllegalStateException("load extension resources error", e);
         }
     }
-
+    
     private void loadClass(final Map<String, Class<?>> classes,
                            final String name, final String classPath) throws ClassNotFoundException {
         Class<?> subClass = Class.forName(classPath);
@@ -246,15 +243,16 @@ public final class ExtensionLoader<T> {
             throw new IllegalStateException("load extension resources error,Duplicate class " + clazz.getName() + "name " + name + " on " + oldClass.getName() + " or" + subClass.getName());
         }
     }
-
+    
     /**
      * The type Holder.
      *
      * @param <T> the type parameter.
      */
     public static class Holder<T> {
+        
         private volatile T value;
-
+        
         /**
          * Gets value.
          *
@@ -263,7 +261,7 @@ public final class ExtensionLoader<T> {
         public T getValue() {
             return value;
         }
-
+        
         /**
          * Sets value.
          *

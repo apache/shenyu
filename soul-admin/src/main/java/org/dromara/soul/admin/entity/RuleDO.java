@@ -70,7 +70,7 @@ public class RuleDO extends BaseDO {
      * process logic.
      */
     private String handle;
-
+    
     /**
      * build ruleDO.
      *
@@ -100,7 +100,15 @@ public class RuleDO extends BaseDO {
         }
         return null;
     }
-
+    
+    /**
+     * Trans from rule data.
+     *
+     * @param ruleDO            the rule do
+     * @param pluginName        the plugin name
+     * @param conditionDataList the condition data list
+     * @return the rule data
+     */
     public static RuleData transFrom(final RuleDO ruleDO, final String pluginName, final List<ConditionData> conditionDataList) {
         return new RuleData(ruleDO.getId(),
                 ruleDO.getName(),

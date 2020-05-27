@@ -46,6 +46,11 @@ public class UpstreamCacheManager {
     
     private static final Map<String, List<DivideUpstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
     
+    /**
+     * Gets instance.
+     *
+     * @return the instance
+     */
     public static UpstreamCacheManager getInstance() {
         return INSTANCE;
     }
@@ -127,7 +132,7 @@ public class UpstreamCacheManager {
         }
         
         private void runTask() {
-            for (; ; ) {
+            for (; ;) {
                 try {
                     final SelectorData selectorData = BLOCKING_QUEUE.take();
                     Optional.of(selectorData).ifPresent(UpstreamCacheManager.this::execute);

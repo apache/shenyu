@@ -3,6 +3,9 @@ package org.dromara.soul.sync.data.nacos.handler;
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.listener.Listener;
 import com.google.common.collect.Maps;
+import com.google.gson.JsonParseException;
+import lombok.Getter;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.common.dto.AppAuthData;
 import org.dromara.soul.common.dto.MetaData;
@@ -22,7 +25,7 @@ import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 /**
- * NacosCacheHandler
+ * Nacos cache handler.
  *
  * @author Chenxjx
  * @author xiaoyu
@@ -30,21 +33,22 @@ import java.util.stream.Collectors;
 @Slf4j
 public class NacosCacheHandler {
     
-    protected static final String group = "DEFAULT_GROUP";
+    protected static final String GROUP = "DEFAULT_GROUP";
     
-    protected static final String pluginDataId = "soul.plugin.json";
+    protected static final String PLUGIN_DATA_ID = "soul.plugin.json";
     
-    protected static final String selectorDataId = "soul.selector.json";
+    protected static final String SELECTOR_DATA_ID = "soul.selector.json";
     
-    protected static final String ruleDataId = "soul.rule.json";
+    protected static final String RULE_DATA_ID = "soul.rule.json";
     
-    protected static final String authDataId = "soul.auth.json";
+    protected static final String AUTH_DATA_ID = "soul.auth.json";
     
-    protected static final String metaDataId = "soul.meta.json";
+    protected static final String META_DATA_ID = "soul.meta.json";
     
-    protected static final Map<String, List<Listener>> listeners = Maps.newConcurrentMap();
+    protected static final Map<String, List<Listener>> LISTENERS = Maps.newConcurrentMap();
     
-    protected final ConfigService configService;
+    @Getter
+    private final ConfigService configService;
     
     private final Map<String, PluginDataSubscriber> pluginDataSubscriberMap;
     
@@ -66,17 +70,17 @@ public class NacosCacheHandler {
             List<PluginData> pluginDataList = GsonUtils.getInstance().fromList(configInfo, PluginData.class);
             pluginDataList.forEach(pluginData -> Optional.ofNullable(pluginDataSubscriberMap.get(pluginData.getName())).ifPresent(e -> e.unSubscribe(pluginData)));
             pluginDataList.forEach(pluginData -> Optional.ofNullable(pluginDataSubscriberMap.get(pluginData.getName())).ifPresent(e -> e.onSubscribe(pluginData)));
-        } catch (Exception e) {
+        } catch (JsonParseException e) {
             log.error("sync plugin data have error:", e);
         }
     }
     
-    protected void updateSelectorMap(String configInfo) {
+    protected void updateSelectorMap(final String configInfo) {
         try {
             List<SelectorData> selectorDataList = GsonUtils.getInstance().fromList(configInfo, SelectorData.class);
             selectorDataList.forEach(selectorData -> Optional.ofNullable(pluginDataSubscriberMap.get(selectorData.getPluginName())).ifPresent(e -> e.unSelectorSubscribe(selectorData)));
             selectorDataList.forEach(selectorData -> Optional.ofNullable(pluginDataSubscriberMap.get(selectorData.getPluginName())).ifPresent(e -> e.onSelectorSubscribe(selectorData)));
-        } catch (Exception e) {
+        } catch (JsonParseException e) {
             log.error("sync selector data have error:", e);
         }
     }
@@ -86,7 +90,7 @@ public class NacosCacheHandler {
             List<RuleData> ruleDataList = GsonUtils.getInstance().fromList(configInfo, RuleData.class);
             ruleDataList.forEach(ruleData -> Optional.ofNullable(pluginDataSubscriberMap.get(ruleData.getPluginName())).ifPresent(e -> e.unRuleSubscribe(ruleData)));
             ruleDataList.forEach(ruleData -> Optional.ofNullable(pluginDataSubscriberMap.get(ruleData.getPluginName())).ifPresent(e -> e.onRuleSubscribe(ruleData)));
-        } catch (Exception e) {
+        } catch (JsonParseException e) {
             log.error("sync rule data have error:", e);
         }
     }
@@ -96,7 +100,7 @@ public class NacosCacheHandler {
             List<MetaData> metaDataList = GsonUtils.getInstance().fromList(configInfo, MetaData.class);
             metaDataList.forEach(metaData -> metaDataSubscribers.forEach(subscriber -> subscriber.unSubscribe(metaData)));
             metaDataList.forEach(metaData -> metaDataSubscribers.forEach(subscriber -> subscriber.onSubscribe(metaData)));
-        } catch (Exception e) {
+        } catch (JsonParseException e) {
             log.error("sync meta data have error:", e);
         }
     }
@@ -106,37 +110,30 @@ public class NacosCacheHandler {
             List<AppAuthData> appAuthDataList = GsonUtils.getInstance().fromList(configInfo, AppAuthData.class);
             appAuthDataList.forEach(authData -> authDataSubscribers.forEach(subscriber -> subscriber.unSubscribe(authData)));
             appAuthDataList.forEach(authData -> authDataSubscribers.forEach(subscriber -> subscriber.onSubscribe(authData)));
-        } catch (Exception e) {
+        } catch (JsonParseException e) {
             log.error("sync auth data have error:", e);
         }
     }
     
-    private String getConfigAndSignListener(String dataId, Listener listener) {
-        try {
-            return configService.getConfigAndSignListener(dataId, group, 6000, listener);
-        } catch (Exception e) {
-            return "{}";
-        }
+    @SneakyThrows
+    private String getConfigAndSignListener(final String dataId, final Listener listener) {
+        return configService.getConfigAndSignListener(dataId, GROUP, 6000, listener);
     }
     
-    protected void watcherData(String dataId, OnChange oc) {
-        try {
-            Listener listener = new Listener() {
-                @Override
-                public void receiveConfigInfo(String configInfo) {
-                    oc.change(configInfo);
-                }
-                
-                @Override
-                public Executor getExecutor() {
-                    return null;
-                }
-            };
-            oc.change(getConfigAndSignListener(dataId, listener));
-            listeners.getOrDefault(dataId, new ArrayList<>()).add(listener);
-        } catch (Exception e) {
-            log.error("watcher data have error:", e);
-        }
+    protected void watcherData(final String dataId, final OnChange oc) {
+        Listener listener = new Listener() {
+            @Override
+            public void receiveConfigInfo(final String configInfo) {
+                oc.change(configInfo);
+            }
+            
+            @Override
+            public Executor getExecutor() {
+                return null;
+            }
+        };
+        oc.change(getConfigAndSignListener(dataId, listener));
+        LISTENERS.getOrDefault(dataId, new ArrayList<>()).add(listener);
     }
     
     protected interface OnChange {

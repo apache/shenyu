@@ -28,7 +28,12 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.concurrent.SoulThreadFactory;
 import org.dromara.soul.common.constant.HttpConstants;
-import org.dromara.soul.common.dto.*;
+import org.dromara.soul.common.dto.AppAuthData;
+import org.dromara.soul.common.dto.ConfigData;
+import org.dromara.soul.common.dto.MetaData;
+import org.dromara.soul.common.dto.PluginData;
+import org.dromara.soul.common.dto.RuleData;
+import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.exception.SoulException;
 import org.dromara.soul.sync.data.api.AuthDataSubscriber;
@@ -49,7 +54,12 @@ import org.springframework.web.client.RestTemplate;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -125,16 +135,10 @@ public class HttpSyncDataService extends HttpSyncDataHandler implements SyncData
         for (String server : serverList) {
             String url = server + "/configs/fetch?" + StringUtils.removeEnd(params.toString(), "&");
             log.info("request configs: [{}]", url);
-            try {
-                String json = this.httpClient.getForObject(url, String.class);
-                log.info("get latest configs: [{}]", json);
-                updateCacheWithJson(json);
-                return;
-            } catch (Exception e) {
-                log.warn("request configs fail, server:[{}]", server);
-                ex = new SoulException("Init cache error, serverList:" + httpConfig.getUrl(), e);
-                // try next server, if have another one.
-            }
+            String json = this.httpClient.getForObject(url, String.class);
+            log.info("get latest configs: [{}]", json);
+            updateCacheWithJson(json);
+            return;
         }
         if (ex != null) {
             throw ex;
@@ -235,11 +239,7 @@ public class HttpSyncDataService extends HttpSyncDataHandler implements SyncData
         @Override
         public void run() {
             while (RUNNING.get()) {
-                try {
-                    doLongPolling();
-                } catch (Exception e) {
-                    log.error(e.getMessage(), e);
-                }
+                doLongPolling();
             }
             log.warn("Stop http long polling.");
         }

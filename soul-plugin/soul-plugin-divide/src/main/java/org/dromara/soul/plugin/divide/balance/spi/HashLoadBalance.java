@@ -20,14 +20,14 @@ package org.dromara.soul.plugin.divide.balance.spi;
 
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.exception.SoulException;
-import org.dromara.soul.common.extension.Join;
+import org.dromara.soul.spi.Join;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * hash algorithm impl.
@@ -41,7 +41,7 @@ public class HashLoadBalance extends AbstractLoadBalance {
 
     @Override
     public DivideUpstream doSelect(final List<DivideUpstream> upstreamList, final String ip) {
-        final TreeMap<Long, DivideUpstream> treeMap = new TreeMap<>();
+        final ConcurrentSkipListMap<Long, DivideUpstream> treeMap = new ConcurrentSkipListMap<>();
         for (DivideUpstream address : upstreamList) {
             for (int i = 0; i < VIRTUAL_NODE_NUM; i++) {
                 long addressHash = hash("SOUL-" + address.getUpstreamUrl() + "-HASH-" + i);

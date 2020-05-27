@@ -18,7 +18,10 @@
 
 package org.dromara.soul.plugin.alibaba.dubbo;
 
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginEnum;
@@ -26,8 +29,12 @@ import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.plugin.alibaba.dubbo.proxy.AlibabaDubboProxyService;
 import org.dromara.soul.plugin.api.SoulPluginChain;
+import org.dromara.soul.plugin.api.result.SoulResultEnum;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
 import org.dromara.soul.plugin.api.context.SoulContext;
+import org.dromara.soul.plugin.base.utils.SoulResultWarp;
+import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -38,6 +45,7 @@ import java.util.Objects;
  *
  * @author xiaoyu(Myth)
  */
+@Slf4j
 public class AlibabaDubboPlugin extends AbstractSoulPlugin {
     
     private final AlibabaDubboProxyService alibabaDubboProxyService;
@@ -56,7 +64,15 @@ public class AlibabaDubboPlugin extends AbstractSoulPlugin {
         String body = exchange.getAttribute(Constants.DUBBO_PARAMS);
         SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
-        Object result = alibabaDubboProxyService.genericInvoker(body, soulContext.getMetaData());
+        MetaData metaData = exchange.getAttribute(Constants.META_DATA);
+        if (!checkMetaData(metaData)) {
+            assert metaData != null;
+            log.error(" path is :{}, meta data have error.... {}", soulContext.getPath(), metaData.toString());
+            exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+            Object error = SoulResultWarp.error(SoulResultEnum.META_DATA_ERROR.getCode(), SoulResultEnum.META_DATA_ERROR.getMsg(), null);
+            return WebFluxResultUtils.result(exchange, error);
+        }
+        Object result = alibabaDubboProxyService.genericInvoker(body, metaData);
         if (Objects.nonNull(result)) {
             exchange.getAttributes().put(Constants.DUBBO_RPC_RESULT, result);
         } else {
@@ -94,4 +110,7 @@ public class AlibabaDubboPlugin extends AbstractSoulPlugin {
         return PluginEnum.DUBBO.getCode();
     }
     
+    private boolean checkMetaData(final MetaData metaData) {
+        return null != metaData && !StringUtils.isBlank(metaData.getMethodName()) && !StringUtils.isBlank(metaData.getServiceName());
+    }
 }

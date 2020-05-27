@@ -19,7 +19,7 @@
 package org.dromara.soul.plugin.divide.balance.spi;
 
 import org.dromara.soul.common.dto.convert.DivideUpstream;
-import org.dromara.soul.common.extension.Join;
+import org.dromara.soul.spi.Join;
 
 import java.util.List;
 import java.util.Random;

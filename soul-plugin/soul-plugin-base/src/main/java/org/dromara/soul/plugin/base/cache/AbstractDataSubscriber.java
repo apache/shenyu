@@ -32,7 +32,7 @@ public abstract class AbstractDataSubscriber implements PluginDataSubscriber {
      *
      * @param pluginData the plugin data
      */
-    protected abstract void initPlugin(final PluginData pluginData);
+    protected abstract void initPlugin(PluginData pluginData);
     
     @Override
     public void onSubscribe(final PluginData pluginData) {
@@ -41,27 +41,27 @@ public abstract class AbstractDataSubscriber implements PluginDataSubscriber {
     }
     
     @Override
-    public void unSubscribe(PluginData pluginData) {
+    public void unSubscribe(final PluginData pluginData) {
         BaseDataCache.getInstance().removePluginData(pluginData);
     }
     
     @Override
-    public void onSelectorSubscribe(SelectorData selectorData) {
+    public void onSelectorSubscribe(final SelectorData selectorData) {
         BaseDataCache.getInstance().cacheSelectData(selectorData);
     }
     
     @Override
-    public void unSelectorSubscribe(SelectorData selectorData) {
+    public void unSelectorSubscribe(final SelectorData selectorData) {
         BaseDataCache.getInstance().removeSelectData(selectorData);
     }
     
     @Override
-    public void onRuleSubscribe(RuleData ruleData) {
+    public void onRuleSubscribe(final RuleData ruleData) {
         BaseDataCache.getInstance().cacheRuleData(ruleData);
     }
     
     @Override
-    public void unRuleSubscribe(RuleData ruleData) {
+    public void unRuleSubscribe(final RuleData ruleData) {
         BaseDataCache.getInstance().removeRuleData(ruleData);
     }
 }

@@ -38,12 +38,12 @@ import java.net.UnknownHostException;
  */
 @Slf4j
 public class ApplicationStartListener implements ApplicationListener<EmbeddedServletContainerInitializedEvent> {
-
+    
+    private static final String ROOT = "/soul/register";
+    
     @Value("${server.port:9095}")
     private int port;
-
-    private static final String ROOT = "/soul/register";
-
+    
     private SoulHttpConfig soulHttpConfig;
 
     public ApplicationStartListener(final SoulHttpConfig soulHttpConfig) {
@@ -64,25 +64,21 @@ public class ApplicationStartListener implements ApplicationListener<EmbeddedSer
             log.error("springMvc register must config context-path and zookeeperUrl.... ");
             return;
         }
-        try {
-            ZkClient zkClient = new ZkClient(soulHttpConfig.getZookeeperUrl(), 5000, 2000);
-            boolean exists = zkClient.exists(ROOT);
-            if (!exists) {
-                // 创建父节点
-                zkClient.createPersistent(ROOT, true);
-            }
-            String serverPath = ROOT + contextPath;
-            if (!zkClient.exists(serverPath)) {
-                //创建应用服务节点
-                zkClient.createPersistent(serverPath, true);
-            }
-            // 拼接ip和端口
-            String data = host + ":" + port;
-            zkClient.createEphemeralSequential(serverPath + "/children", data);
-            log.info("soul-http-client服务注册成功,context-path:{}, ip:port:{}", contextPath, data);
-        } catch (Exception e) {
-            log.error("springMvc zookeeper register error:", e);
+        ZkClient zkClient = new ZkClient(soulHttpConfig.getZookeeperUrl(), 5000, 2000);
+        boolean exists = zkClient.exists(ROOT);
+        if (!exists) {
+            // 创建父节点
+            zkClient.createPersistent(ROOT, true);
         }
+        String serverPath = ROOT + contextPath;
+        if (!zkClient.exists(serverPath)) {
+            //创建应用服务节点
+            zkClient.createPersistent(serverPath, true);
+        }
+        // 拼接ip和端口
+        String data = host + ":" + port;
+        zkClient.createEphemeralSequential(serverPath + "/children", data);
+        log.info("soul-http-client服务注册成功,context-path:{}, ip:port:{}", contextPath, data);
     }
 
     private String getHost() {

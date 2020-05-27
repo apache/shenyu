@@ -32,6 +32,7 @@
         <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>soul-plugin-base</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>

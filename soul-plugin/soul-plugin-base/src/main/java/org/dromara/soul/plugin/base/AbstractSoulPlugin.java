@@ -19,6 +19,7 @@
 package org.dromara.soul.plugin.base;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
@@ -26,12 +27,9 @@ import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.SelectorTypeEnum;
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.api.SoulPluginChain;
-
 import org.dromara.soul.plugin.base.cache.BaseDataCache;
 import org.dromara.soul.plugin.base.utils.CheckUtils;
 import org.dromara.soul.plugin.base.utils.MatchStrategyUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -39,19 +37,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-
 /**
  * abstract soul plugin please extends.
  *
  * @author xiaoyu(Myth)
  */
 @RequiredArgsConstructor
+@Slf4j
 public abstract class AbstractSoulPlugin implements SoulPlugin {
-
-    /**
-     * logger.
-     */
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSoulPlugin.class);
     
     /**
      * this is Template Method child has Implement your own logic.
@@ -86,7 +79,7 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
                 return CheckUtils.checkSelector(pluginName, exchange, chain);
             }
             if (selectorData.getLoged()) {
-                LOGGER.info("{} selector success match ,selector name :{}", pluginName, selectorData.getName());
+                log.info("{} selector success match ,selector name :{}", pluginName, selectorData.getName());
             }
             final List<RuleData> rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
             if (CollectionUtils.isEmpty(rules)) {
@@ -103,7 +96,7 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
                 return CheckUtils.checkRule(pluginName, exchange, chain);
             }
             if (rule.getLoged()) {
-                LOGGER.info("{} rule success match ,rule name :{}", pluginName, rule.getName());
+                log.info("{} rule success match ,rule name :{}", pluginName, rule.getName());
             }
             return doExecute(exchange, chain, selectorData, rule);
         }

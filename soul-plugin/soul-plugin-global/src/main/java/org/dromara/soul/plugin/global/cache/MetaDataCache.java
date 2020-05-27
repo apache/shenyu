@@ -25,9 +25,9 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentMap;
 
 /**
- * .
+ * The type Meta data cache.
  */
-public class MetaDataCache {
+public final class MetaDataCache {
     
     private static final MetaDataCache INSTANCE = new MetaDataCache();
     

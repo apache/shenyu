@@ -17,7 +17,6 @@
 
 package org.dromara.soul.metrics.api;
 
-
 import org.dromara.soul.metrics.enums.MetricsTypeEnum;
 
 /**

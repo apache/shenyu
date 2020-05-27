@@ -65,6 +65,4 @@ public enum DataEventTypeEnum {
                 .filter(e -> Objects.equals(e.name(), name))
                 .findFirst().orElseThrow(() -> new SoulException(" this DataEventTypeEnum can not support!"));
     }
-
-
 }
