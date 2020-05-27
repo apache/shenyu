@@ -23,11 +23,11 @@ import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.RateLimiterHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.utils.GsonUtils;
-import org.dromara.soul.extend.impl.result.SoulResultEnum;
-import org.dromara.soul.extend.impl.result.SoulResultWarp;
+import org.dromara.soul.plugin.api.result.SoulResultEnum;
+import org.dromara.soul.plugin.base.utils.SoulResultWarp;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
-import org.dromara.soul.plugin.base.utils.ResultUtils;
+import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -69,7 +69,7 @@ public class RateLimiterPlugin extends AbstractSoulPlugin {
                     if (!response.isAllowed()) {
                         exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
                         Object error = SoulResultWarp.error(SoulResultEnum.TOO_MANY_REQUESTS.getCode(), SoulResultEnum.TOO_MANY_REQUESTS.getMsg(), null);
-                        return ResultUtils.result(exchange, error);
+                        return WebFluxResultUtils.result(exchange, error);
                     }
                     return chain.execute(exchange);
                 });

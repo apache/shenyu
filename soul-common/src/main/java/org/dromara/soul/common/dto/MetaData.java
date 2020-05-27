@@ -1,10 +1,12 @@
 package org.dromara.soul.common.dto;
 
 import lombok.Data;
+import lombok.ToString;
 
 import java.io.Serializable;
 
 @Data
+@ToString
 public class MetaData implements Serializable {
     
     private String id;

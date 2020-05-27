@@ -31,7 +31,7 @@ public class ApacheDubboMetaDataSubscriber implements MetaDataSubscriber {
     private static final ConcurrentMap<String, MetaData> META_DATA = Maps.newConcurrentMap();
     
     @Override
-    public void onSubscribe(MetaData metaData) {
+    public void onSubscribe(final MetaData metaData) {
         if (RpcTypeEnum.DUBBO.getName().equals(metaData.getRpcType())) {
             MetaData exist = META_DATA.get(metaData.getPath());
             if (Objects.isNull(exist) || Objects.isNull(ApplicationConfigCache.getInstance().get(exist.getServiceName()).isInit())) {
@@ -48,7 +48,7 @@ public class ApacheDubboMetaDataSubscriber implements MetaDataSubscriber {
     }
     
     @Override
-    public void unSubscribe(MetaData metaData) {
+    public void unSubscribe(final MetaData metaData) {
         ApplicationConfigCache.getInstance().invalidate(metaData.getServiceName());
     }
 }

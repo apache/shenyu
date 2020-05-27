@@ -27,12 +27,12 @@ import org.dromara.soul.plugin.sign.cache.SignAuthDataCache;
 public class SignAuthDataSubscriber implements AuthDataSubscriber {
     
     @Override
-    public void onSubscribe(AppAuthData appAuthData) {
+    public void onSubscribe(final AppAuthData appAuthData) {
         SignAuthDataCache.getInstance().cacheAuthData(appAuthData);
     }
     
     @Override
-    public void unSubscribe(AppAuthData appAuthData) {
+    public void unSubscribe(final AppAuthData appAuthData) {
         SignAuthDataCache.getInstance().removeAuthData(appAuthData);
     }
 }

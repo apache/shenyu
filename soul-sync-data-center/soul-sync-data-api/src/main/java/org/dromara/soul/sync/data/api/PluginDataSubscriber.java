@@ -39,7 +39,7 @@ public interface PluginDataSubscriber {
      *
      * @param pluginData the plugin data
      */
-    default void unSubscribe(PluginData pluginData){
+    default void unSubscribe(PluginData pluginData) {
     }
     
     /**

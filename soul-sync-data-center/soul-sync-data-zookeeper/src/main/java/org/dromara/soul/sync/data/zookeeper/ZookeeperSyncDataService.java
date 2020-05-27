@@ -99,6 +99,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
         PluginData pluginData = zkClient.readData(pluginPath);
         Optional.ofNullable(pluginData).flatMap(data -> Optional.ofNullable(pluginDataSubscriberMap.get(pluginName))).ifPresent(e -> e.onSubscribe(pluginData));
         zkClient.subscribeDataChanges(pluginPath, new IZkDataListener() {
+            
             @Override
             public void handleDataChange(final String dataPath, final Object data) {
                 Optional.ofNullable(data)
@@ -275,7 +276,6 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
             }
         });
     }
-    
     
     private void cacheSelectorData(final SelectorData selectorData) {
         Optional.ofNullable(selectorData)

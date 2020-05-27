@@ -28,12 +28,12 @@ import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.LogUtils;
-import org.dromara.soul.extend.impl.result.SoulResultEnum;
-import org.dromara.soul.extend.impl.result.SoulResultWarp;
+import org.dromara.soul.plugin.api.result.SoulResultEnum;
+import org.dromara.soul.plugin.base.utils.SoulResultWarp;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
 import org.dromara.soul.plugin.api.context.SoulContext;
-import org.dromara.soul.plugin.base.utils.ResultUtils;
+import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
 import org.dromara.soul.plugin.divide.balance.utils.LoadBalanceUtils;
 import org.dromara.soul.plugin.divide.cache.UpstreamCacheManager;
 import org.slf4j.Logger;
@@ -99,7 +99,7 @@ public class WebSocketPlugin extends AbstractSoulPlugin {
         if (Objects.isNull(divideUpstream)) {
             LOGGER.error("websocket has no upstream");
             Object error = SoulResultWarp.error(SoulResultEnum.CANNOT_FIND_URL.getCode(), SoulResultEnum.CANNOT_FIND_URL.getMsg(), null);
-            return ResultUtils.result(exchange, error);
+            return WebFluxResultUtils.result(exchange, error);
         }
         URI wsRequestUrl = UriComponentsBuilder.fromUri(URI.create(buildWsRealPath(divideUpstream, soulContext))).build().toUri();
         LOGGER.info("you websocket urlPath is :{}", wsRequestUrl.toASCIIString());

@@ -21,10 +21,9 @@ package org.dromara.soul.web.filter;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.RpcTypeEnum;
-import org.dromara.soul.web.request.RequestDTO;
-import org.dromara.soul.web.result.SoulResultEnum;
-import org.dromara.soul.web.result.SoulResultUtils;
-import org.dromara.soul.web.result.SoulResultWarp;
+import org.dromara.soul.plugin.api.result.SoulResultEnum;
+import org.dromara.soul.plugin.base.utils.SoulResultWarp;
+import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -34,45 +33,36 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
-import java.util.Objects;
-
 /**
  * this is http post param verify filter.
  *
  * @author xiaoyu(Myth)
  */
 public class WebSocketWebFilter extends AbstractWebFilter {
-
+    
     @Override
     protected Mono<Boolean> doFilter(final ServerWebExchange exchange, final WebFilterChain chain) {
         final ServerHttpRequest request = exchange.getRequest();
         final HttpHeaders headers = request.getHeaders();
         final String upgrade = headers.getFirst("Upgrade");
         if (StringUtils.isNoneBlank(upgrade) && RpcTypeEnum.WEB_SOCKET.getName().equals(upgrade)) {
-            final MultiValueMap<String, String> queryParams = request.getQueryParams();
-            final RequestDTO requestDTO = RequestDTO.transformMap(queryParams);
-            if (verify(requestDTO)) {
-                exchange.getAttributes().put(Constants.REQUESTDTO, requestDTO);
-            } else {
-                return Mono.just(false);
-            }
+            return Mono.just(verify(request.getQueryParams()));
         }
         return Mono.just(true);
     }
-
+    
     @Override
     protected Mono<Void> doDenyResponse(final ServerWebExchange exchange) {
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
         Object error = SoulResultWarp.error(SoulResultEnum.PARAM_ERROR.getCode(), SoulResultEnum.PARAM_ERROR.getMsg(), null);
-        return SoulResultUtils.result(exchange, error);
+        return WebFluxResultUtils.result(exchange, error);
     }
-
-    private Boolean verify(final RequestDTO requestDTO) {
-        return !Objects.isNull(requestDTO)
-                && !StringUtils.isBlank(requestDTO.getModule())
-                && !StringUtils.isBlank(requestDTO.getMethod())
-                && !StringUtils.isBlank(requestDTO.getRpcType());
+    
+    private Boolean verify(final MultiValueMap<String, String> queryParams) {
+        return !StringUtils.isBlank(queryParams.getFirst(Constants.MODULE))
+                && !StringUtils.isBlank(queryParams.getFirst(Constants.METHOD))
+                && !StringUtils.isBlank(queryParams.getFirst(Constants.RPC_TYPE));
     }
-
+    
 }

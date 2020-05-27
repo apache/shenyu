@@ -18,15 +18,22 @@
 
 package org.dromara.soul.plugin.apache.dubbo;
 
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.plugin.apache.dubbo.proxy.ApacheDubboProxyService;
 import org.dromara.soul.plugin.api.SoulPluginChain;
+import org.dromara.soul.plugin.api.result.SoulResultEnum;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
 import org.dromara.soul.plugin.api.context.SoulContext;
+import org.dromara.soul.plugin.base.utils.SoulResultWarp;
+import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -37,10 +44,11 @@ import java.util.Objects;
  *
  * @author xiaoyu(Myth)
  */
+@Slf4j
 public class ApacheDubboPlugin extends AbstractSoulPlugin {
-
+    
     private final ApacheDubboProxyService dubboProxyService;
-
+    
     /**
      * Instantiates a new Dubbo plugin.
      *
@@ -49,21 +57,25 @@ public class ApacheDubboPlugin extends AbstractSoulPlugin {
     public ApacheDubboPlugin(final ApacheDubboProxyService dubboProxyService) {
         this.dubboProxyService = dubboProxyService;
     }
-
+    
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
-
         final String body = exchange.getAttribute(Constants.DUBBO_PARAMS);
-
         final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-
         assert soulContext != null;
-
-        final Mono<Object> result = dubboProxyService.genericInvoker(body, soulContext.getMetaData(), exchange);
+        MetaData metaData = exchange.getAttribute(Constants.META_DATA);
+        if (!checkMetaData(metaData)) {
+            assert metaData != null;
+            log.error(" path is :{}, meta data have error.... {}", soulContext.getPath(), metaData.toString());
+            exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+            Object error = SoulResultWarp.error(SoulResultEnum.META_DATA_ERROR.getCode(), SoulResultEnum.META_DATA_ERROR.getMsg(), null);
+            return WebFluxResultUtils.result(exchange, error);
+        }
+        final Mono<Object> result = dubboProxyService.genericInvoker(body, metaData, exchange);
         return result.then(chain.execute(exchange));
     }
     
-
+    
     /**
      * acquire plugin name.
      *
@@ -73,7 +85,7 @@ public class ApacheDubboPlugin extends AbstractSoulPlugin {
     public String named() {
         return PluginEnum.DUBBO.getName();
     }
-
+    
     /**
      * plugin is execute.
      *
@@ -86,10 +98,13 @@ public class ApacheDubboPlugin extends AbstractSoulPlugin {
         assert soulContext != null;
         return !Objects.equals(soulContext.getRpcType(), RpcTypeEnum.DUBBO.getName());
     }
-
+    
     @Override
     public int getOrder() {
         return PluginEnum.DUBBO.getCode();
     }
-
+    
+    private boolean checkMetaData(final MetaData metaData) {
+        return null != metaData && !StringUtils.isBlank(metaData.getMethodName()) && !StringUtils.isBlank(metaData.getServiceName());
+    }
 }

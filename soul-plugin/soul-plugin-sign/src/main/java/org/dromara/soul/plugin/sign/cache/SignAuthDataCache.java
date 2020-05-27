@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * The type Base data cache.
  */
-public class SignAuthDataCache {
+public final class SignAuthDataCache {
     
     private static final SignAuthDataCache INSTANCE = new SignAuthDataCache();
     

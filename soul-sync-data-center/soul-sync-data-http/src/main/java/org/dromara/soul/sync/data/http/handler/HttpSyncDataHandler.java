@@ -47,6 +47,13 @@ public class HttpSyncDataHandler {
     
     private final List<AuthDataSubscriber> authDataSubscribers;
     
+    /**
+     * Instantiates a new Http sync data handler.
+     *
+     * @param pluginDataSubscribers the plugin data subscribers
+     * @param metaDataSubscribers   the meta data subscribers
+     * @param authDataSubscribers   the auth data subscribers
+     */
     public HttpSyncDataHandler(final List<PluginDataSubscriber> pluginDataSubscribers,
                                final List<MetaDataSubscriber> metaDataSubscribers,
                                final List<AuthDataSubscriber> authDataSubscribers) {
@@ -112,6 +119,11 @@ public class HttpSyncDataHandler {
         }
     }
     
+    /**
+     * Flush meta data.
+     *
+     * @param metaDataList the meta data list
+     */
     public void flushMetaData(final List<MetaData> metaDataList) {
         if (CollectionUtils.isEmpty(metaDataList)) {
             log.info("clear all metaData cache}");

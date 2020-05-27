@@ -21,7 +21,12 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.common.concurrent.SoulThreadFactory;
 
-import java.util.concurrent.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Metrics thread pool executor.

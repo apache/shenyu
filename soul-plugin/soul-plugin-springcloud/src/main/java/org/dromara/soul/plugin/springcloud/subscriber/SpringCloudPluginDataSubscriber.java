@@ -18,7 +18,6 @@
 package org.dromara.soul.plugin.springcloud.subscriber;
 
 import org.dromara.soul.common.dto.PluginData;
-import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.plugin.base.cache.AbstractDataSubscriber;
 
@@ -28,7 +27,7 @@ import org.dromara.soul.plugin.base.cache.AbstractDataSubscriber;
 public class SpringCloudPluginDataSubscriber extends AbstractDataSubscriber {
     
     @Override
-    protected void initPlugin(PluginData pluginData) {
+    protected void initPlugin(final PluginData pluginData) {
     
     }
     

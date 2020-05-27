@@ -26,12 +26,12 @@ import org.dromara.soul.common.dto.convert.rule.SpringCloudRuleHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
-import org.dromara.soul.extend.impl.result.SoulResultEnum;
-import org.dromara.soul.extend.impl.result.SoulResultWarp;
+import org.dromara.soul.plugin.api.result.SoulResultEnum;
+import org.dromara.soul.plugin.base.utils.SoulResultWarp;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
 import org.dromara.soul.plugin.api.context.SoulContext;
-import org.dromara.soul.plugin.base.utils.ResultUtils;
+import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.http.HttpMethod;
@@ -70,13 +70,13 @@ public class SpringCloudPlugin extends AbstractSoulPlugin {
         final String serviceId = selector.getHandle();
         if (StringUtils.isBlank(serviceId) || StringUtils.isBlank(ruleHandle.getPath())) {
             Object error = SoulResultWarp.error(SoulResultEnum.CANNOT_CONFIG_SPRINGCLOUD_SERVICEID.getCode(), SoulResultEnum.CANNOT_CONFIG_SPRINGCLOUD_SERVICEID.getMsg(), null);
-            return ResultUtils.result(exchange, error);
+            return WebFluxResultUtils.result(exchange, error);
         }
 
         final ServiceInstance serviceInstance = loadBalancer.choose(serviceId);
         if (Objects.isNull(serviceInstance)) {
             Object error = SoulResultWarp.error(SoulResultEnum.SPRINGCLOUD_SERVICEID_IS_ERROR.getCode(), SoulResultEnum.SPRINGCLOUD_SERVICEID_IS_ERROR.getMsg(), null);
-            return ResultUtils.result(exchange, error);
+            return WebFluxResultUtils.result(exchange, error);
         }
         final URI uri = loadBalancer.reconstructURI(serviceInstance, URI.create(soulContext.getRealUrl()));
 

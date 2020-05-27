@@ -37,13 +37,24 @@ import org.java_websocket.handshake.ServerHandshake;
 import java.net.URI;
 import java.util.List;
 
+/**
+ * The type Soul websocket client.
+ */
 @Slf4j
-public class SoulWebsocketClient extends WebSocketClient {
+public final class SoulWebsocketClient extends WebSocketClient {
     
     private volatile boolean alreadySync = Boolean.FALSE;
     
     private final WebsocketDataHandler websocketDataHandler;
     
+    /**
+     * Instantiates a new Soul websocket client.
+     *
+     * @param serverUri             the server uri
+     * @param pluginDataSubscribers the plugin data subscribers
+     * @param metaDataSubscribers   the meta data subscribers
+     * @param authDataSubscribers   the auth data subscribers
+     */
     public SoulWebsocketClient(final URI serverUri, final List<PluginDataSubscriber> pluginDataSubscribers,
                                final List<MetaDataSubscriber> metaDataSubscribers, final List<AuthDataSubscriber> authDataSubscribers) {
         super(serverUri);
@@ -51,7 +62,7 @@ public class SoulWebsocketClient extends WebSocketClient {
     }
     
     @Override
-    public void onOpen(ServerHandshake serverHandshake) {
+    public void onOpen(final ServerHandshake serverHandshake) {
         if (!alreadySync) {
             send(DataEventTypeEnum.MYSELF.name());
             alreadySync = true;
@@ -59,21 +70,17 @@ public class SoulWebsocketClient extends WebSocketClient {
     }
     
     @Override
-    public void onMessage(String result) {
-        try {
-            handleResult(result);
-        } catch (Exception e) {
-            log.error("websocket handle data exception :", e);
-        }
+    public void onMessage(final String result) {
+        handleResult(result);
     }
     
     @Override
-    public void onClose(int i, String s, boolean b) {
+    public void onClose(final int i, final String s, final boolean b) {
         this.close();
     }
     
     @Override
-    public void onError(Exception e) {
+    public void onError(final Exception e) {
         this.close();
     }
     

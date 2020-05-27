@@ -19,21 +19,27 @@
 
 package org.dromara.soul.spi;
 
-import java.lang.annotation.*;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * SPI Extend the processing.
  * All spi system reference the apache implementation of
  * https://github.com/apache/dubbo/blob/master/dubbo-common/src/main/java/org/apache/dubbo/common/extension.
  * CreateDate: 2019/10/9 15:40
+ *
+ * @author sixh xiaoyu
  * @see ExtensionFactory
  * @see ExtensionLoader
- * @author sixh
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE})
+@Target(ElementType.TYPE)
 public @interface SPI {
+    
     /**
      * Value string.
      *

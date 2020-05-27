@@ -25,7 +25,7 @@ import org.dromara.soul.admin.query.RuleQuery;
 import java.util.List;
 
 /**
- * RuleMapper.
+ * Rule mapper.
  *
  * @author jiangxiaofeng(Nicholas)
  */
@@ -113,7 +113,7 @@ public interface RuleMapper {
     int delete(String id);
 
     /**
-     * list all {@linkplain RuleDO}
+     * list all.
      *
      * @return {@linkplain List}
      */

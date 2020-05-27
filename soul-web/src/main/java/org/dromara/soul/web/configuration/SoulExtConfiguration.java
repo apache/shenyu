@@ -19,11 +19,9 @@
 
 package org.dromara.soul.web.configuration;
 
-import org.dromara.soul.web.filter.DefaultParamService;
-import org.dromara.soul.web.filter.ParamService;
-import org.dromara.soul.web.result.SoulDefaultResult;
-import org.dromara.soul.web.result.SoulResult;
-import org.dromara.soul.web.support.RemoteAddressResolver;
+import org.dromara.soul.plugin.api.RemoteAddressResolver;
+import org.dromara.soul.plugin.api.result.DefaultSoulResult;
+import org.dromara.soul.plugin.api.result.SoulResult;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.SearchStrategy;
 import org.springframework.context.annotation.Bean;
@@ -43,7 +41,7 @@ public class SoulExtConfiguration {
     @Bean
     @ConditionalOnMissingBean(value = SoulResult.class, search = SearchStrategy.ALL)
     public SoulResult soulResult() {
-        return new SoulDefaultResult();
+        return new DefaultSoulResult();
     }
 
     /**
@@ -57,16 +55,5 @@ public class SoulExtConfiguration {
         return new RemoteAddressResolver() {
         };
     }
-
-    /**
-     * Param service param service.
-     *
-     * @return the param service
-     */
-    @Bean
-    @ConditionalOnMissingBean(value = ParamService.class, search = SearchStrategy.ALL)
-    public ParamService paramService() {
-        return new DefaultParamService();
-    }
-
+    
 }

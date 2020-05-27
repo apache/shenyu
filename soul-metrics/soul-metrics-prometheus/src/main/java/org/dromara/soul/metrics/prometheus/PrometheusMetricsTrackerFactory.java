@@ -17,7 +17,6 @@
 
 package org.dromara.soul.metrics.prometheus;
 
-
 import org.dromara.soul.metrics.api.MetricsTracker;
 import org.dromara.soul.metrics.api.MetricsTrackerFactory;
 import org.dromara.soul.metrics.prometheus.impl.counter.HttpRequestCounterMetricsTracker;

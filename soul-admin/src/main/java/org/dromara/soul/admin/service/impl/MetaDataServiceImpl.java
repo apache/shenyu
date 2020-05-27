@@ -85,21 +85,21 @@ import java.util.stream.Collectors;
  */
 @Service("metaDataService")
 public class MetaDataServiceImpl implements MetaDataService {
-
+    
     private static final Logger LOGGER = LoggerFactory.getLogger(MetaDataServiceImpl.class);
-
+    
     private final MetaDataMapper metaDataMapper;
-
+    
     private final ApplicationEventPublisher eventPublisher;
-
+    
     private final SelectorService selectorService;
-
+    
     private final RuleService ruleService;
-
+    
     private final RuleMapper ruleMapper;
-
+    
     private final RuleConditionMapper ruleConditionMapper;
-
+    
     /**
      * Instantiates a new Meta data service.
      *
@@ -124,7 +124,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         this.ruleMapper = ruleMapper;
         this.ruleConditionMapper = ruleConditionMapper;
     }
-
+    
     @Override
     public String createOrUpdate(final MetaDataDTO metaDataDTO) {
         String msg = checkData(metaDataDTO);
@@ -151,7 +151,7 @@ public class MetaDataServiceImpl implements MetaDataService {
                 Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDTO))));
         return StringUtils.EMPTY;
     }
-
+    
     @Override
     @Transactional
     public String register(final MetaDataDTO metaDataDTO) {
@@ -162,16 +162,16 @@ public class MetaDataServiceImpl implements MetaDataService {
             return "you path already exist!";
         }
         final MetaDataDO exist = metaDataMapper.findByServiceNameAndMethod(metaDataDTO.getServiceName(), metaDataDTO.getMethodName());
-
+        
         saveOrUpdateMetaData(exist, metaDataDTO);
-
+        
         String selectorId = handlerSelector(metaDataDTO);
-
+        
         handlerRule(selectorId, metaDataDTO, exist);
-
+        
         return "success";
     }
-
+    
     @Override
     @Transactional
     public int delete(final List<String> ids) {
@@ -186,7 +186,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.DELETE, metaDataList));
         return count;
     }
-
+    
     @Override
     public String enabled(final List<String> ids, final Boolean enabled) {
         List<MetaData> metaDataList = Lists.newArrayList();
@@ -204,7 +204,7 @@ public class MetaDataServiceImpl implements MetaDataService {
                 metaDataList));
         return StringUtils.EMPTY;
     }
-
+    
     @Override
     public void syncData() {
         List<MetaDataDO> all = metaDataMapper.findAll();
@@ -212,14 +212,14 @@ public class MetaDataServiceImpl implements MetaDataService {
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.REFRESH,
                     MetaDataTransfer.INSTANCE.mapToDataAll(all)));
         }
-
+        
     }
-
+    
     @Override
     public MetaDataVO findById(final String id) {
         return Optional.ofNullable(MetaDataTransfer.INSTANCE.mapToVO(metaDataMapper.selectById(id))).orElse(new MetaDataVO());
     }
-
+    
     @Override
     public CommonPager<MetaDataVO> listByPage(final MetaDataQuery metaDataQuery) {
         PageParameter pageParameter = metaDataQuery.getPageParameter();
@@ -231,18 +231,18 @@ public class MetaDataServiceImpl implements MetaDataService {
                         .map(MetaDataTransfer.INSTANCE::mapToVO)
                         .collect(Collectors.toList()));
     }
-
+    
     @Override
     public List<MetaDataVO> findAll() {
         return MetaDataTransfer.INSTANCE.mapToVOList(metaDataMapper.selectAll());
     }
-
+    
     @Override
     public Map<String, List<MetaDataVO>> findAllGroup() {
         List<MetaDataVO> metaDataVOS = MetaDataTransfer.INSTANCE.mapToVOList(metaDataMapper.selectAll());
         return metaDataVOS.stream().collect(Collectors.groupingBy(MetaDataVO::getAppName));
     }
-
+    
     @Override
     public List<MetaData> listAll() {
         return metaDataMapper.selectAll()
@@ -251,7 +251,7 @@ public class MetaDataServiceImpl implements MetaDataService {
                 .map(MetaDataTransfer.INSTANCE::mapToData)
                 .collect(Collectors.toList());
     }
-
+    
     private String handlerSelector(final MetaDataDTO metaDataDTO) {
         String contextPath = buildContextPath(metaDataDTO);
         SelectorDO selectorDO = selectorService.findByName(contextPath);
@@ -264,7 +264,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         }
         return selectorId;
     }
-
+    
     private void handlerRule(final String selectorId, final MetaDataDTO metaDataDTO, final MetaDataDO exist) {
         RuleDO existRule = ruleMapper.findByName(metaDataDTO.getPath());
         if (Objects.isNull(exist) || Objects.isNull(existRule)) {
@@ -295,13 +295,13 @@ public class MetaDataServiceImpl implements MetaDataService {
             }
         }
     }
-
+    
     private String buildContextPath(final MetaDataDTO metaDataDTO) {
         String path = metaDataDTO.getPath();
         String[] splitList = StringUtils.split(path, "/");
         return "/" + splitList[0];
     }
-
+    
     private String registerSelector(final String contextPath, final String rpcType, final String appName) {
         SelectorDTO selectorDTO = new SelectorDTO();
         selectorDTO.setName(contextPath);
@@ -328,7 +328,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         selectorDTO.setSelectorConditions(Collections.singletonList(selectorConditionDTO));
         return selectorService.register(selectorDTO);
     }
-
+    
     private void saveOrUpdateMetaData(final MetaDataDO exist, final MetaDataDTO metaDataDTO) {
         DataEventTypeEnum eventType;
         MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataDTO);
@@ -348,7 +348,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, eventType,
                 Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDTO))));
     }
-
+    
     private void publishEvent(final RuleDO ruleDO, final List<ConditionData> conditionDataList, final String rpcType) {
         String pluginName;
         if (RpcTypeEnum.DUBBO.getName().equals(rpcType)) {
@@ -362,7 +362,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.UPDATE,
                 Collections.singletonList(RuleDO.transFrom(ruleDO, pluginName, conditionDataList))));
     }
-
+    
     private void registerRule(final String selectorId, final String path, final String rpcType) {
         RuleDTO ruleDTO = new RuleDTO();
         ruleDTO.setSelectorId(selectorId);
@@ -399,7 +399,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         }
         ruleService.register(ruleDTO);
     }
-
+    
     private String checkData(final MetaDataDTO metaDataDTO) {
         Boolean success = checkParam(metaDataDTO);
         if (!success) {
@@ -407,12 +407,12 @@ public class MetaDataServiceImpl implements MetaDataService {
             return AdminConstants.PARAMS_ERROR;
         }
         final MetaDataDO exist = metaDataMapper.findByPath(metaDataDTO.getPath());
-        if(exist!=null&&!exist.getId().equals(metaDataDTO.getId())) {
-        	return AdminConstants.DATA_PATH_IS_EXIST;
+        if (exist != null && !exist.getId().equals(metaDataDTO.getId())) {
+            return AdminConstants.DATA_PATH_IS_EXIST;
         }
         return StringUtils.EMPTY;
     }
-
+    
     private Boolean checkParam(final MetaDataDTO metaDataDTO) {
         return !StringUtils.isEmpty(metaDataDTO.getAppName())
                 && !StringUtils.isEmpty(metaDataDTO.getPath())
@@ -420,5 +420,5 @@ public class MetaDataServiceImpl implements MetaDataService {
                 && !StringUtils.isEmpty(metaDataDTO.getServiceName())
                 && !StringUtils.isEmpty(metaDataDTO.getMethodName());
     }
-
+    
 }

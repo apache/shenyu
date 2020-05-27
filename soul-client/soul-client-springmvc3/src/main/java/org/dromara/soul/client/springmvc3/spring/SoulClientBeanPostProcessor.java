@@ -17,7 +17,6 @@
 
 package org.dromara.soul.client.springmvc3.spring;
 
-
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.client.common.annotation.SoulClient;
 import org.dromara.soul.client.common.dto.MetaDataDTO;

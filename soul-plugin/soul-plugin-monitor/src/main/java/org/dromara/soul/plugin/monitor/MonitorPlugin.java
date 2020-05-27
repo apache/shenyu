@@ -38,7 +38,7 @@ public class MonitorPlugin extends AbstractSoulPlugin {
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
-        MetricsTrackerFacade.getInstance().counterInc(MetricsLabelEnum.HTTP_REQUEST_TOTAL.getName(), exchange.getRequest().getURI().getPath(),exchange.getRequest().getMethodValue());
+        MetricsTrackerFacade.getInstance().counterInc(MetricsLabelEnum.HTTP_REQUEST_TOTAL.getName(), exchange.getRequest().getURI().getPath(), exchange.getRequest().getMethodValue());
         return chain.execute(exchange);
     }
     

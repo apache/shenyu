@@ -209,9 +209,6 @@
         <module name="OuterTypeFilename"/>
         <module name="TodoComment"/>
         <module name="TrailingComment"/>
-        <module name="UncommentedMain">
-            <property name="excludedClasses" value="\.Bootstrap"/>
-        </module>
         
         <!-- Javadoc Comments -->
         <module name="AtclauseOrder">

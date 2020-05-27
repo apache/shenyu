@@ -20,7 +20,6 @@ package org.dromara.soul.plugin.hystrix.subscriber;
 import com.netflix.hystrix.strategy.properties.HystrixPropertiesFactory;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
-import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.plugin.base.cache.AbstractDataSubscriber;
 
@@ -30,16 +29,14 @@ import org.dromara.soul.plugin.base.cache.AbstractDataSubscriber;
 public class HystrixPluginDataSubscriber extends AbstractDataSubscriber {
     
     @Override
-    protected void initPlugin(PluginData pluginData) {
-    
+    protected void initPlugin(final PluginData pluginData) {
     }
     
     @Override
-    public void onRuleSubscribe(RuleData ruleData) {
+    public void onRuleSubscribe(final RuleData ruleData) {
         super.onRuleSubscribe(ruleData);
         HystrixPropertiesFactory.reset();
     }
-    
     
     @Override
     public String pluginNamed() {

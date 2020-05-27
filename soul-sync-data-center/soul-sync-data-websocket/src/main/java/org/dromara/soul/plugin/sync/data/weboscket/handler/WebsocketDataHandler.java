@@ -18,7 +18,11 @@
 package org.dromara.soul.plugin.sync.data.weboscket.handler;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.dromara.soul.common.dto.*;
+import org.dromara.soul.common.dto.AppAuthData;
+import org.dromara.soul.common.dto.MetaData;
+import org.dromara.soul.common.dto.PluginData;
+import org.dromara.soul.common.dto.RuleData;
+import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.sync.data.api.AuthDataSubscriber;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
@@ -42,6 +46,13 @@ public class WebsocketDataHandler {
     
     private final List<AuthDataSubscriber> authDataSubscribers;
     
+    /**
+     * Instantiates a new Websocket data handler.
+     *
+     * @param pluginDataSubscribers the plugin data subscribers
+     * @param metaDataSubscribers   the meta data subscribers
+     * @param authDataSubscribers   the auth data subscribers
+     */
     public WebsocketDataHandler(final List<PluginDataSubscriber> pluginDataSubscribers,
                                 final List<MetaDataSubscriber> metaDataSubscribers,
                                 final List<AuthDataSubscriber> authDataSubscribers) {
@@ -158,6 +169,12 @@ public class WebsocketDataHandler {
         }
     }
     
+    /**
+     * Handle meta data.
+     *
+     * @param metaDataList the meta data list
+     * @param eventType    the event type
+     */
     public void handleMetaData(final List<MetaData> metaDataList, final String eventType) {
         if (CollectionUtils.isNotEmpty(metaDataList)) {
             DataEventTypeEnum eventTypeEnum = DataEventTypeEnum.acquireByName(eventType);

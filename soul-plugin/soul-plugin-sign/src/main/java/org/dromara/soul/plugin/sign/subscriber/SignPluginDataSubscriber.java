@@ -24,7 +24,7 @@ import org.dromara.soul.plugin.base.cache.AbstractDataSubscriber;
 public class SignPluginDataSubscriber extends AbstractDataSubscriber {
     
     @Override
-    protected void initPlugin(PluginData pluginData) {
+    protected void initPlugin(final PluginData pluginData) {
     }
     
     @Override

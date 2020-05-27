@@ -20,12 +20,12 @@ package org.dromara.soul.metrics.facade;
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.dromara.soul.common.extension.ExtensionLoader;
 import org.dromara.soul.metrics.api.HistogramMetricsTrackerDelegate;
 import org.dromara.soul.metrics.api.SummaryMetricsTrackerDelegate;
 import org.dromara.soul.metrics.config.MetricsConfig;
 import org.dromara.soul.metrics.facade.handler.MetricsTrackerHandler;
 import org.dromara.soul.metrics.spi.MetricsTrackerManager;
+import org.dromara.soul.spi.ExtensionLoader;
 
 import java.util.Optional;
 

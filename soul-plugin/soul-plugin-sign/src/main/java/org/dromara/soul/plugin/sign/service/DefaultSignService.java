@@ -18,6 +18,7 @@
 package org.dromara.soul.plugin.sign.service;
 
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -29,13 +30,11 @@ import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.utils.DateUtils;
 import org.dromara.soul.common.utils.SignUtils;
-import org.dromara.soul.extend.impl.result.SoulResultEnum;
 import org.dromara.soul.plugin.api.SignService;
-import org.dromara.soul.plugin.base.cache.BaseDataCache;
 import org.dromara.soul.plugin.api.context.SoulContext;
+import org.dromara.soul.plugin.api.result.SoulResultEnum;
+import org.dromara.soul.plugin.base.cache.BaseDataCache;
 import org.dromara.soul.plugin.sign.cache.SignAuthDataCache;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -49,15 +48,14 @@ import java.util.Objects;
  *
  * @author xiaoyu
  */
+@Slf4j
 public class DefaultSignService implements SignService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultSignService.class);
     
     @Value("${soul.sign.delay:5}")
     private int delay;
     
     @Override
-    public Pair<Boolean, String> signVerify( final ServerWebExchange exchange) {
+    public Pair<Boolean, String> signVerify(final ServerWebExchange exchange) {
         PluginData signData = BaseDataCache.getInstance().obtainPluginData(PluginEnum.SIGN.getName());
         if (signData != null && signData.getEnabled()) {
             final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
@@ -71,7 +69,7 @@ public class DefaultSignService implements SignService {
         if (StringUtils.isBlank(soulContext.getAppKey())
                 || StringUtils.isBlank(soulContext.getSign())
                 || StringUtils.isBlank(soulContext.getTimestamp())) {
-            LOGGER.error("认证参数不完整,{}", soulContext);
+            log.error("认证参数不完整,{}", soulContext);
             return Pair.of(Boolean.FALSE, Constants.SIGN_PARAMS_ERROR);
         }
         final LocalDateTime start = DateUtils.formatLocalDateTimeFromTimestamp(Long.parseLong(soulContext.getTimestamp()));
@@ -92,24 +90,24 @@ public class DefaultSignService implements SignService {
     private Pair<Boolean, String> sign(final SoulContext soulContext, final ServerWebExchange exchange) {
         final AppAuthData appAuthData = SignAuthDataCache.getInstance().obtainAuthData(soulContext.getAppKey());
         if (Objects.isNull(appAuthData) || !appAuthData.getEnabled()) {
-            LOGGER.error("认证APP_kEY不存在,或者已经被禁用,{}", soulContext.getAppKey());
+            log.error("认证APP_kEY不存在,或者已经被禁用,{}", soulContext.getAppKey());
             return Pair.of(Boolean.FALSE, Constants.SIGN_APP_KEY_IS_NOT_EXIST);
         }
         List<AuthPathData> pathDataList = appAuthData.getPathDataList();
         if (CollectionUtils.isEmpty(pathDataList)) {
-            LOGGER.error("您尚未配置路径:{}", soulContext.getAppKey());
+            log.error("您尚未配置路径:{}", soulContext.getAppKey());
             return Pair.of(Boolean.FALSE, Constants.SIGN_PATH_NOT_EXIST);
         }
         boolean match = pathDataList.stream().filter(AuthPathData::getEnabled)
                 .anyMatch(e -> e.getPath().equals(soulContext.getPath()));
         if (!match) {
-            LOGGER.error("您尚未配置路径:{},{}", soulContext.getAppKey(), soulContext.getRealUrl());
+            log.error("您尚未配置路径:{},{}", soulContext.getAppKey(), soulContext.getRealUrl());
             return Pair.of(Boolean.FALSE, Constants.SIGN_PATH_NOT_EXIST);
         }
         String sigKey = SignUtils.generateSign(appAuthData.getAppSecret(), buildParamsMap(soulContext));
         boolean result = Objects.equals(sigKey, soulContext.getSign());
         if (!result) {
-            LOGGER.error("签名插件得到的签名为:{},传入的签名值为:{}", sigKey, soulContext.getSign());
+            log.error("签名插件得到的签名为:{},传入的签名值为:{}", sigKey, soulContext.getSign());
             return Pair.of(Boolean.FALSE, Constants.SIGN_VALUE_IS_ERROR);
         } else {
             List<AuthParamData> paramDataList = appAuthData.getParamDataList();

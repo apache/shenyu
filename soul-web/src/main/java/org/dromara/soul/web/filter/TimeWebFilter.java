@@ -18,22 +18,15 @@
 
 package org.dromara.soul.web.filter;
 
-import org.apache.commons.lang3.StringUtils;
-import org.dromara.soul.common.constant.Constants;
-import org.dromara.soul.common.utils.DateUtils;
+import org.dromara.soul.plugin.api.result.SoulResultEnum;
+import org.dromara.soul.plugin.base.utils.SoulResultWarp;
+import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
 import org.dromara.soul.web.config.SoulConfig;
-import org.dromara.soul.web.request.RequestDTO;
-import org.dromara.soul.web.result.SoulResultEnum;
-import org.dromara.soul.web.result.SoulResultUtils;
-import org.dromara.soul.web.result.SoulResultWarp;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
-
-import java.time.LocalDateTime;
-import java.util.Objects;
 
 /**
  * this is visit time verify filter.
@@ -50,17 +43,13 @@ public class TimeWebFilter extends AbstractWebFilter {
 
     @Override
     protected Mono<Boolean> doFilter(final ServerWebExchange exchange, final WebFilterChain chain) {
-        final RequestDTO requestDTO = exchange.getAttribute(Constants.REQUESTDTO);
-        if (Objects.isNull(requestDTO) || Objects.isNull(requestDTO.getStartDateTime())) {
-            return Mono.just(false);
-        }
-        final LocalDateTime start = requestDTO.getStartDateTime();
+       /* final LocalDateTime start = requestDTO.getStartDateTime();
         final LocalDateTime now = LocalDateTime.now();
         final long between = DateUtils.acquireMinutesBetween(start, now);
         if (between < soulConfig.getFilterTime()) {
             return Mono.just(true);
-        }
-        return Mono.just(false);
+        }*/
+        return Mono.just(true);
     }
 
     @Override
@@ -68,6 +57,6 @@ public class TimeWebFilter extends AbstractWebFilter {
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(HttpStatus.REQUEST_TIMEOUT);
         Object error = SoulResultWarp.error(SoulResultEnum.TIME_ERROR.getCode(), SoulResultEnum.TIME_ERROR.getMsg(), null);
-        return SoulResultUtils.result(exchange, error);
+        return WebFluxResultUtils.result(exchange, error);
     }
 }

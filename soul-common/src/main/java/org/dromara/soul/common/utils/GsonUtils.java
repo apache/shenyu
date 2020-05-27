@@ -31,6 +31,7 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 
@@ -48,55 +49,42 @@ import java.util.Set;
  * @author xiaoyu(Myth)
  */
 public class GsonUtils {
-
+    
     private static final GsonUtils INSTANCE = new GsonUtils();
-
+    
     /**
      * The constant STRING.
      */
     private static final TypeAdapter<String> STRING = new TypeAdapter<String>() {
-
-        @Override
+        
+        @SneakyThrows
         public void write(final JsonWriter out, final String value) {
-            try {
-                if (StringUtils.isBlank(value)) {
-                    out.nullValue();
-                    return;
-                }
-                out.value(value);
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (StringUtils.isBlank(value)) {
+                out.nullValue();
+                return;
             }
+            out.value(value);
         }
-
-        @Override
+        
+        @SneakyThrows
         public String read(final JsonReader reader) {
-            try {
-                if (reader.peek() == JsonToken.NULL) {
-                    reader.nextNull();
-                    // 原先是返回null，这里改为返回空字符串
-                    return "";
-                }
-                return reader.nextString();
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (reader.peek() == JsonToken.NULL) {
+                reader.nextNull();
+                return "";
             }
-            return "";
+            return reader.nextString();
         }
-
     };
-
-    private static final Gson GSON = new GsonBuilder()
-            .registerTypeAdapter(String.class, STRING)
-            .create();
-
+    
+    private static final Gson GSON = new GsonBuilder().registerTypeAdapter(String.class, STRING).create();
+    
     private static final Gson GSON_MAP = new GsonBuilder().serializeNulls().registerTypeHierarchyAdapter(new TypeToken<Map<String, Object>>() {
     }.getRawType(), new MapDeserializer<String, Object>()).create();
-
+    
     private static final String DOT = ".";
-
+    
     private static final String E = "e";
-
+    
     /**
      * Gets instance.
      *
@@ -105,7 +93,7 @@ public class GsonUtils {
     public static GsonUtils getInstance() {
         return INSTANCE;
     }
-
+    
     /**
      * To json string.
      *
@@ -115,7 +103,7 @@ public class GsonUtils {
     public String toJson(final Object object) {
         return GSON.toJson(object);
     }
-
+    
     /**
      * From json t.
      *
@@ -127,8 +115,20 @@ public class GsonUtils {
     public <T> T fromJson(final String json, final Class<T> tClass) {
         return GSON.fromJson(json, tClass);
     }
-
-
+    
+    /**
+     * From json t.
+     *
+     * @param <T>         the type parameter
+     * @param jsonElement the json element
+     * @param tClass      the t class
+     * @return the t
+     */
+    public <T> T fromJson(final JsonElement jsonElement, final Class<T> tClass) {
+        return GSON.fromJson(jsonElement, tClass);
+    }
+    
+    
     /**
      * From list list.
      *
@@ -140,8 +140,8 @@ public class GsonUtils {
     public <T> List<T> fromList(final String json, final Class<T> clazz) {
         return GSON.fromJson(json, TypeToken.getParameterized(List.class, clazz).getType());
     }
-
-
+    
+    
     /**
      * toGetParam.
      *
@@ -166,9 +166,9 @@ public class GsonUtils {
         });
         final String r = stringBuilder.toString();
         return r.substring(0, r.lastIndexOf("&"));
-
+        
     }
-
+    
     /**
      * toMap.
      *
@@ -179,8 +179,8 @@ public class GsonUtils {
         return GSON.fromJson(json, new TypeToken<Map<String, String>>() {
         }.getType());
     }
-
-
+    
+    
     /**
      * toList Map.
      *
@@ -191,7 +191,7 @@ public class GsonUtils {
         return GSON.fromJson(json, new TypeToken<List<Map>>() {
         }.getType());
     }
-
+    
     /**
      * To object map map.
      *
@@ -202,27 +202,27 @@ public class GsonUtils {
         return GSON_MAP.fromJson(json, new TypeToken<Map<String, Object>>() {
         }.getType());
     }
-
+    
     private static class MapDeserializer<T, U> implements JsonDeserializer<Map<T, U>> {
-
+        
         @Override
         public Map<T, U> deserialize(final JsonElement json, final Type type, final JsonDeserializationContext context) throws JsonParseException {
             if (!json.isJsonObject()) {
                 return null;
             }
-
+            
             JsonObject jsonObject = json.getAsJsonObject();
             Set<Map.Entry<String, JsonElement>> jsonEntrySet = jsonObject.entrySet();
             Map<T, U> resultMap = new LinkedHashMap<>();
-
+            
             for (Map.Entry<String, JsonElement> entry : jsonEntrySet) {
                 U value = context.deserialize(entry.getValue(), this.getType(entry.getValue()));
                 resultMap.put((T) entry.getKey(), value);
             }
-
+            
             return resultMap;
         }
-
+    
         /**
          * Get JsonElement class type.
          *
@@ -230,23 +230,26 @@ public class GsonUtils {
          * @return Class class
          */
         public Class getType(final JsonElement element) {
-            if (element.isJsonPrimitive()) {
-                final JsonPrimitive primitive = element.getAsJsonPrimitive();
-                if (primitive.isString()) {
-                    return String.class;
-                } else if (primitive.isNumber()) {
-                    String numStr = primitive.getAsString();
-                    if (numStr.contains(DOT) || numStr.contains(E)
-                            || numStr.contains("E")) {
-                        return Double.class;
-                    }
-                    return Long.class;
-                } else if (primitive.isBoolean()) {
-                    return Boolean.class;
-                }
+            if (!element.isJsonPrimitive()) {
+                return element.getClass();
             }
-            return element.getClass();
+            
+            final JsonPrimitive primitive = element.getAsJsonPrimitive();
+            if (primitive.isString()) {
+                return String.class;
+            } else if (primitive.isNumber()) {
+                String numStr = primitive.getAsString();
+                if (numStr.contains(DOT) || numStr.contains(E)
+                        || numStr.contains("E")) {
+                    return Double.class;
+                }
+                return Long.class;
+            } else if (primitive.isBoolean()) {
+                return Boolean.class;
+            } else {
+                return element.getClass();
+            }
         }
     }
-
+    
 }

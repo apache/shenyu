@@ -17,6 +17,7 @@
 
 package org.dromara.soul.plugin.apache.dubbo.proxy;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -29,8 +30,6 @@ import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.exception.SoulException;
 import org.dromara.soul.extend.api.dubbo.DubboParamResolveService;
 import org.dromara.soul.plugin.apache.dubbo.cache.ApplicationConfigCache;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -42,15 +41,11 @@ import java.util.concurrent.CompletableFuture;
  *
  * @author xiaoyu(Myth)
  */
+@Slf4j
 public class ApacheDubboProxyService {
-
-    /**
-     * logger.
-     */
-    private static final Logger LOGGER = LoggerFactory.getLogger(ApacheDubboProxyService.class);
-
+    
     private final DubboParamResolveService dubboParamResolveService;
-
+    
     /**
      * Instantiates a new Dubbo proxy service.
      *
@@ -59,31 +54,23 @@ public class ApacheDubboProxyService {
     public ApacheDubboProxyService(final DubboParamResolveService dubboParamResolveService) {
         this.dubboParamResolveService = dubboParamResolveService;
     }
-
+    
     /**
      * Generic invoker object.
      *
-     * @param body            the body
-     * @param metaData        the meta data
+     * @param body     the body
+     * @param metaData the meta data
+     * @param exchange the exchange
      * @return the object
      * @throws SoulException the soul exception
      */
-    public Mono<Object> genericInvoker(final String body, final MetaData metaData, ServerWebExchange exchange) throws SoulException {
-        ReferenceConfig<GenericService> reference;
-        GenericService genericService;
-        try {
-            reference = ApplicationConfigCache.getInstance().get(metaData.getServiceName());
-            if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getInterface())) {
-                ApplicationConfigCache.getInstance().invalidate(metaData.getServiceName());
-                reference = ApplicationConfigCache.getInstance().initRef(metaData);
-            }
-            genericService = reference.get();
-        } catch (Exception ex) {
-            LOGGER.error("dubbo 泛化初始化异常:", ex);
+    public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws SoulException {
+        ReferenceConfig<GenericService> reference = ApplicationConfigCache.getInstance().get(metaData.getServiceName());
+        if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getInterface())) {
             ApplicationConfigCache.getInstance().invalidate(metaData.getServiceName());
             reference = ApplicationConfigCache.getInstance().initRef(metaData);
-            genericService = reference.get();
         }
+        GenericService genericService = reference.get();
         Pair<String[], Object[]> pair;
         try {
             if ("".equals(body) || "{}".equals(body) || "null".equals(body)) {
@@ -91,10 +78,10 @@ public class ApacheDubboProxyService {
             } else {
                 pair = dubboParamResolveService.buildParameter(body, metaData.getParameterTypes());
             }
-            CompletableFuture<Object> future= genericService.$invokeAsync(metaData.getMethodName(), pair.getLeft(), pair.getRight());
-            return  Mono.fromFuture(future.thenApply(ret -> {
+            CompletableFuture<Object> future = genericService.$invokeAsync(metaData.getMethodName(), pair.getLeft(), pair.getRight());
+            return Mono.fromFuture(future.thenApply(ret -> {
                 if (Objects.nonNull(ret)) {
-                    exchange.getAttributes().put(Constants.DUBBO_RPC_RESULT,ret);
+                    exchange.getAttributes().put(Constants.DUBBO_RPC_RESULT, ret);
                 } else {
                     exchange.getAttributes().put(Constants.DUBBO_RPC_RESULT, Constants.DUBBO_RPC_RESULT_EMPTY);
                 }
@@ -102,9 +89,8 @@ public class ApacheDubboProxyService {
                 return ret;
             }));
         } catch (GenericException e) {
-            LOGGER.error("dubbo 泛化调用异常", e);
+            log.error("dubbo 泛化调用异常", e);
             throw new SoulException(e.getMessage());
         }
     }
-
 }

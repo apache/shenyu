@@ -27,7 +27,11 @@ import org.dromara.soul.common.enums.RedisModeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.base.utils.Singleton;
 import org.dromara.soul.plugin.base.cache.AbstractDataSubscriber;
-import org.springframework.data.redis.connection.*;
+import org.springframework.data.redis.connection.RedisClusterConfiguration;
+import org.springframework.data.redis.connection.RedisNode;
+import org.springframework.data.redis.connection.RedisPassword;
+import org.springframework.data.redis.connection.RedisSentinelConfiguration;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettucePoolingClientConfiguration;
@@ -45,7 +49,7 @@ import java.util.Objects;
 public class RateLimiterPluginDataSubscriber extends AbstractDataSubscriber {
     
     @Override
-    protected void initPlugin(PluginData pluginData) {
+    protected void initPlugin(final PluginData pluginData) {
         if (Objects.nonNull(pluginData) && pluginData.getEnabled()) {
             //init redis
             RateLimiterConfig rateLimiterConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), RateLimiterConfig.class);
@@ -81,9 +85,7 @@ public class RateLimiterPluginDataSubscriber extends AbstractDataSubscriber {
     }
     
     private LettuceClientConfiguration getLettuceClientConfiguration(final RateLimiterConfig rateLimiterConfig) {
-        return LettucePoolingClientConfiguration.builder()
-                .poolConfig(getPoolConfig(rateLimiterConfig))
-                .build();
+        return LettucePoolingClientConfiguration.builder().poolConfig(getPoolConfig(rateLimiterConfig)).build();
     }
     
     private GenericObjectPoolConfig<?> getPoolConfig(final RateLimiterConfig rateLimiterConfig) {
@@ -134,14 +136,9 @@ public class RateLimiterPluginDataSubscriber extends AbstractDataSubscriber {
         List<RedisNode> redisNodes = new ArrayList<>();
         List<String> nodes = Lists.newArrayList(Splitter.on(";").split(url));
         for (String node : nodes) {
-            try {
-                String[] parts = StringUtils.split(node, ":");
-                Assert.state(Objects.requireNonNull(parts).length == 2, "Must be defined as 'host:port'");
-                redisNodes.add(new RedisNode(parts[0], Integer.parseInt(parts[1])));
-            } catch (RuntimeException ex) {
-                throw new IllegalStateException(
-                        "Invalid redis sentinel " + "property '" + node + "'", ex);
-            }
+            String[] parts = StringUtils.split(node, ":");
+            Assert.state(Objects.requireNonNull(parts).length == 2, "Must be defined as 'host:port'");
+            redisNodes.add(new RedisNode(parts[0], Integer.parseInt(parts[1])));
         }
         return redisNodes;
     }

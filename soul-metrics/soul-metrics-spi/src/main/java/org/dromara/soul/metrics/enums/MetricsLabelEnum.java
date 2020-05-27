@@ -40,9 +40,7 @@ public enum MetricsLabelEnum {
     /**
      * Request latency metrics label.
      */
-    REQUEST_LATENCY("request_latency"),
-    
-   ;
+    REQUEST_LATENCY("request_latency");
     
     private final String name;
 }

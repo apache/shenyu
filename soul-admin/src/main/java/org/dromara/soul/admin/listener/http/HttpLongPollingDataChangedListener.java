@@ -43,6 +43,7 @@ import org.springframework.http.MediaType;
 import javax.servlet.AsyncContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -188,7 +189,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             response.setContentType(MediaType.APPLICATION_JSON_UTF8_VALUE);
             response.setStatus(HttpServletResponse.SC_OK);
             response.getWriter().println(GsonUtils.getInstance().toJson(SoulAdminResult.success("success", changedGroups)));
-        } catch (Exception ex) {
+        } catch (IOException ex) {
             LOGGER.error("Sending response failed.", ex);
         }
     }
@@ -236,15 +237,11 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
 
         @Override
         public void run() {
-            try {
-                for (Iterator<LongPollingClient> iter = clients.iterator(); iter.hasNext();) {
-                    LongPollingClient client = iter.next();
-                    iter.remove();
-                    client.sendResponse(Collections.singletonList(groupKey));
-                    LOGGER.info("send response with the changed group,ip={},group={},changeTime={}", client.ip, groupKey, changeTime);
-                }
-            } catch (Throwable e) {
-                LOGGER.error("data change error.", e);
+            for (Iterator<LongPollingClient> iter = clients.iterator(); iter.hasNext();) {
+                LongPollingClient client = iter.next();
+                iter.remove();
+                client.sendResponse(Collections.singletonList(groupKey));
+                LOGGER.info("send response with the changed group,ip={},group={},changeTime={}", client.ip, groupKey, changeTime);
             }
         }
     }

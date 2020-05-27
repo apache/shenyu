@@ -31,8 +31,7 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 @Getter
 public enum DataSyncEnum {
-
-
+    
     /**
      * Http data sync enum.
      */
@@ -61,6 +60,4 @@ public enum DataSyncEnum {
                 .filter(e -> e.getName().equals(name)).findFirst()
                 .orElse(DataSyncEnum.HTTP);
     }
-
-
 }

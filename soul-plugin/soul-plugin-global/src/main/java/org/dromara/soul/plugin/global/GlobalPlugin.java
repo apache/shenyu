@@ -29,10 +29,18 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+/**
+ * The type Global plugin.
+ */
 public class GlobalPlugin implements SoulPlugin {
     
     private SoulContextBuilder builder;
     
+    /**
+     * Instantiates a new Global plugin.
+     *
+     * @param builder the builder
+     */
     public GlobalPlugin(final SoulContextBuilder builder) {
         this.builder = builder;
     }

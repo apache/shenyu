@@ -45,7 +45,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Abstract class for ConfigEventListener.
  * As we think that the md5 value of the in-memory data is the same as the md5 value of the database,
- * although it may be a little different, but it doesn't matter, we will have thread to periodically
+ * although it may be a little different, but it doesn't matter, we will have thread to periodica
  * pull the data in the database.
  *
  * @author huangxiaofeng
@@ -53,38 +53,38 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @SuppressWarnings("all")
 public abstract class AbstractDataChangedListener implements DataChangedListener, InitializingBean {
-
+    
     /**
      * The constant CACHE.
      */
     protected static final ConcurrentHashMap<String, ConfigDataCache> CACHE = new ConcurrentHashMap<>();
-
+    
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDataChangedListener.class);
-
+    
     @Resource
     private AppAuthService appAuthService;
-
+    
     /**
      * The Plugin service.
      */
     @Resource
     private PluginService pluginService;
-
+    
     /**
      * The Rule service.
      */
     @Resource
     private RuleService ruleService;
-
+    
     /**
      * The Selector service.
      */
     @Resource
     private SelectorService selectorService;
-
+    
     @Resource
     private MetaDataService metaDataService;
-
+    
     /**
      * fetch configuration from database.
      *
@@ -108,7 +108,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
                 throw new IllegalStateException("Unexpected groupKey: " + groupKey);
         }
     }
-
+    
     @Override
     public void onAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {
@@ -117,7 +117,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         this.updateAppAuthCache();
         this.afterAppAuthChanged(changed, eventType);
     }
-
+    
     @Override
     public void onMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {
@@ -126,8 +126,8 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         this.updateMetaDataCache();
         this.afterMetaDataChanged(changed, eventType);
     }
-
-
+    
+    
     /**
      * After meta data changed.
      *
@@ -136,7 +136,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      */
     protected void afterMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
     }
-
+    
     /**
      * After app auth changed.
      *
@@ -145,7 +145,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      */
     protected void afterAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
     }
-
+    
     @Override
     public void onPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {
@@ -154,7 +154,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         this.updatePluginCache();
         this.afterPluginChanged(changed, eventType);
     }
-
+    
     /**
      * After plugin changed.
      *
@@ -163,7 +163,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      */
     protected void afterPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType) {
     }
-
+    
     @Override
     public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {
@@ -172,7 +172,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         this.updateRuleCache();
         this.afterRuleChanged(changed, eventType);
     }
-
+    
     /**
      * After rule changed.
      *
@@ -181,7 +181,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      */
     protected void afterRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
     }
-
+    
     @Override
     public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {
@@ -190,7 +190,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         this.updateSelectorCache();
         this.afterSelectorChanged(changed, eventType);
     }
-
+    
     /**
      * After selector changed.
      *
@@ -199,7 +199,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      */
     protected void afterSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
     }
-
+    
     @Override
     public final void afterPropertiesSet() {
         updateAppAuthCache();
@@ -208,70 +208,50 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         updateSelectorCache();
         updateMetaDataCache();
     }
-
+    
     /**
      * Update selector cache.
      */
     protected void updateSelectorCache() {
-        try {
-            String json = GsonUtils.getInstance().toJson(selectorService.listAll());
-            String group = ConfigGroupEnum.SELECTOR.name();
-            CACHE.put(group, new ConfigDataCache(group, Md5Utils.md5(json), System.currentTimeMillis()));
-        } catch (Exception e) {
-            LOGGER.warn("updateSelectorCache error.", e);
-        }
+        String json = GsonUtils.getInstance().toJson(selectorService.listAll());
+        String group = ConfigGroupEnum.SELECTOR.name();
+        CACHE.put(group, new ConfigDataCache(group, Md5Utils.md5(json), System.currentTimeMillis()));
     }
-
+    
     /**
      * Update rule cache.
      */
     protected void updateRuleCache() {
-        try {
-            String json = GsonUtils.getInstance().toJson(ruleService.listAll());
-            String group = ConfigGroupEnum.RULE.name();
-            CACHE.put(group, new ConfigDataCache(group, Md5Utils.md5(json), System.currentTimeMillis()));
-        } catch (Exception e) {
-            LOGGER.warn("updateRuleCache error.", e);
-        }
+        String json = GsonUtils.getInstance().toJson(ruleService.listAll());
+        String group = ConfigGroupEnum.RULE.name();
+        CACHE.put(group, new ConfigDataCache(group, Md5Utils.md5(json), System.currentTimeMillis()));
     }
-
+    
     /**
      * Update plugin cache.
      */
     protected void updatePluginCache() {
-        try {
-            String json = GsonUtils.getInstance().toJson(pluginService.listAll());
-            String group = ConfigGroupEnum.PLUGIN.name();
-            CACHE.put(group, new ConfigDataCache(group, Md5Utils.md5(json), System.currentTimeMillis()));
-        } catch (Exception e) {
-            LOGGER.warn("updatePluginCache error.", e);
-        }
+        String json = GsonUtils.getInstance().toJson(pluginService.listAll());
+        String group = ConfigGroupEnum.PLUGIN.name();
+        CACHE.put(group, new ConfigDataCache(group, Md5Utils.md5(json), System.currentTimeMillis()));
     }
-
+    
     /**
      * Update app auth cache.
      */
     protected void updateAppAuthCache() {
-        try {
-            String json = GsonUtils.getInstance().toJson(appAuthService.listAll());
-            String group = ConfigGroupEnum.APP_AUTH.name();
-            CACHE.put(group, new ConfigDataCache(group, Md5Utils.md5(json), System.currentTimeMillis()));
-        } catch (Exception e) {
-            LOGGER.warn("updateAppAuthCache error.", e);
-        }
+        String json = GsonUtils.getInstance().toJson(appAuthService.listAll());
+        String group = ConfigGroupEnum.APP_AUTH.name();
+        CACHE.put(group, new ConfigDataCache(group, Md5Utils.md5(json), System.currentTimeMillis()));
     }
-
+    
     /**
      * Update meta data cache.
      */
     protected void updateMetaDataCache() {
-        try {
-            String json = GsonUtils.getInstance().toJson(metaDataService.listAll());
-            String group = ConfigGroupEnum.META_DATA.name();
-            CACHE.put(group, new ConfigDataCache(group, Md5Utils.md5(json), System.currentTimeMillis()));
-        } catch (Exception e) {
-            LOGGER.warn("updateMetaDataCache error.", e);
-        }
+        String json = GsonUtils.getInstance().toJson(metaDataService.listAll());
+        String group = ConfigGroupEnum.META_DATA.name();
+        CACHE.put(group, new ConfigDataCache(group, Md5Utils.md5(json), System.currentTimeMillis()));
     }
-
+    
 }

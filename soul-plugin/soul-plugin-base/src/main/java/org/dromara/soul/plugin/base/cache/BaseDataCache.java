@@ -33,9 +33,10 @@ import java.util.stream.Collectors;
 /**
  * The type Base data cache.
  */
-public class BaseDataCache {
+public final class BaseDataCache {
     
     private static final BaseDataCache INSTANCE = new BaseDataCache();
+    
     /**
      * pluginName -> PluginData.
      */

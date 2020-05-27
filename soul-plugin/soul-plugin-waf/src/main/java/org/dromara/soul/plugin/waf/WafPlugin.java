@@ -27,13 +27,10 @@ import org.dromara.soul.common.dto.convert.WafHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.WafEnum;
 import org.dromara.soul.common.utils.GsonUtils;
-import org.dromara.soul.common.utils.LogUtils;
-import org.dromara.soul.extend.impl.result.SoulResultWarp;
+import org.dromara.soul.plugin.base.utils.SoulResultWarp;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
-import org.dromara.soul.plugin.base.utils.ResultUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -60,7 +57,7 @@ public class WafPlugin extends AbstractSoulPlugin {
         if (WafEnum.REJECT.getName().equals(wafHandle.getPermission())) {
             exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
             Object error = SoulResultWarp.error(Integer.parseInt(wafHandle.getStatusCode()), Constants.REJECT_MSG, null);
-            return ResultUtils.result(exchange, error);
+            return WebFluxResultUtils.result(exchange, error);
         }
         return chain.execute(exchange);
     }
