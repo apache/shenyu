@@ -19,11 +19,18 @@
 
 package org.dromara.soul.web.plugin.dubbo;
 
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dromara.soul.common.utils.GsonUtils;
 
-import java.util.Map;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 /**
  * The type Default generic param resolve service.
@@ -34,7 +41,27 @@ public class DefaultGenericParamResolveServiceImpl implements GenericParamResolv
 
     @Override
     public Pair<String[], Object[]> buildParameter(final String body, final String parameterTypes) {
+//        final Map<String, Object> paramMap = GsonUtils.getInstance().toObjectMap(body);
+//        return new ImmutablePair<>(new String[]{parameterTypes}, new Object[]{paramMap});
+
         final Map<String, Object> paramMap = GsonUtils.getInstance().toObjectMap(body);
-        return new ImmutablePair<>(new String[]{parameterTypes}, new Object[]{paramMap});
+        List<Object> list = new LinkedList<>();
+        for (Iterator<String> it = paramMap.keySet().iterator(); it.hasNext();){
+            String key = it.next();
+            Object obj = paramMap.get(key);
+            if (obj instanceof JsonObject){
+                Map<String, Object> map = GsonUtils.getInstance().convertToMap(obj.toString());
+                list.add(map);
+            }else if (obj instanceof JsonArray){
+                List objList = GsonUtils.getInstance().fromList(obj.toString(), Object.class);
+                list.add(objList);
+            }else {
+                list.add(obj);
+            }
+        }
+        Object[] objects = list.toArray();
+        String[] params = StringUtils.isEmpty(parameterTypes) ? null :parameterTypes.split(",");
+
+        return new ImmutablePair<>(params, objects);
     }
 }
