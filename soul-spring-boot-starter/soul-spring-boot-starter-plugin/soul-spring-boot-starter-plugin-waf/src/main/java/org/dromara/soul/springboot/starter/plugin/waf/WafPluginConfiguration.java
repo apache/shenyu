@@ -33,22 +33,22 @@ import org.springframework.context.annotation.Configuration;
 public class WafPluginConfiguration {
     
     /**
-     * Sign plugin soul plugin.
+     * Waf plugin soul plugin.
      *
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin signPlugin() {
+    public SoulPlugin wafPlugin() {
         return new WafPlugin();
     }
     
     /**
-     * Data subscriber plugin data subscriber.
+     * Waf plugin data subscriber.
      *
      * @return the plugin data subscriber
      */
     @Bean
-    public PluginDataSubscriber dataSubscriber() {
+    public PluginDataSubscriber wafPluginDataSubscriber() {
         return new WafPluginDataSubscriber();
     }
     

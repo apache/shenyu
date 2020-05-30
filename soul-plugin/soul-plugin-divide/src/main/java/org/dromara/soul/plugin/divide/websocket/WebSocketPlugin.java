@@ -88,7 +88,7 @@ public class WebSocketPlugin extends AbstractSoulPlugin {
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
         final List<DivideUpstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
-        final SoulContext soulContext = exchange.getAttribute(Constants.REQUESTDTO);
+        final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         if (CollectionUtils.isEmpty(upstreamList) || Objects.isNull(soulContext)) {
             LogUtils.error(LOGGER, "divide upstream configuration error：{}", rule::toString);
             return chain.execute(exchange);
@@ -148,7 +148,7 @@ public class WebSocketPlugin extends AbstractSoulPlugin {
      */
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
-        final SoulContext body = exchange.getAttribute(Constants.REQUESTDTO);
+        final SoulContext body = exchange.getAttribute(Constants.CONTEXT);
         return !Objects.equals(Objects.requireNonNull(body).getRpcType(), RpcTypeEnum.WEB_SOCKET.getName());
     }
     

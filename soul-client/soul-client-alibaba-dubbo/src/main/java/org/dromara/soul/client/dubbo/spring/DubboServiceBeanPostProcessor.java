@@ -2,7 +2,7 @@ package org.dromara.soul.client.dubbo.spring;
 
 import com.alibaba.dubbo.config.spring.ServiceBean;
 import lombok.extern.slf4j.Slf4j;
-import org.dromara.soul.client.common.annotation.SoulClient;
+import org.dromara.soul.client.common.annotation.SoulHttpClient;
 import org.dromara.soul.client.common.dto.MetaDataDTO;
 import org.dromara.soul.client.common.utils.OkHttpTools;
 import org.dromara.soul.client.dubbo.config.DubboConfig;
@@ -64,8 +64,8 @@ public class DubboServiceBeanPostProcessor implements BeanPostProcessor {
         }
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
-            SoulClient soulClient = method.getAnnotation(SoulClient.class);
-            if (Objects.nonNull(soulClient)) {
+            SoulHttpClient soulHttpClient = method.getAnnotation(SoulHttpClient.class);
+            if (Objects.nonNull(soulHttpClient)) {
                 String contextPath = dubboConfig.getContextPath();
                 String adminUrl = dubboConfig.getAdminUrl();
                 if (contextPath == null || "".equals(contextPath)
@@ -73,18 +73,18 @@ public class DubboServiceBeanPostProcessor implements BeanPostProcessor {
                     log.error("........dubbo client must config context-path and adminUrl.........");
                     return;
                 }
-                post(buildJsonParams(serviceBean, soulClient, method));
+                post(buildJsonParams(serviceBean, soulHttpClient, method));
             }
         }
     }
 
-    private String buildJsonParams(final ServiceBean serviceBean, final SoulClient soulClient, final Method method) {
+    private String buildJsonParams(final ServiceBean serviceBean, final SoulHttpClient soulHttpClient, final Method method) {
         String appName = dubboConfig.getAppName();
         if (appName == null || "".equals(appName)) {
             appName = serviceBean.getApplication().getName();
         }
-        String path = dubboConfig.getContextPath() + soulClient.path();
-        String desc = soulClient.desc();
+        String path = dubboConfig.getContextPath() + soulHttpClient.path();
+        String desc = soulHttpClient.desc();
         String serviceName = serviceBean.getInterface();
         String methodName = method.getName();
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
@@ -99,7 +99,7 @@ public class DubboServiceBeanPostProcessor implements BeanPostProcessor {
                 .parameterTypes(parameterTypes)
                 .rpcExt(buildRpcExt(serviceBean))
                 .rpcType("dubbo")
-                .enabled(soulClient.enabled())
+                .enabled(soulHttpClient.enabled())
                 .build();
         return OkHttpTools.getInstance().getGosn().toJson(metaDataDTO);
 

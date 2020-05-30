@@ -49,7 +49,7 @@ public class RateLimiterPluginConfiguration {
      * @return the plugin data subscriber
      */
     @Bean
-    public PluginDataSubscriber dataSubscriber() {
+    public PluginDataSubscriber rateLimiterPluginDataSubscriber() {
         return new RateLimiterPluginDataSubscriber();
     }
 }

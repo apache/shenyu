@@ -18,12 +18,16 @@
 
 package org.dromara.soul.web.configuration;
 
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.dromara.soul.plugin.api.RemoteAddressResolver;
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.web.config.SoulConfig;
 import org.dromara.soul.web.filter.FileSizeFilter;
 import org.dromara.soul.web.filter.TimeWebFilter;
-import org.dromara.soul.web.filter.WebSocketWebFilter;
+import org.dromara.soul.web.filter.WebSocketParamFilter;
 import org.dromara.soul.web.forwarde.ForwardedRemoteAddressResolver;
 import org.dromara.soul.web.handler.SoulWebHandler;
 import org.springframework.beans.factory.ObjectProvider;
@@ -36,11 +40,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
 import org.springframework.web.server.WebFilter;
-
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * SoulConfiguration.
@@ -121,6 +120,6 @@ public class SoulConfiguration {
     @Bean
     @Order(4)
     public WebFilter webSocketWebFilter() {
-        return new WebSocketWebFilter();
+        return new WebSocketParamFilter();
     }
 }

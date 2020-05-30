@@ -16,26 +16,46 @@
  *
  */
 
-package org.dromara.soul.bootstrap;
+package org.dromara.soul.client.common.enums;
 
-import org.junit.FixMethodOrder;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
-import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
- * <p>Description: .</p>
+ * RpcTypeEnum.
  *
- * @author xiaoyu(Myth)
- * @version 1.0
- * @date 2018/4/25 16:57
- * @since JDK 1.8
+ * @author xiaoyu(549477611 @ qq.com)
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
-@AutoConfigureWebTestClient(timeout = "36000")
-public class BaseTest {
+@RequiredArgsConstructor
+@Getter
+public enum RpcTypeEnum {
+    
+    /**
+     * Http rpc type enum.
+     */
+    HTTP("http"),
+    
+    /**
+     * Dubbo rpc type enum.
+     */
+    DUBBO("dubbo"),
+    
+    /**
+     * springCloud rpc type enum.
+     */
+    SPRING_CLOUD("springCloud"),
+    
+    /**
+     * motan.
+     */
+    MOTAN("motan"),
+    
+    /**
+     * grpc.
+     */
+    GRPC("grpc");
+    
+    
+    private final String name;
+    
 }

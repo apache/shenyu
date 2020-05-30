@@ -67,7 +67,7 @@ public class GlobalPluginConfiguration {
      * @return the meta data subscriber
      */
     @Bean
-    public MetaDataSubscriber dataSubscriber() {
+    public MetaDataSubscriber metaDataAllSubscriber() {
         return new MetaDataAllSubscriber();
     }
 }

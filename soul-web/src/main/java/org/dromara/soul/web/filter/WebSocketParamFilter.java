@@ -38,7 +38,7 @@ import reactor.core.publisher.Mono;
  *
  * @author xiaoyu(Myth)
  */
-public class WebSocketWebFilter extends AbstractWebFilter {
+public class WebSocketParamFilter extends AbstractWebFilter {
     
     @Override
     protected Mono<Boolean> doFilter(final ServerWebExchange exchange, final WebFilterChain chain) {

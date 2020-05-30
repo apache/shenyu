@@ -62,22 +62,22 @@ public class SignPluginConfiguration {
     }
     
     /**
-     * Data subscriber plugin data subscriber.
+     * Sign plugin data subscriber.
      *
      * @return the plugin data subscriber
      */
     @Bean
-    public PluginDataSubscriber dataSubscriber() {
+    public PluginDataSubscriber signPluginDataSubscriber() {
         return new SignPluginDataSubscriber();
     }
     
     /**
-     * Auth data subscriber auth data subscriber.
+     * Sign auth data subscriber.
      *
      * @return the auth data subscriber
      */
     @Bean
-    public AuthDataSubscriber authDataSubscriber() {
+    public AuthDataSubscriber signAuthDataSubscriber() {
         return new SignAuthDataSubscriber();
     }
 }

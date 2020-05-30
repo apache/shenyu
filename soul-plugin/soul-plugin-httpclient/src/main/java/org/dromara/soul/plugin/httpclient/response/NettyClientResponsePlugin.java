@@ -90,7 +90,7 @@ public class NettyClientResponsePlugin implements SoulPlugin {
 
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
-        final SoulContext soulContext = exchange.getAttribute(Constants.REQUESTDTO);
+        final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
         return !Objects.equals(RpcTypeEnum.HTTP.getName(), soulContext.getRpcType())
                 && !Objects.equals(RpcTypeEnum.SPRING_CLOUD.getName(), soulContext.getRpcType());

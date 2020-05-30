@@ -87,22 +87,22 @@ public class ApacheDubboPluginConfiguration {
     }
     
     /**
-     * Data subscriber plugin data subscriber.
+     * Dubbo plugin data subscriber.
      *
      * @return the plugin data subscriber
      */
     @Bean
-    public PluginDataSubscriber pluginDataSubscriber() {
+    public PluginDataSubscriber dubboPluginDataSubscriber() {
         return new ApacheDubboPluginDataSubscriber();
     }
     
     /**
-     * Meta data subscriber meta data subscriber.
+     * dubbo meta data subscriber meta data subscriber.
      *
      * @return the meta data subscriber
      */
     @Bean
-    public MetaDataSubscriber metaDataSubscriber() {
+    public MetaDataSubscriber DubboMetaDataSubscriber() {
         return new ApacheDubboMetaDataSubscriber();
     }
 }

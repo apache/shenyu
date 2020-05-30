@@ -19,16 +19,13 @@ package org.dromara.soul.plugin.base.cache;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import java.util.Comparator;
+import java.util.List;
+import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.TreeSet;
-import java.util.concurrent.ConcurrentMap;
-import java.util.stream.Collectors;
 
 /**
  * The type Base data cache.
@@ -101,11 +98,10 @@ public final class BaseDataCache {
         String key = data.getPluginName();
         if (SELECTOR_MAP.containsKey(key)) {
             List<SelectorData> existList = SELECTOR_MAP.get(key);
-            existList.add(data);
-            // distinct and sort
-            List<SelectorData> resultList = existList.stream().sorted(Comparator.comparing(SelectorData::getSort))
-                    .collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(SelectorData::getId))), ArrayList::new));
-            SELECTOR_MAP.put(key, resultList);
+            final List<SelectorData> resultList = existList.stream().filter(r -> !r.getId().equals(data.getId())).collect(Collectors.toList());
+            resultList.add(data);
+            final List<SelectorData> collect = resultList.stream().sorted(Comparator.comparing(SelectorData::getSort)).collect(Collectors.toList());
+            SELECTOR_MAP.put(key, collect);
         } else {
             SELECTOR_MAP.put(key, Lists.newArrayList(data));
         }
@@ -140,11 +136,10 @@ public final class BaseDataCache {
         String selectorId = ruleData.getSelectorId();
         if (RULE_MAP.containsKey(selectorId)) {
             List<RuleData> existList = RULE_MAP.get(selectorId);
-            existList.add(ruleData);
-            // distinct and sort
-            List<RuleData> resultList = existList.stream().sorted(Comparator.comparing(RuleData::getSort))
-                    .collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(RuleData::getId))), ArrayList::new));
-            RULE_MAP.put(selectorId, resultList);
+            final List<RuleData> resultList = existList.stream().filter(r -> !r.getId().equals(ruleData.getId())).collect(Collectors.toList());
+            resultList.add(ruleData);
+            final List<RuleData> collect = resultList.stream().sorted(Comparator.comparing(RuleData::getSort)).collect(Collectors.toList());
+            RULE_MAP.put(selectorId, collect);
         } else {
             RULE_MAP.put(selectorId, Lists.newArrayList(ruleData));
         }

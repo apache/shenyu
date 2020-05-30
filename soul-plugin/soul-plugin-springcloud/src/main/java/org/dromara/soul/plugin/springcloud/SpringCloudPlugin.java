@@ -64,7 +64,7 @@ public class SpringCloudPlugin extends AbstractSoulPlugin {
         if (Objects.isNull(rule)) {
             return Mono.empty();
         }
-        final SoulContext soulContext = exchange.getAttribute(Constants.REQUESTDTO);
+        final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
         final SpringCloudRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), SpringCloudRuleHandle.class);
         final String serviceId = selector.getHandle();
@@ -106,7 +106,7 @@ public class SpringCloudPlugin extends AbstractSoulPlugin {
      */
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
-        final SoulContext body = exchange.getAttribute(Constants.REQUESTDTO);
+        final SoulContext body = exchange.getAttribute(Constants.CONTEXT);
         return !Objects.equals(Objects.requireNonNull(body).getRpcType(), RpcTypeEnum.SPRING_CLOUD.getName());
     }
 

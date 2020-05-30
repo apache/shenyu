@@ -43,12 +43,12 @@ public class HystrixPluginConfiguration {
     }
     
     /**
-     * Data subscriber plugin data subscriber.
+     * Hystrix plugin data subscriber.
      *
      * @return the plugin data subscriber
      */
     @Bean
-    public PluginDataSubscriber dataSubscriber() {
+    public PluginDataSubscriber hystrixPluginDataSubscriber() {
         return new HystrixPluginDataSubscriber();
     }
     

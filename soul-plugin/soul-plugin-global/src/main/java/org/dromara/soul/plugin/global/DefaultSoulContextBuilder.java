@@ -17,6 +17,8 @@
 
 package org.dromara.soul.plugin.global;
 
+import java.time.LocalDateTime;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.MetaData;
@@ -24,12 +26,10 @@ import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.plugin.api.context.SoulContext;
 import org.dromara.soul.plugin.api.context.SoulContextBuilder;
 import org.dromara.soul.plugin.global.cache.MetaDataCache;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
-
-import java.time.LocalDateTime;
-import java.util.Objects;
 
 public class DefaultSoulContextBuilder implements SoulContextBuilder {
     
@@ -54,6 +54,7 @@ public class DefaultSoulContextBuilder implements SoulContextBuilder {
         final String appKey = request.getHeaders().getFirst(Constants.APP_KEY);
         final String sign = request.getHeaders().getFirst(Constants.SIGN);
         final String timestamp = request.getHeaders().getFirst(Constants.TIMESTAMP);
+        final HttpHeaders headers = request.getHeaders();
         SoulContext soulContext = new SoulContext();
         String path = request.getURI().getPath();
         soulContext.setPath(path);
@@ -61,7 +62,6 @@ public class DefaultSoulContextBuilder implements SoulContextBuilder {
             soulContext.setModule(metaData.getAppName());
             soulContext.setMethod(metaData.getServiceName());
             soulContext.setRpcType(metaData.getRpcType());
-            soulContext.setPath(metaData.getPath());
             soulContext.setContextPath(metaData.getContextPath());
         } else {
             String[] splitList = StringUtils.split(path, "/");
@@ -70,6 +70,7 @@ public class DefaultSoulContextBuilder implements SoulContextBuilder {
                 String realUrl = path.substring(contextPath.length());
                 soulContext.setContextPath(contextPath);
                 soulContext.setModule(contextPath);
+                soulContext.setMethod(realUrl);
                 soulContext.setRealUrl(realUrl);
             } else {
                 soulContext.setModule(path);

@@ -3,7 +3,7 @@ package org.dromara.soul.test.dubbo.service.service;
 import java.util.List;
 import java.util.Map;
 
-import org.dromara.soul.client.common.annotation.SoulClient;
+import org.dromara.soul.client.common.annotation.SoulHttpClient;
 import org.dromara.soul.test.dubbo.api.entity.ComplexBeanTest;
 import org.dromara.soul.test.dubbo.api.entity.DubboTest;
 import org.dromara.soul.test.dubbo.api.service.DubboMultiParamTestService;
@@ -26,7 +26,7 @@ public class DubboMultiParamTestServiceImpl implements DubboMultiParamTestServic
      * @return
      */
     @Override
-    @SoulClient(path = "/findDataByParam", desc = "根据参数查询数据")
+    @SoulHttpClient(path = "/findDataByParam", desc = "根据参数查询数据")
     public String findDataByParam(String id, String name) {
         return "id=" + id + ",name=" + name;
     }
@@ -38,7 +38,7 @@ public class DubboMultiParamTestServiceImpl implements DubboMultiParamTestServic
      * @param name { "ids": 1, "name":"aaa" }@return
      */
     @Override
-    @SoulClient(path = "/findDataByParam2", desc = "根据参数查询数据")
+    @SoulHttpClient(path = "/findDataByParam2", desc = "根据参数查询数据")
     public String findDataByParam2(Integer id, String name) {
         return "id=" + id + ",name=" + name;
     }
@@ -51,7 +51,7 @@ public class DubboMultiParamTestServiceImpl implements DubboMultiParamTestServic
      * @return
      */
     @Override
-    @SoulClient(path = "/findDataByParam3", desc = "根据参数查询数据")
+    @SoulHttpClient(path = "/findDataByParam3", desc = "根据参数查询数据")
     public String findDataByParam3(Integer id, Double grade) {
         return "id=" + id + ",grade=" + grade;
     }
@@ -64,7 +64,7 @@ public class DubboMultiParamTestServiceImpl implements DubboMultiParamTestServic
      * @return
      */
     @Override
-    @SoulClient(path = "/findDataByParam4", desc = "根据参数查询数据")
+    @SoulHttpClient(path = "/findDataByParam4", desc = "根据参数查询数据")
     public String findDataByParam4(Integer[] ids, String name) {
         return ids + "," + name;
     }
@@ -77,7 +77,7 @@ public class DubboMultiParamTestServiceImpl implements DubboMultiParamTestServic
      * @return
      */
     @Override
-    @SoulClient(path = "/findDataByParam5", desc = "根据参数查询数据")
+    @SoulHttpClient(path = "/findDataByParam5", desc = "根据参数查询数据")
     public String findDataByParam5(Integer[] ids, String[] names) {
         return ids + "," + names;
     }
@@ -91,7 +91,7 @@ public class DubboMultiParamTestServiceImpl implements DubboMultiParamTestServic
      * @return
      */
     @Override
-    @SoulClient(path = "/findDataByParam6", desc = "根据参数查询数据")
+    @SoulHttpClient(path = "/findDataByParam6", desc = "根据参数查询数据")
     public String findDataByParam6(List<Integer> ids, List<String> names) {
         return ids.toString() + "," + names.toString();
     }
@@ -104,7 +104,7 @@ public class DubboMultiParamTestServiceImpl implements DubboMultiParamTestServic
      * @return
      */
     @Override
-    @SoulClient(path = "/findDataByParam62", desc = "根据参数查询数据")
+    @SoulHttpClient(path = "/findDataByParam62", desc = "根据参数查询数据")
     public String findDataByParam62(List<Integer> ids, List<DubboTest> dubboTests) {
         return ids.toString() + "," + dubboTests.toString();
     }
@@ -116,7 +116,7 @@ public class DubboMultiParamTestServiceImpl implements DubboMultiParamTestServic
      * @return
      */
     @Override
-    @SoulClient(path = "/findDataByParam7", desc = "根据参数查询数据")
+    @SoulHttpClient(path = "/findDataByParam7", desc = "根据参数查询数据")
     public String findDataByParam7(List<Integer> ids, Map<String, Integer> nameMap) {
         return ids.toString() + "," + nameMap.values();
     }
@@ -129,7 +129,7 @@ public class DubboMultiParamTestServiceImpl implements DubboMultiParamTestServic
      * @return
      */
     @Override
-    @SoulClient(path = "/findDataByParam8", desc = "根据参数查询数据")
+    @SoulHttpClient(path = "/findDataByParam8", desc = "根据参数查询数据")
     public String findDataByParam8(Integer id, DubboTest dubboTest) {
         return id + "," + dubboTest.toString();
     }
@@ -144,7 +144,7 @@ public class DubboMultiParamTestServiceImpl implements DubboMultiParamTestServic
      * @return
      */
     @Override
-    @SoulClient(path = "/findDataByParam9", desc = "根据参数查询数据")
+    @SoulHttpClient(path = "/findDataByParam9", desc = "根据参数查询数据")
     public String findDataByParam9(List<DubboTest> dubboTests, Map<String, ComplexBeanTest> complexBeanTestMap) {
         return dubboTests.toString() + "," + complexBeanTestMap.values();
     }
@@ -174,7 +174,7 @@ public class DubboMultiParamTestServiceImpl implements DubboMultiParamTestServic
      * @return
      */
     @Override
-    @SoulClient(path = "/findDataByParam10", desc = "根据复杂参数查询数据")
+    @SoulHttpClient(path = "/findDataByParam10", desc = "根据复杂参数查询数据")
     public String findDataByParam10(Integer id, List<String> names, Map<String, Integer> courseMap,
                     ComplexBeanTest complexBeanTest) {
         return id + "," + names.toString() + "," + courseMap.values() + "," + complexBeanTest.toString();

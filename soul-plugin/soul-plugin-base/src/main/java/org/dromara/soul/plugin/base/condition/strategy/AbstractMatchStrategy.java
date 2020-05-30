@@ -72,7 +72,7 @@ abstract class AbstractMatchStrategy {
                 realData = HostAddressUtils.acquireIp(exchange);
                 break;
             case POST:
-                final SoulContext soulContext = exchange.getAttribute(Constants.REQUESTDTO);
+                final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
                 realData = (String) ReflectUtils.getFieldValue(soulContext, condition.getParamName());
                 break;
             default:

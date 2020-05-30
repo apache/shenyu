@@ -43,12 +43,12 @@ public class MonitorPluginConfiguration {
     }
     
     /**
-     * Data subscriber plugin data subscriber.
+     * Monitor plugin data subscriber.
      *
      * @return the plugin data subscriber
      */
     @Bean
-    public PluginDataSubscriber dataSubscriber() {
+    public PluginDataSubscriber monitorPluginDataSubscriber() {
         return new MonitorPluginDataSubscriber();
     }
 }
