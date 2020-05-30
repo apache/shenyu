@@ -49,7 +49,7 @@ import java.util.Properties;
 public class NacosSyncDataConfiguration {
     
     /**
-     * Sync data service sync data service.
+     * Nacos sync data service.
      *
      * @param configService     the config service
      * @param pluginSubscribers the plugin subscribers
@@ -58,7 +58,7 @@ public class NacosSyncDataConfiguration {
      * @return the sync data service
      */
     @Bean
-    public SyncDataService syncDataService(final ObjectProvider<ConfigService> configService, final ObjectProvider<List<PluginDataSubscriber>> pluginSubscribers,
+    public SyncDataService nacosSyncDataService(final ObjectProvider<ConfigService> configService, final ObjectProvider<List<PluginDataSubscriber>> pluginSubscribers,
                                            final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers) {
         return new NacosSyncDataService(configService.getIfAvailable(), pluginSubscribers.getIfAvailable(Collections::emptyList),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList));

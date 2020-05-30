@@ -17,20 +17,17 @@
 
 package org.dromara.soul.plugin.divide.cache;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.common.concurrent.SoulThreadFactory;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.utils.GsonUtils;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * this is divide  http url upstream.
@@ -42,9 +39,16 @@ public class UpstreamCacheManager {
     
     private static final UpstreamCacheManager INSTANCE = new UpstreamCacheManager();
     
-    private static final BlockingQueue<SelectorData> BLOCKING_QUEUE = new LinkedBlockingQueue<>(1024);
-    
     private static final Map<String, List<DivideUpstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
+    
+    private UpstreamCacheManager() {
+        boolean check = Boolean.parseBoolean(System.getProperty("soul.upstream.check", "true"));
+        if (check) {
+            new ScheduledThreadPoolExecutor(1, SoulThreadFactory.create("scheduled-upstream-task", false))
+                    .scheduleWithFixedDelay(this::scheduled,
+                            30, Integer.parseInt(System.getProperty("soul.upstream.scheduledTime", "30")), TimeUnit.SECONDS);
+        }
+    }
     
     /**
      * Gets instance.
@@ -75,43 +79,11 @@ public class UpstreamCacheManager {
     }
     
     /**
-     * Init.
-     */
-    public void init() {
-        new ThreadPoolExecutor(1, 1,
-                0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(),
-                SoulThreadFactory.create("save-upstream-task", false))
-                .execute(new Worker());
-    }
-    
-    /**
      * Submit.
      *
      * @param selectorData the selector data
      */
     public void submit(final SelectorData selectorData) {
-        try {
-            BLOCKING_QUEUE.put(selectorData);
-        } catch (InterruptedException e) {
-            log.error(e.getMessage());
-        }
-    }
-    
-    /**
-     * Clear.
-     */
-    public void clear() {
-        UPSTREAM_MAP.clear();
-    }
-    
-    
-    /**
-     * Execute.
-     *
-     * @param selectorData the selector data
-     */
-    public void execute(final SelectorData selectorData) {
         final List<DivideUpstream> upstreamList =
                 GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream.class);
         if (null != upstreamList && upstreamList.size() > 0) {
@@ -121,26 +93,30 @@ public class UpstreamCacheManager {
         }
     }
     
-    /**
-     * The type Worker.
-     */
-    class Worker implements Runnable {
-        
-        @Override
-        public void run() {
-            runTask();
-        }
-        
-        private void runTask() {
-            for (; ;) {
-                try {
-                    final SelectorData selectorData = BLOCKING_QUEUE.take();
-                    Optional.of(selectorData).ifPresent(UpstreamCacheManager.this::execute);
-                } catch (InterruptedException e) {
-                    log.warn("BLOCKING_QUEUE take operation was interrupted.", e);
+    private void scheduled() {
+        if (UPSTREAM_MAP.size() > 0) {
+            UPSTREAM_MAP.forEach((k, v) -> {
+                List<DivideUpstream> result = check(v);
+                if (result.size() > 0) {
+                    UPSTREAM_MAP.put(k, result);
+                } else {
+                    UPSTREAM_MAP.remove(k);
                 }
+            });
+        }
+    }
+    
+    private List<DivideUpstream> check(final List<DivideUpstream> upstreamList) {
+        List<DivideUpstream> resultList = Lists.newArrayListWithCapacity(upstreamList.size());
+        for (DivideUpstream divideUpstream : upstreamList) {
+            final boolean pass = UpstreamCheckUtils.checkUrl(divideUpstream.getUpstreamUrl());
+            if (pass) {
+                resultList.add(divideUpstream);
+            } else {
+                log.error("check the url={} is fail ", divideUpstream.getUpstreamUrl());
             }
         }
+        return resultList;
     }
     
 }

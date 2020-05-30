@@ -76,7 +76,7 @@ public class NettyHttpClientPlugin implements SoulPlugin {
 
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final SoulPluginChain chain) {
-        final SoulContext soulContext = exchange.getAttribute(Constants.REQUESTDTO);
+        final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
         ServerHttpRequest request = exchange.getRequest();
         final HttpMethod method = HttpMethod.valueOf(request.getMethodValue());
@@ -131,7 +131,7 @@ public class NettyHttpClientPlugin implements SoulPlugin {
 
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
-        final SoulContext soulContext = exchange.getAttribute(Constants.REQUESTDTO);
+        final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
         return !Objects.equals(RpcTypeEnum.HTTP.getName(), soulContext.getRpcType())
                 && !Objects.equals(RpcTypeEnum.SPRING_CLOUD.getName(), soulContext.getRpcType());

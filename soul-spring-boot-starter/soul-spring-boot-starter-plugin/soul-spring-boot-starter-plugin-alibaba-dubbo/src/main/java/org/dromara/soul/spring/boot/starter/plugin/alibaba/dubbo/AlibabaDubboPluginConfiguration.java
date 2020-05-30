@@ -87,22 +87,22 @@ public class AlibabaDubboPluginConfiguration {
     }
     
     /**
-     * Data subscriber plugin data subscriber.
+     * Dubbo plugin data subscriber.
      *
      * @return the plugin data subscriber
      */
     @Bean
-    public PluginDataSubscriber pluginDataSubscriber() {
+    public PluginDataSubscriber dubboPluginDataSubscriber() {
         return new AlibabaDubboPluginDataSubscriber();
     }
     
     /**
-     * Meta data subscriber meta data subscriber.
+     * Dubbo meta data subscriber meta data subscriber.
      *
      * @return the meta data subscriber
      */
     @Bean
-    public MetaDataSubscriber metaDataSubscriber() {
+    public MetaDataSubscriber dubboMetaDataSubscriber() {
         return new AlibabaDubboMetaDataSubscriber();
     }
 }

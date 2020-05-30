@@ -10,11 +10,10 @@ spring:
     prefix: classpath:/static/
     suffix: .html
   datasource:
-    url: jdbc:mysql://localhost:3306/soul?useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT&failOverReadOnly=false&autoReconnect=true&useSSL=false
+    url: jdbc:mysql://localhost:3306/soul?useUnicode=true&characterEncoding=utf-8
     username: root
-    password: 123456
-    dbcp2:
-      driver-class-name: com.mysql.cj.jdbc.Driver
+    password:
+    driver-class-name: com.mysql.jdbc.Driver
 
 mybatis:
   config-location: classpath:/mybatis/mybatis-config.xml
@@ -26,11 +25,11 @@ soul:
     register: false
     zookeeperUrl: localhost:2181
   sync:
-    strategy: websocket
-#      zookeeper:
-#        url: localhost:2181
-#        sessionTimeout: 5000
-#        connectionTimeout: 2000
+    strategy: zookeeper
+    zookeeper:
+        url: localhost:2181
+        sessionTimeout: 5000
+        connectionTimeout: 2000
 #    nacos:
 #      url: localhost:8848
 #      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
@@ -49,5 +48,3 @@ logging:
     org.dromara.soul.bonuspoint: info
     org.dromara.soul.lottery: info
     org.dromara.soul: info
-
-  path: "./logs/soul-admin"

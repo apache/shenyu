@@ -18,7 +18,7 @@
 
 package org.dromara.soul.test.springcloud.controller;
 
-import org.dromara.soul.client.common.annotation.SoulClient;
+import org.dromara.soul.client.common.annotation.SoulHttpClient;
 import org.dromara.soul.test.springcloud.dto.UserDTO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,7 +44,7 @@ public class TestController {
      * @return the string
      */
     @PostMapping("/post")
-    @SoulClient(path = "/test/post", desc = "测试post")
+    @SoulHttpClient(path = "/test/post", desc = "测试post")
     public UserDTO post(@RequestBody final UserDTO userDTO) {
         return userDTO;
     }
@@ -57,7 +57,7 @@ public class TestController {
      * @return the string
      */
     @GetMapping("/findByUserId")
-    @SoulClient(path = "/test/findByUserId", desc = "测试findByUserId")
+    @SoulHttpClient(path = "/test/findByUserId", desc = "测试findByUserId")
     public String findByUserId(@RequestParam("userId") final String userId) {
         return "helloWorld:" + userId;
     }

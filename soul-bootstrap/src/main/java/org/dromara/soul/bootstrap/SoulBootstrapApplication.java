@@ -20,15 +20,16 @@ package org.dromara.soul.bootstrap;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.data.redis.*;
 
 /**
  * soul start.
  *
  * @author xiaoyu
  */
-@SpringBootApplication
+@SpringBootApplication(exclude = RedisAutoConfiguration.class)
 public class SoulBootstrapApplication {
-
+    
     /**
      * Main Entrance.
      *
@@ -37,5 +38,5 @@ public class SoulBootstrapApplication {
     public static void main(final String[] args) {
         SpringApplication.run(SoulBootstrapApplication.class, args);
     }
-
+    
 }

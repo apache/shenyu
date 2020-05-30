@@ -16,13 +16,13 @@ soul :
     dubbo :
       parameter : multi
     sync:
-        strategy: websocket
-        websocket :
-             url: ws://localhost:9095/websocket
-#        zookeeper:
-#             url: localhost:2181
-#             sessionTimeout: 5000
-#             connectionTimeout: 2000
+        strategy: zookeeper
+#        websocket :
+#             url: ws://localhost:9095/websocket
+        zookeeper:
+             url: localhost:2181
+             sessionTimeout: 5000
+             connectionTimeout: 2000
 #        http:
 #             url : http://localhost:9095
 #        nacos:

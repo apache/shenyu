@@ -41,11 +41,6 @@ public interface Constants {
     String META_DATA = "metaData";
     
     /**
-     * The constant REQUESTDTO.
-     */
-    String REQUESTDTO = "requestDTO";
-    
-    /**
      * The constant CLIENT_RESPONSE_ATTR.
      */
     String CLIENT_RESPONSE_ATTR = "webHandlerClientResponse";

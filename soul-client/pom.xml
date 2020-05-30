@@ -17,6 +17,7 @@
         <module>soul-client-springmvc3</module>
         <module>soul-client-common</module>
         <module>soul-client-springcloud</module>
+        <module>soul-client-http</module>
     </modules>
 
     <dependencyManagement>

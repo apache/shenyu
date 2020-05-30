@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.dromara.soul.client.common.annotation.SoulClient;
+import org.dromara.soul.client.common.annotation.SoulHttpClient;
 import org.dromara.soul.test.dubbo.api.entity.ComplexBeanTest;
 import org.dromara.soul.test.dubbo.api.entity.DubboTest;
 import org.dromara.soul.test.dubbo.api.service.DubboTestService;
@@ -35,7 +35,7 @@ import org.springframework.stereotype.Service;
 public class DubboTestServiceImpl implements DubboTestService {
 
     @Override
-    @SoulClient(path = "/findById", desc = "根据用户查询")
+    @SoulHttpClient(path = "/findById", desc = "根据用户查询")
     public DubboTest findById(final String id) {
         DubboTest dubboTest = new DubboTest();
         dubboTest.setName("hhah");
@@ -43,7 +43,7 @@ public class DubboTestServiceImpl implements DubboTestService {
     }
 
     @Override
-    @SoulClient(path = "/findAll", desc = "获取所有")
+    @SoulHttpClient(path = "/findAll", desc = "获取所有")
     public DubboTest findAll() {
         DubboTest dubboTest = new DubboTest();
         dubboTest.setName("findAll");
@@ -51,13 +51,13 @@ public class DubboTestServiceImpl implements DubboTestService {
     }
 
     @Override
-    @SoulClient(path = "/findByLong", desc = "findByLong")
+    @SoulHttpClient(path = "/findByLong", desc = "findByLong")
     public String findByLong(final Long id) {
         return "Long id" + id;
     }
 
     @Override
-    @SoulClient(path = "/insert", desc = "插入一条数据")
+    @SoulHttpClient(path = "/insert", desc = "插入一条数据")
     public DubboTest insert(final DubboTest dubboTest) {
         // 模拟阻塞
         try {
@@ -69,25 +69,25 @@ public class DubboTestServiceImpl implements DubboTestService {
     }
 
     @Override
-    @SoulClient(path = "/findByDouble", desc = "根据double类型查询")
+    @SoulHttpClient(path = "/findByDouble", desc = "根据double类型查询")
     public String findByDouble(Double id) {
         return "Double id" + id;
     }
 
     @Override
-    @SoulClient(path = "/queryByArray", desc = "插入一条数据")
+    @SoulHttpClient(path = "/queryByArray", desc = "插入一条数据")
     public String queryByArray(Integer[] ids) {
         return "param array:" + ids;
     }
 
     @Override
-    @SoulClient(path = "/queryByStringArray", desc = "插入一条数据")
+    @SoulHttpClient(path = "/queryByStringArray", desc = "插入一条数据")
     public String queryByStringArray(String[] ids) {
         return "param string array" + ids;
     }
 
     @Override
-    @SoulClient(path = "/queryByList", desc = "根据列表查询数据")
+    @SoulHttpClient(path = "/queryByList", desc = "根据列表查询数据")
     public String queryByList(List<Integer> ids) {
         return "query list:" + ids;
     }
@@ -100,13 +100,13 @@ public class DubboTestServiceImpl implements DubboTestService {
      * @return
      */
     @Override
-    @SoulClient(path = "/queryByComplexList", desc = "根据对象列表查询")
+    @SoulHttpClient(path = "/queryByComplexList", desc = "根据对象列表查询")
     public String queryByComplexList(List<ComplexBeanTest> complexBeanTests) {
         return "queryByComplexList" + complexBeanTests;
     }
 
     @Override
-    @SoulClient(path = "/queryByMap", desc = "插入一条数据")
+    @SoulHttpClient(path = "/queryByMap", desc = "插入一条数据")
     public String queryByMap(final Map<String, String> ids) {
         return "param map values:" + ids.values();
     }
@@ -119,7 +119,7 @@ public class DubboTestServiceImpl implements DubboTestService {
      * @return
      */
     @Override
-    @SoulClient(path = "/queryByComplexMap", desc = "根据对象Map查询")
+    @SoulHttpClient(path = "/queryByComplexMap", desc = "根据对象Map查询")
     public String queryByComplexMap(Map<String, ComplexBeanTest> complexBeanTestMap) {
         return "queryByComplexMap" + complexBeanTestMap.values();
     }
@@ -131,7 +131,7 @@ public class DubboTestServiceImpl implements DubboTestService {
      * @return
      */
     @Override
-    @SoulClient(path = "/insertComplexData", desc = "插入复杂数据")
+    @SoulHttpClient(path = "/insertComplexData", desc = "插入复杂数据")
     public String insertComplexData(final ComplexBeanTest complexBeanTest) {
         return "insert complex data:" + complexBeanTest;
     }

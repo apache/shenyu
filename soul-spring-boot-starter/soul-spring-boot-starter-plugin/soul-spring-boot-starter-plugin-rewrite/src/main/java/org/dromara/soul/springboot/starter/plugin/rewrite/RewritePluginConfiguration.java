@@ -43,12 +43,12 @@ public class RewritePluginConfiguration {
     }
     
     /**
-     * Data subscriber plugin data subscriber.
+     * Rewrite plugin data subscriber.
      *
      * @return the plugin data subscriber
      */
     @Bean
-    public PluginDataSubscriber dataSubscriber() {
+    public PluginDataSubscriber rewritePluginDataSubscriber() {
         return new RewritePluginDataSubscriber();
     }
     

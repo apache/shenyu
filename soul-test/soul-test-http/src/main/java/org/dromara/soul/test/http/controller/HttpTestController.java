@@ -18,7 +18,6 @@
 
 package org.dromara.soul.test.http.controller;
 
-import org.dromara.soul.client.common.annotation.SoulClient;
 import org.dromara.soul.test.http.dto.UserDTO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/test")
 public class HttpTestController {
-
+    
     /**
      * Post user dto.
      *
@@ -45,11 +44,11 @@ public class HttpTestController {
      * @return the user dto
      */
     @PostMapping("/payment")
-    @SoulClient(path = "/test/payment", desc = "支付接口")
+    //@SoulClient(path = "/test/payment", desc = "支付接口")
     public UserDTO post(@RequestBody final UserDTO userDTO) {
         return userDTO;
     }
-
+    
     /**
      * Find by user id string.
      *
@@ -57,11 +56,14 @@ public class HttpTestController {
      * @return the string
      */
     @GetMapping("/findByUserId")
-    @SoulClient(path = "/test/findByUserId", desc = "获取用户id")
-    public String findByUserId(@RequestParam("userId") final String userId) {
-        return "hello :" + userId;
+    //@SoulClient(path = "/test/findByUserId", desc = "获取用户id")
+    public UserDTO findByUserId(@RequestParam("userId") final String userId) {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUserId(userId);
+        userDTO.setUserName("hello world");
+        return userDTO;
     }
-
+    
     /**
      * Gets path variable.
      *
@@ -70,12 +72,15 @@ public class HttpTestController {
      * @return the path variable
      */
     @GetMapping("/path/{id}")
-    @SoulClient(path = "/test/path/**", desc = "test restful get 风格支持")
-    public String getPathVariable(@PathVariable("id") final String id, @RequestParam("name") final String name) {
-        return id + "_" + name;
+    //@SoulClient(path = "/test/path/**", desc = "test restful get 风格支持")
+    public UserDTO getPathVariable(@PathVariable("id") final String id, @RequestParam("name") final String name) {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUserId(id);
+        userDTO.setUserName("hello world");
+        return userDTO;
     }
-
-
+    
+    
     /**
      * Test rest ful string.
      *
@@ -83,12 +88,15 @@ public class HttpTestController {
      * @return the string
      */
     @GetMapping("/path/{id}/name")
-    @SoulClient(path = "/test/path/**/name", desc = "test restful风格支持")
-    public String testRestFul(@PathVariable("id") final String id) {
-        return id;
+    //@SoulClient(path = "/test/path/**/name", desc = "test restful风格支持")
+    public UserDTO testRestFul(@PathVariable("id") final String id) {
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUserId(id);
+        userDTO.setUserName("hello world");
+        return userDTO;
     }
-
-
+    
+    
     /**
      * Put path variable and body string.
      *
@@ -97,8 +105,10 @@ public class HttpTestController {
      * @return the string
      */
     @PutMapping("/putPathBody/{id}")
-    public String putPathVariableAndBody(@PathVariable("id") final String id, @RequestBody final UserDTO userDTO) {
-        return id + "_" + userDTO.getUserName();
+    public UserDTO putPathVariableAndBody(@PathVariable("id") final String id, @RequestBody final UserDTO userDTO) {
+        userDTO.setUserId(id);
+        userDTO.setUserName("hello world");
+        return userDTO;
     }
-
+    
 }

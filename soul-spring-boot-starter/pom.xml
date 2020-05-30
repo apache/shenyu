@@ -15,6 +15,7 @@
         <module>soul-spring-boot-starter-gateway</module>
         <module>soul-spring-boot-starter-plugin</module>
         <module>soul-spring-boot-starter-sync-data-center</module>
+        <module>soul-spring-boot-starter-client</module>
     </modules>
 
 </project>

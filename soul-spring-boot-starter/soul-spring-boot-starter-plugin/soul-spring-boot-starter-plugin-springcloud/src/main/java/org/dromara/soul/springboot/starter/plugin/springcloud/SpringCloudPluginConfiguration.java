@@ -57,12 +57,12 @@ public class SpringCloudPluginConfiguration {
     }
     
     /**
-     * Data subscriber plugin data subscriber.
+     * springCloud plugin data subscriber.
      *
      * @return the plugin data subscriber
      */
     @Bean
-    public PluginDataSubscriber dataSubscriber() {
+    public PluginDataSubscriber springCloudPluginDataSubscriber() {
         return new SpringCloudPluginDataSubscriber();
     }
 }

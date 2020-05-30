@@ -1,4 +1,4 @@
 spring:
    profiles:
-     active: @env@
+     active: local
 

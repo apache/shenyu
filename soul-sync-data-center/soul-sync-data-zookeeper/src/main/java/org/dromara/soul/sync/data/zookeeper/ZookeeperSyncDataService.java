@@ -17,9 +17,16 @@
 
 package org.dromara.soul.sync.data.zookeeper;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.I0Itec.zkclient.IZkDataListener;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.collections4.CollectionUtils;
+import org.dromara.soul.common.constant.ZkPathConstants;
 import org.dromara.soul.common.dto.AppAuthData;
 import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.dto.PluginData;
@@ -28,13 +35,7 @@ import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.sync.data.api.AuthDataSubscriber;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
-import org.dromara.soul.common.constant.ZkPathConstants;
 import org.dromara.soul.sync.data.api.SyncDataService;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * this cache data with zookeeper.
@@ -108,9 +109,9 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
             
             @Override
             public void handleDataDeleted(final String dataPath) {
-                final PluginData data = zkClient.readData(dataPath);
-                Optional.ofNullable(data)
-                        .ifPresent(d -> Optional.ofNullable(pluginDataSubscriberMap.get(pluginName)).ifPresent(e -> e.unSubscribe((PluginData) d)));
+                final PluginData data = new PluginData();
+                data.setName(pluginName);
+                Optional.ofNullable(pluginDataSubscriberMap.get(pluginName)).ifPresent(e -> e.unSubscribe(data));
             }
         });
     }
@@ -230,7 +231,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
             
             @Override
             public void handleDataDeleted(final String dataPath) {
-                unCacheSelectorData(zkClient.readData(dataPath));
+                unCacheSelectorData(dataPath);
             }
         });
     }
@@ -244,7 +245,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
             
             @Override
             public void handleDataDeleted(final String dataPath) {
-                unCacheRuleData(zkClient.readData(dataPath));
+                unCacheRuleData(dataPath);
             }
         });
     }
@@ -258,7 +259,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
             
             @Override
             public void handleDataDeleted(final String dataPath) {
-                unCacheAuthData(zkClient.readData(dataPath));
+                unCacheAuthData(dataPath);
             }
         });
     }
@@ -282,9 +283,14 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
                 .ifPresent(data -> Optional.ofNullable(pluginDataSubscriberMap.get(selectorData.getPluginName())).ifPresent(e -> e.onSelectorSubscribe(data)));
     }
     
-    private void unCacheSelectorData(final SelectorData selectorData) {
-        Optional.ofNullable(selectorData)
-                .ifPresent(data -> Optional.ofNullable(pluginDataSubscriberMap.get(selectorData.getPluginName())).ifPresent(e -> e.unSelectorSubscribe(data)));
+    private void unCacheSelectorData(final String dataPath) {
+        SelectorData selectorData = new SelectorData();
+        final String selectorId = dataPath.substring(dataPath.lastIndexOf("/") + 1);
+        final String str = dataPath.substring(ZkPathConstants.SELECTOR_PARENT.length());
+        final String pluginName = str.substring(1, str.length() - selectorId.length() - 1);
+        selectorData.setPluginName(pluginName);
+        selectorData.setId(selectorId);
+        Optional.ofNullable(pluginDataSubscriberMap.get(pluginName)).ifPresent(e -> e.unSelectorSubscribe(selectorData));
     }
     
     private void cacheRuleData(final RuleData ruleData) {
@@ -292,17 +298,27 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
                 .ifPresent(data -> Optional.ofNullable(pluginDataSubscriberMap.get(ruleData.getPluginName())).ifPresent(e -> e.onRuleSubscribe(data)));
     }
     
-    private void unCacheRuleData(final RuleData ruleData) {
-        Optional.ofNullable(ruleData)
-                .ifPresent(data -> Optional.ofNullable(pluginDataSubscriberMap.get(ruleData.getPluginName())).ifPresent(e -> e.unRuleSubscribe(data)));
+    private void unCacheRuleData(final String dataPath) {
+        String substring = dataPath.substring(dataPath.lastIndexOf("/") + 1);
+        final String str = dataPath.substring(ZkPathConstants.RULE_PARENT.length());
+        final String pluginName = str.substring(1, str.length() - substring.length() - 1);
+        final List<String> list = Lists.newArrayList(Splitter.on(ZkPathConstants.SELECTOR_JOIN_RULE).split(substring));
+        RuleData ruleData = new RuleData();
+        ruleData.setPluginName(pluginName);
+        ruleData.setSelectorId(list.get(0));
+        ruleData.setId(list.get(1));
+        Optional.ofNullable(pluginDataSubscriberMap.get(ruleData.getPluginName())).ifPresent(e -> e.unRuleSubscribe(ruleData));
     }
     
     private void cacheAuthData(final AppAuthData appAuthData) {
         Optional.ofNullable(appAuthData).ifPresent(data -> authDataSubscribers.forEach(e -> e.onSubscribe(data)));
     }
     
-    private void unCacheAuthData(final AppAuthData appAuthData) {
-        Optional.ofNullable(appAuthData).ifPresent(data -> authDataSubscribers.forEach(e -> e.unSubscribe(data)));
+    private void unCacheAuthData(final String dataPath) {
+        final String key = dataPath.substring(ZkPathConstants.APP_AUTH_PARENT.length() + 1);
+        AppAuthData appAuthData = new AppAuthData();
+        appAuthData.setAppKey(key);
+        authDataSubscribers.forEach(e -> e.unSubscribe(appAuthData));
     }
     
     private void cacheMetaData(final MetaData metaData) {

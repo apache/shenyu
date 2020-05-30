@@ -10,11 +10,10 @@ spring:
        prefix: classpath:/static/
        suffix: .html
    datasource:
-     url: jdbc:mysql://192.168.1.82:3306/soul?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=CONVERT_TO_NULL&failOverReadOnly=false&autoReconnect=true
+     url: jdbc:mysql://localhost:3306/soul?useUnicode=true&characterEncoding=utf-8
      username: root
      password: 123456
-     dbcp2:
-       driver-class-name: com.mysql.jdbc.Driver
+     driver-class-name: com.mysql.jdbc.Driver
 
 mybatis:
   config-location: classpath:/mybatis/mybatis-config.xml
@@ -40,5 +39,4 @@ logging:
         org.dromara.soul.lottery: debug
         org.dromara.soul: debug
 
-    path: "./logs/soul-admin"
 

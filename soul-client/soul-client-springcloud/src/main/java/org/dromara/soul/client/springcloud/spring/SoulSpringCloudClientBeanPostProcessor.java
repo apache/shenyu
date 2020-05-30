@@ -20,7 +20,7 @@
 package org.dromara.soul.client.springcloud.spring;
 
 import lombok.extern.slf4j.Slf4j;
-import org.dromara.soul.client.common.annotation.SoulClient;
+import org.dromara.soul.client.common.annotation.SoulHttpClient;
 import org.dromara.soul.client.common.dto.MetaDataDTO;
 import org.dromara.soul.client.common.utils.OkHttpTools;
 import org.dromara.soul.client.springcloud.config.SoulSpringCloudConfig;
@@ -90,9 +90,9 @@ public class SoulSpringCloudClientBeanPostProcessor implements BeanPostProcessor
             }
             final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(bean.getClass());
             for (Method method : methods) {
-                SoulClient soulClient = AnnotationUtils.findAnnotation(method, SoulClient.class);
-                if (Objects.nonNull(soulClient)) {
-                    executorService.execute(() -> post(buildJsonParams(soulClient, contextPath, bean, method)));
+                SoulHttpClient soulHttpClient = AnnotationUtils.findAnnotation(method, SoulHttpClient.class);
+                if (Objects.nonNull(soulHttpClient)) {
+                    executorService.execute(() -> post(buildJsonParams(soulHttpClient, contextPath, bean, method)));
                 }
             }
         }
@@ -112,13 +112,13 @@ public class SoulSpringCloudClientBeanPostProcessor implements BeanPostProcessor
         }
     }
 
-    private String buildJsonParams(final SoulClient soulClient, final String contextPath, final Object bean, final Method method) {
+    private String buildJsonParams(final SoulHttpClient soulHttpClient, final String contextPath, final Object bean, final Method method) {
         String appName = soulSpringCloudConfig.getAppName();
         if (appName == null || "".equals(appName)) {
             appName = env.getProperty("spring.application.name");
         }
-        String path = contextPath + soulClient.path();
-        String desc = soulClient.desc();
+        String path = contextPath + soulHttpClient.path();
+        String desc = soulHttpClient.desc();
         String serviceName = bean.getClass().getSimpleName();
         String methodName = method.getName();
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
@@ -132,7 +132,7 @@ public class SoulSpringCloudClientBeanPostProcessor implements BeanPostProcessor
                 .parameterTypes(parameterTypes)
                 .rpcExt("")
                 .rpcType("springCloud")
-                .enabled(soulClient.enabled())
+                .enabled(soulHttpClient.enabled())
                 .build();
         return OkHttpTools.getInstance().getGosn().toJson(metaDataDTO);
 

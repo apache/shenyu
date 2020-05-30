@@ -18,11 +18,10 @@
 
 package org.dromara.soul.web.logo;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.common.constant.Constants;
-import org.dromara.soul.common.utils.LogUtils;
 import org.dromara.soul.common.utils.VersionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationEnvironmentPreparedEvent;
 import org.springframework.boot.context.logging.LoggingApplicationListener;
 import org.springframework.context.ApplicationListener;
@@ -34,6 +33,7 @@ import org.springframework.core.annotation.Order;
  * @author xiaoyu
  */
 @Order(LoggingApplicationListener.DEFAULT_ORDER + 1)
+@Slf4j
 public class SoulLogo implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
 
     private static final String SOUL_LOGO = "\n"
@@ -45,16 +45,15 @@ public class SoulLogo implements ApplicationListener<ApplicationEnvironmentPrepa
             + "|___/\\___/ \\__,_|_|\n"
             + "                    \n"
             + "                   \n";
-
-    /**
-     * logger.
-     */
-    private static final Logger LOGGER = LoggerFactory.getLogger(SoulLogo.class);
+    
+    private volatile AtomicBoolean alreadyLog = new AtomicBoolean(false);
 
     @Override
     public void onApplicationEvent(final ApplicationEnvironmentPreparedEvent event) {
-        String bannerText = buildBannerText();
-        LogUtils.info(LOGGER, () -> bannerText);
+        if (!alreadyLog.compareAndSet(false, true)) {
+            return;
+        }
+        log.info(buildBannerText());
     }
 
     private String buildBannerText() {

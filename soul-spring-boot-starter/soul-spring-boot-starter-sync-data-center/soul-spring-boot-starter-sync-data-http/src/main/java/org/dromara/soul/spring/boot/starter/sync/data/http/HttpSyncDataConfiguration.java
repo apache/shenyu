@@ -18,6 +18,9 @@
 
 package org.dromara.soul.spring.boot.starter.sync.data.http;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import org.dromara.soul.sync.data.api.AuthDataSubscriber;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
@@ -31,10 +34,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-
 /**
  * Http sync data configuration for spring boot.
  *
@@ -46,7 +45,7 @@ import java.util.Objects;
 public class HttpSyncDataConfiguration {
     
     /**
-     * Sync data service sync data service.
+     * Http sync data service.
      *
      * @param httpConfig        the http config
      * @param pluginSubscribers the plugin subscribers
@@ -55,7 +54,7 @@ public class HttpSyncDataConfiguration {
      * @return the sync data service
      */
     @Bean
-    public SyncDataService syncDataService(final ObjectProvider<HttpConfig> httpConfig, final ObjectProvider<List<PluginDataSubscriber>> pluginSubscribers,
+    public SyncDataService httpSyncDataService(final ObjectProvider<HttpConfig> httpConfig, final ObjectProvider<List<PluginDataSubscriber>> pluginSubscribers,
                                            final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers) {
         return new HttpSyncDataService(Objects.requireNonNull(httpConfig.getIfAvailable()), pluginSubscribers.getIfAvailable(Collections::emptyList),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList));

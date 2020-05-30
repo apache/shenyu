@@ -17,7 +17,12 @@
 
 package org.dromara.soul.admin.service.init;
 
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.slf4j.Logger;
@@ -26,11 +31,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.stereotype.Component;
-
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
-import java.sql.DriverManager;
 
 /**
  * for execute schema sql file.
@@ -57,7 +57,8 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
         // If jdbcUrl in the configuration file specifies the soul database, it is removed,
         // because the soul database does not need to be specified when executing the SQL file,
         // otherwise the soul database will be disconnected when the soul database does not exist
-        Connection connection = DriverManager.getConnection(properties.getUrl(), properties.getUsername(), properties.getPassword());
+        String jdbcUrl = StringUtils.replace(properties.getUrl(), "/soul?", "?");
+        Connection connection = DriverManager.getConnection(jdbcUrl, properties.getUsername(), properties.getPassword());
         this.execute(connection);
         
     }

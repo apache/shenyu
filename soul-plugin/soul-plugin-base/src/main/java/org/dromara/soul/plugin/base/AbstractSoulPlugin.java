@@ -79,7 +79,7 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
                 return CheckUtils.checkSelector(pluginName, exchange, chain);
             }
             if (selectorData.getLoged()) {
-                log.info("{} selector success match ,selector name :{}", pluginName, selectorData.getName());
+                log.info("{} selector success match , selector name :{}", pluginName, selectorData.getName());
             }
             final List<RuleData> rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
             if (CollectionUtils.isEmpty(rules)) {

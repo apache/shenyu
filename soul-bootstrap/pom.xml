@@ -40,10 +40,31 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-
+        <!--soul gateway start-->
         <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>soul-spring-boot-starter-gateway</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!--http have start this-->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-divide</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!--springCloud have start this-->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-springcloud</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--springCloud have start end-->
+
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-httpclient</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -52,6 +73,21 @@
             <artifactId>soul-spring-boot-starter-plugin-ratelimiter</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-waf</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+
+        <!--soul data sync start-->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-sync-data-zookeeper</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
 
         <!--  <dependency>
               <groupId>org.springframework.cloud</groupId>
@@ -69,13 +105,6 @@
         <!--            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>-->
         <!--            <version>2.1.0.RELEASE</version>-->
         <!--        </dependency>-->
-
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
 
         <!--dubbo start-->
         <!--        <dependency>-->
@@ -116,32 +145,6 @@
         <!--dubbo end-->
 
     </dependencies>
-
-    <!--多环境 Maven profile整合Spring profile-->
-    <profiles>
-        <profile>
-            <id>local</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <properties>
-                <env>local</env>
-            </properties>
-        </profile>
-        <profile>
-            <id>dev</id>
-            <properties>
-                <env>dev</env>
-            </properties>
-        </profile>
-        <profile>
-            <id>prod</id>
-            <properties>
-                <env>prod</env>
-            </properties>
-        </profile>
-    </profiles>
-
 
     <build>
         <finalName>soul-bootstrap</finalName>
