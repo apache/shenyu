@@ -28,6 +28,7 @@ import org.dromara.soul.common.concurrent.SoulThreadFactory;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.utils.GsonUtils;
+import org.dromara.soul.common.utils.UpstreamCheckUtils;
 
 /**
  * this is divide  http url upstream.
@@ -42,7 +43,7 @@ public class UpstreamCacheManager {
     private static final Map<String, List<DivideUpstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
     
     private UpstreamCacheManager() {
-        boolean check = Boolean.parseBoolean(System.getProperty("soul.upstream.check", "true"));
+        boolean check = Boolean.parseBoolean(System.getProperty("soul.upstream.check", "false"));
         if (check) {
             new ScheduledThreadPoolExecutor(1, SoulThreadFactory.create("scheduled-upstream-task", false))
                     .scheduleWithFixedDelay(this::scheduled,

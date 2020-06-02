@@ -29,7 +29,10 @@
     <artifactId>soul-spring-boot-starter-client</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>soul-spring-boot-starter-client-http-spring</module>
+        <module>soul-spring-boot-starter-client-springmvc</module>
+        <module>soul-spring-boot-starter-client-springcloud</module>
+        <module>soul-spring-boot-starter-client-alibaba-dubbo</module>
+        <module>soul-spring-boot-starter-client-apache-dubbo</module>
     </modules>
 
 

@@ -11,69 +11,26 @@
     <artifactId>soul-client</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>soul-client-apache-dubbo</module>
-        <module>soul-client-alibaba-dubbo</module>
-        <module>soul-client-springmvc</module>
-        <module>soul-client-springmvc3</module>
         <module>soul-client-common</module>
-        <module>soul-client-springcloud</module>
         <module>soul-client-http</module>
+        <module>soul-client-dubbo</module>
     </modules>
 
-    <dependencyManagement>
-
-        <dependencies>
-
-            <dependency>
-                <groupId>org.dromara</groupId>
-                <artifactId>soul-client-common</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.dromara</groupId>
-                <artifactId>soul-client-apache-dubbo</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.dromara</groupId>
-                <artifactId>soul-client-alibaba-dubbo</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.dromara</groupId>
-                <artifactId>soul-client-springmvc</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.dromara</groupId>
-                <artifactId>soul-client-springcloud</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.squareup.okhttp3</groupId>
-                <artifactId>okhttp</artifactId>
-                <version>3.7.0</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.google.code.gson</groupId>
-                <artifactId>gson</artifactId>
-                <version>2.8.0</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.projectlombok</groupId>
-                <artifactId>lombok</artifactId>
-                <version>1.16.18</version>
-            </dependency>
-
-        </dependencies>
-    </dependencyManagement>
-
-
+    <dependencies>
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>3.7.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.8.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.16.18</version>
+        </dependency>
+    </dependencies>
 </project>

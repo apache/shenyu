@@ -1,0 +1,146 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.dromara.soul.admin.service.impl;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import javax.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
+import org.dromara.soul.admin.entity.SelectorDO;
+import org.dromara.soul.admin.listener.DataChangedEvent;
+import org.dromara.soul.admin.mapper.SelectorMapper;
+import org.dromara.soul.admin.service.SelectorService;
+import org.dromara.soul.common.concurrent.SoulThreadFactory;
+import org.dromara.soul.common.dto.SelectorData;
+import org.dromara.soul.common.dto.convert.DivideUpstream;
+import org.dromara.soul.common.enums.ConfigGroupEnum;
+import org.dromara.soul.common.enums.DataEventTypeEnum;
+import org.dromara.soul.common.utils.GsonUtils;
+import org.dromara.soul.common.utils.UpstreamCheckUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Component;
+
+/**
+ * this is divide  http url upstream.
+ *
+ * @author xiaoyu
+ */
+@Slf4j
+@Component
+public class UpstreamCheckService {
+    
+    private static final Map<String, List<DivideUpstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
+    
+    @Value("${soul.upstream.check:true}")
+    private boolean check;
+    
+    @Value("${soul.upstream.scheduledTime:30}")
+    private int scheduledTime;
+    
+    private final SelectorService selectorService;
+    
+    private final SelectorMapper selectorMapper;
+    
+    private final ApplicationEventPublisher eventPublisher;
+    
+    @Autowired(required = false)
+    public UpstreamCheckService(final SelectorService selectorService, final SelectorMapper selectorMapper, final ApplicationEventPublisher eventPublisher) {
+        this.selectorService = selectorService;
+        this.selectorMapper = selectorMapper;
+        this.eventPublisher = eventPublisher;
+    }
+    
+    @PostConstruct
+    public void setup() {
+        if (check) {
+            new ScheduledThreadPoolExecutor(1, SoulThreadFactory.create("scheduled-upstream-task", false))
+                    .scheduleWithFixedDelay(this::scheduled,
+                            30, scheduledTime, TimeUnit.SECONDS);
+        }
+    }
+    
+    
+    public void removeByKey(final String selectorName) {
+        UPSTREAM_MAP.remove(selectorName);
+    }
+    
+    
+    public void submit(final String selectorName, final DivideUpstream divideUpstream) {
+        if (UPSTREAM_MAP.containsKey(selectorName)) {
+            UPSTREAM_MAP.get(selectorName).add(divideUpstream);
+        } else {
+            UPSTREAM_MAP.put(selectorName, Lists.newArrayList(divideUpstream));
+        }
+        
+    }
+    
+    private void scheduled() {
+        if (UPSTREAM_MAP.size() > 0) {
+            UPSTREAM_MAP.forEach(this::check);
+        }
+    }
+    
+    private void check(final String selectorName, final List<DivideUpstream> upstreamList) {
+        List<DivideUpstream> successList = Lists.newArrayListWithCapacity(upstreamList.size());
+        for (DivideUpstream divideUpstream : upstreamList) {
+            final boolean pass = UpstreamCheckUtils.checkUrl(divideUpstream.getUpstreamUrl());
+            if (pass) {
+                successList.add(divideUpstream);
+            }
+        }
+        if (successList.size() == upstreamList.size()) {
+            return;
+        }
+        if (successList.size() > 0) {
+            UPSTREAM_MAP.put(selectorName, successList);
+            updateSelectorHandler(selectorName, successList);
+        } else {
+            UPSTREAM_MAP.remove(selectorName);
+            updateSelectorHandler(selectorName, null);
+        }
+    }
+    
+    private void updateSelectorHandler(final String selectorName, final List<DivideUpstream> upstreams) {
+        SelectorDO selector = selectorService.findByName(selectorName);
+        if (Objects.nonNull(selector)) {
+            SelectorData selectorData = selectorService.buildByName(selectorName);
+            if (upstreams == null) {
+                selector.setHandle("");
+                selectorData.setHandle("");
+            } else {
+                String handler = GsonUtils.getInstance().toJson(upstreams);
+                selector.setHandle(handler);
+                selectorData.setHandle(handler);
+            }
+            selectorMapper.updateSelective(selector);
+            //发送更新事件
+            // publish change event.
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
+                    Collections.singletonList(selectorData)));
+        }
+    }
+    
+}
