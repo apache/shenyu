@@ -17,30 +17,28 @@
 
 package org.dromara.soul.admin.service.impl;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.HttpRegisterDTO;
 import org.dromara.soul.admin.dto.MetaDataDTO;
 import org.dromara.soul.admin.dto.RuleConditionDTO;
 import org.dromara.soul.admin.dto.RuleDTO;
 import org.dromara.soul.admin.dto.SelectorConditionDTO;
 import org.dromara.soul.admin.dto.SelectorDTO;
-import org.dromara.soul.admin.entity.RuleConditionDO;
 import org.dromara.soul.admin.entity.RuleDO;
 import org.dromara.soul.admin.entity.SelectorDO;
 import org.dromara.soul.admin.listener.DataChangedEvent;
 import org.dromara.soul.admin.mapper.MetaDataMapper;
 import org.dromara.soul.admin.mapper.RuleConditionMapper;
 import org.dromara.soul.admin.mapper.RuleMapper;
-import org.dromara.soul.admin.query.RuleConditionQuery;
+import org.dromara.soul.admin.mapper.SelectorMapper;
 import org.dromara.soul.admin.service.RuleService;
 import org.dromara.soul.admin.service.SelectorService;
 import org.dromara.soul.admin.service.SoulClientRegisterService;
-import org.dromara.soul.admin.transfer.ConditionTransfer;
 import org.dromara.soul.common.dto.ConditionData;
+import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.dto.convert.rule.DivideRuleHandle;
 import org.dromara.soul.common.dto.convert.rule.DubboRuleHandle;
@@ -78,6 +76,10 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     
     private final RuleConditionMapper ruleConditionMapper;
     
+    private final UpstreamCheckService upstreamCheckService;
+    
+    private final SelectorMapper selectorMapper;
+    
     /**
      * Instantiates a new Meta data service.
      *
@@ -94,24 +96,28 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
                                          final SelectorService selectorService,
                                          final RuleService ruleService,
                                          final RuleMapper ruleMapper,
-                                         final RuleConditionMapper ruleConditionMapper) {
+                                         final RuleConditionMapper ruleConditionMapper,
+                                         final UpstreamCheckService upstreamCheckService,
+                                         final SelectorMapper selectorMapper) {
         this.metaDataMapper = metaDataMapper;
         this.eventPublisher = eventPublisher;
         this.selectorService = selectorService;
         this.ruleService = ruleService;
         this.ruleMapper = ruleMapper;
         this.ruleConditionMapper = ruleConditionMapper;
+        this.upstreamCheckService = upstreamCheckService;
+        this.selectorMapper = selectorMapper;
     }
     
     @Override
-    public String registerHttp(HttpRegisterDTO httpRegisterDTO) {
+    public String registerHttp(final HttpRegisterDTO httpRegisterDTO) {
         String selectorId = handlerHttpSelector(httpRegisterDTO);
         handlerHttpRule(selectorId, httpRegisterDTO);
         return "success";
     }
     
     @Override
-    public String registerRpc(MetaDataDTO metaDataDTO) {
+    public String registerRpc(final MetaDataDTO metaDataDTO) {
         return null;
     }
     
@@ -119,12 +125,36 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         String contextPath = httpRegisterDTO.getContext();
         SelectorDO selectorDO = selectorService.findByName(contextPath);
         String selectorId;
+        String uri = String.join(":", httpRegisterDTO.getHost(), String.valueOf(httpRegisterDTO.getPort()));
         if (Objects.isNull(selectorDO)) {
             //需要新增
-            String uri = String.join(":", httpRegisterDTO.getHost(), String.valueOf(httpRegisterDTO.getPort()));
             selectorId = registerSelector(contextPath, httpRegisterDTO.getRpcType(), httpRegisterDTO.getAppName(), uri);
         } else {
             selectorId = selectorDO.getId();
+            if (RpcTypeEnum.HTTP.getName().equals(httpRegisterDTO.getRpcType())) {
+                //更新 upstream
+                String handle = selectorDO.getHandle();
+                String handleAdd;
+                DivideUpstream addDivideUpstream = buildDivideUpstream(uri);
+                SelectorData selectorData = selectorService.buildByName(contextPath);
+                if (StringUtils.isBlank(handle)) {
+                    handleAdd = GsonUtils.getInstance().toJson(addDivideUpstream);
+                } else {
+                    List<DivideUpstream> divideUpstreams = GsonUtils.getInstance().fromList(handle, DivideUpstream.class);
+                    divideUpstreams.add(addDivideUpstream);
+                    handleAdd = GsonUtils.getInstance().toJson(divideUpstreams);
+                }
+                selectorDO.setHandle(handleAdd);
+                selectorData.setHandle(handleAdd);
+                //更新数据库
+                selectorMapper.updateSelective(selectorDO);
+                //提交过去检查
+                upstreamCheckService.submit(contextPath, addDivideUpstream);
+                //发送更新事件
+                // publish change event.
+                eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
+                        Collections.singletonList(selectorData)));
+            }
         }
         return selectorId;
     }
@@ -134,24 +164,25 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         if (Objects.isNull(ruleDO)) {
             //需要新增
             registerRule(selectorId, httpRegisterDTO.getPath(), httpRegisterDTO.getRpcType(), httpRegisterDTO.getRuleName());
-        } else {
-            List<RuleConditionDO> ruleConditionDOS = ruleConditionMapper.selectByQuery(new RuleConditionQuery(ruleDO.getId()));
-            if (CollectionUtils.isEmpty(ruleConditionDOS)) {
-                return;
-            }
-            List<ConditionData> conditionDataList = new ArrayList<>();
-            for (RuleConditionDO ruleConditionDO : ruleConditionDOS) {
-                if (ruleConditionDO.getParamType().equals(ParamTypeEnum.URI.getName())
-                        || !ruleConditionDO.getParamValue().equals(httpRegisterDTO.getPath())) {
-                    ruleConditionDO.setParamValue(httpRegisterDTO.getPath());
-                    ruleConditionMapper.updateSelective(ruleConditionDO);
-                }
-                conditionDataList.add(ConditionTransfer.INSTANCE.mapToRuleDO(ruleConditionDO));
-            }
-            if (CollectionUtils.isNotEmpty(conditionDataList)) {
-                publishEvent(ruleDO, conditionDataList, httpRegisterDTO.getRpcType());
-            }
         }
+        
+        //            List<RuleConditionDO> ruleConditionDOS = ruleConditionMapper.selectByQuery(new RuleConditionQuery(ruleDO.getId()));
+        //            if (CollectionUtils.isEmpty(ruleConditionDOS)) {
+        //                return;
+        //            }
+        //            List<ConditionData> conditionDataList = new ArrayList<>();
+        //            for (RuleConditionDO ruleConditionDO : ruleConditionDOS) {
+        //                if (ruleConditionDO.getParamType().equals(ParamTypeEnum.URI.getName())
+        //                        || !ruleConditionDO.getParamValue().equals(httpRegisterDTO.getPath())) {
+        //                    ruleConditionDO.setParamValue(httpRegisterDTO.getPath());
+        //                    ruleConditionMapper.updateSelective(ruleConditionDO);
+        //                }
+        //                conditionDataList.add(ConditionTransfer.INSTANCE.mapToRuleDO(ruleConditionDO));
+        //            }
+        //            if (CollectionUtils.isNotEmpty(conditionDataList)) {
+        //                publishEvent(ruleDO, conditionDataList, httpRegisterDTO.getRpcType());
+        //            }
+        
     }
     
     private void publishEvent(final RuleDO ruleDO, final List<ConditionData> conditionDataList, final String rpcType) {
@@ -184,14 +215,11 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
             selectorDTO.setHandle(appName);
         } else {
             //is divide
-            DivideUpstream divideUpstream = new DivideUpstream();
-            divideUpstream.setUpstreamHost("localhost");
-            divideUpstream.setProtocol("http://");
-            divideUpstream.setUpstreamUrl(uri);
-            divideUpstream.setWeight(50);
+            DivideUpstream divideUpstream = buildDivideUpstream(uri);
             String handler = GsonUtils.getInstance().toJson(divideUpstream);
             selectorDTO.setHandle(handler);
             selectorDTO.setPluginId("5");
+            upstreamCheckService.submit(selectorDTO.getName(), divideUpstream);
         }
         SelectorConditionDTO selectorConditionDTO = new SelectorConditionDTO();
         selectorConditionDTO.setParamType(ParamTypeEnum.URI.getName());
@@ -200,6 +228,15 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         selectorConditionDTO.setParamValue(contextPath + "/**");
         selectorDTO.setSelectorConditions(Collections.singletonList(selectorConditionDTO));
         return selectorService.register(selectorDTO);
+    }
+    
+    private DivideUpstream buildDivideUpstream(final String uri) {
+        DivideUpstream divideUpstream = new DivideUpstream();
+        divideUpstream.setUpstreamHost("localhost");
+        divideUpstream.setProtocol("http://");
+        divideUpstream.setUpstreamUrl(uri);
+        divideUpstream.setWeight(50);
+        return divideUpstream;
     }
     
     private void registerRule(final String selectorId, final String path, final String rpcType, final String ruleName) {

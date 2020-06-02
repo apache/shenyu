@@ -29,7 +29,8 @@
     <artifactId>soul-client-http</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>soul-client-http-spring</module>
+        <module>soul-client-springmvc</module>
+        <module>soul-client-springcloud</module>
     </modules>
 
 
