@@ -22,7 +22,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
-import org.dromara.soul.admin.dto.HttpRegisterDTO;
+import org.dromara.soul.admin.dto.SpringCloudRegisterDTO;
+import org.dromara.soul.admin.dto.SpringMvcRegisterDTO;
 import org.dromara.soul.admin.dto.MetaDataDTO;
 import org.dromara.soul.admin.dto.RuleConditionDTO;
 import org.dromara.soul.admin.dto.RuleDTO;
@@ -106,24 +107,35 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     }
     
     @Override
-    public String registerHttp(final HttpRegisterDTO httpRegisterDTO) {
-        String selectorId = handlerHttpSelector(httpRegisterDTO);
-        handlerHttpRule(selectorId, httpRegisterDTO);
+    public String registerSpringMvc(final SpringMvcRegisterDTO dto) {
+        String selectorId = handlerSpringMvcSelector(dto);
+        handlerSpringMvcRule(selectorId, dto);
         return "success";
     }
     
     @Override
-    public String registerRpc(final MetaDataDTO metaDataDTO) {
-        MetaDataDO byPath = metaDataMapper.findByPath(metaDataDTO.getPath());
+    public String registerSpringCloud(final SpringCloudRegisterDTO dto) {
+        MetaDataDO metaDataDO = metaDataMapper.findByPath(dto.getPath());
+        if (Objects.isNull(metaDataDO)) {
+            saveSpringCloudMetaData(dto);
+        }
+        String selectorId = handlerSpringCloudSelector(dto);
+        handlerSpringCloudRule(selectorId, dto);
+        return "success";
+    }
+    
+    @Override
+    public String registerDubbo(final MetaDataDTO dto) {
+        MetaDataDO byPath = metaDataMapper.findByPath(dto.getPath());
         if (Objects.nonNull(byPath)
-                && (!byPath.getMethodName().equals(metaDataDTO.getMethodName())
-                || !byPath.getServiceName().equals(metaDataDTO.getServiceName()))) {
+                && (!byPath.getMethodName().equals(dto.getMethodName())
+                || !byPath.getServiceName().equals(dto.getServiceName()))) {
             return "you path already exist!";
         }
-        final MetaDataDO exist = metaDataMapper.findByServiceNameAndMethod(metaDataDTO.getServiceName(), metaDataDTO.getMethodName());
-        saveOrUpdateMetaData(exist, metaDataDTO);
-        String selectorId = handlerDubboSelector(metaDataDTO);
-        handlerDubboRule(selectorId, metaDataDTO, exist);
+        final MetaDataDO exist = metaDataMapper.findByServiceNameAndMethod(dto.getServiceName(), dto.getMethodName());
+        saveOrUpdateMetaData(exist, dto);
+        String selectorId = handlerDubboSelector(dto);
+        handlerDubboRule(selectorId, dto, exist);
         return "success";
     }
     
@@ -147,6 +159,22 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         }
     }
     
+    private void saveSpringCloudMetaData(final SpringCloudRegisterDTO dto) {
+        MetaDataDO metaDataDO = new MetaDataDO();
+        metaDataDO.setAppName(dto.getAppName());
+        metaDataDO.setPath(dto.getPath());
+        metaDataDO.setPathDesc(dto.getPathDesc());
+        metaDataDO.setRpcType(dto.getRpcType());
+        metaDataDO.setEnabled(dto.isEnabled());
+        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+        metaDataDO.setId(UUIDUtils.getInstance().generateShortUuid());
+        metaDataDO.setDateCreated(currentTime);
+        metaDataDO.setDateUpdated(currentTime);
+        // publish AppAuthData's event
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.CREATE,
+                Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDO))));
+    }
+    
     private void saveOrUpdateMetaData(final MetaDataDO exist, final MetaDataDTO metaDataDTO) {
         DataEventTypeEnum eventType;
         MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataDTO);
@@ -168,49 +196,66 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     }
     
     
-    private String handlerHttpSelector(final HttpRegisterDTO httpRegisterDTO) {
-        String contextPath = httpRegisterDTO.getContext();
+    private String handlerSpringMvcSelector(final SpringMvcRegisterDTO dto) {
+        String contextPath = dto.getContext();
         SelectorDO selectorDO = selectorService.findByName(contextPath);
         String selectorId;
-        String uri = String.join(":", httpRegisterDTO.getHost(), String.valueOf(httpRegisterDTO.getPort()));
+        String uri = String.join(":", dto.getHost(), String.valueOf(dto.getPort()));
         if (Objects.isNull(selectorDO)) {
             //需要新增
-            selectorId = registerSelector(contextPath, httpRegisterDTO.getRpcType(), httpRegisterDTO.getAppName(), uri);
+            selectorId = registerSelector(contextPath, dto.getRpcType(), dto.getAppName(), uri);
         } else {
             selectorId = selectorDO.getId();
-            if (RpcTypeEnum.HTTP.getName().equals(httpRegisterDTO.getRpcType())) {
-                //更新 upstream
-                String handle = selectorDO.getHandle();
-                String handleAdd;
-                DivideUpstream addDivideUpstream = buildDivideUpstream(uri);
-                SelectorData selectorData = selectorService.buildByName(contextPath);
-                if (StringUtils.isBlank(handle)) {
-                    handleAdd = GsonUtils.getInstance().toJson(addDivideUpstream);
-                } else {
-                    List<DivideUpstream> divideUpstreams = GsonUtils.getInstance().fromList(handle, DivideUpstream.class);
-                    divideUpstreams.add(addDivideUpstream);
-                    handleAdd = GsonUtils.getInstance().toJson(divideUpstreams);
-                }
-                selectorDO.setHandle(handleAdd);
-                selectorData.setHandle(handleAdd);
-                //更新数据库
-                selectorMapper.updateSelective(selectorDO);
-                //提交过去检查
-                upstreamCheckService.submit(contextPath, addDivideUpstream);
-                //发送更新事件
-                // publish change event.
-                eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
-                        Collections.singletonList(selectorData)));
+            //更新 upstream
+            String handle = selectorDO.getHandle();
+            String handleAdd;
+            DivideUpstream addDivideUpstream = buildDivideUpstream(uri);
+            SelectorData selectorData = selectorService.buildByName(contextPath);
+            if (StringUtils.isBlank(handle)) {
+                handleAdd = GsonUtils.getInstance().toJson(addDivideUpstream);
+            } else {
+                List<DivideUpstream> divideUpstreams = GsonUtils.getInstance().fromList(handle, DivideUpstream.class);
+                divideUpstreams.add(addDivideUpstream);
+                handleAdd = GsonUtils.getInstance().toJson(divideUpstreams);
             }
+            selectorDO.setHandle(handleAdd);
+            selectorData.setHandle(handleAdd);
+            //更新数据库
+            selectorMapper.updateSelective(selectorDO);
+            //提交过去检查
+            upstreamCheckService.submit(contextPath, addDivideUpstream);
+            //发送更新事件
+            // publish change event.
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
+                    Collections.singletonList(selectorData)));
         }
         return selectorId;
     }
     
-    private void handlerHttpRule(final String selectorId, final HttpRegisterDTO httpRegisterDTO) {
-        RuleDO ruleDO = ruleMapper.findByName(httpRegisterDTO.getRuleName());
+    private void handlerSpringMvcRule(final String selectorId, final SpringMvcRegisterDTO dto) {
+        RuleDO ruleDO = ruleMapper.findByName(dto.getRuleName());
         if (Objects.isNull(ruleDO)) {
             //需要新增
-            registerRule(selectorId, httpRegisterDTO.getPath(), httpRegisterDTO.getRpcType(), httpRegisterDTO.getRuleName());
+            registerRule(selectorId, dto.getPath(), dto.getRpcType(), dto.getRuleName());
+        }
+    }
+    
+    private String handlerSpringCloudSelector(final SpringCloudRegisterDTO dto) {
+        String contextPath = dto.getContext();
+        SelectorDO selectorDO = selectorService.findByName(contextPath);
+        if (Objects.isNull(selectorDO)) {
+            //需要新增
+            return registerSelector(contextPath, dto.getRpcType(), dto.getAppName(), "");
+        } else {
+            return selectorDO.getId();
+        }
+    }
+    
+    private void handlerSpringCloudRule(final String selectorId, final SpringCloudRegisterDTO dto) {
+        RuleDO ruleDO = ruleMapper.findByName(dto.getRuleName());
+        if (Objects.isNull(ruleDO)) {
+            //需要新增
+            registerRule(selectorId, dto.getPath(), dto.getRpcType(), dto.getRuleName());
         }
     }
     

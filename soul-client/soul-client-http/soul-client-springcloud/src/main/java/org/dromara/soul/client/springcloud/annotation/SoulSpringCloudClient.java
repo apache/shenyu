@@ -44,7 +44,7 @@ public @interface SoulSpringCloudClient {
      *
      * @return the string
      */
-    String ruleName() default  "";
+    String ruleName() default "";
     
     /**
      * 接口路径描述,方便用户选择.
@@ -59,13 +59,6 @@ public @interface SoulSpringCloudClient {
      * @return the string
      */
     String rpcType() default "springCloud";
-    
-    /**
-     * Write meta data boolean.
-     *
-     * @return the boolean
-     */
-    boolean writeMetaData() default false;
     
     /**
      * Enabled boolean.
