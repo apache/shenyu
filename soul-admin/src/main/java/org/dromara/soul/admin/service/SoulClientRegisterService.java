@@ -17,7 +17,8 @@
 
 package org.dromara.soul.admin.service;
 
-import org.dromara.soul.admin.dto.HttpRegisterDTO;
+import org.dromara.soul.admin.dto.SpringCloudRegisterDTO;
+import org.dromara.soul.admin.dto.SpringMvcRegisterDTO;
 import org.dromara.soul.admin.dto.MetaDataDTO;
 
 /**
@@ -28,10 +29,18 @@ public interface SoulClientRegisterService {
     /**
      * Register http string.
      *
-     * @param httpRegisterDTO the http register dto
+     * @param springMvcRegisterDTO the http register dto
      * @return the string
      */
-    String registerHttp(HttpRegisterDTO httpRegisterDTO);
+    String registerSpringMvc(SpringMvcRegisterDTO springMvcRegisterDTO);
+    
+    /**
+     * Register spring cloud string.
+     *
+     * @param springCloudRegisterDTO the spring cloud register dto
+     * @return the string
+     */
+    String registerSpringCloud(SpringCloudRegisterDTO springCloudRegisterDTO);
     
     /**
      * Register rpc string.
@@ -39,5 +48,5 @@ public interface SoulClientRegisterService {
      * @param metaDataDTO the meta data dto
      * @return the string
      */
-    String registerRpc(MetaDataDTO metaDataDTO);
+    String registerDubbo(MetaDataDTO metaDataDTO);
 }

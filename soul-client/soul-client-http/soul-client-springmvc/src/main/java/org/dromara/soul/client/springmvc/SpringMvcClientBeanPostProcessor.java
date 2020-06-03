@@ -22,17 +22,13 @@ import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import lombok.extern.slf4j.Slf4j;
-import org.dromara.soul.client.springmvc.annotation.SoulSpringMvcClient;
-import org.dromara.soul.client.common.dto.HttpRegisterDTO;
 import org.dromara.soul.client.common.utils.OkHttpTools;
+import org.dromara.soul.client.springmvc.annotation.SoulSpringMvcClient;
 import org.dromara.soul.client.springmvc.config.SoulSpringMvcConfig;
+import org.dromara.soul.client.springmvc.dto.SpringMvcRegisterDTO;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Controller;
@@ -46,9 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author xiaoyu(Myth)
  */
 @Slf4j
-public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor, ApplicationListener<ContextRefreshedEvent> {
-    
-    private ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
     
     private final String url;
     
@@ -70,11 +64,14 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor, Appl
             throw new RuntimeException("spring mvc param must config  contextPath ,adminUrl and port");
         }
         this.soulSpringMvcConfig = soulSpringMvcConfig;
-        url = adminUrl + "/soul-client/http-register";
+        url = adminUrl + "/soul-client/springmvc-register";
     }
     
     @Override
     public Object postProcessBeforeInitialization(@NonNull final Object bean, @NonNull final String beanName) throws BeansException {
+        if (soulSpringMvcConfig.isFull()) {
+            return bean;
+        }
         Controller controller = AnnotationUtils.findAnnotation(bean.getClass(), Controller.class);
         RestController restController = AnnotationUtils.findAnnotation(bean.getClass(), RestController.class);
         RequestMapping requestMapping = AnnotationUtils.findAnnotation(bean.getClass(), RequestMapping.class);
@@ -85,8 +82,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor, Appl
             if (Objects.nonNull(clazzAnnotation)) {
                 contextPath += clazzAnnotation.path();
                 if (clazzAnnotation.path().indexOf("*") > 1) {
-                    String finalContextPath1 = contextPath;
-                    executorService.execute(() -> post(buildJsonParams(clazzAnnotation, finalContextPath1, bean, "")));
+                    post(buildJsonParams(clazzAnnotation, contextPath));
                     return bean;
                 }
             }
@@ -94,8 +90,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor, Appl
             for (Method method : methods) {
                 SoulSpringMvcClient soulSpringMvcClient = AnnotationUtils.findAnnotation(method, SoulSpringMvcClient.class);
                 if (Objects.nonNull(soulSpringMvcClient)) {
-                    String finalContextPath = contextPath;
-                    executorService.execute(() -> post(buildJsonParams(soulSpringMvcClient, finalContextPath, bean, method.getName())));
+                    post(buildJsonParams(soulSpringMvcClient, contextPath));
                 }
             }
         }
@@ -115,27 +110,23 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor, Appl
         }
     }
     
-    private String buildJsonParams(final SoulSpringMvcClient soulSpringMvcClient, final String contextPath, final Object bean, final String methodName) {
+    private String buildJsonParams(final SoulSpringMvcClient soulSpringMvcClient, final String contextPath) {
         String appName = soulSpringMvcConfig.getAppName();
         Integer port = soulSpringMvcConfig.getPort();
         String path = contextPath + soulSpringMvcClient.path();
         String desc = soulSpringMvcClient.desc();
-        String serviceName = bean.getClass().getSimpleName();
         String configHost = soulSpringMvcConfig.getHost();
         String host = ("".equals(configHost) || null == configHost) ? getHost() : configHost;
         String configRuleName = soulSpringMvcClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
-        HttpRegisterDTO registerDTO = HttpRegisterDTO.builder()
+        SpringMvcRegisterDTO registerDTO = SpringMvcRegisterDTO.builder()
                 .context(contextPath)
                 .host(host)
                 .port(port)
                 .appName(appName)
-                .serviceName(serviceName)
-                .methodName(methodName)
                 .path(path)
                 .pathDesc(desc)
                 .rpcType(soulSpringMvcClient.rpcType())
-                .writeMetaData(soulSpringMvcClient.writeMetaData())
                 .enabled(soulSpringMvcClient.enabled())
                 .ruleName(ruleName)
                 .build();
@@ -149,11 +140,6 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor, Appl
         } catch (UnknownHostException e) {
             return "127.0.0.1";
         }
-    }
-    
-    @Override
-    public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
-        executorService.shutdown();
     }
 }
 

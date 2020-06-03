@@ -23,10 +23,10 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import lombok.extern.slf4j.Slf4j;
-import org.dromara.soul.client.common.dto.HttpRegisterDTO;
 import org.dromara.soul.client.common.utils.OkHttpTools;
 import org.dromara.soul.client.springcloud.annotation.SoulSpringCloudClient;
 import org.dromara.soul.client.springcloud.config.SoulSpringCloudConfig;
+import org.dromara.soul.client.springcloud.dto.SpringCloudRegisterDTO;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationListener;
@@ -62,11 +62,11 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor, Ap
         String adminUrl = soulSpringCloudConfig.getAdminUrl();
         if (contextPath == null || "".equals(contextPath)
                 || adminUrl == null || "".equals(adminUrl)) {
-            log.error("http param must config  contextPath ,adminUrl");
-            throw new RuntimeException("spring cloud param must config  contextPath ,adminUrl");
+            log.error("spring cloud param must config  contextPath and adminUrl");
+            throw new RuntimeException("spring cloud param must config contextPath and adminUrl");
         }
         this.soulSpringCloudConfig = soulSpringCloudConfig;
-        url = adminUrl + "/soul-client/http-register";
+        url = adminUrl + "/soul-client/springcloud-register";
     }
     
     @Override
@@ -81,8 +81,8 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor, Ap
             if (Objects.nonNull(clazzAnnotation)) {
                 contextPath += clazzAnnotation.path();
                 if (clazzAnnotation.path().indexOf("*") > 1) {
-                    String finalContextPath1 = contextPath;
-                    executorService.execute(() -> post(buildJsonParams(clazzAnnotation, finalContextPath1, bean, "")));
+                    String finalContextPath = contextPath;
+                    executorService.execute(() -> post(buildJsonParams(clazzAnnotation, finalContextPath)));
                     return bean;
                 }
             }
@@ -91,7 +91,7 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor, Ap
                 SoulSpringCloudClient soulSpringCloudClient = AnnotationUtils.findAnnotation(method, SoulSpringCloudClient.class);
                 if (Objects.nonNull(soulSpringCloudClient)) {
                     String finalContextPath = contextPath;
-                    executorService.execute(() -> post(buildJsonParams(soulSpringCloudClient, finalContextPath, bean, method.getName())));
+                    executorService.execute(() -> post(buildJsonParams(soulSpringCloudClient, finalContextPath)));
                 }
             }
         }
@@ -111,22 +111,18 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor, Ap
         }
     }
     
-    private String buildJsonParams(final SoulSpringCloudClient soulSpringCloudClient, final String contextPath, final Object bean, final String methodName) {
+    private String buildJsonParams(final SoulSpringCloudClient soulSpringCloudClient, final String contextPath) {
         String appName = soulSpringCloudConfig.getAppName();
         String path = contextPath + soulSpringCloudClient.path();
         String desc = soulSpringCloudClient.desc();
-        String serviceName = bean.getClass().getSimpleName();
         String configRuleName = soulSpringCloudClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
-        HttpRegisterDTO registerDTO = HttpRegisterDTO.builder()
+        SpringCloudRegisterDTO registerDTO = SpringCloudRegisterDTO.builder()
                 .context(contextPath)
                 .appName(appName)
-                .serviceName(serviceName)
-                .methodName(methodName)
                 .path(path)
                 .pathDesc(desc)
                 .rpcType(soulSpringCloudClient.rpcType())
-                .writeMetaData(soulSpringCloudClient.writeMetaData())
                 .enabled(soulSpringCloudClient.enabled())
                 .ruleName(ruleName)
                 .build();

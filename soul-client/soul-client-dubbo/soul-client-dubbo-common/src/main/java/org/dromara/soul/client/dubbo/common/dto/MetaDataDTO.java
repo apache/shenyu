@@ -11,43 +11,47 @@ import lombok.Data;
 @Data
 @Builder
 public class MetaDataDTO {
-
+    
     private String appName;
-
+    
+    private String contextPath;
+    
     private String path;
-
+    
     private String pathDesc;
-
+    
     private String rpcType;
-
+    
     private String serviceName;
-
+    
     private String methodName;
-
+    
+    private String ruleName;
+    
     private String parameterTypes;
-
+    
     private String rpcExt;
-
+    
     private boolean enabled;
-
-
+    
+    
     /**
      * The type Rpc ext.
      */
     @Data
     @Builder
     public static class RpcExt {
-
+        
         private String group;
-
+        
         private String version;
-
+        
         private String loadbalance;
-
+        
         private Integer retries;
-
+        
         private Integer timeout;
-
+        
     }
-
+    
 }

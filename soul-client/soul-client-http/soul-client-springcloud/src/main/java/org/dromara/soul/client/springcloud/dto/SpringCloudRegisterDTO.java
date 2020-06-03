@@ -1,16 +1,16 @@
-package org.dromara.soul.admin.dto;
+package org.dromara.soul.client.springcloud.dto;
 
 import lombok.Builder;
 import lombok.Data;
 
 /**
- * The type Meta data dto.
+ * The type Spring cloud register dto.
  *
  * @author xiaoyu
  */
 @Data
 @Builder
-public class HttpRegisterDTO {
+public class SpringCloudRegisterDTO {
     
     private String appName;
     
@@ -21,16 +21,6 @@ public class HttpRegisterDTO {
     private String pathDesc;
     
     private String rpcType;
-    
-    private String serviceName;
-    
-    private String methodName;
-    
-    private String host;
-    
-    private Integer port;
-    
-    private Boolean writeMetaData;
     
     private String ruleName;
     

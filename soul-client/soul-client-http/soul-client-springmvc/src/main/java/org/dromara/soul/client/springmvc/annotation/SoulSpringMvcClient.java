@@ -60,12 +60,6 @@ public @interface SoulSpringMvcClient {
      */
     String rpcType() default "http";
     
-    /**
-     * Write meta data boolean.
-     *
-     * @return the boolean
-     */
-    boolean writeMetaData() default false;
     
     /**
      * Enabled boolean.

@@ -17,7 +17,8 @@
 
 package org.dromara.soul.admin.controller;
 
-import org.dromara.soul.admin.dto.HttpRegisterDTO;
+import org.dromara.soul.admin.dto.SpringCloudRegisterDTO;
+import org.dromara.soul.admin.dto.SpringMvcRegisterDTO;
 import org.dromara.soul.admin.dto.MetaDataDTO;
 import org.dromara.soul.admin.service.SoulClientRegisterService;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * The type Soul client controller.
+ *
  * @author xiaoyu
  */
 @RestController
@@ -45,15 +47,27 @@ public class SoulClientController {
     }
     
     /**
-     * Register http string.
+     * Register spring mvc string.
      *
-     * @param registerDTO the register dto
+     * @param springMvcRegisterDTO the spring mvc register dto
      * @return the string
      */
-    @PostMapping("/http-register")
-    public String registerHttp(@RequestBody final HttpRegisterDTO registerDTO) {
-        return soulClientRegisterService.registerHttp(registerDTO);
+    @PostMapping("/springmvc-register")
+    public String registerSpringMvc(@RequestBody final SpringMvcRegisterDTO springMvcRegisterDTO) {
+        return soulClientRegisterService.registerSpringMvc(springMvcRegisterDTO);
     }
+    
+    /**
+     * Register spring cloud string.
+     *
+     * @param springCloudRegisterDTO the spring cloud register dto
+     * @return the string
+     */
+    @PostMapping("/springcloud-register")
+    public String registerSpringCloud(@RequestBody final SpringCloudRegisterDTO springCloudRegisterDTO) {
+        return soulClientRegisterService.registerSpringCloud(springCloudRegisterDTO);
+    }
+    
     
     /**
      * Register rpc string.
@@ -61,8 +75,8 @@ public class SoulClientController {
      * @param metaDataDTO the meta data dto
      * @return the string
      */
-    @PostMapping("/rpc-register")
+    @PostMapping("/dubbo-register")
     public String registerRpc(@RequestBody final MetaDataDTO metaDataDTO) {
-        return soulClientRegisterService.registerRpc(metaDataDTO);
+        return soulClientRegisterService.registerDubbo(metaDataDTO);
     }
 }

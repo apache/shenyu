@@ -36,7 +36,7 @@ public class AlibabaDubboServiceBeanPostProcessor implements BeanPostProcessor, 
     
     public AlibabaDubboServiceBeanPostProcessor(final DubboConfig dubboConfig) {
         this.dubboConfig = dubboConfig;
-        url = dubboConfig.getAdminUrl() + "/soul-client/rpc-register";
+        url = dubboConfig.getAdminUrl() + "/soul-client/dubbo-register";
     }
     
     @Override
@@ -82,6 +82,8 @@ public class AlibabaDubboServiceBeanPostProcessor implements BeanPostProcessor, 
         String path = dubboConfig.getContextPath() + soulDubboClient.path();
         String desc = soulDubboClient.desc();
         String serviceName = serviceBean.getInterface();
+        String configRuleName = soulDubboClient.ruleName();
+        String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
         String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
@@ -90,7 +92,9 @@ public class AlibabaDubboServiceBeanPostProcessor implements BeanPostProcessor, 
                 .appName(appName)
                 .serviceName(serviceName)
                 .methodName(methodName)
+                .contextPath(dubboConfig.getContextPath())
                 .path(path)
+                .ruleName(ruleName)
                 .pathDesc(desc)
                 .parameterTypes(parameterTypes)
                 .rpcExt(buildRpcExt(serviceBean))
