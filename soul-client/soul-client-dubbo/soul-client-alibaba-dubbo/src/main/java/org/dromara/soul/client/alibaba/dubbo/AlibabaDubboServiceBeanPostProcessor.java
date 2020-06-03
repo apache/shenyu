@@ -36,7 +36,7 @@ public class AlibabaDubboServiceBeanPostProcessor implements BeanPostProcessor, 
     
     public AlibabaDubboServiceBeanPostProcessor(final DubboConfig dubboConfig) {
         this.dubboConfig = dubboConfig;
-        url = dubboConfig.getAdminUrl() + "/meta-data/register";
+        url = dubboConfig.getAdminUrl() + "/soul-client/rpc-register";
     }
     
     @Override

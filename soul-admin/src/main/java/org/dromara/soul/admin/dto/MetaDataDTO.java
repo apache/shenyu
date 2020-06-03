@@ -27,29 +27,33 @@ import java.io.Serializable;
 @Data
 @EqualsAndHashCode
 public class MetaDataDTO implements Serializable {
-
+    
     private String id;
-
+    
     private String appName;
-
+    
+    private String contextPath;
+    
     private String path;
-
+    
+    private String ruleName;
+    
     private String pathDesc;
-
+    
     private String rpcType;
-
+    
     private String serviceName;
-
+    
     private String methodName;
-
+    
     private String parameterTypes;
-
+    
     private String rpcExt;
-
+    
     /**
      * whether enabled.
      */
     private Boolean enabled;
-
-
+    
+    
 }

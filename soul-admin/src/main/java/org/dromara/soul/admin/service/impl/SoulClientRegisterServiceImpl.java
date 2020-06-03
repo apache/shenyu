@@ -17,6 +17,7 @@
 
 package org.dromara.soul.admin.service.impl;
 
+import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -27,17 +28,17 @@ import org.dromara.soul.admin.dto.RuleConditionDTO;
 import org.dromara.soul.admin.dto.RuleDTO;
 import org.dromara.soul.admin.dto.SelectorConditionDTO;
 import org.dromara.soul.admin.dto.SelectorDTO;
+import org.dromara.soul.admin.entity.MetaDataDO;
 import org.dromara.soul.admin.entity.RuleDO;
 import org.dromara.soul.admin.entity.SelectorDO;
 import org.dromara.soul.admin.listener.DataChangedEvent;
 import org.dromara.soul.admin.mapper.MetaDataMapper;
-import org.dromara.soul.admin.mapper.RuleConditionMapper;
 import org.dromara.soul.admin.mapper.RuleMapper;
 import org.dromara.soul.admin.mapper.SelectorMapper;
 import org.dromara.soul.admin.service.RuleService;
 import org.dromara.soul.admin.service.SelectorService;
 import org.dromara.soul.admin.service.SoulClientRegisterService;
-import org.dromara.soul.common.dto.ConditionData;
+import org.dromara.soul.admin.transfer.MetaDataTransfer;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.dto.convert.rule.DivideRuleHandle;
@@ -49,11 +50,11 @@ import org.dromara.soul.common.enums.LoadBalanceEnum;
 import org.dromara.soul.common.enums.MatchModeEnum;
 import org.dromara.soul.common.enums.OperatorEnum;
 import org.dromara.soul.common.enums.ParamTypeEnum;
-import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.enums.SelectorTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.JsonUtils;
+import org.dromara.soul.common.utils.UUIDUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -74,8 +75,6 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     
     private final RuleMapper ruleMapper;
     
-    private final RuleConditionMapper ruleConditionMapper;
-    
     private final UpstreamCheckService upstreamCheckService;
     
     private final SelectorMapper selectorMapper;
@@ -83,12 +82,11 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     /**
      * Instantiates a new Meta data service.
      *
-     * @param metaDataMapper      the meta data mapper
-     * @param eventPublisher      the event publisher
-     * @param selectorService     the selector service
-     * @param ruleService         the rule service
-     * @param ruleMapper          the rule mapper
-     * @param ruleConditionMapper the rule condition mapper
+     * @param metaDataMapper  the meta data mapper
+     * @param eventPublisher  the event publisher
+     * @param selectorService the selector service
+     * @param ruleService     the rule service
+     * @param ruleMapper      the rule mapper
      */
     @Autowired(required = false)
     public SoulClientRegisterServiceImpl(final MetaDataMapper metaDataMapper,
@@ -96,7 +94,6 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
                                          final SelectorService selectorService,
                                          final RuleService ruleService,
                                          final RuleMapper ruleMapper,
-                                         final RuleConditionMapper ruleConditionMapper,
                                          final UpstreamCheckService upstreamCheckService,
                                          final SelectorMapper selectorMapper) {
         this.metaDataMapper = metaDataMapper;
@@ -104,7 +101,6 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         this.selectorService = selectorService;
         this.ruleService = ruleService;
         this.ruleMapper = ruleMapper;
-        this.ruleConditionMapper = ruleConditionMapper;
         this.upstreamCheckService = upstreamCheckService;
         this.selectorMapper = selectorMapper;
     }
@@ -118,8 +114,59 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     
     @Override
     public String registerRpc(final MetaDataDTO metaDataDTO) {
-        return null;
+        MetaDataDO byPath = metaDataMapper.findByPath(metaDataDTO.getPath());
+        if (Objects.nonNull(byPath)
+                && (!byPath.getMethodName().equals(metaDataDTO.getMethodName())
+                || !byPath.getServiceName().equals(metaDataDTO.getServiceName()))) {
+            return "you path already exist!";
+        }
+        final MetaDataDO exist = metaDataMapper.findByServiceNameAndMethod(metaDataDTO.getServiceName(), metaDataDTO.getMethodName());
+        saveOrUpdateMetaData(exist, metaDataDTO);
+        String selectorId = handlerDubboSelector(metaDataDTO);
+        handlerDubboRule(selectorId, metaDataDTO, exist);
+        return "success";
     }
+    
+    private String handlerDubboSelector(final MetaDataDTO metaDataDTO) {
+        SelectorDO selectorDO = selectorService.findByName(metaDataDTO.getContextPath());
+        String selectorId;
+        if (Objects.isNull(selectorDO)) {
+            //需要新增
+            selectorId = registerSelector(metaDataDTO.getContextPath(), metaDataDTO.getRpcType(), metaDataDTO.getAppName(), "");
+        } else {
+            selectorId = selectorDO.getId();
+        }
+        return selectorId;
+    }
+    
+    private void handlerDubboRule(final String selectorId, final MetaDataDTO metaDataDTO, final MetaDataDO exist) {
+        RuleDO existRule = ruleMapper.findByName(metaDataDTO.getPath());
+        if (Objects.isNull(exist) || Objects.isNull(existRule)) {
+            //需要新增
+            registerRule(selectorId, metaDataDTO.getPath(), metaDataDTO.getRpcType(), metaDataDTO.getRuleName());
+        }
+    }
+    
+    private void saveOrUpdateMetaData(final MetaDataDO exist, final MetaDataDTO metaDataDTO) {
+        DataEventTypeEnum eventType;
+        MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataDTO);
+        if (Objects.isNull(exist)) {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            metaDataDO.setId(UUIDUtils.getInstance().generateShortUuid());
+            metaDataDO.setDateCreated(currentTime);
+            metaDataDO.setDateUpdated(currentTime);
+            metaDataMapper.insert(metaDataDO);
+            eventType = DataEventTypeEnum.CREATE;
+        } else {
+            metaDataDO.setId(exist.getId());
+            metaDataMapper.update(metaDataDO);
+            eventType = DataEventTypeEnum.UPDATE;
+        }
+        // publish AppAuthData's event
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, eventType,
+                Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDTO))));
+    }
+    
     
     private String handlerHttpSelector(final HttpRegisterDTO httpRegisterDTO) {
         String contextPath = httpRegisterDTO.getContext();
@@ -165,38 +212,6 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
             //需要新增
             registerRule(selectorId, httpRegisterDTO.getPath(), httpRegisterDTO.getRpcType(), httpRegisterDTO.getRuleName());
         }
-        
-        //            List<RuleConditionDO> ruleConditionDOS = ruleConditionMapper.selectByQuery(new RuleConditionQuery(ruleDO.getId()));
-        //            if (CollectionUtils.isEmpty(ruleConditionDOS)) {
-        //                return;
-        //            }
-        //            List<ConditionData> conditionDataList = new ArrayList<>();
-        //            for (RuleConditionDO ruleConditionDO : ruleConditionDOS) {
-        //                if (ruleConditionDO.getParamType().equals(ParamTypeEnum.URI.getName())
-        //                        || !ruleConditionDO.getParamValue().equals(httpRegisterDTO.getPath())) {
-        //                    ruleConditionDO.setParamValue(httpRegisterDTO.getPath());
-        //                    ruleConditionMapper.updateSelective(ruleConditionDO);
-        //                }
-        //                conditionDataList.add(ConditionTransfer.INSTANCE.mapToRuleDO(ruleConditionDO));
-        //            }
-        //            if (CollectionUtils.isNotEmpty(conditionDataList)) {
-        //                publishEvent(ruleDO, conditionDataList, httpRegisterDTO.getRpcType());
-        //            }
-        
-    }
-    
-    private void publishEvent(final RuleDO ruleDO, final List<ConditionData> conditionDataList, final String rpcType) {
-        String pluginName;
-        if (RpcTypeEnum.DUBBO.getName().equals(rpcType)) {
-            pluginName = PluginEnum.DUBBO.getName();
-        } else if (RpcTypeEnum.HTTP.getName().equals(rpcType)) {
-            pluginName = PluginEnum.DIVIDE.getName();
-        } else {
-            pluginName = PluginEnum.SPRING_CLOUD.getName();
-        }
-        // publish change event.
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.UPDATE,
-                Collections.singletonList(RuleDO.transFrom(ruleDO, pluginName, conditionDataList))));
     }
     
     private String registerSelector(final String contextPath, final String rpcType, final String appName, final String uri) {
