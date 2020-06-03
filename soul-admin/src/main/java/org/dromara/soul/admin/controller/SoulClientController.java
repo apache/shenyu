@@ -18,22 +18,51 @@
 package org.dromara.soul.admin.controller;
 
 import org.dromara.soul.admin.dto.HttpRegisterDTO;
+import org.dromara.soul.admin.dto.MetaDataDTO;
 import org.dromara.soul.admin.service.SoulClientRegisterService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * The type Soul client controller.
+ * @author xiaoyu
+ */
 @RestController
 @RequestMapping("/soul-client")
 public class SoulClientController {
     
-    @Autowired(required = false)
-    private SoulClientRegisterService soulClientRegisterService;
+    private final SoulClientRegisterService soulClientRegisterService;
     
+    /**
+     * Instantiates a new Soul client controller.
+     *
+     * @param soulClientRegisterService the soul client register service
+     */
+    public SoulClientController(final SoulClientRegisterService soulClientRegisterService) {
+        this.soulClientRegisterService = soulClientRegisterService;
+    }
+    
+    /**
+     * Register http string.
+     *
+     * @param registerDTO the register dto
+     * @return the string
+     */
     @PostMapping("/http-register")
     public String registerHttp(@RequestBody final HttpRegisterDTO registerDTO) {
         return soulClientRegisterService.registerHttp(registerDTO);
+    }
+    
+    /**
+     * Register rpc string.
+     *
+     * @param metaDataDTO the meta data dto
+     * @return the string
+     */
+    @PostMapping("/rpc-register")
+    public String registerRpc(@RequestBody final MetaDataDTO metaDataDTO) {
+        return soulClientRegisterService.registerRpc(metaDataDTO);
     }
 }

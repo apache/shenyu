@@ -36,7 +36,7 @@ public class ApacheDubboServiceBeanPostProcessor implements BeanPostProcessor, A
     
     public ApacheDubboServiceBeanPostProcessor(final DubboConfig dubboConfig) {
         this.dubboConfig = dubboConfig;
-        url = dubboConfig.getAdminUrl() + "/meta-data/register";
+        url = dubboConfig.getAdminUrl() + "/soul-client/rpc-register";
     }
     
     @Override
