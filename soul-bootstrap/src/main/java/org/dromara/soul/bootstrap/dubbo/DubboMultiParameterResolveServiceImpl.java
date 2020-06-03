@@ -20,6 +20,7 @@
 package org.dromara.soul.bootstrap.dubbo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Strings;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dromara.soul.web.plugin.dubbo.GenericParamResolveService;
@@ -65,7 +66,7 @@ public class DubboMultiParameterResolveServiceImpl implements GenericParamResolv
     }
 
     private static String[] splitParameterTypes(String parameterTypes) {
-        if (parameterTypes.length() == 0) {
+        if (Strings.isNullOrEmpty(parameterTypes)) {
             return new String[0];
         }
         List<String> ls = new ArrayList<>();
