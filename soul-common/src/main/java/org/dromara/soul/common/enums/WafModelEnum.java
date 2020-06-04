@@ -16,33 +16,30 @@
  *
  */
 
-package org.dromara.soul.common.config;
+package org.dromara.soul.common.enums;
 
-import java.util.Properties;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
-import java.io.Serializable;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
- * The monitor configuration for influxdb.
+ * The enum Waf model enum.
  *
  * @author xiaoyu(Myth)
  */
-@Data
-@EqualsAndHashCode
-public class MonitorConfig implements Serializable {
+@RequiredArgsConstructor
+@Getter
+public enum WafModelEnum {
     
-    private String metricsName;
+    /**
+     * BLACK waf  model enum.
+     */
+    BLACK("black"),
     
-    private String host;
+    /**
+     * Mixed waf model enum.
+     */
+    MIXED("mixed");
     
-    private Integer port;
+    private final String name;
     
-    private Boolean async;
-    
-    private Integer threadCount;
-    
-    private Properties props;
-
 }

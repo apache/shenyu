@@ -26,11 +26,14 @@ import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.WafHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.WafEnum;
+import org.dromara.soul.common.enums.WafModelEnum;
 import org.dromara.soul.common.utils.GsonUtils;
+import org.dromara.soul.plugin.base.utils.Singleton;
 import org.dromara.soul.plugin.base.utils.SoulResultWarp;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
 import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
+import org.dromara.soul.plugin.waf.config.WafConfig;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -47,13 +50,22 @@ public class WafPlugin extends AbstractSoulPlugin {
     
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
+        WafConfig wafConfig = Singleton.INST.get(WafConfig.class);
+        if (Objects.isNull(selector) && Objects.isNull(rule)) {
+            if (WafModelEnum.BLACK.getName().equals(wafConfig.getModel())) {
+                return chain.execute(exchange);
+            } else {
+                exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+                Object error = SoulResultWarp.error(403, Constants.REJECT_MSG, null);
+                return WebFluxResultUtils.result(exchange, error);
+            }
+        }
         String handle = rule.getHandle();
         WafHandle wafHandle = GsonUtils.getInstance().fromJson(handle, WafHandle.class);
         if (Objects.isNull(wafHandle) || StringUtils.isBlank(wafHandle.getPermission())) {
             log.error("waf handler can not configuration：{}", handle);
             return chain.execute(exchange);
         }
-        // if reject
         if (WafEnum.REJECT.getName().equals(wafHandle.getPermission())) {
             exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
             Object error = SoulResultWarp.error(Integer.parseInt(wafHandle.getStatusCode()), Constants.REJECT_MSG, null);

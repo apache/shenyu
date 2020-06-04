@@ -18,6 +18,12 @@
 
 package org.dromara.soul.web.handler;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import org.dromara.soul.metrics.api.HistogramMetricsTrackerDelegate;
+import org.dromara.soul.metrics.enums.MetricsLabelEnum;
+import org.dromara.soul.metrics.facade.MetricsTrackerFacade;
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.springframework.lang.NonNull;
@@ -26,9 +32,6 @@ import org.springframework.web.server.WebHandler;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
-
-import java.util.List;
-import java.util.Objects;
 
 /**
  * this is web handler request starter.
@@ -66,8 +69,12 @@ public final class SoulWebHandler implements WebHandler {
      */
     @Override
     public Mono<Void> handle(@NonNull final ServerWebExchange exchange) {
-        return new DefaultSoulPluginChain(plugins)
+        MetricsTrackerFacade.getInstance().counterInc(MetricsLabelEnum.REQUEST_TOTAL.getName());
+        Optional<HistogramMetricsTrackerDelegate> histogramStartTimer = MetricsTrackerFacade.getInstance().histogramStartTimer(MetricsLabelEnum.REQUEST_LATENCY.getName());
+        Mono<Void> subscribeOn = new DefaultSoulPluginChain(plugins)
                 .execute(exchange).subscribeOn(scheduler);
+        histogramStartTimer.ifPresent(e -> MetricsTrackerFacade.getInstance().histogramObserveDuration(e));
+        return subscribeOn;
     }
     
     private static class DefaultSoulPluginChain implements SoulPluginChain {

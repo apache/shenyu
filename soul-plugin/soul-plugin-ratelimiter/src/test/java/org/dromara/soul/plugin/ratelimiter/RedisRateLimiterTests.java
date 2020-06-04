@@ -17,7 +17,7 @@
 
 package org.dromara.soul.plugin.ratelimiter;
 
-import org.dromara.soul.common.config.RateLimiterConfig;
+import org.dromara.soul.plugin.ratelimiter.config.RateLimiterConfig;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.ratelimiter.handler.RateLimiterPluginDataHandler;
