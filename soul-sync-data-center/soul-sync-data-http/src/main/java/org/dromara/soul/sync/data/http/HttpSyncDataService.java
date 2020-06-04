@@ -97,9 +97,9 @@ public class HttpSyncDataService extends HttpSyncDataHandler implements SyncData
     
     private List<String> serverList;
     
-    public HttpSyncDataService(final HttpConfig httpConfig, final List<PluginDataSubscriber> pluginDataSubscribers,
+    public HttpSyncDataService(final HttpConfig httpConfig, final PluginDataSubscriber pluginDataSubscriber,
                                final List<MetaDataSubscriber> metaDataSubscribers, final List<AuthDataSubscriber> authDataSubscribers) {
-        super(pluginDataSubscribers, metaDataSubscribers, authDataSubscribers);
+        super(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
         this.httpConfig = httpConfig;
         serverList = Lists.newArrayList(Splitter.on(",").split(httpConfig.getUrl()));
         start(httpConfig);

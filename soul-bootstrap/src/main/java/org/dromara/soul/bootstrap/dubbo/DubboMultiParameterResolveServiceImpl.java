@@ -21,14 +21,13 @@ package org.dromara.soul.bootstrap.dubbo;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-import org.dromara.soul.extend.api.dubbo.DubboParamResolveService;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+import org.dromara.soul.plugin.api.dubbo.DubboParamResolveService;
 
 /**
  * Dubbo multi parameter  resolve service impl.

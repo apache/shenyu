@@ -55,14 +55,14 @@ public class WebsocketSyncDataService implements SyncDataService, AutoCloseable 
      * @param websocketConfig the websocket config
      */
     public WebsocketSyncDataService(final WebsocketConfig websocketConfig,
-                                    final List<PluginDataSubscriber> pluginDataSubscribers,
+                                    final PluginDataSubscriber pluginDataSubscriber,
                                     final List<MetaDataSubscriber> metaDataSubscribers,
                                     final List<AuthDataSubscriber> authDataSubscribers) {
         String[] urls = StringUtils.split(websocketConfig.getUrls(), ",");
         executor = new ScheduledThreadPoolExecutor(urls.length, SoulThreadFactory.create("websocket-connect", true));
         for (String url : urls) {
             try {
-                clients.add(new SoulWebsocketClient(new URI(url), pluginDataSubscribers, metaDataSubscribers, authDataSubscribers));
+                clients.add(new SoulWebsocketClient(new URI(url), pluginDataSubscriber, metaDataSubscribers, authDataSubscribers));
             } catch (URISyntaxException e) {
                 log.error("websocket url is error :", e);
             }

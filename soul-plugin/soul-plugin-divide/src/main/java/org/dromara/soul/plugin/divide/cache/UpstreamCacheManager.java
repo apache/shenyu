@@ -36,7 +36,7 @@ import org.dromara.soul.common.utils.UpstreamCheckUtils;
  * @author xiaoyu
  */
 @Slf4j
-public class UpstreamCacheManager {
+public final class UpstreamCacheManager {
     
     private static final UpstreamCacheManager INSTANCE = new UpstreamCacheManager();
     

@@ -19,8 +19,6 @@ package org.dromara.soul.springboot.starter.plugin.rewrite;
 
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.rewrite.RewritePlugin;
-import org.dromara.soul.plugin.rewrite.subscriber.RewritePluginDataSubscriber;
-import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -41,15 +39,4 @@ public class RewritePluginConfiguration {
     public SoulPlugin signPlugin() {
         return new RewritePlugin();
     }
-    
-    /**
-     * Rewrite plugin data subscriber.
-     *
-     * @return the plugin data subscriber
-     */
-    @Bean
-    public PluginDataSubscriber rewritePluginDataSubscriber() {
-        return new RewritePluginDataSubscriber();
-    }
-    
 }

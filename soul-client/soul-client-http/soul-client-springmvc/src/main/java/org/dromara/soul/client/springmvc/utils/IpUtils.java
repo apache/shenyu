@@ -15,20 +15,26 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.sign.subscriber;
+package org.dromara.soul.client.springmvc.utils;
 
-import org.dromara.soul.common.dto.PluginData;
-import org.dromara.soul.common.enums.PluginEnum;
-import org.dromara.soul.plugin.base.cache.AbstractDataSubscriber;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
-public class SignPluginDataSubscriber extends AbstractDataSubscriber {
+/**
+ * The type Ip utils.
+ */
+public class IpUtils {
     
-    @Override
-    protected void initPlugin(final PluginData pluginData) {
-    }
-    
-    @Override
-    public String pluginNamed() {
-        return PluginEnum.SIGN.getName();
+    /**
+     * Gets host.
+     *
+     * @return the host
+     */
+    public static String getHost() {
+        try {
+            return InetAddress.getLocalHost().getHostAddress();
+        } catch (UnknownHostException e) {
+            return "127.0.0.1";
+        }
     }
 }

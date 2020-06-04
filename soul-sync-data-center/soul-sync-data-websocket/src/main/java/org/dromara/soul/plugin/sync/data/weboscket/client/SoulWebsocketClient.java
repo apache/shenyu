@@ -51,14 +51,14 @@ public final class SoulWebsocketClient extends WebSocketClient {
      * Instantiates a new Soul websocket client.
      *
      * @param serverUri             the server uri
-     * @param pluginDataSubscribers the plugin data subscribers
+     * @param pluginDataSubscriber the plugin data subscriber
      * @param metaDataSubscribers   the meta data subscribers
      * @param authDataSubscribers   the auth data subscribers
      */
-    public SoulWebsocketClient(final URI serverUri, final List<PluginDataSubscriber> pluginDataSubscribers,
+    public SoulWebsocketClient(final URI serverUri, final PluginDataSubscriber pluginDataSubscriber,
                                final List<MetaDataSubscriber> metaDataSubscribers, final List<AuthDataSubscriber> authDataSubscribers) {
         super(serverUri);
-        this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscribers, metaDataSubscribers, authDataSubscribers);
+        this.websocketDataHandler = new WebsocketDataHandler(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
     }
     
     @Override

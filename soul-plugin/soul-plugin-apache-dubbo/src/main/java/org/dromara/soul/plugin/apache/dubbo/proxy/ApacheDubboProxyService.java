@@ -17,6 +17,8 @@
 
 package org.dromara.soul.plugin.apache.dubbo.proxy;
 
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -28,13 +30,10 @@ import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.exception.SoulException;
-import org.dromara.soul.extend.api.dubbo.DubboParamResolveService;
 import org.dromara.soul.plugin.apache.dubbo.cache.ApplicationConfigCache;
+import org.dromara.soul.plugin.api.dubbo.DubboParamResolveService;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * dubbo proxy service is  use GenericService.
@@ -89,7 +88,7 @@ public class ApacheDubboProxyService {
                 return ret;
             }));
         } catch (GenericException e) {
-            log.error("dubbo 泛化调用异常", e);
+            log.error("dubbo invoker have exception", e);
             throw new SoulException(e.getMessage());
         }
     }

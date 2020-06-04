@@ -21,14 +21,14 @@ public class NacosSyncDataService extends NacosCacheHandler implements AutoClose
      * Instantiates a new Nacos sync data service.
      *
      * @param configService         the config service
-     * @param pluginDataSubscribers the plugin data subscribers
+     * @param pluginDataSubscriber the plugin data subscriber
      * @param metaDataSubscribers   the meta data subscribers
      * @param authDataSubscribers   the auth data subscribers
      */
-    public NacosSyncDataService(final ConfigService configService, final List<PluginDataSubscriber> pluginDataSubscribers,
+    public NacosSyncDataService(final ConfigService configService, final PluginDataSubscriber pluginDataSubscriber,
                                 final List<MetaDataSubscriber> metaDataSubscribers, final List<AuthDataSubscriber> authDataSubscribers) {
         
-        super(configService, pluginDataSubscribers, metaDataSubscribers, authDataSubscribers);
+        super(configService, pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
         start();
     }
     

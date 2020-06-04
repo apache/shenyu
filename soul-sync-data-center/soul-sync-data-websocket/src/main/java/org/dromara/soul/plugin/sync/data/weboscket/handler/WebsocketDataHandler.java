@@ -17,6 +17,8 @@
 
 package org.dromara.soul.plugin.sync.data.weboscket.handler;
 
+import java.util.List;
+import java.util.Optional;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.common.dto.AppAuthData;
 import org.dromara.soul.common.dto.MetaData;
@@ -28,11 +30,6 @@ import org.dromara.soul.sync.data.api.AuthDataSubscriber;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 /**
  * The type Websocket cache handler.
  *
@@ -40,7 +37,7 @@ import java.util.stream.Collectors;
  */
 public class WebsocketDataHandler {
     
-    private final Map<String, PluginDataSubscriber> pluginDataSubscriberMap;
+    private final PluginDataSubscriber pluginDataSubscriber;
     
     private final List<MetaDataSubscriber> metaDataSubscribers;
     
@@ -49,14 +46,14 @@ public class WebsocketDataHandler {
     /**
      * Instantiates a new Websocket data handler.
      *
-     * @param pluginDataSubscribers the plugin data subscribers
+     * @param pluginDataSubscriber the plugin data subscriber
      * @param metaDataSubscribers   the meta data subscribers
      * @param authDataSubscribers   the auth data subscribers
      */
-    public WebsocketDataHandler(final List<PluginDataSubscriber> pluginDataSubscribers,
+    public WebsocketDataHandler(final PluginDataSubscriber pluginDataSubscriber,
                                 final List<MetaDataSubscriber> metaDataSubscribers,
                                 final List<AuthDataSubscriber> authDataSubscribers) {
-        this.pluginDataSubscriberMap = pluginDataSubscribers.stream().collect(Collectors.toMap(PluginDataSubscriber::pluginNamed, e -> e));
+        this.pluginDataSubscriber = pluginDataSubscriber;
         this.metaDataSubscribers = metaDataSubscribers;
         this.authDataSubscribers = authDataSubscribers;
     }
@@ -76,10 +73,10 @@ public class WebsocketDataHandler {
                     case MYSELF:
                     case UPDATE:
                     case CREATE:
-                        Optional.ofNullable(pluginDataSubscriberMap.get(pluginData.getName())).ifPresent(e -> e.onSubscribe(pluginData));
+                        Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onSubscribe(pluginData));
                         break;
                     case DELETE:
-                        Optional.ofNullable(pluginDataSubscriberMap.get(pluginData.getName())).ifPresent(e -> e.unSubscribe(pluginData));
+                        Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSubscribe(pluginData));
                         break;
                     default:
                         break;
@@ -103,10 +100,10 @@ public class WebsocketDataHandler {
                     case MYSELF:
                     case UPDATE:
                     case CREATE:
-                        Optional.ofNullable(pluginDataSubscriberMap.get(selectorData.getPluginName())).ifPresent(e -> e.onSelectorSubscribe(selectorData));
+                        Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onSelectorSubscribe(selectorData));
                         break;
                     case DELETE:
-                        Optional.ofNullable(pluginDataSubscriberMap.get(selectorData.getPluginName())).ifPresent(e -> e.unSelectorSubscribe(selectorData));
+                        Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSelectorSubscribe(selectorData));
                         break;
                     default:
                         break;
@@ -130,10 +127,10 @@ public class WebsocketDataHandler {
                     case MYSELF:
                     case UPDATE:
                     case CREATE:
-                        Optional.ofNullable(pluginDataSubscriberMap.get(ruleData.getPluginName())).ifPresent(e -> e.onRuleSubscribe(ruleData));
+                        Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onRuleSubscribe(ruleData));
                         break;
                     case DELETE:
-                        Optional.ofNullable(pluginDataSubscriberMap.get(ruleData.getPluginName())).ifPresent(e -> e.unRuleSubscribe(ruleData));
+                        Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unRuleSubscribe(ruleData));
                         break;
                     default:
                         break;

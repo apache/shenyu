@@ -15,22 +15,26 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.apache.dubbo.subscriber;
+package org.dromara.soul.plugin.apache.dubbo.handler;
 
+import java.util.Objects;
 import org.dromara.soul.common.config.DubboRegisterConfig;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.apache.dubbo.cache.ApplicationConfigCache;
+import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.plugin.base.utils.Singleton;
-import org.dromara.soul.plugin.base.cache.AbstractDataSubscriber;
 
-import java.util.Objects;
-
-public class ApacheDubboPluginDataSubscriber extends AbstractDataSubscriber {
+/**
+ * The type Apache dubbo plugin data handler.
+ *
+ * @author xiaoyu
+ */
+public class ApacheDubboPluginDataHandler implements PluginDataHandler {
     
     @Override
-    protected void initPlugin(final PluginData pluginData) {
+    public void handlerPlugin(final PluginData pluginData) {
         if (null != pluginData && pluginData.getEnabled()) {
             DubboRegisterConfig dubboRegisterConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), DubboRegisterConfig.class);
             DubboRegisterConfig exist = Singleton.INST.get(DubboRegisterConfig.class);

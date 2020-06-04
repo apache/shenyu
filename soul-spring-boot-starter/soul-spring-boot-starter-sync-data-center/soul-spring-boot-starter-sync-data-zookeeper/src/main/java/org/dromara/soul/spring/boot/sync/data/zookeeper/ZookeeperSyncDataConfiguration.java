@@ -49,15 +49,15 @@ public class ZookeeperSyncDataConfiguration {
      * Sync data service sync data service.
      *
      * @param zkClient          the zk client
-     * @param pluginSubscribers the plugin subscribers
+     * @param pluginSubscriber the plugin subscriber
      * @param metaSubscribers   the meta subscribers
      * @param authSubscribers   the auth subscribers
      * @return the sync data service
      */
     @Bean
-    public SyncDataService syncDataService(final ObjectProvider<ZkClient> zkClient, final ObjectProvider<List<PluginDataSubscriber>> pluginSubscribers,
+    public SyncDataService syncDataService(final ObjectProvider<ZkClient> zkClient, final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
                                            final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers) {
-        return new ZookeeperSyncDataService(zkClient.getIfAvailable(), pluginSubscribers.getIfAvailable(Collections::emptyList),
+        return new ZookeeperSyncDataService(zkClient.getIfAvailable(), pluginSubscriber.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList));
     }
     

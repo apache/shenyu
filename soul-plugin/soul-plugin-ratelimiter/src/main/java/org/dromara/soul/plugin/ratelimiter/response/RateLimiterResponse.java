@@ -15,31 +15,32 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.hystrix.subscriber;
+package org.dromara.soul.plugin.ratelimiter.response;
 
-import com.netflix.hystrix.strategy.properties.HystrixPropertiesFactory;
-import org.dromara.soul.common.dto.PluginData;
-import org.dromara.soul.common.dto.RuleData;
-import org.dromara.soul.common.enums.PluginEnum;
-import org.dromara.soul.plugin.base.cache.AbstractDataSubscriber;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+
+import java.io.Serializable;
 
 /**
- * The type Hystrix plugin data subscriber.
+ * rateLimiter response.
+ *
+ * @author xiaoyu(Myth)
  */
-public class HystrixPluginDataSubscriber extends AbstractDataSubscriber {
-    
+@Data
+@RequiredArgsConstructor
+public class RateLimiterResponse implements Serializable {
+
+    private final boolean allowed;
+
+    private final long tokensRemaining;
+
     @Override
-    protected void initPlugin(final PluginData pluginData) {
+    public String toString() {
+        return "Response{" + "allowed=" + allowed
+                + ", tokensRemaining=" + tokensRemaining
+                + '}';
+
     }
-    
-    @Override
-    public void onRuleSubscribe(final RuleData ruleData) {
-        super.onRuleSubscribe(ruleData);
-        HystrixPropertiesFactory.reset();
-    }
-    
-    @Override
-    public String pluginNamed() {
-        return PluginEnum.HYSTRIX.getName();
-    }
+
 }

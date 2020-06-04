@@ -20,7 +20,7 @@ package org.dromara.soul.bootstrap.configuration;
 
 import org.dromara.soul.bootstrap.cors.CrossFilter;
 import org.dromara.soul.bootstrap.dubbo.DubboMultiParameterResolveServiceImpl;
-import org.dromara.soul.extend.api.dubbo.DubboParamResolveService;
+import org.dromara.soul.plugin.api.dubbo.DubboParamResolveService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

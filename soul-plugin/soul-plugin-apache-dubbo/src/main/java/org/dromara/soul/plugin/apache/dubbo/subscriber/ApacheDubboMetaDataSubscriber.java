@@ -26,6 +26,11 @@ import org.dromara.soul.plugin.apache.dubbo.cache.ApplicationConfigCache;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentMap;
 
+/**
+ * The type Apache dubbo meta data subscriber.
+ *
+ * @author xiaoyu
+ */
 public class ApacheDubboMetaDataSubscriber implements MetaDataSubscriber {
     
     private static final ConcurrentMap<String, MetaData> META_DATA = Maps.newConcurrentMap();

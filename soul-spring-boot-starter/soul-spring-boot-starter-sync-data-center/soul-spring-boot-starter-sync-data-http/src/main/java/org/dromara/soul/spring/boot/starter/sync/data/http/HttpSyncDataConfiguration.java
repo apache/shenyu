@@ -54,9 +54,9 @@ public class HttpSyncDataConfiguration {
      * @return the sync data service
      */
     @Bean
-    public SyncDataService httpSyncDataService(final ObjectProvider<HttpConfig> httpConfig, final ObjectProvider<List<PluginDataSubscriber>> pluginSubscribers,
+    public SyncDataService httpSyncDataService(final ObjectProvider<HttpConfig> httpConfig, final ObjectProvider<PluginDataSubscriber> pluginSubscribers,
                                            final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers) {
-        return new HttpSyncDataService(Objects.requireNonNull(httpConfig.getIfAvailable()), pluginSubscribers.getIfAvailable(Collections::emptyList),
+        return new HttpSyncDataService(Objects.requireNonNull(httpConfig.getIfAvailable()), pluginSubscribers.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList));
     }
     

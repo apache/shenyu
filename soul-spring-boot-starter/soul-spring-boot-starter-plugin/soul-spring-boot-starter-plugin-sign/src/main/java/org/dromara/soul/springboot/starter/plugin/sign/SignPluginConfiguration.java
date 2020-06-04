@@ -19,13 +19,10 @@ package org.dromara.soul.springboot.starter.plugin.sign;
 
 import org.dromara.soul.plugin.api.SignService;
 import org.dromara.soul.plugin.api.SoulPlugin;
-
 import org.dromara.soul.plugin.sign.SignPlugin;
 import org.dromara.soul.plugin.sign.service.DefaultSignService;
 import org.dromara.soul.plugin.sign.subscriber.SignAuthDataSubscriber;
-import org.dromara.soul.plugin.sign.subscriber.SignPluginDataSubscriber;
 import org.dromara.soul.sync.data.api.AuthDataSubscriber;
-import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.SearchStrategy;
 import org.springframework.context.annotation.Bean;
@@ -59,16 +56,6 @@ public class SignPluginConfiguration {
     @Bean
     public SoulPlugin signPlugin(final SignService signService) {
         return new SignPlugin(signService);
-    }
-    
-    /**
-     * Sign plugin data subscriber.
-     *
-     * @return the plugin data subscriber
-     */
-    @Bean
-    public PluginDataSubscriber signPluginDataSubscriber() {
-        return new SignPluginDataSubscriber();
     }
     
     /**

@@ -15,18 +15,21 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.ratelimiter;
+package org.dromara.soul.plugin.ratelimiter.handler;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.dromara.soul.common.config.RateLimiterConfig;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RedisModeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
+import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.plugin.base.utils.Singleton;
-import org.dromara.soul.plugin.base.cache.AbstractDataSubscriber;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisPassword;
@@ -42,14 +45,15 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
-public class RateLimiterPluginDataSubscriber extends AbstractDataSubscriber {
+/**
+ * The type Rate limiter plugin data handler.
+ *
+ * @author xiaoyu
+ */
+public class RateLimiterPluginDataHandler implements PluginDataHandler {
     
     @Override
-    protected void initPlugin(final PluginData pluginData) {
+    public void handlerPlugin(final PluginData pluginData) {
         if (Objects.nonNull(pluginData) && pluginData.getEnabled()) {
             //init redis
             RateLimiterConfig rateLimiterConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), RateLimiterConfig.class);
@@ -99,6 +103,12 @@ public class RateLimiterPluginDataSubscriber extends AbstractDataSubscriber {
         return config;
     }
     
+    /**
+     * Redis standalone configuration redis standalone configuration.
+     *
+     * @param rateLimiterConfig the rate limiter config
+     * @return the redis standalone configuration
+     */
     protected final RedisStandaloneConfiguration redisStandaloneConfiguration(final RateLimiterConfig rateLimiterConfig) {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
         String[] parts = StringUtils.split(rateLimiterConfig.getUrl(), ":");

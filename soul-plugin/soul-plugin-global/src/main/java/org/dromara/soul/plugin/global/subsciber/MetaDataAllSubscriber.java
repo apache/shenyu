@@ -21,6 +21,11 @@ import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.plugin.global.cache.MetaDataCache;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
 
+/**
+ * The type Meta data all subscriber.
+ *
+ * @author xiaoyu
+ */
 public class MetaDataAllSubscriber implements MetaDataSubscriber {
     
     @Override

@@ -74,7 +74,6 @@ public interface PluginDataSubscriber {
     default void unRuleSubscribe(RuleData ruleData) {
     }
     
-    
     /**
      * Plugin named string.
      *

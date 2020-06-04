@@ -17,8 +17,9 @@
 
 package org.dromara.soul.springboot.starter.client.springmvc;
 
-import org.dromara.soul.client.springmvc.SpringMvcClientBeanPostProcessor;
 import org.dromara.soul.client.springmvc.config.SoulSpringMvcConfig;
+import org.dromara.soul.client.springmvc.init.ContextRegisterListener;
+import org.dromara.soul.client.springmvc.init.SpringMvcClientBeanPostProcessor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,6 +41,17 @@ public class SoulSpringMvcClientConfiguration {
     @Bean
     public SpringMvcClientBeanPostProcessor springHttpClientBeanPostProcessor(final SoulSpringMvcConfig soulSpringMvcConfig) {
         return new SpringMvcClientBeanPostProcessor(soulSpringMvcConfig);
+    }
+    
+    /**
+     * Context register listener context register listener.
+     *
+     * @param soulSpringMvcConfig the soul spring mvc config
+     * @return the context register listener
+     */
+    @Bean
+    public ContextRegisterListener contextRegisterListener(final SoulSpringMvcConfig soulSpringMvcConfig) {
+        return new ContextRegisterListener(soulSpringMvcConfig);
     }
     
     /**

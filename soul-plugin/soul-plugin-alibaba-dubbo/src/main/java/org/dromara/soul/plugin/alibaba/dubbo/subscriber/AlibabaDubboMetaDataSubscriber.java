@@ -26,6 +26,11 @@ import org.dromara.soul.plugin.alibaba.dubbo.cache.ApplicationConfigCache;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentMap;
 
+/**
+ * The type Alibaba dubbo meta data subscriber.
+ *
+ * @author xiaoyu
+ */
 public class AlibabaDubboMetaDataSubscriber implements MetaDataSubscriber {
     
     private static final ConcurrentMap<String, MetaData> META_DATA = Maps.newConcurrentMap();

@@ -51,7 +51,7 @@ public class BodyParamPlugin implements SoulPlugin {
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final SoulPluginChain chain) {
         final ServerHttpRequest request = exchange.getRequest();
-        final SoulContext soulContext = exchange.getAttribute(Constants.REQUESTDTO);
+        final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         if (Objects.nonNull(soulContext) && RpcTypeEnum.DUBBO.getName().equals(soulContext.getRpcType())) {
             MediaType mediaType = request.getHeaders().getContentType();
             ServerRequest serverRequest = ServerRequest.create(exchange, messageReaders);

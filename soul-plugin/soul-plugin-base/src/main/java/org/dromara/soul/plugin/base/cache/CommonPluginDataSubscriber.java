@@ -17,51 +17,66 @@
 
 package org.dromara.soul.plugin.base.cache;
 
-import org.dromara.soul.sync.data.api.PluginDataSubscriber;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
+import org.dromara.soul.plugin.base.handler.PluginDataHandler;
+import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 
 /**
- * The type Abstract data subscriber.
+ * The type Common plugin data subscriber.
+ *
+ * @author xiaoyu
  */
-public abstract class AbstractDataSubscriber implements PluginDataSubscriber {
+public class CommonPluginDataSubscriber implements PluginDataSubscriber {
+    
+    private final Map<String, PluginDataHandler> handlerMap;
     
     /**
-     * Init plugin.
+     * Instantiates a new Common plugin data subscriber.
      *
-     * @param pluginData the plugin data
+     * @param pluginDataHandlerList the plugin data handler list
      */
-    protected abstract void initPlugin(PluginData pluginData);
+    public CommonPluginDataSubscriber(final List<PluginDataHandler> pluginDataHandlerList) {
+        this.handlerMap = pluginDataHandlerList.stream().collect(Collectors.toMap(PluginDataHandler::pluginNamed, e -> e));
+    }
     
     @Override
     public void onSubscribe(final PluginData pluginData) {
         BaseDataCache.getInstance().cachePluginData(pluginData);
-        initPlugin(pluginData);
+        handlerMap.get(pluginData.getName()).handlerPlugin(pluginData);
     }
     
     @Override
     public void unSubscribe(final PluginData pluginData) {
         BaseDataCache.getInstance().removePluginData(pluginData);
+        handlerMap.get(pluginData.getName()).removePlugin(pluginData);
     }
     
     @Override
     public void onSelectorSubscribe(final SelectorData selectorData) {
         BaseDataCache.getInstance().cacheSelectData(selectorData);
+        handlerMap.get(selectorData.getPluginName()).handlerSelector(selectorData);
     }
     
     @Override
     public void unSelectorSubscribe(final SelectorData selectorData) {
         BaseDataCache.getInstance().removeSelectData(selectorData);
+        handlerMap.get(selectorData.getPluginName()).removeSelector(selectorData);
     }
     
     @Override
     public void onRuleSubscribe(final RuleData ruleData) {
         BaseDataCache.getInstance().cacheRuleData(ruleData);
+        handlerMap.get(ruleData.getPluginName()).handlerRule(ruleData);
     }
     
     @Override
     public void unRuleSubscribe(final RuleData ruleData) {
         BaseDataCache.getInstance().removeRuleData(ruleData);
+        handlerMap.get(ruleData.getPluginName()).removeRule(ruleData);
     }
 }

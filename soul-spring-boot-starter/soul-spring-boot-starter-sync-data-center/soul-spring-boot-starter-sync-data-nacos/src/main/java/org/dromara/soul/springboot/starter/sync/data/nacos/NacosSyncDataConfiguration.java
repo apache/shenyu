@@ -58,9 +58,9 @@ public class NacosSyncDataConfiguration {
      * @return the sync data service
      */
     @Bean
-    public SyncDataService nacosSyncDataService(final ObjectProvider<ConfigService> configService, final ObjectProvider<List<PluginDataSubscriber>> pluginSubscribers,
+    public SyncDataService nacosSyncDataService(final ObjectProvider<ConfigService> configService, final ObjectProvider<PluginDataSubscriber> pluginSubscribers,
                                            final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers) {
-        return new NacosSyncDataService(configService.getIfAvailable(), pluginSubscribers.getIfAvailable(Collections::emptyList),
+        return new NacosSyncDataService(configService.getIfAvailable(), pluginSubscribers.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList));
     }
     

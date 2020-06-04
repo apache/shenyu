@@ -23,6 +23,8 @@ import org.dromara.soul.plugin.sign.cache.SignAuthDataCache;
 
 /**
  * The type Sign auth data subscriber.
+ *
+ * @author xiaoyu
  */
 public class SignAuthDataSubscriber implements AuthDataSubscriber {
     

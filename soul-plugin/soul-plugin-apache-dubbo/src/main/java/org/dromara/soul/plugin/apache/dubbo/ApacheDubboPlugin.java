@@ -40,7 +40,7 @@ import reactor.core.publisher.Mono;
 import java.util.Objects;
 
 /**
- * dubbo proxy.
+ * The type Apache dubbo plugin.
  *
  * @author xiaoyu(Myth)
  */

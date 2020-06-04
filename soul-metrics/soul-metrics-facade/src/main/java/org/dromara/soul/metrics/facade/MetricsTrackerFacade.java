@@ -153,6 +153,13 @@ public final class MetricsTrackerFacade {
         }
     }
     
+    /**
+     * Stop.
+     */
+    public void stop() {
+        enabled = false;
+    }
+    
     private void loadMetricsManager() {
     }
     

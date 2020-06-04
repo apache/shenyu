@@ -20,8 +20,6 @@ package org.dromara.soul.springboot.starter.plugin.springcloud;
 
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.springcloud.SpringCloudPlugin;
-import org.dromara.soul.plugin.springcloud.subscriber.SpringCloudPluginDataSubscriber;
-import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -54,15 +52,5 @@ public class SpringCloudPluginConfiguration {
     @Bean
     public SoulPlugin springCloudPlugin(final ObjectProvider<LoadBalancerClient> loadBalancerClient) {
         return new SpringCloudPlugin(loadBalancerClient.getIfAvailable());
-    }
-    
-    /**
-     * springCloud plugin data subscriber.
-     *
-     * @return the plugin data subscriber
-     */
-    @Bean
-    public PluginDataSubscriber springCloudPluginDataSubscriber() {
-        return new SpringCloudPluginDataSubscriber();
     }
 }

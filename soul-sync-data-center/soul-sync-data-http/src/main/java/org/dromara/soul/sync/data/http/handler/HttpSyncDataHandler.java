@@ -17,6 +17,8 @@
 
 package org.dromara.soul.sync.data.http.handler;
 
+import java.util.List;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.common.dto.AppAuthData;
@@ -28,11 +30,6 @@ import org.dromara.soul.sync.data.api.AuthDataSubscriber;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 /**
  * The type Http cache handler.
  *
@@ -41,7 +38,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class HttpSyncDataHandler {
     
-    private final Map<String, PluginDataSubscriber> pluginDataSubscriberMap;
+    private final PluginDataSubscriber pluginDataSubscriber;
     
     private final List<MetaDataSubscriber> metaDataSubscribers;
     
@@ -50,14 +47,13 @@ public class HttpSyncDataHandler {
     /**
      * Instantiates a new Http sync data handler.
      *
-     * @param pluginDataSubscribers the plugin data subscribers
-     * @param metaDataSubscribers   the meta data subscribers
-     * @param authDataSubscribers   the auth data subscribers
+     * @param metaDataSubscribers the meta data subscribers
+     * @param authDataSubscribers the auth data subscribers
      */
-    public HttpSyncDataHandler(final List<PluginDataSubscriber> pluginDataSubscribers,
+    public HttpSyncDataHandler(final PluginDataSubscriber pluginDataSubscriber,
                                final List<MetaDataSubscriber> metaDataSubscribers,
                                final List<AuthDataSubscriber> authDataSubscribers) {
-        this.pluginDataSubscriberMap = pluginDataSubscribers.stream().collect(Collectors.toMap(PluginDataSubscriber::pluginNamed, e -> e));
+        this.pluginDataSubscriber = pluginDataSubscriber;
         this.metaDataSubscribers = metaDataSubscribers;
         this.authDataSubscribers = authDataSubscribers;
     }
@@ -71,8 +67,8 @@ public class HttpSyncDataHandler {
         if (CollectionUtils.isEmpty(pluginDataList)) {
             log.info("clear all plugin data cache");
         } else {
-            pluginDataList.forEach(pluginData -> Optional.ofNullable(pluginDataSubscriberMap.get(pluginData.getName())).ifPresent(e -> e.unSubscribe(pluginData)));
-            pluginDataList.forEach(pluginData -> Optional.ofNullable(pluginDataSubscriberMap.get(pluginData.getName())).ifPresent(e -> e.onSubscribe(pluginData)));
+            pluginDataList.forEach(pluginData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSubscribe(pluginData)));
+            pluginDataList.forEach(pluginData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onSubscribe(pluginData)));
         }
     }
     
@@ -86,8 +82,8 @@ public class HttpSyncDataHandler {
             log.info("clear all selector cache, old cache");
         } else {
             // update cache for UpstreamCacheManager
-            selectorDataList.forEach(selectorData -> Optional.ofNullable(pluginDataSubscriberMap.get(selectorData.getPluginName())).ifPresent(e -> e.unSelectorSubscribe(selectorData)));
-            selectorDataList.forEach(selectorData -> Optional.ofNullable(pluginDataSubscriberMap.get(selectorData.getPluginName())).ifPresent(e -> e.onSelectorSubscribe(selectorData)));
+            selectorDataList.forEach(selectorData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSelectorSubscribe(selectorData)));
+            selectorDataList.forEach(selectorData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onSelectorSubscribe(selectorData)));
         }
     }
     
@@ -100,8 +96,8 @@ public class HttpSyncDataHandler {
         if (CollectionUtils.isEmpty(ruleDataList)) {
             log.info("clear all rule cache");
         } else {
-            ruleDataList.forEach(ruleData -> Optional.ofNullable(pluginDataSubscriberMap.get(ruleData.getPluginName())).ifPresent(e -> e.unRuleSubscribe(ruleData)));
-            ruleDataList.forEach(ruleData -> Optional.ofNullable(pluginDataSubscriberMap.get(ruleData.getPluginName())).ifPresent(e -> e.onRuleSubscribe(ruleData)));
+            ruleDataList.forEach(ruleData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unRuleSubscribe(ruleData)));
+            ruleDataList.forEach(ruleData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onRuleSubscribe(ruleData)));
         }
     }
     

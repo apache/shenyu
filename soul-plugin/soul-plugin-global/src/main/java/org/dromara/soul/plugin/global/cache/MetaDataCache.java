@@ -26,6 +26,8 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * The type Meta data cache.
+ *
+ * @author xiaoyu
  */
 public final class MetaDataCache {
     

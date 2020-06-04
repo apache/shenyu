@@ -18,9 +18,9 @@
 package org.dromara.soul.springboot.starter.plugin.monitor;
 
 import org.dromara.soul.plugin.api.SoulPlugin;
+import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.plugin.monitor.MonitorPlugin;
-import org.dromara.soul.plugin.monitor.MonitorPluginDataSubscriber;
-import org.dromara.soul.sync.data.api.PluginDataSubscriber;
+import org.dromara.soul.plugin.monitor.handler.MonitorPluginDataHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -43,12 +43,12 @@ public class MonitorPluginConfiguration {
     }
     
     /**
-     * Monitor plugin data subscriber.
+     * Monitor plugin data handler plugin data handler.
      *
-     * @return the plugin data subscriber
+     * @return the plugin data handler
      */
     @Bean
-    public PluginDataSubscriber monitorPluginDataSubscriber() {
-        return new MonitorPluginDataSubscriber();
+    public PluginDataHandler monitorPluginDataHandler() {
+        return new MonitorPluginDataHandler();
     }
 }

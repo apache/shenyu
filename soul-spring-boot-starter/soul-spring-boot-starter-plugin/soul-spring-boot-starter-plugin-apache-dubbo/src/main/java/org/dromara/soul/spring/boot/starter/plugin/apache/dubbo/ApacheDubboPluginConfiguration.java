@@ -18,17 +18,17 @@
 
 package org.dromara.soul.spring.boot.starter.plugin.apache.dubbo;
 
-import org.dromara.soul.extend.api.dubbo.DubboParamResolveService;
-import org.dromara.soul.extend.impl.dubbo.DefaultDubboParamResolveService;
 import org.dromara.soul.plugin.apache.dubbo.ApacheDubboPlugin;
+import org.dromara.soul.plugin.apache.dubbo.handler.ApacheDubboPluginDataHandler;
 import org.dromara.soul.plugin.apache.dubbo.param.BodyParamPlugin;
+import org.dromara.soul.plugin.apache.dubbo.param.DefaultDubboParamResolveService;
+import org.dromara.soul.plugin.api.dubbo.DubboParamResolveService;
 import org.dromara.soul.plugin.apache.dubbo.proxy.ApacheDubboProxyService;
 import org.dromara.soul.plugin.apache.dubbo.response.DubboResponsePlugin;
 import org.dromara.soul.plugin.apache.dubbo.subscriber.ApacheDubboMetaDataSubscriber;
-import org.dromara.soul.plugin.apache.dubbo.subscriber.ApacheDubboPluginDataSubscriber;
 import org.dromara.soul.plugin.api.SoulPlugin;
+import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
-import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.SearchStrategy;
@@ -36,7 +36,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * The type Alibaba dubbo plugin configuration.
+ * The type Apache dubbo plugin configuration.
  *
  * @author xiaoyu(Myth)
  */
@@ -87,22 +87,22 @@ public class ApacheDubboPluginConfiguration {
     }
     
     /**
-     * Dubbo plugin data subscriber.
+     * Apache dubbo plugin data handler plugin data handler.
      *
-     * @return the plugin data subscriber
+     * @return the plugin data handler
      */
     @Bean
-    public PluginDataSubscriber dubboPluginDataSubscriber() {
-        return new ApacheDubboPluginDataSubscriber();
+    public PluginDataHandler apacheDubboPluginDataHandler() {
+        return new ApacheDubboPluginDataHandler();
     }
     
     /**
-     * dubbo meta data subscriber meta data subscriber.
+     * Apache dubbo meta data subscriber meta data subscriber.
      *
      * @return the meta data subscriber
      */
     @Bean
-    public MetaDataSubscriber DubboMetaDataSubscriber() {
+    public MetaDataSubscriber apacheDubboMetaDataSubscriber() {
         return new ApacheDubboMetaDataSubscriber();
     }
 }

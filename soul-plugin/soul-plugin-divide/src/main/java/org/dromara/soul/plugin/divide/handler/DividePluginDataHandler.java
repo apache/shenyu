@@ -15,33 +15,25 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.divide.subscriber;
+package org.dromara.soul.plugin.divide.handler;
 
-import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginEnum;
-import org.dromara.soul.plugin.base.cache.AbstractDataSubscriber;
+import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.plugin.divide.cache.UpstreamCacheManager;
 
 /**
- * The type Divide plugin data subscriber.
+ * The type Divide plugin data handler.
  */
-public class DividePluginDataSubscriber extends AbstractDataSubscriber {
+public class DividePluginDataHandler implements PluginDataHandler {
     
     @Override
-    protected void initPlugin(final PluginData pluginData) {
-    
-    }
-    
-    @Override
-    public void onSelectorSubscribe(final SelectorData selectorData) {
-        super.onSelectorSubscribe(selectorData);
+    public void handlerSelector(final SelectorData selectorData) {
         UpstreamCacheManager.getInstance().submit(selectorData);
     }
     
     @Override
-    public void unSelectorSubscribe(final SelectorData selectorData) {
-        super.unSelectorSubscribe(selectorData);
+    public void removeSelector(final SelectorData selectorData) {
         UpstreamCacheManager.getInstance().removeByKey(selectorData.getId());
     }
     
