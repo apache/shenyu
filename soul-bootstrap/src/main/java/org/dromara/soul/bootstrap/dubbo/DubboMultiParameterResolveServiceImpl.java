@@ -35,7 +35,6 @@ import org.dromara.soul.plugin.api.dubbo.DubboParamResolveService;
 @Slf4j
 public class DubboMultiParameterResolveServiceImpl implements DubboParamResolveService {
     
-    
     /**
      * ObjectMapper is a completely thread-safe service class, it is meant to be used as singleton across the lifetime of the application. It is also very expensive
      * to create. ... It is also prudent to do a review of all usages of ObjectMapper and ensure that it is not instantiated every time. This is a performance killer

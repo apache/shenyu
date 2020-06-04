@@ -18,12 +18,16 @@
 
 package org.dromara.soul.plugin.base;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
+import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.SelectorTypeEnum;
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.api.SoulPluginChain;
@@ -32,10 +36,6 @@ import org.dromara.soul.plugin.base.utils.CheckUtils;
 import org.dromara.soul.plugin.base.utils.MatchStrategyUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * abstract soul plugin please extends.
@@ -76,6 +76,9 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
             }
             final SelectorData selectorData = matchSelector(exchange, selectors);
             if (Objects.isNull(selectorData)) {
+                if(PluginEnum.WAF.getName().equals(pluginName)) {
+                    return doExecute(exchange, chain, null, null);
+                }
                 return CheckUtils.checkSelector(pluginName, exchange, chain);
             }
             if (selectorData.getLoged()) {
@@ -83,6 +86,9 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
             }
             final List<RuleData> rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
             if (CollectionUtils.isEmpty(rules)) {
+                if(PluginEnum.WAF.getName().equals(pluginName)) {
+                    return doExecute(exchange, chain, null, null);
+                }
                 return CheckUtils.checkRule(pluginName, exchange, chain);
             }
             RuleData rule;

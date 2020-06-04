@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-import org.dromara.soul.common.config.RateLimiterConfig;
+import org.dromara.soul.plugin.ratelimiter.config.RateLimiterConfig;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RedisModeEnum;

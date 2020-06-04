@@ -213,7 +213,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
             DivideUpstream addDivideUpstream = buildDivideUpstream(uri);
             SelectorData selectorData = selectorService.buildByName(contextPath);
             if (StringUtils.isBlank(handle)) {
-                handleAdd = GsonUtils.getInstance().toJson(addDivideUpstream);
+                handleAdd = GsonUtils.getInstance().toJson(Collections.singletonList(addDivideUpstream));
             } else {
                 List<DivideUpstream> divideUpstreams = GsonUtils.getInstance().fromList(handle, DivideUpstream.class);
                 divideUpstreams.add(addDivideUpstream);
@@ -277,7 +277,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         } else {
             //is divide
             DivideUpstream divideUpstream = buildDivideUpstream(uri);
-            String handler = GsonUtils.getInstance().toJson(divideUpstream);
+            String handler = GsonUtils.getInstance().toJson(Collections.singletonList(divideUpstream));
             selectorDTO.setHandle(handler);
             selectorDTO.setPluginId("5");
             upstreamCheckService.submit(selectorDTO.getName(), divideUpstream);

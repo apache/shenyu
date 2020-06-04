@@ -15,40 +15,30 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.springboot.starter.plugin.waf;
+package org.dromara.soul.plugin.waf.handler;
 
-import org.dromara.soul.plugin.api.SoulPlugin;
+import org.dromara.soul.common.dto.PluginData;
+import org.dromara.soul.common.enums.PluginEnum;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
-import org.dromara.soul.plugin.waf.WafPlugin;
-import org.dromara.soul.plugin.waf.handler.WafPluginDataHandler;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.dromara.soul.plugin.base.utils.Singleton;
+import org.dromara.soul.plugin.waf.config.WafConfig;
 
 /**
- * The type Waf plugin configuration.
+ * The type Waf plugin data handler.
  *
  * @author xiaoyu
  */
-@Configuration
-public class WafPluginConfiguration {
+public class WafPluginDataHandler implements PluginDataHandler {
     
-    /**
-     * Waf plugin soul plugin.
-     *
-     * @return the soul plugin
-     */
-    @Bean
-    public SoulPlugin wafPlugin() {
-        return new WafPlugin();
+    @Override
+    public void handlerPlugin(final PluginData pluginData) {
+        WafConfig wafConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), WafConfig.class);
+        Singleton.INST.single(WafConfig.class, wafConfig);
     }
     
-    /**
-     * Waf plugin data handler plugin data handler.
-     *
-     * @return the plugin data handler
-     */
-    @Bean
-    public PluginDataHandler wafPluginDataHandler() {
-        return new WafPluginDataHandler();
+    @Override
+    public String pluginNamed() {
+        return PluginEnum.WAF.getName();
     }
 }

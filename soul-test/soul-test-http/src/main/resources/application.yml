@@ -6,9 +6,10 @@ server:
 soul:
   http:
     adminUrl: http://localhost:9095
-    zookeeperUrl: localhost:2181
+    port: 8186
     contextPath: /http
     appName: http
+    full: true
 
 logging:
   level:

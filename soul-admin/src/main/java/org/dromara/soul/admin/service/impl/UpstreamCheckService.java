@@ -57,7 +57,7 @@ public class UpstreamCheckService {
     @Value("${soul.upstream.check:true}")
     private boolean check;
     
-    @Value("${soul.upstream.scheduledTime:30}")
+    @Value("${soul.upstream.scheduledTime:10}")
     private int scheduledTime;
     
     private final SelectorService selectorService;

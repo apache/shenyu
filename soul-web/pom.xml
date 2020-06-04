@@ -31,6 +31,18 @@
             <version>${project.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-metrics-facade</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-metrics-prometheus</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!--自动配置-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
