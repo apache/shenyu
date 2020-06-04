@@ -48,15 +48,15 @@ public class WebsocketSyncDataConfiguration {
      * Websocket sync data service.
      *
      * @param websocketConfig   the websocket config
-     * @param pluginSubscribers the plugin subscribers
+     * @param pluginSubscriber the plugin subscriber
      * @param metaSubscribers   the meta subscribers
      * @param authSubscribers   the auth subscribers
      * @return the sync data service
      */
     @Bean
-    public SyncDataService websocketSyncDataService(final ObjectProvider<WebsocketConfig> websocketConfig, final ObjectProvider<List<PluginDataSubscriber>> pluginSubscribers,
+    public SyncDataService websocketSyncDataService(final ObjectProvider<WebsocketConfig> websocketConfig, final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
                                            final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers) {
-        return new WebsocketSyncDataService(websocketConfig.getIfAvailable(WebsocketConfig::new), pluginSubscribers.getIfAvailable(Collections::emptyList),
+        return new WebsocketSyncDataService(websocketConfig.getIfAvailable(WebsocketConfig::new), pluginSubscriber.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList));
     }
     

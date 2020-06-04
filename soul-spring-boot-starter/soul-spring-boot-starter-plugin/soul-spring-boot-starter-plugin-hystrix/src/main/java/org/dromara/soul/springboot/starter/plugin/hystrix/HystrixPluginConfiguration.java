@@ -18,9 +18,9 @@
 package org.dromara.soul.springboot.starter.plugin.hystrix;
 
 import org.dromara.soul.plugin.api.SoulPlugin;
+import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.plugin.hystrix.HystrixPlugin;
-import org.dromara.soul.plugin.hystrix.subscriber.HystrixPluginDataSubscriber;
-import org.dromara.soul.sync.data.api.PluginDataSubscriber;
+import org.dromara.soul.plugin.hystrix.handler.HystrixPluginDataHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -43,13 +43,12 @@ public class HystrixPluginConfiguration {
     }
     
     /**
-     * Hystrix plugin data subscriber.
+     * Hystrix plugin data handler plugin data handler.
      *
-     * @return the plugin data subscriber
+     * @return the plugin data handler
      */
     @Bean
-    public PluginDataSubscriber hystrixPluginDataSubscriber() {
-        return new HystrixPluginDataSubscriber();
+    public PluginDataHandler hystrixPluginDataHandler() {
+        return new HystrixPluginDataHandler();
     }
-    
 }

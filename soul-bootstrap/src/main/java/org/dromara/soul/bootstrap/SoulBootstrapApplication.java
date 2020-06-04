@@ -20,7 +20,7 @@ package org.dromara.soul.bootstrap;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.data.redis.*;
+import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 
 /**
  * soul start.

@@ -15,24 +15,27 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.springcloud.subscriber;
+package org.dromara.soul.plugin.hystrix.handler;
 
-import org.dromara.soul.common.dto.PluginData;
+import com.netflix.hystrix.strategy.properties.HystrixPropertiesFactory;
+import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.enums.PluginEnum;
-import org.dromara.soul.plugin.base.cache.AbstractDataSubscriber;
+import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 
 /**
- * The type spring cloud plugin data subscriber.
+ * The type Hystrix plugin data handler.
+ *
+ * @author xiaoyu
  */
-public class SpringCloudPluginDataSubscriber extends AbstractDataSubscriber {
+public class HystrixPluginDataHandler implements PluginDataHandler {
     
     @Override
-    protected void initPlugin(final PluginData pluginData) {
-    
+    public void handlerRule(final RuleData ruleData) {
+        HystrixPropertiesFactory.reset();
     }
     
     @Override
     public String pluginNamed() {
-        return PluginEnum.SPRING_CLOUD.getName();
+        return PluginEnum.HYSTRIX.getName();
     }
 }

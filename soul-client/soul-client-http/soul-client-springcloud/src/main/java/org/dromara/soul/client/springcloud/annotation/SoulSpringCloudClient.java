@@ -32,7 +32,6 @@ import java.lang.annotation.Target;
 public @interface SoulSpringCloudClient {
     
     /**
-     * 提供出去的接口路径
      * Path string.
      *
      * @return the string
@@ -47,7 +46,7 @@ public @interface SoulSpringCloudClient {
     String ruleName() default "";
     
     /**
-     * 接口路径描述,方便用户选择.
+     * Desc string.
      *
      * @return String string
      */

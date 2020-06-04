@@ -17,7 +17,7 @@
 
 package org.dromara.soul.springboot.starter.client.springcloud;
 
-import org.dromara.soul.client.springcloud.SpringCloudClientBeanPostProcessor;
+import org.dromara.soul.client.springcloud.init.SpringCloudClientBeanPostProcessor;
 import org.dromara.soul.client.springcloud.config.SoulSpringCloudConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;

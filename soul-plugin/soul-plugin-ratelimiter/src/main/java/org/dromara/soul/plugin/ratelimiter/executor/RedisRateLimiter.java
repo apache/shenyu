@@ -1,27 +1,30 @@
 /*
- *   Licensed to the Apache Software Foundation (ASF) under one or more
- *   contributor license agreements.  See the NOTICE file distributed with
- *   this work for additional information regarding copyright ownership.
- *   The ASF licenses this file to You under the Apache License, Version 2.0
- *   (the "License"); you may not use this file except in compliance with
- *   the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
-package org.dromara.soul.plugin.ratelimiter;
+package org.dromara.soul.plugin.ratelimiter.executor;
 
-import org.dromara.soul.common.utils.LogUtils;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.plugin.base.utils.Singleton;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.dromara.soul.plugin.ratelimiter.response.RateLimiterResponse;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -29,12 +32,6 @@ import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.scripting.support.ResourceScriptSource;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * See https://stripe.com/blog/rate-limiters and
@@ -44,12 +41,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @author xiaoyu
  */
+@Slf4j
 public class RedisRateLimiter {
-    
-    /**
-     * logger.
-     */
-    private static final Logger LOGGER = LoggerFactory.getLogger(RedisRateLimiter.class);
     
     private RedisScript<List<Long>> script;
     
@@ -89,10 +82,10 @@ public class RedisRateLimiter {
                     boolean allowed = results.get(0) == 1L;
                     Long tokensLeft = results.get(1);
                     RateLimiterResponse rateLimiterResponse = new RateLimiterResponse(allowed, tokensLeft);
-                    LogUtils.debug(LOGGER, "RateLimiter response:{}", rateLimiterResponse::toString);
+                    log.info("RateLimiter response:{}", rateLimiterResponse.toString());
                     return rateLimiterResponse;
                 }).doOnError(throwable -> {
-                    LOGGER.error("Error determining if user allowed from redis:{}", throwable.getMessage());
+                    log.error("Error determining if user allowed from redis:{}", throwable.getMessage());
                 });
     }
     

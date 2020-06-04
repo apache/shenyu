@@ -43,7 +43,7 @@ import java.security.cert.X509Certificate;
 import java.util.Objects;
 
 /**
- * The type Http configuration.
+ * The type Http client plugin configuration.
  *
  * @author xiaoyu
  */

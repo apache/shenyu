@@ -66,6 +66,13 @@ public class UpstreamCheckService {
     
     private final ApplicationEventPublisher eventPublisher;
     
+    /**
+     * Instantiates a new Upstream check service.
+     *
+     * @param selectorService the selector service
+     * @param selectorMapper  the selector mapper
+     * @param eventPublisher  the event publisher
+     */
     @Autowired(required = false)
     public UpstreamCheckService(final SelectorService selectorService, final SelectorMapper selectorMapper, final ApplicationEventPublisher eventPublisher) {
         this.selectorService = selectorService;
@@ -73,21 +80,35 @@ public class UpstreamCheckService {
         this.eventPublisher = eventPublisher;
     }
     
+    /**
+     * Sets .
+     */
     @PostConstruct
     public void setup() {
         if (check) {
             new ScheduledThreadPoolExecutor(1, SoulThreadFactory.create("scheduled-upstream-task", false))
-                    .scheduleWithFixedDelay(this::scheduled,
-                            30, scheduledTime, TimeUnit.SECONDS);
+                    .scheduleWithFixedDelay(this::scheduled, 30, scheduledTime, TimeUnit.SECONDS);
+            
         }
     }
     
     
+    /**
+     * Remove by key.
+     *
+     * @param selectorName the selector name
+     */
     public void removeByKey(final String selectorName) {
         UPSTREAM_MAP.remove(selectorName);
     }
     
     
+    /**
+     * Submit.
+     *
+     * @param selectorName   the selector name
+     * @param divideUpstream the divide upstream
+     */
     public void submit(final String selectorName, final DivideUpstream divideUpstream) {
         if (UPSTREAM_MAP.containsKey(selectorName)) {
             UPSTREAM_MAP.get(selectorName).add(divideUpstream);

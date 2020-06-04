@@ -26,11 +26,15 @@ import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.plugin.api.context.SoulContext;
 import org.dromara.soul.plugin.api.context.SoulContextBuilder;
 import org.dromara.soul.plugin.global.cache.MetaDataCache;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 
+/**
+ * The type Default soul context builder.
+ *
+ * @author xiaoyu
+ */
 public class DefaultSoulContextBuilder implements SoulContextBuilder {
     
     @Override
@@ -54,7 +58,6 @@ public class DefaultSoulContextBuilder implements SoulContextBuilder {
         final String appKey = request.getHeaders().getFirst(Constants.APP_KEY);
         final String sign = request.getHeaders().getFirst(Constants.SIGN);
         final String timestamp = request.getHeaders().getFirst(Constants.TIMESTAMP);
-        final HttpHeaders headers = request.getHeaders();
         SoulContext soulContext = new SoulContext();
         String path = request.getURI().getPath();
         soulContext.setPath(path);

@@ -19,8 +19,6 @@ package org.dromara.soul.springboot.starter.plugin.waf;
 
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.waf.WafPlugin;
-import org.dromara.soul.plugin.waf.subscriber.WafPluginDataSubscriber;
-import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -41,15 +39,4 @@ public class WafPluginConfiguration {
     public SoulPlugin wafPlugin() {
         return new WafPlugin();
     }
-    
-    /**
-     * Waf plugin data subscriber.
-     *
-     * @return the plugin data subscriber
-     */
-    @Bean
-    public PluginDataSubscriber wafPluginDataSubscriber() {
-        return new WafPluginDataSubscriber();
-    }
-    
 }

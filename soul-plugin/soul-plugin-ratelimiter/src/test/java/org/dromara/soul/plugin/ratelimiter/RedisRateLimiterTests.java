@@ -20,6 +20,7 @@ package org.dromara.soul.plugin.ratelimiter;
 import org.dromara.soul.common.config.RateLimiterConfig;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.utils.GsonUtils;
+import org.dromara.soul.plugin.ratelimiter.handler.RateLimiterPluginDataHandler;
 import org.junit.Before;
 
 /**
@@ -39,7 +40,7 @@ public class RedisRateLimiterTests {
         RateLimiterConfig config = new RateLimiterConfig();
         config.setUrl("127.0.0.0:6379");
         pluginData.setConfig(GsonUtils.getInstance().toJson(config));
-        RateLimiterPluginDataSubscriber subscriber = new RateLimiterPluginDataSubscriber();
-        subscriber.initPlugin(pluginData);
+        RateLimiterPluginDataHandler subscriber = new RateLimiterPluginDataHandler();
+        subscriber.handlerPlugin(pluginData);
     }
 }

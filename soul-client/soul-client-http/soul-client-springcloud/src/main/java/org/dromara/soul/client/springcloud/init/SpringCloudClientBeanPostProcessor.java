@@ -15,20 +15,22 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.client.springmvc;
+package org.dromara.soul.client.springcloud.init;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.client.common.utils.OkHttpTools;
-import org.dromara.soul.client.springmvc.annotation.SoulSpringMvcClient;
-import org.dromara.soul.client.springmvc.config.SoulSpringMvcConfig;
-import org.dromara.soul.client.springmvc.dto.SpringMvcRegisterDTO;
+import org.dromara.soul.client.springcloud.annotation.SoulSpringCloudClient;
+import org.dromara.soul.client.springcloud.config.SoulSpringCloudConfig;
+import org.dromara.soul.client.springcloud.dto.SpringCloudRegisterDTO;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Controller;
@@ -37,60 +39,59 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * The type Soul spring mvc client bean post processor.
+ * The type Soul client bean post processor.
  *
  * @author xiaoyu(Myth)
  */
 @Slf4j
-public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
+public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor, ApplicationListener<ContextRefreshedEvent> {
+    
+    private ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     
     private final String url;
     
-    private final SoulSpringMvcConfig soulSpringMvcConfig;
+    private final SoulSpringCloudConfig soulSpringCloudConfig;
     
     /**
      * Instantiates a new Soul client bean post processor.
      *
-     * @param soulSpringMvcConfig the soul spring mvc config
+     * @param soulSpringCloudConfig the soul spring cloud config
      */
-    public SpringMvcClientBeanPostProcessor(final SoulSpringMvcConfig soulSpringMvcConfig) {
-        String contextPath = soulSpringMvcConfig.getContextPath();
-        String adminUrl = soulSpringMvcConfig.getAdminUrl();
-        Integer port = soulSpringMvcConfig.getPort();
+    public SpringCloudClientBeanPostProcessor(final SoulSpringCloudConfig soulSpringCloudConfig) {
+        String contextPath = soulSpringCloudConfig.getContextPath();
+        String adminUrl = soulSpringCloudConfig.getAdminUrl();
         if (contextPath == null || "".equals(contextPath)
-                || adminUrl == null || "".equals(adminUrl)
-                || port == null) {
-            log.error("spring mvc param must config  contextPath ,adminUrl and port ");
-            throw new RuntimeException("spring mvc param must config  contextPath ,adminUrl and port");
+                || adminUrl == null || "".equals(adminUrl)) {
+            log.error("spring cloud param must config  contextPath and adminUrl");
+            throw new RuntimeException("spring cloud param must config contextPath and adminUrl");
         }
-        this.soulSpringMvcConfig = soulSpringMvcConfig;
-        url = adminUrl + "/soul-client/springmvc-register";
+        this.soulSpringCloudConfig = soulSpringCloudConfig;
+        url = adminUrl + "/soul-client/springcloud-register";
     }
     
     @Override
     public Object postProcessBeforeInitialization(@NonNull final Object bean, @NonNull final String beanName) throws BeansException {
-        if (soulSpringMvcConfig.isFull()) {
-            return bean;
-        }
         Controller controller = AnnotationUtils.findAnnotation(bean.getClass(), Controller.class);
         RestController restController = AnnotationUtils.findAnnotation(bean.getClass(), RestController.class);
         RequestMapping requestMapping = AnnotationUtils.findAnnotation(bean.getClass(), RequestMapping.class);
         if (controller != null || restController != null || requestMapping != null) {
-            String contextPath = soulSpringMvcConfig.getContextPath();
+            String contextPath = soulSpringCloudConfig.getContextPath();
             //首先
-            SoulSpringMvcClient clazzAnnotation = AnnotationUtils.findAnnotation(bean.getClass(), SoulSpringMvcClient.class);
+            SoulSpringCloudClient clazzAnnotation = AnnotationUtils.findAnnotation(bean.getClass(), SoulSpringCloudClient.class);
             if (Objects.nonNull(clazzAnnotation)) {
                 contextPath += clazzAnnotation.path();
                 if (clazzAnnotation.path().indexOf("*") > 1) {
-                    post(buildJsonParams(clazzAnnotation, contextPath));
+                    String finalContextPath = contextPath;
+                    executorService.execute(() -> post(buildJsonParams(clazzAnnotation, finalContextPath)));
                     return bean;
                 }
             }
             final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(bean.getClass());
             for (Method method : methods) {
-                SoulSpringMvcClient soulSpringMvcClient = AnnotationUtils.findAnnotation(method, SoulSpringMvcClient.class);
-                if (Objects.nonNull(soulSpringMvcClient)) {
-                    post(buildJsonParams(soulSpringMvcClient, contextPath));
+                SoulSpringCloudClient soulSpringCloudClient = AnnotationUtils.findAnnotation(method, SoulSpringCloudClient.class);
+                if (Objects.nonNull(soulSpringCloudClient)) {
+                    String finalContextPath = contextPath;
+                    executorService.execute(() -> post(buildJsonParams(soulSpringCloudClient, finalContextPath)));
                 }
             }
         }
@@ -110,36 +111,28 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         }
     }
     
-    private String buildJsonParams(final SoulSpringMvcClient soulSpringMvcClient, final String contextPath) {
-        String appName = soulSpringMvcConfig.getAppName();
-        Integer port = soulSpringMvcConfig.getPort();
-        String path = contextPath + soulSpringMvcClient.path();
-        String desc = soulSpringMvcClient.desc();
-        String configHost = soulSpringMvcConfig.getHost();
-        String host = ("".equals(configHost) || null == configHost) ? getHost() : configHost;
-        String configRuleName = soulSpringMvcClient.ruleName();
+    private String buildJsonParams(final SoulSpringCloudClient soulSpringCloudClient, final String contextPath) {
+        String appName = soulSpringCloudConfig.getAppName();
+        String path = contextPath + soulSpringCloudClient.path();
+        String desc = soulSpringCloudClient.desc();
+        String configRuleName = soulSpringCloudClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
-        SpringMvcRegisterDTO registerDTO = SpringMvcRegisterDTO.builder()
+        SpringCloudRegisterDTO registerDTO = SpringCloudRegisterDTO.builder()
                 .context(contextPath)
-                .host(host)
-                .port(port)
                 .appName(appName)
                 .path(path)
                 .pathDesc(desc)
-                .rpcType(soulSpringMvcClient.rpcType())
-                .enabled(soulSpringMvcClient.enabled())
+                .rpcType(soulSpringCloudClient.rpcType())
+                .enabled(soulSpringCloudClient.enabled())
                 .ruleName(ruleName)
                 .build();
         return OkHttpTools.getInstance().getGosn().toJson(registerDTO);
         
     }
     
-    private String getHost() {
-        try {
-            return InetAddress.getLocalHost().getHostAddress();
-        } catch (UnknownHostException e) {
-            return "127.0.0.1";
-        }
+    @Override
+    public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
+        executorService.shutdown();
     }
 }
 

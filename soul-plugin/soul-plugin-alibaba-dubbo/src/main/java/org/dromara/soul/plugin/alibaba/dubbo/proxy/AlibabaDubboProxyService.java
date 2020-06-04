@@ -20,15 +20,14 @@ package org.dromara.soul.plugin.alibaba.dubbo.proxy;
 import com.alibaba.dubbo.config.ReferenceConfig;
 import com.alibaba.dubbo.rpc.service.GenericException;
 import com.alibaba.dubbo.rpc.service.GenericService;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.exception.SoulException;
-import org.dromara.soul.plugin.alibaba.dubbo.param.DubboParamResolveService;
 import org.dromara.soul.plugin.alibaba.dubbo.cache.ApplicationConfigCache;
-
-import java.util.Objects;
+import org.dromara.soul.plugin.api.dubbo.DubboParamResolveService;
 
 /**
  * Alibaba dubbo proxy service is  use GenericService.

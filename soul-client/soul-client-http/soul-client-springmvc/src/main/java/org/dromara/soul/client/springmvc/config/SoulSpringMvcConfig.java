@@ -34,9 +34,9 @@ public class SoulSpringMvcConfig {
     private String appName;
     
     /**
-     * 如果配置了full为true 代表代理整个服务
+     * 如果配置了full为true 代表代理整个服务.
      */
-    private boolean full = false;
+    private boolean full;
     
     private String host;
     

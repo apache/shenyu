@@ -18,17 +18,17 @@
 
 package org.dromara.soul.spring.boot.starter.plugin.alibaba.dubbo;
 
-import org.dromara.soul.plugin.alibaba.dubbo.param.DubboParamResolveService;
-import org.dromara.soul.plugin.alibaba.dubbo.param.DefaultDubboParamResolveService;
 import org.dromara.soul.plugin.alibaba.dubbo.AlibabaDubboPlugin;
+import org.dromara.soul.plugin.alibaba.dubbo.handler.AlibabaDubboPluginDataHandler;
 import org.dromara.soul.plugin.alibaba.dubbo.param.BodyParamPlugin;
+import org.dromara.soul.plugin.alibaba.dubbo.param.DefaultDubboParamResolveService;
 import org.dromara.soul.plugin.alibaba.dubbo.proxy.AlibabaDubboProxyService;
 import org.dromara.soul.plugin.alibaba.dubbo.response.DubboResponsePlugin;
 import org.dromara.soul.plugin.alibaba.dubbo.subscriber.AlibabaDubboMetaDataSubscriber;
-import org.dromara.soul.plugin.alibaba.dubbo.subscriber.AlibabaDubboPluginDataSubscriber;
 import org.dromara.soul.plugin.api.SoulPlugin;
+import org.dromara.soul.plugin.api.dubbo.DubboParamResolveService;
+import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
-import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.SearchStrategy;
@@ -87,13 +87,13 @@ public class AlibabaDubboPluginConfiguration {
     }
     
     /**
-     * Dubbo plugin data subscriber.
+     * Alibaba dubbo plugin data handler plugin data handler.
      *
-     * @return the plugin data subscriber
+     * @return the plugin data handler
      */
     @Bean
-    public PluginDataSubscriber dubboPluginDataSubscriber() {
-        return new AlibabaDubboPluginDataSubscriber();
+    public PluginDataHandler alibabaDubboPluginDataHandler() {
+        return new AlibabaDubboPluginDataHandler();
     }
     
     /**

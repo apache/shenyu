@@ -18,10 +18,10 @@
 package org.dromara.soul.springboot.starter.plugin.ratelimiter;
 
 import org.dromara.soul.plugin.api.SoulPlugin;
+import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.plugin.ratelimiter.RateLimiterPlugin;
-import org.dromara.soul.plugin.ratelimiter.RateLimiterPluginDataSubscriber;
-import org.dromara.soul.plugin.ratelimiter.RedisRateLimiter;
-import org.dromara.soul.sync.data.api.PluginDataSubscriber;
+import org.dromara.soul.plugin.ratelimiter.executor.RedisRateLimiter;
+import org.dromara.soul.plugin.ratelimiter.handler.RateLimiterPluginDataHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -34,7 +34,7 @@ import org.springframework.context.annotation.Configuration;
 public class RateLimiterPluginConfiguration {
     
     /**
-     * RateLimiter plugin .
+     * RateLimiter plugin.
      *
      * @return the soul plugin
      */
@@ -44,12 +44,12 @@ public class RateLimiterPluginConfiguration {
     }
     
     /**
-     * Data subscriber plugin data subscriber.
+     * Rate limiter plugin data handler plugin data handler.
      *
-     * @return the plugin data subscriber
+     * @return the plugin data handler
      */
     @Bean
-    public PluginDataSubscriber rateLimiterPluginDataSubscriber() {
-        return new RateLimiterPluginDataSubscriber();
+    public PluginDataHandler rateLimiterPluginDataHandler() {
+        return new RateLimiterPluginDataHandler();
     }
 }

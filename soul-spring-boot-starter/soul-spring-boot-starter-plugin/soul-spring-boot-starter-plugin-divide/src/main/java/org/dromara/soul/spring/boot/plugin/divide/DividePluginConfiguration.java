@@ -19,10 +19,10 @@
 package org.dromara.soul.spring.boot.plugin.divide;
 
 import org.dromara.soul.plugin.api.SoulPlugin;
+import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.plugin.divide.DividePlugin;
-import org.dromara.soul.plugin.divide.subscriber.DividePluginDataSubscriber;
+import org.dromara.soul.plugin.divide.handler.DividePluginDataHandler;
 import org.dromara.soul.plugin.divide.websocket.WebSocketPlugin;
-import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.socket.client.ReactorNettyWebSocketClient;
@@ -48,14 +48,15 @@ public class DividePluginConfiguration {
         return new DividePlugin();
     }
     
+    
     /**
-     * Data subscriber plugin data subscriber.
+     * Divide plugin data handler plugin data handler.
      *
-     * @return the plugin data subscriber
+     * @return the plugin data handler
      */
     @Bean
-    public PluginDataSubscriber dividePluginDataSubscriber() {
-        return new DividePluginDataSubscriber();
+    public PluginDataHandler dividePluginDataHandler() {
+        return new DividePluginDataHandler();
     }
     
     /**

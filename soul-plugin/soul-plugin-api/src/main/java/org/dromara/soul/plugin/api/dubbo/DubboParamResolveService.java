@@ -15,23 +15,25 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.waf.subscriber;
+package org.dromara.soul.plugin.api.dubbo;
 
-import org.dromara.soul.common.dto.PluginData;
-import org.dromara.soul.common.enums.PluginEnum;
-import org.dromara.soul.plugin.base.cache.AbstractDataSubscriber;
+import org.apache.commons.lang3.tuple.Pair;
 
 /**
- * The type Waf plugin data subscriber.
+ * The interface Generic param service.
+ * This service is used to construct the parameters required for the dubbo generalization.
+ *
+ * @author xiaoyu(Myth)
  */
-public class WafPluginDataSubscriber extends AbstractDataSubscriber {
-    
-    @Override
-    protected void initPlugin(final PluginData pluginData) {
-    }
-    
-    @Override
-    public String pluginNamed() {
-        return PluginEnum.WAF.getName();
-    }
+public interface DubboParamResolveService {
+
+    /**
+     * Build parameter pair.
+     * this is Resolve http body to get dubbo param.
+     *
+     * @param body           the body
+     * @param parameterTypes the parameter types
+     * @return the pair
+     */
+    Pair<String[], Object[]> buildParameter(String body, String parameterTypes);
 }

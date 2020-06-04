@@ -20,7 +20,6 @@ package org.dromara.soul.sync.data.zookeeper;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.I0Itec.zkclient.IZkDataListener;
@@ -46,7 +45,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
     
     private final ZkClient zkClient;
     
-    private final Map<String, PluginDataSubscriber> pluginDataSubscriberMap;
+    private final PluginDataSubscriber pluginDataSubscriber;
     
     private final List<MetaDataSubscriber> metaDataSubscribers;
     
@@ -57,10 +56,10 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
      *
      * @param zkClient the zk client
      */
-    public ZookeeperSyncDataService(final ZkClient zkClient, final List<PluginDataSubscriber> pluginDataSubscribers,
+    public ZookeeperSyncDataService(final ZkClient zkClient, final PluginDataSubscriber pluginDataSubscriber,
                                     final List<MetaDataSubscriber> metaDataSubscribers, final List<AuthDataSubscriber> authDataSubscribers) {
         this.zkClient = zkClient;
-        this.pluginDataSubscriberMap = pluginDataSubscribers.stream().collect(Collectors.toMap(PluginDataSubscriber::pluginNamed, e -> e));
+        this.pluginDataSubscriber = pluginDataSubscriber;
         this.metaDataSubscribers = metaDataSubscribers;
         this.authDataSubscribers = authDataSubscribers;
         watcherData();
@@ -98,20 +97,20 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
             zkClient.createPersistent(pluginPath, true);
         }
         PluginData pluginData = zkClient.readData(pluginPath);
-        Optional.ofNullable(pluginData).flatMap(data -> Optional.ofNullable(pluginDataSubscriberMap.get(pluginName))).ifPresent(e -> e.onSubscribe(pluginData));
+        Optional.ofNullable(pluginData).flatMap(data -> Optional.ofNullable(pluginDataSubscriber)).ifPresent(e -> e.onSubscribe(pluginData));
         zkClient.subscribeDataChanges(pluginPath, new IZkDataListener() {
             
             @Override
             public void handleDataChange(final String dataPath, final Object data) {
                 Optional.ofNullable(data)
-                        .ifPresent(d -> Optional.ofNullable(pluginDataSubscriberMap.get(pluginName)).ifPresent(e -> e.onSubscribe((PluginData) d)));
+                        .ifPresent(d -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onSubscribe((PluginData) d)));
             }
             
             @Override
             public void handleDataDeleted(final String dataPath) {
                 final PluginData data = new PluginData();
                 data.setName(pluginName);
-                Optional.ofNullable(pluginDataSubscriberMap.get(pluginName)).ifPresent(e -> e.unSubscribe(data));
+                Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSubscribe(data));
             }
         });
     }
@@ -280,7 +279,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
     
     private void cacheSelectorData(final SelectorData selectorData) {
         Optional.ofNullable(selectorData)
-                .ifPresent(data -> Optional.ofNullable(pluginDataSubscriberMap.get(selectorData.getPluginName())).ifPresent(e -> e.onSelectorSubscribe(data)));
+                .ifPresent(data -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onSelectorSubscribe(data)));
     }
     
     private void unCacheSelectorData(final String dataPath) {
@@ -290,12 +289,12 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
         final String pluginName = str.substring(1, str.length() - selectorId.length() - 1);
         selectorData.setPluginName(pluginName);
         selectorData.setId(selectorId);
-        Optional.ofNullable(pluginDataSubscriberMap.get(pluginName)).ifPresent(e -> e.unSelectorSubscribe(selectorData));
+        Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSelectorSubscribe(selectorData));
     }
     
     private void cacheRuleData(final RuleData ruleData) {
         Optional.ofNullable(ruleData)
-                .ifPresent(data -> Optional.ofNullable(pluginDataSubscriberMap.get(ruleData.getPluginName())).ifPresent(e -> e.onRuleSubscribe(data)));
+                .ifPresent(data -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onRuleSubscribe(data)));
     }
     
     private void unCacheRuleData(final String dataPath) {
@@ -307,7 +306,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
         ruleData.setPluginName(pluginName);
         ruleData.setSelectorId(list.get(0));
         ruleData.setId(list.get(1));
-        Optional.ofNullable(pluginDataSubscriberMap.get(ruleData.getPluginName())).ifPresent(e -> e.unRuleSubscribe(ruleData));
+        Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unRuleSubscribe(ruleData));
     }
     
     private void cacheAuthData(final AppAuthData appAuthData) {

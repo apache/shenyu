@@ -83,11 +83,13 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     /**
      * Instantiates a new Meta data service.
      *
-     * @param metaDataMapper  the meta data mapper
-     * @param eventPublisher  the event publisher
-     * @param selectorService the selector service
-     * @param ruleService     the rule service
-     * @param ruleMapper      the rule mapper
+     * @param metaDataMapper       the meta data mapper
+     * @param eventPublisher       the event publisher
+     * @param selectorService      the selector service
+     * @param ruleService          the rule service
+     * @param ruleMapper           the rule mapper
+     * @param upstreamCheckService the upstream check service
+     * @param selectorMapper       the selector mapper
      */
     @Autowired(required = false)
     public SoulClientRegisterServiceImpl(final MetaDataMapper metaDataMapper,
@@ -194,7 +196,6 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, eventType,
                 Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDTO))));
     }
-    
     
     private String handlerSpringMvcSelector(final SpringMvcRegisterDTO dto) {
         String contextPath = dto.getContext();

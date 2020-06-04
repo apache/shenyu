@@ -15,24 +15,30 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.monitor;
+package org.dromara.soul.plugin.monitor.handler;
 
+import java.util.Objects;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.metrics.config.MetricsConfig;
 import org.dromara.soul.metrics.facade.MetricsTrackerFacade;
-import org.dromara.soul.plugin.base.cache.AbstractDataSubscriber;
+import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 
-import java.util.Objects;
-
-public class MonitorPluginDataSubscriber extends AbstractDataSubscriber {
+/**
+ * The type Monitor plugin data handler.
+ *
+ * @author xiaoyu
+ */
+public class MonitorPluginDataHandler implements PluginDataHandler {
     
     @Override
-    protected void initPlugin(final PluginData pluginData) {
+    public void handlerPlugin(final PluginData pluginData) {
         if (Objects.nonNull(pluginData) && pluginData.getEnabled()) {
             MetricsConfig monitorConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), MetricsConfig.class);
             MetricsTrackerFacade.getInstance().init(monitorConfig);
+        } else {
+            MetricsTrackerFacade.getInstance().stop();
         }
     }
     

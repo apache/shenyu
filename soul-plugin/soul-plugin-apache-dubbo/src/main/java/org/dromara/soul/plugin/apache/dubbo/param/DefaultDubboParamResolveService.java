@@ -22,6 +22,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.dromara.soul.common.utils.GsonUtils;
 
 import java.util.Map;
+import org.dromara.soul.plugin.api.dubbo.DubboParamResolveService;
 
 /**
  * The type Default generic param resolve service.

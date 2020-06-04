@@ -24,6 +24,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.dromara.soul.plugin.api.RemoteAddressResolver;
 import org.dromara.soul.plugin.api.SoulPlugin;
+import org.dromara.soul.plugin.base.cache.CommonPluginDataSubscriber;
+import org.dromara.soul.plugin.base.handler.PluginDataHandler;
+import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 import org.dromara.soul.web.config.SoulConfig;
 import org.dromara.soul.web.filter.FileSizeFilter;
 import org.dromara.soul.web.filter.TimeWebFilter;
@@ -63,6 +66,17 @@ public class SoulConfiguration {
         final List<SoulPlugin> soulPlugins = pluginList.stream()
                 .sorted(Comparator.comparingInt(SoulPlugin::getOrder)).collect(Collectors.toList());
         return new SoulWebHandler(soulPlugins);
+    }
+    
+    /**
+     * Plugin data subscriber plugin data subscriber.
+     *
+     * @param pluginDataHandlerList the plugin data handler list
+     * @return the plugin data subscriber
+     */
+    @Bean
+    public PluginDataSubscriber pluginDataSubscriber(final ObjectProvider<List<PluginDataHandler>> pluginDataHandlerList) {
+        return new CommonPluginDataSubscriber(pluginDataHandlerList.getIfAvailable(Collections::emptyList));
     }
     
     /**
