@@ -15,34 +15,28 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.metrics.config;
+package org.dromara.soul.metrics.prometheus;
 
-import java.util.Properties;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import io.prometheus.client.Collector;
+import javax.management.MalformedObjectNameException;
+import org.dromara.soul.metrics.prometheus.impl.collector.JmxCollector;
+import org.junit.Test;
 
 /**
- * Metrics configuration.
+ * The type Jmx collector test.
  */
-@Getter
-@Setter
-@AllArgsConstructor
-public final class MetricsConfig {
+public class JmxCollectorTest {
     
-    private String metricsName;
-    
-    private String host;
-    
-    private Integer port;
-    
-    private Boolean async;
-    
-    private Integer threadCount;
-    
-    private String jmxConfig;
-    
-    private Properties props;
-    
+    /**
+     * Test jmx collector.
+     *
+     * @throws MalformedObjectNameException the malformed object name exception
+     */
+    @Test
+    public void testJmxCollector() throws MalformedObjectNameException {
+        JmxCollector jc = new JmxCollector(("{}").replace('`', '"'));
+        for (Collector.MetricFamilySamples mfs : jc.collect()) {
+            System.out.println(mfs);
+        }
+    }
 }
-

@@ -19,16 +19,19 @@ package org.dromara.soul.metrics.prometheus;
 
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.exporter.HTTPServer;
+import io.prometheus.client.hotspot.DefaultExports;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import javax.management.MalformedObjectNameException;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.metrics.api.MetricsTrackerFactory;
 import org.dromara.soul.metrics.config.MetricsConfig;
+import org.dromara.soul.metrics.prometheus.impl.collector.BuildInfoCollector;
+import org.dromara.soul.metrics.prometheus.impl.collector.JmxCollector;
 import org.dromara.soul.metrics.spi.MetricsTrackerManager;
 import org.dromara.soul.spi.Join;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
 
 /**
  * Prometheus metrics tracker manager.
@@ -45,6 +48,13 @@ public final class PrometheusMetricsTrackerManager implements MetricsTrackerMana
     @SneakyThrows(IOException.class)
     @Override
     public void start(final MetricsConfig metricsConfig) {
+        new BuildInfoCollector().register();
+        try {
+            new JmxCollector(metricsConfig.getJmxConfig()).register();
+            DefaultExports.initialize();
+        } catch (MalformedObjectNameException e) {
+            log.error("init jxm collector error", e);
+        }
         InetSocketAddress inetSocketAddress;
         if ("".equals(metricsConfig.getHost()) || null == metricsConfig.getHost()) {
             inetSocketAddress = new InetSocketAddress(metricsConfig.getPort());
