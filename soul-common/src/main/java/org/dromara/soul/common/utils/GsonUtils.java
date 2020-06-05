@@ -31,10 +31,6 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
-import lombok.SneakyThrows;
-import org.apache.commons.lang3.StringUtils;
-import org.dromara.soul.common.constant.Constants;
-
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.net.URLDecoder;
@@ -42,6 +38,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListMap;
+import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
+import org.dromara.soul.common.constant.Constants;
 
 /**
  * GSONUtils.
@@ -180,15 +180,14 @@ public class GsonUtils {
         }.getType());
     }
     
-    
     /**
      * toList Map.
      *
      * @param json json
      * @return hashMap list
      */
-    public List<Map> toListMap(final String json) {
-        return GSON.fromJson(json, new TypeToken<List<Map>>() {
+    public List<Map<String, Object>> toListMap(final String json) {
+        return GSON.fromJson(json, new TypeToken<List<Map<String, Object>>>() {
         }.getType());
     }
     
@@ -200,6 +199,17 @@ public class GsonUtils {
      */
     public Map<String, Object> toObjectMap(final String json) {
         return GSON_MAP.fromJson(json, new TypeToken<Map<String, Object>>() {
+        }.getType());
+    }
+    
+    /**
+     * To tree map tree map.
+     *
+     * @param json the json
+     * @return the tree map
+     */
+    public ConcurrentSkipListMap<String, Object> toTreeMap(final String json) {
+        return GSON_MAP.fromJson(json, new TypeToken<ConcurrentSkipListMap<String, Object>>() {
         }.getType());
     }
     

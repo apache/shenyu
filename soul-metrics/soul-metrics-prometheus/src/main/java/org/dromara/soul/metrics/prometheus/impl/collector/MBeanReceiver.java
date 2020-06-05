@@ -15,34 +15,28 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.metrics.config;
+package org.dromara.soul.metrics.prometheus.impl.collector;
 
-import java.util.Properties;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import java.util.LinkedList;
+import java.util.Map;
 
 /**
- * Metrics configuration.
+ * The interface M bean receiver.
  */
-@Getter
-@Setter
-@AllArgsConstructor
-public final class MetricsConfig {
+public interface MBeanReceiver {
     
-    private String metricsName;
-    
-    private String host;
-    
-    private Integer port;
-    
-    private Boolean async;
-    
-    private Integer threadCount;
-    
-    private String jmxConfig;
-    
-    private Properties props;
-    
+    /**
+     * Record bean.
+     *
+     * @param domain          the domain
+     * @param beanProperties  the bean properties
+     * @param attrKeys        the attr keys
+     * @param attrName        the attr name
+     * @param attrType        the attr type
+     * @param attrDescription the attr description
+     * @param value           the value
+     */
+    void recordBean(String domain, Map<String, String> beanProperties,
+                    LinkedList<String> attrKeys, String attrName, String attrType,
+                    String attrDescription, Object value);
 }
-

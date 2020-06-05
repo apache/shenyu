@@ -76,7 +76,7 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
             }
             final SelectorData selectorData = matchSelector(exchange, selectors);
             if (Objects.isNull(selectorData)) {
-                if(PluginEnum.WAF.getName().equals(pluginName)) {
+                if (PluginEnum.WAF.getName().equals(pluginName)) {
                     return doExecute(exchange, chain, null, null);
                 }
                 return CheckUtils.checkSelector(pluginName, exchange, chain);
@@ -86,7 +86,7 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
             }
             final List<RuleData> rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
             if (CollectionUtils.isEmpty(rules)) {
-                if(PluginEnum.WAF.getName().equals(pluginName)) {
+                if (PluginEnum.WAF.getName().equals(pluginName)) {
                     return doExecute(exchange, chain, null, null);
                 }
                 return CheckUtils.checkRule(pluginName, exchange, chain);
