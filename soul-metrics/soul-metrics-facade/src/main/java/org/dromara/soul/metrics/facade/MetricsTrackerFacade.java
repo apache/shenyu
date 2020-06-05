@@ -18,6 +18,7 @@
 package org.dromara.soul.metrics.facade;
 
 import com.google.common.base.Preconditions;
+import java.util.Optional;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.metrics.api.HistogramMetricsTrackerDelegate;
@@ -26,8 +27,6 @@ import org.dromara.soul.metrics.config.MetricsConfig;
 import org.dromara.soul.metrics.facade.handler.MetricsTrackerHandler;
 import org.dromara.soul.metrics.spi.MetricsTrackerManager;
 import org.dromara.soul.spi.ExtensionLoader;
-
-import java.util.Optional;
 
 /**
  * Metrics tracker facade.
@@ -63,7 +62,7 @@ public final class MetricsTrackerFacade {
         metricsTrackerManager = ExtensionLoader.getExtensionLoader(MetricsTrackerManager.class).getJoin(metricsConfig.getMetricsName());
         Preconditions.checkNotNull(metricsTrackerManager, "Can not find metrics tracker manager with metrics name in metrics configuration.");
         metricsTrackerManager.start(metricsConfig);
-        MetricsTrackerHandler.getInstance().init(metricsConfig.getAsync(), metricsConfig.getThreadCount(), metricsTrackerManager);
+        MetricsTrackerHandler.getInstance().init(metricsConfig.getAsync(), Optional.ofNullable(metricsConfig.getThreadCount()).orElse(Runtime.getRuntime().availableProcessors()), metricsTrackerManager);
         enabled = true;
     }
     
@@ -158,6 +157,8 @@ public final class MetricsTrackerFacade {
      */
     public void stop() {
         enabled = false;
+        metricsTrackerManager.stop();
+        MetricsTrackerHandler.getInstance().close();
     }
     
     private void loadMetricsManager() {

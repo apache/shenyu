@@ -1,15 +1,15 @@
 server:
-  port: 8186
+  port: 8187
   address: 0.0.0.0
 
 
 soul:
   http:
     adminUrl: http://localhost:9095
-    port: 8186
+    port: 8187
     contextPath: /http
     appName: http
-    full: true
+    full: false
 
 logging:
   level:

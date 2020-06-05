@@ -85,10 +85,13 @@ public class UpstreamCheckService {
      */
     @PostConstruct
     public void setup() {
+        List<SelectorDO> selectorDOList = selectorMapper.findByPluginId("5");
+        for (SelectorDO selectorDO : selectorDOList) {
+            UPSTREAM_MAP.put(selectorDO.getName(), GsonUtils.getInstance().fromList(selectorDO.getHandle(), DivideUpstream.class));
+        }
         if (check) {
-            new ScheduledThreadPoolExecutor(1, SoulThreadFactory.create("scheduled-upstream-task", false))
-                    .scheduleWithFixedDelay(this::scheduled, 30, scheduledTime, TimeUnit.SECONDS);
-            
+            new ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), SoulThreadFactory.create("scheduled-upstream-task", false))
+                    .scheduleWithFixedDelay(this::scheduled, 10, scheduledTime, TimeUnit.SECONDS);
         }
     }
     
@@ -98,7 +101,7 @@ public class UpstreamCheckService {
      *
      * @param selectorName the selector name
      */
-    public void removeByKey(final String selectorName) {
+    public static void removeByKey(final String selectorName) {
         UPSTREAM_MAP.remove(selectorName);
     }
     

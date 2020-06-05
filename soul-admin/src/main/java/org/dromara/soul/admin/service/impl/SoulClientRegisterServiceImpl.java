@@ -22,13 +22,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
-import org.dromara.soul.admin.dto.SpringCloudRegisterDTO;
-import org.dromara.soul.admin.dto.SpringMvcRegisterDTO;
 import org.dromara.soul.admin.dto.MetaDataDTO;
 import org.dromara.soul.admin.dto.RuleConditionDTO;
 import org.dromara.soul.admin.dto.RuleDTO;
 import org.dromara.soul.admin.dto.SelectorConditionDTO;
 import org.dromara.soul.admin.dto.SelectorDTO;
+import org.dromara.soul.admin.dto.SpringCloudRegisterDTO;
+import org.dromara.soul.admin.dto.SpringMvcRegisterDTO;
 import org.dromara.soul.admin.entity.MetaDataDO;
 import org.dromara.soul.admin.entity.RuleDO;
 import org.dromara.soul.admin.entity.SelectorDO;
@@ -215,9 +215,14 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
             if (StringUtils.isBlank(handle)) {
                 handleAdd = GsonUtils.getInstance().toJson(Collections.singletonList(addDivideUpstream));
             } else {
-                List<DivideUpstream> divideUpstreams = GsonUtils.getInstance().fromList(handle, DivideUpstream.class);
-                divideUpstreams.add(addDivideUpstream);
-                handleAdd = GsonUtils.getInstance().toJson(divideUpstreams);
+                List<DivideUpstream> exist = GsonUtils.getInstance().fromList(handle, DivideUpstream.class);
+                for (DivideUpstream upstream : exist) {
+                    if (upstream.getUpstreamUrl().equals(addDivideUpstream.getUpstreamUrl())) {
+                        return selectorId;
+                    }
+                }
+                exist.add(addDivideUpstream);
+                handleAdd = GsonUtils.getInstance().toJson(exist);
             }
             selectorDO.setHandle(handleAdd);
             selectorData.setHandle(handleAdd);

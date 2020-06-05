@@ -247,6 +247,8 @@ public interface Constants {
      */
     String COLONS = ":";
     
+    String REQUEST_LATENCY = "REQUEST_LATENCY";
+    
     /**
      * String q.
      */

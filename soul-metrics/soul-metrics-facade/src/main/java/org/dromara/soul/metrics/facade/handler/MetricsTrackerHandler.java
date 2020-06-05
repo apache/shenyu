@@ -17,6 +17,12 @@
 
 package org.dromara.soul.metrics.facade.handler;
 
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.metrics.api.CounterMetricsTracker;
@@ -31,13 +37,6 @@ import org.dromara.soul.metrics.api.SummaryMetricsTrackerDelegate;
 import org.dromara.soul.metrics.enums.MetricsTypeEnum;
 import org.dromara.soul.metrics.facade.executor.MetricsThreadPoolExecutor;
 import org.dromara.soul.metrics.spi.MetricsTrackerManager;
-
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 /**
  * Metrics tracker handler.
@@ -191,6 +190,7 @@ public final class MetricsTrackerHandler {
      * Executor service close.
      */
     public void close() {
+        async = false;
         if (null != executorService && !executorService.isShutdown()) {
             executorService.shutdown();
         }
