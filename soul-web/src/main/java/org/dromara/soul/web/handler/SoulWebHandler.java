@@ -70,11 +70,9 @@ public final class SoulWebHandler implements WebHandler {
     @Override
     public Mono<Void> handle(@NonNull final ServerWebExchange exchange) {
         MetricsTrackerFacade.getInstance().counterInc(MetricsLabelEnum.REQUEST_TOTAL.getName());
-        Optional<HistogramMetricsTrackerDelegate> histogramStartTimer = MetricsTrackerFacade.getInstance().histogramStartTimer(MetricsLabelEnum.REQUEST_LATENCY.getName());
-        Mono<Void> subscribeOn = new DefaultSoulPluginChain(plugins)
-                .execute(exchange).subscribeOn(scheduler);
-        histogramStartTimer.ifPresent(e -> MetricsTrackerFacade.getInstance().histogramObserveDuration(e));
-        return subscribeOn;
+        Optional<HistogramMetricsTrackerDelegate> startTimer = MetricsTrackerFacade.getInstance().histogramStartTimer(MetricsLabelEnum.REQUEST_LATENCY.getName());
+        return new DefaultSoulPluginChain(plugins).execute(exchange).subscribeOn(scheduler)
+                .doOnSuccess(t -> startTimer.ifPresent(time -> MetricsTrackerFacade.getInstance().histogramObserveDuration(time)));
     }
     
     private static class DefaultSoulPluginChain implements SoulPluginChain {

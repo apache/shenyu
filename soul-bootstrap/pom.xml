@@ -80,6 +80,12 @@
             <version>${project.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-monitor</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
 
         <!--soul data sync start-->
         <dependency>

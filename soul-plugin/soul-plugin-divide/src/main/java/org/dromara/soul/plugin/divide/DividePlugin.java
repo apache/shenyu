@@ -18,6 +18,8 @@
 
 package org.dromara.soul.plugin.divide;
 
+import java.util.List;
+import java.util.Objects;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
@@ -28,11 +30,11 @@ import org.dromara.soul.common.dto.convert.rule.DivideRuleHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
-import org.dromara.soul.plugin.api.result.SoulResultEnum;
-import org.dromara.soul.plugin.base.utils.SoulResultWarp;
 import org.dromara.soul.plugin.api.SoulPluginChain;
-import org.dromara.soul.plugin.base.AbstractSoulPlugin;
 import org.dromara.soul.plugin.api.context.SoulContext;
+import org.dromara.soul.plugin.api.result.SoulResultEnum;
+import org.dromara.soul.plugin.base.AbstractSoulPlugin;
+import org.dromara.soul.plugin.base.utils.SoulResultWarp;
 import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
 import org.dromara.soul.plugin.divide.balance.utils.LoadBalanceUtils;
 import org.dromara.soul.plugin.divide.cache.UpstreamCacheManager;
@@ -40,9 +42,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
-import java.util.List;
-import java.util.Objects;
 
 /**
  * Divide Plugin.
@@ -65,8 +64,7 @@ public class DividePlugin extends AbstractSoulPlugin {
             return WebFluxResultUtils.result(exchange, error);
         }
         final String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
-        DivideUpstream divideUpstream =
-                LoadBalanceUtils.selector(upstreamList, ruleHandle.getLoadBalance(), ip);
+        DivideUpstream divideUpstream = LoadBalanceUtils.selector(upstreamList, ruleHandle.getLoadBalance(), ip);
         if (Objects.isNull(divideUpstream)) {
             LOGGER.error("divide has no upstream");
             Object error = SoulResultWarp.error(SoulResultEnum.CANNOT_FIND_URL.getCode(), SoulResultEnum.CANNOT_FIND_URL.getMsg(), null);
@@ -86,11 +84,6 @@ public class DividePlugin extends AbstractSoulPlugin {
         return PluginEnum.DIVIDE.getName();
     }
     
-    /**
-     * plugin is execute.
-     *
-     * @return default false.
-     */
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
         final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
@@ -127,5 +120,4 @@ public class DividePlugin extends AbstractSoulPlugin {
         }
         return path;
     }
-    
 }

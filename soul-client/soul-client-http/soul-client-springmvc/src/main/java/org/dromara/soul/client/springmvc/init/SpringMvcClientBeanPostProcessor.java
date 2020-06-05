@@ -77,18 +77,19 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         if (controller != null || restController != null || requestMapping != null) {
             String contextPath = soulSpringMvcConfig.getContextPath();
             SoulSpringMvcClient clazzAnnotation = AnnotationUtils.findAnnotation(bean.getClass(), SoulSpringMvcClient.class);
+            String prePath = "";
             if (Objects.nonNull(clazzAnnotation)) {
-                contextPath += clazzAnnotation.path();
                 if (clazzAnnotation.path().indexOf("*") > 1) {
-                    post(buildJsonParams(clazzAnnotation, contextPath));
+                    post(buildJsonParams(clazzAnnotation, contextPath, prePath));
                     return bean;
                 }
+                prePath = clazzAnnotation.path();
             }
             final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(bean.getClass());
             for (Method method : methods) {
                 SoulSpringMvcClient soulSpringMvcClient = AnnotationUtils.findAnnotation(method, SoulSpringMvcClient.class);
                 if (Objects.nonNull(soulSpringMvcClient)) {
-                    post(buildJsonParams(soulSpringMvcClient, contextPath));
+                    post(buildJsonParams(soulSpringMvcClient, contextPath, prePath));
                 }
             }
         }
@@ -108,10 +109,10 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         }
     }
     
-    private String buildJsonParams(final SoulSpringMvcClient soulSpringMvcClient, final String contextPath) {
+    private String buildJsonParams(final SoulSpringMvcClient soulSpringMvcClient, final String contextPath, final String prePath) {
         String appName = soulSpringMvcConfig.getAppName();
         Integer port = soulSpringMvcConfig.getPort();
-        String path = contextPath + soulSpringMvcClient.path();
+        String path = contextPath + prePath + soulSpringMvcClient.path();
         String desc = soulSpringMvcClient.desc();
         String configHost = soulSpringMvcConfig.getHost();
         String host = ("".equals(configHost) || null == configHost) ? IpUtils.getHost() : configHost;

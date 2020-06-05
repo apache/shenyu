@@ -19,10 +19,12 @@ package org.dromara.soul.metrics.spi;
 
 import org.dromara.soul.metrics.api.MetricsTrackerFactory;
 import org.dromara.soul.metrics.config.MetricsConfig;
+import org.dromara.soul.spi.SPI;
 
 /**
  * Metrics tracker manager.
  */
+@SPI
 public interface MetricsTrackerManager {
     
     /**

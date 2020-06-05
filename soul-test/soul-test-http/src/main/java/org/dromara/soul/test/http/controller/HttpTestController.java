@@ -18,6 +18,7 @@
 
 package org.dromara.soul.test.http.controller;
 
+import org.dromara.soul.client.springmvc.annotation.SoulSpringMvcClient;
 import org.dromara.soul.test.http.dto.UserDTO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,6 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/test")
+@SoulSpringMvcClient(path = "/test/**")
 public class HttpTestController {
     
     /**
@@ -44,7 +46,6 @@ public class HttpTestController {
      * @return the user dto
      */
     @PostMapping("/payment")
-    //@SoulClient(path = "/test/payment", desc = "支付接口")
     public UserDTO post(@RequestBody final UserDTO userDTO) {
         return userDTO;
     }
@@ -56,7 +57,6 @@ public class HttpTestController {
      * @return the string
      */
     @GetMapping("/findByUserId")
-    //@SoulClient(path = "/test/findByUserId", desc = "获取用户id")
     public UserDTO findByUserId(@RequestParam("userId") final String userId) {
         UserDTO userDTO = new UserDTO();
         userDTO.setUserId(userId);
@@ -72,7 +72,6 @@ public class HttpTestController {
      * @return the path variable
      */
     @GetMapping("/path/{id}")
-    //@SoulClient(path = "/test/path/**", desc = "test restful get 风格支持")
     public UserDTO getPathVariable(@PathVariable("id") final String id, @RequestParam("name") final String name) {
         UserDTO userDTO = new UserDTO();
         userDTO.setUserId(id);
@@ -88,7 +87,6 @@ public class HttpTestController {
      * @return the string
      */
     @GetMapping("/path/{id}/name")
-    //@SoulClient(path = "/test/path/**/name", desc = "test restful风格支持")
     public UserDTO testRestFul(@PathVariable("id") final String id) {
         UserDTO userDTO = new UserDTO();
         userDTO.setUserId(id);

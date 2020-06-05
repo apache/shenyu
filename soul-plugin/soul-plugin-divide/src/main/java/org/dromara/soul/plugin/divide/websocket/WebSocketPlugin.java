@@ -18,6 +18,13 @@
 
 package org.dromara.soul.plugin.divide.websocket;
 
+import java.net.URI;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.RuleData;
@@ -27,18 +34,16 @@ import org.dromara.soul.common.dto.convert.rule.DivideRuleHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
-import org.dromara.soul.common.utils.LogUtils;
-import org.dromara.soul.plugin.api.result.SoulResultEnum;
-import org.dromara.soul.plugin.base.utils.SoulResultWarp;
 import org.dromara.soul.plugin.api.SoulPluginChain;
-import org.dromara.soul.plugin.base.AbstractSoulPlugin;
 import org.dromara.soul.plugin.api.context.SoulContext;
+import org.dromara.soul.plugin.api.result.SoulResultEnum;
+import org.dromara.soul.plugin.base.AbstractSoulPlugin;
+import org.dromara.soul.plugin.base.utils.SoulResultWarp;
 import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
 import org.dromara.soul.plugin.divide.balance.utils.LoadBalanceUtils;
 import org.dromara.soul.plugin.divide.cache.UpstreamCacheManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
+import org.springframework.lang.NonNull;
 import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.WebSocketMessage;
@@ -49,24 +54,13 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 
-import java.net.URI;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 /**
  * The type Web socket plugin.
  *
  * @author xiaoyu(Myth)
  */
+@Slf4j
 public class WebSocketPlugin extends AbstractSoulPlugin {
-    
-    /**
-     * logger.
-     */
-    private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketPlugin.class);
     
     private static final String SEC_WEB_SOCKET_PROTOCOL = "Sec-WebSocket-Protocol";
     
@@ -90,19 +84,19 @@ public class WebSocketPlugin extends AbstractSoulPlugin {
         final List<DivideUpstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
         final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         if (CollectionUtils.isEmpty(upstreamList) || Objects.isNull(soulContext)) {
-            LogUtils.error(LOGGER, "divide upstream configuration error：{}", rule::toString);
+            log.error("divide upstream configuration error：{}", rule.toString());
             return chain.execute(exchange);
         }
         final DivideRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), DivideRuleHandle.class);
         final String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
         DivideUpstream divideUpstream = LoadBalanceUtils.selector(upstreamList, ruleHandle.getLoadBalance(), ip);
         if (Objects.isNull(divideUpstream)) {
-            LOGGER.error("websocket has no upstream");
+            log.error("websocket has no upstream");
             Object error = SoulResultWarp.error(SoulResultEnum.CANNOT_FIND_URL.getCode(), SoulResultEnum.CANNOT_FIND_URL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         URI wsRequestUrl = UriComponentsBuilder.fromUri(URI.create(buildWsRealPath(divideUpstream, soulContext))).build().toUri();
-        LOGGER.info("you websocket urlPath is :{}", wsRequestUrl.toASCIIString());
+        log.info("you websocket urlPath is :{}", wsRequestUrl.toASCIIString());
         HttpHeaders headers = exchange.getRequest().getHeaders();
         return this.webSocketService.handleRequest(exchange, new SoulWebSocketHandler(
                 wsRequestUrl, this.webSocketClient, filterHeaders(headers), buildWsProtocols(headers)));
@@ -187,18 +181,22 @@ public class WebSocketPlugin extends AbstractSoulPlugin {
                 this.subProtocols = Collections.emptyList();
             }
         }
-        
+    
+        @NonNull
         @Override
         public List<String> getSubProtocols() {
             return this.subProtocols;
         }
-        
+    
+        @NonNull
         @Override
-        public Mono<Void> handle(final WebSocketSession session) {
+        public Mono<Void> handle(@NonNull final WebSocketSession session) {
             // pass headers along so custom headers can be sent through
             return client.execute(url, this.headers, new WebSocketHandler() {
+    
+                @NonNull
                 @Override
-                public Mono<Void> handle(final WebSocketSession webSocketSession) {
+                public Mono<Void> handle(@NonNull final WebSocketSession webSocketSession) {
                     // Use retain() for Reactor Netty
                     Mono<Void> sessionSend = webSocketSession
                             .send(session.receive().doOnNext(WebSocketMessage::retain));
@@ -206,7 +204,8 @@ public class WebSocketPlugin extends AbstractSoulPlugin {
                             webSocketSession.receive().doOnNext(WebSocketMessage::retain));
                     return Mono.zip(sessionSend, serverSessionSend).then();
                 }
-                
+    
+                @NonNull
                 @Override
                 public List<String> getSubProtocols() {
                     return SoulWebSocketHandler.this.subProtocols;

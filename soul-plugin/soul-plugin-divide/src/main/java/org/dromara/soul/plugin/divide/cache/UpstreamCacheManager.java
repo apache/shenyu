@@ -85,8 +85,7 @@ public final class UpstreamCacheManager {
      * @param selectorData the selector data
      */
     public void submit(final SelectorData selectorData) {
-        final List<DivideUpstream> upstreamList =
-                GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream.class);
+        final List<DivideUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream.class);
         if (null != upstreamList && upstreamList.size() > 0) {
             UPSTREAM_MAP.put(selectorData.getId(), upstreamList);
         } else {
