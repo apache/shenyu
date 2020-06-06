@@ -50,7 +50,7 @@ public @interface SoulSpringCloudClient {
      *
      * @return String string
      */
-    String desc();
+    String desc() default "";
     
     /**
      * Rpc type string.

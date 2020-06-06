@@ -5,21 +5,19 @@ server:
 spring:
   application:
     name: springCloud-test
-  cloud:
-    nacos:
-      discovery:
-          server-addr: 127.0.0.1:8848
+#  cloud:
+#    nacos:
+#      discovery:
+#          server-addr: 127.0.0.1:8848
 
-#eureka:
-#  client:
-#    serviceUrl:
-#      defaultZone:  http://localhost:8761/eureka/
-#  instance:
-#    prefer-ip-address: true
 
-test-service:
+springCloud-test:
   ribbon.NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule
 
+eureka:
+  client:
+    serviceUrl:
+      defaultZone:  http://localhost:8761/eureka/
 
 soul:
   springcloud:

@@ -17,7 +17,7 @@
 
 package org.dromara.soul.admin.listener.websocket;
 
-import org.dromara.soul.admin.listener.AbstractDataChangedListener;
+import java.util.List;
 import org.dromara.soul.admin.listener.DataChangedListener;
 import org.dromara.soul.common.dto.AppAuthData;
 import org.dromara.soul.common.dto.MetaData;
@@ -29,8 +29,6 @@ import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 
-import java.util.List;
-
 /**
  * The type Websocket data changed listener.
  *
@@ -38,15 +36,15 @@ import java.util.List;
  * @author huangxiaofeng
  * @since 2.0.0
  */
-public class WebsocketDataChangedListener extends AbstractDataChangedListener implements DataChangedListener {
-
+public class WebsocketDataChangedListener implements DataChangedListener {
+    
     @Override
     public void onPluginChanged(final List<PluginData> pluginDataList, final DataEventTypeEnum eventType) {
         WebsocketData<PluginData> websocketData =
                 new WebsocketData<>(ConfigGroupEnum.PLUGIN.name(), eventType.name(), pluginDataList);
         WebsocketCollector.send(GsonUtils.getInstance().toJson(websocketData), eventType);
     }
-
+    
     @Override
     public void onSelectorChanged(final List<SelectorData> selectorDataList, final DataEventTypeEnum eventType) {
         WebsocketData<SelectorData> websocketData =

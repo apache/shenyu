@@ -116,8 +116,8 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     }
     
     @Override
-    public String registerSpringCloud(final SpringCloudRegisterDTO dto) {
-        MetaDataDO metaDataDO = metaDataMapper.findByPath(dto.getPath());
+    public synchronized String registerSpringCloud(final SpringCloudRegisterDTO dto) {
+        MetaDataDO metaDataDO = metaDataMapper.findByPath(dto.getContext() + "/**");
         if (Objects.isNull(metaDataDO)) {
             saveSpringCloudMetaData(dto);
         }
@@ -164,14 +164,17 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     private void saveSpringCloudMetaData(final SpringCloudRegisterDTO dto) {
         MetaDataDO metaDataDO = new MetaDataDO();
         metaDataDO.setAppName(dto.getAppName());
-        metaDataDO.setPath(dto.getPath());
-        metaDataDO.setPathDesc(dto.getPathDesc());
+        metaDataDO.setPath(dto.getContext() + "/**");
+        metaDataDO.setPathDesc(dto.getAppName() + "spring cloud meta data info");
+        metaDataDO.setServiceName(dto.getAppName());
+        metaDataDO.setMethodName(dto.getContext());
         metaDataDO.setRpcType(dto.getRpcType());
         metaDataDO.setEnabled(dto.isEnabled());
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         metaDataDO.setId(UUIDUtils.getInstance().generateShortUuid());
         metaDataDO.setDateCreated(currentTime);
         metaDataDO.setDateUpdated(currentTime);
+        metaDataMapper.insert(metaDataDO);
         // publish AppAuthData's event
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.CREATE,
                 Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDO))));

@@ -30,7 +30,4 @@ public class SoulSpringCloudConfig {
     private String adminUrl;
     
     private String contextPath;
-    
-    private String appName;
-    
 }

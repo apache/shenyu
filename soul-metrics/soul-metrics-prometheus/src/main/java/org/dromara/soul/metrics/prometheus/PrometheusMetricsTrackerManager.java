@@ -22,6 +22,7 @@ import io.prometheus.client.exporter.HTTPServer;
 import io.prometheus.client.hotspot.DefaultExports;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.management.MalformedObjectNameException;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -45,16 +46,12 @@ public final class PrometheusMetricsTrackerManager implements MetricsTrackerMana
     
     private HTTPServer server;
     
+    private volatile AtomicBoolean registered = new AtomicBoolean(false);
+    
     @SneakyThrows(IOException.class)
     @Override
     public void start(final MetricsConfig metricsConfig) {
-        new BuildInfoCollector().register();
-        try {
-            new JmxCollector(metricsConfig.getJmxConfig()).register();
-            DefaultExports.initialize();
-        } catch (MalformedObjectNameException e) {
-            log.error("init jxm collector error", e);
-        }
+        register(metricsConfig.getJmxConfig());
         InetSocketAddress inetSocketAddress;
         if ("".equals(metricsConfig.getHost()) || null == metricsConfig.getHost()) {
             inetSocketAddress = new InetSocketAddress(metricsConfig.getPort());
@@ -68,6 +65,19 @@ public final class PrometheusMetricsTrackerManager implements MetricsTrackerMana
     @Override
     public void stop() {
         server.stop();
+    }
+    
+    private void register(final String jmxConfig) {
+        if (!registered.compareAndSet(false, true)) {
+            return;
+        }
+        new BuildInfoCollector().register();
+        try {
+            new JmxCollector(jmxConfig).register();
+            DefaultExports.initialize();
+        } catch (MalformedObjectNameException e) {
+            log.error("init jxm collector error", e);
+        }
     }
 }
 

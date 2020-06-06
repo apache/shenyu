@@ -19,6 +19,11 @@
 
 package org.dromara.soul.admin.listener.zookeeper;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -39,19 +44,15 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 /**
  * The type Http service discovery.
  *
  * @author xiaoyu
+ * @deprecated sice 2.2.0  Deprecated
  */
 @Component
 @SuppressWarnings("all")
+@Deprecated
 public class HttpServiceDiscovery implements InitializingBean {
     
     private static final String ROOT = "/soul/register";
@@ -76,6 +77,7 @@ public class HttpServiceDiscovery implements InitializingBean {
      * @param selectorService the selector service
      * @param selectorMapper  the selector mapper
      * @param eventPublisher  the event publisher
+     * @param env             the env
      */
     @Autowired(required = false)
     public HttpServiceDiscovery(final SelectorService selectorService,

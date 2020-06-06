@@ -38,6 +38,12 @@ import org.springframework.web.bind.annotation.RestController;
 @SoulSpringMvcClient(path = "/order")
 public class OrderController {
     
+    /**
+     * Save order dto.
+     *
+     * @param orderDTO the order dto
+     * @return the order dto
+     */
     @PostMapping("/save")
     @SoulSpringMvcClient(path = "/save")
     public OrderDTO save(@RequestBody final OrderDTO orderDTO) {
@@ -45,7 +51,12 @@ public class OrderController {
         return orderDTO;
     }
     
-    
+    /**
+     * Find by id order dto.
+     *
+     * @param id the id
+     * @return the order dto
+     */
     @GetMapping("/findById")
     @SoulSpringMvcClient(path = "/findById")
     public OrderDTO findById(@RequestParam("id") final String id) {
@@ -55,6 +66,13 @@ public class OrderController {
         return orderDTO;
     }
     
+    /**
+     * Gets path variable.
+     *
+     * @param id   the id
+     * @param name the name
+     * @return the path variable
+     */
     @GetMapping("/path/{id}/{name}")
     @SoulSpringMvcClient(path = "/path/**")
     public OrderDTO getPathVariable(@PathVariable("id") final String id, @PathVariable("name") final String name) {
@@ -64,7 +82,12 @@ public class OrderController {
         return orderDTO;
     }
     
-    
+    /**
+     * Test rest ful order dto.
+     *
+     * @param id the id
+     * @return the order dto
+     */
     @GetMapping("/path/{id}/name")
     @SoulSpringMvcClient(path = "/path/**/name")
     public OrderDTO testRestFul(@PathVariable("id") final String id) {
@@ -73,5 +96,4 @@ public class OrderController {
         orderDTO.setName("hello world restful inline " + id);
         return orderDTO;
     }
-    
 }

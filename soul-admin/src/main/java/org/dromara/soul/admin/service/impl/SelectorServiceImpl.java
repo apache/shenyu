@@ -18,6 +18,10 @@
 
 package org.dromara.soul.admin.service.impl;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.SelectorConditionDTO;
@@ -46,15 +50,11 @@ import org.dromara.soul.common.dto.ConditionData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
+import org.dromara.soul.common.enums.PluginEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * SelectorServiceImpl.
@@ -154,17 +154,22 @@ public class SelectorServiceImpl implements SelectorService {
     @Transactional(rollbackFor = Exception.class)
     public int delete(final List<String> ids) {
         for (String id : ids) {
-
+    
             SelectorDO selectorDO = selectorMapper.selectById(id);
             PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
-
+    
             selectorMapper.delete(id);
             selectorConditionMapper.deleteByQuery(new SelectorConditionQuery(id));
-
+    
+            //if divide selector delete
+            if (PluginEnum.DIVIDE.getName().equals(pluginDO.getName())) {
+                UpstreamCheckService.removeByKey(selectorDO.getName());
+            }
+    
             //发送删除选择器事件
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.DELETE,
                     Collections.singletonList(SelectorDO.transFrom(selectorDO, pluginDO.getName(), null))));
-
+    
             //清除规则与规则条件
             final List<RuleDO> ruleDOList = ruleMapper.selectByQuery(new RuleQuery(id, null));
             if (CollectionUtils.isNotEmpty(ruleDOList)) {

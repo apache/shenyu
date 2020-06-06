@@ -17,18 +17,19 @@
 
 package org.dromara.soul.metrics.config;
 
+import java.io.Serializable;
 import java.util.Properties;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
- * Metrics configuration.
+ * Metrics config.
  */
-@Getter
-@Setter
 @AllArgsConstructor
-public final class MetricsConfig {
+@Data
+@EqualsAndHashCode
+public final class MetricsConfig implements Serializable {
     
     private String metricsName;
     

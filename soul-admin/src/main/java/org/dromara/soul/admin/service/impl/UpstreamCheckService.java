@@ -95,7 +95,6 @@ public class UpstreamCheckService {
         }
     }
     
-    
     /**
      * Remove by key.
      *
@@ -104,7 +103,6 @@ public class UpstreamCheckService {
     public static void removeByKey(final String selectorName) {
         UPSTREAM_MAP.remove(selectorName);
     }
-    
     
     /**
      * Submit.

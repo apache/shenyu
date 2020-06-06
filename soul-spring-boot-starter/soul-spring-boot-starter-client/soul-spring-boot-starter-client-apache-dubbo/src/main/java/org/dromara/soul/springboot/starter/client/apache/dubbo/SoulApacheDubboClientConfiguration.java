@@ -38,7 +38,7 @@ public class SoulApacheDubboClientConfiguration {
      * @return the alibaba dubbo service bean post processor
      */
     @Bean
-    public ApacheDubboServiceBeanPostProcessor alibabaDubboServiceBeanPostProcessor(final DubboConfig dubboConfig) {
+    public ApacheDubboServiceBeanPostProcessor apacheDubboServiceBeanPostProcessor(final DubboConfig dubboConfig) {
         return new ApacheDubboServiceBeanPostProcessor(dubboConfig);
     }
     

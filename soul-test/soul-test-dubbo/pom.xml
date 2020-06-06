@@ -32,21 +32,15 @@
 
     <modules>
         <module>soul-test-dubbo-api</module>
-        <module>soul-test-dubbo-service</module>
+        <module>soul-test-apache-dubbo-service</module>
+        <module>soul-test-alibaba-dubbo-service</module>
     </modules>
 
     <dependencyManagement>
         <dependencies>
-
             <dependency>
                 <groupId>org.dromara</groupId>
                 <artifactId>soul-test-dubbo-api</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.dromara</groupId>
-                <artifactId>soul-test-dubbo-service</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>
