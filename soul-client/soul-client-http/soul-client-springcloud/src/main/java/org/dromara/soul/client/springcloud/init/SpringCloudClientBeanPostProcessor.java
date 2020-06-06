@@ -32,6 +32,7 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.env.Environment;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.ReflectionUtils;
@@ -46,27 +47,32 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor, ApplicationListener<ContextRefreshedEvent> {
     
-    private ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    private ExecutorService executorService = Executors.newSingleThreadExecutor();
     
     private final String url;
     
-    private final SoulSpringCloudConfig soulSpringCloudConfig;
+    private final SoulSpringCloudConfig config;
+    
+    private final Environment env;
     
     /**
      * Instantiates a new Soul client bean post processor.
      *
-     * @param soulSpringCloudConfig the soul spring cloud config
+     * @param config the soul spring cloud config
+     * @param env    the env
      */
-    public SpringCloudClientBeanPostProcessor(final SoulSpringCloudConfig soulSpringCloudConfig) {
-        String contextPath = soulSpringCloudConfig.getContextPath();
-        String adminUrl = soulSpringCloudConfig.getAdminUrl();
+    public SpringCloudClientBeanPostProcessor(final SoulSpringCloudConfig config, final Environment env) {
+        String contextPath = config.getContextPath();
+        String adminUrl = config.getAdminUrl();
+        String appName = env.getProperty("spring.application.name");
         if (contextPath == null || "".equals(contextPath)
-                || adminUrl == null || "".equals(adminUrl)) {
-            log.error("spring cloud param must config  contextPath and adminUrl");
-            throw new RuntimeException("spring cloud param must config contextPath and adminUrl");
+                || adminUrl == null || "".equals(adminUrl)
+                || appName == null || "".equals(appName)) {
+            throw new RuntimeException("spring cloud param must config the contextPath, adminUrl and appName");
         }
-        this.soulSpringCloudConfig = soulSpringCloudConfig;
-        url = adminUrl + "/soul-client/springcloud-register";
+        this.config = config;
+        this.env = env;
+        this.url = adminUrl + "/soul-client/springcloud-register";
     }
     
     @Override
@@ -75,23 +81,24 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor, Ap
         RestController restController = AnnotationUtils.findAnnotation(bean.getClass(), RestController.class);
         RequestMapping requestMapping = AnnotationUtils.findAnnotation(bean.getClass(), RequestMapping.class);
         if (controller != null || restController != null || requestMapping != null) {
-            String contextPath = soulSpringCloudConfig.getContextPath();
+            String contextPath = config.getContextPath();
             //首先
+            String prePath = "";
             SoulSpringCloudClient clazzAnnotation = AnnotationUtils.findAnnotation(bean.getClass(), SoulSpringCloudClient.class);
             if (Objects.nonNull(clazzAnnotation)) {
-                contextPath += clazzAnnotation.path();
                 if (clazzAnnotation.path().indexOf("*") > 1) {
-                    String finalContextPath = contextPath;
-                    executorService.execute(() -> post(buildJsonParams(clazzAnnotation, finalContextPath)));
+                    String finalPrePath = prePath;
+                    executorService.execute(() -> post(buildJsonParams(clazzAnnotation, contextPath, finalPrePath)));
                     return bean;
                 }
+                prePath = clazzAnnotation.path();
             }
             final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(bean.getClass());
             for (Method method : methods) {
                 SoulSpringCloudClient soulSpringCloudClient = AnnotationUtils.findAnnotation(method, SoulSpringCloudClient.class);
                 if (Objects.nonNull(soulSpringCloudClient)) {
-                    String finalContextPath = contextPath;
-                    executorService.execute(() -> post(buildJsonParams(soulSpringCloudClient, finalContextPath)));
+                    String finalPrePath = prePath;
+                    executorService.execute(() -> post(buildJsonParams(soulSpringCloudClient, contextPath, finalPrePath)));
                 }
             }
         }
@@ -111,9 +118,9 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor, Ap
         }
     }
     
-    private String buildJsonParams(final SoulSpringCloudClient soulSpringCloudClient, final String contextPath) {
-        String appName = soulSpringCloudConfig.getAppName();
-        String path = contextPath + soulSpringCloudClient.path();
+    private String buildJsonParams(final SoulSpringCloudClient soulSpringCloudClient, final String contextPath, final String prePath) {
+        String appName = env.getProperty("spring.application.name");
+        String path = contextPath + prePath + soulSpringCloudClient.path();
         String desc = soulSpringCloudClient.desc();
         String configRuleName = soulSpringCloudClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
@@ -131,7 +138,7 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor, Ap
     }
     
     @Override
-    public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
+    public void onApplicationEvent(@NonNull final ContextRefreshedEvent contextRefreshedEvent) {
         executorService.shutdown();
     }
 }

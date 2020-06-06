@@ -24,7 +24,6 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.cloud.netflix.ribbon.RibbonAutoConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -39,7 +38,6 @@ import org.springframework.web.reactive.DispatcherHandler;
 @ConditionalOnClass({LoadBalancerClient.class, RibbonAutoConfiguration.class, DispatcherHandler.class})
 @AutoConfigureAfter(RibbonAutoConfiguration.class)
 @ConditionalOnBean(LoadBalancerClient.class)
-@EnableDiscoveryClient
 @Configuration
 public class SpringCloudPluginConfiguration {
     

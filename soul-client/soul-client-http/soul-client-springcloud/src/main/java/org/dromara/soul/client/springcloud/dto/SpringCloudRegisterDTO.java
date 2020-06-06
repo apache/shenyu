@@ -25,6 +25,4 @@ public class SpringCloudRegisterDTO {
     private String ruleName;
     
     private boolean enabled;
-    
-    
 }

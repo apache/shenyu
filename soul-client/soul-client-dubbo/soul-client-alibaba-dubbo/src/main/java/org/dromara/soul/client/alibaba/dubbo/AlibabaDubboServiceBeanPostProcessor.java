@@ -21,7 +21,7 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
 /**
- * The Alibab Dubbo ServiceBean PostProcessor.
+ * The Alibaba Dubbo ServiceBean PostProcessor.
  *
  * @author xiaoyu
  */
@@ -35,6 +35,12 @@ public class AlibabaDubboServiceBeanPostProcessor implements BeanPostProcessor, 
     private final String url;
     
     public AlibabaDubboServiceBeanPostProcessor(final DubboConfig dubboConfig) {
+        String contextPath = dubboConfig.getContextPath();
+        String adminUrl = dubboConfig.getAdminUrl();
+        if (contextPath == null || "".equals(contextPath)
+                || adminUrl == null || "".equals(adminUrl)) {
+            throw new RuntimeException("Alibaba dubbo client must config the contextPath, adminUrl");
+        }
         this.dubboConfig = dubboConfig;
         url = dubboConfig.getAdminUrl() + "/soul-client/dubbo-register";
     }
@@ -62,13 +68,6 @@ public class AlibabaDubboServiceBeanPostProcessor implements BeanPostProcessor, 
         for (Method method : methods) {
             SoulDubboClient soulDubboClient = method.getAnnotation(SoulDubboClient.class);
             if (Objects.nonNull(soulDubboClient)) {
-                String contextPath = dubboConfig.getContextPath();
-                String adminUrl = dubboConfig.getAdminUrl();
-                if (contextPath == null || "".equals(contextPath)
-                        || adminUrl == null || "".equals(adminUrl)) {
-                    log.error("........dubbo client must config context-path and adminUrl.........");
-                    return;
-                }
                 post(buildJsonParams(serviceBean, soulDubboClient, method));
             }
         }

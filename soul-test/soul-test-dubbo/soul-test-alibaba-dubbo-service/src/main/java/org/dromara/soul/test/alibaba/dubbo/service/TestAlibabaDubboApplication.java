@@ -16,7 +16,7 @@
  *
  */
 
-package org.dromara.soul.test.dubbo.service;
+package org.dromara.soul.test.alibaba.dubbo.service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -29,7 +29,7 @@ import org.springframework.context.annotation.ImportResource;
  */
 @SpringBootApplication
 @ImportResource({"classpath:spring-dubbo.xml"})
-public class TestDubboApplication {
+public class TestAlibabaDubboApplication {
 
     /**
      * Main Entrance.
@@ -37,7 +37,7 @@ public class TestDubboApplication {
      * @param args startup arguments
      */
     public static void main(final String[] args) {
-        SpringApplication.run(TestDubboApplication.class, args);
+        SpringApplication.run(TestAlibabaDubboApplication.class, args);
     }
 
 }

@@ -54,13 +54,110 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!--springCloud have start this-->
-        <dependency>
+        <!--soul springCloud plugin start-->
+       <!-- <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>soul-spring-boot-starter-plugin-springcloud</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!--springCloud have start end-->
+
+        &lt;!&ndash;if you config register center is nacos please dependency this&ndash;&gt;
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+            <version>2.1.0.RELEASE</version>
+        </dependency>
+        &lt;!&ndash;if you config register center is nacos please dependency end&ndash;&gt;
+
+        &lt;!&ndash;if you config register center is eureka please dependency start&ndash;&gt;
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-commons</artifactId>
+            <version>2.2.0.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+            <version>2.2.0.RELEASE</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
+            <version>2.2.0.RELEASE</version>
+        </dependency>-->
+        <!--if you config register center is eureka please dependency end-->
+        <!--soul springCloud plugin start-->
+
+        <!--soul  apache dubbo plugin start-->
+       <!-- <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-apache-dubbo</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.dubbo</groupId>
+            <artifactId>dubbo</artifactId>
+            <version>2.7.5</version>
+        </dependency>-->
+        <!-- Dubbo Nacos registry dependency -->
+      <!--  <dependency>
+            <groupId>org.apache.dubbo</groupId>
+            <artifactId>dubbo-registry-nacos</artifactId>
+            <version>2.7.5</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.nacos</groupId>
+            <artifactId>nacos-client</artifactId>
+            <version>1.1.4</version>
+        </dependency>-->
+        <!-- Dubbo zookeeper registry dependency start -->
+       <!-- <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-client</artifactId>
+            <version>4.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-framework</artifactId>
+            <version>4.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
+            <version>4.0.1</version>
+        </dependency>-->
+        <!-- Dubbo zookeeper registry dependency end -->
+        <!-- soul  apache dubbo plugin end-->
+
+
+        <!--soul alibaba dubbo plugin start-->
+        <!--<dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-alibaba-dubbo</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>dubbo</artifactId>
+            <version>2.6.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-client</artifactId>
+            <version>4.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-framework</artifactId>
+            <version>4.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
+            <version>4.0.1</version>
+        </dependency>-->
+        <!-- soul  alibaba dubbo plugin end-->
 
         <dependency>
             <groupId>org.dromara</groupId>

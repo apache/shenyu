@@ -20,11 +20,15 @@ package org.dromara.soul.plugin.waf.config;
 import java.io.Serializable;
 import lombok.Data;
 
+/**
+ * The type Waf config.
+ */
 @Data
 public class WafConfig implements Serializable {
     
     /**
-     * 模式 ：默认为黑名单模式 ，black; mixed 混合模式
+     * black or mixed.
+     * default is black; mixed .
      */
-    public String model;
+    private String model;
 }

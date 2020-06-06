@@ -18,12 +18,14 @@
 package org.dromara.soul.plugin.monitor.handler;
 
 import java.util.Objects;
+import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.metrics.config.MetricsConfig;
 import org.dromara.soul.metrics.facade.MetricsTrackerFacade;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
+import org.dromara.soul.plugin.base.utils.Singleton;
 
 /**
  * The type Monitor plugin data handler.
@@ -36,14 +38,44 @@ public class MonitorPluginDataHandler implements PluginDataHandler {
     public void handlerPlugin(final PluginData pluginData) {
         if (Objects.nonNull(pluginData) && pluginData.getEnabled()) {
             MetricsConfig monitorConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), MetricsConfig.class);
-            MetricsTrackerFacade.getInstance().init(monitorConfig);
+            if (!checkConfig(monitorConfig)) {
+                return;
+            }
+            if (!MetricsTrackerFacade.getInstance().isEnabled()) {
+                start(monitorConfig);
+            } else {
+                if (!monitorConfig.equals(Singleton.INST.get(MetricsConfig.class))) {
+                    restart(monitorConfig);
+                }
+            }
         } else {
-            MetricsTrackerFacade.getInstance().stop();
+            stop();
         }
     }
     
     @Override
     public String pluginNamed() {
         return PluginEnum.MONITOR.getName();
+    }
+    
+    private boolean checkConfig(final MetricsConfig monitorConfig) {
+        return Objects.nonNull(monitorConfig)
+                && StringUtils.isNoneBlank(monitorConfig.getHost())
+                && Objects.nonNull(monitorConfig.getPort())
+                && Objects.nonNull(monitorConfig.getAsync());
+    }
+    
+    private void restart(final MetricsConfig monitorConfig) {
+        stop();
+        start(monitorConfig);
+    }
+    
+    private void start(final MetricsConfig monitorConfig) {
+        MetricsTrackerFacade.getInstance().start(monitorConfig);
+        Singleton.INST.single(MetricsConfig.class, monitorConfig);
+    }
+    
+    private void stop() {
+        MetricsTrackerFacade.getInstance().stop();
     }
 }

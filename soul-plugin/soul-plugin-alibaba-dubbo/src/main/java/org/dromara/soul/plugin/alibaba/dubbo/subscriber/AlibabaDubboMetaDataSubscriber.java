@@ -18,13 +18,12 @@
 package org.dromara.soul.plugin.alibaba.dubbo.subscriber;
 
 import com.google.common.collect.Maps;
-import org.dromara.soul.sync.data.api.MetaDataSubscriber;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentMap;
 import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.plugin.alibaba.dubbo.cache.ApplicationConfigCache;
-
-import java.util.Objects;
-import java.util.concurrent.ConcurrentMap;
+import org.dromara.soul.sync.data.api.MetaDataSubscriber;
 
 /**
  * The type Alibaba dubbo meta data subscriber.
@@ -54,6 +53,10 @@ public class AlibabaDubboMetaDataSubscriber implements MetaDataSubscriber {
     
     @Override
     public void unSubscribe(final MetaData metaData) {
-        ApplicationConfigCache.getInstance().invalidate(metaData.getServiceName());
+        if (RpcTypeEnum.DUBBO.getName().equals(metaData.getRpcType())) {
+            MetaData exist = META_DATA.get(metaData.getPath());
+            ApplicationConfigCache.getInstance().invalidate(exist.getServiceName());
+            META_DATA.remove(metaData.getPath());
+        }
     }
 }

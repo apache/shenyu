@@ -19,6 +19,7 @@ package org.dromara.soul.plugin.global;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.MetaData;
@@ -26,7 +27,6 @@ import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.plugin.api.context.SoulContext;
 import org.dromara.soul.plugin.api.context.SoulContextBuilder;
 import org.dromara.soul.plugin.global.cache.MetaDataCache;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -42,7 +42,7 @@ public class DefaultSoulContextBuilder implements SoulContextBuilder {
         final ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
         MetaData metaData = MetaDataCache.getInstance().obtain(path);
-        if (Objects.nonNull(metaData)) {
+        if (Objects.nonNull(metaData) && metaData.getEnabled()) {
             exchange.getAttributes().put(Constants.META_DATA, metaData);
         }
         return transform(request, metaData);
@@ -61,34 +61,39 @@ public class DefaultSoulContextBuilder implements SoulContextBuilder {
         SoulContext soulContext = new SoulContext();
         String path = request.getURI().getPath();
         soulContext.setPath(path);
-        if (Objects.nonNull(metaData)) {
-            soulContext.setModule(metaData.getAppName());
-            soulContext.setMethod(metaData.getServiceName());
-            soulContext.setRpcType(metaData.getRpcType());
-            soulContext.setContextPath(metaData.getContextPath());
-        } else {
-            String[] splitList = StringUtils.split(path, "/");
-            if (null != splitList && splitList.length > 0) {
-                String contextPath = "/" + splitList[0];
-                String realUrl = path.substring(contextPath.length());
-                soulContext.setContextPath(contextPath);
-                soulContext.setModule(contextPath);
-                soulContext.setMethod(realUrl);
-                soulContext.setRealUrl(realUrl);
+        if (Objects.nonNull(metaData) && metaData.getEnabled()) {
+            if (RpcTypeEnum.SPRING_CLOUD.getName().equals(metaData.getRpcType())) {
+                setSoulContextByHttp(soulContext, path);
+                soulContext.setRpcType(metaData.getRpcType());
             } else {
-                soulContext.setModule(path);
-                soulContext.setMethod(path);
+                setSoulContextByDubbo(soulContext, metaData);
             }
+        } else {
+            setSoulContextByHttp(soulContext, path);
             soulContext.setRpcType(RpcTypeEnum.HTTP.getName());
         }
         soulContext.setAppKey(appKey);
         soulContext.setSign(sign);
         soulContext.setTimestamp(timestamp);
         soulContext.setStartDateTime(LocalDateTime.now());
-        HttpMethod method = request.getMethod();
-        if (Objects.nonNull(method)) {
-            soulContext.setHttpMethod(method.name());
-        }
+        Optional.ofNullable(request.getMethod()).ifPresent(httpMethod -> soulContext.setHttpMethod(httpMethod.name()));
         return soulContext;
+    }
+    
+    private void setSoulContextByDubbo(final SoulContext soulContext, final MetaData metaData) {
+        soulContext.setModule(metaData.getAppName());
+        soulContext.setMethod(metaData.getServiceName());
+        soulContext.setRpcType(metaData.getRpcType());
+        soulContext.setContextPath(metaData.getContextPath());
+    }
+    
+    private void setSoulContextByHttp(final SoulContext soulContext, final String path) {
+        String[] splitList = StringUtils.split(path, "/");
+        String contextPath = "/" + splitList[0];
+        String realUrl = path.substring(contextPath.length());
+        soulContext.setContextPath(contextPath);
+        soulContext.setModule(contextPath);
+        soulContext.setMethod(realUrl);
+        soulContext.setRealUrl(realUrl);
     }
 }

@@ -17,14 +17,16 @@
 
 package org.dromara.soul.springboot.starter.client.springcloud;
 
-import org.dromara.soul.client.springcloud.init.SpringCloudClientBeanPostProcessor;
 import org.dromara.soul.client.springcloud.config.SoulSpringCloudConfig;
+import org.dromara.soul.client.springcloud.init.SpringCloudClientBeanPostProcessor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 /**
  * The type Soul spring cloud client configuration.
+ *
  * @author xiaoyu
  */
 @Configuration
@@ -34,11 +36,12 @@ public class SoulSpringCloudClientConfiguration {
      * Spring cloud client bean post processor spring cloud client bean post processor.
      *
      * @param soulSpringCloudConfig the soul spring cloud config
+     * @param env                   the env
      * @return the spring cloud client bean post processor
      */
     @Bean
-    public SpringCloudClientBeanPostProcessor springCloudClientBeanPostProcessor(final SoulSpringCloudConfig soulSpringCloudConfig) {
-        return new SpringCloudClientBeanPostProcessor(soulSpringCloudConfig);
+    public SpringCloudClientBeanPostProcessor springCloudClientBeanPostProcessor(final SoulSpringCloudConfig soulSpringCloudConfig, final Environment env) {
+        return new SpringCloudClientBeanPostProcessor(soulSpringCloudConfig, env);
     }
     
     /**

@@ -68,13 +68,11 @@ public final class ZkPathConstants implements Constants {
     /**
      * Build meta data path string.
      *
-     * @param appName     the app name
-     * @param serviceName the service name
-     * @param methodName  the method name
+     * @param path the path
      * @return the string
      */
-    public static String buildMetaDataPath(final String appName, final String serviceName, final String methodName) {
-        return META_DATA + "/" + appName + "-" + serviceName + methodName;
+    public static String buildMetaDataPath(final String path) {
+        return META_DATA + "/" + path;
     }
 
 

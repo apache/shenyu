@@ -115,12 +115,12 @@ public class SyncDataServiceImpl implements SyncDataService {
         List<SelectorData> selectorDataList = selectorService.findByPluginId(pluginId);
         if (CollectionUtils.isNotEmpty(selectorDataList)) {
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR,
-                    DataEventTypeEnum.UPDATE,
+                    DataEventTypeEnum.REFRESH,
                     selectorDataList));
             for (SelectorData selectData : selectorDataList) {
                 List<RuleData> ruleDataList = ruleService.findBySelectorId(selectData.getId());
                 eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE,
-                        DataEventTypeEnum.UPDATE,
+                        DataEventTypeEnum.REFRESH,
                         ruleDataList));
             }
         }

@@ -36,13 +36,12 @@ soul :
 #                secretKey: 
 
 
-#eureka:
-#  instance:
-#    leaseRenewalIntervalInSeconds: 10
-#    leaseExpirationDurationInSeconds: 30
-#  client:
-#    serviceUrl:
-#      defaultZone: http://eureka.didispace.com/eureka/
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
 
 
 logging:

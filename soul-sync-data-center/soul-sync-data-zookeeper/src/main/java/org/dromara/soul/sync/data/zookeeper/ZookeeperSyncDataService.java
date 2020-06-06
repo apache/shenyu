@@ -19,9 +19,11 @@ package org.dromara.soul.sync.data.zookeeper;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import java.net.URLDecoder;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.SneakyThrows;
 import org.I0Itec.zkclient.IZkDataListener;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.collections4.CollectionUtils;
@@ -269,10 +271,14 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
             public void handleDataChange(final String dataPath, final Object data) {
                 cacheMetaData((MetaData) data);
             }
-            
+    
+            @SneakyThrows
             @Override
             public void handleDataDeleted(final String dataPath) {
-                unCacheMetaData(zkClient.readData(dataPath));
+                final String realPath = dataPath.substring(ZkPathConstants.META_DATA.length() + 1);
+                MetaData metaData = new MetaData();
+                metaData.setPath(URLDecoder.decode(realPath, "UTF-8"));
+                unCacheMetaData(metaData);
             }
         });
     }

@@ -58,11 +58,12 @@ public final class MetricsTrackerFacade {
      *
      * @param metricsConfig metrics config
      */
-    public void init(final MetricsConfig metricsConfig) {
+    public void start(final MetricsConfig metricsConfig) {
         metricsTrackerManager = ExtensionLoader.getExtensionLoader(MetricsTrackerManager.class).getJoin(metricsConfig.getMetricsName());
         Preconditions.checkNotNull(metricsTrackerManager, "Can not find metrics tracker manager with metrics name in metrics configuration.");
         metricsTrackerManager.start(metricsConfig);
-        MetricsTrackerHandler.getInstance().init(metricsConfig.getAsync(), Optional.ofNullable(metricsConfig.getThreadCount()).orElse(Runtime.getRuntime().availableProcessors()), metricsTrackerManager);
+        Integer threadCount = Optional.ofNullable(metricsConfig.getThreadCount()).orElse(Runtime.getRuntime().availableProcessors());
+        MetricsTrackerHandler.getInstance().init(metricsConfig.getAsync(), threadCount, metricsTrackerManager);
         enabled = true;
     }
     
