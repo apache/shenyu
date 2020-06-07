@@ -37,4 +37,10 @@ public interface MetaDataSubscriber {
      * @param metaData the meta data
      */
     void unSubscribe(MetaData metaData);
+    
+    /**
+     * Refresh.
+     */
+    default void refresh() {
+    }
 }

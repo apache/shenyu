@@ -39,11 +39,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import lombok.Data;
 import lombok.SneakyThrows;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.dromara.soul.common.utils.GsonUtils;
 
 /**
  * The type Dubbo param utils.
@@ -209,30 +207,5 @@ public final class DubboParamUtils {
                 return element.getClass();
             }
         }
-    }
-    
-    public static void main(String[] args) {
-        List<A> list = new ArrayList<>();
-        A a1 = new A();
-        a1.setId("123");
-        a1.setName("xiaoyu");
-        list.add(a1);
-        A a2= new A();
-        a2.setId("123");
-        a2.setName("xiaoyu");
-        list.add(a2);
-    
-        System.out.println(GsonUtils.getInstance().toJson(list));
-    
-        Map<String, Object> stringObjectMap = GsonUtils.getInstance().toObjectMap("{\"aaa\":[{\"id\":\"123\",\"name\":\"xiaoyu\"},{\"id\":\"456\",\"name\":\"myth\"}]}");
-    
-        System.out.println(stringObjectMap);
-    
-    }
-    
-    @Data
-    public static  class A {
-        String id;
-        String name;
     }
 }

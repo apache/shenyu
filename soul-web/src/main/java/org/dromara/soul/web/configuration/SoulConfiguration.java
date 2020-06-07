@@ -25,10 +25,12 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.plugin.api.RemoteAddressResolver;
 import org.dromara.soul.plugin.api.SoulPlugin;
+import org.dromara.soul.plugin.api.dubbo.DubboParamResolveService;
 import org.dromara.soul.plugin.base.cache.CommonPluginDataSubscriber;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 import org.dromara.soul.web.config.SoulConfig;
+import org.dromara.soul.web.dubbo.DefaultDubboParamResolveService;
 import org.dromara.soul.web.filter.FileSizeFilter;
 import org.dromara.soul.web.filter.TimeWebFilter;
 import org.dromara.soul.web.filter.WebSocketParamFilter;
@@ -37,6 +39,7 @@ import org.dromara.soul.web.handler.SoulWebHandler;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.SearchStrategy;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -81,6 +84,18 @@ public class SoulConfiguration {
     public PluginDataSubscriber pluginDataSubscriber(final ObjectProvider<List<PluginDataHandler>> pluginDataHandlerList) {
         return new CommonPluginDataSubscriber(pluginDataHandlerList.getIfAvailable(Collections::emptyList));
     }
+    
+    /**
+     * Generic param resolve service dubbo param resolve service.
+     *
+     * @return the dubbo param resolve service
+     */
+    @Bean
+    @ConditionalOnMissingBean(value = DubboParamResolveService.class, search = SearchStrategy.ALL)
+    public DubboParamResolveService genericParamResolveService() {
+        return new DefaultDubboParamResolveService();
+    }
+    
     
     /**
      * Remote address resolver remote address resolver.

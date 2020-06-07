@@ -18,7 +18,6 @@
 package org.dromara.soul.sync.data.http.handler;
 
 import java.util.List;
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.common.dto.AppAuthData;
@@ -66,9 +65,10 @@ public class HttpSyncDataHandler {
     public void flushAllPlugin(final List<PluginData> pluginDataList) {
         if (CollectionUtils.isEmpty(pluginDataList)) {
             log.info("clear all plugin data cache");
+            pluginDataSubscriber.refreshPluginData();
         } else {
-            pluginDataList.forEach(pluginData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSubscribe(pluginData)));
-            pluginDataList.forEach(pluginData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onSubscribe(pluginData)));
+            pluginDataSubscriber.refreshPluginData();
+            pluginDataList.forEach(pluginDataSubscriber::onSubscribe);
         }
     }
     
@@ -80,10 +80,12 @@ public class HttpSyncDataHandler {
     public void flushAllSelector(final List<SelectorData> selectorDataList) {
         if (CollectionUtils.isEmpty(selectorDataList)) {
             log.info("clear all selector cache, old cache");
+            selectorDataList.forEach(pluginDataSubscriber::unSelectorSubscribe);
+            pluginDataSubscriber.refreshSelectorData();
         } else {
             // update cache for UpstreamCacheManager
-            selectorDataList.forEach(selectorData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSelectorSubscribe(selectorData)));
-            selectorDataList.forEach(selectorData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onSelectorSubscribe(selectorData)));
+            pluginDataSubscriber.refreshSelectorData();
+            selectorDataList.forEach(pluginDataSubscriber::onSelectorSubscribe);
         }
     }
     
@@ -95,9 +97,10 @@ public class HttpSyncDataHandler {
     public void flushAllRule(final List<RuleData> ruleDataList) {
         if (CollectionUtils.isEmpty(ruleDataList)) {
             log.info("clear all rule cache");
+            pluginDataSubscriber.refreshRuleData();
         } else {
-            ruleDataList.forEach(ruleData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unRuleSubscribe(ruleData)));
-            ruleDataList.forEach(ruleData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onRuleSubscribe(ruleData)));
+            pluginDataSubscriber.refreshRuleData();
+            ruleDataList.forEach(pluginDataSubscriber::onRuleSubscribe);
         }
     }
     
@@ -109,8 +112,8 @@ public class HttpSyncDataHandler {
     public void flushAllAppAuth(final List<AppAuthData> appAuthDataList) {
         if (CollectionUtils.isEmpty(appAuthDataList)) {
             log.info("clear all appAuth data cache");
+            authDataSubscribers.forEach(AuthDataSubscriber::refresh);
         } else {
-            appAuthDataList.forEach(authData -> authDataSubscribers.forEach(subscriber -> subscriber.unSubscribe(authData)));
             appAuthDataList.forEach(authData -> authDataSubscribers.forEach(subscriber -> subscriber.onSubscribe(authData)));
         }
     }
@@ -123,8 +126,8 @@ public class HttpSyncDataHandler {
     public void flushMetaData(final List<MetaData> metaDataList) {
         if (CollectionUtils.isEmpty(metaDataList)) {
             log.info("clear all metaData cache}");
+            metaDataSubscribers.forEach(MetaDataSubscriber::refresh);
         } else {
-            metaDataList.forEach(metaData -> metaDataSubscribers.forEach(subscriber -> subscriber.unSubscribe(metaData)));
             metaDataList.forEach(metaData -> metaDataSubscribers.forEach(subscriber -> subscriber.onSubscribe(metaData)));
         }
     }

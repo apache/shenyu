@@ -80,6 +80,13 @@ public final class BaseDataCache {
     }
     
     /**
+     * Clean plugin data.
+     */
+    public void cleanPluginData() {
+        PLUGIN_MAP.clear();
+    }
+    
+    /**
      * Obtain plugin data plugin data.
      *
      * @param pluginName the plugin name
@@ -118,6 +125,13 @@ public final class BaseDataCache {
     }
     
     /**
+     * Clean selector data.
+     */
+    public void cleanSelectorData() {
+        SELECTOR_MAP.clear();
+    }
+    
+    /**
      * Obtain selector data list list.
      *
      * @param pluginName the plugin name
@@ -153,6 +167,13 @@ public final class BaseDataCache {
     public void removeRuleData(final RuleData ruleData) {
         final List<RuleData> ruleDataList = RULE_MAP.get(ruleData.getSelectorId());
         ruleDataList.removeIf(rule -> rule.getId().equals(ruleData.getId()));
+    }
+    
+    /**
+     * Clean rule data.
+     */
+    public void cleanRuleData() {
+        RULE_MAP.clear();
     }
     
     /**

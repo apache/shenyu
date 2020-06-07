@@ -27,6 +27,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.admin.entity.SelectorDO;
 import org.dromara.soul.admin.listener.DataChangedEvent;
 import org.dromara.soul.admin.mapper.SelectorMapper;
@@ -87,7 +88,10 @@ public class UpstreamCheckService {
     public void setup() {
         List<SelectorDO> selectorDOList = selectorMapper.findByPluginId("5");
         for (SelectorDO selectorDO : selectorDOList) {
-            UPSTREAM_MAP.put(selectorDO.getName(), GsonUtils.getInstance().fromList(selectorDO.getHandle(), DivideUpstream.class));
+            List<DivideUpstream> divideUpstreams = GsonUtils.getInstance().fromList(selectorDO.getHandle(), DivideUpstream.class);
+            if (CollectionUtils.isNotEmpty(divideUpstreams)) {
+                UPSTREAM_MAP.put(selectorDO.getName(), divideUpstreams);
+            }
         }
         if (check) {
             new ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), SoulThreadFactory.create("scheduled-upstream-task", false))

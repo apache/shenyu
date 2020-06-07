@@ -18,7 +18,6 @@
 package org.dromara.soul.plugin.sync.data.weboscket.handler;
 
 import java.util.List;
-import java.util.Optional;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.common.dto.AppAuthData;
 import org.dromara.soul.common.dto.MetaData;
@@ -67,21 +66,23 @@ public class WebsocketDataHandler {
     public void handlePlugin(final List<PluginData> pluginDataList, final String eventType) {
         if (CollectionUtils.isNotEmpty(pluginDataList)) {
             DataEventTypeEnum eventTypeEnum = DataEventTypeEnum.acquireByName(eventType);
-            for (PluginData pluginData : pluginDataList) {
-                switch (eventTypeEnum) {
-                    case REFRESH:
-                    case MYSELF:
-                    case UPDATE:
-                    case CREATE:
-                        Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onSubscribe(pluginData));
-                        break;
-                    case DELETE:
-                        Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSubscribe(pluginData));
-                        break;
-                    default:
-                        break;
-                }
+            switch (eventTypeEnum) {
+                case REFRESH:
+                case MYSELF:
+                    pluginDataSubscriber.refreshPluginData();
+                    pluginDataList.forEach(pluginDataSubscriber::onSubscribe);
+                    break;
+                case UPDATE:
+                case CREATE:
+                    pluginDataList.forEach(pluginDataSubscriber::onSubscribe);
+                    break;
+                case DELETE:
+                    pluginDataList.forEach(pluginDataSubscriber::unSubscribe);
+                    break;
+                default:
+                    break;
             }
+    
         }
     }
     
@@ -94,20 +95,21 @@ public class WebsocketDataHandler {
     public void handleSelector(final List<SelectorData> selectorDataList, final String eventType) {
         if (CollectionUtils.isNotEmpty(selectorDataList)) {
             DataEventTypeEnum eventTypeEnum = DataEventTypeEnum.acquireByName(eventType);
-            for (SelectorData selectorData : selectorDataList) {
-                switch (eventTypeEnum) {
-                    case REFRESH:
-                    case MYSELF:
-                    case UPDATE:
-                    case CREATE:
-                        Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onSelectorSubscribe(selectorData));
-                        break;
-                    case DELETE:
-                        Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSelectorSubscribe(selectorData));
-                        break;
-                    default:
-                        break;
-                }
+            switch (eventTypeEnum) {
+                case REFRESH:
+                case MYSELF:
+                    pluginDataSubscriber.refreshSelectorData();
+                    selectorDataList.forEach(pluginDataSubscriber::onSelectorSubscribe);
+                    break;
+                case UPDATE:
+                case CREATE:
+                    selectorDataList.forEach(pluginDataSubscriber::onSelectorSubscribe);
+                    break;
+                case DELETE:
+                    selectorDataList.forEach(pluginDataSubscriber::unSelectorSubscribe);
+                    break;
+                default:
+                    break;
             }
         }
     }
@@ -121,20 +123,21 @@ public class WebsocketDataHandler {
     public void handleRule(final List<RuleData> ruleDataList, final String eventType) {
         if (CollectionUtils.isNotEmpty(ruleDataList)) {
             DataEventTypeEnum eventTypeEnum = DataEventTypeEnum.acquireByName(eventType);
-            for (RuleData ruleData : ruleDataList) {
-                switch (eventTypeEnum) {
-                    case REFRESH:
-                    case MYSELF:
-                    case UPDATE:
-                    case CREATE:
-                        Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onRuleSubscribe(ruleData));
-                        break;
-                    case DELETE:
-                        Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unRuleSubscribe(ruleData));
-                        break;
-                    default:
-                        break;
-                }
+            switch (eventTypeEnum) {
+                case REFRESH:
+                case MYSELF:
+                    pluginDataSubscriber.refreshRuleData();
+                    ruleDataList.forEach(pluginDataSubscriber::onRuleSubscribe);
+                    break;
+                case UPDATE:
+                case CREATE:
+                    ruleDataList.forEach(pluginDataSubscriber::onRuleSubscribe);
+                    break;
+                case DELETE:
+                    ruleDataList.forEach(pluginDataSubscriber::unRuleSubscribe);
+                    break;
+                default:
+                    break;
             }
         }
     }
@@ -148,20 +151,21 @@ public class WebsocketDataHandler {
     public void handleAppAuth(final List<AppAuthData> appAuthDataList, final String eventType) {
         if (CollectionUtils.isNotEmpty(appAuthDataList)) {
             DataEventTypeEnum eventTypeEnum = DataEventTypeEnum.acquireByName(eventType);
-            for (AppAuthData appAuthData : appAuthDataList) {
-                switch (eventTypeEnum) {
-                    case REFRESH:
-                    case MYSELF:
-                    case UPDATE:
-                    case CREATE:
-                        authDataSubscribers.forEach(authDataSubscriber -> authDataSubscriber.onSubscribe(appAuthData));
-                        break;
-                    case DELETE:
-                        authDataSubscribers.forEach(authDataSubscriber -> authDataSubscriber.unSubscribe(appAuthData));
-                        break;
-                    default:
-                        break;
-                }
+            switch (eventTypeEnum) {
+                case REFRESH:
+                case MYSELF:
+                    authDataSubscribers.forEach(AuthDataSubscriber::refresh);
+                    appAuthDataList.forEach(appAuthData -> authDataSubscribers.forEach(authDataSubscriber -> authDataSubscriber.onSubscribe(appAuthData)));
+                    break;
+                case UPDATE:
+                case CREATE:
+                    appAuthDataList.forEach(appAuthData -> authDataSubscribers.forEach(authDataSubscriber -> authDataSubscriber.onSubscribe(appAuthData)));
+                    break;
+                case DELETE:
+                    appAuthDataList.forEach(appAuthData -> authDataSubscribers.forEach(authDataSubscriber -> authDataSubscriber.unSubscribe(appAuthData)));
+                    break;
+                default:
+                    break;
             }
         }
     }
@@ -175,20 +179,21 @@ public class WebsocketDataHandler {
     public void handleMetaData(final List<MetaData> metaDataList, final String eventType) {
         if (CollectionUtils.isNotEmpty(metaDataList)) {
             DataEventTypeEnum eventTypeEnum = DataEventTypeEnum.acquireByName(eventType);
-            for (MetaData metaData : metaDataList) {
-                switch (eventTypeEnum) {
-                    case REFRESH:
-                    case MYSELF:
-                    case UPDATE:
-                    case CREATE:
-                        metaDataSubscribers.forEach(metaDataSubscriber -> metaDataSubscriber.onSubscribe(metaData));
-                        break;
-                    case DELETE:
-                        metaDataSubscribers.forEach(metaDataSubscriber -> metaDataSubscriber.unSubscribe(metaData));
-                        break;
-                    default:
-                        break;
-                }
+            switch (eventTypeEnum) {
+                case REFRESH:
+                case MYSELF:
+                    metaDataSubscribers.forEach(MetaDataSubscriber::refresh);
+                    metaDataList.forEach(metaData -> metaDataSubscribers.forEach(metaDataSubscriber -> metaDataSubscriber.onSubscribe(metaData)));
+                    break;
+                case UPDATE:
+                case CREATE:
+                    metaDataList.forEach(metaData -> metaDataSubscribers.forEach(metaDataSubscriber -> metaDataSubscriber.onSubscribe(metaData)));
+                    break;
+                case DELETE:
+                    metaDataList.forEach(metaData -> metaDataSubscribers.forEach(metaDataSubscriber -> metaDataSubscriber.unSubscribe(metaData)));
+                    break;
+                default:
+                    break;
             }
         }
     }

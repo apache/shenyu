@@ -21,6 +21,7 @@ package org.dromara.soul.spring.boot.starter.sync.data.http;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.sync.data.api.AuthDataSubscriber;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
@@ -41,7 +42,8 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ConditionalOnClass(HttpSyncDataService.class)
-@ConditionalOnProperty(name = "soul.sync.strategy", havingValue = "http")
+@ConditionalOnProperty(prefix = "soul.sync.http", name = "url")
+@Slf4j
 public class HttpSyncDataConfiguration {
     
     /**
@@ -56,6 +58,7 @@ public class HttpSyncDataConfiguration {
     @Bean
     public SyncDataService httpSyncDataService(final ObjectProvider<HttpConfig> httpConfig, final ObjectProvider<PluginDataSubscriber> pluginSubscribers,
                                            final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers) {
+        log.info("you use http long pull sync soul data.......");
         return new HttpSyncDataService(Objects.requireNonNull(httpConfig.getIfAvailable()), pluginSubscribers.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList));
     }

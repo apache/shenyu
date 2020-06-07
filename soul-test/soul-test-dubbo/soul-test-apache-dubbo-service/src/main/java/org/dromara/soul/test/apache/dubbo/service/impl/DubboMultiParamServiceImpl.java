@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 public class DubboMultiParamServiceImpl implements DubboMultiParamService {
     
     @Override
-    @SoulDubboClient(path = "/findByIdsAndName", desc ="")
+    @SoulDubboClient(path = "/findByIdsAndName")
     public DubboTest findByIdsAndName(List<Integer> ids, String name) {
         DubboTest test = new DubboTest();
         test.setId(ids.toString());
@@ -25,7 +25,7 @@ public class DubboMultiParamServiceImpl implements DubboMultiParamService {
     }
     
     @Override
-    @SoulDubboClient(path = "/findByArrayIdsAndName", desc = "")
+    @SoulDubboClient(path = "/findByArrayIdsAndName")
     public DubboTest findByArrayIdsAndName(Integer[] ids, String name) {
         DubboTest test = new DubboTest();
         test.setId(Arrays.toString(ids));
@@ -34,7 +34,7 @@ public class DubboMultiParamServiceImpl implements DubboMultiParamService {
     }
     
     @Override
-    @SoulDubboClient(path = "/findByStringArray", desc = "")
+    @SoulDubboClient(path = "/findByStringArray")
     public DubboTest findByStringArray(String[] ids) {
         DubboTest test = new DubboTest();
         test.setId(Arrays.toString(ids));
@@ -43,7 +43,7 @@ public class DubboMultiParamServiceImpl implements DubboMultiParamService {
     }
     
     @Override
-    @SoulDubboClient(path = "/findByListId", desc = "")
+    @SoulDubboClient(path = "/findByListId")
     public DubboTest findByListId(List<String> ids) {
         DubboTest test = new DubboTest();
         test.setId(ids.toString());
@@ -52,7 +52,7 @@ public class DubboMultiParamServiceImpl implements DubboMultiParamService {
     }
     
     @Override
-    @SoulDubboClient(path = "/batchSave", desc = "")
+    @SoulDubboClient(path = "/batchSave")
     public DubboTest batchSave(List<DubboTest> dubboTestList) {
         DubboTest test = new DubboTest();
         test.setId(dubboTestList.stream().map(DubboTest::getId).collect(Collectors.joining("-")));
@@ -61,7 +61,7 @@ public class DubboMultiParamServiceImpl implements DubboMultiParamService {
     }
     
     @Override
-    @SoulDubboClient(path = "/batchSaveAndNameAndId", desc = "")
+    @SoulDubboClient(path = "/batchSaveAndNameAndId")
     public DubboTest batchSaveAndNameAndId(List<DubboTest> dubboTestList, String id, String name) {
         DubboTest test = new DubboTest();
         test.setId(id);
@@ -70,11 +70,20 @@ public class DubboMultiParamServiceImpl implements DubboMultiParamService {
     }
     
     @Override
-    @SoulDubboClient(path = "/saveComplexBeanTest", desc = "")
+    @SoulDubboClient(path = "/saveComplexBeanTest")
     public DubboTest saveComplexBeanTest(ComplexBeanTest complexBeanTest) {
         DubboTest test = new DubboTest();
         test.setId(complexBeanTest.getIdLists().toString());
         test.setName("hello world soul apache dubbo param saveComplexBeanTest :" + complexBeanTest.getDubboTest().getName());
+        return test;
+    }
+    
+    @Override
+    @SoulDubboClient(path = "/saveComplexBeanTestAndName")
+    public DubboTest saveComplexBeanTestAndName(ComplexBeanTest complexBeanTest, String name) {
+        DubboTest test = new DubboTest();
+        test.setId(complexBeanTest.getIdLists().toString());
+        test.setName("hello world soul alibaba dubbo param saveComplexBeanTestAndName :" + complexBeanTest.getDubboTest().getName() + "-" + name);
         return test;
     }
     
