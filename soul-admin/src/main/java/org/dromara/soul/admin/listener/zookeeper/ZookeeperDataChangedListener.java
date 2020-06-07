@@ -71,14 +71,14 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
         for (MetaData data : changed) {
             // delete
             if (eventType == DataEventTypeEnum.DELETE) {
-                String path = ZkPathConstants.buildMetaDataPath(URLEncoder.encode(data.getPath(),"UTF-8"));
+                String path = ZkPathConstants.buildMetaDataPath(URLEncoder.encode(data.getPath(), "UTF-8"));
                 if (zkClient.exists(path)) {
                     zkClient.delete(path);
                 }
                 continue;
             }
             // create or update
-            String metaDataPath = ZkPathConstants.buildMetaDataPath(URLEncoder.encode(data.getPath(),"UTF-8"));
+            String metaDataPath = ZkPathConstants.buildMetaDataPath(URLEncoder.encode(data.getPath(), "UTF-8"));
             if (!zkClient.exists(metaDataPath)) {
                 zkClient.createPersistent(metaDataPath, true);
             }

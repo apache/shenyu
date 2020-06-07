@@ -51,7 +51,7 @@ public class AlibabaDubboPluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin dubboPlugin(final DubboParamResolveService dubboParamResolveService) {
+    public SoulPlugin alibabaDubboPlugin(final DubboParamResolveService dubboParamResolveService) {
         return new AlibabaDubboPlugin(new AlibabaDubboProxyService(dubboParamResolveService));
     }
     

@@ -64,14 +64,14 @@ public class AlibabaDubboProxyService {
         }
         GenericService genericService = reference.get();
         try {
-            if ("".equals(body) || "{}".equals(body) || "null".equals(body)) {
+            if (null == body || "".equals(body) || "{}".equals(body) || "null".equals(body)) {
                 return genericService.$invoke(metaData.getMethodName(), new String[]{}, new Object[]{});
             } else {
                 Pair<String[], Object[]> pair = dubboParamResolveService.buildParameter(body, metaData.getParameterTypes());
                 return genericService.$invoke(metaData.getMethodName(), pair.getLeft(), pair.getRight());
             }
         } catch (GenericException e) {
-            log.error("dubbo 泛化调用异常", e);
+            log.error("dubbo invoker have exception", e);
             throw new SoulException(e.getMessage());
         }
     }

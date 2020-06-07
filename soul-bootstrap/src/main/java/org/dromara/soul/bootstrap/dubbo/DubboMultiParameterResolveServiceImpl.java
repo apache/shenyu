@@ -19,71 +19,56 @@
 
 package org.dromara.soul.bootstrap.dubbo;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.ArrayList;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dromara.soul.plugin.api.dubbo.DubboParamResolveService;
 
 /**
- * Dubbo multi parameter  resolve service impl.
+ * Dubbo multi parameter resolve service impl.
  */
 @Slf4j
 public class DubboMultiParameterResolveServiceImpl implements DubboParamResolveService {
     
-    /**
-     * ObjectMapper is a completely thread-safe service class, it is meant to be used as singleton across the lifetime of the application. It is also very expensive
-     * to create. ... It is also prudent to do a review of all usages of ObjectMapper and ensure that it is not instantiated every time. This is a performance killer
-     */
-    private final ObjectMapper om = new ObjectMapper();
-    
-    @SuppressWarnings("unchecked")
     @Override
     public Pair<String[], Object[]> buildParameter(final String body, final String parameterTypes) {
-        String[] types = splitParameterTypes(parameterTypes);
-        Object[] params = new Object[types.length];
-        if (types.length > 0) {
-            try {
-                Object o = om.readValue(body, Object.class);
-                if (o instanceof List) {
-                    ((List<Object>) o).stream().limit(types.length).collect(Collectors.toList()).toArray(params);
+        Map<String, Object> paramMap = DubboParamUtils.getInstance().toObjectMap(body);
+        String[] parameter = StringUtils.split(parameterTypes, ",");
+        if (parameter.length == 1 && !isBaseType(parameter[0])) {
+            for (String key : paramMap.keySet()) {
+                Object obj = paramMap.get(key);
+                if (obj instanceof JsonObject) {
+                    paramMap.put(key, DubboParamUtils.getInstance().convertToMap(obj.toString()));
+                } else if (obj instanceof JsonArray) {
+                    paramMap.put(key, DubboParamUtils.getInstance().fromList(obj.toString(), Object.class));
                 } else {
-                    params[0] = o;
+                    paramMap.put(key, obj);
                 }
-            } catch (JsonProcessingException e) {
-                log.warn("body[{}] parsing failed cause by[{}]", body, e.getMessage());
+            }
+            return new ImmutablePair<>(parameter, new Object[]{paramMap});
+        }
+        List<Object> list = new LinkedList<>();
+        for (String key : paramMap.keySet()) {
+            Object obj = paramMap.get(key);
+            if (obj instanceof JsonObject) {
+                list.add(DubboParamUtils.getInstance().convertToMap(obj.toString()));
+            } else if (obj instanceof JsonArray) {
+                list.add(DubboParamUtils.getInstance().fromList(obj.toString(), Object.class));
+            } else {
+                list.add(obj);
             }
         }
-        return new ImmutablePair<>(types, params);
+        Object[] objects = list.toArray();
+        return new ImmutablePair<>(parameter, objects);
     }
     
-    private static String[] splitParameterTypes(final String parameterTypes) {
-        if (parameterTypes.length() == 0) {
-            return new String[0];
-        }
-        List<String> ls = new ArrayList<>();
-        int pL = parameterTypes.length();
-        int i = 0;
-        int j = -1;
-        for (; i < pL; i++) {
-            if (parameterTypes.charAt(i) == ',' && i > j) {
-                if (i != j + 1) {
-                    ls.add(parameterTypes.substring(j + 1, i));
-                }
-                j = i;
-            }
-        }
-        if (i > j) {
-            if (i != j + 1) {
-                ls.add(parameterTypes.substring(j + 1, i));
-            }
-        }
-        String[] ss = new String[ls.size()];
-        ls.toArray(ss);
-        return ss;
+    private boolean isBaseType(final String paramType) {
+        return paramType.startsWith("java") || paramType.startsWith("[Ljava");
     }
 }
