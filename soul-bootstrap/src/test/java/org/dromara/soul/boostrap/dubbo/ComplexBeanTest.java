@@ -16,42 +16,26 @@
  *
  */
 
-package org.dromara.soul.test.dubbo.api.service;
+package org.dromara.soul.boostrap.dubbo;
 
-import org.dromara.soul.test.dubbo.api.entity.DubboTest;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * DubboTestService.
- *
- * @author xiaoyu(Myth)
+ * The type Complex bean test.
  */
-public interface DubboTestService {
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class ComplexBeanTest implements Serializable {
     
-    /**
-     * find by id.
-     * <p>
-     * body：{"id":"1223"}
-     *
-     * @param id id
-     * @return DubboTest dubbo test
-     */
-    DubboTest findById(String id);
+    private DubboTest dubboTest;
     
-    /**
-     * Find all dubbo test.
-     *
-     * @return the dubbo test
-     */
-    DubboTest findAll();
+    private List<String> idLists;
     
-    /**
-     * Insert dubbo test.
-     *
-     * body :{"id":"122344","name":"xiaoyu"}
-     *
-     * @param dubboTest the dubbo test
-     * @return the dubbo test
-     */
-    DubboTest insert(DubboTest dubboTest);
-    
+    private Map<String, String> idMaps;
 }

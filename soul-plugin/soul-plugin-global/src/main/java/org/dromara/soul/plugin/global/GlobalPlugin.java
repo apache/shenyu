@@ -73,4 +73,9 @@ public class GlobalPlugin implements SoulPlugin {
         soulContext.setRpcType(queryParams.getFirst(Constants.RPC_TYPE));
         return soulContext;
     }
+    
+    @Override
+    public String named() {
+        return "global";
+    }
 }

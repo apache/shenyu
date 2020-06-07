@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.plugin.api.RemoteAddressResolver;
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.base.cache.CommonPluginDataSubscriber;
@@ -52,6 +53,7 @@ import org.springframework.web.server.WebFilter;
 @Configuration
 @ComponentScan("org.dromara.soul")
 @Import(value = {ErrorHandlerConfiguration.class, SoulExtConfiguration.class, SpringExtConfiguration.class})
+@Slf4j
 public class SoulConfiguration {
     
     /**
@@ -65,6 +67,7 @@ public class SoulConfiguration {
         List<SoulPlugin> pluginList = plugins.getIfAvailable(Collections::emptyList);
         final List<SoulPlugin> soulPlugins = pluginList.stream()
                 .sorted(Comparator.comparingInt(SoulPlugin::getOrder)).collect(Collectors.toList());
+        soulPlugins.forEach(soulPlugin -> log.info("loader plugin:[{}] [{}]", soulPlugin.named(), soulPlugin.getClass().getName()));
         return new SoulWebHandler(soulPlugins);
     }
     

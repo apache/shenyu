@@ -33,7 +33,7 @@ public @interface SoulDubboClient {
      *
      * @return String string
      */
-    String desc();
+    String desc() default "";
     
     /**
      * Enabled boolean.
