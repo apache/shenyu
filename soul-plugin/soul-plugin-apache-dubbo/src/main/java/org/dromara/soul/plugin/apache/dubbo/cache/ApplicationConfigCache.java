@@ -21,7 +21,12 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.Weigher;
+import java.lang.reflect.Field;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.ApplicationConfig;
 import org.apache.dubbo.config.ReferenceConfig;
@@ -32,21 +37,13 @@ import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.enums.LoadBalanceEnum;
 import org.dromara.soul.common.exception.SoulException;
 import org.dromara.soul.common.utils.GsonUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.lang.reflect.Field;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 
 
 /**
  * The type Application config cache.
  */
+@Slf4j
 public final class ApplicationConfigCache {
-    
-    private static final Logger LOG = LoggerFactory.getLogger(ApplicationConfigCache.class);
     
     private ApplicationConfig applicationConfig;
     
@@ -67,7 +64,7 @@ public final class ApplicationConfigCache {
                         field.set(config, null);
                         //跟改配置之后dubbo 销毁该实例,但是未置空,如果不处理,重新初始化的时候将获取到NULL照成空指针问题.
                     } catch (NoSuchFieldException | IllegalAccessException e) {
-                        LOG.error("修改ref为null", e);
+                        log.error("modify ref have exception", e);
                     }
                 }
             })
@@ -126,7 +123,7 @@ public final class ApplicationConfigCache {
                 return referenceConfig;
             }
         } catch (ExecutionException e) {
-            LOG.error("init dubbo ref ex:{}", e.getMessage());
+            log.error("init dubbo ref ex:{}", e.getMessage());
         }
         return build(metaData);
         
@@ -163,7 +160,7 @@ public final class ApplicationConfigCache {
         }
         Object obj = reference.get();
         if (obj != null) {
-            LOG.info("初始化引用成功{}", metaData);
+            log.info("init apache dubbo reference success there meteData is :{}", metaData.toString());
             cache.put(metaData.getServiceName(), reference);
         }
         return reference;

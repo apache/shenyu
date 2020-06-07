@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.alibaba.dubbo.param;
+package org.dromara.soul.web.dubbo;
 
 import java.util.Map;
 import org.apache.commons.lang3.tuple.ImmutablePair;

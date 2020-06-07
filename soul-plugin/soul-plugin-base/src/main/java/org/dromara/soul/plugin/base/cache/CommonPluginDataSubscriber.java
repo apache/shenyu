@@ -58,6 +58,11 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     }
     
     @Override
+    public void refreshPluginData() {
+        BaseDataCache.getInstance().cleanPluginData();
+    }
+    
+    @Override
     public void onSelectorSubscribe(final SelectorData selectorData) {
         BaseDataCache.getInstance().cacheSelectData(selectorData);
         Optional.ofNullable(handlerMap.get(selectorData.getPluginName())).ifPresent(handler -> handler.handlerSelector(selectorData));
@@ -70,6 +75,11 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     }
     
     @Override
+    public void refreshSelectorData() {
+        BaseDataCache.getInstance().cleanSelectorData();
+    }
+    
+    @Override
     public void onRuleSubscribe(final RuleData ruleData) {
         BaseDataCache.getInstance().cacheRuleData(ruleData);
         Optional.ofNullable(handlerMap.get(ruleData.getPluginName())).ifPresent(handler -> handler.handlerRule(ruleData));
@@ -79,5 +89,10 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     public void unRuleSubscribe(final RuleData ruleData) {
         BaseDataCache.getInstance().removeRuleData(ruleData);
         Optional.ofNullable(handlerMap.get(ruleData.getPluginName())).ifPresent(handler -> handler.removeRule(ruleData));
+    }
+    
+    @Override
+    public void refreshRuleData() {
+        BaseDataCache.getInstance().cleanRuleData();
     }
 }

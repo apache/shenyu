@@ -21,17 +21,15 @@ package org.dromara.soul.spring.boot.starter.plugin.apache.dubbo;
 import org.dromara.soul.plugin.apache.dubbo.ApacheDubboPlugin;
 import org.dromara.soul.plugin.apache.dubbo.handler.ApacheDubboPluginDataHandler;
 import org.dromara.soul.plugin.apache.dubbo.param.BodyParamPlugin;
-import org.dromara.soul.plugin.apache.dubbo.param.DefaultDubboParamResolveService;
-import org.dromara.soul.plugin.api.dubbo.DubboParamResolveService;
 import org.dromara.soul.plugin.apache.dubbo.proxy.ApacheDubboProxyService;
 import org.dromara.soul.plugin.apache.dubbo.response.DubboResponsePlugin;
 import org.dromara.soul.plugin.apache.dubbo.subscriber.ApacheDubboMetaDataSubscriber;
 import org.dromara.soul.plugin.api.SoulPlugin;
+import org.dromara.soul.plugin.api.dubbo.DubboParamResolveService;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.SearchStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -51,8 +49,8 @@ public class ApacheDubboPluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin dubboPlugin(final DubboParamResolveService dubboParamResolveService) {
-        return new ApacheDubboPlugin(new ApacheDubboProxyService(dubboParamResolveService));
+    public SoulPlugin apacheDubboPlugin(final ObjectProvider<DubboParamResolveService> dubboParamResolveService) {
+        return new ApacheDubboPlugin(new ApacheDubboProxyService(dubboParamResolveService.getIfAvailable()));
     }
     
     /**
@@ -63,17 +61,6 @@ public class ApacheDubboPluginConfiguration {
     @Bean
     public SoulPlugin bodyParamPlugin() {
         return new BodyParamPlugin();
-    }
-    
-    /**
-     * Generic param resolve service dubbo param resolve service.
-     *
-     * @return the dubbo param resolve service
-     */
-    @Bean
-    @ConditionalOnMissingBean(value = DubboParamResolveService.class, search = SearchStrategy.ALL)
-    public DubboParamResolveService genericParamResolveService() {
-        return new DefaultDubboParamResolveService();
     }
     
     /**

@@ -14,15 +14,14 @@ spring:
 
 soul :
     dubbo :
-      parameter : multi
+      parameter: multi
     sync:
-        strategy: zookeeper
-#        websocket :
-#             url: ws://localhost:9095/websocket
-        zookeeper:
-             url: localhost:2181
-             sessionTimeout: 5000
-             connectionTimeout: 2000
+        websocket :
+             urls: ws://localhost:9095/websocket
+#        zookeeper:
+#             url: localhost:2181
+#             sessionTimeout: 5000
+#             connectionTimeout: 2000
 #        http:
 #             url : http://localhost:9095
 #        nacos:

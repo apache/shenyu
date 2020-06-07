@@ -71,4 +71,9 @@ public class BodyParamPlugin implements SoulPlugin {
     public int getOrder() {
         return PluginEnum.DUBBO.getCode() - 1;
     }
+    
+    @Override
+    public String named() {
+        return "alibaba-dubbo-body-param";
+    }
 }

@@ -21,6 +21,7 @@ package org.dromara.soul.springboot.starter.sync.data.nacos;
 import com.alibaba.nacos.api.NacosFactory;
 import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.config.ConfigService;
+import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.sync.data.api.AuthDataSubscriber;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
@@ -45,7 +46,8 @@ import java.util.Properties;
  */
 @Configuration
 @ConditionalOnClass(NacosSyncDataService.class)
-@ConditionalOnProperty(name = "soul.sync.strategy", havingValue = "nacos")
+@ConditionalOnProperty(prefix = "soul.sync.nacos", name = "url")
+@Slf4j
 public class NacosSyncDataConfiguration {
     
     /**
@@ -60,6 +62,7 @@ public class NacosSyncDataConfiguration {
     @Bean
     public SyncDataService nacosSyncDataService(final ObjectProvider<ConfigService> configService, final ObjectProvider<PluginDataSubscriber> pluginSubscribers,
                                            final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers) {
+        log.info("you use nacos sync soul data.......");
         return new NacosSyncDataService(configService.getIfAvailable(), pluginSubscribers.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList));
     }

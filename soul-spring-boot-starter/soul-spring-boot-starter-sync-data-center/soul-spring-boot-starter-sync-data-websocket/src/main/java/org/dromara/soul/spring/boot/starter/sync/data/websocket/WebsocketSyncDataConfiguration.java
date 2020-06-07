@@ -18,6 +18,7 @@
 
 package org.dromara.soul.spring.boot.starter.sync.data.websocket;
 
+import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.plugin.sync.data.weboscket.WebsocketSyncDataService;
 import org.dromara.soul.plugin.sync.data.weboscket.config.WebsocketConfig;
 import org.dromara.soul.sync.data.api.AuthDataSubscriber;
@@ -41,7 +42,8 @@ import java.util.List;
  */
 @Configuration
 @ConditionalOnClass(WebsocketSyncDataService.class)
-@ConditionalOnProperty(name = "soul.sync.strategy", havingValue = "websocket")
+@ConditionalOnProperty(prefix = "soul.sync.websocket", name = "urls")
+@Slf4j
 public class WebsocketSyncDataConfiguration {
     
     /**
@@ -56,6 +58,7 @@ public class WebsocketSyncDataConfiguration {
     @Bean
     public SyncDataService websocketSyncDataService(final ObjectProvider<WebsocketConfig> websocketConfig, final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
                                            final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers) {
+        log.info("you use websocket sync soul data.......");
         return new WebsocketSyncDataService(websocketConfig.getIfAvailable(WebsocketConfig::new), pluginSubscriber.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList));
     }

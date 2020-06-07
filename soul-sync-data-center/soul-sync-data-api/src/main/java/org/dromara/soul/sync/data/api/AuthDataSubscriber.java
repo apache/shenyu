@@ -37,4 +37,10 @@ public interface AuthDataSubscriber {
      * @param appAuthData the app auth data
      */
     void unSubscribe(AppAuthData appAuthData);
+    
+    /**
+     * Refresh.
+     */
+    default void refresh() {
+    }
 }

@@ -43,6 +43,13 @@ public interface PluginDataSubscriber {
     }
     
     /**
+     * Refresh plugin data.
+     */
+    default void refreshPluginData() {
+    
+    }
+    
+    /**
      * On selector subscribe.
      *
      * @param selectorData the selector data
@@ -56,6 +63,12 @@ public interface PluginDataSubscriber {
      * @param selectorData the selector data
      */
     default void unSelectorSubscribe(SelectorData selectorData) {
+    }
+    
+    /**
+     * Refresh selector data.
+     */
+    default void refreshSelectorData() {
     }
     
     /**
@@ -75,12 +88,8 @@ public interface PluginDataSubscriber {
     }
     
     /**
-     * Plugin named string.
-     *
-     * @return the string
+     * Refresh rule data.
      */
-    default String pluginNamed() {
-        return "";
+    default void refreshRuleData() {
     }
-    
 }
