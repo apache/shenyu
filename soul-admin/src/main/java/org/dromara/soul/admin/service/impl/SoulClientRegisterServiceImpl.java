@@ -59,6 +59,7 @@ import org.dromara.soul.common.utils.UUIDUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * The type Soul client register service.
@@ -109,6 +110,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     }
     
     @Override
+    @Transactional
     public String registerSpringMvc(final SpringMvcRegisterDTO dto) {
         String selectorId = handlerSpringMvcSelector(dto);
         handlerSpringMvcRule(selectorId, dto);
@@ -116,6 +118,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     }
     
     @Override
+    @Transactional
     public synchronized String registerSpringCloud(final SpringCloudRegisterDTO dto) {
         MetaDataDO metaDataDO = metaDataMapper.findByPath(dto.getContext() + "/**");
         if (Objects.isNull(metaDataDO)) {
@@ -127,6 +130,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     }
     
     @Override
+    @Transactional
     public String registerDubbo(final MetaDataDTO dto) {
         MetaDataDO byPath = metaDataMapper.findByPath(dto.getPath());
         if (Objects.nonNull(byPath)
@@ -145,7 +149,6 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         SelectorDO selectorDO = selectorService.findByName(metaDataDTO.getContextPath());
         String selectorId;
         if (Objects.isNull(selectorDO)) {
-            //需要新增
             selectorId = registerSelector(metaDataDTO.getContextPath(), metaDataDTO.getRpcType(), metaDataDTO.getAppName(), "");
         } else {
             selectorId = selectorDO.getId();
@@ -156,7 +159,6 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     private void handlerDubboRule(final String selectorId, final MetaDataDTO metaDataDTO, final MetaDataDO exist) {
         RuleDO existRule = ruleMapper.findByName(metaDataDTO.getPath());
         if (Objects.isNull(exist) || Objects.isNull(existRule)) {
-            //需要新增
             registerRule(selectorId, metaDataDTO.getPath(), metaDataDTO.getRpcType(), metaDataDTO.getRuleName());
         }
     }
@@ -206,11 +208,10 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         String selectorId;
         String uri = String.join(":", dto.getHost(), String.valueOf(dto.getPort()));
         if (Objects.isNull(selectorDO)) {
-            //需要新增
             selectorId = registerSelector(contextPath, dto.getRpcType(), dto.getAppName(), uri);
         } else {
             selectorId = selectorDO.getId();
-            //更新 upstream
+            //update upstream
             String handle = selectorDO.getHandle();
             String handleAdd;
             DivideUpstream addDivideUpstream = buildDivideUpstream(uri);
@@ -244,7 +245,6 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     private void handlerSpringMvcRule(final String selectorId, final SpringMvcRegisterDTO dto) {
         RuleDO ruleDO = ruleMapper.findByName(dto.getRuleName());
         if (Objects.isNull(ruleDO)) {
-            //需要新增
             registerRule(selectorId, dto.getPath(), dto.getRpcType(), dto.getRuleName());
         }
     }
@@ -253,7 +253,6 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         String contextPath = dto.getContext();
         SelectorDO selectorDO = selectorService.findByName(contextPath);
         if (Objects.isNull(selectorDO)) {
-            //需要新增
             return registerSelector(contextPath, dto.getRpcType(), dto.getAppName(), "");
         } else {
             return selectorDO.getId();
@@ -263,7 +262,6 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     private void handlerSpringCloudRule(final String selectorId, final SpringCloudRegisterDTO dto) {
         RuleDO ruleDO = ruleMapper.findByName(dto.getRuleName());
         if (Objects.isNull(ruleDO)) {
-            //需要新增
             registerRule(selectorId, dto.getPath(), dto.getRpcType(), dto.getRuleName());
         }
     }

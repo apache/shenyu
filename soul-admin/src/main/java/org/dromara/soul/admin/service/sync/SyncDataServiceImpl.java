@@ -18,6 +18,8 @@
 
 package org.dromara.soul.admin.service.sync;
 
+import java.util.Collections;
+import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.admin.listener.DataChangedEvent;
 import org.dromara.soul.admin.service.AppAuthService;
@@ -36,9 +38,6 @@ import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-
-import java.util.Collections;
-import java.util.List;
 
 /**
  * The type sync data service.
@@ -114,14 +113,10 @@ public class SyncDataServiceImpl implements SyncDataService {
                 Collections.singletonList(PluginTransfer.INSTANCE.mapDataTOVO(pluginVO))));
         List<SelectorData> selectorDataList = selectorService.findByPluginId(pluginId);
         if (CollectionUtils.isNotEmpty(selectorDataList)) {
-            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR,
-                    DataEventTypeEnum.REFRESH,
-                    selectorDataList));
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.REFRESH, selectorDataList));
             for (SelectorData selectData : selectorDataList) {
                 List<RuleData> ruleDataList = ruleService.findBySelectorId(selectData.getId());
-                eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE,
-                        DataEventTypeEnum.REFRESH,
-                        ruleDataList));
+                eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.REFRESH, ruleDataList));
             }
         }
         return true;

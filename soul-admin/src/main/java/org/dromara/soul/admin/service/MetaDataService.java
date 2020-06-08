@@ -42,16 +42,7 @@ public interface MetaDataService {
      * @return the String
      */
     String createOrUpdate(MetaDataDTO metaDataDTO);
-
-
-    /**
-     * Register string.
-     *
-     * @param metaDataDTO the meta data dto
-     * @return the string
-     */
-    String register(MetaDataDTO metaDataDTO);
-
+    
     /**
      * delete application authorities.
      *
@@ -59,8 +50,7 @@ public interface MetaDataService {
      * @return rows int
      */
     int delete(List<String> ids);
-
-
+    
     /**
      * Find by id meta data vo.
      *
@@ -68,8 +58,7 @@ public interface MetaDataService {
      * @return the meta data vo
      */
     MetaDataVO findById(String id);
-
-
+    
     /**
      * List by page common pager.
      *
@@ -77,32 +66,28 @@ public interface MetaDataService {
      * @return the common pager
      */
     CommonPager<MetaDataVO> listByPage(MetaDataQuery metaDataQuery);
-
-
+    
     /**
      * Find all list.
      *
      * @return the list
      */
     List<MetaDataVO> findAll();
-
-
+    
     /**
      * Find all group map.
      *
      * @return the map
      */
     Map<String, List<MetaDataVO>> findAllGroup();
-
-
+    
     /**
      * List all list.
      *
      * @return the list
      */
     List<MetaData> listAll();
-
-
+    
     /**
      * Enabled string.
      *
@@ -116,5 +101,4 @@ public interface MetaDataService {
      * Sync data.
      */
     void syncData();
-
 }
