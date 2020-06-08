@@ -20,6 +20,7 @@ package org.dromara.soul.common.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
@@ -34,6 +35,7 @@ import com.google.gson.stream.JsonWriter;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.net.URLDecoder;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -198,7 +200,7 @@ public class GsonUtils {
      * @return the map
      */
     public Map<String, Object> toObjectMap(final String json) {
-        return GSON_MAP.fromJson(json, new TypeToken<Map<String, Object>>() {
+        return GSON_MAP.fromJson(json, new TypeToken<LinkedHashMap<String, Object>>() {
         }.getType());
     }
     
@@ -211,6 +213,44 @@ public class GsonUtils {
     public ConcurrentSkipListMap<String, Object> toTreeMap(final String json) {
         return GSON_MAP.fromJson(json, new TypeToken<ConcurrentSkipListMap<String, Object>>() {
         }.getType());
+    }
+    
+    /**
+     * Convert to map map.
+     *
+     * @param json the json
+     * @return the map
+     */
+    public Map<String, Object> convertToMap(final String json) {
+        Map<String, Object> map = GSON_MAP.fromJson(json, new TypeToken<Map<String, Object>>() {
+        }.getType());
+        if (!map.isEmpty()) {
+            for (String key : map.keySet()) {
+                Object value = map.get(key);
+                if (value instanceof String) {
+                    String valueStr = ((String) value).trim();
+                    if (valueStr.startsWith("{") && valueStr.endsWith("}")) {
+                        Map<String, Object> mv = convertToMap(value.toString());
+                        map.put(key, mv);
+                    }
+                } else if (value instanceof JsonObject) {
+                    map.put(key, convertToMap(value.toString()));
+                } else if (value instanceof JsonArray) {
+                    JsonArray jsonArray = (JsonArray) value;
+                    List<Object> mapList = new ArrayList<>(jsonArray.size());
+                    for (Object object : jsonArray) {
+                        String objStr = this.toJson(object);
+                        if (objStr.startsWith("{") && objStr.endsWith("}")) {
+                            mapList.add(convertToMap(object.toString()));
+                        } else {
+                            mapList.add(objStr);
+                        }
+                    }
+                    map.put(key, mapList);
+                }
+            }
+        }
+        return map;
     }
     
     private static class MapDeserializer<T, U> implements JsonDeserializer<Map<T, U>> {
