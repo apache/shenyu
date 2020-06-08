@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 /**
@@ -45,7 +46,7 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
     private static final String SCHEMA_SQL_FILE = "META-INF/schema.sql";
     
     @Override
-    public Object postProcessAfterInitialization(final Object bean, final String beanName) throws BeansException {
+    public Object postProcessAfterInitialization(@NonNull final Object bean, final String beanName) throws BeansException {
         if (bean instanceof DataSourceProperties) {
             this.init((DataSourceProperties) bean);
         }

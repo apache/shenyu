@@ -20,47 +20,29 @@
 package org.dromara.soul.admin.service.impl;
 
 import com.google.common.collect.Lists;
+import java.sql.Timestamp;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.MetaDataDTO;
-import org.dromara.soul.admin.dto.RuleConditionDTO;
-import org.dromara.soul.admin.dto.RuleDTO;
-import org.dromara.soul.admin.dto.SelectorConditionDTO;
-import org.dromara.soul.admin.dto.SelectorDTO;
 import org.dromara.soul.admin.entity.MetaDataDO;
-import org.dromara.soul.admin.entity.RuleConditionDO;
-import org.dromara.soul.admin.entity.RuleDO;
-import org.dromara.soul.admin.entity.SelectorDO;
 import org.dromara.soul.admin.listener.DataChangedEvent;
 import org.dromara.soul.admin.mapper.MetaDataMapper;
-import org.dromara.soul.admin.mapper.RuleConditionMapper;
-import org.dromara.soul.admin.mapper.RuleMapper;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.MetaDataQuery;
-import org.dromara.soul.admin.query.RuleConditionQuery;
 import org.dromara.soul.admin.service.MetaDataService;
-import org.dromara.soul.admin.service.RuleService;
-import org.dromara.soul.admin.service.SelectorService;
-import org.dromara.soul.admin.transfer.ConditionTransfer;
 import org.dromara.soul.admin.transfer.MetaDataTransfer;
 import org.dromara.soul.admin.vo.MetaDataVO;
 import org.dromara.soul.common.constant.AdminConstants;
-import org.dromara.soul.common.dto.ConditionData;
 import org.dromara.soul.common.dto.MetaData;
-import org.dromara.soul.common.dto.convert.rule.DivideRuleHandle;
-import org.dromara.soul.common.dto.convert.rule.DubboRuleHandle;
-import org.dromara.soul.common.dto.convert.rule.SpringCloudRuleHandle;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
-import org.dromara.soul.common.enums.LoadBalanceEnum;
-import org.dromara.soul.common.enums.MatchModeEnum;
-import org.dromara.soul.common.enums.OperatorEnum;
-import org.dromara.soul.common.enums.ParamTypeEnum;
-import org.dromara.soul.common.enums.PluginEnum;
-import org.dromara.soul.common.enums.RpcTypeEnum;
-import org.dromara.soul.common.enums.SelectorTypeEnum;
-import org.dromara.soul.common.utils.JsonUtils;
 import org.dromara.soul.common.utils.UUIDUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,15 +50,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * The type Meta data service.
@@ -92,37 +65,16 @@ public class MetaDataServiceImpl implements MetaDataService {
     
     private final ApplicationEventPublisher eventPublisher;
     
-    private final SelectorService selectorService;
-    
-    private final RuleService ruleService;
-    
-    private final RuleMapper ruleMapper;
-    
-    private final RuleConditionMapper ruleConditionMapper;
-    
     /**
      * Instantiates a new Meta data service.
      *
-     * @param metaDataMapper      the meta data mapper
-     * @param eventPublisher      the event publisher
-     * @param selectorService     the selector service
-     * @param ruleService         the rule service
-     * @param ruleMapper          the rule mapper
-     * @param ruleConditionMapper the rule condition mapper
+     * @param metaDataMapper the meta data mapper
+     * @param eventPublisher the event publisher
      */
     @Autowired(required = false)
-    public MetaDataServiceImpl(final MetaDataMapper metaDataMapper,
-                               final ApplicationEventPublisher eventPublisher,
-                               final SelectorService selectorService,
-                               final RuleService ruleService,
-                               final RuleMapper ruleMapper,
-                               final RuleConditionMapper ruleConditionMapper) {
+    public MetaDataServiceImpl(final MetaDataMapper metaDataMapper, final ApplicationEventPublisher eventPublisher) {
         this.metaDataMapper = metaDataMapper;
         this.eventPublisher = eventPublisher;
-        this.selectorService = selectorService;
-        this.ruleService = ruleService;
-        this.ruleMapper = ruleMapper;
-        this.ruleConditionMapper = ruleConditionMapper;
     }
     
     @Override
@@ -150,26 +102,6 @@ public class MetaDataServiceImpl implements MetaDataService {
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, eventType,
                 Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDTO))));
         return StringUtils.EMPTY;
-    }
-    
-    @Override
-    @Transactional
-    public String register(final MetaDataDTO metaDataDTO) {
-        MetaDataDO byPath = metaDataMapper.findByPath(metaDataDTO.getPath());
-        if (Objects.nonNull(byPath)
-                && (!byPath.getMethodName().equals(metaDataDTO.getMethodName())
-                || !byPath.getServiceName().equals(metaDataDTO.getServiceName()))) {
-            return "you path already exist!";
-        }
-        final MetaDataDO exist = metaDataMapper.findByServiceNameAndMethod(metaDataDTO.getServiceName(), metaDataDTO.getMethodName());
-        
-        saveOrUpdateMetaData(exist, metaDataDTO);
-        
-        String selectorId = handlerSelector(metaDataDTO);
-        
-        handlerRule(selectorId, metaDataDTO, exist);
-        
-        return "success";
     }
     
     @Override
@@ -209,10 +141,8 @@ public class MetaDataServiceImpl implements MetaDataService {
     public void syncData() {
         List<MetaDataDO> all = metaDataMapper.findAll();
         if (CollectionUtils.isNotEmpty(all)) {
-            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.REFRESH,
-                    MetaDataTransfer.INSTANCE.mapToDataAll(all)));
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.REFRESH, MetaDataTransfer.INSTANCE.mapToDataAll(all)));
         }
-        
     }
     
     @Override
@@ -252,154 +182,6 @@ public class MetaDataServiceImpl implements MetaDataService {
                 .collect(Collectors.toList());
     }
     
-    private String handlerSelector(final MetaDataDTO metaDataDTO) {
-        String contextPath = buildContextPath(metaDataDTO);
-        SelectorDO selectorDO = selectorService.findByName(contextPath);
-        String selectorId;
-        if (Objects.isNull(selectorDO)) {
-            //需要新增
-            selectorId = registerSelector(contextPath, metaDataDTO.getRpcType(), metaDataDTO.getAppName());
-        } else {
-            selectorId = selectorDO.getId();
-        }
-        return selectorId;
-    }
-    
-    private void handlerRule(final String selectorId, final MetaDataDTO metaDataDTO, final MetaDataDO exist) {
-        RuleDO existRule = ruleMapper.findByName(metaDataDTO.getPath());
-        if (Objects.isNull(exist) || Objects.isNull(existRule)) {
-            //需要新增
-            registerRule(selectorId, metaDataDTO.getPath(), metaDataDTO.getRpcType());
-        } else {
-            //更新
-            if (!exist.getPath().equals(metaDataDTO.getPath())) {
-                RuleDO ruleDO = ruleMapper.findByName(exist.getPath());
-                if (Objects.isNull(ruleDO)) {
-                    return;
-                }
-                ruleDO.setName(metaDataDTO.getPath());
-                ruleMapper.updateSelective(ruleDO);
-                List<RuleConditionDO> ruleConditionDOS = ruleConditionMapper.selectByQuery(new RuleConditionQuery(ruleDO.getId()));
-                if (CollectionUtils.isEmpty(ruleConditionDOS)) {
-                    return;
-                }
-                List<ConditionData> conditionDataList = new ArrayList<>();
-                for (RuleConditionDO ruleConditionDO : ruleConditionDOS) {
-                    if (ruleConditionDO.getParamType().equals(ParamTypeEnum.URI.getName())) {
-                        ruleConditionDO.setParamValue(metaDataDTO.getPath());
-                        ruleConditionMapper.updateSelective(ruleConditionDO);
-                    }
-                    conditionDataList.add(ConditionTransfer.INSTANCE.mapToRuleDO(ruleConditionDO));
-                }
-                publishEvent(ruleDO, conditionDataList, metaDataDTO.getRpcType());
-            }
-        }
-    }
-    
-    private String buildContextPath(final MetaDataDTO metaDataDTO) {
-        String path = metaDataDTO.getPath();
-        String[] splitList = StringUtils.split(path, "/");
-        return "/" + splitList[0];
-    }
-    
-    private String registerSelector(final String contextPath, final String rpcType, final String appName) {
-        SelectorDTO selectorDTO = new SelectorDTO();
-        selectorDTO.setName(contextPath);
-        selectorDTO.setType(SelectorTypeEnum.CUSTOM_FLOW.getCode());
-        selectorDTO.setMatchMode(MatchModeEnum.AND.getCode());
-        selectorDTO.setEnabled(Boolean.TRUE);
-        selectorDTO.setLoged(Boolean.TRUE);
-        selectorDTO.setContinued(Boolean.TRUE);
-        selectorDTO.setSort(1);
-        if (RpcTypeEnum.DUBBO.getName().equals(rpcType)) {
-            selectorDTO.setPluginId("6");
-        } else if (RpcTypeEnum.SPRING_CLOUD.getName().equals(rpcType)) {
-            selectorDTO.setPluginId("8");
-            selectorDTO.setHandle(appName);
-        } else {
-            //is divide
-            selectorDTO.setPluginId("5");
-        }
-        SelectorConditionDTO selectorConditionDTO = new SelectorConditionDTO();
-        selectorConditionDTO.setParamType(ParamTypeEnum.URI.getName());
-        selectorConditionDTO.setParamName("/");
-        selectorConditionDTO.setOperator(OperatorEnum.MATCH.getAlias());
-        selectorConditionDTO.setParamValue(contextPath + "/**");
-        selectorDTO.setSelectorConditions(Collections.singletonList(selectorConditionDTO));
-        return selectorService.register(selectorDTO);
-    }
-    
-    private void saveOrUpdateMetaData(final MetaDataDO exist, final MetaDataDTO metaDataDTO) {
-        DataEventTypeEnum eventType;
-        MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataDTO);
-        if (Objects.isNull(exist)) {
-            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            metaDataDO.setId(UUIDUtils.getInstance().generateShortUuid());
-            metaDataDO.setDateCreated(currentTime);
-            metaDataDO.setDateUpdated(currentTime);
-            metaDataMapper.insert(metaDataDO);
-            eventType = DataEventTypeEnum.CREATE;
-        } else {
-            metaDataDO.setId(exist.getId());
-            metaDataMapper.update(metaDataDO);
-            eventType = DataEventTypeEnum.UPDATE;
-        }
-        // publish AppAuthData's event
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, eventType,
-                Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDTO))));
-    }
-    
-    private void publishEvent(final RuleDO ruleDO, final List<ConditionData> conditionDataList, final String rpcType) {
-        String pluginName;
-        if (RpcTypeEnum.DUBBO.getName().equals(rpcType)) {
-            pluginName = PluginEnum.DUBBO.getName();
-        } else if (RpcTypeEnum.HTTP.getName().equals(rpcType)) {
-            pluginName = PluginEnum.DIVIDE.getName();
-        } else {
-            pluginName = PluginEnum.SPRING_CLOUD.getName();
-        }
-        // publish change event.
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.UPDATE,
-                Collections.singletonList(RuleDO.transFrom(ruleDO, pluginName, conditionDataList))));
-    }
-    
-    private void registerRule(final String selectorId, final String path, final String rpcType) {
-        RuleDTO ruleDTO = new RuleDTO();
-        ruleDTO.setSelectorId(selectorId);
-        ruleDTO.setName(path);
-        ruleDTO.setMatchMode(MatchModeEnum.AND.getCode());
-        ruleDTO.setEnabled(Boolean.TRUE);
-        ruleDTO.setLoged(Boolean.TRUE);
-        ruleDTO.setSort(1);
-        RuleConditionDTO ruleConditionDTO = new RuleConditionDTO();
-        ruleConditionDTO.setParamType(ParamTypeEnum.URI.getName());
-        ruleConditionDTO.setParamName("/");
-        if (path.indexOf("*") > 1) {
-            ruleConditionDTO.setOperator(OperatorEnum.MATCH.getAlias());
-        } else {
-            ruleConditionDTO.setOperator(OperatorEnum.EQ.getAlias());
-        }
-        ruleConditionDTO.setParamValue(path);
-        ruleDTO.setRuleConditions(Collections.singletonList(ruleConditionDTO));
-        if (rpcType.equals(RpcTypeEnum.DUBBO.getName())) {
-            DubboRuleHandle dubboRuleHandle = new DubboRuleHandle();
-            dubboRuleHandle.setLoadBalance(LoadBalanceEnum.RANDOM.getName());
-            dubboRuleHandle.setRetries(0);
-            dubboRuleHandle.setTimeout(3000);
-            ruleDTO.setHandle(JsonUtils.toJson(dubboRuleHandle));
-        } else if (rpcType.equals(RpcTypeEnum.HTTP.getName())) {
-            DivideRuleHandle divideRuleHandle = new DivideRuleHandle();
-            divideRuleHandle.setLoadBalance(LoadBalanceEnum.RANDOM.getName());
-            divideRuleHandle.setRetry(0);
-            ruleDTO.setHandle(JsonUtils.toJson(divideRuleHandle));
-        } else {
-            SpringCloudRuleHandle springCloudRuleHandle = new SpringCloudRuleHandle();
-            springCloudRuleHandle.setPath(path);
-            ruleDTO.setHandle(JsonUtils.toJson(springCloudRuleHandle));
-        }
-        ruleService.register(ruleDTO);
-    }
-    
     private String checkData(final MetaDataDTO metaDataDTO) {
         Boolean success = checkParam(metaDataDTO);
         if (!success) {
@@ -420,5 +202,4 @@ public class MetaDataServiceImpl implements MetaDataService {
                 && !StringUtils.isEmpty(metaDataDTO.getServiceName())
                 && !StringUtils.isEmpty(metaDataDTO.getMethodName());
     }
-    
 }

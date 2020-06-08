@@ -92,8 +92,7 @@ public class MetaDataController {
     public SoulAdminResult findAllGroup() {
         return SoulAdminResult.success("query success", metaDataService.findAllGroup());
     }
-
-
+    
     /**
      * Detail app auth soul result.
      *
@@ -120,19 +119,7 @@ public class MetaDataController {
         }
         return SoulAdminResult.success("create success");
     }
-
-
-    /**
-     * Register string.
-     *
-     * @param metaDataDTO the meta data dto
-     * @return the string
-     */
-    @PostMapping("/register")
-    public String register(@RequestBody final MetaDataDTO metaDataDTO) {
-        return metaDataService.register(metaDataDTO);
-    }
-
+    
     /**
      * Batch deleted soul result.
      *
@@ -144,8 +131,7 @@ public class MetaDataController {
         Integer deleteCount = metaDataService.delete(ids);
         return SoulAdminResult.success("delete  success", deleteCount);
     }
-
-
+    
     /**
      * Batch enabled soul result.
      *

@@ -22,7 +22,8 @@ mybatis:
 
 soul:
   sync:
-    strategy: websocket
+#     http:
+     websocket:
 #    zookeeper:
 #        url: localhost:2181
 #        sessionTimeout: 5000

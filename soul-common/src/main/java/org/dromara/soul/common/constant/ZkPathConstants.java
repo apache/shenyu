@@ -30,7 +30,7 @@ public final class ZkPathConstants implements Constants {
      */
     public static final String SELECTOR_JOIN_RULE = "-";
 
-    private static final String PRE_FIX = "/soul-open";
+    private static final String PRE_FIX = "/soul";
 
     /**
      * The constant PLUGIN_PARENT.
