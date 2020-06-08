@@ -19,9 +19,6 @@
 package org.dromara.soul.bootstrap.configuration;
 
 import org.dromara.soul.bootstrap.cors.CrossFilter;
-import org.dromara.soul.bootstrap.dubbo.DubboMultiParameterResolveServiceImpl;
-import org.dromara.soul.plugin.api.dubbo.DubboParamResolveService;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -48,16 +45,5 @@ public class SoulExtConfiguration {
     @Order(-100)
     public WebFilter crossFilter() {
         return new CrossFilter();
-    }
-    
-    /**
-     * Generic param resolve service generic param resolve service.
-     *
-     * @return the generic param resolve service
-     */
-    @Bean
-    @ConditionalOnProperty(name = "soul.dubbo.parameter", havingValue = "multi")
-    public DubboParamResolveService genericParamResolveService() {
-        return new DubboMultiParameterResolveServiceImpl();
     }
 }

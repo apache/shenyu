@@ -31,6 +31,7 @@ import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 import org.dromara.soul.web.config.SoulConfig;
 import org.dromara.soul.web.dubbo.DefaultDubboParamResolveService;
+import org.dromara.soul.web.dubbo.DubboMultiParameterResolveServiceImpl;
 import org.dromara.soul.web.filter.FileSizeFilter;
 import org.dromara.soul.web.filter.TimeWebFilter;
 import org.dromara.soul.web.filter.WebSocketParamFilter;
@@ -92,10 +93,20 @@ public class SoulConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(value = DubboParamResolveService.class, search = SearchStrategy.ALL)
-    public DubboParamResolveService genericParamResolveService() {
+    public DubboParamResolveService defaultDubboParamResolveService() {
         return new DefaultDubboParamResolveService();
     }
     
+    /**
+     * Generic param resolve service generic param resolve service.
+     *
+     * @return the generic param resolve service
+     */
+    @Bean
+    @ConditionalOnProperty(name = "soul.dubbo.parameter", havingValue = "multi")
+    public DubboParamResolveService dubboMultiParameterResolveServiceImpl() {
+        return new DubboMultiParameterResolveServiceImpl();
+    }
     
     /**
      * Remote address resolver remote address resolver.

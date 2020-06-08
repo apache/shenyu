@@ -17,7 +17,7 @@
  *
  */
 
-package org.dromara.soul.bootstrap.dubbo;
+package org.dromara.soul.web.dubbo;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.api.dubbo.DubboParamResolveService;
 
 /**
@@ -38,15 +39,15 @@ public class DubboMultiParameterResolveServiceImpl implements DubboParamResolveS
     
     @Override
     public Pair<String[], Object[]> buildParameter(final String body, final String parameterTypes) {
-        Map<String, Object> paramMap = DubboParamUtils.getInstance().toObjectMap(body);
+        Map<String, Object> paramMap = GsonUtils.getInstance().toObjectMap(body);
         String[] parameter = StringUtils.split(parameterTypes, ",");
         if (parameter.length == 1 && !isBaseType(parameter[0])) {
             for (String key : paramMap.keySet()) {
                 Object obj = paramMap.get(key);
                 if (obj instanceof JsonObject) {
-                    paramMap.put(key, DubboParamUtils.getInstance().convertToMap(obj.toString()));
+                    paramMap.put(key, GsonUtils.getInstance().convertToMap(obj.toString()));
                 } else if (obj instanceof JsonArray) {
-                    paramMap.put(key, DubboParamUtils.getInstance().fromList(obj.toString(), Object.class));
+                    paramMap.put(key, GsonUtils.getInstance().fromList(obj.toString(), Object.class));
                 } else {
                     paramMap.put(key, obj);
                 }
@@ -57,9 +58,9 @@ public class DubboMultiParameterResolveServiceImpl implements DubboParamResolveS
         for (String key : paramMap.keySet()) {
             Object obj = paramMap.get(key);
             if (obj instanceof JsonObject) {
-                list.add(DubboParamUtils.getInstance().convertToMap(obj.toString()));
+                list.add(GsonUtils.getInstance().convertToMap(obj.toString()));
             } else if (obj instanceof JsonArray) {
-                list.add(DubboParamUtils.getInstance().fromList(obj.toString(), Object.class));
+                list.add(GsonUtils.getInstance().fromList(obj.toString(), Object.class));
             } else {
                 list.add(obj);
             }
