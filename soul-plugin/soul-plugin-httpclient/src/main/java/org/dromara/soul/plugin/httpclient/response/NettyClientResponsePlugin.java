@@ -19,6 +19,9 @@
 
 package org.dromara.soul.plugin.httpclient.response;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.RpcTypeEnum;
@@ -34,10 +37,6 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * The type Netty client response plugin.
@@ -104,8 +103,6 @@ public class NettyClientResponsePlugin implements SoulPlugin {
     }
 
     private boolean isStreamingMediaType(@Nullable final MediaType contentType) {
-        return contentType != null && this.streamingMediaTypes.stream()
-                .anyMatch(contentType::isCompatibleWith);
+        return contentType != null && this.streamingMediaTypes.stream().anyMatch(contentType::isCompatibleWith);
     }
-
 }

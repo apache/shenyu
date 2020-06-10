@@ -26,8 +26,8 @@ import java.util.Map;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dromara.soul.boostrap.dubbo.ComplexBeanTest;
 import org.dromara.soul.boostrap.dubbo.DubboTest;
-import org.dromara.soul.bootstrap.dubbo.DubboMultiParameterResolveServiceImpl;
-import org.dromara.soul.bootstrap.dubbo.DubboParamUtils;
+import org.dromara.soul.common.utils.GsonUtils;
+import org.dromara.soul.web.dubbo.DubboMultiParameterResolveServiceImpl;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -70,7 +70,7 @@ public class DubboMultiParameterTest {
         complexBeanTest.setDubboTest(test);
         complexBeanTest.setIdLists(idList);
         complexBeanTest.setIdMaps(idMap);
-        String json = DubboParamUtils.getInstance().toJson(complexBeanTest);
+        String json = GsonUtils.getInstance().toJson(complexBeanTest);
         System.out.println(json);
     }
 }

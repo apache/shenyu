@@ -99,7 +99,6 @@ public class HttpClientProperties {
          */
         private Long acquireTimeout = ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT;
         
-
         /**
          * The enum Pool type.
          */
@@ -119,9 +118,7 @@ public class HttpClientProperties {
              * Disabled pool type.
              */
             DISABLED
-
         }
-
     }
 
     /**
@@ -155,7 +152,6 @@ public class HttpClientProperties {
          * reached directly, bypassing the proxy
          */
         private String nonProxyHostsPattern;
-
     }
 
     /**
@@ -225,9 +221,7 @@ public class HttpClientProperties {
                 return allCerts.toArray(new X509Certificate[allCerts.size()]);
             } catch (CertificateException e) {
                 throw new WebServerException("Could not load CertificateFactory X.509", e);
-            
             }
         }
     }
-
 }

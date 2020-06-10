@@ -71,7 +71,6 @@ public class WebClientResponsePlugin implements SoulPlugin {
             response.getHeaders().putAll(clientResponse.headers().asHttpHeaders());
             return response.writeWith(clientResponse.body(BodyExtractors.toDataBuffers()));
         }));
-
     }
     
     @Override
@@ -96,5 +95,4 @@ public class WebClientResponsePlugin implements SoulPlugin {
     public String named() {
         return PluginEnum.RESPONSE.getName();
     }
-
 }
