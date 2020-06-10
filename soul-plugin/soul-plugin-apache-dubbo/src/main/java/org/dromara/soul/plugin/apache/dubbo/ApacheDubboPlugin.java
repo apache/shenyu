@@ -60,8 +60,8 @@ public class ApacheDubboPlugin extends AbstractSoulPlugin {
     
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
-        final String body = exchange.getAttribute(Constants.DUBBO_PARAMS);
-        final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
+        String body = exchange.getAttribute(Constants.DUBBO_PARAMS);
+        SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
         MetaData metaData = exchange.getAttribute(Constants.META_DATA);
         if (!checkMetaData(metaData)) {
@@ -71,10 +71,14 @@ public class ApacheDubboPlugin extends AbstractSoulPlugin {
             Object error = SoulResultWarp.error(SoulResultEnum.META_DATA_ERROR.getCode(), SoulResultEnum.META_DATA_ERROR.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
+        if (StringUtils.isNoneBlank(metaData.getParameterTypes()) && StringUtils.isBlank(body)) {
+            exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+            Object error = SoulResultWarp.error(SoulResultEnum.DUBBO_HAVE_BODY_PARAM.getCode(), SoulResultEnum.DUBBO_HAVE_BODY_PARAM.getMsg(), null);
+            return WebFluxResultUtils.result(exchange, error);
+        }
         final Mono<Object> result = dubboProxyService.genericInvoker(body, metaData, exchange);
         return result.then(chain.execute(exchange));
     }
-    
     
     /**
      * acquire plugin name.

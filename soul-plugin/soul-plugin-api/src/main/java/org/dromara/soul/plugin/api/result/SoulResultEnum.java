@@ -60,14 +60,19 @@ public enum SoulResultEnum {
     META_DATA_ERROR(430, "DUBBO元数据不完整!"),
     
     /**
+     * Dubbo have body param soul result enum.
+     */
+    DUBBO_HAVE_BODY_PARAM(431, "dubbo接口必须要有参数，请在body里面输入json格式！"),
+    
+    /**
      * full selector type enum.
      */
-    PARAM_ERROR(-100, "您的参数错误,请检查相关文档!"),
+    PARAM_ERROR(-100,"您的参数错误,请检查相关文档!"),
     
     /**
      * Or match mode enum.
      */
-    TIME_ERROR(-101, "您的时间参数错误或者已经过期!"),
+    TIME_ERROR(-101,"您的时间参数错误或者已经过期!"),
     
     
     /**

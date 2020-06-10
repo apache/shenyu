@@ -32,6 +32,7 @@ import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 import org.dromara.soul.web.config.SoulConfig;
 import org.dromara.soul.web.dubbo.DefaultDubboParamResolveService;
 import org.dromara.soul.web.dubbo.DubboMultiParameterResolveServiceImpl;
+import org.dromara.soul.web.filter.CrossFilter;
 import org.dromara.soul.web.filter.FileSizeFilter;
 import org.dromara.soul.web.filter.TimeWebFilter;
 import org.dromara.soul.web.filter.WebSocketParamFilter;
@@ -117,6 +118,21 @@ public class SoulConfiguration {
     @ConditionalOnMissingBean(RemoteAddressResolver.class)
     public RemoteAddressResolver remoteAddressResolver() {
         return new ForwardedRemoteAddressResolver(1);
+    }
+    
+    /**
+     * Cross filter web filter.
+     * if you application has cross-domain.
+     * this is demo.
+     * 1. Customize webflux's cross-domain requests.
+     * 2. Spring bean Sort is greater than -1.
+     *
+     * @return the web filter
+     */
+    @Bean
+    @Order(-100)
+    public WebFilter crossFilter() {
+        return new CrossFilter();
     }
     
     /**
