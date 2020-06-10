@@ -67,12 +67,12 @@ public enum SoulResultEnum {
     /**
      * full selector type enum.
      */
-    PARAM_ERROR(-100,"您的参数错误,请检查相关文档!"),
+    PARAM_ERROR(-100, "您的参数错误,请检查相关文档!"),
     
     /**
      * Or match mode enum.
      */
-    TIME_ERROR(-101,"您的时间参数错误或者已经过期!"),
+    TIME_ERROR(-101, "您的时间参数错误或者已经过期!"),
     
     
     /**
