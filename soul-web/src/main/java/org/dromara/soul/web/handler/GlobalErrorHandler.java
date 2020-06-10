@@ -18,6 +18,7 @@
 
 package org.dromara.soul.web.handler;
 
+import java.util.Map;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.base.utils.SoulResultWarp;
 import org.slf4j.Logger;
@@ -33,8 +34,6 @@ import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
-
-import java.util.Map;
 
 /**
  * GlobalErrorHandler.
@@ -63,7 +62,7 @@ public class GlobalErrorHandler extends DefaultErrorWebExceptionHandler {
     @Override
     protected Map<String, Object> getErrorAttributes(final ServerRequest request, final boolean includeStackTrace) {
         logError(request);
-        return response();
+        return response(request);
     }
     
     @Override
@@ -76,8 +75,9 @@ public class GlobalErrorHandler extends DefaultErrorWebExceptionHandler {
         return HttpStatus.INTERNAL_SERVER_ERROR.value();
     }
     
-    private static Map<String, Object> response() {
-        Object error = SoulResultWarp.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), null);
+    private Map<String, Object> response(final ServerRequest request) {
+        Throwable ex = getError(request);
+        Object error = SoulResultWarp.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), ex.getMessage());
         return GsonUtils.getInstance().toObjectMap(GsonUtils.getInstance().toJson(error));
     }
     

@@ -19,21 +19,20 @@
 
 package org.dromara.soul.plugin.alibaba.dubbo.response;
 
+import java.util.Objects;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.exception.SoulException;
 import org.dromara.soul.common.utils.JsonUtils;
-import org.dromara.soul.plugin.api.result.SoulResultEnum;
-import org.dromara.soul.plugin.base.utils.SoulResultWarp;
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
+import org.dromara.soul.plugin.api.result.SoulResultEnum;
+import org.dromara.soul.plugin.base.utils.SoulResultWarp;
 import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
-import java.util.Objects;
 
 /**
  * this is dubbo response plugin.
@@ -59,7 +58,8 @@ public class DubboResponsePlugin implements SoulPlugin {
                     Object error = SoulResultWarp.error(SoulResultEnum.SERVICE_RESULT_ERROR.getCode(), SoulResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
                     return WebFluxResultUtils.result(exchange, error);
                 }
-                return WebFluxResultUtils.result(exchange, JsonUtils.removeClass(result));
+                Object success = SoulResultWarp.success(SoulResultEnum.SUCCESS.getCode(), SoulResultEnum.SUCCESS.getMsg(), JsonUtils.removeClass(result));
+                return WebFluxResultUtils.result(exchange, success);
             } catch (SoulException e) {
                 return Mono.empty();
             }

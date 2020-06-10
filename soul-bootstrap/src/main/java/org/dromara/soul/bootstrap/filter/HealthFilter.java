@@ -1,4 +1,4 @@
-package org.dromara.soul.bootstrap.cors;
+package org.dromara.soul.bootstrap.filter;
 
 import org.dromara.soul.common.utils.JsonUtils;
 import org.springframework.boot.actuate.health.Health;
@@ -13,7 +13,6 @@ import reactor.core.publisher.Mono;
 import reactor.util.annotation.Nullable;
 
 import java.util.Objects;
-
 
 /**
  * The type Health filter.

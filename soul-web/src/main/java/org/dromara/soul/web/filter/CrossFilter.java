@@ -16,7 +16,7 @@
  *
  */
 
-package org.dromara.soul.bootstrap.cors;
+package org.dromara.soul.web.filter;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
