@@ -88,17 +88,6 @@ public class SoulConfiguration {
     }
     
     /**
-     * Generic param resolve service dubbo param resolve service.
-     *
-     * @return the dubbo param resolve service
-     */
-    @Bean
-    @ConditionalOnMissingBean(value = DubboParamResolveService.class, search = SearchStrategy.ALL)
-    public DubboParamResolveService defaultDubboParamResolveService() {
-        return new DefaultDubboParamResolveService();
-    }
-    
-    /**
      * Generic param resolve service generic param resolve service.
      *
      * @return the generic param resolve service
@@ -107,6 +96,17 @@ public class SoulConfiguration {
     @ConditionalOnProperty(name = "soul.dubbo.parameter", havingValue = "multi")
     public DubboParamResolveService dubboMultiParameterResolveServiceImpl() {
         return new DubboMultiParameterResolveServiceImpl();
+    }
+    
+    /**
+     * Generic param resolve service dubbo param resolve service.
+     *
+     * @return the dubbo param resolve service
+     */
+    @Bean
+    @ConditionalOnMissingBean(value = DubboParamResolveService.class, search = SearchStrategy.ALL)
+    public DubboParamResolveService defaultDubboParamResolveService() {
+        return new DefaultDubboParamResolveService();
     }
     
     /**
