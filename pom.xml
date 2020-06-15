@@ -7,7 +7,7 @@
     <groupId>org.dromara</groupId>
     <artifactId>soul</artifactId>
     <packaging>pom</packaging>
-    <version>2.2.0-SNAPSHOT</version>
+    <version>2.2.0</version>
     <name>soul</name>
     <modules>
         <module>soul-admin</module>
@@ -325,7 +325,7 @@
 
     <build>
         <plugins>
-           <!--  <plugin>
+             <plugin>
                  <groupId>org.sonatype.plugins</groupId>
                  <artifactId>nexus-staging-maven-plugin</artifactId>
                  <version>1.6.3</version>
@@ -339,7 +339,7 @@
              <plugin>
                  <groupId>org.apache.maven.plugins</groupId>
                  <artifactId>maven-gpg-plugin</artifactId>
-                 <version>1.5</version>
+                 <version>1.6</version>
                  <executions>
                      <execution>
                          <phase>verify</phase>
@@ -348,7 +348,7 @@
                          </goals>
                      </execution>
                  </executions>
-             </plugin>-->
+             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -371,7 +371,7 @@
                     <skip>true</skip>
                 </configuration>
             </plugin>
-           <!-- <plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>2.10.3</version>
@@ -383,7 +383,7 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>-->
+            </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
