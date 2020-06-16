@@ -88,31 +88,6 @@
   
   ![Sync Flow](https://bestkobe.gitee.io/images/soul/config-strage-processor.png?_t=201908032339)
  
-# Quick Start
- * get `soul-admin.jar`
- 
-```
-> wget  https://yu199195.github.io/jar/soul-admin.jar
-```
-
-* start `soul-admin.jar`
-```java
-> java -jar soul-admin.jar --spring.datasource.url="jdbc:mysql://your ip:3306/soul?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=CONVERT_TO_NULL&failOverReadOnly=false&autoReconnect=true&useSSL=false"  
-  --spring.datasource.username="you username"  --spring.datasource.password="you password"
-```
-* visit : http://localhost:9095/index.html  username:admin  password :123456
-
-* get `soul-bootstrap.jar`
-
-```java
-> wget  https://yu199195.github.io/jar/soul-bootstrap.jar
-```
-
-*  start `soul-bootstrap.jar`  
-
-```xml
- java -jar soul-bootstrap.jar
-```
 
 # Prerequisite
  
