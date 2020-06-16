@@ -39,5 +39,4 @@ public final class HealthFilter implements WebFilter {
         }
         return Objects.requireNonNull(chain).filter(exchange);
     }
-
 }
