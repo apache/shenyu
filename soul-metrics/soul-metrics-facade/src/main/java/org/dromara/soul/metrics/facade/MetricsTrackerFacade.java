@@ -158,7 +158,9 @@ public final class MetricsTrackerFacade {
      */
     public void stop() {
         enabled = false;
-        metricsTrackerManager.stop();
+        if (null != metricsTrackerManager) {
+            metricsTrackerManager.stop();
+        }
         MetricsTrackerHandler.getInstance().close();
     }
     
