@@ -104,7 +104,7 @@
     
 # Document & Website
    If you want to use it, you can see [Website](https://dromara.org/website/zh-cn/docs/soul/soul.html)
-   If you want to use it, you can see [Document](https://github.com/dromara/soul/doc/soul/setUp.md)
+   If you want to use it, you can see [Document](https://github.com/Dromara/soul/blob/master/doc/setup.md)
         
 # Stargazers over time
 
