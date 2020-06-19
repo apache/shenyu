@@ -17,9 +17,6 @@
 
 package org.dromara.soul.plugin.global;
 
-import java.time.LocalDateTime;
-import java.util.Objects;
-import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.MetaData;
@@ -29,6 +26,10 @@ import org.dromara.soul.plugin.api.context.SoulContextBuilder;
 import org.dromara.soul.plugin.global.cache.MetaDataCache;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
+
+import java.time.LocalDateTime;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * The type Default soul context builder.
@@ -88,8 +89,11 @@ public class DefaultSoulContextBuilder implements SoulContextBuilder {
     }
     
     private void setSoulContextByHttp(final SoulContext soulContext, final String path) {
+        String contextPath = "/";
         String[] splitList = StringUtils.split(path, "/");
-        String contextPath = "/" + splitList[0];
+        if (splitList.length != 0) {
+            contextPath = contextPath.concat(splitList[0]);
+        }
         String realUrl = path.substring(contextPath.length());
         soulContext.setContextPath(contextPath);
         soulContext.setModule(contextPath);
