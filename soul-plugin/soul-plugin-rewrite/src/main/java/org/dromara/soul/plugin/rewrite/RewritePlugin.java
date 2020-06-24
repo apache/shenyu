@@ -36,7 +36,7 @@ import reactor.core.publisher.Mono;
 import java.util.Objects;
 
 /**
- * rewrite url.
+ * Rewrite Plugin.
  *
  * @author xiaoyu(Myth)
  */

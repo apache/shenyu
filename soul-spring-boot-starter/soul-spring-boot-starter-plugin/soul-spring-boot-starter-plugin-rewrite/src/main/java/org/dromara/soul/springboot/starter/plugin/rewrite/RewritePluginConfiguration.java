@@ -31,12 +31,12 @@ import org.springframework.context.annotation.Configuration;
 public class RewritePluginConfiguration {
     
     /**
-     * Sign plugin soul plugin.
+     * Rewrite plugin.
      *
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin signPlugin() {
+    public SoulPlugin rewritePlugin() {
         return new RewritePlugin();
     }
 }
