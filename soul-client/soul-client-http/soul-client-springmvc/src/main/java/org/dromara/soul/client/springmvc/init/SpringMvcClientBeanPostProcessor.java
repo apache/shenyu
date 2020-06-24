@@ -142,17 +142,9 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor, Appl
     
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
-        boolean done;
-        do {
-            done = withDone();
-            if (done) {
-                executorService.shutdownNow();
-            }
-        } while (!done);
-    }
-    
-    private boolean withDone() {
-        return executorService.getTaskCount() == executorService.getCompletedTaskCount();
+        if (contextRefreshedEvent.getApplicationContext().getParent() == null) {
+            executorService.shutdown();
+        }
     }
 }
 
