@@ -20,8 +20,9 @@ package org.dromara.soul.client.springcloud.init;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.client.common.utils.OkHttpTools;
 import org.dromara.soul.client.springcloud.annotation.SoulSpringCloudClient;
@@ -47,7 +48,9 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor, ApplicationListener<ContextRefreshedEvent> {
     
-    private ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private static final Integer THREADS = Runtime.getRuntime().availableProcessors() << 1;
+    
+    private final ThreadPoolExecutor executorService;
     
     private final String url;
     
@@ -73,6 +76,7 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor, Ap
         this.config = config;
         this.env = env;
         this.url = adminUrl + "/soul-client/springcloud-register";
+        executorService = new ThreadPoolExecutor(THREADS, THREADS, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
     }
     
     @Override
@@ -139,7 +143,17 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor, Ap
     
     @Override
     public void onApplicationEvent(@NonNull final ContextRefreshedEvent contextRefreshedEvent) {
-        executorService.shutdown();
+        boolean done = withDone();
+        while (!done) {
+            done = withDone();
+            if (done) {
+                executorService.shutdownNow();
+            }
+        }
+    }
+    
+    private boolean withDone() {
+        return executorService.getTaskCount() == executorService.getCompletedTaskCount();
     }
 }
 

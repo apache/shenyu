@@ -20,6 +20,9 @@ package org.dromara.soul.client.springmvc.init;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Objects;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.client.common.utils.OkHttpTools;
 import org.dromara.soul.client.springmvc.annotation.SoulSpringMvcClient;
@@ -28,6 +31,8 @@ import org.dromara.soul.client.springmvc.dto.SpringMvcRegisterDTO;
 import org.dromara.soul.client.springmvc.utils.IpUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Controller;
@@ -41,7 +46,11 @@ import org.springframework.web.bind.annotation.RestController;
  * @author xiaoyu(Myth)
  */
 @Slf4j
-public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
+public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor, ApplicationListener<ContextRefreshedEvent> {
+    
+    private static final Integer THREADS = Runtime.getRuntime().availableProcessors() << 1;
+    
+    private final ThreadPoolExecutor executorService;
     
     private final String url;
     
@@ -64,6 +73,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         }
         this.soulSpringMvcConfig = soulSpringMvcConfig;
         url = adminUrl + "/soul-client/springmvc-register";
+        executorService = new ThreadPoolExecutor(THREADS, THREADS, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
     }
     
     @Override
@@ -130,6 +140,21 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
                 .ruleName(ruleName)
                 .build();
         return OkHttpTools.getInstance().getGosn().toJson(registerDTO);
+    }
+    
+    @Override
+    public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
+        boolean done = withDone();
+        while (!done) {
+            done = withDone();
+            if (done) {
+                executorService.shutdownNow();
+            }
+        }
+    }
+    
+    private boolean withDone() {
+        return executorService.getTaskCount() == executorService.getCompletedTaskCount();
     }
 }
 
