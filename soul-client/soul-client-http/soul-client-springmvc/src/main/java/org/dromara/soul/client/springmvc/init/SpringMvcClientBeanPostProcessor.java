@@ -48,8 +48,6 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor, ApplicationListener<ContextRefreshedEvent> {
     
-    private static final Integer THREADS = Runtime.getRuntime().availableProcessors() << 1;
-    
     private final ThreadPoolExecutor executorService;
     
     private final String url;
@@ -73,7 +71,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor, Appl
         }
         this.soulSpringMvcConfig = soulSpringMvcConfig;
         url = adminUrl + "/soul-client/springmvc-register";
-        executorService = new ThreadPoolExecutor(THREADS, THREADS, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
     }
     
     @Override
@@ -144,13 +142,13 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor, Appl
     
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
-        boolean done = withDone();
-        while (!done) {
+        boolean done;
+        do {
             done = withDone();
             if (done) {
                 executorService.shutdownNow();
             }
-        }
+        } while (!done);
     }
     
     private boolean withDone() {
