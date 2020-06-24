@@ -141,17 +141,9 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor, Ap
     
     @Override
     public void onApplicationEvent(@NonNull final ContextRefreshedEvent contextRefreshedEvent) {
-        boolean done;
-        do {
-            done = withDone();
-            if (done) {
-                executorService.shutdownNow();
-            }
-        } while (!done);
-    }
-    
-    private boolean withDone() {
-        return executorService.getTaskCount() == executorService.getCompletedTaskCount();
+        if (contextRefreshedEvent.getApplicationContext().getParent() == null) {
+            executorService.shutdown();
+        }
     }
 }
 
