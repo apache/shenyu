@@ -1,16 +1,15 @@
 package org.dromara.soul.admin.dto;
 
-import lombok.Builder;
+import java.io.Serializable;
 import lombok.Data;
 
 /**
- * The type Meta data dto.
+ * The type Spring mvc register dto.
  *
  * @author xiaoyu
  */
 @Data
-@Builder
-public class SpringMvcRegisterDTO {
+public class SpringMvcRegisterDTO implements Serializable {
     
     private String appName;
     
@@ -29,6 +28,4 @@ public class SpringMvcRegisterDTO {
     private String ruleName;
     
     private boolean enabled;
-    
-    
 }
