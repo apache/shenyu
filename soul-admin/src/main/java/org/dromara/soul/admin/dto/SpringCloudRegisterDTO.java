@@ -1,16 +1,15 @@
 package org.dromara.soul.admin.dto;
 
-import lombok.Builder;
+import java.io.Serializable;
 import lombok.Data;
 
 /**
- * The type Meta data dto.
+ * The type Spring cloud register dto.
  *
  * @author xiaoyu
  */
 @Data
-@Builder
-public class SpringCloudRegisterDTO {
+public class SpringCloudRegisterDTO implements Serializable {
     
     private String appName;
     
@@ -25,6 +24,4 @@ public class SpringCloudRegisterDTO {
     private String ruleName;
     
     private boolean enabled;
-    
-    
 }
