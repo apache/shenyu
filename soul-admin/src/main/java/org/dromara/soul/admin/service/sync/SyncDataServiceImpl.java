@@ -18,6 +18,7 @@
 
 package org.dromara.soul.admin.service.sync;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
@@ -114,10 +115,12 @@ public class SyncDataServiceImpl implements SyncDataService {
         List<SelectorData> selectorDataList = selectorService.findByPluginId(pluginId);
         if (CollectionUtils.isNotEmpty(selectorDataList)) {
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.REFRESH, selectorDataList));
+            List<RuleData> allRuleDataList = new ArrayList<>();
             for (SelectorData selectData : selectorDataList) {
                 List<RuleData> ruleDataList = ruleService.findBySelectorId(selectData.getId());
-                eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.REFRESH, ruleDataList));
+                allRuleDataList.addAll(ruleDataList);
             }
+            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.REFRESH, allRuleDataList));
         }
         return true;
     }
