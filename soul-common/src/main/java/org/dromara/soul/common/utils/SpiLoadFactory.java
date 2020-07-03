@@ -54,6 +54,6 @@ public class SpiLoadFactory {
      * @return the service loader
      */
     public static <S> ServiceLoader<S> loadAll(final Class<S> clazz) {
-        return ServiceLoader.load(clazz);
+         return ServiceLoader.load(clazz);
     }
 }
