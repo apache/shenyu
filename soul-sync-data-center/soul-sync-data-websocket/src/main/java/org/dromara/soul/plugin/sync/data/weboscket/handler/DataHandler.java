@@ -29,5 +29,5 @@ public interface DataHandler {
      * @param json  the data for json
      * @param eventType the event type
      */
-    void handle(String json, final String eventType);
+    void handle(String json, String eventType);
 }
