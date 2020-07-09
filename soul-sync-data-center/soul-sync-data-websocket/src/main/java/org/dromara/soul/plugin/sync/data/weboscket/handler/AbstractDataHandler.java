@@ -41,21 +41,21 @@ public abstract class AbstractDataHandler<T> implements DataHandler {
      *
      * @param dataList the data list
      */
-    protected abstract void doRefresh(final List<T> dataList);
+    protected abstract void doRefresh(List<T> dataList);
     
     /**
      * Do update.
      *
      * @param dataList the data list
      */
-    protected abstract void doUpdate(final List<T> dataList);
+    protected abstract void doUpdate(List<T> dataList);
     
     /**
      * Do delete.
      *
      * @param dataList the data list
      */
-    protected abstract void doDelete(final List<T> dataList);
+    protected abstract void doDelete(List<T> dataList);
     
     @Override
     public void handle(final String json, final String eventType) {

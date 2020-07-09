@@ -50,6 +50,13 @@ public class WebsocketDataHandler {
         ENUM_MAP.put(ConfigGroupEnum.META_DATA, new MetaDataHandler(metaDataSubscribers));
     }
     
+    /**
+     * Executor.
+     *
+     * @param type      the type
+     * @param json      the json
+     * @param eventType the event type
+     */
     public void executor(final ConfigGroupEnum type, final String json, final String eventType) {
         ENUM_MAP.get(type).handle(json, eventType);
     }
