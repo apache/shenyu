@@ -17,6 +17,7 @@
 
 package org.dromara.soul.sync.data.api;
 
+import java.util.List;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
@@ -43,11 +44,19 @@ public interface PluginDataSubscriber {
     }
     
     /**
-     * Refresh plugin data.
+     * Refresh  all plugin data.
      */
-    default void refreshPluginData() {
-    
+    default void refreshPluginDataAll() {
     }
+    
+    /**
+     * Refresh plugin data self.
+     *
+     * @param pluginDataList the plugin data list
+     */
+    default void refreshPluginDataSelf(List<PluginData> pluginDataList) {
+    }
+    
     
     /**
      * On selector subscribe.
@@ -66,9 +75,17 @@ public interface PluginDataSubscriber {
     }
     
     /**
-     * Refresh selector data.
+     * Refresh all selector data.
      */
-    default void refreshSelectorData() {
+    default void refreshSelectorDataAll() {
+    }
+    
+    /**
+     * Refresh selector data.
+     *
+     * @param selectorDataList the selector data list
+     */
+    default void refreshSelectorDataSelf(List<SelectorData> selectorDataList) {
     }
     
     /**
@@ -90,6 +107,14 @@ public interface PluginDataSubscriber {
     /**
      * Refresh rule data.
      */
-    default void refreshRuleData() {
+    default void refreshRuleDataAll() {
+    }
+    
+    /**
+     * Refresh rule data self.
+     *
+     * @param ruleDataList the rule data list
+     */
+    default void refreshRuleDataSelf(List<RuleData> ruleDataList) {
     }
 }
