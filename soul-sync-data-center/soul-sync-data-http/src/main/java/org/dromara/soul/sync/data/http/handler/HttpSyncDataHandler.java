@@ -65,9 +65,9 @@ public class HttpSyncDataHandler {
     public void flushAllPlugin(final List<PluginData> pluginDataList) {
         if (CollectionUtils.isEmpty(pluginDataList)) {
             log.info("clear all plugin data cache");
-            pluginDataSubscriber.refreshPluginData();
+            pluginDataSubscriber.refreshPluginDataAll();
         } else {
-            pluginDataSubscriber.refreshPluginData();
+            pluginDataSubscriber.refreshPluginDataAll();
             pluginDataList.forEach(pluginDataSubscriber::onSubscribe);
         }
     }
@@ -81,10 +81,10 @@ public class HttpSyncDataHandler {
         if (CollectionUtils.isEmpty(selectorDataList)) {
             log.info("clear all selector cache, old cache");
             selectorDataList.forEach(pluginDataSubscriber::unSelectorSubscribe);
-            pluginDataSubscriber.refreshSelectorData();
+            pluginDataSubscriber.refreshSelectorDataAll();
         } else {
             // update cache for UpstreamCacheManager
-            pluginDataSubscriber.refreshSelectorData();
+            pluginDataSubscriber.refreshSelectorDataAll();
             selectorDataList.forEach(pluginDataSubscriber::onSelectorSubscribe);
         }
     }
@@ -97,9 +97,9 @@ public class HttpSyncDataHandler {
     public void flushAllRule(final List<RuleData> ruleDataList) {
         if (CollectionUtils.isEmpty(ruleDataList)) {
             log.info("clear all rule cache");
-            pluginDataSubscriber.refreshRuleData();
+            pluginDataSubscriber.refreshRuleDataAll();
         } else {
-            pluginDataSubscriber.refreshRuleData();
+            pluginDataSubscriber.refreshRuleDataAll();
             ruleDataList.forEach(pluginDataSubscriber::onRuleSubscribe);
         }
     }

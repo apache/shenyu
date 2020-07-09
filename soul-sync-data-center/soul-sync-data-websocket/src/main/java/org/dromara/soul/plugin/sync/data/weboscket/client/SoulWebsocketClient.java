@@ -17,12 +17,9 @@
 
 package org.dromara.soul.plugin.sync.data.weboscket.client;
 
+import java.net.URI;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.dromara.soul.common.dto.AppAuthData;
-import org.dromara.soul.common.dto.MetaData;
-import org.dromara.soul.common.dto.PluginData;
-import org.dromara.soul.common.dto.RuleData;
-import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.WebsocketData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
@@ -33,9 +30,6 @@ import org.dromara.soul.sync.data.api.MetaDataSubscriber;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
-
-import java.net.URI;
-import java.util.List;
 
 /**
  * The type Soul websocket client.
@@ -89,34 +83,7 @@ public final class SoulWebsocketClient extends WebSocketClient {
         WebsocketData websocketData = GsonUtils.getInstance().fromJson(result, WebsocketData.class);
         ConfigGroupEnum groupEnum = ConfigGroupEnum.acquireByName(websocketData.getGroupType());
         String eventType = websocketData.getEventType();
-        switch (groupEnum) {
-            case PLUGIN:
-                String pluginData = GsonUtils.getInstance().toJson(websocketData.getData());
-                List<PluginData> pluginDataList = GsonUtils.getInstance().fromList(pluginData, PluginData.class);
-                websocketDataHandler.handlePlugin(pluginDataList, eventType);
-                break;
-            case SELECTOR:
-                String selectorData = GsonUtils.getInstance().toJson(websocketData.getData());
-                List<SelectorData> selectorDataList = GsonUtils.getInstance().fromList(selectorData, SelectorData.class);
-                websocketDataHandler.handleSelector(selectorDataList, eventType);
-                break;
-            case RULE:
-                String ruleData = GsonUtils.getInstance().toJson(websocketData.getData());
-                List<RuleData> ruleDataList = GsonUtils.getInstance().fromList(ruleData, RuleData.class);
-                websocketDataHandler.handleRule(ruleDataList, eventType);
-                break;
-            case APP_AUTH:
-                String appAuthData = GsonUtils.getInstance().toJson(websocketData.getData());
-                List<AppAuthData> appAuthDataList = GsonUtils.getInstance().fromList(appAuthData, AppAuthData.class);
-                websocketDataHandler.handleAppAuth(appAuthDataList, eventType);
-                break;
-            case META_DATA:
-                String metaData = GsonUtils.getInstance().toJson(websocketData.getData());
-                List<MetaData> metaDataList = GsonUtils.getInstance().fromList(metaData, MetaData.class);
-                websocketDataHandler.handleMetaData(metaDataList, eventType);
-                break;
-            default:
-                break;
-        }
+        String json = GsonUtils.getInstance().toJson(websocketData.getData());
+        websocketDataHandler.executor(groupEnum, json, eventType);
     }
 }

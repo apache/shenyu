@@ -23,6 +23,7 @@ package org.dromara.soul.spi;
  */
 @SPI("spi")
 public interface ExtensionFactory {
+    
     /**
      * Gets Extension.
      *
