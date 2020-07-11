@@ -47,12 +47,20 @@ public class AlibabaDubboServiceBeanPostProcessor implements BeanPostProcessor, 
     
     @Override
     public Object postProcessBeforeInitialization(final Object bean, final String beanName) throws BeansException {
+//        if (bean instanceof ServiceBean) {
+//            executorService.execute(() -> handler((ServiceBean) bean));
+//        }
+        return bean;
+    }
+
+    @Override
+    public Object postProcessAfterInitialization(final Object bean, final String beanName) throws BeansException {
         if (bean instanceof ServiceBean) {
             executorService.execute(() -> handler((ServiceBean) bean));
         }
         return bean;
     }
-    
+
     private void handler(final ServiceBean serviceBean) {
         Class<?> clazz = serviceBean.getRef().getClass();
         if (ClassUtils.isCglibProxyClass(clazz)) {
