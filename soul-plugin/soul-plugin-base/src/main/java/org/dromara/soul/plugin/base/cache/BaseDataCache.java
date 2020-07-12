@@ -87,6 +87,15 @@ public final class BaseDataCache {
     }
     
     /**
+     * Clean plugin data self.
+     *
+     * @param pluginDataList the plugin data list
+     */
+    public void cleanPluginDataSelf(final List<PluginData> pluginDataList) {
+        pluginDataList.forEach(this::removePluginData);
+    }
+    
+    /**
      * Obtain plugin data plugin data.
      *
      * @param pluginName the plugin name
@@ -132,6 +141,15 @@ public final class BaseDataCache {
     }
     
     /**
+     * Clean selector data self.
+     *
+     * @param selectorDataList the selector data list
+     */
+    public void cleanSelectorDataSelf(final List<SelectorData> selectorDataList) {
+        selectorDataList.forEach(this::removeSelectData);
+    }
+    
+    /**
      * Obtain selector data list list.
      *
      * @param pluginName the plugin name
@@ -174,6 +192,15 @@ public final class BaseDataCache {
      */
     public void cleanRuleData() {
         RULE_MAP.clear();
+    }
+    
+    /**
+     * Clean rule data self.
+     *
+     * @param ruleDataList the rule data list
+     */
+    public void cleanRuleDataSelf(final List<RuleData> ruleDataList) {
+        ruleDataList.forEach(this::removeRuleData);
     }
     
     /**

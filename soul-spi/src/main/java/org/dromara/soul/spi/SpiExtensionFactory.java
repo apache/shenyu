@@ -26,6 +26,7 @@ package org.dromara.soul.spi;
  */
 @Join
 public class SpiExtensionFactory implements ExtensionFactory {
+    
     @Override
     public <T> T getExtension(final String key, final Class<T> clazz) {
         if (clazz.isInterface() && clazz.isAnnotationPresent(SPI.class)) {
