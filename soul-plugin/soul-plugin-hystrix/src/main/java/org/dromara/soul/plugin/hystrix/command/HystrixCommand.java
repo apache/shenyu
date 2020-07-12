@@ -18,15 +18,10 @@
 package org.dromara.soul.plugin.hystrix.command;
 
 import com.netflix.hystrix.HystrixObservableCommand;
-import com.netflix.hystrix.exception.HystrixRuntimeException;
-import com.netflix.hystrix.exception.HystrixTimeoutException;
-import org.dromara.soul.plugin.api.result.SoulResultEnum;
-import org.dromara.soul.plugin.base.utils.SoulResultWarp;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import rx.Observable;
@@ -37,7 +32,7 @@ import rx.RxReactiveStreams;
  *
  * @author xiaoyu(Myth)
  */
-public class HystrixCommand extends HystrixObservableCommand<Void> {
+public class HystrixCommand extends HystrixObservableCommand<Void> implements Command {
 
     /**
      * logger.
@@ -79,23 +74,12 @@ public class HystrixCommand extends HystrixObservableCommand<Void> {
             LOGGER.error("hystrix execute have error:", getExecutionException());
         }
         final Throwable exception = getExecutionException();
-        Object error;
-        if (exception instanceof HystrixRuntimeException) {
-            HystrixRuntimeException e = (HystrixRuntimeException) getExecutionException();
-            if (e.getFailureType() == HystrixRuntimeException.FailureType.TIMEOUT) {
-                exchange.getResponse().setStatusCode(HttpStatus.GATEWAY_TIMEOUT);
-                error = SoulResultWarp.error(SoulResultEnum.SERVICE_TIMEOUT.getCode(), SoulResultEnum.SERVICE_TIMEOUT.getMsg(), null);
-            } else {
-                exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-                error = SoulResultWarp.error(SoulResultEnum.SERVICE_RESULT_ERROR.getCode(), SoulResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
-            }
-        } else if (exception instanceof HystrixTimeoutException) {
-            exchange.getResponse().setStatusCode(HttpStatus.GATEWAY_TIMEOUT);
-            error = SoulResultWarp.error(SoulResultEnum.SERVICE_TIMEOUT.getCode(), SoulResultEnum.SERVICE_TIMEOUT.getMsg(), null);
-        } else {
-            exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            error = SoulResultWarp.error(SoulResultEnum.SERVICE_RESULT_ERROR.getCode(), SoulResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
-        }
+        Object error = generateError(exchange, exception);
         return WebFluxResultUtils.result(exchange, error);
+    }
+
+    @Override
+    public Observable<Void> fetchObservable() {
+        return this.toObservable();
     }
 }

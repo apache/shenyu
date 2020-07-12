@@ -21,18 +21,7 @@ package org.dromara.soul.admin.service.impl;
 import com.google.common.collect.Maps;
 import org.dromara.soul.admin.service.EnumService;
 import org.dromara.soul.admin.vo.EnumVO;
-import org.dromara.soul.common.enums.HttpMethodEnum;
-import org.dromara.soul.common.enums.LoadBalanceEnum;
-import org.dromara.soul.common.enums.MatchModeEnum;
-import org.dromara.soul.common.enums.OperatorEnum;
-import org.dromara.soul.common.enums.ParamTypeEnum;
-import org.dromara.soul.common.enums.PluginEnum;
-import org.dromara.soul.common.enums.PluginTypeEnum;
-import org.dromara.soul.common.enums.RedisModeEnum;
-import org.dromara.soul.common.enums.RpcTypeEnum;
-import org.dromara.soul.common.enums.SelectorTypeEnum;
-import org.dromara.soul.common.enums.SerializeEnum;
-import org.dromara.soul.common.enums.WafEnum;
+import org.dromara.soul.common.enums.*;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
@@ -101,7 +90,9 @@ public class EnumServiceImpl implements EnumService {
         List<EnumVO> redisModeEnums = Arrays.stream(RedisModeEnum.values())
                 .map(redisModeEnum -> new EnumVO(null, redisModeEnum.getName(), true))
                 .collect(Collectors.toList());
-
+        List<EnumVO> hystrixIsolationModeEnums=Arrays.stream(HystrixIsolationModeEnum.values())
+                .map(hystrixIsolationModeEnum ->new EnumVO(hystrixIsolationModeEnum.getCode(),hystrixIsolationModeEnum.getName(),true))
+                .collect(Collectors.toList());
         Map<String, List<EnumVO>> enums = Maps.newHashMap();
         enums.put("httpMethodEnums", httpMethodEnums);
         enums.put("loadBalanceEnums", loadBalanceEnums);
@@ -115,6 +106,7 @@ public class EnumServiceImpl implements EnumService {
         enums.put("serializeEnums", serializeEnums);
         enums.put("wafEnums", wafEnums);
         enums.put("redisModeEnums", redisModeEnums);
+        enums.put("hystrixIsolationModeEnums", hystrixIsolationModeEnums);
         return enums;
     }
 }
