@@ -4,6 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.enums.HystrixIsolationModeEnum;
 
 /**
  * this is hystrix handle.
@@ -49,4 +50,16 @@ public class HystrixHandle {
      * timeout is required.
      */
     private long timeout = Constants.TIME_OUT;
+
+    /**
+     * Isolation strategy to use when executing a hystrix command
+     */
+    private int executionIsolationStrategy = HystrixIsolationModeEnum.SEMAPHORE.getCode();
+
+    /**
+     * hystrix thread pool config
+     */
+    private HystrixThreadPoolConfig hystrixThreadPoolConfig;
+
+
 }

@@ -254,5 +254,26 @@ public interface Constants {
      */
     default void findConstants() {
     }
+
+    /**
+     * hystrix thead pool core size
+     */
+    int HYSTRIX_THREAD_POOL_CORE_SIZE = 10;
+
+    /**
+     * hystrix thread pool max size
+     */
+    int HYSTRIX_THREAD_POOL_MAX_SIZE = 10;
+
+    /**
+     * hystrix thread pool queue size
+     */
+    int HYSTRIX_THREAD_POOL_QUEUE_SIZE = 12;
+    /**
+     * hystrix thread pool keep alive time minutes
+     */
+    int HYSTRIX_THREAD_KEEP_ALIVE_TIME_MINUTE = 1;
+
+
 }
 
