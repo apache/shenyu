@@ -17,14 +17,9 @@
 
 package org.dromara.soul.plugin.sync.data.weboscket.handler;
 
+import java.util.EnumMap;
 import java.util.List;
-import org.apache.commons.collections4.CollectionUtils;
-import org.dromara.soul.common.dto.AppAuthData;
-import org.dromara.soul.common.dto.MetaData;
-import org.dromara.soul.common.dto.PluginData;
-import org.dromara.soul.common.dto.RuleData;
-import org.dromara.soul.common.dto.SelectorData;
-import org.dromara.soul.common.enums.DataEventTypeEnum;
+import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.sync.data.api.AuthDataSubscriber;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
@@ -36,166 +31,33 @@ import org.dromara.soul.sync.data.api.PluginDataSubscriber;
  */
 public class WebsocketDataHandler {
     
-    private final PluginDataSubscriber pluginDataSubscriber;
-    
-    private final List<MetaDataSubscriber> metaDataSubscribers;
-    
-    private final List<AuthDataSubscriber> authDataSubscribers;
+    private static final EnumMap<ConfigGroupEnum, DataHandler> ENUM_MAP = new EnumMap<>(ConfigGroupEnum.class);
     
     /**
      * Instantiates a new Websocket data handler.
      *
      * @param pluginDataSubscriber the plugin data subscriber
-     * @param metaDataSubscribers   the meta data subscribers
-     * @param authDataSubscribers   the auth data subscribers
+     * @param metaDataSubscribers  the meta data subscribers
+     * @param authDataSubscribers  the auth data subscribers
      */
     public WebsocketDataHandler(final PluginDataSubscriber pluginDataSubscriber,
                                 final List<MetaDataSubscriber> metaDataSubscribers,
                                 final List<AuthDataSubscriber> authDataSubscribers) {
-        this.pluginDataSubscriber = pluginDataSubscriber;
-        this.metaDataSubscribers = metaDataSubscribers;
-        this.authDataSubscribers = authDataSubscribers;
+        ENUM_MAP.put(ConfigGroupEnum.PLUGIN, new PluginDataHandler(pluginDataSubscriber));
+        ENUM_MAP.put(ConfigGroupEnum.SELECTOR, new SelectorDataHandler(pluginDataSubscriber));
+        ENUM_MAP.put(ConfigGroupEnum.RULE, new RuleDataHandler(pluginDataSubscriber));
+        ENUM_MAP.put(ConfigGroupEnum.APP_AUTH, new AuthDataHandler(authDataSubscribers));
+        ENUM_MAP.put(ConfigGroupEnum.META_DATA, new MetaDataHandler(metaDataSubscribers));
     }
     
     /**
-     * Handle plugin.
+     * Executor.
      *
-     * @param pluginDataList the plugin data list
-     * @param eventType      the event type
+     * @param type      the type
+     * @param json      the json
+     * @param eventType the event type
      */
-    public void handlePlugin(final List<PluginData> pluginDataList, final String eventType) {
-        if (CollectionUtils.isNotEmpty(pluginDataList)) {
-            DataEventTypeEnum eventTypeEnum = DataEventTypeEnum.acquireByName(eventType);
-            switch (eventTypeEnum) {
-                case REFRESH:
-                case MYSELF:
-                    pluginDataSubscriber.refreshPluginData();
-                    pluginDataList.forEach(pluginDataSubscriber::onSubscribe);
-                    break;
-                case UPDATE:
-                case CREATE:
-                    pluginDataList.forEach(pluginDataSubscriber::onSubscribe);
-                    break;
-                case DELETE:
-                    pluginDataList.forEach(pluginDataSubscriber::unSubscribe);
-                    break;
-                default:
-                    break;
-            }
-    
-        }
+    public void executor(final ConfigGroupEnum type, final String json, final String eventType) {
+        ENUM_MAP.get(type).handle(json, eventType);
     }
-    
-    /**
-     * Handle selector.
-     *
-     * @param selectorDataList the selector data list
-     * @param eventType        the event type
-     */
-    public void handleSelector(final List<SelectorData> selectorDataList, final String eventType) {
-        if (CollectionUtils.isNotEmpty(selectorDataList)) {
-            DataEventTypeEnum eventTypeEnum = DataEventTypeEnum.acquireByName(eventType);
-            switch (eventTypeEnum) {
-                case REFRESH:
-                case MYSELF:
-                    pluginDataSubscriber.refreshSelectorData();
-                    selectorDataList.forEach(pluginDataSubscriber::onSelectorSubscribe);
-                    break;
-                case UPDATE:
-                case CREATE:
-                    selectorDataList.forEach(pluginDataSubscriber::onSelectorSubscribe);
-                    break;
-                case DELETE:
-                    selectorDataList.forEach(pluginDataSubscriber::unSelectorSubscribe);
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-    
-    /**
-     * Handle rule.
-     *
-     * @param ruleDataList the rule data list
-     * @param eventType    the event type
-     */
-    public void handleRule(final List<RuleData> ruleDataList, final String eventType) {
-        if (CollectionUtils.isNotEmpty(ruleDataList)) {
-            DataEventTypeEnum eventTypeEnum = DataEventTypeEnum.acquireByName(eventType);
-            switch (eventTypeEnum) {
-                case REFRESH:
-                case MYSELF:
-                    pluginDataSubscriber.refreshRuleData();
-                    ruleDataList.forEach(pluginDataSubscriber::onRuleSubscribe);
-                    break;
-                case UPDATE:
-                case CREATE:
-                    ruleDataList.forEach(pluginDataSubscriber::onRuleSubscribe);
-                    break;
-                case DELETE:
-                    ruleDataList.forEach(pluginDataSubscriber::unRuleSubscribe);
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-    
-    /**
-     * Handle app auth.
-     *
-     * @param appAuthDataList the app auth data list
-     * @param eventType       the event type
-     */
-    public void handleAppAuth(final List<AppAuthData> appAuthDataList, final String eventType) {
-        if (CollectionUtils.isNotEmpty(appAuthDataList)) {
-            DataEventTypeEnum eventTypeEnum = DataEventTypeEnum.acquireByName(eventType);
-            switch (eventTypeEnum) {
-                case REFRESH:
-                case MYSELF:
-                    authDataSubscribers.forEach(AuthDataSubscriber::refresh);
-                    appAuthDataList.forEach(appAuthData -> authDataSubscribers.forEach(authDataSubscriber -> authDataSubscriber.onSubscribe(appAuthData)));
-                    break;
-                case UPDATE:
-                case CREATE:
-                    appAuthDataList.forEach(appAuthData -> authDataSubscribers.forEach(authDataSubscriber -> authDataSubscriber.onSubscribe(appAuthData)));
-                    break;
-                case DELETE:
-                    appAuthDataList.forEach(appAuthData -> authDataSubscribers.forEach(authDataSubscriber -> authDataSubscriber.unSubscribe(appAuthData)));
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-    
-    /**
-     * Handle meta data.
-     *
-     * @param metaDataList the meta data list
-     * @param eventType    the event type
-     */
-    public void handleMetaData(final List<MetaData> metaDataList, final String eventType) {
-        if (CollectionUtils.isNotEmpty(metaDataList)) {
-            DataEventTypeEnum eventTypeEnum = DataEventTypeEnum.acquireByName(eventType);
-            switch (eventTypeEnum) {
-                case REFRESH:
-                case MYSELF:
-                    metaDataSubscribers.forEach(MetaDataSubscriber::refresh);
-                    metaDataList.forEach(metaData -> metaDataSubscribers.forEach(metaDataSubscriber -> metaDataSubscriber.onSubscribe(metaData)));
-                    break;
-                case UPDATE:
-                case CREATE:
-                    metaDataList.forEach(metaData -> metaDataSubscribers.forEach(metaDataSubscriber -> metaDataSubscriber.onSubscribe(metaData)));
-                    break;
-                case DELETE:
-                    metaDataList.forEach(metaData -> metaDataSubscribers.forEach(metaDataSubscriber -> metaDataSubscriber.unSubscribe(metaData)));
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-    
 }
