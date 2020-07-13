@@ -36,7 +36,7 @@ public class RewritePluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin signPlugin() {
+    public SoulPlugin rewritePlugin() {
         return new RewritePlugin();
     }
 }

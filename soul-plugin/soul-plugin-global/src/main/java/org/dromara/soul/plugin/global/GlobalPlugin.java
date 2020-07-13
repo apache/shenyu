@@ -19,6 +19,7 @@ package org.dromara.soul.plugin.global;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
@@ -76,6 +77,6 @@ public class GlobalPlugin implements SoulPlugin {
     
     @Override
     public String named() {
-        return "global";
+        return PluginEnum.GLOBAL.getName();
     }
 }

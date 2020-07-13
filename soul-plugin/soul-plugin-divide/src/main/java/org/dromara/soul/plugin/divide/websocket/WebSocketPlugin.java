@@ -18,12 +18,6 @@
 
 package org.dromara.soul.plugin.divide.websocket;
 
-import java.net.URI;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.common.constant.Constants;
@@ -53,6 +47,13 @@ import org.springframework.web.reactive.socket.server.WebSocketService;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
+
+import java.net.URI;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * The type Web socket plugin.
@@ -132,7 +133,7 @@ public class WebSocketPlugin extends AbstractSoulPlugin {
     
     @Override
     public String named() {
-        return PluginEnum.DIVIDE.getName();
+        return PluginEnum.WEB_SOCKET.getName();
     }
     
     /**
