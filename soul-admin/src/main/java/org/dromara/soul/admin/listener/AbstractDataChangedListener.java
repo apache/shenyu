@@ -17,6 +17,7 @@
 
 package org.dromara.soul.admin.listener;
 
+import com.google.gson.reflect.TypeToken;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.admin.service.AppAuthService;
 import org.dromara.soul.admin.service.MetaDataService;
@@ -40,6 +41,7 @@ import org.springframework.beans.factory.InitializingBean;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 
 /**
@@ -57,7 +59,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
     /**
      * The constant CACHE.
      */
-    protected static final ConcurrentHashMap<String, ConfigDataCache> CACHE = new ConcurrentHashMap<>();
+    protected static final ConcurrentMap<String, ConfigDataCache> CACHE = new ConcurrentHashMap<>();
     
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDataChangedListener.class);
     
@@ -95,15 +97,25 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         ConfigDataCache config = CACHE.get(groupKey.name());
         switch (groupKey) {
             case APP_AUTH:
-                return new ConfigData<>(config.getMd5(), config.getLastModifyTime(), appAuthService.listAll());
+                List<AppAuthData> appAuthList = GsonUtils.getGson().fromJson(config.getJson(), new TypeToken<List<AppAuthData>>() {
+                }.getType());
+                return new ConfigData<>(config.getMd5(), config.getLastModifyTime(), appAuthList);
             case PLUGIN:
-                return new ConfigData<>(config.getMd5(), config.getLastModifyTime(), pluginService.listAll());
+                List<PluginData> pluginList = GsonUtils.getGson().fromJson(config.getJson(), new TypeToken<List<PluginData>>() {
+                }.getType());
+                return new ConfigData<>(config.getMd5(), config.getLastModifyTime(), pluginList);
             case RULE:
-                return new ConfigData<>(config.getMd5(), config.getLastModifyTime(), ruleService.listAll());
+                List<RuleData> ruleList = GsonUtils.getGson().fromJson(config.getJson(), new TypeToken<List<RuleData>>() {
+                }.getType());
+                return new ConfigData<>(config.getMd5(), config.getLastModifyTime(), ruleList);
             case SELECTOR:
-                return new ConfigData<>(config.getMd5(), config.getLastModifyTime(), selectorService.listAll());
+                List<SelectorData> selectorList = GsonUtils.getGson().fromJson(config.getJson(), new TypeToken<List<SelectorData>>() {
+                }.getType());
+                return new ConfigData<>(config.getMd5(), config.getLastModifyTime(), selectorList);
             case META_DATA:
-                return new ConfigData<>(config.getMd5(), config.getLastModifyTime(), metaDataService.listAll());
+                List<MetaData> metaList = GsonUtils.getGson().fromJson(config.getJson(), new TypeToken<List<MetaData>>() {
+                }.getType());
+                return new ConfigData<>(config.getMd5(), config.getLastModifyTime(), metaList);
             default:
                 throw new IllegalStateException("Unexpected groupKey: " + groupKey);
         }
@@ -207,51 +219,56 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         updateRuleCache();
         updateSelectorCache();
         updateMetaDataCache();
+        afterInitialize();
+    }
+
+    protected abstract void afterInitialize();
+
+    /**
+     * if md5 is not the same as the original, then update lcoal cache.
+     * @param group ConfigGroupEnum
+     * @param data the new config data
+     */
+    protected <T> void updateCache(final ConfigGroupEnum group, final List<T> data) {
+        String json = GsonUtils.getInstance().toJson(data);
+        ConfigDataCache newVal = new ConfigDataCache(group.name(), json, Md5Utils.md5(json), System.currentTimeMillis());
+        ConfigDataCache oldVal = CACHE.put(newVal.getGroup(), newVal);
+        LOGGER.info("update config cache[{}], old:{}, updated:{}", group, oldVal, newVal);
     }
     
     /**
      * Update selector cache.
      */
     protected void updateSelectorCache() {
-        String json = GsonUtils.getInstance().toJson(selectorService.listAll());
-        String group = ConfigGroupEnum.SELECTOR.name();
-        CACHE.put(group, new ConfigDataCache(group, Md5Utils.md5(json), System.currentTimeMillis()));
+        this.updateCache(ConfigGroupEnum.SELECTOR, selectorService.listAll());
     }
     
     /**
      * Update rule cache.
      */
     protected void updateRuleCache() {
-        String json = GsonUtils.getInstance().toJson(ruleService.listAll());
-        String group = ConfigGroupEnum.RULE.name();
-        CACHE.put(group, new ConfigDataCache(group, Md5Utils.md5(json), System.currentTimeMillis()));
+        this.updateCache(ConfigGroupEnum.RULE, ruleService.listAll());
     }
     
     /**
      * Update plugin cache.
      */
     protected void updatePluginCache() {
-        String json = GsonUtils.getInstance().toJson(pluginService.listAll());
-        String group = ConfigGroupEnum.PLUGIN.name();
-        CACHE.put(group, new ConfigDataCache(group, Md5Utils.md5(json), System.currentTimeMillis()));
+        this.updateCache(ConfigGroupEnum.PLUGIN, pluginService.listAll());
     }
     
     /**
      * Update app auth cache.
      */
     protected void updateAppAuthCache() {
-        String json = GsonUtils.getInstance().toJson(appAuthService.listAll());
-        String group = ConfigGroupEnum.APP_AUTH.name();
-        CACHE.put(group, new ConfigDataCache(group, Md5Utils.md5(json), System.currentTimeMillis()));
+        this.updateCache(ConfigGroupEnum.APP_AUTH, appAuthService.listAll());
     }
     
     /**
      * Update meta data cache.
      */
     protected void updateMetaDataCache() {
-        String json = GsonUtils.getInstance().toJson(metaDataService.listAll());
-        String group = ConfigGroupEnum.META_DATA.name();
-        CACHE.put(group, new ConfigDataCache(group, Md5Utils.md5(json), System.currentTimeMillis()));
+        this.updateCache(ConfigGroupEnum.META_DATA, metaDataService.listAll());
     }
     
 }
