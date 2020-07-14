@@ -32,6 +32,10 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
+import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
+import org.dromara.soul.common.constant.Constants;
+
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.net.URLDecoder;
@@ -41,9 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListMap;
-import lombok.SneakyThrows;
-import org.apache.commons.lang3.StringUtils;
-import org.dromara.soul.common.constant.Constants;
 
 /**
  * GSONUtils.
@@ -58,7 +59,6 @@ public class GsonUtils {
      * The constant STRING.
      */
     private static final TypeAdapter<String> STRING = new TypeAdapter<String>() {
-        
         @SneakyThrows
         public void write(final JsonWriter out, final String value) {
             if (StringUtils.isBlank(value)) {
@@ -86,6 +86,15 @@ public class GsonUtils {
     private static final String DOT = ".";
     
     private static final String E = "e";
+
+    /**
+     * Gets gson instance.
+     *
+     * @return the instance
+     */
+    public static Gson getGson() {
+        return GsonUtils.GSON;
+    }
     
     /**
      * Gets instance.

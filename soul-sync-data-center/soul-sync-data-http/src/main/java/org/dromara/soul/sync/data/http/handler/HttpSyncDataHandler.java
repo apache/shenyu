@@ -17,7 +17,6 @@
 
 package org.dromara.soul.sync.data.http.handler;
 
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.common.dto.AppAuthData;
@@ -28,6 +27,8 @@ import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.sync.data.api.AuthDataSubscriber;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
+
+import java.util.List;
 
 /**
  * The type Http cache handler.
@@ -125,7 +126,7 @@ public class HttpSyncDataHandler {
      */
     public void flushMetaData(final List<MetaData> metaDataList) {
         if (CollectionUtils.isEmpty(metaDataList)) {
-            log.info("clear all metaData cache}");
+            log.info("clear all metaData cache");
             metaDataSubscribers.forEach(MetaDataSubscriber::refresh);
         } else {
             metaDataList.forEach(metaData -> metaDataSubscribers.forEach(subscriber -> subscriber.onSubscribe(metaData)));

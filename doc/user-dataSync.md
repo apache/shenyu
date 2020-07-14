@@ -34,12 +34,7 @@ description: 使用不同的数据同步策略
   #urls:是指 soul-admin的地址，如果有多个，请使用（,）分割.
    ```
 
-* soul-admin 配置, 或在 soul-admin 启动参数中设置 `--soul.sync.websocket='' `,然后重启服务。
-```yaml
-soul:
-  sync:
-     websocket:
-```
+* soul-admin 配置, 默认是开启 websocket 同步的，如果您想关闭，请指定`soul.sync.websocket.enabled=false`
 
 * 当建立连接以后会全量获取一次数据，以后的数据都是增量的更新与新增，性能好。
 
@@ -106,18 +101,18 @@ soul:
                url: http://localhost:9095
   #url: 配置成你的 soul-admin的 ip与端口地址，多个admin集群环境请使用（,）分隔。
    ```
-* soul-admin 配置, 或在 soul-admin 启动参数中设置 `--soul.sync.http='' `,然后重启服务。
+* soul-admin 配置, 默认是开启 http 同步的，如果您想关闭，请指定`soul.sync.http.enabled=false`
 ```yaml
 soul:
   sync:
      http:
+       refresh-interval: 5m # 默认5min刷新一次本地缓存
+       enabled: true # 默认启用http同步策略
 ```
 
 * http长轮询使得网关很轻量，时效性略低。 
 
 * 其根据分组key来拉取，如果数据量过大，过多，会有一定的影响。 什么意思呢？就是一个组下面的一个小地方更改，会拉取整个的组数据。
-
-* 在soul-admin 集群时候，可能会有bug。
 
 ## nacos同步
 

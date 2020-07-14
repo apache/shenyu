@@ -58,9 +58,9 @@ public class ConfigController {
      */
     @GetMapping("/fetch")
     public SoulAdminResult fetchConfigs(@NotNull final String[] groupKeys) {
-        Map<String, ConfigData> result = Maps.newConcurrentMap();
+        Map<String, ConfigData<?>> result = Maps.newHashMap();
         for (String groupKey : groupKeys) {
-            ConfigData data = longPollingListener.fetchConfig(ConfigGroupEnum.valueOf(groupKey));
+            ConfigData<?> data = longPollingListener.fetchConfig(ConfigGroupEnum.valueOf(groupKey));
             result.put(groupKey, data);
         }
         return SoulAdminResult.success("success", result);

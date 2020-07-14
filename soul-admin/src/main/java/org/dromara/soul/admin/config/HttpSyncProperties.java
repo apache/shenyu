@@ -6,32 +6,40 @@
  *   (the "License"); you may not use this file except in compliance with
  *   the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
  *   Unless required by applicable law or agreed to in writing, software
  *   distributed under the License is distributed on an "AS IS" BASIS,
  *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
- *
  */
 
 package org.dromara.soul.admin.config;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import lombok.Data;
+import java.time.Duration;
 
 /**
- * The type Nacos config.
+ * the http sync strategy properties.
+ * @author huangxiaofeng
  */
-@Data
-@ConfigurationProperties(prefix = "soul.sync.nacos")
-public class NacosConfig {
-    
-    private String url;
-    
-    private String namespace;
-    
-    private NacosACMConfig acm;
+@Getter
+@Setter
+@ConfigurationProperties(prefix = "soul.sync.http")
+public class HttpSyncProperties {
+
+    /**
+     * 是否开启 http 同步策略, default: true.
+     */
+    private boolean enabled = true;
+
+    /**
+     * Periodically refresh the config data interval from the database, default: 5 minutes.
+     */
+    private Duration refreshInterval = Duration.ofMinutes(5);
+
 }
