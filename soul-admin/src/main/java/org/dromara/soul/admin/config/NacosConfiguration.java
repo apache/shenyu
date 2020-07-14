@@ -18,43 +18,44 @@
 
 package org.dromara.soul.admin.config;
 
-import java.util.Properties;
-
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-
 import com.alibaba.nacos.api.NacosFactory;
 import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.config.ConfigService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+
+import java.util.Properties;
 
 /**
  * Nacos configuration.
  *
  * @author xiaoyu
  */
-@EnableConfigurationProperties(NacosConfig.class)
+@EnableConfigurationProperties(NacosProperties.class)
 public class NacosConfiguration {
     
     /**
      * register configService in spring ioc.
      *
-     * @param nacosConfig the nacos configuration
+     * @param nacosProp the nacos configuration
      * @return ConfigService {@linkplain ConfigService}
      * @throws Exception the exception
      */
     @Bean
-    public ConfigService nacosConfigService(final NacosConfig nacosConfig) throws Exception {
+    @ConditionalOnMissingBean(ConfigService.class)
+    public ConfigService nacosConfigService(final NacosProperties nacosProp) throws Exception {
         Properties properties = new Properties();
-        if (nacosConfig.getAcm() != null && nacosConfig.getAcm().isEnabled()) {
+        if (nacosProp.getAcm() != null && nacosProp.getAcm().isEnabled()) {
             //使用阿里云ACM服务
-            properties.put(PropertyKeyConst.ENDPOINT, nacosConfig.getAcm().getEndpoint());
-            properties.put(PropertyKeyConst.NAMESPACE, nacosConfig.getAcm().getNamespace());
+            properties.put(PropertyKeyConst.ENDPOINT, nacosProp.getAcm().getEndpoint());
+            properties.put(PropertyKeyConst.NAMESPACE, nacosProp.getAcm().getNamespace());
             //使用子账户ACM管理权限
-            properties.put(PropertyKeyConst.ACCESS_KEY, nacosConfig.getAcm().getAccessKey());
-            properties.put(PropertyKeyConst.SECRET_KEY, nacosConfig.getAcm().getSecretKey());
+            properties.put(PropertyKeyConst.ACCESS_KEY, nacosProp.getAcm().getAccessKey());
+            properties.put(PropertyKeyConst.SECRET_KEY, nacosProp.getAcm().getSecretKey());
         } else {
-            properties.put(PropertyKeyConst.SERVER_ADDR, nacosConfig.getUrl());
-            properties.put(PropertyKeyConst.NAMESPACE, nacosConfig.getNamespace());
+            properties.put(PropertyKeyConst.SERVER_ADDR, nacosProp.getUrl());
+            properties.put(PropertyKeyConst.NAMESPACE, nacosProp.getNamespace());
         }
         return NacosFactory.createConfigService(properties);
     }

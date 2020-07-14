@@ -28,7 +28,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @Data
 @ConfigurationProperties(prefix = "soul.sync.zookeeper")
-public class ZookeeperConfig {
+public class ZookeeperProperties {
 
     private String url;
 
