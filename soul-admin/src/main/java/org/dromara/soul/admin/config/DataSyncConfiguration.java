@@ -103,6 +103,7 @@ public class DataSyncConfiguration {
      */
     @Configuration
     @ConditionalOnProperty(name = "soul.sync.websocket.enabled", havingValue = "true", matchIfMissing = true)
+    @EnableConfigurationProperties(WebsocketSyncProperties.class)
     static class WebsocketListener {
     
         /**
