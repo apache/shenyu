@@ -18,11 +18,16 @@ management:
       enabled: false
 
 soul :
+    file:
+      enabled: true
+    corss:
+      enabled: true
     dubbo :
       parameter: multi
     sync:
         websocket :
              urls: ws://localhost:9095/websocket
+
 #        zookeeper:
 #             url: localhost:2181
 #             sessionTimeout: 5000
