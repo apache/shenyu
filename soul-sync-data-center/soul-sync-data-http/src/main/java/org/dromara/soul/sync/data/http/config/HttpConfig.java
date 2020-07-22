@@ -19,6 +19,9 @@ package org.dromara.soul.sync.data.http.config;
 
 import lombok.Data;
 
+/**
+ * The type Http config.
+ */
 @Data
 public class HttpConfig {
     

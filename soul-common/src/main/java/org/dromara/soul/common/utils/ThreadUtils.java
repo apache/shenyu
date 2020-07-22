@@ -15,36 +15,29 @@
  *   limitations under the License.
  */
 
-package org.dromara.soul.common.dto;
+package org.dromara.soul.common.utils;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.Accessors;
-import org.dromara.soul.common.utils.GsonUtils;
-
-import java.io.Serializable;
-import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
- * Data set, including {@link AppAuthData}、{@link ConditionData}、{@link PluginData}、{@link RuleData}、{@link SelectorData}.
+ * thread utils.
  * @author huangxiaofeng
- * @since 2.0.0
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Accessors(chain = true)
-public class ConfigData<T> implements Serializable {
+public class ThreadUtils {
 
-    private String md5;
 
-    private long lastModifyTime;
-
-    private List<T> data;
-
-    @Override
-    public String toString() {
-        return GsonUtils.getInstance().toJson(this);
+    /**
+     * sleep current thread.
+     *
+     * @param timeUnit the time unit
+     * @param time     the time
+     */
+    public static void sleep(final TimeUnit timeUnit, final int time) {
+        try {
+            timeUnit.sleep(time);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
     }
+
 }

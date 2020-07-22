@@ -22,6 +22,7 @@ package org.dromara.soul.admin.listener.http;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.dromara.soul.admin.config.HttpSyncProperties;
 import org.dromara.soul.admin.listener.AbstractDataChangedListener;
 import org.dromara.soul.admin.listener.ConfigDataCache;
 import org.dromara.soul.admin.result.SoulAdminResult;
@@ -54,6 +55,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * HTTP long polling, which blocks the client's request thread
@@ -75,6 +77,8 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
 
     private static final String X_FORWARDED_FOR_SPLIT_SYMBOL = ",";
 
+    private static final ReentrantLock LOCK = new ReentrantLock();
+
     /**
      * Blocked client.
      */
@@ -82,24 +86,42 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
 
     private final ScheduledExecutorService scheduler;
 
+    private final HttpSyncProperties httpSyncProperties;
+
 
     /**
      * Instantiates a new Http long polling data changed listener.
+     * @param httpSyncProperties the HttpSyncProperties
      */
-    public HttpLongPollingDataChangedListener() {
+    public HttpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties) {
         this.clients = new ArrayBlockingQueue<>(1024);
         this.scheduler = new ScheduledThreadPoolExecutor(1,
                 SoulThreadFactory.create("long-polling", true));
+        this.httpSyncProperties = httpSyncProperties;
+    }
 
+    @Override
+    protected void afterInitialize() {
+        long syncInterval = httpSyncProperties.getRefreshInterval().toMillis();
         // Periodically check the data for changes and update the cache
         scheduler.scheduleWithFixedDelay(() -> {
-            this.updateAppAuthCache();
-            this.updatePluginCache();
-            this.updateRuleCache();
-            this.updateSelectorCache();
-            this.updateMetaDataCache();
-        }, 300, 300, TimeUnit.SECONDS);
+            LOGGER.info("http sync strategy refresh config start.");
+            try {
+                this.refreshLocalCache();
+                LOGGER.info("http sync strategy refresh config success.");
+            } catch (Exception e) {
+                LOGGER.error("http sync strategy refresh config error!", e);
+            }
+        }, syncInterval, syncInterval, TimeUnit.MILLISECONDS);
+        LOGGER.info("http sync strategy refresh interval: {}ms", syncInterval);
+    }
 
+    private void refreshLocalCache() {
+        this.updateAppAuthCache();
+        this.updatePluginCache();
+        this.updateRuleCache();
+        this.updateSelectorCache();
+        this.updateMetaDataCache();
     }
 
     /**
@@ -112,7 +134,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
     public void doLongPolling(final HttpServletRequest request, final HttpServletResponse response) {
 
         // compare group md5
-        List<ConfigGroupEnum> changedGroup = compareMD5(request);
+        List<ConfigGroupEnum> changedGroup = compareChangedGroup(request);
         String clientIp = getRemoteIp(request);
 
         // response immediately.
@@ -157,7 +179,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         scheduler.execute(new DataChangeTask(ConfigGroupEnum.SELECTOR));
     }
 
-    private static List<ConfigGroupEnum> compareMD5(final HttpServletRequest request) {
+    private List<ConfigGroupEnum> compareChangedGroup(final HttpServletRequest request) {
         List<ConfigGroupEnum> changedGroup = new ArrayList<>(4);
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
             // md5,lastModifyTime
@@ -168,11 +190,64 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             String clientMd5 = params[0];
             long clientModifyTime = NumberUtils.toLong(params[1]);
             ConfigDataCache serverCache = CACHE.get(group.name());
-            if (!StringUtils.equals(clientMd5, serverCache.getMd5()) && clientModifyTime < serverCache.getLastModifyTime()) {
+            // do check.
+            if (this.checkCacheDelayAndUpdate(serverCache, clientMd5, clientModifyTime)) {
                 changedGroup.add(group);
             }
         }
         return changedGroup;
+    }
+
+    /**
+     * check whether the client needs to update the cache.
+     * @param serverCache the admin local cache
+     * @param clientMd5 the client md5 value
+     * @param clientModifyTime the client last modify time
+     * @return true: the client needs to be updated, false: not need.
+     */
+    private boolean checkCacheDelayAndUpdate(final ConfigDataCache serverCache, final String clientMd5, final long clientModifyTime) {
+
+        // is the same, doesn't need to be updated
+        if (StringUtils.equals(clientMd5, serverCache.getMd5())) {
+            return false;
+        }
+
+        // if the md5 value is different, it is necessary to compare lastModifyTime.
+        long lastModifyTime = serverCache.getLastModifyTime();
+        if (lastModifyTime >= clientModifyTime) {
+            // the client's config is out of date.
+            return true;
+        }
+
+        // the lastModifyTime before client, then the local cache needs to be updated.
+        // Considering the concurrency problem, admin must lock,
+        // otherwise it may cause the request from soul-web to update the cache concurrently, causing excessive db pressure
+        boolean locked = false;
+        try {
+            locked = LOCK.tryLock(5, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return true;
+        }
+        if (locked) {
+            try {
+                ConfigDataCache latest = CACHE.get(serverCache.getGroup());
+                if (latest != serverCache) {
+                    // the cache of admin was updated. if the md5 value is the same, there's no need to update.
+                    return !StringUtils.equals(clientMd5, latest.getMd5());
+                }
+                // load cache from db.
+                this.refreshLocalCache();
+                latest = CACHE.get(serverCache.getGroup());
+                return !StringUtils.equals(clientMd5, latest.getMd5());
+            } finally {
+                LOCK.unlock();
+            }
+        }
+
+        // not locked, the client need to be updated.
+        return true;
+
     }
 
     /**
@@ -186,7 +261,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             response.setHeader("Pragma", "no-cache");
             response.setDateHeader("Expires", 0);
             response.setHeader("Cache-Control", "no-cache,no-store");
-            response.setContentType(MediaType.APPLICATION_JSON_UTF8_VALUE);
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setStatus(HttpServletResponse.SC_OK);
             response.getWriter().println(GsonUtils.getInstance().toJson(SoulAdminResult.success("success", changedGroups)));
         } catch (IOException ex) {
@@ -290,7 +365,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         public void run() {
             this.asyncTimeoutFuture = scheduler.schedule(() -> {
                 clients.remove(LongPollingClient.this);
-                List<ConfigGroupEnum> changedGroups = HttpLongPollingDataChangedListener.compareMD5((HttpServletRequest) asyncContext.getRequest());
+                List<ConfigGroupEnum> changedGroups = compareChangedGroup((HttpServletRequest) asyncContext.getRequest());
                 sendResponse(changedGroups);
             }, timeoutTime, TimeUnit.MILLISECONDS);
             clients.add(this);

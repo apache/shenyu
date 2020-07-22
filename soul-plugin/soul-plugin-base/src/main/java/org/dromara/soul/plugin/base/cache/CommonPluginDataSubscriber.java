@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
@@ -64,6 +65,9 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     
     @Override
     public void refreshPluginDataSelf(final List<PluginData> pluginDataList) {
+        if (CollectionUtils.isEmpty(pluginDataList)) {
+            return;
+        }
         BaseDataCache.getInstance().cleanPluginDataSelf(pluginDataList);
     }
     
@@ -86,6 +90,9 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     
     @Override
     public void refreshSelectorDataSelf(final List<SelectorData> selectorDataList) {
+        if (CollectionUtils.isEmpty(selectorDataList)) {
+            return;
+        }
         BaseDataCache.getInstance().cleanSelectorDataSelf(selectorDataList);
     }
     
@@ -108,6 +115,9 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     
     @Override
     public void refreshRuleDataSelf(final List<RuleData> ruleDataList) {
+        if (CollectionUtils.isEmpty(ruleDataList)) {
+            return;
+        }
         BaseDataCache.getInstance().cleanRuleDataSelf(ruleDataList);
     }
 }

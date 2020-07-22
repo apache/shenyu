@@ -33,20 +33,17 @@ public enum ConfigGroupEnum {
      * App auth config group enum.
      */
     APP_AUTH,
-
-
+    
     /**
      * Plugin config group enum.
      */
     PLUGIN,
-
-
+    
     /**
      * Rule config group enum.
      */
     RULE,
-
-
+    
     /**
      * Selector config group enum.
      */
