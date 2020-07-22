@@ -33,6 +33,8 @@ public class ConfigDataCache {
 
     private volatile String md5;
 
+    private final String json;
+
     private volatile long lastModifyTime;
 
     /**
@@ -42,8 +44,9 @@ public class ConfigDataCache {
      * @param md5            the md 5
      * @param lastModifyTime the last modify time
      */
-    ConfigDataCache(final String group, final String md5, final long lastModifyTime) {
+    ConfigDataCache(final String group, final String json, final String md5, final long lastModifyTime) {
         this.group = group;
+        this.json = json;
         this.md5 = md5;
         this.lastModifyTime = lastModifyTime;
     }
@@ -84,5 +87,25 @@ public class ConfigDataCache {
      */
     public long getLastModifyTime() {
         return lastModifyTime;
+    }
+
+
+    /**
+     * Gets json.
+     *
+     * @return the json
+     */
+    public String getJson() {
+        return json;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("{");
+        sb.append("group='").append(group).append('\'');
+        sb.append(", md5='").append(md5).append('\'');
+        sb.append(", lastModifyTime=").append(lastModifyTime);
+        sb.append('}');
+        return sb.toString();
     }
 }
