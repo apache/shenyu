@@ -48,6 +48,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
+import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.WebFilter;
 
 /**
@@ -75,7 +76,16 @@ public class SoulConfiguration {
         soulPlugins.forEach(soulPlugin -> log.info("loader plugin:[{}] [{}]", soulPlugin.named(), soulPlugin.getClass().getName()));
         return new SoulWebHandler(soulPlugins);
     }
-    
+
+    /**
+     * init dispatch handler.
+     * @return {@link DispatcherHandler}.
+     */
+    @Bean("dispatcherHandler")
+    public DispatcherHandler dispatcherHandler() {
+        return new DispatcherHandler();
+    }
+
     /**
      * Plugin data subscriber plugin data subscriber.
      *

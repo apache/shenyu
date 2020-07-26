@@ -49,7 +49,7 @@ import java.util.Objects;
  */
 @Slf4j
 public class HystrixPlugin extends AbstractSoulPlugin {
-    
+
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
         final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
@@ -61,7 +61,7 @@ public class HystrixPlugin extends AbstractSoulPlugin {
         if (StringUtils.isBlank(hystrixHandle.getCommandKey())) {
             hystrixHandle.setCommandKey(Objects.requireNonNull(soulContext).getMethod());
         }
-        Command command = fetchCommand(hystrixHandle,exchange,chain);
+        Command command = fetchCommand(hystrixHandle, exchange, chain);
         return Mono.create(s -> {
             Subscription sub = command.fetchObservable().subscribe(s::success,
                     s::error, s::success);
@@ -76,11 +76,13 @@ public class HystrixPlugin extends AbstractSoulPlugin {
         }).then();
     }
 
-    private Command fetchCommand(HystrixHandle hystrixHandle,final ServerWebExchange exchange, final SoulPluginChain chain) {
+    private Command fetchCommand(final HystrixHandle hystrixHandle, final ServerWebExchange exchange, final SoulPluginChain chain) {
         if (hystrixHandle.getExecutionIsolationStrategy() == HystrixIsolationModeEnum.SEMAPHORE.getCode()) {
-         return new HystrixCommand(HystrixBuilder.build(hystrixHandle), exchange, chain);
+            return new HystrixCommand(HystrixBuilder.build(hystrixHandle),
+                exchange, chain, hystrixHandle.getCallBackUri());
         }
-        return new HystrixCommandOnThread(HystrixBuilder.buildForHystrixCommand(hystrixHandle), exchange, chain);
+        return new HystrixCommandOnThread(HystrixBuilder.buildForHystrixCommand(hystrixHandle),
+            exchange, chain, hystrixHandle.getCallBackUri());
     }
 
     @Override
@@ -92,8 +94,5 @@ public class HystrixPlugin extends AbstractSoulPlugin {
     public int getOrder() {
         return PluginEnum.HYSTRIX.getCode();
     }
-
-
-
 
 }

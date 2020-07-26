@@ -17,7 +17,12 @@
 
 package org.dromara.soul.plugin.hystrix.builder;
 
-import com.netflix.hystrix.*;
+import com.netflix.hystrix.HystrixCommand;
+import com.netflix.hystrix.HystrixCommandGroupKey;
+import com.netflix.hystrix.HystrixCommandKey;
+import com.netflix.hystrix.HystrixCommandProperties;
+import com.netflix.hystrix.HystrixObservableCommand;
+import com.netflix.hystrix.HystrixThreadPoolProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.convert.HystrixHandle;
@@ -59,6 +64,11 @@ public class HystrixBuilder {
                 .andCommandPropertiesDefaults(propertiesSetter);
     }
 
+    /**
+     * this is build HystrixCommand.Setter.
+     * @param hystrixHandle {@linkplain HystrixHandle}
+     * @return {@linkplain HystrixCommand.Setter}
+     */
     public static HystrixCommand.Setter buildForHystrixCommand(final HystrixHandle hystrixHandle) {
         initHystrixHandleOnRequire(hystrixHandle);
         HystrixCommandGroupKey groupKey = HystrixCommandGroupKey.Factory.asKey(hystrixHandle.getGroupKey());
@@ -86,31 +96,31 @@ public class HystrixBuilder {
                 .andThreadPoolPropertiesDefaults(threadPoolPropertiesSetter);
     }
 
-   private static void initHystrixHandleOnRequire(final HystrixHandle hystrixHandle) {
-       if (hystrixHandle.getMaxConcurrentRequests() == 0) {
-           hystrixHandle.setMaxConcurrentRequests(Constants.MAX_CONCURRENT_REQUESTS);
-       }
-       if (hystrixHandle.getErrorThresholdPercentage() == 0) {
-           hystrixHandle.setErrorThresholdPercentage(Constants.ERROR_THRESHOLD_PERCENTAGE);
-       }
-       if (hystrixHandle.getRequestVolumeThreshold() == 0) {
-           hystrixHandle.setRequestVolumeThreshold(Constants.REQUEST_VOLUME_THRESHOLD);
-       }
-       if (hystrixHandle.getSleepWindowInMilliseconds() == 0) {
-           hystrixHandle.setSleepWindowInMilliseconds(Constants.SLEEP_WINDOW_INMILLISECONDS);
-       }
-       if (Objects.isNull(hystrixHandle.getHystrixThreadPoolConfig())) {
-           hystrixHandle.setHystrixThreadPoolConfig(new HystrixThreadPoolConfig());
-       }
-       HystrixThreadPoolConfig hystrixThreadPoolConfig = hystrixHandle.getHystrixThreadPoolConfig();
-       if (hystrixThreadPoolConfig.getCoreSize() == 0) {
-           hystrixThreadPoolConfig.setCoreSize(Constants.HYSTRIX_THREAD_POOL_CORE_SIZE);
-       }
-       if (hystrixThreadPoolConfig.getMaximumSize() == 0) {
-           hystrixThreadPoolConfig.setMaximumSize(Constants.HYSTRIX_THREAD_POOL_MAX_SIZE);
-       }
-       if (hystrixThreadPoolConfig.getMaxQueueSize() == 0) {
-           hystrixThreadPoolConfig.setMaxQueueSize(Constants.HYSTRIX_THREAD_POOL_QUEUE_SIZE);
-       }
-   }
+    private static void initHystrixHandleOnRequire(final HystrixHandle hystrixHandle) {
+        if (hystrixHandle.getMaxConcurrentRequests() == 0) {
+            hystrixHandle.setMaxConcurrentRequests(Constants.MAX_CONCURRENT_REQUESTS);
+        }
+        if (hystrixHandle.getErrorThresholdPercentage() == 0) {
+            hystrixHandle.setErrorThresholdPercentage(Constants.ERROR_THRESHOLD_PERCENTAGE);
+        }
+        if (hystrixHandle.getRequestVolumeThreshold() == 0) {
+            hystrixHandle.setRequestVolumeThreshold(Constants.REQUEST_VOLUME_THRESHOLD);
+        }
+        if (hystrixHandle.getSleepWindowInMilliseconds() == 0) {
+            hystrixHandle.setSleepWindowInMilliseconds(Constants.SLEEP_WINDOW_INMILLISECONDS);
+        }
+        if (Objects.isNull(hystrixHandle.getHystrixThreadPoolConfig())) {
+            hystrixHandle.setHystrixThreadPoolConfig(new HystrixThreadPoolConfig());
+        }
+        HystrixThreadPoolConfig hystrixThreadPoolConfig = hystrixHandle.getHystrixThreadPoolConfig();
+        if (hystrixThreadPoolConfig.getCoreSize() == 0) {
+            hystrixThreadPoolConfig.setCoreSize(Constants.HYSTRIX_THREAD_POOL_CORE_SIZE);
+        }
+        if (hystrixThreadPoolConfig.getMaximumSize() == 0) {
+            hystrixThreadPoolConfig.setMaximumSize(Constants.HYSTRIX_THREAD_POOL_MAX_SIZE);
+        }
+        if (hystrixThreadPoolConfig.getMaxQueueSize() == 0) {
+            hystrixThreadPoolConfig.setMaxQueueSize(Constants.HYSTRIX_THREAD_POOL_QUEUE_SIZE);
+        }
+    }
 }
