@@ -21,6 +21,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 import org.dromara.soul.common.dto.PluginData;
@@ -130,7 +131,7 @@ public final class BaseDataCache {
      */
     public void removeSelectData(final SelectorData data) {
         final List<SelectorData> selectorDataList = SELECTOR_MAP.get(data.getPluginName());
-        selectorDataList.removeIf(e -> e.getId().equals(data.getId()));
+        Optional.ofNullable(selectorDataList).ifPresent(list -> list.removeIf(e -> e.getId().equals(data.getId())));
     }
     
     /**
@@ -184,7 +185,7 @@ public final class BaseDataCache {
      */
     public void removeRuleData(final RuleData ruleData) {
         final List<RuleData> ruleDataList = RULE_MAP.get(ruleData.getSelectorId());
-        ruleDataList.removeIf(rule -> rule.getId().equals(ruleData.getId()));
+        Optional.ofNullable(ruleDataList).ifPresent(list -> list.removeIf(rule -> rule.getId().equals(ruleData.getId())));
     }
     
     /**

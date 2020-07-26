@@ -6,35 +6,37 @@
  *   (the "License"); you may not use this file except in compliance with
  *   the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
  *   Unless required by applicable law or agreed to in writing, software
  *   distributed under the License is distributed on an "AS IS" BASIS,
  *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
- *
  */
 
-package org.dromara.soul.admin.config;
+package org.dromara.soul.sync.data.http.refresh;
 
-import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import com.google.gson.JsonObject;
+import org.dromara.soul.common.dto.ConfigData;
 
 /**
- * The type Zookeeper configuration.
- *
- * @author xiaoyu(Myth)
+ * The interface Data refresh.
  */
-@Data
-@ConfigurationProperties(prefix = "soul.sync.zookeeper")
-public class ZookeeperConfig {
-
-    private String url;
-
-    private Integer sessionTimeout;
-
-    private Integer connectionTimeout;
-
-    private String serializer;
+public interface DataRefresh {
+    
+    /**
+     * Refresh boolean.
+     *
+     * @param data the data
+     * @return the boolean
+     */
+    Boolean refresh(JsonObject data);
+    
+    /**
+     * Cache config data config data.
+     *
+     * @return the config data
+     */
+    ConfigData<?> cacheConfigData();
 }

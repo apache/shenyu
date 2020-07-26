@@ -18,20 +18,23 @@
 
 package org.dromara.soul.admin.config;
 
+import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import lombok.Data;
-
 /**
- * The type Nacos config.
+ * The type Zookeeper configuration.
+ *
+ * @author xiaoyu(Myth)
  */
 @Data
-@ConfigurationProperties(prefix = "soul.sync.nacos")
-public class NacosConfig {
-    
+@ConfigurationProperties(prefix = "soul.sync.zookeeper")
+public class ZookeeperProperties {
+
     private String url;
-    
-    private String namespace;
-    
-    private NacosACMConfig acm;
+
+    private Integer sessionTimeout;
+
+    private Integer connectionTimeout;
+
+    private String serializer;
 }
