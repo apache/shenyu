@@ -15,36 +15,25 @@
  *   limitations under the License.
  */
 
-package org.dromara.soul.common.dto;
+package org.dromara.soul.admin.config;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.Accessors;
-import org.dromara.soul.common.utils.GsonUtils;
-
-import java.io.Serializable;
-import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * Data set, including {@link AppAuthData}、{@link ConditionData}、{@link PluginData}、{@link RuleData}、{@link SelectorData}.
- * @author huangxiaofeng
- * @since 2.0.0
+ * the websocket sync strategy properties.
+ *
+ * @author xiaoyu
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Accessors(chain = true)
-public class ConfigData<T> implements Serializable {
-
-    private String md5;
-
-    private long lastModifyTime;
-
-    private List<T> data;
-
-    @Override
-    public String toString() {
-        return GsonUtils.getInstance().toJson(this);
-    }
+@Getter
+@Setter
+@ConfigurationProperties(prefix = "soul.sync.websocket")
+public class WebsocketSyncProperties {
+    
+    /**
+     * default: true.
+     */
+    private boolean enabled = true;
+    
 }

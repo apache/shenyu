@@ -15,19 +15,20 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.sync.data.http.config;
+package org.dromara.soul.spi.fixture;
 
-import lombok.Data;
+import org.dromara.soul.spi.SPI;
 
 /**
- * The type Http config.
+ * The interface Jdbc spi.
  */
-@Data
-public class HttpConfig {
+@SPI
+public interface JdbcSPI {
     
-    private String url;
-    
-    private Integer delayTime;
-    
-    private Integer connectionTimeout;
+    /**
+     * Gets class name.
+     *
+     * @return the class name
+     */
+    String getClassName();
 }

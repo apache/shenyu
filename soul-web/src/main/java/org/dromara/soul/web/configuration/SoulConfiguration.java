@@ -141,6 +141,7 @@ public class SoulConfiguration {
      */
     @Bean
     @Order(-100)
+    @ConditionalOnProperty(name = "soul.cross.enabled", havingValue ="true" )
     public WebFilter crossFilter() {
         return new CrossFilter();
     }
@@ -152,6 +153,7 @@ public class SoulConfiguration {
      */
     @Bean
     @Order(-10)
+    @ConditionalOnProperty(name = "soul.file.enabled", havingValue ="true" )
     public WebFilter fileSizeFilter() {
         return new FileSizeFilter();
     }

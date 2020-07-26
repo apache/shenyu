@@ -15,36 +15,31 @@
  *   limitations under the License.
  */
 
-package org.dromara.soul.common.dto;
+package org.dromara.soul.admin.config;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.Accessors;
-import org.dromara.soul.common.utils.GsonUtils;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.io.Serializable;
-import java.util.List;
+import java.time.Duration;
 
 /**
- * Data set, including {@link AppAuthData}、{@link ConditionData}、{@link PluginData}、{@link RuleData}、{@link SelectorData}.
+ * the http sync strategy properties.
  * @author huangxiaofeng
- * @since 2.0.0
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Accessors(chain = true)
-public class ConfigData<T> implements Serializable {
+@Getter
+@Setter
+@ConfigurationProperties(prefix = "soul.sync.http")
+public class HttpSyncProperties {
 
-    private String md5;
+    /**
+     * 是否开启 http 同步策略, default: true.
+     */
+    private boolean enabled = true;
 
-    private long lastModifyTime;
+    /**
+     * Periodically refresh the config data interval from the database, default: 5 minutes.
+     */
+    private Duration refreshInterval = Duration.ofMinutes(5);
 
-    private List<T> data;
-
-    @Override
-    public String toString() {
-        return GsonUtils.getInstance().toJson(this);
-    }
 }

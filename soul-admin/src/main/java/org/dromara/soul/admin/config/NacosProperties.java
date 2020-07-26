@@ -18,28 +18,38 @@
 
 package org.dromara.soul.admin.config;
 
-import org.I0Itec.zkclient.ZkClient;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * ZookeeperConfiguration .
- *
- * @author xiaoyu(Myth)
+ * The type Nacos config.
  */
-@EnableConfigurationProperties(ZookeeperProperties.class)
-public class ZookeeperConfiguration {
+@Data
+@ConfigurationProperties(prefix = "soul.sync.nacos")
+public class NacosProperties {
     
-    /**
-     * register zkClient in spring ioc.
-     *
-     * @param zookeeperProp the zookeeper configuration
-     * @return ZkClient {@linkplain ZkClient}
-     */
-    @Bean
-    @ConditionalOnMissingBean(ZkClient.class)
-    public ZkClient zkClient(final ZookeeperProperties zookeeperProp) {
-        return new ZkClient(zookeeperProp.getUrl(), zookeeperProp.getSessionTimeout(), zookeeperProp.getConnectionTimeout());
+    private String url;
+    
+    private String namespace;
+    
+    private NacosACMProperties acm;
+
+    @Getter
+    @Setter
+    public static class NacosACMProperties {
+
+        private boolean enabled;
+
+        private String endpoint;
+
+        private String namespace;
+
+        private String accessKey;
+
+        private String secretKey;
+
     }
+
 }

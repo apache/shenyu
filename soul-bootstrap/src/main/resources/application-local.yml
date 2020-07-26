@@ -18,11 +18,16 @@ management:
       enabled: false
 
 soul :
+    file:
+      enabled: true
+    corss:
+      enabled: true
     dubbo :
       parameter: multi
     sync:
         websocket :
              urls: ws://localhost:9095/websocket
+
 #        zookeeper:
 #             url: localhost:2181
 #             sessionTimeout: 5000
@@ -40,12 +45,12 @@ soul :
 #                secretKey: 
 
 
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
-  instance:
-    prefer-ip-address: true
+#eureka:
+#  client:
+#    serviceUrl:
+#      defaultZone: http://localhost:8761/eureka/
+#  instance:
+#    prefer-ip-address: true
 
 
 logging:
