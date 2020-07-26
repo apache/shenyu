@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
- * hystrix execution isolation strategy
+ * hystrix execution isolation strategy.
  *
  * @author liangziqiang
  */
@@ -12,13 +12,13 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public enum HystrixIsolationModeEnum {
     /**
-     * thread pool mode
+     * thread pool mode.
      */
-    THREAD_POOL(0,"thread"),
+    @SuppressWarnings("checkstyle:WhitespaceAfter") THREAD_POOL(0, "thread"),
     /**
-     * semaphore mode
+     * semaphore mode.
      */
-    SEMAPHORE(1,"semaphore");
+    @SuppressWarnings("checkstyle:WhitespaceAfter") SEMAPHORE(1, "semaphore");
 
     private final int code;
 

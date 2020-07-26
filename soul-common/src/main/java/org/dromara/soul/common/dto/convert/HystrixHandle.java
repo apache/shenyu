@@ -52,12 +52,18 @@ public class HystrixHandle {
     private long timeout = Constants.TIME_OUT;
 
     /**
-     * Isolation strategy to use when executing a hystrix command
+     * call back uri.
+     * when some error occurs in hystrix invoke it will forward to this
+     */
+    private String callBackUri;
+
+    /**
+     * Isolation strategy to use when executing a hystrix command.
      */
     private int executionIsolationStrategy = HystrixIsolationModeEnum.SEMAPHORE.getCode();
 
     /**
-     * hystrix thread pool config
+     * hystrix thread pool config.
      */
     private HystrixThreadPoolConfig hystrixThreadPoolConfig;
 

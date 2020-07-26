@@ -6,7 +6,7 @@ import lombok.Setter;
 import org.dromara.soul.common.constant.Constants;
 
 /**
- * hystrix thread pool config
+ * hystrix thread pool config.
  * @author liangziqiang
  */
 @Getter
