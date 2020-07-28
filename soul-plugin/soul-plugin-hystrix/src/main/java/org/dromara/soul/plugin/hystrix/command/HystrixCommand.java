@@ -20,6 +20,7 @@ package org.dromara.soul.plugin.hystrix.command;
 import com.netflix.hystrix.HystrixObservableCommand;
 import java.net.URI;
 import org.dromara.soul.plugin.api.SoulPluginChain;
+import org.dromara.soul.plugin.base.utils.UriUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
@@ -60,7 +61,7 @@ public class HystrixCommand extends HystrixObservableCommand<Void> implements Co
         super(setter);
         this.exchange = exchange;
         this.chain = chain;
-        this.callBackUri = URI.create(callBackUri);
+        this.callBackUri = UriUtils.createUri(callBackUri);
     }
 
     @Override
