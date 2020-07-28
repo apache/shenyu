@@ -22,6 +22,7 @@ import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.common.exception.SoulException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -49,5 +50,12 @@ public class ExceptionHandlers {
             message = "系统繁忙,请稍后重试";
         }
         return SoulAdminResult.error(message);
+    }
+
+    @ResponseBody
+    @ExceptionHandler(DuplicateKeyException.class)
+    protected SoulAdminResult serverExceptionHandler(final DuplicateKeyException exception) {
+        LOGGER.error(exception.getMessage(), exception);
+        return SoulAdminResult.error("唯一索引冲突，请重新输入");
     }
 }
