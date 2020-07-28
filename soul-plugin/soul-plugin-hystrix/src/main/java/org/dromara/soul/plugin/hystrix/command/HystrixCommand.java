@@ -18,15 +18,11 @@
 package org.dromara.soul.plugin.hystrix.command;
 
 import com.netflix.hystrix.HystrixObservableCommand;
-import com.netflix.hystrix.exception.HystrixRuntimeException;
-import com.netflix.hystrix.exception.HystrixTimeoutException;
-import org.dromara.soul.plugin.api.result.SoulResultEnum;
-import org.dromara.soul.plugin.base.utils.SoulResultWarp;
+import java.net.URI;
 import org.dromara.soul.plugin.api.SoulPluginChain;
-import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
+import org.dromara.soul.plugin.base.utils.UriUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import rx.Observable;
@@ -37,7 +33,7 @@ import rx.RxReactiveStreams;
  *
  * @author xiaoyu(Myth)
  */
-public class HystrixCommand extends HystrixObservableCommand<Void> {
+public class HystrixCommand extends HystrixObservableCommand<Void> implements Command {
 
     /**
      * logger.
@@ -48,6 +44,8 @@ public class HystrixCommand extends HystrixObservableCommand<Void> {
 
     private final SoulPluginChain chain;
 
+    private final URI callBackUri;
+
     /**
      * Instantiates a new Http command.
      *
@@ -57,11 +55,13 @@ public class HystrixCommand extends HystrixObservableCommand<Void> {
      */
     public HystrixCommand(final Setter setter,
                    final ServerWebExchange exchange,
-                   final SoulPluginChain chain) {
+                   final SoulPluginChain chain,
+                   final String callBackUri) {
 
         super(setter);
         this.exchange = exchange;
         this.chain = chain;
+        this.callBackUri = UriUtils.createUri(callBackUri);
     }
 
     @Override
@@ -79,23 +79,17 @@ public class HystrixCommand extends HystrixObservableCommand<Void> {
             LOGGER.error("hystrix execute have error:", getExecutionException());
         }
         final Throwable exception = getExecutionException();
-        Object error;
-        if (exception instanceof HystrixRuntimeException) {
-            HystrixRuntimeException e = (HystrixRuntimeException) getExecutionException();
-            if (e.getFailureType() == HystrixRuntimeException.FailureType.TIMEOUT) {
-                exchange.getResponse().setStatusCode(HttpStatus.GATEWAY_TIMEOUT);
-                error = SoulResultWarp.error(SoulResultEnum.SERVICE_TIMEOUT.getCode(), SoulResultEnum.SERVICE_TIMEOUT.getMsg(), null);
-            } else {
-                exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-                error = SoulResultWarp.error(SoulResultEnum.SERVICE_RESULT_ERROR.getCode(), SoulResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
-            }
-        } else if (exception instanceof HystrixTimeoutException) {
-            exchange.getResponse().setStatusCode(HttpStatus.GATEWAY_TIMEOUT);
-            error = SoulResultWarp.error(SoulResultEnum.SERVICE_TIMEOUT.getCode(), SoulResultEnum.SERVICE_TIMEOUT.getMsg(), null);
-        } else {
-            exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            error = SoulResultWarp.error(SoulResultEnum.SERVICE_RESULT_ERROR.getCode(), SoulResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
-        }
-        return WebFluxResultUtils.result(exchange, error);
+        return doFallback(exchange, exception);
     }
+
+    @Override
+    public Observable<Void> fetchObservable() {
+        return this.toObservable();
+    }
+
+    @Override
+    public URI getCallBackUri() {
+        return callBackUri;
+    }
+
 }

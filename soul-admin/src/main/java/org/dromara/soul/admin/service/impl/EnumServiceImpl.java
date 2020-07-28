@@ -22,6 +22,7 @@ import com.google.common.collect.Maps;
 import org.dromara.soul.admin.service.EnumService;
 import org.dromara.soul.admin.vo.EnumVO;
 import org.dromara.soul.common.enums.HttpMethodEnum;
+import org.dromara.soul.common.enums.HystrixIsolationModeEnum;
 import org.dromara.soul.common.enums.LoadBalanceEnum;
 import org.dromara.soul.common.enums.MatchModeEnum;
 import org.dromara.soul.common.enums.OperatorEnum;
@@ -53,6 +54,7 @@ public class EnumServiceImpl implements EnumService {
      *
      * @return {@linkplain Map}
      */
+    @SuppressWarnings({"checkstyle:WhitespaceAfter", "checkstyle:WhitespaceAround"})
     @Override
     public Map<String, List<EnumVO>> list() {
         List<EnumVO> httpMethodEnums = Arrays.stream(HttpMethodEnum.values())
@@ -101,7 +103,9 @@ public class EnumServiceImpl implements EnumService {
         List<EnumVO> redisModeEnums = Arrays.stream(RedisModeEnum.values())
                 .map(redisModeEnum -> new EnumVO(null, redisModeEnum.getName(), true))
                 .collect(Collectors.toList());
-
+        List<EnumVO> hystrixIsolationModeEnums = Arrays.stream(HystrixIsolationModeEnum.values())
+                .map(hystrixIsolationModeEnum -> new EnumVO(hystrixIsolationModeEnum.getCode(), hystrixIsolationModeEnum.getName(), true))
+                .collect(Collectors.toList());
         Map<String, List<EnumVO>> enums = Maps.newHashMap();
         enums.put("httpMethodEnums", httpMethodEnums);
         enums.put("loadBalanceEnums", loadBalanceEnums);
@@ -115,6 +119,7 @@ public class EnumServiceImpl implements EnumService {
         enums.put("serializeEnums", serializeEnums);
         enums.put("wafEnums", wafEnums);
         enums.put("redisModeEnums", redisModeEnums);
+        enums.put("hystrixIsolationModeEnums", hystrixIsolationModeEnums);
         return enums;
     }
 }

@@ -248,11 +248,30 @@ public interface Constants {
     String COLONS = ":";
     
     String REQUEST_LATENCY = "REQUEST_LATENCY";
-    
+
+    /**
+     * hystrix thead pool core size.
+     */
+    int HYSTRIX_THREAD_POOL_CORE_SIZE = 10;
+
+    /**
+     * hystrix thread pool max size.
+     */
+    int HYSTRIX_THREAD_POOL_MAX_SIZE = 10;
+
+    /**
+     * hystrix thread pool keep alive time minutes.
+     */
+    int HYSTRIX_THREAD_KEEP_ALIVE_TIME_MINUTE = 1;
+
+    /**
+     * hystrix thread pool queue size.
+     */
+    int HYSTRIX_THREAD_POOL_QUEUE_SIZE = 12;
+
     /**
      * String q.
      */
-    default void findConstants() {
-    }
+    default void findConstants() { }
 }
 
