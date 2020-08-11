@@ -19,6 +19,7 @@
 
 package org.dromara.soul.plugin.sync.data.weboscket;
 
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.concurrent.SoulThreadFactory;
@@ -105,6 +106,9 @@ public class WebsocketSyncDataService implements SyncDataService, AutoCloseable 
             if (!client.isClosed()) {
                 client.close();
             }
+        }
+        if (Objects.nonNull(executor)) {
+            executor.shutdown();
         }
     }
 }

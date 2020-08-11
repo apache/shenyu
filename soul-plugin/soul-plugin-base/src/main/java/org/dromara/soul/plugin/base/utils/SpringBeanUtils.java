@@ -33,9 +33,6 @@ public final class SpringBeanUtils {
     private ConfigurableApplicationContext cfgContext;
 
     private SpringBeanUtils() {
-        if (INSTANCE != null) {
-            throw new Error("error");
-        }
     }
 
     /**

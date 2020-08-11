@@ -33,6 +33,7 @@ import reactor.core.publisher.Mono;
  *
  * @author xiaoyu(Myth)
  */
+@Deprecated
 public class TimeWebFilter extends AbstractWebFilter {
 
     private SoulConfig soulConfig;
