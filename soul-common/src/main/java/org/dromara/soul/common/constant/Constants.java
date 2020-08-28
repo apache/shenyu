@@ -270,6 +270,11 @@ public interface Constants {
     int HYSTRIX_THREAD_POOL_QUEUE_SIZE = 12;
 
     /**
+     * soul token.
+     */
+    String authorization = "soul_token";
+
+    /**
      * String q.
      */
     default void findConstants() { }

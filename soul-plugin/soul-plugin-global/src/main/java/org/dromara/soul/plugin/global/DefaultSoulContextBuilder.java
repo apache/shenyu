@@ -59,6 +59,7 @@ public class DefaultSoulContextBuilder implements SoulContextBuilder {
         final String appKey = request.getHeaders().getFirst(Constants.APP_KEY);
         final String sign = request.getHeaders().getFirst(Constants.SIGN);
         final String timestamp = request.getHeaders().getFirst(Constants.TIMESTAMP);
+        final String authorization = request.getHeaders().getFirst(Constants.authorization);
         SoulContext soulContext = new SoulContext();
         String path = request.getURI().getPath();
         soulContext.setPath(path);
@@ -76,6 +77,7 @@ public class DefaultSoulContextBuilder implements SoulContextBuilder {
         soulContext.setAppKey(appKey);
         soulContext.setSign(sign);
         soulContext.setTimestamp(timestamp);
+        soulContext.setSoulToken(authorization);
         soulContext.setStartDateTime(LocalDateTime.now());
         Optional.ofNullable(request.getMethod()).ifPresent(httpMethod -> soulContext.setHttpMethod(httpMethod.name()));
         return soulContext;

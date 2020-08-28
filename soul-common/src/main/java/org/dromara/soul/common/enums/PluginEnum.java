@@ -38,9 +38,14 @@ public enum PluginEnum {
     GLOBAL(1, 0, "global"),
 
     /**
+     * OAuth plugin enum.
+     */
+    OAUTH(2,0,"oauth"),
+
+    /**
      * Sign plugin enum.
      */
-    SIGN(2, 0, "sign"),
+    SIGN(3, 0, "sign"),
 
     /**
      * Waf plugin enum.

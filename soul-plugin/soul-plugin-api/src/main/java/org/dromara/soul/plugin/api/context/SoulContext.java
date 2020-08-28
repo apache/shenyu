@@ -89,6 +89,11 @@ public class SoulContext implements Serializable {
      * startDateTime.
      */
     private LocalDateTime startDateTime;
+
+    /**
+     * authorization.
+     */
+    private String soulToken;
     
 
 }
