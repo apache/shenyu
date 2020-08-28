@@ -117,22 +117,17 @@ public enum SoulResultEnum {
     SPRINGCLOUD_SERVICEID_IS_ERROR(-109, "springCloud serviceId 不存在或者配置错误！或者注册中心配置错误! "),
 
     /**
-     * The Springcloud serviceid is error.
-     */
-    SPRINGCLOUD_SERVICEID_IS_ERROR(-109, "springCloud serviceId 不存在或者配置错误！或者注册中心配置错误! "),
-
-    /**
-     * acccess token error
+     * acccess token error.
      */
     CANNOT_FIND_ACCESSTOKEN(-110, "bad config, accessToken is null"),
 
     /**
-     * token is expire
+     * token is expire.
      */
     ACCESSTOKEN_EXPIRED(-111, "accessToken is expire"),
 
     /**
-     * token auth error
+     * token auth error.
      */
     ACCESSTOKEN_UNAUTHED(-112, "accessToken not allowed"),
     ;
