@@ -31,8 +31,6 @@ import org.dromara.soul.client.springmvc.dto.SpringMvcRegisterDTO;
 import org.dromara.soul.client.springmvc.utils.IpUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Controller;
@@ -46,7 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author xiaoyu(Myth)
  */
 @Slf4j
-public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor, ApplicationListener<ContextRefreshedEvent> {
+public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
     
     private final ThreadPoolExecutor executorService;
     
@@ -88,7 +86,8 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor, Appl
             String prePath = "";
             if (Objects.nonNull(clazzAnnotation)) {
                 if (clazzAnnotation.path().indexOf("*") > 1) {
-                    post(buildJsonParams(clazzAnnotation, contextPath, prePath));
+                    String finalPrePath = prePath;
+                    executorService.execute(() -> post(buildJsonParams(clazzAnnotation, contextPath, finalPrePath)));
                     return bean;
                 }
                 prePath = clazzAnnotation.path();
@@ -97,7 +96,8 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor, Appl
             for (Method method : methods) {
                 SoulSpringMvcClient soulSpringMvcClient = AnnotationUtils.findAnnotation(method, SoulSpringMvcClient.class);
                 if (Objects.nonNull(soulSpringMvcClient)) {
-                    post(buildJsonParams(soulSpringMvcClient, contextPath, prePath));
+                    String finalPrePath = prePath;
+                    executorService.execute(() -> post(buildJsonParams(soulSpringMvcClient, contextPath, finalPrePath)));
                 }
             }
         }
@@ -138,13 +138,6 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor, Appl
                 .ruleName(ruleName)
                 .build();
         return OkHttpTools.getInstance().getGosn().toJson(registerDTO);
-    }
-    
-    @Override
-    public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
-        if (contextRefreshedEvent.getApplicationContext().getParent() == null) {
-            executorService.shutdown();
-        }
     }
 }
 
