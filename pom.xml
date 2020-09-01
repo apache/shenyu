@@ -418,6 +418,7 @@
                 <configuration>
                     <configLocation>/script/soul_checkstyle.xml</configLocation>
                     <includeTestSourceDirectory>false</includeTestSourceDirectory>
+                    <excludes>**/generated-sources/**/*</excludes>
                 </configuration>
                 <executions>
                     <execution>
