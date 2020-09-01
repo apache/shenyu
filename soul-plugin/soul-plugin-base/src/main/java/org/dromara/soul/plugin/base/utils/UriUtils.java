@@ -9,7 +9,6 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class UriUtils {
 
-
     /**
      * create URI {@link URI}.
      * @param uri uri string eg:/fallback

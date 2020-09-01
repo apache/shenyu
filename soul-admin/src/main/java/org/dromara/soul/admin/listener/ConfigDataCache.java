@@ -89,7 +89,6 @@ public class ConfigDataCache {
         return lastModifyTime;
     }
 
-
     /**
      * Gets json.
      *

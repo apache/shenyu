@@ -44,7 +44,6 @@ public interface DataChangedListener {
     default void onAppAuthChanged(List<AppAuthData> changed, DataEventTypeEnum eventType) {
     }
 
-
     /**
      * invoke this method when Plugin was received.
      *
@@ -53,7 +52,6 @@ public interface DataChangedListener {
      */
     default void onPluginChanged(List<PluginData> changed, DataEventTypeEnum eventType) {
     }
-
 
     /**
      * invoke this method when Selector was received.
@@ -73,7 +71,6 @@ public interface DataChangedListener {
     default void onMetaDataChanged(List<MetaData> changed, DataEventTypeEnum eventType) {
 
     }
-
 
     /**
      * invoke this method when Rule was received.

@@ -88,7 +88,6 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
 
     private final HttpSyncProperties httpSyncProperties;
 
-
     /**
      * Instantiates a new Http long polling data changed listener.
      * @param httpSyncProperties the HttpSyncProperties
@@ -269,7 +268,6 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         }
     }
 
-
     /**
      * get real client ip.
      *
@@ -284,7 +282,6 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         String header = request.getHeader(X_REAL_IP);
         return StringUtils.isBlank(header) ? request.getRemoteAddr() : header;
     }
-
 
     /**
      * When a group's data changes, the thread is created to notify the client asynchronously.

@@ -288,7 +288,6 @@ public class ZookeeperClientTest {
         return rateLimiterHandle;
     }
     
-    
     private static WafHandle buildWafHandle() {
         WafHandle wafHandle = new WafHandle();
         wafHandle.setPermission(WafEnum.ALLOW.getName());
@@ -377,7 +376,7 @@ public class ZookeeperClientTest {
                 }
                 
                 @Override
-                public void handleDataDeleted(String dataPath) {
+                public void handleDataDeleted(final String dataPath) {
                 
                 }
             });
@@ -406,7 +405,7 @@ public class ZookeeperClientTest {
         zkClient.writeData(global, globalDTO);
     }
     
-    private PluginData buildByName(String name) {
+    private PluginData buildByName(final String name) {
         PluginData pluginData = new PluginData();
         pluginData.setEnabled(true);
         pluginData.setId("1");

@@ -139,7 +139,6 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         this.afterMetaDataChanged(changed, eventType);
     }
     
-    
     /**
      * After meta data changed.
      *

@@ -25,7 +25,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class ThreadUtils {
 
-
     /**
      * sleep current thread.
      *

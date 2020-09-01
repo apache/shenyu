@@ -63,7 +63,6 @@ public class ReflectUtils {
         return getFieldValue(obj, getField(obj.getClass(), fieldName));
     }
 
-
     /**
      * Gets field value.
      *

@@ -37,7 +37,6 @@ public enum Singleton {
      */
     private static final Map<String, Object> SINGLES = new ConcurrentHashMap<>();
 
-
     /**
      * Single.
      *

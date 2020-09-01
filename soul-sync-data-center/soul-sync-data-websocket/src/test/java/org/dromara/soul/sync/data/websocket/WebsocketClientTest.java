@@ -17,7 +17,6 @@
 
 package org.dromara.soul.sync.data.websocket;
 
-
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.junit.Before;
@@ -38,22 +37,22 @@ public class WebsocketClientTest {
         try {
             client = new WebSocketClient(new URI("ws://localhost:8888/websocket")) {
                 @Override
-                public void onOpen(ServerHandshake serverHandshake) {
+                public void onOpen(final ServerHandshake serverHandshake) {
                     System.out.println("打开链接");
                 }
                 
                 @Override
-                public void onMessage(String s) {
+                public void onMessage(final String s) {
                     System.out.println("收到消息" + s);
                 }
                 
                 @Override
-                public void onClose(int i, String s, boolean b) {
+                public void onClose(final int i, final String s, final boolean b) {
                     System.out.println("链接已关闭");
                 }
                 
                 @Override
-                public void onError(Exception e) {
+                public void onError(final Exception e) {
                     e.printStackTrace();
                     System.out.println("发生错误已关闭");
                 }

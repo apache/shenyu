@@ -22,7 +22,6 @@ import org.dromara.soul.metrics.api.HistogramMetricsTracker;
 import org.dromara.soul.metrics.api.HistogramMetricsTrackerDelegate;
 import org.dromara.soul.metrics.enums.MetricsLabelEnum;
 
-
 /**
  * Request latency histogram metrics tracker.
  */

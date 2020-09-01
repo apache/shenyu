@@ -59,7 +59,6 @@ public final class MetaDataCache {
         META_DATA_MAP.put(data.getPath(), data);
     }
     
-    
     /**
      * Remove auth data.
      *
@@ -68,7 +67,6 @@ public final class MetaDataCache {
     public void remove(final MetaData data) {
         META_DATA_MAP.remove(data.getPath());
     }
-    
     
     /**
      * Obtain auth data meta data.

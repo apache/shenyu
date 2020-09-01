@@ -139,7 +139,6 @@ public class GsonUtils {
         return GSON.fromJson(jsonElement, tClass);
     }
     
-    
     /**
      * From list list.
      *
@@ -151,7 +150,6 @@ public class GsonUtils {
     public <T> List<T> fromList(final String json, final Class<T> clazz) {
         return GSON.fromJson(json, TypeToken.getParameterized(List.class, clazz).getType());
     }
-    
     
     /**
      * toGetParam.

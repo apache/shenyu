@@ -34,7 +34,7 @@ public class JmxCollectorTest {
      */
     @Test
     public void testJmxCollector() throws MalformedObjectNameException {
-        JmxCollector jc = new JmxCollector(("{}").replace('`', '"'));
+        JmxCollector jc = new JmxCollector("{}".replace('`', '"'));
         for (Collector.MetricFamilySamples mfs : jc.collect()) {
             System.out.println(mfs);
         }
