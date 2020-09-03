@@ -183,6 +183,20 @@
                   <td><img src="https://yu199195.github.io/images/soul/users/wuyiyuntong.jpg"  width="1800" height="90" alt="武汉物易云通网络科技有限公司"/>
                 </tr>
       </tbody>
+      <thead>
+               <th>好慷在家</th>
+               <th>闪送</th>
+               <th>国家电网</th>
+               <th>凯撒旅游</th>
+      </thead>
+      <tbody>
+                <tr>
+                  <td><img src="https://yu199195.github.io/images/soul/users/haokangzaijia.jpg"  width="1800" height="90" alt="好慷在家"/>
+                  <td><img src="https://yu199195.github.io/images/soul/users/shansong.jpg"  width="1800" height="90" alt="闪送科技"/>
+                  <td><img src="https://yu199195.github.io/images/soul/users/guojiadianwang.jpg"  width="1800" height="90" alt="国家电网"/>
+                  <td><img src="https://yu199195.github.io/images/soul/users/caissa.jpg"  width="1800" height="90" alt="凯撒旅游"/>
+                </tr>
+      </tbody>     
 </table>
 
 
