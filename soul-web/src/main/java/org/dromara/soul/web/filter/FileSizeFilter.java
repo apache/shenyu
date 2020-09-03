@@ -29,6 +29,7 @@ import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ReactiveHttpOutputMessage;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
@@ -66,7 +67,6 @@ public class FileSizeFilter implements WebFilter {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Mono<Void> filter(@NonNull final ServerWebExchange exchange, @NonNull final WebFilterChain chain) {
         MediaType mediaType = exchange.getRequest().getHeaders().getContentType();
         if (MediaType.MULTIPART_FORM_DATA.isCompatibleWith(mediaType)) {
@@ -80,13 +80,13 @@ public class FileSizeFilter implements WebFilter {
                             Object error = SoulResultWarp.error(SoulResultEnum.PAYLOAD_TOO_LARGE.getCode(), SoulResultEnum.PAYLOAD_TOO_LARGE.getMsg(), null);
                             return WebFluxResultUtils.result(exchange, error);
                         }
-                        BodyInserter bodyInserter = BodyInserters.fromPublisher(Mono.just(size), DataBuffer.class);
+                        BodyInserter<Mono<DataBuffer>, ReactiveHttpOutputMessage> bodyInsert = BodyInserters.fromPublisher(Mono.just(size), DataBuffer.class);
                         HttpHeaders headers = new HttpHeaders();
                         headers.putAll(exchange.getRequest().getHeaders());
                         headers.remove(HttpHeaders.CONTENT_LENGTH);
                         CachedBodyOutputMessage outputMessage = new CachedBodyOutputMessage(
                                 exchange, headers);
-                        return bodyInserter.insert(outputMessage, new BodyInserterContext())
+                        return bodyInsert.insert(outputMessage, new BodyInserterContext())
                                 .then(Mono.defer(() -> {
                                     ServerHttpRequest decorator = decorate(exchange, outputMessage);
                                     return chain.filter(exchange.mutate().request(decorator).build());
