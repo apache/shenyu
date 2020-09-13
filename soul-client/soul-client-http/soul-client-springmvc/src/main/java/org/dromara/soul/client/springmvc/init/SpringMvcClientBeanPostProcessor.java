@@ -136,6 +136,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
                 .rpcType(soulSpringMvcClient.rpcType())
                 .enabled(soulSpringMvcClient.enabled())
                 .ruleName(ruleName)
+                .registerMetaData(soulSpringMvcClient.registerMetaData())
                 .build();
         return OkHttpTools.getInstance().getGosn().toJson(registerDTO);
     }

@@ -28,4 +28,6 @@ public class SpringMvcRegisterDTO implements Serializable {
     private String ruleName;
     
     private boolean enabled;
+    
+    private boolean registerMetaData;
 }

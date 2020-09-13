@@ -112,6 +112,12 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     @Override
     @Transactional
     public String registerSpringMvc(final SpringMvcRegisterDTO dto) {
+        if (dto.isRegisterMetaData()) {
+            MetaDataDO exist = metaDataMapper.findByPath(dto.getPath());
+            if (Objects.isNull(exist)) {
+                saveSpringMvcMetaData(dto);
+            }
+        }
         String selectorId = handlerSpringMvcSelector(dto);
         handlerSpringMvcRule(selectorId, dto);
         return "success";
@@ -161,6 +167,23 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         if (Objects.isNull(exist) || Objects.isNull(existRule)) {
             registerRule(selectorId, metaDataDTO.getPath(), metaDataDTO.getRpcType(), metaDataDTO.getRuleName());
         }
+    }
+    
+    private void saveSpringMvcMetaData(final SpringMvcRegisterDTO dto) {
+        MetaDataDO metaDataDO = new MetaDataDO();
+        metaDataDO.setAppName(dto.getAppName());
+        metaDataDO.setPath(dto.getPath());
+        metaDataDO.setPathDesc(dto.getPathDesc());
+        metaDataDO.setRpcType(dto.getRpcType());
+        metaDataDO.setEnabled(dto.isEnabled());
+        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+        metaDataDO.setId(UUIDUtils.getInstance().generateShortUuid());
+        metaDataDO.setDateCreated(currentTime);
+        metaDataDO.setDateUpdated(currentTime);
+        metaDataMapper.insert(metaDataDO);
+        // publish AppAuthData's event
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.CREATE,
+                Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDO))));
     }
     
     private void saveSpringCloudMetaData(final SpringCloudRegisterDTO dto) {
