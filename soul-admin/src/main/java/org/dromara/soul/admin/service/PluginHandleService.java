@@ -5,7 +5,6 @@ import org.dromara.soul.admin.dto.PluginHandleDTO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.PluginHandleQuery;
 import org.dromara.soul.admin.vo.PluginHandleVO;
-import org.dromara.soul.admin.vo.PluginVO;
 
 /**
  * this is plugin handle service.

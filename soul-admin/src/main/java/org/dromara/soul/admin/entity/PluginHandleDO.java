@@ -35,6 +35,11 @@ public class PluginHandleDO extends BaseDO {
      */
     private Integer dataType;
 
+    /**
+     * build {@linkplain PluginHandleDO} instance.
+     * @param pluginHandleDTO {@linkplain PluginHandleDTO}
+     * @return {@linkplain PluginHandleDO}
+     */
     public static PluginHandleDO buildPluginHandleDO(final PluginHandleDTO pluginHandleDTO) {
         if (Objects.isNull(pluginHandleDTO)) {
             return null;

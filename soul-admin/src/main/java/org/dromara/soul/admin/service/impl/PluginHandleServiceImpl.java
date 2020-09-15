@@ -23,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("pluginHandleService")
 public class PluginHandleServiceImpl implements PluginHandleService {
 
-
     private final PluginHandleMapper pluginHandleMapper;
 
     @Autowired(required = false)

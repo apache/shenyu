@@ -1,13 +1,11 @@
 package org.dromara.soul.admin.vo;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.dromara.soul.admin.entity.PluginHandleDO;
-import org.dromara.soul.common.enums.PluginEnum;
 
 /**
  * this is plugin handle view to web front.

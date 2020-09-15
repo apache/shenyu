@@ -70,7 +70,7 @@ public interface PluginHandleMapper {
     int updateByPrimaryKey(PluginHandleDO record);
 
     /**
-     * delete string id
+     * delete string id.
      * @param id plugin handle id
      * @return affected rows
      */
