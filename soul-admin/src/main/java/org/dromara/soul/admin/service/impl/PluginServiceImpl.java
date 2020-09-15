@@ -208,12 +208,16 @@ public class PluginServiceImpl implements PluginService {
     @Override
     public CommonPager<PluginVO> listByPage(final PluginQuery pluginQuery) {
         PageParameter pageParameter = pluginQuery.getPageParameter();
+        Integer count = pluginMapper.countByQuery(pluginQuery);
+        if (count != null && count > 0) {
+            return new CommonPager<>(
+                    new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(),count),
+                    pluginMapper.selectByQuery(pluginQuery).stream()
+                            .map(PluginVO::buildPluginVO)
+                            .collect(Collectors.toList()));
+        }
         return new CommonPager<>(
-                new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(),
-                        pluginMapper.countByQuery(pluginQuery)),
-                pluginMapper.selectByQuery(pluginQuery).stream()
-                        .map(PluginVO::buildPluginVO)
-                        .collect(Collectors.toList()));
+                new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(),0), Collections.emptyList());
     }
 
     @Override

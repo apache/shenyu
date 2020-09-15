@@ -30,6 +30,7 @@ import org.dromara.soul.admin.vo.DashboardUserVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -111,10 +112,15 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     @Override
     public CommonPager<DashboardUserVO> listByPage(final DashboardUserQuery dashboardUserQuery) {
         PageParameter pageParameter = dashboardUserQuery.getPageParameter();
+        Integer count = dashboardUserMapper.countByQuery(dashboardUserQuery);
+        if (count != null && count > 0) {
+            return new CommonPager<>(
+                    new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(),count),
+                    dashboardUserMapper.selectByQuery(dashboardUserQuery).stream()
+                            .map(DashboardUserVO::buildDashboardUserVO)
+                            .collect(Collectors.toList()));
+        }
         return new CommonPager<>(
-                new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), dashboardUserMapper.countByQuery(dashboardUserQuery)),
-                dashboardUserMapper.selectByQuery(dashboardUserQuery).stream()
-                        .map(DashboardUserVO::buildDashboardUserVO)
-                        .collect(Collectors.toList()));
+                new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(),0), Collections.emptyList());
     }
 }

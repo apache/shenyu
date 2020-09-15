@@ -335,12 +335,16 @@ public class AppAuthServiceImpl implements AppAuthService {
     @Override
     public CommonPager<AppAuthVO> listByPage(final AppAuthQuery appAuthQuery) {
         PageParameter pageParameter = appAuthQuery.getPageParameter();
+        Integer count = appAuthMapper.countByQuery(appAuthQuery);
+        if (count != null && count > 0) {
+            return new CommonPager<>(
+                    new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), count),
+                    appAuthMapper.selectByQuery(appAuthQuery).stream()
+                            .map(AppAuthTransfer.INSTANCE::mapToVO)
+                            .collect(Collectors.toList()));
+        }
         return new CommonPager<>(
-                new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(),
-                        appAuthMapper.countByQuery(appAuthQuery)),
-                appAuthMapper.selectByQuery(appAuthQuery).stream()
-                        .map(AppAuthTransfer.INSTANCE::mapToVO)
-                        .collect(Collectors.toList()));
+                new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), 0),Collections.emptyList());
     }
 
     @Override
