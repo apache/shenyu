@@ -16,8 +16,6 @@ logging:
     root: info
     org.springframework.boot: info
     org.apache.ibatis: info
-    org.dromara.soul.bonuspoint: info
-    org.dromara.soul.lottery: debug
-    org.dromara.soul: debug
-
-  path: "./logs"
+    org.dromara.soul.test.bonuspoint: info
+    org.dromara.soul.test.lottery: debug
+    org.dromara.soul.test: debug

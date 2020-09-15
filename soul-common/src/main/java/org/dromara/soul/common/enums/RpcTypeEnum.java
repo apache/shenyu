@@ -70,7 +70,6 @@ public enum RpcTypeEnum {
 
     private final Boolean support;
 
-
     /**
      * acquire operator supports.
      *

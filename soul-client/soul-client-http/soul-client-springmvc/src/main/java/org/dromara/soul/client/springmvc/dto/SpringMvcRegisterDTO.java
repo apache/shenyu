@@ -30,5 +30,5 @@ public class SpringMvcRegisterDTO {
     
     private boolean enabled;
     
-    
+    private boolean registerMetaData;
 }

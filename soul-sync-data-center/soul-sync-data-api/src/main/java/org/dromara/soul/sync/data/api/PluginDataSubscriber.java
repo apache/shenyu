@@ -57,7 +57,6 @@ public interface PluginDataSubscriber {
     default void refreshPluginDataSelf(List<PluginData> pluginDataList) {
     }
     
-    
     /**
      * On selector subscribe.
      *

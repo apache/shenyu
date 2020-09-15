@@ -76,16 +76,14 @@ public class RoundRobinLoadBalance extends AbstractLoadBalance {
             }
             totalWeight += weight;
         }
-        if (!updateLock.get() && upstreamList.size() != map.size()) {
-            if (updateLock.compareAndSet(false, true)) {
-                try {
-                    // copy -> modify -> update reference
-                    ConcurrentMap<String, WeightedRoundRobin> newMap = new ConcurrentHashMap<>(map);
-                    newMap.entrySet().removeIf(item -> now - item.getValue().getLastUpdate() > recyclePeriod);
-                    methodWeightMap.put(key, newMap);
-                } finally {
-                    updateLock.set(false);
-                }
+        if (!updateLock.get() && upstreamList.size() != map.size() && updateLock.compareAndSet(false, true)) {
+            try {
+                // copy -> modify -> update reference
+                ConcurrentMap<String, WeightedRoundRobin> newMap = new ConcurrentHashMap<>(map);
+                newMap.entrySet().removeIf(item -> now - item.getValue().getLastUpdate() > recyclePeriod);
+                methodWeightMap.put(key, newMap);
+            } finally {
+                updateLock.set(false);
             }
         }
         if (selectedInvoker != null) {

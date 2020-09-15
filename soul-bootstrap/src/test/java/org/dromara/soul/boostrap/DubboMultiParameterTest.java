@@ -55,7 +55,12 @@ public class DubboMultiParameterTest {
         assertThat(pair.getRight().length, is(2));
     }
     
-    public static void main(String[] args) {
+    /**
+     * Main.
+     *
+     * @param args args
+     */
+    public static void main(final String[] args) {
         ComplexBeanTest complexBeanTest = new ComplexBeanTest();
         DubboTest test = new DubboTest();
         test.setId("123");
@@ -64,9 +69,9 @@ public class DubboMultiParameterTest {
         idList.add("456");
         idList.add("789");
     
-        Map<String,String > idMap = new HashMap<>();
-        idMap.put("id1","1");
-        idMap.put("id2","2");
+        Map<String, String> idMap = new HashMap<>();
+        idMap.put("id1", "1");
+        idMap.put("id2", "2");
         complexBeanTest.setDubboTest(test);
         complexBeanTest.setIdLists(idList);
         complexBeanTest.setIdMaps(idMap);

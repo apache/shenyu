@@ -45,7 +45,6 @@ public final class AdminConstants {
      */
     public static final String SYS_PLUGIN_NOT_DELETE = "系统插件不能删除!";
 
-
     /**
      * The constant SYS_PLUGIN_ID_NOT_EXIST.
      */
@@ -55,7 +54,6 @@ public final class AdminConstants {
      * The constant DATA_PATH_IS_EXIST.
      */
     public static final String DATA_PATH_IS_EXIST = "路径已经存在，不能重复添加!";
-
 
     /**
      * The constant PARAMS_ERROR.

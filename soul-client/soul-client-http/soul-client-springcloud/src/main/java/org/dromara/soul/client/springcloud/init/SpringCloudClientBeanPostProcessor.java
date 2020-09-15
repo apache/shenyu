@@ -30,8 +30,6 @@ import org.dromara.soul.client.springcloud.config.SoulSpringCloudConfig;
 import org.dromara.soul.client.springcloud.dto.SpringCloudRegisterDTO;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.lang.NonNull;
@@ -46,7 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author xiaoyu(Myth)
  */
 @Slf4j
-public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor, ApplicationListener<ContextRefreshedEvent> {
+public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
     
     private final ThreadPoolExecutor executorService;
     
@@ -136,14 +134,6 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor, Ap
                 .ruleName(ruleName)
                 .build();
         return OkHttpTools.getInstance().getGosn().toJson(registerDTO);
-        
-    }
-    
-    @Override
-    public void onApplicationEvent(@NonNull final ContextRefreshedEvent contextRefreshedEvent) {
-        if (contextRefreshedEvent.getApplicationContext().getParent() == null) {
-            executorService.shutdown();
-        }
     }
 }
 

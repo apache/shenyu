@@ -44,7 +44,6 @@ public class RateLimiterConfig implements Serializable {
      */
     private String url;
 
-
     /**
      * the password.
      */

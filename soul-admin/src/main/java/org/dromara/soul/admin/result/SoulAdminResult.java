@@ -123,7 +123,6 @@ public class SoulAdminResult implements Serializable {
         return get(code, msg, null);
     }
 
-
     /**
      * return timeout .
      *

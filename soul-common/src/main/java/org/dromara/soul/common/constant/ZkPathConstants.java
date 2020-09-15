@@ -64,7 +64,6 @@ public final class ZkPathConstants implements Constants {
         return String.join("/", APP_AUTH_PARENT, appKey);
     }
 
-
     /**
      * Build meta data path string.
      *
@@ -74,7 +73,6 @@ public final class ZkPathConstants implements Constants {
     public static String buildMetaDataPath(final String path) {
         return META_DATA + "/" + path;
     }
-
 
     /**
      * buildPluginParentPath.

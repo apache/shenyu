@@ -69,7 +69,6 @@ public enum SerializeEnum {
         return serialize;
     }
 
-
     /**
      * Acquire serialize protocol serialize protocol enum.
      *

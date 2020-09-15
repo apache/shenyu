@@ -43,7 +43,6 @@ public final class LogUtils {
         return LOG_UTIL;
     }
 
-
     /**
      * debug log.
      * @param logger   logger

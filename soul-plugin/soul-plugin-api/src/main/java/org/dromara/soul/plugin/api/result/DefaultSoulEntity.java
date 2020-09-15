@@ -81,7 +81,6 @@ public class DefaultSoulEntity implements Serializable {
         return success(msg, null);
     }
 
-
     /**
      * return success.
      *
@@ -102,7 +101,6 @@ public class DefaultSoulEntity implements Serializable {
     public static DefaultSoulEntity success(final String msg, final Object data) {
         return get(SUCCESSFUL, msg, data);
     }
-
 
     /**
      * Success soul web result.
@@ -148,7 +146,6 @@ public class DefaultSoulEntity implements Serializable {
     public static DefaultSoulEntity error(final int code, final String msg, final Object data) {
         return get(code, msg, data);
     }
-
 
     /**
      * return timeout .

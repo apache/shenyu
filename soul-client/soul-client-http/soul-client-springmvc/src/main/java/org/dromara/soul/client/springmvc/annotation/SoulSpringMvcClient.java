@@ -65,4 +65,11 @@ public @interface SoulSpringMvcClient {
      * @return the boolean
      */
     boolean enabled() default true;
+    
+    /**
+     * Register meta data boolean.
+     *
+     * @return the boolean
+     */
+    boolean registerMetaData() default false;
 }

@@ -111,10 +111,8 @@ public class SpringCloudPlugin extends AbstractSoulPlugin {
     }
 
     private String buildRealURL(final String url, final String httpMethod, final String query) {
-        if (httpMethod.equals(HttpMethod.GET.name())) {
-            if (StringUtils.isNotBlank(query)) {
-                return url + "?" + query;
-            }
+        if (httpMethod.equals(HttpMethod.GET.name()) && StringUtils.isNotBlank(query)) {
+            return url + "?" + query;
         }
         return url;
     }
