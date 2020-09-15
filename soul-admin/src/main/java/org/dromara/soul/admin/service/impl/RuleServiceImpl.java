@@ -178,12 +178,15 @@ public class RuleServiceImpl implements RuleService {
     @Override
     public CommonPager<RuleVO> listByPage(final RuleQuery ruleQuery) {
         PageParameter pageParameter = ruleQuery.getPageParameter();
-        return new CommonPager<>(
-                new PageParameter(pageParameter.getCurrentPage(),
-                        pageParameter.getPageSize(), ruleMapper.countByQuery(ruleQuery)),
-                ruleMapper.selectByQuery(ruleQuery).stream()
-                        .map(RuleVO::buildRuleVO)
-                        .collect(Collectors.toList()));
+        Integer count = ruleMapper.countByQuery(ruleQuery);
+        if (count != null && count > 0) {
+            return new CommonPager<>(
+                    new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), count),
+                    ruleMapper.selectByQuery(ruleQuery).stream()
+                            .map(RuleVO::buildRuleVO)
+                            .collect(Collectors.toList()));
+        }
+        return new CommonPager<>(new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), 0), Collections.emptyList());
     }
 
     @Override
