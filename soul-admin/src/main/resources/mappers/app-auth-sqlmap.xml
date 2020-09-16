@@ -55,9 +55,14 @@
     <select id="countByQuery" parameterType="org.dromara.soul.admin.query.AppAuthQuery" resultType="java.lang.Integer">
         select count(1)
         from app_auth
-        <if test="appKey != null">
-            where app_key = #{appKey,jdbcType=VARCHAR}
-        </if>
+        <where>
+            <if test="appKey != null">
+                and app_key = #{appKey,jdbcType=VARCHAR}
+            </if>
+            <if test="phone != null">
+                and phone = #{phone,jdbcType=VARCHAR}
+            </if>
+        </where>
     </select>
 
     <select id="selectAll" resultType="org.dromara.soul.admin.entity.AppAuthDO" resultMap="BaseResultMap">

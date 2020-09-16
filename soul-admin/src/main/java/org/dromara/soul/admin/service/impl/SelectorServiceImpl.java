@@ -222,12 +222,15 @@ public class SelectorServiceImpl implements SelectorService {
     @Override
     public CommonPager<SelectorVO> listByPage(final SelectorQuery selectorQuery) {
         PageParameter pageParameter = selectorQuery.getPageParameter();
-        return new CommonPager<>(
-                new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(),
-                        selectorMapper.countByQuery(selectorQuery)),
-                selectorMapper.selectByQuery(selectorQuery).stream()
-                        .map(SelectorVO::buildSelectorVO)
-                        .collect(Collectors.toList()));
+        Integer count = selectorMapper.countByQuery(selectorQuery);
+        if (count != null && count > 0) {
+            return new CommonPager<>(
+                    new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), count),
+                    selectorMapper.selectByQuery(selectorQuery).stream()
+                            .map(SelectorVO::buildSelectorVO)
+                            .collect(Collectors.toList()));
+        }
+        return new CommonPager<>(new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), 0), Collections.emptyList());
     }
 
     @Override
