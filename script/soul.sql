@@ -137,6 +137,22 @@ CREATE TABLE IF NOT EXISTS `auth_path`  (
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
+-- ----------------------------
+-- Table structure for plugin_handle
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS `plugin_handle` (
+  `id` varchar(128) NOT NULL,
+  `plugin_id` varchar(128) NOT NULL COMMENT '插件id',
+  `field` varchar(100) NOT NULL COMMENT '字段',
+  `label` varchar(100) DEFAULT NULL COMMENT '标签',
+  `data_type` smallint(6) NOT NULL DEFAULT '1' COMMENT '数据类型 1 数字 2 字符串',
+  `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `plugin_id_field` (`plugin_id`,`field`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+
 /*plugin*/
 INSERT IGNORE INTO `plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('1', 'sign','0', '0', '2018-06-14 10:17:35', '2018-06-14 10:17:35');
 INSERT IGNORE INTO `plugin` (`id`, `name`,`role`,`config`,`enabled`, `date_created`, `date_updated`) VALUES ('2', 'waf', '0','{"model":"black"}','0', '2018-06-23 10:26:30', '2018-06-13 15:43:10');

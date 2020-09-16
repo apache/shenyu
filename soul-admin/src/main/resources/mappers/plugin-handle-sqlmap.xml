@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.dromara.soul.admin.mapper.PluginHandleMapper">
+    <resultMap id="BaseResultMap" type="org.dromara.soul.admin.entity.PluginHandleDO">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
+        <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
+        <result column="plugin_id" jdbcType="VARCHAR" property="pluginId"/>
+        <result column="field" jdbcType="VARCHAR" property="field"/>
+        <result column="label" jdbcType="VARCHAR" property="label"/>
+        <result column="data_type" jdbcType="VARCHAR" property="dataType"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,plugin_id, field, label, data_type, date_created, date_updated
+    </sql>
+
+    <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from plugin_handle
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+    <select id="findByPluginId" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from plugin_handle where plugin_id = #{pluginId,jdbcType=VARCHAR}
+    </select>
+    <delete id="delete" parameterType="java.lang.String">
+        delete from plugin_handle
+        where id = #{id,jdbcType=VARCHAR}
+    </delete>
+
+    <insert id="insert" parameterType="org.dromara.soul.admin.entity.PluginHandleDO">
+    insert into plugin_handle (id, plugin_id, field, label,data_type, date_created, date_updated
+      )
+    values (#{id,jdbcType=VARCHAR}, #{pluginId,jdbcType=VARCHAR}, #{field,jdbcType=VARCHAR},
+      #{label,jdbcType=VARCHAR},#{dataType,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP}
+      )
+  </insert>
+
+    <insert id="insertSelective" parameterType="org.dromara.soul.admin.entity.PluginHandleDO">
+        insert into plugin_handle
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="pluginId != null">
+                plugin_id,
+            </if>
+            <if test="field != null">
+                field,
+            </if>
+            <if test="label != null">
+                label,
+            </if>
+            <if test="dataType != null">
+                data_type,
+            </if>
+            <if test="dateCreated != null">
+                date_created,
+            </if>
+            <if test="dateUpdated != null">
+                date_updated,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=VARCHAR},
+            </if>
+            <if test="pluginId != null">
+                #{pluginId,jdbcType=VARCHAR},
+            </if>
+            <if test="field != null">
+                #{field,jdbcType=VARCHAR},
+            </if>
+            <if test="label != null">
+                #{label,jdbcType=VARCHAR},
+            </if>
+            <if test="dataType != null">
+                #{dataType,jdbcType=VARCHAR},
+            </if>
+            <if test="dateCreated != null">
+                #{dateCreated,jdbcType=TIMESTAMP},
+            </if>
+            <if test="dateUpdated != null">
+                #{dateUpdated,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="org.dromara.soul.admin.entity.PluginHandleDO">
+        update plugin_handle
+        <set>
+            <if test="pluginId != null">
+                plugin_id = #{pluginId,jdbcType=VARCHAR},
+            </if>
+            <if test="field != null">
+                field = #{field,jdbcType=VARCHAR},
+            </if>
+            <if test="label != null">
+                label = #{label,jdbcType=VARCHAR},
+            </if>
+            <if test="dataType != null">
+               data_type= #{dataType,jdbcType=VARCHAR},
+            </if>
+            <if test="dateCreated != null">
+                date_created = #{dateCreated,jdbcType=TIMESTAMP},
+            </if>
+            <if test="dateUpdated != null">
+                date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="org.dromara.soul.admin.entity.PluginHandleDO">
+    update plugin_handle
+    set plugin_id = #{pluginId,jdbcType=VARCHAR},
+      field = #{field,jdbcType=VARCHAR},
+      label = #{label,jdbcType=VARCHAR},
+      data_type = #{dataType,jdbcType=VARCHAR},
+      date_created = #{dateCreated,jdbcType=TIMESTAMP},
+      date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+    <select id="countByQuery" parameterType="org.dromara.soul.admin.query.PluginHandleQuery" resultType="java.lang.Integer">
+        select count(1)
+        from plugin_handle
+        <if test="pluginId != null">
+            where plugin_id = #{pluginId,jdbcType=VARCHAR}
+        </if>
+    </select>
+
+    <select id="selectByQuery" parameterType="org.dromara.soul.admin.query.RuleQuery" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from plugin_handle
+        <if test="pluginId != null">
+            where plugin_id = #{pluginId,jdbcType=VARCHAR}
+        </if>
+        <if test="pageParameter != null">
+            limit #{pageParameter.offset},#{pageParameter.pageSize}
+        </if>
+    </select>
+</mapper>
