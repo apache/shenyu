@@ -18,21 +18,20 @@
 
 package org.dromara.soul.admin.service.impl;
 
+import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.DashboardUserDTO;
 import org.dromara.soul.admin.entity.DashboardUserDO;
 import org.dromara.soul.admin.mapper.DashboardUserMapper;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
+import org.dromara.soul.admin.page.PageResultUtils;
 import org.dromara.soul.admin.query.DashboardUserQuery;
 import org.dromara.soul.admin.service.DashboardUserService;
 import org.dromara.soul.admin.vo.DashboardUserVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * DashboardUserServiceImpl.
@@ -111,15 +110,8 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      */
     @Override
     public CommonPager<DashboardUserVO> listByPage(final DashboardUserQuery dashboardUserQuery) {
-        PageParameter pageParameter = dashboardUserQuery.getPageParameter();
+        PageParameter parameter = dashboardUserQuery.getPageParameter();
         Integer count = dashboardUserMapper.countByQuery(dashboardUserQuery);
-        if (count != null && count > 0) {
-            return new CommonPager<>(
-                    new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), count),
-                    dashboardUserMapper.selectByQuery(dashboardUserQuery).stream()
-                            .map(DashboardUserVO::buildDashboardUserVO)
-                            .collect(Collectors.toList()));
-        }
-        return new CommonPager<>(new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), 0), Collections.emptyList());
+        return PageResultUtils.result(parameter, count, () -> dashboardUserMapper.selectByQuery(dashboardUserQuery).stream().map(DashboardUserVO::buildDashboardUserVO).collect(Collectors.toList()));
     }
 }

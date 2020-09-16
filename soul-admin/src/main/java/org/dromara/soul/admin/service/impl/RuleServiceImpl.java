@@ -18,6 +18,10 @@
 
 package org.dromara.soul.admin.service.impl;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.RuleConditionDTO;
 import org.dromara.soul.admin.dto.RuleDTO;
@@ -32,6 +36,7 @@ import org.dromara.soul.admin.mapper.RuleMapper;
 import org.dromara.soul.admin.mapper.SelectorMapper;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
+import org.dromara.soul.admin.page.PageResultUtils;
 import org.dromara.soul.admin.query.RuleConditionQuery;
 import org.dromara.soul.admin.query.RuleQuery;
 import org.dromara.soul.admin.service.RuleService;
@@ -46,11 +51,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * RuleServiceImpl.
@@ -179,14 +179,7 @@ public class RuleServiceImpl implements RuleService {
     public CommonPager<RuleVO> listByPage(final RuleQuery ruleQuery) {
         PageParameter pageParameter = ruleQuery.getPageParameter();
         Integer count = ruleMapper.countByQuery(ruleQuery);
-        if (count != null && count > 0) {
-            return new CommonPager<>(
-                    new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), count),
-                    ruleMapper.selectByQuery(ruleQuery).stream()
-                            .map(RuleVO::buildRuleVO)
-                            .collect(Collectors.toList()));
-        }
-        return new CommonPager<>(new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), 0), Collections.emptyList());
+        return PageResultUtils.result(pageParameter, count, () -> ruleMapper.selectByQuery(ruleQuery).stream().map(RuleVO::buildRuleVO).collect(Collectors.toList()));
     }
 
     @Override

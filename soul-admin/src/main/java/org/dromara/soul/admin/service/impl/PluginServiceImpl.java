@@ -18,6 +18,11 @@
 
 package org.dromara.soul.admin.service.impl;
 
+import java.sql.Timestamp;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.PluginDTO;
 import org.dromara.soul.admin.entity.PluginDO;
@@ -31,6 +36,7 @@ import org.dromara.soul.admin.mapper.SelectorConditionMapper;
 import org.dromara.soul.admin.mapper.SelectorMapper;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
+import org.dromara.soul.admin.page.PageResultUtils;
 import org.dromara.soul.admin.query.PluginQuery;
 import org.dromara.soul.admin.query.RuleConditionQuery;
 import org.dromara.soul.admin.query.RuleQuery;
@@ -48,12 +54,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.sql.Timestamp;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * PluginServiceImpl.
@@ -209,14 +209,7 @@ public class PluginServiceImpl implements PluginService {
     public CommonPager<PluginVO> listByPage(final PluginQuery pluginQuery) {
         PageParameter pageParameter = pluginQuery.getPageParameter();
         Integer count = pluginMapper.countByQuery(pluginQuery);
-        if (count != null && count > 0) {
-            return new CommonPager<>(
-                    new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), count),
-                    pluginMapper.selectByQuery(pluginQuery).stream()
-                            .map(PluginVO::buildPluginVO)
-                            .collect(Collectors.toList()));
-        }
-        return new CommonPager<>(new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), 0), Collections.emptyList());
+        return PageResultUtils.result(pageParameter, count, () -> pluginMapper.selectByQuery(pluginQuery).stream().map(PluginVO::buildPluginVO).collect(Collectors.toList()));
     }
 
     @Override

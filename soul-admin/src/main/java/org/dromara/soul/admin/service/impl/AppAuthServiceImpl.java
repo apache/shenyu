@@ -36,6 +36,7 @@ import org.dromara.soul.admin.mapper.AuthParamMapper;
 import org.dromara.soul.admin.mapper.AuthPathMapper;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
+import org.dromara.soul.admin.page.PageResultUtils;
 import org.dromara.soul.admin.query.AppAuthQuery;
 import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.service.AppAuthService;
@@ -336,14 +337,7 @@ public class AppAuthServiceImpl implements AppAuthService {
     public CommonPager<AppAuthVO> listByPage(final AppAuthQuery appAuthQuery) {
         PageParameter pageParameter = appAuthQuery.getPageParameter();
         Integer count = appAuthMapper.countByQuery(appAuthQuery);
-        if (count != null && count > 0) {
-            return new CommonPager<>(
-                    new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), count),
-                    appAuthMapper.selectByQuery(appAuthQuery).stream()
-                            .map(AppAuthTransfer.INSTANCE::mapToVO)
-                            .collect(Collectors.toList()));
-        }
-        return new CommonPager<>(new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), 0), Collections.emptyList());
+        return PageResultUtils.result(pageParameter, count, () -> appAuthMapper.selectByQuery(appAuthQuery).stream().map(AppAuthTransfer.INSTANCE::mapToVO).collect(Collectors.toList()));
     }
 
     @Override
