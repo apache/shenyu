@@ -7,7 +7,7 @@
     <groupId>org.dromara</groupId>
     <artifactId>soul</artifactId>
     <packaging>pom</packaging>
-    <version>2.2.1-SNAPSHOT</version>
+    <version>2.2.1</version>
     <name>soul</name>
     <modules>
         <module>soul-admin</module>
@@ -40,7 +40,6 @@
         <developerConnection>scm:git:git@github.com:Dromara/soul</developerConnection>
         <tag>${project.version}</tag>
     </scm>
-
 
     <issueManagement>
         <system>GitHub Issues</system>
@@ -350,19 +349,19 @@
 <!--                     </execution>-->
 <!--                 </executions>-->
 <!--             </plugin>-->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>3.0.1</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-source-plugin</artifactId>-->
+<!--                <version>3.0.1</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <phase>package</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>jar-no-fork</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
