@@ -88,8 +88,7 @@ public class AppAuthController {
     public SoulAdminResult updateSk(@RequestParam("appKey") final String appKey, @RequestParam("appSecret") final String appSecret) {
         return appAuthService.updateAppSecretByAppKey(appKey, appSecret);
     }
-
-
+    
     /**
      * Find page by query soul result.
      *
@@ -138,8 +137,7 @@ public class AppAuthController {
     public SoulAdminResult detailPath(@RequestParam("id") final String id) {
         return SoulAdminResult.success("detailPath application success", appAuthService.detailPath(id));
     }
-
-
+    
     /**
      * Update detail path soul result.
      *
@@ -150,8 +148,7 @@ public class AppAuthController {
     public SoulAdminResult updateDetailPath(@RequestBody final AuthPathWarpDTO authPathWarpDTO) {
         return appAuthService.updateDetailPath(authPathWarpDTO);
     }
-
-
+    
     /**
      * delete application authorities.
      *
@@ -188,5 +185,4 @@ public class AppAuthController {
     public SoulAdminResult syncData() {
         return appAuthService.syncData();
     }
-
 }
