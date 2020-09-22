@@ -7,7 +7,7 @@ services:
     hostname: soul_admin
     restart: always
     ports:
-      - "8086:8086"
+      - "9095:9095"
     networks:
       - soul
   soul_bootstrap:
@@ -17,7 +17,7 @@ services:
     restart: always
     hostname: soul_bootstrap
     ports:
-      - "8089:8089"
+      - "9195:9195"
     depends_on:
       - soul_admin
     networks:
