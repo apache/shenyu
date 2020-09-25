@@ -33,7 +33,7 @@
         <version>2.2.2.RELEASE</version>
     </parent>
     <properties>
-        <soul.version>2.2.1-SNAPSHOT</soul.version>
+        <soul.version>2.2.1</soul.version>
     </properties>
 
     <modules>

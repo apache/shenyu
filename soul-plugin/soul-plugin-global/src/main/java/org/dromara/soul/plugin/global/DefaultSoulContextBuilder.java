@@ -17,6 +17,9 @@
 
 package org.dromara.soul.plugin.global;
 
+import java.time.LocalDateTime;
+import java.util.Objects;
+import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.MetaData;
@@ -26,10 +29,6 @@ import org.dromara.soul.plugin.api.context.SoulContextBuilder;
 import org.dromara.soul.plugin.global.cache.MetaDataCache;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
-
-import java.time.LocalDateTime;
-import java.util.Objects;
-import java.util.Optional;
 
 /**
  * The type Default soul context builder.
@@ -66,8 +65,11 @@ public class DefaultSoulContextBuilder implements SoulContextBuilder {
             if (RpcTypeEnum.SPRING_CLOUD.getName().equals(metaData.getRpcType())) {
                 setSoulContextByHttp(soulContext, path);
                 soulContext.setRpcType(metaData.getRpcType());
-            } else {
+            } else if (RpcTypeEnum.DUBBO.getName().equals(metaData.getRpcType())) {
                 setSoulContextByDubbo(soulContext, metaData);
+            } else {
+                setSoulContextByHttp(soulContext, path);
+                soulContext.setRpcType(RpcTypeEnum.HTTP.getName());
             }
         } else {
             setSoulContextByHttp(soulContext, path);
