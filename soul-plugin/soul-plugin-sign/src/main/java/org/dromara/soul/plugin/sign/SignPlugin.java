@@ -24,7 +24,7 @@ import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.plugin.api.result.SoulResultEnum;
-import org.dromara.soul.plugin.base.utils.SoulResultWarp;
+import org.dromara.soul.plugin.base.utils.SoulResultWrap;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
 import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
@@ -64,7 +64,7 @@ public class SignPlugin extends AbstractSoulPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
         Pair<Boolean, String> result = signService.signVerify(exchange);
         if (!result.getLeft()) {
-            Object error = SoulResultWarp.error(SoulResultEnum.SIGN_IS_NOT_PASS.getCode(), result.getRight(), null);
+            Object error = SoulResultWrap.error(SoulResultEnum.SIGN_IS_NOT_PASS.getCode(), result.getRight(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         return chain.execute(exchange);

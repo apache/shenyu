@@ -19,7 +19,7 @@
 package org.dromara.soul.web.filter;
 
 import org.dromara.soul.plugin.api.result.SoulResultEnum;
-import org.dromara.soul.plugin.base.utils.SoulResultWarp;
+import org.dromara.soul.plugin.base.utils.SoulResultWrap;
 import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
 import org.dromara.soul.web.config.SoulConfig;
 import org.springframework.http.HttpStatus;
@@ -58,7 +58,7 @@ public class TimeWebFilter extends AbstractWebFilter {
     protected Mono<Void> doDenyResponse(final ServerWebExchange exchange) {
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(HttpStatus.REQUEST_TIMEOUT);
-        Object error = SoulResultWarp.error(SoulResultEnum.TIME_ERROR.getCode(), SoulResultEnum.TIME_ERROR.getMsg(), null);
+        Object error = SoulResultWrap.error(SoulResultEnum.TIME_ERROR.getCode(), SoulResultEnum.TIME_ERROR.getMsg(), null);
         return WebFluxResultUtils.result(exchange, error);
     }
 }

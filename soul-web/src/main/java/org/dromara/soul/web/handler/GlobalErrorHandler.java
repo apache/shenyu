@@ -20,7 +20,7 @@ package org.dromara.soul.web.handler;
 
 import java.util.Map;
 import org.dromara.soul.common.utils.GsonUtils;
-import org.dromara.soul.plugin.base.utils.SoulResultWarp;
+import org.dromara.soul.plugin.base.utils.SoulResultWrap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.web.ErrorProperties;
@@ -77,7 +77,7 @@ public class GlobalErrorHandler extends DefaultErrorWebExceptionHandler {
     
     private Map<String, Object> response(final ServerRequest request) {
         Throwable ex = getError(request);
-        Object error = SoulResultWarp.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), ex.getMessage());
+        Object error = SoulResultWrap.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), ex.getMessage());
         return GsonUtils.getInstance().toObjectMap(GsonUtils.getInstance().toJson(error));
     }
     

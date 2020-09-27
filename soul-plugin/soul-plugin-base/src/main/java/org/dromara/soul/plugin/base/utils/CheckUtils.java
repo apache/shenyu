@@ -52,7 +52,7 @@ public class CheckUtils {
                 || PluginEnum.DUBBO.getName().equals(pluginName)
                 || PluginEnum.SPRING_CLOUD.getName().equals(pluginName)) {
             LOGGER.error("can not match selector data :{}", pluginName);
-            Object error = SoulResultWarp.error(SoulResultEnum.CANNOT_FIND_SELECTOR.getCode(), SoulResultEnum.CANNOT_FIND_SELECTOR.getMsg(), null);
+            Object error = SoulResultWrap.error(SoulResultEnum.CANNOT_FIND_SELECTOR.getCode(), SoulResultEnum.CANNOT_FIND_SELECTOR.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         return chain.execute(exchange);
@@ -71,7 +71,7 @@ public class CheckUtils {
                 || PluginEnum.DUBBO.getName().equals(pluginName)
                 || PluginEnum.SPRING_CLOUD.getName().equals(pluginName)) {
             LOGGER.error("can not match rule data :{}", pluginName);
-            Object error = SoulResultWarp.error(SoulResultEnum.RULE_NOT_FIND.getCode(), SoulResultEnum.RULE_NOT_FIND.getMsg(), null);
+            Object error = SoulResultWrap.error(SoulResultEnum.RULE_NOT_FIND.getCode(), SoulResultEnum.RULE_NOT_FIND.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         return chain.execute(exchange);
