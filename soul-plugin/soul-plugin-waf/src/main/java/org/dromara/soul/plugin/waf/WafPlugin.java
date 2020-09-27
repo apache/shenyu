@@ -29,7 +29,7 @@ import org.dromara.soul.common.enums.WafEnum;
 import org.dromara.soul.common.enums.WafModelEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.base.utils.Singleton;
-import org.dromara.soul.plugin.base.utils.SoulResultWarp;
+import org.dromara.soul.plugin.base.utils.SoulResultWrap;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
 import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
@@ -56,7 +56,7 @@ public class WafPlugin extends AbstractSoulPlugin {
                 return chain.execute(exchange);
             } else {
                 exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-                Object error = SoulResultWarp.error(403, Constants.REJECT_MSG, null);
+                Object error = SoulResultWrap.error(403, Constants.REJECT_MSG, null);
                 return WebFluxResultUtils.result(exchange, error);
             }
         }
@@ -68,7 +68,7 @@ public class WafPlugin extends AbstractSoulPlugin {
         }
         if (WafEnum.REJECT.getName().equals(wafHandle.getPermission())) {
             exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-            Object error = SoulResultWarp.error(Integer.parseInt(wafHandle.getStatusCode()), Constants.REJECT_MSG, null);
+            Object error = SoulResultWrap.error(Integer.parseInt(wafHandle.getStatusCode()), Constants.REJECT_MSG, null);
             return WebFluxResultUtils.result(exchange, error);
         }
         return chain.execute(exchange);

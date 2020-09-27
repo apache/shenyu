@@ -24,7 +24,7 @@ import org.dromara.soul.plugin.api.result.SoulResult;
  *
  * @author xiaoyu
  */
-public final class SoulResultWarp<T> {
+public final class SoulResultWrap<T> {
     
     /**
      * Success object.

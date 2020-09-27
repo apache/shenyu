@@ -23,7 +23,7 @@ import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.plugin.api.result.SoulResultEnum;
-import org.dromara.soul.plugin.base.utils.SoulResultWarp;
+import org.dromara.soul.plugin.base.utils.SoulResultWrap;
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
@@ -60,10 +60,10 @@ public class WebClientResponsePlugin implements SoulPlugin {
             if (Objects.isNull(clientResponse)
                     || response.getStatusCode() == HttpStatus.BAD_GATEWAY
                     || response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
-                Object error = SoulResultWarp.error(SoulResultEnum.SERVICE_RESULT_ERROR.getCode(), SoulResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
+                Object error = SoulResultWrap.error(SoulResultEnum.SERVICE_RESULT_ERROR.getCode(), SoulResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
                 return WebFluxResultUtils.result(exchange, error);
             } else if (response.getStatusCode() == HttpStatus.GATEWAY_TIMEOUT) {
-                Object error = SoulResultWarp.error(SoulResultEnum.SERVICE_TIMEOUT.getCode(), SoulResultEnum.SERVICE_TIMEOUT.getMsg(), null);
+                Object error = SoulResultWrap.error(SoulResultEnum.SERVICE_TIMEOUT.getCode(), SoulResultEnum.SERVICE_TIMEOUT.getMsg(), null);
                 return WebFluxResultUtils.result(exchange, error);
             }
             response.setStatusCode(clientResponse.statusCode());

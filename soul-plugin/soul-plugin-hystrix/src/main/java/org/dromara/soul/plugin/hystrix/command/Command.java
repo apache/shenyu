@@ -6,7 +6,7 @@ import com.netflix.hystrix.exception.HystrixTimeoutException;
 import java.net.URI;
 import java.util.Objects;
 import org.dromara.soul.plugin.api.result.SoulResultEnum;
-import org.dromara.soul.plugin.base.utils.SoulResultWarp;
+import org.dromara.soul.plugin.base.utils.SoulResultWrap;
 import org.dromara.soul.plugin.base.utils.SpringBeanUtils;
 import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
 import org.springframework.http.HttpStatus;
@@ -42,7 +42,7 @@ public interface Command {
      *
      * @param exchange  the exchange
      * @param exception exception instance
-     * @return error which be wrapped by {@link SoulResultWarp}
+     * @return error which be wrapped by {@link SoulResultWrap}
      */
     default Object generateError(ServerWebExchange exchange, Throwable exception) {
         Object error;
@@ -50,17 +50,17 @@ public interface Command {
             HystrixRuntimeException e = (HystrixRuntimeException) exception;
             if (e.getFailureType() == HystrixRuntimeException.FailureType.TIMEOUT) {
                 exchange.getResponse().setStatusCode(HttpStatus.GATEWAY_TIMEOUT);
-                error = SoulResultWarp.error(SoulResultEnum.SERVICE_TIMEOUT.getCode(), SoulResultEnum.SERVICE_TIMEOUT.getMsg(), null);
+                error = SoulResultWrap.error(SoulResultEnum.SERVICE_TIMEOUT.getCode(), SoulResultEnum.SERVICE_TIMEOUT.getMsg(), null);
             } else {
                 exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-                error = SoulResultWarp.error(SoulResultEnum.SERVICE_RESULT_ERROR.getCode(), SoulResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
+                error = SoulResultWrap.error(SoulResultEnum.SERVICE_RESULT_ERROR.getCode(), SoulResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
             }
         } else if (exception instanceof HystrixTimeoutException) {
             exchange.getResponse().setStatusCode(HttpStatus.GATEWAY_TIMEOUT);
-            error = SoulResultWarp.error(SoulResultEnum.SERVICE_TIMEOUT.getCode(), SoulResultEnum.SERVICE_TIMEOUT.getMsg(), null);
+            error = SoulResultWrap.error(SoulResultEnum.SERVICE_TIMEOUT.getCode(), SoulResultEnum.SERVICE_TIMEOUT.getMsg(), null);
         } else {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            error = SoulResultWarp.error(SoulResultEnum.SERVICE_RESULT_ERROR.getCode(), SoulResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
+            error = SoulResultWrap.error(SoulResultEnum.SERVICE_RESULT_ERROR.getCode(), SoulResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
         }
         return error;
     }

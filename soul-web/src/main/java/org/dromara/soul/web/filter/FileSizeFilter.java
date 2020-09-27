@@ -20,7 +20,7 @@
 package org.dromara.soul.web.filter;
 
 import org.dromara.soul.plugin.api.result.SoulResultEnum;
-import org.dromara.soul.plugin.base.utils.SoulResultWarp;
+import org.dromara.soul.plugin.base.utils.SoulResultWrap;
 import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
 import org.dromara.soul.web.filter.support.BodyInserterContext;
 import org.dromara.soul.web.filter.support.CachedBodyOutputMessage;
@@ -77,7 +77,7 @@ public class FileSizeFilter implements WebFilter {
                         if (size.capacity() > BYTES_PER_MB * maxSize) {
                             ServerHttpResponse response = exchange.getResponse();
                             response.setStatusCode(HttpStatus.BAD_REQUEST);
-                            Object error = SoulResultWarp.error(SoulResultEnum.PAYLOAD_TOO_LARGE.getCode(), SoulResultEnum.PAYLOAD_TOO_LARGE.getMsg(), null);
+                            Object error = SoulResultWrap.error(SoulResultEnum.PAYLOAD_TOO_LARGE.getCode(), SoulResultEnum.PAYLOAD_TOO_LARGE.getMsg(), null);
                             return WebFluxResultUtils.result(exchange, error);
                         }
                         BodyInserter<Mono<DataBuffer>, ReactiveHttpOutputMessage> bodyInsert = BodyInserters.fromPublisher(Mono.just(size), DataBuffer.class);
