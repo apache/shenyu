@@ -20,6 +20,7 @@ package org.dromara.soul.plugin.alibaba.dubbo.param;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.dromara.soul.common.utils.UrlQuerys;
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
@@ -60,6 +61,9 @@ public class BodyParamPlugin implements SoulPlugin {
                     .flatMap(body -> {
                         if (MediaType.APPLICATION_JSON.isCompatibleWith(mediaType)) {
                             exchange.getAttributes().put(Constants.DUBBO_PARAMS, body);
+                        } else {
+                            exchange.getAttributes().put(Constants.DUBBO_PARAMS,
+                                    UrlQuerys.getQuery(request.getURI().getQuery()));
                         }
                         return chain.execute(exchange);
                     });
