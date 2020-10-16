@@ -62,6 +62,8 @@
  * soul-client : User fast access with springMvc,dubbo,springCloud
   
  * soul-common : Framework common class
+ 
+ * soul-dist : build project
 
  * soul-metrics : metrics impl by prometheus.
  
