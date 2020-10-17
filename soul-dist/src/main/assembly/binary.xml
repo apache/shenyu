@@ -20,6 +20,7 @@
             <outputDirectory>${file.separator}soul-admin${file.separator}bin</outputDirectory>
             <includes>
                 <include>*.sh</include>
+                <include>*.bat</include>
             </includes>
         </fileSet>
 
@@ -35,6 +36,7 @@
             <outputDirectory>${file.separator}soul-bootstrap${file.separator}bin</outputDirectory>
             <includes>
                 <include>*.sh</include>
+                <include>*.bat</include>
             </includes>
         </fileSet>
 
