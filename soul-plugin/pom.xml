@@ -26,6 +26,7 @@
         <module>soul-plugin-rewrite</module>
         <module>soul-plugin-waf</module>
         <module>soul-plugin-global</module>
+        <module>soul-plugin-sentinel</module>
     </modules>
 
 
