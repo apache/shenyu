@@ -15,13 +15,42 @@ import lombok.Setter;
 public class SentinelHandle {
 
     /**
-     * grade.
+     * flow rule enable.
      */
-    private Integer grade;
+    private Integer flowRuleEnable = 1;
 
     /**
-     * count.
+     * flow rule grade.
      */
-    private Integer count;
+    private Integer flowRuleGrade = 1;
 
+    /**
+     * flow rule count.
+     */
+    private Integer flowRuleCount;
+
+    /**
+     * flow rule control behavior.
+     */
+    private Integer flowRuleControlBehavior = 0;
+
+    /**
+     * degrade rule control behavior.
+     */
+    private Integer degradeRuleEnable = 1;
+
+    /**
+     * degrade rule grade.
+     */
+    private Integer degradeRuleGrade = 1;
+
+    /**
+     * degrade rule count.
+     */
+    private Integer degradeRuleCount;
+
+    /**
+     * degrade rule time window.
+     */
+    private Integer degradeRuleTimeWindow;
 }
