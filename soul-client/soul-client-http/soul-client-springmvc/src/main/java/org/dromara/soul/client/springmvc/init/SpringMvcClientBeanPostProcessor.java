@@ -73,7 +73,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
     }
     
     @Override
-    public Object postProcessBeforeInitialization(@NonNull final Object bean, @NonNull final String beanName) throws BeansException {
+    public Object postProcessAfterInitialization(@NonNull final Object bean, @NonNull final String beanName) throws BeansException {
         if (soulSpringMvcConfig.isFull()) {
             return bean;
         }
