@@ -1,19 +1,27 @@
-**Soul后端服务API**`
-**用户管理**
-**(1)查询用户**
-URL地址：
-[/dashboardUser](http://127.0.0.1:8082/dashboardUser)
-请求方式：
-GET
+# Soul后端服务API
+
+------
+
+## 用户管理
+
+### 1.查询用户
+
+URL地址：[/dashboardUser](http://127.0.0.1:8082/dashboardUser)
+
+请求方式：GET
+
 请求参数：
+
 |参数名|参数类型|是否必须|默认值|备注|
 |:----|:-----|:------|:----|:---|
 |userName|String|否|-|用户名|
 |currentPage|Integer|否|-|当前页数|
 |pageSize|Integer|否|-|页大小|
-请求范例：
-[http://127.0.0.1:8082/dashboardUser?userName=ADMIN&currentPage=1&pageSize=10](http://127.0.0.1:8082/dashboardUser?userName=ADMIN&currentPage=1&pageSize=10)
+
+请求范例：[http://127.0.0.1:8082/dashboardUser?userName=ADMIN&currentPage=1&pageSize=10](http://127.0.0.1:8082/dashboardUser?userName=ADMIN&currentPage=1&pageSize=10)
+
 响应结果：
+
 ```java
 public class CommonPager<T> {
 
@@ -110,15 +118,16 @@ public class DashboardUserVO {
     }
 }
 ```
-**(2)明细用户**
-URL地址：
-[/dashboardUser/{id}](http://127.0.0.1:8082/dashboardUser/{id})
-请求方式：
-GET
-请求参数：
-无
-请求范例：
-[http://127.0.0.1:8082/dashboardUser/1](http://127.0.0.1:8082/dashboardUser/1)
+### 2.明细用户
+
+URL地址：[/dashboardUser/{id}](http://127.0.0.1:8082/dashboardUser/{id})
+
+请求方式：GET
+
+请求参数：无
+
+请求范例：[http://127.0.0.1:8082/dashboardUser/1](http://127.0.0.1:8082/dashboardUser/1)
+
 响应结果：
 ```java
 public class DashboardUserVO {
@@ -175,11 +184,12 @@ public class DashboardUserVO {
     }
 }
 ```
-**(3)新增用户**
-URL地址：
-[/dashboardUser](http://127.0.0.1:8082/dashboardUser)
-请求方式：
-POST
+### 3.新增用户
+
+URL地址：[/dashboardUser](http://127.0.0.1:8082/dashboardUser)
+
+请求方式：POST
+
 请求参数：
 ```java
 public class DashboardUserDTO {
@@ -227,11 +237,11 @@ public class DashboardUserDTO {
     "data": 1
 }
 ```
-**(4)编辑用户**
-URL地址：
-[/dashboardUser/{id}](http://127.0.0.1:8082/dashboardUser/{id})
-请求方式：
-PUT
+### 4.编辑用户
+URL地址：[/dashboardUser/{id}](http://127.0.0.1:8082/dashboardUser/{id})
+
+请求方式：PUT
+
 请求参数：
 ```java
 public class DashboardUserDTO {
@@ -279,13 +289,14 @@ public class DashboardUserDTO {
     "data": 1
 }
 ```
-**(5)删除用户**
-URL地址：
-[/dashboardUser/batch](http://127.0.0.1:8082/dashboardUser/batch)
-请求方式：
-DELETE
-请求参数：
-["1","2"]
+### 5.删除用户
+
+URL地址：[/dashboardUser/batch](http://127.0.0.1:8082/dashboardUser/batch)
+
+请求方式：DELETE
+
+请求参数：["1","2"]
+
 响应结果：
 ```
 {
@@ -296,13 +307,16 @@ DELETE
 ```
 
 -------------------
-**插件管理**
-**(1)查询插件**
-URL地址：
-[/plugin](http://127.0.0.1:8082/plugin)
-请求方式：
-GET
+## 插件管理
+
+### 1.查询插件
+
+URL地址：[/plugin](http://127.0.0.1:8082/plugin)
+
+请求方式：GET
+
 请求参数：
+
 |参数名|参数类型|是否必须|默认值|备注|
 |:----|:-----|:------|:----|:---|
 |name|String|否|-|插件名|
@@ -450,15 +464,16 @@ public class PluginVO {
     }
 }
 ```
-**(2)明细插件**
-URL地址：
-[/plugin/{id}](http://127.0.0.1:8082/plugin/{id})
-请求范例：
-[http://127.0.0.1:8082/plugin/1](http://127.0.0.1:8082/plugin/1)
-请求方式：
-GET
-请求参数：
-无
+### 2.明细插件
+
+URL地址：[/plugin/{id}](http://127.0.0.1:8082/plugin/{id})
+
+请求范例：[http://127.0.0.1:8082/plugin/1](http://127.0.0.1:8082/plugin/1)
+
+请求方式：GET
+
+请求参数：无
+
 响应结果：
 ```java
 public class PluginVO {
@@ -509,11 +524,12 @@ public class PluginVO {
     }
 }
 ```
-**(3)新增插件**
-URL地址：
-[/plugin](http://127.0.0.1:8082/plugin)
-请求方式：
-POST
+### 3.新增插件
+
+URL地址：[/plugin](http://127.0.0.1:8082/plugin)
+
+请求方式：POST
+
 请求参数：
 ```java
 public class PluginDTO {
@@ -549,11 +565,12 @@ public class PluginDTO {
     "data": 1
 }
 ```
-**(4)编辑插件**
-URL地址：
-[/plugin/{id}](http://127.0.0.1:8082/plugin/{id})
-请求方式：
-PUT
+### 4.编辑插件
+
+URL地址：[/plugin/{id}](http://127.0.0.1:8082/plugin/{id})
+
+请求方式：PUT
+
 请求参数：
 ```java
 public class PluginDTO {
@@ -589,13 +606,14 @@ public class PluginDTO {
     "data": 1
 }
 ```
-**(5)删除插件**
-URL地址：
-[/plugin/batch](http://127.0.0.1:8082/plugin/batch)
-请求方式：
-DELETE
-请求参数：
-["1","2"]
+### 5.删除插件
+
+URL地址：[/plugin/batch](http://127.0.0.1:8082/plugin/batch)
+
+请求方式：DELETE
+
+请求参数：["1","2"]
+
 响应结果：
 ```json
 {
@@ -607,21 +625,24 @@ DELETE
 
 -------------------
 
-**选择器管理**
-**(1)查询选择器**
-URL地址：
-[/selector](http://127.0.0.1:8082/selector)
-请求方式：
-GET
+## 选择器管理
+
+### 1.查询选择器
+
+URL地址：[/selector](http://127.0.0.1:8082/selector)
+
+请求方式：GET
+
 请求参数：
+
 |参数名|参数类型|是否必须|默认值|备注|
 |:----|:-----|:------|:----|:---|
 |pluginId|String|否|-|插件ID|
 |currentPage|Integer|否|-|当前页数|
 |pageSize|Integer|否|-|页大小|
 
-请求范例：
-[http://127.0.0.1:8082/selector?pluginId=1&currentPage=1&pageSize=10](http://127.0.0.1:8082/selector?pluginId=1&currentPage=1&pageSize=10)
+请求范例：[http://127.0.0.1:8082/selector?pluginId=1&currentPage=1&pageSize=10](http://127.0.0.1:8082/selector?pluginId=1&currentPage=1&pageSize=10)
+
 响应结果：
 ```java
 public class CommonPager<T> {
@@ -745,15 +766,17 @@ public class SelectorVO {
     }
 }
 ```
-**(2)明细选择器**
-URL地址：
-[/selector/{id}](http://127.0.0.1:8082/selector/{id})
-请求方式：
-GET
-请求参数：
-无
-请求范例：
-[http://127.0.0.1:8082/selector/1](http://127.0.0.1:8082/selector/1)
+
+### 2.明细选择器
+
+URL地址：[/selector/{id}](http://127.0.0.1:8082/selector/{id})
+
+请求方式：GET
+
+请求参数：无
+
+请求范例：[http://127.0.0.1:8082/selector/1](http://127.0.0.1:8082/selector/1)
+
 响应结果：
 ```java
 public class SelectorVO {
@@ -863,11 +886,13 @@ public class SelectorVO {
 	}
 }
 ```
-**(3)新增选择器**
-URL地址：
-[/selector](http://127.0.0.1:8082/selector)
-请求方式：
-POST
+
+### 3.新增选择器
+
+URL地址：[/selector](http://127.0.0.1:8082/selector)
+
+请求方式：POST
+
 请求参数：
 ```java
 public class SelectorDTO {
@@ -982,11 +1007,12 @@ public class SelectorConditionDTO {
     "data": 1
 }
 ```
-**(4)编辑选择器**
-URL地址：
-[/selector/{id}](http://127.0.0.1:8082/selector/{id})
-请求方式：
-PUT
+### 4.编辑选择器
+
+URL地址：[/selector/{id}](http://127.0.0.1:8082/selector/{id})
+
+请求方式：PUT
+
 请求参数：
 ```java
 public class SelectorDTO {
@@ -1101,13 +1127,15 @@ public class SelectorConditionDTO {
     "data": 1
 }
 ```
-**(5)删除选择器**
-URL地址：
-[/selector/batch](http://127.0.0.1:8082/selector/batch)
-请求方式：
-DELETE
-请求参数：
-["1","2"]
+
+### 5.删除选择器
+
+URL地址：[/selector/batch](http://127.0.0.1:8082/selector/batch)
+
+请求方式：DELETE
+
+请求参数：["1","2"]
+
 响应结果：
 ```json
 {
@@ -1118,21 +1146,25 @@ DELETE
 ```
 
 -------------------
-**规则管理**
-**(1)查询规则**
-URL地址：
-[/rule](http://127.0.0.1:8082/rule)
-请求方式：
-GET
+
+## 规则管理
+
+### 1.查询规则
+
+URL地址：[/rule](http://127.0.0.1:8082/rule)
+
+请求方式：GET
+
 请求参数：
+
 |参数名|参数类型|是否必须|默认值|备注|
 |:----|:-----|:------|:----|:---|
 |selectorId|String|否|-|选择器ID|
 |currentPage|Integer|否|-|当前页数|
 |pageSize|Integer|否|-|页大小|
 
-请求范例：
-[http://127.0.0.1:8082/rule?selectorId=1&currentPage=1&pageSize=10](http://127.0.0.1:8082/rule?selectorId=1&currentPage=1&pageSize=10)
+请求范例：[http://127.0.0.1:8082/rule?selectorId=1&currentPage=1&pageSize=10](http://127.0.0.1:8082/rule?selectorId=1&currentPage=1&pageSize=10)
+
 响应结果：
 ```java
 public class CommonPager<T> {
@@ -1242,15 +1274,17 @@ public class RuleVO {
 	}
 }
 ```
-**(2)明细规则**
-URL地址：
-[/rule/{id}](http://127.0.0.1:8082/rule/{id})
-请求方式：
-GET
-请求参数：
-无
-请求范例：
-[http://127.0.0.1:8082/rule/1](http://127.0.0.1:8082/rule/1)
+
+### 2.明细规则
+
+URL地址：[/rule/{id}](http://127.0.0.1:8082/rule/{id})
+
+请求方式：GET
+
+请求参数：无
+
+请求范例：[http://127.0.0.1:8082/rule/1](http://127.0.0.1:8082/rule/1)
+
 响应结果：
 ```java
 public class RuleVO {
@@ -1361,11 +1395,12 @@ public class RuleVO {
 	}
 }
 ```
-**(3)新增规则**
-URL地址：
-[/rule](http://127.0.0.1:8082/rule)
-请求方式：
-POST
+### 3.新增规则
+
+URL地址：[/rule](http://127.0.0.1:8082/rule)
+
+请求方式：POST
+
 请求参数：
 ```java
 public class RuleDTO {
@@ -1589,13 +1624,14 @@ public class RuleConditionDTO {
     "data": 1
 }
 ```
-**(5)删除规则**
-URL地址：
-[/rule/batch](http://127.0.0.1:8082/rule/batch)
-请求方式：
-DELETE
-请求参数：
-["1","2"]
+### 5.删除规则
+
+URL地址：[/rule/batch](http://127.0.0.1:8082/rule/batch)
+
+请求方式：DELETE
+
+请求参数：["1","2"]
+
 响应结果：
 ```json
 {
@@ -1607,21 +1643,24 @@ DELETE
 
 
 -------------------
-**认证管理**
-**(1)查询认证**
-URL地址：
-[/appAuth](http://127.0.0.1:8082/appAuth)
-请求方式：
-GET
+## 认证管理
+
+### 1.查询认证
+
+URL地址：[/appAuth](http://127.0.0.1:8082/appAuth)
+
+请求方式：GET
+
 请求参数：
+
 |参数名|参数类型|是否必须|默认值|备注|
 |:----|:-----|:------|:----|:---|
 |appKey|String|否|-|应用键|
 |currentPage|Integer|否|-|当前页数|
 |pageSize|Integer|否|-|页大小|
 
-请求范例：
-[http://127.0.0.1:8082/appAuth?appKey=applicationKey&currentPage=1&pageSize=10](http://127.0.0.1:8082/appAuth?appKey=applicationKey&currentPage=1&pageSize=10)
+请求范例：[http://127.0.0.1:8082/appAuth?appKey=applicationKey&currentPage=1&pageSize=10](http://127.0.0.1:8082/appAuth?appKey=applicationKey&currentPage=1&pageSize=10)
+
 响应结果：
 ```java
 public class CommonPager<T> {
@@ -1713,15 +1752,16 @@ public class AppAuthVO {
     }
 }
 ```
-**(2)明细认证**
-URL地址：
-[/appAuth/{id}](http://127.0.0.1:8082/appAuth/{id})
-请求方式：
-GET
-请求参数：
-无
-请求范例：
-[http://127.0.0.1:8082/appAuth/1](http://127.0.0.1:8082/appAuth/1)
+### 2.明细认证
+
+URL地址：[/appAuth/{id}](http://127.0.0.1:8082/appAuth/{id})
+
+请求方式：GET
+
+请求参数：无
+
+请求范例：[http://127.0.0.1:8082/appAuth/1](http://127.0.0.1:8082/appAuth/1)
+
 响应结果：
 ```java
 public class AppAuthVO {
@@ -1818,11 +1858,13 @@ public class AppAuthDTO {
     "data": 1
 }
 ```
-**(4)编辑认证**
-URL地址：
-[/appAuth/{id}](http://127.0.0.1:8082/appAuth/{id})
-请求方式：
-PUT
+
+### 4.编辑认证
+
+URL地址：[/appAuth/{id}](http://127.0.0.1:8082/appAuth/{id})
+
+请求方式：PUT
+
 请求参数：
 ```java
 public class AppAuthDTO {
@@ -1864,13 +1906,14 @@ public class AppAuthDTO {
     "data": 1
 }
 ```
-**(5)删除认证**
-URL地址：
-[/appAuth/batch](http://127.0.0.1:8082/appAuth/batch)
-请求方式：
-DELETE
-请求参数：
-["1","2"]
+### 5.删除认证
+
+URL地址：[/appAuth/batch](http://127.0.0.1:8082/appAuth/batch)
+
+请求方式：DELETE
+
+请求参数：["1","2"]
+
 响应结果：
 ```
 {
@@ -1881,18 +1924,21 @@ DELETE
 ```
 
 -------------------
-**平台管理**
-URL地址：
-[/platform/login](http://127.0.0.1:8082/platform/login)
-请求方式：
-GET
+## 平台管理
+
+URL地址：[/platform/login](http://127.0.0.1:8082/platform/login)
+
+请求方式：GET
+
 请求参数：
+
 |参数名|参数类型|是否必须|默认值|备注|
 |:----|:-----|:------|:----|:---|
 |userName|String|否|-|账号|
 |password|String|否|-|密码|
-请求范例：
-[http://127.0.0.1:8082/platform/login?userName=admin&password=123456](http://127.0.0.1:8082/platform/login?userName=admin&password=123456)
+
+请求范例：[http://127.0.0.1:8082/platform/login?userName=admin&password=123456](http://127.0.0.1:8082/platform/login?userName=admin&password=123456)
+
 响应结果：
 ```java
 public class DashboardUserVO {
@@ -1949,16 +1995,16 @@ public class DashboardUserVO {
     }
 }
 ```
-**(2)查询枚举**
-URL地址：
-[/platform/enum](http://127.0.0.1:8082/platform/enum)
-请求方式：
-GET
-请求参数：
-无
+### 查询枚举
 
-请求范例：
-[http://127.0.0.1:8082/platform)
+URL地址：[/platform/enum](http://127.0.0.1:8082/platform/enum)
+
+请求方式：GET
+
+请求参数：无
+
+请求范例：[http://127.0.0.1:8082/platform)
+
 响应结果：
 ```java
 public class EnumVO implements Serializable {

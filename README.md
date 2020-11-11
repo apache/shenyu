@@ -25,11 +25,17 @@
         <img src="https://api.codacy.com/project/badge/Grade/4367ffad5b434b7e8078b3a68cc6398d"/>
     </a>
     <a target="_blank" href='https://gitee.com/shuaiqiyu/soul/stargazers'>
-        <img src='https://gitee.com/shuaiqiyu/soul/badge/star.svg?theme=gvp' alt='star'/>
+        <img src='https://gitee.com/shuaiqiyu/soul/badge/star.svg?theme=gvp' alt='gitee stars'/>
    </a>
    <a target="_blank" href='https://github.com/dromara/soul'>
-        <img src="https://img.shields.io/github/stars/dromara/soul.svg?style=social" alt="github star"/>
+        <img src="https://img.shields.io/github/forks/dromara/soul.svg" alt="github forks"/>
    </a>
+   <a target="_blank" href='https://github.com/dromara/soul'>
+        <img src="https://img.shields.io/github/stars/dromara/soul.svg" alt="github stars"/>
+   </a>
+   <a target="_blank" href='https://github.com/dromara/soul'>
+        <img src="https://img.shields.io/github/contributors/dromara/soul.svg" alt="github contributors"/>
+   </a>     
    <a href="https://github.com/Dromara/soul">
         <img src="https://tokei.rs/b1/github/Dromara/soul?category=lines"/>
    </a>
@@ -62,6 +68,8 @@
  * soul-client : User fast access with springMvc,dubbo,springCloud
   
  * soul-common : Framework common class
+ 
+ * soul-dist : build project
 
  * soul-metrics : metrics impl by prometheus.
  

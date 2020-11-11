@@ -9,6 +9,11 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>soul-admin</artifactId>
+
+    <properties>
+        <dashboard.path>${project.parent.basedir}/soul-dashboard</dashboard.path>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.dromara</groupId>
@@ -142,6 +147,44 @@
     <build>
         <finalName>soul-admin</finalName>
         <plugins>
+            <!--这里是为了打包前端的、如果你本地不需要可以注释掉即可-->
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.6</version>
+                <configuration>
+                    <workingDirectory>${dashboard.path}</workingDirectory>
+                    <nodeVersion>v12.14.1</nodeVersion>
+                </configuration>
+                <executions>
+                    <!--如果你本地已经安装nodejs环境，这步也可以注释-->
+                    <execution>
+                        <id>install node and npm</id>
+                        <goals>
+                            <goal>install-node-and-npm</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>npm install</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>install --registry=https://registry.npmjs.org/</arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>npm run build</id>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>run build</arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -167,6 +210,18 @@
                 <configuration>
                     <encoding>UTF-8</encoding>
                     <useDefaultDelimiters>true</useDefaultDelimiters>
+                    <resources>
+                        <resource>
+                            <targetPath>${basedir}/target/classes/static</targetPath>
+                            <directory>${dashboard.path}/dist</directory>
+                        </resource>
+                        <resource>
+                            <directory>src/main/resources</directory>
+                            <excludes>
+                                <exclude>**/static/**</exclude>
+                            </excludes>
+                        </resource>
+                    </resources>
                 </configuration>
             </plugin>
 
