@@ -18,11 +18,20 @@
 
 package org.dromara.soul.springboot.starter.plugin.sentinel;
 
+import com.alibaba.csp.sentinel.adapter.spring.webflux.exception.SentinelBlockExceptionHandler;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.plugin.sentinel.SentinelPlugin;
 import org.dromara.soul.plugin.sentinel.handler.SentinelRuleHandle;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.codec.ServerCodecConfigurer;
+import org.springframework.web.reactive.result.view.ViewResolver;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Sentinel plugin configuration.
@@ -31,6 +40,24 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class SentinelPluginConfiguration {
+
+    /**
+     * Sentinel plugin viewResolvers.
+     */
+    private final List<ViewResolver> viewResolvers;
+
+    /**
+     * Sentinel plugin serverCodecConfigurer.
+     */
+    private final ServerCodecConfigurer serverCodecConfigurer;
+
+    /**
+     * sentinelPluginConfiguration constructor.
+     */
+    public SentinelPluginConfiguration(final ObjectProvider<List<ViewResolver>> listObjectProvider, final ServerCodecConfigurer serverCodecConfigurer) {
+        this.viewResolvers = listObjectProvider.getIfAvailable(Collections::emptyList);
+        this.serverCodecConfigurer = serverCodecConfigurer;
+    }
 
     /**
      * Sentinel plugin.
@@ -50,5 +77,16 @@ public class SentinelPluginConfiguration {
     @Bean
     public PluginDataHandler sentinelRuleHandle() {
         return new SentinelRuleHandle();
+    }
+
+    /**
+     * Sentinel exception handler.
+     *
+     * @return the soul plugin
+     */
+    @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE)
+    public SentinelBlockExceptionHandler sentinelBlockExceptionHandler() {
+        return new SentinelBlockExceptionHandler(viewResolvers, serverCodecConfigurer);
     }
 }
