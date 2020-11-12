@@ -18,8 +18,8 @@
     <a target="_blank" href="https://www.oracle.com/technetwork/java/javase/downloads/index.html">
         <img src="https://img.shields.io/badge/JDK-8+-green.svg" />
     </a>
-    <a target="_blank" href="https://travis-ci.org/github/dromara/soul">
-        <img src="https://api.travis-ci.org/dromara/soul.svg?branch=master&status=created" />
+    <a target="_blank" href="https://github.com/dromara/soul">
+        <img src="https://github.com/dromara/soul/workflows/build/badge.svg" />
     </a>
     <a href="https://www.codacy.com/app/yu199195/soul?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Dromara/soul&amp;utm_campaign=Badge_Grade">
         <img src="https://api.codacy.com/project/badge/Grade/4367ffad5b434b7e8078b3a68cc6398d"/>
@@ -278,5 +278,4 @@
   </tbody>
 </table>
   
- 
  
