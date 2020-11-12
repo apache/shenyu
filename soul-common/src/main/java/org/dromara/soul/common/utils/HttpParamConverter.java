@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import lombok.SneakyThrows;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
@@ -34,7 +35,7 @@ import org.springframework.util.StringUtils;
 public final class HttpParamConverter {
 
     private static final Pattern PATTERN = Pattern.compile("([^&=]+)(=?)([^&]+)?");
-    
+
     /**
      * of.
      *
@@ -44,7 +45,7 @@ public final class HttpParamConverter {
     public static String ofString(final Supplier<String> supplier) {
         return GsonUtils.getInstance().toJson(initQueryParams(supplier.get()));
     }
-    
+
     /**
      * map.
      *
@@ -53,10 +54,10 @@ public final class HttpParamConverter {
      * @param supplier supplier
      * @return String string
      */
-    public static <K, V> String toMap(final Supplier<MultiValueMap<K,V>> supplier) {
+    public static <K, V> String toMap(final Supplier<MultiValueMap<K, V>> supplier) {
         return GsonUtils.getInstance().toJson(supplier.get().toSingleValueMap());
     }
-    
+
     /**
      * Init query params map.
      *
@@ -77,7 +78,7 @@ public final class HttpParamConverter {
         }
         return queryParams;
     }
-    
+
     /**
      * Decode query param string.
      *
