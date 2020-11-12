@@ -44,7 +44,7 @@ public class SentinelRuleHandle implements PluginDataHandler {
 
         List<FlowRule> flowRules = FlowRuleManager.getRules()
                 .stream()
-                .filter(r -> r.getResource().equals(getResourceName(ruleData)))
+                .filter(r -> !r.getResource().equals(getResourceName(ruleData)))
                 .collect(Collectors.toList());
         if (sentinelHandle.getFlowRuleEnable() == 1) {
             FlowRule rule = new FlowRule(getResourceName(ruleData));
@@ -57,7 +57,7 @@ public class SentinelRuleHandle implements PluginDataHandler {
 
         List<DegradeRule> degradeRules = DegradeRuleManager.getRules()
                 .stream()
-                .filter(r -> r.getResource().equals(getResourceName(ruleData)))
+                .filter(r -> !r.getResource().equals(getResourceName(ruleData)))
                 .collect(Collectors.toList());
         if (sentinelHandle.getDegradeRuleEnable() == 1) {
             DegradeRule rule = new DegradeRule(getResourceName(ruleData));
@@ -73,11 +73,11 @@ public class SentinelRuleHandle implements PluginDataHandler {
     public void removeRule(final RuleData ruleData) {
         FlowRuleManager.loadRules(FlowRuleManager.getRules()
                 .stream()
-                .filter(r -> r.getResource().equals(getResourceName(ruleData)))
+                .filter(r -> !r.getResource().equals(getResourceName(ruleData)))
                 .collect(Collectors.toList()));
         DegradeRuleManager.loadRules(DegradeRuleManager.getRules()
                 .stream()
-                .filter(r -> r.getResource().equals(getResourceName(ruleData)))
+                .filter(r -> !r.getResource().equals(getResourceName(ruleData)))
                 .collect(Collectors.toList()));
     }
 
