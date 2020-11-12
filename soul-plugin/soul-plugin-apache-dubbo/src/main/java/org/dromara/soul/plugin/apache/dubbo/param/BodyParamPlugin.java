@@ -42,16 +42,16 @@ import java.util.Objects;
  * @author xiaoyu
  */
 public class BodyParamPlugin implements SoulPlugin {
-    
+
     private final List<HttpMessageReader<?>> messageReaders;
-    
+
     /**
      * Instantiates a new Body param plugin.
      */
     public BodyParamPlugin() {
         this.messageReaders = HandlerStrategies.withDefaults().messageReaders();
     }
-    
+
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final SoulPluginChain chain) {
         final ServerHttpRequest request = exchange.getRequest();
@@ -69,7 +69,7 @@ public class BodyParamPlugin implements SoulPlugin {
         }
         return chain.execute(exchange);
     }
-    
+
     @Override
     public int getOrder() {
         return PluginEnum.DUBBO.getCode() - 1;
@@ -80,7 +80,7 @@ public class BodyParamPlugin implements SoulPlugin {
         return "apache-dubbo-body-param";
     }
 
-    Mono<Void> body(ServerWebExchange exchange, ServerRequest serverRequest, SoulPluginChain chain) {
+    Mono<Void> body(final ServerWebExchange exchange, final ServerRequest serverRequest, final SoulPluginChain chain) {
         return serverRequest.bodyToMono(String.class)
                 .switchIfEmpty(Mono.defer(() -> Mono.just("")))
                 .flatMap(body -> {
@@ -88,8 +88,8 @@ public class BodyParamPlugin implements SoulPlugin {
                     return chain.execute(exchange);
                 });
     }
-    
-    Mono<Void> formData(ServerWebExchange exchange, ServerRequest serverRequest, SoulPluginChain chain) {
+
+    Mono<Void> formData(final ServerWebExchange exchange, final ServerRequest serverRequest, final SoulPluginChain chain) {
         return serverRequest.formData()
                 .switchIfEmpty(Mono.defer(() -> Mono.just(new LinkedMultiValueMap<>())))
                 .flatMap(map -> {
@@ -97,8 +97,8 @@ public class BodyParamPlugin implements SoulPlugin {
                     return chain.execute(exchange);
                 });
     }
-    
-    Mono<Void> query(ServerWebExchange exchange, ServerRequest serverRequest, SoulPluginChain chain) {
+
+    Mono<Void> query(final ServerWebExchange exchange, final ServerRequest serverRequest, final SoulPluginChain chain) {
         exchange.getAttributes().put(Constants.DUBBO_PARAMS,
                 HttpParamConverter.ofString(() -> serverRequest.uri().getQuery()));
         return chain.execute(exchange);
