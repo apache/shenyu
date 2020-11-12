@@ -20,13 +20,14 @@ package org.dromara.soul.plugin.apache.dubbo.param;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
-import org.dromara.soul.common.utils.UrlQuerys;
+import org.dromara.soul.common.utils.HttpParamConverter;
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.reactive.function.server.HandlerStrategies;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.server.ServerWebExchange;
@@ -58,17 +59,13 @@ public class BodyParamPlugin implements SoulPlugin {
         if (Objects.nonNull(soulContext) && RpcTypeEnum.DUBBO.getName().equals(soulContext.getRpcType())) {
             MediaType mediaType = request.getHeaders().getContentType();
             ServerRequest serverRequest = ServerRequest.create(exchange, messageReaders);
-            return serverRequest.bodyToMono(String.class)
-                    .switchIfEmpty(Mono.defer(() -> Mono.just("")))
-                    .flatMap(body -> {
-                        if (MediaType.APPLICATION_JSON.isCompatibleWith(mediaType)) {
-                            exchange.getAttributes().put(Constants.DUBBO_PARAMS, body);
-                        } else {
-                            exchange.getAttributes().put(Constants.DUBBO_PARAMS,
-                                    UrlQuerys.getQuery(request.getURI().getQuery()));
-                        }
-                        return chain.execute(exchange);
-                    });
+            if (MediaType.APPLICATION_JSON.isCompatibleWith(mediaType)) {
+                return body(exchange, serverRequest, chain);
+            } else if (MediaType.APPLICATION_FORM_URLENCODED.isCompatibleWith(mediaType)) {
+                return formData(exchange, serverRequest, chain);
+            } else {
+                return query(exchange, serverRequest, chain);
+            }
         }
         return chain.execute(exchange);
     }
@@ -77,9 +74,33 @@ public class BodyParamPlugin implements SoulPlugin {
     public int getOrder() {
         return PluginEnum.DUBBO.getCode() - 1;
     }
-    
+
     @Override
     public String named() {
         return "apache-dubbo-body-param";
+    }
+
+    Mono<Void> body(ServerWebExchange exchange, ServerRequest serverRequest, SoulPluginChain chain) {
+        return serverRequest.bodyToMono(String.class)
+                .switchIfEmpty(Mono.defer(() -> Mono.just("")))
+                .flatMap(body -> {
+                    exchange.getAttributes().put(Constants.DUBBO_PARAMS, body);
+                    return chain.execute(exchange);
+                });
+    }
+    
+    Mono<Void> formData(ServerWebExchange exchange, ServerRequest serverRequest, SoulPluginChain chain) {
+        return serverRequest.formData()
+                .switchIfEmpty(Mono.defer(() -> Mono.just(new LinkedMultiValueMap<>())))
+                .flatMap(map -> {
+                    exchange.getAttributes().put(Constants.DUBBO_PARAMS, HttpParamConverter.toMap(() -> map));
+                    return chain.execute(exchange);
+                });
+    }
+    
+    Mono<Void> query(ServerWebExchange exchange, ServerRequest serverRequest, SoulPluginChain chain) {
+        exchange.getAttributes().put(Constants.DUBBO_PARAMS,
+                HttpParamConverter.ofString(() -> serverRequest.uri().getQuery()));
+        return chain.execute(exchange);
     }
 }
