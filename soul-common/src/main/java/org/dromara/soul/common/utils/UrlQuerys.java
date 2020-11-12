@@ -1,11 +1,13 @@
 package org.dromara.soul.common.utils;
 
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,13 +16,23 @@ public class UrlQuerys {
     private static final Pattern PATTERN = Pattern.compile("([^&=]+)(=?)([^&]+)?");
 
     /**
-     * getQuery.
+     * of.
      *
-     * @param uri uri
-     * @return String string
+     * @param supplier supplier
+     * @return String
      */
-    public static String getQuery(final String uri) {
-        return GsonUtils.getInstance().toJson(initQueryParams(uri));
+    public static String of(final Supplier<String> supplier) {
+        return GsonUtils.getInstance().toJson(initQueryParams(supplier.get()));
+    }
+
+    /**
+     * map.
+     *
+     * @param supplier supplier
+     * @return String
+     */
+    public static String map(final Supplier<MultiValueMap> supplier) {
+        return GsonUtils.getInstance().toJson(supplier.get().toSingleValueMap());
     }
 
     static Map<String, String> initQueryParams(final String query) {
