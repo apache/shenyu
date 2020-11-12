@@ -85,7 +85,7 @@ public class ErrorHandlerConfiguration {
      * @return the error web exception handler
      */
     @Bean
-    @Order(Ordered.HIGHEST_PRECEDENCE)
+    @Order(Ordered.HIGHEST_PRECEDENCE + 1)
     public ErrorWebExceptionHandler errorWebExceptionHandler(final ErrorAttributes errorAttributes) {
         GlobalErrorHandler exceptionHandler = new GlobalErrorHandler(
                 errorAttributes,

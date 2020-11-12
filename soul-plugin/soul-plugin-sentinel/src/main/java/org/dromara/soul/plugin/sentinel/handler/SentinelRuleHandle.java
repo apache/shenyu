@@ -18,6 +18,8 @@
 
 package org.dromara.soul.plugin.sentinel.handler;
 
+import com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule;
+import com.alibaba.csp.sentinel.slots.block.degrade.DegradeRuleManager;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRule;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRuleManager;
 import org.dromara.soul.common.dto.RuleData;
@@ -39,20 +41,41 @@ public class SentinelRuleHandle implements PluginDataHandler {
     @Override
     public void handlerRule(final RuleData ruleData) {
         SentinelHandle sentinelHandle = GsonUtils.getInstance().fromJson(ruleData.getHandle(), SentinelHandle.class);
-        FlowRule rule = new FlowRule(getResourceName(ruleData));
-        rule.setCount(sentinelHandle.getCount());
-        rule.setGrade(sentinelHandle.getGrade());
-        List<FlowRule> rules = FlowRuleManager.getRules()
+
+        List<FlowRule> flowRules = FlowRuleManager.getRules()
                 .stream()
                 .filter(r -> r.getResource().equals(getResourceName(ruleData)))
                 .collect(Collectors.toList());
-        rules.add(rule);
-        FlowRuleManager.loadRules(rules);
+        if (sentinelHandle.getFlowRuleEnable() == 1) {
+            FlowRule rule = new FlowRule(getResourceName(ruleData));
+            rule.setCount(sentinelHandle.getFlowRuleCount());
+            rule.setGrade(sentinelHandle.getFlowRuleGrade());
+            rule.setControlBehavior(sentinelHandle.getFlowRuleControlBehavior());
+            flowRules.add(rule);
+        }
+        FlowRuleManager.loadRules(flowRules);
+
+        List<DegradeRule> degradeRules = DegradeRuleManager.getRules()
+                .stream()
+                .filter(r -> r.getResource().equals(getResourceName(ruleData)))
+                .collect(Collectors.toList());
+        if (sentinelHandle.getDegradeRuleEnable() == 1) {
+            DegradeRule rule = new DegradeRule(getResourceName(ruleData));
+            rule.setCount(sentinelHandle.getDegradeRuleCount());
+            rule.setGrade(sentinelHandle.getDegradeRuleGrade());
+            rule.setTimeWindow(sentinelHandle.getDegradeRuleTimeWindow());
+            degradeRules.add(rule);
+        }
+        DegradeRuleManager.loadRules(degradeRules);
     }
 
     @Override
     public void removeRule(final RuleData ruleData) {
         FlowRuleManager.loadRules(FlowRuleManager.getRules()
+                .stream()
+                .filter(r -> r.getResource().equals(getResourceName(ruleData)))
+                .collect(Collectors.toList()));
+        DegradeRuleManager.loadRules(DegradeRuleManager.getRules()
                 .stream()
                 .filter(r -> r.getResource().equals(getResourceName(ruleData)))
                 .collect(Collectors.toList()));
