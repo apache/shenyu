@@ -58,9 +58,9 @@ public class PluginHandleController {
     }
 
     /**
-     * detail rule.
+     * get plugin handle detail.
      *
-     * @param id rule id.
+     * @param id plugin handle id.
      * @return {@linkplain SoulAdminResult}
      */
     @GetMapping("/{id}")
