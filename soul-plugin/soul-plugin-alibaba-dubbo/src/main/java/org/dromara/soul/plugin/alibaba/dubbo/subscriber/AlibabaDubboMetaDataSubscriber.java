@@ -46,7 +46,7 @@ public class AlibabaDubboMetaDataSubscriber implements MetaDataSubscriber {
                 if (!metaData.getServiceName().equals(exist.getServiceName())
                         || !metaData.getRpcExt().equals(exist.getRpcExt())
                         || !metaData.getParameterTypes().equals(exist.getParameterTypes())
-                        || !metaData.getMethodName().equals(exist.getMethodName())){
+                        || !metaData.getMethodName().equals(exist.getMethodName())) {
                     ApplicationConfigCache.getInstance().build(metaData);
                 }
             }

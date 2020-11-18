@@ -53,7 +53,7 @@ public final class ApplicationConfigCache {
 
     private final LoadingCache<String, ReferenceConfig<GenericService>> cache = CacheBuilder.newBuilder()
             .maximumWeight(maxCount)
-            .weigher((Weigher<String, ReferenceConfig<GenericService>>) (string, ReferenceConfig) -> getSize())
+            .weigher((Weigher<String, ReferenceConfig<GenericService>>) (string, referenceConfig) -> getSize())
             .removalListener(notification -> {
                 ReferenceConfig<GenericService> config = notification.getValue();
                 if (config != null) {

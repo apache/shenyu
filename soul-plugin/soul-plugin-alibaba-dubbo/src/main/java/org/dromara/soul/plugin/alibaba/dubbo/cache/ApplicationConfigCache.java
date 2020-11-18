@@ -54,7 +54,7 @@ public final class ApplicationConfigCache {
     
     private final LoadingCache<String, ReferenceConfig<GenericService>> cache = CacheBuilder.newBuilder()
             .maximumWeight(maxCount)
-            .weigher((Weigher<String, ReferenceConfig<GenericService>>) (string, ReferenceConfig) -> getSize())
+            .weigher((Weigher<String, ReferenceConfig<GenericService>>) (string, referenceConfig) -> getSize())
             .removalListener(notification -> {
                 ReferenceConfig config = notification.getValue();
                 if (config != null) {
@@ -180,8 +180,8 @@ public final class ApplicationConfigCache {
     /**
      * Get reference config.
      *
-     * @param <T>         the type parameter
-     * @param serviceName the path
+     * @param <T>  the type parameter
+     * @param path the path
      * @return the reference config
      */
     public <T> ReferenceConfig<T> get(final String path) {
@@ -195,7 +195,7 @@ public final class ApplicationConfigCache {
     /**
      * Invalidate.
      *
-     * @param serviceName the path
+     * @param path the path
      */
     public void invalidate(final String path) {
         cache.invalidate(path);
