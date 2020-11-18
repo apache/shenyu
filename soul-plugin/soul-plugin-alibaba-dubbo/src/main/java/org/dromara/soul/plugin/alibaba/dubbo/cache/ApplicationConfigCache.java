@@ -119,7 +119,7 @@ public final class ApplicationConfigCache {
      */
     public ReferenceConfig<GenericService> initRef(final MetaData metaData) {
         try {
-            ReferenceConfig<GenericService> referenceConfig = cache.get(metaData.getServiceName());
+            ReferenceConfig<GenericService> referenceConfig = cache.get(metaData.getPath());
             if (StringUtils.isNoneBlank(referenceConfig.getInterface())) {
                 return referenceConfig;
             }
@@ -162,7 +162,7 @@ public final class ApplicationConfigCache {
         Object obj = reference.get();
         if (obj != null) {
             log.info("init aliaba dubbo reference success there meteData is :{}", metaData.toString());
-            cache.put(metaData.getServiceName(), reference);
+            cache.put(metaData.getPath(), reference);
         }
         return reference;
     }
@@ -181,12 +181,12 @@ public final class ApplicationConfigCache {
      * Get reference config.
      *
      * @param <T>         the type parameter
-     * @param serviceName the service name
+     * @param serviceName the path
      * @return the reference config
      */
-    public <T> ReferenceConfig<T> get(final String serviceName) {
+    public <T> ReferenceConfig<T> get(final String path) {
         try {
-            return (ReferenceConfig<T>) cache.get(serviceName);
+            return (ReferenceConfig<T>) cache.get(path);
         } catch (ExecutionException e) {
             throw new SoulException(e.getCause());
         }
@@ -195,10 +195,10 @@ public final class ApplicationConfigCache {
     /**
      * Invalidate.
      *
-     * @param serviceName the service name
+     * @param serviceName the path
      */
-    public void invalidate(final String serviceName) {
-        cache.invalidate(serviceName);
+    public void invalidate(final String path) {
+        cache.invalidate(path);
     }
     
     /**
