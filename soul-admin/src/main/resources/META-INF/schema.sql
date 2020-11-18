@@ -109,7 +109,8 @@ CREATE TABLE  IF NOT EXISTS `meta_data` (
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   `enabled` tinyint(4) NOT NULL DEFAULT 0 COMMENT '启用状态',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING BTREE,
+  constraint unique_name unique (`path`)
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 CREATE TABLE IF NOT EXISTS `app_auth`  (
