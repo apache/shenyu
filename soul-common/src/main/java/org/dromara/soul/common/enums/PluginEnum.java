@@ -69,6 +69,11 @@ public enum PluginEnum {
     HYSTRIX(45, 0, "hystrix"),
 
     /**
+     * Sentinel plugin enum.
+     */
+    SENTINEL(45, 0, "sentinel"),
+
+    /**
      * Divide plugin enum.
      */
     DIVIDE(50, 0, "divide"),

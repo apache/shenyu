@@ -20,6 +20,7 @@
 package org.dromara.soul.plugin.base.utils;
 
 import org.dromara.soul.common.utils.JsonUtils;
+import org.springframework.http.MediaType;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -40,6 +41,7 @@ public final class WebFluxResultUtils {
      * @return the mono
      */
     public static Mono<Void> result(final ServerWebExchange exchange, final Object result) {
+        exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
         return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
                 .bufferFactory().wrap(Objects.requireNonNull(JsonUtils.toJson(result)).getBytes())));
     }
