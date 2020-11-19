@@ -25,6 +25,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
+import java.util.Optional;
 import java.util.Properties;
 
 /**
@@ -46,7 +47,7 @@ public class NacosConfiguration {
     @ConditionalOnMissingBean(ConfigService.class)
     public ConfigService nacosConfigService(final NacosProperties nacosProp) throws Exception {
         Properties properties = new Properties();
-        if (nacosProp.getAcm() != null && nacosProp.getAcm().isEnabled()) {
+        if (Optional.ofNullable(nacosProp.getAcm()).isPresent() && nacosProp.getAcm().isEnabled()) {
             //使用阿里云ACM服务
             properties.put(PropertyKeyConst.ENDPOINT, nacosProp.getAcm().getEndpoint());
             properties.put(PropertyKeyConst.NAMESPACE, nacosProp.getAcm().getNamespace());

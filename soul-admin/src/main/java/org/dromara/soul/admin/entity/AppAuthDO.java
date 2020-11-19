@@ -25,6 +25,7 @@ import org.dromara.soul.admin.dto.AppAuthDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
+import java.util.Optional;
 
 /**
  * AppAuthDO.
@@ -62,7 +63,7 @@ public class AppAuthDO extends BaseDO {
      * @return {@linkplain AppAuthDO}
      */
     public static AppAuthDO buildAppAuthDO(final AppAuthDTO appAuthDTO) {
-        if (appAuthDTO != null) {
+        if (Optional.ofNullable(appAuthDTO).isPresent()) {
             AppAuthDO appAuthDO = new AppAuthDO();
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             if (StringUtils.isEmpty(appAuthDTO.getId())) {

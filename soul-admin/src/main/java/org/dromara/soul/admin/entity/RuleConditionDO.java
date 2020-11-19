@@ -24,6 +24,7 @@ import org.dromara.soul.admin.dto.RuleConditionDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
+import java.util.Optional;
 
 /**
  * RuleConditionDO.
@@ -65,7 +66,7 @@ public class RuleConditionDO extends BaseDO {
      * @return {@linkplain RuleConditionDO}
      */
     public static RuleConditionDO buildRuleConditionDO(final RuleConditionDTO ruleConditionDTO) {
-        if (ruleConditionDTO != null) {
+        if (Optional.ofNullable(ruleConditionDTO).isPresent()) {
             RuleConditionDO ruleConditionDO = new RuleConditionDO();
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             if (StringUtils.isEmpty(ruleConditionDTO.getId())) {

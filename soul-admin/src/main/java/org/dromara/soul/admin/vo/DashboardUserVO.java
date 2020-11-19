@@ -25,6 +25,7 @@ import org.dromara.soul.admin.entity.DashboardUserDO;
 
 import java.io.Serializable;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
 /**
  * this is dashboard user view to web front.
@@ -78,7 +79,7 @@ public class DashboardUserVO implements Serializable {
      * @return {@linkplain DashboardUserVO}
      */
     public static DashboardUserVO buildDashboardUserVO(final DashboardUserDO dashboardUserDO) {
-        if (dashboardUserDO != null) {
+        if (Optional.ofNullable(dashboardUserDO).isPresent()) {
             DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
             return new DashboardUserVO(dashboardUserDO.getId(), dashboardUserDO.getUserName(),
                     dashboardUserDO.getPassword(), dashboardUserDO.getRole(), dashboardUserDO.getEnabled(),

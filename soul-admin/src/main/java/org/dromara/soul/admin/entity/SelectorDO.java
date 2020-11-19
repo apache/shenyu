@@ -29,6 +29,7 @@ import org.dromara.soul.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * SelectorDO.
@@ -87,7 +88,7 @@ public class SelectorDO extends BaseDO {
      * @return {@linkplain SelectorDO}
      */
     public static SelectorDO buildSelectorDO(final SelectorDTO selectorDTO) {
-        if (selectorDTO != null) {
+        if (Optional.ofNullable(selectorDTO).isPresent()) {
             SelectorDO selectorDO = new SelectorDO();
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             if (StringUtils.isEmpty(selectorDTO.getId())) {

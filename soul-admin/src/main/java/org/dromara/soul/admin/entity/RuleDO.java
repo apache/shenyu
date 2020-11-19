@@ -27,6 +27,7 @@ import org.dromara.soul.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * RuleDO.
@@ -78,7 +79,7 @@ public class RuleDO extends BaseDO {
      * @return {@linkplain RuleDO}
      */
     public static RuleDO buildRuleDO(final RuleDTO ruleDTO) {
-        if (ruleDTO != null) {
+        if (Optional.ofNullable(ruleDTO).isPresent()) {
             RuleDO ruleDO = new RuleDO();
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             if (StringUtils.isEmpty(ruleDTO.getId())) {

@@ -24,6 +24,7 @@ import org.dromara.soul.admin.dto.PluginDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
+import java.util.Optional;
 
 /**
  * The config field has been added in 2.0
@@ -63,7 +64,7 @@ public class PluginDO extends BaseDO {
      * @return {@linkplain PluginDO}
      */
     public static PluginDO buildPluginDO(final PluginDTO pluginDTO) {
-        if (pluginDTO != null) {
+        if (Optional.ofNullable(pluginDTO).isPresent()) {
             PluginDO pluginDO = new PluginDO();
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             if (StringUtils.isEmpty(pluginDTO.getId())) {

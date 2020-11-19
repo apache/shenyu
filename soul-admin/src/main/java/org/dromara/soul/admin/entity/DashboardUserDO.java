@@ -24,6 +24,7 @@ import org.dromara.soul.admin.dto.DashboardUserDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
+import java.util.Optional;
 
 /**
  * DashboardUserDO.
@@ -60,7 +61,7 @@ public class DashboardUserDO extends BaseDO {
      * @return {@linkplain DashboardUserDO}
      */
     public static DashboardUserDO buildDashboardUserDO(final DashboardUserDTO dashboardUserDTO) {
-        if (dashboardUserDTO != null) {
+        if (Optional.ofNullable(dashboardUserDTO).isPresent()) {
             DashboardUserDO dashboardUserDO = new DashboardUserDO();
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             if (StringUtils.isEmpty(dashboardUserDTO.getId())) {

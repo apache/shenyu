@@ -24,6 +24,7 @@ import org.dromara.soul.admin.dto.SelectorConditionDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
+import java.util.Optional;
 
 /**
  * SelectorConditionDO.
@@ -65,7 +66,7 @@ public class SelectorConditionDO extends BaseDO {
      * @return {@linkplain SelectorConditionDO}
      */
     public static SelectorConditionDO buildSelectorConditionDO(final SelectorConditionDTO selectorConditionDTO) {
-        if (selectorConditionDTO != null) {
+        if (Optional.ofNullable(selectorConditionDTO).isPresent()) {
             SelectorConditionDO selectorConditionDO = new SelectorConditionDO();
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             if (StringUtils.isEmpty(selectorConditionDTO.getId())) {
