@@ -48,7 +48,7 @@ public class DataSyncConfiguration {
      * http long polling(default strategy).
      */
     @Configuration
-    @ConditionalOnProperty(name = "soul.sync.http.enabled", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnProperty(name = "soul.sync.http.enabled", havingValue = "true")
     @EnableConfigurationProperties(HttpSyncProperties.class)
     static class HttpLongPollingListener {
 
