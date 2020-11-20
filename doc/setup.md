@@ -69,6 +69,8 @@ soul :
     sync:
         websocket :
              urls: ws://localhost:9095/websocket  //设置成你的soul-admin地址
+swagger:
+  enable: true
 ```
 * 你的项目环境搭建完成,启动你的项目。
 

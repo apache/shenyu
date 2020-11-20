@@ -130,7 +130,7 @@
         </if>
     </select>
 
-    <select id="selectByQuery" parameterType="org.dromara.soul.admin.query.RuleQuery" resultMap="BaseResultMap">
+    <select id="selectByQuery" parameterType="org.dromara.soul.admin.query.PluginHandleQuery" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
         from plugin_handle
