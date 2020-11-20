@@ -22,6 +22,7 @@ import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.service.DashboardUserService;
 import org.dromara.soul.admin.service.EnumService;
 import org.dromara.soul.admin.vo.DashboardUserVO;
+import org.dromara.soul.common.utils.AesUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -55,7 +56,7 @@ public class PlatformController {
      */
     @GetMapping("/login")
     public SoulAdminResult loginDashboardUser(final String userName, final String password) {
-        DashboardUserVO dashboardUserVO = dashboardUserService.findByQuery(userName, password);
+        DashboardUserVO dashboardUserVO = dashboardUserService.findByQuery(userName, AesUtils.aesEncryption(password));
         return SoulAdminResult.success("login dashboard user success", dashboardUserVO);
     }
 

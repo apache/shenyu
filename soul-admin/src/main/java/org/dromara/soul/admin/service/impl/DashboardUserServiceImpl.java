@@ -18,8 +18,6 @@
 
 package org.dromara.soul.admin.service.impl;
 
-import java.util.List;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.DashboardUserDTO;
 import org.dromara.soul.admin.entity.DashboardUserDO;
@@ -32,6 +30,9 @@ import org.dromara.soul.admin.service.DashboardUserService;
 import org.dromara.soul.admin.vo.DashboardUserVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * DashboardUserServiceImpl.

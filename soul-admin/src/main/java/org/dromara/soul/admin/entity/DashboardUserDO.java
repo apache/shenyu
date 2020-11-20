@@ -21,9 +21,11 @@ package org.dromara.soul.admin.entity;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.DashboardUserDTO;
+import org.dromara.soul.common.utils.AesUtils;
 import org.dromara.soul.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
+import java.util.Optional;
 
 /**
  * DashboardUserDO.
@@ -60,23 +62,22 @@ public class DashboardUserDO extends BaseDO {
      * @return {@linkplain DashboardUserDO}
      */
     public static DashboardUserDO buildDashboardUserDO(final DashboardUserDTO dashboardUserDTO) {
-        if (dashboardUserDTO != null) {
+        return Optional.ofNullable(dashboardUserDTO).map(item -> {
             DashboardUserDO dashboardUserDO = new DashboardUserDO();
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            if (StringUtils.isEmpty(dashboardUserDTO.getId())) {
+            if (StringUtils.isEmpty(item.getId())) {
                 dashboardUserDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 dashboardUserDO.setEnabled(true);
                 dashboardUserDO.setDateCreated(currentTime);
             } else {
-                dashboardUserDO.setId(dashboardUserDTO.getId());
-                dashboardUserDO.setEnabled(dashboardUserDTO.getEnabled());
+                dashboardUserDO.setId(item.getId());
+                dashboardUserDO.setEnabled(item.getEnabled());
             }
-            dashboardUserDO.setUserName(dashboardUserDTO.getUserName());
-            dashboardUserDO.setPassword(dashboardUserDTO.getPassword());
-            dashboardUserDO.setRole(dashboardUserDTO.getRole());
+            dashboardUserDO.setUserName(item.getUserName());
+            dashboardUserDO.setPassword(AesUtils.aesEncryption(item.getPassword()));
+            dashboardUserDO.setRole(item.getRole());
             dashboardUserDO.setDateUpdated(currentTime);
             return dashboardUserDO;
-        }
-        return null;
+        }).orElse(null);
     }
 }
