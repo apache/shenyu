@@ -16,43 +16,39 @@
  *
  */
 
-package org.dromara.soul.admin.dto;
+package org.dromara.soul.admin.query;
 
-import java.io.Serializable;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.dromara.soul.admin.page.PageParameter;
 
 /**
- * this plugin handle from web front.
- * @author liangziqiang
+ * this is soul dict query.
+ *
+ * @author dengliming
  */
 @Data
-public class PluginHandleDTO implements Serializable {
+@AllArgsConstructor
+@NoArgsConstructor
+public class SoulDictQuery {
     /**
-     * primary key.
+     * dict type.
      */
-    private String id;
+    private String type;
 
     /**
-     * plugin id.
+     * dict code.
      */
-    private String pluginId;
+    private String dictCode;
 
     /**
-     * the attribute name.
+     * dict name.
      */
-    private String field;
+    private String dictName;
 
     /**
-     * the attribute label.
+     * page parameter.
      */
-    private String label;
-
-    /**
-     * the data type.
-     * 1 indicates number
-     * 2 indicates string
-     * 3 indicates select box
-     */
-    private Integer dataType;
-
+    private PageParameter pageParameter;
 }

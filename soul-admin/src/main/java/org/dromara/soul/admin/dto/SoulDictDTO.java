@@ -18,41 +18,55 @@
 
 package org.dromara.soul.admin.dto;
 
-import java.io.Serializable;
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
- * this plugin handle from web front.
- * @author liangziqiang
+ * this soul dict from web front.
+ *
+ * @author dengliming
  */
 @Data
-public class PluginHandleDTO implements Serializable {
+public class SoulDictDTO implements Serializable {
     /**
      * primary key.
      */
     private String id;
 
     /**
-     * plugin id.
+     * dict type.
      */
-    private String pluginId;
+    private String type;
 
     /**
-     * the attribute name.
+     * dict code.
      */
-    private String field;
+    private String dictCode;
 
     /**
-     * the attribute label.
+     * dict name.
      */
-    private String label;
+    private String dictName;
 
     /**
-     * the data type.
-     * 1 indicates number
-     * 2 indicates string
-     * 3 indicates select box
+     * dict value.
      */
-    private Integer dataType;
+    private String dictValue;
+
+    /**
+     * dict desc.
+     */
+    private String desc;
+
+    /**
+     * sort no.
+     */
+    private Integer sort;
+
+    /**
+     * whether enabled.
+     */
+    private Boolean enabled;
 
 }
