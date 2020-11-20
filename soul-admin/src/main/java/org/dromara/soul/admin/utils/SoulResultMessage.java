@@ -24,6 +24,16 @@ package org.dromara.soul.admin.utils;
  */
 public class SoulResultMessage {
 
+    public static final String DASHBOARD_QUERY_SUCCESS = "query dashboard users success";
+
+    public static final String DASHBOARD_DETAIL_SUCCESS = "detail dashboard user success";
+
+    public static final String DASHBOARD_CREATE_SUCCESS = "create dashboard user success";
+
+    public static final String DASHBOARD_UPDATE_SUCCESS = "update dashboard user success";
+
+    public static final String DASHBOARD_DELETE_SUCCESS = "delete dashboard users success";
+
     public static final String DASHBOARD_QUERY_ERROR = "users info is empty";
 
     public static final String DASHBOARD_CREATE_USER_ERROR = "user info not empty";

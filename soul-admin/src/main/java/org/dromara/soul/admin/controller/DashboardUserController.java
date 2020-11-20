@@ -77,7 +77,7 @@ public class DashboardUserController {
             commonPager.getDataList().forEach(item -> {
                 item.setPassword(AesUtils.aesDecryption(item.getPassword(), aesKey));
             });
-            return SoulAdminResult.success("query dashboard users success", commonPager);
+            return SoulAdminResult.success(SoulResultMessage.DASHBOARD_QUERY_SUCCESS, commonPager);
         } else {
             return SoulAdminResult.error(SoulResultMessage.DASHBOARD_QUERY_ERROR);
         }
@@ -93,8 +93,8 @@ public class DashboardUserController {
     public SoulAdminResult detailDashboardUser(@PathVariable("id") final String id) {
         DashboardUserVO dashboardUserVO = dashboardUserService.findById(id);
         return Optional.ofNullable(dashboardUserVO).map(item -> {
-           item.setPassword(AesUtils.aesDecryption(item.getPassword(), aesKey));
-            return SoulAdminResult.success("detail dashboard user success", item);
+            item.setPassword(AesUtils.aesDecryption(item.getPassword(), aesKey));
+            return SoulAdminResult.success(SoulResultMessage.DASHBOARD_DETAIL_SUCCESS, item);
         }).orElse(SoulAdminResult.error(SoulResultMessage.DASHBOARD_QUERY_ERROR));
     }
 
@@ -109,7 +109,7 @@ public class DashboardUserController {
         return Optional.ofNullable(dashboardUserDTO).map(item -> {
             item.setPassword(AesUtils.aesEncryption(item.getPassword(), aesKey));
             Integer createCount = dashboardUserService.createOrUpdate(item);
-            return SoulAdminResult.success("create dashboard user success", createCount);
+            return SoulAdminResult.success(SoulResultMessage.DASHBOARD_CREATE_SUCCESS, createCount);
         }).orElse(SoulAdminResult.error(SoulResultMessage.DASHBOARD_CREATE_USER_ERROR));
     }
 
@@ -126,7 +126,7 @@ public class DashboardUserController {
         dashboardUserDTO.setId(id);
         dashboardUserDTO.setPassword(AesUtils.aesEncryption(dashboardUserDTO.getPassword(), aesKey));
         Integer updateCount = dashboardUserService.createOrUpdate(dashboardUserDTO);
-        return SoulAdminResult.success("update dashboard user success", updateCount);
+        return SoulAdminResult.success(SoulResultMessage.DASHBOARD_UPDATE_SUCCESS, updateCount);
     }
 
     /**
@@ -138,6 +138,6 @@ public class DashboardUserController {
     @DeleteMapping("/batch")
     public SoulAdminResult deleteDashboardUser(@RequestBody final List<String> ids) {
         Integer deleteCount = dashboardUserService.delete(ids);
-        return SoulAdminResult.success("delete dashboard users success", deleteCount);
+        return SoulAdminResult.success(SoulResultMessage.DASHBOARD_DELETE_SUCCESS, deleteCount);
     }
 }
