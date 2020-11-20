@@ -24,8 +24,10 @@ import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.DashboardUserQuery;
 import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.service.DashboardUserService;
+import org.dromara.soul.admin.utils.AesUtils;
 import org.dromara.soul.admin.vo.DashboardUserVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,6 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * this is dashboard user controller.
@@ -46,6 +49,9 @@ import java.util.Objects;
 @RestController
 @RequestMapping("/dashboardUser")
 public class DashboardUserController {
+
+    @Value("${aes.secret.key:2095132720951327}")
+    private String aesKey;
 
     private final DashboardUserService dashboardUserService;
 
@@ -65,6 +71,11 @@ public class DashboardUserController {
     @GetMapping("")
     public SoulAdminResult queryDashboardUsers(final String userName, final Integer currentPage, final Integer pageSize) {
         CommonPager<DashboardUserVO> commonPager = dashboardUserService.listByPage(new DashboardUserQuery(userName, new PageParameter(currentPage, pageSize)));
+        if (Optional.ofNullable(commonPager.getDataList()).isPresent() && !commonPager.getDataList().isEmpty()) {
+            commonPager.getDataList().forEach(item -> {
+                item.setPassword(AesUtils.aesDecryption(item.getPassword(), aesKey));
+            });
+        }
         return SoulAdminResult.success("query dashboard users success", commonPager);
     }
 
@@ -77,6 +88,9 @@ public class DashboardUserController {
     @GetMapping("/{id}")
     public SoulAdminResult detailDashboardUser(@PathVariable("id") final String id) {
         DashboardUserVO dashboardUserVO = dashboardUserService.findById(id);
+        if (Optional.ofNullable(dashboardUserVO).isPresent()) {
+            dashboardUserVO.setPassword(AesUtils.aesDecryption(dashboardUserVO.getPassword(), aesKey));
+        }
         return SoulAdminResult.success("detail dashboard user success", dashboardUserVO);
     }
 
@@ -88,6 +102,9 @@ public class DashboardUserController {
      */
     @PostMapping("")
     public SoulAdminResult createDashboardUser(@RequestBody final DashboardUserDTO dashboardUserDTO) {
+        if (Optional.ofNullable(dashboardUserDTO).isPresent()) {
+            dashboardUserDTO.setPassword(AesUtils.aesEncryption(dashboardUserDTO.getPassword(), aesKey));
+        }
         Integer createCount = dashboardUserService.createOrUpdate(dashboardUserDTO);
         return SoulAdminResult.success("create dashboard user success", createCount);
     }
@@ -103,6 +120,7 @@ public class DashboardUserController {
     public SoulAdminResult updateDashboardUser(@PathVariable("id") final String id, @RequestBody final DashboardUserDTO dashboardUserDTO) {
         Objects.requireNonNull(dashboardUserDTO);
         dashboardUserDTO.setId(id);
+        dashboardUserDTO.setPassword(AesUtils.aesEncryption(dashboardUserDTO.getPassword(), aesKey));
         Integer updateCount = dashboardUserService.createOrUpdate(dashboardUserDTO);
         return SoulAdminResult.success("update dashboard user success", updateCount);
     }

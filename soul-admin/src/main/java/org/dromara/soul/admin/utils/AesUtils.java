@@ -15,11 +15,7 @@
  *   limitations under the License.
  */
 
-package org.dromara.soul.common.utils;
-
-import cn.hutool.core.util.CharsetUtil;
-import cn.hutool.crypto.SecureUtil;
-import cn.hutool.crypto.symmetric.AES;
+package org.dromara.soul.admin.utils;
 
 import java.util.Optional;
 
@@ -30,33 +26,31 @@ import java.util.Optional;
  */
 public class AesUtils {
 
-    private static final String AES_KEY = "2095132720951327";
-
     /**
      * Aes Encryption string.
      *
      * @param src    the src
+     * @param aesKey key
      * @return  the string
      */
-    public static String aesEncryption(final String src) {
+    public static String aesEncryption(final String src, final String aesKey) {
         if (Optional.ofNullable(src).isPresent() && !src.isEmpty()) {
-            AES aes = SecureUtil.aes(AES_KEY.getBytes());
-            return aes.encryptHex(src).toUpperCase();
+            return CipherUtils.encryptHex(src, aesKey);
         }
-        return "";
+        return null;
     }
 
     /**
      * Aes Decryption string.
-     *
+     * b
      * @param src    the src
+     * @param aesKey key
      * @return the string
      */
-    public static String aesDecryption(final String src) {
+    public static String aesDecryption(final String src, final String aesKey) {
         if (Optional.ofNullable(src).isPresent() && !src.isEmpty()) {
-            AES aes = SecureUtil.aes(AES_KEY.getBytes());
-            return aes.decryptStr(src, CharsetUtil.CHARSET_UTF_8);
+            return CipherUtils.decryptStr(src, aesKey);
         }
-        return "";
+        return null;
     }
 }

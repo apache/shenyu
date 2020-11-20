@@ -21,7 +21,6 @@ package org.dromara.soul.admin.entity;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.DashboardUserDTO;
-import org.dromara.soul.common.utils.AesUtils;
 import org.dromara.soul.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
@@ -74,7 +73,7 @@ public class DashboardUserDO extends BaseDO {
                 dashboardUserDO.setEnabled(item.getEnabled());
             }
             dashboardUserDO.setUserName(item.getUserName());
-            dashboardUserDO.setPassword(AesUtils.aesEncryption(item.getPassword()));
+            dashboardUserDO.setPassword(item.getPassword());
             dashboardUserDO.setRole(item.getRole());
             dashboardUserDO.setDateUpdated(currentTime);
             return dashboardUserDO;
