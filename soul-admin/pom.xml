@@ -10,10 +10,6 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>soul-admin</artifactId>
 
-    <properties>
-        <dashboard.path>${project.parent.basedir}/soul-dashboard</dashboard.path>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.dromara</groupId>
@@ -147,14 +143,33 @@
     <build>
         <finalName>soul-admin</finalName>
         <plugins>
-            <!--这里是为了打包前端的、如果你本地不需要可以注释掉即可-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>${jdk.version}</source>
+                    <target>${jdk.version}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>org.dromara.soul.admin.SoulAdminBootstrap</mainClass>
+                    <executable>true</executable>
+                </configuration>
+            </plugin>
+
+            <!--这里是为了打包前端的、如果你本地不需要可以配置的frontend.plugin.skip=true即可-->
             <plugin>
                 <groupId>com.github.eirslett</groupId>
                 <artifactId>frontend-maven-plugin</artifactId>
                 <version>1.6</version>
                 <configuration>
-                    <workingDirectory>${dashboard.path}</workingDirectory>
+                    <workingDirectory>${project.parent.basedir}/soul-dashboard</workingDirectory>
                     <nodeVersion>v12.14.1</nodeVersion>
+                    <skip>${frontend.plugin.skip}</skip>
                 </configuration>
                 <executions>
                     <!--如果你本地已经安装nodejs环境，这步也可以注释-->
@@ -187,24 +202,6 @@
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                    <encoding>UTF-8</encoding>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <mainClass>org.dromara.soul.admin.SoulAdminBootstrap</mainClass>
-                    <executable>true</executable>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>2.6</version>
                 <configuration>
@@ -212,14 +209,12 @@
                     <useDefaultDelimiters>true</useDefaultDelimiters>
                     <resources>
                         <resource>
-                            <targetPath>${basedir}/target/classes/static</targetPath>
-                            <directory>${dashboard.path}/dist</directory>
+                            <targetPath>${basedir}/src/main/resources/static</targetPath>
+                            <directory>${project.parent.basedir}/soul-dashboard/dist</directory>
                         </resource>
                         <resource>
+                            <targetPath>${basedir}/target/classes</targetPath>
                             <directory>src/main/resources</directory>
-                            <excludes>
-                                <exclude>**/static/**</exclude>
-                            </excludes>
                         </resource>
                     </resources>
                 </configuration>

@@ -12,7 +12,7 @@ import org.dromara.soul.admin.vo.PluginHandleVO;
  */
 public interface PluginHandleService {
     /**
-     * find page of rule by query.
+     * find page of plugin handle by query.
      * @param pluginHandleQuery {@linkplain PluginHandleQuery}
      * @return {@link CommonPager}
      */

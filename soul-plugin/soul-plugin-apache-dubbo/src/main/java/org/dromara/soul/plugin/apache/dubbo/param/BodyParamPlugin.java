@@ -20,7 +20,7 @@ package org.dromara.soul.plugin.apache.dubbo.param;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
-import org.dromara.soul.common.utils.UrlQuerys;
+import org.dromara.soul.common.utils.HttpParamConverter;
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
@@ -79,8 +79,8 @@ public class BodyParamPlugin implements SoulPlugin {
     public String named() {
         return "apache-dubbo-body-param";
     }
-
-    Mono<Void> body(ServerWebExchange exchange, ServerRequest serverRequest, SoulPluginChain chain) {
+    
+    private Mono<Void> body(final ServerWebExchange exchange, final ServerRequest serverRequest, final SoulPluginChain chain) {
         return serverRequest.bodyToMono(String.class)
                 .switchIfEmpty(Mono.defer(() -> Mono.just("")))
                 .flatMap(body -> {
@@ -88,21 +88,19 @@ public class BodyParamPlugin implements SoulPlugin {
                     return chain.execute(exchange);
                 });
     }
-
-    Mono<Void> formData(ServerWebExchange exchange, ServerRequest serverRequest, SoulPluginChain chain) {
+    
+    private Mono<Void> formData(final ServerWebExchange exchange, final ServerRequest serverRequest, final SoulPluginChain chain) {
         return serverRequest.formData()
                 .switchIfEmpty(Mono.defer(() -> Mono.just(new LinkedMultiValueMap<>())))
                 .flatMap(map -> {
-                    exchange.getAttributes().put(Constants.DUBBO_PARAMS, UrlQuerys.map(() -> map));
+                    exchange.getAttributes().put(Constants.DUBBO_PARAMS, HttpParamConverter.toMap(() -> map));
                     return chain.execute(exchange);
                 });
     }
-
-    Mono<Void> query(ServerWebExchange exchange, ServerRequest serverRequest, SoulPluginChain chain) {
+    
+    private Mono<Void> query(final ServerWebExchange exchange, final ServerRequest serverRequest, final SoulPluginChain chain) {
         exchange.getAttributes().put(Constants.DUBBO_PARAMS,
-                UrlQuerys.of(() -> serverRequest.uri().getQuery()));
+                HttpParamConverter.ofString(() -> serverRequest.uri().getQuery()));
         return chain.execute(exchange);
     }
-
-
 }
