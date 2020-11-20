@@ -48,3 +48,7 @@ logging:
     org.dromara.soul.bonuspoint: info
     org.dromara.soul.lottery: info
     org.dromara.soul: info
+
+swagger:
+  enable: true
+
