@@ -13,10 +13,9 @@ import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 /**
- * swagger configuration information
+ * swagger configuration information.
  *
  * @author: 李晓双
- * @create: 2020-11-19 17:35
  **/
 @Configuration
 @EnableSwagger2
@@ -25,6 +24,11 @@ public class SwaggerConfiguration {
     @Value("${swagger.enable:false}")
     private boolean enable;
 
+    /**
+     * Configure The Docket with Swagger.
+     *
+     * @return Docket {@linkplain Docket}
+     */
     @Bean
     public Docket createRestApi() {
         return new Docket(DocumentationType.SWAGGER_2)
@@ -35,7 +39,6 @@ public class SwaggerConfiguration {
                 .paths(PathSelectors.any())
                 .build();
     }
-
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
