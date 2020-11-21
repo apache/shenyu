@@ -46,7 +46,7 @@ public class MetaDataDTO {
         
         private String version;
         
-        private String loadBalance;
+        private String loadbalance;
         
         private Integer retries;
         

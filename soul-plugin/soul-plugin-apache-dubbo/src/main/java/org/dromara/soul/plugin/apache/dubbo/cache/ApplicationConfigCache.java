@@ -151,8 +151,8 @@ public final class ApplicationConfigCache {
             if (StringUtils.isNoneBlank(dubboParamExtInfo.getGroup())) {
                 reference.setGroup(dubboParamExtInfo.getGroup());
             }
-            if (StringUtils.isNoneBlank(dubboParamExtInfo.getLoadBalance())) {
-                final String loadBalance = dubboParamExtInfo.getLoadBalance();
+            if (StringUtils.isNoneBlank(dubboParamExtInfo.getLoadbalance())) {
+                final String loadBalance = dubboParamExtInfo.getLoadbalance();
                 reference.setLoadbalance(buildLoadBalanceName(loadBalance));
             }
             if (StringUtils.isNoneBlank(dubboParamExtInfo.getUrl())) {
@@ -230,7 +230,7 @@ public final class ApplicationConfigCache {
 
         private String version;
 
-        private String loadBalance;
+        private String loadbalance;
 
         private Integer retries;
 

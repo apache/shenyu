@@ -109,7 +109,7 @@ public class AlibabaDubboServiceBeanPostProcessor implements BeanPostProcessor {
         MetaDataDTO.RpcExt build = MetaDataDTO.RpcExt.builder()
                 .group(serviceBean.getGroup())
                 .version(serviceBean.getVersion())
-                .loadBalance(serviceBean.getLoadbalance())
+                .loadbalance(serviceBean.getLoadbalance())
                 .retries(serviceBean.getRetries())
                 .timeout(serviceBean.getTimeout())
                 .build();

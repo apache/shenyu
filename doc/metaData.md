@@ -47,7 +47,7 @@ CREATE TABLE  IF NOT EXISTS `meta_data` (
           
           private String version;
           
-          private String loadBalance;
+          private String loadbalance;
           
           private Integer retries;
           
