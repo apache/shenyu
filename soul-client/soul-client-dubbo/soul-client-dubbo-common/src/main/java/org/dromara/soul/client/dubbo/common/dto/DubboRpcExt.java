@@ -16,9 +16,11 @@ public class DubboRpcExt {
 
     private String version;
 
-    private String loadbalance;
+    private String loadBalance;
 
     private Integer retries;
 
     private Integer timeout;
+
+    private String url;
 }

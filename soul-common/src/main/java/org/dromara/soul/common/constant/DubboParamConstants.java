@@ -71,9 +71,12 @@ public final class DubboParamConstants {
     public static final String RETRIES = "retries";
 
     /**
-     * The constant LOADBALANCE.
+     * The constant LOAD_BALANCE.
      */
-    public static final String LOADBALANCE = "loadbalance";
+    public static final String LOAD_BALANCE = "loadBalance";
 
-
+    /**
+     * The constant url.
+     */
+    public static final String URL = "url";
 }
