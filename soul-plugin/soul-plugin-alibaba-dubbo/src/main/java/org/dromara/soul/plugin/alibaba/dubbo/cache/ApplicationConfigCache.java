@@ -152,9 +152,12 @@ public final class ApplicationConfigCache {
             if (StringUtils.isNoneBlank(dubboParamExtInfo.getGroup())) {
                 reference.setGroup(dubboParamExtInfo.getGroup());
             }
-            if (StringUtils.isNoneBlank(dubboParamExtInfo.getLoadbalance())) {
-                final String loadBalance = dubboParamExtInfo.getLoadbalance();
+            if (StringUtils.isNoneBlank(dubboParamExtInfo.getLoadBalance())) {
+                final String loadBalance = dubboParamExtInfo.getLoadBalance();
                 reference.setLoadbalance(buildLoadBalanceName(loadBalance));
+            }
+            if (StringUtils.isNoneBlank(dubboParamExtInfo.getUrl())) {
+                reference.setUrl(dubboParamExtInfo.getUrl());
             }
             Optional.ofNullable(dubboParamExtInfo.getTimeout()).ifPresent(reference::setTimeout);
             Optional.ofNullable(dubboParamExtInfo.getRetries()).ifPresent(reference::setRetries);
@@ -228,11 +231,13 @@ public final class ApplicationConfigCache {
         
         private String version;
         
-        private String loadbalance;
+        private String loadBalance;
         
         private Integer retries;
         
         private Integer timeout;
+
+        private String url;
     }
     
 }

@@ -151,15 +151,16 @@ public final class ApplicationConfigCache {
             if (StringUtils.isNoneBlank(dubboParamExtInfo.getGroup())) {
                 reference.setGroup(dubboParamExtInfo.getGroup());
             }
-            if (StringUtils.isNoneBlank(dubboParamExtInfo.getLoadbalance())) {
-                final String loadBalance = dubboParamExtInfo.getLoadbalance();
+            if (StringUtils.isNoneBlank(dubboParamExtInfo.getLoadBalance())) {
+                final String loadBalance = dubboParamExtInfo.getLoadBalance();
                 reference.setLoadbalance(buildLoadBalanceName(loadBalance));
+            }
+            if (StringUtils.isNoneBlank(dubboParamExtInfo.getUrl())) {
+                reference.setUrl(dubboParamExtInfo.getUrl());
             }
             Optional.ofNullable(dubboParamExtInfo.getTimeout()).ifPresent(reference::setTimeout);
             Optional.ofNullable(dubboParamExtInfo.getRetries()).ifPresent(reference::setRetries);
         }
-        // 这里存在的一个问题：假设只修改了元数据里面的服务接口，其实这里在reference.get()的时候会报错No provider,留存的依然是修改之前的缓存，依然可以调用服务成功，
-        // 但是页面上返回的是成功，页面上显示的是修改后的数据，虽然这个是错的。
         Object obj = reference.get();
         if (obj != null) {
             log.info("init apache dubbo reference success there meteData is :{}", metaData.toString());
@@ -229,10 +230,12 @@ public final class ApplicationConfigCache {
 
         private String version;
 
-        private String loadbalance;
+        private String loadBalance;
 
         private Integer retries;
 
         private Integer timeout;
+
+        private String url;
     }
 }
