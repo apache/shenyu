@@ -75,5 +75,8 @@ public final class DubboParamConstants {
      */
     public static final String LOADBALANCE = "loadbalance";
 
-
+    /**
+     * The constant url.
+     */
+    public static final String URL = "url";
 }

@@ -21,4 +21,6 @@ public class DubboRpcExt {
     private Integer retries;
 
     private Integer timeout;
+
+    private String url;
 }
