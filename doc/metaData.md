@@ -36,7 +36,7 @@ CREATE TABLE  IF NOT EXISTS `meta_data` (
 
 * 我重点讲一下 `path` 字段，在请求网关的时候，会根据你的path字段来匹配到一条数据，然后进行后续的流程
 
-* 重点讲一下 `rcp_ext`字段,如果是dubbo类型的服务接口，如果服务接口设置了 group,version字段的时候，会存在这个字段.
+* 重点讲一下 `rpc_ext`字段,如果是dubbo类型的服务接口，如果服务接口设置了 group,version字段的时候，会存在这个字段.
 
   * dubbo 类型 字段结构是 如果，那么存储的就是json格式的字符串..
   
