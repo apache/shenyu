@@ -34,6 +34,7 @@ description: 启动admin
 ```
 * 访问 `http://localhost:9095/index.html ` 默认的用户名： admin  密码:123456
 
+* 如果已经使用 soul, 并且未修改默认秘钥,明文密码 123456 对应的 密文是 `jHcpKkiDbbQh7W7hh8yQSA==`
 
 ### 本地启动
  
