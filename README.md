@@ -160,8 +160,9 @@
 --------------------------------------------------------------------------------  
     
 # Document & Website
-   If you want to use it, you can see [Website](https://dromara.org/website/zh-cn/docs/soul/soul.html)
-   If you want to use it, you can see [Document](https://github.com/Dromara/soul/blob/master/doc/setup.md)
+
+[![EN doc](https://img.shields.io/badge/document-English-blue.svg)](https://dromara.org/website/en-us/docs/soul/soul.html)
+[![CN doc](https://img.shields.io/badge/文档-中文版-blue.svg)](https://dromara.org/website/zh-cn/docs/soul/soul.html)
   
 --------------------------------------------------------------------------------  
         
