@@ -1,5 +1,7 @@
 package org.dromara.soul.client.alibaba.dubbo;
 
+import com.alibaba.dubbo.common.Constants;
+import com.alibaba.dubbo.common.utils.StringUtils;
 import com.alibaba.dubbo.config.spring.ServiceBean;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -107,11 +109,12 @@ public class AlibabaDubboServiceBeanPostProcessor implements BeanPostProcessor {
     
     private String buildRpcExt(final ServiceBean serviceBean) {
         MetaDataDTO.RpcExt build = MetaDataDTO.RpcExt.builder()
-                .group(serviceBean.getGroup())
-                .version(serviceBean.getVersion())
-                .loadbalance(serviceBean.getLoadbalance())
-                .retries(serviceBean.getRetries())
-                .timeout(serviceBean.getTimeout())
+                .group(StringUtils.isNotEmpty(serviceBean.getGroup()) ? serviceBean.getGroup() : "")
+                .version(StringUtils.isNotEmpty(serviceBean.getVersion()) ? serviceBean.getVersion() : "")
+                .loadbalance(StringUtils.isNotEmpty(serviceBean.getLoadbalance()) ? serviceBean.getLoadbalance() : Constants.DEFAULT_LOADBALANCE)
+                .retries(Objects.isNull(serviceBean.getRetries()) ? Constants.DEFAULT_RETRIES : serviceBean.getRetries())
+                .timeout(Objects.isNull(serviceBean.getTimeout()) ? Constants.DEFAULT_CONNECT_TIMEOUT : serviceBean.getTimeout())
+                .url("")
                 .build();
         return OkHttpTools.getInstance().getGosn().toJson(build);
         

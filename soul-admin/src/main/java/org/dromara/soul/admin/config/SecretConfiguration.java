@@ -16,43 +16,28 @@
  *
  */
 
-package org.dromara.soul.admin.dto;
+package org.dromara.soul.admin.config;
 
-import java.io.Serializable;
-import lombok.Data;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * this plugin handle from web front.
- * @author liangziqiang
+ * Aes Secret configuration.
+ *
+ * @author nuo-promise
  */
-@Data
-public class PluginHandleDTO implements Serializable {
-    /**
-     * primary key.
-     */
-    private String id;
+@Configuration
+public class SecretConfiguration {
 
     /**
-     * plugin id.
+     *  egister cipherUtils in spring ioc.
+     *
+     * @return CipherUtils
      */
-    private String pluginId;
-
-    /**
-     * the attribute name.
-     */
-    private String field;
-
-    /**
-     * the attribute label.
-     */
-    private String label;
-
-    /**
-     * the data type.
-     * 1 indicates number
-     * 2 indicates string
-     * 3 indicates select box
-     */
-    private Integer dataType;
-
+    @Bean
+    @ConditionalOnProperty(prefix = "soul.aes.secret", value = "key", havingValue = "2095132720951327")
+    public SecretProperties secretProperties() {
+        return new SecretProperties();
+    }
 }

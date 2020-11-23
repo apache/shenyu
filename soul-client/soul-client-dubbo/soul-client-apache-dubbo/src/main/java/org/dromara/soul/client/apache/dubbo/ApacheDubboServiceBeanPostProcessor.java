@@ -10,6 +10,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.dubbo.common.Constants;
+import org.apache.dubbo.common.utils.StringUtils;
 import org.apache.dubbo.config.spring.ServiceBean;
 import org.dromara.soul.client.common.utils.OkHttpTools;
 import org.dromara.soul.client.dubbo.common.annotation.SoulDubboClient;
@@ -27,13 +29,13 @@ import org.springframework.util.ReflectionUtils;
  */
 @Slf4j
 public class ApacheDubboServiceBeanPostProcessor implements BeanPostProcessor {
-    
+
     private DubboConfig dubboConfig;
-    
+
     private ExecutorService executorService;
-    
+
     private final String url;
-    
+
     public ApacheDubboServiceBeanPostProcessor(final DubboConfig dubboConfig) {
         String contextPath = dubboConfig.getContextPath();
         String adminUrl = dubboConfig.getAdminUrl();
@@ -45,7 +47,7 @@ public class ApacheDubboServiceBeanPostProcessor implements BeanPostProcessor {
         url = dubboConfig.getAdminUrl() + "/soul-client/dubbo-register";
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
     }
-    
+
     @Override
     public Object postProcessBeforeInitialization(final Object bean, final String beanName) throws BeansException {
         if (bean instanceof ServiceBean) {
@@ -53,7 +55,7 @@ public class ApacheDubboServiceBeanPostProcessor implements BeanPostProcessor {
         }
         return bean;
     }
-    
+
     private void handler(final ServiceBean serviceBean) {
         Class<?> clazz = serviceBean.getRef().getClass();
         if (ClassUtils.isCglibProxyClass(clazz)) {
@@ -73,7 +75,7 @@ public class ApacheDubboServiceBeanPostProcessor implements BeanPostProcessor {
             }
         }
     }
-    
+
     private String buildJsonParams(final ServiceBean serviceBean, final SoulDubboClient soulDubboClient, final Method method) {
         String appName = dubboConfig.getAppName();
         if (appName == null || "".equals(appName)) {
@@ -102,21 +104,22 @@ public class ApacheDubboServiceBeanPostProcessor implements BeanPostProcessor {
                 .enabled(soulDubboClient.enabled())
                 .build();
         return OkHttpTools.getInstance().getGosn().toJson(metaDataDTO);
-        
+
     }
-    
+
     private String buildRpcExt(final ServiceBean serviceBean) {
         MetaDataDTO.RpcExt build = MetaDataDTO.RpcExt.builder()
-                .group(serviceBean.getGroup())
-                .version(serviceBean.getVersion())
-                .loadbalance(serviceBean.getLoadbalance())
-                .retries(serviceBean.getRetries())
-                .timeout(serviceBean.getTimeout())
+                .group(StringUtils.isNotEmpty(serviceBean.getGroup()) ? serviceBean.getGroup() : "")
+                .version(StringUtils.isNotEmpty(serviceBean.getVersion()) ? serviceBean.getVersion() : "")
+                .loadbalance(StringUtils.isNotEmpty(serviceBean.getLoadbalance()) ? serviceBean.getLoadbalance() : Constants.DEFAULT_LOADBALANCE)
+                .retries(Objects.isNull(serviceBean.getRetries()) ? Constants.DEFAULT_RETRIES : serviceBean.getRetries())
+                .timeout(Objects.isNull(serviceBean.getTimeout()) ? Constants.DEFAULT_CONNECT_TIMEOUT : serviceBean.getTimeout())
+                .url("")
                 .build();
         return OkHttpTools.getInstance().getGosn().toJson(build);
-        
+
     }
-    
+
     private void post(final String json) {
         try {
             String result = OkHttpTools.getInstance().post(url, json);
