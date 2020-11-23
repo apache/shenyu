@@ -207,3 +207,8 @@ INSERT IGNORE INTO `dashboard_user` (`id`, `user_name`, `password`, `role`, `ena
 
 /*update plugin rate_limiter*/
 update `plugin` set role = 1 where id = '4' and name = 'rate_limiter';
+
+/*insert plugin_handle data for rate_limiter*/
+INSERT IGNORE INTO `plugin_handle`(`id`, `plugin_id`, `field`, `label`, `data_type`, `date_created`, `date_updated`) VALUES ('11', '4', 'replenishRate', '速率', 2, '2020-11-24 00:17:10', '2020-11-24 00:17:10');
+INSERT IGNORE INTO `plugin_handle`(`id`, `plugin_id`, `field`, `label`, `data_type`, `date_created`, `date_updated`) VALUES ('12', '4', 'burstCapacity', '容量', 2, '2020-11-24 00:17:10', '2020-11-24 00:17:10');
+
