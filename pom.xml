@@ -94,6 +94,7 @@
         <cobertura-maven-plugin.version>2.7</cobertura-maven-plugin.version>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <frontend.plugin.skip>true</frontend.plugin.skip>
+        <sofa.rpc.version>5.5.3</sofa.rpc.version>
     </properties>
 
     <dependencyManagement>
@@ -149,6 +150,12 @@
                 <groupId>org.apache.dubbo</groupId>
                 <artifactId>dubbo</artifactId>
                 <version>${apache.dubbo.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alipay.sofa</groupId>
+                <artifactId>sofa-rpc-all</artifactId>
+                <version>${sofa.rpc.version}</version>
             </dependency>
 
             <dependency>

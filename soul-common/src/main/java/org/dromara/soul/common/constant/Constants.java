@@ -54,6 +54,16 @@ public interface Constants {
      * The constant DUBBO_RPC_RESULT_EMPTY.
      */
     String DUBBO_RPC_RESULT_EMPTY = "dubbo has not return value!";
+
+    /**
+     * The constant SOFA_RPC_RESULT.
+     */
+    String SOFA_RPC_RESULT = "sofa_rpc_result";
+
+    /**
+     * The constant SOFA_RPC_RESULT_EMPTY.
+     */
+    String SOFA_RPC_RESULT_EMPTY = "sofa has not return value!";
     
     /**
      * The constant CLIENT_RESPONSE_RESULT_TYPE.
@@ -86,6 +96,11 @@ public interface Constants {
      * The constant DUBBO_PARAMS.
      */
     String DUBBO_PARAMS = "dubbo_params";
+
+    /**
+     * The constant SOFA_PARAMS.
+     */
+    String SOFA_PARAMS = "sofa_params";
     
     /**
      * The constant DECODE.

@@ -1,0 +1,21 @@
+server:
+  port: 28011
+  address: 0.0.0.0
+  servlet:
+    context-path: /
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: sofa
+com:
+  alipay:
+    sofa:
+      rpc:
+        registry-address: zookeeper://127.0.0.1:2181
+        bolt-port: 8888
+soul:
+  sofa:
+    adminUrl: http://localhost:9095
+    contextPath: /sofa
+    appName: sofa

@@ -41,6 +41,7 @@
         <module>soul-test-dubbo</module>
         <module>soul-test-springcloud</module>
         <module>soul-test-eureka</module>
+        <module>soul-test-sofa</module>
     </modules>
 
     <build>
