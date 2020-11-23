@@ -1,5 +1,6 @@
 package org.dromara.soul.client.sofa;
 
+import com.alipay.sofa.runtime.service.component.Service;
 import com.alipay.sofa.runtime.spring.factory.ServiceFactoryBean;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.client.common.utils.OkHttpTools;
@@ -48,7 +49,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
     }
     
     @Override
-    public Object postProcessBeforeInitialization(final Object bean, final String beanName) throws BeansException {
+    public Object postProcessAfterInitialization(final Object bean, final String beanName) throws BeansException {
         if (bean instanceof ServiceFactoryBean) {
             executorService.execute(() -> handler((ServiceFactoryBean) bean));
         }
@@ -56,7 +57,13 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
     }
     
     private void handler(final ServiceFactoryBean serviceBean) {
-        Class<?> clazz = serviceBean.getObjectType();
+        Class<?> clazz = null;
+        try {
+            clazz = ((Service) serviceBean.getObject()).getTarget().getClass();
+        } catch (Exception e) {
+            log.error("failed to get sofa target class");
+            return;
+        }
         if (ClassUtils.isCglibProxyClass(clazz)) {
             String superClassName = clazz.getGenericSuperclass().getTypeName();
             try {

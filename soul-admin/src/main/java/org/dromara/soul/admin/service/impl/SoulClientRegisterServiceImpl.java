@@ -331,6 +331,9 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         } else if (RpcTypeEnum.SPRING_CLOUD.getName().equals(rpcType)) {
             selectorDTO.setPluginId("8");
             selectorDTO.setHandle(appName);
+        } else if (RpcTypeEnum.SOFA.getName().equals(rpcType)) {
+            selectorDTO.setPluginId("11");
+            selectorDTO.setHandle(appName);
         } else {
             //is divide
             DivideUpstream divideUpstream = buildDivideUpstream(uri);

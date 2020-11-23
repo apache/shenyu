@@ -100,9 +100,9 @@ public class SofaProxyService {
         genericService.$invoke(metaData.getMethodName(), pair.getLeft(), pair.getRight());
         return Mono.fromFuture(future.thenApply(ret -> {
             if (Objects.isNull(ret)) {
-                ret = Constants.DUBBO_RPC_RESULT_EMPTY;
+                ret = Constants.SOFA_RPC_RESULT_EMPTY;
             }
-            exchange.getAttributes().put(Constants.SOFA_PARAMS, ret);
+            exchange.getAttributes().put(Constants.SOFA_RPC_RESULT, ret);
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return ret;
         })).onErrorMap(originalCause -> new SoulException(originalCause));

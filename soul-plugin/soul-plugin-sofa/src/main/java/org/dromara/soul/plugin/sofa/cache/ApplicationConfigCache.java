@@ -60,7 +60,7 @@ public final class ApplicationConfigCache {
                 if (config != null) {
                     try {
                         Class<?> cz = config.getClass();
-                        Field field = cz.getDeclaredField("ref");
+                        Field field = cz.getDeclaredField("consumerBootstrap");
                         field.setAccessible(true);
                         field.set(config, null);
                         //跟改配置之后sofa 销毁该实例,但是未置空,如果不处理,重新初始化的时候将获取到NULL照成空指针问题.
@@ -109,7 +109,6 @@ public final class ApplicationConfigCache {
             registryConfig.setId("soul_proxy");
             registryConfig.setRegister(false);
             registryConfig.setAddress(sofaRegisterConfig.getRegister());
-//            Optional.ofNullable(sofaRegisterConfig.getGroup()).ifPresent(registryConfig::setGroup);
         }
     }
     
@@ -145,6 +144,7 @@ public final class ApplicationConfigCache {
         reference.setRegistry(registryConfig);
         reference.setInterfaceId(metaData.getServiceName());
         reference.setProtocol("bolt");
+        reference.setInvokeType("callback");
         String rpcExt = metaData.getRpcExt();
         SofaParamExtInfo sofaParamExtInfo = GsonUtils.getInstance().fromJson(rpcExt, SofaParamExtInfo.class);
         if (Objects.nonNull(sofaParamExtInfo)) {
