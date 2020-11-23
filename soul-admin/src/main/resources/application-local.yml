@@ -38,7 +38,10 @@ soul:
 #        endpoint: acm.aliyun.com
 #        namespace: 
 #        accessKey: 
-#        secretKey: 
+#        secretKey:
+aes:
+  secret:
+    key: 2095132720951327
 
 logging:
   level:
@@ -48,3 +51,7 @@ logging:
     org.dromara.soul.bonuspoint: info
     org.dromara.soul.lottery: info
     org.dromara.soul: info
+
+swagger:
+  enable: true
+

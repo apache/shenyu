@@ -27,6 +27,7 @@ import org.dromara.soul.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * RuleDO.
@@ -78,27 +79,26 @@ public class RuleDO extends BaseDO {
      * @return {@linkplain RuleDO}
      */
     public static RuleDO buildRuleDO(final RuleDTO ruleDTO) {
-        if (ruleDTO != null) {
+        return Optional.ofNullable(ruleDTO).map(item -> {
             RuleDO ruleDO = new RuleDO();
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            if (StringUtils.isEmpty(ruleDTO.getId())) {
+            if (StringUtils.isEmpty(item.getId())) {
                 ruleDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 ruleDO.setDateCreated(currentTime);
             } else {
-                ruleDO.setId(ruleDTO.getId());
+                ruleDO.setId(item.getId());
             }
 
-            ruleDO.setSelectorId(ruleDTO.getSelectorId());
-            ruleDO.setMatchMode(ruleDTO.getMatchMode());
-            ruleDO.setName(ruleDTO.getName());
-            ruleDO.setEnabled(ruleDTO.getEnabled());
-            ruleDO.setLoged(ruleDTO.getLoged());
-            ruleDO.setSort(ruleDTO.getSort());
-            ruleDO.setHandle(ruleDTO.getHandle());
+            ruleDO.setSelectorId(item.getSelectorId());
+            ruleDO.setMatchMode(item.getMatchMode());
+            ruleDO.setName(item.getName());
+            ruleDO.setEnabled(item.getEnabled());
+            ruleDO.setLoged(item.getLoged());
+            ruleDO.setSort(item.getSort());
+            ruleDO.setHandle(item.getHandle());
             ruleDO.setDateUpdated(currentTime);
             return ruleDO;
-        }
-        return null;
+        }).orElse(null);
     }
     
     /**

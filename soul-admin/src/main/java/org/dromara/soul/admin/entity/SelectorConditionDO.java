@@ -24,6 +24,7 @@ import org.dromara.soul.admin.dto.SelectorConditionDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
+import java.util.Optional;
 
 /**
  * SelectorConditionDO.
@@ -65,24 +66,23 @@ public class SelectorConditionDO extends BaseDO {
      * @return {@linkplain SelectorConditionDO}
      */
     public static SelectorConditionDO buildSelectorConditionDO(final SelectorConditionDTO selectorConditionDTO) {
-        if (selectorConditionDTO != null) {
+        return Optional.ofNullable(selectorConditionDTO).map(item -> {
             SelectorConditionDO selectorConditionDO = new SelectorConditionDO();
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            if (StringUtils.isEmpty(selectorConditionDTO.getId())) {
+            if (StringUtils.isEmpty(item.getId())) {
                 selectorConditionDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 selectorConditionDO.setDateCreated(currentTime);
             } else {
-                selectorConditionDO.setId(selectorConditionDTO.getId());
+                selectorConditionDO.setId(item.getId());
             }
 
-            selectorConditionDO.setParamType(selectorConditionDTO.getParamType());
-            selectorConditionDO.setSelectorId(selectorConditionDTO.getSelectorId());
-            selectorConditionDO.setOperator(selectorConditionDTO.getOperator());
-            selectorConditionDO.setParamName(selectorConditionDTO.getParamName());
-            selectorConditionDO.setParamValue(selectorConditionDTO.getParamValue());
+            selectorConditionDO.setParamType(item.getParamType());
+            selectorConditionDO.setSelectorId(item.getSelectorId());
+            selectorConditionDO.setOperator(item.getOperator());
+            selectorConditionDO.setParamName(item.getParamName());
+            selectorConditionDO.setParamValue(item.getParamValue());
             selectorConditionDO.setDateUpdated(currentTime);
             return selectorConditionDO;
-        }
-        return null;
+        }).orElse(null);
     }
 }
