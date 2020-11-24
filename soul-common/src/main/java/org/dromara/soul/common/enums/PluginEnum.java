@@ -93,6 +93,11 @@ public enum PluginEnum {
     DUBBO(60, 0, "dubbo"),
 
     /**
+     * Sofa plugin enum.
+     */
+    SOFA(60, 0, "sofa"),
+
+    /**
      * Monitor plugin enum.
      */
     MONITOR(80, 0, "monitor"),

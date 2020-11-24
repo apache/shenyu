@@ -44,6 +44,7 @@ import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.dto.convert.rule.DivideRuleHandle;
 import org.dromara.soul.common.dto.convert.rule.DubboRuleHandle;
+import org.dromara.soul.common.dto.convert.rule.SofaRuleHandle;
 import org.dromara.soul.common.dto.convert.rule.SpringCloudRuleHandle;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
@@ -159,6 +160,39 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     private void handlerDubboRule(final String selectorId, final MetaDataDTO metaDataDTO) {
         RuleDO existRule = ruleMapper.findByName(metaDataDTO.getPath());
         if (Objects.isNull(existRule)) {
+            registerRule(selectorId, metaDataDTO.getPath(), metaDataDTO.getRpcType(), metaDataDTO.getRuleName());
+        }
+    }
+
+    @Override
+    public String registerSofa(final MetaDataDTO dto) {
+        MetaDataDO byPath = metaDataMapper.findByPath(dto.getPath());
+        if (Objects.nonNull(byPath)
+                && (!byPath.getMethodName().equals(dto.getMethodName())
+                || !byPath.getServiceName().equals(dto.getServiceName()))) {
+            return "you path already exist!";
+        }
+        final MetaDataDO exist = metaDataMapper.findByServiceNameAndMethod(dto.getServiceName(), dto.getMethodName());
+        saveOrUpdateMetaData(exist, dto);
+        String selectorId = handlerSofaSelector(dto);
+        handlerSofaRule(selectorId, dto, exist);
+        return "success";
+    }
+
+    private String handlerSofaSelector(final MetaDataDTO metaDataDTO) {
+        SelectorDO selectorDO = selectorService.findByName(metaDataDTO.getContextPath());
+        String selectorId;
+        if (Objects.isNull(selectorDO)) {
+            selectorId = registerSelector(metaDataDTO.getContextPath(), metaDataDTO.getRpcType(), metaDataDTO.getAppName(), "");
+        } else {
+            selectorId = selectorDO.getId();
+        }
+        return selectorId;
+    }
+
+    private void handlerSofaRule(final String selectorId, final MetaDataDTO metaDataDTO, final MetaDataDO exist) {
+        RuleDO existRule = ruleMapper.findByName(metaDataDTO.getPath());
+        if (Objects.isNull(exist) || Objects.isNull(existRule)) {
             registerRule(selectorId, metaDataDTO.getPath(), metaDataDTO.getRpcType(), metaDataDTO.getRuleName());
         }
     }
@@ -297,6 +331,9 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         } else if (RpcTypeEnum.SPRING_CLOUD.getName().equals(rpcType)) {
             selectorDTO.setPluginId("8");
             selectorDTO.setHandle(appName);
+        } else if (RpcTypeEnum.SOFA.getName().equals(rpcType)) {
+            selectorDTO.setPluginId("11");
+            selectorDTO.setHandle(appName);
         } else {
             //is divide
             DivideUpstream divideUpstream = buildDivideUpstream(uri);
@@ -352,6 +389,12 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
             divideRuleHandle.setLoadBalance(LoadBalanceEnum.RANDOM.getName());
             divideRuleHandle.setRetry(0);
             ruleDTO.setHandle(JsonUtils.toJson(divideRuleHandle));
+        } else if (rpcType.equals(RpcTypeEnum.SOFA.getName())) {
+            SofaRuleHandle sofaRuleHandle = new SofaRuleHandle();
+            sofaRuleHandle.setLoadBalance(LoadBalanceEnum.RANDOM.getName());
+            sofaRuleHandle.setRetries(0);
+            sofaRuleHandle.setTimeout(3000);
+            ruleDTO.setHandle(JsonUtils.toJson(sofaRuleHandle));
         } else {
             SpringCloudRuleHandle springCloudRuleHandle = new SpringCloudRuleHandle();
             springCloudRuleHandle.setPath(path);

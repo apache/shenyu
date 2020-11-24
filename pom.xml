@@ -113,6 +113,7 @@
         <frontend.plugin.skip>true</frontend.plugin.skip>
         <swagger.version>2.9.2</swagger.version>
         <apache-rat-plugin.version>0.12</apache-rat-plugin.version>
+        <sofa.rpc.version>5.7.6</sofa.rpc.version>
     </properties>
 
     <dependencyManagement>
@@ -168,6 +169,12 @@
                 <groupId>org.apache.dubbo</groupId>
                 <artifactId>dubbo</artifactId>
                 <version>${apache.dubbo.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alipay.sofa</groupId>
+                <artifactId>sofa-rpc-all</artifactId>
+                <version>${sofa.rpc.version}</version>
             </dependency>
 
             <dependency>
