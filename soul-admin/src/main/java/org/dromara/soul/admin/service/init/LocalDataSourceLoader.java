@@ -1,18 +1,18 @@
 /*
- *   Licensed to the Apache Software Foundation (ASF) under one or more
- *   contributor license agreements.  See the NOTICE file distributed with
- *   this work for additional information regarding copyright ownership.
- *   The ASF licenses this file to You under the Apache License, Version 2.0
- *   (the "License"); you may not use this file except in compliance with
- *   the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.dromara.soul.admin.service.init;
@@ -40,11 +40,11 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcessor {
-    
+
     private static final Logger LOGGER = LoggerFactory.getLogger(LocalDataSourceLoader.class);
-    
+
     private static final String SCHEMA_SQL_FILE = "META-INF/schema.sql";
-    
+
     @Override
     public Object postProcessAfterInitialization(@NonNull final Object bean, final String beanName) throws BeansException {
         if (bean instanceof DataSourceProperties) {
@@ -52,7 +52,7 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
         }
         return bean;
     }
-    
+
     @SneakyThrows
     protected void init(final DataSourceProperties properties) {
         // If jdbcUrl in the configuration file specifies the soul database, it is removed,
@@ -61,9 +61,9 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
         String jdbcUrl = StringUtils.replace(properties.getUrl(), "/soul?", "?");
         Connection connection = DriverManager.getConnection(jdbcUrl, properties.getUsername(), properties.getPassword());
         this.execute(connection);
-        
+
     }
-    
+
     private void execute(final Connection conn) throws Exception {
         ScriptRunner runner = new ScriptRunner(conn);
         // doesn't print logger
@@ -75,5 +75,5 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
         runner.closeConnection();
         conn.close();
     }
-    
+
 }
