@@ -174,7 +174,7 @@ public class AppAuthController {
         if (StringUtils.isNoneBlank(result)) {
             return SoulAdminResult.error(result);
         }
-        return SoulAdminResult.success(SoulResultMessage.ENABLE_SUCCESS);
+        return SoulAdminResult.success("enable success");
     }
 
     /**

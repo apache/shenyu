@@ -44,18 +44,6 @@ public class SoulResultMessage {
 
     public static final String PLATFORM_LOGIN_ERROR = " username or password error";
 
-    public static final String CREATE_SUCCESS = "create success";
-
-    public static final String DELETE_SUCCESS = "delete success";
-
-    public static final String ENABLE_SUCCESS = "enable success";
-
-    public static final String BATCH_ENABLE_SUCCESS = "batch enable success";
-
-    public static final String QUERY_SUCCESS = "query success";
-
-    public static final String DETAIL_SUCCESS = "detail success";
-
     public static final String APPLY_CREATE_SUCCESS = "apply create success";
 
     public static final String APPLY_UPDATE_SUCCESS = "apply update success";

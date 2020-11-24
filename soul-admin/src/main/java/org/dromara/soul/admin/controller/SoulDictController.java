@@ -143,6 +143,6 @@ public class SoulDictController {
     @PostMapping("/batchEnabled")
     public SoulAdminResult batchEnabled(@RequestBody final BatchCommonDTO batchCommonDTO) {
         final Integer result = soulDictService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled());
-        return SoulAdminResult.success(SoulResultMessage.BATCH_ENABLE_SUCCESS, result);
+        return SoulAdminResult.success("batch enable success", result);
     }
 }
