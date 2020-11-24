@@ -25,6 +25,7 @@ import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.SoulDictQuery;
 import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.service.SoulDictService;
+import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.admin.vo.SoulDictVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -67,7 +68,7 @@ public class SoulDictController {
     @GetMapping("")
     public SoulAdminResult queryDicts(final String type, final String dictCode, final String dictName, final Integer currentPage, final Integer pageSize) {
         CommonPager<SoulDictVO> commonPager = soulDictService.listByPage(new SoulDictQuery(type, dictCode, dictName, new PageParameter(currentPage, pageSize)));
-        return SoulAdminResult.success("query soul dict success", commonPager);
+        return SoulAdminResult.success(SoulResultMessage.SOUL_DICT_QUERY_SUCCESS, commonPager);
     }
 
     /**
@@ -79,7 +80,7 @@ public class SoulDictController {
     @GetMapping("/all/{type}")
     public SoulAdminResult findByType(@PathVariable("type") final String type) {
         List<SoulDictVO> soulDictVOS = soulDictService.list(type);
-        return SoulAdminResult.success("query soul dict success", soulDictVOS);
+        return SoulAdminResult.success(SoulResultMessage.SOUL_DICT_QUERY_SUCCESS, soulDictVOS);
     }
 
     /**
@@ -91,7 +92,7 @@ public class SoulDictController {
     @GetMapping("/{id}")
     public SoulAdminResult detail(@PathVariable("id") final String id) {
         SoulDictVO soulDictVO = soulDictService.findById(id);
-        return SoulAdminResult.success("detail soul dict success", soulDictVO);
+        return SoulAdminResult.success(SoulResultMessage.SOUL_DICT_DETAIL_SUCCESS, soulDictVO);
     }
 
     /**
@@ -103,7 +104,7 @@ public class SoulDictController {
     @PostMapping("")
     public SoulAdminResult createSoulDict(@RequestBody final SoulDictDTO soulDictDTO) {
         Integer createCount = soulDictService.createOrUpdate(soulDictDTO);
-        return SoulAdminResult.success("add soul dict success", createCount);
+        return SoulAdminResult.success(SoulResultMessage.SOUL_DICT_ADD_SUCCESS, createCount);
     }
 
     /**
@@ -118,7 +119,7 @@ public class SoulDictController {
         Objects.requireNonNull(soulDictDTO);
         soulDictDTO.setId(id);
         Integer updateCount = soulDictService.createOrUpdate(soulDictDTO);
-        return SoulAdminResult.success("update soul dict success", updateCount);
+        return SoulAdminResult.success(SoulResultMessage.SOUL_DICT_UPDATE_SUCCESS, updateCount);
     }
 
     /**
@@ -130,7 +131,7 @@ public class SoulDictController {
     @DeleteMapping("/batch")
     public SoulAdminResult deleteSoulDicts(@RequestBody final List<String> ids) {
         Integer deleteCount = soulDictService.deleteSoulDicts(ids);
-        return SoulAdminResult.success("delete soul dict success", deleteCount);
+        return SoulAdminResult.success(SoulResultMessage.SOUL_DICT_DELETE_SUCCESS, deleteCount);
     }
 
     /**
@@ -142,6 +143,6 @@ public class SoulDictController {
     @PostMapping("/batchEnabled")
     public SoulAdminResult batchEnabled(@RequestBody final BatchCommonDTO batchCommonDTO) {
         final Integer result = soulDictService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled());
-        return SoulAdminResult.success("batch enable success", result);
+        return SoulAdminResult.success(SoulResultMessage.BATCH_ENABLE_SUCCESS, result);
     }
 }

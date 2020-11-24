@@ -41,6 +41,7 @@ import org.dromara.soul.admin.query.AppAuthQuery;
 import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.service.AppAuthService;
 import org.dromara.soul.admin.transfer.AppAuthTransfer;
+import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.admin.vo.AppAuthVO;
 import org.dromara.soul.admin.vo.AuthParamVO;
 import org.dromara.soul.admin.vo.AuthPathVO;
@@ -96,7 +97,7 @@ public class AppAuthServiceImpl implements AppAuthService {
     public SoulAdminResult applyCreate(final AuthApplyDTO authApplyDTO) {
         if (StringUtils.isBlank(authApplyDTO.getAppName())
                 || CollectionUtils.isEmpty(authApplyDTO.getPathList())) {
-            return SoulAdminResult.error("参数错误");
+            return SoulAdminResult.error(SoulResultMessage.PARAMETER_ERROR);
         }
         AppAuthDO appAuthDO = new AppAuthDO();
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
@@ -134,7 +135,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.CREATE,
                 Collections.singletonList(data)));
 
-        return SoulAdminResult.success("申请成功！");
+        return SoulAdminResult.success(SoulResultMessage.APPLY_CREATE_SUCCESS);
     }
 
     @Override
@@ -142,11 +143,11 @@ public class AppAuthServiceImpl implements AppAuthService {
         if (StringUtils.isBlank(authApplyDTO.getAppKey())
                 || StringUtils.isBlank(authApplyDTO.getAppName())
                 || CollectionUtils.isEmpty(authApplyDTO.getPathList())) {
-            return SoulAdminResult.error("参数错误");
+            return SoulAdminResult.error(SoulResultMessage.PARAMETER_ERROR);
         }
         AppAuthDO appAuthDO = appAuthMapper.findByAppKey(authApplyDTO.getAppKey());
         if (Objects.isNull(appAuthDO)) {
-            return SoulAdminResult.error("传入的AppKey不存在!");
+            return SoulAdminResult.error(SoulResultMessage.APPKEY_NOT_EXIST_ERROR);
         }
 
         AuthParamDO authParamDO = authParamMapper.findByAuthIdAndAppName(appAuthDO.getId(), authApplyDTO.getAppName());
@@ -170,7 +171,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.CREATE,
                 Collections.singletonList(buildByEntity(appAuthDO))));
 
-        return SoulAdminResult.success("修改成功！");
+        return SoulAdminResult.success(SoulResultMessage.APPLY_UPDATE_SUCCESS);
     }
 
     @Override
@@ -178,7 +179,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         if (StringUtils.isBlank(appAuthDTO.getAppKey())
                 || StringUtils.isBlank(appAuthDTO.getAppSecret())
                 || StringUtils.isBlank(appAuthDTO.getId())) {
-            return SoulAdminResult.error("参数错误");
+            return SoulAdminResult.error(SoulResultMessage.PARAMETER_ERROR);
         }
         AppAuthDO appAuthDO = AppAuthTransfer.INSTANCE.mapToEntity(appAuthDTO);
         appAuthMapper.update(appAuthDO);

@@ -24,6 +24,7 @@ import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.SelectorQuery;
 import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.service.SelectorService;
+import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.admin.vo.SelectorVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -65,7 +66,7 @@ public class SelectorController {
     @GetMapping("")
     public SoulAdminResult querySelectors(final String pluginId, final Integer currentPage, final Integer pageSize) {
         CommonPager<SelectorVO> commonPager = selectorService.listByPage(new SelectorQuery(pluginId, new PageParameter(currentPage, pageSize)));
-        return SoulAdminResult.success("query selectors success", commonPager);
+        return SoulAdminResult.success(SoulResultMessage.SELECTORS_QUERY_SUCCESS, commonPager);
     }
 
     /**
@@ -77,7 +78,7 @@ public class SelectorController {
     @GetMapping("/{id}")
     public SoulAdminResult detailSelector(@PathVariable("id") final String id) {
         SelectorVO selectorVO = selectorService.findById(id);
-        return SoulAdminResult.success("detail selector success", selectorVO);
+        return SoulAdminResult.success(SoulResultMessage.SELECTOR_DETAIL_SUCCESS, selectorVO);
     }
 
     /**
@@ -89,7 +90,7 @@ public class SelectorController {
     @PostMapping("")
     public SoulAdminResult createSelector(@RequestBody final SelectorDTO selectorDTO) {
         Integer createCount = selectorService.createOrUpdate(selectorDTO);
-        return SoulAdminResult.success("create selector success", createCount);
+        return SoulAdminResult.success(SoulResultMessage.SELECTOR_CREATE_SUCCESS, createCount);
     }
 
     /**
@@ -104,7 +105,7 @@ public class SelectorController {
         Objects.requireNonNull(selectorDTO);
         selectorDTO.setId(id);
         Integer updateCount = selectorService.createOrUpdate(selectorDTO);
-        return SoulAdminResult.success("update selector success", updateCount);
+        return SoulAdminResult.success(SoulResultMessage.SELECTOR_UPDATE_SUCCESS, updateCount);
     }
 
     /**
@@ -116,6 +117,6 @@ public class SelectorController {
     @DeleteMapping("/batch")
     public SoulAdminResult deleteSelector(@RequestBody final List<String> ids) {
         Integer deleteCount = selectorService.delete(ids);
-        return SoulAdminResult.success("delete selectors success", deleteCount);
+        return SoulAdminResult.success(SoulResultMessage.SELECTORS_DELETE_SUCCESS, deleteCount);
     }
 }

@@ -24,6 +24,7 @@ import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.RuleQuery;
 import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.service.RuleService;
+import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.admin.vo.RuleVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -65,7 +66,7 @@ public class RuleController {
     @GetMapping("")
     public SoulAdminResult queryRules(final String selectorId, final Integer currentPage, final Integer pageSize) {
         CommonPager<RuleVO> commonPager = ruleService.listByPage(new RuleQuery(selectorId, new PageParameter(currentPage, pageSize)));
-        return SoulAdminResult.success("query rules success", commonPager);
+        return SoulAdminResult.success(SoulResultMessage.RULES_QUERY_SUCCESS, commonPager);
     }
 
     /**
@@ -77,7 +78,7 @@ public class RuleController {
     @GetMapping("/{id}")
     public SoulAdminResult detailRule(@PathVariable("id") final String id) {
         RuleVO ruleVO = ruleService.findById(id);
-        return SoulAdminResult.success("detail rule success", ruleVO);
+        return SoulAdminResult.success(SoulResultMessage.RULE_DETAIL_SUCCESS, ruleVO);
     }
 
     /**
@@ -89,7 +90,7 @@ public class RuleController {
     @PostMapping("")
     public SoulAdminResult createRule(@RequestBody final RuleDTO ruleDTO) {
         Integer createCount = ruleService.createOrUpdate(ruleDTO);
-        return SoulAdminResult.success("create rule success", createCount);
+        return SoulAdminResult.success(SoulResultMessage.RULE_CREATE_SUCCESS, createCount);
     }
 
     /**
@@ -104,7 +105,7 @@ public class RuleController {
         Objects.requireNonNull(ruleDTO);
         ruleDTO.setId(id);
         Integer updateCount = ruleService.createOrUpdate(ruleDTO);
-        return SoulAdminResult.success("update rule success", updateCount);
+        return SoulAdminResult.success(SoulResultMessage.RULE_UPDATE_SUCCESS, updateCount);
     }
 
     /**
@@ -116,6 +117,6 @@ public class RuleController {
     @DeleteMapping("/batch")
     public SoulAdminResult deleteRules(@RequestBody final List<String> ids) {
         Integer deleteCount = ruleService.delete(ids);
-        return SoulAdminResult.success("delete rule success", deleteCount);
+        return SoulAdminResult.success(SoulResultMessage.RULE_DELETE_SUCCESS, deleteCount);
     }
 }

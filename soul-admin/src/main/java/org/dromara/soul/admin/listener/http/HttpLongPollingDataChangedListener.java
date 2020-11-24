@@ -26,6 +26,7 @@ import org.dromara.soul.admin.config.HttpSyncProperties;
 import org.dromara.soul.admin.listener.AbstractDataChangedListener;
 import org.dromara.soul.admin.listener.ConfigDataCache;
 import org.dromara.soul.admin.result.SoulAdminResult;
+import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.common.concurrent.SoulThreadFactory;
 import org.dromara.soul.common.constant.HttpConstants;
 import org.dromara.soul.common.dto.AppAuthData;
@@ -262,7 +263,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             response.setHeader("Cache-Control", "no-cache,no-store");
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setStatus(HttpServletResponse.SC_OK);
-            response.getWriter().println(GsonUtils.getInstance().toJson(SoulAdminResult.success("success", changedGroups)));
+            response.getWriter().println(GsonUtils.getInstance().toJson(SoulAdminResult.success(SoulResultMessage.SUCCESS, changedGroups)));
         } catch (IOException ex) {
             LOGGER.error("Sending response failed.", ex);
         }
