@@ -32,6 +32,7 @@ public class PluginHandleDO extends BaseDO {
      * the data type.
      * 1 indicates number
      * 2 indicates string
+     * 3 indicates select box
      */
     private Integer dataType;
 

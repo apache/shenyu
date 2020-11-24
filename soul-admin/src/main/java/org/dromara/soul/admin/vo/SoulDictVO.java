@@ -18,53 +18,62 @@
 
 package org.dromara.soul.admin.vo;
 
-import java.io.Serializable;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Objects;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.dromara.soul.admin.entity.PluginHandleDO;
+import org.dromara.soul.admin.entity.SoulDictDO;
+
+import java.io.Serializable;
+import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
 /**
- * this is plugin handle view to web front.
+ * this is soul dict view to web front.
  *
- * @author liangziqiang
  * @author dengliming
  */
 @Data
 @AllArgsConstructor
-public class PluginHandleVO implements Serializable {
+public class SoulDictVO implements Serializable {
 
     /**
      * primary key.
      */
     private String id;
 
+    /**
+     * dict type.
+     */
+    private String type;
 
     /**
-     * plugin id.
+     * dict code.
      */
-    private String pluginId;
+    private String dictCode;
 
     /**
-     * the attribute name.
+     * dict name.
      */
-    private String field;
+    private String dictName;
 
     /**
-     * the attribute label.
+     * dict value.
      */
-    private String label;
+    private String dictValue;
 
     /**
-     * the data type.
-     * 1 indicates number
-     * 2 indicates string
-     * 3 indicates select box
+     * dict desc.
      */
-    private String dataType;
+    private String desc;
+
+    /**
+     * sort no.
+     */
+    private Integer sort;
+
+    /**
+     * whether enabled.
+     */
+    private Boolean enabled;
 
     /**
      * created time.
@@ -76,23 +85,21 @@ public class PluginHandleVO implements Serializable {
      */
     private String dateUpdated;
 
-    private List<SoulDictVO> dictOptions;
-
     /**
-     * build {@linkplain PluginHandleVO}.
+     * build {@linkplain SoulDictVO}.
      *
-     * @param pluginHandleDO {@linkplain PluginHandleDO}
-     * @param dictOptions dictOptions
-     * @return {@linkplain PluginHandleVO}
+     * @param soulDictDO {@linkplain SoulDictDO}
+     * @return {@linkplain SoulDictVO}
      */
-    public static PluginHandleVO buildPluginHandleVO(final PluginHandleDO pluginHandleDO, final List<SoulDictVO> dictOptions) {
-        if (Objects.isNull(pluginHandleDO)) {
+    public static SoulDictVO buildSoulDictVO(final SoulDictDO soulDictDO) {
+        if (Objects.isNull(soulDictDO)) {
             return null;
         }
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        return new PluginHandleVO(pluginHandleDO.getId(), pluginHandleDO.getPluginId(),
-                pluginHandleDO.getField(), pluginHandleDO.getLabel(),
-                String.valueOf(pluginHandleDO.getDataType()), dateTimeFormatter.format(pluginHandleDO.getDateCreated().toLocalDateTime()),
-                dateTimeFormatter.format(pluginHandleDO.getDateUpdated().toLocalDateTime()), dictOptions);
+        return new SoulDictVO(soulDictDO.getId(), soulDictDO.getType(),
+                soulDictDO.getDictCode(), soulDictDO.getDictName(),
+                soulDictDO.getDictValue(), soulDictDO.getDesc(), soulDictDO.getSort(), soulDictDO.getEnabled(),
+                dateTimeFormatter.format(soulDictDO.getDateCreated().toLocalDateTime()),
+                dateTimeFormatter.format(soulDictDO.getDateUpdated().toLocalDateTime()));
     }
 }
