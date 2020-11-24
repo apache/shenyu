@@ -21,10 +21,9 @@ package org.dromara.soul.admin.controller;
 import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.service.DashboardUserService;
 import org.dromara.soul.admin.service.EnumService;
-import org.dromara.soul.admin.utils.AesUtils;
+import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.admin.vo.DashboardUserVO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,9 +36,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/platform")
 public class PlatformController {
-
-    @Value("${aes.secret.key}")
-    private String aesKey;
 
     private final DashboardUserService dashboardUserService;
 
@@ -60,8 +56,8 @@ public class PlatformController {
      */
     @GetMapping("/login")
     public SoulAdminResult loginDashboardUser(final String userName, final String password) {
-        DashboardUserVO dashboardUserVO = dashboardUserService.findByQuery(userName, AesUtils.aesEncryption(password, aesKey));
-        return SoulAdminResult.success("login dashboard user success", dashboardUserVO);
+        DashboardUserVO dashboardUserVO = dashboardUserService.login(userName, password);
+        return SoulAdminResult.success(SoulResultMessage.PLATFORM_LOGIN_SUCCESS, dashboardUserVO);
     }
 
     /**
