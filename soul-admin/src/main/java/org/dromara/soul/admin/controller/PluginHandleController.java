@@ -62,7 +62,7 @@ public class PluginHandleController {
     @GetMapping("")
     public SoulAdminResult queryPluginHandles(final String pluginId, final Integer currentPage, final Integer pageSize) {
         CommonPager<PluginHandleVO> commonPager = pluginHandleService.listByPage(new PluginHandleQuery(pluginId, new PageParameter(currentPage, pageSize)));
-        return SoulAdminResult.success(SoulResultMessage.PLUGIN_HANDLE_QUERY_SUCCESS, commonPager);
+        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
     }
 
     /**
@@ -73,7 +73,7 @@ public class PluginHandleController {
     @GetMapping("/all/{pluginId}")
     public SoulAdminResult queryAllPluginHandlesByPluginId(@PathVariable("pluginId") final String pluginId) {
         List<PluginHandleVO> pluginHandleVOS = pluginHandleService.list(pluginId);
-        return SoulAdminResult.success(SoulResultMessage.PLUGIN_HANDLE_QUERY_SUCCESS, pluginHandleVOS);
+        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, pluginHandleVOS);
     }
 
     /**
@@ -85,7 +85,7 @@ public class PluginHandleController {
     @GetMapping("/{id}")
     public SoulAdminResult detailRule(@PathVariable("id") final String id) {
         PluginHandleVO pluginHandleVO = pluginHandleService.findById(id);
-        return SoulAdminResult.success(SoulResultMessage.PLUGIN_HANDLE_DETAIL_SUCCESS, pluginHandleVO);
+        return SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, pluginHandleVO);
     }
 
     /**
@@ -96,7 +96,7 @@ public class PluginHandleController {
     @PostMapping("")
     public SoulAdminResult createPluginHandle(@RequestBody final PluginHandleDTO pluginHandleDTO) {
         Integer createCount = pluginHandleService.createOrUpdate(pluginHandleDTO);
-        return SoulAdminResult.success(SoulResultMessage.PLUGIN_HANDLE_ADD_SUCCESS, createCount);
+        return SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS, createCount);
     }
 
     /**
@@ -110,7 +110,7 @@ public class PluginHandleController {
         Objects.requireNonNull(pluginHandleDTO);
         pluginHandleDTO.setId(id);
         Integer updateCount = pluginHandleService.createOrUpdate(pluginHandleDTO);
-        return SoulAdminResult.success(SoulResultMessage.PLUGIN_HANDLE_UPDATE_SUCCESS, updateCount);
+        return SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS, updateCount);
     }
 
     /**
@@ -121,6 +121,6 @@ public class PluginHandleController {
     @DeleteMapping("/batch")
     public SoulAdminResult deletePluginHandles(@RequestBody final List<String> ids) {
         Integer deleteCount = pluginHandleService.deletePluginHandles(ids);
-        return SoulAdminResult.success(SoulResultMessage.PLUGIN_HANDLE_DELETE_SUCCESS, deleteCount);
+        return SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, deleteCount);
     }
 }

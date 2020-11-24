@@ -103,7 +103,7 @@ public class AppAuthController {
         query.setAppKey(dto.getAppKey());
         query.setPageParameter(new PageParameter(dto.getCurrentPage(), dto.getPageSize()));
         CommonPager<AppAuthVO> commonPager = appAuthService.listByPage(query);
-        return SoulAdminResult.success(SoulResultMessage.APPLICATION_AUTHORITIES_QUERY_SUCCESS, commonPager);
+        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
     }
 
     /**
@@ -114,7 +114,7 @@ public class AppAuthController {
      */
     @GetMapping("/detail")
     public SoulAdminResult detail(@RequestParam("id") final String id) {
-        return SoulAdminResult.success(SoulResultMessage.APPLICATION_AUTHORITY_DETAIL_SUCCESS, appAuthService.findById(id));
+        return SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, appAuthService.findById(id));
     }
 
     /**
@@ -136,7 +136,7 @@ public class AppAuthController {
      */
     @GetMapping("/detailPath")
     public SoulAdminResult detailPath(@RequestParam("id") final String id) {
-        return SoulAdminResult.success(SoulResultMessage.APPLICATION_DETAIL_PATH_SUCCESS, appAuthService.detailPath(id));
+        return SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, appAuthService.detailPath(id));
     }
     
     /**
@@ -159,7 +159,7 @@ public class AppAuthController {
     @PostMapping("/batchDelete")
     public SoulAdminResult batchDelete(@RequestBody final List<String> ids) {
         Integer deleteCount = appAuthService.delete(ids);
-        return SoulAdminResult.success(SoulResultMessage.APPLICATION_AUTHORITIES_DELETE_SUCCESS, deleteCount);
+        return SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, deleteCount);
     }
 
     /**
@@ -174,7 +174,7 @@ public class AppAuthController {
         if (StringUtils.isNoneBlank(result)) {
             return SoulAdminResult.error(result);
         }
-        return SoulAdminResult.success("enable success");
+        return SoulAdminResult.success(SoulResultMessage.ENABLE_SUCCESS);
     }
 
     /**

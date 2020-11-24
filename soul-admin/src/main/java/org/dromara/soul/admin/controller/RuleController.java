@@ -66,7 +66,7 @@ public class RuleController {
     @GetMapping("")
     public SoulAdminResult queryRules(final String selectorId, final Integer currentPage, final Integer pageSize) {
         CommonPager<RuleVO> commonPager = ruleService.listByPage(new RuleQuery(selectorId, new PageParameter(currentPage, pageSize)));
-        return SoulAdminResult.success(SoulResultMessage.RULES_QUERY_SUCCESS, commonPager);
+        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
     }
 
     /**
@@ -78,7 +78,7 @@ public class RuleController {
     @GetMapping("/{id}")
     public SoulAdminResult detailRule(@PathVariable("id") final String id) {
         RuleVO ruleVO = ruleService.findById(id);
-        return SoulAdminResult.success(SoulResultMessage.RULE_DETAIL_SUCCESS, ruleVO);
+        return SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, ruleVO);
     }
 
     /**
@@ -90,7 +90,7 @@ public class RuleController {
     @PostMapping("")
     public SoulAdminResult createRule(@RequestBody final RuleDTO ruleDTO) {
         Integer createCount = ruleService.createOrUpdate(ruleDTO);
-        return SoulAdminResult.success(SoulResultMessage.RULE_CREATE_SUCCESS, createCount);
+        return SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS, createCount);
     }
 
     /**
@@ -105,7 +105,7 @@ public class RuleController {
         Objects.requireNonNull(ruleDTO);
         ruleDTO.setId(id);
         Integer updateCount = ruleService.createOrUpdate(ruleDTO);
-        return SoulAdminResult.success(SoulResultMessage.RULE_UPDATE_SUCCESS, updateCount);
+        return SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS, updateCount);
     }
 
     /**
@@ -117,6 +117,6 @@ public class RuleController {
     @DeleteMapping("/batch")
     public SoulAdminResult deleteRules(@RequestBody final List<String> ids) {
         Integer deleteCount = ruleService.delete(ids);
-        return SoulAdminResult.success(SoulResultMessage.RULE_DELETE_SUCCESS, deleteCount);
+        return SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, deleteCount);
     }
 }

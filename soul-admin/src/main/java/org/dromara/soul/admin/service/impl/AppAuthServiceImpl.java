@@ -135,7 +135,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.CREATE,
                 Collections.singletonList(data)));
 
-        return SoulAdminResult.success(SoulResultMessage.APPLY_CREATE_SUCCESS);
+        return SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS);
     }
 
     @Override
@@ -171,7 +171,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.CREATE,
                 Collections.singletonList(buildByEntity(appAuthDO))));
 
-        return SoulAdminResult.success(SoulResultMessage.APPLY_UPDATE_SUCCESS);
+        return SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS);
     }
 
     @Override

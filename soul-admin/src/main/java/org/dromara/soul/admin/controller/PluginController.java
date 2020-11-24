@@ -80,7 +80,7 @@ public class PluginController {
     @GetMapping("")
     public SoulAdminResult queryPlugins(final String name, final Integer currentPage, final Integer pageSize) {
         CommonPager<PluginVO> commonPager = pluginService.listByPage(new PluginQuery(name, new PageParameter(currentPage, pageSize)));
-        return SoulAdminResult.success(SoulResultMessage.PLUGINS_QUERY_SUCCESS, commonPager);
+        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
     }
 
     /**
@@ -92,7 +92,7 @@ public class PluginController {
     @GetMapping("/{id}")
     public SoulAdminResult detailPlugin(@PathVariable("id") final String id) {
         PluginVO pluginVO = pluginService.findById(id);
-        return SoulAdminResult.success(SoulResultMessage.PLUGIN_DETAIL_SUCCESS, pluginVO);
+        return SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, pluginVO);
     }
 
     /**
@@ -107,7 +107,7 @@ public class PluginController {
         if (StringUtils.isNoneBlank()) {
             return SoulAdminResult.error(result);
         }
-        return SoulAdminResult.success(SoulResultMessage.PLUGIN_CREATE_SUCCESS);
+        return SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS);
     }
 
     /**
@@ -125,7 +125,7 @@ public class PluginController {
         if (StringUtils.isNoneBlank(result)) {
             return SoulAdminResult.error(result);
         }
-        return SoulAdminResult.success(SoulResultMessage.PLUGIN_UPDATE_SUCCESS);
+        return SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS);
     }
 
     /**
@@ -140,7 +140,7 @@ public class PluginController {
         if (StringUtils.isNoneBlank(result)) {
             return SoulAdminResult.error(result);
         }
-        return SoulAdminResult.success(SoulResultMessage.PLUGINS_DELETE_SUCCESS);
+        return SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS);
     }
 
     /**
@@ -155,7 +155,7 @@ public class PluginController {
         if (StringUtils.isNoneBlank(result)) {
             return SoulAdminResult.error(result);
         }
-        return SoulAdminResult.success(SoulResultMessage.PLUGINS_ENABLE_SUCCESS);
+        return SoulAdminResult.success(SoulResultMessage.ENABLE_SUCCESS);
     }
 
 
@@ -168,9 +168,9 @@ public class PluginController {
     public SoulAdminResult syncPluginAll() {
         boolean success = syncDataService.syncAll(DataEventTypeEnum.REFRESH);
         if (success) {
-            return SoulAdminResult.success(SoulResultMessage.PLUGINS_SYNC_SUCCESS);
+            return SoulAdminResult.success(SoulResultMessage.SYNC_SUCCESS);
         } else {
-            return SoulAdminResult.error(SoulResultMessage.PLUGINS_SYNC_FAIL);
+            return SoulAdminResult.error(SoulResultMessage.SYNC_FAIL);
         }
     }
 
@@ -184,9 +184,9 @@ public class PluginController {
     public SoulAdminResult syncPluginData(@PathVariable("id") final String id) {
         boolean success = syncDataService.syncPluginData(id);
         if (success) {
-            return SoulAdminResult.success(SoulResultMessage.PLUGINS_SYNC_SUCCESS);
+            return SoulAdminResult.success(SoulResultMessage.SYNC_SUCCESS);
         } else {
-            return SoulAdminResult.error(SoulResultMessage.PLUGINS_SYNC_FAIL);
+            return SoulAdminResult.error(SoulResultMessage.SYNC_FAIL);
         }
     }
 }

@@ -68,7 +68,7 @@ public class SoulDictController {
     @GetMapping("")
     public SoulAdminResult queryDicts(final String type, final String dictCode, final String dictName, final Integer currentPage, final Integer pageSize) {
         CommonPager<SoulDictVO> commonPager = soulDictService.listByPage(new SoulDictQuery(type, dictCode, dictName, new PageParameter(currentPage, pageSize)));
-        return SoulAdminResult.success(SoulResultMessage.SOUL_DICT_QUERY_SUCCESS, commonPager);
+        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
     }
 
     /**
@@ -80,7 +80,7 @@ public class SoulDictController {
     @GetMapping("/all/{type}")
     public SoulAdminResult findByType(@PathVariable("type") final String type) {
         List<SoulDictVO> soulDictVOS = soulDictService.list(type);
-        return SoulAdminResult.success(SoulResultMessage.SOUL_DICT_QUERY_SUCCESS, soulDictVOS);
+        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, soulDictVOS);
     }
 
     /**
@@ -92,7 +92,7 @@ public class SoulDictController {
     @GetMapping("/{id}")
     public SoulAdminResult detail(@PathVariable("id") final String id) {
         SoulDictVO soulDictVO = soulDictService.findById(id);
-        return SoulAdminResult.success(SoulResultMessage.SOUL_DICT_DETAIL_SUCCESS, soulDictVO);
+        return SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, soulDictVO);
     }
 
     /**
@@ -104,7 +104,7 @@ public class SoulDictController {
     @PostMapping("")
     public SoulAdminResult createSoulDict(@RequestBody final SoulDictDTO soulDictDTO) {
         Integer createCount = soulDictService.createOrUpdate(soulDictDTO);
-        return SoulAdminResult.success(SoulResultMessage.SOUL_DICT_ADD_SUCCESS, createCount);
+        return SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS, createCount);
     }
 
     /**
@@ -119,7 +119,7 @@ public class SoulDictController {
         Objects.requireNonNull(soulDictDTO);
         soulDictDTO.setId(id);
         Integer updateCount = soulDictService.createOrUpdate(soulDictDTO);
-        return SoulAdminResult.success(SoulResultMessage.SOUL_DICT_UPDATE_SUCCESS, updateCount);
+        return SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS, updateCount);
     }
 
     /**
@@ -131,7 +131,7 @@ public class SoulDictController {
     @DeleteMapping("/batch")
     public SoulAdminResult deleteSoulDicts(@RequestBody final List<String> ids) {
         Integer deleteCount = soulDictService.deleteSoulDicts(ids);
-        return SoulAdminResult.success(SoulResultMessage.SOUL_DICT_DELETE_SUCCESS, deleteCount);
+        return SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, deleteCount);
     }
 
     /**
