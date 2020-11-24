@@ -22,17 +22,25 @@ package org.dromara.soul.admin.utils;
  *
  * @author nuo-promise
  */
-public class SoulResultMessage {
+public final class SoulResultMessage {
 
-    public static final String DASHBOARD_QUERY_SUCCESS = "query dashboard users success";
+    public static final String SUCCESS = "success";
 
-    public static final String DASHBOARD_DETAIL_SUCCESS = "detail dashboard user success";
+    public static final String CREATE_SUCCESS = "create success";
 
-    public static final String DASHBOARD_CREATE_SUCCESS = "create dashboard user success";
+    public static final String DELETE_SUCCESS = "delete success";
 
-    public static final String DASHBOARD_UPDATE_SUCCESS = "update dashboard user success";
+    public static final String UPDATE_SUCCESS = "update success";
 
-    public static final String DASHBOARD_DELETE_SUCCESS = "delete dashboard users success";
+    public static final String QUERY_SUCCESS = "query success";
+
+    public static final String DETAIL_SUCCESS = "detail success";
+
+    public static final String ENABLE_SUCCESS = "enable success";
+
+    public static final String SYNC_SUCCESS = "sync success";
+
+    public static final String SYNC_FAIL = "sync fail";
 
     public static final String DASHBOARD_QUERY_ERROR = "users info is empty";
 
@@ -41,5 +49,11 @@ public class SoulResultMessage {
     public static final String PLATFORM_LOGIN_SUCCESS = "login dashboard user success";
 
     public static final String PLATFORM_LOGIN_ERROR = " username or password error";
+
+    public static final String PARAMETER_ERROR = "parameter error";
+
+    public static final String UNIQUE_INDEX_CONFLICT_ERROR = "unique index conflict, please enter again";
+
+    public static final String APPKEY_NOT_EXIST_ERROR = "the appKey passed in does not exist";
 
 }
