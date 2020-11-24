@@ -45,6 +45,11 @@ public enum RpcTypeEnum {
     DUBBO("dubbo", true),
 
     /**
+     * Sofa rpc type enum.
+     */
+    SOFA("sofa", true),
+
+    /**
      * Web socket rpc type enum.
      */
     WEB_SOCKET("websocket", true),
