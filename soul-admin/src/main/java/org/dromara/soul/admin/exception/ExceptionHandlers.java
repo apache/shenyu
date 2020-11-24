@@ -18,6 +18,7 @@
 package org.dromara.soul.admin.exception;
 
 import org.dromara.soul.admin.result.SoulAdminResult;
+import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.common.exception.SoulException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +56,6 @@ public class ExceptionHandlers {
     @ExceptionHandler(DuplicateKeyException.class)
     protected SoulAdminResult serverExceptionHandler(final DuplicateKeyException exception) {
         LOGGER.error(exception.getMessage(), exception);
-        return SoulAdminResult.error("唯一索引冲突，请重新输入");
+        return SoulAdminResult.error(SoulResultMessage.UNIQUE_INDEX_CONFLICT_ERROR);
     }
 }

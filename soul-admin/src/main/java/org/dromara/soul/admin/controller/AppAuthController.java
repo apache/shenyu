@@ -28,6 +28,7 @@ import org.dromara.soul.admin.query.AppAuthQuery;
 import org.dromara.soul.admin.query.AppAuthQueryDTO;
 import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.service.AppAuthService;
+import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.admin.vo.AppAuthVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -100,7 +101,7 @@ public class AppAuthController {
         query.setAppKey(dto.getAppKey());
         query.setPageParameter(new PageParameter(dto.getCurrentPage(), dto.getPageSize()));
         CommonPager<AppAuthVO> commonPager = appAuthService.listByPage(query);
-        return SoulAdminResult.success("query application authorities success", commonPager);
+        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
     }
 
     /**
@@ -111,7 +112,7 @@ public class AppAuthController {
      */
     @GetMapping("/detail")
     public SoulAdminResult detail(@RequestParam("id") final String id) {
-        return SoulAdminResult.success("detail application authority success", appAuthService.findById(id));
+        return SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, appAuthService.findById(id));
     }
 
     /**
@@ -133,7 +134,7 @@ public class AppAuthController {
      */
     @GetMapping("/detailPath")
     public SoulAdminResult detailPath(@RequestParam("id") final String id) {
-        return SoulAdminResult.success("detailPath application success", appAuthService.detailPath(id));
+        return SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, appAuthService.detailPath(id));
     }
 
     /**
@@ -156,7 +157,7 @@ public class AppAuthController {
     @PostMapping("/batchDelete")
     public SoulAdminResult batchDelete(@RequestBody final List<String> ids) {
         Integer deleteCount = appAuthService.delete(ids);
-        return SoulAdminResult.success("delete application authorities success", deleteCount);
+        return SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, deleteCount);
     }
 
     /**
@@ -171,7 +172,7 @@ public class AppAuthController {
         if (StringUtils.isNoneBlank(result)) {
             return SoulAdminResult.error(result);
         }
-        return SoulAdminResult.success("enable success");
+        return SoulAdminResult.success(SoulResultMessage.ENABLE_SUCCESS);
     }
 
     /**
