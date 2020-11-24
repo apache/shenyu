@@ -11,7 +11,7 @@ spring:
     suffix: .html
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://127.0.01:3306/soul?useUnicode=true&characterEncoding=utf-8&useSSL=false
+    url: jdbc:mysql://127.0.0.1:3306/soul?useUnicode=true&characterEncoding=utf-8&useSSL=false
     username: root
     password: 12345678
 
