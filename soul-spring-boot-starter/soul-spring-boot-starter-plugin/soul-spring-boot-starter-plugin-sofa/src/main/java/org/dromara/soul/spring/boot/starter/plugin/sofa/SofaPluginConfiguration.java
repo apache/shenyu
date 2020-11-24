@@ -79,7 +79,7 @@ public class SofaPluginConfiguration {
      * @return the plugin data handler
      */
     @Bean
-    public PluginDataHandler sofaoPluginDataHandler() {
+    public PluginDataHandler sofaPluginDataHandler() {
         return new SofaPluginDataHandler();
     }
     
