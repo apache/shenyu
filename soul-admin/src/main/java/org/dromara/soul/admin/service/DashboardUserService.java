@@ -72,4 +72,13 @@ public interface DashboardUserService {
      * @return {@linkplain CommonPager}
      */
     CommonPager<DashboardUserVO> listByPage(DashboardUserQuery dashboardUserQuery);
+
+    /**
+     * To deal with the admin login.
+     *
+     * @param userName default username is admin
+     * @param password admin password
+     * @return {@linkplain DashboardUserVO}
+     */
+    DashboardUserVO login(String userName, String password);
 }

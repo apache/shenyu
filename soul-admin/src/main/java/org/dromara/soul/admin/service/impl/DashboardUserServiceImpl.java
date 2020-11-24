@@ -27,8 +27,10 @@ import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.page.PageResultUtils;
 import org.dromara.soul.admin.query.DashboardUserQuery;
 import org.dromara.soul.admin.service.DashboardUserService;
+import org.dromara.soul.admin.utils.AesUtils;
 import org.dromara.soul.admin.vo.DashboardUserVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -41,6 +43,9 @@ import java.util.stream.Collectors;
  */
 @Service("dashboardUserService")
 public class DashboardUserServiceImpl implements DashboardUserService {
+
+    @Value("${aes.secret.key}")
+    private String aesKey;
 
     private final DashboardUserMapper dashboardUserMapper;
 
@@ -114,5 +119,29 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         PageParameter parameter = dashboardUserQuery.getPageParameter();
         Integer count = dashboardUserMapper.countByQuery(dashboardUserQuery);
         return PageResultUtils.result(parameter, count, () -> dashboardUserMapper.selectByQuery(dashboardUserQuery).stream().map(DashboardUserVO::buildDashboardUserVO).collect(Collectors.toList()));
+    }
+
+    /**
+     * To deal with the admin login.
+     *
+     * @param userName default username is admin
+     * @param password admin password
+     * @return {@linkplain DashboardUserVO}
+     */
+    @Override
+    public DashboardUserVO login(final String userName, final String password) {
+        DashboardUserVO dashboardUserVO = findByQuery(userName, password);
+        if (dashboardUserVO != null) {
+            DashboardUserDTO dashboardUserDTO = DashboardUserDTO.builder()
+                    .id(dashboardUserVO.getId())
+                    .userName(dashboardUserVO.getUserName())
+                    .password(AesUtils.aesEncryption(dashboardUserVO.getPassword(), aesKey))
+                    .role(dashboardUserVO.getRole())
+                    .enabled(dashboardUserVO.getEnabled()).build();
+            createOrUpdate(dashboardUserDTO);
+            return dashboardUserVO;
+        } else {
+            return findByQuery(userName, AesUtils.aesEncryption(password, aesKey));
+        }
     }
 }

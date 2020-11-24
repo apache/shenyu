@@ -38,4 +38,8 @@ public class SoulResultMessage {
 
     public static final String DASHBOARD_CREATE_USER_ERROR = "user info not empty";
 
+    public static final String PLATFORM_LOGIN_SUCCESS = "login dashboard user success";
+
+    public static final String PLATFORM_LOGIN_ERROR = " username or password error";
+
 }
