@@ -18,6 +18,7 @@
 
 package org.dromara.soul.admin.dto;
 
+import lombok.Builder;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -28,6 +29,7 @@ import java.io.Serializable;
  * @author jiangxiaofeng(Nicholas)
  */
 @Data
+@Builder
 public class DashboardUserDTO implements Serializable {
 
     /**
