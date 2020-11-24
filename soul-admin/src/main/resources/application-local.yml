@@ -10,10 +10,10 @@ spring:
     prefix: classpath:/static/
     suffix: .html
   datasource:
-    url: jdbc:mysql://localhost:3306/soul?useUnicode=true&characterEncoding=utf-8
-    username: root
-    password:
     driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://127.0.01:3306/soul?useUnicode=true&characterEncoding=utf-8&useSSL=false
+    username: root
+    password: 12345678
 
 mybatis:
   config-location: classpath:/mybatis/mybatis-config.xml
