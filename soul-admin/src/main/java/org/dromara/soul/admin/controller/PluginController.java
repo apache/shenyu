@@ -140,7 +140,7 @@ public class PluginController {
         if (StringUtils.isNoneBlank(result)) {
             return SoulAdminResult.error(result);
         }
-        return SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS);
+        return SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS);
     }
 
     /**
