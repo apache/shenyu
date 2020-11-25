@@ -221,8 +221,13 @@ INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`
 /**user**/
 INSERT IGNORE INTO `dashboard_user` (`id`, `user_name`, `password`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('1', 'admin', 'jHcpKkiDbbQh7W7hh8yQSA==', '1', '1', '2018-06-23 15:12:22', '2018-06-23 15:12:23');
 
-/*update plugin rate_limiter*/
+/*update plugin role to use plugin_handle*/
 update `plugin` set role = 1 where id = '4' and name = 'rate_limiter';
+update `plugin` set role = 1 where id = '1' and name = 'sign';
+update `plugin` set role = 1 where id = '2' and name = 'waf';
+update `plugin` set role = 1 where id = '6' and name = 'dubbo';
+update `plugin` set role = 1 where id = '7' and name = 'monitor';
+update `plugin` set role = 1 where id = '10' and name = 'sentinel';
 
 /*insert plugin_handle data for rate_limiter*/
 INSERT IGNORE INTO `plugin_handle`(`id`, `plugin_id`, `field`, `label`, `data_type`, `date_created`, `date_updated`) VALUES ('11', '4', 'replenishRate', '速率', 2, '2020-11-24 00:17:10', '2020-11-24 00:17:10');
