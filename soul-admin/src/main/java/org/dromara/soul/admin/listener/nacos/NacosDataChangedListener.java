@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.dromara.soul.admin.listener.nacos;
 
 import com.alibaba.nacos.api.config.ConfigService;
@@ -30,39 +47,39 @@ import java.util.stream.Collectors;
  * @author chenxj
  */
 public class NacosDataChangedListener implements DataChangedListener {
-    
+
     private static final ConcurrentMap<String, PluginData> PLUGIN_MAP = Maps.newConcurrentMap();
-    
+
     private static final ConcurrentMap<String, List<SelectorData>> SELECTOR_MAP = Maps.newConcurrentMap();
-    
+
     private static final ConcurrentMap<String, List<RuleData>> RULE_MAP = Maps.newConcurrentMap();
-    
+
     private static final ConcurrentMap<String, AppAuthData> AUTH_MAP = Maps.newConcurrentMap();
-    
+
     private static final ConcurrentMap<String, MetaData> META_DATA = Maps.newConcurrentMap();
-    
+
     private static final Comparator<SelectorData> SELECTOR_DATA_COMPARATOR = Comparator.comparing(SelectorData::getSort);
-    
+
     private static final Comparator<RuleData> RULE_DATA_COMPARATOR = Comparator.comparing(RuleData::getSort);
-    
+
     private static final String GROUP = "DEFAULT_GROUP";
-    
+
     private static final String PLUGIN_DATA_ID = "soul.plugin.json";
-    
+
     private static final String SELECTOR_DATA_ID = "soul.selector.json";
-    
+
     private static final String RULE_DATA_ID = "soul.rule.json";
-    
+
     private static final String AUTH_DATA_ID = "soul.auth.json";
-    
+
     private static final String META_DATA_ID = "soul.meta.json";
-    
+
     private final ConfigService configService;
-    
+
     public NacosDataChangedListener(final ConfigService configService) {
         this.configService = configService;
     }
-    
+
     private void updateAuthMap(final String configInfo) {
         JsonObject jo = GsonUtils.getInstance().fromJson(configInfo, JsonObject.class);
         Set<String> set = new HashSet<>(AUTH_MAP.keySet());
@@ -72,7 +89,7 @@ public class NacosDataChangedListener implements DataChangedListener {
         }
         AUTH_MAP.keySet().removeAll(set);
     }
-    
+
     private void updatePluginMap(final String configInfo) {
         JsonObject jo = GsonUtils.getInstance().fromJson(configInfo, JsonObject.class);
         Set<String> set = new HashSet<>(PLUGIN_MAP.keySet());
@@ -82,7 +99,7 @@ public class NacosDataChangedListener implements DataChangedListener {
         }
         PLUGIN_MAP.keySet().removeAll(set);
     }
-    
+
     private void updateSelectorMap(final String configInfo) {
         JsonObject jo = GsonUtils.getInstance().fromJson(configInfo, JsonObject.class);
         Set<String> set = new HashSet<>(SELECTOR_MAP.keySet());
@@ -94,7 +111,7 @@ public class NacosDataChangedListener implements DataChangedListener {
         }
         SELECTOR_MAP.keySet().removeAll(set);
     }
-    
+
     private void updateMetaDataMap(final String configInfo) {
         JsonObject jo = GsonUtils.getInstance().fromJson(configInfo, JsonObject.class);
         Set<String> set = new HashSet<>(META_DATA.keySet());
@@ -104,7 +121,7 @@ public class NacosDataChangedListener implements DataChangedListener {
         }
         META_DATA.keySet().removeAll(set);
     }
-    
+
     private void updateRuleMap(final String configInfo) {
         JsonObject jo = GsonUtils.getInstance().fromJson(configInfo, JsonObject.class);
         Set<String> set = new HashSet<>(RULE_MAP.keySet());
@@ -116,17 +133,17 @@ public class NacosDataChangedListener implements DataChangedListener {
         }
         RULE_MAP.keySet().removeAll(set);
     }
-    
+
     @SneakyThrows
     private String getConfig(final String dataId) {
         return configService.getConfig(dataId, GROUP, 6000);
     }
-    
+
     @SneakyThrows
     private void publishConfig(final String dataId, final Object data) {
         configService.publishConfig(dataId, GROUP, GsonUtils.getInstance().toJson(data));
     }
-    
+
     @Override
     @SneakyThrows
     public void onAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
@@ -150,7 +167,7 @@ public class NacosDataChangedListener implements DataChangedListener {
         }
         publishConfig(AUTH_DATA_ID, AUTH_MAP);
     }
-    
+
     @Override
     public void onPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType) {
         updatePluginMap(getConfig(PLUGIN_DATA_ID));
@@ -173,7 +190,7 @@ public class NacosDataChangedListener implements DataChangedListener {
         }
         publishConfig(PLUGIN_DATA_ID, PLUGIN_MAP);
     }
-    
+
     @Override
     public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
         updateSelectorMap(getConfig(SELECTOR_DATA_ID));
@@ -218,7 +235,7 @@ public class NacosDataChangedListener implements DataChangedListener {
         }
         publishConfig(SELECTOR_DATA_ID, SELECTOR_MAP);
     }
-    
+
     @Override
     public void onMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
         updateMetaDataMap(getConfig(META_DATA_ID));
@@ -242,14 +259,14 @@ public class NacosDataChangedListener implements DataChangedListener {
                             .stream()
                             .filter(md -> Objects.equals(md.getId(), meta.getId()))
                             .forEach(md -> META_DATA.remove(md.getPath()));
-                    
+
                     META_DATA.put(meta.getPath(), meta);
                 });
                 break;
         }
         publishConfig(META_DATA_ID, META_DATA);
     }
-    
+
     @Override
     public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
         updateRuleMap(getConfig(RULE_DATA_ID));
@@ -292,7 +309,7 @@ public class NacosDataChangedListener implements DataChangedListener {
                 });
                 break;
         }
-        
+
         publishConfig(RULE_DATA_ID, RULE_MAP);
     }
 }

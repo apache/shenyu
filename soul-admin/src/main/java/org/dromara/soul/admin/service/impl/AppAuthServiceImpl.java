@@ -1,20 +1,18 @@
 /*
- *
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * Contributor license agreements.See the NOTICE file distributed with
- * This work for additional information regarding copyright ownership.
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * he License.You may obtain a copy of the License at
+ * the License.  You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.dromara.soul.admin.service.impl;
@@ -41,6 +39,7 @@ import org.dromara.soul.admin.query.AppAuthQuery;
 import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.service.AppAuthService;
 import org.dromara.soul.admin.transfer.AppAuthTransfer;
+import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.admin.vo.AppAuthVO;
 import org.dromara.soul.admin.vo.AuthParamVO;
 import org.dromara.soul.admin.vo.AuthPathVO;
@@ -96,7 +95,7 @@ public class AppAuthServiceImpl implements AppAuthService {
     public SoulAdminResult applyCreate(final AuthApplyDTO authApplyDTO) {
         if (StringUtils.isBlank(authApplyDTO.getAppName())
                 || CollectionUtils.isEmpty(authApplyDTO.getPathList())) {
-            return SoulAdminResult.error("参数错误");
+            return SoulAdminResult.error(SoulResultMessage.PARAMETER_ERROR);
         }
         AppAuthDO appAuthDO = new AppAuthDO();
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
@@ -134,7 +133,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.CREATE,
                 Collections.singletonList(data)));
 
-        return SoulAdminResult.success("申请成功！");
+        return SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS);
     }
 
     @Override
@@ -142,11 +141,11 @@ public class AppAuthServiceImpl implements AppAuthService {
         if (StringUtils.isBlank(authApplyDTO.getAppKey())
                 || StringUtils.isBlank(authApplyDTO.getAppName())
                 || CollectionUtils.isEmpty(authApplyDTO.getPathList())) {
-            return SoulAdminResult.error("参数错误");
+            return SoulAdminResult.error(SoulResultMessage.PARAMETER_ERROR);
         }
         AppAuthDO appAuthDO = appAuthMapper.findByAppKey(authApplyDTO.getAppKey());
         if (Objects.isNull(appAuthDO)) {
-            return SoulAdminResult.error("传入的AppKey不存在!");
+            return SoulAdminResult.error(SoulResultMessage.APPKEY_NOT_EXIST_ERROR);
         }
 
         AuthParamDO authParamDO = authParamMapper.findByAuthIdAndAppName(appAuthDO.getId(), authApplyDTO.getAppName());
@@ -170,7 +169,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.CREATE,
                 Collections.singletonList(buildByEntity(appAuthDO))));
 
-        return SoulAdminResult.success("修改成功！");
+        return SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS);
     }
 
     @Override
@@ -178,7 +177,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         if (StringUtils.isBlank(appAuthDTO.getAppKey())
                 || StringUtils.isBlank(appAuthDTO.getAppSecret())
                 || StringUtils.isBlank(appAuthDTO.getId())) {
-            return SoulAdminResult.error("参数错误");
+            return SoulAdminResult.error(SoulResultMessage.PARAMETER_ERROR);
         }
         AppAuthDO appAuthDO = AppAuthTransfer.INSTANCE.mapToEntity(appAuthDTO);
         appAuthMapper.update(appAuthDO);
