@@ -27,6 +27,7 @@
         <module>soul-plugin-waf</module>
         <module>soul-plugin-global</module>
         <module>soul-plugin-sentinel</module>
+        <module>soul-plugin-resilience4j</module>
     </modules>
 
 
