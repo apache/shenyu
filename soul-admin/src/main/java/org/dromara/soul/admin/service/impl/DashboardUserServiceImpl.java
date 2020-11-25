@@ -1,25 +1,22 @@
 /*
- *   Licensed to the Apache Software Foundation (ASF) under one or more
- *   contributor license agreements.  See the NOTICE file distributed with
- *   this work for additional information regarding copyright ownership.
- *   The ASF licenses this file to You under the Apache License, Version 2.0
- *   (the "License"); you may not use this file except in compliance with
- *   the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.dromara.soul.admin.service.impl;
 
-import java.util.List;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.DashboardUserDTO;
 import org.dromara.soul.admin.entity.DashboardUserDO;
@@ -29,9 +26,14 @@ import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.page.PageResultUtils;
 import org.dromara.soul.admin.query.DashboardUserQuery;
 import org.dromara.soul.admin.service.DashboardUserService;
+import org.dromara.soul.admin.utils.AesUtils;
 import org.dromara.soul.admin.vo.DashboardUserVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * DashboardUserServiceImpl.
@@ -40,6 +42,9 @@ import org.springframework.stereotype.Service;
  */
 @Service("dashboardUserService")
 public class DashboardUserServiceImpl implements DashboardUserService {
+
+    @Value("${aes.secret.key}")
+    private String aesKey;
 
     private final DashboardUserMapper dashboardUserMapper;
 
@@ -113,5 +118,29 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         PageParameter parameter = dashboardUserQuery.getPageParameter();
         Integer count = dashboardUserMapper.countByQuery(dashboardUserQuery);
         return PageResultUtils.result(parameter, count, () -> dashboardUserMapper.selectByQuery(dashboardUserQuery).stream().map(DashboardUserVO::buildDashboardUserVO).collect(Collectors.toList()));
+    }
+
+    /**
+     * To deal with the admin login.
+     *
+     * @param userName default username is admin
+     * @param password admin password
+     * @return {@linkplain DashboardUserVO}
+     */
+    @Override
+    public DashboardUserVO login(final String userName, final String password) {
+        DashboardUserVO dashboardUserVO = findByQuery(userName, password);
+        if (dashboardUserVO != null) {
+            DashboardUserDTO dashboardUserDTO = DashboardUserDTO.builder()
+                    .id(dashboardUserVO.getId())
+                    .userName(dashboardUserVO.getUserName())
+                    .password(AesUtils.aesEncryption(dashboardUserVO.getPassword(), aesKey))
+                    .role(dashboardUserVO.getRole())
+                    .enabled(dashboardUserVO.getEnabled()).build();
+            createOrUpdate(dashboardUserDTO);
+            return dashboardUserVO;
+        } else {
+            return findByQuery(userName, AesUtils.aesEncryption(password, aesKey));
+        }
     }
 }

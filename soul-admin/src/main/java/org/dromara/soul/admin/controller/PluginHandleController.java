@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.dromara.soul.admin.controller;
 
 import java.util.List;
@@ -8,6 +25,7 @@ import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.PluginHandleQuery;
 import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.service.PluginHandleService;
+import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.admin.vo.PluginHandleVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -43,7 +61,7 @@ public class PluginHandleController {
     @GetMapping("")
     public SoulAdminResult queryPluginHandles(final String pluginId, final Integer currentPage, final Integer pageSize) {
         CommonPager<PluginHandleVO> commonPager = pluginHandleService.listByPage(new PluginHandleQuery(pluginId, new PageParameter(currentPage, pageSize)));
-        return SoulAdminResult.success("query plugin handle success", commonPager);
+        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
     }
 
     /**
@@ -54,7 +72,7 @@ public class PluginHandleController {
     @GetMapping("/all/{pluginId}")
     public SoulAdminResult queryAllPluginHandlesByPluginId(@PathVariable("pluginId") final String pluginId) {
         List<PluginHandleVO> pluginHandleVOS = pluginHandleService.list(pluginId);
-        return SoulAdminResult.success("query plugin handle success", pluginHandleVOS);
+        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, pluginHandleVOS);
     }
 
     /**
@@ -66,7 +84,7 @@ public class PluginHandleController {
     @GetMapping("/{id}")
     public SoulAdminResult detailRule(@PathVariable("id") final String id) {
         PluginHandleVO pluginHandleVO = pluginHandleService.findById(id);
-        return SoulAdminResult.success("detail plugin handle success", pluginHandleVO);
+        return SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, pluginHandleVO);
     }
 
     /**
@@ -77,7 +95,7 @@ public class PluginHandleController {
     @PostMapping("")
     public SoulAdminResult createPluginHandle(@RequestBody final PluginHandleDTO pluginHandleDTO) {
         Integer createCount = pluginHandleService.createOrUpdate(pluginHandleDTO);
-        return SoulAdminResult.success("add plugin handle success", createCount);
+        return SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS, createCount);
     }
 
     /**
@@ -91,7 +109,7 @@ public class PluginHandleController {
         Objects.requireNonNull(pluginHandleDTO);
         pluginHandleDTO.setId(id);
         Integer updateCount = pluginHandleService.createOrUpdate(pluginHandleDTO);
-        return SoulAdminResult.success("update plugin handle success", updateCount);
+        return SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS, updateCount);
     }
 
     /**
@@ -102,6 +120,6 @@ public class PluginHandleController {
     @DeleteMapping("/batch")
     public SoulAdminResult deletePluginHandles(@RequestBody final List<String> ids) {
         Integer deleteCount = pluginHandleService.deletePluginHandles(ids);
-        return SoulAdminResult.success("delete plugin handle success", deleteCount);
+        return SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, deleteCount);
     }
 }

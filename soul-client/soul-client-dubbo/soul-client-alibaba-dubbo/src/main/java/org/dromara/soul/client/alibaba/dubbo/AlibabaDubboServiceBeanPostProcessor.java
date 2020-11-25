@@ -1,5 +1,24 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.dromara.soul.client.alibaba.dubbo;
 
+import com.alibaba.dubbo.common.Constants;
+import com.alibaba.dubbo.common.utils.StringUtils;
 import com.alibaba.dubbo.config.spring.ServiceBean;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -27,13 +46,13 @@ import org.springframework.util.ReflectionUtils;
  */
 @Slf4j
 public class AlibabaDubboServiceBeanPostProcessor implements BeanPostProcessor {
-    
+
     private DubboConfig dubboConfig;
-    
+
     private ExecutorService executorService;
-    
+
     private final String url;
-    
+
     public AlibabaDubboServiceBeanPostProcessor(final DubboConfig dubboConfig) {
         String contextPath = dubboConfig.getContextPath();
         String adminUrl = dubboConfig.getAdminUrl();
@@ -45,7 +64,7 @@ public class AlibabaDubboServiceBeanPostProcessor implements BeanPostProcessor {
         url = dubboConfig.getAdminUrl() + "/soul-client/dubbo-register";
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
     }
-    
+
     @Override
     public Object postProcessBeforeInitialization(final Object bean, final String beanName) throws BeansException {
         if (bean instanceof ServiceBean) {
@@ -53,7 +72,7 @@ public class AlibabaDubboServiceBeanPostProcessor implements BeanPostProcessor {
         }
         return bean;
     }
-    
+
     private void handler(final ServiceBean serviceBean) {
         Class<?> clazz = serviceBean.getRef().getClass();
         if (ClassUtils.isCglibProxyClass(clazz)) {
@@ -73,7 +92,7 @@ public class AlibabaDubboServiceBeanPostProcessor implements BeanPostProcessor {
             }
         }
     }
-    
+
     private String buildJsonParams(final ServiceBean serviceBean, final SoulDubboClient soulDubboClient, final Method method) {
         String appName = dubboConfig.getAppName();
         if (appName == null || "".equals(appName)) {
@@ -102,21 +121,22 @@ public class AlibabaDubboServiceBeanPostProcessor implements BeanPostProcessor {
                 .enabled(soulDubboClient.enabled())
                 .build();
         return OkHttpTools.getInstance().getGosn().toJson(metaDataDTO);
-        
+
     }
-    
+
     private String buildRpcExt(final ServiceBean serviceBean) {
         MetaDataDTO.RpcExt build = MetaDataDTO.RpcExt.builder()
-                .group(serviceBean.getGroup())
-                .version(serviceBean.getVersion())
-                .loadbalance(serviceBean.getLoadbalance())
-                .retries(serviceBean.getRetries())
-                .timeout(serviceBean.getTimeout())
+                .group(StringUtils.isNotEmpty(serviceBean.getGroup()) ? serviceBean.getGroup() : "")
+                .version(StringUtils.isNotEmpty(serviceBean.getVersion()) ? serviceBean.getVersion() : "")
+                .loadbalance(StringUtils.isNotEmpty(serviceBean.getLoadbalance()) ? serviceBean.getLoadbalance() : Constants.DEFAULT_LOADBALANCE)
+                .retries(Objects.isNull(serviceBean.getRetries()) ? Constants.DEFAULT_RETRIES : serviceBean.getRetries())
+                .timeout(Objects.isNull(serviceBean.getTimeout()) ? Constants.DEFAULT_CONNECT_TIMEOUT : serviceBean.getTimeout())
+                .url("")
                 .build();
         return OkHttpTools.getInstance().getGosn().toJson(build);
-        
+
     }
-    
+
     private void post(final String json) {
         try {
             String result = OkHttpTools.getInstance().post(url, json);

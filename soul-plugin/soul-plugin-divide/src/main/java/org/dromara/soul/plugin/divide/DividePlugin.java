@@ -1,19 +1,18 @@
 /*
- *   Licensed to the Apache Software Foundation (ASF) under one or more
- *   contributor license agreements.  See the NOTICE file distributed with
- *   this work for additional information regarding copyright ownership.
- *   The ASF licenses this file to You under the Apache License, Version 2.0
- *   (the "License"); you may not use this file except in compliance with
- *   the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.dromara.soul.plugin.divide;
@@ -49,9 +48,9 @@ import reactor.core.publisher.Mono;
  * @author xiaoyu(Myth)
  */
 public class DividePlugin extends AbstractSoulPlugin {
-    
+
     private static final Logger LOGGER = LoggerFactory.getLogger(DividePlugin.class);
-    
+
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
         final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
@@ -78,23 +77,23 @@ public class DividePlugin extends AbstractSoulPlugin {
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
         return chain.execute(exchange);
     }
-    
+
     @Override
     public String named() {
         return PluginEnum.DIVIDE.getName();
     }
-    
+
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
         final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         return !Objects.equals(Objects.requireNonNull(soulContext).getRpcType(), RpcTypeEnum.HTTP.getName());
     }
-    
+
     @Override
     public int getOrder() {
         return PluginEnum.DIVIDE.getCode();
     }
-    
+
     private String buildDomain(final DivideUpstream divideUpstream) {
         String protocol = divideUpstream.getProtocol();
         if (StringUtils.isBlank(protocol)) {
@@ -102,7 +101,7 @@ public class DividePlugin extends AbstractSoulPlugin {
         }
         return protocol + divideUpstream.getUpstreamUrl().trim();
     }
-    
+
     private String buildRealURL(final String domain, final SoulContext soulContext, final ServerWebExchange exchange) {
         String path = domain;
         final String rewriteURI = (String) exchange.getAttributes().get(Constants.REWRITE_URI);
