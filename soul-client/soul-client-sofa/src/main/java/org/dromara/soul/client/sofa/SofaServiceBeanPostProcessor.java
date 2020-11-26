@@ -93,9 +93,9 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
         }
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
-            SoulSofaClient soulDubboClient = method.getAnnotation(SoulSofaClient.class);
-            if (Objects.nonNull(soulDubboClient)) {
-                post(buildJsonParams(serviceBean, soulDubboClient, method));
+            SoulSofaClient soulSofaClient = method.getAnnotation(SoulSofaClient.class);
+            if (Objects.nonNull(soulSofaClient)) {
+                post(buildJsonParams(serviceBean, soulSofaClient, method));
             }
         }
     }
@@ -121,9 +121,19 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
                 .pathDesc(desc)
                 .parameterTypes(parameterTypes)
                 .rpcType("sofa")
+                .rpcExt(buildRpcExt(soulSofaClient))
                 .enabled(soulSofaClient.enabled())
                 .build();
         return OkHttpTools.getInstance().getGosn().toJson(metaDataDTO);
+    }
+
+    private String buildRpcExt(final SoulSofaClient soulSofaClient) {
+        MetaDataDTO.RpcExt build = MetaDataDTO.RpcExt.builder()
+                .loadbalance(soulSofaClient.loadBalance())
+                .retries(soulSofaClient.retries())
+                .timeout(soulSofaClient.timeout())
+                .build();
+        return OkHttpTools.getInstance().getGosn().toJson(build);
 
     }
 
