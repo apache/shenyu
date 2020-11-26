@@ -36,8 +36,8 @@ import org.dromara.soul.client.common.utils.OkHttpTools;
 import org.dromara.soul.client.dubbo.common.annotation.SoulDubboClient;
 import org.dromara.soul.client.dubbo.common.config.DubboConfig;
 import org.dromara.soul.client.dubbo.common.dto.MetaDataDTO;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
@@ -47,7 +47,7 @@ import org.springframework.util.ReflectionUtils;
  * @author xiaoyu
  */
 @Slf4j
-public class ApacheDubboServiceBeanPostProcessor implements ApplicationListener<ApplicationReadyEvent> {
+public class ApacheDubboServiceBeanPostProcessor implements ApplicationListener<ContextRefreshedEvent> {
 
     private DubboConfig dubboConfig;
 
@@ -145,10 +145,10 @@ public class ApacheDubboServiceBeanPostProcessor implements ApplicationListener<
     }
 
     @Override
-    public void onApplicationEvent(final ApplicationReadyEvent applicationReadyEvent) {
-        // Fix bug(https://github.com/dromara/soul/issues/415), upload dubbo metadata on applicationReadyEvent
-        Map<String, ServiceBean> serviceBeanMap = applicationReadyEvent.getApplicationContext().getBeansOfType(ServiceBean.class);
-        for (Map.Entry<String, ServiceBean> entry : serviceBeanMap.entrySet()) {
+    public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
+        // Fix bug(https://github.com/dromara/soul/issues/415), upload dubbo metadata on ContextRefreshedEvent
+        Map<String, ServiceBean> serviceBean = contextRefreshedEvent.getApplicationContext().getBeansOfType(ServiceBean.class);
+        for (Map.Entry<String, ServiceBean> entry : serviceBean.entrySet()) {
             executorService.execute(() -> handler(entry.getValue()));
         }
     }

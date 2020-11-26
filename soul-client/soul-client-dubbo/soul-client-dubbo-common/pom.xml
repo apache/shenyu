@@ -27,11 +27,4 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>soul-client-dubbo-common</artifactId>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot</artifactId>
-        </dependency>
-    </dependencies>
 </project>
