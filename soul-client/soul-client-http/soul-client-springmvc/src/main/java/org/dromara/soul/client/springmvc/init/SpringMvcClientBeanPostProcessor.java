@@ -108,9 +108,9 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         try {
             String result = OkHttpTools.getInstance().post(url, json);
             if (Objects.equals(result, "success")) {
-                log.info("http client register success :{} " + json);
+                log.info("http client register success :{} ", json);
             } else {
-                log.error("http client register error :{} " + json);
+                log.error("http client register error :{} ", json);
             }
         } catch (IOException e) {
             log.error("cannot register soul admin param :{}", url + ":" + json);
