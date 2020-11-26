@@ -18,6 +18,7 @@
 package org.dromara.soul.plugin.sofa.cache;
 
 import com.alipay.sofa.rpc.api.GenericService;
+import com.alipay.sofa.rpc.common.RpcConstants;
 import com.alipay.sofa.rpc.config.ApplicationConfig;
 import com.alipay.sofa.rpc.config.ConsumerConfig;
 import com.alipay.sofa.rpc.config.RegistryConfig;
@@ -38,7 +39,6 @@ import java.lang.reflect.Field;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-
 
 /**
  * The type Application config cache.
@@ -143,8 +143,8 @@ public final class ApplicationConfigCache {
         reference.setApplication(applicationConfig);
         reference.setRegistry(registryConfig);
         reference.setInterfaceId(metaData.getServiceName());
-        reference.setProtocol("bolt");
-        reference.setInvokeType("callback");
+        reference.setProtocol(RpcConstants.PROTOCOL_TYPE_BOLT);
+        reference.setInvokeType(RpcConstants.INVOKER_TYPE_CALLBACK);
         String rpcExt = metaData.getRpcExt();
         SofaParamExtInfo sofaParamExtInfo = GsonUtils.getInstance().fromJson(rpcExt, SofaParamExtInfo.class);
         if (Objects.nonNull(sofaParamExtInfo)) {
@@ -164,10 +164,10 @@ public final class ApplicationConfigCache {
     }
     
     private String buildLoadBalanceName(final String loadBalance) {
-        if (LoadBalanceEnum.HASH.getName().equals(loadBalance) || "consistenthash".equals(loadBalance)) {
-            return "consistenthash";
-        } else if (LoadBalanceEnum.ROUND_ROBIN.getName().equals(loadBalance)) {
-            return "roundrobin";
+        if (LoadBalanceEnum.HASH.getName().equals(loadBalance) || StringUtils.equalsIgnoreCase("consistenthash", loadBalance)) {
+            return "consistentHash";
+        } else if (LoadBalanceEnum.ROUND_ROBIN.getName().equals(loadBalance) || StringUtils.equalsIgnoreCase("roundrobin", loadBalance)) {
+            return "roundRobin";
         } else {
             return loadBalance;
         }
