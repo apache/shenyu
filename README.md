@@ -137,9 +137,9 @@
   
   Soul dynamically updates the cache by listening to the zookeeper node, websocket push,http longPull.
   
-  ![Data Sync](https://bestkobe.gitee.io/images/soul/soul-config-processor.png?_t=201908032316)
+  ![](https://yu199195.github.io/images/soul/soul-config-processor.png)
   
-  ![Sync Flow](https://bestkobe.gitee.io/images/soul/config-strage-processor.png?_t=201908032339)
+  ![](https://yu199195.github.io/images/soul/config-strage-processor.png)
 
 --------------------------------------------------------------------------------    
 
