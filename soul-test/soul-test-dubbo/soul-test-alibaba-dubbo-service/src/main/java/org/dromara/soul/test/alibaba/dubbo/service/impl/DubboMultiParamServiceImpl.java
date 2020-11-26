@@ -1,3 +1,19 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more contributor license
+ * agreements. See the NOTICE file distributed with this work for additional information regarding
+ * copyright ownership. The ASF licenses this file to You under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License. You may obtain a
+ * copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ *
+ */
+
 package org.dromara.soul.test.alibaba.dubbo.service.impl;
 
 import java.util.Arrays;
@@ -14,7 +30,7 @@ import org.springframework.stereotype.Service;
  */
 @Service("dubboMultiParamService")
 public class DubboMultiParamServiceImpl implements DubboMultiParamService {
-    
+
     @Override
     @SoulDubboClient(path = "/findByIdsAndName", desc = "根据用户ids与名称查询")
     public DubboTest findByIdsAndName(List<Integer> ids, String name) {
@@ -23,7 +39,7 @@ public class DubboMultiParamServiceImpl implements DubboMultiParamService {
         test.setName("hello world soul alibaba dubbo param findByIdsAndName ：" + name);
         return test;
     }
-    
+
     @Override
     @SoulDubboClient(path = "/findByArrayIdsAndName")
     public DubboTest findByArrayIdsAndName(Integer[] ids, String name) {
@@ -32,7 +48,7 @@ public class DubboMultiParamServiceImpl implements DubboMultiParamService {
         test.setName("hello world soul alibaba dubbo param findByArrayIdsAndName ：" + name);
         return test;
     }
-    
+
     @Override
     @SoulDubboClient(path = "/findByStringArray")
     public DubboTest findByStringArray(String[] ids) {
@@ -41,7 +57,7 @@ public class DubboMultiParamServiceImpl implements DubboMultiParamService {
         test.setName("hello world soul alibaba dubbo param findByStringArray");
         return test;
     }
-    
+
     @Override
     @SoulDubboClient(path = "/findByListId")
     public DubboTest findByListId(List<String> ids) {
@@ -50,7 +66,7 @@ public class DubboMultiParamServiceImpl implements DubboMultiParamService {
         test.setName("hello world soul alibaba dubbo param findByListId");
         return test;
     }
-    
+
     @Override
     @SoulDubboClient(path = "/batchSave")
     public DubboTest batchSave(List<DubboTest> dubboTestList) {
@@ -59,7 +75,7 @@ public class DubboMultiParamServiceImpl implements DubboMultiParamService {
         test.setName("hello world soul alibaba dubbo param batchSave :" + dubboTestList.stream().map(DubboTest::getName).collect(Collectors.joining("-")));
         return test;
     }
-    
+
     @Override
     @SoulDubboClient(path = "/batchSaveAndNameAndId")
     public DubboTest batchSaveAndNameAndId(List<DubboTest> dubboTestList, String id, String name) {
@@ -68,7 +84,7 @@ public class DubboMultiParamServiceImpl implements DubboMultiParamService {
         test.setName("hello world soul alibaba dubbo param batchSaveAndNameAndId :" + name + ":" + dubboTestList.stream().map(DubboTest::getName).collect(Collectors.joining("-")));
         return test;
     }
-    
+
     @Override
     @SoulDubboClient(path = "/saveComplexBeanTest")
     public DubboTest saveComplexBeanTest(ComplexBeanTest complexBeanTest) {
@@ -77,7 +93,7 @@ public class DubboMultiParamServiceImpl implements DubboMultiParamService {
         test.setName("hello world soul alibaba dubbo param saveComplexBeanTest :" + complexBeanTest.getDubboTest().getName());
         return test;
     }
-    
+
     @Override
     @SoulDubboClient(path = "/saveComplexBeanTestAndName")
     public DubboTest saveComplexBeanTestAndName(ComplexBeanTest complexBeanTest, String name) {
@@ -86,5 +102,5 @@ public class DubboMultiParamServiceImpl implements DubboMultiParamService {
         test.setName("hello world soul alibaba dubbo param saveComplexBeanTestAndName :" + complexBeanTest.getDubboTest().getName() + "-" + name);
         return test;
     }
-    
+
 }

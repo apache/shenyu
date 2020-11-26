@@ -1,19 +1,18 @@
 /*
- *   Licensed to the Apache Software Foundation (ASF) under one or more
- *   contributor license agreements.  See the NOTICE file distributed with
- *   this work for additional information regarding copyright ownership.
- *   The ASF licenses this file to You under the Apache License, Version 2.0
- *   (the "License"); you may not use this file except in compliance with
- *   the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.dromara.soul.plugin.divide.websocket;
@@ -61,13 +60,13 @@ import reactor.core.publisher.Mono;
  */
 @Slf4j
 public class WebSocketPlugin extends AbstractSoulPlugin {
-    
+
     private static final String SEC_WEB_SOCKET_PROTOCOL = "Sec-WebSocket-Protocol";
-    
+
     private final WebSocketClient webSocketClient;
-    
+
     private final WebSocketService webSocketService;
-    
+
     /**
      * Instantiates a new Web socket plugin.
      *
@@ -78,7 +77,7 @@ public class WebSocketPlugin extends AbstractSoulPlugin {
         this.webSocketClient = webSocketClient;
         this.webSocketService = webSocketService;
     }
-    
+
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
         final List<DivideUpstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
@@ -101,7 +100,7 @@ public class WebSocketPlugin extends AbstractSoulPlugin {
         return this.webSocketService.handleRequest(exchange, new SoulWebSocketHandler(
                 wsRequestUrl, this.webSocketClient, filterHeaders(headers), buildWsProtocols(headers)));
     }
-    
+
     private String buildWsRealPath(final DivideUpstream divideUpstream, final SoulContext soulContext) {
         String protocol = divideUpstream.getProtocol();
         if (StringUtils.isEmpty(protocol)) {
@@ -109,7 +108,7 @@ public class WebSocketPlugin extends AbstractSoulPlugin {
         }
         return protocol + divideUpstream.getUpstreamUrl() + soulContext.getMethod();
     }
-    
+
     private List<String> buildWsProtocols(final HttpHeaders headers) {
         List<String> protocols = headers.get(SEC_WEB_SOCKET_PROTOCOL);
         if (CollectionUtils.isNotEmpty(protocols)) {
@@ -119,7 +118,7 @@ public class WebSocketPlugin extends AbstractSoulPlugin {
         }
         return protocols;
     }
-    
+
     private HttpHeaders filterHeaders(final HttpHeaders headers) {
         HttpHeaders filtered = new HttpHeaders();
         headers.entrySet().stream()
@@ -129,12 +128,12 @@ public class WebSocketPlugin extends AbstractSoulPlugin {
                         header.getValue()));
         return filtered;
     }
-    
+
     @Override
     public String named() {
         return PluginEnum.DIVIDE.getName();
     }
-    
+
     /**
      * plugin is execute.
      *
@@ -145,22 +144,22 @@ public class WebSocketPlugin extends AbstractSoulPlugin {
         final SoulContext body = exchange.getAttribute(Constants.CONTEXT);
         return !Objects.equals(Objects.requireNonNull(body).getRpcType(), RpcTypeEnum.WEB_SOCKET.getName());
     }
-    
+
     @Override
     public int getOrder() {
         return PluginEnum.WEB_SOCKET.getCode();
     }
-    
+
     private static class SoulWebSocketHandler implements WebSocketHandler {
-        
+
         private final WebSocketClient client;
-        
+
         private final URI url;
-        
+
         private final HttpHeaders headers;
-        
+
         private final List<String> subProtocols;
-        
+
         /**
          * Instantiates a new Soul web socket handler.
          *
@@ -181,19 +180,19 @@ public class WebSocketPlugin extends AbstractSoulPlugin {
                 this.subProtocols = Collections.emptyList();
             }
         }
-    
+
         @NonNull
         @Override
         public List<String> getSubProtocols() {
             return this.subProtocols;
         }
-    
+
         @NonNull
         @Override
         public Mono<Void> handle(@NonNull final WebSocketSession session) {
             // pass headers along so custom headers can be sent through
             return client.execute(url, this.headers, new WebSocketHandler() {
-    
+
                 @NonNull
                 @Override
                 public Mono<Void> handle(@NonNull final WebSocketSession webSocketSession) {
@@ -204,7 +203,7 @@ public class WebSocketPlugin extends AbstractSoulPlugin {
                             webSocketSession.receive().doOnNext(WebSocketMessage::retain));
                     return Mono.zip(sessionSend, serverSessionSend).then();
                 }
-    
+
                 @NonNull
                 @Override
                 public List<String> getSubProtocols() {
@@ -212,7 +211,7 @@ public class WebSocketPlugin extends AbstractSoulPlugin {
                 }
             });
         }
-        
+
     }
-    
+
 }

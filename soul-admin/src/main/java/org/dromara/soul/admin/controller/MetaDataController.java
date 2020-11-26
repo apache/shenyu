@@ -1,20 +1,18 @@
 /*
- *
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * Contributor license agreements.See the NOTICE file distributed with
- * This work for additional information regarding copyright ownership.
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * he License.You may obtain a copy of the License at
+ * the License.  You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.dromara.soul.admin.controller;
@@ -27,6 +25,7 @@ import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.MetaDataQuery;
 import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.service.MetaDataService;
+import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.admin.vo.MetaDataVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -70,7 +69,7 @@ public class MetaDataController {
     @GetMapping("/queryList")
     public SoulAdminResult queryList(final String appName, final Integer currentPage, final Integer pageSize) {
         CommonPager<MetaDataVO> commonPager = metaDataService.listByPage(new MetaDataQuery(appName, new PageParameter(currentPage, pageSize)));
-        return SoulAdminResult.success("query  success", commonPager);
+        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
     }
 
     /**
@@ -80,7 +79,7 @@ public class MetaDataController {
      */
     @GetMapping("/findAll")
     public SoulAdminResult findAll() {
-        return SoulAdminResult.success("query success", metaDataService.findAll());
+        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, metaDataService.findAll());
     }
 
     /**
@@ -90,9 +89,9 @@ public class MetaDataController {
      */
     @GetMapping("/findAllGroup")
     public SoulAdminResult findAllGroup() {
-        return SoulAdminResult.success("query success", metaDataService.findAllGroup());
+        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, metaDataService.findAllGroup());
     }
-    
+
     /**
      * Detail app auth soul result.
      *
@@ -102,7 +101,7 @@ public class MetaDataController {
     @GetMapping("/{id}")
     public SoulAdminResult editor(@PathVariable("id") final String id) {
         MetaDataVO metaDataVO = metaDataService.findById(id);
-        return SoulAdminResult.success("detail success", metaDataVO);
+        return SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, metaDataVO);
     }
 
     /**
@@ -117,9 +116,9 @@ public class MetaDataController {
         if (StringUtils.isNoneBlank(result)) {
             return SoulAdminResult.error(result);
         }
-        return SoulAdminResult.success("create success");
+        return SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS);
     }
-    
+
     /**
      * Batch deleted soul result.
      *
@@ -129,9 +128,9 @@ public class MetaDataController {
     @PostMapping("/batchDeleted")
     public SoulAdminResult batchDeleted(@RequestBody final List<String> ids) {
         Integer deleteCount = metaDataService.delete(ids);
-        return SoulAdminResult.success("delete  success", deleteCount);
+        return SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, deleteCount);
     }
-    
+
     /**
      * Batch enabled soul result.
      *
@@ -144,7 +143,7 @@ public class MetaDataController {
         if (StringUtils.isNoneBlank(result)) {
             return SoulAdminResult.error(result);
         }
-        return SoulAdminResult.success("enable success");
+        return SoulAdminResult.success(SoulResultMessage.ENABLE_SUCCESS);
     }
 
 

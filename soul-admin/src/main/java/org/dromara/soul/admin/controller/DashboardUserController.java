@@ -1,19 +1,18 @@
 /*
- *   Licensed to the Apache Software Foundation (ASF) under one or more
- *   contributor license agreements.  See the NOTICE file distributed with
- *   this work for additional information regarding copyright ownership.
- *   The ASF licenses this file to You under the Apache License, Version 2.0
- *   (the "License"); you may not use this file except in compliance with
- *   the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.dromara.soul.admin.controller;
@@ -77,7 +76,7 @@ public class DashboardUserController {
             commonPager.getDataList().forEach(item -> {
                 item.setPassword(AesUtils.aesDecryption(item.getPassword(), aesKey));
             });
-            return SoulAdminResult.success(SoulResultMessage.DASHBOARD_QUERY_SUCCESS, commonPager);
+            return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
         } else {
             return SoulAdminResult.error(SoulResultMessage.DASHBOARD_QUERY_ERROR);
         }
@@ -94,7 +93,7 @@ public class DashboardUserController {
         DashboardUserVO dashboardUserVO = dashboardUserService.findById(id);
         return Optional.ofNullable(dashboardUserVO).map(item -> {
             item.setPassword(AesUtils.aesDecryption(item.getPassword(), aesKey));
-            return SoulAdminResult.success(SoulResultMessage.DASHBOARD_DETAIL_SUCCESS, item);
+            return SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, item);
         }).orElse(SoulAdminResult.error(SoulResultMessage.DASHBOARD_QUERY_ERROR));
     }
 
@@ -109,7 +108,7 @@ public class DashboardUserController {
         return Optional.ofNullable(dashboardUserDTO).map(item -> {
             item.setPassword(AesUtils.aesEncryption(item.getPassword(), aesKey));
             Integer createCount = dashboardUserService.createOrUpdate(item);
-            return SoulAdminResult.success(SoulResultMessage.DASHBOARD_CREATE_SUCCESS, createCount);
+            return SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS, createCount);
         }).orElse(SoulAdminResult.error(SoulResultMessage.DASHBOARD_CREATE_USER_ERROR));
     }
 
@@ -126,7 +125,7 @@ public class DashboardUserController {
         dashboardUserDTO.setId(id);
         dashboardUserDTO.setPassword(AesUtils.aesEncryption(dashboardUserDTO.getPassword(), aesKey));
         Integer updateCount = dashboardUserService.createOrUpdate(dashboardUserDTO);
-        return SoulAdminResult.success(SoulResultMessage.DASHBOARD_UPDATE_SUCCESS, updateCount);
+        return SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS, updateCount);
     }
 
     /**
@@ -138,6 +137,6 @@ public class DashboardUserController {
     @DeleteMapping("/batch")
     public SoulAdminResult deleteDashboardUser(@RequestBody final List<String> ids) {
         Integer deleteCount = dashboardUserService.delete(ids);
-        return SoulAdminResult.success(SoulResultMessage.DASHBOARD_DELETE_SUCCESS, deleteCount);
+        return SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, deleteCount);
     }
 }

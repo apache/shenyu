@@ -1,18 +1,18 @@
 /*
- *   Licensed to the Apache Software Foundation (ASF) under one or more
- *   contributor license agreements.  See the NOTICE file distributed with
- *   this work for additional information regarding copyright ownership.
- *   The ASF licenses this file to You under the Apache License, Version 2.0
- *   (the "License"); you may not use this file except in compliance with
- *   the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.dromara.soul.sync.data.http.refresh;
@@ -34,17 +34,17 @@ import org.dromara.soul.common.enums.ConfigGroupEnum;
  */
 @Slf4j
 public abstract class AbstractDataRefresh<T> implements DataRefresh {
-    
+
     /**
      * The Group cache.
      */
     protected static final ConcurrentMap<ConfigGroupEnum, ConfigData<?>> GROUP_CACHE = new ConcurrentHashMap<>();
-    
+
     /**
      * The constant GSON.
      */
     protected static final Gson GSON = new Gson();
-    
+
     /**
      * Convert json object.
      *
@@ -52,7 +52,7 @@ public abstract class AbstractDataRefresh<T> implements DataRefresh {
      * @return the json object
      */
     protected abstract JsonObject convert(JsonObject data);
-    
+
     /**
      * From json config data.
      *
@@ -60,14 +60,14 @@ public abstract class AbstractDataRefresh<T> implements DataRefresh {
      * @return the config data
      */
     protected abstract ConfigData<T> fromJson(JsonObject data);
-    
+
     /**
      * Refresh.
      *
      * @param data the data
      */
     protected abstract void refresh(List<T> data);
-    
+
     @Override
     public Boolean refresh(final JsonObject data) {
         boolean updated = false;
@@ -81,7 +81,7 @@ public abstract class AbstractDataRefresh<T> implements DataRefresh {
         }
         return updated;
     }
-    
+
     /**
      * Update cache if need boolean.
      *
@@ -89,7 +89,7 @@ public abstract class AbstractDataRefresh<T> implements DataRefresh {
      * @return the boolean
      */
     protected abstract boolean updateCacheIfNeed(ConfigData<T> result);
-    
+
     /**
      * If the MD5 values are different and the last update time of the old data is less than
      * the last update time of the new data, the configuration cache is considered to have been changed.
@@ -116,11 +116,11 @@ public abstract class AbstractDataRefresh<T> implements DataRefresh {
         });
         return holder.result;
     }
-    
+
     private static final class ResultHolder {
-        
+
         private boolean result;
-    
+
         /**
          * Instantiates a new Result holder.
          *
