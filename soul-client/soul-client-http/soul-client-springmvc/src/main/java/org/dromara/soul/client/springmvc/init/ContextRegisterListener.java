@@ -33,13 +33,13 @@ import org.springframework.context.event.ContextRefreshedEvent;
  */
 @Slf4j
 public class ContextRegisterListener implements ApplicationListener<ContextRefreshedEvent> {
-    
+
     private volatile AtomicBoolean registered = new AtomicBoolean(false);
-    
+
     private final String url;
-    
+
     private final SoulSpringMvcConfig soulSpringMvcConfig;
-    
+
     /**
      * Instantiates a new Context register listener.
      *
@@ -52,13 +52,13 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
         if (contextPath == null || "".equals(contextPath)
                 || adminUrl == null || "".equals(adminUrl)
                 || port == null) {
-            log.error("spring mvc param must config  contextPath ,adminUrl and port ");
-            throw new RuntimeException("spring mvc param must config  contextPath ,adminUrl and port");
+            log.error("spring mvc param must config contextPath adminUrl and port");
+            throw new RuntimeException("spring mvc param must config contextPath, adminUrl and port");
         }
         this.soulSpringMvcConfig = soulSpringMvcConfig;
         url = adminUrl + "/soul-client/springmvc-register";
     }
-    
+
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
         if (!registered.compareAndSet(false, true)) {
@@ -68,20 +68,20 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
             post(buildJsonParams(soulSpringMvcConfig.getContextPath()));
         }
     }
-    
+
     private void post(final String json) {
         try {
             String result = OkHttpTools.getInstance().post(url, json);
             if (Objects.equals(result, "success")) {
-                log.info("http context register success :{} " + json);
+                log.info("http context register success :{} ", json);
             } else {
-                log.error("http context register error :{} " + json);
+                log.error("http context register error :{} ", json);
             }
         } catch (IOException e) {
             log.error("cannot register soul admin param :{}", url + ":" + json);
         }
     }
-    
+
     private String buildJsonParams(final String contextPath) {
         String appName = soulSpringMvcConfig.getAppName();
         Integer port = soulSpringMvcConfig.getPort();

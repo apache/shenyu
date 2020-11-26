@@ -47,13 +47,13 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
-    
+
     private SofaConfig sofaConfig;
-    
+
     private ExecutorService executorService;
-    
+
     private final String url;
-    
+
     public SofaServiceBeanPostProcessor(final SofaConfig sofaConfig) {
         String contextPath = sofaConfig.getContextPath();
         String adminUrl = sofaConfig.getAdminUrl();
@@ -65,7 +65,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
         url = sofaConfig.getAdminUrl() + "/soul-client/sofa-register";
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
     }
-    
+
     @Override
     public Object postProcessAfterInitialization(final Object bean, final String beanName) throws BeansException {
         if (bean instanceof ServiceFactoryBean) {
@@ -73,7 +73,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
         }
         return bean;
     }
-    
+
     private void handler(final ServiceFactoryBean serviceBean) {
         Class<?> clazz = null;
         try {
@@ -99,7 +99,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
             }
         }
     }
-    
+
     private String buildJsonParams(final ServiceFactoryBean serviceBean, final SoulSofaClient soulSofaClient, final Method method) {
         String appName = sofaConfig.getAppName();
         String path = sofaConfig.getContextPath() + soulSofaClient.path();
@@ -124,16 +124,16 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
                 .enabled(soulSofaClient.enabled())
                 .build();
         return OkHttpTools.getInstance().getGosn().toJson(metaDataDTO);
-        
+
     }
-    
+
     private void post(final String json) {
         try {
             String result = OkHttpTools.getInstance().post(url, json);
             if (Objects.equals(result, "success")) {
-                log.info("sofa client register success :{} " + json);
+                log.info("sofa client register success :{} ", json);
             } else {
-                log.error("sofa client register error :{} " + json);
+                log.error("sofa client register error :{} ", json);
             }
         } catch (IOException e) {
             log.error("cannot register soul admin param :{}", url + ":" + json);
