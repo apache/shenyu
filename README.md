@@ -2,7 +2,7 @@
     <a href="https://dromara.org"><img src="https://yu199195.github.io/images/soul/soul-logo.png" width="45%"></a>
 </p>
 <p align="center">
-  <strong>易扩展，高性能，响应式API网关</strong>
+  <strong>Scalable,High Performance,Responsive API Gateways</strong>
 </p>
 <p align="center">
   <a href="https://dromara.org">https://dromara.org/</a>
@@ -162,7 +162,7 @@
 # Document & Website
 
 [![EN doc](https://img.shields.io/badge/document-English-blue.svg)](https://dromara.org/website/en-us/docs/soul/soul.html)
-[![CN doc](https://img.shields.io/badge/文档-中文版-blue.svg)](https://dromara.org/website/zh-cn/docs/soul/soul.html)
+[![CN doc](https://img.shields.io/badge/document-Chinese-blue.svg)](https://dromara.org/website/zh-cn/docs/soul/soul.html)
   
 --------------------------------------------------------------------------------  
         
@@ -186,15 +186,9 @@
 
 # Known Users
 
-按照登记顺序排序，更多接入公司，欢迎在[https://github.com/Dromara/soul/issues/68](https://github.com/Dromara/soul/issues/68)登记（仅供开源用户参考）
+In order of registration, More access companies are welcome to register at[https://github.com/Dromara/soul/issues/68](https://github.com/Dromara/soul/issues/68) (For open source users only)
 
 <table>
-  <thead>
-    <th>广州思埠集团有限公司</th>
-    <th>上海凯京信达科技集团有限公司</th>
-    <th>上海彩贝壳科技有限公司</th>
-    <th>江苏永钢集团有限公司</th>
-  </thead>
   <tbody>
     <tr>
       <td><img src="https://yu199195.github.io/images/soul/users/sibu.jpg"  width="1800" height="90" alt="思埠集团"/>
@@ -203,12 +197,6 @@
       <td><img src="https://yu199195.github.io/images/soul/users/jiangsuyonggang.jpg"  width="1800" height="90" alt="江苏永钢集团"/>
     </tr>
   </tbody>
-  <thead>
-      <th>上海方付通科技有限公司 </th>
-      <th>上海理想信息产业集团有限公司</th>
-      <th>北京开普云科技有限公司</th>
-      <th>武汉颂大教育科技股份有限公司</th>
-   </thead>
    <tbody>
        <tr>
          <td><img src="https://yu199195.github.io/images/soul/users/fangfutong.png"  width="1800" height="90" alt="上海方付通科技有限公司"/>
@@ -217,12 +205,6 @@
          <td><img src="https://yu199195.github.io/images/soul/users/songda.png"  width="1800" height="90" alt="江苏永钢集团"/>
        </tr>
     </tbody>
-    <thead>
-          <th>浙江翱游科技有限公司 </th>
-          <th>车易拍(北京)汽车技术服务有限公司</th>
-          <th>上海草帽科技</th>
-          <th>深圳竹云科技有限公司</th>
-    </thead>
     <tbody>
            <tr>
              <td><img src="https://yu199195.github.io/images/soul/users/aoyou.jpg"  width="1800" height="90" alt="浙江翱游科技有限公司"/>
@@ -231,12 +213,6 @@
              <td><img src="https://yu199195.github.io/images/soul/users/zuyun.jpg"  width="1800" height="90" alt="深圳竹云科技有限公司"/>
            </tr>
      </tbody>
-     <thead>
-               <th>深圳盒知科技 </th>
-               <th>杭州奇点云科技</th>
-               <th>深圳万威科技</th>
-               <th>武汉物易云通网络科技有限公司</th>
-      </thead>
       <tbody>
                 <tr>
                   <td><img src="https://yu199195.github.io/images/soul/users/hezhi.png"  width="1800" height="90" alt="深圳盒知科技"/>
@@ -245,12 +221,6 @@
                   <td><img src="https://yu199195.github.io/images/soul/users/wuyiyuntong.jpg"  width="1800" height="90" alt="武汉物易云通网络科技有限公司"/>
                 </tr>
       </tbody>
-      <thead>
-               <th>好慷在家</th>
-               <th>闪送科技</th>
-               <th>国家电网</th>
-               <th>凯撒旅游</th>
-      </thead>
       <tbody>
                 <tr>
                   <td><img src="https://yu199195.github.io/images/soul/users/haokangzaijia.jpg"  width="1800" height="90" alt="好慷在家"/>
@@ -266,9 +236,9 @@
 
 <table>
   <thead>
-    <th>微信公众号</th>
-    <th>QQ交流群</th>
-    <th>芋道源码</th>
+    <th>WeChat</th>
+    <th>QQ</th>
+    <th>Taro Source</th>
   </thead>
   <tbody>
     <tr>
