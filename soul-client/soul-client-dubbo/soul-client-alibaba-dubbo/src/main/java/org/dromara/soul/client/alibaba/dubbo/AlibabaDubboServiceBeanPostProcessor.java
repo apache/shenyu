@@ -31,6 +31,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.client.common.utils.OkHttpTools;
 import org.dromara.soul.client.dubbo.common.annotation.SoulDubboClient;
@@ -146,6 +147,9 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
 
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
+        if (Objects.nonNull(contextRefreshedEvent.getApplicationContext().getParent())) {
+            return;
+        }
         // Fix bug(https://github.com/dromara/soul/issues/415), upload dubbo metadata on ContextRefreshedEvent
         Map<String, ServiceBean> serviceBean = contextRefreshedEvent.getApplicationContext().getBeansOfType(ServiceBean.class);
         for (Map.Entry<String, ServiceBean> entry : serviceBean.entrySet()) {

@@ -146,6 +146,9 @@ public class ApacheDubboServiceBeanPostProcessor implements ApplicationListener<
 
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
+        if (Objects.nonNull(contextRefreshedEvent.getApplicationContext().getParent())) {
+            return;
+        }
         // Fix bug(https://github.com/dromara/soul/issues/415), upload dubbo metadata on ContextRefreshedEvent
         Map<String, ServiceBean> serviceBean = contextRefreshedEvent.getApplicationContext().getBeansOfType(ServiceBean.class);
         for (Map.Entry<String, ServiceBean> entry : serviceBean.entrySet()) {
