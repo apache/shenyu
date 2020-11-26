@@ -141,9 +141,9 @@ public class AlibabaDubboServiceBeanPostProcessor implements BeanPostProcessor {
         try {
             String result = OkHttpTools.getInstance().post(url, json);
             if (Objects.equals(result, "success")) {
-                log.info("dubbo client register success :{} " + json);
+                log.info("dubbo client register success :{} ", json);
             } else {
-                log.error("dubbo client register error :{} " + json);
+                log.error("dubbo client register error :{} ", json);
             }
         } catch (IOException e) {
             log.error("cannot register soul admin param :{}", url + ":" + json);
