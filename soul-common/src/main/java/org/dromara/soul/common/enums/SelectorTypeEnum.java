@@ -20,6 +20,8 @@ package org.dromara.soul.common.enums;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Arrays;
+
 /**
  * SelectorTypeEnum.
  *
@@ -50,11 +52,9 @@ public enum SelectorTypeEnum {
      * @return selector type name.
      */
     public static String getSelectorTypeByCode(final int code) {
-        for (SelectorTypeEnum selectorTypeEnum : SelectorTypeEnum.values()) {
-            if (selectorTypeEnum.getCode() == code) {
-                return selectorTypeEnum.getName();
-            }
-        }
-        return null;
+        return Arrays.stream(SelectorTypeEnum.values())
+                .filter(v -> v.getCode() == code)
+                .findFirst()
+                .map(SelectorTypeEnum::getName).orElse(null);
     }
 }

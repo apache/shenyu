@@ -19,7 +19,6 @@ package org.dromara.soul.common.enums;
 
 import java.util.Arrays;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * SerializeEnum.
@@ -75,11 +74,9 @@ public enum SerializeEnum {
      * @return the serialize protocol enum
      */
     public static SerializeEnum acquire(final String serialize) {
-        Optional<SerializeEnum> serializeEnum =
-                Arrays.stream(SerializeEnum.values())
-                        .filter(v -> Objects.equals(v.getSerialize(), serialize))
-                        .findFirst();
-        return serializeEnum.orElse(SerializeEnum.JDK);
+        return Arrays.stream(SerializeEnum.values())
+                .filter(v -> Objects.equals(v.getSerialize(), serialize))
+                .findFirst().orElse(SerializeEnum.JDK);
 
     }
 }

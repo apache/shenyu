@@ -24,7 +24,7 @@ import org.springframework.web.server.ServerWebExchange;
 import java.util.List;
 
 /**
- * this is condition Strategy.
+ * This is condition strategy.
  *
  * @author xiaoyu(Myth)
  */

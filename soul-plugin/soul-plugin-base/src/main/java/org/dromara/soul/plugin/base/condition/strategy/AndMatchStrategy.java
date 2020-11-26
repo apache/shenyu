@@ -25,7 +25,7 @@ import org.springframework.web.server.ServerWebExchange;
 import java.util.List;
 
 /**
- * this is and match Strategy.
+ * This is and match strategy.
  *
  * @author xiaoyu(Myth)
  */
