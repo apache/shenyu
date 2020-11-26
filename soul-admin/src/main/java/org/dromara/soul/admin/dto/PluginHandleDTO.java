@@ -18,8 +18,9 @@
 
 package org.dromara.soul.admin.dto;
 
-import java.io.Serializable;
 import lombok.Data;
+
+import java.io.Serializable;
 
 /**
  * this plugin handle from web front.
@@ -54,5 +55,17 @@ public class PluginHandleDTO implements Serializable {
      * 3 indicates select box
      */
     private Integer dataType;
+
+    /**
+     *  the attribute type.
+     *  1  selector,
+     *  2  rule
+     */
+    private String type;
+
+    /**
+     * the attribute sort
+     */
+    private Integer sort;
 
 }

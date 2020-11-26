@@ -1,10 +1,11 @@
 package org.dromara.soul.admin.service;
 
-import java.util.List;
 import org.dromara.soul.admin.dto.PluginHandleDTO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.PluginHandleQuery;
 import org.dromara.soul.admin.vo.PluginHandleVO;
+
+import java.util.List;
 
 /**
  * this is plugin handle service.
@@ -42,7 +43,8 @@ public interface PluginHandleService {
     /**
      * find plugin handle list by plugin id.
      * @param pluginId the plugin id.
+     * @param type type 1:selector,2:rule
      * @return plugin handle list.
      */
-    List<PluginHandleVO> list(String pluginId);
+    List<PluginHandleVO> list(String pluginId, String type);
 }

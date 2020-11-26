@@ -94,9 +94,10 @@ public class PluginHandleServiceImpl implements PluginHandleService {
     }
 
     @Override
-    public List<PluginHandleVO> list(final String pluginId) {
+    public List<PluginHandleVO> list(final String pluginId, String type) {
         PluginHandleQuery pluginHandleQuery = new PluginHandleQuery();
         pluginHandleQuery.setPluginId(pluginId);
+        pluginHandleQuery.setType(type);
         return pluginHandleMapper.selectByQuery(pluginHandleQuery)
                 .stream()
                 .map(this::buildPluginHandleVO)

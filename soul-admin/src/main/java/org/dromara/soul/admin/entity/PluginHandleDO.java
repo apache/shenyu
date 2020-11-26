@@ -1,10 +1,11 @@
 package org.dromara.soul.admin.entity;
 
-import java.util.Objects;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.PluginHandleDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
+
+import java.util.Objects;
 
 /**
  * plugin handle json definition.
@@ -37,6 +38,18 @@ public class PluginHandleDO extends BaseDO {
     private Integer dataType;
 
     /**
+     *  the attribute type.
+     *  1  selector,
+     *  2  rule
+     */
+    private String type;
+
+    /**
+     * the attribute sort
+     */
+    private Integer sort;
+
+    /**
      * build {@linkplain PluginHandleDO} instance.
      * @param pluginHandleDTO {@linkplain PluginHandleDTO}
      * @return {@linkplain PluginHandleDO}
@@ -52,6 +65,8 @@ public class PluginHandleDO extends BaseDO {
         pluginHandleDO.setField(pluginHandleDTO.getField());
         pluginHandleDO.setLabel(pluginHandleDTO.getLabel());
         pluginHandleDO.setDataType(pluginHandleDTO.getDataType());
+        pluginHandleDO.setType(pluginHandleDTO.getType());
+        pluginHandleDO.setSort(pluginHandleDTO.getSort());
         if (StringUtils.isEmpty(pluginHandleDTO.getId())) {
             pluginHandleDO.setId(UUIDUtils.getInstance().generateShortUuid());
         }

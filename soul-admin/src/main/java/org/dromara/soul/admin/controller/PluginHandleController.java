@@ -18,8 +18,6 @@
 
 package org.dromara.soul.admin.controller;
 
-import java.util.List;
-import java.util.Objects;
 import org.dromara.soul.admin.dto.PluginHandleDTO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
@@ -28,14 +26,10 @@ import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.service.PluginHandleService;
 import org.dromara.soul.admin.vo.PluginHandleVO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Objects;
 
 /**
  * this is a plugin handle controller.
@@ -60,18 +54,19 @@ public class PluginHandleController {
      */
     @GetMapping("")
     public SoulAdminResult queryPluginHandles(final String pluginId, final Integer currentPage, final Integer pageSize) {
-        CommonPager<PluginHandleVO> commonPager = pluginHandleService.listByPage(new PluginHandleQuery(pluginId, new PageParameter(currentPage, pageSize)));
+        CommonPager<PluginHandleVO> commonPager = pluginHandleService.listByPage(new PluginHandleQuery(pluginId, null,new PageParameter(currentPage, pageSize)));
         return SoulAdminResult.success("query plugin handle success", commonPager);
     }
 
     /**
      * query plugin handle by plugin id.
      * @param pluginId  plugin id.
+     * @param type type 1:selector,2:rule
      * @return {@linkplain SoulAdminResult}
      */
-    @GetMapping("/all/{pluginId}")
-    public SoulAdminResult queryAllPluginHandlesByPluginId(@PathVariable("pluginId") final String pluginId) {
-        List<PluginHandleVO> pluginHandleVOS = pluginHandleService.list(pluginId);
+    @GetMapping("/all/{pluginId}/{type}")
+    public SoulAdminResult queryAllPluginHandlesByPluginId(@PathVariable("pluginId") final String pluginId,@PathVariable("type") final String type) {
+        List<PluginHandleVO> pluginHandleVOS = pluginHandleService.list(pluginId,type);
         return SoulAdminResult.success("query plugin handle success", pluginHandleVOS);
     }
 

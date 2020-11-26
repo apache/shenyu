@@ -19,6 +19,13 @@ public class PluginHandleQuery {
     private String pluginId;
 
     /**
+     *  type.
+     *  1  selector,
+     *  2  rule
+     */
+    private String type;
+
+    /**
      * page parameter.
      */
     private PageParameter pageParameter;
