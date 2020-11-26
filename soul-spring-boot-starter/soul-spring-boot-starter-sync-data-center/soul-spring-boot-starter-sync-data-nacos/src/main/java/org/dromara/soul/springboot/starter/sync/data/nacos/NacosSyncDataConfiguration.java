@@ -53,16 +53,16 @@ public class NacosSyncDataConfiguration {
      * Nacos sync data service.
      *
      * @param configService     the config service
-     * @param pluginSubscribers the plugin subscribers
+     * @param pluginSubscriber the plugin subscriber
      * @param metaSubscribers   the meta subscribers
      * @param authSubscribers   the auth subscribers
      * @return the sync data service
      */
     @Bean
-    public SyncDataService nacosSyncDataService(final ObjectProvider<ConfigService> configService, final ObjectProvider<PluginDataSubscriber> pluginSubscribers,
+    public SyncDataService nacosSyncDataService(final ObjectProvider<ConfigService> configService, final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
                                            final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers) {
         log.info("you use nacos sync soul data.......");
-        return new NacosSyncDataService(configService.getIfAvailable(), pluginSubscribers.getIfAvailable(),
+        return new NacosSyncDataService(configService.getIfAvailable(), pluginSubscriber.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList));
     }
 
