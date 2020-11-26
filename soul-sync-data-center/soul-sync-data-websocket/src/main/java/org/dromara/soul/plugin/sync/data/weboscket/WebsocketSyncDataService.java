@@ -63,7 +63,7 @@ public class WebsocketSyncDataService implements SyncDataService, AutoCloseable 
             try {
                 clients.add(new SoulWebsocketClient(new URI(url), pluginDataSubscriber, metaDataSubscribers, authDataSubscribers));
             } catch (URISyntaxException e) {
-                log.error("websocket url is error :", e);
+                log.error("websocket url({}) is error", url, e);
             }
         }
 
