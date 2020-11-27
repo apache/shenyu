@@ -23,9 +23,9 @@ import lombok.NoArgsConstructor;
 import org.dromara.soul.admin.entity.RuleConditionDO;
 import org.dromara.soul.common.enums.OperatorEnum;
 import org.dromara.soul.common.enums.ParamTypeEnum;
+import org.dromara.soul.common.utils.DateUtils;
 
 import java.io.Serializable;
-import java.time.format.DateTimeFormatter;
 
 /**
  * this is rule condition view to web front.
@@ -94,12 +94,11 @@ public class RuleConditionVO implements Serializable {
      * @return {@linkplain RuleConditionVO}
      */
     public static RuleConditionVO buildRuleConditionVO(final RuleConditionDO ruleConditionDO) {
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         ParamTypeEnum paramTypeEnum = ParamTypeEnum.getParamTypeEnumByName(ruleConditionDO.getParamType());
         OperatorEnum operatorEnum = OperatorEnum.getOperatorEnumByAlias(ruleConditionDO.getOperator());
         return new RuleConditionVO(ruleConditionDO.getId(), ruleConditionDO.getRuleId(), ruleConditionDO.getParamType(), paramTypeEnum == null ? null : paramTypeEnum.getName(),
                 ruleConditionDO.getOperator(), operatorEnum == null ? null : operatorEnum.name(), ruleConditionDO.getParamName(), ruleConditionDO.getParamValue(),
-                dateTimeFormatter.format(ruleConditionDO.getDateCreated().toLocalDateTime()),
-                dateTimeFormatter.format(ruleConditionDO.getDateUpdated().toLocalDateTime()));
+                DateUtils.localDateTimeToString(ruleConditionDO.getDateCreated().toLocalDateTime()),
+                DateUtils.localDateTimeToString(ruleConditionDO.getDateUpdated().toLocalDateTime()));
     }
 }
