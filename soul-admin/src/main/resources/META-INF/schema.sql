@@ -256,6 +256,5 @@ update plugin_handle set sort = 2 where id = '10';
 -- rate_limiter sort
 update plugin_handle set sort = 2 where id = '11';
 update plugin_handle set sort = 1 where id = '12';
--- dubbo sort
-update plugin_handle set sort = 1 where id = '1330841075881971712';
+
 
