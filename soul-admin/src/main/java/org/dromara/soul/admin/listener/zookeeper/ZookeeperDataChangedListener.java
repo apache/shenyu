@@ -1,18 +1,18 @@
 /*
- *   Licensed to the Apache Software Foundation (ASF) under one or more
- *   contributor license agreements.  See the NOTICE file distributed with
- *   this work for additional information regarding copyright ownership.
- *   The ASF licenses this file to You under the Apache License, Version 2.0
- *   (the "License"); you may not use this file except in compliance with
- *   the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.dromara.soul.admin.listener.zookeeper;
@@ -131,7 +131,7 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
             createSelector(data);
         }
     }
-    
+
     @Override
     public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
         if (eventType == DataEventTypeEnum.REFRESH) {
@@ -159,14 +159,14 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
             zkClient.writeData(ruleRealPath, data);
         }
     }
-    
+
     private void deleteSelector(final SelectorData data) {
         String selectorRealPath = ZkPathConstants.buildSelectorRealPath(data.getPluginName(), data.getId());
         if (zkClient.exists(selectorRealPath)) {
             zkClient.delete(selectorRealPath);
         }
     }
-    
+
     private void createSelector(final SelectorData data) {
         String selectorParentPath = ZkPathConstants.buildSelectorParentPath(data.getPluginName());
         if (!zkClient.exists(selectorParentPath)) {
@@ -178,5 +178,5 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
         }
         zkClient.writeData(selectorRealPath, data);
     }
-    
+
 }

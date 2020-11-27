@@ -1,19 +1,18 @@
 /*
- *   Licensed to the Apache Software Foundation (ASF) under one or more
- *   contributor license agreements.  See the NOTICE file distributed with
- *   this work for additional information regarding copyright ownership.
- *   The ASF licenses this file to You under the Apache License, Version 2.0
- *   (the "License"); you may not use this file except in compliance with
- *   the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.dromara.soul.admin.controller;
@@ -25,6 +24,7 @@ import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.SoulDictQuery;
 import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.service.SoulDictService;
+import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.admin.vo.SoulDictVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -67,7 +67,7 @@ public class SoulDictController {
     @GetMapping("")
     public SoulAdminResult queryDicts(final String type, final String dictCode, final String dictName, final Integer currentPage, final Integer pageSize) {
         CommonPager<SoulDictVO> commonPager = soulDictService.listByPage(new SoulDictQuery(type, dictCode, dictName, new PageParameter(currentPage, pageSize)));
-        return SoulAdminResult.success("query soul dict success", commonPager);
+        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
     }
 
     /**
@@ -79,7 +79,7 @@ public class SoulDictController {
     @GetMapping("/all/{type}")
     public SoulAdminResult findByType(@PathVariable("type") final String type) {
         List<SoulDictVO> soulDictVOS = soulDictService.list(type);
-        return SoulAdminResult.success("query soul dict success", soulDictVOS);
+        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, soulDictVOS);
     }
 
     /**
@@ -91,7 +91,7 @@ public class SoulDictController {
     @GetMapping("/{id}")
     public SoulAdminResult detail(@PathVariable("id") final String id) {
         SoulDictVO soulDictVO = soulDictService.findById(id);
-        return SoulAdminResult.success("detail soul dict success", soulDictVO);
+        return SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, soulDictVO);
     }
 
     /**
@@ -103,7 +103,7 @@ public class SoulDictController {
     @PostMapping("")
     public SoulAdminResult createSoulDict(@RequestBody final SoulDictDTO soulDictDTO) {
         Integer createCount = soulDictService.createOrUpdate(soulDictDTO);
-        return SoulAdminResult.success("add soul dict success", createCount);
+        return SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS, createCount);
     }
 
     /**
@@ -118,7 +118,7 @@ public class SoulDictController {
         Objects.requireNonNull(soulDictDTO);
         soulDictDTO.setId(id);
         Integer updateCount = soulDictService.createOrUpdate(soulDictDTO);
-        return SoulAdminResult.success("update soul dict success", updateCount);
+        return SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS, updateCount);
     }
 
     /**
@@ -130,7 +130,7 @@ public class SoulDictController {
     @DeleteMapping("/batch")
     public SoulAdminResult deleteSoulDicts(@RequestBody final List<String> ids) {
         Integer deleteCount = soulDictService.deleteSoulDicts(ids);
-        return SoulAdminResult.success("delete soul dict success", deleteCount);
+        return SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, deleteCount);
     }
 
     /**

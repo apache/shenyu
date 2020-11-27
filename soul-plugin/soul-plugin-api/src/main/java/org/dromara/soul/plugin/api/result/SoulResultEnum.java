@@ -63,6 +63,11 @@ public enum SoulResultEnum {
      * Dubbo have body param soul result enum.
      */
     DUBBO_HAVE_BODY_PARAM(431, "dubbo接口必须要有参数，请在body里面输入json格式！"),
+
+    /**
+     * Sofa have body param soul result enum.
+     */
+    SOFA_HAVE_BODY_PARAM(432, "sofa接口必须要有参数，请在body里面输入json格式！"),
     
     /**
      * full selector type enum.

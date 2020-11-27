@@ -1,20 +1,18 @@
 /*
- *
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * Contributor license agreements.See the NOTICE file distributed with
- * This work for additional information regarding copyright ownership.
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * he License.You may obtain a copy of the License at
+ * the License.  You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.dromara.soul.plugin.sync.data.weboscket;
@@ -45,11 +43,11 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 public class WebsocketSyncDataService implements SyncDataService, AutoCloseable {
-    
+
     private List<WebSocketClient> clients = new ArrayList<>();
-    
+
     private final ScheduledThreadPoolExecutor executor;
-    
+
     /**
      * Instantiates a new Websocket sync cache.
      *
@@ -63,12 +61,12 @@ public class WebsocketSyncDataService implements SyncDataService, AutoCloseable 
         executor = new ScheduledThreadPoolExecutor(urls.length, SoulThreadFactory.create("websocket-connect", true));
         for (String url : urls) {
             try {
-                clients.add(new SoulWebsocketClient(new URI(url), pluginDataSubscriber, metaDataSubscribers, authDataSubscribers));
+                clients.add(new SoulWebsocketClient(new URI(url), Objects.requireNonNull(pluginDataSubscriber), metaDataSubscribers, authDataSubscribers));
             } catch (URISyntaxException e) {
-                log.error("websocket url is error :", e);
+                log.error("websocket url({}) is error", url, e);
             }
         }
-        
+
         try {
             for (WebSocketClient client : clients) {
                 boolean success = client.connectBlocking(3000, TimeUnit.MILLISECONDS);
@@ -93,13 +91,13 @@ public class WebsocketSyncDataService implements SyncDataService, AutoCloseable 
                 }, 10, 30, TimeUnit.SECONDS);
             }
             /* client.setProxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress("proxyaddress", 80)));*/
-            
+
         } catch (InterruptedException e) {
             log.info("websocket connection...exception....", e);
         }
-        
+
     }
-    
+
     @Override
     public void close() {
         for (WebSocketClient client : clients) {

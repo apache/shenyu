@@ -1,3 +1,18 @@
+-- Licensed to the Apache Software Foundation (ASF) under one
+-- or more contributor license agreements.  See the NOTICE file
+-- distributed with this work for additional information
+-- regarding copyright ownership.  The ASF licenses this file
+-- to you under the Apache License, Version 2.0 (the
+-- "License"); you may not use this file except in compliance
+-- with the License.  You may obtain a copy of the License at
+--
+--     http://www.apache.org/licenses/LICENSE-2.0
+--
+-- Unless required by applicable law or agreed to in writing, software
+-- distributed under the License is distributed on an "AS IS" BASIS,
+-- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-- See the License for the specific language governing permissions and
+-- limitations under the License.
 
 CREATE DATABASE  IF NOT EXISTS  `soul`  DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;
 
@@ -189,6 +204,7 @@ INSERT IGNORE INTO `plugin` (`id`, `name`,`role`,`config`,`enabled`, `date_creat
 INSERT IGNORE INTO `plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('8', 'springCloud','0', '0', '2018-06-25 13:47:57', '2018-06-25 13:47:57');
 INSERT IGNORE INTO `plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('9', 'hystrix', '0','0', '2020-01-15 10:19:10', '2020-01-15 10:19:10');
 INSERT IGNORE INTO `plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('10', 'sentinel', '1','0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
+INSERT IGNORE INTO `plugin` (`id`, `name`,`role`, `config`, `enabled`, `date_created`, `date_updated`) VALUES ('11', 'sofa', '0', '{"protocol":"zookeeper","register":"127.0.0.1:2181"}', '0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`date_created`,`date_updated`) VALUES ('1','10', 'flowRuleGrade', '限流阈值类型','3', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`date_created`,`date_updated`) VALUES ('2','10', 'flowRuleControlBehavior', '流控效果','3', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
@@ -205,12 +221,18 @@ INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`
 /**user**/
 INSERT IGNORE INTO `dashboard_user` (`id`, `user_name`, `password`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('1', 'admin', 'jHcpKkiDbbQh7W7hh8yQSA==', '1', '1', '2018-06-23 15:12:22', '2018-06-23 15:12:23');
 
-/*update plugin rate_limiter*/
+/*update plugin role to use plugin_handle*/
 update `plugin` set role = 1 where id = '4' and name = 'rate_limiter';
+update `plugin` set role = 1 where id = '1' and name = 'sign';
+update `plugin` set role = 1 where id = '2' and name = 'waf';
+update `plugin` set role = 1 where id = '6' and name = 'dubbo';
+update `plugin` set role = 1 where id = '7' and name = 'monitor';
+update `plugin` set role = 1 where id = '10' and name = 'sentinel';
 
 /*insert plugin_handle data for rate_limiter*/
 INSERT IGNORE INTO `plugin_handle`(`id`, `plugin_id`, `field`, `label`, `data_type`, `date_created`, `date_updated`) VALUES ('11', '4', 'replenishRate', '速率', 2, '2020-11-24 00:17:10', '2020-11-24 00:17:10');
 INSERT IGNORE INTO `plugin_handle`(`id`, `plugin_id`, `field`, `label`, `data_type`, `date_created`, `date_updated`) VALUES ('12', '4', 'burstCapacity', '容量', 2, '2020-11-24 00:17:10', '2020-11-24 00:17:10');
+
 
 -- add column type,sort for plugin_handle
 alter table plugin_handle add column type varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci  NULL COMMENT '类型,1 表示选择器，2 表示规则' after data_type;
@@ -236,3 +258,4 @@ update plugin_handle set sort = 2 where id = '11';
 update plugin_handle set sort = 1 where id = '12';
 -- dubbo sort
 update plugin_handle set sort = 1 where id = '1330841075881971712';
+
