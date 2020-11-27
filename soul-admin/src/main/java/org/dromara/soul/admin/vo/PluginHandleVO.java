@@ -17,20 +17,20 @@
 
 package org.dromara.soul.admin.vo;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import org.dromara.soul.admin.entity.PluginHandleDO;
+
 import java.io.Serializable;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import org.dromara.soul.admin.entity.PluginHandleDO;
-
 /**
  * this is plugin handle view to web front.
  *
- * @author liangziqiang
- * @author dengliming
+ * @author liangziqiang.
+ * @author dengliming.
  */
 @Data
 @AllArgsConstructor
@@ -61,9 +61,21 @@ public class PluginHandleVO implements Serializable {
      * the data type.
      * 1 indicates number
      * 2 indicates string
-     * 3 indicates select box
+     * 3 indicates select box.
      */
-    private String dataType;
+    private Integer dataType;
+
+    /**
+     *  the attribute type.
+     *  1  selector,
+     *  2  rule.
+     */
+    private Integer type;
+
+    /**
+     * the attribute sort.
+     */
+    private Integer sort;
 
     /**
      * created time.
@@ -91,7 +103,8 @@ public class PluginHandleVO implements Serializable {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         return new PluginHandleVO(pluginHandleDO.getId(), pluginHandleDO.getPluginId(),
                 pluginHandleDO.getField(), pluginHandleDO.getLabel(),
-                String.valueOf(pluginHandleDO.getDataType()), dateTimeFormatter.format(pluginHandleDO.getDateCreated().toLocalDateTime()),
+                pluginHandleDO.getDataType(), pluginHandleDO.getType(), pluginHandleDO.getSort(),
+                dateTimeFormatter.format(pluginHandleDO.getDateCreated().toLocalDateTime()),
                 dateTimeFormatter.format(pluginHandleDO.getDateUpdated().toLocalDateTime()), dictOptions);
     }
 }

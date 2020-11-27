@@ -233,3 +233,28 @@ update `plugin` set role = 1 where id = '10' and name = 'sentinel';
 INSERT IGNORE INTO `plugin_handle`(`id`, `plugin_id`, `field`, `label`, `data_type`, `date_created`, `date_updated`) VALUES ('11', '4', 'replenishRate', '速率', 2, '2020-11-24 00:17:10', '2020-11-24 00:17:10');
 INSERT IGNORE INTO `plugin_handle`(`id`, `plugin_id`, `field`, `label`, `data_type`, `date_created`, `date_updated`) VALUES ('12', '4', 'burstCapacity', '容量', 2, '2020-11-24 00:17:10', '2020-11-24 00:17:10');
 
+
+-- add column type,sort for plugin_handle
+alter table plugin_handle add column type smallint(6) NULL COMMENT '类型,1 表示选择器，2 表示规则' after data_type;
+alter table plugin_handle add column sort int(4)  NULL COMMENT '排序' after type;
+
+-- update type
+update plugin_handle set type = '2' where id in( '1','2','3','4','5','6','7','8','9','10','11','12');
+
+-- sentinel sort
+update plugin_handle set sort = 8 where id = '1';
+update plugin_handle set sort = 5 where id = '2';
+update plugin_handle set sort = 7 where id = '3';
+update plugin_handle set sort = 6 where id = '4';
+update plugin_handle set sort = 2 where id = '5';
+update plugin_handle set sort = 3 where id = '6';
+update plugin_handle set sort = 1 where id = '7';
+update plugin_handle set sort = 4 where id = '8';
+-- waf sort
+update plugin_handle set sort = 1 where id = '9';
+update plugin_handle set sort = 2 where id = '10';
+-- rate_limiter sort
+update plugin_handle set sort = 2 where id = '11';
+update plugin_handle set sort = 1 where id = '12';
+
+
