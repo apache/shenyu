@@ -30,8 +30,8 @@ import java.util.Objects;
 /**
  * this is plugin handle view to web front.
  *
- * @author liangziqiang
- * @author dengliming
+ * @author liangziqiang.
+ * @author dengliming.
  */
 @Data
 @AllArgsConstructor
@@ -62,19 +62,19 @@ public class PluginHandleVO implements Serializable {
      * the data type.
      * 1 indicates number
      * 2 indicates string
-     * 3 indicates select box
+     * 3 indicates select box.
      */
     private String dataType;
 
     /**
      *  the attribute type.
      *  1  selector,
-     *  2  rule
+     *  2  rule.
      */
     private String type;
 
     /**
-     * the attribute sort
+     * the attribute sort.
      */
     private Integer sort;
 
@@ -104,7 +104,7 @@ public class PluginHandleVO implements Serializable {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         return new PluginHandleVO(pluginHandleDO.getId(), pluginHandleDO.getPluginId(),
                 pluginHandleDO.getField(), pluginHandleDO.getLabel(),
-                String.valueOf(pluginHandleDO.getDataType()), pluginHandleDO.getType(),pluginHandleDO.getSort(),
+                String.valueOf(pluginHandleDO.getDataType()), pluginHandleDO.getType(), pluginHandleDO.getSort(),
                 dateTimeFormatter.format(pluginHandleDO.getDateCreated().toLocalDateTime()),
                 dateTimeFormatter.format(pluginHandleDO.getDateUpdated().toLocalDateTime()), dictOptions);
     }

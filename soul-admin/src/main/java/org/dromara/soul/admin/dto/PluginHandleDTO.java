@@ -24,7 +24,7 @@ import java.io.Serializable;
 
 /**
  * this plugin handle from web front.
- * @author liangziqiang
+ * @author liangziqiang.
  */
 @Data
 public class PluginHandleDTO implements Serializable {
@@ -52,19 +52,19 @@ public class PluginHandleDTO implements Serializable {
      * the data type.
      * 1 indicates number
      * 2 indicates string
-     * 3 indicates select box
+     * 3 indicates select box.
      */
     private Integer dataType;
 
     /**
      *  the attribute type.
      *  1  selector,
-     *  2  rule
+     *  2  rule.
      */
     private String type;
 
     /**
-     * the attribute sort
+     * the attribute sort.
      */
     private Integer sort;
 
