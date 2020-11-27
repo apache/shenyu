@@ -63,6 +63,6 @@ public enum ConfigGroupEnum {
     public static ConfigGroupEnum acquireByName(final String name) {
         return Arrays.stream(ConfigGroupEnum.values())
                 .filter(e -> Objects.equals(e.name(), name))
-                .findFirst().orElseThrow(() -> new SoulException(" this ConfigGroupEnum can not support!"));
+                .findFirst().orElseThrow(() -> new SoulException(String.format(" this ConfigGroupEnum can not support %s", name)));
     }
 }
