@@ -239,7 +239,7 @@ alter table plugin_handle add column type smallint(6) NULL COMMENT '类型,1 表
 alter table plugin_handle add column sort int(4)  NULL COMMENT '排序' after type;
 
 -- update type
-update plugin_handle set type = '2';
+update plugin_handle set type = '2' where id in( '1','2','3','4','5','6','7','8','9','10','11','12');
 
 -- sentinel sort
 update plugin_handle set sort = 8 where id = '1';
