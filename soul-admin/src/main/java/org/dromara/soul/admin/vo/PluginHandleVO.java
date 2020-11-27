@@ -24,7 +24,6 @@ import org.dromara.soul.common.utils.DateUtils;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -98,9 +97,6 @@ public class PluginHandleVO implements Serializable {
      * @return {@linkplain PluginHandleVO}
      */
     public static PluginHandleVO buildPluginHandleVO(final PluginHandleDO pluginHandleDO, final List<SoulDictVO> dictOptions) {
-        if (Objects.isNull(pluginHandleDO)) {
-            return null;
-        }
         return Optional.ofNullable(pluginHandleDO)
                 .map(it -> new PluginHandleVO(pluginHandleDO.getId(), pluginHandleDO.getPluginId(),
                         pluginHandleDO.getField(), pluginHandleDO.getLabel(),
