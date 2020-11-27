@@ -93,7 +93,7 @@ public class PluginHandleServiceImpl implements PluginHandleService {
     }
 
     @Override
-    public List<PluginHandleVO> list(final String pluginId, final String type) {
+    public List<PluginHandleVO> list(final String pluginId, final Integer type) {
         PluginHandleQuery pluginHandleQuery = new PluginHandleQuery();
         pluginHandleQuery.setPluginId(pluginId);
         pluginHandleQuery.setType(type);

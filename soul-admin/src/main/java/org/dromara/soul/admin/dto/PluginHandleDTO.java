@@ -60,7 +60,7 @@ public class PluginHandleDTO implements Serializable {
      *  1  selector,
      *  2  rule.
      */
-    private String type;
+    private Integer type;
 
     /**
      * the attribute sort.

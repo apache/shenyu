@@ -25,8 +25,8 @@
         <result column="plugin_id" jdbcType="VARCHAR" property="pluginId"/>
         <result column="field" jdbcType="VARCHAR" property="field"/>
         <result column="label" jdbcType="VARCHAR" property="label"/>
-        <result column="data_type" jdbcType="VARCHAR" property="dataType"/>
-        <result column="type" jdbcType="VARCHAR" property="type"/>
+        <result column="data_type" jdbcType="INTEGER" property="dataType"/>
+        <result column="type" jdbcType="INTEGER" property="type"/>
         <result column="sort" jdbcType="INTEGER" property="sort"/>
     </resultMap>
 
@@ -54,7 +54,7 @@
     insert into plugin_handle (id, plugin_id, field, label,data_type,type,sort, date_created, date_updated
       )
     values (#{id,jdbcType=VARCHAR}, #{pluginId,jdbcType=VARCHAR}, #{field,jdbcType=VARCHAR},
-      #{label,jdbcType=VARCHAR},#{dataType,jdbcType=VARCHAR},#{type,jdbcType=VARCHAR}, #{sort,jdbcType=INTEGER},
+      #{label,jdbcType=VARCHAR},#{dataType,jdbcType=INTEGER},#{type,jdbcType=INTEGER}, #{sort,jdbcType=INTEGER},
       #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP}
       )
   </insert>
@@ -104,10 +104,10 @@
                 #{label,jdbcType=VARCHAR},
             </if>
             <if test="dataType != null">
-                #{dataType,jdbcType=VARCHAR},
+                #{dataType,jdbcType=INTEGER},
             </if>
             <if test="type != null">
-                #{type,jdbcType=VARCHAR},
+                #{type,jdbcType=INTEGER},
             </if>
             <if test="sort != null">
                 #{sort,jdbcType=INTEGER},
@@ -133,10 +133,10 @@
                 label = #{label,jdbcType=VARCHAR},
             </if>
             <if test="dataType != null">
-               data_type= #{dataType,jdbcType=VARCHAR},
+               data_type= #{dataType,jdbcType=INTEGER},
             </if>
             <if test="type != null">
-                type= #{type,jdbcType=VARCHAR},
+                type= #{type,jdbcType=INTEGER},
             </if>
             <if test="sort != null">
                 sort= #{sort,jdbcType=INTEGER},
@@ -155,8 +155,8 @@
     set plugin_id = #{pluginId,jdbcType=VARCHAR},
       field = #{field,jdbcType=VARCHAR},
       label = #{label,jdbcType=VARCHAR},
-      data_type = #{dataType,jdbcType=VARCHAR},
-      type = #{type,jdbcType=VARCHAR},
+      data_type = #{dataType,jdbcType=INTEGER},
+      type = #{type,jdbcType=INTEGER},
       sort = #{sort,jdbcType=INTEGER},
       date_created = #{dateCreated,jdbcType=TIMESTAMP},
       date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
@@ -179,7 +179,7 @@
             and plugin_id = #{pluginId,jdbcType=VARCHAR}
         </if>
         <if test="type != null">
-            and type = #{type,jdbcType=VARCHAR}
+            and type = #{type,jdbcType=INTEGER}
         </if>
         order by sort
         <if test="pageParameter != null">

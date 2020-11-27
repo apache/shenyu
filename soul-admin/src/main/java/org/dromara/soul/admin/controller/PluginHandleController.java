@@ -72,7 +72,7 @@ public class PluginHandleController {
      * @return {@linkplain SoulAdminResult}
      */
     @GetMapping("/all/{pluginId}/{type}")
-    public SoulAdminResult queryAllPluginHandlesByPluginId(@PathVariable("pluginId") final String pluginId, @PathVariable("type") final String type) {
+    public SoulAdminResult queryAllPluginHandlesByPluginId(@PathVariable("pluginId") final String pluginId, @PathVariable("type") final Integer type) {
         List<PluginHandleVO> pluginHandleVOS = pluginHandleService.list(pluginId, type);
         return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, pluginHandleVOS);
     }

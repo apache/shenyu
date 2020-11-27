@@ -235,7 +235,7 @@ INSERT IGNORE INTO `plugin_handle`(`id`, `plugin_id`, `field`, `label`, `data_ty
 
 
 -- add column type,sort for plugin_handle
-alter table plugin_handle add column type varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci  NULL COMMENT '类型,1 表示选择器，2 表示规则' after data_type;
+alter table plugin_handle add column type smallint(6) NULL COMMENT '类型,1 表示选择器，2 表示规则' after data_type;
 alter table plugin_handle add column sort int(4)  NULL COMMENT '排序' after type;
 
 -- update type

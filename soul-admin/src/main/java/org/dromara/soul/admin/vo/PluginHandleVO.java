@@ -63,14 +63,14 @@ public class PluginHandleVO implements Serializable {
      * 2 indicates string
      * 3 indicates select box.
      */
-    private String dataType;
+    private Integer dataType;
 
     /**
      *  the attribute type.
      *  1  selector,
      *  2  rule.
      */
-    private String type;
+    private Integer type;
 
     /**
      * the attribute sort.
@@ -103,7 +103,7 @@ public class PluginHandleVO implements Serializable {
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         return new PluginHandleVO(pluginHandleDO.getId(), pluginHandleDO.getPluginId(),
                 pluginHandleDO.getField(), pluginHandleDO.getLabel(),
-                String.valueOf(pluginHandleDO.getDataType()), pluginHandleDO.getType(), pluginHandleDO.getSort(),
+                pluginHandleDO.getDataType(), pluginHandleDO.getType(), pluginHandleDO.getSort(),
                 dateTimeFormatter.format(pluginHandleDO.getDateCreated().toLocalDateTime()),
                 dateTimeFormatter.format(pluginHandleDO.getDateUpdated().toLocalDateTime()), dictOptions);
     }

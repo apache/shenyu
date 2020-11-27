@@ -63,5 +63,5 @@ public interface PluginHandleService {
      * @param type type 1:selector,2:rule
      * @return plugin handle list.
      */
-    List<PluginHandleVO> list(String pluginId, String type);
+    List<PluginHandleVO> list(String pluginId, Integer type);
 }
