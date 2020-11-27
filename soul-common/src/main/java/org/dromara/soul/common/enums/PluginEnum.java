@@ -73,6 +73,11 @@ public enum PluginEnum {
     SENTINEL(45, 0, "sentinel"),
 
     /**
+     * Resilence4J plugin enum.
+     */
+    Resilence4J(45, 0, "resilence4J"),
+
+    /**
      * Divide plugin enum.
      */
     DIVIDE(50, 0, "divide"),
