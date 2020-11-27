@@ -61,9 +61,9 @@ public class WebsocketSyncDataService implements SyncDataService, AutoCloseable 
         executor = new ScheduledThreadPoolExecutor(urls.length, SoulThreadFactory.create("websocket-connect", true));
         for (String url : urls) {
             try {
-                clients.add(new SoulWebsocketClient(new URI(url), pluginDataSubscriber, metaDataSubscribers, authDataSubscribers));
+                clients.add(new SoulWebsocketClient(new URI(url), Objects.requireNonNull(pluginDataSubscriber), metaDataSubscribers, authDataSubscribers));
             } catch (URISyntaxException e) {
-                log.error("websocket url is error :", e);
+                log.error("websocket url({}) is error", url, e);
             }
         }
 

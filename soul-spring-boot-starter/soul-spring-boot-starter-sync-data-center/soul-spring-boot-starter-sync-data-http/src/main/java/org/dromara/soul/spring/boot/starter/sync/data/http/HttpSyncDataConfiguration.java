@@ -50,16 +50,16 @@ public class HttpSyncDataConfiguration {
      * Http sync data service.
      *
      * @param httpConfig        the http config
-     * @param pluginSubscribers the plugin subscribers
+     * @param pluginSubscriber the plugin subscriber
      * @param metaSubscribers   the meta subscribers
      * @param authSubscribers   the auth subscribers
      * @return the sync data service
      */
     @Bean
-    public SyncDataService httpSyncDataService(final ObjectProvider<HttpConfig> httpConfig, final ObjectProvider<PluginDataSubscriber> pluginSubscribers,
+    public SyncDataService httpSyncDataService(final ObjectProvider<HttpConfig> httpConfig, final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
                                            final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers) {
         log.info("you use http long pull sync soul data");
-        return new HttpSyncDataService(Objects.requireNonNull(httpConfig.getIfAvailable()), pluginSubscribers.getIfAvailable(),
+        return new HttpSyncDataService(Objects.requireNonNull(httpConfig.getIfAvailable()), Objects.requireNonNull(pluginSubscriber.getIfAvailable()),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList));
     }
 

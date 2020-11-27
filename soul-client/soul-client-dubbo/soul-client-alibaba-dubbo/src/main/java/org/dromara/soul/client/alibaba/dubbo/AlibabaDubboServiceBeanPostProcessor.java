@@ -20,22 +20,25 @@ package org.dromara.soul.client.alibaba.dubbo;
 import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.utils.StringUtils;
 import com.alibaba.dubbo.config.spring.ServiceBean;
+
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.client.common.utils.OkHttpTools;
 import org.dromara.soul.client.dubbo.common.annotation.SoulDubboClient;
 import org.dromara.soul.client.dubbo.common.config.DubboConfig;
 import org.dromara.soul.client.dubbo.common.dto.MetaDataDTO;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
@@ -45,7 +48,7 @@ import org.springframework.util.ReflectionUtils;
  * @author xiaoyu
  */
 @Slf4j
-public class AlibabaDubboServiceBeanPostProcessor implements BeanPostProcessor {
+public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener<ContextRefreshedEvent> {
 
     private DubboConfig dubboConfig;
 
@@ -63,14 +66,6 @@ public class AlibabaDubboServiceBeanPostProcessor implements BeanPostProcessor {
         this.dubboConfig = dubboConfig;
         url = dubboConfig.getAdminUrl() + "/soul-client/dubbo-register";
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
-    }
-
-    @Override
-    public Object postProcessBeforeInitialization(final Object bean, final String beanName) throws BeansException {
-        if (bean instanceof ServiceBean) {
-            executorService.execute(() -> handler((ServiceBean) bean));
-        }
-        return bean;
     }
 
     private void handler(final ServiceBean serviceBean) {
@@ -141,12 +136,24 @@ public class AlibabaDubboServiceBeanPostProcessor implements BeanPostProcessor {
         try {
             String result = OkHttpTools.getInstance().post(url, json);
             if (Objects.equals(result, "success")) {
-                log.info("dubbo client register success :{} " + json);
+                log.info("dubbo client register success :{} ", json);
             } else {
-                log.error("dubbo client register error :{} " + json);
+                log.error("dubbo client register error :{} ", json);
             }
         } catch (IOException e) {
             log.error("cannot register soul admin param :{}", url + ":" + json);
+        }
+    }
+
+    @Override
+    public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
+        if (Objects.nonNull(contextRefreshedEvent.getApplicationContext().getParent())) {
+            return;
+        }
+        // Fix bug(https://github.com/dromara/soul/issues/415), upload dubbo metadata on ContextRefreshedEvent
+        Map<String, ServiceBean> serviceBean = contextRefreshedEvent.getApplicationContext().getBeansOfType(ServiceBean.class);
+        for (Map.Entry<String, ServiceBean> entry : serviceBean.entrySet()) {
+            executorService.execute(() -> handler(entry.getValue()));
         }
     }
 }

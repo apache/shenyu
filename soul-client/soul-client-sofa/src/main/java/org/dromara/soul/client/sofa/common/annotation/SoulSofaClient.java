@@ -58,4 +58,25 @@ public @interface SoulSofaClient {
      * @return the boolean
      */
     boolean enabled() default true;
+
+    /**
+     * LoadBalance string.
+     *
+     * @return the boolean
+     */
+    String loadBalance() default "hash";
+
+    /**
+     * Timeout long.
+     *
+     * @return the timeout
+     */
+    int timeout() default -1;
+
+    /**
+     * Retries int.
+     *
+     * @return the retries
+     */
+    int retries() default 3;
 }
