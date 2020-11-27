@@ -22,9 +22,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.dromara.soul.admin.entity.RuleDO;
 import org.dromara.soul.common.enums.MatchModeEnum;
+import org.dromara.soul.common.utils.DateUtils;
 
 import java.io.Serializable;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 /**
@@ -104,11 +104,7 @@ public class RuleVO implements Serializable {
      * @return {@linkplain RuleVO}
      */
     public static RuleVO buildRuleVO(final RuleDO ruleDO) {
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        return new RuleVO(ruleDO.getId(), ruleDO.getSelectorId(), ruleDO.getMatchMode(), MatchModeEnum.getMatchModeByCode(ruleDO.getMatchMode()),
-                ruleDO.getName(), ruleDO.getEnabled(), ruleDO.getLoged(), ruleDO.getSort(), ruleDO.getHandle(), null,
-                dateTimeFormatter.format(ruleDO.getDateCreated().toLocalDateTime()),
-                dateTimeFormatter.format(ruleDO.getDateUpdated().toLocalDateTime()));
+        return buildRuleVO(ruleDO, null);
     }
 
     /**
@@ -119,10 +115,9 @@ public class RuleVO implements Serializable {
      * @return {@linkplain RuleVO}
      */
     public static RuleVO buildRuleVO(final RuleDO ruleDO, final List<RuleConditionVO> ruleConditions) {
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         return new RuleVO(ruleDO.getId(), ruleDO.getSelectorId(), ruleDO.getMatchMode(), MatchModeEnum.getMatchModeByCode(ruleDO.getMatchMode()),
                 ruleDO.getName(), ruleDO.getEnabled(), ruleDO.getLoged(), ruleDO.getSort(), ruleDO.getHandle(), ruleConditions,
-                dateTimeFormatter.format(ruleDO.getDateCreated().toLocalDateTime()),
-                dateTimeFormatter.format(ruleDO.getDateUpdated().toLocalDateTime()));
+                DateUtils.localDateTimeToString(ruleDO.getDateCreated().toLocalDateTime()),
+                DateUtils.localDateTimeToString(ruleDO.getDateUpdated().toLocalDateTime()));
     }
 }
