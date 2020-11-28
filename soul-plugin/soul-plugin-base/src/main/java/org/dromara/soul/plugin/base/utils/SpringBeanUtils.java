@@ -17,11 +17,7 @@
 
 package org.dromara.soul.plugin.base.utils;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.context.ConfigurableApplicationContext;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * SpringBeanUtils.
@@ -55,10 +51,6 @@ public final class SpringBeanUtils {
      */
     public <T> T getBean(final Class<T> type) {
         return cfgContext.getBean(type);
-    }
-
-    public <T> List<T> getBeans(final Class<T> type) {
-        return cfgContext.getBeansOfType(type).values().stream().collect(Collectors.toList());
     }
 
     /**

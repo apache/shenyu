@@ -75,7 +75,7 @@ public enum PluginEnum {
     /**
      * Resilence4J plugin enum.
      */
-    Resilence4J(45, 0, "resilence4J"),
+    Resilence4J(45, 0, "resilience4j"),
 
     /**
      * Divide plugin enum.

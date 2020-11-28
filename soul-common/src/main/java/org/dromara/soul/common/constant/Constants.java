@@ -285,11 +285,10 @@ public interface Constants {
     /**
      * ratelimiter timeoutDurationRate.
      */
-     int TIMEOUT_DURATION_RATE = 5;
+    int TIMEOUT_DURATION_RATE = 5000;
 
     /**
      * ratelimiter limitRefreshPeriod.
-     * 生成token的周期
      */
     int LIMIT_REFRESH_PERIOD = 500;
 
@@ -314,9 +313,9 @@ public interface Constants {
     int SLIDING_WINDOW_SIZE = 100;
 
     /**
-     * circuitBreaker slidingWindowType
+     * circuitBreaker slidingWindowType.
      */
-     int SLIDING_WINDOW_TYPE = 0;
+    int SLIDING_WINDOW_TYPE = 0;
 
     /**
      * circuitBreaker minimumNumberOfCalls.
@@ -326,7 +325,7 @@ public interface Constants {
     /**
      * circuitBreaker waitIntervalFunctionInOpenState.
      */
-    int WAIT_INTERVAL_FUNCTION_IN_OPEN_STATE = 60;
+    int WAIT_INTERVAL_FUNCTION_IN_OPEN_STATE = 60000;
 
     /**
      * circuitBreaker waitIntervalFunctionInOpenState.
@@ -342,9 +341,11 @@ public interface Constants {
      * circuitBreaker automaticTransitionFromOpenToHalfOpenEnabled.
      */
     boolean AUTOMATIC_TRANSITION_FROM_OPEN_TO_HALF_OPEN_ENABLED = false;
+
     /**
      * String q.
      */
-    default void findConstants() { }
+    default void findConstants() {
+    }
 }
 
