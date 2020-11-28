@@ -46,10 +46,10 @@ public interface Executor {
     /**
      * resilience run.
      *
-     * @param toRun    not null
-     * @param fallback not null
-     * @param conf     not null
-     * @param <T>      not null
+     * @param toRun    the toRun
+     * @param fallback the fallback
+     * @param conf     the conf
+     * @param <T>      the t
      * @return mono
      */
     <T> Mono<T> run(Mono<T> toRun, Function<Throwable, Mono<T>> fallback, Resilience4JConf conf);
@@ -57,9 +57,9 @@ public interface Executor {
     /**
      * do fallback.
      *
-     * @param exchange not null
-     * @param uri      not null
-     * @param t        not null
+     * @param exchange the exchange
+     * @param uri      the uri
+     * @param t        the t
      * @return Mono
      */
     default Mono<Void> fallback(ServerWebExchange exchange, String uri, Throwable t) {
@@ -75,8 +75,8 @@ public interface Executor {
     /**
      * do fallback with not  fallback method.
      *
-     * @param exchange not null
-     * @param t        not null
+     * @param exchange the exchange
+     * @param t        the t
      * @return Mono
      */
     default Mono<Void> withoutFallback(ServerWebExchange exchange, Throwable t) {
@@ -102,7 +102,7 @@ public interface Executor {
     /**
      * default error.
      *
-     * @param exchange not null
+     * @param exchange the exchange
      * @return Mono
      */
     default Mono<Void> error(ServerWebExchange exchange) {

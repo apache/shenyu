@@ -44,8 +44,8 @@ public class Resilience4JRegistryFactory {
     /**
      * circuitBreaker.
      *
-     * @param id                   not null
-     * @param circuitBreakerConfig not null
+     * @param id                   the id
+     * @param circuitBreakerConfig the circuitBreaker config
      * @return CircuitBreaker
      */
     public static CircuitBreaker circuitBreaker(final String id, final CircuitBreakerConfig circuitBreakerConfig) {
@@ -55,8 +55,8 @@ public class Resilience4JRegistryFactory {
     /**
      * rateLimiter.
      *
-     * @param id                not null
-     * @param rateLimiterConfig not null
+     * @param id                the id
+     * @param rateLimiterConfig the rate limiter config
      * @return RateLimiter
      */
     public static RateLimiter rateLimiter(final String id, final RateLimiterConfig rateLimiterConfig) {
@@ -66,7 +66,7 @@ public class Resilience4JRegistryFactory {
     /**
      * remove.
      *
-     * @param id not null
+     * @param id the id
      */
     public static void remove(final String id) {
         CIRCUIT_BREAKER_REGISTRY.remove(id);

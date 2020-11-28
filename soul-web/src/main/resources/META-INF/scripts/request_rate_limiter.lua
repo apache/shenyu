@@ -34,13 +34,13 @@ local ttl = math.floor(fill_time*2)
 --redis.log(redis.LOG_WARNING, "filltime " .. fill_time)
 --redis.log(redis.LOG_WARNING, "ttl " .. ttl)
 
-local last_tokens = tonumber(redis.Executor("get", tokens_key))
+local last_tokens = tonumber(redis.call("get", tokens_key))
 if last_tokens == nil then
   last_tokens = capacity
 end
 --redis.log(redis.LOG_WARNING, "last_tokens " .. last_tokens)
 
-local last_refreshed = tonumber(redis.Executor("get", timestamp_key))
+local last_refreshed = tonumber(redis.call("get", timestamp_key))
 if last_refreshed == nil then
   last_refreshed = 0
 end
@@ -61,7 +61,7 @@ end
 --redis.log(redis.LOG_WARNING, "allowed_num " .. allowed_num)
 --redis.log(redis.LOG_WARNING, "new_tokens " .. new_tokens)
 
-redis.Executor("setex", tokens_key, ttl, new_tokens)
-redis.Executor("setex", timestamp_key, ttl, now)
+redis.call("setex", tokens_key, ttl, new_tokens)
+redis.call("setex", timestamp_key, ttl, now)
 
 return { allowed_num, new_tokens }

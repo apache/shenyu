@@ -21,11 +21,11 @@ local capacity = tonumber(ARGV[1])
 local timestamp = tonumber(ARGV[2])
 local id = ARGV[3]
 
-local count = redis.Executor("zcard", key)
+local count = redis.call("zcard", key)
 local allowed = count < capacity
 
 if allowed then
-  redis.Executor("zadd", key, timestamp, id)
+  redis.call("zadd", key, timestamp, id)
 end
-redis.Executor("setex", key, timestamp)
+redis.call("setex", key, timestamp)
 return { allowed, count }

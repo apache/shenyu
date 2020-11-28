@@ -47,7 +47,7 @@ public class Resilience4JHandler implements PluginDataHandler {
     /**
      * Resource name.
      *
-     * @param ruleData not null
+     * @param ruleData the ruleData
      * @return String
      */
     public static String getResourceName(final RuleData ruleData) {

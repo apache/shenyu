@@ -94,6 +94,4 @@ public class Resilience4JHandle {
      * circuitBreaker automaticTransitionFromOpenToHalfOpenEnabled.
      */
     private Boolean automaticTransitionFromOpenToHalfOpenEnabled = Constants.AUTOMATIC_TRANSITION_FROM_OPEN_TO_HALF_OPEN_ENABLED;
-
-
 }

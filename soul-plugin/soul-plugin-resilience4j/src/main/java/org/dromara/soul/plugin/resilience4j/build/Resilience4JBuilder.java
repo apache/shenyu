@@ -39,7 +39,7 @@ public class Resilience4JBuilder {
     /**
      * build.
      *
-     * @param ruleData ruledata  not null
+     * @param ruleData the ruleData
      * @return Resilience4JConf
      */
     public static Resilience4JConf build(final RuleData ruleData) {
