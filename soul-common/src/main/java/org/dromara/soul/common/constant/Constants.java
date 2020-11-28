@@ -281,9 +281,71 @@ public interface Constants {
      */
     int HYSTRIX_THREAD_POOL_QUEUE_SIZE = 12;
 
+
+    /**
+     * ratelimiter timeoutDurationRate.
+     */
+    int TIMEOUT_DURATION_RATE = 5000;
+
+    /**
+     * ratelimiter limitRefreshPeriod.
+     */
+    int LIMIT_REFRESH_PERIOD = 500;
+
+    /**
+     * ratelimiter limitForPeriod.
+     */
+    int LIMIT_FOR_PERIOD = 50;
+
+    /**
+     * circuitBreaker circuitEnable.
+     */
+    int CIRCUIT_ENABLE = 0;
+
+    /**
+     * circuitBreaker timeoutDuration.
+     */
+    long TIMEOUT_DURATION = 30000;
+
+    /**
+     * circuitBreaker slidingWindowSize.
+     */
+    int SLIDING_WINDOW_SIZE = 100;
+
+    /**
+     * circuitBreaker slidingWindowType.
+     */
+    int SLIDING_WINDOW_TYPE = 0;
+
+    /**
+     * circuitBreaker minimumNumberOfCalls.
+     */
+    int MINIMUM_NUMBER_OF_CALLS = 100;
+
+    /**
+     * circuitBreaker waitIntervalFunctionInOpenState.
+     */
+    int WAIT_INTERVAL_FUNCTION_IN_OPEN_STATE = 60000;
+
+    /**
+     * circuitBreaker waitIntervalFunctionInOpenState.
+     */
+    int PERMITTED_NUMBER_OF_CALLS_IN_HALF_OPEN_STATE = 10;
+
+    /**
+     * circuitBreaker failureRateThreshold.
+     */
+    float FAILURE_RATE_THRESHOLD = 50;
+
+    /**
+     * circuitBreaker automaticTransitionFromOpenToHalfOpenEnabled.
+     */
+    boolean AUTOMATIC_TRANSITION_FROM_OPEN_TO_HALF_OPEN_ENABLED = false;
+
     /**
      * String q.
      */
-    default void findConstants() { }
+    default void findConstants() {
+    }
 }
 

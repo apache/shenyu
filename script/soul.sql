@@ -189,6 +189,8 @@ INSERT IGNORE INTO `plugin` (`id`, `name`,`role`,`config`,`enabled`, `date_creat
 INSERT IGNORE INTO `plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('8', 'springCloud','0', '0', '2018-06-25 13:47:57', '2018-06-25 13:47:57');
 INSERT IGNORE INTO `plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('9', 'hystrix', '0','0', '2020-01-15 10:19:10', '2020-01-15 10:19:10');
 INSERT IGNORE INTO `plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('10', 'sentinel', '1','0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
+INSERT IGNORE INTO `plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('11', 'resilience4j', '1','0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
+
 
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`date_created`,`date_updated`) VALUES ('1','10', 'flowRuleGrade', '限流阈值类型','3', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`date_created`,`date_updated`) VALUES ('2','10', 'flowRuleControlBehavior', '流控效果','3', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
@@ -202,5 +204,17 @@ INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`date_created`,`date_updated`) VALUES ('9','2', 'permission', '许可','3', '2020-11-22 12:04:10', '2020-11-22 12:04:10');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`date_created`,`date_updated`) VALUES ('10','2', 'statusCode', '状态码','2', '2020-11-22 12:04:10', '2020-11-22 12:04:10');
 
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`date_created`,`date_updated`) VALUES ('11', '11', 'timeoutDurationRate', '流控超时(ms)', 1, 2, 1, '2020-11-28 11:08:14', '2020-11-28 11:19:12');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`date_created`,`date_updated`) VALUES ('12', '11', 'limitRefreshPeriod', 'token填充周期(ms)', 1, 2, 0, '2020-11-28 11:18:54', '2020-11-28 11:22:40');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`date_created`,`date_updated`) VALUES ('13', '11', 'limitForPeriod', 'token填充个数', 1, 2, 0, '2020-11-28 11:20:11', '2020-11-28 11:20:11');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`date_created`,`date_updated`) VALUES ('14', '11', 'circuitEnable', '开启熔断', 1, 2, 2, '2020-11-28 11:23:09', '2020-11-28 11:24:12');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`date_created`,`date_updated`) VALUES ('15', '11', 'timeoutDuration', '熔断超时(ms)', 1, 2, 2, '2020-11-28 11:25:56', '2020-11-28 11:25:56');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`date_created`,`date_updated`) VALUES ('16', '11', 'fallbackUri', '降级uri', 2, 2, 2, '2020-11-28 11:26:44', '2020-11-28 11:26:51');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`date_created`,`date_updated`) VALUES ('17', '11', 'slidingWindowSize', '滑动窗口大小', 1, 2, 2, '2020-11-28 11:27:34', '2020-11-28 11:27:34');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`date_created`,`date_updated`) VALUES ('18', '11', 'slidingWindowType', '滑动窗口类型', 1, 2, 2, '2020-11-28 11:28:05', '2020-11-28 11:28:05');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`date_created`,`date_updated`) VALUES ('19', '11', 'minimumNumberOfCalls', '错误最小计算阈值', 1, 2, 2, '2020-11-28 11:28:34', '2020-11-28 11:28:34');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`date_created`,`date_updated`) VALUES ('20', '11', 'waitIntervalFunctionInOpenState', '熔断器开启持续时间', 1, 2, 2, '2020-11-28 11:29:01', '2020-11-28 11:29:01');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`date_created`,`date_updated`) VALUES ('21', '11', 'permittedNumberOfCallsInHalfOpenState', '半开阈值', 1, 2, 2, '2020-11-28 11:29:55', '2020-11-28 11:29:55');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`date_created`,`date_updated`) VALUES ('22', '11', 'failureRateThreshold', '熔断错误率', 1, 2, 2, '2020-11-28 11:30:40', '2020-11-28 11:30:40');
 /**user**/
 INSERT IGNORE INTO `dashboard_user` (`id`, `user_name`, `password`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('1', 'admin', 'jHcpKkiDbbQh7W7hh8yQSA==', '1', '1', '2018-06-23 15:12:22', '2018-06-23 15:12:23');

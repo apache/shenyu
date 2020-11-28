@@ -20,31 +20,23 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>soul-spring-boot-starter</artifactId>
+        <artifactId>soul-spring-boot-starter-plugin</artifactId>
         <groupId>org.dromara</groupId>
         <version>2.2.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>soul-spring-boot-starter-plugin</artifactId>
-    <packaging>pom</packaging>
 
-    <modules>
-        <module>soul-spring-boot-starter-plugin-divide</module>
-        <module>soul-spring-boot-starter-plugin-alibaba-dubbo</module>
-        <module>soul-spring-boot-starter-plugin-apache-dubbo</module>
-        <module>soul-spring-boot-starter-plugin-global</module>
-        <module>soul-spring-boot-starter-plugin-httpclient</module>
-        <module>soul-spring-boot-starter-plugin-springcloud</module>
-        <module>soul-spring-boot-starter-plugin-hystrix</module>
-        <module>soul-spring-boot-starter-plugin-monitor</module>
-        <module>soul-spring-boot-starter-plugin-ratelimiter</module>
-        <module>soul-spring-boot-starter-plugin-sign</module>
-        <module>soul-spring-boot-starter-plugin-waf</module>
-        <module>soul-spring-boot-starter-plugin-rewrite</module>
-        <module>soul-spring-boot-starter-plugin-sentinel</module>
-        <module>soul-spring-boot-starter-plugin-sofa</module>
-        <module>soul-spring-boot-starter-plugin-resilience4j</module>
-    </modules>
+    <artifactId>soul-spring-boot-starter-plugin-resilience4j</artifactId>
 
-
+    <dependencies>
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-plugin-resilience4j</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+    </dependencies>
 </project>
