@@ -21,9 +21,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.dromara.soul.admin.entity.DashboardUserDO;
+import org.dromara.soul.common.utils.DateUtils;
 
 import java.io.Serializable;
-import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 /**
@@ -78,12 +78,11 @@ public class DashboardUserVO implements Serializable {
      * @return {@linkplain DashboardUserVO}
      */
     public static DashboardUserVO buildDashboardUserVO(final DashboardUserDO dashboardUserDO) {
-        return Optional.ofNullable(dashboardUserDO).map(item -> {
-            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            return new DashboardUserVO(item.getId(), item.getUserName(),
-                    item.getPassword(), item.getRole(), item.getEnabled(),
-                    dateTimeFormatter.format(item.getDateCreated().toLocalDateTime()),
-                    dateTimeFormatter.format(item.getDateUpdated().toLocalDateTime()));
-        }).orElse(null);
+        return Optional.ofNullable(dashboardUserDO)
+                .map(item -> new DashboardUserVO(item.getId(), item.getUserName(),
+                        item.getPassword(), item.getRole(), item.getEnabled(),
+                        DateUtils.localDateTimeToString(item.getDateCreated().toLocalDateTime()),
+                        DateUtils.localDateTimeToString(item.getDateUpdated().toLocalDateTime())))
+                .orElse(null);
     }
 }
