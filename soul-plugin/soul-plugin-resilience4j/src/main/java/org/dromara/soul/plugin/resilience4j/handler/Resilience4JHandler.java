@@ -20,28 +20,28 @@ package org.dromara.soul.plugin.resilience4j.handler;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
-import org.dromara.soul.plugin.resilience4j.factory.ResilienceRegistryFactory;
+import org.dromara.soul.plugin.resilience4j.factory.Resilience4JRegistryFactory;
 
 /**
- * Resilience rule handle.
+ * Resilience4J rule handle.
  *
  * @author zhanglei
  */
-public class ResilienceHandler implements PluginDataHandler {
+public class Resilience4JHandler implements PluginDataHandler {
 
     @Override
     public void handlerRule(final RuleData ruleData) {
-        ResilienceRegistryFactory.remove(getResourceName(ruleData));
+        Resilience4JRegistryFactory.remove(getResourceName(ruleData));
     }
 
     @Override
     public void removeRule(final RuleData ruleData) {
-        ResilienceRegistryFactory.remove(getResourceName(ruleData));
+        Resilience4JRegistryFactory.remove(getResourceName(ruleData));
     }
 
     @Override
     public String pluginNamed() {
-        return PluginEnum.Resilence4J.getName();
+        return PluginEnum.RESILIENCE4J.getName();
     }
 
     /**

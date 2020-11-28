@@ -23,12 +23,12 @@ import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 import lombok.Data;
 
 /**
- * conf.
+ * Resilience4J conf.
  *
  * @author zhanglei
  */
 @Data
-public class ResilienceConf {
+public class Resilience4JConf {
 
     /**
      * id.
@@ -55,11 +55,11 @@ public class ResilienceConf {
      */
     private RateLimiterConfig rateLimiterConfig;
 
-    public ResilienceConf(final String id,
-                          final String fallBackUri,
-                          final RateLimiterConfig rateLimiterConfig,
-                          final TimeLimiterConfig timeLimiterConfig,
-                          final CircuitBreakerConfig circuitBreakerConfig) {
+    public Resilience4JConf(final String id,
+                            final String fallBackUri,
+                            final RateLimiterConfig rateLimiterConfig,
+                            final TimeLimiterConfig timeLimiterConfig,
+                            final CircuitBreakerConfig circuitBreakerConfig) {
         this.id = id;
         this.fallBackUri = fallBackUri;
         this.rateLimiterConfig = rateLimiterConfig;

@@ -19,7 +19,7 @@ package org.dromara.soul.plugin.resilience4j.executor;
 
 import io.github.resilience4j.ratelimiter.RateLimiter;
 import io.github.resilience4j.reactor.ratelimiter.operator.RateLimiterOperator;
-import org.dromara.soul.plugin.resilience4j.factory.ResilienceRegistryFactory;
+import org.dromara.soul.plugin.resilience4j.factory.Resilience4JRegistryFactory;
 import reactor.core.publisher.Mono;
 
 import java.util.function.Function;
@@ -28,24 +28,24 @@ import java.util.concurrent.TimeoutException;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.reactor.circuitbreaker.operator.CircuitBreakerOperator;
-import org.dromara.soul.plugin.resilience4j.conf.ResilienceConf;
+import org.dromara.soul.plugin.resilience4j.conf.Resilience4JConf;
 
 /**
- * CombinedExecutor.
+ * Combined executor.
  *
  * @author zhanglei
  */
 public class CombinedExecutor implements Executor {
 
     @Override
-    public <T> Mono<T> run(final Mono<T> run, final Function<Throwable, Mono<T>> fallback, final ResilienceConf resilienceConf) {
-        RateLimiter rateLimiter = ResilienceRegistryFactory.rateLimiter(resilienceConf.getId(), resilienceConf.getRateLimiterConfig());
-        CircuitBreaker circuitBreaker = ResilienceRegistryFactory.circuitBreaker(resilienceConf.getId(), resilienceConf.getCircuitBreakerConfig());
+    public <T> Mono<T> run(final Mono<T> run, final Function<Throwable, Mono<T>> fallback, final Resilience4JConf resilience4JConf) {
+        RateLimiter rateLimiter = Resilience4JRegistryFactory.rateLimiter(resilience4JConf.getId(), resilience4JConf.getRateLimiterConfig());
+        CircuitBreaker circuitBreaker = Resilience4JRegistryFactory.circuitBreaker(resilience4JConf.getId(), resilience4JConf.getCircuitBreakerConfig());
         Mono<T> to = run.transformDeferred(CircuitBreakerOperator.of(circuitBreaker))
                 .transformDeferred(RateLimiterOperator.of(rateLimiter))
-                .timeout(resilienceConf.getTimeLimiterConfig().getTimeoutDuration())
+                .timeout(resilience4JConf.getTimeLimiterConfig().getTimeoutDuration())
                 .doOnError(TimeoutException.class, t -> circuitBreaker.onError(
-                        resilienceConf.getTimeLimiterConfig().getTimeoutDuration().toMillis(),
+                        resilience4JConf.getTimeLimiterConfig().getTimeoutDuration().toMillis(),
                         TimeUnit.MILLISECONDS,
                         t));
         if (fallback != null) {

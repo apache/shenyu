@@ -34,7 +34,6 @@
             <artifactId>soul-plugin-resilience4j</artifactId>
             <version>${project.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>

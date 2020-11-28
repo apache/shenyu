@@ -22,28 +22,28 @@ import io.github.resilience4j.core.IntervalFunction;
 import io.github.resilience4j.ratelimiter.RateLimiterConfig;
 import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 import org.dromara.soul.common.dto.RuleData;
-import org.dromara.soul.common.dto.convert.ResilienceHandle;
+import org.dromara.soul.common.dto.convert.Resilience4JHandle;
 import org.dromara.soul.common.utils.GsonUtils;
-import org.dromara.soul.plugin.resilience4j.conf.ResilienceConf;
-import org.dromara.soul.plugin.resilience4j.handler.ResilienceHandler;
+import org.dromara.soul.plugin.resilience4j.conf.Resilience4JConf;
+import org.dromara.soul.plugin.resilience4j.handler.Resilience4JHandler;
 
 import java.time.Duration;
 
 /**
- * Resilience4jBuilder.
+ * Resilience4j builder.
  *
  * @author zhanglei
  */
-public class ResilienceBuilder {
+public class Resilience4JBuilder {
 
     /**
-     * ResilienceBuilder.
+     * build.
      *
      * @param ruleData ruledata  not null
-     * @return ResilienceConf
+     * @return Resilience4JConf
      */
-    public static ResilienceConf build(final RuleData ruleData) {
-        ResilienceHandle handle = GsonUtils.getGson().fromJson(ruleData.getHandle(), ResilienceHandle.class);
+    public static Resilience4JConf build(final RuleData ruleData) {
+        Resilience4JHandle handle = GsonUtils.getGson().fromJson(ruleData.getHandle(), Resilience4JHandle.class);
         CircuitBreakerConfig circuitBreakerConfig = null;
         if (handle.getCircuitEnable() == 1) {
             circuitBreakerConfig = CircuitBreakerConfig.custom()
@@ -63,6 +63,6 @@ public class ResilienceBuilder {
                 .limitForPeriod(handle.getLimitForPeriod())
                 .timeoutDuration(Duration.ofSeconds(handle.getTimeoutDurationRate() / 1000))
                 .limitRefreshPeriod(Duration.ofNanos(handle.getLimitRefreshPeriod() * 1000000)).build();
-        return new ResilienceConf(ResilienceHandler.getResourceName(ruleData), handle.getFallbackUri(), rateLimiterConfig, timeLimiterConfig, circuitBreakerConfig);
+        return new Resilience4JConf(Resilience4JHandler.getResourceName(ruleData), handle.getFallbackUri(), rateLimiterConfig, timeLimiterConfig, circuitBreakerConfig);
     }
 }

@@ -17,10 +17,10 @@
 
 package org.dromara.soul.springboot.starter.plugin.resilience4j;
 
-import org.dromara.soul.plugin.resilience4j.ResilencePlugin;
+import org.dromara.soul.plugin.resilience4j.Resilence4JPlugin;
 import org.dromara.soul.plugin.resilience4j.executor.CombinedExecutor;
 import org.dromara.soul.plugin.resilience4j.executor.RatelimiterExecutor;
-import org.dromara.soul.plugin.resilience4j.handler.ResilienceHandler;
+import org.dromara.soul.plugin.resilience4j.handler.Resilience4JHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -30,7 +30,7 @@ import org.springframework.context.annotation.Configuration;
  * @author zhanglei
  */
 @Configuration
-public class ResiliencePluginConfiguration {
+public class Resilience4JPluginConfiguration {
 
     /**
      * Resilience4j plugin.
@@ -38,8 +38,8 @@ public class ResiliencePluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public ResilencePlugin resilencePlugin() {
-        return new ResilencePlugin(new CombinedExecutor(), new RatelimiterExecutor());
+    public Resilence4JPlugin resilencePlugin() {
+        return new Resilence4JPlugin(new CombinedExecutor(), new RatelimiterExecutor());
     }
 
     /**
@@ -48,8 +48,7 @@ public class ResiliencePluginConfiguration {
      * @return ResilienceHandler
      */
     @Bean
-    public ResilienceHandler resilienceHandler() {
-        return new ResilienceHandler();
+    public Resilience4JHandler resilienceHandler() {
+        return new Resilience4JHandler();
     }
-
 }

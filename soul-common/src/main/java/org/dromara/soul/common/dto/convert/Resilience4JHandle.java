@@ -28,8 +28,7 @@ import org.dromara.soul.common.constant.Constants;
  */
 @Data
 @EqualsAndHashCode
-public class ResilienceHandle {
-
+public class Resilience4JHandle {
 
     /**
      * ratelimiter timeoutDurationRate.

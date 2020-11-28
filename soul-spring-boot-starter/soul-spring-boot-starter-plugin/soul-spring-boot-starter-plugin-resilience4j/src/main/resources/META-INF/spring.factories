@@ -16,4 +16,4 @@
 #
 
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.dromara.soul.springboot.starter.plugin.resilience4j.ResiliencePluginConfiguration
+org.dromara.soul.springboot.starter.plugin.resilience4j.Resilience4JPluginConfiguration

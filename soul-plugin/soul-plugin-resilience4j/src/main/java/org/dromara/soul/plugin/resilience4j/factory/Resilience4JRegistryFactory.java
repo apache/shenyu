@@ -25,20 +25,19 @@ import io.github.resilience4j.ratelimiter.RateLimiterConfig;
 import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
 
 /**
- * ResilienceRegistryFactory.
+ * Resilience4J registry factory.
  *
  * @author zhanglei
  */
-public class ResilienceRegistryFactory {
-
+public class Resilience4JRegistryFactory {
 
     /**
-     * rateLimiterRegistry.
+     * RateLimiter registry.
      */
     private static final RateLimiterRegistry RATE_LIMITER_REGISTRY = RateLimiterRegistry.ofDefaults();
 
     /**
-     * circuitBreakerRegistry.
+     * CircuitBreaker registry.
      */
     private static final CircuitBreakerRegistry CIRCUIT_BREAKER_REGISTRY = CircuitBreakerRegistry.ofDefaults();
 
@@ -73,5 +72,4 @@ public class ResilienceRegistryFactory {
         CIRCUIT_BREAKER_REGISTRY.remove(id);
         RATE_LIMITER_REGISTRY.remove(id);
     }
-
 }

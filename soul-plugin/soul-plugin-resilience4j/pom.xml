@@ -33,18 +33,15 @@
     </properties>
 
     <dependencies>
-
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>soul-plugin-base</artifactId>
             <version>${project.version}</version>
         </dependency>
-
         <dependency>
             <groupId>io.github.resilience4j</groupId>
             <artifactId>resilience4j-circuitbreaker</artifactId>
@@ -65,8 +62,5 @@
             <artifactId>resilience4j-reactor</artifactId>
             <version>${resilience.version}</version>
         </dependency>
-
     </dependencies>
-
-
 </project>

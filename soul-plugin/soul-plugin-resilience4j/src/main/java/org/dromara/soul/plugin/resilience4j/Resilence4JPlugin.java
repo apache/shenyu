@@ -20,14 +20,14 @@ package org.dromara.soul.plugin.resilience4j;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
-import org.dromara.soul.common.dto.convert.ResilienceHandle;
+import org.dromara.soul.common.dto.convert.Resilience4JHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
-import org.dromara.soul.plugin.resilience4j.build.ResilienceBuilder;
-import org.dromara.soul.plugin.resilience4j.conf.ResilienceConf;
+import org.dromara.soul.plugin.resilience4j.build.Resilience4JBuilder;
+import org.dromara.soul.plugin.resilience4j.conf.Resilience4JConf;
 import org.dromara.soul.plugin.resilience4j.executor.CombinedExecutor;
 import org.dromara.soul.plugin.resilience4j.executor.Executor;
 import org.dromara.soul.plugin.resilience4j.executor.RatelimiterExecutor;
@@ -39,18 +39,18 @@ import reactor.core.publisher.Mono;
 import java.util.function.Function;
 
 /**
- * ResilencePlugin.
+ * Resilence4J plugin.
  *
  * @author zhanglei
  */
-public class ResilencePlugin extends AbstractSoulPlugin {
+public class Resilence4JPlugin extends AbstractSoulPlugin {
 
     private final CombinedExecutor combinedExecutor;
 
     private final RatelimiterExecutor ratelimiterExecutor;
 
-    public ResilencePlugin(final CombinedExecutor combinedExecutor,
-                           final RatelimiterExecutor ratelimiterExecutor) {
+    public Resilence4JPlugin(final CombinedExecutor combinedExecutor,
+                             final RatelimiterExecutor ratelimiterExecutor) {
         this.combinedExecutor = combinedExecutor;
         this.ratelimiterExecutor = ratelimiterExecutor;
     }
@@ -59,8 +59,8 @@ public class ResilencePlugin extends AbstractSoulPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
         final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
-        ResilienceHandle resilienceHandle = GsonUtils.getGson().fromJson(rule.getHandle(), ResilienceHandle.class);
-        if (resilienceHandle.getCircuitEnable() == 1) {
+        Resilience4JHandle resilience4JHandle = GsonUtils.getGson().fromJson(rule.getHandle(), Resilience4JHandle.class);
+        if (resilience4JHandle.getCircuitEnable() == 1) {
             return combined(exchange, chain, rule);
         }
         return ratelimiter(exchange, chain, rule);
@@ -68,14 +68,14 @@ public class ResilencePlugin extends AbstractSoulPlugin {
 
     private Mono<Void> ratelimiter(final ServerWebExchange exchange, final SoulPluginChain chain, final RuleData rule) {
         return ratelimiterExecutor.run(
-                chain.execute(exchange), fallback(ratelimiterExecutor, exchange, null), ResilienceBuilder.build(rule))
+                chain.execute(exchange), fallback(ratelimiterExecutor, exchange, null), Resilience4JBuilder.build(rule))
                 .onErrorResume(throwable -> {
                     return ratelimiterExecutor.withoutFallback(exchange, throwable);
                 });
     }
 
     private Mono<Void> combined(final ServerWebExchange exchange, final SoulPluginChain chain, final RuleData rule) {
-        ResilienceConf conf = ResilienceBuilder.build(rule);
+        Resilience4JConf conf = Resilience4JBuilder.build(rule);
         return combinedExecutor.run(
                 chain.execute(exchange).doOnSuccess(v -> {
                     if (exchange.getResponse().getStatusCode() != HttpStatus.OK) {
@@ -95,12 +95,12 @@ public class ResilencePlugin extends AbstractSoulPlugin {
 
     @Override
     public int getOrder() {
-        return PluginEnum.Resilence4J.getCode();
+        return PluginEnum.RESILIENCE4J.getCode();
     }
 
     @Override
     public String named() {
-        return PluginEnum.Resilence4J.getName();
+        return PluginEnum.RESILIENCE4J.getName();
     }
 
     public class CircuitBreakerStatusCodeException extends HttpStatusCodeException {
@@ -108,6 +108,5 @@ public class ResilencePlugin extends AbstractSoulPlugin {
         public CircuitBreakerStatusCodeException(final HttpStatus statusCode) {
             super(statusCode);
         }
-
     }
 }
