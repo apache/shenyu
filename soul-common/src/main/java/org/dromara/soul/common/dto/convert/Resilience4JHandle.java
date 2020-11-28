@@ -22,7 +22,7 @@ import lombok.EqualsAndHashCode;
 import org.dromara.soul.common.constant.Constants;
 
 /**
- * this is Circuit plugin handle.
+ * this is Resilience4J plugin handle.
  *
  * @author zhanglei
  */
