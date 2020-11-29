@@ -22,6 +22,7 @@ import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.rule.SpringCloudRuleHandle;
+import org.dromara.soul.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
@@ -66,13 +67,13 @@ public class SpringCloudPlugin extends AbstractSoulPlugin {
         final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
         final SpringCloudRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), SpringCloudRuleHandle.class);
-        final String serviceId = selector.getHandle();
-        if (StringUtils.isBlank(serviceId) || StringUtils.isBlank(ruleHandle.getPath())) {
+        final SpringCloudSelectorHandle selectorHandle = GsonUtils.getInstance().fromJson(selector.getHandle(), SpringCloudSelectorHandle.class);
+        if (StringUtils.isBlank(selectorHandle.getServiceId()) || StringUtils.isBlank(ruleHandle.getPath())) {
             Object error = SoulResultWrap.error(SoulResultEnum.CANNOT_CONFIG_SPRINGCLOUD_SERVICEID.getCode(), SoulResultEnum.CANNOT_CONFIG_SPRINGCLOUD_SERVICEID.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
 
-        final ServiceInstance serviceInstance = loadBalancer.choose(serviceId);
+        final ServiceInstance serviceInstance = loadBalancer.choose(selectorHandle.getServiceId());
         if (Objects.isNull(serviceInstance)) {
             Object error = SoulResultWrap.error(SoulResultEnum.SPRINGCLOUD_SERVICEID_IS_ERROR.getCode(), SoulResultEnum.SPRINGCLOUD_SERVICEID_IS_ERROR.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
