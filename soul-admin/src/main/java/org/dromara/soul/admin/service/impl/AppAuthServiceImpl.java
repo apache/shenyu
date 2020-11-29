@@ -260,11 +260,12 @@ public class AppAuthServiceImpl implements AppAuthService {
     public int delete(final List<String> ids) {
         int appAuthCount = 0;
         for (String id : ids) {
+            final AppAuthDO appAuthDO = appAuthMapper.selectById(id);
             appAuthCount += appAuthMapper.delete(id);
             authParamMapper.deleteByAuthId(id);
             authPathMapper.deleteByAuthId(id);
+
             // publish delete event of AppAuthData
-            AppAuthDO appAuthDO = appAuthMapper.selectById(id);
             AppAuthData data = new AppAuthData(appAuthDO.getAppKey(), appAuthDO.getAppSecret(), appAuthDO.getEnabled(), null, null);
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.DELETE, Collections.singletonList(data)));
         }
