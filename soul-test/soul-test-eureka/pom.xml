@@ -30,7 +30,7 @@
 
     <artifactId>soul-test-eureka</artifactId>
     <properties>
-        <spring-cloud.version>Finchley.RELEASE</spring-cloud.version>
+        <spring-cloud.version>Hoxton.SR1</spring-cloud.version>
     </properties>
 
     <dependencyManagement>
