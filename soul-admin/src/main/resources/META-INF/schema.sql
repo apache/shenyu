@@ -48,6 +48,9 @@ CREATE TABLE IF NOT EXISTS `plugin_handle` (
   `field` varchar(100) NOT NULL COMMENT '字段',
   `label` varchar(100) DEFAULT NULL COMMENT '标签',
   `data_type` smallint(6) NOT NULL DEFAULT '1' COMMENT '数据类型 1 数字 2 字符串',
+  `type` smallint(6) NULL COMMENT '类型,1 表示选择器，2 表示规则',
+  `sort` int(4)  NULL COMMENT '排序',
+  `ext_obj` varchar(1024) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '额外配置（json格式数据）',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
@@ -196,8 +199,8 @@ INSERT IGNORE INTO `soul_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_val
 /*plugin*/
 INSERT IGNORE INTO `plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('1', 'sign','1', '0', '2018-06-14 10:17:35', '2018-06-14 10:17:35');
 INSERT IGNORE INTO `plugin` (`id`, `name`,`role`,`config`,`enabled`, `date_created`, `date_updated`) VALUES ('2', 'waf', '1','{"model":"black"}','0', '2018-06-23 10:26:30', '2018-06-13 15:43:10');
-INSERT IGNORE INTO `plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('3', 'rewrite', '0','0', '2018-06-23 10:26:34', '2018-06-25 13:59:31');
-INSERT IGNORE INTO `plugin` (`id`, `name`,`role`,`config`,`enabled`, `date_created`, `date_updated`) VALUES ('4', 'rate_limiter','0','{"master":"mymaster","mode":"Standalone","url":"192.168.1.1:6379","password":"abc"}', '0', '2018-06-23 10:26:37', '2018-06-13 15:34:48');
+INSERT IGNORE INTO `plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('3', 'rewrite', '1','0', '2018-06-23 10:26:34', '2018-06-25 13:59:31');
+INSERT IGNORE INTO `plugin` (`id`, `name`,`role`,`config`,`enabled`, `date_created`, `date_updated`) VALUES ('4', 'rate_limiter','1','{"master":"mymaster","mode":"Standalone","url":"192.168.1.1:6379","password":"abc"}', '0', '2018-06-23 10:26:37', '2018-06-13 15:34:48');
 INSERT IGNORE INTO `plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('5', 'divide', '0','1', '2018-06-25 10:19:10', '2018-06-13 13:56:04');
 INSERT IGNORE INTO `plugin` (`id`, `name`,`role`,`config`,`enabled`, `date_created`, `date_updated`) VALUES ('6', 'dubbo','1','{"register":"zookeeper://localhost:2181"}', '0', '2018-06-23 10:26:41', '2018-06-11 10:11:47');
 INSERT IGNORE INTO `plugin` (`id`, `name`,`role`,`config`,`enabled`, `date_created`, `date_updated`) VALUES ('7', 'monitor', '1','{"metricsName":"prometheus","host":"localhost","port":"9190","async":"true"}','0', '2018-06-25 13:47:57', '2018-06-25 13:47:57');
@@ -206,55 +209,24 @@ INSERT IGNORE INTO `plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `da
 INSERT IGNORE INTO `plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('10', 'sentinel', '1','0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT IGNORE INTO `plugin` (`id`, `name`,`role`, `config`, `enabled`, `date_created`, `date_updated`) VALUES ('11', 'sofa', '0', '{"protocol":"zookeeper","register":"127.0.0.1:2181"}', '0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 
-INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`date_created`,`date_updated`) VALUES ('1','10', 'flowRuleGrade', '限流阈值类型','3', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
-INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`date_created`,`date_updated`) VALUES ('2','10', 'flowRuleControlBehavior', '流控效果','3', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
-INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`date_created`,`date_updated`) VALUES ('3','10', 'flowRuleEnable', '是否开启流控','1', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
-INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`date_created`,`date_updated`) VALUES ('4','10', 'flowRuleCount', '限流阈值','1', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
-INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`date_created`,`date_updated`) VALUES ('5','10', 'degradeRuleEnable', '是否开启熔断','1', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
-INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`date_created`,`date_updated`) VALUES ('6','10', 'degradeRuleGrade', '熔断类型','3', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
-INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`date_created`,`date_updated`) VALUES ('7','10', 'degradeRuleCount', '熔断阈值','1', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
-INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`date_created`,`date_updated`) VALUES ('8','10', 'degradeRuleTimeWindow', '熔断窗口大小','1', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('1','10', 'flowRuleGrade', '限流阈值类型','3', 2, 8, '2020-11-09 01:19:10', '2020-11-09 01:19:10');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('2','10', 'flowRuleControlBehavior', '流控效果','3', 2, 5, '2020-11-09 01:19:10', '2020-11-09 01:19:10');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('3','10', 'flowRuleEnable', '是否开启流控(1或0)','1', 2, 7, '2020-11-09 01:19:10', '2020-11-09 01:19:10');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('4','10', 'flowRuleCount', '限流阈值','1', 2, 6, '2020-11-09 01:19:10', '2020-11-09 01:19:10');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('5','10', 'degradeRuleEnable', '是否开启熔断(1或0)','1', 2, 2, '2020-11-09 01:19:10', '2020-11-09 01:19:10');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('6','10', 'degradeRuleGrade', '熔断类型','3', 2, 3, '2020-11-09 01:19:10', '2020-11-09 01:19:10');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('7','10', 'degradeRuleCount', '熔断阈值','1', 2, 1, '2020-11-09 01:19:10', '2020-11-09 01:19:10');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('8','10', 'degradeRuleTimeWindow', '熔断窗口大小','1', 2, 4, '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 
-INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`date_created`,`date_updated`) VALUES ('9','2', 'permission', '许可','3', '2020-11-22 12:04:10', '2020-11-22 12:04:10');
-INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`date_created`,`date_updated`) VALUES ('10','2', 'statusCode', '状态码','2', '2020-11-22 12:04:10', '2020-11-22 12:04:10');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('9','2', 'permission', '许可','3', 2, 1, '2020-11-22 12:04:10', '2020-11-22 12:04:10');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('10','2', 'statusCode', '状态码','2', 2, 2, '2020-11-22 12:04:10', '2020-11-22 12:04:10');
 
 /**user**/
 INSERT IGNORE INTO `dashboard_user` (`id`, `user_name`, `password`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('1', 'admin', 'jHcpKkiDbbQh7W7hh8yQSA==', '1', '1', '2018-06-23 15:12:22', '2018-06-23 15:12:23');
 
-/*update plugin role to use plugin_handle*/
-update `plugin` set role = 1 where id = '4' and name = 'rate_limiter';
-update `plugin` set role = 1 where id = '1' and name = 'sign';
-update `plugin` set role = 1 where id = '2' and name = 'waf';
-update `plugin` set role = 1 where id = '6' and name = 'dubbo';
-update `plugin` set role = 1 where id = '7' and name = 'monitor';
-update `plugin` set role = 1 where id = '10' and name = 'sentinel';
-
 /*insert plugin_handle data for rate_limiter*/
-INSERT IGNORE INTO `plugin_handle`(`id`, `plugin_id`, `field`, `label`, `data_type`, `date_created`, `date_updated`) VALUES ('11', '4', 'replenishRate', '速率', 2, '2020-11-24 00:17:10', '2020-11-24 00:17:10');
-INSERT IGNORE INTO `plugin_handle`(`id`, `plugin_id`, `field`, `label`, `data_type`, `date_created`, `date_updated`) VALUES ('12', '4', 'burstCapacity', '容量', 2, '2020-11-24 00:17:10', '2020-11-24 00:17:10');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('11', '4', 'replenishRate', '速率', 2, 2, 2, '2020-11-24 00:17:10', '2020-11-24 00:17:10');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('12', '4', 'burstCapacity', '容量', 2, 2, 1, '2020-11-24 00:17:10', '2020-11-24 00:17:10');
 
-
--- add column type,sort for plugin_handle
-alter table plugin_handle add column type smallint(6) NULL COMMENT '类型,1 表示选择器，2 表示规则' after data_type;
-alter table plugin_handle add column sort int(4)  NULL COMMENT '排序' after type;
-
--- update type
-update plugin_handle set type = '2' where id in( '1','2','3','4','5','6','7','8','9','10','11','12');
-
--- sentinel sort
-update plugin_handle set sort = 8 where id = '1';
-update plugin_handle set sort = 5 where id = '2';
-update plugin_handle set sort = 7 where id = '3';
-update plugin_handle set sort = 6 where id = '4';
-update plugin_handle set sort = 2 where id = '5';
-update plugin_handle set sort = 3 where id = '6';
-update plugin_handle set sort = 1 where id = '7';
-update plugin_handle set sort = 4 where id = '8';
--- waf sort
-update plugin_handle set sort = 1 where id = '9';
-update plugin_handle set sort = 2 where id = '10';
--- rate_limiter sort
-update plugin_handle set sort = 2 where id = '11';
-update plugin_handle set sort = 1 where id = '12';
-
-
+/*insert plugin_handle data for rewrite*/
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('13', '3', 'rewriteURI', 'rewriteURI', 2, 2, 1, '2020-11-29 16:07:10', '2020-11-29 16:07:10');
