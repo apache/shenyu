@@ -403,28 +403,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         }
         ruleConditionDTO.setParamValue(path);
         ruleDTO.setRuleConditions(Collections.singletonList(ruleConditionDTO));
-        if (rpcType.equals(RpcTypeEnum.DUBBO.getName())) {
-            DubboRuleHandle dubboRuleHandle = new DubboRuleHandle();
-            dubboRuleHandle.setLoadBalance(LoadBalanceEnum.RANDOM.getName());
-            dubboRuleHandle.setRetries(0);
-            dubboRuleHandle.setTimeout(3000);
-            ruleDTO.setHandle(JsonUtils.toJson(dubboRuleHandle));
-        } else if (rpcType.equals(RpcTypeEnum.HTTP.getName())) {
-            DivideRuleHandle divideRuleHandle = new DivideRuleHandle();
-            divideRuleHandle.setLoadBalance(LoadBalanceEnum.RANDOM.getName());
-            divideRuleHandle.setRetry(0);
-            ruleDTO.setHandle(JsonUtils.toJson(divideRuleHandle));
-        } else if (rpcType.equals(RpcTypeEnum.SOFA.getName())) {
-            SofaRuleHandle sofaRuleHandle = new SofaRuleHandle();
-            sofaRuleHandle.setLoadBalance(LoadBalanceEnum.RANDOM.getName());
-            sofaRuleHandle.setRetries(0);
-            sofaRuleHandle.setTimeout(3000);
-            ruleDTO.setHandle(JsonUtils.toJson(sofaRuleHandle));
-        } else {
-            SpringCloudRuleHandle springCloudRuleHandle = new SpringCloudRuleHandle();
-            springCloudRuleHandle.setPath(path);
-            ruleDTO.setHandle(JsonUtils.toJson(springCloudRuleHandle));
-        }
+        ruleDTO.setHandle(JsonUtils.toJson(RpcTypeEnum.acquireByName(rpcType).ruleHandle(path)));
         ruleService.register(ruleDTO);
     }
 }

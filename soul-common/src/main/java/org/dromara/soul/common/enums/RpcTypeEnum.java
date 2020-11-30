@@ -19,8 +19,14 @@ package org.dromara.soul.common.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.dromara.soul.common.dto.convert.rule.DivideRuleHandle;
+import org.dromara.soul.common.dto.convert.rule.DubboRuleHandle;
+import org.dromara.soul.common.dto.convert.rule.SofaRuleHandle;
+import org.dromara.soul.common.dto.convert.rule.SpringCloudRuleHandle;
 import org.dromara.soul.common.exception.SoulException;
+import org.dromara.soul.common.utils.JsonUtils;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,17 +43,57 @@ public enum RpcTypeEnum {
     /**
      * Http rpc type enum.
      */
-    HTTP("http", true),
+    HTTP("http", true) {
+
+        private final LoadBalanceEnum   loadBalance = LoadBalanceEnum.RANDOM;
+        private final int               retry = 0;
+
+        @Override
+        public Serializable ruleHandle(final String path) {
+            DivideRuleHandle divideRuleHandle = new DivideRuleHandle();
+            divideRuleHandle.setLoadBalance(loadBalance.getName());
+            divideRuleHandle.setRetry(retry);
+            return divideRuleHandle;
+        }
+    },
 
     /**
      * Dubbo rpc type enum.
      */
-    DUBBO("dubbo", true),
+    DUBBO("dubbo", true) {
+
+        private final LoadBalanceEnum   loadBalance = LoadBalanceEnum.RANDOM;
+        private final int               retries = 0;
+        private final long              timeout = 3000;
+
+        @Override
+        public Serializable ruleHandle(final String path) {
+            DubboRuleHandle dubboRuleHandle = new DubboRuleHandle();
+            dubboRuleHandle.setLoadBalance(loadBalance.getName());
+            dubboRuleHandle.setRetries(retries);
+            dubboRuleHandle.setTimeout(timeout);
+            return dubboRuleHandle;
+        }
+    },
 
     /**
      * Sofa rpc type enum.
      */
-    SOFA("sofa", true),
+    SOFA("sofa", true) {
+
+        private final LoadBalanceEnum   loadBalance = LoadBalanceEnum.RANDOM;
+        private final int               retries = 0;
+        private final long              timeout = 3000;
+
+        @Override
+        public Serializable ruleHandle(String path) {
+            SofaRuleHandle sofaRuleHandle = new SofaRuleHandle();
+            sofaRuleHandle.setLoadBalance(loadBalance.getName());
+            sofaRuleHandle.setRetries(retries);
+            sofaRuleHandle.setTimeout(timeout);
+            return sofaRuleHandle;
+        }
+    },
 
     /**
      * Web socket rpc type enum.
@@ -94,5 +140,17 @@ public enum RpcTypeEnum {
         return Arrays.stream(RpcTypeEnum.values())
                 .filter(e -> e.support && e.name.equals(name)).findFirst()
                 .orElseThrow(() -> new SoulException(String.format(" this rpc type can not support %s", name)));
+    }
+
+    /**
+     * ruleHandle
+     * This method is design for overwrite.
+     * @param path this is access path
+     * @return Default rpc rule handler.
+     */
+    public Serializable ruleHandle(final String path) {
+        SpringCloudRuleHandle springCloudRuleHandle = new SpringCloudRuleHandle();
+        springCloudRuleHandle.setPath(path);
+        return springCloudRuleHandle;
     }
 }
