@@ -114,6 +114,10 @@
         <swagger.version>2.9.2</swagger.version>
         <apache-rat-plugin.version>0.12</apache-rat-plugin.version>
         <sofa.rpc.version>5.7.6</sofa.rpc.version>
+        <skipTests>false</skipTests>
+        <undertow.version>2.2.2.Final</undertow.version>
+        <curator-test.version>3.3.0</curator-test.version>
+        <wiremock.version>2.18.0</wiremock.version>
     </properties>
 
     <dependencyManagement>
@@ -451,7 +455,7 @@
                 <version>3.0.0-M4</version>
                 <configuration>
                     <!-- 略过整个单元测试的执行，不推荐 -->
-                    <skip>true</skip>
+                    <skip>${skipTests}</skip>
                 </configuration>
             </plugin>
             <plugin>
