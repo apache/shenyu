@@ -24,7 +24,6 @@ import org.dromara.soul.common.dto.convert.rule.DubboRuleHandle;
 import org.dromara.soul.common.dto.convert.rule.SofaRuleHandle;
 import org.dromara.soul.common.dto.convert.rule.SpringCloudRuleHandle;
 import org.dromara.soul.common.exception.SoulException;
-import org.dromara.soul.common.utils.JsonUtils;
 
 import java.io.Serializable;
 import java.util.Arrays;
