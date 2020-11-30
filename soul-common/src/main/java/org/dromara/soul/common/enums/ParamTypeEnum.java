@@ -87,6 +87,6 @@ public enum ParamTypeEnum {
     public static ParamTypeEnum getParamTypeEnumByName(final String name) {
         return Arrays.stream(ParamTypeEnum.values())
                 .filter(e -> e.getName().equals(name) && e.support).findFirst()
-                .orElseThrow(() -> new SoulException(" this  param type can not support!"));
+                .orElseThrow(() -> new SoulException(String.format(" this  param type can not support %s", name)));
     }
 }

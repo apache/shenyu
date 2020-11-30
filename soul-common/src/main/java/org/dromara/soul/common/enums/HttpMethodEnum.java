@@ -65,7 +65,7 @@ public enum HttpMethodEnum {
     public static HttpMethodEnum acquireByName(final String name) {
         return Arrays.stream(HttpMethodEnum.values())
                 .filter(e -> e.support && e.name.equals(name)).findFirst()
-                .orElseThrow(() -> new SoulException(" this http method can not support!"));
+                .orElseThrow(() -> new SoulException(String.format(" this http method can not support %s", name)));
     }
 
 }
