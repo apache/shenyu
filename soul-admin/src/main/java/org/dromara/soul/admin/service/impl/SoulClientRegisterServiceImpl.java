@@ -72,6 +72,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("soulClientRegisterService")
 public class SoulClientRegisterServiceImpl implements SoulClientRegisterService {
 
+    private static final String SUCCESS = "success";
+
     private final MetaDataMapper metaDataMapper;
 
     private final ApplicationEventPublisher eventPublisher;
@@ -87,6 +89,9 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     private final SelectorMapper selectorMapper;
 
     private final PluginMapper pluginMapper;
+
+
+
 
     /**
      * Instantiates a new Meta data service.
@@ -130,7 +135,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         }
         String selectorId = handlerSpringMvcSelector(dto);
         handlerSpringMvcRule(selectorId, dto);
-        return "success";
+        return SUCCESS;
     }
 
     @Override
@@ -142,7 +147,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         }
         String selectorId = handlerSpringCloudSelector(dto);
         handlerSpringCloudRule(selectorId, dto);
-        return "success";
+        return SUCCESS;
     }
 
     @Override
@@ -152,7 +157,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         saveOrUpdateMetaData(exist, dto);
         String selectorId = handlerDubboSelector(dto);
         handlerDubboRule(selectorId, dto);
-        return "success";
+        return SUCCESS;
     }
 
     private String handlerDubboSelector(final MetaDataDTO metaDataDTO) {
@@ -185,7 +190,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         saveOrUpdateMetaData(exist, dto);
         String selectorId = handlerSofaSelector(dto);
         handlerSofaRule(selectorId, dto, exist);
-        return "success";
+        return SUCCESS;
     }
 
     private String handlerSofaSelector(final MetaDataDTO metaDataDTO) {
