@@ -44,8 +44,8 @@ public enum RpcTypeEnum {
      */
     HTTP("http", true) {
 
-        private final LoadBalanceEnum   loadBalance = LoadBalanceEnum.RANDOM;
-        private final int               retry = 0;
+        private final LoadBalanceEnum loadBalance = LoadBalanceEnum.RANDOM;
+        private final int retry = 0;
 
         @Override
         public Serializable ruleHandle(final String path) {
@@ -61,9 +61,9 @@ public enum RpcTypeEnum {
      */
     DUBBO("dubbo", true) {
 
-        private final LoadBalanceEnum   loadBalance = LoadBalanceEnum.RANDOM;
-        private final int               retries = 0;
-        private final long              timeout = 3000;
+        private final LoadBalanceEnum loadBalance = LoadBalanceEnum.RANDOM;
+        private final int retries = 0;
+        private final long timeout = 3000;
 
         @Override
         public Serializable ruleHandle(final String path) {
@@ -80,12 +80,12 @@ public enum RpcTypeEnum {
      */
     SOFA("sofa", true) {
 
-        private final LoadBalanceEnum   loadBalance = LoadBalanceEnum.RANDOM;
-        private final int               retries = 0;
-        private final long              timeout = 3000;
+        private final LoadBalanceEnum loadBalance = LoadBalanceEnum.RANDOM;
+        private final int retries = 0;
+        private final long timeout = 3000;
 
         @Override
-        public Serializable ruleHandle(String path) {
+        public Serializable ruleHandle(final String path) {
             SofaRuleHandle sofaRuleHandle = new SofaRuleHandle();
             sofaRuleHandle.setLoadBalance(loadBalance.getName());
             sofaRuleHandle.setRetries(retries);
