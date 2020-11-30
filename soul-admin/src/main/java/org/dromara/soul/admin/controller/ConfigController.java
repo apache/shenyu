@@ -21,6 +21,7 @@ import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.admin.listener.http.HttpLongPollingDataChangedListener;
 import org.dromara.soul.admin.result.SoulAdminResult;
+import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.common.dto.ConfigData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -63,7 +64,7 @@ public class ConfigController {
             ConfigData<?> data = longPollingListener.fetchConfig(ConfigGroupEnum.valueOf(groupKey));
             result.put(groupKey, data);
         }
-        return SoulAdminResult.success("success", result);
+        return SoulAdminResult.success(SoulResultMessage.SUCCESS, result);
     }
 
     /**
