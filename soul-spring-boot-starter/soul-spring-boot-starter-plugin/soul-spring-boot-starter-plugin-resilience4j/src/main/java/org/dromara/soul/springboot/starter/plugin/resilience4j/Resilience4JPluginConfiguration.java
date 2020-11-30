@@ -19,7 +19,7 @@ package org.dromara.soul.springboot.starter.plugin.resilience4j;
 
 import org.dromara.soul.plugin.resilience4j.Resilence4JPlugin;
 import org.dromara.soul.plugin.resilience4j.executor.CombinedExecutor;
-import org.dromara.soul.plugin.resilience4j.executor.RatelimiterExecutor;
+import org.dromara.soul.plugin.resilience4j.executor.RateLimiterExecutor;
 import org.dromara.soul.plugin.resilience4j.handler.Resilience4JHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,7 +39,7 @@ public class Resilience4JPluginConfiguration {
      */
     @Bean
     public Resilence4JPlugin resilencePlugin() {
-        return new Resilence4JPlugin(new CombinedExecutor(), new RatelimiterExecutor());
+        return new Resilence4JPlugin(new CombinedExecutor(), new RateLimiterExecutor());
     }
 
     /**

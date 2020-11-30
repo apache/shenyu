@@ -19,6 +19,7 @@ package org.dromara.soul.plugin.resilience4j.executor;
 
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.plugin.api.result.SoulResultEnum;
 import org.dromara.soul.plugin.base.utils.SoulResultWrap;
@@ -67,7 +68,7 @@ public interface Executor {
             return withoutFallback(exchange, t);
         }
         DispatcherHandler dispatcherHandler = SpringBeanUtils.getInstance().getBean(DispatcherHandler.class);
-        ServerHttpRequest request = exchange.getRequest().mutate().uri(UriUtils.createUri(uri)).build();
+        ServerHttpRequest request = exchange.getRequest().mutate().uri(Objects.requireNonNull(UriUtils.createUri(uri))).build();
         ServerWebExchange mutated = exchange.mutate().request(request).build();
         return dispatcherHandler.handle(mutated);
     }
@@ -76,20 +77,20 @@ public interface Executor {
      * do fallback with not  fallback method.
      *
      * @param exchange the exchange
-     * @param t        the t
+     * @param throwable the throwable
      * @return Mono
      */
-    default Mono<Void> withoutFallback(ServerWebExchange exchange, Throwable t) {
+    default Mono<Void> withoutFallback(ServerWebExchange exchange, Throwable throwable) {
         Object error;
-        if (TimeoutException.class.isInstance(t)) {
+        if (throwable instanceof TimeoutException) {
             exchange.getResponse().setStatusCode(HttpStatus.GATEWAY_TIMEOUT);
             error = SoulResultWrap.error(SoulResultEnum.SERVICE_TIMEOUT.getCode(), SoulResultEnum.SERVICE_TIMEOUT.getMsg(), null);
-        } else if (Resilence4JPlugin.CircuitBreakerStatusCodeException.class.isInstance(t)) {
-            return Mono.error(t);
-        } else if (CallNotPermittedException.class.isInstance(t)) {
+        } else if (throwable instanceof Resilence4JPlugin.CircuitBreakerStatusCodeException) {
+            return Mono.error(throwable);
+        } else if (throwable instanceof CallNotPermittedException) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             error = SoulResultWrap.error(SoulResultEnum.SERVICE_RESULT_ERROR.getCode(), SoulResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
-        } else if (RequestNotPermitted.class.isInstance(t)) {
+        } else if (throwable instanceof RequestNotPermitted) {
             exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
             error = SoulResultWrap.error(SoulResultEnum.TOO_MANY_REQUESTS.getCode(), SoulResultEnum.TOO_MANY_REQUESTS.getMsg(), null);
         } else {

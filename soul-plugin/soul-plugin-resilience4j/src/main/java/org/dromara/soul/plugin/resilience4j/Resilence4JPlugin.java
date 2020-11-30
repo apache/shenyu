@@ -30,7 +30,7 @@ import org.dromara.soul.plugin.resilience4j.build.Resilience4JBuilder;
 import org.dromara.soul.plugin.resilience4j.conf.Resilience4JConf;
 import org.dromara.soul.plugin.resilience4j.executor.CombinedExecutor;
 import org.dromara.soul.plugin.resilience4j.executor.Executor;
-import org.dromara.soul.plugin.resilience4j.executor.RatelimiterExecutor;
+import org.dromara.soul.plugin.resilience4j.executor.RateLimiterExecutor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.server.ServerWebExchange;
@@ -47,10 +47,10 @@ public class Resilence4JPlugin extends AbstractSoulPlugin {
 
     private final CombinedExecutor combinedExecutor;
 
-    private final RatelimiterExecutor ratelimiterExecutor;
+    private final RateLimiterExecutor ratelimiterExecutor;
 
     public Resilence4JPlugin(final CombinedExecutor combinedExecutor,
-                             final RatelimiterExecutor ratelimiterExecutor) {
+                             final RateLimiterExecutor ratelimiterExecutor) {
         this.combinedExecutor = combinedExecutor;
         this.ratelimiterExecutor = ratelimiterExecutor;
     }
@@ -63,15 +63,13 @@ public class Resilence4JPlugin extends AbstractSoulPlugin {
         if (resilience4JHandle.getCircuitEnable() == 1) {
             return combined(exchange, chain, rule);
         }
-        return ratelimiter(exchange, chain, rule);
+        return rateLimiter(exchange, chain, rule);
     }
 
-    private Mono<Void> ratelimiter(final ServerWebExchange exchange, final SoulPluginChain chain, final RuleData rule) {
+    private Mono<Void> rateLimiter(final ServerWebExchange exchange, final SoulPluginChain chain, final RuleData rule) {
         return ratelimiterExecutor.run(
                 chain.execute(exchange), fallback(ratelimiterExecutor, exchange, null), Resilience4JBuilder.build(rule))
-                .onErrorResume(throwable -> {
-                    return ratelimiterExecutor.withoutFallback(exchange, throwable);
-                });
+                .onErrorResume(throwable -> ratelimiterExecutor.withoutFallback(exchange, throwable));
     }
 
     private Mono<Void> combined(final ServerWebExchange exchange, final SoulPluginChain chain, final RuleData rule) {
@@ -88,9 +86,7 @@ public class Resilence4JPlugin extends AbstractSoulPlugin {
 
     private Function<Throwable, Mono<Void>> fallback(final Executor executor,
                                                      final ServerWebExchange exchange, final String uri) {
-        return throwable -> {
-            return executor.fallback(exchange, uri, throwable);
-        };
+        return throwable -> executor.fallback(exchange, uri, throwable);
     }
 
     @Override
@@ -103,7 +99,7 @@ public class Resilence4JPlugin extends AbstractSoulPlugin {
         return PluginEnum.RESILIENCE4J.getName();
     }
 
-    public class CircuitBreakerStatusCodeException extends HttpStatusCodeException {
+    public static class CircuitBreakerStatusCodeException extends HttpStatusCodeException {
 
         public CircuitBreakerStatusCodeException(final HttpStatus statusCode) {
             super(statusCode);

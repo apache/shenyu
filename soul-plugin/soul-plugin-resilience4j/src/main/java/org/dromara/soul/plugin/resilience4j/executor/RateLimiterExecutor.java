@@ -26,18 +26,18 @@ import org.dromara.soul.plugin.resilience4j.conf.Resilience4JConf;
 import io.github.resilience4j.reactor.ratelimiter.operator.RateLimiterOperator;
 
 /**
- * Ratelimiter executor.
+ * Rate limiter executor.
  *
  * @author zhanglei
  */
-public class RatelimiterExecutor implements Executor {
+public class RateLimiterExecutor implements Executor {
 
     @Override
     public <T> Mono<T> run(final Mono<T> toRun, final Function<Throwable, Mono<T>> fallback, final Resilience4JConf conf) {
         RateLimiter rateLimiter = Resilience4JRegistryFactory.rateLimiter(conf.getId(), conf.getRateLimiterConfig());
         Mono<T> to = toRun.transformDeferred(RateLimiterOperator.of(rateLimiter));
         if (fallback != null) {
-            to.onErrorResume(fallback);
+            return to.onErrorResume(fallback);
         }
         return to;
     }
