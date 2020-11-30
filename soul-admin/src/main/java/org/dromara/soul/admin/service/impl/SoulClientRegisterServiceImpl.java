@@ -42,6 +42,7 @@ import org.dromara.soul.admin.service.RuleService;
 import org.dromara.soul.admin.service.SelectorService;
 import org.dromara.soul.admin.service.SoulClientRegisterService;
 import org.dromara.soul.admin.transfer.MetaDataTransfer;
+import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.dto.convert.rule.DivideRuleHandle;
@@ -71,8 +72,6 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service("soulClientRegisterService")
 public class SoulClientRegisterServiceImpl implements SoulClientRegisterService {
-
-    private static final String SUCCESS = "success";
 
     private final MetaDataMapper metaDataMapper;
 
@@ -135,7 +134,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         }
         String selectorId = handlerSpringMvcSelector(dto);
         handlerSpringMvcRule(selectorId, dto);
-        return SUCCESS;
+        return SoulResultMessage.SUCCESS;
     }
 
     @Override
@@ -147,7 +146,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         }
         String selectorId = handlerSpringCloudSelector(dto);
         handlerSpringCloudRule(selectorId, dto);
-        return SUCCESS;
+        return SoulResultMessage.SUCCESS;
     }
 
     @Override
@@ -157,7 +156,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         saveOrUpdateMetaData(exist, dto);
         String selectorId = handlerDubboSelector(dto);
         handlerDubboRule(selectorId, dto);
-        return SUCCESS;
+        return SoulResultMessage.SUCCESS;
     }
 
     private String handlerDubboSelector(final MetaDataDTO metaDataDTO) {
@@ -190,7 +189,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         saveOrUpdateMetaData(exist, dto);
         String selectorId = handlerSofaSelector(dto);
         handlerSofaRule(selectorId, dto, exist);
-        return SUCCESS;
+        return SoulResultMessage.SUCCESS;
     }
 
     private String handlerSofaSelector(final MetaDataDTO metaDataDTO) {
