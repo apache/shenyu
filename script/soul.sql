@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS `plugin_handle` (
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `plugin_id_field` (`plugin_id`,`field`)
+  UNIQUE KEY `plugin_id_field_type` (`plugin_id`,`field`,`type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 
