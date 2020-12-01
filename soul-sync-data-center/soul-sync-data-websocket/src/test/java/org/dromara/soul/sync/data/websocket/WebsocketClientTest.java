@@ -17,21 +17,60 @@
 
 package org.dromara.soul.sync.data.websocket;
 
+import io.undertow.Undertow;
+import io.undertow.websockets.core.AbstractReceiveListener;
+import io.undertow.websockets.core.BufferedTextMessage;
+import io.undertow.websockets.core.WebSocketChannel;
+import io.undertow.websockets.core.WebSockets;
 import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.enums.ReadyState;
 import org.java_websocket.handshake.ServerHandshake;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+
+import static io.undertow.Handlers.path;
+import static io.undertow.Handlers.websocket;
 
 /**
  * @author xiaoyu(Myth)
  */
 public class WebsocketClientTest {
-    
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(WebsocketClientTest.class);
     public static WebSocketClient client;
-    
+    private static Undertow server;
+
+    @BeforeClass
+    public static void init() {
+        server = Undertow.builder()
+                .addHttpListener(8888, "localhost")
+                .setHandler(path()
+                        .addPrefixPath("/websocket", websocket((exchange, channel) -> {
+                            channel.getReceiveSetter().set(new AbstractReceiveListener() {
+
+                                @Override
+                                protected void onFullTextMessage(WebSocketChannel channel, BufferedTextMessage message) {
+                                    WebSockets.sendText(message.getData(), channel, null);
+                                }
+                            });
+                            channel.resumeReceives();
+                        })))
+                .build();
+        server.start();
+    }
+
+    @AfterClass
+    public static void after() {
+        server.stop();
+    }
+
     @Before
     public void setUp() {
         try {
@@ -40,17 +79,17 @@ public class WebsocketClientTest {
                 public void onOpen(final ServerHandshake serverHandshake) {
                     System.out.println("打开链接");
                 }
-                
+
                 @Override
                 public void onMessage(final String s) {
                     System.out.println("收到消息" + s);
                 }
-                
+
                 @Override
                 public void onClose(final int i, final String s, final boolean b) {
                     System.out.println("链接已关闭");
                 }
-                
+
                 @Override
                 public void onError(final Exception e) {
                     e.printStackTrace();
@@ -61,12 +100,15 @@ public class WebsocketClientTest {
             e.printStackTrace();
         }
         client.connect();
-        
+
     }
-    
+
     @Test
     public void send() {
+        while (!client.getReadyState().equals(ReadyState.OPEN)) {
+            LOGGER.debug("连接中···请稍后");
+        }
         client.send("xiaoyu");
     }
-    
+
 }
