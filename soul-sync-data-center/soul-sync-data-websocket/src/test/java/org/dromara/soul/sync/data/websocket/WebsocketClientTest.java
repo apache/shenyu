@@ -25,15 +25,16 @@ import io.undertow.websockets.core.WebSockets;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.enums.ReadyState;
 import org.java_websocket.handshake.ServerHandshake;
+import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
-import java.net.URISyntaxException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static io.undertow.Handlers.path;
 import static io.undertow.Handlers.websocket;
@@ -71,44 +72,42 @@ public class WebsocketClientTest {
         server.stop();
     }
 
-    @Before
-    public void setUp() {
-        try {
-            client = new WebSocketClient(new URI("ws://localhost:8888/websocket")) {
-                @Override
-                public void onOpen(final ServerHandshake serverHandshake) {
-                    System.out.println("打开链接");
-                }
-
-                @Override
-                public void onMessage(final String s) {
-                    System.out.println("收到消息" + s);
-                }
-
-                @Override
-                public void onClose(final int i, final String s, final boolean b) {
-                    System.out.println("链接已关闭");
-                }
-
-                @Override
-                public void onError(final Exception e) {
-                    e.printStackTrace();
-                    System.out.println("发生错误已关闭");
-                }
-            };
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
-        client.connect();
-
+    @After
+    public void destroy() {
+        client.close();
     }
 
     @Test
-    public void send() {
+    public void send() throws Exception {
+        final CountDownLatch latch = new CountDownLatch(1);
+        client = new WebSocketClient(new URI("ws://localhost:8888/websocket")) {
+            @Override
+            public void onOpen(final ServerHandshake serverHandshake) {
+                LOGGER.info("Open connection");
+            }
+
+            @Override
+            public void onMessage(final String s) {
+                LOGGER.info("Received {}", s);
+                latch.countDown();
+            }
+
+            @Override
+            public void onClose(final int i, final String s, final boolean b) {
+                LOGGER.info("Close connection");
+            }
+
+            @Override
+            public void onError(final Exception e) {
+                LOGGER.error("", e);
+            }
+        };
+        client.connect();
         while (!client.getReadyState().equals(ReadyState.OPEN)) {
-            LOGGER.debug("连接中···请稍后");
+            LOGGER.debug("connecting...");
         }
         client.send("xiaoyu");
+        latch.await(10, TimeUnit.SECONDS);
     }
 
 }

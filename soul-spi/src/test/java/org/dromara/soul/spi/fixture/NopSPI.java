@@ -17,18 +17,5 @@
 
 package org.dromara.soul.spi.fixture;
 
-import org.dromara.soul.spi.SPI;
-
-/**
- * The interface Jdbc spi.
- */
-@SPI
-public interface JdbcSPI {
-
-    /**
-     * Gets class name.
-     *
-     * @return the class name
-     */
-    String getClassName();
+public interface NopSPI {
 }
