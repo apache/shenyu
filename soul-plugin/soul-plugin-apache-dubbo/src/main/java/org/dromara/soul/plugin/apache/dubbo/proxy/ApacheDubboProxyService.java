@@ -70,7 +70,7 @@ public class ApacheDubboProxyService {
         }
         GenericService genericService = reference.get();
         Pair<String[], Object[]> pair;
-        if (null == body || "".equals(body) || "{}".equals(body) || "null".equals(body)) {
+        if (StringUtils.isBlank(body) || Constants.BRACE.equals(body) || Constants.NULL.equals(body)) {
             pair = new ImmutablePair<>(new String[]{}, new Object[]{});
         } else {
             pair = dubboParamResolveService.buildParameter(body, metaData.getParameterTypes());

@@ -59,6 +59,7 @@ public class GsonUtils {
      */
     private static final TypeAdapter<String> STRING = new TypeAdapter<String>() {
         @SneakyThrows
+        @Override
         public void write(final JsonWriter out, final String value) {
             if (StringUtils.isBlank(value)) {
                 out.nullValue();
@@ -68,6 +69,7 @@ public class GsonUtils {
         }
 
         @SneakyThrows
+        @Override
         public String read(final JsonReader reader) {
             if (reader.peek() == JsonToken.NULL) {
                 reader.nextNull();

@@ -37,6 +37,7 @@ public interface CounterMetricsTracker extends MetricsTracker {
      *
      * @return metrics type
      */
+    @Override
     default String metricsType() {
         return MetricsTypeEnum.COUNTER.name();
     }

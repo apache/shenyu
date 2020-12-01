@@ -259,6 +259,21 @@ public interface Constants {
      */
     String COLONS = ":";
 
+    /**
+     * The constant BRACE.
+     */
+    String BRACE = "{}";
+
+    /**
+     * The constant NULL
+     */
+    String NULL = "null";
+
+    /**
+     * The constant SUCCESS
+     */
+    String SUCCESS = "success";
+
     String REQUEST_LATENCY = "REQUEST_LATENCY";
 
     /**

@@ -75,7 +75,7 @@ public class SofaProxyService {
         }
         GenericService genericService = reference.refer();
         Pair<String[], Object[]> pair;
-        if (null == body || "".equals(body) || "{}".equals(body) || "null".equals(body)) {
+        if (StringUtils.isBlank(body) || Constants.BRACE.equals(body) || Constants.NULL.equals(body)) {
             pair = new ImmutablePair<>(new String[]{}, new Object[]{});
         } else {
             pair = sofaParamResolveService.buildParameter(body, metaData.getParameterTypes());

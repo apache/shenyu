@@ -322,7 +322,8 @@ public class JmxCollector extends Collector implements Collector.Describable {
             }
             addSample(new MetricFamilySamples.Sample(fullname, labelNames, labelValues, ((Number) value).doubleValue()), type, help);
         }
-        
+
+        @Override
         public void recordBean(final String domain, final Map<String, String> beanProperties, final LinkedList<String> attrKeys,
                                final String attrName, final String attrType, final String attrDescription, final Object beanObject) {
             String beanName = domain + angleBrackets(beanProperties.toString()) + angleBrackets(attrKeys.toString());

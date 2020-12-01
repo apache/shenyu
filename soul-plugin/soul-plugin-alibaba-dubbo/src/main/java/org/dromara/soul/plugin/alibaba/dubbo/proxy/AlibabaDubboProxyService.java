@@ -24,6 +24,7 @@ import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.exception.SoulException;
 import org.dromara.soul.plugin.alibaba.dubbo.cache.ApplicationConfigCache;
@@ -64,7 +65,7 @@ public class AlibabaDubboProxyService {
         }
         GenericService genericService = reference.get();
         try {
-            if (null == body || "".equals(body) || "{}".equals(body) || "null".equals(body)) {
+            if (StringUtils.isBlank(body) || Constants.BRACE.equals(body) || Constants.NULL.equals(body)) {
                 return genericService.$invoke(metaData.getMethodName(), new String[]{}, new Object[]{});
             } else {
                 Pair<String[], Object[]> pair = dubboParamResolveService.buildParameter(body, metaData.getParameterTypes());

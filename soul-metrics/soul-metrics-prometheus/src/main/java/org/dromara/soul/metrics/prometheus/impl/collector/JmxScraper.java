@@ -122,7 +122,7 @@ public class JmxScraper {
         if (jmxUrl.isEmpty()) {
             beanConn = ManagementFactory.getPlatformMBeanServer();
         } else {
-            Map<String, Object> environment = new HashMap<>();
+            Map<String, Object> environment = new HashMap<>(8);
             if (username != null && username.length() != 0 && password != null && password.length() != 0) {
                 String[] credent = new String[]{username, password};
                 environment.put(JMXConnector.CREDENTIALS, credent);

@@ -47,6 +47,7 @@ public interface HistogramMetricsTracker extends MetricsTracker {
      *
      * @return metrics type
      */
+    @Override
     default String metricsType() {
         return MetricsTypeEnum.HISTOGRAM.name();
     }

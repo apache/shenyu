@@ -88,6 +88,7 @@ public class CachedBodyOutputMessage implements ReactiveHttpOutputMessage {
      * @param body writeWith body
      * @return Mono
      */
+    @Override
     public Mono<Void> writeWith(final Publisher<? extends DataBuffer> body) {
         this.body = Flux.from(body);
         return Mono.empty();

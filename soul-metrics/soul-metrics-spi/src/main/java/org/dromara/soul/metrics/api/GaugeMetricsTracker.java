@@ -45,6 +45,7 @@ public interface GaugeMetricsTracker extends MetricsTracker {
      *
      * @return metrics type
      */
+    @Override
     default String metricsType() {
         return MetricsTypeEnum.GAUGE.name();
     }
