@@ -17,11 +17,19 @@
 
 package org.dromara.soul.plugin.httpclient;
 
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.any;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static org.junit.Assert.assertEquals;
 
 /**
  * The type Webclient test.
@@ -29,26 +37,34 @@ import reactor.core.publisher.Mono;
  * @author xiaoyu(Myth)
  */
 public class WebclientTest {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(WebclientTest.class);
-    
+
+    @Rule
+    public WireMockRule wireMockRule = new WireMockRule(WireMockConfiguration.wireMockConfig().dynamicPort(), false);
+
+    @Before
+    public final void setUpWiremock() {
+        wireMockRule.stubFor(any(urlEqualTo("/test"))
+                .willReturn(aResponse()
+                        .withStatus(200)));
+    }
+
     /**
      * Test web client.
      */
     @Test
     public void testWebClient() {
-        Mono<String> resp = WebClient.create()
+        ClientResponse resp = WebClient.builder()
+                .exchangeStrategies(ExchangeStrategies.builder()
+                        .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(1024 * 1024 * 10)).build())
+                .build()
                 .get()
-                .uri(uriBuilder -> uriBuilder
-                        .scheme("http")
-                        .host("www.baidu.com")
-                        .path("/s")
-                        .queryParam("wd", "北京天气")
-                        .queryParam("other", "test")
-                        .build())
-                .retrieve()
-                .bodyToMono(String.class);
-        LOGGER.info("result:{}", resp.block());
-        
+                .uri(getBaseUrl() + "/test")
+                .exchange()
+                .block();
+        assertEquals(200, resp.statusCode().value());
+    }
+
+    protected String getBaseUrl() {
+        return "http://localhost:" + wireMockRule.port();
     }
 }

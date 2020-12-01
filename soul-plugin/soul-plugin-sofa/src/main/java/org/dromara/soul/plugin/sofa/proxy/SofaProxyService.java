@@ -81,7 +81,7 @@ public class SofaProxyService {
             pair = sofaParamResolveService.buildParameter(body, metaData.getParameterTypes());
         }
         CompletableFuture<Object> future = new CompletableFuture<>();
-        RpcInvokeContext.getContext().setResponseCallback(new SofaResponseCallback() {
+        RpcInvokeContext.getContext().setResponseCallback(new SofaResponseCallback<Object>() {
             @Override
             public void onAppResponse(final Object o, final String s, final RequestBase requestBase) {
                 future.complete(o);
@@ -105,6 +105,6 @@ public class SofaProxyService {
             exchange.getAttributes().put(Constants.SOFA_RPC_RESULT, ret);
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return ret;
-        })).onErrorMap(originalCause -> new SoulException(originalCause));
+        })).onErrorMap(SoulException::new);
     }
 }

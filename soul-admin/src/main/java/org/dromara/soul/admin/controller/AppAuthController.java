@@ -97,11 +97,7 @@ public class AppAuthController {
      * @return the soul result
      */
     @GetMapping("/findPageByQuery")
-    public SoulAdminResult findPageByQuery(
-            @RequestParam(value = "appKey", required = false) final String appKey,
-            @RequestParam(value = "phone", required = false) final String phone,
-            @RequestParam("currentPage") final Integer currentPage,
-            @RequestParam("pageSize") final Integer pageSize) {
+    public SoulAdminResult findPageByQuery(final String appKey, final String phone, final Integer currentPage, final Integer pageSize) {
         AppAuthQuery query = new AppAuthQuery();
         query.setPhone(phone);
         query.setAppKey(appKey);
