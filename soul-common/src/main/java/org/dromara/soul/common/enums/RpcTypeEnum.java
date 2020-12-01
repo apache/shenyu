@@ -44,14 +44,11 @@ public enum RpcTypeEnum {
      */
     HTTP("http", true) {
 
-        private final LoadBalanceEnum loadBalance = LoadBalanceEnum.RANDOM;
-        private final int retry = 0;
-
         @Override
         public Serializable ruleHandle(final String path) {
             DivideRuleHandle divideRuleHandle = new DivideRuleHandle();
-            divideRuleHandle.setLoadBalance(loadBalance.getName());
-            divideRuleHandle.setRetry(retry);
+            divideRuleHandle.setLoadBalance(getDefaultLoadBalance().getName());
+            divideRuleHandle.setRetry(getDefaultRetry());
             return divideRuleHandle;
         }
     },
@@ -61,16 +58,12 @@ public enum RpcTypeEnum {
      */
     DUBBO("dubbo", true) {
 
-        private final LoadBalanceEnum loadBalance = LoadBalanceEnum.RANDOM;
-        private final int retries = 0;
-        private final long timeout = 3000;
-
         @Override
         public Serializable ruleHandle(final String path) {
             DubboRuleHandle dubboRuleHandle = new DubboRuleHandle();
-            dubboRuleHandle.setLoadBalance(loadBalance.getName());
-            dubboRuleHandle.setRetries(retries);
-            dubboRuleHandle.setTimeout(timeout);
+            dubboRuleHandle.setLoadBalance(getDefaultLoadBalance().getName());
+            dubboRuleHandle.setRetries(getDefaultRetries());
+            dubboRuleHandle.setTimeout(getDefaultTimeout());
             return dubboRuleHandle;
         }
     },
@@ -80,16 +73,12 @@ public enum RpcTypeEnum {
      */
     SOFA("sofa", true) {
 
-        private final LoadBalanceEnum loadBalance = LoadBalanceEnum.RANDOM;
-        private final int retries = 0;
-        private final long timeout = 3000;
-
         @Override
         public Serializable ruleHandle(final String path) {
             SofaRuleHandle sofaRuleHandle = new SofaRuleHandle();
-            sofaRuleHandle.setLoadBalance(loadBalance.getName());
-            sofaRuleHandle.setRetries(retries);
-            sofaRuleHandle.setTimeout(timeout);
+            sofaRuleHandle.setLoadBalance(getDefaultLoadBalance().getName());
+            sofaRuleHandle.setRetries(getDefaultRetries());
+            sofaRuleHandle.setTimeout(getDefaultTimeout());
             return sofaRuleHandle;
         }
     },
@@ -119,6 +108,11 @@ public enum RpcTypeEnum {
 
     private final Boolean support;
 
+    // some default values for rule handlers.
+    private final LoadBalanceEnum defaultLoadBalance = LoadBalanceEnum.RANDOM;
+    private final int defaultRetries = 0;
+    private final long defaultTimeout = 3000;
+    private final int defaultRetry = 0;
     /**
      * acquire operator supports.
      *
