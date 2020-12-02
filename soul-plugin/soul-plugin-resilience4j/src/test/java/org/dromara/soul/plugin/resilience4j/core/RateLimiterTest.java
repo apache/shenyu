@@ -34,7 +34,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 
 /**
- * Ratemimiter test.
+ * RateLimiter test.
  *
  * @author zhanglei
  */

@@ -51,14 +51,14 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
  * @author zhanglei
  */
 @RunWith(MockitoJUnitRunner.class)
-public final class Resilence4JPluginTest {
+public final class Resilience4JPluginTest {
 
     @Mock
     private SoulPluginChain chain;
 
     private ServerWebExchange exchange;
 
-    private Resilience4JPlugin resilence4JPlugin;
+    private Resilience4JPlugin resilience4JPlugin;
 
     private RateLimiter rateLimiter;
 
@@ -76,27 +76,27 @@ public final class Resilence4JPluginTest {
     }
 
     @Test
-    public void noramlTest() {
-        resilence4JPlugin = new Resilience4JPlugin(new CombinedExecutor(), new RateLimiterExecutor());
+    public void normalTest() {
+        resilience4JPlugin = new Resilience4JPlugin(new CombinedExecutor(), new RateLimiterExecutor());
         RuleData data = mock(RuleData.class);
         when(data.getHandle()).thenReturn(handle);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         SelectorData selectorData = mock(SelectorData.class);
-        StepVerifier.create(resilence4JPlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
+        StepVerifier.create(resilience4JPlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
     }
 
     @Test
-    public void rateLimterTest() {
+    public void rateLimiterTest() {
         RuleData data = mock(RuleData.class);
         CombinedExecutor combinedExecutor = mock(CombinedExecutor.class);
-        resilence4JPlugin = new Resilience4JPlugin(combinedExecutor, new RateLimiterExecutor());
+        resilience4JPlugin = new Resilience4JPlugin(combinedExecutor, new RateLimiterExecutor());
         Mono mono = Mono.error(RequestNotPermitted.createRequestNotPermitted(rateLimiter)).onErrorResume(throwable -> {
             return Mono.error(throwable);
         });
         when(data.getHandle()).thenReturn(handle);
         when(chain.execute(exchange)).thenReturn(mono);
         SelectorData selectorData = mock(SelectorData.class);
-        StepVerifier.create(resilence4JPlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().expectError().verify();
+        StepVerifier.create(resilience4JPlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().expectError().verify();
     }
 
     @Test
@@ -104,7 +104,7 @@ public final class Resilence4JPluginTest {
         RuleData data = mock(RuleData.class);
         SelectorData selectorData = mock(SelectorData.class);
         CombinedExecutor combinedExecutor = new CombinedExecutor();
-        resilence4JPlugin = new Resilience4JPlugin(combinedExecutor, new RateLimiterExecutor());
+        resilience4JPlugin = new Resilience4JPlugin(combinedExecutor, new RateLimiterExecutor());
         Mono mono = Mono.error(CallNotPermittedException.createCallNotPermittedException(circuitBreaker)).onErrorResume(throwable -> {
             if (CallNotPermittedException.class.isInstance(throwable)) {
                 exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -115,7 +115,7 @@ public final class Resilence4JPluginTest {
         when(chain.execute(exchange)).thenReturn(mono);
         when(data.getSelectorId()).thenReturn("circuitBreaker");
         when(data.getName()).thenReturn("ruleData");
-        StepVerifier.create(resilence4JPlugin.doExecute(exchange, chain, selectorData, data))
+        StepVerifier.create(resilience4JPlugin.doExecute(exchange, chain, selectorData, data))
                 .expectSubscription()
                 .expectError()
                 .verify();
