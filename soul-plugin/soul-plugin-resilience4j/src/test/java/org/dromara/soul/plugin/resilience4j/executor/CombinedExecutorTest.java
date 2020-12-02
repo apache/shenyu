@@ -28,15 +28,16 @@ import org.mockito.junit.MockitoJUnitRunner;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 
 /**
- * circuitBreaker executor test.
+ * CircuitBreaker executor test.
  *
  * @author zhanglei
  */
 @RunWith(MockitoJUnitRunner.class)
-public class CombinedExecutorTest {
+public final class CombinedExecutorTest {
 
     private CombinedExecutor combinedExecutor;
 

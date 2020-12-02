@@ -41,15 +41,17 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 
 /**
- * resilence4J plugin test.
+ * Resilence4J plugin test.
  *
  * @author zhanglei
  */
 @RunWith(MockitoJUnitRunner.class)
-public class Resilence4JPluginTest {
+public final class Resilence4JPluginTest {
 
     @Mock
     private SoulPluginChain chain;
@@ -61,6 +63,8 @@ public class Resilence4JPluginTest {
     private RateLimiter rateLimiter;
 
     private CircuitBreaker circuitBreaker;
+
+    private static final String handle = "{\"limitForPeriod\":\"1\",\"limitRefreshPeriod\":\"2000\",\"timeoutDurationRate\":\"500\",\"circuitEnable\":\"0\",\"failureRateThreshold\":\"50\",\"fallbackUri\":\"\",\"minimumNumberOfCalls\":\"50\",\"permittedNumberOfCallsInHalfOpenState\":\"1\",\"slidingWindowSize\":\"100\",\"slidingWindowType\":\"0\",\"timeoutDuration\":\"20000000\",\"waitIntervalFunctionInOpenState\":\"100000\"}";
 
     @Before
     public void setup() {
@@ -75,7 +79,7 @@ public class Resilence4JPluginTest {
     public void noramlTest() {
         resilence4JPlugin = new Resilience4JPlugin(new CombinedExecutor(), new RateLimiterExecutor());
         RuleData data = mock(RuleData.class);
-        when(data.getHandle()).thenReturn("{\"limitForPeriod\":\"1\",\"limitRefreshPeriod\":\"2000\",\"timeoutDurationRate\":\"500\",\"circuitEnable\":\"0\",\"failureRateThreshold\":\"50\",\"fallbackUri\":\"\",\"minimumNumberOfCalls\":\"50\",\"permittedNumberOfCallsInHalfOpenState\":\"1\",\"slidingWindowSize\":\"100\",\"slidingWindowType\":\"0\",\"timeoutDuration\":\"20000000\",\"waitIntervalFunctionInOpenState\":\"100000\"}");
+        when(data.getHandle()).thenReturn(handle);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         SelectorData selectorData = mock(SelectorData.class);
         StepVerifier.create(resilence4JPlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
@@ -89,7 +93,7 @@ public class Resilence4JPluginTest {
         Mono mono = Mono.error(RequestNotPermitted.createRequestNotPermitted(rateLimiter)).onErrorResume(throwable -> {
             return Mono.error(throwable);
         });
-        when(data.getHandle()).thenReturn("{\"limitForPeriod\":\"1\",\"limitRefreshPeriod\":\"2000\",\"timeoutDurationRate\":\"500\",\"circuitEnable\":\"0\",\"failureRateThreshold\":\"50\",\"fallbackUri\":\"\",\"minimumNumberOfCalls\":\"50\",\"permittedNumberOfCallsInHalfOpenState\":\"1\",\"slidingWindowSize\":\"100\",\"slidingWindowType\":\"0\",\"timeoutDuration\":\"20000000\",\"waitIntervalFunctionInOpenState\":\"100000\"}");
+        when(data.getHandle()).thenReturn(handle);
         when(chain.execute(exchange)).thenReturn(mono);
         SelectorData selectorData = mock(SelectorData.class);
         StepVerifier.create(resilence4JPlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().expectError().verify();
@@ -107,7 +111,7 @@ public class Resilence4JPluginTest {
             }
             return Mono.error(throwable);
         });
-        when(data.getHandle()).thenReturn("{\"limitForPeriod\":\"1\",\"limitRefreshPeriod\":\"2000\",\"timeoutDurationRate\":\"500\",\"circuitEnable\":\"1\",\"failureRateThreshold\":\"50\",\"fallbackUri\":\"\",\"minimumNumberOfCalls\":\"50\",\"permittedNumberOfCallsInHalfOpenState\":\"1\",\"slidingWindowSize\":\"100\",\"slidingWindowType\":\"0\",\"timeoutDuration\":\"20000000\",\"waitIntervalFunctionInOpenState\":\"100000\"}");
+        when(data.getHandle()).thenReturn(handle);
         when(chain.execute(exchange)).thenReturn(mono);
         when(data.getSelectorId()).thenReturn("circuitBreaker");
         when(data.getName()).thenReturn("ruleData");

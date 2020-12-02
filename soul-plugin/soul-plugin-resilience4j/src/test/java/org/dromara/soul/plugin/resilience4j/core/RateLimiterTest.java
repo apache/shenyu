@@ -29,15 +29,17 @@ import reactor.test.StepVerifier;
 
 import java.time.Duration;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 
 /**
- * ratemimiter test.
+ * Ratemimiter test.
  *
  * @author zhanglei
  */
 @RunWith(MockitoJUnitRunner.class)
-public class RateLimiterTest {
+public final class RateLimiterTest {
 
     private RateLimiter rateLimiter;
 
