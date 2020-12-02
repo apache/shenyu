@@ -46,7 +46,7 @@ public class CombinedExecutorTest {
     }
 
     @Test
-    public void normal() {
+    public void normalTest() {
         Resilience4JConf conf = mock(Resilience4JConf.class);
         when(conf.getId()).thenReturn("SOUL");
         when(conf.getRateLimiterConfig()).thenReturn(RateLimiterConfig.ofDefaults());
@@ -60,7 +60,7 @@ public class CombinedExecutorTest {
     }
 
     @Test
-    public void error() {
+    public void errorTest() {
         Resilience4JConf conf = mock(Resilience4JConf.class);
         when(conf.getId()).thenReturn("SOUL");
         when(conf.getRateLimiterConfig()).thenReturn(RateLimiterConfig.ofDefaults());
