@@ -30,12 +30,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Ratelimiter executor tests.
+ * RateLimiter executor test.
  *
  * @author zhanglei
  */
 @RunWith(MockitoJUnitRunner.class)
-public final class RatelimiterExecutorTest {
+public final class RateLimiterExecutorTest {
 
     private RateLimiterExecutor ratelimiterExecutor;
 
