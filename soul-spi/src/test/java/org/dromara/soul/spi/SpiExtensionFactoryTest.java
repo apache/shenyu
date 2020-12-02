@@ -15,24 +15,19 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.client.springcloud.config;
+package org.dromara.soul.spi;
 
-import lombok.Data;
+import org.dromara.soul.spi.fixture.MysqlSPI;
+import org.junit.Test;
 
-/**
- * The type Soul spring cloud config.
- *
- * @author xiaoyu
- */
-@Data
-public class SoulSpringCloudConfig {
-    
-    private String adminUrl;
-    
-    private String contextPath;
+import static org.junit.Assert.assertNull;
 
-    /**
-     * 如果配置了full为true 代表代理整个服务.
-     */
-    private boolean full;
+public final class SpiExtensionFactoryTest {
+
+    @Test
+    public void testNull() {
+        SpiExtensionFactory spiExtensionFactory = new SpiExtensionFactory();
+        assertNull(spiExtensionFactory.getExtension("testNull", MysqlSPI.class));
+    }
+
 }

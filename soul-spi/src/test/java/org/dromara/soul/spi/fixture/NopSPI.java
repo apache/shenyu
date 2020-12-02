@@ -15,24 +15,7 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.client.springcloud.config;
+package org.dromara.soul.spi.fixture;
 
-import lombok.Data;
-
-/**
- * The type Soul spring cloud config.
- *
- * @author xiaoyu
- */
-@Data
-public class SoulSpringCloudConfig {
-    
-    private String adminUrl;
-    
-    private String contextPath;
-
-    /**
-     * 如果配置了full为true 代表代理整个服务.
-     */
-    private boolean full;
+public interface NopSPI {
 }
