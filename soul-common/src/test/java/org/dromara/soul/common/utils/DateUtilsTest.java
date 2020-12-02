@@ -20,7 +20,6 @@ package org.dromara.soul.common.utils;
 import org.junit.Test;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
@@ -54,9 +53,8 @@ public class DateUtilsTest {
 
     @Test
     public void testFormatLocalDateTimeFromTimestamp() {
-        LocalDateTime localDateTime1 = LocalDateTime.now(ZoneId.systemDefault());
-
-        LocalDateTime localDateTime2 = DateUtils.formatLocalDateTimeFromTimestamp(ZonedDateTime.of(localDateTime1, ZoneId.systemDefault()).toInstant().toEpochMilli());
+        LocalDateTime localDateTime1 = LocalDateTime.now(ZoneOffset.ofHours(8));
+        LocalDateTime localDateTime2 = DateUtils.formatLocalDateTimeFromTimestamp(ZonedDateTime.of(localDateTime1, ZoneOffset.ofHours(8)).toInstant().toEpochMilli());
 
         assertEquals(localDateTime1.getYear(), localDateTime2.getYear());
         assertEquals(localDateTime1.getDayOfMonth(), localDateTime2.getDayOfMonth());
