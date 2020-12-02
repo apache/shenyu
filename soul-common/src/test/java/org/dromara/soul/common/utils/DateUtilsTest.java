@@ -21,6 +21,7 @@ import org.junit.Test;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
 import static org.junit.Assert.assertEquals;
@@ -53,7 +54,7 @@ public class DateUtilsTest {
 
     @Test
     public void testFormatLocalDateTimeFromTimestamp() {
-        LocalDateTime localDateTime1 = LocalDateTime.of(2020, 1, 1, 0, 0, 1, 0);
+        LocalDateTime localDateTime1 = LocalDateTime.now(ZoneId.systemDefault());
 
         LocalDateTime localDateTime2 = DateUtils.formatLocalDateTimeFromTimestamp(ZonedDateTime.of(localDateTime1, ZoneId.systemDefault()).toInstant().toEpochMilli());
 
