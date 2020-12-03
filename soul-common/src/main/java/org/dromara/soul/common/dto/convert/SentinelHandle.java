@@ -71,4 +71,9 @@ public class SentinelHandle {
      * Degrade rule time window.
      */
     private Integer degradeRuleTimeWindow;
+
+    /**
+     * Sentinel falback uri.
+     */
+    private String fallBackUri;
 }
