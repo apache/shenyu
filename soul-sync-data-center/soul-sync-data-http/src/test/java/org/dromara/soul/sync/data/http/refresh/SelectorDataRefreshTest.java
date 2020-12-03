@@ -16,21 +16,23 @@ import java.util.List;
 
 public class SelectorDataRefreshTest {
     
+    private final SelectorDataRefresh mockSelectorDataRefresh = new SelectorDataRefresh(new PluginDataSubscriber() {
+        @Override
+        public void onSubscribe(PluginData pluginData) {
+        
+        }
+    });
+    
+    
     /**
      * test case for {@link SelectorDataRefresh#convert(JsonObject)}
      */
     @Test
     public void testConvert() {
-        final SelectorDataRefresh selectorDataRefresh = new SelectorDataRefresh(new PluginDataSubscriber() {
-            @Override
-            public void onSubscribe(PluginData pluginData) {
-            
-            }
-        });
         JsonObject jsonObject = new JsonObject();
         JsonObject expectJsonObject = new JsonObject();
         jsonObject.add(ConfigGroupEnum.SELECTOR.name(), expectJsonObject);
-        Assert.assertEquals(expectJsonObject, selectorDataRefresh.convert(jsonObject));
+        Assert.assertEquals(expectJsonObject, mockSelectorDataRefresh.convert(jsonObject));
     }
     
     /**
@@ -38,17 +40,11 @@ public class SelectorDataRefreshTest {
      */
     @Test
     public void testFromJson() {
-        final SelectorDataRefresh selectorDataRefresh = new SelectorDataRefresh(new PluginDataSubscriber() {
-            @Override
-            public void onSubscribe(PluginData pluginData) {
-            
-            }
-        });
         ConfigData<SelectorData> selectorDataConfigData = new ConfigData<>();
         SelectorData selectorData = new SelectorData();
         selectorDataConfigData.setData(Collections.singletonList(selectorData));
         JsonObject jsonObject = GsonUtils.getGson().fromJson(GsonUtils.getGson().toJson(selectorDataConfigData), JsonObject.class);
-        Assert.assertEquals(selectorDataConfigData, selectorDataRefresh.fromJson(jsonObject));
+        Assert.assertEquals(selectorDataConfigData, mockSelectorDataRefresh.fromJson(jsonObject));
     }
     
     /**
@@ -61,12 +57,7 @@ public class SelectorDataRefreshTest {
      */
     @Test
     public void testUpdateCacheIfNeed() {
-        final SelectorDataRefresh selectorDataRefresh = new SelectorDataRefresh(new PluginDataSubscriber() {
-            @Override
-            public void onSubscribe(PluginData pluginData) {
-            
-            }
-        });
+        final SelectorDataRefresh selectorDataRefresh = mockSelectorDataRefresh;
         // first, expect getting null from cache
         Assert.assertNull(selectorDataRefresh.cacheConfigData());
         // update cache, then assert equals
@@ -80,12 +71,7 @@ public class SelectorDataRefreshTest {
      */
     @Test
     public void testRefreshCoverage() {
-        final SelectorDataRefresh selectorDataRefresh = new SelectorDataRefresh(new PluginDataSubscriber() {
-            @Override
-            public void onSubscribe(PluginData pluginData) {
-            
-            }
-        });
+        final SelectorDataRefresh selectorDataRefresh = mockSelectorDataRefresh;
         SelectorData selectorData = new SelectorData();
         List<SelectorData> selectorDataList = new ArrayList<>();
         selectorDataRefresh.refresh(selectorDataList);
