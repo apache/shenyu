@@ -24,7 +24,7 @@ import static org.junit.Assert.assertNotEquals;
 /**
  * Test Cases for MatchModeEnum.
  *
- * @author sherk7monster
+ * @author sherk7monstergit
  */
 public final class MatchModeEnumTest {
 
