@@ -75,6 +75,7 @@ public class MetaDataRefreshTest {
         final MetaDataRefresh metaDataRefresh = mockMetaDataRefresh;
         // update cache, then assert equals
         ConfigData<MetaData> expect = new ConfigData<>();
+        expect.setLastModifyTime(System.currentTimeMillis());
         metaDataRefresh.updateCacheIfNeed(expect);
         Assert.assertEquals(expect, metaDataRefresh.cacheConfigData());
     }

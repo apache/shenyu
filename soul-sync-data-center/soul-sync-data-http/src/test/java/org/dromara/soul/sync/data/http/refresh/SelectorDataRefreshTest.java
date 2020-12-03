@@ -82,6 +82,7 @@ public class SelectorDataRefreshTest {
         final SelectorDataRefresh selectorDataRefresh = mockSelectorDataRefresh;
         // update cache, then assert equals
         ConfigData<SelectorData> expect = new ConfigData<>();
+        expect.setLastModifyTime(System.currentTimeMillis());
         selectorDataRefresh.updateCacheIfNeed(expect);
         Assert.assertEquals(expect, selectorDataRefresh.cacheConfigData());
     }

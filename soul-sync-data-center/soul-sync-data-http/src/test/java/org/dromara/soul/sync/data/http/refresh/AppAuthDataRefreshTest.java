@@ -75,6 +75,7 @@ public class AppAuthDataRefreshTest {
         final AppAuthDataRefresh appAuthDataRefresh = mockAppAuthDataRefresh;
         // update cache, then assert equals
         ConfigData<AppAuthData> expect = new ConfigData<>();
+        expect.setLastModifyTime(System.currentTimeMillis());
         appAuthDataRefresh.updateCacheIfNeed(expect);
         Assert.assertEquals(expect, appAuthDataRefresh.cacheConfigData());
     }
