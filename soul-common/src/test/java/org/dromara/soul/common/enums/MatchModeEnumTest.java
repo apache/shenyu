@@ -20,6 +20,7 @@ package org.dromara.soul.common.enums;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Test Cases for MatchModeEnum.
@@ -30,11 +31,16 @@ public final class MatchModeEnumTest {
 
     @Test
     public void testGetMatchModeByCode() {
-        MatchModeEnum andModeEnum=MatchModeEnum.AND;
-        String andEnumName=MatchModeEnum.getMatchModeByCode(andModeEnum.getCode());
-
-        MatchModeEnum orModeEnum=MatchModeEnum.OR;
-        String orEnumName=MatchModeEnum.getMatchModeByCode(orModeEnum.getCode());
+        MatchModeEnum andModeEnum = MatchModeEnum.AND;
+        String andEnumName = MatchModeEnum.getMatchModeByCode(andModeEnum.getCode());
+        MatchModeEnum orModeEnum = MatchModeEnum.OR;
+        String orEnumName = MatchModeEnum.getMatchModeByCode(orModeEnum.getCode());
+        try {
+            Integer code = null;
+            MatchModeEnum.getMatchModeByCode(code);
+        } catch (NullPointerException e) {
+            assertNotNull(e);
+        }
 
         assertEquals(andModeEnum.getName(), andEnumName);
         assertEquals(orModeEnum.getName(), orEnumName);
