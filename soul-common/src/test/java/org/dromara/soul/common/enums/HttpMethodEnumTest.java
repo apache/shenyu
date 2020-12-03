@@ -18,13 +18,11 @@
 package org.dromara.soul.common.enums;
 
 import org.dromara.soul.common.exception.SoulException;
-import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 
 import java.util.Arrays;
 
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertEquals;
 
 
 /**
@@ -32,28 +30,22 @@ import static org.junit.Assert.fail;
  *
  * @author tangtian
  */
-public class HttpMethodEnumTest {
+public final class HttpMethodEnumTest {
 
     @Test
     public void testAcquireByNameValid() {
         Arrays.stream(HttpMethodEnum.values()).forEach(
             e -> {
                 if (e.getSupport()) {
-                    HttpMethodEnum.acquireByName(e.getName());
+                    assertEquals(e, HttpMethodEnum.acquireByName(e.getName()));
                 }
             }
         );
     }
 
-    @Test
+    @Test(expected = SoulException.class)
     public void testAcquireByNameInvalid() {
         String httpMethodName = "InvalidName";
-        try {
-            HttpMethodEnum.acquireByName(httpMethodName);
-            fail();
-        } catch (SoulException expected) {
-            assertThat(expected.getMessage(),
-                    CoreMatchers.containsString("this http method can not support"));
-        }
+        HttpMethodEnum.acquireByName(httpMethodName);
     }
 }
