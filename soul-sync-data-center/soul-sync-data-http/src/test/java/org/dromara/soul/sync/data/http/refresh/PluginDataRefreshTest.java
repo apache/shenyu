@@ -78,8 +78,6 @@ public class PluginDataRefreshTest {
     @Test
     public void testUpdateCacheIfNeed() {
         final PluginDataRefresh pluginDataRefresh = mockPluginDataRefresh;
-        // first, expect getting null from cache
-        Assert.assertNull(pluginDataRefresh.cacheConfigData());
         // update cache, then assert equals
         ConfigData<PluginData> expect = new ConfigData<>();
         Assert.assertTrue(pluginDataRefresh.updateCacheIfNeed(expect));
