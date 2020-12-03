@@ -575,6 +575,7 @@
                         <!-- UI files -->
                         <exclude>/soul-dashboard/**</exclude>
                         <exclude>**/resources/static/</exclude>
+                        <exclude>**/lombok.config</exclude>
                     </excludes>
                 </configuration>
                 <executions>
