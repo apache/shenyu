@@ -15,7 +15,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Test for {@link SelectorDataRefresh}
+ * Test cases for {@link SelectorDataRefresh}
  *
  * @author davidliu
  */
@@ -54,8 +54,9 @@ public class SelectorDataRefreshTest {
     
     /**
      * This case coverages the following method:
-     * * updateCacheIfNeed
-     * * cacheConfigData
+     * {@link SelectorDataRefresh#cacheConfigData()}
+     * {@link SelectorDataRefresh#updateCacheIfNeed(ConfigData)}
+     * <p>
      * For {@link SelectorDataRefresh} inherits from {@link AbstractDataRefresh}, the {@link AbstractDataRefresh#GROUP_CACHE} was initialized when the class of
      * {@link AbstractDataRefresh} load, in two different test methods in this class, the the {@link AbstractDataRefresh#GROUP_CACHE} class only load once, so
      * the method which manipulate the {@link AbstractDataRefresh#GROUP_CACHE} invocation has aftereffects to the other methods
