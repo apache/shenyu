@@ -15,20 +15,27 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.spi.fixture;
+package org.dromara.soul.common.utils;
 
-import org.dromara.soul.spi.SPI;
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.junit.Assert.assertNotNull;
 
 /**
- * The interface Jdbc spi.
+ * Test cases for SignUtils.
+ *
+ * @author dengliming
  */
-@SPI
-public interface JdbcSPI {
+public class SignUtilsTest {
 
-    /**
-     * Gets class name.
-     *
-     * @return the class name
-     */
-    String getClassName();
+    @Test
+    public void testSign() {
+        Map<String, String> params = new HashMap<>();
+        params.put("a", "1");
+        params.put("b", "2");
+        assertNotNull(SignUtils.generateSign("test", params));
+    }
 }

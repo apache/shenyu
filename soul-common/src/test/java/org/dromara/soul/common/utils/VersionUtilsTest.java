@@ -15,20 +15,35 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.spi.fixture;
+package org.dromara.soul.common.utils;
 
-import org.dromara.soul.spi.SPI;
+import org.junit.Test;
+
+import static org.junit.Assert.assertNotNull;
 
 /**
- * The interface Jdbc spi.
+ * Test cases for VersionUtils.
+ *
+ * @author linkuan
  */
-@SPI
-public interface JdbcSPI {
+public class VersionUtilsTest {
 
-    /**
-     * Gets class name.
-     *
-     * @return the class name
-     */
-    String getClassName();
+    @Test
+    public void testFromDefaultVersion() {
+        String version = VersionUtils.getVersion();
+        assertNotNull(version);
+    }
+    
+    @Test
+    public void testFromImplementationVersion() throws ClassNotFoundException {
+        String version = VersionUtils.getVersion(Class.forName("java.lang.String"), "2.0.2");
+        assertNotNull(version);
+    }
+    
+    @Test
+    public void testFromCodeSource() throws ClassNotFoundException {
+        String version = VersionUtils.getVersion(Class.forName("ch.qos.logback.classic.db.DBAppender"), "2.0.2");
+        assertNotNull(version);
+    }
+
 }

@@ -15,20 +15,22 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.spi.fixture;
-
-import org.dromara.soul.spi.SPI;
+package org.dromara.soul.common.utils;
 
 /**
- * The interface Jdbc spi.
+ * The type Param check utils.
+ *
+ * @author xiaoyu
  */
-@SPI
-public interface JdbcSPI {
-
+public class ParamCheckUtils {
+    
     /**
-     * Gets class name.
+     * Dubbo body is empty boolean.
      *
-     * @return the class name
+     * @param body the body
+     * @return the boolean
      */
-    String getClassName();
+    public static boolean dubboBodyIsEmpty(final String body) {
+        return null == body || "".equals(body) || "{}".equals(body) || "null".equals(body);
+    }
 }

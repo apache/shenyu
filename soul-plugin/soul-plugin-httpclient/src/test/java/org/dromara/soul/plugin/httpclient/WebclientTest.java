@@ -47,10 +47,7 @@ public class WebclientTest {
                 .willReturn(aResponse()
                         .withStatus(200)));
     }
-
-    /**
-     * Test web client.
-     */
+    
     @Test
     public void testWebClient() {
         ClientResponse resp = WebClient.builder()

@@ -15,20 +15,31 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.spi.fixture;
+package org.dromara.soul.common.utils;
 
-import org.dromara.soul.spi.SPI;
+import org.junit.Test;
+
+import static org.junit.Assert.assertFalse;
 
 /**
- * The interface Jdbc spi.
+ * Test cases for UpstreamCheckUtils.
+ *
+ * @author dengliming
  */
-@SPI
-public interface JdbcSPI {
+public class UpstreamCheckUtilsTest {
 
-    /**
-     * Gets class name.
-     *
-     * @return the class name
-     */
-    String getClassName();
+    @Test
+    public void testBlank() {
+        assertFalse(UpstreamCheckUtils.checkUrl(""));
+    }
+
+    @Test
+    public void testNotIp() {
+        assertFalse(UpstreamCheckUtils.checkUrl("test"));
+    }
+
+    @Test
+    public void testNormalIp() {
+        assertFalse(UpstreamCheckUtils.checkUrl("http://127.0.0.1"));
+    }
 }

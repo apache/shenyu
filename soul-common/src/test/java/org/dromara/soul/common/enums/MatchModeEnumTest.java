@@ -15,20 +15,28 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.spi.fixture;
+package org.dromara.soul.common.enums;
 
-import org.dromara.soul.spi.SPI;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 /**
- * The interface Jdbc spi.
+ * Test Cases for MatchModeEnum.
+ *
+ * @author sherk7monstergit
  */
-@SPI
-public interface JdbcSPI {
+public final class MatchModeEnumTest {
 
-    /**
-     * Gets class name.
-     *
-     * @return the class name
-     */
-    String getClassName();
+    @Test
+    public void testGetMatchModeByCode() {
+        MatchModeEnum andModeEnum = MatchModeEnum.AND;
+        String andEnumName = MatchModeEnum.getMatchModeByCode(andModeEnum.getCode());
+        MatchModeEnum orModeEnum = MatchModeEnum.OR;
+        String orEnumName = MatchModeEnum.getMatchModeByCode(orModeEnum.getCode());
+        assertEquals(andModeEnum.getName(), andEnumName);
+        assertEquals(orModeEnum.getName(), orEnumName);
+        assertNotEquals(andEnumName, orEnumName);
+    }
 }

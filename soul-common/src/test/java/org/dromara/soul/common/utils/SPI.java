@@ -15,20 +15,7 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.spi.fixture;
+package org.dromara.soul.common.utils;
 
-import org.dromara.soul.spi.SPI;
-
-/**
- * The interface Jdbc spi.
- */
-@SPI
-public interface JdbcSPI {
-
-    /**
-     * Gets class name.
-     *
-     * @return the class name
-     */
-    String getClassName();
+public interface SPI {
 }

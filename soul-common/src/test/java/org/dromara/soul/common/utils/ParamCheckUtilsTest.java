@@ -15,20 +15,23 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.spi.fixture;
+package org.dromara.soul.common.utils;
 
-import org.dromara.soul.spi.SPI;
+import org.junit.Test;
+import static org.junit.Assert.assertTrue;
 
 /**
- * The interface Jdbc spi.
+ * Test cases for ParamCheckUtils.
+ *
+ * @author marina432
  */
-@SPI
-public interface JdbcSPI {
+public final class ParamCheckUtilsTest {
 
-    /**
-     * Gets class name.
-     *
-     * @return the class name
-     */
-    String getClassName();
+    @Test
+    public void testDubboBodyIsEmpty() {
+        assertTrue(ParamCheckUtils.dubboBodyIsEmpty(null));
+        assertTrue(ParamCheckUtils.dubboBodyIsEmpty(""));
+        assertTrue(ParamCheckUtils.dubboBodyIsEmpty("{}"));
+        assertTrue(ParamCheckUtils.dubboBodyIsEmpty("null"));
+    }
 }

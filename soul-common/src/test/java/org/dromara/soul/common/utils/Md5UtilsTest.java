@@ -15,20 +15,22 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.spi.fixture;
+package org.dromara.soul.common.utils;
 
-import org.dromara.soul.spi.SPI;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 /**
- * The interface Jdbc spi.
+ * Test cases for Md5Utils.
+ *
+ * @author dengliming
  */
-@SPI
-public interface JdbcSPI {
+public class Md5UtilsTest {
 
-    /**
-     * Gets class name.
-     *
-     * @return the class name
-     */
-    String getClassName();
+    @Test
+    public void testMd5() {
+        final String md5 = "e10adc3949ba59abbe56e057f20f883e";
+        assertEquals(md5, Md5Utils.md5("123456"));
+    }
 }

@@ -15,20 +15,26 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.spi.fixture;
+package org.dromara.soul.common.utils;
 
-import org.dromara.soul.spi.SPI;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 /**
- * The interface Jdbc spi.
+ * Test cases for ReflectUtils.
+ *
+ * @author dengliming
  */
-@SPI
-public interface JdbcSPI {
+public class ReflectUtilsTest {
 
-    /**
-     * Gets class name.
-     *
-     * @return the class name
-     */
-    String getClassName();
+    @Test
+    public void testGetFieldValue() {
+        Reflect reflect = new Reflect();
+        assertEquals("1", ReflectUtils.getFieldValue(reflect, "a"));
+    }
+
+    public static class Reflect {
+        private String a = "1";
+    }
 }

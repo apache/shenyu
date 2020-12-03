@@ -502,7 +502,7 @@
                 <version>3.1.0</version>
                 <configuration>
                     <configLocation>/script/soul_checkstyle.xml</configLocation>
-                    <includeTestSourceDirectory>false</includeTestSourceDirectory>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
                     <excludes>**/transfer/**/*</excludes>
                 </configuration>
                 <executions>

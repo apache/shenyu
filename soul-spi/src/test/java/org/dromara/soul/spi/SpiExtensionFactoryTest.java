@@ -15,20 +15,18 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.spi.fixture;
+package org.dromara.soul.spi;
 
-import org.dromara.soul.spi.SPI;
+import org.dromara.soul.spi.fixture.MysqlSPI;
+import org.junit.Test;
 
-/**
- * The interface Jdbc spi.
- */
-@SPI
-public interface JdbcSPI {
+import static org.junit.Assert.assertNull;
 
-    /**
-     * Gets class name.
-     *
-     * @return the class name
-     */
-    String getClassName();
+public final class SpiExtensionFactoryTest {
+
+    @Test
+    public void testNull() {
+        SpiExtensionFactory spiExtensionFactory = new SpiExtensionFactory();
+        assertNull(spiExtensionFactory.getExtension("testNull", MysqlSPI.class));
+    }
 }
