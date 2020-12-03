@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  English(README.md) | 简体中文
+  <a href="https://github.com/dromara/soul/blob/master/README.md">English</a> | 简体中文
 </p>
 
 <p align="center">
