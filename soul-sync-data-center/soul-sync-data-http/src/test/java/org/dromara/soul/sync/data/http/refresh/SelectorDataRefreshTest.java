@@ -14,6 +14,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Test for {@link SelectorDataRefresh}
+ *
+ * @author davidliu
+ */
 public class SelectorDataRefreshTest {
     
     private final SelectorDataRefresh mockSelectorDataRefresh = new SelectorDataRefresh(new PluginDataSubscriber() {
