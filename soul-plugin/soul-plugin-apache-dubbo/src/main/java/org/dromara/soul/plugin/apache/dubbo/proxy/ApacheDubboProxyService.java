@@ -29,6 +29,7 @@ import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.exception.SoulException;
+import org.dromara.soul.common.utils.ParamCheckUtils;
 import org.dromara.soul.plugin.apache.dubbo.cache.ApplicationConfigCache;
 import org.dromara.soul.plugin.api.dubbo.DubboParamResolveService;
 import org.springframework.web.server.ServerWebExchange;
@@ -70,7 +71,7 @@ public class ApacheDubboProxyService {
         }
         GenericService genericService = reference.get();
         Pair<String[], Object[]> pair;
-        if (null == body || "".equals(body) || "{}".equals(body) || "null".equals(body)) {
+        if (ParamCheckUtils.dubboBodyIsEmpty(body)) {
             pair = new ImmutablePair<>(new String[]{}, new Object[]{});
         } else {
             pair = dubboParamResolveService.buildParameter(body, metaData.getParameterTypes());
@@ -83,6 +84,6 @@ public class ApacheDubboProxyService {
             exchange.getAttributes().put(Constants.DUBBO_RPC_RESULT, ret);
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return ret;
-        })).onErrorMap(originalCause -> new SoulException(originalCause));
+        })).onErrorMap(SoulException::new);
     }
 }

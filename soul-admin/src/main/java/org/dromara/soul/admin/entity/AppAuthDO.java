@@ -1,20 +1,18 @@
 /*
- *
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * Contributor license agreements.See the NOTICE file distributed with
- * This work for additional information regarding copyright ownership.
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * he License.You may obtain a copy of the License at
+ * the License.  You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.dromara.soul.admin.entity;
@@ -25,6 +23,7 @@ import org.dromara.soul.admin.dto.AppAuthDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
+import java.util.Optional;
 
 /**
  * AppAuthDO.
@@ -62,22 +61,21 @@ public class AppAuthDO extends BaseDO {
      * @return {@linkplain AppAuthDO}
      */
     public static AppAuthDO buildAppAuthDO(final AppAuthDTO appAuthDTO) {
-        if (appAuthDTO != null) {
+        return Optional.ofNullable(appAuthDTO).map(item -> {
             AppAuthDO appAuthDO = new AppAuthDO();
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            if (StringUtils.isEmpty(appAuthDTO.getId())) {
+            if (StringUtils.isEmpty(item.getId())) {
                 appAuthDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 appAuthDO.setDateCreated(currentTime);
             } else {
-                appAuthDO.setId(appAuthDTO.getId());
+                appAuthDO.setId(item.getId());
             }
 
-            appAuthDO.setAppKey(appAuthDTO.getAppKey());
-            appAuthDO.setAppSecret(appAuthDTO.getAppSecret());
-            appAuthDO.setEnabled(appAuthDTO.getEnabled());
+            appAuthDO.setAppKey(item.getAppKey());
+            appAuthDO.setAppSecret(item.getAppSecret());
+            appAuthDO.setEnabled(item.getEnabled());
             appAuthDO.setDateUpdated(currentTime);
             return appAuthDO;
-        }
-        return null;
+        }).orElse(null);
     }
 }

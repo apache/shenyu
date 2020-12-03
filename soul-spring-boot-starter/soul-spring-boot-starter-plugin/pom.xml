@@ -42,6 +42,8 @@
         <module>soul-spring-boot-starter-plugin-waf</module>
         <module>soul-spring-boot-starter-plugin-rewrite</module>
         <module>soul-spring-boot-starter-plugin-sentinel</module>
+        <module>soul-spring-boot-starter-plugin-sofa</module>
+        <module>soul-spring-boot-starter-plugin-resilience4j</module>
     </modules>
 
 

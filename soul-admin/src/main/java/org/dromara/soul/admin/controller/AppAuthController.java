@@ -1,20 +1,18 @@
 /*
- *
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * Contributor license agreements.See the NOTICE file distributed with
- * This work for additional information regarding copyright ownership.
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * he License.You may obtain a copy of the License at
+ * the License.  You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.dromara.soul.admin.controller;
@@ -27,9 +25,9 @@ import org.dromara.soul.admin.dto.BatchCommonDTO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.AppAuthQuery;
-import org.dromara.soul.admin.query.AppAuthQueryDTO;
 import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.service.AppAuthService;
+import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.admin.vo.AppAuthVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -88,21 +86,24 @@ public class AppAuthController {
     public SoulAdminResult updateSk(@RequestParam("appKey") final String appKey, @RequestParam("appSecret") final String appSecret) {
         return appAuthService.updateAppSecretByAppKey(appKey, appSecret);
     }
-    
+
     /**
      * Find page by query soul result.
      *
-     * @param dto the dto
+     * @param appKey the app key
+     * @param phone  specific phone
+     * @param currentPage  current page of list
+     * @param pageSize  page size of query
      * @return the soul result
      */
-    @PostMapping("/findPageByQuery")
-    public SoulAdminResult findPageByQuery(@RequestBody final AppAuthQueryDTO dto) {
+    @GetMapping("/findPageByQuery")
+    public SoulAdminResult findPageByQuery(final String appKey, final String phone, final Integer currentPage, final Integer pageSize) {
         AppAuthQuery query = new AppAuthQuery();
-        query.setPhone(dto.getPhone());
-        query.setAppKey(dto.getAppKey());
-        query.setPageParameter(new PageParameter(dto.getCurrentPage(), dto.getPageSize()));
+        query.setPhone(phone);
+        query.setAppKey(appKey);
+        query.setPageParameter(new PageParameter(currentPage, pageSize));
         CommonPager<AppAuthVO> commonPager = appAuthService.listByPage(query);
-        return SoulAdminResult.success("query application authorities success", commonPager);
+        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
     }
 
     /**
@@ -113,7 +114,7 @@ public class AppAuthController {
      */
     @GetMapping("/detail")
     public SoulAdminResult detail(@RequestParam("id") final String id) {
-        return SoulAdminResult.success("detail application authority success", appAuthService.findById(id));
+        return SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, appAuthService.findById(id));
     }
 
     /**
@@ -135,9 +136,9 @@ public class AppAuthController {
      */
     @GetMapping("/detailPath")
     public SoulAdminResult detailPath(@RequestParam("id") final String id) {
-        return SoulAdminResult.success("detailPath application success", appAuthService.detailPath(id));
+        return SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, appAuthService.detailPath(id));
     }
-    
+
     /**
      * Update detail path soul result.
      *
@@ -148,7 +149,7 @@ public class AppAuthController {
     public SoulAdminResult updateDetailPath(@RequestBody final AuthPathWarpDTO authPathWarpDTO) {
         return appAuthService.updateDetailPath(authPathWarpDTO);
     }
-    
+
     /**
      * delete application authorities.
      *
@@ -158,7 +159,7 @@ public class AppAuthController {
     @PostMapping("/batchDelete")
     public SoulAdminResult batchDelete(@RequestBody final List<String> ids) {
         Integer deleteCount = appAuthService.delete(ids);
-        return SoulAdminResult.success("delete application authorities success", deleteCount);
+        return SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, deleteCount);
     }
 
     /**
@@ -173,7 +174,7 @@ public class AppAuthController {
         if (StringUtils.isNoneBlank(result)) {
             return SoulAdminResult.error(result);
         }
-        return SoulAdminResult.success("enable success");
+        return SoulAdminResult.success(SoulResultMessage.ENABLE_SUCCESS);
     }
 
     /**

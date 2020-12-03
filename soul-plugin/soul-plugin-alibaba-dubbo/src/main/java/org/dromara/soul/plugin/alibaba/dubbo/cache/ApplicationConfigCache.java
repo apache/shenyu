@@ -156,6 +156,9 @@ public final class ApplicationConfigCache {
                 final String loadBalance = dubboParamExtInfo.getLoadbalance();
                 reference.setLoadbalance(buildLoadBalanceName(loadBalance));
             }
+            if (StringUtils.isNoneBlank(dubboParamExtInfo.getUrl())) {
+                reference.setUrl(dubboParamExtInfo.getUrl());
+            }
             Optional.ofNullable(dubboParamExtInfo.getTimeout()).ifPresent(reference::setTimeout);
             Optional.ofNullable(dubboParamExtInfo.getRetries()).ifPresent(reference::setRetries);
         }
@@ -233,6 +236,8 @@ public final class ApplicationConfigCache {
         private Integer retries;
         
         private Integer timeout;
+
+        private String url;
     }
     
 }

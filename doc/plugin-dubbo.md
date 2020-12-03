@@ -34,7 +34,7 @@ description: dubbo插件
 * rpc扩展参数,对应为dubbo接口的一些配置，调整的化，请在这里修改，支持json格式,以下字段：
 
 ```yaml
-{"timeout":10000,"group":"",version":"","loadbalance":"","retries":1}
+{"timeout":10000,"group":"",version":"","loadbalance":"","retries":1,"url":""}
 ```
 
 

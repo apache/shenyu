@@ -1,19 +1,18 @@
 /*
- *   Licensed to the Apache Software Foundation (ASF) under one or more
- *   contributor license agreements.  See the NOTICE file distributed with
- *   this work for additional information regarding copyright ownership.
- *   The ASF licenses this file to You under the Apache License, Version 2.0
- *   (the "License"); you may not use this file except in compliance with
- *   the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.dromara.soul.web.configuration;
@@ -61,7 +60,7 @@ import org.springframework.web.server.WebFilter;
 @Import(value = {ErrorHandlerConfiguration.class, SoulExtConfiguration.class, SpringExtConfiguration.class})
 @Slf4j
 public class SoulConfiguration {
-    
+
     /**
      * init SoulWebHandler.
      *
@@ -96,7 +95,7 @@ public class SoulConfiguration {
     public PluginDataSubscriber pluginDataSubscriber(final ObjectProvider<List<PluginDataHandler>> pluginDataHandlerList) {
         return new CommonPluginDataSubscriber(pluginDataHandlerList.getIfAvailable(Collections::emptyList));
     }
-    
+
     /**
      * Generic param resolve service generic param resolve service.
      *
@@ -107,7 +106,7 @@ public class SoulConfiguration {
     public DubboParamResolveService dubboMultiParameterResolveServiceImpl() {
         return new DubboMultiParameterResolveServiceImpl();
     }
-    
+
     /**
      * Generic param resolve service dubbo param resolve service.
      *
@@ -118,7 +117,7 @@ public class SoulConfiguration {
     public DubboParamResolveService defaultDubboParamResolveService() {
         return new DefaultDubboParamResolveService();
     }
-    
+
     /**
      * Remote address resolver remote address resolver.
      *
@@ -129,7 +128,7 @@ public class SoulConfiguration {
     public RemoteAddressResolver remoteAddressResolver() {
         return new ForwardedRemoteAddressResolver(1);
     }
-    
+
     /**
      * Cross filter web filter.
      * if you application has cross-domain.
@@ -145,7 +144,7 @@ public class SoulConfiguration {
     public WebFilter crossFilter() {
         return new CrossFilter();
     }
-    
+
     /**
      * Body web filter web filter.
      *
@@ -157,8 +156,8 @@ public class SoulConfiguration {
     public WebFilter fileSizeFilter() {
         return new FileSizeFilter();
     }
-    
-    
+
+
     /**
      * Soul config soul config.
      *
@@ -169,7 +168,7 @@ public class SoulConfiguration {
     public SoulConfig soulConfig() {
         return new SoulConfig();
     }
-    
+
     /**
      * init time web filter.
      *
@@ -182,7 +181,7 @@ public class SoulConfiguration {
     public WebFilter timeWebFilter(final SoulConfig soulConfig) {
         return new TimeWebFilter(soulConfig);
     }
-    
+
     /**
      * Web socket web filter web filter.
      *
