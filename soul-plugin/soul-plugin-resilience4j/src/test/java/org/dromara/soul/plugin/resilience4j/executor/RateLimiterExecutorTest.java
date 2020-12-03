@@ -30,7 +30,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * RateLimiter executor test.
+ * RateLimiter executor tests.
  *
  * @author zhanglei
  */
