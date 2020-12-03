@@ -80,7 +80,7 @@ public class PluginDataRefreshTest {
         final PluginDataRefresh pluginDataRefresh = mockPluginDataRefresh;
         // update cache, then assert equals
         ConfigData<PluginData> expect = new ConfigData<>();
-        Assert.assertTrue(pluginDataRefresh.updateCacheIfNeed(expect));
+        pluginDataRefresh.updateCacheIfNeed(expect);
         Assert.assertEquals(expect, pluginDataRefresh.cacheConfigData());
     }
     

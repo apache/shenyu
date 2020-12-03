@@ -82,7 +82,7 @@ public class SelectorDataRefreshTest {
         final SelectorDataRefresh selectorDataRefresh = mockSelectorDataRefresh;
         // update cache, then assert equals
         ConfigData<SelectorData> expect = new ConfigData<>();
-        Assert.assertTrue(selectorDataRefresh.updateCacheIfNeed(expect));
+        selectorDataRefresh.updateCacheIfNeed(expect);
         Assert.assertEquals(expect, selectorDataRefresh.cacheConfigData());
     }
     

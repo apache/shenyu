@@ -81,7 +81,7 @@ public class RuleDataRefreshTest {
         final RuleDataRefresh ruleDataRefresh = mockRuleDataRefresh;
         // update cache, then assert equals
         ConfigData<RuleData> expect = new ConfigData<>();
-        Assert.assertTrue(ruleDataRefresh.updateCacheIfNeed(expect));
+        ruleDataRefresh.updateCacheIfNeed(expect);
         Assert.assertEquals(expect, ruleDataRefresh.cacheConfigData());
     }
     
