@@ -549,6 +549,8 @@
                         <exclude>**/spring.factories</exclude>
                         <exclude>**/spring.provides</exclude>
                         <exclude>/script/**</exclude>
+                        <exclude>**/lombok.config</exclude>
+                        <exclude>**/*.json</exclude>
                         <!-- IDE files -->
                         <exclude>**/*.iml</exclude>
                         <exclude>**/.idea/**</exclude>
@@ -575,7 +577,6 @@
                         <!-- UI files -->
                         <exclude>/soul-dashboard/**</exclude>
                         <exclude>**/resources/static/</exclude>
-                        <exclude>**/lombok.config</exclude>
                     </excludes>
                 </configuration>
                 <executions>
