@@ -17,7 +17,6 @@
 
 package org.dromara.soul.common.utils;
 
-
 import org.hamcrest.collection.IsMapContaining;
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,7 +28,6 @@ import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.junit.Assert.assertEquals;
-
 
 /**
  * Test cases for HttpParamConverter
@@ -65,7 +63,6 @@ public class HttpParamConverterTest {
         args.add("a", "1");
         args.add("a", "2");
         args.add("b", "3");
-
         String actual = HttpParamConverter.toMap(() -> args);
         assertEquals("{\"a\":\"1\",\"b\":\"3\"}", actual);
     }
