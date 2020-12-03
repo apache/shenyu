@@ -31,7 +31,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Test cases for {@link AppAuthDataRefresh}
+ * Test cases for {@link AppAuthDataRefresh}.
  *
  * @author davidliu
  */
@@ -40,7 +40,7 @@ public class AppAuthDataRefreshTest {
     private final AppAuthDataRefresh mockAppAuthDataRefresh = this.buildMockAppAuthDataRefresh();
     
     /**
-     * test case for {@link AppAuthDataRefresh#convert(JsonObject)}
+     * test case for {@link AppAuthDataRefresh#convert(JsonObject)}.
      */
     @Test
     public void testConvert() {
@@ -51,7 +51,7 @@ public class AppAuthDataRefreshTest {
     }
     
     /**
-     * test case for {@link AppAuthDataRefresh#fromJson(JsonObject)}
+     * test case for {@link AppAuthDataRefresh#fromJson(JsonObject)}.
      */
     @Test
     public void testFromJson() {
@@ -65,11 +65,10 @@ public class AppAuthDataRefreshTest {
     /**
      * This case coverages the following method:
      * {@link AppAuthDataRefresh#cacheConfigData()}
-     * {@link AppAuthDataRefresh#updateCacheIfNeed(ConfigData)}
-     * <p>
+     * {@link AppAuthDataRefresh#updateCacheIfNeed(ConfigData)}.
      * For {@link SelectorDataRefresh} inherits from {@link AbstractDataRefresh}, the {@link AbstractDataRefresh#GROUP_CACHE} was initialized when the class of
      * {@link AbstractDataRefresh} load, in two different test methods in this class, the the {@link AbstractDataRefresh#GROUP_CACHE} class only load once, so
-     * the method which manipulate the {@link AbstractDataRefresh#GROUP_CACHE} invocation has aftereffects to the other methods
+     * the method which manipulate the {@link AbstractDataRefresh#GROUP_CACHE} invocation has aftereffects to the other methods.
      */
     @Test
     public void testUpdateCacheIfNeed() {
@@ -83,7 +82,7 @@ public class AppAuthDataRefreshTest {
     }
     
     /**
-     * This case is only for {@link AppAuthDataRefresh} code coverage
+     * This case is only for {@link AppAuthDataRefresh} code coverage.
      */
     @Test
     public void testRefreshCoverage() {
@@ -100,12 +99,12 @@ public class AppAuthDataRefreshTest {
         List<AuthDataSubscriber> authDataSubscribers = new ArrayList<>();
         authDataSubscribers.add(new AuthDataSubscriber() {
             @Override
-            public void onSubscribe(AppAuthData appAuthData) {
+            public void onSubscribe(final AppAuthData appAuthData) {
             
             }
             
             @Override
-            public void unSubscribe(AppAuthData appAuthData) {
+            public void unSubscribe(final AppAuthData appAuthData) {
             
             }
         });

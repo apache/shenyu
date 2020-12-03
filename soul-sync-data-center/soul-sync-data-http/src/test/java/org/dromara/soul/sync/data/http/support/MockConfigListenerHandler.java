@@ -26,13 +26,14 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Mock Http Config Listener
+ * Mock Http Config Listener.
  *
  * @author David Liu
  */
 public class MockConfigListenerHandler extends AbstractHandler {
     @Override
-    public void handle(String s, Request request, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws IOException, ServletException {
+    public void handle(final String s, final Request request, final HttpServletRequest httpServletRequest, final HttpServletResponse httpServletResponse) throws IOException,
+            ServletException {
         // Declare response encoding and types
         httpServletResponse.setContentType("application/json; charset=utf-8");
         

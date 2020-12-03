@@ -35,28 +35,27 @@ import java.util.concurrent.TimeUnit;
 
 
 /**
- * Test cases for {@link HttpSyncDataService}
+ * Test cases for {@link HttpSyncDataService}.
  *
  * @author davidliu
  */
 public class HttpSyncDataServiceTest {
     
     // mock HttpDataSyncEndpoint at localhost 8080
-    private static final MockHttpDataSyncEndpoint server = new MockHttpDataSyncEndpoint(8080);
-    
+    private static final MockHttpDataSyncEndpoint SERVER = new MockHttpDataSyncEndpoint(8080);
     
     @BeforeClass
     public static void beforeCase() throws Exception {
-        server.start();
+        SERVER.start();
     }
     
     @AfterClass
     public static void afterCase() throws Exception {
-        server.stop();
+        SERVER.stop();
     }
     
     /**
-     * this method covers {@link HttpSyncDataService} constructor and {@link HttpSyncDataService#close()} method
+     * this method covers {@link HttpSyncDataService} constructor and {@link HttpSyncDataService#close()} method.
      *
      * @throws Exception any exception
      */
@@ -78,29 +77,29 @@ public class HttpSyncDataServiceTest {
         httpConfig.setDelayTime(3);
         PluginDataSubscriber pluginDataSubscriber = new PluginDataSubscriber() {
             @Override
-            public void onSubscribe(PluginData pluginData) {
+            public void onSubscribe(final PluginData pluginData) {
             
             }
         };
         List<MetaDataSubscriber> metaDataSubscribers = Collections.singletonList(new MetaDataSubscriber() {
             @Override
-            public void onSubscribe(MetaData metaData) {
+            public void onSubscribe(final MetaData metaData) {
             
             }
             
             @Override
-            public void unSubscribe(MetaData metaData) {
+            public void unSubscribe(final MetaData metaData) {
             
             }
         });
         List<AuthDataSubscriber> authDataSubscribers = Collections.singletonList(new AuthDataSubscriber() {
             @Override
-            public void onSubscribe(AppAuthData appAuthData) {
+            public void onSubscribe(final AppAuthData appAuthData) {
             
             }
             
             @Override
-            public void unSubscribe(AppAuthData appAuthData) {
+            public void unSubscribe(final AppAuthData appAuthData) {
             
             }
         });

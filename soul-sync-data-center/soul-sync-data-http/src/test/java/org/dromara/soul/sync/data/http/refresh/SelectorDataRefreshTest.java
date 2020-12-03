@@ -32,7 +32,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Test cases for {@link SelectorDataRefresh}
+ * Test cases for {@link SelectorDataRefresh}.
  *
  * @author davidliu
  */
@@ -40,14 +40,14 @@ public class SelectorDataRefreshTest {
     
     private final SelectorDataRefresh mockSelectorDataRefresh = new SelectorDataRefresh(new PluginDataSubscriber() {
         @Override
-        public void onSubscribe(PluginData pluginData) {
+        public void onSubscribe(final PluginData pluginData) {
         
         }
     });
     
     
     /**
-     * test case for {@link SelectorDataRefresh#convert(JsonObject)}
+     * test case for {@link SelectorDataRefresh#convert(JsonObject)}.
      */
     @Test
     public void testConvert() {
@@ -58,7 +58,7 @@ public class SelectorDataRefreshTest {
     }
     
     /**
-     * test case for {@link SelectorDataRefresh#fromJson(JsonObject)}
+     * test case for {@link SelectorDataRefresh#fromJson(JsonObject)}.
      */
     @Test
     public void testFromJson() {
@@ -72,11 +72,10 @@ public class SelectorDataRefreshTest {
     /**
      * This case coverages the following method:
      * {@link SelectorDataRefresh#cacheConfigData()}
-     * {@link SelectorDataRefresh#updateCacheIfNeed(ConfigData)}
-     * <p>
+     * {@link SelectorDataRefresh#updateCacheIfNeed(ConfigData)}.
      * For {@link SelectorDataRefresh} inherits from {@link AbstractDataRefresh}, the {@link AbstractDataRefresh#GROUP_CACHE} was initialized when the class of
      * {@link AbstractDataRefresh} load, in two different test methods in this class, the the {@link AbstractDataRefresh#GROUP_CACHE} class only load once, so
-     * the method which manipulate the {@link AbstractDataRefresh#GROUP_CACHE} invocation has aftereffects to the other methods
+     * the method which manipulate the {@link AbstractDataRefresh#GROUP_CACHE} invocation has aftereffects to the other methods.
      */
     @Test
     public void testUpdateCacheIfNeed() {
@@ -90,7 +89,7 @@ public class SelectorDataRefreshTest {
     }
     
     /**
-     * This case is only for {@link SelectorDataRefresh} code coverage
+     * This case is only for {@link SelectorDataRefresh} code coverage.
      */
     @Test
     public void testRefreshCoverage() {

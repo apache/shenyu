@@ -17,21 +17,26 @@
 
 package org.dromara.soul.sync.data.http.support;
 
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 /**
- * Mock Http Fetch Config
+ * Mock Http Fetch Config.
  *
  * @author David Liu
  */
+@Slf4j
 public class MockConfigFetchHandler extends AbstractHandler {
     @Override
-    public void handle(String s, Request request, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws IOException {
+    public void handle(final String s, final Request request, final HttpServletRequest httpServletRequest, final HttpServletResponse httpServletResponse) throws IOException {
         // Declare response encoding and types
         httpServletResponse.setContentType("application/json; charset=utf-8");
         
@@ -47,7 +52,16 @@ public class MockConfigFetchHandler extends AbstractHandler {
     
     // mock response
     private String mockResponseJson() {
-        return "{\"code\":200,\"message\":\"success\",\"data\":{\"META_DATA\":{\"md5\":\"d751713988987e9331980363e24189ce\",\"lastModifyTime\":1606982496942,\"data\":[]}," +
-                "\"SELECTOR\":{\"md5\":\"d751713988987e9331980363e24189ce\",\"lastModifyTime\":1606982496931,\"data\":[]},\"PLUGIN\":{\"md5\":\"ff9f3045505109e66c403fcc6a7a9a12\",\"lastModifyTime\":1606982496917,\"data\":[{\"id\":\"1\",\"name\":\"sign\",\"config\":null,\"role\":0,\"enabled\":false},{\"id\":\"2\",\"name\":\"waf\",\"config\":\"{\\\"model\\\":\\\"black\\\"}\",\"role\":0,\"enabled\":false},{\"id\":\"3\",\"name\":\"rewrite\",\"config\":null,\"role\":0,\"enabled\":false},{\"id\":\"4\",\"name\":\"rate_limiter\",\"config\":\"{\\\"master\\\":\\\"mymaster\\\",\\\"mode\\\":\\\"Standalone\\\",\\\"url\\\":\\\"192.168.1.1:6379\\\",\\\"password\\\":\\\"abc\\\"}\",\"role\":0,\"enabled\":false},{\"id\":\"5\",\"name\":\"divide\",\"config\":null,\"role\":0,\"enabled\":true},{\"id\":\"6\",\"name\":\"dubbo\",\"config\":\"{\\\"register\\\":\\\"zookeeper://localhost:2181\\\"}\",\"role\":0,\"enabled\":false},{\"id\":\"7\",\"name\":\"monitor\",\"config\":\"{\\\"metricsName\\\":\\\"prometheus\\\",\\\"host\\\":\\\"localhost\\\",\\\"port\\\":\\\"9190\\\",\\\"async\\\":\\\"true\\\"}\",\"role\":0,\"enabled\":false},{\"id\":\"8\",\"name\":\"springCloud\",\"config\":null,\"role\":0,\"enabled\":false},{\"id\":\"9\",\"name\":\"hystrix\",\"config\":null,\"role\":0,\"enabled\":false}]},\"APP_AUTH\":{\"md5\":\"d751713988987e9331980363e24189ce\",\"lastModifyTime\":1606982496898,\"data\":[]},\"RULE\":{\"md5\":\"d751713988987e9331980363e24189ce\",\"lastModifyTime\":1606982496924,\"data\":[]}}}";
+        try (FileInputStream fis = new FileInputStream(this.getClass().getClassLoader().getResource("mock_configs_listen_response.json").getPath());
+             InputStreamReader reader = new InputStreamReader(fis);
+             BufferedReader bufferedReader = new BufferedReader(reader);
+        ) {
+            StringBuilder builder = new StringBuilder();
+            bufferedReader.lines().forEach(builder::append);
+            return builder.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

@@ -22,18 +22,24 @@ import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 
 /**
- * mock Http Data Sync Endpoint
+ * mock Http Data Sync Endpoint.
  *
  * @author David Liu
  */
 public class MockHttpDataSyncEndpoint {
     private final int port;
+    
     private Server server;
     
-    public MockHttpDataSyncEndpoint(int port) {
+    public MockHttpDataSyncEndpoint(final int port) {
         this.port = port;
     }
     
+    /**
+     * start the http endpoint.
+     *
+     * @throws Exception any exception
+     */
     public void start() throws Exception {
         server = new Server(port);
         
@@ -54,6 +60,11 @@ public class MockHttpDataSyncEndpoint {
         server.start();
     }
     
+    /**
+     * stop the http endpoint.
+     *
+     * @throws Exception any exception
+     */
     public void stop() throws Exception {
         server.stop();
     }

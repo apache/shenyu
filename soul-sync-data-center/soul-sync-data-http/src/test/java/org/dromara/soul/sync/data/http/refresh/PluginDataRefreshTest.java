@@ -31,7 +31,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Test cases for {@link PluginDataRefresh}
+ * Test cases for {@link PluginDataRefresh}.
  *
  * @author davidliu
  */
@@ -39,13 +39,13 @@ public class PluginDataRefreshTest {
     
     private final PluginDataRefresh mockPluginDataRefresh = new PluginDataRefresh(new PluginDataSubscriber() {
         @Override
-        public void onSubscribe(PluginData pluginData) {
+        public void onSubscribe(final PluginData pluginData) {
         
         }
     });
     
     /**
-     * test case for {@link PluginDataRefresh#convert(JsonObject)}
+     * test case for {@link PluginDataRefresh#convert(JsonObject)}.
      */
     @Test
     public void testConvert() {
@@ -56,7 +56,7 @@ public class PluginDataRefreshTest {
     }
     
     /**
-     * test case for {@link PluginDataRefresh#fromJson(JsonObject)}
+     * test case for {@link PluginDataRefresh#fromJson(JsonObject)}.
      */
     @Test
     public void testFromJson() {
@@ -70,8 +70,7 @@ public class PluginDataRefreshTest {
     /**
      * This case coverages the following method:
      * {@link PluginDataRefresh#cacheConfigData()}
-     * {@link PluginDataRefresh#updateCacheIfNeed(ConfigData)}
-     * <p>
+     * {@link PluginDataRefresh#updateCacheIfNeed(ConfigData)}.
      * For {@link SelectorDataRefresh} inherits from {@link AbstractDataRefresh}, the {@link AbstractDataRefresh#GROUP_CACHE} was initialized when the class of
      * {@link AbstractDataRefresh} load, in two different test methods in this class, the the {@link AbstractDataRefresh#GROUP_CACHE} class only load once, so
      * the method which manipulate the {@link AbstractDataRefresh#GROUP_CACHE} invocation has aftereffects to the other methods
@@ -88,7 +87,7 @@ public class PluginDataRefreshTest {
     }
     
     /**
-     * This case is only for {@link PluginDataRefresh} code coverage
+     * This case is only for {@link PluginDataRefresh} code coverage.
      */
     @Test
     public void testRefreshCoverage() {

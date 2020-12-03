@@ -32,7 +32,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Test cases for {@link RuleDataRefresh}
+ * Test cases for {@link RuleDataRefresh}.
  *
  * @author davidliu
  */
@@ -40,13 +40,13 @@ public class RuleDataRefreshTest {
     
     private final RuleDataRefresh mockRuleDataRefresh = new RuleDataRefresh(new PluginDataSubscriber() {
         @Override
-        public void onSubscribe(PluginData pluginData) {
+        public void onSubscribe(final PluginData pluginData) {
         
         }
     });
     
     /**
-     * test case for {@link RuleDataRefresh#convert(JsonObject)}
+     * test case for {@link RuleDataRefresh#convert(JsonObject)}.
      */
     @Test
     public void testConvert() {
@@ -57,7 +57,7 @@ public class RuleDataRefreshTest {
     }
     
     /**
-     * test case for {@link RuleDataRefresh#fromJson(JsonObject)}
+     * test case for {@link RuleDataRefresh#fromJson(JsonObject)}.
      */
     @Test
     public void testFromJson() {
@@ -71,11 +71,10 @@ public class RuleDataRefreshTest {
     /**
      * This case coverages the following method:
      * {@link RuleDataRefresh#cacheConfigData()}
-     * {@link RuleDataRefresh#updateCacheIfNeed(ConfigData)}
-     * <p>
+     * {@link RuleDataRefresh#updateCacheIfNeed(ConfigData)}.
      * For {@link RuleDataRefresh} inherits from {@link AbstractDataRefresh}, the {@link AbstractDataRefresh#GROUP_CACHE} was initialized when the class of
      * {@link AbstractDataRefresh} load, in two different test methods in this class, the the {@link AbstractDataRefresh#GROUP_CACHE} class only load once, so
-     * the method which manipulate the {@link AbstractDataRefresh#GROUP_CACHE} invocation has aftereffects to the other methods
+     * the method which manipulate the {@link AbstractDataRefresh#GROUP_CACHE} invocation has aftereffects to the other methods.
      */
     @Test
     public void testUpdateCacheIfNeed() {
@@ -89,7 +88,7 @@ public class RuleDataRefreshTest {
     }
     
     /**
-     * This case is only for {@link RuleDataRefresh} code coverage
+     * This case is only for {@link RuleDataRefresh} code coverage.
      */
     @Test
     public void testRefresh() {

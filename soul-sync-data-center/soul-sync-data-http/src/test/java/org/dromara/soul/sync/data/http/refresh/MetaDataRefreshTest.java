@@ -31,7 +31,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Test cases for {@link MetaDataRefresh}
+ * Test cases for {@link MetaDataRefresh}.
  *
  * @author davidliu
  */
@@ -40,7 +40,7 @@ public class MetaDataRefreshTest {
     private final MetaDataRefresh mockMetaDataRefresh = this.buildMockMetaDataRefresh();
     
     /**
-     * test case for {@link MetaDataRefresh#convert(JsonObject)}
+     * test case for {@link MetaDataRefresh#convert(JsonObject)}.
      */
     @Test
     public void testConvert() {
@@ -51,7 +51,7 @@ public class MetaDataRefreshTest {
     }
     
     /**
-     * test case for {@link MetaDataRefresh#fromJson(JsonObject)}
+     * test case for {@link MetaDataRefresh#fromJson(JsonObject)}.
      */
     @Test
     public void testFromJson() {
@@ -65,11 +65,10 @@ public class MetaDataRefreshTest {
     /**
      * This case coverages the following method:
      * {@link MetaDataRefresh#cacheConfigData()}
-     * {@link MetaDataRefresh#updateCacheIfNeed(ConfigData)}
-     * <p>
+     * {@link MetaDataRefresh#updateCacheIfNeed(ConfigData)}.
      * For {@link SelectorDataRefresh} inherits from {@link AbstractDataRefresh}, the {@link AbstractDataRefresh#GROUP_CACHE} was initialized when the class of
      * {@link AbstractDataRefresh} load, in two different test methods in this class, the the {@link AbstractDataRefresh#GROUP_CACHE} class only load once, so
-     * the method which manipulate the {@link AbstractDataRefresh#GROUP_CACHE} invocation has aftereffects to the other methods
+     * the method which manipulate the {@link AbstractDataRefresh#GROUP_CACHE} invocation has aftereffects to the other methods.
      */
     @Test
     public void testUpdateCacheIfNeed() {
@@ -83,7 +82,7 @@ public class MetaDataRefreshTest {
     }
     
     /**
-     * This case is only for {@link MetaDataRefresh} code coverage
+     * This case is only for {@link MetaDataRefresh} code coverage.
      */
     @Test
     public void testRefreshCoverage() {
@@ -100,12 +99,12 @@ public class MetaDataRefreshTest {
         List<MetaDataSubscriber> metaDataSubscribers = new ArrayList<>();
         metaDataSubscribers.add(new MetaDataSubscriber() {
             @Override
-            public void onSubscribe(MetaData metaData) {
+            public void onSubscribe(final MetaData metaData) {
             
             }
             
             @Override
-            public void unSubscribe(MetaData metaData) {
+            public void unSubscribe(final MetaData metaData) {
             
             }
         });
