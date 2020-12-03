@@ -15,18 +15,23 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.spi;
+package org.dromara.soul.common.utils;
 
-import org.dromara.soul.spi.fixture.MysqlSPI;
 import org.junit.Test;
+import static org.junit.Assert.assertTrue;
 
-import static org.junit.Assert.assertNull;
-
-public final class SpiExtensionFactoryTest {
+/**
+ * Test cases for ParamCheckUtils.
+ *
+ * @author marina432
+ */
+public final class ParamCheckUtilsTest {
 
     @Test
-    public void testNull() {
-        SpiExtensionFactory spiExtensionFactory = new SpiExtensionFactory();
-        assertNull(spiExtensionFactory.getExtension("testNull", MysqlSPI.class));
+    public void testDubboBodyIsEmpty() {
+        assertTrue(ParamCheckUtils.dubboBodyIsEmpty(null));
+        assertTrue(ParamCheckUtils.dubboBodyIsEmpty(""));
+        assertTrue(ParamCheckUtils.dubboBodyIsEmpty("{}"));
+        assertTrue(ParamCheckUtils.dubboBodyIsEmpty("null"));
     }
 }

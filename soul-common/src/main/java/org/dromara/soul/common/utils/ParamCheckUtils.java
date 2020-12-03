@@ -15,18 +15,22 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.spi;
+package org.dromara.soul.common.utils;
 
-import org.dromara.soul.spi.fixture.MysqlSPI;
-import org.junit.Test;
-
-import static org.junit.Assert.assertNull;
-
-public final class SpiExtensionFactoryTest {
-
-    @Test
-    public void testNull() {
-        SpiExtensionFactory spiExtensionFactory = new SpiExtensionFactory();
-        assertNull(spiExtensionFactory.getExtension("testNull", MysqlSPI.class));
+/**
+ * The type Param check utils.
+ *
+ * @author xiaoyu
+ */
+public class ParamCheckUtils {
+    
+    /**
+     * Dubbo body is empty boolean.
+     *
+     * @param body the body
+     * @return the boolean
+     */
+    public static boolean dubboBodyIsEmpty(final String body) {
+        return null == body || "".equals(body) || "{}".equals(body) || "null".equals(body);
     }
 }

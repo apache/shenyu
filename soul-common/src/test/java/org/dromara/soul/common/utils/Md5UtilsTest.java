@@ -15,18 +15,22 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.spi;
+package org.dromara.soul.common.utils;
 
-import org.dromara.soul.spi.fixture.MysqlSPI;
 import org.junit.Test;
 
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
 
-public final class SpiExtensionFactoryTest {
+/**
+ * Test cases for Md5Utils.
+ *
+ * @author dengliming
+ */
+public class Md5UtilsTest {
 
     @Test
-    public void testNull() {
-        SpiExtensionFactory spiExtensionFactory = new SpiExtensionFactory();
-        assertNull(spiExtensionFactory.getExtension("testNull", MysqlSPI.class));
+    public void testMd5() {
+        final String md5 = "e10adc3949ba59abbe56e057f20f883e";
+        assertEquals(md5, Md5Utils.md5("123456"));
     }
 }

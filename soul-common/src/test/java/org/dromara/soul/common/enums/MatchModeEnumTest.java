@@ -15,18 +15,28 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.spi;
+package org.dromara.soul.common.enums;
 
-import org.dromara.soul.spi.fixture.MysqlSPI;
 import org.junit.Test;
 
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
-public final class SpiExtensionFactoryTest {
+/**
+ * Test Cases for MatchModeEnum.
+ *
+ * @author sherk7monstergit
+ */
+public final class MatchModeEnumTest {
 
     @Test
-    public void testNull() {
-        SpiExtensionFactory spiExtensionFactory = new SpiExtensionFactory();
-        assertNull(spiExtensionFactory.getExtension("testNull", MysqlSPI.class));
+    public void testGetMatchModeByCode() {
+        MatchModeEnum andModeEnum = MatchModeEnum.AND;
+        String andEnumName = MatchModeEnum.getMatchModeByCode(andModeEnum.getCode());
+        MatchModeEnum orModeEnum = MatchModeEnum.OR;
+        String orEnumName = MatchModeEnum.getMatchModeByCode(orModeEnum.getCode());
+        assertEquals(andModeEnum.getName(), andEnumName);
+        assertEquals(orModeEnum.getName(), orEnumName);
+        assertNotEquals(andEnumName, orEnumName);
     }
 }

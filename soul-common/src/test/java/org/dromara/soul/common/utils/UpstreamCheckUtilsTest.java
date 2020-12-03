@@ -15,18 +15,31 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.spi;
+package org.dromara.soul.common.utils;
 
-import org.dromara.soul.spi.fixture.MysqlSPI;
 import org.junit.Test;
 
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertFalse;
 
-public final class SpiExtensionFactoryTest {
+/**
+ * Test cases for UpstreamCheckUtils.
+ *
+ * @author dengliming
+ */
+public class UpstreamCheckUtilsTest {
 
     @Test
-    public void testNull() {
-        SpiExtensionFactory spiExtensionFactory = new SpiExtensionFactory();
-        assertNull(spiExtensionFactory.getExtension("testNull", MysqlSPI.class));
+    public void testBlank() {
+        assertFalse(UpstreamCheckUtils.checkUrl(""));
+    }
+
+    @Test
+    public void testNotIp() {
+        assertFalse(UpstreamCheckUtils.checkUrl("test"));
+    }
+
+    @Test
+    public void testNormalIp() {
+        assertFalse(UpstreamCheckUtils.checkUrl("http://127.0.0.1"));
     }
 }

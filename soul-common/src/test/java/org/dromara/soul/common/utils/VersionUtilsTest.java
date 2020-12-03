@@ -15,18 +15,35 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.spi;
+package org.dromara.soul.common.utils;
 
-import org.dromara.soul.spi.fixture.MysqlSPI;
 import org.junit.Test;
 
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
 
-public final class SpiExtensionFactoryTest {
+/**
+ * Test cases for VersionUtils.
+ *
+ * @author linkuan
+ */
+public class VersionUtilsTest {
 
     @Test
-    public void testNull() {
-        SpiExtensionFactory spiExtensionFactory = new SpiExtensionFactory();
-        assertNull(spiExtensionFactory.getExtension("testNull", MysqlSPI.class));
+    public void testFromDefaultVersion() {
+        String version = VersionUtils.getVersion();
+        assertNotNull(version);
     }
+    
+    @Test
+    public void testFromImplementationVersion() throws ClassNotFoundException {
+        String version = VersionUtils.getVersion(Class.forName("java.lang.String"), "2.0.2");
+        assertNotNull(version);
+    }
+    
+    @Test
+    public void testFromCodeSource() throws ClassNotFoundException {
+        String version = VersionUtils.getVersion(Class.forName("ch.qos.logback.classic.db.DBAppender"), "2.0.2");
+        assertNotNull(version);
+    }
+
 }

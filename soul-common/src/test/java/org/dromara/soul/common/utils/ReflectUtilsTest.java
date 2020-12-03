@@ -15,18 +15,26 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.spi;
+package org.dromara.soul.common.utils;
 
-import org.dromara.soul.spi.fixture.MysqlSPI;
 import org.junit.Test;
 
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
 
-public final class SpiExtensionFactoryTest {
+/**
+ * Test cases for ReflectUtils.
+ *
+ * @author dengliming
+ */
+public class ReflectUtilsTest {
 
     @Test
-    public void testNull() {
-        SpiExtensionFactory spiExtensionFactory = new SpiExtensionFactory();
-        assertNull(spiExtensionFactory.getExtension("testNull", MysqlSPI.class));
+    public void testGetFieldValue() {
+        Reflect reflect = new Reflect();
+        assertEquals("1", ReflectUtils.getFieldValue(reflect, "a"));
+    }
+
+    public static class Reflect {
+        private String a = "1";
     }
 }
