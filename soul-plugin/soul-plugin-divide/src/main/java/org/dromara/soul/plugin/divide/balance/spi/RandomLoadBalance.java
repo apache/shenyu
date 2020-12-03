@@ -42,11 +42,11 @@ public class RandomLoadBalance extends AbstractLoadBalance {
         // 权重是否都一样
         boolean sameWeight = true;
         for (int i = 0; i < length; i++) {
-            int weight = upstreamList.get(i).getWeight();
+            int weight = getWeight(upstreamList.get(i));
             // 累计总权重
             totalWeight += weight;
             if (sameWeight && i > 0
-                    && weight != upstreamList.get(i - 1).getWeight()) {
+                    && weight != getWeight(upstreamList.get(i - 1))) {
                 // 计算所有权重是否一样
                 sameWeight = false;
             }
@@ -56,7 +56,7 @@ public class RandomLoadBalance extends AbstractLoadBalance {
             int offset = RANDOM.nextInt(totalWeight);
             // 并确定随机值落在哪个片断上
             for (DivideUpstream divideUpstream : upstreamList) {
-                offset -= divideUpstream.getWeight();
+                offset -= getWeight(divideUpstream);
                 if (offset < 0) {
                     return divideUpstream;
                 }

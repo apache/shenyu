@@ -19,6 +19,8 @@ package org.dromara.soul.plugin.divide.cache;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -41,7 +43,10 @@ public final class UpstreamCacheManager {
     private static final UpstreamCacheManager INSTANCE = new UpstreamCacheManager();
     
     private static final Map<String, List<DivideUpstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
-    
+
+    /**
+     * suggest soul.upstream.scheduledTime set 1 SECONDS
+     */
     private UpstreamCacheManager() {
         boolean check = Boolean.parseBoolean(System.getProperty("soul.upstream.check", "false"));
         if (check) {
@@ -105,14 +110,20 @@ public final class UpstreamCacheManager {
             });
         }
     }
-    
+
     private List<DivideUpstream> check(final List<DivideUpstream> upstreamList) {
         List<DivideUpstream> resultList = Lists.newArrayListWithCapacity(upstreamList.size());
         for (DivideUpstream divideUpstream : upstreamList) {
             final boolean pass = UpstreamCheckUtils.checkUrl(divideUpstream.getUpstreamUrl());
             if (pass) {
+                if (!divideUpstream.isStatus()) {
+                    divideUpstream.setTimestamp(System.currentTimeMillis());
+                    divideUpstream.setStatus(true);
+                    log.info("UpstreamCacheManager detect success the url: {}, host: {} ", divideUpstream.getUpstreamUrl(), divideUpstream.getUpstreamHost());
+                }
                 resultList.add(divideUpstream);
             } else {
+                divideUpstream.setStatus(false);
                 log.error("check the url={} is fail ", divideUpstream.getUpstreamUrl());
             }
         }
