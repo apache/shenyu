@@ -55,7 +55,6 @@ public class DateUtilsTest {
     public void testFormatLocalDateTimeFromTimestamp() {
         LocalDateTime localDateTime1 = LocalDateTime.now(ZoneOffset.ofHours(8));
         LocalDateTime localDateTime2 = DateUtils.formatLocalDateTimeFromTimestamp(ZonedDateTime.of(localDateTime1, ZoneOffset.ofHours(8)).toInstant().toEpochMilli());
-
         assertEquals(localDateTime1.getYear(), localDateTime2.getYear());
         assertEquals(localDateTime1.getDayOfMonth(), localDateTime2.getDayOfMonth());
         assertEquals(localDateTime1.getMonth(), localDateTime2.getMonth());
@@ -67,9 +66,7 @@ public class DateUtilsTest {
     @Test
     public void testParseLocalDateTime() {
         LocalDateTime localDateTime1 = LocalDateTime.of(2020, 1, 1, 0, 0, 1, 0);
-
         LocalDateTime localDateTime2 = DateUtils.parseLocalDateTime("2020-01-01 00:00:01");
-
         assertEquals(localDateTime1.getYear(), localDateTime2.getYear());
         assertEquals(localDateTime1.getDayOfMonth(), localDateTime2.getDayOfMonth());
         assertEquals(localDateTime1.getMonth(), localDateTime2.getMonth());

@@ -23,7 +23,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Test cases for PathMatchUtils
+ * Test cases for PathMatchUtils.
  *
  * @author dengliming
  */
@@ -34,17 +34,14 @@ public class PathMatchUtilsTest {
         // test exact matching
         assertTrue(PathMatchUtils.match("test", "test"));
         assertTrue(PathMatchUtils.match("/test", "/test"));
-
         // test matching with ?'s
         assertTrue(PathMatchUtils.match("t?st", "test"));
         assertTrue(PathMatchUtils.match("??st", "test"));
-
         // test matching with *'s
         assertTrue(PathMatchUtils.match("*", "test"));
         assertTrue(PathMatchUtils.match("test*", "test"));
         assertTrue(PathMatchUtils.match("test*", "testTest"));
         assertFalse(PathMatchUtils.match("test*aaa", "testblaaab"));
-
         // test matching with **'s
         assertTrue(PathMatchUtils.match("/**", "/testing/testing"));
     }

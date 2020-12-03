@@ -18,20 +18,32 @@
 package org.dromara.soul.common.utils;
 
 import org.junit.Test;
-import static org.junit.Assert.assertTrue;
+
+import static org.junit.Assert.assertNotNull;
 
 /**
- * Test cases for ParamCheckUtils.
+ * Test cases for VersionUtils.
  *
- * @author marina432
+ * @author linkuan
  */
-public final class ParamCheckUtilsTest {
+public class VersionUtilsTest {
 
     @Test
-    public void testDubboBodyIsEmpty() {
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty(null));
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty(""));
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty("{}"));
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty("null"));
+    public void testFromDefaultVersion() {
+        String version = VersionUtils.getVersion();
+        assertNotNull(version);
     }
+    
+    @Test
+    public void testFromImplementationVersion() throws ClassNotFoundException {
+        String version = VersionUtils.getVersion(Class.forName("java.lang.String"), "2.0.2");
+        assertNotNull(version);
+    }
+    
+    @Test
+    public void testFromCodeSource() throws ClassNotFoundException {
+        String version = VersionUtils.getVersion(Class.forName("ch.qos.logback.classic.db.DBAppender"), "2.0.2");
+        assertNotNull(version);
+    }
+
 }

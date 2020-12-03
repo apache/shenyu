@@ -23,7 +23,7 @@ import org.dromara.soul.spi.fixture.NopSPI;
 import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -36,7 +36,7 @@ public final class ExtensionLoaderTest {
     }
 
     @Test
-    public void test_getExtensionLoader_NotInterface() {
+    public void testGetExtensionLoaderNotInterface() {
         try {
             ExtensionLoader.getExtensionLoader(ExtensionLoaderTest.class);
             fail();
@@ -47,7 +47,7 @@ public final class ExtensionLoaderTest {
     }
 
     @Test
-    public void test_getExtensionLoader_NotSpiAnnotation() {
+    public void testGetExtensionLoaderNotSpiAnnotation() {
         try {
             ExtensionLoader.getExtensionLoader(NopSPI.class);
             fail();

@@ -40,14 +40,18 @@ import static io.undertow.Handlers.path;
 import static io.undertow.Handlers.websocket;
 
 /**
+ * The type Websocket client test.
+ *
  * @author xiaoyu(Myth)
  */
-public class WebsocketClientTest {
+public final class WebsocketClientTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(WebsocketClientTest.class);
-    public static WebSocketClient client;
+    
+    private static WebSocketClient client;
+    
     private static Undertow server;
-
+    
     @BeforeClass
     public static void init() {
         server = Undertow.builder()
@@ -57,7 +61,7 @@ public class WebsocketClientTest {
                             channel.getReceiveSetter().set(new AbstractReceiveListener() {
 
                                 @Override
-                                protected void onFullTextMessage(WebSocketChannel channel, BufferedTextMessage message) {
+                                protected void onFullTextMessage(final WebSocketChannel channel, final BufferedTextMessage message) {
                                     WebSockets.sendText(message.getData(), channel, null);
                                 }
                             });
@@ -66,17 +70,17 @@ public class WebsocketClientTest {
                 .build();
         server.start();
     }
-
+    
     @AfterClass
     public static void after() {
         server.stop();
     }
-
+    
     @After
     public void destroy() {
         client.close();
     }
-
+    
     @Test
     public void send() throws Exception {
         final CountDownLatch latch = new CountDownLatch(1);
@@ -88,13 +92,11 @@ public class WebsocketClientTest {
 
             @Override
             public void onMessage(final String s) {
-                LOGGER.info("Received {}", s);
                 latch.countDown();
             }
 
             @Override
             public void onClose(final int i, final String s, final boolean b) {
-                LOGGER.info("Close connection");
             }
 
             @Override
@@ -107,7 +109,6 @@ public class WebsocketClientTest {
             LOGGER.debug("connecting...");
         }
         client.send("xiaoyu");
-        latch.await(10, TimeUnit.SECONDS);
+        latch.await(3, TimeUnit.SECONDS);
     }
-
 }

@@ -30,45 +30,31 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 /**
- * Test cases for JsonUtils
+ * Test cases for JsonUtils.
  *
  * @author strawberry-crisis
  */
 public class JsonUtilsTest {
-
-    @Data
-    @Builder
-    static class TestObject {
-        private int id;
-
-        private String name;
-
-        private boolean deleted;
-
-        private List<String> testList;
-
-        private Map<String, String> testMap;
-
-        private Object nullObject;
-
-        private List<String> emptyList;
-
-        private Map<String, String> emptyMap;
-
-        private Map<String, Object> nestedMap;
-    }
+    
+    private static final String EXPECTED_JSON = "{\"id\":123,\"name\":\"test object\",\"deleted\":false,"
+             + "\"testList\":[\"test_string_0\",\"test_string_1\",\"test_string_2\",\"test_string_3\",\"test_string_4\",\"test_string_5\","
+             + "\"test_string_6\",\"test_string_7\",\"test_string_8\",\"test_string_9\"],\"testMap\""
+             + ":{\"test_map_9\":\"test_value_9\",\"test_map_8\":\"test_value_8\",\"test_map_3\":\"test_value_3\","
+             + "\"test_map_2\":\"test_value_2\",\"test_map_1\":\"test_value_1\",\"test_map_0\":\"test_value_0\","
+             + "\"test_map_7\":\"test_value_7\",\"test_map_6\":\"test_value_6\",\"test_map_5\":\"test_value_5\",\"test_map_4\":\"test_value_4\"},"
+             + "\"nullObject\":null,\"emptyList\":[],\"emptyMap\":{},\"nestedMap\":{\"boolean\":false,\"map2\":{},\"map1\":{\"test_map_9\":\"test_value_9\","
+             + "\"test_map_8\":\"test_value_8\",\"test_map_3\":\"test_value_3\",\"test_map_2\":\"test_value_2\",\"test_map_1\":\"test_value_1\","
+             + "\"test_map_0\":\"test_value_0\",\"test_map_7\":\"test_value_7\","
+             + "\"test_map_6\":\"test_value_6\",\"test_map_5\":\"test_value_5\",\"test_map_4\":\"test_value_4\"},\"testInt\":100}}";
 
     @Test
     public void toJson() {
-        final String expectedString = "{\"id\":123,\"name\":\"test object\",\"deleted\":false,\"testList\":[\"test_string_0\",\"test_string_1\",\"test_string_2\",\"test_string_3\",\"test_string_4\",\"test_string_5\",\"test_string_6\",\"test_string_7\",\"test_string_8\",\"test_string_9\"],\"testMap\":{\"test_map_9\":\"test_value_9\",\"test_map_8\":\"test_value_8\",\"test_map_3\":\"test_value_3\",\"test_map_2\":\"test_value_2\",\"test_map_1\":\"test_value_1\",\"test_map_0\":\"test_value_0\",\"test_map_7\":\"test_value_7\",\"test_map_6\":\"test_value_6\",\"test_map_5\":\"test_value_5\",\"test_map_4\":\"test_value_4\"},\"nullObject\":null,\"emptyList\":[],\"emptyMap\":{},\"nestedMap\":{\"boolean\":false,\"map2\":{},\"map1\":{\"test_map_9\":\"test_value_9\",\"test_map_8\":\"test_value_8\",\"test_map_3\":\"test_value_3\",\"test_map_2\":\"test_value_2\",\"test_map_1\":\"test_value_1\",\"test_map_0\":\"test_value_0\",\"test_map_7\":\"test_value_7\",\"test_map_6\":\"test_value_6\",\"test_map_5\":\"test_value_5\",\"test_map_4\":\"test_value_4\"},\"testInt\":100}}";
-
         List<String> testList = new LinkedList<>();
         Map<String, String> testMap = new HashMap<>();
         for (int i = 0; i < 10; i++) {
             testList.add("test_string_" + i);
             testMap.put("test_map_" + i, "test_value_" + i);
         }
-
         TestObject object = TestObject.builder()
                 .id(123)
                 .name("test object")
@@ -87,7 +73,7 @@ public class JsonUtilsTest {
                     }
                 })
                 .build();
-        assertEquals(expectedString, JsonUtils.toJson(object));
+        assertEquals(EXPECTED_JSON, JsonUtils.toJson(object));
     }
 
     @Test
@@ -101,5 +87,28 @@ public class JsonUtilsTest {
         JsonUtils.removeClass(testMap);
         assertNull(testMap.getOrDefault("class", null));
         assertEquals(testMap.get("not_class").get("not_class"), "ClassNotFoundException.class");
+    }
+    
+    @Data
+    @Builder
+    static class TestObject {
+        
+        private int id;
+        
+        private String name;
+        
+        private boolean deleted;
+        
+        private List<String> testList;
+        
+        private Map<String, String> testMap;
+        
+        private Object nullObject;
+        
+        private List<String> emptyList;
+        
+        private Map<String, String> emptyMap;
+        
+        private Map<String, Object> nestedMap;
     }
 }
