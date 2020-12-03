@@ -15,31 +15,28 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.utils;
+package org.dromara.soul.common.enums;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 /**
- * Test cases for UpstreamCheckUtils.
+ * Test Cases for MatchModeEnum.
  *
- * @author dengliming
+ * @author sherk7monstergit
  */
-public class UpstreamCheckUtilsTest {
+public final class MatchModeEnumTest {
 
     @Test
-    public void testBlank() {
-        assertFalse(UpstreamCheckUtils.checkUrl(""));
-    }
-
-    @Test
-    public void testNotIp() {
-        assertFalse(UpstreamCheckUtils.checkUrl("test"));
-    }
-
-    @Test
-    public void testNormalIp() {
-        assertFalse(UpstreamCheckUtils.checkUrl("http://127.0.0.1"));
+    public void testGetMatchModeByCode() {
+        MatchModeEnum andModeEnum = MatchModeEnum.AND;
+        String andEnumName = MatchModeEnum.getMatchModeByCode(andModeEnum.getCode());
+        MatchModeEnum orModeEnum = MatchModeEnum.OR;
+        String orEnumName = MatchModeEnum.getMatchModeByCode(orModeEnum.getCode());
+        assertEquals(andModeEnum.getName(), andEnumName);
+        assertEquals(orModeEnum.getName(), orEnumName);
+        assertNotEquals(andEnumName, orEnumName);
     }
 }

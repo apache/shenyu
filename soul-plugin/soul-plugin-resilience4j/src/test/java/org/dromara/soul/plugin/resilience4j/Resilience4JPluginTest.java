@@ -55,6 +55,11 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 @RunWith(MockitoJUnitRunner.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public final class Resilience4JPluginTest {
+    
+    private static final String HANDLER = "{\"limitForPeriod\":\"1\",\"limitRefreshPeriod\":\"2000\",\"timeoutDurationRate\":\"500\",\"circuitEnable\":\"0\","
+            + "\"failureRateThreshold\":\"50\",\"fallbackUri\":\"\",\"minimumNumberOfCalls\":\"50\","
+            + "\"permittedNumberOfCallsInHalfOpenState\":\"1\",\"slidingWindowSize\":\"100\",\"slidingWindowType\":\"0\","
+            + "\"timeoutDuration\":\"20000000\",\"waitIntervalFunctionInOpenState\":\"100000\"}";
 
     @Mock
     private SoulPluginChain chain;
@@ -66,9 +71,7 @@ public final class Resilience4JPluginTest {
     private RateLimiter rateLimiter;
 
     private CircuitBreaker circuitBreaker;
-
-    private static final String handle = "{\"limitForPeriod\":\"1\",\"limitRefreshPeriod\":\"2000\",\"timeoutDurationRate\":\"500\",\"circuitEnable\":\"0\",\"failureRateThreshold\":\"50\",\"fallbackUri\":\"\",\"minimumNumberOfCalls\":\"50\",\"permittedNumberOfCallsInHalfOpenState\":\"1\",\"slidingWindowSize\":\"100\",\"slidingWindowType\":\"0\",\"timeoutDuration\":\"20000000\",\"waitIntervalFunctionInOpenState\":\"100000\"}";
-
+    
     @Before
     public void setup() {
         rateLimiter = mock(RateLimiter.class, RETURNS_DEEP_STUBS);
@@ -82,7 +85,7 @@ public final class Resilience4JPluginTest {
     public void normalTest() {
         resilience4JPlugin = new Resilience4JPlugin(new CombinedExecutor(), new RateLimiterExecutor());
         RuleData data = mock(RuleData.class);
-        when(data.getHandle()).thenReturn(handle);
+        when(data.getHandle()).thenReturn(HANDLER);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         SelectorData selectorData = mock(SelectorData.class);
         StepVerifier.create(resilience4JPlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
@@ -93,10 +96,8 @@ public final class Resilience4JPluginTest {
         RuleData data = mock(RuleData.class);
         CombinedExecutor combinedExecutor = mock(CombinedExecutor.class);
         resilience4JPlugin = new Resilience4JPlugin(combinedExecutor, new RateLimiterExecutor());
-        Mono mono = Mono.error(RequestNotPermitted.createRequestNotPermitted(rateLimiter)).onErrorResume(throwable -> {
-            return Mono.error(throwable);
-        });
-        when(data.getHandle()).thenReturn(handle);
+        Mono mono = Mono.error(RequestNotPermitted.createRequestNotPermitted(rateLimiter)).onErrorResume(Mono::error);
+        when(data.getHandle()).thenReturn(HANDLER);
         when(chain.execute(exchange)).thenReturn(mono);
         SelectorData selectorData = mock(SelectorData.class);
         StepVerifier.create(resilience4JPlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().expectError().verify();
@@ -105,7 +106,6 @@ public final class Resilience4JPluginTest {
     @Test
     public void circuitBreakerTest() {
         RuleData data = mock(RuleData.class);
-        SelectorData selectorData = mock(SelectorData.class);
         CombinedExecutor combinedExecutor = new CombinedExecutor();
         resilience4JPlugin = new Resilience4JPlugin(combinedExecutor, new RateLimiterExecutor());
         Mono mono = Mono.error(CallNotPermittedException.createCallNotPermittedException(circuitBreaker)).onErrorResume(throwable -> {
@@ -114,10 +114,11 @@ public final class Resilience4JPluginTest {
             }
             return Mono.error(throwable);
         });
-        when(data.getHandle()).thenReturn(handle);
+        when(data.getHandle()).thenReturn(HANDLER);
         when(chain.execute(exchange)).thenReturn(mono);
         when(data.getSelectorId()).thenReturn("circuitBreaker");
         when(data.getName()).thenReturn("ruleData");
+        SelectorData selectorData = mock(SelectorData.class);
         StepVerifier.create(resilience4JPlugin.doExecute(exchange, chain, selectorData, data))
                 .expectSubscription()
                 .expectError()

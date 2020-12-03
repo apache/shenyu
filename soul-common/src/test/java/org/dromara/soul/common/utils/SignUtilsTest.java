@@ -25,7 +25,7 @@ import java.util.Map;
 import static org.junit.Assert.assertNotNull;
 
 /**
- * Test cases for SignUtils
+ * Test cases for SignUtils.
  *
  * @author dengliming
  */

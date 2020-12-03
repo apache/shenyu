@@ -29,5 +29,4 @@ public final class SpiExtensionFactoryTest {
         SpiExtensionFactory spiExtensionFactory = new SpiExtensionFactory();
         assertNull(spiExtensionFactory.getExtension("testNull", MysqlSPI.class));
     }
-
 }

@@ -18,28 +18,20 @@
 package org.dromara.soul.common.utils;
 
 import org.junit.Test;
-
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
- * Test cases for UpstreamCheckUtils.
+ * Test cases for ParamCheckUtils.
  *
- * @author dengliming
+ * @author marina432
  */
-public class UpstreamCheckUtilsTest {
+public final class ParamCheckUtilsTest {
 
     @Test
-    public void testBlank() {
-        assertFalse(UpstreamCheckUtils.checkUrl(""));
-    }
-
-    @Test
-    public void testNotIp() {
-        assertFalse(UpstreamCheckUtils.checkUrl("test"));
-    }
-
-    @Test
-    public void testNormalIp() {
-        assertFalse(UpstreamCheckUtils.checkUrl("http://127.0.0.1"));
+    public void testDubboBodyIsEmpty() {
+        assertTrue(ParamCheckUtils.dubboBodyIsEmpty(null));
+        assertTrue(ParamCheckUtils.dubboBodyIsEmpty(""));
+        assertTrue(ParamCheckUtils.dubboBodyIsEmpty("{}"));
+        assertTrue(ParamCheckUtils.dubboBodyIsEmpty("null"));
     }
 }

@@ -323,11 +323,11 @@ public class ZookeeperClientTest {
     }
 
     private static List<DivideUpstream> buildUpstreamList() {
-        List<DivideUpstream> upstreams = Lists.newArrayList();
         DivideUpstream upstream = new DivideUpstream();
         upstream.setUpstreamHost("localhost");
         upstream.setUpstreamUrl("http://localhost:8081");
         upstream.setWeight(90);
+        List<DivideUpstream> upstreams = Lists.newArrayList();
         upstreams.add(upstream);
         return upstreams;
     }

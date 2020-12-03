@@ -19,27 +19,31 @@ package org.dromara.soul.common.utils;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 
 /**
- * Test cases for UpstreamCheckUtils.
+ * Test cases for VersionUtils.
  *
- * @author dengliming
+ * @author linkuan
  */
-public class UpstreamCheckUtilsTest {
+public class VersionUtilsTest {
 
     @Test
-    public void testBlank() {
-        assertFalse(UpstreamCheckUtils.checkUrl(""));
+    public void testFromDefaultVersion() {
+        String version = VersionUtils.getVersion();
+        assertNotNull(version);
+    }
+    
+    @Test
+    public void testFromImplementationVersion() throws ClassNotFoundException {
+        String version = VersionUtils.getVersion(Class.forName("java.lang.String"), "2.0.2");
+        assertNotNull(version);
+    }
+    
+    @Test
+    public void testFromCodeSource() throws ClassNotFoundException {
+        String version = VersionUtils.getVersion(Class.forName("ch.qos.logback.classic.db.DBAppender"), "2.0.2");
+        assertNotNull(version);
     }
 
-    @Test
-    public void testNotIp() {
-        assertFalse(UpstreamCheckUtils.checkUrl("test"));
-    }
-
-    @Test
-    public void testNormalIp() {
-        assertFalse(UpstreamCheckUtils.checkUrl("http://127.0.0.1"));
-    }
 }
