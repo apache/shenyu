@@ -21,7 +21,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Test cases for ParamChekUtils
+ * Test cases for ParamCheckUtils.
  *
  * @author marina432
  */

@@ -22,7 +22,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertFalse;
 
 /**
- * Test cases for UpstreamCheckUtils
+ * Test cases for UpstreamCheckUtils.
  *
  * @author dengliming
  */
