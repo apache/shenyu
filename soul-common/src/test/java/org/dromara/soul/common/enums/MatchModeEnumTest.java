@@ -26,7 +26,7 @@ import static org.junit.Assert.assertNotEquals;
  *
  * @author sherk7monster
  */
-public class MatchModeEnumTest {
+public final class MatchModeEnumTest {
 
     @Test
     public void testGetMatchModeByCode() {
