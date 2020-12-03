@@ -17,26 +17,28 @@
 
 package org.dromara.soul.common.utils;
 
-
+import org.hamcrest.collection.IsMapContaining;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ErrorCollector;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.util.Map;
 
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.allOf;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-
 
 /**
  * Test cases for HttpParamConverter
  *
  * @author dengliming
  */
-public final class HttpParamConverterTest {
-    
+public class HttpParamConverterTest {
+
+    @Rule
+    public ErrorCollector collector = new ErrorCollector();
+
     @Test
     public void testOfString() {
         assertEquals("{\"a\":\"1\",\"b\":\"2\"}", HttpParamConverter.ofString(() -> "a=1&b=2"));
@@ -44,11 +46,10 @@ public final class HttpParamConverterTest {
 
     @Test
     public void testInitQueryParams() {
-        Map<String, String> params = HttpParamConverter.initQueryParams("a=1&b=2&c=&d");
-        assertThat(params.get("a"),is("1"));
-        assertThat(params.get("b"),is("2"));
-        assertEquals(params.get("c"),"");
-        assertNull(params.get("d"));
+        Map<String, String> params = HttpParamConverter.initQueryParams("a=1&b=2");
+        collector.checkThat(params,
+                allOf(IsMapContaining.hasEntry("a", "1"),
+                        IsMapContaining.hasEntry("b", "2")));
     }
 
     @Test
@@ -62,7 +63,6 @@ public final class HttpParamConverterTest {
         args.add("a", "1");
         args.add("a", "2");
         args.add("b", "3");
-
         String actual = HttpParamConverter.toMap(() -> args);
         assertEquals("{\"a\":\"1\",\"b\":\"3\"}", actual);
     }
