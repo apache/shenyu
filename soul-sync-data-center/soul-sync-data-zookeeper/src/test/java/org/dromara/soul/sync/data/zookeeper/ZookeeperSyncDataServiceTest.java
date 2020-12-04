@@ -44,7 +44,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
