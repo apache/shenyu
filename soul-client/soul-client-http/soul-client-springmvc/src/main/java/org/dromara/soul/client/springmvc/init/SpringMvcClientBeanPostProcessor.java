@@ -138,7 +138,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
                 .ruleName(ruleName)
                 .registerMetaData(soulSpringMvcClient.registerMetaData())
                 .build();
-        return OkHttpTools.getInstance().getGosn().toJson(registerDTO);
+        return OkHttpTools.getInstance().getGson().toJson(registerDTO);
     }
 }
 

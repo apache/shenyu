@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS `plugin_handle` (
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `plugin_id_field` (`plugin_id`,`field`)
+  UNIQUE KEY `plugin_id_field_type` (`plugin_id`,`field`,`type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 
@@ -206,6 +206,7 @@ INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('6','10', 'degradeRuleGrade', '熔断类型','3', 2, 3, '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('7','10', 'degradeRuleCount', '熔断阈值','1', 2, 1, '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('8','10', 'degradeRuleTimeWindow', '熔断窗口大小','1', 2, 4, '2020-11-09 01:19:10', '2020-11-09 01:19:10');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('9','10', 'fallbackUri', '熔断URI', 2, 2, 9, '2020-12-04 17:32:27', '2020-12-04 17:33:18');
 
 /*insert plugin_handle data for waf*/
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('9','2', 'permission', '许可','3', 2, 1, '2020-11-22 12:04:10', '2020-11-22 12:04:10');

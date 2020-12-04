@@ -30,4 +30,9 @@ public class SoulSpringCloudConfig {
     private String adminUrl;
     
     private String contextPath;
+
+    /**
+     * 如果配置了full为true 代表代理整个服务.
+     */
+    private boolean full;
 }

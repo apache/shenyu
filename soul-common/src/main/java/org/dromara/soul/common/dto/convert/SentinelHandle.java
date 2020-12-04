@@ -20,6 +20,7 @@ package org.dromara.soul.common.dto.convert;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.dromara.soul.common.constant.Constants;
 
 /**
  * This is SentinelHandle.
@@ -32,42 +33,47 @@ import lombok.Setter;
 public class SentinelHandle {
 
     /**
-     * flow rule enable.
+     * Flow rule enable.
      */
-    private Integer flowRuleEnable = 1;
+    private Integer flowRuleEnable = Constants.SENTINEL_ENABLE_FLOW_RULE;
 
     /**
-     * flow rule grade.
+     * Flow rule grade.
      */
-    private Integer flowRuleGrade = 1;
+    private Integer flowRuleGrade = Constants.SENTINEL_QPS_FLOW_GRADE;
 
     /**
-     * flow rule count.
+     * Flow rule count.
      */
     private Integer flowRuleCount;
 
     /**
-     * flow rule control behavior.
+     * Flow rule control behavior.
      */
-    private Integer flowRuleControlBehavior = 0;
+    private Integer flowRuleControlBehavior = Constants.SENTINEL_FLOW_REJECT;
 
     /**
-     * degrade rule control behavior.
+     * Degrade rule control behavior.
      */
-    private Integer degradeRuleEnable = 1;
+    private Integer degradeRuleEnable = Constants.SENTINEL_ENABLE_DEGRADE_RULE;
 
     /**
-     * degrade rule grade.
+     * Degrade rule grade.
      */
-    private Integer degradeRuleGrade = 1;
+    private Integer degradeRuleGrade = Constants.SENTINEL_RESPONSE_RULE_GRADE;
 
     /**
-     * degrade rule count.
+     * Degrade rule count.
      */
     private Integer degradeRuleCount;
 
     /**
-     * degrade rule time window.
+     * Degrade rule time window.
      */
     private Integer degradeRuleTimeWindow;
+
+    /**
+     * Sentinel fallback uri.
+     */
+    private String fallbackUri;
 }

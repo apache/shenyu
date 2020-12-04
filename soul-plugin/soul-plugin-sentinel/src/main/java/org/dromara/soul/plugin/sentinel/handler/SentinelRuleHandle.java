@@ -21,6 +21,7 @@ import com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule;
 import com.alibaba.csp.sentinel.slots.block.degrade.DegradeRuleManager;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRule;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRuleManager;
+import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.convert.SentinelHandle;
 import org.dromara.soul.common.enums.PluginEnum;
@@ -45,7 +46,7 @@ public class SentinelRuleHandle implements PluginDataHandler {
                 .stream()
                 .filter(r -> !r.getResource().equals(getResourceName(ruleData)))
                 .collect(Collectors.toList());
-        if (sentinelHandle.getFlowRuleEnable() == 1) {
+        if (sentinelHandle.getFlowRuleEnable() == Constants.SENTINEL_ENABLE_FLOW_RULE) {
             FlowRule rule = new FlowRule(getResourceName(ruleData));
             rule.setCount(sentinelHandle.getFlowRuleCount());
             rule.setGrade(sentinelHandle.getFlowRuleGrade());
@@ -58,7 +59,7 @@ public class SentinelRuleHandle implements PluginDataHandler {
                 .stream()
                 .filter(r -> !r.getResource().equals(getResourceName(ruleData)))
                 .collect(Collectors.toList());
-        if (sentinelHandle.getDegradeRuleEnable() == 1) {
+        if (sentinelHandle.getDegradeRuleEnable() == Constants.SENTINEL_ENABLE_DEGRADE_RULE) {
             DegradeRule rule = new DegradeRule(getResourceName(ruleData));
             rule.setCount(sentinelHandle.getDegradeRuleCount());
             rule.setGrade(sentinelHandle.getDegradeRuleGrade());

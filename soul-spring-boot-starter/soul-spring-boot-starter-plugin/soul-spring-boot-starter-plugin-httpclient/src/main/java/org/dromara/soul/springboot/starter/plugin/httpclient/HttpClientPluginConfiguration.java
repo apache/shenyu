@@ -56,7 +56,7 @@ public class HttpClientPluginConfiguration {
      * @return the http client properties
      */
     @Bean
-    @ConfigurationProperties(prefix = "soul.httpclinet")
+    @ConfigurationProperties(prefix = "soul.httpclient")
     public HttpClientProperties httpClientProperties() {
         return new HttpClientProperties();
     }
