@@ -114,7 +114,7 @@ public class ApacheDubboServiceBeanPostProcessor implements ApplicationListener<
                 .rpcType("dubbo")
                 .enabled(soulDubboClient.enabled())
                 .build();
-        return OkHttpTools.getInstance().getGosn().toJson(metaDataDTO);
+        return OkHttpTools.getInstance().getGson().toJson(metaDataDTO);
 
     }
 
@@ -127,7 +127,7 @@ public class ApacheDubboServiceBeanPostProcessor implements ApplicationListener<
                 .timeout(Objects.isNull(serviceBean.getTimeout()) ? Constants.DEFAULT_CONNECT_TIMEOUT : serviceBean.getTimeout())
                 .url("")
                 .build();
-        return OkHttpTools.getInstance().getGosn().toJson(build);
+        return OkHttpTools.getInstance().getGson().toJson(build);
 
     }
 
