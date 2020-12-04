@@ -136,7 +136,7 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
                 .enabled(soulSpringCloudClient.enabled())
                 .ruleName(ruleName)
                 .build();
-        return OkHttpTools.getInstance().getGosn().toJson(registerDTO);
+        return OkHttpTools.getInstance().getGson().toJson(registerDTO);
     }
 }
 
