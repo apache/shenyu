@@ -44,7 +44,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockito.Mockito;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -76,10 +75,40 @@ public final class ZookeeperSyncDataServiceTest {
     public void setUp() throws Exception {
         zkClient = new ZkClient("127.0.0.1:21810");
         buildZkData();
-        PluginDataSubscriber pluginDataSubscriber = Mockito.mock(PluginDataSubscriber.class);
-        MetaDataSubscriber metaDataSubscriber = Mockito.mock(MetaDataSubscriber.class);
+        PluginDataSubscriber pluginDataSubscriber = new PluginDataSubscriber() {
+            @Override
+            public void onSubscribe(final PluginData pluginData) {
+                log.info("PluginDataSubscriber.onSubscribe,PluginData:{}", pluginData);
+            }
+
+            @Override
+            public void unSubscribe(final PluginData pluginData) {
+                log.info("PluginDataSubscriber.unSubscribe,PluginData:{}", pluginData);
+            }
+        };
+        MetaDataSubscriber metaDataSubscriber = new MetaDataSubscriber() {
+            @Override
+            public void onSubscribe(final MetaData metaData) {
+                log.info("MetaDataSubscriber.onSubscribe,MetaData:{}", metaData);
+            }
+
+            @Override
+            public void unSubscribe(final MetaData metaData) {
+                log.info("MetaDataSubscriber.unSubscribe,MetaData:{}", metaData);
+            }
+        };
         List<MetaDataSubscriber> metaDataSubscribers = Lists.newArrayList(metaDataSubscriber);
-        AuthDataSubscriber authDataSubscriber = Mockito.mock(AuthDataSubscriber.class);
+        AuthDataSubscriber authDataSubscriber = new AuthDataSubscriber() {
+            @Override
+            public void onSubscribe(final AppAuthData appAuthData) {
+                log.info("AuthDataSubscriber.onSubscribe,AppAuthData:{}", appAuthData);
+            }
+
+            @Override
+            public void unSubscribe(final AppAuthData appAuthData) {
+                log.info("AuthDataSubscriber.unSubscribe,AppAuthData:{}", appAuthData);
+            }
+        };
         List<AuthDataSubscriber> authDataSubscribers = Lists.newArrayList(authDataSubscriber);
         syncDataService = new ZookeeperSyncDataService(zkClient, pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
     }
@@ -153,8 +182,6 @@ public final class ZookeeperSyncDataServiceTest {
     private void buildZkData() {
         Map<String, PluginData> pluginMap = Maps.newHashMap();
         pluginMap.put(PluginEnum.DIVIDE.getName(), new PluginData("6", PluginEnum.DIVIDE.getName(), "", 0, Boolean.TRUE));
-        pluginMap.put(PluginEnum.GLOBAL.getName(), new PluginData("7", PluginEnum.GLOBAL.getName(), "", 0, Boolean.TRUE));
-        pluginMap.put(PluginEnum.MONITOR.getName(), new PluginData("8", PluginEnum.MONITOR.getName(), "", 0, Boolean.TRUE));
         for (Entry<String, PluginData> entry : pluginMap.entrySet()) {
             final PluginData pluginData = entry.getValue();
             writePlugin(pluginData);
