@@ -39,23 +39,23 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @SuppressWarnings("all")
 public final class ExtensionLoader<T> {
-    
+
     private static final Logger LOGGER = LoggerFactory.getLogger(ExtensionLoader.class);
-    
+
     private static final String SOUL_DIRECTORY = "META-INF/soul/";
-    
+
     private static final Map<Class<?>, ExtensionLoader<?>> LOADERS = new ConcurrentHashMap<>();
-    
+
     private final Class<T> clazz;
-    
+
     private final Holder<Map<String, Class<?>>> cachedClasses = new Holder<>();
-    
+
     private final Map<String, Holder<Object>> cachedInstances = new ConcurrentHashMap<>();
-    
+
     private final Map<Class<?>, Object> joinInstances = new ConcurrentHashMap<>();
-    
+
     private String cachedDefaultName;
-    
+
     /**
      * Instantiates a new Extension loader.
      *
@@ -67,7 +67,7 @@ public final class ExtensionLoader<T> {
             ExtensionLoader.getExtensionLoader(ExtensionFactory.class).getExtensionClasses();
         }
     }
-    
+
     /**
      * Gets extension loader.
      *
@@ -80,10 +80,10 @@ public final class ExtensionLoader<T> {
             throw new NullPointerException("extension clazz is null");
         }
         if (!clazz.isInterface()) {
-            throw new IllegalArgumentException("extension clazz (" + clazz + "is not interface!");
+            throw new IllegalArgumentException("extension clazz (" + clazz + ") is not interface!");
         }
         if (!clazz.isAnnotationPresent(SPI.class)) {
-            throw new IllegalArgumentException("extension clazz (" + clazz + "without @" + SPI.class + "Annotation");
+            throw new IllegalArgumentException("extension clazz (" + clazz + ") without @" + SPI.class + " Annotation");
         }
         ExtensionLoader<T> extensionLoader = (ExtensionLoader<T>) LOADERS.get(clazz);
         if (extensionLoader != null) {
@@ -92,7 +92,7 @@ public final class ExtensionLoader<T> {
         LOADERS.putIfAbsent(clazz, new ExtensionLoader<>(clazz));
         return (ExtensionLoader<T>) LOADERS.get(clazz);
     }
-    
+
     /**
      * Gets default join.
      *
@@ -105,7 +105,7 @@ public final class ExtensionLoader<T> {
         }
         return getJoin(cachedDefaultName);
     }
-    
+
     /**
      * Gets join.
      *
@@ -133,7 +133,7 @@ public final class ExtensionLoader<T> {
         }
         return (T) value;
     }
-    
+
     @SuppressWarnings("unchecked")
     private T createExtension(final String name) {
         Class<?> aClass = getExtensionClasses().get(name);
@@ -148,12 +148,12 @@ public final class ExtensionLoader<T> {
             } catch (InstantiationException | IllegalAccessException e) {
                 throw new IllegalStateException("Extension instance(name: " + name + ", class: "
                         + aClass + ")  could not be instantiated: " + e.getMessage(), e);
-                
+
             }
         }
         return (T) o;
     }
-    
+
     /**
      * Gets extension classes.
      *
@@ -172,7 +172,7 @@ public final class ExtensionLoader<T> {
         }
         return classes;
     }
-    
+
     private Map<String, Class<?>> loadExtensionClass() {
         SPI annotation = clazz.getAnnotation(SPI.class);
         if (annotation != null) {
@@ -185,7 +185,7 @@ public final class ExtensionLoader<T> {
         loadDirectory(classes);
         return classes;
     }
-    
+
     /**
      * Load files under SOUL_DIRECTORY.
      */
@@ -205,7 +205,7 @@ public final class ExtensionLoader<T> {
             LOGGER.error("load extension class error {}", fileName, t);
         }
     }
-    
+
     private void loadResources(final Map<String, Class<?>> classes, final URL url) throws IOException {
         try (InputStream inputStream = url.openStream()) {
             Properties properties = new Properties();
@@ -225,7 +225,7 @@ public final class ExtensionLoader<T> {
             throw new IllegalStateException("load extension resources error", e);
         }
     }
-    
+
     private void loadClass(final Map<String, Class<?>> classes,
                            final String name, final String classPath) throws ClassNotFoundException {
         Class<?> subClass = Class.forName(classPath);
@@ -243,16 +243,16 @@ public final class ExtensionLoader<T> {
             throw new IllegalStateException("load extension resources error,Duplicate class " + clazz.getName() + "name " + name + " on " + oldClass.getName() + " or" + subClass.getName());
         }
     }
-    
+
     /**
      * The type Holder.
      *
      * @param <T> the type parameter.
      */
     public static class Holder<T> {
-        
+
         private volatile T value;
-        
+
         /**
          * Gets value.
          *
@@ -261,7 +261,7 @@ public final class ExtensionLoader<T> {
         public T getValue() {
             return value;
         }
-        
+
         /**
          * Sets value.
          *

@@ -41,12 +41,10 @@ public class MonitorPluginDataHandler implements PluginDataHandler {
             if (!checkConfig(monitorConfig)) {
                 return;
             }
-            if (!MetricsTrackerFacade.getInstance().isEnabled()) {
+            if (!MetricsTrackerFacade.getInstance().isStarted()) {
                 start(monitorConfig);
-            } else {
-                if (!monitorConfig.equals(Singleton.INST.get(MetricsConfig.class))) {
-                    restart(monitorConfig);
-                }
+            } else if (!monitorConfig.equals(Singleton.INST.get(MetricsConfig.class))) {
+                restart(monitorConfig);
             }
         } else {
             stop();

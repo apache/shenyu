@@ -19,10 +19,13 @@ package org.dromara.soul.spi;
 
 import org.dromara.soul.spi.fixture.JdbcSPI;
 import org.dromara.soul.spi.fixture.MysqlSPI;
+import org.dromara.soul.spi.fixture.NopSPI;
+import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public final class ExtensionLoaderTest {
 
@@ -30,5 +33,27 @@ public final class ExtensionLoaderTest {
     public void testSPI() {
         JdbcSPI jdbcSPI = ExtensionLoader.getExtensionLoader(JdbcSPI.class).getJoin("mysql");
         assertThat(jdbcSPI.getClass().getName(), is(MysqlSPI.class.getName()));
+    }
+
+    @Test
+    public void testGetExtensionLoaderNotInterface() {
+        try {
+            ExtensionLoader.getExtensionLoader(ExtensionLoaderTest.class);
+            fail();
+        } catch (IllegalArgumentException expected) {
+            assertThat(expected.getMessage(),
+                    CoreMatchers.containsString("extension clazz (class org.dromara.soul.spi.ExtensionLoaderTest) is not interface!"));
+        }
+    }
+
+    @Test
+    public void testGetExtensionLoaderNotSpiAnnotation() {
+        try {
+            ExtensionLoader.getExtensionLoader(NopSPI.class);
+            fail();
+        } catch (IllegalArgumentException expected) {
+            assertThat(expected.getMessage(),
+                    CoreMatchers.containsString("extension clazz (interface org.dromara.soul.spi.fixture.NopSPI) without @interface org.dromara.soul.spi.SPI Annotation"));
+        }
     }
 }
