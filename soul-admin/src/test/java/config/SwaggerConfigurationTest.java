@@ -24,7 +24,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
-import springfox.documentation.spring.web.plugins.Docket;
 
 /**
  * Test cases for SwaggerConfiguration.
