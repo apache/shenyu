@@ -22,36 +22,26 @@ import org.junit.Test;
 import static org.junit.Assert.assertNotNull;
 
 /**
- * Test cases for VersionUtils
+ * Test cases for VersionUtils.
  *
  * @author linkuan
  */
 public class VersionUtilsTest {
 
-    /**
-     * cover version from defaultVersion
-     */
     @Test
-    public void testFromDefaultVersion(){
+    public void testFromDefaultVersion() {
         String version = VersionUtils.getVersion();
-        System.out.println(version);
         assertNotNull(version);
     }
 
-    /**
-     * cover find version info from MANIFEST.MF
-     */
     @Test
-    public void testFromImplementationVersion()throws ClassNotFoundException{
+    public void testFromImplementationVersion() throws ClassNotFoundException {
         String version = VersionUtils.getVersion(Class.forName("java.lang.String"), "2.0.2");
         assertNotNull(version);
     }
 
-    /**
-     * cover version info from codeSource
-     */
     @Test
-    public void testFromCodeSource()throws ClassNotFoundException{
+    public void testFromCodeSource() throws ClassNotFoundException {
         String version = VersionUtils.getVersion(Class.forName("ch.qos.logback.classic.db.DBAppender"), "2.0.2");
         assertNotNull(version);
     }
