@@ -145,7 +145,6 @@
             <artifactId>hessian</artifactId>
         </dependency>
 
-
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
@@ -164,7 +163,12 @@
             <artifactId>springfox-swagger-ui</artifactId>
         </dependency>
 
-
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>1.4.200</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -243,18 +247,14 @@
                             <targetPath>${basedir}/target/classes</targetPath>
                             <directory>src/main/resources</directory>
                         </resource>
+                        <resource>
+                            <targetPath>${basedir}/target/test-classes</targetPath>
+                            <directory>src/test/resources</directory>
+                        </resource>
                     </resources>
                 </configuration>
             </plugin>
-
-            <!-- maven install 跳过测试 等价于命令 mvn install -Dmaven.test.skip = true -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
-            </plugin>
         </plugins>
+
     </build>
 </project>
