@@ -15,55 +15,42 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.sofa.handler;
+package org.dromara.soul.plugin.sofa.subscriber;
 
-import org.dromara.soul.common.config.SofaRegisterConfig;
+import com.alipay.sofa.rpc.core.exception.SofaRpcRuntimeException;
 import org.dromara.soul.common.dto.MetaData;
-import org.dromara.soul.common.dto.PluginData;
-import org.dromara.soul.plugin.base.utils.Singleton;
-import org.junit.Assert;
+import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
- * SofaPluginDataHandlerTest.
+ * SofaMetaDataSubscriberTest.
  *
  * @author tydhot
  */
 @RunWith(MockitoJUnitRunner.class)
-public class SofaPluginDataHandlerTest {
+public class SofaMetaDataSubscriberTest {
 
-    private SofaPluginDataHandler sofaPluginDataHandler;
+    private SofaMetaDataSubscriber sofaPluginDataHandler;
 
     private MetaData metaData;
 
-    private String registryConfig = "{\"protocol\":\"zookeeper\",\"register\":\"127.0.0.1:2181\"}";
-
     @Before
     public void setUp() {
-        sofaPluginDataHandler = new SofaPluginDataHandler();
+        sofaPluginDataHandler = new SofaMetaDataSubscriber();
         metaData = new MetaData();
         metaData.setId("1332017966661636096");
         metaData.setAppName("sofa");
         metaData.setPath("/sofa/findAll");
         metaData.setServiceName("org.dromara.soul.test.dubbo.api.service.DubboTestService");
         metaData.setMethodName("findAll");
+        metaData.setRpcType(RpcTypeEnum.SOFA.getName());
     }
 
-    @Test
-    public void test02PluginEnable() {
-        PluginData pluginData = new PluginData("", "", registryConfig, 1, true);
-        sofaPluginDataHandler.handlerPlugin(pluginData);
-        Assert.assertEquals(Singleton.INST.get(SofaRegisterConfig.class).getRegister(), "127.0.0.1:2181");
+    @Test(expected = SofaRpcRuntimeException.class)
+    public void test01OnSubscribe() {
+        sofaPluginDataHandler.onSubscribe(metaData);
     }
-
-    @Test
-    public void test01PluginDisable() {
-        PluginData pluginData = new PluginData("", "", registryConfig, 1, false);
-        sofaPluginDataHandler.handlerPlugin(pluginData);
-        Assert.assertNull(Singleton.INST.get(SofaRegisterConfig.class));
-    }
-
 }
