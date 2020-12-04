@@ -18,8 +18,6 @@
 package org.dromara.soul.admin.utils;
 
 import org.dromara.soul.common.exception.SoulException;
-import org.springframework.stereotype.Component;
-
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -36,7 +34,6 @@ import java.util.Optional;
  *
  * @author nuo-promise
  */
-@Component
 public class CipherUtils {
 
     /**
