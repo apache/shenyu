@@ -17,6 +17,8 @@
 
 package org.dromara.soul.sync.data.http;
 
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.dromara.soul.common.dto.AppAuthData;
 import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.dto.PluginData;
@@ -24,15 +26,24 @@ import org.dromara.soul.sync.data.api.AuthDataSubscriber;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 import org.dromara.soul.sync.data.http.config.HttpConfig;
-import org.dromara.soul.sync.data.http.support.MockHttpDataSyncEndpoint;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import wiremock.org.apache.http.HttpHeaders;
+import wiremock.org.apache.http.entity.ContentType;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
 /**
  * Test cases for {@link HttpSyncDataService}.
@@ -41,17 +52,23 @@ import java.util.concurrent.TimeUnit;
  */
 public class HttpSyncDataServiceTest {
     
-    // mock HttpDataSyncEndpoint at localhost 8080
-    private static final MockHttpDataSyncEndpoint SERVER = new MockHttpDataSyncEndpoint(8080);
+    @Rule
+    public WireMockRule wireMockRule = new WireMockRule(WireMockConfiguration.wireMockConfig().dynamicPort(), false);
     
-    @BeforeClass
-    public static void beforeCase() throws Exception {
-        SERVER.start();
-    }
-    
-    @AfterClass
-    public static void afterCase() throws Exception {
-        SERVER.stop();
+    @Before
+    public final void setUpWiremock() {
+        wireMockRule.stubFor(get(urlPathEqualTo("/configs/fetch"))
+                .willReturn(aResponse()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                        .withBody(this.mockConfigsFetchResponseJson())
+                        .withStatus(200))
+        );
+        wireMockRule.stubFor(post(urlPathEqualTo("/configs/listener"))
+                .willReturn(aResponse()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                        .withBody(this.mockConfigsListenResponseJson())
+                        .withStatus(200))
+        );
     }
     
     /**
@@ -70,7 +87,7 @@ public class HttpSyncDataServiceTest {
     
     private HttpSyncDataService buildHttpSyncDataService() {
         HttpConfig httpConfig = new HttpConfig();
-        httpConfig.setUrl("http://localhost:8080");
+        httpConfig.setUrl(this.getMockServerUrl());
         // set http connection timeout
         httpConfig.setConnectionTimeout(3);
         // set delay time
@@ -104,5 +121,29 @@ public class HttpSyncDataServiceTest {
             }
         });
         return new HttpSyncDataService(httpConfig, pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
+    }
+    
+    private String getMockServerUrl() {
+        return "http://localhost:" + wireMockRule.port();
+    }
+    
+    // mock configs listen api response
+    private String mockConfigsListenResponseJson() {
+        return "{\"code\":200,\"message\":\"success\",\"data\":[\"PLUGIN\"]}";
+    }
+    
+    // mock configs fetch api response
+    private String mockConfigsFetchResponseJson() {
+        try (FileInputStream fis = new FileInputStream(this.getClass().getClassLoader().getResource("mock_configs_fetch_response.json").getPath());
+             InputStreamReader reader = new InputStreamReader(fis);
+             BufferedReader bufferedReader = new BufferedReader(reader);
+        ) {
+            StringBuilder builder = new StringBuilder();
+            bufferedReader.lines().forEach(builder::append);
+            return builder.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }
