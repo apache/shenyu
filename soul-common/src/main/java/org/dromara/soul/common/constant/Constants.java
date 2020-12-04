@@ -343,6 +343,31 @@ public interface Constants {
     boolean AUTOMATIC_TRANSITION_FROM_OPEN_TO_HALF_OPEN_ENABLED = false;
 
     /**
+     * Enable the flow rule.
+     */
+    int SENTINEL_ENABLE_FLOW_RULE = 1;
+
+    /**
+     * Sentinel qps flow grade.
+     */
+    int SENTINEL_QPS_FLOW_GRADE = 1;
+
+    /**
+     * Sentinel flow reject behavior.
+     */
+    int SENTINEL_FLOW_REJECT = 0;
+
+    /**
+     * Enable the degrade rule.
+     */
+    int SENTINEL_ENABLE_DEGRADE_RULE = 1;
+
+    /**
+     * Sentinel response RT degrade rule.
+     */
+    int SENTINEL_RESPONSE_RULE_GRADE = 0;
+
+    /**
      * String q.
      */
     default void findConstants() {

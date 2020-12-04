@@ -19,6 +19,8 @@ package org.dromara.soul.metrics.facade;
 
 import com.google.common.base.Preconditions;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.metrics.api.HistogramMetricsTrackerDelegate;
@@ -37,11 +39,9 @@ public final class MetricsTrackerFacade {
     @Getter
     private MetricsTrackerManager metricsTrackerManager;
     
-    @Getter
-    private volatile boolean enabled;
+    private final AtomicBoolean isStarted = new AtomicBoolean(false);
     
     private MetricsTrackerFacade() {
-        loadMetricsManager();
     }
     
     /**
@@ -59,12 +59,16 @@ public final class MetricsTrackerFacade {
      * @param metricsConfig metrics config
      */
     public void start(final MetricsConfig metricsConfig) {
-        metricsTrackerManager = ExtensionLoader.getExtensionLoader(MetricsTrackerManager.class).getJoin(metricsConfig.getMetricsName());
-        Preconditions.checkNotNull(metricsTrackerManager, "Can not find metrics tracker manager with metrics name in metrics configuration.");
-        metricsTrackerManager.start(metricsConfig);
-        Integer threadCount = Optional.ofNullable(metricsConfig.getThreadCount()).orElse(Runtime.getRuntime().availableProcessors());
-        MetricsTrackerHandler.getInstance().init(metricsConfig.getAsync(), threadCount, metricsTrackerManager);
-        enabled = true;
+        if (this.isStarted.compareAndSet(false, true)) {
+            metricsTrackerManager = ExtensionLoader.getExtensionLoader(MetricsTrackerManager.class).getJoin(metricsConfig.getMetricsName());
+            Preconditions.checkNotNull(metricsTrackerManager,
+                    "Can not find metrics tracker manager with metrics name : %s in metrics configuration.", metricsConfig.getMetricsName());
+            metricsTrackerManager.start(metricsConfig);
+            Integer threadCount = Optional.ofNullable(metricsConfig.getThreadCount()).orElse(Runtime.getRuntime().availableProcessors());
+            MetricsTrackerHandler.getInstance().init(metricsConfig.getAsync(), threadCount, metricsTrackerManager);
+        } else {
+            log.info("metrics tracker has started !");
+        }
     }
     
     /**
@@ -74,7 +78,7 @@ public final class MetricsTrackerFacade {
      * @param labelValues  label values
      */
     public void counterInc(final String metricsLabel, final String... labelValues) {
-        if (enabled) {
+        if (isStarted()) {
             MetricsTrackerHandler.getInstance().counterInc(metricsLabel, labelValues);
         }
     }
@@ -86,7 +90,7 @@ public final class MetricsTrackerFacade {
      * @param labelValues  label values
      */
     public void gaugeInc(final String metricsLabel, final String... labelValues) {
-        if (enabled) {
+        if (isStarted()) {
             MetricsTrackerHandler.getInstance().gaugeInc(metricsLabel, labelValues);
         }
     }
@@ -98,7 +102,7 @@ public final class MetricsTrackerFacade {
      * @param labelValues  label values
      */
     public void gaugeDec(final String metricsLabel, final String... labelValues) {
-        if (enabled) {
+        if (isStarted()) {
             MetricsTrackerHandler.getInstance().gaugeDec(metricsLabel, labelValues);
         }
     }
@@ -111,7 +115,7 @@ public final class MetricsTrackerFacade {
      * @return histogram metrics tracker delegate
      */
     public Optional<HistogramMetricsTrackerDelegate> histogramStartTimer(final String metricsLabel, final String... labelValues) {
-        if (!enabled) {
+        if (!isStarted()) {
             return Optional.empty();
         }
         return MetricsTrackerHandler.getInstance().histogramStartTimer(metricsLabel, labelValues);
@@ -123,7 +127,7 @@ public final class MetricsTrackerFacade {
      * @param delegate histogram metrics tracker delegate
      */
     public void histogramObserveDuration(final HistogramMetricsTrackerDelegate delegate) {
-        if (enabled) {
+        if (isStarted()) {
             MetricsTrackerHandler.getInstance().histogramObserveDuration(delegate);
         }
     }
@@ -136,7 +140,7 @@ public final class MetricsTrackerFacade {
      * @return summary metrics tracker delegate
      */
     public Optional<SummaryMetricsTrackerDelegate> summaryStartTimer(final String metricsLabel, final String... labelValues) {
-        if (!enabled) {
+        if (!isStarted()) {
             return Optional.empty();
         }
         return MetricsTrackerHandler.getInstance().summaryStartTimer(metricsLabel, labelValues);
@@ -148,7 +152,7 @@ public final class MetricsTrackerFacade {
      * @param delegate summary metrics tracker delegate
      */
     public void summaryObserveDuration(final SummaryMetricsTrackerDelegate delegate) {
-        if (enabled) {
+        if (isStarted()) {
             MetricsTrackerHandler.getInstance().summaryObserveDuration(delegate);
         }
     }
@@ -157,14 +161,20 @@ public final class MetricsTrackerFacade {
      * Stop.
      */
     public void stop() {
-        enabled = false;
+        this.isStarted.compareAndSet(true, false);
         if (null != metricsTrackerManager) {
             metricsTrackerManager.stop();
         }
         MetricsTrackerHandler.getInstance().close();
     }
     
-    private void loadMetricsManager() {
+    /**
+     * Check if start or not.
+     *
+     * @return true is stared, otherwise not.
+     */
+    public boolean isStarted() {
+        return isStarted.get();
     }
     
     /**
