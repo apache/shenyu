@@ -21,13 +21,11 @@ import org.dromara.soul.admin.AbstractSpringIntegrationTest;
 import org.dromara.soul.admin.entity.AuthParamDO;
 import org.dromara.soul.common.utils.UUIDUtils;
 import org.junit.Test;
-
 import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
 import static org.hamcrest.Matchers.comparesEqualTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -37,7 +35,7 @@ import static org.junit.Assert.assertThat;
  *
  * @author sydgeek
  */
-public class AuthParamMapperTest extends AbstractSpringIntegrationTest {
+public final class AuthParamMapperTest extends AbstractSpringIntegrationTest {
 
     @Resource
     private AuthParamMapper authParamMapper;
