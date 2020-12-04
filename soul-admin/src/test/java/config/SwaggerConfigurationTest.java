@@ -23,6 +23,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.test.util.ReflectionTestUtils;
+import springfox.documentation.spring.web.plugins.Docket;
 
 /**
  * Test cases for SwaggerConfiguration.
@@ -37,6 +39,12 @@ public final class SwaggerConfigurationTest {
 
     @Test
     public void testCreateRestApi() {
+        Assert.assertNotNull(swaggerConfiguration.createRestApi());
+    }
+
+    @Test
+    public void testSwaggerEnable() {
+        ReflectionTestUtils.setField(swaggerConfiguration, "enable", true);
         Assert.assertNotNull(swaggerConfiguration.createRestApi());
     }
 
