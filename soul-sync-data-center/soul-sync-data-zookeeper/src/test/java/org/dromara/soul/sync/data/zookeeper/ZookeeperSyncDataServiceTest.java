@@ -110,7 +110,7 @@ public final class ZookeeperSyncDataServiceTest {
         PluginData pluginData = new PluginData("6", PluginEnum.DIVIDE.getName(), "", 0, Boolean.TRUE);
         final String pluginPath = ZkPathConstants.buildPluginPath(pluginData.getName());
         zkClient.delete(pluginPath);
-        latch.await(5, TimeUnit.SECONDS);
+        latch.await(300, TimeUnit.MILLISECONDS);
         Assert.assertEquals(2, actuals.size());
         Assert.assertEquals(pluginData, actuals.get(0));
     }
@@ -136,7 +136,7 @@ public final class ZookeeperSyncDataServiceTest {
         final SelectorData selectorData = buildSelectorData("xxx", "aaa", PluginEnum.DIVIDE.getName());
         final String selectorPath = ZkPathConstants.buildSelectorRealPath(selectorData.getPluginName(), selectorData.getId());
         zkClient.delete(selectorPath);
-        latch.await(5, TimeUnit.SECONDS);
+        latch.await(300, TimeUnit.MILLISECONDS);
         Assert.assertEquals(2, actuals.size());
         Assert.assertEquals(selectorData, actuals.get(0));
     }
@@ -162,7 +162,7 @@ public final class ZookeeperSyncDataServiceTest {
         final RuleData ruleData = buildRuleDTO("aaa", "xxx", PluginEnum.DIVIDE.getName());
         final String rulePath = ZkPathConstants.buildRulePath(ruleData.getPluginName(), ruleData.getSelectorId(), ruleData.getId());
         zkClient.delete(rulePath);
-        latch.await(5, TimeUnit.SECONDS);
+        latch.await(300, TimeUnit.MILLISECONDS);
         Assert.assertEquals(2, actuals.size());
         Assert.assertEquals(ruleData, actuals.get(0));
     }
@@ -190,7 +190,7 @@ public final class ZookeeperSyncDataServiceTest {
         syncDataService = new ZookeeperSyncDataService(zkClient, null,
                 Collections.emptyList(), Lists.newArrayList(authDataSubscriber));
         zkClient.delete(appAuthPath);
-        latch.await(5, TimeUnit.SECONDS);
+        latch.await(300, TimeUnit.MILLISECONDS);
         Assert.assertEquals(2, actuals.size());
         Assert.assertEquals(appAuthData, actuals.get(0));
     }
@@ -218,7 +218,7 @@ public final class ZookeeperSyncDataServiceTest {
         syncDataService = new ZookeeperSyncDataService(zkClient, null,
                  Lists.newArrayList(metaDataSubscriber), Collections.emptyList());
         zkClient.delete(metaDataPath);
-        latch.await(5, TimeUnit.SECONDS);
+        latch.await(300, TimeUnit.MILLISECONDS);
         Assert.assertEquals(2, actuals.size());
         Assert.assertEquals(metaData, actuals.get(0));
     }
