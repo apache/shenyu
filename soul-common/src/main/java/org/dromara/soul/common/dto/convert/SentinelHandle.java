@@ -73,7 +73,7 @@ public class SentinelHandle {
     private Integer degradeRuleTimeWindow;
 
     /**
-     * Sentinel falback uri.
+     * Sentinel fallback uri.
      */
-    private String fallBackUri;
+    private String fallbackUri;
 }

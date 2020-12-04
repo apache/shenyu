@@ -63,7 +63,7 @@ public class SentinelPlugin extends AbstractSoulPlugin {
                 throw new SentinelFallbackException(status);
             }
         }).onErrorResume(throwable -> {
-            return sentinelFallbackHandler.fallback(exchange, UriUtils.createUri(sentinelHandle.getFallBackUri()), throwable);
+            return sentinelFallbackHandler.fallback(exchange, UriUtils.createUri(sentinelHandle.getFallbackUri()), throwable);
         });
     }
 
