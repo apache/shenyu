@@ -51,7 +51,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 /**
- * Test cases for ZookeeperSyncDataService
+ * Test cases for ZookeeperSyncDataService.
  *
  * @author zendwang
  */
@@ -84,7 +84,7 @@ public final class ZookeeperSyncDataServiceTest {
         AuthDataSubscriber authDataSubscriber = Mockito.mock(AuthDataSubscriber.class);
         List<AuthDataSubscriber> authDataSubscribers = Lists.newArrayList(authDataSubscriber);
         
-        syncDataService = new ZookeeperSyncDataService(zkClient,pluginDataSubscriber,metaDataSubscribers,authDataSubscribers);
+        syncDataService = new ZookeeperSyncDataService(zkClient, pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
     }
     
     @After
@@ -101,7 +101,7 @@ public final class ZookeeperSyncDataServiceTest {
     @SneakyThrows
     @Test
     public void testWatcherPlugin() {
-        PluginData pluginData =  new PluginData("6", PluginEnum.DIVIDE.getName(), "aaaaa", 0, Boolean.FALSE);
+        PluginData pluginData = new PluginData("6", PluginEnum.DIVIDE.getName(), "aaaaa", 0, Boolean.FALSE);
         writePlugin(pluginData);
         Thread.sleep(100);
         final String pluginPath = ZkPathConstants.buildPluginPath(pluginData.getName());
@@ -112,11 +112,11 @@ public final class ZookeeperSyncDataServiceTest {
     @SneakyThrows
     @Test
     public void testWatcherSelector() {
-        final SelectorData selectorZkDTO = buildSelectorData("xxx", "aaaa",PluginEnum.DIVIDE.getName());
+        final SelectorData selectorZkDTO = buildSelectorData("xxx", "aaaa", PluginEnum.DIVIDE.getName());
         writeSelector(selectorZkDTO);
         Thread.sleep(100);
         
-        final String selectorPath = ZkPathConstants.buildSelectorRealPath(PluginEnum.DIVIDE.getName(),selectorZkDTO.getId());
+        final String selectorPath = ZkPathConstants.buildSelectorRealPath(PluginEnum.DIVIDE.getName(), selectorZkDTO.getId());
         zkClient.delete(selectorPath);
         Thread.sleep(100);
     }
@@ -124,14 +124,14 @@ public final class ZookeeperSyncDataServiceTest {
     @SneakyThrows
     @Test
     public void testWatcherRule() {
-        final SelectorData selectorZkDTO = buildSelectorData("xxxx", "aaaa",PluginEnum.DIVIDE.getName());
+        final SelectorData selectorZkDTO = buildSelectorData("xxxx", "aaaa", PluginEnum.DIVIDE.getName());
         writeSelector(selectorZkDTO);
     
         final RuleData ruleZkDTO = buildRuleDTO("aaaa", selectorZkDTO.getId(), selectorZkDTO.getPluginName());
         writeRule(ruleZkDTO);
         Thread.sleep(100);
         
-        final String watcherRulePath = ZkPathConstants.buildRulePath(PluginEnum.DIVIDE.getName(),"xxx","aaa");
+        final String watcherRulePath = ZkPathConstants.buildRulePath(PluginEnum.DIVIDE.getName(), "xxx", "aaa");
         zkClient.delete(watcherRulePath);
         Thread.sleep(100);
     }
@@ -139,7 +139,7 @@ public final class ZookeeperSyncDataServiceTest {
     @SneakyThrows
     @Test
     public void testWatcherAppAuth() {
-        final AppAuthData appAuthData = buildAppAuthData("7sdfdfx","#$$sdsdsd");
+        final AppAuthData appAuthData = buildAppAuthData("7sdfdfx", "#$$sdsdsd");
         appAuthData.setAppKey("7sdfdfx");
         appAuthData.setAppSecret("#$$sdsdsd");
         writeAppAuth(appAuthData);
@@ -153,7 +153,7 @@ public final class ZookeeperSyncDataServiceTest {
     @SneakyThrows
     @Test
     public void testWatcherMetaData() {
-        final MetaData metaData = buildMetaData("dz","httptest2","http");
+        final MetaData metaData = buildMetaData("dz", "httptest2", "http");
         metaData.setEnabled(Boolean.FALSE);
         metaData.setContextPath("/http");
         writeMetaData(metaData);
@@ -170,21 +170,21 @@ public final class ZookeeperSyncDataServiceTest {
         pluginMap.put(PluginEnum.GLOBAL.getName(), new PluginData("7", PluginEnum.GLOBAL.getName(), "", 0, Boolean.TRUE));
         pluginMap.put(PluginEnum.MONITOR.getName(), new PluginData("8", PluginEnum.MONITOR.getName(), "", 0, Boolean.TRUE));
        
-        for (Entry<String,PluginData> entry : pluginMap.entrySet()) {
+        for (Entry<String, PluginData> entry : pluginMap.entrySet()) {
             final PluginData pluginData = entry.getValue();
             writePlugin(pluginData);
             
-            final SelectorData selectorZkDTO = buildSelectorData("xxx", "aaa",pluginData.getName());
+            final SelectorData selectorZkDTO = buildSelectorData("xxx", "aaa", pluginData.getName());
             writeSelector(selectorZkDTO);
     
             final RuleData ruleZkDTO = buildRuleDTO("aaa", selectorZkDTO.getId(), selectorZkDTO.getPluginName());
             writeRule(ruleZkDTO);
         }
         
-        final AppAuthData appAuthData = buildAppAuthData("7sdfdfx","dfd#434");
+        final AppAuthData appAuthData = buildAppAuthData("7sdfdfx", "dfd#434");
         writeAppAuth(appAuthData);
         
-        final MetaData metaData = buildMetaData("dz","httptest","http");
+        final MetaData metaData = buildMetaData("dz", "httptest", "http");
         writeMetaData(metaData);
     }
     
@@ -245,14 +245,14 @@ public final class ZookeeperSyncDataServiceTest {
     }
     
     private void writePlugin(final PluginData pluginData) {
-        String pluginPath = ZkPathConstants.buildPluginPath(pluginData.getName()) ;
+        String pluginPath = ZkPathConstants.buildPluginPath(pluginData.getName());
         if (!zkClient.exists(pluginPath)) {
             zkClient.createPersistent(pluginPath, true);
         }
         zkClient.writeData(pluginPath, pluginData);
     }
     
-    private void  writeSelector(final SelectorData selectorData) {
+    private void writeSelector(final SelectorData selectorData) {
         final String selectorRealPath =
                 ZkPathConstants.buildSelectorRealPath(selectorData.getPluginName(), selectorData.getId());
         if (!zkClient.exists(selectorRealPath)) {
