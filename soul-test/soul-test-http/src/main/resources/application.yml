@@ -14,14 +14,14 @@
 # limitations under the License.
 
 server:
-  port: 8187
+  port: 8188
   address: 0.0.0.0
 
 
 soul:
   http:
     adminUrl: http://localhost:9095
-    port: 8187
+    port: 8188
     contextPath: /http
     appName: http
     full: false
