@@ -79,12 +79,10 @@ public enum SoulResultEnum {
      */
     TIME_ERROR(-101, "您的时间参数错误或者已经过期!"),
 
-
     /**
      * Rule not find soul result enum.
      */
     RULE_NOT_FIND(-102, "规则未匹配!"),
-
 
     /**
      * Service result error soul result enum.
