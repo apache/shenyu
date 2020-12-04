@@ -39,9 +39,7 @@ public class SentinelFallbackHandler implements FallbackHandler {
     @Override
     public Mono<Void> generateError(final ServerWebExchange exchange, final Throwable throwable) {
         Object error;
-        if (throwable instanceof SentinelPlugin.SentinelFallbackException) {
-            return Mono.error(throwable);
-        } else if (throwable instanceof DegradeException) {
+        if (throwable instanceof DegradeException) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             error = SoulResultWrap.error(SoulResultEnum.SERVICE_RESULT_ERROR.getCode(), SoulResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
         } else if (throwable instanceof FlowException) {
@@ -51,8 +49,7 @@ public class SentinelFallbackHandler implements FallbackHandler {
             exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
             error = SoulResultWrap.error(SoulResultEnum.SENTINEL_BLOCK_ERROR.getCode(), SoulResultEnum.SENTINEL_BLOCK_ERROR.getMsg(), null);
         } else {
-            exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            error = SoulResultWrap.error(SoulResultEnum.SERVICE_RESULT_ERROR.getCode(), SoulResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
+            return Mono.error(throwable);
         }
         return WebFluxResultUtils.result(exchange, error);
     }
