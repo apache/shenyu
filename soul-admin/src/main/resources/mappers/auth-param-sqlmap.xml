@@ -90,7 +90,7 @@
     <update id="update" parameterType="org.dromara.soul.admin.entity.AuthParamDO">
         update auth_param
         set
-        app_param = #{appParam,jdbcType=VARCHAR},
+        app_param = #{appParam,jdbcType=VARCHAR}
         where id = #{id,jdbcType=VARCHAR}
     </update>
 
