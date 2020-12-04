@@ -40,6 +40,7 @@ import org.dromara.soul.sync.data.api.MetaDataSubscriber;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -99,10 +100,10 @@ public final class ZookeeperSyncDataServiceTest {
     public void testWatcherPlugin() {
         PluginData pluginData = new PluginData("6", PluginEnum.DIVIDE.getName(), "aaaaa", 0, Boolean.FALSE);
         writePlugin(pluginData);
-        Thread.sleep(100);
         final String pluginPath = ZkPathConstants.buildPluginPath(pluginData.getName());
+        Assert.assertEquals(pluginData,zkClient.readData(pluginPath));
         zkClient.delete(pluginPath);
-        Thread.sleep(100);
+        Assert.assertFalse(zkClient.exists(pluginPath));
     }
     
     @SneakyThrows
@@ -110,23 +111,23 @@ public final class ZookeeperSyncDataServiceTest {
     public void testWatcherSelector() {
         final SelectorData selectorZkDTO = buildSelectorData("xxx", "aaaa", PluginEnum.DIVIDE.getName());
         writeSelector(selectorZkDTO);
-        Thread.sleep(100);
         final String selectorPath = ZkPathConstants.buildSelectorRealPath(PluginEnum.DIVIDE.getName(), selectorZkDTO.getId());
+        Assert.assertEquals(selectorZkDTO,zkClient.readData(selectorPath));
         zkClient.delete(selectorPath);
-        Thread.sleep(100);
+        Assert.assertFalse(zkClient.exists(selectorPath));
     }
     
     @SneakyThrows
     @Test
     public void testWatcherRule() {
-        final SelectorData selectorZkDTO = buildSelectorData("xxxx", "aaaa", PluginEnum.DIVIDE.getName());
+        final SelectorData selectorZkDTO = buildSelectorData("xxx", "aaaa", PluginEnum.DIVIDE.getName());
         writeSelector(selectorZkDTO);
-        final RuleData ruleZkDTO = buildRuleDTO("aaaa", selectorZkDTO.getId(), selectorZkDTO.getPluginName());
+        final RuleData ruleZkDTO = buildRuleDTO("aaa", selectorZkDTO.getId(), selectorZkDTO.getPluginName());
         writeRule(ruleZkDTO);
-        Thread.sleep(100);
         final String watcherRulePath = ZkPathConstants.buildRulePath(PluginEnum.DIVIDE.getName(), "xxx", "aaa");
+        Assert.assertEquals(ruleZkDTO,zkClient.readData(watcherRulePath));
         zkClient.delete(watcherRulePath);
-        Thread.sleep(100);
+        Assert.assertFalse(zkClient.exists(watcherRulePath));
     }
     
     @SneakyThrows
@@ -136,10 +137,10 @@ public final class ZookeeperSyncDataServiceTest {
         appAuthData.setAppKey("7sdfdfx");
         appAuthData.setAppSecret("#$$sdsdsd");
         writeAppAuth(appAuthData);
-        Thread.sleep(100);
         final String watcherAppAuthPath = ZkPathConstants.buildAppAuthPath(appAuthData.getAppKey());
+        Assert.assertEquals(appAuthData,zkClient.readData(watcherAppAuthPath));
         zkClient.delete(watcherAppAuthPath);
-        Thread.sleep(100);
+        Assert.assertFalse(zkClient.exists(watcherAppAuthPath));
     }
     
     @SneakyThrows
@@ -149,10 +150,10 @@ public final class ZookeeperSyncDataServiceTest {
         metaData.setEnabled(Boolean.FALSE);
         metaData.setContextPath("/http");
         writeMetaData(metaData);
-        Thread.sleep(100);
         final String watcherMetaDataPath = ZkPathConstants.buildMetaDataPath(metaData.getPath());
+        Assert.assertEquals(metaData,zkClient.readData(watcherMetaDataPath));
         zkClient.delete(watcherMetaDataPath);
-        Thread.sleep(100);
+        Assert.assertFalse(zkClient.exists(watcherMetaDataPath));
     }
     
     private void buildZkData() {
