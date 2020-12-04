@@ -19,8 +19,6 @@ package org.dromara.soul.common.enums;
 
 import org.junit.Test;
 
-import java.util.Arrays;
-
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -32,10 +30,13 @@ public final class DataSyncEnumTest {
     
     @Test
     public void testAcquireByName() {
-        Arrays.stream(DataSyncEnum.values()).forEach(e -> assertEquals(e, DataSyncEnum.acquireByName(e.getName())));
+        assertEquals(DataSyncEnum.HTTP, DataSyncEnum.acquireByName(DataSyncEnum.HTTP.getName()));
+        assertEquals(DataSyncEnum.ZOOKEEPER, DataSyncEnum.acquireByName(DataSyncEnum.ZOOKEEPER.getName()));
+        assertEquals(DataSyncEnum.WEBSOCKET, DataSyncEnum.acquireByName(DataSyncEnum.WEBSOCKET.getName()));
         assertEquals(DataSyncEnum.HTTP, DataSyncEnum.acquireByName(null));
         assertEquals(DataSyncEnum.HTTP, DataSyncEnum.acquireByName(""));
         String notExist = "N";
         assertEquals(DataSyncEnum.HTTP, DataSyncEnum.acquireByName(notExist));
+        
     }
 }
