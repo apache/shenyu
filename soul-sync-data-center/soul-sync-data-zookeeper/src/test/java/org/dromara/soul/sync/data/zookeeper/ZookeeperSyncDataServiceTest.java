@@ -75,15 +75,12 @@ public final class ZookeeperSyncDataServiceTest {
     @Before
     public void setUp() throws Exception {
         zkClient = new ZkClient("127.0.0.1:21810");
-        
         buildZkData();
-        
         PluginDataSubscriber pluginDataSubscriber = Mockito.mock(PluginDataSubscriber.class);
         MetaDataSubscriber metaDataSubscriber = Mockito.mock(MetaDataSubscriber.class);
         List<MetaDataSubscriber> metaDataSubscribers = Lists.newArrayList(metaDataSubscriber);
         AuthDataSubscriber authDataSubscriber = Mockito.mock(AuthDataSubscriber.class);
         List<AuthDataSubscriber> authDataSubscribers = Lists.newArrayList(authDataSubscriber);
-        
         syncDataService = new ZookeeperSyncDataService(zkClient, pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
     }
     
@@ -115,7 +112,6 @@ public final class ZookeeperSyncDataServiceTest {
         final SelectorData selectorZkDTO = buildSelectorData("xxx", "aaaa", PluginEnum.DIVIDE.getName());
         writeSelector(selectorZkDTO);
         Thread.sleep(100);
-        
         final String selectorPath = ZkPathConstants.buildSelectorRealPath(PluginEnum.DIVIDE.getName(), selectorZkDTO.getId());
         zkClient.delete(selectorPath);
         Thread.sleep(100);
@@ -126,11 +122,9 @@ public final class ZookeeperSyncDataServiceTest {
     public void testWatcherRule() {
         final SelectorData selectorZkDTO = buildSelectorData("xxxx", "aaaa", PluginEnum.DIVIDE.getName());
         writeSelector(selectorZkDTO);
-    
         final RuleData ruleZkDTO = buildRuleDTO("aaaa", selectorZkDTO.getId(), selectorZkDTO.getPluginName());
         writeRule(ruleZkDTO);
         Thread.sleep(100);
-        
         final String watcherRulePath = ZkPathConstants.buildRulePath(PluginEnum.DIVIDE.getName(), "xxx", "aaa");
         zkClient.delete(watcherRulePath);
         Thread.sleep(100);
@@ -144,7 +138,6 @@ public final class ZookeeperSyncDataServiceTest {
         appAuthData.setAppSecret("#$$sdsdsd");
         writeAppAuth(appAuthData);
         Thread.sleep(100);
-        
         final String watcherAppAuthPath = ZkPathConstants.buildAppAuthPath(appAuthData.getAppKey());
         zkClient.delete(watcherAppAuthPath);
         Thread.sleep(100);
@@ -158,7 +151,6 @@ public final class ZookeeperSyncDataServiceTest {
         metaData.setContextPath("/http");
         writeMetaData(metaData);
         Thread.sleep(100);
-        
         final String watcherMetaDataPath = ZkPathConstants.buildMetaDataPath(metaData.getPath());
         zkClient.delete(watcherMetaDataPath);
         Thread.sleep(100);
@@ -169,21 +161,16 @@ public final class ZookeeperSyncDataServiceTest {
         pluginMap.put(PluginEnum.DIVIDE.getName(), new PluginData("6", PluginEnum.DIVIDE.getName(), "", 0, Boolean.TRUE));
         pluginMap.put(PluginEnum.GLOBAL.getName(), new PluginData("7", PluginEnum.GLOBAL.getName(), "", 0, Boolean.TRUE));
         pluginMap.put(PluginEnum.MONITOR.getName(), new PluginData("8", PluginEnum.MONITOR.getName(), "", 0, Boolean.TRUE));
-       
         for (Entry<String, PluginData> entry : pluginMap.entrySet()) {
             final PluginData pluginData = entry.getValue();
             writePlugin(pluginData);
-            
             final SelectorData selectorZkDTO = buildSelectorData("xxx", "aaa", pluginData.getName());
             writeSelector(selectorZkDTO);
-    
             final RuleData ruleZkDTO = buildRuleDTO("aaa", selectorZkDTO.getId(), selectorZkDTO.getPluginName());
             writeRule(ruleZkDTO);
         }
-        
         final AppAuthData appAuthData = buildAppAuthData("7sdfdfx", "dfd#434");
         writeAppAuth(appAuthData);
-        
         final MetaData metaData = buildMetaData("dz", "httptest", "http");
         writeMetaData(metaData);
     }
