@@ -44,10 +44,13 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Test cases for ZookeeperSyncDataService.
@@ -57,8 +60,6 @@ import java.util.Map.Entry;
 @Slf4j
 @SuppressWarnings("all")
 public final class ZookeeperSyncDataServiceTest {
-    
-    private static final Map<String, PluginData> PLUGIN_ZK_DTO_MAP = Maps.newConcurrentMap();
     
     private static TestingServer zkServer;
     
@@ -75,42 +76,6 @@ public final class ZookeeperSyncDataServiceTest {
     public void setUp() throws Exception {
         zkClient = new ZkClient("127.0.0.1:21810");
         buildZkData();
-        PluginDataSubscriber pluginDataSubscriber = new PluginDataSubscriber() {
-            @Override
-            public void onSubscribe(final PluginData pluginData) {
-                log.info("PluginDataSubscriber.onSubscribe,PluginData:{}", pluginData);
-            }
-
-            @Override
-            public void unSubscribe(final PluginData pluginData) {
-                log.info("PluginDataSubscriber.unSubscribe,PluginData:{}", pluginData);
-            }
-        };
-        MetaDataSubscriber metaDataSubscriber = new MetaDataSubscriber() {
-            @Override
-            public void onSubscribe(final MetaData metaData) {
-                log.info("MetaDataSubscriber.onSubscribe,MetaData:{}", metaData);
-            }
-
-            @Override
-            public void unSubscribe(final MetaData metaData) {
-                log.info("MetaDataSubscriber.unSubscribe,MetaData:{}", metaData);
-            }
-        };
-        List<MetaDataSubscriber> metaDataSubscribers = Lists.newArrayList(metaDataSubscriber);
-        AuthDataSubscriber authDataSubscriber = new AuthDataSubscriber() {
-            @Override
-            public void onSubscribe(final AppAuthData appAuthData) {
-                log.info("AuthDataSubscriber.onSubscribe,AppAuthData:{}", appAuthData);
-            }
-
-            @Override
-            public void unSubscribe(final AppAuthData appAuthData) {
-                log.info("AuthDataSubscriber.unSubscribe,AppAuthData:{}", appAuthData);
-            }
-        };
-        List<AuthDataSubscriber> authDataSubscribers = Lists.newArrayList(authDataSubscriber);
-        syncDataService = new ZookeeperSyncDataService(zkClient, pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
     }
     
     @After
@@ -127,56 +92,135 @@ public final class ZookeeperSyncDataServiceTest {
     @SneakyThrows
     @Test
     public void testWatcherPlugin() {
-        PluginData pluginData = new PluginData("6", PluginEnum.DIVIDE.getName(), "aaaaa", 0, Boolean.TRUE);
-        writePlugin(pluginData);
+        final CountDownLatch latch = new CountDownLatch(2);
+        final List<PluginData> actuals = new ArrayList<>();
+        syncDataService = new ZookeeperSyncDataService(zkClient, new PluginDataSubscriber() {
+            @Override
+            public void onSubscribe(final PluginData pluginData) {
+                latch.countDown();
+                actuals.add(pluginData);
+            }
+    
+            @Override
+            public void unSubscribe(final PluginData pluginData) {
+                latch.countDown();
+                actuals.add(pluginData);
+            }
+        }, Collections.emptyList(), Collections.emptyList());
+        PluginData pluginData = new PluginData("6", PluginEnum.DIVIDE.getName(), "", 0, Boolean.TRUE);
         final String pluginPath = ZkPathConstants.buildPluginPath(pluginData.getName());
         zkClient.delete(pluginPath);
-        Assert.assertFalse(zkClient.exists(pluginPath));
+        latch.await(5, TimeUnit.SECONDS);
+        Assert.assertEquals(2, actuals.size());
+        Assert.assertEquals(pluginData, actuals.get(0));
     }
     
     @SneakyThrows
     @Test
     public void testWatcherSelector() {
-        final SelectorData selectorZkDTO = buildSelectorData("xxx", "aaaa", PluginEnum.DIVIDE.getName());
-        writeSelector(selectorZkDTO);
-        final String selectorPath = ZkPathConstants.buildSelectorRealPath(PluginEnum.DIVIDE.getName(), selectorZkDTO.getId());
+        final CountDownLatch latch = new CountDownLatch(2);
+        final List<SelectorData> actuals = new ArrayList<>();
+        syncDataService = new ZookeeperSyncDataService(zkClient, new PluginDataSubscriber() {
+            @Override
+            public void onSelectorSubscribe(final SelectorData selectorData) {
+                latch.countDown();
+                actuals.add(selectorData);
+            }
+    
+            @Override
+            public void unSelectorSubscribe(final SelectorData selectorData) {
+                latch.countDown();
+                actuals.add(selectorData);
+            }
+        }, Collections.emptyList(), Collections.emptyList());
+        final SelectorData selectorData = buildSelectorData("xxx", "aaa", PluginEnum.DIVIDE.getName());
+        final String selectorPath = ZkPathConstants.buildSelectorRealPath(selectorData.getPluginName(), selectorData.getId());
         zkClient.delete(selectorPath);
-        Assert.assertFalse(zkClient.exists(selectorPath));
+        latch.await(5, TimeUnit.SECONDS);
+        Assert.assertEquals(2, actuals.size());
+        Assert.assertEquals(selectorData, actuals.get(0));
     }
     
     @SneakyThrows
     @Test
     public void testWatcherRule() {
-        final SelectorData selectorZkDTO = buildSelectorData("xxx", "aaaa", PluginEnum.DIVIDE.getName());
-        writeSelector(selectorZkDTO);
-        final RuleData ruleZkDTO = buildRuleDTO("aaa", selectorZkDTO.getId(), selectorZkDTO.getPluginName());
-        ruleZkDTO.setEnabled(Boolean.FALSE);
-        writeRule(ruleZkDTO);
-        final String watcherRulePath = ZkPathConstants.buildRulePath(PluginEnum.DIVIDE.getName(), "xxx", "aaa");
-        zkClient.delete(watcherRulePath);
-        Assert.assertFalse(zkClient.exists(watcherRulePath));
+        final CountDownLatch latch = new CountDownLatch(2);
+        final List<RuleData> actuals = new ArrayList<>();
+        syncDataService = new ZookeeperSyncDataService(zkClient, new PluginDataSubscriber() {
+            @Override
+            public void onRuleSubscribe(final RuleData ruleData) {
+                latch.countDown();
+                actuals.add(ruleData);
+            }
+        
+            @Override
+            public void unRuleSubscribe(final RuleData ruleData) {
+                latch.countDown();
+                actuals.add(ruleData);
+            }
+        }, Collections.emptyList(), Collections.emptyList());
+        final RuleData ruleData = buildRuleDTO("aaa", "xxx", PluginEnum.DIVIDE.getName());
+        final String rulePath = ZkPathConstants.buildRulePath(ruleData.getPluginName(), ruleData.getSelectorId(), ruleData.getId());
+        zkClient.delete(rulePath);
+        latch.await(5, TimeUnit.SECONDS);
+        Assert.assertEquals(2, actuals.size());
+        Assert.assertEquals(ruleData, actuals.get(0));
     }
     
     @SneakyThrows
     @Test
     public void testWatcherAppAuth() {
-        final AppAuthData appAuthData = buildAppAuthData("7sdfdfx", "#$$s22121dsdsd");
-        writeAppAuth(appAuthData);
-        final String watcherAppAuthPath = ZkPathConstants.buildAppAuthPath(appAuthData.getAppKey());
-        zkClient.delete(watcherAppAuthPath);
-        Assert.assertFalse(zkClient.exists(watcherAppAuthPath));
+        final CountDownLatch latch = new CountDownLatch(2);
+        final List<AppAuthData> actuals = new ArrayList<>();
+        AuthDataSubscriber authDataSubscriber = new AuthDataSubscriber() {
+            @Override
+            public void onSubscribe(final AppAuthData appAuthData) {
+                latch.countDown();
+                actuals.add(appAuthData);
+            }
+    
+            @Override
+            public void unSubscribe(final AppAuthData appAuthData) {
+                latch.countDown();
+                actuals.add(appAuthData);
+            }
+        };
+        final AppAuthData appAuthData = buildAppAuthData("7sdfdfx", "dfd#434");
+        final String appAuthPath = ZkPathConstants.buildAppAuthPath(appAuthData.getAppKey());
+        syncDataService = new ZookeeperSyncDataService(zkClient, null,
+                Collections.emptyList(), Lists.newArrayList(authDataSubscriber));
+        zkClient.delete(appAuthPath);
+        latch.await(5, TimeUnit.SECONDS);
+        Assert.assertEquals(2, actuals.size());
+        Assert.assertEquals(appAuthData, actuals.get(0));
     }
     
     @SneakyThrows
     @Test
     public void testWatcherMetaData() {
-        final MetaData metaData = buildMetaData("dz", "httptest2", "http");
-        metaData.setEnabled(Boolean.FALSE);
-        metaData.setContextPath("/http");
-        writeMetaData(metaData);
-        final String watcherMetaDataPath = ZkPathConstants.buildMetaDataPath(metaData.getPath());
-        zkClient.delete(watcherMetaDataPath);
-        Assert.assertFalse(zkClient.exists(watcherMetaDataPath));
+        final CountDownLatch latch = new CountDownLatch(2);
+        final List<MetaData> actuals = new ArrayList<>();
+        MetaDataSubscriber metaDataSubscriber = new MetaDataSubscriber() {
+            @Override
+            public void onSubscribe(final MetaData metaData) {
+                latch.countDown();
+                actuals.add(metaData);
+            }
+    
+            @Override
+            public void unSubscribe(final MetaData metaData) {
+                latch.countDown();
+                actuals.add(metaData);
+            }
+        };
+        final MetaData metaData = buildMetaData("dz", "httptest", "http");
+        final String metaDataPath = ZkPathConstants.buildMetaDataPath(metaData.getPath());
+        syncDataService = new ZookeeperSyncDataService(zkClient, null,
+                 Lists.newArrayList(metaDataSubscriber), Collections.emptyList());
+        zkClient.delete(metaDataPath);
+        latch.await(5, TimeUnit.SECONDS);
+        Assert.assertEquals(2, actuals.size());
+        Assert.assertEquals(metaData, actuals.get(0));
     }
     
     private void buildZkData() {
