@@ -19,9 +19,9 @@ package org.dromara.soul.admin.utils;
 
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
-
 
 /**
  * Test cases for AesUtils.
