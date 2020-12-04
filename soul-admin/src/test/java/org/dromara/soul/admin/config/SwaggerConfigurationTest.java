@@ -30,7 +30,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author linkuan
  */
 @RunWith(MockitoJUnitRunner.class)
-public class SwaggerConfigurationTest {
+public final class SwaggerConfigurationTest {
 
     @InjectMocks
     private SwaggerConfiguration swaggerConfiguration;
