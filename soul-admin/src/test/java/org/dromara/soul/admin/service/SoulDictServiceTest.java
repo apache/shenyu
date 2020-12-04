@@ -46,7 +46,7 @@ import static org.mockito.BDDMockito.given;
  * @author dengliming
  */
 @RunWith(MockitoJUnitRunner.class)
-public class SoulDictServiceTest {
+public final class SoulDictServiceTest {
 
     @InjectMocks
     private SoulDictServiceImpl soulDictService;

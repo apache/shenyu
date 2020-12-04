@@ -47,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author dengliming
  */
 @RunWith(MockitoJUnitRunner.class)
-public class SoulDictControllerTest {
+public final class SoulDictControllerTest {
 
     private MockMvc mockMvc;
 

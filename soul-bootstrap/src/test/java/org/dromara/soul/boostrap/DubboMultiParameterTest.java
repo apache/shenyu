@@ -24,7 +24,7 @@ import org.junit.Test;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-public class DubboMultiParameterTest {
+public final class DubboMultiParameterTest {
 
     private final DubboMultiParameterResolveServiceImpl resolveService = new DubboMultiParameterResolveServiceImpl();
 
