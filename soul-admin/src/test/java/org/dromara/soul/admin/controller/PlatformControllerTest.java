@@ -37,6 +37,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.time.LocalDateTime;
 
 import static org.hamcrest.core.Is.is;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -82,7 +83,7 @@ public class PlatformControllerTest {
     public void testLoginDashboardUser() throws Exception {
         final String loginUri = "/platform/login?userName=admin&password=123456";
 
-        given(this.dashboardUserService.login("admin", "123456")).willReturn(dashboardUserVO);
+        given(this.dashboardUserService.login(eq("admin"), eq("123456"))).willReturn(dashboardUserVO);
         this.mockMvc.perform(MockMvcRequestBuilders.request(HttpMethod.GET, loginUri))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code", is(CommonErrorCode.SUCCESSFUL)))
