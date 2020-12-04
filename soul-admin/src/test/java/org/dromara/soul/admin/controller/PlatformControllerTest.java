@@ -49,7 +49,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author wangwenjie
  */
 @RunWith(MockitoJUnitRunner.class)
-public class PlatformControllerTest {
+public final class PlatformControllerTest {
 
     private MockMvc mockMvc;
 
