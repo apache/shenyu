@@ -36,7 +36,18 @@ public class AesUtilsTest {
     }
 
     @Test
+    public void testAesEncryption_for_null() {
+        assertEquals(null, AesUtils.aesEncryption("", AES_KEY));
+    }
+
+    @Test
     public void testAesDecryption() {
         assertEquals("123456", AesUtils.aesDecryption("jHcpKkiDbbQh7W7hh8yQSA==", AES_KEY));
     }
+
+    @Test
+    public void testAesDecryption_for_null() {
+        assertEquals(null, AesUtils.aesDecryption("", AES_KEY));
+    }
+
 }
