@@ -26,7 +26,7 @@ import static org.junit.Assert.assertEquals;
  *
  * @author dengliming
  */
-public class Md5UtilsTest {
+public final class Md5UtilsTest {
 
     @Test
     public void testMd5() {

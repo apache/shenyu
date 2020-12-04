@@ -26,7 +26,7 @@ import static org.junit.Assert.assertFalse;
  *
  * @author dengliming
  */
-public class UpstreamCheckUtilsTest {
+public final class UpstreamCheckUtilsTest {
 
     @Test
     public void testBlank() {

@@ -34,7 +34,7 @@ import static org.junit.Assert.assertThat;
  *
  * @author dengliming
  */
-public class SoulDictMapperTest extends AbstractSpringIntegrationTest {
+public final class SoulDictMapperTest extends AbstractSpringIntegrationTest {
 
     @Resource
     private SoulDictMapper soulDictMapper;

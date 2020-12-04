@@ -98,6 +98,6 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
                 .enabled(true)
                 .ruleName(path)
                 .build();
-        return OkHttpTools.getInstance().getGosn().toJson(registerDTO);
+        return OkHttpTools.getInstance().getGson().toJson(registerDTO);
     }
 }

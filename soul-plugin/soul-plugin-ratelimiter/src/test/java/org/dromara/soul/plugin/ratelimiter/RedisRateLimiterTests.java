@@ -28,7 +28,7 @@ import org.junit.Before;
  *
  * @author xiaoyu
  */
-public class RedisRateLimiterTests {
+public final class RedisRateLimiterTests {
     
     /**
      * Sets up.
