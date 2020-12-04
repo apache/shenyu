@@ -30,7 +30,7 @@ import static org.junit.Assert.assertEquals;
  *
  * @author dengliming
  */
-public class DateUtilsTest {
+public final class DateUtilsTest {
 
     @Test
     public void testLocalDateTimeToString() {

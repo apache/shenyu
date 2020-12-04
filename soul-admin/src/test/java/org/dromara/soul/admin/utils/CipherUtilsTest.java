@@ -30,7 +30,7 @@ import static org.junit.Assert.assertThat;
  *
  * @author HoldDie
  */
-public class CipherUtilsTest {
+public final class CipherUtilsTest {
 
     private static final String AES_KEY = "2095132720951327";
 
