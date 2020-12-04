@@ -36,7 +36,7 @@ public class SwaggerConfigurationTest {
     private SwaggerConfiguration swaggerConfiguration;
 
     @Test
-    public void testCreateRestApi(){
+    public void testCreateRestApi() {
         Assert.assertNotNull(swaggerConfiguration.createRestApi());
     }
 
