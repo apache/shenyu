@@ -15,23 +15,36 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.utils;
+package org.dromara.soul.common.enums;
 
+import org.dromara.soul.common.exception.SoulException;
 import org.junit.Test;
-import static org.junit.Assert.assertTrue;
+
+import java.util.Arrays;
+
+import static org.junit.Assert.assertEquals;
 
 /**
- * Test cases for ParamCheckUtils.
+ * Test Cases for HttpMethodEnum.
  *
- * @author marina432
+ * @author tangtian8
  */
-public final class ParamCheckUtilsTest {
+public final class HttpMethodEnumTest {
 
     @Test
-    public void testDubboBodyIsEmpty() {
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty(null));
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty(""));
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty("{}"));
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty("null"));
+    public void testAcquireByNameValid() {
+        Arrays.stream(HttpMethodEnum.values()).forEach(
+            e -> {
+                if (e.getSupport()) {
+                    assertEquals(e, HttpMethodEnum.acquireByName(e.getName()));
+                }
+            }
+        );
+    }
+
+    @Test(expected = SoulException.class)
+    public void testAcquireByNameInvalid() {
+        String httpMethodName = "InvalidName";
+        HttpMethodEnum.acquireByName(httpMethodName);
     }
 }

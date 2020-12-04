@@ -15,23 +15,28 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.utils;
+package org.dromara.soul.admin.utils;
 
 import org.junit.Test;
-import static org.junit.Assert.assertTrue;
+
+import static org.junit.Assert.assertEquals;
 
 /**
- * Test cases for ParamCheckUtils.
+ * Test cases for AesUtils.
  *
- * @author marina432
+ * @author dengliming
  */
-public final class ParamCheckUtilsTest {
+public class AesUtilsTest {
+
+    private static final String AES_KEY = "2095132720951327";
 
     @Test
-    public void testDubboBodyIsEmpty() {
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty(null));
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty(""));
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty("{}"));
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty("null"));
+    public void testAesEncryption() {
+        assertEquals("jHcpKkiDbbQh7W7hh8yQSA==", AesUtils.aesEncryption("123456", AES_KEY));
+    }
+
+    @Test
+    public void testAesDecryption() {
+        assertEquals("123456", AesUtils.aesDecryption("jHcpKkiDbbQh7W7hh8yQSA==", AES_KEY));
     }
 }

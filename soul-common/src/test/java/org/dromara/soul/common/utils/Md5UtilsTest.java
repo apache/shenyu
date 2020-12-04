@@ -22,7 +22,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Test cases for Md5Utils
+ * Test cases for Md5Utils.
  *
  * @author dengliming
  */

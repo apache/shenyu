@@ -15,23 +15,26 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.utils;
+package org.dromara.soul.admin;
 
-import org.junit.Test;
-import static org.junit.Assert.assertTrue;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
- * Test cases for ParamCheckUtils.
+ * Abstract Integration Test for Spring.
  *
- * @author marina432
+ * @author dengliming
  */
-public final class ParamCheckUtilsTest {
+@ActiveProfiles("test")
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringBootTest(classes = SoulAdminBootstrap.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = "spring.autoconfigure.exclude=org.springframework.boot.actuate.autoconfigure.jdbc.DataSourceHealthContributorAutoConfiguration")
+public abstract class AbstractSpringIntegrationTest {
 
-    @Test
-    public void testDubboBodyIsEmpty() {
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty(null));
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty(""));
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty("{}"));
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty("null"));
-    }
+    @LocalServerPort
+    private int port;
+
 }

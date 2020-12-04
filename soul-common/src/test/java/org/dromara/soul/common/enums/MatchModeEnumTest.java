@@ -15,23 +15,28 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.utils;
+package org.dromara.soul.common.enums;
 
 import org.junit.Test;
-import static org.junit.Assert.assertTrue;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 /**
- * Test cases for ParamCheckUtils.
+ * Test Cases for MatchModeEnum.
  *
- * @author marina432
+ * @author sherk7monstergit
  */
-public final class ParamCheckUtilsTest {
+public final class MatchModeEnumTest {
 
     @Test
-    public void testDubboBodyIsEmpty() {
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty(null));
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty(""));
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty("{}"));
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty("null"));
+    public void testGetMatchModeByCode() {
+        MatchModeEnum andModeEnum = MatchModeEnum.AND;
+        String andEnumName = MatchModeEnum.getMatchModeByCode(andModeEnum.getCode());
+        MatchModeEnum orModeEnum = MatchModeEnum.OR;
+        String orEnumName = MatchModeEnum.getMatchModeByCode(orModeEnum.getCode());
+        assertEquals(andModeEnum.getName(), andEnumName);
+        assertEquals(orModeEnum.getName(), orEnumName);
+        assertNotEquals(andEnumName, orEnumName);
     }
 }

@@ -22,7 +22,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Test cases for ReflectUtils
+ * Test cases for ReflectUtils.
  *
  * @author dengliming
  */

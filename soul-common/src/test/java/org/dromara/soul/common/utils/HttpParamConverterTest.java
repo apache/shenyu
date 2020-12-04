@@ -30,7 +30,7 @@ import static org.hamcrest.CoreMatchers.allOf;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Test cases for HttpParamConverter
+ * Test cases for HttpParamConverter.
  *
  * @author dengliming
  */

@@ -41,7 +41,8 @@ public class SpiLoadFactoryTest {
             fail();
         } catch (IllegalStateException expected) {
             assertThat(expected.getMessage(),
-                    CoreMatchers.containsString("No implementation defined in /META-INF/services/org.dromara.soul.common.utils.SpiLoadFactoryTest, please check whether the file exists and has the right implementation class!"));
+                    CoreMatchers.containsString("No implementation defined in /META-INF/services/org.dromara.soul.common.utils.SpiLoadFactoryTest, "
+                             + "please check whether the file exists and has the right implementation class!"));
         }
     }
 
