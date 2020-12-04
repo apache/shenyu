@@ -23,7 +23,6 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
 
-
 /**
  * Test cases for SwaggerConfiguration.
  *
