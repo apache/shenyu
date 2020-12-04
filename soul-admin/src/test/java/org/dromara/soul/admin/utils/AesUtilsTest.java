@@ -36,7 +36,7 @@ public class AesUtilsTest {
     }
 
     @Test
-    public void testAesEncryption_for_null() {
+    public void testAesEncryptionForNull() {
         assertEquals(null, AesUtils.aesEncryption("", AES_KEY));
     }
 
@@ -46,7 +46,7 @@ public class AesUtilsTest {
     }
 
     @Test
-    public void testAesDecryption_for_null() {
+    public void testAesDecryptionForNull() {
         assertEquals(null, AesUtils.aesDecryption("", AES_KEY));
     }
 
