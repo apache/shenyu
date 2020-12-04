@@ -28,51 +28,63 @@ import static org.junit.Assert.assertNotNull;
  *
  * @author songyuequan
  */
-public class ZkPathConstantsTest {
+public final class ZkPathConstantsTest {
+
+    public static final String APP_AUTH_PARENT = "/soul/auth";
+
+    public static final String META_DATA_PARENT = "/soul/metaData";
+
+    public static final String PLUGIN_PARENT = "/soul/plugin";
+
+    public static final String SELECTOR_PARENT = "/soul/selector";
+
+    public static final String RULE_PARENT = "/soul/rule";
+
+    public static final String SELECTOR_JOIN_RULE = "-";
 
     @Test
     public void testBuildAppAuthPath() {
         String appKey = RandomStringUtils.randomAlphanumeric(10);
         assertNotNull(ZkPathConstants.buildAppAuthPath(appKey));
-        assertEquals("/soul/auth/" + appKey, ZkPathConstants.buildAppAuthPath(appKey));
+        assertEquals(String.join("/", APP_AUTH_PARENT, appKey), ZkPathConstants.buildAppAuthPath(appKey));
     }
 
     @Test
     public void testBuildMetaDataPath() {
         String metadata = RandomStringUtils.randomAlphanumeric(10);
         assertNotNull(ZkPathConstants.buildMetaDataPath(metadata));
-        assertEquals("/soul/metaData/" + metadata, ZkPathConstants.buildMetaDataPath(metadata));
+        assertEquals(String.join("/", META_DATA_PARENT, metadata), ZkPathConstants.buildMetaDataPath(metadata));
     }
 
     @Test
     public void testBuildPluginParentPath() {
-        assertEquals("/soul/plugin", ZkPathConstants.buildPluginParentPath());
+        assertEquals(PLUGIN_PARENT, ZkPathConstants.buildPluginParentPath());
     }
 
     @Test
     public void testBuildPluginPath() {
         String pluginName = RandomStringUtils.randomAlphanumeric(10);
-        assertEquals("/soul/plugin/" + pluginName, ZkPathConstants.buildPluginPath(pluginName));
-        assertEquals(ZkPathConstants.buildPluginParentPath() + "/" + pluginName, ZkPathConstants.buildPluginPath(pluginName));
+        assertEquals(String.join("/", PLUGIN_PARENT, pluginName), ZkPathConstants.buildPluginPath(pluginName));
+        assertEquals(String.join("/", ZkPathConstants.buildPluginParentPath(), pluginName), ZkPathConstants.buildPluginPath(pluginName));
     }
 
     @Test
     public void testBuildSelectorParentPath() {
         String pluginName = RandomStringUtils.randomAlphanumeric(10);
-        assertEquals("/soul/selector/" + pluginName, ZkPathConstants.buildSelectorParentPath(pluginName));
+        assertEquals(String.join("/", SELECTOR_PARENT, pluginName), ZkPathConstants.buildSelectorParentPath(pluginName));
     }
 
     @Test
     public void testBuildSelectorRealPath() {
         String pluginName = RandomStringUtils.randomAlphanumeric(10);
         String selectorId = RandomStringUtils.randomAlphanumeric(10);
-        assertEquals("/soul/selector/" + pluginName + "/" + selectorId, ZkPathConstants.buildSelectorRealPath(pluginName, selectorId));
+        assertEquals(String.join("/", SELECTOR_PARENT, pluginName, selectorId), ZkPathConstants.buildSelectorRealPath(pluginName, selectorId));
     }
 
     @Test
     public void testBuildRuleParentPath() {
         String pluginName = RandomStringUtils.randomAlphanumeric(10);
-        assertEquals("/soul/rule/" + pluginName, ZkPathConstants.buildRuleParentPath(pluginName));
+        assertEquals(String.join("/", RULE_PARENT, pluginName), ZkPathConstants.buildRuleParentPath(pluginName));
     }
 
     @Test
@@ -80,7 +92,7 @@ public class ZkPathConstantsTest {
         String pluginName = RandomStringUtils.randomAlphanumeric(10);
         String selectorId = RandomStringUtils.randomAlphanumeric(10);
         String ruleId = RandomStringUtils.randomAlphanumeric(10);
-        assertEquals("/soul/rule/" + pluginName + "/" + selectorId + "-" + ruleId, ZkPathConstants.buildRulePath(pluginName, selectorId, ruleId));
-        assertEquals(ZkPathConstants.buildRuleParentPath(pluginName) + "/" + selectorId + "-" + ruleId, ZkPathConstants.buildRulePath(pluginName, selectorId, ruleId));
+        assertEquals(String.join("/", RULE_PARENT, pluginName, selectorId + SELECTOR_JOIN_RULE + ruleId), ZkPathConstants.buildRulePath(pluginName, selectorId, ruleId));
+        assertEquals(String.join("/", ZkPathConstants.buildRuleParentPath(pluginName), selectorId + SELECTOR_JOIN_RULE + ruleId), ZkPathConstants.buildRulePath(pluginName, selectorId, ruleId));
     }
 }
