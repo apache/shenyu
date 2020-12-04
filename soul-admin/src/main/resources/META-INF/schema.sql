@@ -20,11 +20,11 @@ USE `soul`;
 
 /*Table structure for table `dashboard_user` */
 CREATE TABLE IF NOT EXISTS `dashboard_user` (
-  `id` varchar(128) NOT NULL COMMENT 'primary key ID',
+  `id` varchar(128) NOT NULL COMMENT 'primary key id',
   `user_name` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'user name',
-  `password` varchar(128) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'User password',
+  `password` varchar(128) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'user password',
   `role` int(4) NOT NULL COMMENT 'role',
-  `enabled` tinyint(4) NOT NULL COMMENT 'Delete or not',
+  `enabled` tinyint(4) NOT NULL COMMENT 'delete or not',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
   PRIMARY KEY (`id`)
@@ -32,11 +32,11 @@ CREATE TABLE IF NOT EXISTS `dashboard_user` (
 
 /*Table structure for table `plugin` */
 CREATE TABLE IF NOT EXISTS `plugin` (
-  `id` varchar(128) NOT NULL COMMENT 'primary key ID',
+  `id` varchar(128) NOT NULL COMMENT 'primary key id',
   `name` varchar(62) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'plugin name',
   `config` text COLLATE utf8mb4_unicode_ci COMMENT 'plugin configuration',
   `role` int(4) NOT NULL COMMENT 'plug-in role',
-  `enabled` tinyint(4) NOT NULL DEFAULT '0' COMMENT 'Whether to open (0, not open, 1 open)',
+  `enabled` tinyint(4) NOT NULL DEFAULT '0' COMMENT 'whether to open (0, not open, 1 open)',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
   PRIMARY KEY (`id`)
@@ -44,13 +44,13 @@ CREATE TABLE IF NOT EXISTS `plugin` (
 
 CREATE TABLE IF NOT EXISTS `plugin_handle` (
   `id` varchar(128) NOT NULL,
-  `plugin_id` varchar(128) NOT NULL COMMENT 'plugin ID',
-  `field` varchar(100) NOT NULL COMMENT 'Field',
+  `plugin_id` varchar(128) NOT NULL COMMENT 'plugin id',
+  `field` varchar(100) NOT NULL COMMENT 'field',
   `label` varchar(100) DEFAULT NULL COMMENT 'label',
-  `data_type` smallint(6) NOT NULL DEFAULT '1' COMMENT 'Data type 1 number 2 string',
+  `data_type` smallint(6) NOT NULL DEFAULT '1' COMMENT 'data type 1 number 2 string',
   `type` smallint(6) NULL COMMENT 'type, 1 means selector, 2 means rule',
   `sort` int(4)  NULL COMMENT 'sort',
-  `ext_obj` varchar(1024) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Extra configuration (JSON format data)',
+  `ext_obj` varchar(1024) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'extra configuration (json format data)',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
   PRIMARY KEY (`id`),
@@ -60,16 +60,16 @@ CREATE TABLE IF NOT EXISTS `plugin_handle` (
 
 /*Table structure for table `selector` */
 CREATE TABLE IF NOT EXISTS `selector` (
-  `id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key ID varchar' primary key,
-  `plugin_id` varchar(128) NOT NULL COMMENT 'plugin ID',
+  `id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key id varchar' primary key,
+  `plugin_id` varchar(128) NOT NULL COMMENT 'plugin id',
   `name` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'selector name',
   `match_mode` int(2) NOT NULL COMMENT 'matching mode (0 and 1 or)',
-  `type` int(4) NOT NULL COMMENT 'Type (0, full flow, 1 custom flow)',
+  `type` int(4) NOT NULL COMMENT 'type (0, full flow, 1 custom flow)',
   `sort` int(4) NOT NULL COMMENT 'sort',
-  `handle` varchar(1024) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)',
-  `enabled` tinyint(4) NOT NULL COMMENT 'Whether to open',
-  `loged` tinyint(4) NOT NULL COMMENT 'Whether to print the log',
-  `continued` tinyint(4) NOT NULL COMMENT 'Whether to continue execution',
+  `handle` varchar(1024) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)',
+  `enabled` tinyint(4) NOT NULL COMMENT 'whether to open',
+  `loged` tinyint(4) NOT NULL COMMENT 'whether to print the log',
+  `continued` tinyint(4) NOT NULL COMMENT 'whether to continue execution',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
   constraint unique_name unique (`name`)
@@ -77,8 +77,8 @@ CREATE TABLE IF NOT EXISTS `selector` (
 
 /*Table structure for table `selector_condition` */
 CREATE TABLE IF NOT EXISTS `selector_condition` (
-  `id` varchar(128) NOT NULL COMMENT 'primary key ID',
-  `selector_id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'selector ID',
+  `id` varchar(128) NOT NULL COMMENT 'primary key id',
+  `selector_id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'selector id',
   `param_type` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'parameter type (to query URI, etc.)',
   `operator` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'matching character (=> <like matching)',
   `param_name` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'parameter name',
@@ -90,21 +90,21 @@ CREATE TABLE IF NOT EXISTS `selector_condition` (
 
 /*Table structure for table `rule` */
 CREATE TABLE IF NOT EXISTS `rule` (
-  `id` varchar(128) NOT NULL COMMENT 'primary key ID' PRIMARY KEY,
-  `selector_id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'selector ID',
+  `id` varchar(128) NOT NULL COMMENT 'primary key id' PRIMARY KEY,
+  `selector_id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'selector id',
   `match_mode` int(2) NOT NULL COMMENT 'matching mode (0 and 1 or)',
   `name` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Rule name',
-  `enabled` tinyint(4) NOT NULL COMMENT 'Whether to open',
-  `loged` tinyint(4) NOT NULL COMMENT 'Whether to log or not',
+  `enabled` tinyint(4) NOT NULL COMMENT 'whether to open',
+  `loged` tinyint(4) NOT NULL COMMENT 'whether to log or not',
   `sort` int(4) NOT NULL COMMENT 'sort',
-  `handle` varchar(1024) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)',
+  `handle` varchar(1024) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'processing logic (here for different plug-ins, there will be different fields to identify different processes, all data in JSON format is stored)',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
    constraint unique_name unique (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `rule_condition` (
-  `id` varchar(128) NOT NULL COMMENT 'primary key ID' PRIMARY KEY,
+  `id` varchar(128) NOT NULL COMMENT 'primary key id' PRIMARY KEY,
   `rule_id` varchar(128) NOT NULL COMMENT 'rule id',
   `param_type` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'parameter type (post query uri, etc.)',
   `operator` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'matching character (=> <like match)',
@@ -121,8 +121,8 @@ CREATE TABLE  IF NOT EXISTS `meta_data` (
   `path_desc` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'path description',
   `rpc_type` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'rpc type',
   `service_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'service name',
-  `method_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'Method name',
-  `parameter_types` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'Parameter types are provided with multiple parameter types separated by commas',
+  `method_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'method name',
+  `parameter_types` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'parameter types are provided with multiple parameter types separated by commas',
   `rpc_ext` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'rpc extended information, json format',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
@@ -131,23 +131,23 @@ CREATE TABLE  IF NOT EXISTS `meta_data` (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 CREATE TABLE IF NOT EXISTS `app_auth`  (
-  `id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key ID',
+  `id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key id',
   `app_key` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'application identification key',
   `app_secret` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'encryption algorithm secret',
   `user_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'user id',
-  `phone` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'Phone number when the user applies',
-  `ext_info` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'Extended parameter json',
-  `enabled` tinyint(4) NOT NULL COMMENT 'Delete or not',
+  `phone` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'phone number when the user applies',
+  `ext_info` varchar(1024) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'extended parameter json',
+  `enabled` tinyint(4) NOT NULL COMMENT 'delete or not',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 CREATE TABLE IF NOT EXISTS `auth_param`  (
-  `id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key ID',
-  `auth_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'Authentication table id',
-  `app_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Business Module',
-  `app_param` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'Service module parameters (parameters that need to be passed by the gateway) json type',
+  `id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key id',
+  `auth_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'authentication table id',
+  `app_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'business Module',
+  `app_param` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'service module parameters (parameters that need to be passed by the gateway) json type',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
   PRIMARY KEY (`id`) USING BTREE
@@ -157,23 +157,23 @@ CREATE TABLE IF NOT EXISTS `auth_param`  (
 -- Table structure for auth_path
 -- ----------------------------
 CREATE TABLE IF NOT EXISTS `auth_path`  (
-  `id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key ID',
+  `id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key id',
   `auth_id` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'auth table id',
   `app_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'module',
   `path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'path',
-  `enabled` tinyint(4) NOT NULL COMMENT 'Whether pass 1 is',
+  `enabled` tinyint(4) NOT NULL COMMENT 'whether pass 1 is',
   `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
   `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 CREATE TABLE IF NOT EXISTS `soul_dict` (
-   `id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key ID',
+   `id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'primary key id',
    `type` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'type',
-   `dict_code` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Dictionary encoding',
-   `dict_name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Dictionary name',
-   `dict_value` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Dictionary value',
-   `desc` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Dictionary description or remarks',
+   `dict_code` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'dictionary encoding',
+   `dict_name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'dictionary name',
+   `dict_value` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'dictionary value',
+   `desc` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'dictionary description or remarks',
    `sort` int(4) NOT NULL COMMENT 'sort',
    `enabled` tinyint(4) DEFAULT NULL COMMENT 'whether it is enabled',
    `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
