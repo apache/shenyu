@@ -23,10 +23,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
-
 import java.util.List;
 import java.util.Map;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -36,7 +34,7 @@ import static org.junit.Assert.assertNotNull;
  * @author onlyonezhongjinhui
  */
 @RunWith(MockitoJUnitRunner.class)
-public class EnumServiceTest {
+public final class EnumServiceTest {
 
     @InjectMocks
     private EnumServiceImpl enumService;

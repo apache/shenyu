@@ -20,9 +20,7 @@ package org.dromara.soul.admin.config;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
-
 import java.time.Duration;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -32,7 +30,7 @@ import static org.junit.Assert.assertTrue;
  * @author onlyonezhongjinhui
  */
 @RunWith(MockitoJUnitRunner.class)
-public class HttpSyncPropertiesTest {
+public final class HttpSyncPropertiesTest {
 
     @Test
     public void testDefaultEnabled() {
