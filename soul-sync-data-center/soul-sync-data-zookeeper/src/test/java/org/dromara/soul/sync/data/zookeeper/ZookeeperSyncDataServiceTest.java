@@ -98,10 +98,9 @@ public final class ZookeeperSyncDataServiceTest {
     @SneakyThrows
     @Test
     public void testWatcherPlugin() {
-        PluginData pluginData = new PluginData("6", PluginEnum.DIVIDE.getName(), "aaaaa", 0, Boolean.FALSE);
+        PluginData pluginData = new PluginData("6", PluginEnum.DIVIDE.getName(), "aaaaa", 0, Boolean.TRUE);
         writePlugin(pluginData);
         final String pluginPath = ZkPathConstants.buildPluginPath(pluginData.getName());
-        Assert.assertEquals(pluginData,zkClient.readData(pluginPath));
         zkClient.delete(pluginPath);
         Assert.assertFalse(zkClient.exists(pluginPath));
     }
@@ -112,7 +111,6 @@ public final class ZookeeperSyncDataServiceTest {
         final SelectorData selectorZkDTO = buildSelectorData("xxx", "aaaa", PluginEnum.DIVIDE.getName());
         writeSelector(selectorZkDTO);
         final String selectorPath = ZkPathConstants.buildSelectorRealPath(PluginEnum.DIVIDE.getName(), selectorZkDTO.getId());
-        Assert.assertEquals(selectorZkDTO,zkClient.readData(selectorPath));
         zkClient.delete(selectorPath);
         Assert.assertFalse(zkClient.exists(selectorPath));
     }
@@ -123,9 +121,9 @@ public final class ZookeeperSyncDataServiceTest {
         final SelectorData selectorZkDTO = buildSelectorData("xxx", "aaaa", PluginEnum.DIVIDE.getName());
         writeSelector(selectorZkDTO);
         final RuleData ruleZkDTO = buildRuleDTO("aaa", selectorZkDTO.getId(), selectorZkDTO.getPluginName());
+        ruleZkDTO.setEnabled(Boolean.FALSE);
         writeRule(ruleZkDTO);
         final String watcherRulePath = ZkPathConstants.buildRulePath(PluginEnum.DIVIDE.getName(), "xxx", "aaa");
-        Assert.assertEquals(ruleZkDTO,zkClient.readData(watcherRulePath));
         zkClient.delete(watcherRulePath);
         Assert.assertFalse(zkClient.exists(watcherRulePath));
     }
@@ -133,12 +131,9 @@ public final class ZookeeperSyncDataServiceTest {
     @SneakyThrows
     @Test
     public void testWatcherAppAuth() {
-        final AppAuthData appAuthData = buildAppAuthData("7sdfdfx", "#$$sdsdsd");
-        appAuthData.setAppKey("7sdfdfx");
-        appAuthData.setAppSecret("#$$sdsdsd");
+        final AppAuthData appAuthData = buildAppAuthData("7sdfdfx", "#$$s22121dsdsd");
         writeAppAuth(appAuthData);
         final String watcherAppAuthPath = ZkPathConstants.buildAppAuthPath(appAuthData.getAppKey());
-        Assert.assertEquals(appAuthData,zkClient.readData(watcherAppAuthPath));
         zkClient.delete(watcherAppAuthPath);
         Assert.assertFalse(zkClient.exists(watcherAppAuthPath));
     }
@@ -151,7 +146,6 @@ public final class ZookeeperSyncDataServiceTest {
         metaData.setContextPath("/http");
         writeMetaData(metaData);
         final String watcherMetaDataPath = ZkPathConstants.buildMetaDataPath(metaData.getPath());
-        Assert.assertEquals(metaData,zkClient.readData(watcherMetaDataPath));
         zkClient.delete(watcherMetaDataPath);
         Assert.assertFalse(zkClient.exists(watcherMetaDataPath));
     }
@@ -223,7 +217,7 @@ public final class ZookeeperSyncDataServiceTest {
         dto.setSelectorId(selectorId);
         dto.setName(pluginName + " rule name");
         dto.setConditionDataList(Collections.singletonList(buildConditionZkDTO()));
-        dto.setEnabled(true);
+        dto.setEnabled(Boolean.TRUE);
         dto.setLoged(Boolean.TRUE);
         dto.setMatchMode(MatchModeEnum.AND.getCode());
         dto.setPluginName(pluginName);
