@@ -49,5 +49,4 @@ public class AesUtilsTest {
     public void testAesDecryptionForNull() {
         assertEquals(null, AesUtils.aesDecryption("", AES_KEY));
     }
-
 }
