@@ -549,6 +549,8 @@
                         <exclude>**/spring.factories</exclude>
                         <exclude>**/spring.provides</exclude>
                         <exclude>/script/**</exclude>
+                        <exclude>**/lombok.config</exclude>
+                        <exclude>**/*.json</exclude>
                         <!-- IDE files -->
                         <exclude>**/*.iml</exclude>
                         <exclude>**/.idea/**</exclude>
