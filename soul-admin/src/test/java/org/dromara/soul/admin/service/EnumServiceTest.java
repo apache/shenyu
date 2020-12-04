@@ -25,8 +25,8 @@ import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
 import java.util.List;
 import java.util.Map;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Test cases for EnumService.
@@ -42,25 +42,127 @@ public final class EnumServiceTest {
     @Test
     public void testListSize() {
         Map<String, List<EnumVO>> list = enumService.list();
-        assertEquals(13, list.size());
+        assertTrue(list.size() > 0);
     }
 
     @Test
-    public void testListEle() {
+    public void testListHttpMethodEnums() {
         Map<String, List<EnumVO>> list = enumService.list();
-        assertNotNull(list.get("httpMethodEnums"));
-        assertNotNull(list.get("loadBalanceEnums"));
-        assertNotNull(list.get("matchModeEnums"));
-        assertNotNull(list.get("operatorEnums"));
-        assertNotNull(list.get("paramTypeEnums"));
-        assertNotNull(list.get("pluginEnums"));
-        assertNotNull(list.get("pluginTypeEnums"));
-        assertNotNull(list.get("rpcTypeEnums"));
-        assertNotNull(list.get("selectorTypeEnums"));
-        assertNotNull(list.get("serializeEnums"));
-        assertNotNull(list.get("wafEnums"));
-        assertNotNull(list.get("redisModeEnums"));
-        assertNotNull(list.get("hystrixIsolationModeEnums"));
+        List<EnumVO> enums = list.get("httpMethodEnums");
+        assertNotNull(list);
+        assertTrue(enums.size() > 0);
+        assertTrue(enums.stream().noneMatch(e -> null != e.getCode()));
+    }
+
+    @Test
+    public void testListLoadBalanceEnums() {
+        Map<String, List<EnumVO>> list = enumService.list();
+        List<EnumVO> enums = list.get("loadBalanceEnums");
+        assertNotNull(list);
+        assertTrue(enums.size() > 0);
+        assertTrue(enums.stream().allMatch(EnumVO::getSupport));
+    }
+
+    @Test
+    public void testListMatchModeEnums() {
+        Map<String, List<EnumVO>> list = enumService.list();
+        List<EnumVO> enums = list.get("matchModeEnums");
+        assertNotNull(list);
+        assertTrue(enums.size() > 0);
+        assertTrue(enums.stream().allMatch(EnumVO::getSupport));
+    }
+
+    @Test
+    public void testListOperatorEnums() {
+        Map<String, List<EnumVO>> list = enumService.list();
+        List<EnumVO> enums = list.get("operatorEnums");
+        assertNotNull(list);
+        assertTrue(enums.size() > 0);
+        assertTrue(enums.stream().noneMatch(e -> null != e.getCode()));
+    }
+
+    @Test
+    public void testListParamTypeEnums() {
+        Map<String, List<EnumVO>> list = enumService.list();
+        List<EnumVO> enums = list.get("paramTypeEnums");
+        assertNotNull(list);
+        assertTrue(enums.size() > 0);
+        assertTrue(enums.stream().noneMatch(e -> null != e.getCode()));
+    }
+
+    @Test
+    public void testListPluginEnums() {
+        Map<String, List<EnumVO>> list = enumService.list();
+        List<EnumVO> enums = list.get("pluginEnums");
+        assertNotNull(list);
+        assertTrue(enums.size() > 0);
+        assertTrue(enums.stream().allMatch(EnumVO::getSupport));
+    }
+
+    @Test
+    public void testListPluginTypeEnums() {
+        Map<String, List<EnumVO>> list = enumService.list();
+        List<EnumVO> enums = list.get("pluginTypeEnums");
+        assertNotNull(list);
+        assertTrue(enums.size() > 0);
+        assertTrue(enums.stream().noneMatch(e -> null != e.getCode()));
+        assertTrue(enums.stream().allMatch(EnumVO::getSupport));
+    }
+
+    @Test
+    public void testListRpcTypeEnums() {
+        Map<String, List<EnumVO>> list = enumService.list();
+        List<EnumVO> enums = list.get("rpcTypeEnums");
+        assertNotNull(list);
+        assertTrue(enums.size() > 0);
+        assertTrue(enums.stream().noneMatch(e -> null != e.getCode()));
+    }
+
+    @Test
+    public void testListSelectorTypeEnums() {
+        Map<String, List<EnumVO>> list = enumService.list();
+        List<EnumVO> enums = list.get("selectorTypeEnums");
+        assertNotNull(list);
+        assertTrue(enums.size() > 0);
+        assertTrue(enums.stream().allMatch(EnumVO::getSupport));
+    }
+
+    @Test
+    public void testListSerializeEnums() {
+        Map<String, List<EnumVO>> list = enumService.list();
+        List<EnumVO> enums = list.get("serializeEnums");
+        assertNotNull(list);
+        assertTrue(enums.size() > 0);
+        assertTrue(enums.stream().noneMatch(e -> null != e.getCode()));
+        assertTrue(enums.stream().allMatch(EnumVO::getSupport));
+    }
+
+    @Test
+    public void testListWafEnums() {
+        Map<String, List<EnumVO>> list = enumService.list();
+        List<EnumVO> enums = list.get("wafEnums");
+        assertNotNull(list);
+        assertTrue(enums.size() > 0);
+        assertTrue(enums.stream().allMatch(EnumVO::getSupport));
+    }
+
+    @Test
+    public void testListRedisModeEnums() {
+        Map<String, List<EnumVO>> list = enumService.list();
+        List<EnumVO> enums = list.get("redisModeEnums");
+        assertNotNull(list);
+        assertTrue(enums.size() > 0);
+        assertTrue(enums.stream().noneMatch(e -> null != e.getCode()));
+        assertTrue(enums.stream().allMatch(EnumVO::getSupport));
+    }
+
+    @Test
+    public void testListHystrixIsolationModeEnums() {
+        Map<String, List<EnumVO>> list = enumService.list();
+        List<EnumVO> enums = list.get("hystrixIsolationModeEnums");
+        assertNotNull(list);
+        assertTrue(enums.size() > 0);
+        assertTrue(enums.stream().allMatch(EnumVO::getSupport));
     }
 
 }
