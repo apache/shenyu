@@ -31,8 +31,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author tydhot
  */
 @RunWith(MockitoJUnitRunner.class)
-public class SofaMetaDataSubscriberTest {
-
+public final class SofaMetaDataSubscriberTest {
     private SofaMetaDataSubscriber sofaPluginDataHandler;
 
     private MetaData metaData;
@@ -50,7 +49,7 @@ public class SofaMetaDataSubscriberTest {
     }
 
     @Test(expected = SofaRpcRuntimeException.class)
-    public void test01OnSubscribe() {
+    public void testOnSubscribe() {
         sofaPluginDataHandler.onSubscribe(metaData);
     }
 }

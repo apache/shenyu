@@ -23,8 +23,10 @@ import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.plugin.base.utils.Singleton;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
@@ -33,8 +35,8 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author tydhot
  */
 @RunWith(MockitoJUnitRunner.class)
-public class SofaPluginDataHandlerTest {
-
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+public final class SofaPluginDataHandlerTest {
     private SofaPluginDataHandler sofaPluginDataHandler;
 
     private MetaData metaData;
@@ -53,17 +55,16 @@ public class SofaPluginDataHandlerTest {
     }
 
     @Test
-    public void test02PluginEnable() {
+    public void testPluginEnable() {
         PluginData pluginData = new PluginData("", "", registryConfig, 1, true);
         sofaPluginDataHandler.handlerPlugin(pluginData);
         Assert.assertEquals(Singleton.INST.get(SofaRegisterConfig.class).getRegister(), "127.0.0.1:2181");
     }
 
     @Test
-    public void test01PluginDisable() {
+    public void testPluginDisable() {
         PluginData pluginData = new PluginData("", "", registryConfig, 1, false);
         sofaPluginDataHandler.handlerPlugin(pluginData);
         Assert.assertNull(Singleton.INST.get(SofaRegisterConfig.class));
     }
-
 }

@@ -40,8 +40,7 @@ import reactor.test.StepVerifier;
  * @author tydhot
  */
 @RunWith(MockitoJUnitRunner.class)
-public class BodyParamPluginTest {
-
+public final class BodyParamPluginTest {
     @Mock
     private SoulPluginChain chain;
 
@@ -61,14 +60,14 @@ public class BodyParamPluginTest {
     }
 
     @Test
-    public void test01NoBody() {
+    public void testNoBody() {
         Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
         bodyParamPlugin = new BodyParamPlugin();
         StepVerifier.create(bodyParamPlugin.execute(exchange, chain)).expectSubscription().verifyComplete();
     }
 
     @Test
-    public void test02SimpleBody() {
+    public void testSimpleBody() {
         Mockito.when(chain.execute(simpleExchange)).thenReturn(Mono.empty());
         bodyParamPlugin = new BodyParamPlugin();
         SoulContext context = new SoulContext();
@@ -78,7 +77,7 @@ public class BodyParamPluginTest {
     }
 
     @Test
-    public void test03JsonBody() {
+    public void testJsonBody() {
         Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
         bodyParamPlugin = new BodyParamPlugin();
         SoulContext context = new SoulContext();
@@ -88,7 +87,7 @@ public class BodyParamPluginTest {
     }
 
     @Test
-    public void test04FormBody() {
+    public void testFormBody() {
         Mockito.when(chain.execute(formExchange)).thenReturn(Mono.empty());
         bodyParamPlugin = new BodyParamPlugin();
         SoulContext context = new SoulContext();
@@ -96,5 +95,4 @@ public class BodyParamPluginTest {
         formExchange.getAttributes().put(Constants.CONTEXT, context);
         StepVerifier.create(bodyParamPlugin.execute(formExchange, chain)).expectSubscription().verifyComplete();
     }
-
 }

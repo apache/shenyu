@@ -45,8 +45,7 @@ import reactor.test.StepVerifier;
  * @author tydhot
  */
 @RunWith(MockitoJUnitRunner.class)
-public class SofaPluginTest {
-
+public final class SofaPluginTest {
     private SofaPlugin sofaPlugin;
 
     private MetaData metaData;
@@ -72,7 +71,7 @@ public class SofaPluginTest {
     }
 
     @Test
-    public void test01SofaPlugin() {
+    public void testSofaPlugin() {
         RuleData data = mock(RuleData.class);
         SoulContext context = mock(SoulContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, context);
@@ -81,5 +80,4 @@ public class SofaPluginTest {
         SelectorData selectorData = mock(SelectorData.class);
         StepVerifier.create(sofaPlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
     }
-
 }

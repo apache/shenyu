@@ -31,15 +31,13 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-
 /**
  * SofaResponsePluginTest.
  *
  * @author tydhot
  */
 @RunWith(MockitoJUnitRunner.class)
-public class SofaResponsePluginTest {
-
+public final class SofaResponsePluginTest {
     @Mock
     private SoulPluginChain chain;
 
@@ -55,27 +53,17 @@ public class SofaResponsePluginTest {
     }
 
     @Test
-    public void test01NoResult() {
+    public void testNoResult() {
         Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
         sofaResponsePlugin = new SofaResponsePlugin();
         StepVerifier.create(sofaResponsePlugin.execute(exchange, chain)).expectSubscription().verifyError();
     }
 
     @Test
-    public void test02GetResult() {
+    public void testGetResult() {
         Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
         sofaResponsePlugin = new SofaResponsePlugin();
         exchange.getAttributes().put(Constants.SOFA_RPC_RESULT, response);
         StepVerifier.create(sofaResponsePlugin.execute(exchange, chain)).expectSubscription().verifyError(NullPointerException.class);
     }
-
-    @Test
-    public void test03GetResult() {
-        Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
-        sofaResponsePlugin = new SofaResponsePlugin();
-        exchange.getAttributes().put(Constants.SOFA_RPC_RESULT, response);
-
-        StepVerifier.create(sofaResponsePlugin.execute(exchange, chain)).expectSubscription().verifyError(NullPointerException.class);
-    }
-
 }
