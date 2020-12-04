@@ -19,7 +19,9 @@ package org.dromara.soul.admin.utils;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
+
 
 /**
  * Test cases for AesUtils.
@@ -32,21 +34,21 @@ public class AesUtilsTest {
 
     @Test
     public void testAesEncryption() {
-        assertEquals("jHcpKkiDbbQh7W7hh8yQSA==", AesUtils.aesEncryption("123456", AES_KEY));
+        assertThat(AesUtils.aesEncryption("123456", AES_KEY), is("jHcpKkiDbbQh7W7hh8yQSA=="));
     }
 
     @Test
     public void testAesEncryptionForNull() {
-        assertEquals(null, AesUtils.aesEncryption("", AES_KEY));
+        assertThat(AesUtils.aesEncryption("", AES_KEY), nullValue());
     }
 
     @Test
     public void testAesDecryption() {
-        assertEquals("123456", AesUtils.aesDecryption("jHcpKkiDbbQh7W7hh8yQSA==", AES_KEY));
+        assertThat(AesUtils.aesDecryption("jHcpKkiDbbQh7W7hh8yQSA==", AES_KEY), is("123456"));
     }
 
     @Test
     public void testAesDecryptionForNull() {
-        assertEquals(null, AesUtils.aesDecryption("", AES_KEY));
+        assertThat(AesUtils.aesDecryption("", AES_KEY), nullValue());
     }
 }
