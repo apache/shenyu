@@ -19,9 +19,7 @@ package org.dromara.soul.common.enums;
 
 import org.dromara.soul.common.exception.SoulException;
 import org.junit.Test;
-
 import java.util.Arrays;
-
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -32,17 +30,16 @@ import static org.junit.Assert.assertEquals;
 public final class DataEventTypeEnumTest {
 
     @Test
-    public void testGetDataEventTypeByName(){
+    public void testGetDataEventTypeByName() {
         Arrays.stream(DataEventTypeEnum.values()).forEach(
                 e -> {
                     assertEquals(e,DataEventTypeEnum.acquireByName(e.name()));
                 }
         );
-
     }
 
     @Test(expected = SoulException.class)
-    public void testAcquireByNameInvalid(){
+    public void testAcquireByNameInvalid() {
         String DataEventTypeName = "InvalidName";
         DataEventTypeEnum.acquireByName(DataEventTypeName);
     }
