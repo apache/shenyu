@@ -17,6 +17,8 @@
 
 package org.dromara.soul.common.utils;
 
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -27,8 +29,15 @@ import org.junit.Test;
 public final class UUIDUtilsTest {
 
     @Test
-    public void testGenerateShortUuid() {
+    public void testGetInstance() {
         UUIDUtils uuidUtils = UUIDUtils.getInstance();
-        uuidUtils.generateShortUuid();
+        Assert.assertNotNull(uuidUtils);
+    }
+
+    @Test
+    public void testGenerateShortUuid() {
+        String shortUuid = UUIDUtils.getInstance().generateShortUuid();
+        Assert.assertTrue(StringUtils.isNotEmpty(shortUuid));
+        Assert.assertEquals(19,shortUuid.length());
     }
 }
