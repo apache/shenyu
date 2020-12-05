@@ -51,7 +51,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author guanys
  */
 @RunWith(MockitoJUnitRunner.class)
-public class PluginControllerTest {
+public final class PluginControllerTest {
 
     private MockMvc mockMvc;
 
@@ -64,12 +64,13 @@ public class PluginControllerTest {
     @Mock
     private SyncDataService syncDataService;
 
-    private final PluginVO pluginVO = new PluginVO("123", 1, 1, "t_n", "1", true,
-            DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()));
+    private PluginVO pluginVO;
 
     @Before
     public void setUp() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(pluginController).build();
+        this.pluginVO = new PluginVO("123", 1, 1, "t_n", "1", true,
+                DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()));
     }
 
     @Test
