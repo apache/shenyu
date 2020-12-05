@@ -44,7 +44,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @date 2020/12/4
  */
 @RunWith(MockitoJUnitRunner.class)
-public class NacosDataChangedListenerTest {
+public final class NacosDataChangedListenerTest {
     private static final String GROUP = "DEFAULT_GROUP";
 
     private static final String PLUGIN_DATA_ID = "soul.plugin.json";
