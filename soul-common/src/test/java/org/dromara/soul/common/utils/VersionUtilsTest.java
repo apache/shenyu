@@ -26,7 +26,7 @@ import static org.junit.Assert.assertNotNull;
  *
  * @author linkuan
  */
-public class VersionUtilsTest {
+public final class VersionUtilsTest {
 
     @Test
     public void testFromDefaultVersion() {
