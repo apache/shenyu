@@ -31,16 +31,12 @@ public final class DataEventTypeEnumTest {
 
     @Test
     public void testGetDataEventTypeByName() {
-        Arrays.stream(DataEventTypeEnum.values()).forEach(
-                e -> {
-                    assertEquals(e,DataEventTypeEnum.acquireByName(e.name()));
-                }
-        );
+        Arrays.stream(DataEventTypeEnum.values())
+                .forEach(e -> assertEquals(e, DataEventTypeEnum.acquireByName(e.name())));
     }
 
     @Test(expected = SoulException.class)
     public void testAcquireByNameInvalid() {
-        String DataEventTypeName = "InvalidName";
-        DataEventTypeEnum.acquireByName(DataEventTypeName);
+        DataEventTypeEnum.acquireByName("invalidName");
     }
 }
