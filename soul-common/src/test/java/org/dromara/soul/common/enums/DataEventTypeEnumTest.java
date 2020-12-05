@@ -17,10 +17,12 @@
 
 package org.dromara.soul.common.enums;
 
+import org.dromara.soul.common.exception.SoulException;
 import org.junit.Test;
 
+import java.util.Arrays;
+
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 
 /**
  * Test Cases for DataEventTypeEnum.
@@ -30,28 +32,18 @@ import static org.junit.Assert.assertNotEquals;
 public final class DataEventTypeEnumTest {
 
     @Test
-    public void testGetDataEventTypeByName() {
-        DataEventTypeEnum deleteEnum = DataEventTypeEnum.DELETE;
-        DataEventTypeEnum deleteEventTypeEnum = DataEventTypeEnum.acquireByName(deleteEnum.name());
-        assertEquals(deleteEnum, deleteEventTypeEnum);
+    public void testGetDataEventTypeByName(){
+        Arrays.stream(DataEventTypeEnum.values()).forEach(
+                e -> {
+                    assertEquals(e,DataEventTypeEnum.acquireByName(e.name()));
+                }
+        );
 
-        DataEventTypeEnum createEnum = DataEventTypeEnum.CREATE;
-        DataEventTypeEnum createEventTypeEnum = DataEventTypeEnum.acquireByName(createEnum.name());
-        assertEquals(createEnum, createEventTypeEnum);
-        DataEventTypeEnum updateEnum = DataEventTypeEnum.UPDATE;
-        DataEventTypeEnum updateEventTypeEnum = DataEventTypeEnum.acquireByName(updateEnum.name());
-        assertEquals(updateEnum, updateEventTypeEnum);
+    }
 
-        DataEventTypeEnum myselfEnum = DataEventTypeEnum.MYSELF;
-        DataEventTypeEnum myselfEventTypeEnum = DataEventTypeEnum.acquireByName(myselfEnum.name());
-        assertEquals(myselfEnum, myselfEventTypeEnum);
-
-        DataEventTypeEnum refreshEnum = DataEventTypeEnum.REFRESH;
-        DataEventTypeEnum refreshEventTypeEnum = DataEventTypeEnum.acquireByName(refreshEnum.name());
-        assertEquals(refreshEnum, refreshEventTypeEnum);
-
-        assertNotEquals(refreshEnum, myselfEventTypeEnum);
-        assertNotEquals(refreshEnum, updateEventTypeEnum);
-
+    @Test(expected = SoulException.class)
+    public void testAcquireByNameInvalid(){
+        String DataEventTypeName = "InvalidName";
+        DataEventTypeEnum.acquireByName(DataEventTypeName);
     }
 }
