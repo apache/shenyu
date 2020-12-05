@@ -29,7 +29,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,  auth_id, app_name,path,enabled,date_created, date_updated
+        id, auth_id, app_name, path, enabled, date_created, date_updated
     </sql>
 
     <select id="findByAuthId" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -104,7 +104,7 @@
     <update id="update" parameterType="org.dromara.soul.admin.entity.AuthParamDO">
         update auth_path
         set
-        path = #{path,jdbcType=VARCHAR},
+        path = #{path,jdbcType=VARCHAR}
         where id = #{id,jdbcType=VARCHAR}
     </update>
 
