@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.dromara.soul.plugin.sign.service;
 
 import com.google.common.collect.Lists;
@@ -27,6 +44,8 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
+ * DefaultSignService Test.
+ *
  * @author Phoenix Luo
  * @version 2020/12/5
  **/
@@ -37,9 +56,9 @@ public class DefaultSignServiceTest {
     
     private ServerWebExchange exchange;
     
-    private String appKey = "D1DFC83F3BC64FABB89DFBD54E5A28C8";
+    private final String appKey = "D1DFC83F3BC64FABB89DFBD54E5A28C8";
     
-    private String secretKey = "692C479F98C841FCBEB444B7CA775F63";
+    private final String secretKey = "692C479F98C841FCBEB444B7CA775F63";
     
     private SoulContext passed;
     
@@ -51,7 +70,7 @@ public class DefaultSignServiceTest {
         this.signService = new DefaultSignService();
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
         
-        String path = "/test-api/demo/test";
+        final String path = "/test-api/demo/test";
         PluginData signData = new PluginData();
         signData.setId("1");
         signData.setName(PluginEnum.SIGN.getName());
@@ -76,9 +95,9 @@ public class DefaultSignServiceTest {
         this.passed.setRpcType("springCloud");
         this.passed.setHttpMethod("GET");
         this.passed.setPath(path);
-        String timeStamp = String.valueOf(System.currentTimeMillis());
-        this.passed.setTimestamp(timeStamp);
-        this.passed.setSign(buildSign(secretKey, timeStamp, this.passed.getPath()));
+        final String timestamp = String.valueOf(System.currentTimeMillis());
+        this.passed.setTimestamp(timestamp);
+        this.passed.setSign(buildSign(secretKey, timestamp, this.passed.getPath()));
         this.passed.setAppKey(appKey);
         this.passed.setContextPath("/test-api");
         this.passed.setRealUrl("/demo/test");
@@ -173,8 +192,7 @@ public class DefaultSignServiceTest {
         assert !ret.getLeft() && Constants.SIGN_VALUE_IS_ERROR.equals(ret.getRight()) : "错误Sing测试未通过";
     }
     
-    
-    private String buildSign(String signKey, String timeStamp, String path) {
+    private String buildSign(final String signKey, final String timeStamp, final String path) {
         Map<String, String> map = Maps.newHashMapWithExpectedSize(3);
         map.put(Constants.TIMESTAMP, timeStamp);
         map.put(Constants.PATH, path);
