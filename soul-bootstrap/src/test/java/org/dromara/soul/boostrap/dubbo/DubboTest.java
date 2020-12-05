@@ -29,7 +29,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class DubboTest implements Serializable {
+public final class DubboTest implements Serializable {
 
     private String id;
 
