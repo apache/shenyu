@@ -37,7 +37,7 @@ import static org.junit.Assert.assertNotNull;
 
 
 /**
- * Test cases for SoulDictMapper.
+ * Test cases for AppAuthMapper.
  *
  * @author tangtian8
  */
