@@ -44,8 +44,7 @@ import static org.junit.Assert.assertTrue;
  * The TestCase for HttpLongPoolingDataChangedListenerTest.
  *
  * @author nuo-promise
- * @date 2020/12/4
- **/
+ */
 @RunWith(MockitoJUnitRunner.class)
 public final class HttpLongPollingDataChangedListenerTest {
 
