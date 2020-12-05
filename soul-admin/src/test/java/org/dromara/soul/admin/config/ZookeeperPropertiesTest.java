@@ -18,7 +18,10 @@
 package org.dromara.soul.admin.config;
 
 import org.junit.Test;
-
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.test.context.support.TestPropertySourceUtils;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -37,6 +40,8 @@ public final class ZookeeperPropertiesTest {
 
     private static final String SERIALIZER = "org.I0Itec.zkclient.serialize.SerializableSerializer";
 
+    private final AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+
     @Test
     public void testZookeeperProperties() {
         ZookeeperProperties properties = new ZookeeperProperties();
@@ -48,5 +53,37 @@ public final class ZookeeperPropertiesTest {
         assertThat(properties.getSessionTimeout(), is(SESSION_TIME_OUT));
         assertThat(properties.getConnectionTimeout(), is(CONNECTION_TIMEOUT));
         assertThat(properties.getSerializer(), is(SERIALIZER));
+    }
+
+    @Test
+    public void testLoadPropertiesBySpringContext() {
+        final String[] inlinedProperties = new String[]{
+            "soul.sync.zookeeper.url=127.0.0.1:2181",
+            "soul.sync.zookeeper.sessionTimeout=5000",
+            "soul.sync.zookeeper.connectionTimeout=2000",
+            "soul.sync.zookeeper.serializer=org.I0Itec.zkclient.serialize.SerializableSerializer",
+        };
+        load(ZookeeperPropertiesConfiguration.class, inlinedProperties);
+        ZookeeperProperties properties = this.context.getBean(ZookeeperProperties.class);
+        assertThat(properties.getUrl(), is(URL));
+        assertThat(properties.getSessionTimeout(), is(SESSION_TIME_OUT));
+        assertThat(properties.getConnectionTimeout(), is(CONNECTION_TIMEOUT));
+        assertThat(properties.getSerializer(), is(SERIALIZER));
+        this.context.close();
+    }
+
+    private void load(final Class<?> configuration, final String... inlinedProperties) {
+        load(new Class<?>[]{configuration}, inlinedProperties);
+    }
+
+    private void load(final Class<?>[] configuration, final String... inlinedProperties) {
+        TestPropertySourceUtils.addInlinedPropertiesToEnvironment(this.context, inlinedProperties);
+        this.context.register(configuration);
+        this.context.refresh();
+    }
+
+    @Configuration
+    @EnableConfigurationProperties(ZookeeperProperties.class)
+    static class ZookeeperPropertiesConfiguration {
     }
 }
