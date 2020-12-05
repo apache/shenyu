@@ -40,7 +40,7 @@ import static org.junit.Assert.assertThat;
  *
  * @author peiht
  */
-public class DashboardUserMapperTest extends AbstractSpringIntegrationTest {
+public final class DashboardUserMapperTest extends AbstractSpringIntegrationTest {
 
     @Resource
     private DashboardUserMapper dashboardUserMapper;
@@ -64,7 +64,6 @@ public class DashboardUserMapperTest extends AbstractSpringIntegrationTest {
         DashboardUserDO record = buildDashboardUserDO();
         int count = dashboardUserMapper.insert(record);
         assertThat(count, comparesEqualTo(1));
-
         DashboardUserDO result = dashboardUserMapper.selectById(record.getId());
         assertNotNull(result);
     }
@@ -75,7 +74,6 @@ public class DashboardUserMapperTest extends AbstractSpringIntegrationTest {
         record.setUserName("adminSoul");
         int count = dashboardUserMapper.insert(record);
         assertThat(count, comparesEqualTo(1));
-
         DashboardUserDO result = dashboardUserMapper.findByQuery(record.getUserName(), record.getPassword());
         assertNotNull(result);
     }
@@ -85,7 +83,6 @@ public class DashboardUserMapperTest extends AbstractSpringIntegrationTest {
         DashboardUserDO record = buildDashboardUserDO();
         int count = dashboardUserMapper.insert(record);
         assertThat(count, comparesEqualTo(1));
-
         DashboardUserQuery query = new DashboardUserQuery();
         PageParameter pageParameter = new PageParameter();
         query.setUserName("adminTest");
@@ -99,7 +96,6 @@ public class DashboardUserMapperTest extends AbstractSpringIntegrationTest {
         DashboardUserDO record = buildDashboardUserDO();
         int count = dashboardUserMapper.insert(record);
         assertThat(count, comparesEqualTo(1));
-
         DashboardUserQuery query = new DashboardUserQuery();
         query.setUserName("adminTest");
         int result = dashboardUserMapper.countByQuery(query);
@@ -111,7 +107,6 @@ public class DashboardUserMapperTest extends AbstractSpringIntegrationTest {
         DashboardUserDO record = buildDashboardUserDO();
         int count = dashboardUserMapper.insert(record);
         assertThat(count, comparesEqualTo(1));
-
         record.setUserName("adminUpdate");
         int result = dashboardUserMapper.update(record);
         assertThat(result, comparesEqualTo(1));
@@ -122,7 +117,6 @@ public class DashboardUserMapperTest extends AbstractSpringIntegrationTest {
         DashboardUserDO record = buildDashboardUserDO();
         int count = dashboardUserMapper.insert(record);
         assertThat(count, comparesEqualTo(1));
-
         record.setUserName("adminUpdate");
         int result = dashboardUserMapper.updateSelective(record);
         assertThat(result, comparesEqualTo(1));
@@ -133,7 +127,6 @@ public class DashboardUserMapperTest extends AbstractSpringIntegrationTest {
         DashboardUserDO record = buildDashboardUserDO();
         int count = dashboardUserMapper.insert(record);
         assertThat(count, comparesEqualTo(1));
-
         int result = dashboardUserMapper.delete(record.getId());
         assertThat(result, comparesEqualTo(1));
     }
