@@ -88,11 +88,11 @@ public final class NacosDataChangedListenerTest {
                 configService.getConfig(AUTH_DATA_ID, GROUP, 100),
                 GsonUtils.getInstance().toJson(ImmutableMap.of(mockAppKey2, appAuthData2)));
         nacosDataChangedListener.onAppAuthChanged(
-                ImmutableList.of(appAuthData), DataEventTypeEnum.CREATE);
+                ImmutableList.of(appAuthData), DataEventTypeEnum.REFRESH);
         Assert.assertEquals(
                 configService.getConfig(AUTH_DATA_ID, GROUP, 1),
                 GsonUtils.getInstance()
-                        .toJson(ImmutableMap.of(mockAppKey2, appAuthData2, mockAppKey, appAuthData)));
+                        .toJson(ImmutableMap.of(mockAppKey, appAuthData)));
     }
 
     @Test
@@ -116,11 +116,11 @@ public final class NacosDataChangedListenerTest {
                 configService.getConfig(PLUGIN_DATA_ID, GROUP, 1),
                 GsonUtils.getInstance().toJson(ImmutableMap.of(pluginName2, pluginData2)));
         nacosDataChangedListener.onPluginChanged(
-                ImmutableList.of(pluginData1), DataEventTypeEnum.CREATE);
+                ImmutableList.of(pluginData1), DataEventTypeEnum.REFRESH);
         Assert.assertEquals(
                 configService.getConfig(PLUGIN_DATA_ID, GROUP, 1),
                 GsonUtils.getInstance()
-                        .toJson(ImmutableMap.of(pluginName2, pluginData2, pluginName1, pluginData1)));
+                        .toJson(ImmutableMap.of(pluginName1, pluginData1)));
     }
 
     @Test
@@ -163,16 +163,11 @@ public final class NacosDataChangedListenerTest {
                                         selectorDataPluginName1,
                                         ImmutableList.of())));
         nacosDataChangedListener.onSelectorChanged(
-                ImmutableList.of(selectorData1), DataEventTypeEnum.CREATE);
+                ImmutableList.of(selectorData1), DataEventTypeEnum.REFRESH);
         Assert.assertEquals(
                 configService.getConfig(SELECTOR_DATA_ID, GROUP, 1),
                 GsonUtils.getInstance()
-                        .toJson(
-                                ImmutableMap.of(
-                                        selectorDataPluginName2,
-                                        ImmutableList.of(selectorData2),
-                                        selectorDataPluginName1,
-                                        ImmutableList.of(selectorData1))));
+                        .toJson(ImmutableMap.of(selectorDataPluginName1, ImmutableList.of())));
     }
 
     @Test
@@ -194,11 +189,11 @@ public final class NacosDataChangedListenerTest {
                 configService.getConfig(META_DATA_ID, GROUP, 1),
                 GsonUtils.getInstance().toJson(ImmutableMap.of(metadataPath2, metaData2)));
         nacosDataChangedListener.onMetaDataChanged(
-                ImmutableList.of(metaData1), DataEventTypeEnum.CREATE);
+                ImmutableList.of(metaData1), DataEventTypeEnum.REFRESH);
         Assert.assertEquals(
                 configService.getConfig(META_DATA_ID, GROUP, 1),
                 GsonUtils.getInstance()
-                        .toJson(ImmutableMap.of(metadataPath1, metaData1, metadataPath2, metaData2)));
+                        .toJson(ImmutableMap.of(metadataPath1, metaData1)));
     }
 
     @Test
@@ -229,15 +224,9 @@ public final class NacosDataChangedListenerTest {
                         .toJson(
                                 ImmutableMap.of(
                                         selectorId2, ImmutableList.of(ruleData2), selectorId1, ImmutableList.of())));
-        nacosDataChangedListener.onRuleChanged(ImmutableList.of(ruleData1), DataEventTypeEnum.CREATE);
+        nacosDataChangedListener.onRuleChanged(ImmutableList.of(ruleData1), DataEventTypeEnum.REFRESH);
         Assert.assertEquals(
                 configService.getConfig(RULE_DATA_ID, GROUP, 1),
-                GsonUtils.getInstance()
-                        .toJson(
-                                ImmutableMap.of(
-                                        selectorId2,
-                                        ImmutableList.of(ruleData2),
-                                        selectorId1,
-                                        ImmutableList.of(ruleData1))));
+                GsonUtils.getInstance().toJson(ImmutableMap.of(selectorId1, ImmutableList.of())));
     }
 }
