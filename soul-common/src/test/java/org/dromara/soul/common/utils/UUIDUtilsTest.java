@@ -38,6 +38,6 @@ public final class UUIDUtilsTest {
     public void testGenerateShortUuid() {
         String shortUuid = UUIDUtils.getInstance().generateShortUuid();
         Assert.assertTrue(StringUtils.isNotEmpty(shortUuid));
-        Assert.assertEquals(19,shortUuid.length());
+        Assert.assertEquals(19, shortUuid.length());
     }
 }
