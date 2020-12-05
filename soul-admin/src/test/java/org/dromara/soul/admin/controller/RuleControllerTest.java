@@ -62,17 +62,18 @@ public final class RuleControllerTest {
     @Mock
     private RuleService ruleService;
 
-    private RuleConditionVO rCondition1 = new RuleConditionVO(
-            "1334784248953081888", "1334784248944693666", "uri", "统一资源定位符", "match", "匹配", "/", "/http/test/**", DateUtils.localDateTimeToString(LocalDateTime.now()),DateUtils.localDateTimeToString(LocalDateTime.now())
+    private final RuleConditionVO rCondition1 = new RuleConditionVO(
+            "888", "666", "uri", "Uniform", "match", "match", "/", "/http/test/**", DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now())
     );
-    private RuleConditionVO rCondition2 = new RuleConditionVO(
-            "1334784248953081999", "1334784248944693555", "uri", "统一资源定位符", "match", "匹配", "/", "/http/test/**", DateUtils.localDateTimeToString(LocalDateTime.now()),DateUtils.localDateTimeToString(LocalDateTime.now())
+
+    private final RuleConditionVO rCondition2 = new RuleConditionVO(
+            "999", "555", "uri", "Uniform", "match", "match", "/", "/http/test/**", DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now())
     );
+
     private final List<RuleConditionVO> rclist = new ArrayList<>(Arrays.asList(rCondition1, rCondition2));
 
-    private final RuleVO ruleVO = new RuleVO("1334784248944693666", "1334784248336519168", 0, "模式零", "/http/test/**", true, true, 1, "{\"loadBalance\":\"random\",\"retry\":0,\"timeout\":3000}",
-            rclist, DateUtils.localDateTimeToString(LocalDateTime.now()),DateUtils.localDateTimeToString(LocalDateTime.now()));
-
+    private final RuleVO ruleVO = new RuleVO("666", "1334784248336519168", 0, "zero mode", "/http/test/**", true, true, 1, "{\"loadBalance\":\"random\",\"retry\":0,\"timeout\":3000}",
+            rclist, DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()));
 
     @Before
     public void setUp() {
@@ -81,8 +82,8 @@ public final class RuleControllerTest {
 
     @Test
     public void testDetailRule() throws Exception {
-        given(this.ruleService.findById("1334784248944693666")).willReturn(ruleVO);
-        this.mockMvc.perform(MockMvcRequestBuilders.get("", "1"))
+        given(this.ruleService.findById("666")).willReturn(ruleVO);
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/rule/{id}", "666"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(SoulResultMessage.DETAIL_SUCCESS)))
                 .andExpect(jsonPath("$.data.id", is(ruleVO.getId())))
@@ -92,8 +93,8 @@ public final class RuleControllerTest {
     @Test
     public void testCreateRule() throws Exception {
         RuleConditionDTO ruleConditionDTO = new RuleConditionDTO();
-        ruleConditionDTO.setId("1334784248953081888");
-        ruleConditionDTO.setRuleId("1334784248944693666");
+        ruleConditionDTO.setId("888");
+        ruleConditionDTO.setRuleId("666");
         ruleConditionDTO.setParamType("uri");
         ruleConditionDTO.setOperator("match");
         ruleConditionDTO.setParamName("/");
@@ -103,7 +104,7 @@ public final class RuleControllerTest {
         conList.add(ruleConditionDTO);
 
         RuleDTO ruleDTO = new RuleDTO();
-        ruleDTO.setId("1334784248944693666");
+        ruleDTO.setId("666");
         ruleDTO.setSelectorId("1334784248336519168");
         ruleDTO.setMatchMode(0);
         ruleDTO.setName("/http/order/save");
@@ -114,9 +115,8 @@ public final class RuleControllerTest {
 
         ruleDTO.setRuleConditions(conList);
 
-
         given(this.ruleService.createOrUpdate(ruleDTO)).willReturn(1);
-        this.mockMvc.perform(MockMvcRequestBuilders.post("", ruleDTO)
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/rule", ruleDTO)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(GsonUtils.getInstance().toJson(ruleDTO))
                 )
@@ -128,8 +128,8 @@ public final class RuleControllerTest {
     @Test
     public void testUpdateRule() throws Exception {
         RuleConditionDTO ruleConditionDTO = new RuleConditionDTO();
-        ruleConditionDTO.setId("1334784248953081888");
-        ruleConditionDTO.setRuleId("1334784248944693666");
+        ruleConditionDTO.setId("888");
+        ruleConditionDTO.setRuleId("666");
         ruleConditionDTO.setParamType("uri");
         ruleConditionDTO.setOperator("match");
         ruleConditionDTO.setParamName("/");
@@ -139,7 +139,7 @@ public final class RuleControllerTest {
         conList.add(ruleConditionDTO);
 
         RuleDTO ruleDTO = new RuleDTO();
-        ruleDTO.setId("1334784248944693666");
+        ruleDTO.setId("666");
         ruleDTO.setSelectorId("1334784248336519168");
         ruleDTO.setMatchMode(0);
         ruleDTO.setName("/http/order/update");
@@ -151,7 +151,7 @@ public final class RuleControllerTest {
         ruleDTO.setRuleConditions(conList);
 
         given(this.ruleService.createOrUpdate(ruleDTO)).willReturn(1);
-        this.mockMvc.perform(MockMvcRequestBuilders.post("/{id}", ruleDTO)
+        this.mockMvc.perform(MockMvcRequestBuilders.put("/rule/{id}", "666")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(GsonUtils.getInstance().toJson(ruleDTO))
                 )
@@ -162,13 +162,11 @@ public final class RuleControllerTest {
 
     @Test
     public void testDeleteRules() throws Exception {
-        List<String> list = new ArrayList<>();
-        list.add("111");
-        list.add("222");
-        list.add("333");
-
-        given(this.ruleService.delete(list)).willReturn(1);
-        this.mockMvc.perform(MockMvcRequestBuilders.post("/batch", list))
+        given(this.ruleService.delete(Arrays.asList("111"))).willReturn(1);
+        this.mockMvc.perform(MockMvcRequestBuilders.delete("/rule/batch")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("[\"111\"]")
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(SoulResultMessage.DELETE_SUCCESS)))
                 .andReturn();
