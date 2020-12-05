@@ -30,7 +30,7 @@ import static org.hamcrest.Matchers.comparesEqualTo;
 import static org.junit.Assert.assertThat;
 
 /**
- * Test cases for EnumService.
+ * Test cases for HttpSyncProperties.
  *
  * @author onlyonezhongjinhui
  */
@@ -41,8 +41,6 @@ public final class HttpSyncPropertiesTest {
 
     /**
      * clear context.
-     *
-     * @author onlyonezhongjinhui
      */
     @AfterEach
     public void clear() {
