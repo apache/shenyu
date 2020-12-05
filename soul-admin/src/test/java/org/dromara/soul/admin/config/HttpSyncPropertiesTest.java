@@ -18,11 +18,16 @@
 package org.dromara.soul.admin.config;
 
 import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.test.context.support.TestPropertySourceUtils;
 import java.time.Duration;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.Matchers.comparesEqualTo;
+import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for EnumService.
@@ -32,16 +37,43 @@ import static org.junit.Assert.assertTrue;
 @RunWith(MockitoJUnitRunner.class)
 public final class HttpSyncPropertiesTest {
 
-    @Test
-    public void testDefaultEnabled() {
-        HttpSyncProperties httpSyncProperties = new HttpSyncProperties();
-        assertTrue(httpSyncProperties.isEnabled());
+    private final AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+
+    /**
+     * clear context.
+     *
+     * @author onlyonezhongjinhui
+     */
+    @AfterEach
+    public void clear() {
+        context.close();
     }
 
     @Test
-    public void testDefaultRefreshInterval() {
-        HttpSyncProperties httpSyncProperties = new HttpSyncProperties();
-        assertEquals(Duration.ofMinutes(5), httpSyncProperties.getRefreshInterval());
+    public void testDefault() {
+        load();
+        HttpSyncProperties httpSyncProperties = context.getBean(HttpSyncProperties.class);
+        assertThat(httpSyncProperties.isEnabled(), comparesEqualTo(true));
+        assertThat(httpSyncProperties.getRefreshInterval(), comparesEqualTo(Duration.ofMinutes(5)));
     }
 
+    @Test
+    public void testSpecified() {
+        load("soul.sync.http.enabled=false", "soul.sync.http.refreshInterval=1m");
+        HttpSyncProperties httpSyncProperties = context.getBean(HttpSyncProperties.class);
+        assertThat(httpSyncProperties.isEnabled(), comparesEqualTo(false));
+        assertThat(httpSyncProperties.getRefreshInterval(), comparesEqualTo(Duration.ofMinutes(1)));
+    }
+
+    private void load(final String... inlinedProperties) {
+        TestPropertySourceUtils.addInlinedPropertiesToEnvironment(context, inlinedProperties);
+        context.register(HttpSyncPropertiesConfiguration.class);
+        context.refresh();
+    }
+
+    @Configuration
+    @EnableConfigurationProperties(HttpSyncProperties.class)
+    static class HttpSyncPropertiesConfiguration {
+
+    }
 }
