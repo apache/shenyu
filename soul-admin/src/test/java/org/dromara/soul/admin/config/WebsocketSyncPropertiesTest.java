@@ -17,8 +17,11 @@
 
 package org.dromara.soul.admin.config;
 
+import org.dromara.soul.admin.AbstractConfigurationTest;
 import org.junit.Test;
-
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+import static org.hamcrest.Matchers.comparesEqualTo;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -27,8 +30,7 @@ import static org.junit.Assert.assertThat;
  *
  * @author xiaoshen11
  */
-
-public final class WebsocketSyncPropertiesTest {
+public final class WebsocketSyncPropertiesTest extends AbstractConfigurationTest {
 
     @Test
     public void testWebsocketSyncPropertiesDefaultValue() {
@@ -37,9 +39,13 @@ public final class WebsocketSyncPropertiesTest {
 
     @Test
     public void testWebsocketSyncPropertiesSetValue() {
-        WebsocketSyncProperties websocketSyncProperties = new WebsocketSyncProperties();
-        websocketSyncProperties.setEnabled(false);
-        assertThat(websocketSyncProperties.isEnabled(), is(false));
+        load(WebsocketSyncPropertiesConfiguration.class, "soul.sync.websocket.enabled=false");
+        WebsocketSyncProperties websocketSyncProperties = getContext().getBean(WebsocketSyncProperties.class);
+        assertThat(websocketSyncProperties.isEnabled(), comparesEqualTo(false));
     }
 
+    @Configuration
+    @EnableConfigurationProperties(WebsocketSyncProperties.class)
+    static class WebsocketSyncPropertiesConfiguration {
+    }
 }
