@@ -57,7 +57,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author fcwalker
  */
 @RunWith(MockitoJUnitRunner.class)
-public class MetaDataControllerTest {
+public final class MetaDataControllerTest {
 
     private MockMvc mockMvc;
 
