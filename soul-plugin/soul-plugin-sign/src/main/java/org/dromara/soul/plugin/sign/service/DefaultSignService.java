@@ -72,7 +72,7 @@ public class DefaultSignService implements SignService {
             log.error("认证参数不完整,{}", soulContext);
             return Pair.of(Boolean.FALSE, Constants.SIGN_PARAMS_ERROR);
         }
-        final LocalDateTime start = DateUtils.formatLocalDateTimeFromTimestamp(Long.parseLong(soulContext.getTimestamp()));
+        final LocalDateTime start = DateUtils.formatLocalDateTimeFromTimestampBySystemTimezone(Long.parseLong(soulContext.getTimestamp()));
         final LocalDateTime now = LocalDateTime.now();
         final long between = DateUtils.acquireMinutesBetween(start, now);
         if (between > delay) {
