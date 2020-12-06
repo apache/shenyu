@@ -43,7 +43,7 @@ import static org.mockito.Mockito.when;
  * @version 2020/12/5
  **/
 @RunWith(MockitoJUnitRunner.class)
-public class SignPluginTest {
+public final class SignPluginTest {
     @Mock
     private SoulPluginChain chain;
     

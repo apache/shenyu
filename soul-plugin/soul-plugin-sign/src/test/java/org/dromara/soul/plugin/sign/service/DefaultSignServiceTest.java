@@ -50,7 +50,7 @@ import java.util.Map;
  * @version 2020/12/5
  **/
 @RunWith(MockitoJUnitRunner.class)
-public class DefaultSignServiceTest {
+public final class DefaultSignServiceTest {
     
     private SignService signService;
     
