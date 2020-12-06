@@ -102,14 +102,14 @@ public final class ZookeeperSyncDataServiceTest {
         syncDataService = new ZookeeperSyncDataService(zkClient, new PluginDataSubscriber() {
             @Override
             public void onSubscribe(final PluginData pluginData) {
-                latch.countDown();
                 onSubscribeList.add(pluginData);
+                latch.countDown();
             }
     
             @Override
             public void unSubscribe(final PluginData pluginData) {
-                latch.countDown();
                 unsubscribeList.add(pluginData);
+                latch.countDown();
             }
         }, Collections.emptyList(), Collections.emptyList());
         PluginData pluginData = PLUGIN_MAP.get(PluginEnum.DIVIDE.getName());
@@ -188,7 +188,7 @@ public final class ZookeeperSyncDataServiceTest {
         writeRule(otherRuleData);
         final String rulePath = ZkPathConstants.buildRulePath(ruleData.getPluginName(), ruleData.getSelectorId(), ruleData.getId());
         zkClient.delete(rulePath);
-        latch.await(20, TimeUnit.SECONDS);
+        latch.await(10, TimeUnit.SECONDS);
         Assert.assertEquals(2, subscribeList.size());
         Assert.assertEquals(1, unsubscribeList.size());
         Assert.assertEquals(ruleData, subscribeList.get(0));
@@ -207,14 +207,14 @@ public final class ZookeeperSyncDataServiceTest {
         AuthDataSubscriber authDataSubscriber = new AuthDataSubscriber() {
             @Override
             public void onSubscribe(final AppAuthData appAuthData) {
-                latch.countDown();
                 subscribeList.add(appAuthData);
+                latch.countDown();
             }
     
             @Override
             public void unSubscribe(final AppAuthData appAuthData) {
-                latch.countDown();
                 unsubscribeList.add(appAuthData);
+                latch.countDown();
             }
         };
         syncDataService = new ZookeeperSyncDataService(zkClient, null,
@@ -241,14 +241,14 @@ public final class ZookeeperSyncDataServiceTest {
         MetaDataSubscriber metaDataSubscriber = new MetaDataSubscriber() {
             @Override
             public void onSubscribe(final MetaData metaData) {
-                latch.countDown();
                 subscribeList.add(metaData);
+                latch.countDown();
             }
     
             @Override
             public void unSubscribe(final MetaData metaData) {
-                latch.countDown();
                 unsubscribeList.add(metaData);
+                latch.countDown();
             }
         };
         syncDataService = new ZookeeperSyncDataService(zkClient, null,
