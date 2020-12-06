@@ -34,11 +34,12 @@ public class SecretConfiguration {
     /**
      * Register secretProperties for CipherUtils in spring ioc.
      *
+     * @param key the key read from property file, default value is 2095132720951327
      * @return secretProperties
      */
     @Bean
     @ConditionalOnMissingBean(value = SecretProperties.class)
-    public SecretProperties secretProperties(@Value("${soul.aes.secret.key:2095132720951327}") String key) {
+    public SecretProperties secretProperties(@Value("${soul.aes.secret.key:2095132720951327}") final String key) {
         SecretProperties secretProperties = new SecretProperties();
         secretProperties.setKey(key);
         return secretProperties;
