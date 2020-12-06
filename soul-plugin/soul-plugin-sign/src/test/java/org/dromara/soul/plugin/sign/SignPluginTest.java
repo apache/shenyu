@@ -40,7 +40,6 @@ import static org.mockito.Mockito.when;
  * SignPlugin plugin test.
  *
  * @author Phoenix Luo
- * @version 2020/12/5
  **/
 @RunWith(MockitoJUnitRunner.class)
 public final class SignPluginTest {

@@ -32,6 +32,7 @@ import org.dromara.soul.plugin.api.context.SoulContext;
 import org.dromara.soul.plugin.api.result.SoulResultEnum;
 import org.dromara.soul.plugin.base.cache.BaseDataCache;
 import org.dromara.soul.plugin.sign.cache.SignAuthDataCache;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,7 +49,6 @@ import java.util.Map;
  * DefaultSignService Test.
  *
  * @author Phoenix Luo
- * @version 2020/12/5
  **/
 @RunWith(MockitoJUnitRunner.class)
 @Slf4j
@@ -110,7 +110,7 @@ public final class DefaultSignServiceTest {
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
         
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        assert ret.getLeft() : "sign正向测试未通过！";
+        Assert.assertEquals(ret, Pair.of(true, ""));
     }
     
     @Test
@@ -119,7 +119,7 @@ public final class DefaultSignServiceTest {
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
         
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        assert !ret.getLeft() && Constants.SIGN_PARAMS_ERROR.equals(ret.getRight()) : "空时间戳测试未通过！";
+        Assert.assertEquals(ret, Pair.of(false, Constants.SIGN_PARAMS_ERROR));
     }
     
     @Test
@@ -128,7 +128,7 @@ public final class DefaultSignServiceTest {
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
         
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        assert !ret.getLeft() && Constants.SIGN_PARAMS_ERROR.equals(ret.getRight()) : "空sign测试未通过！";
+        Assert.assertEquals(ret, Pair.of(false, Constants.SIGN_PARAMS_ERROR));
     }
     
     @Test
@@ -137,7 +137,7 @@ public final class DefaultSignServiceTest {
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
         
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        assert !ret.getLeft() && Constants.SIGN_PARAMS_ERROR.equals(ret.getRight()) : "空appKey测试未通过！";
+        Assert.assertEquals(ret, Pair.of(false, Constants.SIGN_PARAMS_ERROR));
     }
     
     @Test
@@ -148,8 +148,7 @@ public final class DefaultSignServiceTest {
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
         
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        assert !ret.getLeft() && String.format(SoulResultEnum.SING_TIME_IS_TIMEOUT.getMsg(), delay).equals(ret.getRight()) : "超时测试未通过！";
-        
+        Assert.assertEquals(ret, Pair.of(false, String.format(SoulResultEnum.SING_TIME_IS_TIMEOUT.getMsg(), delay)));
     }
     
     @Test
@@ -158,7 +157,7 @@ public final class DefaultSignServiceTest {
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
         
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        assert !ret.getLeft() && Constants.SIGN_APP_KEY_IS_NOT_EXIST.equals(ret.getRight()) : "错误AppKey测试未通过！";
+        Assert.assertEquals(ret, Pair.of(false, Constants.SIGN_APP_KEY_IS_NOT_EXIST));
     }
     
     @Test
@@ -169,7 +168,7 @@ public final class DefaultSignServiceTest {
         SignAuthDataCache.getInstance().cacheAuthData(authData);
         
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        assert !ret.getLeft() && Constants.SIGN_PATH_NOT_EXIST.equals(ret.getRight()) : "配置路径为空测试未通过";
+        Assert.assertEquals(ret, Pair.of(false, Constants.SIGN_PATH_NOT_EXIST));
     }
     
     @Test
@@ -179,7 +178,7 @@ public final class DefaultSignServiceTest {
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
         
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        assert !ret.getLeft() && Constants.SIGN_PATH_NOT_EXIST.equals(ret.getRight()) : "配置路径未配置测试未通过";
+        Assert.assertEquals(ret, Pair.of(false, Constants.SIGN_PATH_NOT_EXIST));
     }
     
     @Test
@@ -188,7 +187,7 @@ public final class DefaultSignServiceTest {
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
         
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        assert !ret.getLeft() && Constants.SIGN_VALUE_IS_ERROR.equals(ret.getRight()) : "错误Sing测试未通过";
+        Assert.assertEquals(ret, Pair.of(false, Constants.SIGN_VALUE_IS_ERROR));
     }
     
     private String buildSign(final String signKey, final String timeStamp, final String path) {

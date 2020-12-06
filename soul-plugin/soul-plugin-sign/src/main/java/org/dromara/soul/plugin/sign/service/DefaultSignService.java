@@ -119,7 +119,7 @@ public class DefaultSignService implements SignService {
                     .map(AuthParamData::getAppParam)
                     .filter(StringUtils::isNoneBlank).findFirst()
                     .ifPresent(param -> exchange.getRequest().mutate().headers(httpHeaders -> httpHeaders.set(Constants.APP_PARAM, param)).build()
-                    );
+            );
         }
         return Pair.of(Boolean.TRUE, "");
     }
