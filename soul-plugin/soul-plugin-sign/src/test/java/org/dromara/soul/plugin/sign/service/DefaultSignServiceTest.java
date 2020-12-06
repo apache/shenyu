@@ -120,7 +120,6 @@ public final class DefaultSignServiceTest {
         
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
         assert !ret.getLeft() && Constants.SIGN_PARAMS_ERROR.equals(ret.getRight()) : "空时间戳测试未通过！";
-        
     }
     
     @Test
@@ -130,7 +129,6 @@ public final class DefaultSignServiceTest {
         
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
         assert !ret.getLeft() && Constants.SIGN_PARAMS_ERROR.equals(ret.getRight()) : "空sign测试未通过！";
-        
     }
     
     @Test
@@ -140,7 +138,6 @@ public final class DefaultSignServiceTest {
         
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
         assert !ret.getLeft() && Constants.SIGN_PARAMS_ERROR.equals(ret.getRight()) : "空appKey测试未通过！";
-        
     }
     
     @Test
