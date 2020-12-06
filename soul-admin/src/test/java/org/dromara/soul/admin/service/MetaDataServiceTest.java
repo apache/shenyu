@@ -79,10 +79,10 @@ public class MetaDataServiceTest {
      */
     @Test
     public void testCreateOrUpdate() {
-        createOrUpdateCase1();
-        createOrUpdateCase2();
-        createOrUpdateCase3();
-        createOrUpdateCase4();
+        testCreateOrUpdateForParamsError();
+        testCreateOrUpdateForPathExist();
+        testCreateOrUpdateForInsert();
+        testCreateOrUpdateForUpdate();
     }
 
     /**
@@ -92,8 +92,8 @@ public class MetaDataServiceTest {
      */
     @Test
     public void testDelete() {
-        testDelete1();
-        testDelete2();
+        testDeleteForEmptyIds();
+        testDeleteForNotEmptyIds();
     }
 
     /**
@@ -112,7 +112,7 @@ public class MetaDataServiceTest {
         // Then
         assertEquals(AdminConstants.ID_NOT_EXIST, msg);
 
-        //When
+        // When
         msg = metaDataService.enabled(ids, false);
         // Then
         assertEquals(StringUtils.EMPTY, msg);
@@ -226,7 +226,7 @@ public class MetaDataServiceTest {
     /**
      * Cases where the params error.
      */
-    private void createOrUpdateCase1() {
+    private void testCreateOrUpdateForParamsError() {
         // Given
         when(metaDataDTO.getAppName())
                 .thenReturn(null)
@@ -261,7 +261,7 @@ public class MetaDataServiceTest {
      * Cases where check passed or the data path already exists.<br>
      * The stub declared in createOrUpdateCase1 will not be repeated.
      */
-    private void createOrUpdateCase2() {
+    private void testCreateOrUpdateForPathExist() {
         // Given
         MetaDataDO metaDataDO = new MetaDataDO();
         metaDataDO.setId("id1");
@@ -291,7 +291,7 @@ public class MetaDataServiceTest {
      * Cases where check passed and insert operation.<br>
      * The stub declared in createOrUpdateCase1 will not be repeated.
      */
-    private void createOrUpdateCase3() {
+    private void testCreateOrUpdateForInsert() {
         // Given
         when(metaDataDTO.getId()).thenReturn(null);
         when(metaDataMapper.findByPath(anyString())).thenReturn(null);
@@ -303,10 +303,10 @@ public class MetaDataServiceTest {
     }
 
     /**
-     * Cases where check passed and insert operation.<br>
+     * Cases where check passed and update operation.<br>
      * The stub declared in createOrUpdateCase1 and createOrUpdateCase3 will not be repeated.
      */
-    private void createOrUpdateCase4() {
+    private void testCreateOrUpdateForUpdate() {
         // Given
         MetaDataDO metaDataDO = new MetaDataDO();
         when(metaDataDTO.getId()).thenReturn("id");
@@ -326,7 +326,7 @@ public class MetaDataServiceTest {
     /**
      * Cases where get an empty id list.
      */
-    private void testDelete1() {
+    private void testDeleteForEmptyIds() {
         // Given
         List<String> ids = Lists.newArrayList();
         // When
@@ -339,7 +339,7 @@ public class MetaDataServiceTest {
     /**
      * Cases where get a not empty id list.
      */
-    private void testDelete2() {
+    private void testDeleteForNotEmptyIds() {
         // Given
         List<String> ids = Lists.newArrayList("id1", "id2", "id3");
         when(metaDataMapper.selectById("id1")).thenReturn(new MetaDataDO());
