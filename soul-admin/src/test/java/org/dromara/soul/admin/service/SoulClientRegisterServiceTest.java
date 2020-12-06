@@ -20,12 +20,23 @@ package org.dromara.soul.admin.service;
 import org.dromara.soul.admin.dto.MetaDataDTO;
 import org.dromara.soul.admin.dto.SpringCloudRegisterDTO;
 import org.dromara.soul.admin.dto.SpringMvcRegisterDTO;
+import org.dromara.soul.admin.entity.MetaDataDO;
+import org.dromara.soul.admin.entity.RuleDO;
+import org.dromara.soul.admin.entity.SelectorDO;
+import org.dromara.soul.admin.mapper.MetaDataMapper;
+import org.dromara.soul.admin.mapper.PluginMapper;
+import org.dromara.soul.admin.mapper.RuleMapper;
+import org.dromara.soul.admin.mapper.SelectorMapper;
 import org.dromara.soul.admin.service.impl.SoulClientRegisterServiceImpl;
+import org.dromara.soul.admin.service.impl.UpstreamCheckService;
 import org.dromara.soul.admin.utils.SoulResultMessage;
+import org.dromara.soul.common.dto.SelectorData;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.context.ApplicationEventPublisher;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -42,32 +53,82 @@ public final class SoulClientRegisterServiceTest {
     @Mock
     private SoulClientRegisterServiceImpl soulClientRegisterService;
 
+    @Mock
+    private MetaDataMapper metaDataMapper;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
+    @Mock
+    private SelectorService selectorService;
+
+    @Mock
+    private RuleService ruleService;
+
+    @Mock
+    private RuleMapper ruleMapper;
+
+    @Mock
+    private UpstreamCheckService upstreamCheckService;
+
+    @Mock
+    private SelectorMapper selectorMapper;
+
+    @Mock
+    private PluginMapper pluginMapper;
+
+    @Before
+    public void setUp() {
+        soulClientRegisterService = new SoulClientRegisterServiceImpl(metaDataMapper, eventPublisher, selectorService,
+                ruleService, ruleMapper, upstreamCheckService, selectorMapper, pluginMapper);
+    }
+
     @Test
     public void testRegisterSpringMvc() {
+        MetaDataDO metaDataDO = buildMetaDataDO();
+        given(metaDataMapper.findByPath(any())).willReturn(metaDataDO);
+        SelectorDO selectorDO = buildSelectorDO();
+        given(selectorService.findByName(any())).willReturn(selectorDO);
+        SelectorData selectorData = buildSelectorData();
+        given(selectorService.buildByName(any())).willReturn(selectorData);
+        given(selectorMapper.updateSelective(any())).willReturn(1);
+        RuleDO ruleDO = buildRuleDO();
+        given(ruleMapper.findByName(any())).willReturn(ruleDO);
         SpringMvcRegisterDTO dto = buildSpringMvcRegisterDTO();
-        given(soulClientRegisterService.registerSpringMvc(any())).willReturn(SoulResultMessage.SUCCESS);
         assertEquals(SoulResultMessage.SUCCESS, soulClientRegisterService.registerSpringMvc(dto));
     }
 
     @Test
     public void testRegisterSpringCloud() {
+        MetaDataDO metaDataDO = buildMetaDataDO();
+        given(metaDataMapper.findByPath(any())).willReturn(metaDataDO);
+        SelectorDO selectorDO = buildSelectorDO();
+        given(selectorService.findByName(any())).willReturn(selectorDO);
+        RuleDO ruleDO = buildRuleDO();
+        given(ruleMapper.findByName(any())).willReturn(ruleDO);
         SpringCloudRegisterDTO dto = buildCloudRegisterDTO();
-        given(soulClientRegisterService.registerSpringCloud(any())).willReturn(SoulResultMessage.SUCCESS);
         assertEquals(SoulResultMessage.SUCCESS, soulClientRegisterService.registerSpringCloud(dto));
     }
 
     @Test
     public void testRegisterDubbo() {
+        MetaDataDO metaDataDO = buildMetaDataDO();
+        given(metaDataMapper.findByPath(any())).willReturn(metaDataDO);
+        given(metaDataMapper.update(any())).willReturn(1);
+        SelectorDO selectorDO = buildSelectorDO();
+        given(selectorService.findByName(any())).willReturn(selectorDO);
+        RuleDO ruleDO = buildRuleDO();
+        given(ruleMapper.findByName(any())).willReturn(ruleDO);
         MetaDataDTO dto = buildMetaDataD();
-        given(soulClientRegisterService.registerDubbo(any())).willReturn(SoulResultMessage.SUCCESS);
         assertEquals(SoulResultMessage.SUCCESS, soulClientRegisterService.registerDubbo(dto));
     }
 
     @Test
     public void testRegisterSofa() {
         MetaDataDTO dto = buildMetaDataD();
-        given(soulClientRegisterService.registerSofa(any())).willReturn(SoulResultMessage.SUCCESS);
-        assertEquals(SoulResultMessage.SUCCESS, soulClientRegisterService.registerSofa(dto));
+        MetaDataDO metaDataDO = buildMetaDataDO();
+        given(metaDataMapper.findByPath(any())).willReturn(metaDataDO);
+        assertEquals("you path already exist!", soulClientRegisterService.registerSofa(dto));
     }
 
     private SpringMvcRegisterDTO buildSpringMvcRegisterDTO() {
@@ -81,8 +142,54 @@ public final class SoulClientRegisterServiceTest {
         springMvcRegisterDTO.setPort(1234);
         springMvcRegisterDTO.setRuleName("ruleName1");
         springMvcRegisterDTO.setEnabled(true);
-        springMvcRegisterDTO.setRegisterMetaData(false);
+        springMvcRegisterDTO.setRegisterMetaData(true);
         return springMvcRegisterDTO;
+    }
+
+    private MetaDataDO buildMetaDataDO() {
+        MetaDataDO metaDataDO = new MetaDataDO();
+        metaDataDO.setAppName("appNameMetaData");
+        metaDataDO.setPath("pathMetaData");
+        metaDataDO.setPathDesc("pathDescMetaData");
+        metaDataDO.setRpcType("rpcTypeMetaData");
+        metaDataDO.setServiceName("serviceNameMetaData");
+        metaDataDO.setMethodName("methodNameMetaData");
+        metaDataDO.setParameterTypes("parameterTypesMetaData");
+        metaDataDO.setRpcExt("rpcExtMetaData");
+        metaDataDO.setEnabled(true);
+        return metaDataDO;
+    }
+
+    private SelectorDO buildSelectorDO() {
+        SelectorDO selectorDO = new SelectorDO();
+        return selectorDO;
+    }
+
+    private SelectorData buildSelectorData() {
+        SelectorData selectorData = new SelectorData();
+        selectorData.setId("5");
+        selectorData.setPluginId("pluginId");
+        selectorData.setName("name");
+        selectorData.setMatchMode(0);
+        selectorData.setType(1);
+        selectorData.setSort(1);
+        selectorData.setEnabled(true);
+        selectorData.setLoged(true);
+        selectorData.setContinued(false);
+        selectorData.setHandle("handle");
+        return selectorData;
+    }
+
+    private RuleDO buildRuleDO() {
+        RuleDO ruleDO = new RuleDO();
+        ruleDO.setId("5");
+        ruleDO.setSelectorId("selectorId");
+        ruleDO.setMatchMode(0);
+        ruleDO.setName("name");
+        ruleDO.setLoged(true);
+        ruleDO.setSort(1);
+        ruleDO.setHandle("handle");
+        return ruleDO;
     }
 
     private SpringCloudRegisterDTO buildCloudRegisterDTO() {
