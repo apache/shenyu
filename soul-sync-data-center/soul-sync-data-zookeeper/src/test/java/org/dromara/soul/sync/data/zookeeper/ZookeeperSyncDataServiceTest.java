@@ -72,12 +72,12 @@ public final class ZookeeperSyncDataServiceTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         PLUGIN_MAP.put(PluginEnum.DIVIDE.getName(), new PluginData("6", PluginEnum.DIVIDE.getName(), "", 0, Boolean.TRUE));
-        zkServer = new TestingServer(21810, true);
+        zkServer = new TestingServer(31810, true);
     }
     
     @Before
     public void setUp() throws Exception {
-        zkClient = new ZkClient("127.0.0.1:21810");
+        zkClient = new ZkClient("127.0.0.1:31810");
     }
     
     @After
