@@ -95,6 +95,7 @@ public final class ZookeeperSyncDataServiceTest {
         final CountDownLatch latch = new CountDownLatch(2);
         final List<PluginData> actuals = new ArrayList<>();
         syncDataService = new ZookeeperSyncDataService(zkClient, new PluginDataSubscriber() {
+            
             @Override
             public void onSubscribe(final PluginData pluginData) {
                 latch.countDown();
@@ -121,6 +122,7 @@ public final class ZookeeperSyncDataServiceTest {
         final CountDownLatch latch = new CountDownLatch(2);
         final List<SelectorData> actuals = new ArrayList<>();
         syncDataService = new ZookeeperSyncDataService(zkClient, new PluginDataSubscriber() {
+            
             @Override
             public void onSelectorSubscribe(final SelectorData selectorData) {
                 latch.countDown();
@@ -144,9 +146,16 @@ public final class ZookeeperSyncDataServiceTest {
     @SneakyThrows
     @Test
     public void testWatcherRule() {
-        final CountDownLatch latch = new CountDownLatch(1);
+        final CountDownLatch latch = new CountDownLatch(2);
         final List<RuleData> actuals = new ArrayList<>();
         syncDataService = new ZookeeperSyncDataService(zkClient, new PluginDataSubscriber() {
+            
+            @Override
+            public void onRuleSubscribe(final RuleData ruleData) {
+                latch.countDown();
+                actuals.add(ruleData);
+            }
+    
             @Override
             public void unRuleSubscribe(final RuleData ruleData) {
                 latch.countDown();
@@ -157,7 +166,7 @@ public final class ZookeeperSyncDataServiceTest {
         final String rulePath = ZkPathConstants.buildRulePath(ruleData.getPluginName(), ruleData.getSelectorId(), ruleData.getId());
         zkClient.delete(rulePath);
         latch.await(5, TimeUnit.SECONDS);
-        Assert.assertEquals(1, actuals.size());
+        Assert.assertNotNull(actuals);
         Assert.assertEquals(ruleData.getId(), actuals.get(0).getId());
     }
     
@@ -167,6 +176,7 @@ public final class ZookeeperSyncDataServiceTest {
         final CountDownLatch latch = new CountDownLatch(2);
         final List<AppAuthData> actuals = new ArrayList<>();
         AuthDataSubscriber authDataSubscriber = new AuthDataSubscriber() {
+            
             @Override
             public void onSubscribe(final AppAuthData appAuthData) {
                 latch.countDown();
@@ -195,6 +205,7 @@ public final class ZookeeperSyncDataServiceTest {
         final CountDownLatch latch = new CountDownLatch(2);
         final List<MetaData> actuals = new ArrayList<>();
         MetaDataSubscriber metaDataSubscriber = new MetaDataSubscriber() {
+            
             @Override
             public void onSubscribe(final MetaData metaData) {
                 latch.countDown();
