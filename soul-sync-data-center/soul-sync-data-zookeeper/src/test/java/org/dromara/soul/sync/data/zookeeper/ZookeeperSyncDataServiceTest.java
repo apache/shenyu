@@ -136,14 +136,14 @@ public final class ZookeeperSyncDataServiceTest {
         syncDataService = new ZookeeperSyncDataService(zkClient, new PluginDataSubscriber() {
             @Override
             public void onSelectorSubscribe(final SelectorData selectorData) {
-                latch.countDown();
                 subscribeList.add(selectorData);
+                latch.countDown();
             }
     
             @Override
             public void unSelectorSubscribe(final SelectorData selectorData) {
-                latch.countDown();
                 unsubscribeList.add(selectorData);
+                latch.countDown();
             }
         }, Collections.emptyList(), Collections.emptyList());
         //add new selector data on zk
@@ -173,14 +173,14 @@ public final class ZookeeperSyncDataServiceTest {
         syncDataService = new ZookeeperSyncDataService(zkClient, new PluginDataSubscriber() {
             @Override
             public void onRuleSubscribe(final RuleData ruleData) {
-                latch.countDown();
                 subscribeList.add(ruleData);
+                latch.countDown();
             }
     
             @Override
             public void unRuleSubscribe(final RuleData ruleData) {
-                latch.countDown();
                 unsubscribeList.add(ruleData);
+                latch.countDown();
             }
         }, Collections.emptyList(), Collections.emptyList());
         //add new rule data on zk
