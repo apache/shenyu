@@ -22,15 +22,16 @@ import com.alipay.sofa.runtime.service.component.Service;
 import com.alipay.sofa.runtime.spring.factory.ServiceFactoryBean;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.client.common.utils.OkHttpTools;
+import org.dromara.soul.client.common.utils.RegisterUtils;
 import org.dromara.soul.client.sofa.common.annotation.SoulSofaClient;
 import org.dromara.soul.client.sofa.common.config.SofaConfig;
 import org.dromara.soul.client.sofa.common.dto.MetaDataDTO;
+import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Objects;
@@ -95,7 +96,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
         for (Method method : methods) {
             SoulSofaClient soulSofaClient = method.getAnnotation(SoulSofaClient.class);
             if (Objects.nonNull(soulSofaClient)) {
-                post(buildJsonParams(serviceBean, soulSofaClient, method));
+                RegisterUtils.doRegister(buildJsonParams(serviceBean, soulSofaClient, method), url, RpcTypeEnum.SOFA);
             }
         }
     }
@@ -135,18 +136,5 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
                 .build();
         return OkHttpTools.getInstance().getGson().toJson(build);
 
-    }
-
-    private void post(final String json) {
-        try {
-            String result = OkHttpTools.getInstance().post(url, json);
-            if (Objects.equals(result, "success")) {
-                log.info("sofa client register success :{} ", json);
-            } else {
-                log.error("sofa client register error :{} ", json);
-            }
-        } catch (IOException e) {
-            log.error("cannot register soul admin param :{}", url + ":" + json);
-        }
     }
 }
