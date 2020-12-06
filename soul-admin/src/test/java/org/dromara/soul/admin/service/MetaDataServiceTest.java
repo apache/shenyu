@@ -72,7 +72,6 @@ public class MetaDataServiceTest {
     @Mock
     private MetaDataQuery metaDataQuery;
 
-
     /**
      * Test case for createOrUpdate.<br>
      * Note that the following methods have dependencies before and after.
@@ -160,7 +159,6 @@ public class MetaDataServiceTest {
         // Then
         Assert.assertEquals(appName, dataVo.getAppName());
     }
-
 
     /**
      * Test case for listByPage.
