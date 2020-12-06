@@ -51,6 +51,9 @@ public class PluginMapperTest extends AbstractSpringIntegrationTest {
 
         final PluginDO resultPluginDO = pluginMapper.selectById(pluginDO.getId());
         assertThat(pluginDO, equalTo(resultPluginDO));
+
+        final int deleteResult = pluginMapper.delete(pluginDO.getId());
+        assertThat(deleteResult, equalTo(1));
     }
 
     @Test
@@ -62,6 +65,9 @@ public class PluginMapperTest extends AbstractSpringIntegrationTest {
 
         final PluginDO resultPluginDO = pluginMapper.selectByName(pluginDO.getName());
         assertThat(pluginDO, equalTo(resultPluginDO));
+
+        final int deleteResult = pluginMapper.delete(pluginDO.getId());
+        assertThat(deleteResult, equalTo(1));
     }
 
     @Test
@@ -76,6 +82,9 @@ public class PluginMapperTest extends AbstractSpringIntegrationTest {
         final List<PluginDO> pluginDOList = pluginMapper.selectByQuery(pluginQuery);
         assertThat(pluginDOList.size(), equalTo(1));
         assertThat(pluginDO, equalTo(pluginDOList.get(0)));
+
+        final int deleteResult = pluginMapper.delete(pluginDO.getId());
+        assertThat(deleteResult, equalTo(1));
     }
 
     @Test
@@ -88,6 +97,9 @@ public class PluginMapperTest extends AbstractSpringIntegrationTest {
         final List<PluginDO> pluginDOList = pluginMapper.selectAll();
         assertThat(pluginDOList.size(), equalTo(1));
         assertThat(pluginDO, equalTo(pluginDOList.get(0)));
+
+        final int deleteResult = pluginMapper.delete(pluginDO.getId());
+        assertThat(deleteResult, equalTo(1));
     }
 
     @Test
@@ -101,6 +113,9 @@ public class PluginMapperTest extends AbstractSpringIntegrationTest {
         pluginQuery.setName(pluginDO.getName());
         final Integer countResult = pluginMapper.countByQuery(pluginQuery);
         assertThat(countResult, equalTo(1));
+
+        final int deleteResult = pluginMapper.delete(pluginDO.getId());
+        assertThat(deleteResult, equalTo(1));
     }
 
     @Test
@@ -109,6 +124,9 @@ public class PluginMapperTest extends AbstractSpringIntegrationTest {
         final PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         final int insertResult = pluginMapper.insert(pluginDO);
         assertThat(insertResult, equalTo(1));
+
+        final int deleteResult = pluginMapper.delete(pluginDO.getId());
+        assertThat(deleteResult, equalTo(1));
     }
 
     @Test
@@ -117,6 +135,9 @@ public class PluginMapperTest extends AbstractSpringIntegrationTest {
         final PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         final int insertResult = pluginMapper.insertSelective(pluginDO);
         assertThat(insertResult, equalTo(1));
+
+        final int deleteResult = pluginMapper.delete(pluginDO.getId());
+        assertThat(deleteResult, equalTo(1));
     }
 
     @Test
@@ -132,6 +153,9 @@ public class PluginMapperTest extends AbstractSpringIntegrationTest {
 
         final PluginDO resultPluginDO = pluginMapper.selectById(pluginDO.getId());
         assertEquals("test-update", resultPluginDO.getName());
+
+        final int deleteResult = pluginMapper.delete(pluginDO.getId());
+        assertThat(deleteResult, equalTo(1));
     }
 
     @Test
@@ -148,6 +172,9 @@ public class PluginMapperTest extends AbstractSpringIntegrationTest {
 
         final PluginDO resultPluginDO = pluginMapper.selectById(pluginDO.getId());
         assertEquals(hasEnable, resultPluginDO.getEnabled());
+
+        final int deleteResult = pluginMapper.delete(pluginDO.getId());
+        assertThat(deleteResult, equalTo(1));
     }
 
     @Test
@@ -163,6 +190,9 @@ public class PluginMapperTest extends AbstractSpringIntegrationTest {
 
         final PluginDO resultPluginDO = pluginMapper.selectById(pluginDO.getId());
         assertEquals("test-update", resultPluginDO.getName());
+
+        final int deleteResult = pluginMapper.delete(pluginDO.getId());
+        assertThat(deleteResult, equalTo(1));
     }
 
     @Test
