@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -64,7 +65,7 @@ public class DefaultSignService implements SignService {
         }
         return Pair.of(Boolean.TRUE, "");
     }
-    
+
     private Pair<Boolean, String> verify(final SoulContext soulContext, final ServerWebExchange exchange) {
         if (StringUtils.isBlank(soulContext.getAppKey())
                 || StringUtils.isBlank(soulContext.getSign())
@@ -73,9 +74,8 @@ public class DefaultSignService implements SignService {
             return Pair.of(Boolean.FALSE, Constants.SIGN_PARAMS_ERROR);
         }
         final LocalDateTime start = DateUtils.formatLocalDateTimeFromTimestamp(Long.parseLong(soulContext.getTimestamp()));
-        final LocalDateTime now = LocalDateTime.now();
+        final LocalDateTime now = LocalDateTime.now(ZoneOffset.ofHours(8));
         final long between = DateUtils.acquireMinutesBetween(start, now);
-        log.info("between:{} ,start:{}, now:{}, delay:{}", between, start.toString(), now.toString(), delay);
         if (between > delay) {
             return Pair.of(Boolean.FALSE, String.format(SoulResultEnum.SING_TIME_IS_TIMEOUT.getMsg(), delay));
         }

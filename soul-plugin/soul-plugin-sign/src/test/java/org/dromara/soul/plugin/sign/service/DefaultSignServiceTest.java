@@ -148,7 +148,6 @@ public final class DefaultSignServiceTest {
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
         
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        log.info("delay:{}, retLeft:{}, retRight:{}", delay, ret.getLeft(), ret.getRight());
         assert !ret.getLeft() && String.format(SoulResultEnum.SING_TIME_IS_TIMEOUT.getMsg(), delay).equals(ret.getRight()) : "超时测试未通过！";
         
     }
