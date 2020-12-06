@@ -18,10 +18,10 @@
 package org.dromara.soul.client.common.utils;
 
 import lombok.extern.slf4j.Slf4j;
+import org.dromara.soul.common.constant.AdminConstants;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 
 import java.io.IOException;
-import java.util.Objects;
 
 /**
  * RegisterUtils.
@@ -44,7 +44,7 @@ public final class RegisterUtils {
     public static void doRegister(final String json, final String url, final RpcTypeEnum rpcTypeEnum) {
         try {
             String result = OkHttpTools.getInstance().post(url, json);
-            if (Objects.equals(result, "success")) {
+            if (AdminConstants.SUCCESS.equals(result)) {
                 log.info("{} client register success: {} ", rpcTypeEnum.getName(), json);
             } else {
                 log.error("{} client register error: {} ", rpcTypeEnum.getName(), json);
