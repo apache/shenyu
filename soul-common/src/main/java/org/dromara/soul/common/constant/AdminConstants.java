@@ -25,6 +25,11 @@ package org.dromara.soul.common.constant;
 public final class AdminConstants {
 
     /**
+     * The constant SUCCESS, equals to SoulResultMessage.SUCCESS.
+     */
+    public static final String SUCCESS = "success";
+
+    /**
      * The constant PLUGIN_NAME_IS_EXIST.
      */
     public static final String PLUGIN_NAME_IS_EXIST = "插件名称已经存在，不能重复添加!";
