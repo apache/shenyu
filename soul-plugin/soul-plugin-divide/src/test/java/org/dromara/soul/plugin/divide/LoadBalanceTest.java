@@ -33,7 +33,7 @@ import java.util.stream.Stream;
  *
  * @author wanglaomo
  */
-public class LoadBalanceTest {
+public final class LoadBalanceTest {
 
     /**
      * Round robin load balance test.

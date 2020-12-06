@@ -67,7 +67,7 @@ import java.util.concurrent.TimeUnit;
  * The type Zookeeper client test.
  */
 @SuppressWarnings("all")
-public class ZookeeperClientTest {
+public final class ZookeeperClientTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperClientTest.class);
 
