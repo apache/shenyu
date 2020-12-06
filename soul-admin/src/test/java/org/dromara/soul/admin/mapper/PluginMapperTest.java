@@ -23,11 +23,8 @@ import org.dromara.soul.admin.entity.PluginDO;
 import org.dromara.soul.admin.query.PluginQuery;
 import org.h2.engine.Role;
 import org.junit.Test;
-
 import javax.annotation.Resource;
-
 import java.util.List;
-
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -37,7 +34,7 @@ import static org.junit.Assert.assertThat;
  *
  * @author HJ43
  */
-public class PluginMapperTest extends AbstractSpringIntegrationTest {
+public final class PluginMapperTest extends AbstractSpringIntegrationTest {
 
     @Resource
     private PluginMapper pluginMapper;
