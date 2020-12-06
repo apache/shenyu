@@ -23,12 +23,10 @@ import org.dromara.soul.admin.query.SelectorConditionQuery;
 import org.dromara.soul.common.utils.UUIDUtils;
 import org.junit.Before;
 import org.junit.Test;
-
 import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
-
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -38,7 +36,7 @@ import static org.junit.Assert.assertThat;
  *
  * @author bigwillc
  */
-public class SelectorConditionMapperTest extends AbstractSpringIntegrationTest {
+public final class SelectorConditionMapperTest extends AbstractSpringIntegrationTest {
     @Resource
     private SelectorConditionMapper selectorConditionMapper;
 
