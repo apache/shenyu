@@ -29,7 +29,10 @@ import java.util.Objects;
  * @author severez
  */
 @Slf4j
-public class RegisterUtils {
+public final class RegisterUtils {
+
+    private RegisterUtils() {
+    }
 
     /**
      * call register api.
