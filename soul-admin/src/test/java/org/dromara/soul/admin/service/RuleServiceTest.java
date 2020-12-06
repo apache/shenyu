@@ -17,6 +17,7 @@
 
 package org.dromara.soul.admin.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.RuleConditionDTO;
 import org.dromara.soul.admin.dto.RuleDTO;
 import org.dromara.soul.admin.entity.PluginDO;
@@ -46,7 +47,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import static org.hamcrest.Matchers.greaterThan;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
@@ -194,18 +197,18 @@ public final class RuleServiceTest {
 
     private RuleDO buildRuleDO(final String id) {
         RuleDTO ruleDTO = new RuleDTO();
-        if (!"".equals(id)) {
+        if (StringUtils.isNotBlank(id)) {
             ruleDTO.setId(id);
         }
         ruleDTO.setSelectorId("456");
         ruleDTO.setMatchMode(0);
-        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         RuleConditionDTO ruleConditionDTO1 = new RuleConditionDTO();
         ruleConditionDTO1.setId("111");
         RuleConditionDTO ruleConditionDTO2 = new RuleConditionDTO();
         ruleConditionDTO2.setId("222");
         ruleDTO.setRuleConditions(Arrays.asList(ruleConditionDTO1, ruleConditionDTO2));
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
+        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         ruleDO.setDateCreated(now);
         ruleDO.setDateUpdated(now);
         return ruleDO;
@@ -226,7 +229,7 @@ public final class RuleServiceTest {
         return ruleDTO;
     }
 
-    private RuleVO buildRuleVO(String id) {
+    private RuleVO buildRuleVO(final String id) {
         RuleVO ruleVO = new RuleVO();
         ruleVO.setId(id);
         return ruleVO;
