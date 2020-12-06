@@ -32,7 +32,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 /**
- * Test cases for PluginHandleMapperTest.
+ * Test cases for PluginHandleMapper.
  *
  * @author Nemointellego
  */
