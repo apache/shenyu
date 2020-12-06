@@ -19,6 +19,7 @@ package org.dromara.soul.plugin.sign.service;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.AppAuthData;
@@ -50,6 +51,7 @@ import java.util.Map;
  * @version 2020/12/5
  **/
 @RunWith(MockitoJUnitRunner.class)
+@Slf4j
 public final class DefaultSignServiceTest {
     
     private SignService signService;
@@ -149,6 +151,7 @@ public final class DefaultSignServiceTest {
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
         
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
+        log.info("delay:{}, retLeft:{}, retRight:{}", delay, ret.getLeft(), ret.getRight());
         assert !ret.getLeft() && String.format(SoulResultEnum.SING_TIME_IS_TIMEOUT.getMsg(), delay).equals(ret.getRight()) : "超时测试未通过！";
         
     }
