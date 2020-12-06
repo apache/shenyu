@@ -32,9 +32,9 @@ import org.springframework.context.annotation.Configuration;
 public class SecretConfiguration {
     
     /**
-     * Register key for CipherUtils in spring ioc.
+     * Register secretProperties for CipherUtils in spring ioc.
      *
-     * @return key
+     * @return secretProperties
      */
     @Bean
     @ConditionalOnMissingBean(value = SecretProperties.class)
