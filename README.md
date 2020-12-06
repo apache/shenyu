@@ -65,11 +65,11 @@
   
 # Modules
 
- * soul-admin : Plug-in and other information configuration management background
+ * soul-admin : Plugins and other information configuration management background
  
  * soul-bootstrap : With the startup project, users can refer to
  
- * soul-client : User fast access with springMvc,dubbo,springCloud
+ * soul-client : User fast access with Spring MVC, Dubbo, Spring Cloud.
   
  * soul-common : Framework common class
  
@@ -87,13 +87,13 @@
  
  * soul-test : the rpc test project
  
- * soul-web : Core processing packages include plug-ins, request routing and forwarding, and so on
+ * soul-web : Core processing packages including plugins, request routing and forwarding, and so on
  
 --------------------------------------------------------------------------------   
  
 # Features
 
-   * It provides plugins such as current limiting, fusing, forwarding, routing monitoring and so on.
+   * Soul provides plugins such as current limiting, fusing, forwarding, routing monitoring and so on.
    
    * Seamless docking with HTTP,Restful,websocket,dubbo and springcloud.
    
@@ -109,13 +109,13 @@
  
 # Plugin
 
- Whenever a request comes in ,Soul Execute all open plug-ins through the chain of responsibility.
+ Whenever a request comes in, Soul executes all open plugins through the chain of responsibility.
  
- Plugins are the heart of soul And plug-ins are extensible and hot-pluggable.
+ As the heart of soul, plugins are extensible and hot-pluggable.
  
- Different plug-ins do different things 
+ Different plugins do different things.
  
- Of course, users can also customize plug-ins to meet their own needs.
+ Of course, users can also customize plugins to meet their own needs.
  
  If you want to customize, see [plugin-extend](https://dromara.org/website/zh-cn/docs/soul/extend.html)
  
@@ -135,11 +135,11 @@
    
 # Data Caching & Data Sync
  
-  All data is cached ConcurrentHashMap in the JVM So it's very fast.
+  All data have been cached using ConcurrentHashMap in the JVM, so it's very fast.
   
   When the user is managing changes in the background,
   
-  Soul dynamically updates the cache by listening to the zookeeper node, websocket push,http longPull.
+  Soul dynamically updates the cache by listening to the zookeeper node, websocket push, http longPull.
   
   ![](https://yu199195.github.io/images/soul/soul-config-processor.png)
   
@@ -157,7 +157,7 @@
    
 # About
   
-   Soul Has been used in our production environment,Its performance and flexibility allow us to use up very cool.
+   Soul has been used in our production environment,its performance and flexibility allow us to use up very cool.
    
    In double 11, we deployed 6 clusters, which supported a large volume of our business.
    
