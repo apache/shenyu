@@ -71,7 +71,7 @@
 
     <insert id="insert" parameterType="org.dromara.soul.admin.entity.DashboardUserDO">
         insert into dashboard_user (id, date_created, date_updated,
-        user_name, password, enabled)
+        user_name, password, role, enabled)
         values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
         #{userName,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{role,jdbcType=INTEGER},
         #{enabled,jdbcType=TINYINT})

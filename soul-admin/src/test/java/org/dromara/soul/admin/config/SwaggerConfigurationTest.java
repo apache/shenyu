@@ -17,26 +17,33 @@
 
 package org.dromara.soul.admin.config;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
- * Aes Secret configuration.
+ * Test cases for SwaggerConfiguration.
  *
- * @author nuo-promise
+ * @author linkuan
  */
-@Configuration
-public class SecretConfiguration {
+@RunWith(MockitoJUnitRunner.class)
+public final class SwaggerConfigurationTest {
 
-    /**
-     *  Register cipherUtils in spring ioc.
-     *
-     * @return CipherUtils
-     */
-    @Bean
-    @ConditionalOnProperty(prefix = "soul.aes.secret", value = "key", havingValue = "2095132720951327")
-    public SecretProperties secretProperties() {
-        return new SecretProperties();
+    @InjectMocks
+    private SwaggerConfiguration swaggerConfiguration;
+
+    @Test
+    public void testCreateRestApi() {
+        Assert.assertNotNull(swaggerConfiguration.createRestApi());
     }
+
+    @Test
+    public void testSwaggerEnable() {
+        ReflectionTestUtils.setField(swaggerConfiguration, "enable", true);
+        Assert.assertNotNull(swaggerConfiguration.createRestApi());
+    }
+
 }
