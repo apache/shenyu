@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.dromara.soul.admin.controller;
 
 import org.apache.commons.lang3.StringUtils;
@@ -23,7 +40,11 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Arrays;
 
 import static org.hamcrest.core.Is.is;
 import static org.mockito.BDDMockito.given;
@@ -50,10 +71,6 @@ public class MetaDataControllerTest {
             "1", DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()),
             true);
 
-    private final PageParameter pageParameter = new PageParameter();
-
-    private final CommonPager commonPager = new CommonPager(pageParameter, Arrays.asList(metaDataVO));
-
     @Before
     public void setUp() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(metaDataController).build();
@@ -61,8 +78,18 @@ public class MetaDataControllerTest {
 
     @Test
     public void testQueryList() throws Exception {
-        given(this.metaDataService.listByPage(new MetaDataQuery("appName", pageParameter))).willReturn(commonPager);
-        this.mockMvc.perform(MockMvcRequestBuilders.get("/meta-data/queryList").param("appName", "appName").param("currentPage", pageParameter.getCurrentPage() + "").param("pageSize", pageParameter.getPageSize() + ""))
+        final PageParameter pageParameter = new PageParameter();
+        List<MetaDataVO> metaDataVOS = new ArrayList<>();
+        metaDataVOS.add(metaDataVO);
+        final CommonPager<MetaDataVO> commonPager = new CommonPager<>();
+        commonPager.setPage(pageParameter);
+        commonPager.setDataList(metaDataVOS);
+        final MetaDataQuery metaDataQuery = new MetaDataQuery("appName", pageParameter);
+        given(this.metaDataService.listByPage(metaDataQuery)).willReturn(commonPager);
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/meta-data/queryList")
+                .param("appName", "appName")
+                .param("currentPage", pageParameter.getCurrentPage() + "")
+                .param("pageSize", pageParameter.getPageSize() + ""))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(SoulResultMessage.QUERY_SUCCESS)))
                 .andExpect(jsonPath("$.data.dataList[0].appName", is(metaDataVO.getAppName())))
@@ -71,7 +98,9 @@ public class MetaDataControllerTest {
 
     @Test
     public void testFindAll() throws Exception {
-        given(this.metaDataService.findAll()).willReturn(Arrays.asList(metaDataVO));
+        List<MetaDataVO> metaDataVOS = new ArrayList<>();
+        metaDataVOS.add(metaDataVO);
+        given(this.metaDataService.findAll()).willReturn(metaDataVOS);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/meta-data/findAll"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(SoulResultMessage.QUERY_SUCCESS)))
@@ -83,7 +112,9 @@ public class MetaDataControllerTest {
     public void testFindAllGroup() throws Exception {
         final Map<String, List<MetaDataVO>> result = new HashMap<>();
         String groupName = "groupName-1";
-        result.put(groupName, Arrays.asList(metaDataVO));
+        List<MetaDataVO> metaDataVOS = new ArrayList<>();
+        metaDataVOS.add(metaDataVO);
+        result.put(groupName, metaDataVOS);
         given(this.metaDataService.findAllGroup()).willReturn(result);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/meta-data/findAllGroup"))
                 .andExpect(status().isOk())
@@ -136,7 +167,7 @@ public class MetaDataControllerTest {
     @Test
     public void testBatchEnabled() throws Exception {
         final BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
-        batchCommonDTO.setIds(Arrays.asList("1","2"));
+        batchCommonDTO.setIds(Arrays.asList("1", "2"));
         batchCommonDTO.setEnabled(true);
         given(this.metaDataService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled())).willReturn(StringUtils.EMPTY);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/meta-data/batchEnabled")
