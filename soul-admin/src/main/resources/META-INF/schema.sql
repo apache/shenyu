@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS `selector` (
 CREATE TABLE IF NOT EXISTS `selector_condition` (
   `id` varchar(128) NOT NULL COMMENT 'primary key id',
   `selector_id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'selector id',
-  `param_type` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'parameter type (to query URI, etc.)',
+  `param_type` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'parameter type (to query uri, etc.)',
   `operator` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'matching character (=> <like matching)',
   `param_name` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'parameter name',
   `param_value` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'parameter value',
