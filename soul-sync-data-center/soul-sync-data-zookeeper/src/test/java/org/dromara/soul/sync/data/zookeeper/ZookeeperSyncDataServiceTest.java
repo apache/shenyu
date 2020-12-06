@@ -188,7 +188,7 @@ public final class ZookeeperSyncDataServiceTest {
         writeRule(otherRuleData);
         final String rulePath = ZkPathConstants.buildRulePath(ruleData.getPluginName(), ruleData.getSelectorId(), ruleData.getId());
         zkClient.delete(rulePath);
-        latch.await(10, TimeUnit.SECONDS);
+        latch.await(20, TimeUnit.SECONDS);
         Assert.assertEquals(2, subscribeList.size());
         Assert.assertEquals(1, unsubscribeList.size());
         Assert.assertEquals(ruleData, subscribeList.get(0));
