@@ -19,6 +19,9 @@ package org.dromara.soul.admin.controller;
 
 import org.dromara.soul.admin.dto.RuleConditionDTO;
 import org.dromara.soul.admin.dto.RuleDTO;
+import org.dromara.soul.admin.page.CommonPager;
+import org.dromara.soul.admin.page.PageParameter;
+import org.dromara.soul.admin.query.RuleQuery;
 import org.dromara.soul.admin.service.RuleService;
 import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.admin.vo.RuleConditionVO;
@@ -39,6 +42,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.core.Is.is;
@@ -66,18 +70,31 @@ public final class RuleControllerTest {
             "888", "666", "uri", "Uniform", "match", "match", "/", "/http/test/**", DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now())
     );
 
-    private final RuleConditionVO rCondition2 = new RuleConditionVO(
-            "999", "555", "uri", "Uniform", "match", "match", "/", "/http/test/**", DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now())
-    );
+    private final List<RuleConditionVO> rclist = new ArrayList<>(Arrays.asList(rCondition1));
 
-    private final List<RuleConditionVO> rclist = new ArrayList<>(Arrays.asList(rCondition1, rCondition2));
-
-    private final RuleVO ruleVO = new RuleVO("666", "1334784248336519168", 0, "zero mode", "/http/test/**", true, true, 1, "{\"loadBalance\":\"random\",\"retry\":0,\"timeout\":3000}",
+    private final RuleVO ruleVO = new RuleVO("666", "168", 0, "zero mode", "/http/test/**", true, true, 1, "{\"loadBalance\":\"random\",\"retry\":0,\"timeout\":3000}",
             rclist, DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()));
+
+    private final PageParameter pageParameter = new PageParameter();
+
+    private final RuleQuery tRuleQuery = new RuleQuery("168", pageParameter);
+
+    private final CommonPager<RuleVO> commonPager = new CommonPager<>(new PageParameter(), Collections.singletonList(ruleVO));
 
     @Before
     public void setUp() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(ruleController).build();
+    }
+
+    @Test
+    public void testQueryRules() throws Exception {
+        given(this.ruleService.listByPage(tRuleQuery)).willReturn(commonPager);
+        String urlTemplate = "/rule?selectorId={selectorId}&currentPage={currentPage}&pageSize={pageSize}";
+        this.mockMvc.perform(MockMvcRequestBuilders.get(urlTemplate, "168", 1, 10))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(SoulResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.data.dataList[0].id", is(ruleVO.getId())))
+                .andReturn();
     }
 
     @Test
@@ -105,7 +122,7 @@ public final class RuleControllerTest {
 
         RuleDTO ruleDTO = new RuleDTO();
         ruleDTO.setId("666");
-        ruleDTO.setSelectorId("1334784248336519168");
+        ruleDTO.setSelectorId("168");
         ruleDTO.setMatchMode(0);
         ruleDTO.setName("/http/order/save");
         ruleDTO.setEnabled(true);
@@ -140,7 +157,7 @@ public final class RuleControllerTest {
 
         RuleDTO ruleDTO = new RuleDTO();
         ruleDTO.setId("666");
-        ruleDTO.setSelectorId("1334784248336519168");
+        ruleDTO.setSelectorId("168");
         ruleDTO.setMatchMode(0);
         ruleDTO.setName("/http/order/update");
         ruleDTO.setEnabled(true);
