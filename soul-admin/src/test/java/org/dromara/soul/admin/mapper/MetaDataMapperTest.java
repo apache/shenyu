@@ -41,7 +41,7 @@ import static org.junit.Assert.assertTrue;
  *
  * @author pismery
  */
-class MetaDataMapperTest extends AbstractSpringIntegrationTest {
+public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
 
     @Resource
     private MetaDataMapper metaDataMapper;
