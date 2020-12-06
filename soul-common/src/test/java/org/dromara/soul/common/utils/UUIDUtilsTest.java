@@ -15,40 +15,29 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.dto;
+package org.dromara.soul.common.utils;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
-import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Assert;
+import org.junit.Test;
 
-import java.io.Serializable;
+/**
+ * Test cases for UUIDUtilsTest.
+ *
+ * @author BetterWp
+ */
+public final class UUIDUtilsTest {
 
-@Data
-@ToString
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class MetaData implements Serializable {
+    @Test
+    public void testGetInstance() {
+        UUIDUtils uuidUtils = UUIDUtils.getInstance();
+        Assert.assertNotNull(uuidUtils);
+    }
 
-    private String id;
-
-    private String appName;
-
-    private String contextPath;
-
-    private String path;
-
-    private String rpcType;
-
-    private String serviceName;
-
-    private String methodName;
-
-    private String parameterTypes;
-
-    private String rpcExt;
-
-    private Boolean enabled;
+    @Test
+    public void testGenerateShortUuid() {
+        String shortUuid = UUIDUtils.getInstance().generateShortUuid();
+        Assert.assertTrue(StringUtils.isNotEmpty(shortUuid));
+        Assert.assertEquals(19, shortUuid.length());
+    }
 }

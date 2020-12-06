@@ -15,40 +15,35 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.dto;
+package org.dromara.soul.admin.config;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
-import lombok.AllArgsConstructor;
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
-import java.io.Serializable;
+/**
+ * Test cases for SwaggerConfiguration.
+ *
+ * @author linkuan
+ */
+@RunWith(MockitoJUnitRunner.class)
+public final class SwaggerConfigurationTest {
 
-@Data
-@ToString
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class MetaData implements Serializable {
+    @InjectMocks
+    private SwaggerConfiguration swaggerConfiguration;
 
-    private String id;
+    @Test
+    public void testCreateRestApi() {
+        Assert.assertNotNull(swaggerConfiguration.createRestApi());
+    }
 
-    private String appName;
+    @Test
+    public void testSwaggerEnable() {
+        ReflectionTestUtils.setField(swaggerConfiguration, "enable", true);
+        Assert.assertNotNull(swaggerConfiguration.createRestApi());
+    }
 
-    private String contextPath;
-
-    private String path;
-
-    private String rpcType;
-
-    private String serviceName;
-
-    private String methodName;
-
-    private String parameterTypes;
-
-    private String rpcExt;
-
-    private Boolean enabled;
 }

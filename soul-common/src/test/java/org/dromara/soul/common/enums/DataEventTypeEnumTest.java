@@ -15,40 +15,28 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.dto;
+package org.dromara.soul.common.enums;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
-import lombok.AllArgsConstructor;
+import org.dromara.soul.common.exception.SoulException;
+import org.junit.Test;
+import java.util.Arrays;
+import static org.junit.Assert.assertEquals;
 
-import java.io.Serializable;
+/**
+ * Test Cases for DataEventTypeEnum.
+ *
+ * @author yanbing
+ */
+public final class DataEventTypeEnumTest {
 
-@Data
-@ToString
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class MetaData implements Serializable {
+    @Test
+    public void testGetDataEventTypeByName() {
+        Arrays.stream(DataEventTypeEnum.values())
+                .forEach(e -> assertEquals(e, DataEventTypeEnum.acquireByName(e.name())));
+    }
 
-    private String id;
-
-    private String appName;
-
-    private String contextPath;
-
-    private String path;
-
-    private String rpcType;
-
-    private String serviceName;
-
-    private String methodName;
-
-    private String parameterTypes;
-
-    private String rpcExt;
-
-    private Boolean enabled;
+    @Test(expected = SoulException.class)
+    public void testAcquireByNameInvalid() {
+        DataEventTypeEnum.acquireByName("invalidName");
+    }
 }

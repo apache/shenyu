@@ -30,7 +30,7 @@ import org.springframework.context.annotation.Configuration;
 public class SecretConfiguration {
 
     /**
-     *  egister cipherUtils in spring ioc.
+     *  Register cipherUtils in spring ioc.
      *
      * @return CipherUtils
      */
