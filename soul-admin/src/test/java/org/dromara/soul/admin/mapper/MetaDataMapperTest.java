@@ -17,24 +17,21 @@
 
 package org.dromara.soul.admin.mapper;
 
-import java.sql.Timestamp;
-
 import org.dromara.soul.admin.AbstractSpringIntegrationTest;
 import org.dromara.soul.admin.entity.MetaDataDO;
 import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.MetaDataQuery;
 import org.dromara.soul.common.utils.UUIDUtils;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 
 import javax.annotation.Resource;
-
+import java.sql.Timestamp;
 import java.util.List;
 
 import static org.hamcrest.Matchers.comparesEqualTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-
 
 /**
  * Test cases for MetaDataMapper.
@@ -46,8 +43,11 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
     @Resource
     private MetaDataMapper metaDataMapper;
 
-    @BeforeEach
-    void setUp() {
+    /**
+     * Clean data before test.
+     */
+    @Before
+    public void setUp() {
         List<MetaDataDO> all = metaDataMapper.findAll();
         for (MetaDataDO metaDataDO : all) {
             metaDataMapper.delete(metaDataDO.getId());
@@ -55,7 +55,7 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
     }
 
     @Test
-    void selectById() {
+    public void selectById() {
         MetaDataDO metaDataDO = getMetaDataDO();
         int count = metaDataMapper.insert(metaDataDO);
         assertThat(count, comparesEqualTo(1));
@@ -66,7 +66,7 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
     }
 
     @Test
-    void findAll() {
+    public void findAll() {
         MetaDataDO metaDataDO = getMetaDataDO();
         int count = metaDataMapper.insert(metaDataDO);
         assertThat(count, comparesEqualTo(1));
@@ -77,7 +77,7 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
     }
 
     @Test
-    void findByPath() {
+    public void findByPath() {
         MetaDataDO metaDataDO = getMetaDataDO();
         int count = metaDataMapper.insert(metaDataDO);
         assertThat(count, comparesEqualTo(1));
@@ -87,7 +87,7 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
     }
 
     @Test
-    void findByServiceNameAndMethod() {
+    public void findByServiceNameAndMethod() {
         MetaDataDO metaDataDO = getMetaDataDO();
         int count = metaDataMapper.insert(metaDataDO);
         assertThat(count, comparesEqualTo(1));
@@ -97,7 +97,7 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
     }
 
     @Test
-    void selectByQuery() {
+    public void selectByQuery() {
         MetaDataDO metaDataDO = getMetaDataDO();
         int count = metaDataMapper.insert(metaDataDO);
         assertThat(count, comparesEqualTo(1));
@@ -112,7 +112,7 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
     }
 
     @Test
-    void selectAll() {
+    public void selectAll() {
         MetaDataDO metaDataDO = getMetaDataDO();
         int count = metaDataMapper.insert(metaDataDO);
         assertThat(count, comparesEqualTo(1));
@@ -123,7 +123,7 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
     }
 
     @Test
-    void countByQuery() {
+    public void countByQuery() {
         MetaDataDO metaDataDO = getMetaDataDO();
         int count = metaDataMapper.insert(metaDataDO);
         assertThat(count, comparesEqualTo(1));
@@ -137,7 +137,7 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
     }
 
     @Test
-    void insert() {
+    public void insert() {
         List<MetaDataDO> before = metaDataMapper.selectAll();
         assertThat(before.size(), comparesEqualTo(0));
 
@@ -151,7 +151,7 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
     }
 
     @Test
-    void update() {
+    public void update() {
         MetaDataDO metaDataDO = getMetaDataDO();
         int count = metaDataMapper.insert(metaDataDO);
         assertThat(count, comparesEqualTo(1));
@@ -164,7 +164,7 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
     }
 
     @Test
-    void updateEnable() {
+    public void updateEnable() {
         MetaDataDO metaDataDO = getMetaDataDO();
         int count = metaDataMapper.insert(metaDataDO);
         assertThat(count, comparesEqualTo(1));
@@ -177,7 +177,7 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
     }
 
     @Test
-    void delete() {
+    public void delete() {
         MetaDataDO metaDataDO = getMetaDataDO();
         int count = metaDataMapper.insert(metaDataDO);
         assertThat(count, comparesEqualTo(1));
