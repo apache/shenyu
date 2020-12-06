@@ -15,28 +15,28 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.config;
+package org.dromara.soul.common.enums;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.dromara.soul.common.exception.SoulException;
+import org.junit.Test;
+import java.util.Arrays;
+import static org.junit.Assert.assertEquals;
 
 /**
- * Aes Secret configuration.
+ * Test Cases for DataEventTypeEnum.
  *
- * @author nuo-promise
+ * @author yanbing
  */
-@Configuration
-public class SecretConfiguration {
+public final class DataEventTypeEnumTest {
 
-    /**
-     *  Register cipherUtils in spring ioc.
-     *
-     * @return CipherUtils
-     */
-    @Bean
-    @ConditionalOnProperty(prefix = "soul.aes.secret", value = "key", havingValue = "2095132720951327")
-    public SecretProperties secretProperties() {
-        return new SecretProperties();
+    @Test
+    public void testGetDataEventTypeByName() {
+        Arrays.stream(DataEventTypeEnum.values())
+                .forEach(e -> assertEquals(e, DataEventTypeEnum.acquireByName(e.name())));
+    }
+
+    @Test(expected = SoulException.class)
+    public void testAcquireByNameInvalid() {
+        DataEventTypeEnum.acquireByName("invalidName");
     }
 }

@@ -15,28 +15,29 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.config;
+package org.dromara.soul.common.utils;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * Aes Secret configuration.
+ * Test cases for UUIDUtilsTest.
  *
- * @author nuo-promise
+ * @author BetterWp
  */
-@Configuration
-public class SecretConfiguration {
+public final class UUIDUtilsTest {
 
-    /**
-     *  Register cipherUtils in spring ioc.
-     *
-     * @return CipherUtils
-     */
-    @Bean
-    @ConditionalOnProperty(prefix = "soul.aes.secret", value = "key", havingValue = "2095132720951327")
-    public SecretProperties secretProperties() {
-        return new SecretProperties();
+    @Test
+    public void testGetInstance() {
+        UUIDUtils uuidUtils = UUIDUtils.getInstance();
+        Assert.assertNotNull(uuidUtils);
+    }
+
+    @Test
+    public void testGenerateShortUuid() {
+        String shortUuid = UUIDUtils.getInstance().generateShortUuid();
+        Assert.assertTrue(StringUtils.isNotEmpty(shortUuid));
+        Assert.assertEquals(19, shortUuid.length());
     }
 }
