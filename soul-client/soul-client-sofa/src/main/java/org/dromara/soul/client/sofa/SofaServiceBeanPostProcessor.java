@@ -124,7 +124,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
                 .rpcExt(buildRpcExt(soulSofaClient))
                 .enabled(soulSofaClient.enabled())
                 .build();
-        return OkHttpTools.getInstance().getGosn().toJson(metaDataDTO);
+        return OkHttpTools.getInstance().getGson().toJson(metaDataDTO);
     }
 
     private String buildRpcExt(final SoulSofaClient soulSofaClient) {
@@ -133,7 +133,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
                 .retries(soulSofaClient.retries())
                 .timeout(soulSofaClient.timeout())
                 .build();
-        return OkHttpTools.getInstance().getGosn().toJson(build);
+        return OkHttpTools.getInstance().getGson().toJson(build);
 
     }
 

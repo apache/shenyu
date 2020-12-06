@@ -26,7 +26,7 @@ import org.dromara.soul.plugin.base.utils.SoulResultWrap;
 import org.dromara.soul.plugin.base.utils.SpringBeanUtils;
 import org.dromara.soul.plugin.base.utils.UriUtils;
 import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
-import org.dromara.soul.plugin.resilience4j.Resilence4JPlugin;
+import org.dromara.soul.plugin.resilience4j.Resilience4JPlugin;
 import org.dromara.soul.plugin.resilience4j.conf.Resilience4JConf;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -85,7 +85,7 @@ public interface Executor {
         if (throwable instanceof TimeoutException) {
             exchange.getResponse().setStatusCode(HttpStatus.GATEWAY_TIMEOUT);
             error = SoulResultWrap.error(SoulResultEnum.SERVICE_TIMEOUT.getCode(), SoulResultEnum.SERVICE_TIMEOUT.getMsg(), null);
-        } else if (throwable instanceof Resilence4JPlugin.CircuitBreakerStatusCodeException) {
+        } else if (throwable instanceof Resilience4JPlugin.CircuitBreakerStatusCodeException) {
             return Mono.error(throwable);
         } else if (throwable instanceof CallNotPermittedException) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);

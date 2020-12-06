@@ -54,6 +54,9 @@ public class SofaMetaDataSubscriber implements MetaDataSubscriber {
 
     @Override
     public void unSubscribe(final MetaData metaData) {
-
+        if (RpcTypeEnum.SOFA.getName().equals(metaData.getRpcType())) {
+            ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
+            META_DATA.remove(metaData.getPath());
+        }
     }
 }

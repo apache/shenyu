@@ -20,6 +20,7 @@ package org.dromara.soul.springboot.starter.plugin.sentinel;
 import com.alibaba.csp.sentinel.adapter.spring.webflux.exception.SentinelBlockExceptionHandler;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.plugin.sentinel.SentinelPlugin;
+import org.dromara.soul.plugin.sentinel.fallback.SentinelFallbackHandler;
 import org.dromara.soul.plugin.sentinel.handler.SentinelRuleHandle;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
@@ -65,7 +66,7 @@ public class SentinelPluginConfiguration {
      */
     @Bean
     public SentinelPlugin sentinelPlugin() {
-        return new SentinelPlugin();
+        return new SentinelPlugin(new SentinelFallbackHandler());
     }
 
     /**

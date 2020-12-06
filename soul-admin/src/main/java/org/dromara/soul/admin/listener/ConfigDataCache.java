@@ -44,7 +44,7 @@ public class ConfigDataCache {
      * @param md5            the md 5
      * @param lastModifyTime the last modify time
      */
-    ConfigDataCache(final String group, final String json, final String md5, final long lastModifyTime) {
+    public ConfigDataCache(final String group, final String json, final String md5, final long lastModifyTime) {
         this.group = group;
         this.json = json;
         this.md5 = md5;
