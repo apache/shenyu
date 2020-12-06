@@ -169,13 +169,6 @@
             <version>1.4.200</version>
             <scope>test</scope>
         </dependency>
-
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-test</artifactId>
-            <version>${curator-test.version}</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
