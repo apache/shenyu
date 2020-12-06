@@ -34,7 +34,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 /**
- * Test case for SelectorConditionMapper
+ * Test case for SelectorConditionMapper.
  *
  * @author bigwillc
  */
@@ -52,7 +52,7 @@ public class SelectorConditionMapperTest extends AbstractSpringIntegrationTest {
 
     @Test
     public void testSelectById() {
-        SelectorConditionDO result  = selectorConditionMapper.selectById(record.getId());
+        SelectorConditionDO result = selectorConditionMapper.selectById(record.getId());
         assertNotNull(result);
     }
 
