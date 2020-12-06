@@ -55,7 +55,7 @@ import static org.mockito.Mockito.when;
  * @author James Fang (funpad)
  */
 @RunWith(MockitoJUnitRunner.class)
-public class MetaDataServiceTest {
+public final class MetaDataServiceTest {
 
     @InjectMocks
     private MetaDataServiceImpl metaDataService;
