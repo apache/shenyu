@@ -162,7 +162,7 @@ public final class ZookeeperSyncDataServiceTest {
         final RuleData ruleData = buildRuleDTO("aaa", "xxx", PluginEnum.DIVIDE.getName());
         final String rulePath = ZkPathConstants.buildRulePath(ruleData.getPluginName(), ruleData.getSelectorId(), ruleData.getId());
         zkClient.delete(rulePath);
-        latch.await(300, TimeUnit.MILLISECONDS);
+        latch.await(1000, TimeUnit.MILLISECONDS);
         Assert.assertEquals(2, actuals.size());
         Assert.assertEquals(ruleData, actuals.get(0));
     }
