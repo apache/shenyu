@@ -64,7 +64,7 @@ public class DefaultSignService implements SignService {
         }
         return Pair.of(Boolean.TRUE, "");
     }
-    
+
     private Pair<Boolean, String> verify(final SoulContext soulContext, final ServerWebExchange exchange) {
         if (StringUtils.isBlank(soulContext.getAppKey())
                 || StringUtils.isBlank(soulContext.getSign())
@@ -80,7 +80,7 @@ public class DefaultSignService implements SignService {
         }
         return sign(soulContext, exchange);
     }
-    
+
     /**
      * verify sign .
      *
@@ -119,11 +119,11 @@ public class DefaultSignService implements SignService {
                     .map(AuthParamData::getAppParam)
                     .filter(StringUtils::isNoneBlank).findFirst()
                     .ifPresent(param -> exchange.getRequest().mutate().headers(httpHeaders -> httpHeaders.set(Constants.APP_PARAM, param)).build()
-                    );
+            );
         }
         return Pair.of(Boolean.TRUE, "");
     }
-    
+
     private Map<String, String> buildParamsMap(final SoulContext dto) {
         Map<String, String> map = Maps.newHashMapWithExpectedSize(3);
         map.put(Constants.TIMESTAMP, dto.getTimestamp());
