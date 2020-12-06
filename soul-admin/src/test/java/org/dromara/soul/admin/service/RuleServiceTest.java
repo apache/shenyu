@@ -216,7 +216,7 @@ public final class RuleServiceTest {
 
     private RuleDTO buildRuleDTO(final String id) {
         RuleDTO ruleDTO = new RuleDTO();
-        if (!"".equals(id)) {
+        if (StringUtils.isNotBlank(id)) {
             ruleDTO.setId(id);
         }
         ruleDTO.setSelectorId("456");
