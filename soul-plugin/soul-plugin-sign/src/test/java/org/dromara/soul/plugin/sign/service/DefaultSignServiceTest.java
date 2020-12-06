@@ -64,7 +64,7 @@ public final class DefaultSignServiceTest {
     
     private SoulContext passed;
     
-    @Value("${soul.sign.delay}")
+    @Value("${soul.sign.delay:5}")
     private int delay;
     
     @Before
