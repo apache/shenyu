@@ -17,11 +17,15 @@
 
 package org.dromara.soul.admin.vo;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class MetaDataVO implements Serializable {
 
     private String appName;
