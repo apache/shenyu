@@ -23,19 +23,34 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Test cases for SignUtils.
  *
  * @author dengliming
  */
-public class SignUtilsTest {
+public final class SignUtilsTest {
 
     @Test
-    public void testSign() {
+    public void testGenerateSign() {
         Map<String, String> params = new HashMap<>();
         params.put("a", "1");
         params.put("b", "2");
         assertNotNull(SignUtils.generateSign("test", params));
+    }
+
+    @Test
+    public void testValid() {
+        final String sign = "7AA98F7D67F8E4730E2D1D3902295CE6";
+        Map<String, String> params = new HashMap<>();
+        params.put("a", "1");
+        params.put("b", "2");
+        assertTrue(SignUtils.getInstance().isValid(sign, params, "test"));
+    }
+
+    @Test
+    public void testGenerateKey() {
+        assertNotNull(SignUtils.getInstance().generateKey());
     }
 }

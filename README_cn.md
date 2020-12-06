@@ -8,6 +8,9 @@
   <a href="https://dromara.org">https://dromara.org/</a>
 </p>
 
+<p align="center">
+  <a href="https://github.com/dromara/soul/blob/master/README.md">English</a> | 简体中文
+</p>
 
 <p align="center">
     <a target="_blank" href="http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22org.dromara%22%20AND%soul">
