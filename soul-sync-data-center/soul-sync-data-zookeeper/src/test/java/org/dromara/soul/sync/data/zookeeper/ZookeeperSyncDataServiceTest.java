@@ -125,9 +125,10 @@ public final class ZookeeperSyncDataServiceTest {
     @SneakyThrows
     @Test
     public void testWatcherSelector() {
-        //init plugin data on zk
+        //init plugin data on Zookeeper
         initZkPluginData();
-        //init one selector data on zk
+        //init selector data on Zookeeper.when ZookeeperSyncDataService instance created,
+        //watch data changes from the selector path and children changes from the parent path of selector.
         final SelectorData selectorData = buildSelectorData("xxx", "aaa", PluginEnum.DIVIDE.getName());
         writeSelector(selectorData);
         final CountDownLatch latch = new CountDownLatch(3);
@@ -146,7 +147,7 @@ public final class ZookeeperSyncDataServiceTest {
                 latch.countDown();
             }
         }, Collections.emptyList(), Collections.emptyList());
-        //add new selector data on zk
+        //add new selector data on Zookeeper,the parent selector path trigger children changes.
         final SelectorData otherSelectorData = buildSelectorData("ddd", "bbb", PluginEnum.DIVIDE.getName());
         writeSelector(otherSelectorData);
         final String selectorPath = ZkPathConstants.buildSelectorRealPath(selectorData.getPluginName(), selectorData.getId());
@@ -162,9 +163,10 @@ public final class ZookeeperSyncDataServiceTest {
     @SneakyThrows
     @Test
     public void testWatcherRule() {
-        //init plugin data on zk
+        //init plugin data on Zookeeper
         initZkPluginData();
-        //init one rule data on zk
+        //init rule data on Zookeeper.when ZookeeperSyncDataService instance created,
+        //watch data changes from the rule path and children changes from the parent path of rule.
         final RuleData ruleData = buildRuleDTO("aaa", "xxx", PluginEnum.DIVIDE.getName());
         writeRule(ruleData);
         final CountDownLatch latch = new CountDownLatch(3);
@@ -183,7 +185,7 @@ public final class ZookeeperSyncDataServiceTest {
                 latch.countDown();
             }
         }, Collections.emptyList(), Collections.emptyList());
-        //add new rule data on zk
+        //add new rule data on Zookeeper,the parent rule path trigger children changes.
         final RuleData otherRuleData = buildRuleDTO("bbb", "xxx", PluginEnum.DIVIDE.getName());
         writeRule(otherRuleData);
         final String rulePath = ZkPathConstants.buildRulePath(ruleData.getPluginName(), ruleData.getSelectorId(), ruleData.getId());
@@ -202,6 +204,8 @@ public final class ZookeeperSyncDataServiceTest {
         final CountDownLatch latch = new CountDownLatch(3);
         final List<AppAuthData> subscribeList = new ArrayList<>();
         final List<AppAuthData> unsubscribeList = new ArrayList<>();
+        //init app auth data on Zookeeper.when ZookeeperSyncDataService instance created,
+        //watch data changes from the app auth path and children changes from the parent path of app auth.
         final AppAuthData appAuthData = buildAppAuthData("7sdfdfx", "dfd#434");
         writeAppAuth(appAuthData);
         AuthDataSubscriber authDataSubscriber = new AuthDataSubscriber() {
@@ -219,6 +223,7 @@ public final class ZookeeperSyncDataServiceTest {
         };
         syncDataService = new ZookeeperSyncDataService(zkClient, null,
                 Collections.emptyList(), Lists.newArrayList(authDataSubscriber));
+        //add new app auth data on Zookeeper,the parent app auth path trigger children changes.
         final AppAuthData otherAppAuthData = buildAppAuthData("8sdfdfx", "efd#434");
         writeAppAuth(otherAppAuthData);
         final String appAuthPath = ZkPathConstants.buildAppAuthPath(appAuthData.getAppKey());
@@ -253,6 +258,7 @@ public final class ZookeeperSyncDataServiceTest {
         };
         syncDataService = new ZookeeperSyncDataService(zkClient, null,
                  Lists.newArrayList(metaDataSubscriber), Collections.emptyList());
+        //add new meta data on Zookeeper,the parent meta path trigger children changes.
         final MetaData otherMetaData = buildMetaData("dz2", "httptest2", "http2");
         writeMetaData(otherMetaData);
         final String metaDataPath = ZkPathConstants.buildMetaDataPath(metaData.getPath());
