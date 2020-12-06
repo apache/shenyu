@@ -15,40 +15,28 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.dto;
+package org.dromara.soul.common.enums;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
-import lombok.AllArgsConstructor;
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
-import java.io.Serializable;
+import java.util.Arrays;
 
-@Data
-@ToString
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class MetaData implements Serializable {
+/**
+ * Test Cases for PluginEnum.
+ *
+ * @author abysscat-yj
+ */
+public final class PluginEnumTest {
 
-    private String id;
+    @Test
+    public void testGetPluginEnumByName() {
+        Arrays.asList(PluginEnum.values()).stream()
+                .forEach(pluginEnum -> assertEquals(pluginEnum, PluginEnum.getPluginEnumByName(pluginEnum.getName())));
+    }
 
-    private String appName;
-
-    private String contextPath;
-
-    private String path;
-
-    private String rpcType;
-
-    private String serviceName;
-
-    private String methodName;
-
-    private String parameterTypes;
-
-    private String rpcExt;
-
-    private Boolean enabled;
+    @Test
+    public void testGetPluginEnumByNameInvalid() {
+        assertEquals(PluginEnum.GLOBAL, PluginEnum.getPluginEnumByName("invalidName"));
+    }
 }
