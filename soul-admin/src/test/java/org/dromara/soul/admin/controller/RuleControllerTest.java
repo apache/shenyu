@@ -38,13 +38,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
 import static org.hamcrest.core.Is.is;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -70,7 +67,7 @@ public final class RuleControllerTest {
             "888", "666", "uri", "Uniform", "match", "match", "/", "/http/test/**", DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now())
     );
 
-    private final List<RuleConditionVO> rclist = new ArrayList<>(Arrays.asList(rCondition1));
+    private final List<RuleConditionVO> rclist = new ArrayList<>(Collections.singletonList(rCondition1));
 
     private final RuleVO ruleVO = new RuleVO("666", "168", 0, "zero mode", "/http/test/**", true, true, 1, "{\"loadBalance\":\"random\",\"retry\":0,\"timeout\":3000}",
             rclist, DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()));
@@ -179,7 +176,7 @@ public final class RuleControllerTest {
 
     @Test
     public void testDeleteRules() throws Exception {
-        given(this.ruleService.delete(Arrays.asList("111"))).willReturn(1);
+        given(this.ruleService.delete(Collections.singletonList("111"))).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.delete("/rule/batch")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("[\"111\"]")
