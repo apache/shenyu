@@ -161,8 +161,7 @@ public final class SoulClientRegisterServiceTest {
     }
 
     private SelectorDO buildSelectorDO() {
-        SelectorDO selectorDO = new SelectorDO();
-        return selectorDO;
+        return new SelectorDO();
     }
 
     private SelectorData buildSelectorData() {
