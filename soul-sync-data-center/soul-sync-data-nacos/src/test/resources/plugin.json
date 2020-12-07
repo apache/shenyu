@@ -1,0 +1,159 @@
+{
+  "pluginData": [
+    {
+      "id": "1",
+      "name": "sign",
+      "config": null,
+      "role": 0,
+      "enabled": false
+    },
+    {
+      "id": "2",
+      "name": "waf",
+      "config": "{\"model\":\"black\"}",
+      "role": 0,
+      "enabled": false
+    },
+    {
+      "id": "3",
+      "name": "rewrite",
+      "config": null,
+      "role": 0,
+      "enabled": false
+    },
+    {
+      "id": "4",
+      "name": "rate_limiter",
+      "config": "{\"master\":\"mymaster\",\"mode\":\"Standalone\",\"url\":\"192.168.1.1:6379\",\"password\":\"abc\"}",
+      "role": 0,
+      "enabled": false
+    },
+    {
+      "id": "5",
+      "name": "divide",
+      "config": null,
+      "role": 0,
+      "enabled": true
+    },
+    {
+      "id": "6",
+      "name": "dubbo",
+      "config": "{\"register\":\"zookeeper://localhost:2181\"}",
+      "role": 0,
+      "enabled": false
+    },
+    {
+      "id": "7",
+      "name": "monitor",
+      "config": "{\"metricsName\":\"prometheus\",\"host\":\"localhost\",\"port\":\"9190\",\"async\":\"true\"}",
+      "role": 0,
+      "enabled": false
+    },
+    {
+      "id": "8",
+      "name": "springCloud",
+      "config": null,
+      "role": 0,
+      "enabled": false
+    },
+    {
+      "id": "9",
+      "name": "hystrix",
+      "config": null,
+      "role": 0,
+      "enabled": false
+    }
+  ],
+  "selectorData": [
+    {
+      "id": "1",
+      "pluginId": "1",
+      "pluginName": "sign",
+      "name": "signName",
+      "matchMode": 0,
+      "type": 1,
+      "sort": 1,
+      "enabled": false,
+      "loged": false,
+      "continued": false,
+      "handle": "test"
+    },
+    {
+      "id": "2",
+      "pluginId": "1",
+      "pluginName": "sign",
+      "name": "signName",
+      "matchMode": 0,
+      "type": 1,
+      "sort": 1,
+      "enabled": false,
+      "loged": false,
+      "continued": false,
+      "handle": "test"
+    }
+  ],
+  "ruleData": [
+    {
+      "id": "1",
+      "selectorId": "1",
+      "pluginName": "sign",
+      "name": "signName",
+      "matchMode": 0,
+      "sort": 1,
+      "enabled": false,
+      "loged": false,
+      "handle": "test",
+      "conditionList": ""
+    },
+    {
+      "id": "2",
+      "selectorId": "1",
+      "pluginName": "sign",
+      "name": "signName",
+      "matchMode": 0,
+      "sort": 1,
+      "enabled": false,
+      "loged": false,
+      "handle": "test",
+      "conditionList": ""
+    }
+  ],
+  "metaData": [
+    {
+      "id": "1",
+      "appName": "test",
+      "contextPath": "test",
+      "path": "test",
+      "rpcType": "test",
+      "serviceName": "test",
+      "methodName": "test",
+      "parameterTypes": "test",
+      "rpcExt": "test",
+      "enabled": false
+    },
+    {
+      "id": "2",
+      "appName": "test",
+      "contextPath": "test",
+      "path": "test",
+      "rpcType": "test",
+      "serviceName": "test",
+      "methodName": "test",
+      "parameterTypes": "test",
+      "rpcExt": "test",
+      "enabled": false
+    }
+  ],
+  "appAuthData": [
+    {
+      "appKey": "1",
+      "appSecret": "12345",
+      "enabled": false
+    },
+    {
+      "appKey": "2",
+      "appSecret": "12345",
+      "enabled": false
+    }
+  ]
+}
