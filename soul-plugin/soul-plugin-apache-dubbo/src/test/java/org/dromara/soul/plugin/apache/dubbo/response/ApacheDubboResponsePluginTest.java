@@ -59,7 +59,7 @@ public class ApacheDubboResponsePluginTest {
     
     @Test
     public void testGetResult() {
-        String response = "{}";
+        final String response = "{}";
         Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
         dubboResponsePlugin = new DubboResponsePlugin();
         exchange.getAttributes().put(Constants.DUBBO_RPC_RESULT, response);
