@@ -19,14 +19,22 @@ package org.dromara.soul.client.springmvc.init;
 
 import org.dromara.soul.client.springmvc.annotation.SoulSpringMvcClient;
 import org.dromara.soul.client.springmvc.config.SoulSpringMvcConfig;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+import io.undertow.Undertow;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import static io.undertow.Handlers.path;
 
 /**
  * SpringMvcClientBeanPostProcessorTest.
@@ -36,28 +44,51 @@ import org.springframework.web.bind.annotation.RestController;
 @RunWith(MockitoJUnitRunner.class)
 public final class SpringMvcClientBeanPostProcessorTest {
 
+    private static Undertow server;
+
+    private static long registerNum;
+
+    private static SpringMvcClientBeanPostProcessor springMvcClientBeanPostProcessor;
+
     private final SpringMvcClientTestBean springMvcClientTestBean = new SpringMvcClientTestBean();
 
-    private SpringMvcClientBeanPostProcessor springMvcClientBeanPostProcessor;
-
-    @Before
-    public void init() {
+    @BeforeClass
+    public static void init() {
         SoulSpringMvcConfig soulSpringMvcConfig = new SoulSpringMvcConfig();
-        soulSpringMvcConfig.setAdminUrl("localhost");
+        soulSpringMvcConfig.setAdminUrl("http://127.0.0.1:58888");
         soulSpringMvcConfig.setAppName("test-mvc");
         soulSpringMvcConfig.setContextPath("test");
-        soulSpringMvcConfig.setPort(8080);
+        soulSpringMvcConfig.setPort(58889);
         springMvcClientBeanPostProcessor = new SpringMvcClientBeanPostProcessor(soulSpringMvcConfig);
+        server = Undertow.builder()
+                .addHttpListener(58888, "localhost")
+                .setHandler(path()
+                        .addPrefixPath("/soul-client/springmvc-register", httpServerExchange -> registerNum++))
+                .build();
+        server.start();
+    }
+
+    @AfterClass
+    public static void after() {
+        server.stop();
     }
 
     @Test
-    public void testSoulBeanProcess() {
+    public void testSoulBeanProcess() throws InterruptedException {
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        registerNum = 0L;
         springMvcClientBeanPostProcessor.postProcessAfterInitialization(springMvcClientTestBean, "springMvcClientTestBean");
+        countDownLatch.await(5, TimeUnit.SECONDS);
+        Assert.assertEquals(registerNum, 1L);
     }
 
     @Test
-    public void testNormalBeanProcess() {
+    public void testNormalBeanProcess() throws InterruptedException {
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        registerNum = 0L;
         springMvcClientBeanPostProcessor.postProcessAfterInitialization(new Object(), "normalBean");
+        countDownLatch.await(5, TimeUnit.SECONDS);
+        Assert.assertEquals(registerNum, 0L);
     }
 
     @RestController

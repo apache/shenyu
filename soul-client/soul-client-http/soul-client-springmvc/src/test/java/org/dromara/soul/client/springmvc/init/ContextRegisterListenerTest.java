@@ -17,15 +17,22 @@
 
 package org.dromara.soul.client.springmvc.init;
 
+import io.undertow.Undertow;
 import org.dromara.soul.client.springmvc.config.SoulSpringMvcConfig;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static io.undertow.Handlers.path;
 import static org.mockito.Mockito.mock;
 
 import org.springframework.context.event.ContextRefreshedEvent;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * ContextRegisterListenerTest.
@@ -35,21 +42,55 @@ import org.springframework.context.event.ContextRefreshedEvent;
 @RunWith(MockitoJUnitRunner.class)
 public final class ContextRegisterListenerTest {
 
-    private ContextRegisterListener contextRegisterListener;
+    private static boolean isRegister;
 
-    @Before
-    public void init() {
-        SoulSpringMvcConfig soulSpringMvcConfig = new SoulSpringMvcConfig();
-        soulSpringMvcConfig.setAdminUrl("localhost");
-        soulSpringMvcConfig.setAppName("test-mvc");
-        soulSpringMvcConfig.setContextPath("test");
-        soulSpringMvcConfig.setPort(8080);
-        contextRegisterListener = new ContextRegisterListener(soulSpringMvcConfig);
+    private static Undertow server;
+
+    @BeforeClass
+    public static void init() {
+        server = Undertow.builder()
+                .addHttpListener(58888, "localhost")
+                .setHandler(path()
+                        .addPrefixPath("/soul-client/springmvc-register", httpServerExchange -> isRegister = true))
+                .build();
+        server.start();
+    }
+
+    @AfterClass
+    public static void after() {
+        server.stop();
     }
 
     @Test
-    public void testRegister() {
+    public void testNotFullRegister() throws InterruptedException {
+        isRegister = false;
+        SoulSpringMvcConfig soulSpringMvcConfig = new SoulSpringMvcConfig();
+        soulSpringMvcConfig.setAdminUrl("http://127.0.0.1:58888");
+        soulSpringMvcConfig.setAppName("test-mvc");
+        soulSpringMvcConfig.setContextPath("test");
+        soulSpringMvcConfig.setPort(58889);
+        ContextRegisterListener contextRegisterListener = new ContextRegisterListener(soulSpringMvcConfig);
         ContextRefreshedEvent contextRefreshedEvent = mock(ContextRefreshedEvent.class);
+        CountDownLatch countDownLatch = new CountDownLatch(1);
         contextRegisterListener.onApplicationEvent(contextRefreshedEvent);
+        countDownLatch.await(5, TimeUnit.SECONDS);
+        Assert.assertFalse(isRegister);
+    }
+
+    @Test
+    public void testFullRegister() throws InterruptedException {
+        isRegister = false;
+        SoulSpringMvcConfig soulSpringMvcConfig = new SoulSpringMvcConfig();
+        soulSpringMvcConfig.setAdminUrl("http://127.0.0.1:58888");
+        soulSpringMvcConfig.setAppName("test-mvc");
+        soulSpringMvcConfig.setContextPath("test");
+        soulSpringMvcConfig.setFull(true);
+        soulSpringMvcConfig.setPort(58889);
+        ContextRegisterListener contextRegisterListener = new ContextRegisterListener(soulSpringMvcConfig);
+        ContextRefreshedEvent contextRefreshedEvent = mock(ContextRefreshedEvent.class);
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        contextRegisterListener.onApplicationEvent(contextRefreshedEvent);
+        countDownLatch.await(5, TimeUnit.SECONDS);
+        Assert.assertTrue(isRegister);
     }
 }
