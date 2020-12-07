@@ -456,7 +456,7 @@
                 <configuration>
                     <!-- 略过整个单元测试的执行，不推荐 -->
                     <skip>${skipTests}</skip>
-                    <argLine>-Xms690m -Xmx690m -XX:MaxPermSize=512m -noverify</argLine>
+                    <argLine>-Xms512m -Xmx512m -XX:MaxPermSize=256m -noverify</argLine>
                 </configuration>
             </plugin>
             <plugin>
