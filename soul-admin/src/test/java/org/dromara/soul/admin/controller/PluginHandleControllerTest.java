@@ -61,7 +61,7 @@ public final class PluginHandleControllerTest {
     private PluginHandleService pluginHandleService;
 
     private final PluginHandleVO pluginHandleVO = new PluginHandleVO("1", "2", "3", "label",
-            1, 1, 1, DateUtils.localDateTimeToString(LocalDateTime.now()),
+            1, 1, 1, null, DateUtils.localDateTimeToString(LocalDateTime.now()),
             DateUtils.localDateTimeToString(LocalDateTime.now()), new ArrayList<>());
 
     @Before
