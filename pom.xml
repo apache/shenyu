@@ -464,11 +464,7 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>2.10.3</version>
                 <configuration>
-                    <detectLinks>false</detectLinks>
-                    <detectOfflineLinks>true</detectOfflineLinks>
-                    <linksource>true</linksource>
-                    <additionalparam>-Xdoclint:none</additionalparam>
-                    <detectJavaApiLink>true</detectJavaApiLink>
+                    <aggregate>true</aggregate>
                 </configuration>
                 <executions>
                     <execution>

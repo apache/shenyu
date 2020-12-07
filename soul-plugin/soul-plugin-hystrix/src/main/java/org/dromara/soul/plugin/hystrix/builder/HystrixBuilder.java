@@ -42,7 +42,7 @@ public class HystrixBuilder {
      * this is build HystrixObservableCommand.Setter.
      *
      * @param hystrixHandle {@linkplain HystrixHandle}
-     * @return {@linkplain HystrixObservableCommand Setter}
+     * @return {@linkplain HystrixObservableCommand.Setter}
      */
     public static HystrixObservableCommand.Setter build(final HystrixHandle hystrixHandle) {
         initHystrixHandleOnRequire(hystrixHandle);
@@ -67,7 +67,7 @@ public class HystrixBuilder {
     /**
      * this is build HystrixCommand.Setter.
      * @param hystrixHandle {@linkplain HystrixHandle}
-     * @return {@linkplain HystrixCommand Setter}
+     * @return {@linkplain HystrixCommand.Setter}
      */
     public static HystrixCommand.Setter buildForHystrixCommand(final HystrixHandle hystrixHandle) {
         initHystrixHandleOnRequire(hystrixHandle);
