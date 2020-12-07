@@ -215,6 +215,14 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- soul sign plugin start-->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-sign</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- soul sign plugin end-->
+
         <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>soul-spring-boot-starter-plugin-resilience4j</artifactId>
