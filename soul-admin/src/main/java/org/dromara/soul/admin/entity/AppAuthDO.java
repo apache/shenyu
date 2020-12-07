@@ -17,11 +17,15 @@
 
 package org.dromara.soul.admin.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.AppAuthDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
 
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Optional;
 
@@ -29,8 +33,11 @@ import java.util.Optional;
  * AppAuthDO.
  *
  * @author xiaoyu(Myth)
+ * @author nuo-promise
  */
 @Data
+@Builder
+@EqualsAndHashCode(callSuper = true)
 public class AppAuthDO extends BaseDO {
 
     /**
@@ -54,6 +61,18 @@ public class AppAuthDO extends BaseDO {
 
     private String extInfo;
 
+    @Builder(toBuilder = true)
+    public AppAuthDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String appKey,
+                     final String appSecret, final Boolean enabled, final String userId, final String phone, final String extInfo) {
+        super(id, dateCreated, dateUpdated);
+        this.appKey = appKey;
+        this.appSecret = appSecret;
+        this.enabled = enabled;
+        this.userId = userId;
+        this.phone = phone;
+        this.extInfo = extInfo;
+    }
+
     /**
      * build appAuthDO.
      *
@@ -62,19 +81,19 @@ public class AppAuthDO extends BaseDO {
      */
     public static AppAuthDO buildAppAuthDO(final AppAuthDTO appAuthDTO) {
         return Optional.ofNullable(appAuthDTO).map(item -> {
-            AppAuthDO appAuthDO = new AppAuthDO();
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            AppAuthDO appAuthDO = AppAuthDO.builder()
+                    .appKey(item.getAppKey())
+                    .appSecret(item.getAppSecret())
+                    .enabled(item.getEnabled())
+                    .dateUpdated(currentTime)
+                    .build();
             if (StringUtils.isEmpty(item.getId())) {
                 appAuthDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 appAuthDO.setDateCreated(currentTime);
             } else {
                 appAuthDO.setId(item.getId());
             }
-
-            appAuthDO.setAppKey(item.getAppKey());
-            appAuthDO.setAppSecret(item.getAppSecret());
-            appAuthDO.setEnabled(item.getEnabled());
-            appAuthDO.setDateUpdated(currentTime);
             return appAuthDO;
         }).orElse(null);
     }

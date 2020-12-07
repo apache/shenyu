@@ -97,17 +97,18 @@ public class AppAuthServiceImpl implements AppAuthService {
                 || CollectionUtils.isEmpty(authApplyDTO.getPathList())) {
             return SoulAdminResult.error(SoulResultMessage.PARAMETER_ERROR);
         }
-        AppAuthDO appAuthDO = new AppAuthDO();
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-        appAuthDO.setId(UUIDUtils.getInstance().generateShortUuid());
-        appAuthDO.setUserId(authApplyDTO.getUserId());
-        appAuthDO.setPhone(authApplyDTO.getPhone());
-        appAuthDO.setExtInfo(authApplyDTO.getExtInfo());
-        appAuthDO.setAppKey(SignUtils.getInstance().generateKey());
-        appAuthDO.setAppSecret(SignUtils.getInstance().generateKey());
-        appAuthDO.setEnabled(true);
-        appAuthDO.setDateUpdated(currentTime);
-        appAuthDO.setDateCreated(currentTime);
+        AppAuthDO appAuthDO = AppAuthDO.builder()
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .userId(authApplyDTO.getUserId())
+                .phone(authApplyDTO.getPhone())
+                .extInfo(authApplyDTO.getExtInfo())
+                .appKey(SignUtils.getInstance().generateKey())
+                .appSecret(SignUtils.getInstance().generateKey())
+                .enabled(true)
+                .dateUpdated(currentTime)
+                .dateCreated(currentTime)
+                .build();
         appAuthMapper.insert(appAuthDO);
         //保存业务参数
         AuthParamDO authParamDO = buildAuthParamDO(appAuthDO.getId(), authApplyDTO.getAppName(), authApplyDTO.getAppParam());
@@ -119,15 +120,16 @@ public class AppAuthServiceImpl implements AppAuthService {
                 .collect(Collectors.toList());
         authPathMapper.batchSave(collect);
 
-        AppAuthData data = new AppAuthData();
-        data.setAppKey(appAuthDO.getAppKey());
-        data.setAppSecret(appAuthDO.getAppSecret());
-        data.setEnabled(appAuthDO.getEnabled());
+        AppAuthData data = AppAuthData.builder()
+                .appKey(appAuthDO.getAppKey())
+                .appSecret(appAuthDO.getAppSecret())
+                .enabled(appAuthDO.getEnabled())
+                .build();
 
         data.setParamDataList(Lists.newArrayList(new AuthParamData(authParamDO.getAppName(), authParamDO.getAppParam())));
 
         data.setPathDataList(collect.stream().map(authPathDO ->
-                new AuthPathData(authPathDO.getAppName(), authPathDO.getPath(), authPathDO.getEnabled()))
+                AuthPathData.builder().appName(authPathDO.getAppName()).path(authPathDO.getPath()).enabled(authPathDO.getEnabled()).build())
                 .collect(Collectors.toList()));
 
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.CREATE,
@@ -249,8 +251,13 @@ public class AppAuthServiceImpl implements AppAuthService {
             eventType = DataEventTypeEnum.UPDATE;
         }
         // publish AppAuthData's event
-        AppAuthData data = new AppAuthData(appAuthDO.getAppKey(), appAuthDO.getAppSecret(),
-                appAuthDO.getEnabled(), null, null);
+        AppAuthData data = AppAuthData.builder()
+                .appKey(appAuthDO.getAppKey())
+                .appSecret(appAuthDO.getAppSecret())
+                .enabled(appAuthDO.getEnabled())
+                .paramDataList(null)
+                .pathDataList(null)
+                .build();
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, eventType, Collections.singletonList(data)));
 
         return appAuthCount;
@@ -266,7 +273,13 @@ public class AppAuthServiceImpl implements AppAuthService {
             authPathMapper.deleteByAuthId(id);
 
             // publish delete event of AppAuthData
-            AppAuthData data = new AppAuthData(appAuthDO.getAppKey(), appAuthDO.getAppSecret(), appAuthDO.getEnabled(), null, null);
+            AppAuthData data = AppAuthData.builder()
+                    .appKey(appAuthDO.getAppKey())
+                    .appSecret(appAuthDO.getAppSecret())
+                    .enabled(appAuthDO.getEnabled())
+                    .paramDataList(null)
+                    .pathDataList(null)
+                    .build();
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.DELETE, Collections.singletonList(data)));
         }
         return appAuthCount;
@@ -355,7 +368,7 @@ public class AppAuthServiceImpl implements AppAuthService {
 
     private AuthParamDO buildAuthParamDO(final String authId, final String appName, final String appParam) {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-        AuthParamDO authParamDO = new AuthParamDO();
+        AuthParamDO authParamDO = AuthParamDO.builder().build();
         authParamDO.setId(UUIDUtils.getInstance().generateShortUuid());
         authParamDO.setAuthId(authId);
         authParamDO.setAppName(appName);

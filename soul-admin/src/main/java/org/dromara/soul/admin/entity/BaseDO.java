@@ -17,6 +17,7 @@
 
 package org.dromara.soul.admin.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -28,6 +29,7 @@ import java.sql.Timestamp;
  * @author xiaoyu(Myth)
  */
 @Data
+@AllArgsConstructor
 public class BaseDO implements Serializable {
 
     /**
