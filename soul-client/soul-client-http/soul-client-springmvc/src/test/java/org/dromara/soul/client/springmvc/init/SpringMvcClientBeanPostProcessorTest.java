@@ -71,5 +71,3 @@ public final class SpringMvcClientBeanPostProcessorTest {
         }
     }
 }
-
-
