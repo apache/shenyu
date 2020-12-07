@@ -32,11 +32,9 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Arrays;
-
+import java.util.Collections;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
@@ -71,7 +69,7 @@ public final class ConfigControllerTest {
     @Test
     public void testFetchConfigs() throws Exception {
         // Configure HttpLongPollingDataChangedListener.fetchConfig(...).
-        final ConfigData<?> configData = new ConfigData<>("md5-value1", 0L, Arrays.asList());
+        final ConfigData<?> configData = new ConfigData<>("md5-value1", 0L, Collections.emptyList());
         doReturn(configData).when(mockLongPollingListener).fetchConfig(ConfigGroupEnum.APP_AUTH);
 
         // Run the test

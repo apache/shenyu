@@ -24,7 +24,6 @@ import org.dromara.soul.admin.query.PluginHandleQuery;
 import org.dromara.soul.admin.service.PluginHandleService;
 import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.admin.vo.PluginHandleVO;
-import org.dromara.soul.admin.vo.SoulDictVO;
 import org.dromara.soul.common.utils.DateUtils;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.junit.Before;
@@ -39,7 +38,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -63,7 +62,7 @@ public final class PluginHandleControllerTest {
 
     private final PluginHandleVO pluginHandleVO = new PluginHandleVO("1", "2", "3", "label",
             1, 1, 1, DateUtils.localDateTimeToString(LocalDateTime.now()),
-            DateUtils.localDateTimeToString(LocalDateTime.now()), new ArrayList<SoulDictVO>());
+            DateUtils.localDateTimeToString(LocalDateTime.now()), new ArrayList<>());
 
     @Before
     public void setUp() {
@@ -81,7 +80,7 @@ public final class PluginHandleControllerTest {
 
     @Test
     public void testQueryAllPluginHandlesByPluginId() throws Exception {
-        given(this.pluginHandleService.list("1", 1)).willReturn(Arrays.asList(pluginHandleVO));
+        given(this.pluginHandleService.list("1", 1)).willReturn(Collections.singletonList(pluginHandleVO));
         this.mockMvc.perform(MockMvcRequestBuilders.get("/plugin-handle/all/{pluginId}/{type}", "1", 1))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(SoulResultMessage.QUERY_SUCCESS)))
@@ -127,10 +126,10 @@ public final class PluginHandleControllerTest {
 
     @Test
     public void testDeletePluginHandles() throws Exception {
-        given(this.pluginHandleService.deletePluginHandles(Arrays.asList("1"))).willReturn(1);
+        given(this.pluginHandleService.deletePluginHandles(Collections.singletonList("1"))).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.delete("/plugin-handle/batch", "1")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(GsonUtils.getInstance().toJson(Arrays.asList("1"))))
+                .content(GsonUtils.getInstance().toJson(Collections.singletonList("1"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(SoulResultMessage.DELETE_SUCCESS)))
                 .andReturn();
