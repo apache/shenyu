@@ -56,7 +56,10 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
     /**
      * Instantiates a new Zookeeper cache manager.
      *
-     * @param zkClient the zk client
+     * @param zkClient             the zk client
+     * @param pluginDataSubscriber the plugin data subscriber
+     * @param metaDataSubscribers  the meta data subscribers
+     * @param authDataSubscribers  the auth data subscribers
      */
     public ZookeeperSyncDataService(final ZkClient zkClient, final PluginDataSubscriber pluginDataSubscriber,
                                     final List<MetaDataSubscriber> metaDataSubscribers, final List<AuthDataSubscriber> authDataSubscribers) {

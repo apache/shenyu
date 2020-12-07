@@ -55,9 +55,9 @@ soul:
 #        namespace:
 #        accessKey:
 #        secretKey:
-aes:
-  secret:
-    key: 2095132720951327
+  aes:
+    secret:
+      key: 2095132720951327
 
 logging:
   level:
