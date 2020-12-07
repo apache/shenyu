@@ -50,15 +50,18 @@ public class SentinelPluginConfiguration {
      * Sentinel plugin serverCodecConfigurer.
      */
     private final ServerCodecConfigurer serverCodecConfigurer;
-
+    
     /**
      * sentinelPluginConfiguration constructor.
+     *
+     * @param listObjectProvider    the list object provider
+     * @param serverCodecConfigurer the server codec configurer
      */
     public SentinelPluginConfiguration(final ObjectProvider<List<ViewResolver>> listObjectProvider, final ServerCodecConfigurer serverCodecConfigurer) {
         this.viewResolvers = listObjectProvider.getIfAvailable(Collections::emptyList);
         this.serverCodecConfigurer = serverCodecConfigurer;
     }
-
+    
     /**
      * Sentinel plugin.
      *
@@ -68,7 +71,7 @@ public class SentinelPluginConfiguration {
     public SentinelPlugin sentinelPlugin() {
         return new SentinelPlugin(new SentinelFallbackHandler());
     }
-
+    
     /**
      * Sentinel plugin data handler plugin data handler.
      *
@@ -78,7 +81,7 @@ public class SentinelPluginConfiguration {
     public PluginDataHandler sentinelRuleHandle() {
         return new SentinelRuleHandle();
     }
-
+    
     /**
      * Sentinel exception handler.
      *
