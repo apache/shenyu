@@ -17,7 +17,8 @@
 
 package org.dromara.soul.admin.config;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -25,18 +26,22 @@ import org.springframework.context.annotation.Configuration;
  * Aes Secret configuration.
  *
  * @author nuo-promise
+ * @author Jiang Jining
  */
 @Configuration
 public class SecretConfiguration {
-
+    
     /**
-     *  egister cipherUtils in spring ioc.
+     * Register secretProperties for CipherUtils in spring ioc.
      *
-     * @return CipherUtils
+     * @param key the key read from property file, default value is 2095132720951327
+     * @return secretProperties
      */
     @Bean
-    @ConditionalOnProperty(prefix = "soul.aes.secret", value = "key", havingValue = "2095132720951327")
-    public SecretProperties secretProperties() {
-        return new SecretProperties();
+    @ConditionalOnMissingBean(value = SecretProperties.class)
+    public SecretProperties secretProperties(@Value("${soul.aes.secret.key:2095132720951327}") final String key) {
+        SecretProperties secretProperties = new SecretProperties();
+        secretProperties.setKey(key);
+        return secretProperties;
     }
 }

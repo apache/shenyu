@@ -34,10 +34,7 @@ import rx.RxReactiveStreams;
  * @author xiaoyu(Myth)
  */
 public class HystrixCommand extends HystrixObservableCommand<Void> implements Command {
-
-    /**
-     * logger.
-     */
+    
     private static final Logger LOGGER = LoggerFactory.getLogger(HystrixCommand.class);
 
     private final ServerWebExchange exchange;
@@ -45,13 +42,14 @@ public class HystrixCommand extends HystrixObservableCommand<Void> implements Co
     private final SoulPluginChain chain;
 
     private final URI callBackUri;
-
+    
     /**
      * Instantiates a new Http command.
      *
-     * @param setter   the setter
-     * @param exchange the exchange
-     * @param chain    the chain
+     * @param setter      the setter
+     * @param exchange    the exchange
+     * @param chain       the chain
+     * @param callBackUri the call back uri
      */
     public HystrixCommand(final Setter setter,
                    final ServerWebExchange exchange,
@@ -91,5 +89,4 @@ public class HystrixCommand extends HystrixObservableCommand<Void> implements Co
     public URI getCallBackUri() {
         return callBackUri;
     }
-
 }

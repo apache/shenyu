@@ -32,7 +32,7 @@ import static org.junit.Assert.fail;
  *
  * @author dengliming
  */
-public class SpiLoadFactoryTest {
+public final class SpiLoadFactoryTest {
 
     @Test
     public void testLoadNoImplementation() {

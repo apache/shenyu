@@ -34,7 +34,7 @@ import static org.junit.Assert.assertNull;
  *
  * @author strawberry-crisis
  */
-public class JsonUtilsTest {
+public final class JsonUtilsTest {
     
     private static final String EXPECTED_JSON = "{\"id\":123,\"name\":\"test object\",\"deleted\":false,"
              + "\"testList\":[\"test_string_0\",\"test_string_1\",\"test_string_2\",\"test_string_3\",\"test_string_4\",\"test_string_5\","

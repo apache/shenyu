@@ -29,7 +29,7 @@ import org.junit.Test;
 /**
  * The type Jmx scraper test.
  */
-public class JmxScraperTest {
+public final class JmxScraperTest {
     
     /**
      * Test jmx scraper test.

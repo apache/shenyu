@@ -25,7 +25,7 @@ import org.junit.Test;
 /**
  * The type Jmx collector test.
  */
-public class JmxCollectorTest {
+public final class JmxCollectorTest {
     
     /**
      * Test jmx collector.

@@ -27,7 +27,7 @@ import static org.junit.Assert.assertTrue;
  *
  * @author dengliming
  */
-public class PathMatchUtilsTest {
+public final class PathMatchUtilsTest {
 
     @Test
     public void testPathMatch() {
