@@ -456,12 +456,20 @@
                 <configuration>
                     <!-- 略过整个单元测试的执行，不推荐 -->
                     <skip>${skipTests}</skip>
+                    <argLine>-Xms690m -Xmx690m -XX:MaxPermSize=512m -noverify</argLine>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>2.10.3</version>
+                <configuration>
+                    <detectLinks>false</detectLinks>
+                    <detectOfflineLinks>true</detectOfflineLinks>
+                    <linksource>true</linksource>
+                    <additionalparam>-Xdoclint:none</additionalparam>
+                    <detectJavaApiLink>true</detectJavaApiLink>
+                </configuration>
                 <executions>
                     <execution>
                         <phase>package</phase>
