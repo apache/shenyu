@@ -34,7 +34,7 @@ import static org.junit.Assert.assertEquals;
  *
  * @author dengliming
  */
-public class HttpParamConverterTest {
+public final class HttpParamConverterTest {
 
     @Rule
     public ErrorCollector collector = new ErrorCollector();
