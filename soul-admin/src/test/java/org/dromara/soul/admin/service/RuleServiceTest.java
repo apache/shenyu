@@ -35,6 +35,7 @@ import org.dromara.soul.admin.query.RuleQuery;
 import org.dromara.soul.admin.service.impl.RuleServiceImpl;
 import org.dromara.soul.admin.vo.RuleVO;
 import org.dromara.soul.common.dto.RuleData;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -45,6 +46,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertEquals;
@@ -79,6 +81,11 @@ public final class RuleServiceTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
+    @Before
+    public void setUp() {
+        ruleService = new RuleServiceImpl(ruleMapper, ruleConditionMapper, selectorMapper, pluginMapper, eventPublisher);
+    }
+
     @Test
     public void testRegister() {
         publishEvent();
@@ -98,7 +105,7 @@ public final class RuleServiceTest {
         publishEvent();
         RuleDO ruleDO = buildRuleDO("123");
         given(this.ruleMapper.selectById("123")).willReturn(ruleDO);
-        final List<String> ids = Arrays.asList(ruleDO.getId());
+        final List<String> ids = Collections.singletonList(ruleDO.getId());
         assertEquals(this.ruleService.delete(ids), ids.size());
     }
 
@@ -108,8 +115,8 @@ public final class RuleServiceTest {
         given(this.ruleMapper.selectById("123")).willReturn(ruleDO);
         RuleConditionQuery ruleConditionQuery = buildRuleConditionQuery();
         RuleConditionDO ruleCondition = buildRuleConditionDO();
-        given(this.ruleConditionMapper.selectByQuery(ruleConditionQuery)).willReturn(Arrays.asList(ruleCondition));
-        RuleVO ruleVO = buildRuleVO("123");
+        given(this.ruleConditionMapper.selectByQuery(ruleConditionQuery)).willReturn(Collections.singletonList(ruleCondition));
+        RuleVO ruleVO = buildRuleVO();
         final RuleVO ruleVOById = this.ruleService.findById("123");
         assertNotNull(ruleVOById);
         assertEquals(ruleVOById.getId(), ruleVO.getId());
@@ -138,9 +145,9 @@ public final class RuleServiceTest {
         publishEvent();
         RuleConditionQuery ruleConditionQuery = buildRuleConditionQuery();
         RuleConditionDO ruleCondition = buildRuleConditionDO();
-        given(this.ruleConditionMapper.selectByQuery(ruleConditionQuery)).willReturn(Arrays.asList(ruleCondition));
+        given(this.ruleConditionMapper.selectByQuery(ruleConditionQuery)).willReturn(Collections.singletonList(ruleCondition));
         RuleDO ruleDO = buildRuleDO("123");
-        List<RuleDO> ruleDOList = Arrays.asList(ruleDO);
+        List<RuleDO> ruleDOList = Collections.singletonList(ruleDO);
         given(this.ruleMapper.selectAll()).willReturn(ruleDOList);
         List<RuleData> dataList = this.ruleService.listAll();
         assertNotNull(dataList);
@@ -152,9 +159,9 @@ public final class RuleServiceTest {
         publishEvent();
         RuleConditionQuery ruleConditionQuery = buildRuleConditionQuery();
         RuleConditionDO ruleCondition = buildRuleConditionDO();
-        given(this.ruleConditionMapper.selectByQuery(ruleConditionQuery)).willReturn(Arrays.asList(ruleCondition));
+        given(this.ruleConditionMapper.selectByQuery(ruleConditionQuery)).willReturn(Collections.singletonList(ruleCondition));
         RuleDO ruleDO = buildRuleDO("123");
-        List<RuleDO> ruleDOList = Arrays.asList(ruleDO);
+        List<RuleDO> ruleDOList = Collections.singletonList(ruleDO);
         given(this.ruleMapper.findBySelectorId("456")).willReturn(ruleDOList);
         List<RuleData> dataList = this.ruleService.findBySelectorId("456");
         assertNotNull(dataList);
@@ -229,9 +236,9 @@ public final class RuleServiceTest {
         return ruleDTO;
     }
 
-    private RuleVO buildRuleVO(final String id) {
+    private RuleVO buildRuleVO() {
         RuleVO ruleVO = new RuleVO();
-        ruleVO.setId(id);
+        ruleVO.setId("123");
         return ruleVO;
     }
 
