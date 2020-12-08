@@ -32,7 +32,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 /**
- * ApacheDubboResponsePluginTest
+ * the test for {@link DubboResponsePlugin}.
  * @author kaito
  */
 
@@ -40,23 +40,23 @@ import reactor.test.StepVerifier;
 public class ApacheDubboResponsePluginTest {
     @Mock
     private SoulPluginChain chain;
-    
+
     private ServerWebExchange exchange;
-    
+
     private DubboResponsePlugin dubboResponsePlugin;
-    
+
     @Before
     public void setup() {
         exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
     }
-    
+
     @Test
     public void testNoResult() {
         Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
         dubboResponsePlugin = new DubboResponsePlugin();
         StepVerifier.create(dubboResponsePlugin.execute(exchange, chain)).expectSubscription().verifyError();
     }
-    
+
     @Test
     public void testGetResult() {
         final String response = "{}";
