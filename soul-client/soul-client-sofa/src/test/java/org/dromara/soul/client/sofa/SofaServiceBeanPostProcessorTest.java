@@ -61,13 +61,13 @@ public final class SofaServiceBeanPostProcessorTest {
     @BeforeClass
     public static void init() {
         SofaConfig mockSofaConfig = new SofaConfig();
-        mockSofaConfig.setAdminUrl("http://localhost:9095");
+        mockSofaConfig.setAdminUrl("http://localhost:59095");
         mockSofaConfig.setAppName("sofa");
         mockSofaConfig.setContextPath("/sofa");
         sofaServiceBeanPostProcessorUnderTest = new SofaServiceBeanPostProcessor(mockSofaConfig);
         // config server
         server = Undertow.builder()
-                .addHttpListener(9095, "localhost")
+                .addHttpListener(59095, "localhost")
                 .setHandler(path().addPrefixPath("/soul-client/sofa-register", httpServerExchange -> {
                     registerNum++;
                     countDownLatch.countDown();
