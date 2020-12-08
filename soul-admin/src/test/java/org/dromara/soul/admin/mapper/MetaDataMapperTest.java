@@ -24,12 +24,10 @@ import org.dromara.soul.admin.query.MetaDataQuery;
 import org.dromara.soul.common.utils.UUIDUtils;
 import org.junit.Before;
 import org.junit.Test;
-
 import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
-
 import static org.hamcrest.Matchers.comparesEqualTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;

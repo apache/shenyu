@@ -119,7 +119,7 @@ public final class RuleServiceTest {
         RuleConditionQuery ruleConditionQuery = buildRuleConditionQuery();
         RuleConditionDO ruleCondition = buildRuleConditionDO();
         given(this.ruleConditionMapper.selectByQuery(ruleConditionQuery)).willReturn(Collections.singletonList(ruleCondition));
-        RuleVO ruleVO = buildRuleVO("123");
+        RuleVO ruleVO = buildRuleVO();
         final RuleVO ruleVOById = this.ruleService.findById("123");
         assertNotNull(ruleVOById);
         assertEquals(ruleVOById.getId(), ruleVO.getId());
@@ -237,9 +237,9 @@ public final class RuleServiceTest {
         return ruleDTO;
     }
 
-    private RuleVO buildRuleVO(final String id) {
+    private RuleVO buildRuleVO() {
         RuleVO ruleVO = new RuleVO();
-        ruleVO.setId(id);
+        ruleVO.setId("123");
         return ruleVO;
     }
 

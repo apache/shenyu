@@ -87,12 +87,16 @@ public final class PluginHandleDO extends BaseDO {
     }
 
     /**
+     * the attribute extObj.
+     */
+    private String extObj;
+
+    /**
      * build {@linkplain PluginHandleDO} instance.
      * @param pluginHandleDTO {@linkplain PluginHandleDTO}
      * @return {@linkplain PluginHandleDO}
      */
     public static PluginHandleDO buildPluginHandleDO(final PluginHandleDTO pluginHandleDTO) {
-
         return Optional.ofNullable(pluginHandleDTO).map(item -> {
             PluginHandleDO pluginHandleDO = PluginHandleDO.builder()
                     .id(item.getId())

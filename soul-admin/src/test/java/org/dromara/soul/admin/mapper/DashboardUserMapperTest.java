@@ -24,12 +24,10 @@ import org.dromara.soul.admin.query.DashboardUserQuery;
 import org.dromara.soul.admin.utils.AesUtils;
 import org.dromara.soul.common.utils.UUIDUtils;
 import org.junit.Test;
-
 import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
-
 import static org.hamcrest.Matchers.comparesEqualTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertNotNull;

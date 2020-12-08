@@ -32,7 +32,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 /**
  * swagger configuration information.
  *
- * @author: 李晓双
+ * @author xiaoshuang Li
  **/
 @Configuration
 @EnableSwagger2

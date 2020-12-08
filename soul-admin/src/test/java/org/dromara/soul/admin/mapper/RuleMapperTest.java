@@ -22,13 +22,11 @@ import org.dromara.soul.admin.entity.RuleDO;
 import org.dromara.soul.admin.query.RuleQuery;
 import org.dromara.soul.common.utils.UUIDUtils;
 import org.junit.Test;
-
 import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
-
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
