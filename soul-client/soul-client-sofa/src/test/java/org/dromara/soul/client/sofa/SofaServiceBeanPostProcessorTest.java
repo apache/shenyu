@@ -95,7 +95,6 @@ public final class SofaServiceBeanPostProcessorTest {
         serviceField.setAccessible(true);
         serviceField.set(serviceFactoryBean,
                 new ServiceImpl("uniqueId", SofaService.class, new SoulSofaServiceImpl()));
-
         Field interfaceClassField = serviceFactoryBeanClass.getSuperclass().getDeclaredField("interfaceClass");
         interfaceClassField.setAccessible(true);
         interfaceClassField.set(serviceFactoryBean, SoulSofaServiceImpl.class);
