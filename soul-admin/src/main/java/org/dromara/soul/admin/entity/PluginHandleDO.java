@@ -17,15 +17,14 @@
 
 package org.dromara.soul.admin.entity;
 
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.PluginHandleDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
 
-import java.sql.Timestamp;
 import java.util.Optional;
 
 /**
@@ -35,6 +34,7 @@ import java.util.Optional;
  * @author nuo-promise
  */
 @Data
+@SuperBuilder
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public final class PluginHandleDO extends BaseDO {
@@ -78,20 +78,6 @@ public final class PluginHandleDO extends BaseDO {
      * the attribute extObj.
      */
     private String extObj;
-
-    @Builder
-    private PluginHandleDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String pluginId,
-                           final String field, final String label, final Integer dataType, final Integer type,
-                           final Integer sort, final String extObj) {
-        super(id, dateCreated, dateUpdated);
-        this.pluginId = pluginId;
-        this.field = field;
-        this.label = label;
-        this.dataType = dataType;
-        this.type = type;
-        this.sort = sort;
-        this.extObj = extObj;
-    }
 
     /**
      * build {@linkplain PluginHandleDO} instance.

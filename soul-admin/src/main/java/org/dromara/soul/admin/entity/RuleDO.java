@@ -17,10 +17,10 @@
 
 package org.dromara.soul.admin.entity;
 
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.RuleDTO;
 import org.dromara.soul.common.dto.ConditionData;
@@ -38,6 +38,7 @@ import java.util.Optional;
  * @author nuo-promise
  */
 @Data
+@SuperBuilder
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public final class RuleDO extends BaseDO {
@@ -76,20 +77,6 @@ public final class RuleDO extends BaseDO {
      * process logic.
      */
     private String handle;
-
-    @Builder
-    private RuleDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String selectorId,
-                   final Integer matchMode, final String name, final Boolean enabled, final Boolean loged,
-                   final Integer sort, final String handle) {
-        super(id, dateCreated, dateUpdated);
-        this.selectorId = selectorId;
-        this.matchMode = matchMode;
-        this.name = name;
-        this.enabled = enabled;
-        this.loged = loged;
-        this.sort = sort;
-        this.handle = handle;
-    }
 
     /**
      * build ruleDO.

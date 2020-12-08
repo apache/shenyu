@@ -20,7 +20,7 @@ package org.dromara.soul.admin.entity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.Builder;
+import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.AppAuthDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
@@ -35,6 +35,7 @@ import java.util.Optional;
  * @author nuo-promise
  */
 @Data
+@SuperBuilder
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public final class AppAuthDO extends BaseDO {
@@ -59,18 +60,6 @@ public final class AppAuthDO extends BaseDO {
     private String phone;
 
     private String extInfo;
-
-    @Builder
-    private AppAuthDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String appKey,
-                     final String appSecret, final Boolean enabled, final String userId, final String phone, final String extInfo) {
-        super(id, dateCreated, dateUpdated);
-        this.appKey = appKey;
-        this.appSecret = appSecret;
-        this.enabled = enabled;
-        this.userId = userId;
-        this.phone = phone;
-        this.extInfo = extInfo;
-    }
 
     /**
      * build appAuthDO.

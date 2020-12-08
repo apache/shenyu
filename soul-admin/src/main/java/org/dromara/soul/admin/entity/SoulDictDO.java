@@ -17,15 +17,14 @@
 
 package org.dromara.soul.admin.entity;
 
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.SoulDictDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
 
-import java.sql.Timestamp;
 import java.util.Optional;
 
 /**
@@ -35,6 +34,7 @@ import java.util.Optional;
  * @author nuo-promise
  */
 @Data
+@SuperBuilder
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public final class SoulDictDO extends BaseDO {
@@ -73,20 +73,6 @@ public final class SoulDictDO extends BaseDO {
      * whether enabled.
      */
     private Boolean enabled;
-
-    @Builder
-    private SoulDictDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String type,
-                       final String dictCode, final String dictName, final String dictValue, final String desc,
-                       final Integer sort, final Boolean enabled) {
-        super(id, dateCreated, dateUpdated);
-        this.type = type;
-        this.dictCode = dictCode;
-        this.dictName = dictName;
-        this.dictValue = dictValue;
-        this.desc = desc;
-        this.sort = sort;
-        this.enabled = enabled;
-    }
 
     /**
      * build {@linkplain SoulDictDO} instance.

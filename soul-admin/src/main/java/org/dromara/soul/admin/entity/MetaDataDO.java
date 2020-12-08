@@ -17,13 +17,12 @@
 
 package org.dromara.soul.admin.entity;
 
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
 
 /**
  * The type Meta data do.
@@ -31,6 +30,7 @@ import java.sql.Timestamp;
  * @author nuo-promise
  */
 @Data
+@SuperBuilder
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public final class MetaDataDO extends BaseDO implements Serializable {
@@ -55,20 +55,4 @@ public final class MetaDataDO extends BaseDO implements Serializable {
      * whether enabled.
      */
     private Boolean enabled;
-
-    @Builder
-    private MetaDataDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String appName,
-                       final String path, final String pathDesc, final String rpcType, final String serviceName,
-                       final String methodName, final String parameterTypes, final String rpcExt, final Boolean enabled) {
-        super(id, dateCreated, dateUpdated);
-        this.appName = appName;
-        this.path = path;
-        this.pathDesc = pathDesc;
-        this.rpcType = rpcType;
-        this.serviceName = serviceName;
-        this.methodName = methodName;
-        this.parameterTypes = parameterTypes;
-        this.rpcExt = rpcExt;
-        this.enabled = enabled;
-    }
 }

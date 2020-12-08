@@ -17,12 +17,10 @@
 
 package org.dromara.soul.admin.entity;
 
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
-import java.sql.Timestamp;
+import lombok.experimental.SuperBuilder;
 
 /**
  * The type Auth path do.
@@ -31,6 +29,7 @@ import java.sql.Timestamp;
  * @author nuo-promise
  */
 @Data
+@SuperBuilder
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public final class AuthPathDO extends BaseDO {
@@ -42,15 +41,4 @@ public final class AuthPathDO extends BaseDO {
     private String path;
 
     private Boolean enabled;
-
-    @Builder
-    private AuthPathDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String authId,
-                      final String appName, final String path, final Boolean enabled) {
-        super(id, dateCreated, dateUpdated);
-        this.authId = authId;
-        this.appName = appName;
-        this.path = path;
-        this.enabled = enabled;
-    }
-
 }

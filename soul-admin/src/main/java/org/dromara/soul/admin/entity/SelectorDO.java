@@ -17,10 +17,10 @@
 
 package org.dromara.soul.admin.entity;
 
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.SelectorDTO;
 import org.dromara.soul.common.dto.ConditionData;
@@ -40,6 +40,7 @@ import java.util.Optional;
  * @author nuo-promise
  */
 @Data
+@SuperBuilder
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public final class SelectorDO extends BaseDO {
@@ -85,22 +86,6 @@ public final class SelectorDO extends BaseDO {
     private Boolean continued;
 
     private String handle;
-
-    @Builder
-    private SelectorDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String pluginId,
-                       final String name, final Integer matchMode, final Integer type, final Integer sort, final Boolean enabled,
-                       final Boolean loged, final Boolean continued, final String handle) {
-        super(id, dateCreated, dateUpdated);
-        this.pluginId = pluginId;
-        this.name = name;
-        this.matchMode = matchMode;
-        this.type = type;
-        this.sort = sort;
-        this.enabled = enabled;
-        this.loged = loged;
-        this.continued = continued;
-        this.handle = handle;
-    }
 
     /**
      * build selectorDO.

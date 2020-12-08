@@ -17,10 +17,10 @@
 
 package org.dromara.soul.admin.entity;
 
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.DashboardUserDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
@@ -35,6 +35,7 @@ import java.util.Optional;
  * @author nuo-promise
  */
 @Data
+@SuperBuilder
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public final class DashboardUserDO extends BaseDO {
@@ -58,16 +59,6 @@ public final class DashboardUserDO extends BaseDO {
      * whether enabled.
      */
     private Boolean enabled;
-
-    @Builder
-    private DashboardUserDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String userName,
-                            final String password, final Integer role, final Boolean enabled) {
-        super(id, dateCreated, dateUpdated);
-        this.userName = userName;
-        this.password = password;
-        this.role = role;
-        this.enabled = enabled;
-    }
 
     /**
      * build dashboardUserDO.

@@ -17,10 +17,10 @@
 
 package org.dromara.soul.admin.entity;
 
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.PluginDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
@@ -37,6 +37,7 @@ import java.util.Optional;
  * @author nuo-promise
  */
 @Data
+@SuperBuilder
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public final class PluginDO extends BaseDO {
@@ -61,16 +62,6 @@ public final class PluginDO extends BaseDO {
      * {@linkplain org.dromara.soul.common.enums.PluginRoleEnum}
      */
     private Integer role;
-
-    @Builder
-    private PluginDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String name,
-                     final String config, final Boolean enabled, final Integer role) {
-        super(id, dateCreated, dateUpdated);
-        this.name = name;
-        this.config = config;
-        this.enabled = enabled;
-        this.role = role;
-    }
 
     /**
      * build pluginDO.
