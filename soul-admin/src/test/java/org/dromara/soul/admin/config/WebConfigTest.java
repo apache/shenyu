@@ -21,6 +21,9 @@ import com.alibaba.fastjson.JSONObject;
 import org.dromara.soul.admin.AbstractConfigurationTest;
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import java.lang.reflect.Method;
+import java.util.Map;
 
 /**
  * Test cases for WebConfig.
@@ -30,16 +33,15 @@ import org.junit.Test;
 public final class WebConfigTest extends AbstractConfigurationTest {
 
     @Test
-    public void testaddCorsMappings() {
-        CorsRegistryExtend registry = new CorsRegistryExtend();
+    public void testaddCorsMappings() throws Exception {
+        CorsRegistry registry = new CorsRegistry();
         WebConfig webConfig = new WebConfig();
         webConfig.addCorsMappings(registry);
-        String registryString = JSONObject.toJSONString(registry.getCorsConfigurations());
-        Assert.assertEquals(corsRegistryJSONStringExtendBuild(), registryString);
+        Assert.assertEquals(getCorsConfigurationsString(registry), getCorsConfigurationsString(corsRegistryJSONStringExtendBuild()));
     }
 
-    private String corsRegistryJSONStringExtendBuild() {
-        CorsRegistryExtend registry = new CorsRegistryExtend();
+    private CorsRegistry corsRegistryJSONStringExtendBuild() {
+        CorsRegistry registry = new CorsRegistry();
         registry.addMapping("/**")
                 .allowedHeaders("Access-Control-Allow-Origin",
                         "*",
@@ -49,6 +51,14 @@ public final class WebConfigTest extends AbstractConfigurationTest {
                         "Origin, X-Requested-With, Content-Type, Accept")
                 .allowedOrigins("*")
                 .allowedMethods("*");
-        return JSONObject.toJSONString(registry.getCorsConfigurations());
+        return registry;
+    }
+
+    private String getCorsConfigurationsString(final CorsRegistry registry) throws Exception {
+        Class registryClass = registry.getClass();
+        Method getCorsConfigurationsMethod = registryClass.getDeclaredMethod("getCorsConfigurations");
+        getCorsConfigurationsMethod.setAccessible(true);
+        Map invokeResult = (Map) getCorsConfigurationsMethod.invoke(registry);
+        return JSONObject.toJSONString(invokeResult);
     }
 }
