@@ -37,7 +37,7 @@ import reactor.test.StepVerifier;
  */
 
 @RunWith(MockitoJUnitRunner.class)
-public class ApacheDubboResponsePluginTest {
+public final class ApacheDubboResponsePluginTest {
     @Mock
     private SoulPluginChain chain;
 
