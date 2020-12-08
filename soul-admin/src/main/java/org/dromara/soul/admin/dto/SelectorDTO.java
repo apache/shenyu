@@ -17,7 +17,10 @@
 
 package org.dromara.soul.admin.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.List;
@@ -26,9 +29,13 @@ import java.util.List;
  * this is selector from by web front.
  *
  * @author jiangxiaofeng(Nicholas)
+ * @author nuo-promise
  */
 @Data
-public class SelectorDTO implements Serializable {
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public final class SelectorDTO implements Serializable {
 
     /**
      * primary key.

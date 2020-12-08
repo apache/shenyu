@@ -22,12 +22,10 @@ import org.dromara.soul.admin.entity.PluginHandleDO;
 import org.dromara.soul.admin.query.PluginHandleQuery;
 import org.dromara.soul.common.utils.UUIDUtils;
 import org.junit.Test;
-
 import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
-
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
@@ -169,19 +167,19 @@ public final class PluginHandleMapperTest extends AbstractSpringIntegrationTest 
     }
 
     private PluginHandleDO buildPluginHandleDO() {
-        PluginHandleDO pluginHandleDO = new PluginHandleDO();
         String id = UUIDUtils.getInstance().generateShortUuid();
-        pluginHandleDO.setId(id);
         String pluginId = UUIDUtils.getInstance().generateShortUuid();
-        pluginHandleDO.setPluginId(pluginId);
-        pluginHandleDO.setField("test_field");
-        pluginHandleDO.setLabel("test_label");
-        pluginHandleDO.setDataType(1);
-        pluginHandleDO.setType(1);
-        pluginHandleDO.setSort(1);
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-        pluginHandleDO.setDateCreated(now);
-        pluginHandleDO.setDateUpdated(now);
-        return pluginHandleDO;
+        return PluginHandleDO.builder()
+                .id(id)
+                .pluginId(pluginId)
+                .field("test_field")
+                .label("test_label")
+                .dataType(1)
+                .type(1)
+                .sort(1)
+                .dateCreated(now)
+                .dateUpdated(now)
+                .build();
     }
 }

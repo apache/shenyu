@@ -40,7 +40,7 @@ import static org.mockito.Mockito.mock;
  *
  * @author HoldDie
  */
-public class BodyParamPluginTest {
+public final class BodyParamPluginTest {
 
     private SoulPluginChain chain;
 

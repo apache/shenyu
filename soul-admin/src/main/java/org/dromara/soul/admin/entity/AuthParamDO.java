@@ -17,11 +17,10 @@
 
 package org.dromara.soul.admin.entity;
 
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import java.sql.Timestamp;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 /**
  * The type Auth param do.
@@ -30,22 +29,14 @@ import java.sql.Timestamp;
  * @author nuo-promise
  */
 @Data
-@Builder
+@SuperBuilder
+@NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class AuthParamDO extends BaseDO {
+public final class AuthParamDO extends BaseDO {
 
     private String authId;
 
     private String appName;
 
     private String appParam;
-
-    @Builder(toBuilder = true)
-    public AuthParamDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated,
-                       final String authId, final String appName, final String appParam) {
-        super(id, dateCreated, dateUpdated);
-        this.authId = authId;
-        this.appName = appName;
-        this.appParam = appParam;
-    }
 }

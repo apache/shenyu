@@ -35,17 +35,21 @@ import org.dromara.soul.admin.query.RuleQuery;
 import org.dromara.soul.admin.service.impl.RuleServiceImpl;
 import org.dromara.soul.admin.vo.RuleVO;
 import org.dromara.soul.common.dto.RuleData;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.ApplicationEventPublisher;
+
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -57,6 +61,7 @@ import static org.mockito.BDDMockito.given;
  * Test cases for RuleService.
  *
  * @author kennhua
+ * @author nuo-promise
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class RuleServiceTest {
@@ -79,6 +84,11 @@ public final class RuleServiceTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
+    @Before
+    public void setUp() {
+        ruleService = new RuleServiceImpl(ruleMapper, ruleConditionMapper, selectorMapper, pluginMapper, eventPublisher);
+    }
+
     @Test
     public void testRegister() {
         publishEvent();
@@ -98,7 +108,7 @@ public final class RuleServiceTest {
         publishEvent();
         RuleDO ruleDO = buildRuleDO("123");
         given(this.ruleMapper.selectById("123")).willReturn(ruleDO);
-        final List<String> ids = Arrays.asList(ruleDO.getId());
+        final List<String> ids = Collections.singletonList(ruleDO.getId());
         assertEquals(this.ruleService.delete(ids), ids.size());
     }
 
@@ -108,8 +118,8 @@ public final class RuleServiceTest {
         given(this.ruleMapper.selectById("123")).willReturn(ruleDO);
         RuleConditionQuery ruleConditionQuery = buildRuleConditionQuery();
         RuleConditionDO ruleCondition = buildRuleConditionDO();
-        given(this.ruleConditionMapper.selectByQuery(ruleConditionQuery)).willReturn(Arrays.asList(ruleCondition));
-        RuleVO ruleVO = buildRuleVO("123");
+        given(this.ruleConditionMapper.selectByQuery(ruleConditionQuery)).willReturn(Collections.singletonList(ruleCondition));
+        RuleVO ruleVO = buildRuleVO();
         final RuleVO ruleVOById = this.ruleService.findById("123");
         assertNotNull(ruleVOById);
         assertEquals(ruleVOById.getId(), ruleVO.getId());
@@ -138,9 +148,9 @@ public final class RuleServiceTest {
         publishEvent();
         RuleConditionQuery ruleConditionQuery = buildRuleConditionQuery();
         RuleConditionDO ruleCondition = buildRuleConditionDO();
-        given(this.ruleConditionMapper.selectByQuery(ruleConditionQuery)).willReturn(Arrays.asList(ruleCondition));
+        given(this.ruleConditionMapper.selectByQuery(ruleConditionQuery)).willReturn(Collections.singletonList(ruleCondition));
         RuleDO ruleDO = buildRuleDO("123");
-        List<RuleDO> ruleDOList = Arrays.asList(ruleDO);
+        List<RuleDO> ruleDOList = Collections.singletonList(ruleDO);
         given(this.ruleMapper.selectAll()).willReturn(ruleDOList);
         List<RuleData> dataList = this.ruleService.listAll();
         assertNotNull(dataList);
@@ -152,9 +162,9 @@ public final class RuleServiceTest {
         publishEvent();
         RuleConditionQuery ruleConditionQuery = buildRuleConditionQuery();
         RuleConditionDO ruleCondition = buildRuleConditionDO();
-        given(this.ruleConditionMapper.selectByQuery(ruleConditionQuery)).willReturn(Arrays.asList(ruleCondition));
+        given(this.ruleConditionMapper.selectByQuery(ruleConditionQuery)).willReturn(Collections.singletonList(ruleCondition));
         RuleDO ruleDO = buildRuleDO("123");
-        List<RuleDO> ruleDOList = Arrays.asList(ruleDO);
+        List<RuleDO> ruleDOList = Collections.singletonList(ruleDO);
         given(this.ruleMapper.findBySelectorId("456")).willReturn(ruleDOList);
         List<RuleData> dataList = this.ruleService.findBySelectorId("456");
         assertNotNull(dataList);
@@ -196,16 +206,15 @@ public final class RuleServiceTest {
     }
 
     private RuleDO buildRuleDO(final String id) {
-        RuleDTO ruleDTO = new RuleDTO();
+        RuleDTO ruleDTO = RuleDTO.builder()
+                .selectorId("456")
+                .matchMode(0)
+                .build();
         if (StringUtils.isNotBlank(id)) {
             ruleDTO.setId(id);
         }
-        ruleDTO.setSelectorId("456");
-        ruleDTO.setMatchMode(0);
-        RuleConditionDTO ruleConditionDTO1 = new RuleConditionDTO();
-        ruleConditionDTO1.setId("111");
-        RuleConditionDTO ruleConditionDTO2 = new RuleConditionDTO();
-        ruleConditionDTO2.setId("222");
+        RuleConditionDTO ruleConditionDTO1 = RuleConditionDTO.builder().id("111").build();
+        RuleConditionDTO ruleConditionDTO2 = RuleConditionDTO.builder().id("222").build();
         ruleDTO.setRuleConditions(Arrays.asList(ruleConditionDTO1, ruleConditionDTO2));
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
@@ -215,49 +224,48 @@ public final class RuleServiceTest {
     }
 
     private RuleDTO buildRuleDTO(final String id) {
-        RuleDTO ruleDTO = new RuleDTO();
+        RuleDTO ruleDTO = RuleDTO.builder()
+                .selectorId("456")
+                .matchMode(0)
+                .build();
         if (StringUtils.isNotBlank(id)) {
             ruleDTO.setId(id);
         }
-        ruleDTO.setSelectorId("456");
-        ruleDTO.setMatchMode(0);
-        RuleConditionDTO ruleConditionDTO1 = new RuleConditionDTO();
-        ruleConditionDTO1.setId("111");
-        RuleConditionDTO ruleConditionDTO2 = new RuleConditionDTO();
-        ruleConditionDTO2.setId("222");
+        RuleConditionDTO ruleConditionDTO1 = RuleConditionDTO.builder().id("111").build();
+        RuleConditionDTO ruleConditionDTO2 = RuleConditionDTO.builder().id("222").build();
         ruleDTO.setRuleConditions(Arrays.asList(ruleConditionDTO1, ruleConditionDTO2));
         return ruleDTO;
     }
 
-    private RuleVO buildRuleVO(final String id) {
+    private RuleVO buildRuleVO() {
         RuleVO ruleVO = new RuleVO();
-        ruleVO.setId(id);
+        ruleVO.setId("123");
         return ruleVO;
     }
 
     private PluginDO buildPluginDO() {
-        PluginDO pluginDO = new PluginDO();
-        pluginDO.setName("test");
-        pluginDO.setId("789");
-        return pluginDO;
+        return PluginDO.builder()
+                .name("test")
+                .id("789")
+                .build();
     }
 
     private SelectorDO buildSelectorDO() {
-        SelectorDO selectorDO = new SelectorDO();
-        selectorDO.setPluginId("789");
-        selectorDO.setId("456");
-        return selectorDO;
+        return SelectorDO.builder()
+                .pluginId("789")
+                .id("456")
+                .build();
     }
 
     private RuleConditionDO buildRuleConditionDO() {
-        RuleConditionDO ruleCondition = new RuleConditionDO();
-        ruleCondition.setRuleId("123");
-        ruleCondition.setParamType("post");
-        ruleCondition.setOperator("match");
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-        ruleCondition.setDateCreated(now);
-        ruleCondition.setDateUpdated(now);
-        return ruleCondition;
+        return RuleConditionDO.builder()
+                .ruleId("123")
+                .paramType("post")
+                .operator("match")
+                .dateCreated(now)
+                .dateUpdated(now)
+                .build();
     }
 
     private RuleConditionQuery buildRuleConditionQuery() {
