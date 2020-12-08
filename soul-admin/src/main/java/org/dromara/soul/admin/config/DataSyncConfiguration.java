@@ -27,6 +27,7 @@ import org.dromara.soul.admin.listener.websocket.WebsocketDataChangedListener;
 import org.dromara.soul.admin.listener.zookeeper.ZookeeperDataChangedListener;
 import org.dromara.soul.admin.listener.zookeeper.ZookeeperDataInit;
 import org.dromara.soul.admin.service.SyncDataService;
+import org.dromara.soul.admin.service.sync.SyncDataServiceImpl;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
