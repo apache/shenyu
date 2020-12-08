@@ -18,6 +18,7 @@
 package org.dromara.soul.admin.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
+import org.dromara.soul.admin.config.SecretProperties;
 import org.dromara.soul.admin.dto.DashboardUserDTO;
 import org.dromara.soul.admin.entity.DashboardUserDO;
 import org.dromara.soul.admin.mapper.DashboardUserMapper;
@@ -29,9 +30,9 @@ import org.dromara.soul.admin.service.DashboardUserService;
 import org.dromara.soul.admin.utils.AesUtils;
 import org.dromara.soul.admin.vo.DashboardUserVO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,9 +43,9 @@ import java.util.stream.Collectors;
  */
 @Service("dashboardUserService")
 public class DashboardUserServiceImpl implements DashboardUserService {
-
-    @Value("${aes.secret.key}")
-    private String aesKey;
+    
+    @Resource
+    private SecretProperties secretProperties;
 
     private final DashboardUserMapper dashboardUserMapper;
 
@@ -129,18 +130,19 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      */
     @Override
     public DashboardUserVO login(final String userName, final String password) {
+        String key = secretProperties.getKey();
         DashboardUserVO dashboardUserVO = findByQuery(userName, password);
         if (dashboardUserVO != null) {
             DashboardUserDTO dashboardUserDTO = DashboardUserDTO.builder()
                     .id(dashboardUserVO.getId())
                     .userName(dashboardUserVO.getUserName())
-                    .password(AesUtils.aesEncryption(dashboardUserVO.getPassword(), aesKey))
+                    .password(AesUtils.aesEncryption(dashboardUserVO.getPassword(), key))
                     .role(dashboardUserVO.getRole())
                     .enabled(dashboardUserVO.getEnabled()).build();
             createOrUpdate(dashboardUserDTO);
             return dashboardUserVO;
         } else {
-            return findByQuery(userName, AesUtils.aesEncryption(password, aesKey));
+            return findByQuery(userName, AesUtils.aesEncryption(password, key));
         }
     }
 }

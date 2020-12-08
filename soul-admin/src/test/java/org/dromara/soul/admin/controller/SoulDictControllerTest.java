@@ -35,7 +35,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.time.LocalDateTime;
-import java.util.Arrays;
+import java.util.Collections;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -67,7 +67,7 @@ public final class SoulDictControllerTest {
 
     @Test
     public void testFindByType() throws Exception {
-        given(this.soulDictService.list("1")).willReturn(Arrays.asList(soulDictVO));
+        given(this.soulDictService.list("1")).willReturn(Collections.singletonList(soulDictVO));
         this.mockMvc.perform(MockMvcRequestBuilders.get("/soul-dict/all/{type}", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(SoulResultMessage.QUERY_SUCCESS)))
@@ -115,7 +115,7 @@ public final class SoulDictControllerTest {
 
     @Test
     public void testDeleteSoulDicts() throws Exception {
-        given(this.soulDictService.deleteSoulDicts(Arrays.asList("123"))).willReturn(1);
+        given(this.soulDictService.deleteSoulDicts(Collections.singletonList("123"))).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.delete("/soul-dict/batch")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("[\"123\"]"))
@@ -128,7 +128,7 @@ public final class SoulDictControllerTest {
     public void testBatchEnabled() throws Exception {
         BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
         batchCommonDTO.setEnabled(false);
-        batchCommonDTO.setIds(Arrays.asList("123"));
+        batchCommonDTO.setIds(Collections.singletonList("123"));
         given(this.soulDictService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled())).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/soul-dict/batchEnabled")
                 .contentType(MediaType.APPLICATION_JSON)
