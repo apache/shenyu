@@ -67,7 +67,7 @@ import java.util.concurrent.TimeUnit;
  * The type Zookeeper client test.
  */
 @SuppressWarnings("all")
-public class ZookeeperClientTest {
+public final class ZookeeperClientTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperClientTest.class);
 
@@ -315,18 +315,20 @@ public class ZookeeperClientTest {
     }
 
     private static Pair<SpringCloudSelectorHandle, SpringCloudRuleHandle> buildSpringCloudHandle() {
-        SpringCloudSelectorHandle selectorHandle = new SpringCloudSelectorHandle();
-        selectorHandle.setServiceId("xiaoyu");
+        SpringCloudSelectorHandle selectorHandle = SpringCloudSelectorHandle.builder()
+                .serviceId("xiaoyu")
+                .build();
         SpringCloudRuleHandle ruleHandle = new SpringCloudRuleHandle();
         ruleHandle.setPath("/xiaoyu");
         return new ImmutablePair<>(selectorHandle, ruleHandle);
     }
 
     private static List<DivideUpstream> buildUpstreamList() {
-        DivideUpstream upstream = new DivideUpstream();
-        upstream.setUpstreamHost("localhost");
-        upstream.setUpstreamUrl("http://localhost:8081");
-        upstream.setWeight(90);
+        DivideUpstream upstream = DivideUpstream.builder()
+                .upstreamHost("localhost")
+                .upstreamUrl("http://localhost:8081")
+                .weight(90)
+                .build();
         List<DivideUpstream> upstreams = Lists.newArrayList();
         upstreams.add(upstream);
         return upstreams;

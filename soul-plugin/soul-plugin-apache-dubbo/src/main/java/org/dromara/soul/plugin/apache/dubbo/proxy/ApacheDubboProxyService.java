@@ -23,7 +23,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.dubbo.common.constants.CommonConstants;
 import org.apache.dubbo.config.ReferenceConfig;
+import org.apache.dubbo.rpc.RpcContext;
 import org.apache.dubbo.rpc.service.GenericService;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.MetaData;
@@ -42,9 +44,9 @@ import reactor.core.publisher.Mono;
  */
 @Slf4j
 public class ApacheDubboProxyService {
-    
+
     private final DubboParamResolveService dubboParamResolveService;
-    
+
     /**
      * Instantiates a new Dubbo proxy service.
      *
@@ -53,7 +55,7 @@ public class ApacheDubboProxyService {
     public ApacheDubboProxyService(final DubboParamResolveService dubboParamResolveService) {
         this.dubboParamResolveService = dubboParamResolveService;
     }
-    
+
     /**
      * Generic invoker object.
      *
@@ -64,6 +66,11 @@ public class ApacheDubboProxyService {
      * @throws SoulException the soul exception
      */
     public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws SoulException {
+        // issue(https://github.com/dromara/soul/issues/471), add dubbo tag route
+        String dubboTagRouteFromHttpHeaders = exchange.getRequest().getHeaders().getFirst(Constants.DUBBO_TAG_ROUTE);
+        if (StringUtils.isNotBlank(dubboTagRouteFromHttpHeaders)) {
+            RpcContext.getContext().setAttachment(CommonConstants.TAG_KEY, dubboTagRouteFromHttpHeaders);
+        }
         ReferenceConfig<GenericService> reference = ApplicationConfigCache.getInstance().get(metaData.getPath());
         if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getInterface())) {
             ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
