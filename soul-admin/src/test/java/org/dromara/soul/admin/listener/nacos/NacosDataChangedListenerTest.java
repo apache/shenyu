@@ -21,9 +21,6 @@ import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.exception.NacosException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
-import java.util.List;
-
 import org.dromara.soul.common.dto.AppAuthData;
 import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.dto.PluginData;
@@ -197,7 +194,6 @@ public final class NacosDataChangedListenerTest {
 
     @Test
     public void testOnRuleChanged() throws NacosException {
-        List<RuleData> changed;
         String ruleDataId1 = "RULE_DATA_1";
         String ruleDataId2 = "RULE_DATA_2";
         String selectorId1 = "ID_1";

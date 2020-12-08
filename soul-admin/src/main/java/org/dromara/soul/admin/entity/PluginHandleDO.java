@@ -67,6 +67,11 @@ public class PluginHandleDO extends BaseDO {
     private Integer sort;
 
     /**
+     * the attribute extObj.
+     */
+    private String extObj;
+
+    /**
      * build {@linkplain PluginHandleDO} instance.
      * @param pluginHandleDTO {@linkplain PluginHandleDTO}
      * @return {@linkplain PluginHandleDO}
@@ -84,6 +89,7 @@ public class PluginHandleDO extends BaseDO {
         pluginHandleDO.setDataType(pluginHandleDTO.getDataType());
         pluginHandleDO.setType(pluginHandleDTO.getType());
         pluginHandleDO.setSort(pluginHandleDTO.getSort());
+        pluginHandleDO.setExtObj(pluginHandleDTO.getExtObj());
         if (StringUtils.isEmpty(pluginHandleDTO.getId())) {
             pluginHandleDO.setId(UUIDUtils.getInstance().generateShortUuid());
         }

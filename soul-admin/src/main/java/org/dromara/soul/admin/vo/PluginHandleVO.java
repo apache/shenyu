@@ -78,6 +78,11 @@ public class PluginHandleVO implements Serializable {
     private Integer sort;
 
     /**
+     * the attribute extObj.
+     */
+    private String extObj;
+
+    /**
      * created time.
      */
     private String dateCreated;
@@ -100,7 +105,7 @@ public class PluginHandleVO implements Serializable {
         return Optional.ofNullable(pluginHandleDO)
                 .map(it -> new PluginHandleVO(pluginHandleDO.getId(), pluginHandleDO.getPluginId(),
                         pluginHandleDO.getField(), pluginHandleDO.getLabel(),
-                        pluginHandleDO.getDataType(), pluginHandleDO.getType(), pluginHandleDO.getSort(),
+                        pluginHandleDO.getDataType(), pluginHandleDO.getType(), pluginHandleDO.getSort(), pluginHandleDO.getExtObj(),
                         DateUtils.localDateTimeToString(pluginHandleDO.getDateCreated().toLocalDateTime()),
                         DateUtils.localDateTimeToString(pluginHandleDO.getDateUpdated().toLocalDateTime()), dictOptions))
                 .orElse(null);
