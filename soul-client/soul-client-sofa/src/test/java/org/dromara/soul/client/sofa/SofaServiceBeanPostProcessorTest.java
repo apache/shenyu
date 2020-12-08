@@ -107,7 +107,7 @@ public final class SofaServiceBeanPostProcessorTest {
     @Test
     public void testPostProcessAfterInitializationWithNormalBean() throws Exception {
         sofaServiceBeanPostProcessorUnderTest
-                .postProcessAfterInitialization(new SofaServiceImpl(), "SofaServiceImpl");
+                .postProcessAfterInitialization(new SofaServiceImpl(), "sofaServiceImpl");
         countDownLatch.await(500L, TimeUnit.MILLISECONDS);
         Assert.assertEquals(0L, registerNum);
     }
