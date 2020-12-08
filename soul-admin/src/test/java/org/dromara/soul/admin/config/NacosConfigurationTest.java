@@ -33,7 +33,7 @@ import static org.junit.Assert.assertNotNull;
  *
  * @author caimeijiao
  */
-public class NacosConfigurationTest extends AbstractConfigurationTest {
+public final class NacosConfigurationTest extends AbstractConfigurationTest {
 
     private final String[] inlinedProperties = new String[]{
         "soul.sync.nacos.url=localhost:8848",

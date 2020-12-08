@@ -30,7 +30,7 @@ import org.springframework.context.annotation.Configuration;
  *
  * @author caimeijiao
  */
-public class NacosPropertiesTest extends AbstractConfigurationTest {
+public final class NacosPropertiesTest extends AbstractConfigurationTest {
 
     @Test
     public void testNacosPropertiesDefault() {
