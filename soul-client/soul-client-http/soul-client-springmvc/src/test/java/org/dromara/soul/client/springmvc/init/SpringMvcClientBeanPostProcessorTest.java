@@ -31,9 +31,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
 import static io.undertow.Handlers.path;
 
 /**
@@ -75,19 +72,17 @@ public final class SpringMvcClientBeanPostProcessorTest {
 
     @Test
     public void testSoulBeanProcess() throws InterruptedException {
-        CountDownLatch countDownLatch = new CountDownLatch(1);
         registerNum = 0L;
         springMvcClientBeanPostProcessor.postProcessAfterInitialization(springMvcClientTestBean, "springMvcClientTestBean");
-        countDownLatch.await(5, TimeUnit.SECONDS);
+        Thread.sleep(500L);
         Assert.assertEquals(registerNum, 1L);
     }
 
     @Test
     public void testNormalBeanProcess() throws InterruptedException {
-        CountDownLatch countDownLatch = new CountDownLatch(1);
         registerNum = 0L;
         springMvcClientBeanPostProcessor.postProcessAfterInitialization(new Object(), "normalBean");
-        countDownLatch.await(5, TimeUnit.SECONDS);
+        Thread.sleep(500L);
         Assert.assertEquals(registerNum, 0L);
     }
 

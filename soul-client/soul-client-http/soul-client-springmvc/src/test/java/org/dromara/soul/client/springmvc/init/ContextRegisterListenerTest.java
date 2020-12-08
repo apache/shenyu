@@ -31,9 +31,6 @@ import static org.mockito.Mockito.mock;
 
 import org.springframework.context.event.ContextRefreshedEvent;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
 /**
  * ContextRegisterListenerTest.
  *
@@ -71,9 +68,8 @@ public final class ContextRegisterListenerTest {
         soulSpringMvcConfig.setPort(58889);
         ContextRegisterListener contextRegisterListener = new ContextRegisterListener(soulSpringMvcConfig);
         ContextRefreshedEvent contextRefreshedEvent = mock(ContextRefreshedEvent.class);
-        CountDownLatch countDownLatch = new CountDownLatch(1);
         contextRegisterListener.onApplicationEvent(contextRefreshedEvent);
-        countDownLatch.await(5, TimeUnit.SECONDS);
+        Thread.sleep(500L);
         Assert.assertFalse(isRegister);
     }
 
@@ -88,9 +84,8 @@ public final class ContextRegisterListenerTest {
         soulSpringMvcConfig.setPort(58889);
         ContextRegisterListener contextRegisterListener = new ContextRegisterListener(soulSpringMvcConfig);
         ContextRefreshedEvent contextRefreshedEvent = mock(ContextRefreshedEvent.class);
-        CountDownLatch countDownLatch = new CountDownLatch(1);
         contextRegisterListener.onApplicationEvent(contextRefreshedEvent);
-        countDownLatch.await(5, TimeUnit.SECONDS);
+        Thread.sleep(500L);
         Assert.assertTrue(isRegister);
     }
 }
