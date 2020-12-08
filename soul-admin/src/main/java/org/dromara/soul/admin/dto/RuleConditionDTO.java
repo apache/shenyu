@@ -17,6 +17,7 @@
 
 package org.dromara.soul.admin.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -30,7 +31,9 @@ import java.io.Serializable;
  * @author nuo-promise
  */
 @Data
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public final class RuleConditionDTO implements Serializable {
 
     /**
@@ -62,15 +65,4 @@ public final class RuleConditionDTO implements Serializable {
      * parameter value.
      */
     private String paramValue;
-
-    @Builder
-    private RuleConditionDTO(final String id, final String ruleId, final String paramType, final String operator,
-                             final String paramName, final String paramValue) {
-        this.id = id;
-        this.ruleId = ruleId;
-        this.paramType = paramType;
-        this.operator = operator;
-        this.paramName = paramName;
-        this.paramValue = paramValue;
-    }
 }

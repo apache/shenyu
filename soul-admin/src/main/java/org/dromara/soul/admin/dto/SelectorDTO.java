@@ -17,6 +17,7 @@
 
 package org.dromara.soul.admin.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -31,7 +32,9 @@ import java.util.List;
  * @author nuo-promise
  */
 @Data
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public final class SelectorDTO implements Serializable {
 
     /**
@@ -85,21 +88,4 @@ public final class SelectorDTO implements Serializable {
      * selector conditions.
      */
     private List<SelectorConditionDTO> selectorConditions;
-
-    @Builder
-    private SelectorDTO(final String id, final String pluginId, final String name, final Integer matchMode, final Integer type,
-                       final Integer sort, final Boolean enabled, final Boolean loged, final Boolean continued, final String handle,
-                       final List<SelectorConditionDTO> selectorConditions) {
-        this.id = id;
-        this.pluginId = pluginId;
-        this.name = name;
-        this.matchMode = matchMode;
-        this.type = type;
-        this.sort = sort;
-        this.enabled = enabled;
-        this.loged = loged;
-        this.continued = continued;
-        this.handle = handle;
-        this.selectorConditions = selectorConditions;
-    }
 }

@@ -52,6 +52,4 @@ public class MetaDataDTO implements Serializable {
      * whether enabled.
      */
     private Boolean enabled;
-
-
 }
