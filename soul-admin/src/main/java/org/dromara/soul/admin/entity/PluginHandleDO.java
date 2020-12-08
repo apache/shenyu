@@ -74,9 +74,15 @@ public final class PluginHandleDO extends BaseDO {
      */
     private Integer sort;
 
+    /**
+     * the attribute extObj.
+     */
+    private String extObj;
+
     @Builder
     private PluginHandleDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String pluginId,
-                           final String field, final String label, final Integer dataType, final Integer type, final Integer sort) {
+                           final String field, final String label, final Integer dataType, final Integer type,
+                           final Integer sort, final String extObj) {
         super(id, dateCreated, dateUpdated);
         this.pluginId = pluginId;
         this.field = field;
@@ -84,12 +90,8 @@ public final class PluginHandleDO extends BaseDO {
         this.dataType = dataType;
         this.type = type;
         this.sort = sort;
+        this.extObj = extObj;
     }
-
-    /**
-     * the attribute extObj.
-     */
-    private String extObj;
 
     /**
      * build {@linkplain PluginHandleDO} instance.
@@ -106,6 +108,7 @@ public final class PluginHandleDO extends BaseDO {
                     .dataType(item.getDataType())
                     .type(item.getType())
                     .sort(item.getSort())
+                    .extObj(item.getExtObj())
                     .build();
             if (StringUtils.isEmpty(item.getId())) {
                 pluginHandleDO.setId(UUIDUtils.getInstance().generateShortUuid());
