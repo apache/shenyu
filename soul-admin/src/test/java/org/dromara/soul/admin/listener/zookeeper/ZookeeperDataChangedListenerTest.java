@@ -20,6 +20,7 @@ package org.dromara.soul.admin.listener.zookeeper;
 import com.google.common.collect.ImmutableList;
 import lombok.SneakyThrows;
 import org.I0Itec.zkclient.ZkClient;
+import org.apache.curator.test.TestingServer;
 import org.dromara.soul.common.constant.ZkPathConstants;
 import org.dromara.soul.common.dto.AppAuthData;
 import org.dromara.soul.common.dto.MetaData;
@@ -27,8 +28,11 @@ import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -44,14 +48,31 @@ import java.net.URLEncoder;
 @RunWith(MockitoJUnitRunner.class)
 public class ZookeeperDataChangedListenerTest {
 
+    private static TestingServer zkServer;
+
     private ZookeeperDataChangedListener zookeeperDataChangedListener;
 
     private ZkClient zkClient;
 
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        zkServer = new TestingServer(21810, true);
+    }
+
     @Before
-    public void setUp() {
-        this.zkClient = new ZkClient("127.0.0.1:3181");
+    public void setUp() throws Exception {
+        zkClient = new ZkClient("127.0.0.1:21810");
         this.zookeeperDataChangedListener = new ZookeeperDataChangedListener(zkClient);
+    }
+
+    @After
+    public void after() {
+        zkClient.close();
+    }
+
+    @AfterClass
+    public static void tearDown() throws Exception {
+        zkServer.stop();
     }
 
     /**
