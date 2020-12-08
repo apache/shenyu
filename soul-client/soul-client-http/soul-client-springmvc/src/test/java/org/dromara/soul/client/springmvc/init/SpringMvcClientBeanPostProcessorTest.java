@@ -23,6 +23,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.Before;
 import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
@@ -64,8 +65,6 @@ public final class SpringMvcClientBeanPostProcessorTest {
         soulSpringMvcConfig.setAppName("test-mvc");
         soulSpringMvcConfig.setContextPath("test");
         soulSpringMvcConfig.setPort(58889);
-        countDownLatch = new CountDownLatch(1);
-        registerNum = 0;
         springMvcClientBeanPostProcessor = new SpringMvcClientBeanPostProcessor(soulSpringMvcConfig);
         server = Undertow.builder()
                 .addHttpListener(58888, "localhost")
@@ -81,6 +80,12 @@ public final class SpringMvcClientBeanPostProcessorTest {
     @AfterClass
     public static void after() {
         server.stop();
+    }
+
+    @Before
+    public void before() {
+        countDownLatch = new CountDownLatch(1);
+        registerNum = 0;
     }
 
     @Test

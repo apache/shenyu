@@ -20,6 +20,7 @@ package org.dromara.soul.client.springmvc.init;
 import io.undertow.Undertow;
 import org.dromara.soul.client.springmvc.config.SoulSpringMvcConfig;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -53,7 +54,6 @@ public final class ContextRegisterListenerTest {
 
     @BeforeClass
     public static void init() {
-        countDownLatch = new CountDownLatch(1);
         server = Undertow.builder()
                 .addHttpListener(58888, "localhost")
                 .setHandler(path()
@@ -68,6 +68,11 @@ public final class ContextRegisterListenerTest {
     @AfterClass
     public static void after() {
         server.stop();
+    }
+
+    @Before
+    public void before() {
+        countDownLatch = new CountDownLatch(1);
     }
 
     @Test
