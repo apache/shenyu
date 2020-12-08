@@ -28,11 +28,15 @@
 
     <artifactId>soul-test-sofa</artifactId>
 
+    <properties>
+        <rpc-sofa-boot-starter.version>6.0.4</rpc-sofa-boot-starter.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.alipay.sofa</groupId>
             <artifactId>rpc-sofa-boot-starter</artifactId>
-            <version>6.0.4</version>
+            <version>${rpc-sofa-boot-starter.version}</version>
         </dependency>
 
         <dependency>
