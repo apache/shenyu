@@ -67,6 +67,7 @@ import java.util.stream.Collectors;
  * AppAuthServiceImpl.
  *
  * @author xiaoyu(Myth)
+ * @author nuo-promise
  */
 @Service("appAuthService")
 public class AppAuthServiceImpl implements AppAuthService {
@@ -368,34 +369,35 @@ public class AppAuthServiceImpl implements AppAuthService {
 
     private AuthParamDO buildAuthParamDO(final String authId, final String appName, final String appParam) {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-        AuthParamDO authParamDO = AuthParamDO.builder().build();
-        authParamDO.setId(UUIDUtils.getInstance().generateShortUuid());
-        authParamDO.setAuthId(authId);
-        authParamDO.setAppName(appName);
-        authParamDO.setAppParam(appParam);
-        authParamDO.setDateUpdated(currentTime);
-        authParamDO.setDateCreated(currentTime);
-        return authParamDO;
+        return AuthParamDO.builder()
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .authId(authId)
+                .appName(appName)
+                .appParam(appParam)
+                .dateUpdated(currentTime)
+                .dateCreated(currentTime)
+                .build();
     }
 
     private AuthPathDO buildAuthPathDO(final String path, final String authId, final String appName) {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-        AuthPathDO authPathDO = new AuthPathDO();
-        authPathDO.setId(UUIDUtils.getInstance().generateShortUuid());
-        authPathDO.setAuthId(authId);
-        authPathDO.setAppName(appName);
-        authPathDO.setPath(path);
-        authPathDO.setEnabled(true);
-        authPathDO.setDateUpdated(currentTime);
-        authPathDO.setDateCreated(currentTime);
-        return authPathDO;
+        return AuthPathDO.builder()
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .authId(authId)
+                .appName(appName)
+                .path(path)
+                .enabled(true)
+                .dateCreated(currentTime)
+                .dateUpdated(currentTime)
+                .build();
     }
 
     private AppAuthData buildByEntity(final AppAuthDO appAuthDO) {
-        AppAuthData data = new AppAuthData();
-        data.setAppKey(appAuthDO.getAppKey());
-        data.setAppSecret(appAuthDO.getAppSecret());
-        data.setEnabled(appAuthDO.getEnabled());
+        AppAuthData data = AppAuthData.builder()
+                .appKey(appAuthDO.getAppKey())
+                .appSecret(appAuthDO.getAppSecret())
+                .enabled(appAuthDO.getEnabled())
+                .build();
         List<AuthParamDO> authParamDOList = authParamMapper.findByAuthId(appAuthDO.getId());
         if (CollectionUtils.isNotEmpty(authParamDOList)) {
             data.setParamDataList(authParamDOList.stream()

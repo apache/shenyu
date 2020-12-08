@@ -194,19 +194,19 @@ public final class RuleMapperTest extends AbstractSpringIntegrationTest {
     }
 
     private RuleDO buildRuleDO() {
-        String id = UUIDUtils.getInstance().generateShortUuid();
-        RuleDO ruleDO = new RuleDO();
-        ruleDO.setId(id);
-        ruleDO.setName("test-name-" + new Random().nextInt());
-        ruleDO.setEnabled(true);
-        ruleDO.setHandle("test-handle");
-        ruleDO.setLoged(true);
-        ruleDO.setMatchMode(1);
-        ruleDO.setSelectorId("test-selector-1");
-        ruleDO.setSort(1);
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-        ruleDO.setDateCreated(now);
-        ruleDO.setDateUpdated(now);
-        return ruleDO;
+        String id = UUIDUtils.getInstance().generateShortUuid();
+        return RuleDO.builder()
+                .id(id)
+                .name("test-name-" + new Random().nextInt())
+                .enabled(true)
+                .handle("test-handle")
+                .loged(true)
+                .matchMode(1)
+                .selectorId("test-selector-1")
+                .sort(1)
+                .dateCreated(now)
+                .dateUpdated(now)
+                .build();
     }
 }

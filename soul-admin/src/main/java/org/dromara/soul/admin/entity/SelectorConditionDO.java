@@ -17,7 +17,10 @@
 
 package org.dromara.soul.admin.entity;
 
+import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.SelectorConditionDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
@@ -29,9 +32,12 @@ import java.util.Optional;
  * SelectorConditionDO.
  *
  * @author jiangxiaofeng(Nicholas)
+ * @author nuo-promise
  */
 @Data
-public class SelectorConditionDO extends BaseDO {
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public final class SelectorConditionDO extends BaseDO {
 
     /**
      * selector id.
@@ -58,6 +64,18 @@ public class SelectorConditionDO extends BaseDO {
      */
     private String paramValue;
 
+    @Builder
+    private SelectorConditionDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated,
+                                final String selectorId, final String paramType, final String operator,
+                                final String paramName, final String paramValue) {
+        super(id, dateCreated, dateUpdated);
+        this.selectorId = selectorId;
+        this.paramType = paramType;
+        this.operator = operator;
+        this.paramName = paramName;
+        this.paramValue = paramValue;
+    }
+
     /**
      * build selectorConditionDO.
      *
@@ -65,22 +83,23 @@ public class SelectorConditionDO extends BaseDO {
      * @return {@linkplain SelectorConditionDO}
      */
     public static SelectorConditionDO buildSelectorConditionDO(final SelectorConditionDTO selectorConditionDTO) {
+
         return Optional.ofNullable(selectorConditionDTO).map(item -> {
-            SelectorConditionDO selectorConditionDO = new SelectorConditionDO();
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            SelectorConditionDO selectorConditionDO = SelectorConditionDO.builder()
+                    .paramType(item.getParamType())
+                    .selectorId(item.getSelectorId())
+                    .operator(item.getOperator())
+                    .paramName(item.getParamName())
+                    .paramValue(item.getParamValue())
+                    .dateUpdated(currentTime)
+                    .build();
             if (StringUtils.isEmpty(item.getId())) {
                 selectorConditionDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 selectorConditionDO.setDateCreated(currentTime);
             } else {
                 selectorConditionDO.setId(item.getId());
             }
-
-            selectorConditionDO.setParamType(item.getParamType());
-            selectorConditionDO.setSelectorId(item.getSelectorId());
-            selectorConditionDO.setOperator(item.getOperator());
-            selectorConditionDO.setParamName(item.getParamName());
-            selectorConditionDO.setParamValue(item.getParamValue());
-            selectorConditionDO.setDateUpdated(currentTime);
             return selectorConditionDO;
         }).orElse(null);
     }

@@ -132,16 +132,16 @@ public final class DashboardUserMapperTest extends AbstractSpringIntegrationTest
     }
 
     private DashboardUserDO buildDashboardUserDO() {
-        DashboardUserDO dashboardUserDO = new DashboardUserDO();
-        dashboardUserDO.setId(UUIDUtils.getInstance().generateShortUuid());
-        dashboardUserDO.setUserName("adminTest");
         String aseKey = "2095132720951327";
-        dashboardUserDO.setPassword(AesUtils.aesEncryption("123456", aseKey));
-        dashboardUserDO.setEnabled(true);
-        dashboardUserDO.setRole(1);
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-        dashboardUserDO.setDateCreated(now);
-        dashboardUserDO.setDateUpdated(now);
-        return dashboardUserDO;
+        return DashboardUserDO.builder()
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .userName("adminTest")
+                .password(AesUtils.aesEncryption("123456", aseKey))
+                .enabled(true)
+                .role(1)
+                .dateCreated(now)
+                .dateUpdated(now)
+                .build();
     }
 }

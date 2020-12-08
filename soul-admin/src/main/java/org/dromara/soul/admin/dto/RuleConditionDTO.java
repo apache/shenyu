@@ -17,7 +17,9 @@
 
 package org.dromara.soul.admin.dto;
 
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -25,9 +27,11 @@ import java.io.Serializable;
  * this is rule condition from by web front.
  *
  * @author jiangxiaofeng(Nicholas)
+ * @author nuo-promise
  */
 @Data
-public class RuleConditionDTO implements Serializable {
+@NoArgsConstructor
+public final class RuleConditionDTO implements Serializable {
 
     /**
      * primary key.
@@ -58,4 +62,15 @@ public class RuleConditionDTO implements Serializable {
      * parameter value.
      */
     private String paramValue;
+
+    @Builder
+    private RuleConditionDTO(final String id, final String ruleId, final String paramType, final String operator,
+                             final String paramName, final String paramValue) {
+        this.id = id;
+        this.ruleId = ruleId;
+        this.paramType = paramType;
+        this.operator = operator;
+        this.paramName = paramName;
+        this.paramValue = paramValue;
+    }
 }

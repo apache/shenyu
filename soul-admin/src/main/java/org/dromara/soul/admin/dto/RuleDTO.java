@@ -17,8 +17,11 @@
 
 package org.dromara.soul.admin.dto;
 
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
 
@@ -26,13 +29,16 @@ import java.util.List;
  * this is rule from by web front.
  *
  * @author jiangxiaofeng(Nicholas)
+ * @author nuo-promise
  */
 @Data
-public class RuleDTO implements Serializable {
+@NoArgsConstructor
+public final class RuleDTO implements Serializable {
 
     /**
      * primary key.
      */
+    @NotNull
     private String id;
 
     /**
@@ -74,4 +80,18 @@ public class RuleDTO implements Serializable {
      * rule conditions.
      */
     private List<RuleConditionDTO> ruleConditions;
+
+    @Builder
+    private RuleDTO(final String id, final String selectorId, final Integer matchMode, final String name, final Boolean enabled,
+                    final Boolean loged, final Integer sort, final String handle, final List<RuleConditionDTO> ruleConditions) {
+        this.id = id;
+        this.selectorId = selectorId;
+        this.matchMode = matchMode;
+        this.name = name;
+        this.enabled = enabled;
+        this.loged = loged;
+        this.sort = sort;
+        this.handle = handle;
+        this.ruleConditions = ruleConditions;
+    }
 }

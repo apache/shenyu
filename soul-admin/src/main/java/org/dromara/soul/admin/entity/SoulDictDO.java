@@ -17,20 +17,27 @@
 
 package org.dromara.soul.admin.entity;
 
+import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.SoulDictDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
 
-import java.util.Objects;
+import java.sql.Timestamp;
+import java.util.Optional;
 
 /**
  * SoulDictDO.
  *
  * @author dengliming
+ * @author nuo-promise
  */
 @Data
-public class SoulDictDO extends BaseDO {
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public final class SoulDictDO extends BaseDO {
 
     /**
      * dict type.
@@ -67,6 +74,20 @@ public class SoulDictDO extends BaseDO {
      */
     private Boolean enabled;
 
+    @Builder
+    private SoulDictDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String type,
+                       final String dictCode, final String dictName, final String dictValue, final String desc,
+                       final Integer sort, final Boolean enabled) {
+        super(id, dateCreated, dateUpdated);
+        this.type = type;
+        this.dictCode = dictCode;
+        this.dictName = dictName;
+        this.dictValue = dictValue;
+        this.desc = desc;
+        this.sort = sort;
+        this.enabled = enabled;
+    }
+
     /**
      * build {@linkplain SoulDictDO} instance.
      *
@@ -74,22 +95,22 @@ public class SoulDictDO extends BaseDO {
      * @return {@linkplain SoulDictDO}
      */
     public static SoulDictDO buildSoulDictDO(final SoulDictDTO soulDictDTO) {
-        if (Objects.isNull(soulDictDTO)) {
-            return null;
-        }
 
-        SoulDictDO soulDictDO = new SoulDictDO();
-        soulDictDO.setId(soulDictDTO.getId());
-        soulDictDO.setDictCode(soulDictDTO.getDictCode());
-        soulDictDO.setDictName(soulDictDTO.getDictName());
-        soulDictDO.setDictValue(soulDictDTO.getDictValue());
-        soulDictDO.setDesc(soulDictDTO.getDesc());
-        soulDictDO.setEnabled(soulDictDTO.getEnabled());
-        soulDictDO.setSort(soulDictDTO.getSort());
-        soulDictDO.setType(soulDictDTO.getType());
-        if (StringUtils.isEmpty(soulDictDTO.getId())) {
-            soulDictDO.setId(UUIDUtils.getInstance().generateShortUuid());
-        }
-        return soulDictDO;
+        return Optional.ofNullable(soulDictDTO).map(item -> {
+            SoulDictDO soulDictDO = SoulDictDO.builder()
+                    .id(item.getId())
+                    .dictCode(item.getDictCode())
+                    .dictName(item.getDictName())
+                    .dictValue(item.getDictValue())
+                    .desc(item.getDesc())
+                    .enabled(item.getEnabled())
+                    .sort(item.getSort())
+                    .type(item.getType())
+                    .build();
+            if (StringUtils.isEmpty(item.getId())) {
+                soulDictDO.setId(UUIDUtils.getInstance().generateShortUuid());
+            }
+            return soulDictDO;
+        }).orElse(null);
     }
 }

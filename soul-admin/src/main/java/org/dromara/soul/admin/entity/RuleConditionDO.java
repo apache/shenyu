@@ -17,20 +17,27 @@
 
 package org.dromara.soul.admin.entity;
 
+import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.RuleConditionDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
+import java.util.Optional;
 
 /**
  * RuleConditionDO.
  *
  * @author jiangxiaofeng(Nicholas)
+ * @author nuo-promise
  */
 @Data
-public class RuleConditionDO extends BaseDO {
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public final class RuleConditionDO extends BaseDO {
 
     /**
      * rule id.
@@ -57,6 +64,17 @@ public class RuleConditionDO extends BaseDO {
      */
     private String paramValue;
 
+    @Builder
+    private RuleConditionDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String ruleId,
+                            final String paramType, final String operator, final String paramName, final String paramValue) {
+        super(id, dateCreated, dateUpdated);
+        this.ruleId = ruleId;
+        this.paramType = paramType;
+        this.operator = operator;
+        this.paramName = paramName;
+        this.paramValue = paramValue;
+    }
+
     /**
      * build ruleConditionDO.
      *
@@ -64,24 +82,23 @@ public class RuleConditionDO extends BaseDO {
      * @return {@linkplain RuleConditionDO}
      */
     public static RuleConditionDO buildRuleConditionDO(final RuleConditionDTO ruleConditionDTO) {
-        if (ruleConditionDTO != null) {
-            RuleConditionDO ruleConditionDO = new RuleConditionDO();
+        return Optional.ofNullable(ruleConditionDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            if (StringUtils.isEmpty(ruleConditionDTO.getId())) {
+            RuleConditionDO ruleConditionDO = RuleConditionDO.builder()
+                    .paramType(item.getParamType())
+                    .ruleId(item.getRuleId())
+                    .operator(item.getOperator())
+                    .paramName(item.getParamName())
+                    .paramValue(item.getParamValue())
+                    .dateUpdated(currentTime)
+                    .build();
+            if (StringUtils.isEmpty(item.getId())) {
                 ruleConditionDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 ruleConditionDO.setDateCreated(currentTime);
             } else {
-                ruleConditionDO.setId(ruleConditionDTO.getId());
+                ruleConditionDO.setId(item.getId());
             }
-
-            ruleConditionDO.setParamType(ruleConditionDTO.getParamType());
-            ruleConditionDO.setRuleId(ruleConditionDTO.getRuleId());
-            ruleConditionDO.setOperator(ruleConditionDTO.getOperator());
-            ruleConditionDO.setParamName(ruleConditionDTO.getParamName());
-            ruleConditionDO.setParamValue(ruleConditionDTO.getParamValue());
-            ruleConditionDO.setDateUpdated(currentTime);
             return ruleConditionDO;
-        }
-        return null;
+        }).orElse(null);
     }
 }

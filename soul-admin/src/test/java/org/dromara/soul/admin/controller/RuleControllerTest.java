@@ -41,7 +41,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -70,7 +69,7 @@ public final class RuleControllerTest {
             "888", "666", "uri", "Uniform", "match", "match", "/", "/http/test/**", DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now())
     );
 
-    private final List<RuleConditionVO> rclist = new ArrayList<>(Arrays.asList(rCondition1));
+    private final List<RuleConditionVO> rclist = new ArrayList<>(Collections.singletonList(rCondition1));
 
     private final RuleVO ruleVO = new RuleVO("666", "168", 0, "zero mode", "/http/test/**", true, true, 1, "{\"loadBalance\":\"random\",\"retry\":0,\"timeout\":3000}",
             rclist, DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()));
@@ -109,29 +108,28 @@ public final class RuleControllerTest {
 
     @Test
     public void testCreateRule() throws Exception {
-        RuleConditionDTO ruleConditionDTO = new RuleConditionDTO();
-        ruleConditionDTO.setId("888");
-        ruleConditionDTO.setRuleId("666");
-        ruleConditionDTO.setParamType("uri");
-        ruleConditionDTO.setOperator("match");
-        ruleConditionDTO.setParamName("/");
-        ruleConditionDTO.setParamValue("/http/order/save");
-
+        RuleConditionDTO ruleConditionDTO = RuleConditionDTO.builder()
+                .id("888")
+                .ruleId("666")
+                .paramType("uri")
+                .operator("match")
+                .paramName("/")
+                .paramType("/http/order/save")
+                .build();
         List<RuleConditionDTO> conList = new ArrayList<>();
         conList.add(ruleConditionDTO);
 
-        RuleDTO ruleDTO = new RuleDTO();
-        ruleDTO.setId("666");
-        ruleDTO.setSelectorId("168");
-        ruleDTO.setMatchMode(0);
-        ruleDTO.setName("/http/order/save");
-        ruleDTO.setEnabled(true);
-        ruleDTO.setLoged(true);
-        ruleDTO.setSort(1);
-        ruleDTO.setHandle("{\"loadBalance\":\"random\",\"retry\":0,\"timeout\":3000}");
-
-        ruleDTO.setRuleConditions(conList);
-
+        RuleDTO ruleDTO = RuleDTO.builder()
+                .id("666")
+                .selectorId("168")
+                .matchMode(0)
+                .name("/http/order/save")
+                .enabled(true)
+                .loged(true)
+                .sort(1)
+                .handle("{\"loadBalance\":\"random\",\"retry\":0,\"timeout\":3000}")
+                .ruleConditions(conList)
+                .build();
         given(this.ruleService.createOrUpdate(ruleDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/rule", ruleDTO)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -144,28 +142,28 @@ public final class RuleControllerTest {
 
     @Test
     public void testUpdateRule() throws Exception {
-        RuleConditionDTO ruleConditionDTO = new RuleConditionDTO();
-        ruleConditionDTO.setId("888");
-        ruleConditionDTO.setRuleId("666");
-        ruleConditionDTO.setParamType("uri");
-        ruleConditionDTO.setOperator("match");
-        ruleConditionDTO.setParamName("/");
-        ruleConditionDTO.setParamValue("/http/order/update");
-
+        RuleConditionDTO ruleConditionDTO = RuleConditionDTO.builder()
+                .id("888")
+                .ruleId("666")
+                .paramType("uri")
+                .operator("match")
+                .paramName("/")
+                .paramValue("/http/order/update")
+                .build();
         List<RuleConditionDTO> conList = new ArrayList<>();
         conList.add(ruleConditionDTO);
 
-        RuleDTO ruleDTO = new RuleDTO();
-        ruleDTO.setId("666");
-        ruleDTO.setSelectorId("168");
-        ruleDTO.setMatchMode(0);
-        ruleDTO.setName("/http/order/update");
-        ruleDTO.setEnabled(true);
-        ruleDTO.setLoged(true);
-        ruleDTO.setSort(1);
-        ruleDTO.setHandle("{\"loadBalance\":\"random\",\"retry\":0,\"timeout\":3000}");
-
-        ruleDTO.setRuleConditions(conList);
+        RuleDTO ruleDTO = RuleDTO.builder()
+                .id("666")
+                .selectorId("168")
+                .matchMode(0)
+                .name("/http/order/update")
+                .enabled(true)
+                .loged(true)
+                .sort(1)
+                .handle("{\"loadBalance\":\"random\",\"retry\":0,\"timeout\":3000}")
+                .ruleConditions(conList)
+                .build();
 
         given(this.ruleService.createOrUpdate(ruleDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/rule/{id}", "666")
@@ -179,7 +177,7 @@ public final class RuleControllerTest {
 
     @Test
     public void testDeleteRules() throws Exception {
-        given(this.ruleService.delete(Arrays.asList("111"))).willReturn(1);
+        given(this.ruleService.delete(Collections.singletonList("111"))).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.delete("/rule/batch")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("[\"111\"]")

@@ -17,7 +17,10 @@
 
 package org.dromara.soul.admin.entity;
 
+import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.DashboardUserDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
@@ -29,9 +32,12 @@ import java.util.Optional;
  * DashboardUserDO.
  *
  * @author jiangxiaofeng(Nicholas)
+ * @author nuo-promise
  */
 @Data
-public class DashboardUserDO extends BaseDO {
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public final class DashboardUserDO extends BaseDO {
 
     /**
      * user name.
@@ -53,6 +59,16 @@ public class DashboardUserDO extends BaseDO {
      */
     private Boolean enabled;
 
+    @Builder
+    private DashboardUserDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String userName,
+                            final String password, final Integer role, final Boolean enabled) {
+        super(id, dateCreated, dateUpdated);
+        this.userName = userName;
+        this.password = password;
+        this.role = role;
+        this.enabled = enabled;
+    }
+
     /**
      * build dashboardUserDO.
      *
@@ -60,9 +76,15 @@ public class DashboardUserDO extends BaseDO {
      * @return {@linkplain DashboardUserDO}
      */
     public static DashboardUserDO buildDashboardUserDO(final DashboardUserDTO dashboardUserDTO) {
+
         return Optional.ofNullable(dashboardUserDTO).map(item -> {
-            DashboardUserDO dashboardUserDO = new DashboardUserDO();
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            DashboardUserDO dashboardUserDO = DashboardUserDO.builder()
+                    .userName(item.getUserName())
+                    .password(item.getPassword())
+                    .role(item.getRole())
+                    .dateUpdated(currentTime)
+                    .build();
             if (StringUtils.isEmpty(item.getId())) {
                 dashboardUserDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 dashboardUserDO.setEnabled(true);
@@ -71,10 +93,6 @@ public class DashboardUserDO extends BaseDO {
                 dashboardUserDO.setId(item.getId());
                 dashboardUserDO.setEnabled(item.getEnabled());
             }
-            dashboardUserDO.setUserName(item.getUserName());
-            dashboardUserDO.setPassword(item.getPassword());
-            dashboardUserDO.setRole(item.getRole());
-            dashboardUserDO.setDateUpdated(currentTime);
             return dashboardUserDO;
         }).orElse(null);
     }

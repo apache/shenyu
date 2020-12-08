@@ -17,7 +17,10 @@
 
 package org.dromara.soul.admin.entity;
 
+import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.PluginDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
@@ -31,9 +34,12 @@ import java.util.Optional;
  *
  * @author jiangxiaofeng(Nicholas)
  * @author xiaoyu
+ * @author nuo-promise
  */
 @Data
-public class PluginDO extends BaseDO {
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public final class PluginDO extends BaseDO {
 
     /**
      * plugin name.
@@ -56,6 +62,16 @@ public class PluginDO extends BaseDO {
      */
     private Integer role;
 
+    @Builder
+    private PluginDO(final String id, final Timestamp dateCreated, final Timestamp dateUpdated, final String name,
+                     final String config, final Boolean enabled, final Integer role) {
+        super(id, dateCreated, dateUpdated);
+        this.name = name;
+        this.config = config;
+        this.enabled = enabled;
+        this.role = role;
+    }
+
     /**
      * build pluginDO.
      *
@@ -63,20 +79,22 @@ public class PluginDO extends BaseDO {
      * @return {@linkplain PluginDO}
      */
     public static PluginDO buildPluginDO(final PluginDTO pluginDTO) {
+
         return Optional.ofNullable(pluginDTO).map(item -> {
-            PluginDO pluginDO = new PluginDO();
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            PluginDO pluginDO = PluginDO.builder()
+                    .name(item.getName())
+                    .config(item.getConfig())
+                    .enabled(item.getEnabled())
+                    .role(item.getRole())
+                    .dateUpdated(currentTime)
+                    .build();
             if (StringUtils.isEmpty(item.getId())) {
                 pluginDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 pluginDO.setDateCreated(currentTime);
             } else {
                 pluginDO.setId(item.getId());
             }
-            pluginDO.setName(item.getName());
-            pluginDO.setConfig(item.getConfig());
-            pluginDO.setEnabled(item.getEnabled());
-            pluginDO.setRole(item.getRole());
-            pluginDO.setDateUpdated(currentTime);
             return pluginDO;
         }).orElse(null);
     }

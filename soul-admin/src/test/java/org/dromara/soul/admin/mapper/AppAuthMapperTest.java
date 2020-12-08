@@ -139,17 +139,17 @@ public final class AppAuthMapperTest extends AbstractSpringIntegrationTest {
     }
 
     private AppAuthDO buildAppAuthDO() {
-        AppAuthDO appAuthDO = new AppAuthDO();
-        appAuthDO.setId(UUIDUtils.getInstance().generateShortUuid());
-        appAuthDO.setAppKey(SignUtils.getInstance().generateKey());
-        appAuthDO.setAppSecret(SignUtils.getInstance().generateKey());
-        appAuthDO.setEnabled(false);
-        appAuthDO.setExtInfo("{\"extInfo\":\"json\"}");
-        appAuthDO.setPhone("18800000000");
-        appAuthDO.setUserId(UUIDUtils.getInstance().generateShortUuid());
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-        appAuthDO.setDateCreated(now);
-        appAuthDO.setDateUpdated(now);
-        return appAuthDO;
+        return AppAuthDO.builder()
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .appKey(SignUtils.getInstance().generateKey())
+                .appSecret(SignUtils.getInstance().generateKey())
+                .extInfo("{\"extInfo\":\"json\"}")
+                .enabled(false)
+                .phone("18800000000")
+                .userId(UUIDUtils.getInstance().generateShortUuid())
+                .dateCreated(now)
+                .dateUpdated(now)
+                .build();
     }
 }
