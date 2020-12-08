@@ -92,9 +92,10 @@ public class SelectorControllerTest {
 
     @Test
     public void createSelector() throws Exception {
-        SelectorDTO selectorDTO = new SelectorDTO();
-        selectorDTO.setId("123");
-        selectorDTO.setName("test123");
+        SelectorDTO selectorDTO = SelectorDTO.builder()
+                .id("123")
+                .name("test123")
+                .build();
         given(this.selectorService.createOrUpdate(selectorDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/selector")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -106,9 +107,10 @@ public class SelectorControllerTest {
 
     @Test
     public void updateSelector() throws Exception {
-        SelectorDTO selectorDTO = new SelectorDTO();
-        selectorDTO.setId("123");
-        selectorDTO.setName("test123");
+        SelectorDTO selectorDTO = SelectorDTO.builder()
+                .id("123")
+                .name("test123")
+                .build();
         given(this.selectorService.createOrUpdate(selectorDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/selector/{id}", "123")
                 .contentType(MediaType.APPLICATION_JSON)

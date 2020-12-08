@@ -65,6 +65,8 @@ import java.util.Objects;
 
 /**
  * The type Soul client register service.
+ *
+ * @author nuo-promise
  */
 @Service("soulClientRegisterService")
 public class SoulClientRegisterServiceImpl implements SoulClientRegisterService {
@@ -156,6 +158,10 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     }
 
     private String handlerDubboSelector(final MetaDataDTO metaDataDTO) {
+        return getString(metaDataDTO);
+    }
+
+    private String getString(final MetaDataDTO metaDataDTO) {
         SelectorDO selectorDO = selectorService.findByName(metaDataDTO.getContextPath());
         String selectorId;
         if (Objects.isNull(selectorDO)) {
@@ -189,14 +195,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     }
 
     private String handlerSofaSelector(final MetaDataDTO metaDataDTO) {
-        SelectorDO selectorDO = selectorService.findByName(metaDataDTO.getContextPath());
-        String selectorId;
-        if (Objects.isNull(selectorDO)) {
-            selectorId = registerSelector(metaDataDTO.getContextPath(), metaDataDTO.getRpcType(), metaDataDTO.getAppName(), "");
-        } else {
-            selectorId = selectorDO.getId();
-        }
-        return selectorId;
+        return getString(metaDataDTO);
     }
 
     private void handlerSofaRule(final String selectorId, final MetaDataDTO metaDataDTO, final MetaDataDO exist) {
@@ -207,16 +206,17 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     }
 
     private void saveSpringMvcMetaData(final SpringMvcRegisterDTO dto) {
-        MetaDataDO metaDataDO = new MetaDataDO();
-        metaDataDO.setAppName(dto.getAppName());
-        metaDataDO.setPath(dto.getPath());
-        metaDataDO.setPathDesc(dto.getPathDesc());
-        metaDataDO.setRpcType(dto.getRpcType());
-        metaDataDO.setEnabled(dto.isEnabled());
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-        metaDataDO.setId(UUIDUtils.getInstance().generateShortUuid());
-        metaDataDO.setDateCreated(currentTime);
-        metaDataDO.setDateUpdated(currentTime);
+        MetaDataDO metaDataDO = MetaDataDO.builder()
+                .appName(dto.getAppName())
+                .path(dto.getPath())
+                .pathDesc(dto.getPathDesc())
+                .rpcType(dto.getRpcType())
+                .enabled(dto.isEnabled())
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .dateCreated(currentTime)
+                .dateUpdated(currentTime)
+                .build();
         metaDataMapper.insert(metaDataDO);
         // publish AppAuthData's event
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.CREATE,
@@ -224,18 +224,19 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     }
 
     private void saveSpringCloudMetaData(final SpringCloudRegisterDTO dto) {
-        MetaDataDO metaDataDO = new MetaDataDO();
-        metaDataDO.setAppName(dto.getAppName());
-        metaDataDO.setPath(dto.getContext() + "/**");
-        metaDataDO.setPathDesc(dto.getAppName() + "spring cloud meta data info");
-        metaDataDO.setServiceName(dto.getAppName());
-        metaDataDO.setMethodName(dto.getContext());
-        metaDataDO.setRpcType(dto.getRpcType());
-        metaDataDO.setEnabled(dto.isEnabled());
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-        metaDataDO.setId(UUIDUtils.getInstance().generateShortUuid());
-        metaDataDO.setDateCreated(currentTime);
-        metaDataDO.setDateUpdated(currentTime);
+        MetaDataDO metaDataDO = MetaDataDO.builder()
+                .appName(dto.getAppName())
+                .path(dto.getContext() + "/**")
+                .pathDesc(dto.getAppName() + "spring cloud meta data info")
+                .serviceName(dto.getAppName())
+                .methodName(dto.getContext())
+                .rpcType(dto.getRpcType())
+                .enabled(dto.isEnabled())
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .dateCreated(currentTime)
+                .dateUpdated(currentTime)
+                .build();
         metaDataMapper.insert(metaDataDO);
         // publish AppAuthData's event
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.CREATE,
@@ -327,14 +328,15 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     }
 
     private String registerSelector(final String contextPath, final String rpcType, final String appName, final String uri) {
-        SelectorDTO selectorDTO = new SelectorDTO();
-        selectorDTO.setName(contextPath);
-        selectorDTO.setType(SelectorTypeEnum.CUSTOM_FLOW.getCode());
-        selectorDTO.setMatchMode(MatchModeEnum.AND.getCode());
-        selectorDTO.setEnabled(Boolean.TRUE);
-        selectorDTO.setLoged(Boolean.TRUE);
-        selectorDTO.setContinued(Boolean.TRUE);
-        selectorDTO.setSort(1);
+        SelectorDTO selectorDTO = SelectorDTO.builder()
+                .name(contextPath)
+                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
+                .matchMode(MatchModeEnum.AND.getCode())
+                .enabled(Boolean.TRUE)
+                .loged(Boolean.TRUE)
+                .continued(Boolean.TRUE)
+                .sort(1)
+                .build();
         if (RpcTypeEnum.DUBBO.getName().equals(rpcType)) {
             selectorDTO.setPluginId(getPluginId(PluginEnum.DUBBO.getName()));
         } else if (RpcTypeEnum.SPRING_CLOUD.getName().equals(rpcType)) {
@@ -361,18 +363,18 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     }
 
     private DivideUpstream buildDivideUpstream(final String uri) {
-        DivideUpstream divideUpstream = new DivideUpstream();
-        divideUpstream.setUpstreamHost("localhost");
-        divideUpstream.setProtocol("http://");
-        divideUpstream.setUpstreamUrl(uri);
-        divideUpstream.setWeight(50);
-        return divideUpstream;
+        return DivideUpstream.builder()
+                .upstreamHost("localhost")
+                .protocol("http://")
+                .upstreamUrl(uri)
+                .weight(50)
+                .build();
     }
 
     private SpringCloudSelectorHandle buildSpringCloudSelectorHandle(final String serviceId) {
-        SpringCloudSelectorHandle selectorHandle = new SpringCloudSelectorHandle();
-        selectorHandle.setServiceId(serviceId);
-        return selectorHandle;
+        return SpringCloudSelectorHandle.builder()
+                .serviceId(serviceId)
+                .build();
     }
 
     private String getPluginId(final String pluginName) {
@@ -382,24 +384,26 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     }
 
     private void registerRule(final String selectorId, final String path, final String rpcType, final String ruleName) {
-        RuleDTO ruleDTO = new RuleDTO();
-        ruleDTO.setSelectorId(selectorId);
-        ruleDTO.setName(ruleName);
-        ruleDTO.setMatchMode(MatchModeEnum.AND.getCode());
-        ruleDTO.setEnabled(Boolean.TRUE);
-        ruleDTO.setLoged(Boolean.TRUE);
-        ruleDTO.setSort(1);
-        RuleConditionDTO ruleConditionDTO = new RuleConditionDTO();
-        ruleConditionDTO.setParamType(ParamTypeEnum.URI.getName());
-        ruleConditionDTO.setParamName("/");
+        RuleDTO ruleDTO = RuleDTO.builder()
+                .selectorId(selectorId)
+                .name(ruleName)
+                .matchMode(MatchModeEnum.AND.getCode())
+                .enabled(Boolean.TRUE)
+                .loged(Boolean.TRUE)
+                .sort(1)
+                .handle(JsonUtils.toJson(RpcTypeEnum.acquireByName(rpcType).ruleHandle(path)))
+                .build();
+        RuleConditionDTO ruleConditionDTO = RuleConditionDTO.builder()
+                .paramType(ParamTypeEnum.URI.getName())
+                .paramName("/")
+                .paramValue(path)
+                .build();
         if (path.indexOf("*") > 1) {
             ruleConditionDTO.setOperator(OperatorEnum.MATCH.getAlias());
         } else {
             ruleConditionDTO.setOperator(OperatorEnum.EQ.getAlias());
         }
-        ruleConditionDTO.setParamValue(path);
         ruleDTO.setRuleConditions(Collections.singletonList(ruleConditionDTO));
-        ruleDTO.setHandle(JsonUtils.toJson(RpcTypeEnum.acquireByName(rpcType).ruleHandle(path)));
         ruleService.register(ruleDTO);
     }
 }
