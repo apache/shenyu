@@ -87,19 +87,19 @@ public class ZookeeperDataChangedListenerTest {
         appAuthData.setAppSecret(mockAppSecret);
         appAuthData.setEnabled(true);
 
-        AppAuthData appAuthData2 = new AppAuthData();
-        String mockAppSecret2 = "MOCK_APP_SECRET2";
-        appAuthData2.setAppKey(mockAppKey);
-        appAuthData2.setAppSecret(mockAppSecret2);
-        appAuthData2.setEnabled(true);
+        AppAuthData appAuthDataUpdate = new AppAuthData();
+        String mockAppSecretUpdate = "MOCK_APP_SECRET2";
+        appAuthDataUpdate.setAppKey(mockAppKey);
+        appAuthDataUpdate.setAppSecret(mockAppSecretUpdate);
+        appAuthDataUpdate.setEnabled(true);
 
         zookeeperDataChangedListener.onAppAuthChanged(ImmutableList.of(appAuthData), DataEventTypeEnum.CREATE);
         Assert.assertEquals(zkClient.readData(ZkPathConstants.buildAppAuthPath(mockAppKey)), appAuthData);
 
-        zookeeperDataChangedListener.onAppAuthChanged(ImmutableList.of(appAuthData2), DataEventTypeEnum.UPDATE);
-        Assert.assertEquals(zkClient.readData(ZkPathConstants.buildAppAuthPath(mockAppKey)), appAuthData2);
+        zookeeperDataChangedListener.onAppAuthChanged(ImmutableList.of(appAuthDataUpdate), DataEventTypeEnum.UPDATE);
+        Assert.assertEquals(zkClient.readData(ZkPathConstants.buildAppAuthPath(mockAppKey)), appAuthDataUpdate);
 
-        zookeeperDataChangedListener.onAppAuthChanged(ImmutableList.of(appAuthData2), DataEventTypeEnum.DELETE);
+        zookeeperDataChangedListener.onAppAuthChanged(ImmutableList.of(appAuthDataUpdate), DataEventTypeEnum.DELETE);
         Assert.assertNull(zkClient.readData(ZkPathConstants.buildAppAuthPath(mockAppKey), Boolean.TRUE));
     }
 
@@ -117,21 +117,21 @@ public class ZookeeperDataChangedListenerTest {
         metaData.setAppName(mockAppName);
         metaData.setPath(mockPath);
 
-        MetaData metaData2 = new MetaData();
-        String mockAppName2 = "MOCK_APP_NAME2";
-        metaData2.setId(mockId);
-        metaData2.setAppName(mockAppName2);
-        metaData2.setPath(mockPath);
+        MetaData metaDataUpdate = new MetaData();
+        String mockAppNameUpdate = "MOCK_APP_NAME2";
+        metaDataUpdate.setId(mockId);
+        metaDataUpdate.setAppName(mockAppNameUpdate);
+        metaDataUpdate.setPath(mockPath);
 
         zookeeperDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData), DataEventTypeEnum.CREATE);
         Assert.assertEquals(zkClient.readData(
                 ZkPathConstants.buildMetaDataPath(URLEncoder.encode(mockPath, "UTF-8"))), metaData);
 
-        zookeeperDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData2), DataEventTypeEnum.UPDATE);
+        zookeeperDataChangedListener.onMetaDataChanged(ImmutableList.of(metaDataUpdate), DataEventTypeEnum.UPDATE);
         Assert.assertEquals(zkClient.readData(
-                ZkPathConstants.buildMetaDataPath(URLEncoder.encode(mockPath, "UTF-8"))), metaData2);
+                ZkPathConstants.buildMetaDataPath(URLEncoder.encode(mockPath, "UTF-8"))), metaDataUpdate);
 
-        zookeeperDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData2), DataEventTypeEnum.DELETE);
+        zookeeperDataChangedListener.onMetaDataChanged(ImmutableList.of(metaDataUpdate), DataEventTypeEnum.DELETE);
         Assert.assertNull(zkClient.readData(
                 ZkPathConstants.buildMetaDataPath(URLEncoder.encode(mockPath, "UTF-8")), Boolean.TRUE));
     }
@@ -149,19 +149,19 @@ public class ZookeeperDataChangedListenerTest {
         pluginData.setName(mockName);
         pluginData.setConfig(mockConfig);
 
-        PluginData pluginData2 = new PluginData();
-        String mockConfig2 = "MOCK_CONFIG2";
-        pluginData2.setId(mockId);
-        pluginData2.setName(mockName);
-        pluginData2.setConfig(mockConfig2);
+        PluginData pluginDataUpdate = new PluginData();
+        String mockConfigUpdate = "MOCK_CONFIG2";
+        pluginDataUpdate.setId(mockId);
+        pluginDataUpdate.setName(mockName);
+        pluginDataUpdate.setConfig(mockConfigUpdate);
 
         zookeeperDataChangedListener.onPluginChanged(ImmutableList.of(pluginData), DataEventTypeEnum.CREATE);
         Assert.assertEquals(zkClient.readData(ZkPathConstants.buildPluginPath(mockName)), pluginData);
 
-        zookeeperDataChangedListener.onPluginChanged(ImmutableList.of(pluginData2), DataEventTypeEnum.UPDATE);
-        Assert.assertEquals(zkClient.readData(ZkPathConstants.buildPluginPath(mockName)), pluginData2);
+        zookeeperDataChangedListener.onPluginChanged(ImmutableList.of(pluginDataUpdate), DataEventTypeEnum.UPDATE);
+        Assert.assertEquals(zkClient.readData(ZkPathConstants.buildPluginPath(mockName)), pluginDataUpdate);
 
-        zookeeperDataChangedListener.onPluginChanged(ImmutableList.of(pluginData2), DataEventTypeEnum.DELETE);
+        zookeeperDataChangedListener.onPluginChanged(ImmutableList.of(pluginDataUpdate), DataEventTypeEnum.DELETE);
         Assert.assertNull(zkClient.readData(ZkPathConstants.buildPluginPath(mockName), Boolean.TRUE));
     }
 
@@ -178,19 +178,19 @@ public class ZookeeperDataChangedListenerTest {
         selectorData.setName(mockName);
         selectorData.setPluginName(mockPluginName);
 
-        SelectorData selectorData2 = new SelectorData();
-        String mockName2 = "MOCK_NAME2";
-        selectorData2.setId(mockId);
-        selectorData2.setName(mockName2);
-        selectorData2.setPluginName(mockPluginName);
+        SelectorData selectorDataUpdate = new SelectorData();
+        String mockNameUpdate = "MOCK_NAME2";
+        selectorDataUpdate.setId(mockId);
+        selectorDataUpdate.setName(mockNameUpdate);
+        selectorDataUpdate.setPluginName(mockPluginName);
 
         zookeeperDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.CREATE);
         Assert.assertEquals(zkClient.readData(ZkPathConstants.buildSelectorRealPath(mockPluginName, mockId)), selectorData);
 
-        zookeeperDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData2), DataEventTypeEnum.UPDATE);
-        Assert.assertEquals(zkClient.readData(ZkPathConstants.buildSelectorRealPath(mockPluginName, mockId)), selectorData2);
+        zookeeperDataChangedListener.onSelectorChanged(ImmutableList.of(selectorDataUpdate), DataEventTypeEnum.UPDATE);
+        Assert.assertEquals(zkClient.readData(ZkPathConstants.buildSelectorRealPath(mockPluginName, mockId)), selectorDataUpdate);
 
-        zookeeperDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData2), DataEventTypeEnum.DELETE);
+        zookeeperDataChangedListener.onSelectorChanged(ImmutableList.of(selectorDataUpdate), DataEventTypeEnum.DELETE);
         Assert.assertNull(zkClient.readData(ZkPathConstants.buildSelectorRealPath(mockPluginName, mockId),
                 Boolean.TRUE));
     }
@@ -213,13 +213,13 @@ public class ZookeeperDataChangedListenerTest {
         zookeeperDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.CREATE);
         Assert.assertEquals(zkClient.readData(ZkPathConstants.buildRulePath(mockPluginName, mockSelectorId, mockId)), ruleData);
 
-        String mockName2 = "MOCK_NAME2";
-        RuleData ruleData2 = new RuleData();
-        ruleData2.setId(mockId).setName(mockName2).setPluginName(mockPluginName).setSelectorId(mockSelectorId);
-        zookeeperDataChangedListener.onRuleChanged(ImmutableList.of(ruleData2), DataEventTypeEnum.UPDATE);
-        Assert.assertEquals(zkClient.readData(ZkPathConstants.buildRulePath(mockPluginName, mockSelectorId, mockId)), ruleData2);
+        String mockNameUpdate = "MOCK_NAME2";
+        RuleData ruleDataUpdate = new RuleData();
+        ruleDataUpdate.setId(mockId).setName(mockNameUpdate).setPluginName(mockPluginName).setSelectorId(mockSelectorId);
+        zookeeperDataChangedListener.onRuleChanged(ImmutableList.of(ruleDataUpdate), DataEventTypeEnum.UPDATE);
+        Assert.assertEquals(zkClient.readData(ZkPathConstants.buildRulePath(mockPluginName, mockSelectorId, mockId)), ruleDataUpdate);
 
-        zookeeperDataChangedListener.onRuleChanged(ImmutableList.of(ruleData2), DataEventTypeEnum.DELETE);
+        zookeeperDataChangedListener.onRuleChanged(ImmutableList.of(ruleDataUpdate), DataEventTypeEnum.DELETE);
         Assert.assertNull(zkClient.readData(ZkPathConstants.buildRulePath(mockPluginName, mockSelectorId, mockId),
                 Boolean.TRUE));
     }
