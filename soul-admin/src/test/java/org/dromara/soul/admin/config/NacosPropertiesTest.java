@@ -17,13 +17,11 @@
 
 package org.dromara.soul.admin.config;
 
-
 import org.dromara.soul.admin.AbstractConfigurationTest;
-import org.junit.Test;
 
+import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -45,8 +43,8 @@ public class NacosPropertiesTest extends AbstractConfigurationTest {
 
     @Test
     public void testNacosPropertiesSpecified() {
-        String url = "localhost:8848";
-        String namespace = "1c10d748-af86-43b9-8265-75f487d20c6c";
+        final String url = "localhost:8848";
+        final String namespace = "1c10d748-af86-43b9-8265-75f487d20c6c";
         NacosProperties.NacosACMProperties acm = new NacosProperties.NacosACMProperties();
         acm.setEnabled(false);
         acm.setEndpoint("acm.aliyun.com");
@@ -61,7 +59,6 @@ public class NacosPropertiesTest extends AbstractConfigurationTest {
         assertEquals(nacosProperties.getAcm().isEnabled(), acm.isEnabled());
         assertEquals(nacosProperties.getAcm().getEndpoint(), acm.getEndpoint());
     }
-
 
     @Configuration
     @EnableConfigurationProperties(NacosProperties.class)

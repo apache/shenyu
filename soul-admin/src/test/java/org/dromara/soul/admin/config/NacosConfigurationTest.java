@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-
 package org.dromara.soul.admin.config;
 
 import com.alibaba.nacos.api.NacosFactory;
@@ -25,9 +24,7 @@ import org.dromara.soul.admin.AbstractConfigurationTest;
 import org.junit.Test;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-
 import java.util.Properties;
-
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
@@ -39,10 +36,10 @@ import static org.junit.Assert.assertNotNull;
 public class NacosConfigurationTest extends AbstractConfigurationTest {
 
     private final String[] inlinedProperties = new String[]{
-            "soul.sync.nacos.url=localhost:8848",
-            "soul.sync.nacos.namespace=1c10d748-af86-43b9-8265-75f487d20c6c",
-            "soul.sync.nacos.acm.enabled=false",
-            "soul.sync.nacos.acm.endpoint=acm.aliyun.com"
+        "soul.sync.nacos.url=localhost:8848",
+        "soul.sync.nacos.namespace=1c10d748-af86-43b9-8265-75f487d20c6c",
+        "soul.sync.nacos.acm.enabled=false",
+        "soul.sync.nacos.acm.endpoint=acm.aliyun.com",
     };
 
     @Test
