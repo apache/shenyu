@@ -18,6 +18,10 @@
 package org.dromara.soul.plugin.sign.service;
 
 import com.google.common.collect.Maps;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +33,7 @@ import org.dromara.soul.common.dto.AuthPathData;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.utils.DateUtils;
+import org.dromara.soul.common.utils.PathMatchUtils;
 import org.dromara.soul.common.utils.SignUtils;
 import org.dromara.soul.plugin.api.SignService;
 import org.dromara.soul.plugin.api.context.SoulContext;
@@ -37,11 +42,6 @@ import org.dromara.soul.plugin.base.cache.BaseDataCache;
 import org.dromara.soul.plugin.sign.cache.SignAuthDataCache;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.server.ServerWebExchange;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 /**
  * The type Default sign service.
@@ -98,8 +98,9 @@ public class DefaultSignService implements SignService {
             log.error("您尚未配置路径:{}", soulContext.getAppKey());
             return Pair.of(Boolean.FALSE, Constants.SIGN_PATH_NOT_EXIST);
         }
+   
         boolean match = pathDataList.stream().filter(AuthPathData::getEnabled)
-                .anyMatch(e -> e.getPath().equals(soulContext.getPath()));
+                .anyMatch(e -> PathMatchUtils.match(e.getPath(), soulContext.getPath()));
         if (!match) {
             log.error("您尚未配置路径:{},{}", soulContext.getAppKey(), soulContext.getRealUrl());
             return Pair.of(Boolean.FALSE, Constants.SIGN_PATH_NOT_EXIST);

@@ -106,16 +106,16 @@ public final class AuthParamMapperTest extends AbstractSpringIntegrationTest {
      * @return the auth param do
      */
     private AuthParamDO buildAuthParamDO() {
+        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         String id = UUIDUtils.getInstance().generateShortUuid();
         String authId = UUIDUtils.getInstance().generateShortUuid();
-        AuthParamDO record = new AuthParamDO();
-        record.setId(id);
-        record.setAuthId(authId);
-        record.setAppName("test_app_name");
-        record.setAppParam("test_app_param");
-        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-        record.setDateCreated(now);
-        record.setDateUpdated(now);
-        return record;
+        return AuthParamDO.builder()
+                .id(id)
+                .authId(authId)
+                .appName("test_app_name")
+                .appParam("test_app_param")
+                .dateUpdated(now)
+                .dateCreated(now)
+                .build();
     }
 }
