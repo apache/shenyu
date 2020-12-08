@@ -20,10 +20,12 @@ package org.dromara.soul.client.springmvc.init;
 import org.dromara.soul.client.springmvc.annotation.SoulSpringMvcClient;
 import org.dromara.soul.client.springmvc.config.SoulSpringMvcConfig;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.Assert;
 import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
 import org.mockito.junit.MockitoJUnitRunner;
 import io.undertow.Undertow;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,6 +44,7 @@ import static io.undertow.Handlers.path;
  * @author tydhot
  */
 @RunWith(MockitoJUnitRunner.class)
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public final class SpringMvcClientBeanPostProcessorTest {
 
     private static Undertow server;
@@ -61,6 +64,8 @@ public final class SpringMvcClientBeanPostProcessorTest {
         soulSpringMvcConfig.setAppName("test-mvc");
         soulSpringMvcConfig.setContextPath("test");
         soulSpringMvcConfig.setPort(58889);
+        countDownLatch = new CountDownLatch(1);
+        registerNum = 0;
         springMvcClientBeanPostProcessor = new SpringMvcClientBeanPostProcessor(soulSpringMvcConfig);
         server = Undertow.builder()
                 .addHttpListener(58888, "localhost")
@@ -80,20 +85,16 @@ public final class SpringMvcClientBeanPostProcessorTest {
 
     @Test
     public void testSoulBeanProcess() throws InterruptedException {
-        countDownLatch = new CountDownLatch(1);
-        registerNum = 0;
         springMvcClientBeanPostProcessor.postProcessAfterInitialization(springMvcClientTestBean, "springMvcClientTestBean");
         countDownLatch.await(500L, TimeUnit.MILLISECONDS);
-        Assert.assertEquals(registerNum, 1L);
+        Assert.assertEquals(1L, registerNum);
     }
 
     @Test
     public void testNormalBeanProcess() throws InterruptedException {
-        countDownLatch = new CountDownLatch(1);
-        registerNum = 0L;
         springMvcClientBeanPostProcessor.postProcessAfterInitialization(new Object(), "normalBean");
         countDownLatch.await(500L, TimeUnit.MILLISECONDS);
-        Assert.assertEquals(registerNum, 0L);
+        Assert.assertEquals(0L, registerNum);
     }
 
     @RestController

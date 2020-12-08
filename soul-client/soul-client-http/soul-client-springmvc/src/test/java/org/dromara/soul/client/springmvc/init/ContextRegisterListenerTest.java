@@ -20,10 +20,12 @@ package org.dromara.soul.client.springmvc.init;
 import io.undertow.Undertow;
 import org.dromara.soul.client.springmvc.config.SoulSpringMvcConfig;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.Assert;
 import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static io.undertow.Handlers.path;
@@ -40,6 +42,7 @@ import java.util.concurrent.TimeUnit;
  * @author tydhot
  */
 @RunWith(MockitoJUnitRunner.class)
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public final class ContextRegisterListenerTest {
 
     private static boolean isRegister;
@@ -50,6 +53,7 @@ public final class ContextRegisterListenerTest {
 
     @BeforeClass
     public static void init() {
+        countDownLatch = new CountDownLatch(1);
         server = Undertow.builder()
                 .addHttpListener(58888, "localhost")
                 .setHandler(path()
@@ -76,7 +80,6 @@ public final class ContextRegisterListenerTest {
         soulSpringMvcConfig.setPort(58889);
         ContextRegisterListener contextRegisterListener = new ContextRegisterListener(soulSpringMvcConfig);
         ContextRefreshedEvent contextRefreshedEvent = mock(ContextRefreshedEvent.class);
-        countDownLatch = new CountDownLatch(1);
         contextRegisterListener.onApplicationEvent(contextRefreshedEvent);
         countDownLatch.await(500L, TimeUnit.MILLISECONDS);
         Assert.assertFalse(isRegister);
@@ -84,7 +87,6 @@ public final class ContextRegisterListenerTest {
 
     @Test
     public void testFullRegister() throws InterruptedException {
-        isRegister = false;
         SoulSpringMvcConfig soulSpringMvcConfig = new SoulSpringMvcConfig();
         soulSpringMvcConfig.setAdminUrl("http://127.0.0.1:58888");
         soulSpringMvcConfig.setAppName("test-mvc");
@@ -93,7 +95,6 @@ public final class ContextRegisterListenerTest {
         soulSpringMvcConfig.setPort(58889);
         ContextRegisterListener contextRegisterListener = new ContextRegisterListener(soulSpringMvcConfig);
         ContextRefreshedEvent contextRefreshedEvent = mock(ContextRefreshedEvent.class);
-        countDownLatch = new CountDownLatch(1);
         contextRegisterListener.onApplicationEvent(contextRefreshedEvent);
         countDownLatch.await(500L, TimeUnit.MILLISECONDS);
         Assert.assertTrue(isRegister);
