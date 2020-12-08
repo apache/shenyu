@@ -78,7 +78,7 @@ public final class ContextRegisterListenerTest {
         ContextRefreshedEvent contextRefreshedEvent = mock(ContextRefreshedEvent.class);
         countDownLatch = new CountDownLatch(1);
         contextRegisterListener.onApplicationEvent(contextRefreshedEvent);
-        countDownLatch.await(1000L, TimeUnit.MILLISECONDS);
+        countDownLatch.await(500L, TimeUnit.MILLISECONDS);
         Assert.assertFalse(isRegister);
     }
 
@@ -95,7 +95,7 @@ public final class ContextRegisterListenerTest {
         ContextRefreshedEvent contextRefreshedEvent = mock(ContextRefreshedEvent.class);
         countDownLatch = new CountDownLatch(1);
         contextRegisterListener.onApplicationEvent(contextRefreshedEvent);
-        countDownLatch.await(1000L, TimeUnit.MILLISECONDS);
+        countDownLatch.await(500L, TimeUnit.MILLISECONDS);
         Assert.assertTrue(isRegister);
     }
 }

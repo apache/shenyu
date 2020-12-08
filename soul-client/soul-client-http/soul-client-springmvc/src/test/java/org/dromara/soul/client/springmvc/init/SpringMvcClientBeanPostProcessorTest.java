@@ -83,7 +83,7 @@ public final class SpringMvcClientBeanPostProcessorTest {
         countDownLatch = new CountDownLatch(1);
         registerNum = 0;
         springMvcClientBeanPostProcessor.postProcessAfterInitialization(springMvcClientTestBean, "springMvcClientTestBean");
-        countDownLatch.await(1000L, TimeUnit.MILLISECONDS);
+        countDownLatch.await(500L, TimeUnit.MILLISECONDS);
         Assert.assertEquals(registerNum, 1L);
     }
 
@@ -92,7 +92,7 @@ public final class SpringMvcClientBeanPostProcessorTest {
         countDownLatch = new CountDownLatch(1);
         registerNum = 0L;
         springMvcClientBeanPostProcessor.postProcessAfterInitialization(new Object(), "normalBean");
-        countDownLatch.await(1000L, TimeUnit.MILLISECONDS);
+        countDownLatch.await(500L, TimeUnit.MILLISECONDS);
         Assert.assertEquals(registerNum, 0L);
     }
 
