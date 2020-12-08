@@ -48,7 +48,7 @@ import static io.undertow.Handlers.path;
  */
 @RunWith(MockitoJUnitRunner.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class SofaServiceBeanPostProcessorTest {
+public final class SofaServiceBeanPostProcessorTest {
 
     private static Undertow server;
 
@@ -91,14 +91,14 @@ public class SofaServiceBeanPostProcessorTest {
     public void testPostProcessAfterInitialization() throws Exception {
         ServiceFactoryBean serviceFactoryBean = new ServiceFactoryBean();
         Class<?> c = serviceFactoryBean.getClass();
-        Field field = c.getDeclaredField("service");
-        field.setAccessible(true);
-        ServiceImpl service = new ServiceImpl("uniqueId", SofaService.class, new SoulSofaServiceImpl());
-        field.set(serviceFactoryBean, service);
+        Field serviceField = c.getDeclaredField("service");
+        serviceField.setAccessible(true);
+        serviceField.set(serviceFactoryBean,
+                new ServiceImpl("uniqueId", SofaService.class, new SoulSofaServiceImpl()));
 
-        Field field1 = c.getSuperclass().getDeclaredField("interfaceClass");
-        field1.setAccessible(true);
-        field1.set(serviceFactoryBean, SoulSofaServiceImpl.class);
+        Field interfaceClassField = c.getSuperclass().getDeclaredField("interfaceClass");
+        interfaceClassField.setAccessible(true);
+        interfaceClassField.set(serviceFactoryBean, SoulSofaServiceImpl.class);
         sofaServiceBeanPostProcessorUnderTest
                 .postProcessAfterInitialization(serviceFactoryBean, "soulSofaServiceImpl");
         countDownLatch.await(500L, TimeUnit.MILLISECONDS);
@@ -107,7 +107,8 @@ public class SofaServiceBeanPostProcessorTest {
 
     @Test
     public void testPostProcessAfterInitializationWithNormalBean() throws Exception {
-        sofaServiceBeanPostProcessorUnderTest.postProcessAfterInitialization(new SofaServiceImpl(), "SofaServiceImpl");
+        sofaServiceBeanPostProcessorUnderTest
+                .postProcessAfterInitialization(new SofaServiceImpl(), "SofaServiceImpl");
         countDownLatch.await(500L, TimeUnit.MILLISECONDS);
         Assert.assertEquals(0L, registerNum);
     }
