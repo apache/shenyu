@@ -90,13 +90,13 @@ public final class SofaServiceBeanPostProcessorTest {
     @Test
     public void testPostProcessAfterInitialization() throws Exception {
         ServiceFactoryBean serviceFactoryBean = new ServiceFactoryBean();
-        Class<?> c = serviceFactoryBean.getClass();
-        Field serviceField = c.getDeclaredField("service");
+        Class<?> serviceFactoryBeanClass = serviceFactoryBean.getClass();
+        Field serviceField = serviceFactoryBeanClass.getDeclaredField("service");
         serviceField.setAccessible(true);
         serviceField.set(serviceFactoryBean,
                 new ServiceImpl("uniqueId", SofaService.class, new SoulSofaServiceImpl()));
 
-        Field interfaceClassField = c.getSuperclass().getDeclaredField("interfaceClass");
+        Field interfaceClassField = serviceFactoryBeanClass.getSuperclass().getDeclaredField("interfaceClass");
         interfaceClassField.setAccessible(true);
         interfaceClassField.set(serviceFactoryBean, SoulSofaServiceImpl.class);
         sofaServiceBeanPostProcessorUnderTest
