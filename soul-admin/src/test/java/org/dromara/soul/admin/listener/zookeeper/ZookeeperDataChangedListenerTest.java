@@ -55,7 +55,7 @@ public class ZookeeperDataChangedListenerTest {
     }
 
     /**
-     * test onAppAuthChanged.
+     * test case onAppAuthChanged.
      */
     @Test
     public void testOnAppAuthChanged() {
@@ -83,7 +83,7 @@ public class ZookeeperDataChangedListenerTest {
     }
 
     /**
-     * test onMetaDataChanged.
+     * test case onMetaDataChanged.
      */
     @SneakyThrows
     @Test
@@ -116,7 +116,7 @@ public class ZookeeperDataChangedListenerTest {
     }
 
     /**
-     * test onPluginChanged.
+     * test case onPluginChanged.
      */
     @Test
     public void testOnPluginChanged() {
@@ -145,7 +145,7 @@ public class ZookeeperDataChangedListenerTest {
     }
 
     /**
-     * test onSelectorChanged.
+     * test case onSelectorChanged.
      */
     @Test
     public void testOnSelectorChanged() {
@@ -175,7 +175,7 @@ public class ZookeeperDataChangedListenerTest {
     }
 
     /**
-     * test onRuleChanged.
+     * test case onRuleChanged.
      */
     @Test
     public void testOnRuleChanged() {
