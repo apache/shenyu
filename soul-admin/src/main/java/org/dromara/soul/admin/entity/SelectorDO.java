@@ -18,6 +18,9 @@
 package org.dromara.soul.admin.entity;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.SelectorDTO;
 import org.dromara.soul.common.dto.ConditionData;
@@ -28,14 +31,19 @@ import org.dromara.soul.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * SelectorDO.
  *
  * @author jiangxiaofeng(Nicholas)
+ * @author nuo-promise
  */
 @Data
-public class SelectorDO extends BaseDO {
+@SuperBuilder
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public final class SelectorDO extends BaseDO {
 
     /**
      * plugin id.
@@ -86,33 +94,32 @@ public class SelectorDO extends BaseDO {
      * @return {@linkplain SelectorDO}
      */
     public static SelectorDO buildSelectorDO(final SelectorDTO selectorDTO) {
-        if (selectorDTO != null) {
-            SelectorDO selectorDO = new SelectorDO();
+        return Optional.ofNullable(selectorDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            if (StringUtils.isEmpty(selectorDTO.getId())) {
+            SelectorDO selectorDO = SelectorDO.builder()
+                    .type(item.getType())
+                    .sort(item.getSort())
+                    .enabled(item.getEnabled())
+                    .loged(item.getLoged())
+                    .continued(item.getContinued())
+                    .dateUpdated(currentTime)
+                    .handle(item.getHandle())
+                    .pluginId(item.getPluginId())
+                    .name(item.getName())
+                    .build();
+            if (StringUtils.isEmpty(item.getId())) {
                 selectorDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 selectorDO.setDateCreated(currentTime);
             } else {
-                selectorDO.setId(selectorDTO.getId());
+                selectorDO.setId(item.getId());
             }
-
-            selectorDO.setPluginId(selectorDTO.getPluginId());
-            selectorDO.setName(selectorDTO.getName());
-            if (SelectorTypeEnum.FULL_FLOW.getCode() == selectorDTO.getType()) {
+            if (SelectorTypeEnum.FULL_FLOW.getCode() == item.getType()) {
                 selectorDO.setMatchMode(MatchModeEnum.AND.getCode());
             } else {
-                selectorDO.setMatchMode(selectorDTO.getMatchMode());
+                selectorDO.setMatchMode(item.getMatchMode());
             }
-            selectorDO.setType(selectorDTO.getType());
-            selectorDO.setSort(selectorDTO.getSort());
-            selectorDO.setEnabled(selectorDTO.getEnabled());
-            selectorDO.setLoged(selectorDTO.getLoged());
-            selectorDO.setContinued(selectorDTO.getContinued());
-            selectorDO.setDateUpdated(currentTime);
-            selectorDO.setHandle(selectorDTO.getHandle());
             return selectorDO;
-        }
-        return null;
+        }).orElse(null);
     }
 
     /**
@@ -124,17 +131,19 @@ public class SelectorDO extends BaseDO {
      * @return the selector data
      */
     public static SelectorData transFrom(final SelectorDO selectorDO, final String pluginName, final List<ConditionData> conditionDataList) {
-        return new SelectorData(selectorDO.getId(),
-                selectorDO.getPluginId(),
-                pluginName,
-                selectorDO.getName(),
-                selectorDO.getMatchMode(),
-                selectorDO.getType(),
-                selectorDO.getSort(),
-                selectorDO.getEnabled(),
-                selectorDO.getLoged(),
-                selectorDO.getContinued(),
-                selectorDO.getHandle(),
-                conditionDataList);
+        return SelectorData.builder()
+                .id(selectorDO.getId())
+                .pluginId(selectorDO.getPluginId())
+                .pluginName(pluginName)
+                .name(selectorDO.getName())
+                .matchMode(selectorDO.getMatchMode())
+                .type(selectorDO.getType())
+                .sort(selectorDO.getSort())
+                .enabled(selectorDO.getEnabled())
+                .loged(selectorDO.getLoged())
+                .continued(selectorDO.getContinued())
+                .handle(selectorDO.getHandle())
+                .conditionList(conditionDataList)
+                .build();
     }
 }

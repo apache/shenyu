@@ -15,46 +15,28 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.client.common.enums;
+package org.dromara.soul.common.enums;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+
+import java.util.Arrays;
 
 /**
- * RpcTypeEnum.
+ * Test Cases for PluginEnum.
  *
- * @author xiaoyu(549477611 @ qq.com)
+ * @author abysscat-yj
  */
-@RequiredArgsConstructor
-@Getter
-public enum RpcTypeEnum {
+public final class PluginEnumTest {
 
-    /**
-     * Http rpc type enum.
-     */
-    HTTP("http"),
+    @Test
+    public void testGetPluginEnumByName() {
+        Arrays.asList(PluginEnum.values()).stream()
+                .forEach(pluginEnum -> assertEquals(pluginEnum, PluginEnum.getPluginEnumByName(pluginEnum.getName())));
+    }
 
-    /**
-     * Dubbo rpc type enum.
-     */
-    DUBBO("dubbo"),
-
-    /**
-     * springCloud rpc type enum.
-     */
-    SPRING_CLOUD("springCloud"),
-
-    /**
-     * motan.
-     */
-    MOTAN("motan"),
-
-    /**
-     * grpc.
-     */
-    GRPC("grpc");
-
-
-    private final String name;
-
+    @Test
+    public void testGetPluginEnumByNameInvalid() {
+        assertEquals(PluginEnum.GLOBAL, PluginEnum.getPluginEnumByName("invalidName"));
+    }
 }

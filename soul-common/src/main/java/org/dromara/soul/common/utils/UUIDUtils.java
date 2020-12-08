@@ -48,11 +48,11 @@ public final class UUIDUtils {
 
     private static final UUIDUtils ID_WORKER_UTILS = new UUIDUtils();
 
-    private long workerId;
+    private final long workerId;
 
-    private long datacenterId;
+    private final long datacenterId;
 
-    private long idepoch;
+    private final long idepoch;
 
     private long sequence = '0';
 

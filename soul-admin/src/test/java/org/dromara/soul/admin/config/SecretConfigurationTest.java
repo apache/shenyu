@@ -17,31 +17,43 @@
 
 package org.dromara.soul.admin.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.admin.AbstractConfigurationTest;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
-import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 /**
  * Test SecretConfiguration.
  *
  * @author Jiang Jining
  */
+@Slf4j
 public class SecretConfigurationTest extends AbstractConfigurationTest {
     
     @Test
     public void testNormalSecretConfiguration() {
-        load(SecretConfiguration.class, "soul.aes.secret.key=2095132720951327");
+        load(SecretConfiguration.class, "soul.aes.secret.key=1234567890123456");
         SecretProperties secretProperties = getContext().getBean(SecretProperties.class);
+        Assertions.assertNotNull(secretProperties);
         String key = secretProperties.getKey();
-        Assertions.assertNull(key);
+        Assertions.assertEquals(key, "1234567890123456");
+    }
+    
+    @Test
+    public void testDefaultSecretConfiguration() {
+        load(SecretConfiguration.class);
+        SecretProperties secretProperties = getContext().getBean(SecretProperties.class);
+        Assertions.assertNotNull(secretProperties);
+        String key = secretProperties.getKey();
+        Assertions.assertEquals(key, "2095132720951327");
     }
     
     @Test
     public void testAbnormalSecretConfiguration() {
-        load(SecretConfiguration.class, "soul.aes.secret.key=soul.aes.secret.key=1095132720951327");
-        AnnotationConfigApplicationContext context = getContext();
-        Assertions.assertThrows(NoSuchBeanDefinitionException.class, () -> context.getBean(SecretProperties.class));
+        load(SecretConfiguration.class, "soul.aes.secret.key=");
+        SecretProperties secretProperties = getContext().getBean(SecretProperties.class);
+        Assertions.assertNotNull(secretProperties);
+        String key = secretProperties.getKey();
+        Assertions.assertEquals("", key);
     }
 }
