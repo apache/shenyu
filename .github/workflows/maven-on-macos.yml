@@ -1,4 +1,4 @@
-name: build
+name: Java CI with Maven(MacOS)
 
 on:
   pull_request:
@@ -12,8 +12,15 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
+      - name: Cache Maven Repos
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
       - uses: actions/checkout@v2
       - name: checkout submodules
         shell: bash
@@ -25,5 +32,3 @@ jobs:
           java-version: 8
       - name: Build with Maven
         run: sudo mvn --batch-mode --no-transfer-progress clean install -Dmaven.javadoc.skip=true
-
-      - uses: codecov/codecov-action@v1
