@@ -69,7 +69,7 @@ public class DefaultSignService implements SignService {
         if (StringUtils.isBlank(soulContext.getAppKey())
                 || StringUtils.isBlank(soulContext.getSign())
                 || StringUtils.isBlank(soulContext.getTimestamp())) {
-            log.error("认证参数不完整,{}", soulContext);
+            log.error("sign parameters are incomplete,{}", soulContext);
             return Pair.of(Boolean.FALSE, Constants.SIGN_PARAMS_ERROR);
         }
         final LocalDateTime start = DateUtils.formatLocalDateTimeFromTimestampBySystemTimezone(Long.parseLong(soulContext.getTimestamp()));
@@ -90,25 +90,25 @@ public class DefaultSignService implements SignService {
     private Pair<Boolean, String> sign(final SoulContext soulContext, final ServerWebExchange exchange) {
         final AppAuthData appAuthData = SignAuthDataCache.getInstance().obtainAuthData(soulContext.getAppKey());
         if (Objects.isNull(appAuthData) || !appAuthData.getEnabled()) {
-            log.error("认证APP_kEY不存在,或者已经被禁用,{}", soulContext.getAppKey());
+            log.error("sign APP_kEY does not exist or has been disabled,{}", soulContext.getAppKey());
             return Pair.of(Boolean.FALSE, Constants.SIGN_APP_KEY_IS_NOT_EXIST);
         }
         List<AuthPathData> pathDataList = appAuthData.getPathDataList();
         if (CollectionUtils.isEmpty(pathDataList)) {
-            log.error("您尚未配置路径:{}", soulContext.getAppKey());
+            log.error("You have not configured the sign path:{}", soulContext.getAppKey());
             return Pair.of(Boolean.FALSE, Constants.SIGN_PATH_NOT_EXIST);
         }
    
         boolean match = pathDataList.stream().filter(AuthPathData::getEnabled)
                 .anyMatch(e -> PathMatchUtils.match(e.getPath(), soulContext.getPath()));
         if (!match) {
-            log.error("您尚未配置路径:{},{}", soulContext.getAppKey(), soulContext.getRealUrl());
+            log.error("You have not configured the sign path:{},{}", soulContext.getAppKey(), soulContext.getRealUrl());
             return Pair.of(Boolean.FALSE, Constants.SIGN_PATH_NOT_EXIST);
         }
         String sigKey = SignUtils.generateSign(appAuthData.getAppSecret(), buildParamsMap(soulContext));
         boolean result = Objects.equals(sigKey, soulContext.getSign());
         if (!result) {
-            log.error("签名插件得到的签名为:{},传入的签名值为:{}", sigKey, soulContext.getSign());
+            log.error("the SignUtils generated signature value is:{},the accepted value is:{}", sigKey, soulContext.getSign());
             return Pair.of(Boolean.FALSE, Constants.SIGN_VALUE_IS_ERROR);
         } else {
             List<AuthParamData> paramDataList = appAuthData.getParamDataList();
