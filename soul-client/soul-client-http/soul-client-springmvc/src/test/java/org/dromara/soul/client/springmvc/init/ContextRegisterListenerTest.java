@@ -31,6 +31,9 @@ import static org.mockito.Mockito.mock;
 
 import org.springframework.context.event.ContextRefreshedEvent;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 /**
  * ContextRegisterListenerTest.
  *
@@ -43,12 +46,17 @@ public final class ContextRegisterListenerTest {
 
     private static Undertow server;
 
+    private static CountDownLatch countDownLatch;
+
     @BeforeClass
     public static void init() {
         server = Undertow.builder()
                 .addHttpListener(58888, "localhost")
                 .setHandler(path()
-                        .addPrefixPath("/soul-client/springmvc-register", httpServerExchange -> isRegister = true))
+                        .addPrefixPath("/soul-client/springmvc-register", httpServerExchange -> {
+                            isRegister = true;
+                            countDownLatch.countDown();
+                        }))
                 .build();
         server.start();
     }
@@ -68,8 +76,9 @@ public final class ContextRegisterListenerTest {
         soulSpringMvcConfig.setPort(58889);
         ContextRegisterListener contextRegisterListener = new ContextRegisterListener(soulSpringMvcConfig);
         ContextRefreshedEvent contextRefreshedEvent = mock(ContextRefreshedEvent.class);
+        countDownLatch = new CountDownLatch(1);
         contextRegisterListener.onApplicationEvent(contextRefreshedEvent);
-        Thread.sleep(500L);
+        countDownLatch.await(1000L, TimeUnit.MILLISECONDS);
         Assert.assertFalse(isRegister);
     }
 
@@ -84,8 +93,9 @@ public final class ContextRegisterListenerTest {
         soulSpringMvcConfig.setPort(58889);
         ContextRegisterListener contextRegisterListener = new ContextRegisterListener(soulSpringMvcConfig);
         ContextRefreshedEvent contextRefreshedEvent = mock(ContextRefreshedEvent.class);
+        countDownLatch = new CountDownLatch(1);
         contextRegisterListener.onApplicationEvent(contextRefreshedEvent);
-        Thread.sleep(500L);
+        countDownLatch.await(1000L, TimeUnit.MILLISECONDS);
         Assert.assertTrue(isRegister);
     }
 }
