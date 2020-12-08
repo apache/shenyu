@@ -46,7 +46,7 @@ import java.net.URLEncoder;
  * @date 2020/12/08
  */
 @RunWith(MockitoJUnitRunner.class)
-public class ZookeeperDataChangedListenerTest {
+public final class ZookeeperDataChangedListenerTest {
 
     private static TestingServer zkServer;
 
