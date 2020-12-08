@@ -469,7 +469,6 @@
                 <version>${maven-surefire-plugin.version}</version>
                 <configuration>
                     <skip>${skipTests}</skip>
-                    <argLine>-Xms512m -Xmx512m -XX:MaxPermSize=256m -noverify</argLine>
                 </configuration>
             </plugin>
             <plugin>
