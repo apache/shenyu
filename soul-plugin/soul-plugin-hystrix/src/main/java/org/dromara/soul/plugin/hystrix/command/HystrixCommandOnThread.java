@@ -30,13 +30,11 @@ import rx.RxReactiveStreams;
 
 /**
  * hystrix command in thread isolation mode.
+ *
  * @author liangziqiang
  */
 public class HystrixCommandOnThread extends HystrixCommand<Mono<Void>> implements Command {
-
-    /**
-     * logger.
-     */
+    
     private static final Logger LOGGER = LoggerFactory.getLogger(HystrixCommandOnThread.class);
 
     private final ServerWebExchange exchange;
@@ -44,13 +42,14 @@ public class HystrixCommandOnThread extends HystrixCommand<Mono<Void>> implement
     private final SoulPluginChain chain;
 
     private final URI callBackUri;
-
+    
     /**
      * Instantiates a new Http command.
      *
-     * @param setter   the setter
-     * @param exchange the exchange
-     * @param chain    the chain
+     * @param setter      the setter
+     * @param exchange    the exchange
+     * @param chain       the chain
+     * @param callBackUri the call back uri
      */
     public HystrixCommandOnThread(final HystrixCommand.Setter setter,
                           final ServerWebExchange exchange,
@@ -77,7 +76,6 @@ public class HystrixCommandOnThread extends HystrixCommand<Mono<Void>> implement
         }
         final Throwable exception = getExecutionException();
         return doFallback(exchange, exception);
-
     }
 
     @Override

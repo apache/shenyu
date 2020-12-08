@@ -30,7 +30,7 @@ import static org.junit.Assert.assertTrue;
  *
  * @author dengliming
  */
-public class SignUtilsTest {
+public final class SignUtilsTest {
 
     @Test
     public void testGenerateSign() {

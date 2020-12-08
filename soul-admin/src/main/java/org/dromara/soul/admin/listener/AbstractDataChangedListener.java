@@ -226,6 +226,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
     /**
      * if md5 is not the same as the original, then update lcoal cache.
      * @param group ConfigGroupEnum
+     * @param <T> the type of class
      * @param data the new config data
      */
     protected <T> void updateCache(final ConfigGroupEnum group, final List<T> data) {
