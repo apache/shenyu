@@ -147,48 +147,48 @@ public final class SoulClientRegisterServiceTest {
     }
 
     private MetaDataDO buildMetaDataDO() {
-        MetaDataDO metaDataDO = new MetaDataDO();
-        metaDataDO.setAppName("appNameMetaData");
-        metaDataDO.setPath("pathMetaData");
-        metaDataDO.setPathDesc("pathDescMetaData");
-        metaDataDO.setRpcType("rpcTypeMetaData");
-        metaDataDO.setServiceName("serviceNameMetaData");
-        metaDataDO.setMethodName("methodNameMetaData");
-        metaDataDO.setParameterTypes("parameterTypesMetaData");
-        metaDataDO.setRpcExt("rpcExtMetaData");
-        metaDataDO.setEnabled(true);
-        return metaDataDO;
+        return MetaDataDO.builder()
+                .appName("appNameMetaData")
+                .path("pathMetaData")
+                .pathDesc("pathDescMetaData")
+                .rpcType("rpcTypeMetaData")
+                .serviceName("serviceNameMetaData")
+                .methodName("methodNameMetaData")
+                .parameterTypes("parameterTypesMetaData")
+                .rpcExt("rpcExtMetaData")
+                .enabled(true)
+                .build();
     }
 
     private SelectorDO buildSelectorDO() {
-        return new SelectorDO();
+        return SelectorDO.builder().build();
     }
 
     private SelectorData buildSelectorData() {
-        SelectorData selectorData = new SelectorData();
-        selectorData.setId("5");
-        selectorData.setPluginId("pluginId");
-        selectorData.setName("name");
-        selectorData.setMatchMode(0);
-        selectorData.setType(1);
-        selectorData.setSort(1);
-        selectorData.setEnabled(true);
-        selectorData.setLoged(true);
-        selectorData.setContinued(false);
-        selectorData.setHandle("handle");
-        return selectorData;
+        return SelectorData.builder()
+                .id("5")
+                .pluginId("pluginId")
+                .name("name")
+                .matchMode(0)
+                .type(1)
+                .sort(1)
+                .enabled(true)
+                .loged(true)
+                .continued(false)
+                .handle("handle")
+                .build();
     }
 
     private RuleDO buildRuleDO() {
-        RuleDO ruleDO = new RuleDO();
-        ruleDO.setId("5");
-        ruleDO.setSelectorId("selectorId");
-        ruleDO.setMatchMode(0);
-        ruleDO.setName("name");
-        ruleDO.setLoged(true);
-        ruleDO.setSort(1);
-        ruleDO.setHandle("handle");
-        return ruleDO;
+        return RuleDO.builder()
+                .id("5")
+                .selectorId("selectorId")
+                .matchMode(0)
+                .name("name")
+                .loged(true)
+                .sort(1)
+                .handle("handle")
+                .build();
     }
 
     private SpringCloudRegisterDTO buildCloudRegisterDTO() {
