@@ -93,14 +93,14 @@ public final class SpringMvcClientBeanPostProcessorTest {
     @Test
     public void testSoulBeanProcess() throws InterruptedException {
         springMvcClientBeanPostProcessor.postProcessAfterInitialization(springMvcClientTestBean, "springMvcClientTestBean");
-        countDownLatch.await(500L, TimeUnit.MILLISECONDS);
+        countDownLatch.await(5, TimeUnit.SECONDS);
         Assert.assertEquals(1L, registerNum);
     }
 
     @Test
     public void testNormalBeanProcess() throws InterruptedException {
         springMvcClientBeanPostProcessor.postProcessAfterInitialization(new Object(), "normalBean");
-        countDownLatch.await(500L, TimeUnit.MILLISECONDS);
+        countDownLatch.await(5, TimeUnit.SECONDS);
         Assert.assertEquals(0L, registerNum);
     }
 
