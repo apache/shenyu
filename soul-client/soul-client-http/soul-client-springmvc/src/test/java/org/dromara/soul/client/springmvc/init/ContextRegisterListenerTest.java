@@ -78,8 +78,9 @@ public final class ContextRegisterListenerTest {
     @Test
     public void testNotFullRegister() throws InterruptedException {
         isRegister = false;
+        String port = server.getListenerInfo().get(0).getAddress().toString().split(":")[1];
         SoulSpringMvcConfig soulSpringMvcConfig = new SoulSpringMvcConfig();
-        soulSpringMvcConfig.setAdminUrl("http://127.0.0.1:58888");
+        soulSpringMvcConfig.setAdminUrl("http://127.0.0.1:" + port);
         soulSpringMvcConfig.setAppName("test-mvc");
         soulSpringMvcConfig.setContextPath("test");
         soulSpringMvcConfig.setPort(58889);
@@ -92,8 +93,9 @@ public final class ContextRegisterListenerTest {
 
     @Test
     public void testFullRegister() throws InterruptedException {
+        String port = server.getListenerInfo().get(0).getAddress().toString().split(":")[1];
         SoulSpringMvcConfig soulSpringMvcConfig = new SoulSpringMvcConfig();
-        soulSpringMvcConfig.setAdminUrl("http://127.0.0.1:58888");
+        soulSpringMvcConfig.setAdminUrl("http://127.0.0.1:" + port);
         soulSpringMvcConfig.setAppName("test-mvc");
         soulSpringMvcConfig.setContextPath("test");
         soulSpringMvcConfig.setFull(true);
