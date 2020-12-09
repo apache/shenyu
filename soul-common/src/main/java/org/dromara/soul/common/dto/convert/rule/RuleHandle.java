@@ -15,31 +15,27 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.utils;
+package org.dromara.soul.common.dto.convert.rule;
 
-import org.junit.Test;
-
-import static org.junit.Assert.assertFalse;
+import java.io.Serializable;
 
 /**
- * Test cases for UpstreamCheckUtils.
+ * The RuleHandle interface.
  *
- * @author dengliming
+ * @author yiwenlong (wlong.yi@gmail.com)
  */
-public final class UpstreamCheckUtilsTest {
+public interface RuleHandle extends Serializable {
 
-    @Test
-    public void testBlank() {
-        assertFalse(UpstreamCheckUtils.checkUrl(""));
-    }
+    /**
+     * It will be call when RuleHandleFactory to generate a RuleHandle object.
+     * @param path  path.
+     * @return      it's self.
+     */
+    RuleHandle init(String path);
 
-    @Test
-    public void testNotIp() {
-//        assertFalse(UpstreamCheckUtils.checkUrl("test"));
-    }
-
-    @Test
-    public void testNormalIp() {
-        assertFalse(UpstreamCheckUtils.checkUrl("http://127.0.0.1"));
-    }
+    /**
+     * Format this object to json string.
+     * @return      json string.
+     */
+    String toJson();
 }

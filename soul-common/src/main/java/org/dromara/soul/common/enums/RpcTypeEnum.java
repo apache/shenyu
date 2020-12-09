@@ -19,13 +19,8 @@ package org.dromara.soul.common.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.dromara.soul.common.dto.convert.rule.DivideRuleHandle;
-import org.dromara.soul.common.dto.convert.rule.DubboRuleHandle;
-import org.dromara.soul.common.dto.convert.rule.SofaRuleHandle;
-import org.dromara.soul.common.dto.convert.rule.SpringCloudRuleHandle;
 import org.dromara.soul.common.exception.SoulException;
 
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,46 +37,17 @@ public enum RpcTypeEnum {
     /**
      * Http rpc type enum.
      */
-    HTTP("http", true) {
-
-        @Override
-        public Serializable ruleHandle(final String path) {
-            DivideRuleHandle divideRuleHandle = new DivideRuleHandle();
-            divideRuleHandle.setLoadBalance(getDefaultLoadBalance().getName());
-            divideRuleHandle.setRetry(getDefaultRetry());
-            return divideRuleHandle;
-        }
-    },
+    HTTP("http", true),
 
     /**
      * Dubbo rpc type enum.
      */
-    DUBBO("dubbo", true) {
-
-        @Override
-        public Serializable ruleHandle(final String path) {
-            DubboRuleHandle dubboRuleHandle = new DubboRuleHandle();
-            dubboRuleHandle.setLoadBalance(getDefaultLoadBalance().getName());
-            dubboRuleHandle.setRetries(getDefaultRetries());
-            dubboRuleHandle.setTimeout(getDefaultTimeout());
-            return dubboRuleHandle;
-        }
-    },
+    DUBBO("dubbo", true),
 
     /**
      * Sofa rpc type enum.
      */
-    SOFA("sofa", true) {
-
-        @Override
-        public Serializable ruleHandle(final String path) {
-            SofaRuleHandle sofaRuleHandle = new SofaRuleHandle();
-            sofaRuleHandle.setLoadBalance(getDefaultLoadBalance().getName());
-            sofaRuleHandle.setRetries(getDefaultRetries());
-            sofaRuleHandle.setTimeout(getDefaultTimeout());
-            return sofaRuleHandle;
-        }
-    },
+    SOFA("sofa", true),
 
     /**
      * Web socket rpc type enum.
@@ -108,11 +74,6 @@ public enum RpcTypeEnum {
 
     private final Boolean support;
 
-    // some default values for rule handlers.
-    private final LoadBalanceEnum defaultLoadBalance = LoadBalanceEnum.RANDOM;
-    private final int defaultRetries = 0;
-    private final long defaultTimeout = 3000;
-    private final int defaultRetry = 0;
     /**
      * acquire operator supports.
      *
@@ -133,17 +94,5 @@ public enum RpcTypeEnum {
         return Arrays.stream(RpcTypeEnum.values())
                 .filter(e -> e.support && e.name.equals(name)).findFirst()
                 .orElseThrow(() -> new SoulException(String.format(" this rpc type can not support %s", name)));
-    }
-
-    /**
-     * ruleHandle
-     * This method is design for overwrite.
-     * @param path this is access path
-     * @return Default rpc rule handler.
-     */
-    public Serializable ruleHandle(final String path) {
-        SpringCloudRuleHandle springCloudRuleHandle = new SpringCloudRuleHandle();
-        springCloudRuleHandle.setPath(path);
-        return springCloudRuleHandle;
     }
 }

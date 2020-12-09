@@ -15,32 +15,49 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.dto.convert.rule;
+package org.dromara.soul.common.dto.convert.rule.impl;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.dromara.soul.common.constant.Constants;
-
-import java.io.Serializable;
+import org.dromara.soul.common.constant.RuleHandleConstants;
+import org.dromara.soul.common.dto.convert.rule.RuleHandle;
+import org.dromara.soul.common.utils.JsonUtils;
 
 /**
- * The type Spring cloud rule handle.
+ * The type Divide rule handle.
  *
  * @author xiaoyu(Myth)
  */
-@ToString
-@Getter
-@Setter
-public class SpringCloudRuleHandle implements Serializable {
+@Data
+@NoArgsConstructor
+public class DivideRuleHandle implements RuleHandle {
 
     /**
-     * this remote uri path.
+     * loadBalance.
+     * {@linkplain org.dromara.soul.common.enums.LoadBalanceEnum}
      */
-    private String path;
+    private String loadBalance;
+
+    /**
+     * http retry.
+     */
+    private int retry;
 
     /**
      * timeout is required.
      */
     private long timeout = Constants.TIME_OUT;
+
+    @Override
+    public RuleHandle init(final String path) {
+        this.loadBalance = RuleHandleConstants.DEFAULT_LOAD_BALANCE.getName();
+        this.retry = RuleHandleConstants.DEFAULT_RETRY;
+        return this;
+    }
+
+    @Override
+    public String toJson() {
+        return JsonUtils.toJson(this);
+    }
 }

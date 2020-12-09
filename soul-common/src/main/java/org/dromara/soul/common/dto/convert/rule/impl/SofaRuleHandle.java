@@ -16,14 +16,16 @@
  *
  */
 
-package org.dromara.soul.common.dto.convert.rule;
+package org.dromara.soul.common.dto.convert.rule.impl;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.dromara.soul.common.constant.Constants;
-
-import java.io.Serializable;
+import org.dromara.soul.common.constant.RuleHandleConstants;
+import org.dromara.soul.common.dto.convert.rule.RuleHandle;
+import org.dromara.soul.common.utils.JsonUtils;
 
 /**
  * The type Sofa rule handle.
@@ -33,7 +35,8 @@ import java.io.Serializable;
 @Getter
 @Setter
 @ToString
-public class SofaRuleHandle implements Serializable {
+@NoArgsConstructor
+public class SofaRuleHandle implements RuleHandle {
 
     /**
      * retries.
@@ -50,4 +53,16 @@ public class SofaRuleHandle implements Serializable {
      * timeout is required.
      */
     private long timeout = Constants.TIME_OUT;
+
+    @Override
+    public RuleHandle init(final String path) {
+        this.retries = RuleHandleConstants.DEFAULT_RETRIES;
+        this.loadBalance = RuleHandleConstants.DEFAULT_LOAD_BALANCE.getName();
+        return this;
+    }
+
+    @Override
+    public String toJson() {
+        return JsonUtils.toJson(this);
+    }
 }
