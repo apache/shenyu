@@ -101,7 +101,7 @@ public final class SofaServiceBeanPostProcessorTest {
         interfaceClassField.set(serviceFactoryBean, SoulSofaServiceImpl.class);
         sofaServiceBeanPostProcessorUnderTest
                 .postProcessAfterInitialization(serviceFactoryBean, "soulSofaServiceImpl");
-        countDownLatch.await(500L, TimeUnit.MILLISECONDS);
+        countDownLatch.await(5, TimeUnit.SECONDS);
         Assert.assertEquals(1L, registerNum);
     }
 

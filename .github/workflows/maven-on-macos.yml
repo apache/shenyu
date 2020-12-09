@@ -37,13 +37,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
       - uses: actions/checkout@v2
-      - name: checkout submodules
-        shell: bash
-        run: |
-          git submodule sync --recursive
-          git -c protocol.version=2 submodule update --init --force --recursive --depth=1
+        with:
+          submodules: true
       - uses: actions/setup-java@v1
         with:
           java-version: 8
       - name: Build with Maven
-        run: mvn -B clean install -Dmaven.javadoc.skip=true
+        run: ./mvnw -B clean -Dmaven.javadoc.skip=true install
