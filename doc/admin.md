@@ -20,10 +20,21 @@ description: 启动admin
 > wget  https://yu199195.github.io/jar/soul-admin.jar
 
 > java -jar soul-admin.jar --spring.datasource.url="jdbc:mysql://你的url:3306/soul?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=CONVERT_TO_NULL&failOverReadOnly=false&autoReconnect=true&useSSL=false"  
-  --spring.datasource.username='you username'  --spring.datasource.password='you password'
+  --spring.datasource.username='you username' --spring.datasource.password='you password' 
  
 ```
+* 数据库无访问密码,将 **--spring.datasource.password='you password'** 去掉即可
+```
+> java -jar soul-admin.jar --spring.datasource.url="jdbc:mysql://你的url:3306/soul?useUnicode=true&characterEncoding=utf-8&zerodatetimebehavior=CONVERT_TO_NULL&failOverReadOnly=false&autoReconnect=true&useSSL=false"  
+  --spring.datasource.username='you username' 
+```
+* 遇到如下错误,将 **zerodatetimebehavior=CONVERT_TO_NULL** 去掉即可
+```java
+    java.sql.SQLException: The connection property 'zeroDateTimeBehavior' only accepts values of the form: 'exception', 'round' or 'convertToNull'. The value 'CONVERT_TO_NULL' is not in this set.
+```
 * 访问 `http://localhost:9095/index.html ` 默认的用户名： admin  密码:123456
+
+* 如果已经使用 soul, 并且未修改默认秘钥,明文密码 123456 对应的 密文是 `jHcpKkiDbbQh7W7hh8yQSA==`
 
 ### 本地启动
  

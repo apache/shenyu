@@ -44,16 +44,16 @@ import org.dromara.soul.common.utils.GsonUtils;
  */
 @Slf4j
 public final class ApplicationConfigCache {
-    
+
     private ApplicationConfig applicationConfig;
-    
+
     private RegistryConfig registryConfig;
-    
+
     private final int maxCount = 50000;
-    
+
     private final LoadingCache<String, ReferenceConfig<GenericService>> cache = CacheBuilder.newBuilder()
             .maximumWeight(maxCount)
-            .weigher((Weigher<String, ReferenceConfig<GenericService>>) (string, ReferenceConfig) -> getSize())
+            .weigher((Weigher<String, ReferenceConfig<GenericService>>) (string, referenceConfig) -> getSize())
             .removalListener(notification -> {
                 ReferenceConfig<GenericService> config = notification.getValue();
                 if (config != null) {
@@ -74,14 +74,14 @@ public final class ApplicationConfigCache {
                     return new ReferenceConfig<>();
                 }
             });
-    
+
     private ApplicationConfigCache() {
     }
-    
+
     private int getSize() {
         return (int) cache.size();
     }
-    
+
     /**
      * Gets instance.
      *
@@ -90,7 +90,7 @@ public final class ApplicationConfigCache {
     public static ApplicationConfigCache getInstance() {
         return ApplicationConfigCacheInstance.INSTANCE;
     }
-    
+
     /**
      * Init.
      *
@@ -109,7 +109,7 @@ public final class ApplicationConfigCache {
             Optional.ofNullable(dubboRegisterConfig.getGroup()).ifPresent(registryConfig::setGroup);
         }
     }
-    
+
     /**
      * Init ref reference config.
      *
@@ -118,7 +118,7 @@ public final class ApplicationConfigCache {
      */
     public ReferenceConfig<GenericService> initRef(final MetaData metaData) {
         try {
-            ReferenceConfig<GenericService> referenceConfig = cache.get(metaData.getServiceName());
+            ReferenceConfig<GenericService> referenceConfig = cache.get(metaData.getPath());
             if (StringUtils.isNoneBlank(referenceConfig.getInterface())) {
                 return referenceConfig;
             }
@@ -126,9 +126,9 @@ public final class ApplicationConfigCache {
             log.error("init dubbo ref ex:{}", e.getMessage());
         }
         return build(metaData);
-        
+
     }
-    
+
     /**
      * Build reference config.
      *
@@ -155,17 +155,20 @@ public final class ApplicationConfigCache {
                 final String loadBalance = dubboParamExtInfo.getLoadbalance();
                 reference.setLoadbalance(buildLoadBalanceName(loadBalance));
             }
+            if (StringUtils.isNoneBlank(dubboParamExtInfo.getUrl())) {
+                reference.setUrl(dubboParamExtInfo.getUrl());
+            }
             Optional.ofNullable(dubboParamExtInfo.getTimeout()).ifPresent(reference::setTimeout);
             Optional.ofNullable(dubboParamExtInfo.getRetries()).ifPresent(reference::setRetries);
         }
         Object obj = reference.get();
         if (obj != null) {
             log.info("init apache dubbo reference success there meteData is :{}", metaData.toString());
-            cache.put(metaData.getServiceName(), reference);
+            cache.put(metaData.getPath(), reference);
         }
         return reference;
     }
-    
+
     private String buildLoadBalanceName(final String loadBalance) {
         if (LoadBalanceEnum.HASH.getName().equals(loadBalance) || "consistenthash".equals(loadBalance)) {
             return "consistenthash";
@@ -175,38 +178,38 @@ public final class ApplicationConfigCache {
             return loadBalance;
         }
     }
-    
+
     /**
      * Get reference config.
      *
-     * @param <T>         the type parameter
-     * @param serviceName the service name
+     * @param <T>  the type parameter
+     * @param path the path
      * @return the reference config
      */
-    public <T> ReferenceConfig<T> get(final String serviceName) {
+    public <T> ReferenceConfig<T> get(final String path) {
         try {
-            return (ReferenceConfig<T>) cache.get(serviceName);
+            return (ReferenceConfig<T>) cache.get(path);
         } catch (ExecutionException e) {
             throw new SoulException(e.getCause());
         }
     }
-    
+
     /**
      * Invalidate.
      *
-     * @param serviceName the service name
+     * @param path the path
      */
-    public void invalidate(final String serviceName) {
-        cache.invalidate(serviceName);
+    public void invalidate(final String path) {
+        cache.invalidate(path);
     }
-    
+
     /**
      * Invalidate all.
      */
     public void invalidateAll() {
         cache.invalidateAll();
     }
-    
+
     /**
      * The type Application config cache instance.
      */
@@ -216,21 +219,23 @@ public final class ApplicationConfigCache {
          */
         static final ApplicationConfigCache INSTANCE = new ApplicationConfigCache();
     }
-    
+
     /**
      * The type Dubbo param ext info.
      */
     @Data
     static class DubboParamExtInfo {
-        
+
         private String group;
-        
+
         private String version;
-        
+
         private String loadbalance;
-        
+
         private Integer retries;
-        
+
         private Integer timeout;
+
+        private String url;
     }
 }

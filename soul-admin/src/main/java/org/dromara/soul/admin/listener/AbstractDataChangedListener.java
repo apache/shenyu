@@ -1,18 +1,18 @@
 /*
- *   Licensed to the Apache Software Foundation (ASF) under one or more
- *   contributor license agreements.  See the NOTICE file distributed with
- *   this work for additional information regarding copyright ownership.
- *   The ASF licenses this file to You under the Apache License, Version 2.0
- *   (the "License"); you may not use this file except in compliance with
- *   the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.dromara.soul.admin.listener;
@@ -55,38 +55,38 @@ import java.util.concurrent.ConcurrentMap;
  */
 @SuppressWarnings("all")
 public abstract class AbstractDataChangedListener implements DataChangedListener, InitializingBean {
-    
+
     /**
      * The constant CACHE.
      */
     protected static final ConcurrentMap<String, ConfigDataCache> CACHE = new ConcurrentHashMap<>();
-    
+
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDataChangedListener.class);
-    
+
     @Resource
     private AppAuthService appAuthService;
-    
+
     /**
      * The Plugin service.
      */
     @Resource
     private PluginService pluginService;
-    
+
     /**
      * The Rule service.
      */
     @Resource
     private RuleService ruleService;
-    
+
     /**
      * The Selector service.
      */
     @Resource
     private SelectorService selectorService;
-    
+
     @Resource
     private MetaDataService metaDataService;
-    
+
     /**
      * fetch configuration from database.
      *
@@ -120,7 +120,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
                 throw new IllegalStateException("Unexpected groupKey: " + groupKey);
         }
     }
-    
+
     @Override
     public void onAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {
@@ -129,7 +129,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         this.updateAppAuthCache();
         this.afterAppAuthChanged(changed, eventType);
     }
-    
+
     @Override
     public void onMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {
@@ -138,7 +138,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         this.updateMetaDataCache();
         this.afterMetaDataChanged(changed, eventType);
     }
-    
+
     /**
      * After meta data changed.
      *
@@ -147,7 +147,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      */
     protected void afterMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
     }
-    
+
     /**
      * After app auth changed.
      *
@@ -156,7 +156,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      */
     protected void afterAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
     }
-    
+
     @Override
     public void onPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {
@@ -165,7 +165,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         this.updatePluginCache();
         this.afterPluginChanged(changed, eventType);
     }
-    
+
     /**
      * After plugin changed.
      *
@@ -174,7 +174,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      */
     protected void afterPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType) {
     }
-    
+
     @Override
     public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {
@@ -183,7 +183,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         this.updateRuleCache();
         this.afterRuleChanged(changed, eventType);
     }
-    
+
     /**
      * After rule changed.
      *
@@ -192,7 +192,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      */
     protected void afterRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
     }
-    
+
     @Override
     public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
         if (CollectionUtils.isEmpty(changed)) {
@@ -201,7 +201,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         this.updateSelectorCache();
         this.afterSelectorChanged(changed, eventType);
     }
-    
+
     /**
      * After selector changed.
      *
@@ -210,7 +210,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      */
     protected void afterSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
     }
-    
+
     @Override
     public final void afterPropertiesSet() {
         updateAppAuthCache();
@@ -226,6 +226,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
     /**
      * if md5 is not the same as the original, then update lcoal cache.
      * @param group ConfigGroupEnum
+     * @param <T> the type of class
      * @param data the new config data
      */
     protected <T> void updateCache(final ConfigGroupEnum group, final List<T> data) {
@@ -234,40 +235,40 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         ConfigDataCache oldVal = CACHE.put(newVal.getGroup(), newVal);
         LOGGER.info("update config cache[{}], old:{}, updated:{}", group, oldVal, newVal);
     }
-    
+
     /**
      * Update selector cache.
      */
     protected void updateSelectorCache() {
         this.updateCache(ConfigGroupEnum.SELECTOR, selectorService.listAll());
     }
-    
+
     /**
      * Update rule cache.
      */
     protected void updateRuleCache() {
         this.updateCache(ConfigGroupEnum.RULE, ruleService.listAll());
     }
-    
+
     /**
      * Update plugin cache.
      */
     protected void updatePluginCache() {
         this.updateCache(ConfigGroupEnum.PLUGIN, pluginService.listAll());
     }
-    
+
     /**
      * Update app auth cache.
      */
     protected void updateAppAuthCache() {
         this.updateCache(ConfigGroupEnum.APP_AUTH, appAuthService.listAll());
     }
-    
+
     /**
      * Update meta data cache.
      */
     protected void updateMetaDataCache() {
         this.updateCache(ConfigGroupEnum.META_DATA, metaDataService.listAll());
     }
-    
+
 }

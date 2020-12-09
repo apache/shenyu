@@ -27,7 +27,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -146,7 +146,7 @@ public class JmxCollector extends Collector implements Collector.Describable {
                     rule.setHelp(String.valueOf(ruleObject.get("help")));
                 }
                 if (ruleObject.containsKey("labels")) {
-                    ConcurrentSkipListMap<String, Object> labels = GsonUtils.getInstance().toTreeMap(ruleObject.get("labels").toString());
+                    ConcurrentNavigableMap<String, Object> labels = GsonUtils.getInstance().toTreeMap(ruleObject.get("labels").toString());
                     for (Map.Entry<String, Object> entry : labels.entrySet()) {
                         rule.getLabelNames().add(entry.getKey());
                         rule.getLabelValues().add((String) entry.getValue());

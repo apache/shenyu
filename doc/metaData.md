@@ -53,6 +53,8 @@ CREATE TABLE  IF NOT EXISTS `meta_data` (
           
           private Integer timeout;
   
+          private String url;
+  
       }
   ```
 

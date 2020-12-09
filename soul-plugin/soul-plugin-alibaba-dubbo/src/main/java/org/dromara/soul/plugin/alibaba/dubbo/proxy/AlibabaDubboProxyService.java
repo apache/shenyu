@@ -23,9 +23,11 @@ import com.alibaba.dubbo.rpc.service.GenericService;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.exception.SoulException;
+import org.dromara.soul.common.utils.ParamCheckUtils;
 import org.dromara.soul.plugin.alibaba.dubbo.cache.ApplicationConfigCache;
 import org.dromara.soul.plugin.api.dubbo.DubboParamResolveService;
 
@@ -57,23 +59,23 @@ public class AlibabaDubboProxyService {
      * @throws SoulException the soul exception
      */
     public Object genericInvoker(final String body, final MetaData metaData) throws SoulException {
-        ReferenceConfig<GenericService> reference = ApplicationConfigCache.getInstance().get(metaData.getServiceName());
+        ReferenceConfig<GenericService> reference = ApplicationConfigCache.getInstance().get(metaData.getPath());
         if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getInterface())) {
-            ApplicationConfigCache.getInstance().invalidate(metaData.getServiceName());
+            ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
             reference = ApplicationConfigCache.getInstance().initRef(metaData);
         }
         GenericService genericService = reference.get();
         try {
-            if (null == body || "".equals(body) || "{}".equals(body) || "null".equals(body)) {
-                return genericService.$invoke(metaData.getMethodName(), new String[]{}, new Object[]{});
+            Pair<String[], Object[]> pair;
+            if (ParamCheckUtils.dubboBodyIsEmpty(body)) {
+                pair = new ImmutablePair<>(new String[]{}, new Object[]{});
             } else {
-                Pair<String[], Object[]> pair = dubboParamResolveService.buildParameter(body, metaData.getParameterTypes());
-                return genericService.$invoke(metaData.getMethodName(), pair.getLeft(), pair.getRight());
+                pair = dubboParamResolveService.buildParameter(body, metaData.getParameterTypes());
             }
+            return genericService.$invoke(metaData.getMethodName(), pair.getLeft(), pair.getRight());
         } catch (GenericException e) {
             log.error("dubbo invoker have exception", e);
             throw new SoulException(e.getMessage());
         }
     }
-    
 }

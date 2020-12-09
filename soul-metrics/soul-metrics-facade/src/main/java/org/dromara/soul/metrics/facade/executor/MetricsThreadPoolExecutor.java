@@ -17,13 +17,9 @@
 
 package org.dromara.soul.metrics.facade.executor;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.common.concurrent.SoulThreadFactory;
-
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -34,9 +30,6 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public final class MetricsThreadPoolExecutor extends ThreadPoolExecutor {
     
-    @Getter
-    private final String name;
-    
     /**
      * Instantiates a new Metrics thread pool executor.
      *
@@ -45,27 +38,20 @@ public final class MetricsThreadPoolExecutor extends ThreadPoolExecutor {
      */
     public MetricsThreadPoolExecutor(final int threadCount, final int queueSize) {
         super(threadCount, threadCount, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(queueSize),
-                SoulThreadFactory.create("metrics", true), buildRejectedExecutionHandler(queueSize));
-        this.name = "metrics";
+                SoulThreadFactory.create("metrics", true), new CallerWaitPolicy());
     }
     
-    private static RejectedExecutionHandler buildRejectedExecutionHandler(final int size) {
-        return (r, executor) -> {
-            BlockingQueue<Runnable> queue = executor.getQueue();
-            while (queue.size() >= size) {
-                if (executor.isShutdown()) {
-                    throw new RejectedExecutionException("metrics thread pool executor closed");
-                }
-                ((MetricsThreadPoolExecutor) executor).onRejected();
-            }
-            if (!executor.isShutdown()) {
-                executor.execute(r);
-            }
-        };
-    }
+    private static class CallerWaitPolicy implements RejectedExecutionHandler {
     
-    private void onRejected() {
-        log.info("...thread:{}, Saturation occurs, actuator:{}", Thread.currentThread().getName(), name);
+        @Override
+        public void rejectedExecution(final Runnable r, final ThreadPoolExecutor executor) {
+            try {
+                log.warn("queue is full, trigger caller thread : {} wait", Thread.currentThread().getName());
+                executor.getQueue().put(r);
+            } catch (InterruptedException ex) {
+                log.error("InterruptedException, discard {}", r);
+            }
+        }
     }
 }
 

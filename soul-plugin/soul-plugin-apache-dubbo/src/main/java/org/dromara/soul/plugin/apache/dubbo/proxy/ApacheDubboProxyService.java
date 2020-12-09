@@ -23,12 +23,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.dubbo.common.constants.CommonConstants;
 import org.apache.dubbo.config.ReferenceConfig;
+import org.apache.dubbo.rpc.RpcContext;
 import org.apache.dubbo.rpc.service.GenericService;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.exception.SoulException;
+import org.dromara.soul.common.utils.ParamCheckUtils;
 import org.dromara.soul.plugin.apache.dubbo.cache.ApplicationConfigCache;
 import org.dromara.soul.plugin.api.dubbo.DubboParamResolveService;
 import org.springframework.web.server.ServerWebExchange;
@@ -41,9 +44,9 @@ import reactor.core.publisher.Mono;
  */
 @Slf4j
 public class ApacheDubboProxyService {
-    
+
     private final DubboParamResolveService dubboParamResolveService;
-    
+
     /**
      * Instantiates a new Dubbo proxy service.
      *
@@ -52,7 +55,7 @@ public class ApacheDubboProxyService {
     public ApacheDubboProxyService(final DubboParamResolveService dubboParamResolveService) {
         this.dubboParamResolveService = dubboParamResolveService;
     }
-    
+
     /**
      * Generic invoker object.
      *
@@ -63,14 +66,19 @@ public class ApacheDubboProxyService {
      * @throws SoulException the soul exception
      */
     public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws SoulException {
-        ReferenceConfig<GenericService> reference = ApplicationConfigCache.getInstance().get(metaData.getServiceName());
+        // issue(https://github.com/dromara/soul/issues/471), add dubbo tag route
+        String dubboTagRouteFromHttpHeaders = exchange.getRequest().getHeaders().getFirst(Constants.DUBBO_TAG_ROUTE);
+        if (StringUtils.isNotBlank(dubboTagRouteFromHttpHeaders)) {
+            RpcContext.getContext().setAttachment(CommonConstants.TAG_KEY, dubboTagRouteFromHttpHeaders);
+        }
+        ReferenceConfig<GenericService> reference = ApplicationConfigCache.getInstance().get(metaData.getPath());
         if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getInterface())) {
-            ApplicationConfigCache.getInstance().invalidate(metaData.getServiceName());
+            ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
             reference = ApplicationConfigCache.getInstance().initRef(metaData);
         }
         GenericService genericService = reference.get();
         Pair<String[], Object[]> pair;
-        if (null == body || "".equals(body) || "{}".equals(body) || "null".equals(body)) {
+        if (ParamCheckUtils.dubboBodyIsEmpty(body)) {
             pair = new ImmutablePair<>(new String[]{}, new Object[]{});
         } else {
             pair = dubboParamResolveService.buildParameter(body, metaData.getParameterTypes());
@@ -83,6 +91,6 @@ public class ApacheDubboProxyService {
             exchange.getAttributes().put(Constants.DUBBO_RPC_RESULT, ret);
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return ret;
-        })).onErrorMap(originalCause -> new SoulException(originalCause));
+        })).onErrorMap(SoulException::new);
     }
 }

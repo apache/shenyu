@@ -33,8 +33,8 @@ import java.util.stream.Stream;
  *
  * @author wanglaomo
  */
-public class LoadBalanceTest {
-    
+public final class LoadBalanceTest {
+
     /**
      * Round robin load balance test.
      */
@@ -42,14 +42,12 @@ public class LoadBalanceTest {
     public void roundRobinLoadBalanceTest() {
         List<DivideUpstream> divideUpstreamList =
                 Stream.of(50, 20, 30)
-                        .map(weight -> {
-                            DivideUpstream divideUpstream = new DivideUpstream();
-                            divideUpstream.setUpstreamUrl("divide-upstream-" + weight);
-                            divideUpstream.setWeight(weight);
-                            return divideUpstream;
-                        })
+                        .map(weight -> DivideUpstream.builder()
+                                .upstreamUrl("divide-upstream-" + weight)
+                                .weight(weight)
+                                .build())
                         .collect(Collectors.toList());
-        
+
         RoundRobinLoadBalance roundRobinLoadBalance = new RoundRobinLoadBalance();
         Map<String, Integer> countMap = new HashMap<>();
         for (int i = 0; i < 120; i++) {
@@ -57,6 +55,6 @@ public class LoadBalanceTest {
             int count = countMap.getOrDefault(result.getUpstreamUrl(), 0);
             countMap.put(result.getUpstreamUrl(), ++count);
         }
-        Assert.assertEquals(50, countMap.get("divide-upstream-50").intValue());
+        Assert.assertEquals(60, countMap.get("divide-upstream-50").intValue());
     }
 }

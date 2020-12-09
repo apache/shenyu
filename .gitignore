@@ -19,6 +19,8 @@ hs_err_pid*
 logPath_IS_UNDEFINED
 *.gz
 disconf
+dist
+logs
 
 # idea ignore
 .idea
