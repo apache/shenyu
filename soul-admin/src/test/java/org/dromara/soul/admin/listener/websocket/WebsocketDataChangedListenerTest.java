@@ -1,6 +1,22 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.dromara.soul.admin.listener.websocket;
 
-import com.alibaba.fastjson.JSON;
 import io.undertow.Undertow;
 import io.undertow.websockets.core.AbstractReceiveListener;
 import io.undertow.websockets.core.BufferedTextMessage;
@@ -13,13 +29,16 @@ import org.dromara.soul.common.utils.GsonUtils;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.enums.ReadyState;
 import org.java_websocket.handshake.ServerHandshake;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
-import sun.jvm.hotspot.oops.Metadata;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -29,6 +48,8 @@ import static io.undertow.Handlers.path;
 import static io.undertow.Handlers.websocket;
 
 /**
+ * Data Change WebSocketListener Test.
+ *
  * @author : Hyuk
  * @description : WebsocketDataChangedListenerTest
  * @date : 2020/12/6 9:31 下午
@@ -37,19 +58,27 @@ import static io.undertow.Handlers.websocket;
 @RunWith(MockitoJUnitRunner.class)
 public class WebsocketDataChangedListenerTest {
 
-    private List<PluginData> pluginDataList;
-    private List<SelectorData> selectorDataList;
-    private List<RuleData> ruleDataList;
-    private List<AppAuthData> appAuthDataList;
-    private List<MetaData> metaDataList;
+    private final List<PluginData> pluginDataList = new ArrayList<>();
 
+    private final List<SelectorData> selectorDataList = new ArrayList<>();
+
+    private final List<RuleData> ruleDataList = new ArrayList<>();
+
+    private final List<AppAuthData> appAuthDataList = new ArrayList<>();
+
+    private final List<MetaData> metaDataList = new ArrayList<>();
 
     private WebSocketClient client;
+
     private Undertow server;
 
     private final AtomicInteger count = new AtomicInteger(0);
+
     private CountDownLatch countDownLatch = new CountDownLatch(5);
 
+    /**
+     * start websocket server.
+     */
     public void startServer() {
         server = Undertow.builder()
                 .addHttpListener(8888, "localhost")
@@ -67,7 +96,13 @@ public class WebsocketDataChangedListenerTest {
         server.start();
     }
 
-    public void startClient() throws InterruptedException, URISyntaxException {
+    /**
+     * start websocket client.
+     *
+     * @throws URISyntaxException URISyntaxException
+     * @throws InterruptedException InterruptedException
+     */
+    public void startClient() throws URISyntaxException, InterruptedException {
         client = new WebSocketClient(new URI("ws://localhost:8888/websocket")) {
             @Override
             public void onOpen(final ServerHandshake serverHandshake) {
@@ -95,7 +130,6 @@ public class WebsocketDataChangedListenerTest {
         }
     }
 
-
     @After
     public void destroy() {
         client.close();
@@ -106,27 +140,119 @@ public class WebsocketDataChangedListenerTest {
     public void before() throws InterruptedException, URISyntaxException {
         startServer();
         startClient();
-
         countDownLatch = new CountDownLatch(5);
-
-        String selectorDataString = "[{\"conditionList\":[{\"operator\":\"match\",\"paramName\":\"/\",\"paramType\":\"uri\",\"paramValue\":\"/http/**\"}],\"continued\":true,\"enabled\":true,\"handle\":\"[{\\\"upstreamHost\\\":\\\"localhost\\\",\\\"protocol\\\":\\\"http://\\\",\\\"upstreamUrl\\\":\\\"127.0.0.1:8187\\\",\\\"weight\\\":\\\"51\\\"},{\\\"upstreamHost\\\":\\\"localhost\\\",\\\"protocol\\\":\\\"http://\\\",\\\"upstreamUrl\\\":\\\"127.0.0.1:8188\\\",\\\"weight\\\":\\\"49\\\"}]\",\"id\":\"1336329408516136960\",\"loged\":true,\"matchMode\":0,\"name\":\"/http\",\"pluginId\":\"5\",\"pluginName\":\"divide\",\"sort\":1,\"type\":1}]";
-        selectorDataList = GsonUtils.getInstance().fromList(selectorDataString, SelectorData.class);
-
-        String pluginDataString = "[{\"config\":\"{\\\"model\\\":\\\"black\\\"}\",\"enabled\":true,\"id\":\"2\",\"name\":\"waf\",\"role\":1}]";
-        pluginDataList = GsonUtils.getInstance().fromList(pluginDataString, PluginData.class);
-
-        String ruleDataString = "[{\"conditionDataList\":[{\"operator\":\"=\",\"paramName\":\"test\",\"paramType\":\"header\",\"paramValue\":\"a\"}],\"enabled\":true,\"handle\":\"{\\\"permission\\\":\\\"reject\\\",\\\"statusCode\\\":\\\"503\\\"}\",\"id\":\"1336350040008105984\",\"loged\":true,\"matchMode\":1,\"name\":\"test\",\"pluginName\":\"waf\",\"selectorId\":\"1336349806465064960\",\"sort\":1}]";
-        ruleDataList = GsonUtils.getInstance().fromList(ruleDataString, RuleData.class);
-
-        String appAuthDataString = "[{\"appKey\":\"D9FD95F496C9495DB5604778A13C3D08\",\"appSecret\":\"02D25048AA1E466F8920E68B08E668DE\",\"enabled\":true,\"paramDataList\":[{\"appName\":\"axiba\",\"appParam\":\"123\"}],\"pathDataList\":[{\"appName\":\"alibaba\",\"enabled\":true,\"path\":\"/1\"}]}]";
-        appAuthDataList = GsonUtils.getInstance().fromList(appAuthDataString, AppAuthData.class);
-
-        String metaDataString = "[{\"appName\":\"axiba\",\"enabled\":true,\"methodName\":\"execute\",\"parameterTypes\":\"int\",\"path\":\"/test/execute\",\"rpcExt\":\"1\",\"rpcType\":\"http\",\"serviceName\":\"execute\"}]";
-        metaDataList = GsonUtils.getInstance().fromList(metaDataString, MetaData.class);
-
+        initSelectorDataList();
+        initPluginDataList();
+        initRuleDataList();
+        initAppAuthDataList();
+        initMetaDataList();
     }
 
-    public void send(String message) {
+    private void initMetaDataList() {
+        MetaData metaData = new MetaData();
+        metaData.setAppName("axiba");
+        metaData.setEnabled(true);
+        metaData.setMethodName("execute");
+        metaData.setParameterTypes("int");
+        metaData.setPath("/test/execute");
+        metaData.setRpcExt("{}");
+        metaData.setRpcType("http");
+        metaData.setServiceName("execute");
+        metaDataList.add(metaData);
+    }
+
+    private void initAppAuthDataList() {
+        AppAuthData appAuthData = new AppAuthData();
+        appAuthData.setAppKey("D9FD95F496C9495DB5604778A13C3D08");
+        appAuthData.setAppSecret("02D25048AA1E466F8920E68B08E668DE");
+        appAuthData.setEnabled(true);
+        appAuthData.setParamDataList(buildAuthParamDataList("axiba", "123"));
+        appAuthData.setPathDataList(buildAuthPathDataList("alibaba", "/1"));
+        appAuthDataList.add(appAuthData);
+    }
+
+    private void initPluginDataList() {
+        PluginData pluginData = new PluginData();
+        pluginData.setConfig("{\\\"model\\\":\\\"black\\\"}");
+        pluginData.setEnabled(true);
+        pluginData.setId("2");
+        pluginData.setName("waf");
+        pluginData.setRole(1);
+        pluginDataList.add(pluginData);
+    }
+
+    private void initRuleDataList() {
+        RuleData ruleData = new RuleData();
+        ruleData.setEnabled(true);
+        ruleData.setHandle("{\\\"permission\\\":\\\"reject\\\",\\\"statusCode\\\":\\\"503\\\"}");
+        ruleData.setId("1336350040008105984");
+        ruleData.setLoged(true);
+        ruleData.setMatchMode(1);
+        ruleData.setName("test");
+        ruleData.setPluginName("waf");
+        ruleData.setSelectorId("1336349806465064960");
+        ruleData.setSort(1);
+        ruleData.setConditionDataList(buildConditionDataList("=", "test", "header", "a"));
+        ruleDataList.add(ruleData);
+    }
+
+    private void initSelectorDataList() {
+        SelectorData selectorData = new SelectorData();
+        selectorData.setContinued(true);
+        selectorData.setEnabled(true);
+        selectorData.setHandle("[{\\\"upstreamHost\\\":\\\"localhost\\\",\\\"protocol\\\":\\\"http://\\\",\\\"upstreamUrl\\\":\\\"127.0.0.1:8187\\\","
+                + "\\\"weight\\\":\\\"51\\\"},{\\\"upstreamHost\\\":\\\"localhost\\\",\\\"protocol\\\":\\\"http://\\\",\\\"upstreamUrl\\\":\\\"127.0.0.1:8188\\\",\\\"weight\\\":\\\"49\\\"}]");
+        selectorData.setId("1336329408516136960");
+        selectorData.setLoged(true);
+        selectorData.setMatchMode(0);
+        selectorData.setName("/http");
+        selectorData.setPluginId("5");
+        selectorData.setPluginName("divide");
+        selectorData.setSort(1);
+        selectorData.setType(1);
+        selectorData.setConditionList(buildConditionDataList("match", "/", "uri", "/http/**"));
+        selectorDataList.add(selectorData);
+    }
+
+    private List<ConditionData> buildConditionDataList(final String operator, final String paramName,
+                                                       final String paramType, final String paramValue) {
+        ConditionData conditionData = new ConditionData();
+        conditionData.setOperator(operator);
+        conditionData.setParamName(paramName);
+        conditionData.setParamType(paramType);
+        conditionData.setParamValue(paramValue);
+        List<ConditionData> conditionList = new ArrayList<>();
+        conditionList.add(conditionData);
+        return conditionList;
+    }
+
+    private List<AuthParamData> buildAuthParamDataList(final String appName, final String appParam) {
+        AuthParamData authParamData = new AuthParamData();
+        authParamData.setAppName(appName);
+        authParamData.setAppParam(appParam);
+
+        List<AuthParamData> authParamDataList = new ArrayList<>();
+        authParamDataList.add(authParamData);
+        return authParamDataList;
+    }
+
+    private List<AuthPathData> buildAuthPathDataList(final String appName, final String path) {
+        AuthPathData authPathData = new AuthPathData();
+        authPathData.setAppName(appName);
+        authPathData.setEnabled(true);
+        authPathData.setPath(path);
+
+        List<AuthPathData> authPathDataList = new ArrayList<>();
+        authPathDataList.add(authPathData);
+        return authPathDataList;
+    }
+
+    /**
+     * 发送数据变更消息.
+     *
+     * @param message message
+     */
+    public void send(final String message) {
         client.send(message);
     }
 
@@ -143,37 +269,57 @@ public class WebsocketDataChangedListenerTest {
     }
 
 
-    public void testOnPluginChanged(){
+    /**
+     * test PluginData.
+     */
+    public void testOnPluginChanged() {
         WebsocketData<SelectorData> websocketData =
                 new WebsocketData<>(ConfigGroupEnum.SELECTOR.name(), DataEventTypeEnum.UPDATE.name(), selectorDataList);
         send(GsonUtils.getInstance().toJson(websocketData));
     }
 
+    /**
+     * test SelectorData.
+     */
     public void testOnSelectorChanged() {
         WebsocketData<SelectorData> websocketData =
                 new WebsocketData<>(ConfigGroupEnum.SELECTOR.name(), DataEventTypeEnum.UPDATE.name(), selectorDataList);
         send(GsonUtils.getInstance().toJson(websocketData));
     }
 
+    /**
+     * test RuleData.
+     */
     public void testOnRuleChanged() {
         WebsocketData<RuleData> configData =
                 new WebsocketData<>(ConfigGroupEnum.RULE.name(), DataEventTypeEnum.UPDATE.name(), ruleDataList);
         send(GsonUtils.getInstance().toJson(configData));
     }
 
+    /**
+     * test AppAuthData.
+     */
     public void testOnAppAuthChanged() {
         WebsocketData<AppAuthData> configData =
                 new WebsocketData<>(ConfigGroupEnum.APP_AUTH.name(), DataEventTypeEnum.UPDATE.name(), appAuthDataList);
         send(GsonUtils.getInstance().toJson(configData));
     }
 
+    /**
+     * test MetaData.
+     */
     public void testOnMetaDataChanged() {
         WebsocketData<MetaData> configData =
                 new WebsocketData<>(ConfigGroupEnum.META_DATA.name(), DataEventTypeEnum.CREATE.name(), metaDataList);
         send(GsonUtils.getInstance().toJson(configData));
     }
 
-    public void handleMessage(String message) {
+    /**
+     * 处理webcosket消息进行分发.
+     *
+     * @param message 消息
+     */
+    public void handleMessage(final String message) {
         Assert.assertNotNull(message);
         WebsocketData websocketData = GsonUtils.getInstance().fromJson(message, WebsocketData.class);
         ConfigGroupEnum groupEnum = ConfigGroupEnum.acquireByName(websocketData.getGroupType());
@@ -207,7 +353,7 @@ public class WebsocketDataChangedListenerTest {
         }
     }
 
-    private void handleAppAuth(String json) {
+    private void handleAppAuth(final String json) {
         try {
             List<AppAuthData> appAuthData = GsonUtils.getInstance().fromList(json, AppAuthData.class);
             Assert.assertEquals(appAuthData, appAuthDataList);
@@ -219,7 +365,7 @@ public class WebsocketDataChangedListenerTest {
         }
     }
 
-    private void handleMetaData(String json) {
+    private void handleMetaData(final String json) {
         try {
             List<MetaData> metaData = GsonUtils.getInstance().fromList(json, MetaData.class);
             Assert.assertEquals(metaData, metaDataList);
@@ -231,7 +377,7 @@ public class WebsocketDataChangedListenerTest {
         }
     }
 
-    private void handleSelector(String json) {
+    private void handleSelector(final String json) {
         try {
             List<SelectorData> selectorData = GsonUtils.getInstance().fromList(json, SelectorData.class);
             Assert.assertEquals(selectorData, selectorDataList);
@@ -243,7 +389,7 @@ public class WebsocketDataChangedListenerTest {
         }
     }
 
-    private void handlePlugin(String json) {
+    private void handlePlugin(final String json) {
         try {
             List<PluginData> pluginData = GsonUtils.getInstance().fromList(json, PluginData.class);
             Assert.assertEquals(pluginData, pluginDataList);
@@ -255,7 +401,7 @@ public class WebsocketDataChangedListenerTest {
         }
     }
 
-    private void handleRule(String json) {
+    private void handleRule(final String json) {
         try {
             List<RuleData> ruleData = GsonUtils.getInstance().fromList(json, RuleData.class);
             Assert.assertEquals(ruleData, ruleDataList);
