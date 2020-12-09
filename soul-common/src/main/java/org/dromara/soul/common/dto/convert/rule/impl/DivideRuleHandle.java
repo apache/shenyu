@@ -22,7 +22,6 @@ import lombok.NoArgsConstructor;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.constant.RuleHandleConstants;
 import org.dromara.soul.common.dto.convert.rule.RuleHandle;
-import org.dromara.soul.common.utils.JsonUtils;
 
 /**
  * The type Divide rule handle.
@@ -50,14 +49,9 @@ public class DivideRuleHandle implements RuleHandle {
     private long timeout = Constants.TIME_OUT;
 
     @Override
-    public RuleHandle init(final String path) {
+    public RuleHandle createDefault(final String path) {
         this.loadBalance = RuleHandleConstants.DEFAULT_LOAD_BALANCE.getName();
         this.retry = RuleHandleConstants.DEFAULT_RETRY;
         return this;
-    }
-
-    @Override
-    public String toJson() {
-        return JsonUtils.toJson(this);
     }
 }

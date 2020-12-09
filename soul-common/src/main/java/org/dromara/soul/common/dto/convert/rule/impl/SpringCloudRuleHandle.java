@@ -23,7 +23,6 @@ import lombok.Setter;
 import lombok.ToString;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.convert.rule.RuleHandle;
-import org.dromara.soul.common.utils.JsonUtils;
 
 /**
  * The type Spring cloud rule handle.
@@ -47,13 +46,8 @@ public class SpringCloudRuleHandle implements RuleHandle {
     private long timeout = Constants.TIME_OUT;
 
     @Override
-    public RuleHandle init(final String path) {
+    public RuleHandle createDefault(final String path) {
         this.path = path;
         return this;
-    }
-
-    @Override
-    public String toJson() {
-        return JsonUtils.toJson(this);
     }
 }

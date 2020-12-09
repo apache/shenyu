@@ -17,6 +17,8 @@
 
 package org.dromara.soul.common.dto.convert.rule;
 
+import org.dromara.soul.common.utils.GsonUtils;
+
 import java.io.Serializable;
 
 /**
@@ -31,11 +33,13 @@ public interface RuleHandle extends Serializable {
      * @param path  path.
      * @return      it's self.
      */
-    RuleHandle init(String path);
+    RuleHandle createDefault(String path);
 
     /**
      * Format this object to json string.
      * @return      json string.
      */
-    String toJson();
+    default String toJson() {
+        return GsonUtils.getGson().toJson(this);
+    }
 }

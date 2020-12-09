@@ -59,7 +59,7 @@ public final class RuleHandleFactory {
     public static RuleHandle ruleHandle(final RpcTypeEnum rpcType, final String path) {
         Class<? extends RuleHandle> clazz = RPC_TYPE_TO_RULE_HANDLE_CLASS.getOrDefault(rpcType, DEFAULT_RULE_HANDLE);
         try {
-            return clazz.newInstance().init(path);
+            return clazz.newInstance().createDefault(path);
         } catch (InstantiationException | IllegalAccessException e) {
             throw new SoulException(
                     String.format("Init RuleHandle failed with rpc type: %s, rule class: %s, exception: %s",
