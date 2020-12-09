@@ -9,7 +9,6 @@ import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.DashboardUserQuery;
 import org.dromara.soul.admin.service.impl.DashboardUserServiceImpl;
 import org.dromara.soul.admin.vo.DashboardUserVO;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -23,26 +22,31 @@ import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.never;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DashboardUserServiceImplTest {
     public static final String TEST_ID = "testId";
+
     public static final String TEST_USER_NAME = "userName";
+
     public static final String TEST_PASSWORD = "password";
+
     @InjectMocks
     private DashboardUserServiceImpl dashboardUserService;
+
     @Mock
     private DashboardUserMapper dashboardUserMapper;
+
     @Mock
     private SecretProperties secretProperties;
-
-    @Before
-    public void setUp() throws Exception {
-        // MockitoAnnotations.initMocks(this);
-    }
 
     @Test
     public void testCreateOrUpdate() {
@@ -133,7 +137,7 @@ public class DashboardUserServiceImplTest {
                 .build();
     }
 
-    private void assertLoginSuccessful(DashboardUserDO dashboardUserDO, DashboardUserVO dashboardUserVO) {
+    private void assertLoginSuccessful(final DashboardUserDO dashboardUserDO, final DashboardUserVO dashboardUserVO) {
         assertEquals(dashboardUserVO.getId(), dashboardUserDO.getId());
         assertEquals(dashboardUserVO.getUserName(), dashboardUserDO.getUserName());
         assertEquals(dashboardUserVO.getPassword(), dashboardUserDO.getPassword());
