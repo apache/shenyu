@@ -302,18 +302,19 @@ public class GsonUtils {
             final JsonPrimitive primitive = element.getAsJsonPrimitive();
             if (primitive.isString()) {
                 return String.class;
-            } else if (primitive.isNumber()) {
+            }
+            if (primitive.isNumber()) {
                 String numStr = primitive.getAsString();
                 if (numStr.contains(DOT) || numStr.contains(E)
                         || numStr.contains("E")) {
                     return Double.class;
                 }
                 return Long.class;
-            } else if (primitive.isBoolean()) {
-                return Boolean.class;
-            } else {
-                return element.getClass();
             }
+            if (primitive.isBoolean()) {
+                return Boolean.class;
+            }
+            return element.getClass();
         }
     }
 

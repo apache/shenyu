@@ -59,7 +59,8 @@ public class BodyParamPlugin implements SoulPlugin {
             ServerRequest serverRequest = ServerRequest.create(exchange, messageReaders);
             if (MediaType.APPLICATION_JSON.isCompatibleWith(mediaType)) {
                 return body(exchange, serverRequest, chain);
-            } else if (MediaType.APPLICATION_FORM_URLENCODED.isCompatibleWith(mediaType)) {
+            }
+            if (MediaType.APPLICATION_FORM_URLENCODED.isCompatibleWith(mediaType)) {
                 return formData(exchange, serverRequest, chain);
             }
             return query(exchange, serverRequest, chain);
