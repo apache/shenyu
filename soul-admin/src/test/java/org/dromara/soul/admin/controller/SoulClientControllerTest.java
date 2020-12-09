@@ -36,7 +36,7 @@ import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Test cases for SoulClientControllerTest.
+ * Test cases for SoulClientController.
  * @author bran.chen
  */
 @RunWith(MockitoJUnitRunner.class)
