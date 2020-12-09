@@ -60,11 +60,6 @@ public final class SofaServiceBeanPostProcessorTest {
 
     @BeforeClass
     public static void init() {
-        SofaConfig mockSofaConfig = new SofaConfig();
-        mockSofaConfig.setAdminUrl("http://localhost:59095");
-        mockSofaConfig.setAppName("sofa");
-        mockSofaConfig.setContextPath("/sofa");
-        sofaServiceBeanPostProcessorUnderTest = new SofaServiceBeanPostProcessor(mockSofaConfig);
         // config server
         server = Undertow.builder()
                 .addHttpListener(59095, "localhost")
@@ -74,6 +69,12 @@ public final class SofaServiceBeanPostProcessorTest {
                 }))
                 .build();
         server.start();
+        String port = server.getListenerInfo().get(0).getAddress().toString().split(":")[1];
+        SofaConfig mockSofaConfig = new SofaConfig();
+        mockSofaConfig.setAdminUrl("http://localhost:" + port);
+        mockSofaConfig.setAppName("sofa");
+        mockSofaConfig.setContextPath("/sofa");
+        sofaServiceBeanPostProcessorUnderTest = new SofaServiceBeanPostProcessor(mockSofaConfig);
     }
 
     @AfterClass
