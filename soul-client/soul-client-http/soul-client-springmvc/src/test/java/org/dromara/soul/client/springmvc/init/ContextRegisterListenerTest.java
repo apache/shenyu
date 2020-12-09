@@ -87,7 +87,7 @@ public final class ContextRegisterListenerTest {
         ContextRegisterListener contextRegisterListener = new ContextRegisterListener(soulSpringMvcConfig);
         ContextRefreshedEvent contextRefreshedEvent = mock(ContextRefreshedEvent.class);
         contextRegisterListener.onApplicationEvent(contextRefreshedEvent);
-        countDownLatch.await(500L, TimeUnit.MILLISECONDS);
+        countDownLatch.await(5, TimeUnit.SECONDS);
         Assert.assertFalse(isRegister);
     }
 
@@ -103,7 +103,7 @@ public final class ContextRegisterListenerTest {
         ContextRegisterListener contextRegisterListener = new ContextRegisterListener(soulSpringMvcConfig);
         ContextRefreshedEvent contextRefreshedEvent = mock(ContextRefreshedEvent.class);
         contextRegisterListener.onApplicationEvent(contextRefreshedEvent);
-        countDownLatch.await(500L, TimeUnit.MILLISECONDS);
+        countDownLatch.await(5, TimeUnit.SECONDS);
         Assert.assertTrue(isRegister);
     }
 }
