@@ -15,46 +15,39 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.client.common.enums;
+package org.dromara.soul.common.dto.convert.rule.impl;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.dto.convert.rule.RuleHandle;
 
 /**
- * RpcTypeEnum.
+ * The type Spring cloud rule handle.
  *
- * @author xiaoyu(549477611 @ qq.com)
+ * @author xiaoyu(Myth)
  */
-@RequiredArgsConstructor
+@ToString
 @Getter
-public enum RpcTypeEnum {
+@Setter
+@NoArgsConstructor
+public class SpringCloudRuleHandle implements RuleHandle {
 
     /**
-     * Http rpc type enum.
+     * this remote uri path.
      */
-    HTTP("http"),
+    private String path;
 
     /**
-     * Dubbo rpc type enum.
+     * timeout is required.
      */
-    DUBBO("dubbo"),
+    private long timeout = Constants.TIME_OUT;
 
-    /**
-     * springCloud rpc type enum.
-     */
-    SPRING_CLOUD("springCloud"),
-
-    /**
-     * motan.
-     */
-    MOTAN("motan"),
-
-    /**
-     * grpc.
-     */
-    GRPC("grpc");
-
-
-    private final String name;
-
+    @Override
+    public RuleHandle createDefault(final String path) {
+        this.path = path;
+        return this;
+    }
 }

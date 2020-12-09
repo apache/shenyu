@@ -21,7 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
-import org.dromara.soul.common.dto.convert.rule.SpringCloudRuleHandle;
+import org.dromara.soul.common.dto.convert.rule.impl.SpringCloudRuleHandle;
 import org.dromara.soul.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;

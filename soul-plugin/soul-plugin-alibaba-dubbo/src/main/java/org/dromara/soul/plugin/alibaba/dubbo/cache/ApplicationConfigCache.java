@@ -175,9 +175,8 @@ public final class ApplicationConfigCache {
             return "consistenthash";
         } else if (LoadBalanceEnum.ROUND_ROBIN.getName().equals(loadBalance)) {
             return "roundrobin";
-        } else {
-            return loadBalance;
         }
+        return loadBalance;
     }
     
     /**

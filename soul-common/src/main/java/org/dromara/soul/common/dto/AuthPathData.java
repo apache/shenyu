@@ -18,6 +18,7 @@
 package org.dromara.soul.common.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -29,6 +30,7 @@ import java.io.Serializable;
  * @author xiaoyu
  */
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class AuthPathData implements Serializable {

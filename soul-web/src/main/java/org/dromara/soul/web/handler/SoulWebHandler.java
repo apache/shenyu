@@ -103,12 +103,10 @@ public final class SoulWebHandler implements WebHandler {
                     Boolean skip = plugin.skip(exchange);
                     if (skip) {
                         return this.execute(exchange);
-                    } else {
-                        return plugin.execute(exchange, this);
                     }
-                } else {
-                    return Mono.empty();
+                    return plugin.execute(exchange, this);
                 }
+                return Mono.empty();
             });
         }
     }

@@ -18,6 +18,9 @@
 package org.dromara.soul.admin.entity;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.PluginDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
@@ -31,9 +34,13 @@ import java.util.Optional;
  *
  * @author jiangxiaofeng(Nicholas)
  * @author xiaoyu
+ * @author nuo-promise
  */
 @Data
-public class PluginDO extends BaseDO {
+@SuperBuilder
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public final class PluginDO extends BaseDO {
 
     /**
      * plugin name.
@@ -63,20 +70,22 @@ public class PluginDO extends BaseDO {
      * @return {@linkplain PluginDO}
      */
     public static PluginDO buildPluginDO(final PluginDTO pluginDTO) {
+
         return Optional.ofNullable(pluginDTO).map(item -> {
-            PluginDO pluginDO = new PluginDO();
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            PluginDO pluginDO = PluginDO.builder()
+                    .name(item.getName())
+                    .config(item.getConfig())
+                    .enabled(item.getEnabled())
+                    .role(item.getRole())
+                    .dateUpdated(currentTime)
+                    .build();
             if (StringUtils.isEmpty(item.getId())) {
                 pluginDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 pluginDO.setDateCreated(currentTime);
             } else {
                 pluginDO.setId(item.getId());
             }
-            pluginDO.setName(item.getName());
-            pluginDO.setConfig(item.getConfig());
-            pluginDO.setEnabled(item.getEnabled());
-            pluginDO.setRole(item.getRole());
-            pluginDO.setDateUpdated(currentTime);
             return pluginDO;
         }).orElse(null);
     }

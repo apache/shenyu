@@ -42,12 +42,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.ApplicationEventPublisher;
+
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -59,6 +61,7 @@ import static org.mockito.BDDMockito.given;
  * Test cases for RuleService.
  *
  * @author kennhua
+ * @author nuo-promise
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class RuleServiceTest {
@@ -203,16 +206,15 @@ public final class RuleServiceTest {
     }
 
     private RuleDO buildRuleDO(final String id) {
-        RuleDTO ruleDTO = new RuleDTO();
+        RuleDTO ruleDTO = RuleDTO.builder()
+                .selectorId("456")
+                .matchMode(0)
+                .build();
         if (StringUtils.isNotBlank(id)) {
             ruleDTO.setId(id);
         }
-        ruleDTO.setSelectorId("456");
-        ruleDTO.setMatchMode(0);
-        RuleConditionDTO ruleConditionDTO1 = new RuleConditionDTO();
-        ruleConditionDTO1.setId("111");
-        RuleConditionDTO ruleConditionDTO2 = new RuleConditionDTO();
-        ruleConditionDTO2.setId("222");
+        RuleConditionDTO ruleConditionDTO1 = RuleConditionDTO.builder().id("111").build();
+        RuleConditionDTO ruleConditionDTO2 = RuleConditionDTO.builder().id("222").build();
         ruleDTO.setRuleConditions(Arrays.asList(ruleConditionDTO1, ruleConditionDTO2));
         RuleDO ruleDO = RuleDO.buildRuleDO(ruleDTO);
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
@@ -222,16 +224,15 @@ public final class RuleServiceTest {
     }
 
     private RuleDTO buildRuleDTO(final String id) {
-        RuleDTO ruleDTO = new RuleDTO();
+        RuleDTO ruleDTO = RuleDTO.builder()
+                .selectorId("456")
+                .matchMode(0)
+                .build();
         if (StringUtils.isNotBlank(id)) {
             ruleDTO.setId(id);
         }
-        ruleDTO.setSelectorId("456");
-        ruleDTO.setMatchMode(0);
-        RuleConditionDTO ruleConditionDTO1 = new RuleConditionDTO();
-        ruleConditionDTO1.setId("111");
-        RuleConditionDTO ruleConditionDTO2 = new RuleConditionDTO();
-        ruleConditionDTO2.setId("222");
+        RuleConditionDTO ruleConditionDTO1 = RuleConditionDTO.builder().id("111").build();
+        RuleConditionDTO ruleConditionDTO2 = RuleConditionDTO.builder().id("222").build();
         ruleDTO.setRuleConditions(Arrays.asList(ruleConditionDTO1, ruleConditionDTO2));
         return ruleDTO;
     }
@@ -243,28 +244,28 @@ public final class RuleServiceTest {
     }
 
     private PluginDO buildPluginDO() {
-        PluginDO pluginDO = new PluginDO();
-        pluginDO.setName("test");
-        pluginDO.setId("789");
-        return pluginDO;
+        return PluginDO.builder()
+                .name("test")
+                .id("789")
+                .build();
     }
 
     private SelectorDO buildSelectorDO() {
-        SelectorDO selectorDO = new SelectorDO();
-        selectorDO.setPluginId("789");
-        selectorDO.setId("456");
-        return selectorDO;
+        return SelectorDO.builder()
+                .pluginId("789")
+                .id("456")
+                .build();
     }
 
     private RuleConditionDO buildRuleConditionDO() {
-        RuleConditionDO ruleCondition = new RuleConditionDO();
-        ruleCondition.setRuleId("123");
-        ruleCondition.setParamType("post");
-        ruleCondition.setOperator("match");
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-        ruleCondition.setDateCreated(now);
-        ruleCondition.setDateUpdated(now);
-        return ruleCondition;
+        return RuleConditionDO.builder()
+                .ruleId("123")
+                .paramType("post")
+                .operator("match")
+                .dateCreated(now)
+                .dateUpdated(now)
+                .build();
     }
 
     private RuleConditionQuery buildRuleConditionQuery() {

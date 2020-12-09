@@ -108,16 +108,16 @@ public final class SelectorConditionMapperTest extends AbstractSpringIntegration
     }
 
     private SelectorConditionDO buildSelectorConditionDO() {
-        SelectorConditionDO selectorConditionDO = new SelectorConditionDO();
-        selectorConditionDO.setId(UUIDUtils.getInstance().generateShortUuid());
-        selectorConditionDO.setSelectorId(UUIDUtils.getInstance().generateShortUuid());
-        selectorConditionDO.setParamType("post");
-        selectorConditionDO.setOperator("=");
-        selectorConditionDO.setParamName("test_param_Name");
-        selectorConditionDO.setParamValue("test_param_value");
         Timestamp currentTime = Timestamp.valueOf(LocalDateTime.now());
-        selectorConditionDO.setDateCreated(currentTime);
-        selectorConditionDO.setDateUpdated(currentTime);
-        return selectorConditionDO;
+        return SelectorConditionDO.builder()
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .selectorId(UUIDUtils.getInstance().generateShortUuid())
+                .paramType("post")
+                .operator("=")
+                .paramName("test_param_Name")
+                .paramValue("test_param_value")
+                .dateCreated(currentTime)
+                .dateUpdated(currentTime)
+                .build();
     }
 }

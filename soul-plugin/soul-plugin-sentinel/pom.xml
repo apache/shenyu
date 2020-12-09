@@ -28,6 +28,10 @@
 
     <artifactId>soul-plugin-sentinel</artifactId>
 
+    <properties>
+        <sentinel.version>1.8.0</sentinel.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.dromara</groupId>
@@ -38,19 +42,19 @@
         <dependency>
             <groupId>com.alibaba.csp</groupId>
             <artifactId>sentinel-reactor-adapter</artifactId>
-            <version>1.8.0</version>
+            <version>${sentinel.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.alibaba.csp</groupId>
             <artifactId>sentinel-core</artifactId>
-            <version>1.8.0</version>
+            <version>${sentinel.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.alibaba.csp</groupId>
             <artifactId>sentinel-spring-webflux-adapter</artifactId>
-            <version>1.8.0</version>
+            <version>${sentinel.version}</version>
         </dependency>
     </dependencies>
 
