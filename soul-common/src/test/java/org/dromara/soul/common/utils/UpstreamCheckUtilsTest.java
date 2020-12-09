@@ -35,7 +35,7 @@ public final class UpstreamCheckUtilsTest {
 
     @Test
     public void testNotIp() {
-//        assertFalse(UpstreamCheckUtils.checkUrl("test"));
+        assertFalse(UpstreamCheckUtils.checkUrl("test"));
     }
 
     @Test
