@@ -43,5 +43,5 @@ jobs:
         with:
           java-version: 8
       - name: Build with Maven
-        run: sudo ./mvnw --batch-mode --no-transfer-progress clean -Dmaven.javadoc.skip=true install
+        run: ./mvnw -B clean -Dmaven.javadoc.skip=true install
       - uses: codecov/codecov-action@v1
