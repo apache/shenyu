@@ -30,7 +30,7 @@ import org.junit.Test;
  *
  * @author yiwenlong (wlong.yi@gmail.com)
  */
-public class RuleHandleFactoryTest {
+public final class RuleHandleFactoryTest {
 
     @Test
     public void testRuleHandleCorrectType() {
