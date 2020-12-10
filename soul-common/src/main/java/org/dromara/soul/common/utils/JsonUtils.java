@@ -103,10 +103,8 @@ public final class JsonUtils {
                 resultMap.remove("class");
             }
             map.remove("class");
-            return object;
-        } else {
-            return object;
         }
+        return object;
     }
 
 }

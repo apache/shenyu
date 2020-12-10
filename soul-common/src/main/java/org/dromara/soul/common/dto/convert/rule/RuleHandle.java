@@ -17,30 +17,29 @@
 
 package org.dromara.soul.common.dto.convert.rule;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.utils.GsonUtils;
 
 import java.io.Serializable;
 
 /**
- * The type Spring cloud rule handle.
+ * The RuleHandle interface.
  *
- * @author xiaoyu(Myth)
+ * @author yiwenlong (wlong.yi@gmail.com)
  */
-@ToString
-@Getter
-@Setter
-public class SpringCloudRuleHandle implements Serializable {
+public interface RuleHandle extends Serializable {
 
     /**
-     * this remote uri path.
+     * It will be call when RuleHandleFactory to generate a RuleHandle object.
+     * @param path  path.
+     * @return      it's self.
      */
-    private String path;
+    RuleHandle createDefault(String path);
 
     /**
-     * timeout is required.
+     * Format this object to json string.
+     * @return      json string.
      */
-    private long timeout = Constants.TIME_OUT;
+    default String toJson() {
+        return GsonUtils.getGson().toJson(this);
+    }
 }

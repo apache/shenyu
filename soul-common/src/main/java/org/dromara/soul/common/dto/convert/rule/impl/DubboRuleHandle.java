@@ -15,35 +15,57 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.dto.convert.rule;
+package org.dromara.soul.common.dto.convert.rule.impl;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.dromara.soul.common.constant.Constants;
-
-import java.io.Serializable;
+import org.dromara.soul.common.constant.RuleHandleConstants;
+import org.dromara.soul.common.dto.convert.rule.RuleHandle;
 
 /**
- * The type Divide rule handle.
+ * The type Dubbo rule handle.
  *
  * @author xiaoyu(Myth)
  */
-@Data
-public class DivideRuleHandle implements Serializable {
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
+public class DubboRuleHandle implements RuleHandle {
 
     /**
-     * loadBalance.
+     * version.
+     */
+    private String version;
+
+    /**
+     * group.
+     */
+    private String group;
+
+    /**
+     * retries.
+     */
+    private Integer retries;
+
+    /**
+     * the loadBalance.
      * {@linkplain org.dromara.soul.common.enums.LoadBalanceEnum}
      */
     private String loadBalance;
-
-    /**
-     * http retry.
-     */
-    private int retry;
 
     /**
      * timeout is required.
      */
     private long timeout = Constants.TIME_OUT;
 
+    @Override
+    public RuleHandle createDefault(final String path) {
+        this.loadBalance = RuleHandleConstants.DEFAULT_LOAD_BALANCE.getName();
+        this.retries = RuleHandleConstants.DEFAULT_RETRIES;
+        return this;
+    }
 }

@@ -86,9 +86,9 @@ public final class VersionUtils {
                 i = file.indexOf("-");
                 if (i >= 0) {
                     file = file.substring(i + 1);
-                } else {
-                    break;
+                    continue;
                 }
+                break;
             }
             version = file;
         }

@@ -78,22 +78,24 @@ public final class ContextRegisterListenerTest {
     @Test
     public void testNotFullRegister() throws InterruptedException {
         isRegister = false;
+        String port = server.getListenerInfo().get(0).getAddress().toString().split(":")[1];
         SoulSpringMvcConfig soulSpringMvcConfig = new SoulSpringMvcConfig();
-        soulSpringMvcConfig.setAdminUrl("http://127.0.0.1:58888");
+        soulSpringMvcConfig.setAdminUrl("http://127.0.0.1:" + port);
         soulSpringMvcConfig.setAppName("test-mvc");
         soulSpringMvcConfig.setContextPath("test");
         soulSpringMvcConfig.setPort(58889);
         ContextRegisterListener contextRegisterListener = new ContextRegisterListener(soulSpringMvcConfig);
         ContextRefreshedEvent contextRefreshedEvent = mock(ContextRefreshedEvent.class);
         contextRegisterListener.onApplicationEvent(contextRefreshedEvent);
-        countDownLatch.await(500L, TimeUnit.MILLISECONDS);
+        countDownLatch.await(5, TimeUnit.SECONDS);
         Assert.assertFalse(isRegister);
     }
 
     @Test
     public void testFullRegister() throws InterruptedException {
+        String port = server.getListenerInfo().get(0).getAddress().toString().split(":")[1];
         SoulSpringMvcConfig soulSpringMvcConfig = new SoulSpringMvcConfig();
-        soulSpringMvcConfig.setAdminUrl("http://127.0.0.1:58888");
+        soulSpringMvcConfig.setAdminUrl("http://127.0.0.1:" + port);
         soulSpringMvcConfig.setAppName("test-mvc");
         soulSpringMvcConfig.setContextPath("test");
         soulSpringMvcConfig.setFull(true);
@@ -101,7 +103,7 @@ public final class ContextRegisterListenerTest {
         ContextRegisterListener contextRegisterListener = new ContextRegisterListener(soulSpringMvcConfig);
         ContextRefreshedEvent contextRefreshedEvent = mock(ContextRefreshedEvent.class);
         contextRegisterListener.onApplicationEvent(contextRefreshedEvent);
-        countDownLatch.await(500L, TimeUnit.MILLISECONDS);
+        countDownLatch.await(5, TimeUnit.SECONDS);
         Assert.assertTrue(isRegister);
     }
 }

@@ -15,46 +15,39 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.enums;
+package org.dromara.soul.common.dto.convert.rule.impl;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-import java.util.Arrays;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.dto.convert.rule.RuleHandle;
 
 /**
- * SelectorTypeEnum.
+ * The type Spring cloud rule handle.
  *
- * @author jiangxiaofeng(Nicholas)
+ * @author xiaoyu(Myth)
  */
-@RequiredArgsConstructor
+@ToString
 @Getter
-public enum SelectorTypeEnum {
+@Setter
+@NoArgsConstructor
+public class SpringCloudRuleHandle implements RuleHandle {
 
     /**
-     * full selector type enum.
+     * this remote uri path.
      */
-    FULL_FLOW(0, "full"),
+    private String path;
 
     /**
-     * Or match mode enum.
+     * timeout is required.
      */
-    CUSTOM_FLOW(1, "custom");
+    private long timeout = Constants.TIME_OUT;
 
-    private final int code;
-
-    private final String name;
-
-    /**
-     * get selector type name by code.
-     *
-     * @param code selector type code.
-     * @return selector type name.
-     */
-    public static String getSelectorTypeByCode(final int code) {
-        return Arrays.stream(SelectorTypeEnum.values())
-                .filter(v -> v.getCode() == code)
-                .findFirst()
-                .map(SelectorTypeEnum::getName).orElse(null);
+    @Override
+    public RuleHandle createDefault(final String path) {
+        this.path = path;
+        return this;
     }
 }
