@@ -41,6 +41,8 @@ import org.dromara.soul.admin.transfer.MetaDataTransfer;
 import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
+import org.dromara.soul.common.dto.convert.rule.RuleHandle;
+import org.dromara.soul.common.dto.convert.rule.RuleHandleFactory;
 import org.dromara.soul.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
@@ -51,7 +53,6 @@ import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.ParamTypeEnum;
 import org.dromara.soul.common.enums.OperatorEnum;
 import org.dromara.soul.common.utils.GsonUtils;
-import org.dromara.soul.common.utils.JsonUtils;
 import org.dromara.soul.common.utils.UUIDUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -384,6 +385,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     }
 
     private void registerRule(final String selectorId, final String path, final String rpcType, final String ruleName) {
+        RuleHandle ruleHandle = RuleHandleFactory.ruleHandle(RpcTypeEnum.acquireByName(rpcType), path);
         RuleDTO ruleDTO = RuleDTO.builder()
                 .selectorId(selectorId)
                 .name(ruleName)
@@ -391,7 +393,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
                 .enabled(Boolean.TRUE)
                 .loged(Boolean.TRUE)
                 .sort(1)
-                .handle(JsonUtils.toJson(RpcTypeEnum.acquireByName(rpcType).ruleHandle(path)))
+                .handle(ruleHandle.toJson())
                 .build();
         RuleConditionDTO ruleConditionDTO = RuleConditionDTO.builder()
                 .paramType(ParamTypeEnum.URI.getName())

@@ -15,48 +15,34 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.dto.convert.rule;
+package org.dromara.soul.common.constant;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import org.dromara.soul.common.constant.Constants;
-
-import java.io.Serializable;
+import org.dromara.soul.common.enums.LoadBalanceEnum;
 
 /**
- * The type Dubbo rule handle.
+ * The Constants for RuleHandles.
  *
- * @author xiaoyu(Myth)
+ * @author yiwenlong (wlong.yi@gmail.com)
  */
-@Getter
-@Setter
-@ToString
-public class DubboRuleHandle implements Serializable {
+public final class RuleHandleConstants {
 
     /**
-     * version.
+     * Default load balance for RuleHandle.
      */
-    private String version;
+    public static final LoadBalanceEnum DEFAULT_LOAD_BALANCE = LoadBalanceEnum.RANDOM;
 
     /**
-     * group.
+     * Default timeout for RuleHandle.
      */
-    private String group;
+    public static final long DEFAULT_TIMEOUT = 3000;
 
     /**
-     * retries.
+     * Default retries for RuleHandle.
      */
-    private Integer retries;
+    public static final int DEFAULT_RETRIES = 0;
 
     /**
-     * the loadBalance.
-     * {@linkplain org.dromara.soul.common.enums.LoadBalanceEnum}
+     * Default retry for RuleHandle.
      */
-    private String loadBalance;
-
-    /**
-     * timeout is required.
-     */
-    private long timeout = Constants.TIME_OUT;
+    public static final int DEFAULT_RETRY = 0;
 }
