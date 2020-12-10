@@ -16,9 +16,8 @@
 
 package org.dromara.soul.spi;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,10 +36,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author xiaoyu(Myth)
  * @author sixh.
  */
+@Slf4j
 @SuppressWarnings("all")
 public final class ExtensionLoader<T> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ExtensionLoader.class);
 
     private static final String SOUL_DIRECTORY = "META-INF/soul/";
 
@@ -202,7 +200,7 @@ public final class ExtensionLoader<T> {
                 }
             }
         } catch (IOException t) {
-            LOGGER.error("load extension class error {}", fileName, t);
+            log.error("load extension class error {}", fileName, t);
         }
     }
 
