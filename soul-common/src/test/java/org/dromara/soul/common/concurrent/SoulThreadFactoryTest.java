@@ -17,31 +17,30 @@
 
 package org.dromara.soul.common.concurrent;
 
-
 import org.junit.Test;
-
 import java.util.concurrent.ThreadFactory;
-
 import static org.junit.Assert.assertNotNull;
 
 /**
- * test cases for SoulThreadFactory
+ * Test cases for SoulThreadFactory.
  *
  * @author FocusZhouGD
  */
-public class SoulThreadFactoryTest {
+public final class SoulThreadFactoryTest {
 
-    private static final String NAME_PREFIX="soul##thread##";
+    private static final String NAME_PREFIX = "soul##thread##";
 
     @Test
     public void testCreate() {
         ThreadFactory threadFactory = SoulThreadFactory.create(NAME_PREFIX, true);
         assertNotNull(threadFactory);
     }
+
     @Test
     public void testCustomCreate() {
-        ThreadFactory threadFactory = SoulThreadFactory.create(NAME_PREFIX, true,2);
+        ThreadFactory threadFactory = SoulThreadFactory.create(NAME_PREFIX, true, 2);
         assertNotNull(threadFactory);
+
     }
 
     @Test
@@ -49,4 +48,5 @@ public class SoulThreadFactoryTest {
         ThreadFactory threadFactory = SoulThreadFactory.create(NAME_PREFIX, true);
         threadFactory.newThread(() -> System.out.println("hello"));
     }
+
 }
