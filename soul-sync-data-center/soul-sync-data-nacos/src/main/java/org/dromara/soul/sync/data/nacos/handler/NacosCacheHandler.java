@@ -21,11 +21,11 @@ import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.listener.Listener;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonParseException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+
+import java.util.*;
 import java.util.concurrent.Executor;
+import java.util.stream.Collectors;
+
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -82,9 +82,10 @@ public class NacosCacheHandler {
 
     protected void updatePluginMap(final String configInfo) {
         try {
-            List<PluginData> pluginDataList = GsonUtils.getInstance().fromList(configInfo, PluginData.class);
-            pluginDataList.forEach(pluginData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSubscribe(pluginData)));
-            pluginDataList.forEach(pluginData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onSubscribe(pluginData)));
+            // Fix bug #656(https://github.com/dromara/soul/issues/656)
+            Map<String,Object> pluginDataMap = GsonUtils.getGson().fromJson(configInfo, Maps.newHashMap().getClass());
+            List<PluginData> pluginDataList = pluginDataMap.values().stream().map(each -> GsonUtils.getInstance().fromJson(GsonUtils.getInstance().toJson(each), PluginData.class)).collect(Collectors.toList());
+            pluginDataList.forEach(pluginData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {subscriber.unSubscribe(pluginData);subscriber.onSubscribe(pluginData);}));
         } catch (JsonParseException e) {
             log.error("sync plugin data have error:", e);
         }
@@ -92,9 +93,10 @@ public class NacosCacheHandler {
 
     protected void updateSelectorMap(final String configInfo) {
         try {
-            List<SelectorData> selectorDataList = GsonUtils.getInstance().fromList(configInfo, SelectorData.class);
-            selectorDataList.forEach(selectorData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSelectorSubscribe(selectorData)));
-            selectorDataList.forEach(selectorData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onSelectorSubscribe(selectorData)));
+            List<SelectorData> selectorDataList = new ArrayList<>();
+            Map<String,Object> selectorDataMap = GsonUtils.getGson().fromJson(configInfo, Maps.newHashMap().getClass());
+            selectorDataMap.values().forEach(each -> {List<SelectorData> selectorData = GsonUtils.getInstance().fromList(GsonUtils.getInstance().toJson(each), SelectorData.class);selectorDataList.addAll(selectorData);});
+            selectorDataList.forEach(selectorData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {subscriber.unSelectorSubscribe(selectorData);subscriber.onSelectorSubscribe(selectorData);}));
         } catch (JsonParseException e) {
             log.error("sync selector data have error:", e);
         }
@@ -102,9 +104,10 @@ public class NacosCacheHandler {
 
     protected void updateRuleMap(final String configInfo) {
         try {
-            List<RuleData> ruleDataList = GsonUtils.getInstance().fromList(configInfo, RuleData.class);
-            ruleDataList.forEach(ruleData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unRuleSubscribe(ruleData)));
-            ruleDataList.forEach(ruleData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onRuleSubscribe(ruleData)));
+            List<RuleData> ruleDataList = new ArrayList<>();
+            Map<String, Object> ruleDataMap = GsonUtils.getGson().fromJson(configInfo, Maps.newHashMap().getClass());
+            ruleDataMap.values().forEach(each -> {List<RuleData> ruleData = GsonUtils.getInstance().fromList(GsonUtils.getInstance().toJson(each), RuleData.class);ruleDataList.addAll(ruleData);});
+            ruleDataList.forEach(ruleData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {subscriber.unRuleSubscribe(ruleData);subscriber.onRuleSubscribe(ruleData);}));
         } catch (JsonParseException e) {
             log.error("sync rule data have error:", e);
         }
@@ -112,9 +115,9 @@ public class NacosCacheHandler {
 
     protected void updateMetaDataMap(final String configInfo) {
         try {
-            List<MetaData> metaDataList = GsonUtils.getInstance().fromList(configInfo, MetaData.class);
-            metaDataList.forEach(metaData -> metaDataSubscribers.forEach(subscriber -> subscriber.unSubscribe(metaData)));
-            metaDataList.forEach(metaData -> metaDataSubscribers.forEach(subscriber -> subscriber.onSubscribe(metaData)));
+            Map<String, Object> metaDataMap = GsonUtils.getGson().fromJson(configInfo, Maps.newHashMap().getClass());
+            List<MetaData> metaDataList = metaDataMap.values().stream().map(each -> GsonUtils.getInstance().fromJson(GsonUtils.getInstance().toJson(each), MetaData.class)).collect(Collectors.toList());
+            metaDataList.forEach(metaData -> metaDataSubscribers.forEach(subscriber -> {subscriber.unSubscribe(metaData);subscriber.onSubscribe(metaData);}));
         } catch (JsonParseException e) {
             log.error("sync meta data have error:", e);
         }
@@ -122,9 +125,9 @@ public class NacosCacheHandler {
 
     protected void updateAuthMap(final String configInfo) {
         try {
-            List<AppAuthData> appAuthDataList = GsonUtils.getInstance().fromList(configInfo, AppAuthData.class);
-            appAuthDataList.forEach(authData -> authDataSubscribers.forEach(subscriber -> subscriber.unSubscribe(authData)));
-            appAuthDataList.forEach(authData -> authDataSubscribers.forEach(subscriber -> subscriber.onSubscribe(authData)));
+            Map<String, Object> appAuthDataMap = GsonUtils.getGson().fromJson(configInfo, Maps.newHashMap().getClass());
+            List<AppAuthData> appAuthDataList = appAuthDataMap.values().stream().map(each -> GsonUtils.getInstance().fromJson(GsonUtils.getInstance().toJson(each), AppAuthData.class)).collect(Collectors.toList());
+            appAuthDataList.forEach(appAuthData -> authDataSubscribers.forEach(subscriber -> {subscriber.unSubscribe(appAuthData);subscriber.onSubscribe(appAuthData);}));
         } catch (JsonParseException e) {
             log.error("sync auth data have error:", e);
         }
