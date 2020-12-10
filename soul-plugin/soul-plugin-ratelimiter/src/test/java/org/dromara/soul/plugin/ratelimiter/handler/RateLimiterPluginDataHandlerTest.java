@@ -237,5 +237,4 @@ public final class RateLimiterPluginDataHandlerTest {
         rateLimiterConfig.setPassword(PASSWORD_TEST_VALUE);
         return rateLimiterConfig;
     }
-
 }
