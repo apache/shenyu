@@ -31,26 +31,22 @@ import static org.junit.Assert.assertNotNull;
  */
 public class SoulThreadFactoryTest {
 
+    private static final String NAME_PREFIX="soul##thread##";
 
     @Test
     public void testCreate() {
-        ThreadFactory threadFactory = SoulThreadFactory.create("soul##thread##", true);
+        ThreadFactory threadFactory = SoulThreadFactory.create(NAME_PREFIX, true);
         assertNotNull(threadFactory);
     }
     @Test
     public void testCustomCreate() {
-        ThreadFactory threadFactory = SoulThreadFactory.create("soul##thread##", true,2);
+        ThreadFactory threadFactory = SoulThreadFactory.create(NAME_PREFIX, true,2);
         assertNotNull(threadFactory);
     }
 
     @Test
     public void testNewThread() {
-        ThreadFactory threadFactory = SoulThreadFactory.create("soul##thread##", true);
-        Thread hello = threadFactory.newThread(new Runnable() {
-            @Override
-            public void run() {
-                System.out.println("hello");
-            }
-        });
+        ThreadFactory threadFactory = SoulThreadFactory.create(NAME_PREFIX, true);
+        threadFactory.newThread(() -> System.out.println("hello"));
     }
 }
