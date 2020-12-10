@@ -17,9 +17,8 @@
 
 package org.dromara.soul.web.forwarde;
 
+import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.plugin.api.RemoteAddressResolver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
@@ -39,15 +38,13 @@ import java.util.List;
  * @author Andrew Fitzgerald
  * @author xiaoyu
  */
+@Slf4j
 public class ForwardedRemoteAddressResolver implements RemoteAddressResolver {
     
     /**
      * Forwarded-For header name.
      */
     public static final String X_FORWARDED_FOR = "X-Forwarded-For";
-    
-    private static final Logger LOGGER = LoggerFactory
-            .getLogger(ForwardedRemoteAddressResolver.class);
     
     private final RemoteAddressResolver defaultRemoteIpResolver = new RemoteAddressResolver() {
     };
@@ -101,7 +98,7 @@ public class ForwardedRemoteAddressResolver implements RemoteAddressResolver {
             return Collections.emptyList();
         }
         if (xForwardedValues.size() > 1) {
-            LOGGER.warn("Multiple X-Forwarded-For headers found, discarding all");
+            log.warn("Multiple X-Forwarded-For headers found, discarding all");
             return Collections.emptyList();
         }
         List<String> values = Arrays.asList(xForwardedValues.get(0).split(", "));

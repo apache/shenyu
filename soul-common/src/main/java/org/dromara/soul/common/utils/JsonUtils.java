@@ -30,8 +30,7 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -46,11 +45,10 @@ import java.util.Map;
  *
  * @author xiaoyu
  */
+@Slf4j
 public final class JsonUtils {
 
     private static ObjectMapper mapper = new ObjectMapper();
-
-    private static Logger logger = LoggerFactory.getLogger(JsonUtils.class);
 
     static {
         JavaTimeModule javaTimeModule = new JavaTimeModule();
@@ -83,7 +81,7 @@ public final class JsonUtils {
         try {
             return mapper.writeValueAsString(object);
         } catch (IOException e) {
-            logger.warn("write to json string error:" + object, e);
+            log.warn("write to json string error: " + object, e);
             return "{}";
         }
     }

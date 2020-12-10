@@ -17,9 +17,8 @@
 
 package org.dromara.soul.admin.listener;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.context.WebServerInitializedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
@@ -33,10 +32,9 @@ import java.net.UnknownHostException;
  *
  * @author xiaoyu
  */
+@Slf4j
 @Component
 public class ApplicationStartListener implements ApplicationListener<WebServerInitializedEvent> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationStartListener.class);
 
     @Override
     public void onApplicationEvent(final WebServerInitializedEvent event) {
@@ -56,7 +54,7 @@ public class ApplicationStartListener implements ApplicationListener<WebServerIn
         try {
             return InetAddress.getLocalHost().getHostAddress();
         } catch (UnknownHostException e) {
-            LOGGER.error("Get host error!", e);
+            log.error("Get host error!", e);
             return "127.0.0.1";
         }
     }
