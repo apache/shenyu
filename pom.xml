@@ -118,6 +118,7 @@
         <curator-test.version>3.3.0</curator-test.version>
         <wiremock.version>2.18.0</wiremock.version>
         <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
+        <java-websocket.version>1.5.0</java-websocket.version>
     </properties>
 
     <dependencyManagement>
