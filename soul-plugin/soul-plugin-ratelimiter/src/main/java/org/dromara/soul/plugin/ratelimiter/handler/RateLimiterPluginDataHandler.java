@@ -82,7 +82,8 @@ public class RateLimiterPluginDataHandler implements PluginDataHandler {
         LettuceClientConfiguration lettuceClientConfiguration = getLettuceClientConfiguration(rateLimiterConfig);
         if (RedisModeEnum.SENTINEL.getName().equals(rateLimiterConfig.getMode())) {
             return new LettuceConnectionFactory(redisSentinelConfiguration(rateLimiterConfig), lettuceClientConfiguration);
-        } else if (RedisModeEnum.CLUSTER.getName().equals(rateLimiterConfig.getMode())) {
+        }
+        if (RedisModeEnum.CLUSTER.getName().equals(rateLimiterConfig.getMode())) {
             return new LettuceConnectionFactory(redisClusterConfiguration(rateLimiterConfig), lettuceClientConfiguration);
         }
         return new LettuceConnectionFactory(redisStandaloneConfiguration(rateLimiterConfig), lettuceClientConfiguration);

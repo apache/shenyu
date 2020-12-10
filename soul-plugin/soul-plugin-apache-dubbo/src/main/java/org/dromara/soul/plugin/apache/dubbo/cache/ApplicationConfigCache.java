@@ -172,7 +172,8 @@ public final class ApplicationConfigCache {
     private String buildLoadBalanceName(final String loadBalance) {
         if (LoadBalanceEnum.HASH.getName().equals(loadBalance) || "consistenthash".equals(loadBalance)) {
             return "consistenthash";
-        } else if (LoadBalanceEnum.ROUND_ROBIN.getName().equals(loadBalance)) {
+        }
+        if (LoadBalanceEnum.ROUND_ROBIN.getName().equals(loadBalance)) {
             return "roundrobin";
         }
         return loadBalance;

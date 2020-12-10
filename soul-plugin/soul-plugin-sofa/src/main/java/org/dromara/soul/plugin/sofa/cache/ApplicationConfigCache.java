@@ -166,11 +166,11 @@ public final class ApplicationConfigCache {
     private String buildLoadBalanceName(final String loadBalance) {
         if (LoadBalanceEnum.HASH.getName().equals(loadBalance) || StringUtils.equalsIgnoreCase("consistenthash", loadBalance)) {
             return "consistentHash";
-        } else if (LoadBalanceEnum.ROUND_ROBIN.getName().equals(loadBalance) || StringUtils.equalsIgnoreCase("roundrobin", loadBalance)) {
-            return "roundRobin";
-        } else {
-            return loadBalance;
         }
+        if (LoadBalanceEnum.ROUND_ROBIN.getName().equals(loadBalance) || StringUtils.equalsIgnoreCase("roundrobin", loadBalance)) {
+            return "roundRobin";
+        }
+        return loadBalance;
     }
     
     /**

@@ -84,11 +84,10 @@ public final class VersionUtils {
             }
             while (file.length() > 0 && !Character.isDigit(file.charAt(0))) {
                 i = file.indexOf("-");
-                if (i >= 0) {
-                    file = file.substring(i + 1);
-                    continue;
+                if (i < 0) {
+                    break;
                 }
-                break;
+                file = file.substring(i + 1);
             }
             version = file;
         }
