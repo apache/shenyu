@@ -329,7 +329,7 @@ public final class WebsocketDataChangedListenerTest {
     /**
      * Handle data change message.
      *
-     * @param message 消息
+     * @param message message
      */
     public void handleMessage(final String message) {
         Assert.assertNotNull(message);
