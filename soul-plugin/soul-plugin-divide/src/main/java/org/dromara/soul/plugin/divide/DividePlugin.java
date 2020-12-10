@@ -75,6 +75,7 @@ public class DividePlugin extends AbstractSoulPlugin {
         exchange.getAttributes().put(Constants.HTTP_URL, realURL);
         //设置下超时时间
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
+        exchange.getAttributes().put(Constants.HTTP_RETRY, ruleHandle.getRetry());
         return chain.execute(exchange);
     }
 
