@@ -68,7 +68,7 @@ public final class RedisRateLimiterTest {
     }
 
     /**
-     *  getKeys result test.
+     *  getKeys result test case.
      */
     @Test
     public void getKeysTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
