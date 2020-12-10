@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.dromara.soul.plugin.ratelimiter.executor;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -29,7 +46,8 @@ import org.springframework.data.redis.core.script.RedisScript;
 import com.google.common.collect.Lists;
 
 /**
- * RedisRateLimiter test
+ * RedisRateLimiter test.
+ *
  * @author wyc192273
  */
 @RunWith(MockitoJUnitRunner.class)
@@ -37,8 +55,11 @@ import com.google.common.collect.Lists;
 public final class RedisRateLimiterTest {
 
     private static final String DEFAULT_TEST_ID = "testId";
+
     private static final double DEFAULT_TEST_REPLENISH_RATE = 1.0;
+
     private static final double DEFAULT_TEST_BURST_CAPACITY = 300.0;
+
     private RedisRateLimiter redisRateLimiter;
 
     @Before
@@ -47,7 +68,7 @@ public final class RedisRateLimiterTest {
     }
 
     /**
-     *  getKeys result test
+     *  getKeys result test.
      */
     @Test
     public void getKeysTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
@@ -60,7 +81,7 @@ public final class RedisRateLimiterTest {
     }
 
     /**
-     * redisRateLimiter.isAllowed allowed case
+     * redisRateLimiter.isAllowed allowed case.
      */
     @Test
     public void allowedTest() {
@@ -74,7 +95,7 @@ public final class RedisRateLimiterTest {
     }
 
     /**
-     * redisRateLimiter.isAllowed not allowed case
+     * redisRateLimiter.isAllowed not allowed case.
      */
     @Test
     public void notAllowedTest() {
@@ -88,7 +109,7 @@ public final class RedisRateLimiterTest {
     }
 
     /**
-     * redisRateLimiter.isAllowed exception case
+     * redisRateLimiter.isAllowed exception case.
      */
     @Test
     public void allowedThrowableTest() {
@@ -101,6 +122,9 @@ public final class RedisRateLimiterTest {
         }).verifyComplete();
     }
 
+    /**
+     * initialized error init test.
+     */
     @Test(expected = IllegalStateException.class)
     public void initializedErrorTest() throws NoSuchFieldException, IllegalAccessException {
         Field initializedField = RedisRateLimiter.class.getDeclaredField("initialized");
@@ -112,13 +136,14 @@ public final class RedisRateLimiterTest {
     }
 
     /**
-     * redisRateLimiter.isAllowed test pre init
-     * @param allowedNum            mock lua allowedNum result
-     * @param newTokens             mock lua newTokens result
-     * @param needThrowException    mock lua throw exception
+     * redisRateLimiter.isAllowed test pre init.
+     *
+     * @param allowedNum         mock lua allowedNum result
+     * @param newTokens          mock lua newTokens result
+     * @param needThrowException mock lua throw exception
      */
     @SuppressWarnings("unchecked")
-    private void isAllowedPreInit(long allowedNum, long newTokens, boolean needThrowException) {
+    private void isAllowedPreInit(final long allowedNum, final long newTokens, final boolean needThrowException) {
         ReactiveRedisTemplate reactiveRedisTemplate = mock(ReactiveRedisTemplate.class);
         Singleton.INST.single(ReactiveRedisTemplate.class, reactiveRedisTemplate);
         if (needThrowException) {
@@ -131,7 +156,7 @@ public final class RedisRateLimiterTest {
     }
 
     /**
-     * mock RedisRateLimiter getKeys method invoke
+     * mock RedisRateLimiter getKeys method invoke.
      * @param id        id
      * @return          [tokenKey, timestampKey]
      */

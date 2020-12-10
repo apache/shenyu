@@ -1,5 +1,21 @@
-package org.dromara.soul.plugin.ratelimiter;
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
+package org.dromara.soul.plugin.ratelimiter;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
@@ -33,17 +49,23 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
- * RateLimiterPlugin test
+ * RateLimiterPlugin test.
+ *
  * @author wyc192273
  */
 @RunWith(MockitoJUnitRunner.class)
-public class RateLimiterPluginTest {
+public final class RateLimiterPluginTest {
 
     private SoulPluginChain chain;
+
     private RedisRateLimiter redisRateLimiter;
+
     private RuleData ruleData;
+
     private SelectorData selectorData;
+
     private RateLimiterPlugin rateLimiterPlugin;
+
     private ServerWebExchange exchange;
 
     @Before
@@ -57,7 +79,7 @@ public class RateLimiterPluginTest {
     }
 
     /**
-     * rateLimiterPlugin doExecute , limiter allowed case
+     * rateLimiterPlugin doExecute , limiter allowed case.
      */
     @Test
     public void doExecuteAllowedTest() {
@@ -70,7 +92,7 @@ public class RateLimiterPluginTest {
     }
 
     /**
-     * rateLimiterPlugin doExecute , limiter not allowed case
+     * rateLimiterPlugin doExecute , limiter not allowed case.
      */
     @Test
     public void doExecuteNotAllowedTest() {
@@ -85,18 +107,24 @@ public class RateLimiterPluginTest {
         Assert.assertEquals(HttpStatus.TOO_MANY_REQUESTS, exchange.getResponse().getStatusCode());
     }
 
+    /**
+     * named default value test case.
+     */
     @Test
     public void namedTest() {
         Assert.assertEquals(PluginEnum.RATE_LIMITER.getName(), rateLimiterPlugin.named());
     }
 
+    /**
+     * getOrder default value test case.
+     */
     @Test
     public void getOrderTest() {
         Assert.assertEquals(PluginEnum.RATE_LIMITER.getCode(), rateLimiterPlugin.getOrder());
     }
 
     /**
-     * rateLimiterPlugin doExecute Test prev init
+     * rateLimiterPlugin doExecute Test prev init.
      */
     private void doExecutePreInit() {
         RateLimiterHandle rateLimiterHandle = mockRateLimiterHandler();
@@ -106,7 +134,7 @@ public class RateLimiterPluginTest {
     }
 
     /**
-     * rateLimiterHandler mock
+     * rateLimiterHandler mock.
      */
     private RateLimiterHandle mockRateLimiterHandler() {
         RateLimiterHandle rateLimiterHandle = new RateLimiterHandle();

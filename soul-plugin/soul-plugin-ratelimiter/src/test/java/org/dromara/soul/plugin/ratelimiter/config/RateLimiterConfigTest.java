@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.dromara.soul.plugin.ratelimiter.config;
 
 import lombok.extern.slf4j.Slf4j;
@@ -10,7 +27,8 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
- * RateLimiterConfig default value test
+ * RateLimiterConfig default value test.
+ *
  * @author wyc192273
  */
 @RunWith(MockitoJUnitRunner.class)
@@ -18,7 +36,9 @@ import org.mockito.junit.MockitoJUnitRunner;
 public final class RateLimiterConfigTest {
 
     private static final int DEFAULT_MAX_IDLE = 8;
+
     private static final int DEFAULT_MAX_ACTIVE = 8;
+
     private static final int DEFAULT_MIN_IDLE = 0;
 
     private RateLimiterConfig rateLimiterConfig;
@@ -29,7 +49,7 @@ public final class RateLimiterConfigTest {
     }
 
     /**
-     * mode default value test
+     * mode default value test.
      */
     @Test
     public void modeDefaultValueTest() {
@@ -37,7 +57,7 @@ public final class RateLimiterConfigTest {
     }
 
     /**
-     * maxIdle default value test
+     * maxIdle default value test.
      */
     @Test
     public void maxIdleDefaultValueTest() {
@@ -45,7 +65,7 @@ public final class RateLimiterConfigTest {
     }
 
     /**
-     * maxActive default value test
+     * maxActive default value test.
      */
     @Test
     public void maxActiveDefaultValueTest() {
@@ -53,7 +73,7 @@ public final class RateLimiterConfigTest {
     }
 
     /**
-     * minIdle default value test
+     * minIdle default value test.
      */
     @Test
     public void minIdleDefaultValueTest() {
@@ -61,7 +81,7 @@ public final class RateLimiterConfigTest {
     }
 
     /**
-     * equals test
+     * equals test.
      */
     @Test
     public void equalsTest() {
