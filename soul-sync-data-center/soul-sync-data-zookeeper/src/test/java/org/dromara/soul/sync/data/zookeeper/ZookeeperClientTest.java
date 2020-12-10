@@ -34,9 +34,9 @@ import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.dto.convert.RateLimiterHandle;
 import org.dromara.soul.common.dto.convert.RewriteHandle;
 import org.dromara.soul.common.dto.convert.WafHandle;
-import org.dromara.soul.common.dto.convert.rule.DivideRuleHandle;
-import org.dromara.soul.common.dto.convert.rule.DubboRuleHandle;
-import org.dromara.soul.common.dto.convert.rule.SpringCloudRuleHandle;
+import org.dromara.soul.common.dto.convert.rule.impl.DivideRuleHandle;
+import org.dromara.soul.common.dto.convert.rule.impl.DubboRuleHandle;
+import org.dromara.soul.common.dto.convert.rule.impl.SpringCloudRuleHandle;
 import org.dromara.soul.common.dto.convert.selector.DubboSelectorHandle;
 import org.dromara.soul.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.dromara.soul.common.enums.LoadBalanceEnum;
@@ -315,18 +315,20 @@ public final class ZookeeperClientTest {
     }
 
     private static Pair<SpringCloudSelectorHandle, SpringCloudRuleHandle> buildSpringCloudHandle() {
-        SpringCloudSelectorHandle selectorHandle = new SpringCloudSelectorHandle();
-        selectorHandle.setServiceId("xiaoyu");
+        SpringCloudSelectorHandle selectorHandle = SpringCloudSelectorHandle.builder()
+                .serviceId("xiaoyu")
+                .build();
         SpringCloudRuleHandle ruleHandle = new SpringCloudRuleHandle();
         ruleHandle.setPath("/xiaoyu");
         return new ImmutablePair<>(selectorHandle, ruleHandle);
     }
 
     private static List<DivideUpstream> buildUpstreamList() {
-        DivideUpstream upstream = new DivideUpstream();
-        upstream.setUpstreamHost("localhost");
-        upstream.setUpstreamUrl("http://localhost:8081");
-        upstream.setWeight(90);
+        DivideUpstream upstream = DivideUpstream.builder()
+                .upstreamHost("localhost")
+                .upstreamUrl("http://localhost:8081")
+                .weight(90)
+                .build();
         List<DivideUpstream> upstreams = Lists.newArrayList();
         upstreams.add(upstream);
         return upstreams;

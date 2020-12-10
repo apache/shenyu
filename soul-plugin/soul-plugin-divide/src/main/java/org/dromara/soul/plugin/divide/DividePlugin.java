@@ -25,7 +25,7 @@ import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
-import org.dromara.soul.common.dto.convert.rule.DivideRuleHandle;
+import org.dromara.soul.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
@@ -75,6 +75,7 @@ public class DividePlugin extends AbstractSoulPlugin {
         exchange.getAttributes().put(Constants.HTTP_URL, realURL);
         //设置下超时时间
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
+        exchange.getAttributes().put(Constants.HTTP_RETRY, ruleHandle.getRetry());
         return chain.execute(exchange);
     }
 

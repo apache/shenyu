@@ -67,4 +67,9 @@ public class PluginHandleDTO implements Serializable {
      */
     private Integer sort;
 
+    /**
+     * the attribute extObj.
+     */
+    private String extObj;
+
 }
