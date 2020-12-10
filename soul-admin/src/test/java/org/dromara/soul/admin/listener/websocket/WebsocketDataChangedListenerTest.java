@@ -44,6 +44,7 @@ import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -59,12 +60,10 @@ import static io.undertow.Handlers.websocket;
  * Data Change WebSocketListener Test.
  *
  * @author : Hyuk
- * @description : WebsocketDataChangedListenerTest
- * @date : 2020/12/6 9:31 下午
  */
 @Slf4j
 @RunWith(MockitoJUnitRunner.class)
-public class WebsocketDataChangedListenerTest {
+public final class WebsocketDataChangedListenerTest {
 
     private final List<PluginData> pluginDataList = new ArrayList<>();
 
@@ -111,7 +110,12 @@ public class WebsocketDataChangedListenerTest {
      * @throws InterruptedException InterruptedException
      */
     public void startClient() throws URISyntaxException, InterruptedException {
-        client = new WebSocketClient(new URI("ws://localhost:8888/websocket")) {
+        InetSocketAddress inetSocketAddress = (InetSocketAddress) server.getListenerInfo().get(0).getAddress();
+        StringBuilder sb = new StringBuilder();
+        sb.append("ws://").append(inetSocketAddress.getHostName()).append(":").append(inetSocketAddress.getPort())
+                .append("/websocket");
+
+        client = new WebSocketClient(new URI(sb.toString())) {
             @Override
             public void onOpen(final ServerHandshake serverHandshake) {
                 log.info("Open connection");
@@ -256,7 +260,7 @@ public class WebsocketDataChangedListenerTest {
     }
 
     /**
-     * 发送数据变更消息.
+     * Send data change message.
      *
      * @param message message
      */
@@ -323,7 +327,7 @@ public class WebsocketDataChangedListenerTest {
     }
 
     /**
-     * 处理webcosket消息进行分发.
+     * Handle data change message.
      *
      * @param message 消息
      */
