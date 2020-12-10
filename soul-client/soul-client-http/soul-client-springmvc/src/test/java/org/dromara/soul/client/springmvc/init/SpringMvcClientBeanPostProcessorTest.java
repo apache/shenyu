@@ -60,12 +60,6 @@ public final class SpringMvcClientBeanPostProcessorTest {
 
     @BeforeClass
     public static void init() {
-        SoulSpringMvcConfig soulSpringMvcConfig = new SoulSpringMvcConfig();
-        soulSpringMvcConfig.setAdminUrl("http://127.0.0.1:58888");
-        soulSpringMvcConfig.setAppName("test-mvc");
-        soulSpringMvcConfig.setContextPath("test");
-        soulSpringMvcConfig.setPort(58889);
-        springMvcClientBeanPostProcessor = new SpringMvcClientBeanPostProcessor(soulSpringMvcConfig);
         server = Undertow.builder()
                 .addHttpListener(58888, "localhost")
                 .setHandler(path()
@@ -75,6 +69,14 @@ public final class SpringMvcClientBeanPostProcessorTest {
                         }))
                 .build();
         server.start();
+        String port = server.getListenerInfo().get(0).getAddress().toString().split(":")[1];
+        SoulSpringMvcConfig soulSpringMvcConfig = new SoulSpringMvcConfig();
+        soulSpringMvcConfig.setAdminUrl("http://127.0.0.1:" + port);
+        soulSpringMvcConfig.setAppName("test-mvc");
+        soulSpringMvcConfig.setContextPath("test");
+        soulSpringMvcConfig.setPort(58889);
+        springMvcClientBeanPostProcessor = new SpringMvcClientBeanPostProcessor(soulSpringMvcConfig);
+
     }
 
     @AfterClass
@@ -91,14 +93,14 @@ public final class SpringMvcClientBeanPostProcessorTest {
     @Test
     public void testSoulBeanProcess() throws InterruptedException {
         springMvcClientBeanPostProcessor.postProcessAfterInitialization(springMvcClientTestBean, "springMvcClientTestBean");
-        countDownLatch.await(500L, TimeUnit.MILLISECONDS);
+        countDownLatch.await(5, TimeUnit.SECONDS);
         Assert.assertEquals(1L, registerNum);
     }
 
     @Test
     public void testNormalBeanProcess() throws InterruptedException {
         springMvcClientBeanPostProcessor.postProcessAfterInitialization(new Object(), "normalBean");
-        countDownLatch.await(500L, TimeUnit.MILLISECONDS);
+        countDownLatch.await(5, TimeUnit.SECONDS);
         Assert.assertEquals(0L, registerNum);
     }
 

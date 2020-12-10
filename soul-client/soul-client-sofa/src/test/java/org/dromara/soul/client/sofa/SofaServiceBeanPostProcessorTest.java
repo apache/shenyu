@@ -60,20 +60,21 @@ public final class SofaServiceBeanPostProcessorTest {
 
     @BeforeClass
     public static void init() {
-        SofaConfig mockSofaConfig = new SofaConfig();
-        mockSofaConfig.setAdminUrl("http://localhost:9095");
-        mockSofaConfig.setAppName("sofa");
-        mockSofaConfig.setContextPath("/sofa");
-        sofaServiceBeanPostProcessorUnderTest = new SofaServiceBeanPostProcessor(mockSofaConfig);
         // config server
         server = Undertow.builder()
-                .addHttpListener(9095, "localhost")
+                .addHttpListener(59095, "localhost")
                 .setHandler(path().addPrefixPath("/soul-client/sofa-register", httpServerExchange -> {
                     registerNum++;
                     countDownLatch.countDown();
                 }))
                 .build();
         server.start();
+        String port = server.getListenerInfo().get(0).getAddress().toString().split(":")[1];
+        SofaConfig mockSofaConfig = new SofaConfig();
+        mockSofaConfig.setAdminUrl("http://localhost:" + port);
+        mockSofaConfig.setAppName("sofa");
+        mockSofaConfig.setContextPath("/sofa");
+        sofaServiceBeanPostProcessorUnderTest = new SofaServiceBeanPostProcessor(mockSofaConfig);
     }
 
     @AfterClass
@@ -100,7 +101,7 @@ public final class SofaServiceBeanPostProcessorTest {
         interfaceClassField.set(serviceFactoryBean, SoulSofaServiceImpl.class);
         sofaServiceBeanPostProcessorUnderTest
                 .postProcessAfterInitialization(serviceFactoryBean, "soulSofaServiceImpl");
-        countDownLatch.await(500L, TimeUnit.MILLISECONDS);
+        countDownLatch.await(5, TimeUnit.SECONDS);
         Assert.assertEquals(1L, registerNum);
     }
 

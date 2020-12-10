@@ -28,6 +28,10 @@
 
     <artifactId>soul-client-sofa</artifactId>
 
+    <properties>
+       <runtime-sofa-boot-starter.version>3.1.4</runtime-sofa-boot-starter.version> 
+    </properties>
+    
     <dependencies>
         <dependency>
             <groupId>org.dromara</groupId>
@@ -37,7 +41,7 @@
         <dependency>
             <groupId>com.alipay.sofa</groupId>
             <artifactId>runtime-sofa-boot-starter</artifactId>
-            <version>3.1.4</version>
+            <version>${runtime-sofa-boot-starter.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
