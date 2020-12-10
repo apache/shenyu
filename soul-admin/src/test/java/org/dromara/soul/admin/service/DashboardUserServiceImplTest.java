@@ -54,7 +54,7 @@ import static org.mockito.Mockito.never;
  * @author cherlas
  */
 @RunWith(MockitoJUnitRunner.class)
-public class DashboardUserServiceImplTest {
+public final class DashboardUserServiceImplTest {
     public static final String TEST_ID = "testId";
 
     public static final String TEST_USER_NAME = "userName";
