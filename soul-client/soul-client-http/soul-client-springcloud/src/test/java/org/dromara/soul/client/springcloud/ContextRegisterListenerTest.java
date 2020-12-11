@@ -84,27 +84,29 @@ public final class ContextRegisterListenerTest {
     public void testNotFullRegister() throws InterruptedException {
         isRegister = false;
         SoulSpringCloudConfig soulSpringCloudConfig = new SoulSpringCloudConfig();
-        soulSpringCloudConfig.setAdminUrl("http://127.0.0.1:58888");
+        String port = server.getListenerInfo().get(0).getAddress().toString().split(":")[1];
+        soulSpringCloudConfig.setAdminUrl("http://127.0.0.1:" + port);
         soulSpringCloudConfig.setContextPath("test");
         when(env.getProperty("spring.application.name")).thenReturn("spring-cloud-test");
         ContextRegisterListener contextRegisterListener = new ContextRegisterListener(soulSpringCloudConfig, env);
         ContextRefreshedEvent contextRefreshedEvent = mock(ContextRefreshedEvent.class);
         contextRegisterListener.onApplicationEvent(contextRefreshedEvent);
-        countDownLatch.await(500L, TimeUnit.MILLISECONDS);
+        countDownLatch.await(5, TimeUnit.SECONDS);
         Assert.assertFalse(isRegister);
     }
 
     @Test
     public void testFullRegister() throws InterruptedException {
-        SoulSpringCloudConfig soulSpringMvcConfig = new SoulSpringCloudConfig();
-        soulSpringMvcConfig.setAdminUrl("http://127.0.0.1:58888");
-        soulSpringMvcConfig.setContextPath("test");
-        soulSpringMvcConfig.setFull(true);
+        SoulSpringCloudConfig soulSpringCloudConfig = new SoulSpringCloudConfig();
+        String port = server.getListenerInfo().get(0).getAddress().toString().split(":")[1];
+        soulSpringCloudConfig.setAdminUrl("http://127.0.0.1:" + port);
+        soulSpringCloudConfig.setContextPath("test");
+        soulSpringCloudConfig.setFull(true);
         when(env.getProperty("spring.application.name")).thenReturn("spring-cloud-test");
-        ContextRegisterListener contextRegisterListener = new ContextRegisterListener(soulSpringMvcConfig, env);
+        ContextRegisterListener contextRegisterListener = new ContextRegisterListener(soulSpringCloudConfig, env);
         ContextRefreshedEvent contextRefreshedEvent = mock(ContextRefreshedEvent.class);
         contextRegisterListener.onApplicationEvent(contextRefreshedEvent);
-        countDownLatch.await(500L, TimeUnit.MILLISECONDS);
+        countDownLatch.await(5, TimeUnit.SECONDS);
         Assert.assertTrue(isRegister);
     }
 }

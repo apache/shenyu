@@ -91,24 +91,26 @@ public final class SpringMvcClientBeanPostProcessorTest {
     @Test
     public void testSoulBeanProcess() throws InterruptedException {
         SoulSpringCloudConfig soulSpringCloudConfig = new SoulSpringCloudConfig();
-        soulSpringCloudConfig.setAdminUrl("http://127.0.0.1:58888");
+        String port = server.getListenerInfo().get(0).getAddress().toString().split(":")[1];
+        soulSpringCloudConfig.setAdminUrl("http://127.0.0.1:" + port);
         soulSpringCloudConfig.setContextPath("test");
         when(env.getProperty("spring.application.name")).thenReturn("spring-cloud-test");
         springCloudClientBeanPostProcessor = new SpringCloudClientBeanPostProcessor(soulSpringCloudConfig, env);
         springCloudClientBeanPostProcessor.postProcessAfterInitialization(springMvcClientTestBean, "springMvcClientTestBean");
-        countDownLatch.await(500L, TimeUnit.MILLISECONDS);
+        countDownLatch.await(5, TimeUnit.SECONDS);
         Assert.assertEquals(1L, registerNum);
     }
 
     @Test
     public void testNormalBeanProcess() throws InterruptedException {
         SoulSpringCloudConfig soulSpringCloudConfig = new SoulSpringCloudConfig();
-        soulSpringCloudConfig.setAdminUrl("http://127.0.0.1:58888");
+        String port = server.getListenerInfo().get(0).getAddress().toString().split(":")[1];
+        soulSpringCloudConfig.setAdminUrl("http://127.0.0.1:" + port);
         soulSpringCloudConfig.setContextPath("test");
         when(env.getProperty("spring.application.name")).thenReturn("spring-cloud-test");
         springCloudClientBeanPostProcessor = new SpringCloudClientBeanPostProcessor(soulSpringCloudConfig, env);
         springCloudClientBeanPostProcessor.postProcessAfterInitialization(new Object(), "normalBean");
-        countDownLatch.await(500L, TimeUnit.MILLISECONDS);
+        countDownLatch.await(5, TimeUnit.SECONDS);
         Assert.assertEquals(0L, registerNum);
     }
 
