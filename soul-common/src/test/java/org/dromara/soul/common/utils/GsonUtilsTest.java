@@ -236,15 +236,16 @@ public class GsonUtilsTest {
         Map<String, List<String>> map = new HashMap<String, List<String>>() {
             {
                 put("data1", new ArrayList<String>() {{
-                    add("111");
-                    add("222");
-                }});
+                        add("111");
+                        add("222");
+                    }});
                 put("data2", new ArrayList<String>() {{
-                    add("333");
-                    add("555");
-                }});
+                        add("333");
+                        add("555");
+                    }});
             }
         };
+
         String json = "{\"data1\":[\"111\",\"222\"],\"data2\":[\"333\",\"555\"]}";
         Map<String, List<String>> parseMap = GsonUtils.getInstance().toObjectMapList(json, String.class);
         map.forEach((key, value) -> {
