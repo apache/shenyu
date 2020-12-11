@@ -276,7 +276,7 @@ public class NacosDataChangedListener implements DataChangedListener {
                     List<RuleData> ls = RULE_MAP
                             .getOrDefault(rule.getSelectorId(), new ArrayList<>())
                             .stream()
-                            .filter(s -> !s.getId().equals(rule.getSelectorId()))
+                            .filter(s -> !s.getId().equals(rule.getId()))
                             .sorted(RULE_DATA_COMPARATOR)
                             .collect(Collectors.toList());
                     RULE_MAP.put(rule.getSelectorId(), ls);

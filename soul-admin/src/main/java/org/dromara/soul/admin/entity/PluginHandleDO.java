@@ -18,18 +18,26 @@
 package org.dromara.soul.admin.entity;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.PluginHandleDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
 
-import java.util.Objects;
+import java.util.Optional;
 
 /**
  * plugin handle json definition.
+ *
  * @author liangziqiang.
+ * @author nuo-promise
  */
 @Data
-public class PluginHandleDO extends BaseDO {
+@SuperBuilder
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public final class PluginHandleDO extends BaseDO {
 
     /**
      * plugin id.
@@ -67,26 +75,31 @@ public class PluginHandleDO extends BaseDO {
     private Integer sort;
 
     /**
+     * the attribute extObj.
+     */
+    private String extObj;
+
+    /**
      * build {@linkplain PluginHandleDO} instance.
      * @param pluginHandleDTO {@linkplain PluginHandleDTO}
      * @return {@linkplain PluginHandleDO}
      */
     public static PluginHandleDO buildPluginHandleDO(final PluginHandleDTO pluginHandleDTO) {
-        if (Objects.isNull(pluginHandleDTO)) {
-            return null;
-        }
-
-        PluginHandleDO pluginHandleDO = new PluginHandleDO();
-        pluginHandleDO.setId(pluginHandleDTO.getId());
-        pluginHandleDO.setPluginId(pluginHandleDTO.getPluginId());
-        pluginHandleDO.setField(pluginHandleDTO.getField());
-        pluginHandleDO.setLabel(pluginHandleDTO.getLabel());
-        pluginHandleDO.setDataType(pluginHandleDTO.getDataType());
-        pluginHandleDO.setType(pluginHandleDTO.getType());
-        pluginHandleDO.setSort(pluginHandleDTO.getSort());
-        if (StringUtils.isEmpty(pluginHandleDTO.getId())) {
-            pluginHandleDO.setId(UUIDUtils.getInstance().generateShortUuid());
-        }
-        return pluginHandleDO;
+        return Optional.ofNullable(pluginHandleDTO).map(item -> {
+            PluginHandleDO pluginHandleDO = PluginHandleDO.builder()
+                    .id(item.getId())
+                    .pluginId(item.getPluginId())
+                    .field(item.getField())
+                    .label(item.getLabel())
+                    .dataType(item.getDataType())
+                    .type(item.getType())
+                    .sort(item.getSort())
+                    .extObj(item.getExtObj())
+                    .build();
+            if (StringUtils.isEmpty(item.getId())) {
+                pluginHandleDO.setId(UUIDUtils.getInstance().generateShortUuid());
+            }
+            return pluginHandleDO;
+        }).orElse(null);
     }
 }

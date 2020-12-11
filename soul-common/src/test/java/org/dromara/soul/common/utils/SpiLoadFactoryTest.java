@@ -28,11 +28,11 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
- * Test Cases for DateUtils.
+ * Test Cases for SpiLoadFactory.
  *
  * @author dengliming
  */
-public class SpiLoadFactoryTest {
+public final class SpiLoadFactoryTest {
 
     @Test
     public void testLoadNoImplementation() {

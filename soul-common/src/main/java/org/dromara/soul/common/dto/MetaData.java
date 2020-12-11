@@ -17,13 +17,19 @@
 
 package org.dromara.soul.common.dto;
 
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
+import lombok.AllArgsConstructor;
 
 import java.io.Serializable;
 
 @Data
 @ToString
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class MetaData implements Serializable {
 
     private String id;

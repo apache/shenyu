@@ -18,6 +18,9 @@
 package org.dromara.soul.admin.entity;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.AppAuthDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
@@ -29,9 +32,13 @@ import java.util.Optional;
  * AppAuthDO.
  *
  * @author xiaoyu(Myth)
+ * @author nuo-promise
  */
 @Data
-public class AppAuthDO extends BaseDO {
+@SuperBuilder
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public final class AppAuthDO extends BaseDO {
 
     /**
      * application key.
@@ -62,19 +69,19 @@ public class AppAuthDO extends BaseDO {
      */
     public static AppAuthDO buildAppAuthDO(final AppAuthDTO appAuthDTO) {
         return Optional.ofNullable(appAuthDTO).map(item -> {
-            AppAuthDO appAuthDO = new AppAuthDO();
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            AppAuthDO appAuthDO = AppAuthDO.builder()
+                    .appKey(item.getAppKey())
+                    .appSecret(item.getAppSecret())
+                    .enabled(item.getEnabled())
+                    .dateUpdated(currentTime)
+                    .build();
             if (StringUtils.isEmpty(item.getId())) {
                 appAuthDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 appAuthDO.setDateCreated(currentTime);
             } else {
                 appAuthDO.setId(item.getId());
             }
-
-            appAuthDO.setAppKey(item.getAppKey());
-            appAuthDO.setAppSecret(item.getAppSecret());
-            appAuthDO.setEnabled(item.getEnabled());
-            appAuthDO.setDateUpdated(currentTime);
             return appAuthDO;
         }).orElse(null);
     }

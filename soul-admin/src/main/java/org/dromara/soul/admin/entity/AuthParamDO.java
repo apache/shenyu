@@ -18,14 +18,21 @@
 package org.dromara.soul.admin.entity;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 /**
  * The type Auth param do.
  *
  * @author xiaoyu
+ * @author nuo-promise
  */
 @Data
-public class AuthParamDO extends BaseDO {
+@SuperBuilder
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public final class AuthParamDO extends BaseDO {
 
     private String authId;
 

@@ -60,7 +60,8 @@ public class WebClientResponsePlugin implements SoulPlugin {
                     || response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
                 Object error = SoulResultWrap.error(SoulResultEnum.SERVICE_RESULT_ERROR.getCode(), SoulResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
                 return WebFluxResultUtils.result(exchange, error);
-            } else if (response.getStatusCode() == HttpStatus.GATEWAY_TIMEOUT) {
+            }
+            if (response.getStatusCode() == HttpStatus.GATEWAY_TIMEOUT) {
                 Object error = SoulResultWrap.error(SoulResultEnum.SERVICE_TIMEOUT.getCode(), SoulResultEnum.SERVICE_TIMEOUT.getMsg(), null);
                 return WebFluxResultUtils.result(exchange, error);
             }

@@ -55,6 +55,11 @@ public interface Constants {
     String DUBBO_RPC_RESULT_EMPTY = "dubbo has not return value!";
 
     /**
+     * The constant DUBBO_TAG_ROUTE.
+     */
+    String DUBBO_TAG_ROUTE = "Dubbo_Tag_Route";
+
+    /**
      * The constant SOFA_RPC_RESULT.
      */
     String SOFA_RPC_RESULT = "sofa_rpc_result";
@@ -78,6 +83,11 @@ public interface Constants {
      * The constant HTTP_TIME_OUT.
      */
     String HTTP_TIME_OUT = "httpTimeOut";
+
+    /**
+     * The constant HTTP_RETRY.
+     */
+    String HTTP_RETRY = "httpRetry";
 
     /**
      * Original response Content-Type attribute name.
@@ -157,22 +167,22 @@ public interface Constants {
     /**
      * The constant SIGN_PARAMS_ERROR.
      */
-    String SIGN_PARAMS_ERROR = "认证参数传入不完整!";
+    String SIGN_PARAMS_ERROR = "sign parameters are incomplete!";
 
     /**
      * The constant SIGN_APP_KEY_IS_NOT_EXIST.
      */
-    String SIGN_APP_KEY_IS_NOT_EXIST = "认证签名APP_KEY,不存在";
+    String SIGN_APP_KEY_IS_NOT_EXIST = "sign appKey does not exist.";
 
     /**
      * The constant SIGN_PATH_NOT_EXIST.
      */
-    String SIGN_PATH_NOT_EXIST = "认证Key未配置路径获取未匹配";
+    String SIGN_PATH_NOT_EXIST = "you have not configured the sign path.";
 
     /**
      * The constant SIGN_VALUE_IS_ERROR.
      */
-    String SIGN_VALUE_IS_ERROR = "签名值错误！";
+    String SIGN_VALUE_IS_ERROR = "signature value is error!";
 
     /**
      * The constant TIMESTAMP.

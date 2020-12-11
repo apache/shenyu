@@ -34,7 +34,7 @@ import static org.junit.Assert.assertThat;
  *
  * @author dengliming
  */
-public class SoulDictMapperTest extends AbstractSpringIntegrationTest {
+public final class SoulDictMapperTest extends AbstractSpringIntegrationTest {
 
     @Resource
     private SoulDictMapper soulDictMapper;
@@ -65,18 +65,18 @@ public class SoulDictMapperTest extends AbstractSpringIntegrationTest {
     }
 
     private SoulDictDO buildSoulDictDO() {
-        String id = UUIDUtils.getInstance().generateShortUuid();
-        SoulDictDO record = new SoulDictDO();
-        record.setId(id);
-        record.setSort(1);
-        record.setDesc("test");
-        record.setDictCode("t_dict_1");
-        record.setDictName("t_d_v");
-        record.setEnabled(false);
-        record.setType("rule");
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-        record.setDateCreated(now);
-        record.setDateUpdated(now);
-        return record;
+        String id = UUIDUtils.getInstance().generateShortUuid();
+        return SoulDictDO.builder()
+                .id(id)
+                .sort(1)
+                .desc("test")
+                .dictCode("t_dict_1")
+                .dictName("t_d_v")
+                .enabled(false)
+                .type("rule")
+                .dateCreated(now)
+                .dateUpdated(now)
+                .build();
     }
 }

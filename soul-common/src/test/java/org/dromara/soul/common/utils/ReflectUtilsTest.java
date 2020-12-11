@@ -26,7 +26,7 @@ import static org.junit.Assert.assertEquals;
  *
  * @author dengliming
  */
-public class ReflectUtilsTest {
+public final class ReflectUtilsTest {
 
     @Test
     public void testGetFieldValue() {
