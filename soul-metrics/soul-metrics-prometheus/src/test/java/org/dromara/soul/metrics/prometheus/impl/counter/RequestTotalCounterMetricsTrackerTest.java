@@ -17,7 +17,6 @@
 
 package org.dromara.soul.metrics.prometheus.impl.counter;
 
-import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Counter;
 import org.dromara.soul.metrics.enums.MetricsLabelEnum;
 import org.junit.After;
@@ -39,15 +38,15 @@ public final class RequestTotalCounterMetricsTrackerTest {
     @Before
     public void setUp() {
         requestTotalCounter = Counter.build()
-                .name("request_total")
+                .name("total")
                 .labelNames("request", "type")
                 .help("soul request total count")
-                .register();
+                .create();
     }
 
     @After
     public void tearDown() {
-        CollectorRegistry.defaultRegistry.clear();
+        requestTotalCounter.clear();
     }
 
     @Test

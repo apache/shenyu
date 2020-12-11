@@ -17,7 +17,6 @@
 
 package org.dromara.soul.metrics.prometheus.impl.counter;
 
-import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Counter;
 import org.dromara.soul.metrics.enums.MetricsLabelEnum;
 import org.junit.After;
@@ -40,15 +39,15 @@ public final class HttpRequestCounterMetricsTrackerTest {
     @Before
     public void setUp() {
         httpRequestCounter = Counter.build()
-                .name("http_request")
+                .name("httpRequestCounter")
                 .labelNames("path", "type")
-                .help("soul http request type total count")
-                .register();
+                .help("httpRequestCounter not init")
+                .create();
     }
 
     @After
     public void tearDown() {
-        CollectorRegistry.defaultRegistry.clear();
+        httpRequestCounter.clear();
     }
 
     @Test

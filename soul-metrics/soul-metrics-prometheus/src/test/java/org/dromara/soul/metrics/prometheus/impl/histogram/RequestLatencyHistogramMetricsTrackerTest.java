@@ -17,7 +17,6 @@
 
 package org.dromara.soul.metrics.prometheus.impl.histogram;
 
-import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Histogram;
 import org.dromara.soul.metrics.enums.MetricsLabelEnum;
 import org.junit.After;
@@ -40,13 +39,13 @@ public final class RequestLatencyHistogramMetricsTrackerTest {
     @Before
     public void setUp() {
         requestLatencyHistogram = Histogram.build()
-                .name("requests_latency_histogram_millis").help("Requests Latency Histogram Millis (ms)")
-                .register();
+                .name("histogram").help("Requests Latency Histogram Millis (ms)")
+                .create();
     }
 
     @After
     public void tearDown() {
-        CollectorRegistry.defaultRegistry.clear();
+        requestLatencyHistogram.clear();
     }
 
     @Test(expected = NullPointerException.class)

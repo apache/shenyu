@@ -17,7 +17,6 @@
 
 package org.dromara.soul.metrics.prometheus.impl.summary;
 
-import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Summary;
 import org.dromara.soul.metrics.enums.MetricsLabelEnum;
 import org.junit.After;
@@ -42,18 +41,18 @@ public final class RequestLatencySummaryMetricsTrackerTest {
     @Before
     public void setUp() {
         requestsLatencySummaryMillis = Summary.build()
-                .name("requests_latency_summary_millis").help("Requests Latency Summary Millis (ms)")
+                .name("summary").help("Requests Latency Summary Millis (ms)")
                 .quantile(0.5, 0.05)
                 .quantile(0.95, 0.01)
                 .quantile(0.99, 0.001)
                 .maxAgeSeconds(TimeUnit.MINUTES.toSeconds(5))
                 .ageBuckets(5)
-                .register();
+                .create();
     }
 
     @After
     public void tearDown() {
-        CollectorRegistry.defaultRegistry.clear();
+        requestsLatencySummaryMillis.clear();
     }
 
     @Test(expected = NullPointerException.class)

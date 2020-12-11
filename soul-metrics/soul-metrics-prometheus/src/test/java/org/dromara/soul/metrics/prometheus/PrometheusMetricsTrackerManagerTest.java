@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -49,12 +48,12 @@ public final class PrometheusMetricsTrackerManagerTest {
     @Before
     public void setUp() throws IOException {
         InetSocketAddress inetSocketAddress = new InetSocketAddress("localhost", 8888);
-        httpServer = new HTTPServer(inetSocketAddress, CollectorRegistry.defaultRegistry, true);
+        this.httpServer = new HTTPServer(inetSocketAddress, CollectorRegistry.defaultRegistry, true);
     }
 
     @After
     public void tearDown() {
-        httpServer.stop();
+        this.httpServer.stop();
     }
 
     @Test
@@ -65,7 +64,6 @@ public final class PrometheusMetricsTrackerManagerTest {
 
     @Test
     public void getServer() {
-        assertThat(httpServer.getPort(), is(8888));
-        assertNotNull(httpServer);
+        assertThat(this.httpServer.getPort(), is(8888));
     }
 }
