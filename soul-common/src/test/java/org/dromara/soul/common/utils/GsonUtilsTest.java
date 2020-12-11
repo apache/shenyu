@@ -208,6 +208,54 @@ public class GsonUtilsTest {
     }
 
     /**
+     * test method {@link org.dromara.soul.common.utils.GsonUtils#toObjectMap(java.lang.String, java.lang.Class)}.
+     */
+    @Test
+    public void testToObjectMapWithClazz() {
+        Map<String, TestObject> map = new HashMap<String, TestObject>() {
+            {
+                put("data", generateTestObject());
+            }
+        };
+        String json = "{\"data\":" + EXPECTED_JSON + "}";
+
+        Map<String, TestObject> parseMap = GsonUtils.getInstance().toObjectMap(json, TestObject.class);
+        map.forEach((key, value) -> {
+            Assert.assertTrue(parseMap.containsKey(key));
+            Assert.assertEquals(value, parseMap.get(key));
+        });
+
+        Assert.assertNull(GsonUtils.getInstance().toObjectMap(null, String.class));
+    }
+
+    /**
+     * test method {@link org.dromara.soul.common.utils.GsonUtils#toObjectMapList(java.lang.String, java.lang.Class)}.
+     */
+    @Test
+    public void testToObjectMapList() {
+        Map<String, List<String>> map = new HashMap<String, List<String>>() {
+            {
+                put("data1", new ArrayList<String>() {{
+                    add("111");
+                    add("222");
+                }});
+                put("data2", new ArrayList<String>() {{
+                    add("333");
+                    add("555");
+                }});
+            }
+        };
+        String json = "{\"data1\":[\"111\",\"222\"],\"data2\":[\"333\",\"555\"]}";
+        Map<String, List<String>> parseMap = GsonUtils.getInstance().toObjectMapList(json, String.class);
+        map.forEach((key, value) -> {
+            Assert.assertTrue(parseMap.containsKey(key));
+            Assert.assertEquals(value, parseMap.get(key));
+        });
+
+        Assert.assertNull(GsonUtils.getInstance().toObjectMapList(null, String.class));
+    }
+
+    /**
      * test method {@link org.dromara.soul.common.utils.GsonUtils#toTreeMap(String)}.
      */
     @Test
