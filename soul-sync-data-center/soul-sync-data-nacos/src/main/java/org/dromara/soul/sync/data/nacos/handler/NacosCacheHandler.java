@@ -23,6 +23,7 @@ import com.google.common.collect.Maps;
 import com.google.gson.JsonParseException;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -86,10 +87,7 @@ public class NacosCacheHandler {
     protected void updatePluginMap(final String configInfo) {
         try {
             // Fix bug #656(https://github.com/dromara/soul/issues/656)
-            Map<String, Object> pluginDataMap = GsonUtils.getGson().fromJson(configInfo, Maps.newHashMap().getClass());
-            List<PluginData> pluginDataList = pluginDataMap.values().stream()
-                    .map(each -> GsonUtils.getInstance().fromJson(GsonUtils.getInstance().toJson(each), PluginData.class))
-                    .collect(Collectors.toList());
+            List<PluginData> pluginDataList = GsonUtils.getInstance().toObjectMap(configInfo, PluginData.class).values().stream().collect(Collectors.toList());
             pluginDataList.forEach(pluginData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
                 subscriber.unSubscribe(pluginData);
                 subscriber.onSubscribe(pluginData);
@@ -101,12 +99,7 @@ public class NacosCacheHandler {
 
     protected void updateSelectorMap(final String configInfo) {
         try {
-            List<SelectorData> selectorDataList = new ArrayList<>();
-            Map<String, Object> selectorDataMap = GsonUtils.getGson().fromJson(configInfo, Maps.newHashMap().getClass());
-            selectorDataMap.values().forEach(each -> {
-                List<SelectorData> selectorData = GsonUtils.getInstance().fromList(GsonUtils.getInstance().toJson(each), SelectorData.class);
-                selectorDataList.addAll(selectorData);
-            });
+            List<SelectorData> selectorDataList = GsonUtils.getInstance().toObjectMapList(configInfo, SelectorData.class).values().stream().flatMap(Collection::stream).collect(Collectors.toList());
             selectorDataList.forEach(selectorData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
                 subscriber.unSelectorSubscribe(selectorData);
                 subscriber.onSelectorSubscribe(selectorData);
@@ -118,12 +111,9 @@ public class NacosCacheHandler {
 
     protected void updateRuleMap(final String configInfo) {
         try {
-            List<RuleData> ruleDataList = new ArrayList<>();
-            Map<String, Object> ruleDataMap = GsonUtils.getGson().fromJson(configInfo, Maps.newHashMap().getClass());
-            ruleDataMap.values().forEach(each -> {
-                List<RuleData> ruleData = GsonUtils.getInstance().fromList(GsonUtils.getInstance().toJson(each), RuleData.class);
-                ruleDataList.addAll(ruleData);
-            });
+            List<RuleData> ruleDataList = GsonUtils.getInstance().toObjectMapList(configInfo, RuleData.class).values()
+                    .stream().flatMap(Collection::stream)
+                    .collect(Collectors.toList());
             ruleDataList.forEach(ruleData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
                 subscriber.unRuleSubscribe(ruleData);
                 subscriber.onRuleSubscribe(ruleData);
@@ -135,10 +125,7 @@ public class NacosCacheHandler {
 
     protected void updateMetaDataMap(final String configInfo) {
         try {
-            Map<String, Object> metaDataMap = GsonUtils.getGson().fromJson(configInfo, Maps.newHashMap().getClass());
-            List<MetaData> metaDataList = metaDataMap.values().stream()
-                    .map(each -> GsonUtils.getInstance().fromJson(GsonUtils.getInstance().toJson(each), MetaData.class))
-                    .collect(Collectors.toList());
+            List<MetaData> metaDataList = GsonUtils.getInstance().toObjectMap(configInfo, MetaData.class).values().stream().collect(Collectors.toList());
             metaDataList.forEach(metaData -> metaDataSubscribers.forEach(subscriber -> {
                 subscriber.unSubscribe(metaData);
                 subscriber.onSubscribe(metaData);
@@ -150,10 +137,7 @@ public class NacosCacheHandler {
 
     protected void updateAuthMap(final String configInfo) {
         try {
-            Map<String, Object> appAuthDataMap = GsonUtils.getGson().fromJson(configInfo, Maps.newHashMap().getClass());
-            List<AppAuthData> appAuthDataList = appAuthDataMap.values().stream()
-                    .map(each -> GsonUtils.getInstance().fromJson(GsonUtils.getInstance().toJson(each), AppAuthData.class))
-                    .collect(Collectors.toList());
+            List<AppAuthData> appAuthDataList = GsonUtils.getInstance().toObjectMap(configInfo, AppAuthData.class).values().stream().collect(Collectors.toList());
             appAuthDataList.forEach(appAuthData -> authDataSubscribers.forEach(subscriber -> {
                 subscriber.unSubscribe(appAuthData);
                 subscriber.onSubscribe(appAuthData);
