@@ -56,7 +56,7 @@ public final class SpringMvcClientBeanPostProcessorTest {
 
     private static Undertow server;
 
-    private static long registerNum;
+    private static boolean isRegister;
 
     private static SpringCloudClientBeanPostProcessor springCloudClientBeanPostProcessor;
 
@@ -64,17 +64,20 @@ public final class SpringMvcClientBeanPostProcessorTest {
 
     private final SpringMvcClientTestBean springMvcClientTestBean = new SpringMvcClientTestBean();
 
+    private static String port;
+
     @BeforeClass
     public static void init() {
         server = Undertow.builder()
                 .addHttpListener(58888, "localhost")
                 .setHandler(path()
                         .addPrefixPath("/soul-client/springcloud-register", httpServerExchange -> {
-                            registerNum++;
+                            isRegister = true;
                             countDownLatch.countDown();
                         }))
                 .build();
         server.start();
+        port = server.getListenerInfo().get(0).getAddress().toString().split(":")[1];
     }
 
     @AfterClass
@@ -85,33 +88,31 @@ public final class SpringMvcClientBeanPostProcessorTest {
     @Before
     public void before() {
         countDownLatch = new CountDownLatch(1);
-        registerNum = 0;
+        isRegister = false;
     }
 
     @Test
     public void testSoulBeanProcess() throws InterruptedException {
         SoulSpringCloudConfig soulSpringCloudConfig = new SoulSpringCloudConfig();
-        String port = server.getListenerInfo().get(0).getAddress().toString().split(":")[1];
         soulSpringCloudConfig.setAdminUrl("http://127.0.0.1:" + port);
         soulSpringCloudConfig.setContextPath("test");
         when(env.getProperty("spring.application.name")).thenReturn("spring-cloud-test");
         springCloudClientBeanPostProcessor = new SpringCloudClientBeanPostProcessor(soulSpringCloudConfig, env);
         springCloudClientBeanPostProcessor.postProcessAfterInitialization(springMvcClientTestBean, "springMvcClientTestBean");
         countDownLatch.await(5, TimeUnit.SECONDS);
-        Assert.assertEquals(1L, registerNum);
+        Assert.assertTrue(isRegister);
     }
 
     @Test
     public void testNormalBeanProcess() throws InterruptedException {
         SoulSpringCloudConfig soulSpringCloudConfig = new SoulSpringCloudConfig();
-        String port = server.getListenerInfo().get(0).getAddress().toString().split(":")[1];
         soulSpringCloudConfig.setAdminUrl("http://127.0.0.1:" + port);
         soulSpringCloudConfig.setContextPath("test");
         when(env.getProperty("spring.application.name")).thenReturn("spring-cloud-test");
         springCloudClientBeanPostProcessor = new SpringCloudClientBeanPostProcessor(soulSpringCloudConfig, env);
         springCloudClientBeanPostProcessor.postProcessAfterInitialization(new Object(), "normalBean");
         countDownLatch.await(5, TimeUnit.SECONDS);
-        Assert.assertEquals(0L, registerNum);
+        Assert.assertFalse(isRegister);
     }
 
     @RestController

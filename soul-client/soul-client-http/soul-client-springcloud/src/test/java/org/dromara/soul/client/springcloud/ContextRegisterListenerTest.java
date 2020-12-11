@@ -54,6 +54,8 @@ public final class ContextRegisterListenerTest {
 
     private static CountDownLatch countDownLatch;
 
+    private static String port;
+
     @Mock
     private static Environment env;
 
@@ -68,23 +70,24 @@ public final class ContextRegisterListenerTest {
                         }))
                 .build();
         server.start();
+        port = server.getListenerInfo().get(0).getAddress().toString().split(":")[1];
     }
 
     @AfterClass
     public static void after() {
         server.stop();
+
     }
 
     @Before
     public void before() {
         countDownLatch = new CountDownLatch(1);
+        isRegister = false;
     }
 
     @Test
     public void testNotFullRegister() throws InterruptedException {
-        isRegister = false;
         SoulSpringCloudConfig soulSpringCloudConfig = new SoulSpringCloudConfig();
-        String port = server.getListenerInfo().get(0).getAddress().toString().split(":")[1];
         soulSpringCloudConfig.setAdminUrl("http://127.0.0.1:" + port);
         soulSpringCloudConfig.setContextPath("test");
         when(env.getProperty("spring.application.name")).thenReturn("spring-cloud-test");
@@ -98,7 +101,6 @@ public final class ContextRegisterListenerTest {
     @Test
     public void testFullRegister() throws InterruptedException {
         SoulSpringCloudConfig soulSpringCloudConfig = new SoulSpringCloudConfig();
-        String port = server.getListenerInfo().get(0).getAddress().toString().split(":")[1];
         soulSpringCloudConfig.setAdminUrl("http://127.0.0.1:" + port);
         soulSpringCloudConfig.setContextPath("test");
         soulSpringCloudConfig.setFull(true);
