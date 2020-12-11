@@ -27,7 +27,6 @@ import static org.mockito.BDDMockito.given;
 
 /**
  * test for SyncDataService.
- *
  * @author Redick
  * @date 2020/12/12 12:20
  */
