@@ -15,16 +15,14 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.metrics.prometheus;
+package org.dromara.soul.metrics.prometheus.impl.collector;
 
+import org.junit.Test;
+
+import javax.management.ObjectName;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import javax.management.ObjectName;
-import org.dromara.soul.metrics.prometheus.impl.collector.JmxMBeanPropertyCache;
-import org.dromara.soul.metrics.prometheus.impl.collector.JmxScraper;
-import org.dromara.soul.metrics.prometheus.impl.collector.MBeanReceiver;
-import org.junit.Test;
 
 /**
  * The type Jmx scraper test.

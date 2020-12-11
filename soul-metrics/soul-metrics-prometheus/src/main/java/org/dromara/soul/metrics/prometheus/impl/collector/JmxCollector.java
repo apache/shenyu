@@ -18,6 +18,11 @@
 package org.dromara.soul.metrics.prometheus.impl.collector;
 
 import io.prometheus.client.Collector;
+import org.dromara.soul.common.utils.GsonUtils;
+import org.dromara.soul.metrics.config.JmxConfig;
+
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -31,10 +36,6 @@ import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.management.MalformedObjectNameException;
-import javax.management.ObjectName;
-import org.dromara.soul.common.utils.GsonUtils;
-import org.dromara.soul.metrics.config.JmxConfig;
 
 /**
  * The type Jmx collector.
@@ -43,9 +44,9 @@ public class JmxCollector extends Collector implements Collector.Describable {
     
     private static final Logger LOGGER = Logger.getLogger(JmxCollector.class.getName());
     
-    private JmxConfig config;
+    private final JmxConfig config;
     
-    private long createTimeNanoSecs = System.nanoTime();
+    private final long createTimeNanoSecs = System.nanoTime();
     
     private final JmxMBeanPropertyCache jmxMBeanPropertyCache = new JmxMBeanPropertyCache();
     
@@ -259,7 +260,7 @@ public class JmxCollector extends Collector implements Collector.Describable {
         
         private static final char SEP = '_';
         
-        private Map<String, MetricFamilySamples> metricFamilySamplesMap = new HashMap<>();
+        private final Map<String, MetricFamilySamples> metricFamilySamplesMap = new HashMap<>();
         
         // [] and () are special in regexes, so swtich to <>.
         private String angleBrackets(final String s) {

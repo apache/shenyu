@@ -17,26 +17,25 @@
 
 package org.dromara.soul.metrics.prometheus;
 
-import io.prometheus.client.Collector;
-import javax.management.MalformedObjectNameException;
-import org.dromara.soul.metrics.prometheus.impl.collector.JmxCollector;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+
 /**
- * The type Jmx collector test.
- */
-public final class JmxCollectorTest {
-    
-    /**
-     * Test jmx collector.
-     *
-     * @throws MalformedObjectNameException the malformed object name exception
-     */
+ * The Test Case For PrometheusMetricsTrackerManager.
+ *
+ * @author nuo-promise
+ **/
+public final class PrometheusMetricsTrackerManagerTest {
+
+    private static final String REQUEST_TOTAL_COUNT_NAME = "request_total";
+
+    private static final String REQUEST_TOTAL = "request_total";
+
     @Test
-    public void testJmxCollector() throws MalformedObjectNameException {
-        JmxCollector jc = new JmxCollector("{}".replace('`', '"'));
-        for (Collector.MetricFamilySamples mfs : jc.collect()) {
-            System.out.println(mfs);
-        }
+    public void getMetricsTrackerFactory() {
+        new PrometheusMetricsTrackerFactory().create(REQUEST_TOTAL_COUNT_NAME, REQUEST_TOTAL)
+                .ifPresent(metricsTracker -> assertThat(metricsTracker.metricsLabel(), is(REQUEST_TOTAL_COUNT_NAME)));
     }
 }
