@@ -54,7 +54,7 @@ public final class ApplicationConfigCache {
     
     private final LoadingCache<String, ConsumerConfig<GenericService>> cache = CacheBuilder.newBuilder()
             .maximumWeight(maxCount)
-            .weigher((Weigher<String, ConsumerConfig<GenericService>>) (string, ReferenceConfig) -> getSize())
+            .weigher((Weigher<String, ConsumerConfig<GenericService>>) (string, referenceConfig) -> getSize())
             .removalListener(notification -> {
                 ConsumerConfig<GenericService> config = notification.getValue();
                 if (config != null) {
@@ -166,11 +166,11 @@ public final class ApplicationConfigCache {
     private String buildLoadBalanceName(final String loadBalance) {
         if (LoadBalanceEnum.HASH.getName().equals(loadBalance) || StringUtils.equalsIgnoreCase("consistenthash", loadBalance)) {
             return "consistentHash";
-        } else if (LoadBalanceEnum.ROUND_ROBIN.getName().equals(loadBalance) || StringUtils.equalsIgnoreCase("roundrobin", loadBalance)) {
-            return "roundRobin";
-        } else {
-            return loadBalance;
         }
+        if (LoadBalanceEnum.ROUND_ROBIN.getName().equals(loadBalance) || StringUtils.equalsIgnoreCase("roundrobin", loadBalance)) {
+            return "roundRobin";
+        }
+        return loadBalance;
     }
     
     /**

@@ -15,35 +15,34 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.dto.convert.rule;
+package org.dromara.soul.common.constant;
 
-import lombok.Data;
-import org.dromara.soul.common.constant.Constants;
-
-import java.io.Serializable;
+import org.dromara.soul.common.enums.LoadBalanceEnum;
 
 /**
- * The type Divide rule handle.
+ * The Constants for RuleHandles.
  *
- * @author xiaoyu(Myth)
+ * @author yiwenlong (wlong.yi@gmail.com)
  */
-@Data
-public class DivideRuleHandle implements Serializable {
+public final class RuleHandleConstants {
 
     /**
-     * loadBalance.
-     * {@linkplain org.dromara.soul.common.enums.LoadBalanceEnum}
+     * Default load balance for RuleHandle.
      */
-    private String loadBalance;
+    public static final LoadBalanceEnum DEFAULT_LOAD_BALANCE = LoadBalanceEnum.RANDOM;
 
     /**
-     * http retry.
+     * Default timeout for RuleHandle.
      */
-    private int retry;
+    public static final long DEFAULT_TIMEOUT = 3000;
 
     /**
-     * timeout is required.
+     * Default retries for RuleHandle.
      */
-    private long timeout = Constants.TIME_OUT;
+    public static final int DEFAULT_RETRIES = 0;
 
+    /**
+     * Default retry for RuleHandle.
+     */
+    public static final int DEFAULT_RETRY = 0;
 }

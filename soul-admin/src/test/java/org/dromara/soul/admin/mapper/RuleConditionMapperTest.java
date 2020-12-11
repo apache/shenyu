@@ -125,18 +125,16 @@ public final class RuleConditionMapperTest extends AbstractSpringIntegrationTest
      * @return new ruleCondition
      */
     public RuleConditionDO buildRuleConditionDo() {
-        RuleConditionDO rule = new RuleConditionDO();
-        String id = UUIDUtils.getInstance().generateShortUuid();
-        rule.setId(id);
-        String ruleId = UUIDUtils.getInstance().generateShortUuid();
-        rule.setRuleId(ruleId);
-        rule.setOperator("=");
-        rule.setParamName("test_param");
-        rule.setParamType("uri");
-        rule.setParamValue("http");
         Timestamp currentTimeStamp = Timestamp.valueOf(LocalDateTime.now());
-        rule.setDateUpdated(currentTimeStamp);
-        rule.setDateCreated(currentTimeStamp);
-        return rule;
+        return RuleConditionDO.builder()
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .ruleId(UUIDUtils.getInstance().generateShortUuid())
+                .operator("operator")
+                .paramName("test_param")
+                .paramType("uri")
+                .paramValue("http")
+                .dateCreated(currentTimeStamp)
+                .dateUpdated(currentTimeStamp)
+                .build();
     }
 }

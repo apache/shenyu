@@ -36,10 +36,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
 import java.time.LocalDateTime;
-import java.util.Arrays;
-
+import java.util.Collections;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -113,7 +111,7 @@ public final class PluginControllerTest {
 
     @Test
     public void testDeletePlugins() throws Exception {
-        given(this.pluginService.delete(Arrays.asList("123"))).willReturn(SoulResultMessage.DELETE_SUCCESS);
+        given(this.pluginService.delete(Collections.singletonList("123"))).willReturn(SoulResultMessage.DELETE_SUCCESS);
         this.mockMvc.perform(MockMvcRequestBuilders.delete("/plugin/batch")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("[\"123\"]"))
@@ -126,7 +124,7 @@ public final class PluginControllerTest {
     public void testEnabled() throws Exception {
         BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
         batchCommonDTO.setEnabled(false);
-        batchCommonDTO.setIds(Arrays.asList("123"));
+        batchCommonDTO.setIds(Collections.singletonList("123"));
         given(this.pluginService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled())).willReturn(SoulResultMessage.ENABLE_SUCCESS);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin/enabled")
                 .contentType(MediaType.APPLICATION_JSON)

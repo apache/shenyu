@@ -18,14 +18,22 @@
 package org.dromara.soul.admin.entity;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
 
 /**
  * The type Meta data do.
+ *
+ * @author nuo-promise
  */
 @Data
-public class MetaDataDO extends BaseDO implements Serializable {
+@SuperBuilder
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public final class MetaDataDO extends BaseDO implements Serializable {
 
     private String appName;
 
@@ -47,6 +55,4 @@ public class MetaDataDO extends BaseDO implements Serializable {
      * whether enabled.
      */
     private Boolean enabled;
-
-
 }

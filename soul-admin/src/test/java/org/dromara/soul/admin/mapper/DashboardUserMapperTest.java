@@ -24,12 +24,10 @@ import org.dromara.soul.admin.query.DashboardUserQuery;
 import org.dromara.soul.admin.utils.AesUtils;
 import org.dromara.soul.common.utils.UUIDUtils;
 import org.junit.Test;
-
 import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
-
 import static org.hamcrest.Matchers.comparesEqualTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertNotNull;
@@ -132,16 +130,16 @@ public final class DashboardUserMapperTest extends AbstractSpringIntegrationTest
     }
 
     private DashboardUserDO buildDashboardUserDO() {
-        DashboardUserDO dashboardUserDO = new DashboardUserDO();
-        dashboardUserDO.setId(UUIDUtils.getInstance().generateShortUuid());
-        dashboardUserDO.setUserName("adminTest");
         String aseKey = "2095132720951327";
-        dashboardUserDO.setPassword(AesUtils.aesEncryption("123456", aseKey));
-        dashboardUserDO.setEnabled(true);
-        dashboardUserDO.setRole(1);
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-        dashboardUserDO.setDateCreated(now);
-        dashboardUserDO.setDateUpdated(now);
-        return dashboardUserDO;
+        return DashboardUserDO.builder()
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .userName("adminTest")
+                .password(AesUtils.aesEncryption("123456", aseKey))
+                .enabled(true)
+                .role(1)
+                .dateCreated(now)
+                .dateUpdated(now)
+                .build();
     }
 }

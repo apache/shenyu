@@ -101,17 +101,17 @@ public final class AuthPathMapperTest extends AbstractSpringIntegrationTest {
     }
     
     private AuthPathDO buildAuthPathDO() {
+        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         String id = UUIDUtils.getInstance().generateShortUuid();
         String authId = UUIDUtils.getInstance().generateShortUuid();
-        AuthPathDO authPathDO = new AuthPathDO();
-        authPathDO.setId(id);
-        authPathDO.setAuthId(authId);
-        authPathDO.setAppName("test_app");
-        authPathDO.setPath("test_path");
-        authPathDO.setEnabled(false);
-        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-        authPathDO.setDateCreated(now);
-        authPathDO.setDateUpdated(now);
-        return authPathDO;
+        return AuthPathDO.builder()
+                .id(id)
+                .authId(authId)
+                .appName("test_app")
+                .path("test_path")
+                .enabled(false)
+                .dateUpdated(now)
+                .dateCreated(now)
+                .build();
     }
 }
