@@ -47,7 +47,7 @@ public final class PrometheusMetricsTrackerManagerTest {
 
     @Before
     public void setUp() throws IOException {
-        InetSocketAddress inetSocketAddress = new InetSocketAddress("192.168.3.7", 10086);
+        InetSocketAddress inetSocketAddress = new InetSocketAddress("127.0.0.1", 10086);
         this.httpServer = new HTTPServer(inetSocketAddress, CollectorRegistry.defaultRegistry, true);
     }
 
