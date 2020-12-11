@@ -15,12 +15,9 @@ import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationEventPublisher;
-
 import static org.mockito.BDDMockito.given;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThat;
-
-
 import java.time.LocalDateTime;
 import java.util.Arrays;
 
