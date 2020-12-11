@@ -22,12 +22,12 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Test Cases for DataSyncEnumTest.
+ * Test Cases for DataSyncEnum.
  *
  * @author patrickWuP
  */
 public final class DataSyncEnumTest {
-    
+
     @Test
     public void testAcquireByName() {
         assertEquals(DataSyncEnum.HTTP, DataSyncEnum.acquireByName(DataSyncEnum.HTTP.getName()));
@@ -37,6 +37,6 @@ public final class DataSyncEnumTest {
         assertEquals(DataSyncEnum.HTTP, DataSyncEnum.acquireByName(""));
         String notExist = "N";
         assertEquals(DataSyncEnum.HTTP, DataSyncEnum.acquireByName(notExist));
-        
+
     }
 }

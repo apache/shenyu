@@ -40,7 +40,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.stream.Collectors;
 
 /**
- * Test cases for SignUtils.
+ * Test cases for GsonUtils.
  *
  * @author YuI
  **/

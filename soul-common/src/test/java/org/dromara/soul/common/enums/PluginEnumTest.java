@@ -31,7 +31,7 @@ public final class PluginEnumTest {
 
     @Test
     public void testGetPluginEnumByName() {
-        Arrays.asList(PluginEnum.values()).stream()
+        Arrays.stream(PluginEnum.values())
                 .forEach(pluginEnum -> assertEquals(pluginEnum, PluginEnum.getPluginEnumByName(pluginEnum.getName())));
     }
 
