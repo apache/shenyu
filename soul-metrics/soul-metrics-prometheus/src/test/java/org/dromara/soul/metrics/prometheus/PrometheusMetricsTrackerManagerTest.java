@@ -17,16 +17,7 @@
 
 package org.dromara.soul.metrics.prometheus;
 
-import io.prometheus.client.CollectorRegistry;
-import io.prometheus.client.exporter.HTTPServer;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -36,34 +27,15 @@ import static org.junit.Assert.assertThat;
  *
  * @author nuo-promise
  **/
-@RunWith(MockitoJUnitRunner.class)
 public final class PrometheusMetricsTrackerManagerTest {
 
     private static final String REQUEST_TOTAL_COUNT_NAME = "request_total";
 
     private static final String REQUEST_TOTAL = "request_total";
 
-    private HTTPServer httpServer;
-
-    @Before
-    public void setUp() throws IOException {
-        InetSocketAddress inetSocketAddress = new InetSocketAddress("127.0.0.1", 10086);
-        this.httpServer = new HTTPServer(inetSocketAddress, CollectorRegistry.defaultRegistry, true);
-    }
-
-    @After
-    public void tearDown() {
-        this.httpServer.stop();
-    }
-
     @Test
     public void getMetricsTrackerFactory() {
         new PrometheusMetricsTrackerFactory().create(REQUEST_TOTAL_COUNT_NAME, REQUEST_TOTAL)
                 .ifPresent(metricsTracker -> assertThat(metricsTracker.metricsLabel(), is(REQUEST_TOTAL_COUNT_NAME)));
-    }
-
-    @Test
-    public void getServer() {
-        assertThat(this.httpServer.getPort(), is(10086));
     }
 }
