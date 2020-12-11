@@ -12,14 +12,18 @@ import org.dromara.soul.common.enums.OperatorEnum;
 import org.dromara.soul.common.enums.ParamTypeEnum;
 import org.dromara.soul.common.utils.DateUtils;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.ApplicationEventPublisher;
-import static org.mockito.BDDMockito.given;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.junit.Assert.assertThat;
+
 import java.time.LocalDateTime;
 import java.util.Arrays;
+
+import static org.hamcrest.Matchers.greaterThan;
+import static org.junit.Assert.assertThat;
+import static org.mockito.BDDMockito.given;
 
 /**
  * test for SyncDataService.
@@ -27,6 +31,7 @@ import java.util.Arrays;
  * @author Redick
  * @date 2020/12/12 12:20
  */
+@RunWith(MockitoJUnitRunner.class)
 public final class SyncDataServiceTest {
 
     private static final String ID = "1";
