@@ -59,7 +59,7 @@ import static io.undertow.Handlers.websocket;
 /**
  * Data Change WebSocketListener Test.
  *
- * @author : Hyuk
+ * @author Hyuk
  */
 @Slf4j
 @RunWith(MockitoJUnitRunner.class)
@@ -370,8 +370,6 @@ public final class WebsocketDataChangedListenerTest {
             List<AppAuthData> appAuthData = GsonUtils.getInstance().fromList(json, AppAuthData.class);
             Assert.assertEquals(appAuthData, appAuthDataList);
             count.incrementAndGet();
-        } catch (Exception e) {
-            throw e;
         } finally {
             countDownLatch.countDown();
         }
@@ -382,8 +380,6 @@ public final class WebsocketDataChangedListenerTest {
             List<MetaData> metaData = GsonUtils.getInstance().fromList(json, MetaData.class);
             Assert.assertEquals(metaData, metaDataList);
             count.incrementAndGet();
-        } catch (Exception e) {
-            throw e;
         } finally {
             countDownLatch.countDown();
         }
@@ -394,8 +390,6 @@ public final class WebsocketDataChangedListenerTest {
             List<SelectorData> selectorData = GsonUtils.getInstance().fromList(json, SelectorData.class);
             Assert.assertEquals(selectorData, selectorDataList);
             count.incrementAndGet();
-        } catch (Exception e) {
-            throw e;
         } finally {
             countDownLatch.countDown();
         }
@@ -406,8 +400,6 @@ public final class WebsocketDataChangedListenerTest {
             List<PluginData> pluginData = GsonUtils.getInstance().fromList(json, PluginData.class);
             Assert.assertEquals(pluginData, pluginDataList);
             count.incrementAndGet();
-        } catch (Exception e) {
-            throw e;
         } finally {
             countDownLatch.countDown();
         }
@@ -418,8 +410,6 @@ public final class WebsocketDataChangedListenerTest {
             List<RuleData> ruleData = GsonUtils.getInstance().fromList(json, RuleData.class);
             Assert.assertEquals(ruleData, ruleDataList);
             count.incrementAndGet();
-        } catch (Exception e) {
-            throw e;
         } finally {
             countDownLatch.countDown();
         }
