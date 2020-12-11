@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.metrics.prometheus;
+package org.dromara.soul.metrics.prometheus.impl.collector;
 
 import io.prometheus.client.Collector;
-import javax.management.MalformedObjectNameException;
-import org.dromara.soul.metrics.prometheus.impl.collector.JmxCollector;
 import org.junit.Test;
+
+import javax.management.MalformedObjectNameException;
 
 /**
  * The type Jmx collector test.

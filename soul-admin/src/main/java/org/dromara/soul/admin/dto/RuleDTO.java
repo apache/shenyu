@@ -22,7 +22,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
 
@@ -41,7 +40,6 @@ public final class RuleDTO implements Serializable {
     /**
      * primary key.
      */
-    @NotNull
     private String id;
 
     /**
