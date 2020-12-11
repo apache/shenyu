@@ -62,9 +62,9 @@ public final class SpringMvcClientBeanPostProcessorTest {
 
     private static CountDownLatch countDownLatch;
 
-    private final SpringMvcClientTestBean springMvcClientTestBean = new SpringMvcClientTestBean();
-
     private static String port;
+
+    private final SpringMvcClientTestBean springMvcClientTestBean = new SpringMvcClientTestBean();
 
     @BeforeClass
     public static void init() {
