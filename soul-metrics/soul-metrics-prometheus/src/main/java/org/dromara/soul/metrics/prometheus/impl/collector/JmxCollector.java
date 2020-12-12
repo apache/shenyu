@@ -67,7 +67,7 @@ public class JmxCollector extends Collector implements Collector.Describable {
         }
         if (paramMap.containsKey("startDelaySeconds")) {
             try {
-                cfg.setStartDelaySeconds((Integer) paramMap.get("startDelaySeconds"));
+                cfg.setStartDelaySeconds(Integer.valueOf(paramMap.get("startDelaySeconds").toString()));
             } catch (NumberFormatException e) {
                 throw new IllegalArgumentException("Invalid number provided for startDelaySeconds", e);
             }
@@ -141,7 +141,7 @@ public class JmxCollector extends Collector implements Collector.Describable {
                     rule.setAttrNameSnakeCase((Boolean) ruleObject.get("attrNameSnakeCase"));
                 }
                 if (ruleObject.containsKey("type")) {
-                    rule.setType(JmxConfig.Type.valueOf(String.valueOf(ruleObject.containsKey("type"))));
+                    rule.setType(JmxConfig.Type.valueOf(String.valueOf(ruleObject.get("type"))));
                 }
                 if (ruleObject.containsKey("help")) {
                     rule.setHelp(String.valueOf(ruleObject.get("help")));
