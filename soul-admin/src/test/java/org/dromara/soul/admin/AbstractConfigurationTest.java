@@ -52,10 +52,9 @@ public abstract class AbstractConfigurationTest {
      *
      * @param configuration the configuration class
      * @param inlinedProperties the config properties
-     * @return AnnotationConfigApplicationContext
      */
-    public AnnotationConfigApplicationContext load(final Class<?> configuration, final String... inlinedProperties) {
-        return load(new Class<?>[] {configuration}, inlinedProperties);
+    public void load(final Class<?> configuration, final String... inlinedProperties) {
+        load(new Class<?>[]{configuration}, inlinedProperties);
     }
 
     /**
@@ -63,12 +62,10 @@ public abstract class AbstractConfigurationTest {
      *
      * @param configuration the configuration class array
      * @param inlinedProperties the config properties
-     * @return AnnotationConfigApplicationContext
      */
-    public AnnotationConfigApplicationContext load(final Class<?>[] configuration, final String... inlinedProperties) {
+    public void load(final Class<?>[] configuration, final String... inlinedProperties) {
         TestPropertySourceUtils.addInlinedPropertiesToEnvironment(this.context, inlinedProperties);
         this.context.register(configuration);
         this.context.refresh();
-        return this.context;
     }
 }

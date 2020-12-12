@@ -19,6 +19,9 @@ package org.dromara.soul.admin.controller;
 
 import org.dromara.soul.admin.dto.BatchCommonDTO;
 import org.dromara.soul.admin.dto.SoulDictDTO;
+import org.dromara.soul.admin.page.CommonPager;
+import org.dromara.soul.admin.page.PageParameter;
+import org.dromara.soul.admin.query.SoulDictQuery;
 import org.dromara.soul.admin.service.SoulDictService;
 import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.admin.vo.SoulDictVO;
@@ -35,7 +38,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.time.LocalDateTime;
-import java.util.Arrays;
+import java.util.Collections;
+
 import static org.hamcrest.core.Is.is;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -64,10 +68,28 @@ public final class SoulDictControllerTest {
     public void setUp() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(soulDictController).build();
     }
-
+    
+    @Test
+    public void testQueryDicts() throws Exception {
+        final PageParameter pageParameter = new PageParameter();
+        final SoulDictQuery soulDictQuery = new SoulDictQuery("1", "t", "t_n", pageParameter);
+        final CommonPager<SoulDictVO> commonPager = new CommonPager<>(pageParameter, Collections.singletonList(soulDictVO));
+        given(this.soulDictService.listByPage(soulDictQuery)).willReturn(commonPager);
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/soul-dict")
+                .param("type", "1")
+                .param("dictCode", "t")
+                .param("dictName", "t_n")
+                .param("currentPage", Integer.toString(pageParameter.getCurrentPage()))
+                .param("pageSize", Integer.toString(pageParameter.getPageSize())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(SoulResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.data.dataList[0].id", is(commonPager.getDataList().get(0).getId())))
+                .andReturn();
+    }
+    
     @Test
     public void testFindByType() throws Exception {
-        given(this.soulDictService.list("1")).willReturn(Arrays.asList(soulDictVO));
+        given(this.soulDictService.list("1")).willReturn(Collections.singletonList(soulDictVO));
         this.mockMvc.perform(MockMvcRequestBuilders.get("/soul-dict/all/{type}", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(SoulResultMessage.QUERY_SUCCESS)))
@@ -115,7 +137,7 @@ public final class SoulDictControllerTest {
 
     @Test
     public void testDeleteSoulDicts() throws Exception {
-        given(this.soulDictService.deleteSoulDicts(Arrays.asList("123"))).willReturn(1);
+        given(this.soulDictService.deleteSoulDicts(Collections.singletonList("123"))).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.delete("/soul-dict/batch")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("[\"123\"]"))
@@ -128,7 +150,7 @@ public final class SoulDictControllerTest {
     public void testBatchEnabled() throws Exception {
         BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
         batchCommonDTO.setEnabled(false);
-        batchCommonDTO.setIds(Arrays.asList("123"));
+        batchCommonDTO.setIds(Collections.singletonList("123"));
         given(this.soulDictService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled())).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/soul-dict/batchEnabled")
                 .contentType(MediaType.APPLICATION_JSON)

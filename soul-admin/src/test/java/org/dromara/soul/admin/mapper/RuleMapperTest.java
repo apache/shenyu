@@ -22,18 +22,16 @@ import org.dromara.soul.admin.entity.RuleDO;
 import org.dromara.soul.admin.query.RuleQuery;
 import org.dromara.soul.common.utils.UUIDUtils;
 import org.junit.Test;
-
 import javax.annotation.Resource;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
-
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 /**
- * Test cases for RuleMapperTest.
+ * Test cases for RuleMapper.
  *
  * @author hellboy0621
  */
@@ -194,19 +192,19 @@ public final class RuleMapperTest extends AbstractSpringIntegrationTest {
     }
 
     private RuleDO buildRuleDO() {
-        String id = UUIDUtils.getInstance().generateShortUuid();
-        RuleDO ruleDO = new RuleDO();
-        ruleDO.setId(id);
-        ruleDO.setName("test-name-" + new Random().nextInt());
-        ruleDO.setEnabled(true);
-        ruleDO.setHandle("test-handle");
-        ruleDO.setLoged(true);
-        ruleDO.setMatchMode(1);
-        ruleDO.setSelectorId("test-selector-1");
-        ruleDO.setSort(1);
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-        ruleDO.setDateCreated(now);
-        ruleDO.setDateUpdated(now);
-        return ruleDO;
+        String id = UUIDUtils.getInstance().generateShortUuid();
+        return RuleDO.builder()
+                .id(id)
+                .name("test-name-" + new Random().nextInt())
+                .enabled(true)
+                .handle("test-handle")
+                .loged(true)
+                .matchMode(1)
+                .selectorId("test-selector-1")
+                .sort(1)
+                .dateCreated(now)
+                .dateUpdated(now)
+                .build();
     }
 }

@@ -70,9 +70,8 @@ public class AppAuthController {
     public SoulAdminResult apply(@RequestBody final AuthApplyDTO authApplyDTO) {
         if (StringUtils.isNoneBlank(authApplyDTO.getAppKey())) {
             return appAuthService.applyUpdate(authApplyDTO);
-        } else {
-            return appAuthService.applyCreate(authApplyDTO);
         }
+        return appAuthService.applyCreate(authApplyDTO);
     }
 
     /**

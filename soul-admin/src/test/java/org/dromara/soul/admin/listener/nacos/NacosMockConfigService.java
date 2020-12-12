@@ -19,8 +19,6 @@ package org.dromara.soul.admin.listener.nacos;
 
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.listener.Listener;
-import com.alibaba.nacos.api.exception.NacosException;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,29 +26,26 @@ public class NacosMockConfigService implements ConfigService {
 
     private static final Map<String, String> EMPTY = new HashMap<>();
 
-    private Map<String, Map<String, String>> store = new HashMap<>();
+    private final Map<String, Map<String, String>> store = new HashMap<>();
 
     @Override
-    public String getConfig(final String s, final String s1, final long l) throws NacosException {
+    public String getConfig(final String s, final String s1, final long l) {
         return store.getOrDefault(s, EMPTY).getOrDefault(s1, "{}");
     }
 
     @Override
     public String getConfigAndSignListener(
-            final String s, final String s1, final long l, final Listener listener)
-            throws NacosException {
+            final String s, final String s1, final long l, final Listener listener) {
 
         return null;
     }
 
     @Override
-    public void addListener(final String s, final String s1, final Listener listener)
-            throws NacosException {
+    public void addListener(final String s, final String s1, final Listener listener) {
     }
 
     @Override
-    public boolean publishConfig(final String key, final String group, final String result)
-            throws NacosException {
+    public boolean publishConfig(final String key, final String group, final String result) {
         Map<String, String> row = store.getOrDefault(key, new HashMap<>());
         row.put(group, result);
         store.put(key, row);
@@ -58,7 +53,7 @@ public class NacosMockConfigService implements ConfigService {
     }
 
     @Override
-    public boolean removeConfig(final String s, final String s1) throws NacosException {
+    public boolean removeConfig(final String s, final String s1) {
         return false;
     }
 
