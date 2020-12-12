@@ -25,7 +25,6 @@ import java.util.List;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * Test Cases for OperatorEnum.
@@ -57,24 +56,29 @@ public final class OperatorEnumTest {
         assertEquals(OperatorEnum.EQ, OperatorEnum.getOperatorEnumByAlias("="));
         assertEquals(OperatorEnum.REGEX, OperatorEnum.getOperatorEnumByAlias("regEx"));
         assertEquals(OperatorEnum.LIKE, OperatorEnum.getOperatorEnumByAlias("like"));
+    }
 
-        SoulException exOfGT = null;
-        try {
-            OperatorEnum.getOperatorEnumByAlias(">");
-        } catch (SoulException ex) {
-            exOfGT = ex;
-        } finally {
-            assertNotNull(exOfGT);
-        }
+    /**
+     * test getOperatorEnumByAlias method with GT exception.
+     */
+    @Test(expected = SoulException.class)
+    public void testAcquireByNameInvalid_GTException() {
+        OperatorEnum.getOperatorEnumByAlias(">");
+    }
 
-        SoulException exOfLT = null;
-        try {
-            OperatorEnum.getOperatorEnumByAlias("<");
-        } catch (SoulException ex) {
-            exOfLT = ex;
-        } finally {
-            assertNotNull(exOfLT);
-        }
+    /**
+     * test getOperatorEnumByAlias method with LT exception.
+     */
+    @Test(expected = SoulException.class)
+    public void testAcquireByNameInvalid_LTException() {
+        OperatorEnum.getOperatorEnumByAlias("<");
+    }
 
+    /**
+     * test getOperatorEnumByAlias method with misspelling exception.
+     */
+    @Test(expected = SoulException.class)
+    public void testAcquireByNameInvalid_MisspellingException() {
+        OperatorEnum.getOperatorEnumByAlias("nike");
     }
 }
