@@ -55,7 +55,7 @@ public final class PrometheusMetricsTrackerManagerTest {
 
     @Test
     public void startWithNormal() {
-        MetricsConfig metricsConfig = new MetricsConfig("test", "", 80, false, 1, null, null);
+        MetricsConfig metricsConfig = new MetricsConfig("test", "", 10109, false, 1, null, null);
         prometheusMetricsTrackerManager.start(metricsConfig);
         assertTrue(prometheusMetricsTrackerManager.getRegistered().get());
         prometheusMetricsTrackerManager.stop();
@@ -65,7 +65,7 @@ public final class PrometheusMetricsTrackerManagerTest {
     public void testRegistered() {
         AtomicBoolean registered = (AtomicBoolean) ReflectUtils.getFieldValue(prometheusMetricsTrackerManager, "registered");
         registered.set(true);
-        MetricsConfig metricsConfig = new MetricsConfig("test", "", 80, false, 1, null, null);
+        MetricsConfig metricsConfig = new MetricsConfig("test", "", 10109, false, 1, null, null);
         prometheusMetricsTrackerManager.start(metricsConfig);
         assertTrue(prometheusMetricsTrackerManager.getRegistered().get());
     }
