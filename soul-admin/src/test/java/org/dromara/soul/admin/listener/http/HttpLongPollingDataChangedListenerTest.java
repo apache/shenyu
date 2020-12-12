@@ -41,7 +41,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
- * The TestCase for HttpLongPoolingDataChangedListenerTest.
+ * The TestCase for HttpLongPoolingDataChangedListener.
  *
  * @author nuo-promise
  */

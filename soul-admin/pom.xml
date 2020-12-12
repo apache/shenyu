@@ -177,6 +177,18 @@
             <version>${curator-test.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.undertow</groupId>
+            <artifactId>undertow-core</artifactId>
+            <version>${undertow.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.java-websocket</groupId>
+            <artifactId>Java-WebSocket</artifactId>
+            <version>${java-websocket.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

@@ -25,6 +25,7 @@ import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.exception.SoulException;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -57,6 +58,9 @@ public final class RuleHandleFactory {
      * @return          RuleHandle object.
      */
     public static RuleHandle ruleHandle(final RpcTypeEnum rpcType, final String path) {
+        if (Objects.isNull(rpcType)) {
+            return null;
+        }
         Class<? extends RuleHandle> clazz = RPC_TYPE_TO_RULE_HANDLE_CLASS.getOrDefault(rpcType, DEFAULT_RULE_HANDLE);
         try {
             return clazz.newInstance().createDefault(path);

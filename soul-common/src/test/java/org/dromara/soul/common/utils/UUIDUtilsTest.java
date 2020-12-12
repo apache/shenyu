@@ -22,7 +22,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Test cases for UUIDUtilsTest.
+ * Test cases for UUIDUtils.
  *
  * @author BetterWp
  */

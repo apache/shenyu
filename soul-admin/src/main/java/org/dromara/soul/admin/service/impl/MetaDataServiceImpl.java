@@ -18,13 +18,7 @@
 package org.dromara.soul.admin.service.impl;
 
 import com.google.common.collect.Lists;
-import java.sql.Timestamp;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.MetaDataDTO;
@@ -43,22 +37,27 @@ import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.utils.UUIDUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.sql.Timestamp;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * The type Meta data service.
  *
  * @author xiaoyu
  */
+@Slf4j
 @Service("metaDataService")
 public class MetaDataServiceImpl implements MetaDataService {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(MetaDataServiceImpl.class);
 
     private final MetaDataMapper metaDataMapper;
 
@@ -179,7 +178,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     private String checkData(final MetaDataDTO metaDataDTO) {
         Boolean success = checkParam(metaDataDTO);
         if (!success) {
-            LOGGER.error("metaData create param is error,{}", metaDataDTO.toString());
+            log.error("metaData create param is error, {}", metaDataDTO.toString());
             return AdminConstants.PARAMS_ERROR;
         }
         final MetaDataDO exist = metaDataMapper.findByPath(metaDataDTO.getPath());

@@ -17,8 +17,7 @@
 
 package org.dromara.soul.common.utils;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -32,18 +31,13 @@ import java.time.temporal.ChronoUnit;
  * @author xiaoyu
  * @author dengliming
  */
+@Slf4j
 public class DateUtils {
-    
-    /**
-     * The constant LOGGER.
-     */
-    public static final Logger LOGGER = LoggerFactory.getLogger(DateUtils.class);
-    
+
     private static final String DATE_FORMAT_DATETIME = "yyyy-MM-dd HH:mm:ss";
-    
+
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_FORMAT_DATETIME);
-    
-    
+
     /**
      * parseLocalDateTime.
      * out put format:yyyy-MM-dd HH:mm:ss

@@ -17,11 +17,6 @@
 
 package org.dromara.soul.admin.listener.zookeeper;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -34,13 +29,17 @@ import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * The type Http service discovery.
@@ -54,8 +53,6 @@ import org.springframework.stereotype.Component;
 public class HttpServiceDiscovery implements InitializingBean {
 
     private static final String ROOT = "/soul/register";
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(HttpServiceDiscovery.class);
 
     private ZkClient zkClient;
 
