@@ -38,7 +38,7 @@ import static org.junit.Assert.assertNotNull;
  *
  * @author coderlmm
  */
-public class SelectorMapperTest extends AbstractSpringIntegrationTest {
+public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
 
     @Resource
     private SelectorMapper selectorMapper;
