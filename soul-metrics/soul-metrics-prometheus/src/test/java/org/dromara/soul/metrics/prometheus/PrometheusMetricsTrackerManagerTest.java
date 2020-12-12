@@ -17,25 +17,56 @@
 
 package org.dromara.soul.metrics.prometheus;
 
+import io.prometheus.client.CollectorRegistry;
+import org.dromara.soul.common.utils.ReflectUtils;
+import org.dromara.soul.metrics.config.MetricsConfig;
+import org.junit.Before;
 import org.junit.Test;
+import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
- * The Test Case For PrometheusMetricsTrackerManager.
+ * Test cases for PrometheusMetricsTrackerManager.
  *
- * @author nuo-promise
- **/
+ * @author dengliming
+ */
 public final class PrometheusMetricsTrackerManagerTest {
 
-    private static final String REQUEST_TOTAL_COUNT_NAME = "request_total";
+    private PrometheusMetricsTrackerManager prometheusMetricsTrackerManager;
 
-    private static final String REQUEST_TOTAL = "request_total";
+    @Before
+    public void init() {
+        prometheusMetricsTrackerManager = new PrometheusMetricsTrackerManager();
+        CollectorRegistry.defaultRegistry.clear();
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void startWithNull() {
+        prometheusMetricsTrackerManager.start(null);
+    }
+
+    @Test(expected = IOException.class)
+    public void startWithInvalidHost() {
+        MetricsConfig metricsConfig = new MetricsConfig("test", "invalidHost", 80, false, 1, null, null);
+        prometheusMetricsTrackerManager.start(metricsConfig);
+    }
 
     @Test
-    public void getMetricsTrackerFactory() {
-        new PrometheusMetricsTrackerFactory().create(REQUEST_TOTAL_COUNT_NAME, REQUEST_TOTAL)
-                .ifPresent(metricsTracker -> assertThat(metricsTracker.metricsLabel(), is(REQUEST_TOTAL_COUNT_NAME)));
+    public void startWithNormal() {
+        MetricsConfig metricsConfig = new MetricsConfig("test", "", 80, false, 1, null, null);
+        prometheusMetricsTrackerManager.start(metricsConfig);
+        assertTrue(prometheusMetricsTrackerManager.getRegistered().get());
+        prometheusMetricsTrackerManager.stop();
+    }
+
+    @Test
+    public void testRegistered() {
+        AtomicBoolean registered = (AtomicBoolean) ReflectUtils.getFieldValue(prometheusMetricsTrackerManager, "registered");
+        registered.set(true);
+        MetricsConfig metricsConfig = new MetricsConfig("test", "", 80, false, 1, null, null);
+        prometheusMetricsTrackerManager.start(metricsConfig);
+        assertTrue(prometheusMetricsTrackerManager.getRegistered().get());
     }
 }

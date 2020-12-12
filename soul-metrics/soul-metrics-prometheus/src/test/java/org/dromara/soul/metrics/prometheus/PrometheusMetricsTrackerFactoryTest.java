@@ -18,60 +18,50 @@
 package org.dromara.soul.metrics.prometheus;
 
 import org.dromara.soul.metrics.api.MetricsTracker;
-import org.dromara.soul.metrics.prometheus.impl.counter.HttpRequestCounterMetricsTracker;
-import org.dromara.soul.metrics.prometheus.impl.counter.RequestTotalCounterMetricsTracker;
-import org.dromara.soul.metrics.prometheus.impl.histogram.RequestLatencyHistogramMetricsTracker;
-import org.dromara.soul.metrics.prometheus.impl.summary.RequestLatencySummaryMetricsTracker;
-import org.junit.Before;
+import org.dromara.soul.metrics.api.MetricsTrackerFactory;
+import org.dromara.soul.metrics.enums.MetricsLabelEnum;
+import org.dromara.soul.metrics.enums.MetricsTypeEnum;
 import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.Collection;
-
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import java.util.Optional;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
- * The Test Case For PrometheusMetricsTracker.
+ * The Test Case For PrometheusMetricsTrackerFactory.
  *
- * @author nuo-promise
+ * @author dengliming
  **/
 public final class PrometheusMetricsTrackerFactoryTest {
 
-    private static final Collection<MetricsTracker> REGISTER = new ArrayList<>();
+    private final MetricsTrackerFactory metricsTrackerFactory = new PrometheusMetricsTrackerFactory();
 
-    private static final String REQUEST_TOTAL_COUNT_NAME = "request_total";
-
-    private static final String HTTP_REQUEST_TOTAL_NAME = "http_request_total";
-
-    private static final String REQUEST_HISTOGRAM_NAME = "request_latency_histogram_millis";
-
-    private static final String REQUEST_SUMMARY_NAME = "request_latency_summary_millis";
-
-    private static final String REQUEST_TOTAL = "request_total";
-
-    private static final String HTTP_REQUEST_TOTAL = "http_request_total";
-
-    private static final String REQUEST_LATENCY = "request_latency";
-
-    @Before
-    public void setUp() {
-        REGISTER.add(new RequestTotalCounterMetricsTracker());
-        REGISTER.add(new HttpRequestCounterMetricsTracker());
-        REGISTER.add(new RequestLatencyHistogramMetricsTracker());
-        REGISTER.add(new RequestLatencySummaryMetricsTracker());
+    @Test
+    public void testCreateRequestTotalCounter() {
+        Optional<MetricsTracker> actual = metricsTrackerFactory.create(MetricsTypeEnum.COUNTER.name(), MetricsLabelEnum.REQUEST_TOTAL.getName());
+        assertTrue(actual.isPresent());
     }
 
     @Test
-    public void create() {
-        REGISTER.stream().filter(each -> each.metricsLabel().equals(REQUEST_TOTAL) && each.metricsType().equals(REQUEST_TOTAL_COUNT_NAME)).findFirst()
-                .ifPresent(metricsTracker -> assertThat(metricsTracker.metricsLabel(), is(REQUEST_TOTAL_COUNT_NAME)));
-        REGISTER.stream().filter(each -> each.metricsLabel().equals(HTTP_REQUEST_TOTAL) && each.metricsType().equals(HTTP_REQUEST_TOTAL_NAME)).findFirst()
-                .ifPresent(metricsTracker -> assertThat(metricsTracker.metricsLabel(), is(HTTP_REQUEST_TOTAL_NAME)));
-        REGISTER.stream().filter(each -> each.metricsLabel().equals(REQUEST_LATENCY) && each.metricsType().equals(REQUEST_HISTOGRAM_NAME)).findFirst()
-                .ifPresent(metricsTracker -> assertThat(metricsTracker.metricsLabel(), is(REQUEST_HISTOGRAM_NAME)));
-        REGISTER.stream().filter(each -> each.metricsLabel().equals(REQUEST_LATENCY) && each.metricsType().equals(REQUEST_SUMMARY_NAME)).findFirst()
-                .ifPresent(metricsTracker -> assertThat(metricsTracker.metricsLabel(), is(REQUEST_SUMMARY_NAME)));
+    public void testCreateHttpRequestCounter() {
+        Optional<MetricsTracker> actual = metricsTrackerFactory.create(MetricsTypeEnum.COUNTER.name(), MetricsLabelEnum.HTTP_REQUEST_TOTAL.getName());
+        assertTrue(actual.isPresent());
+    }
 
+    @Test
+    public void testCreateRequestLatencyHistogram() {
+        Optional<MetricsTracker> actual = metricsTrackerFactory.create(MetricsTypeEnum.HISTOGRAM.name(), MetricsLabelEnum.REQUEST_LATENCY.getName());
+        assertTrue(actual.isPresent());
+    }
+
+    @Test
+    public void testCreateRequestLatencySummary() {
+        Optional<MetricsTracker> actual = metricsTrackerFactory.create(MetricsTypeEnum.SUMMARY.name(), MetricsLabelEnum.REQUEST_LATENCY.getName());
+        assertTrue(actual.isPresent());
+    }
+
+    @Test
+    public void testCreateNoneExistent() {
+        Optional<MetricsTracker> actual = metricsTrackerFactory.create("none", "none");
+        assertFalse(actual.isPresent());
     }
 }
