@@ -41,7 +41,6 @@ public class PluginHandleVO implements Serializable {
      */
     private String id;
 
-
     /**
      * plugin id.
      */

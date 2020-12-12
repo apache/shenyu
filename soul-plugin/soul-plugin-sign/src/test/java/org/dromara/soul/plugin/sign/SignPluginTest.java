@@ -37,7 +37,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * SignPlugin plugin test.
+ * SignPlugin test.
  *
  * @author Phoenix Luo
  **/
@@ -45,11 +45,11 @@ import static org.mockito.Mockito.when;
 public final class SignPluginTest {
     @Mock
     private SoulPluginChain chain;
-    
+
     private ServerWebExchange exchange;
-    
+
     private SignPlugin signPlugin;
-    
+
     @Before
     public void setup() {
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
@@ -57,7 +57,7 @@ public final class SignPluginTest {
         when(signService.signVerify(exchange)).thenReturn(Pair.of(true, ""));
         this.signPlugin = new SignPlugin(signService);
     }
-    
+
     @Test
     public void testSignPlugin() {
         RuleData data = mock(RuleData.class);

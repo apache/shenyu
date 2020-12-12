@@ -31,7 +31,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 /**
- * Test cases for RuleMapperTest.
+ * Test cases for RuleMapper.
  *
  * @author hellboy0621
  */

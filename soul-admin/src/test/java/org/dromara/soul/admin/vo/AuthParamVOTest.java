@@ -15,28 +15,19 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.metrics.prometheus;
+package org.dromara.soul.admin.vo;
 
-import io.prometheus.client.Collector;
-import javax.management.MalformedObjectNameException;
-import org.dromara.soul.metrics.prometheus.impl.collector.JmxCollector;
-import org.junit.Test;
+import org.dromara.soul.admin.vo.base.BaseVOTest;
 
 /**
- * The type Jmx collector test.
+ * Test case for AuthParamVO.
+ *
+ * @author midnight2104
  */
-public final class JmxCollectorTest {
-    
-    /**
-     * Test jmx collector.
-     *
-     * @throws MalformedObjectNameException the malformed object name exception
-     */
-    @Test
-    public void testJmxCollector() throws MalformedObjectNameException {
-        JmxCollector jc = new JmxCollector("{}".replace('`', '"'));
-        for (Collector.MetricFamilySamples mfs : jc.collect()) {
-            System.out.println(mfs);
-        }
+public class AuthParamVOTest extends BaseVOTest<AuthParamVO> {
+
+    @Override
+    protected AuthParamVO getTargetClass() {
+        return new AuthParamVO();
     }
 }
