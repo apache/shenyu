@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Test Cases for ConfigGroupEnum.
+ * Test Cases for ParamTypeEnum.
  *
  * @author wilbur1991
  */
@@ -35,14 +35,14 @@ public final class ParamTypeEnumTest {
 
     @Test
     public void testAcquireSupport() {
-        List<ParamTypeEnum> supportParamTypeList = Arrays.asList(ParamTypeEnum.values()).stream()
+        List<ParamTypeEnum> supportParamTypeList = Arrays.stream(ParamTypeEnum.values())
                 .filter(ParamTypeEnum::getSupport).collect(Collectors.toList());
         assertEquals(ParamTypeEnum.acquireSupport(), supportParamTypeList);
     }
 
     @Test
     public void testGetParamTypeEnumByNameValid() {
-        Arrays.asList(ParamTypeEnum.values()).stream()
+        Arrays.stream(ParamTypeEnum.values())
                 .filter(ParamTypeEnum::getSupport)
                 .forEach(paramTypeEnum -> assertEquals(paramTypeEnum, ParamTypeEnum.getParamTypeEnumByName(paramTypeEnum.getName())));
     }

@@ -85,6 +85,11 @@ public interface Constants {
     String HTTP_TIME_OUT = "httpTimeOut";
 
     /**
+     * The constant HTTP_RETRY.
+     */
+    String HTTP_RETRY = "httpRetry";
+
+    /**
      * Original response Content-Type attribute name.
      */
     String ORIGINAL_RESPONSE_CONTENT_TYPE_ATTR = "original_response_content_type";

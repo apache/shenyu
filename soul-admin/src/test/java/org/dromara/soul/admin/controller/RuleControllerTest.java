@@ -67,10 +67,10 @@ public final class RuleControllerTest {
             "888", "666", "uri", "Uniform", "match", "match", "/", "/http/test/**", DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now())
     );
 
-    private final List<RuleConditionVO> rclist = new ArrayList<>(Collections.singletonList(rCondition1));
+    private final List<RuleConditionVO> rcList = new ArrayList<>(Collections.singletonList(rCondition1));
 
     private final RuleVO ruleVO = new RuleVO("666", "168", 0, "zero mode", "/http/test/**", true, true, 1, "{\"loadBalance\":\"random\",\"retry\":0,\"timeout\":3000}",
-            rclist, DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()));
+            rcList, DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()));
 
     private final PageParameter pageParameter = new PageParameter();
 

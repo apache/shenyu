@@ -83,7 +83,7 @@ public final class BodyParamPluginTest {
                 MockServerHttpRequest.get("localhost").build());
         Mockito.when(chain.execute(simpleExchange)).thenReturn(Mono.empty());
         SoulContext context = new SoulContext();
-        context.setRpcType(RpcTypeEnum.SOFA.getName());
+        context.setRpcType(RpcTypeEnum.DUBBO.getName());
         simpleExchange.getAttributes().put(Constants.CONTEXT, context);
 
         final Mono<Void> result = bodyParamPluginUnderTest.execute(simpleExchange, chain);
@@ -97,7 +97,7 @@ public final class BodyParamPluginTest {
                 MockServerHttpRequest.post("localhost").contentType(MediaType.APPLICATION_JSON).body("{}"));
         Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
         SoulContext context = new SoulContext();
-        context.setRpcType(RpcTypeEnum.SOFA.getName());
+        context.setRpcType(RpcTypeEnum.DUBBO.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
 
         final Mono<Void> result = bodyParamPluginUnderTest.execute(exchange, chain);
@@ -112,7 +112,7 @@ public final class BodyParamPluginTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED).body("{}"));
         Mockito.when(chain.execute(formExchange)).thenReturn(Mono.empty());
         SoulContext context = new SoulContext();
-        context.setRpcType(RpcTypeEnum.SOFA.getName());
+        context.setRpcType(RpcTypeEnum.DUBBO.getName());
         formExchange.getAttributes().put(Constants.CONTEXT, context);
 
         final Mono<Void> result = bodyParamPluginUnderTest.execute(formExchange, chain);

@@ -17,6 +17,7 @@
 
 package org.dromara.soul.plugin.httpclient;
 
+import io.netty.channel.ConnectTimeoutException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
@@ -37,7 +38,8 @@ import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
+import reactor.retry.Backoff;
+import reactor.retry.Retry;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
@@ -71,10 +73,11 @@ public class WebClientPlugin implements SoulPlugin {
             return WebFluxResultUtils.result(exchange, error);
         }
         long timeout = (long) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_TIME_OUT)).orElse(3000L);
-        log.info("you request,The resulting urlPath is :{}", urlPath);
+        int retryTimes = (int) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY)).orElse(0);
+        log.info("you request,The resulting urlPath is :{}, retryTimes: {}", urlPath, retryTimes);
         HttpMethod method = HttpMethod.valueOf(exchange.getRequest().getMethodValue());
         WebClient.RequestBodySpec requestBodySpec = webClient.method(method).uri(urlPath);
-        return handleRequestBody(requestBodySpec, exchange, timeout, chain);
+        return handleRequestBody(requestBodySpec, exchange, timeout, retryTimes, chain);
     }
 
     @Override
@@ -105,6 +108,7 @@ public class WebClientPlugin implements SoulPlugin {
     private Mono<Void> handleRequestBody(final WebClient.RequestBodySpec requestBodySpec,
                                          final ServerWebExchange exchange,
                                          final long timeout,
+                                         final int retryTimes,
                                          final SoulPluginChain chain) {
         return requestBodySpec.headers(httpHeaders -> {
             httpHeaders.addAll(exchange.getRequest().getHeaders());
@@ -115,6 +119,9 @@ public class WebClientPlugin implements SoulPlugin {
                 .exchange()
                 .doOnError(e -> log.error(e.getMessage()))
                 .timeout(Duration.ofMillis(timeout))
+                .retryWhen(Retry.onlyIf(x -> x.exception() instanceof ConnectTimeoutException)
+                    .retryMax(retryTimes)
+                    .backoff(Backoff.exponential(Duration.ofMillis(200), Duration.ofSeconds(20), 2, true)))
                 .flatMap(e -> doNext(e, exchange, chain));
 
     }
