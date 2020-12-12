@@ -42,7 +42,7 @@ public final class RuleConditionMapperTest extends AbstractSpringIntegrationTest
     @Resource
     private RuleConditionMapper ruleConditionMapper;
 
-    private RuleConditionDO record = buildRuleConditionDo();
+    private final RuleConditionDO record = buildRuleConditionDo();
 
     @Before
     public void before() {
