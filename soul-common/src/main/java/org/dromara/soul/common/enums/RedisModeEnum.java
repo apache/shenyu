@@ -46,10 +46,15 @@ public enum RedisModeEnum {
      */
     STANDALONE("Standalone");
 
+    /**
+     * Redis Mode Name.
+     */
     private final String name;
 
     /**
-     * @param name
+     * Acquire by name data sync enum.
+     *
+     * @param name redisModeName
      * @return RedisModeEnum
      */
     public static RedisModeEnum acquireByName(final String name) {
