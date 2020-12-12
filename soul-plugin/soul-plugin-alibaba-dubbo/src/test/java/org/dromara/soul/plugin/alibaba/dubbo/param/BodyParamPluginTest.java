@@ -14,14 +14,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.dromara.soul.plugin.alibaba.dubbo.param;
 
+import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.PluginEnum;
+import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.plugin.api.SoulPluginChain;
+import org.dromara.soul.plugin.api.context.SoulContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.http.MediaType;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -54,6 +65,54 @@ public final class BodyParamPluginTest {
     public void testNamed() {
         final String result = bodyParamPlugin.named();
         assertEquals("alibaba-dubbo-body-param", result);
+    }
+    
+    @Test
+    public void testJsonBody() {
+        final ServerWebExchange exchange = MockServerWebExchange.from(
+                MockServerHttpRequest.post("localhost").contentType(MediaType.APPLICATION_JSON).body("{}"));
+        Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
+        SoulContext context = new SoulContext();
+        context.setRpcType(RpcTypeEnum.DUBBO.getName());
+        exchange.getAttributes().put(Constants.CONTEXT, context);
+        final Mono<Void> result = bodyParamPlugin.execute(exchange, chain);
+        StepVerifier.create(result).expectSubscription().verifyComplete();
+    }
+    
+    @Test
+    public void testFormatBody() {
+        final ServerWebExchange exchange = MockServerWebExchange.from(
+                MockServerHttpRequest.post("localhost").contentType(MediaType.APPLICATION_FORM_URLENCODED).body("test=test"));
+        Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
+        SoulContext context = new SoulContext();
+        context.setRpcType(RpcTypeEnum.DUBBO.getName());
+        exchange.getAttributes().put(Constants.CONTEXT, context);
+        final Mono<Void> result = bodyParamPlugin.execute(exchange, chain);
+        StepVerifier.create(result).expectSubscription().verifyComplete();
+    }
+    
+    @Test
+    public void testNoBody() {
+        final ServerWebExchange exchange = MockServerWebExchange.from(
+                MockServerHttpRequest.post("localhost"));
+        Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
+        SoulContext context = new SoulContext();
+        context.setRpcType(RpcTypeEnum.DUBBO.getName());
+        exchange.getAttributes().put(Constants.CONTEXT, context);
+        final Mono<Void> result = bodyParamPlugin.execute(exchange, chain);
+        StepVerifier.create(result).expectSubscription().verifyComplete();
+    }
+    
+    @Test
+    public void testSimpleBody() {
+        final ServerWebExchange exchange = MockServerWebExchange.from(
+                MockServerHttpRequest.post("localhost").body("test"));
+        Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
+        SoulContext context = new SoulContext();
+        context.setRpcType(RpcTypeEnum.DUBBO.getName());
+        exchange.getAttributes().put(Constants.CONTEXT, context);
+        final Mono<Void> result = bodyParamPlugin.execute(exchange, chain);
+        StepVerifier.create(result).expectSubscription().verifyComplete();
     }
     
 }
