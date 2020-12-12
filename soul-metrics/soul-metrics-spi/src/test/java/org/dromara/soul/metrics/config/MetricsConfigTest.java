@@ -82,4 +82,44 @@ public final class MetricsConfigTest {
     public void testToString() {
         assertThat(metricsConfig.toString(), is("MetricsConfig(metricsName=prometheus, host=host, port=9999, async=true, threadCount=10, jmxConfig=jmxConfig, props={key=value})"));
     }
+
+    @Test
+    public void setMetricsName() {
+        metricsConfig.setMetricsName("prometheus");
+        assertThat(metricsConfig.getMetricsName(), is("prometheus"));
+    }
+
+    @Test
+    public void setHost() {
+        metricsConfig.setHost("192.168.1.1");
+        assertThat(metricsConfig.getHost(), is("192.168.1.1"));
+    }
+
+    @Test
+    public void setPort() {
+    }
+
+    @Test
+    public void setAsync() {
+    }
+
+    @Test
+    public void setThreadCount() {
+    }
+
+    @Test
+    public void setJmxConfig() {
+    }
+
+    @Test
+    public void setProps() {
+    }
+
+    @Test
+    public void testEquals() {
+    }
+
+    @Test
+    public void testHashCode() {
+    }
 }
