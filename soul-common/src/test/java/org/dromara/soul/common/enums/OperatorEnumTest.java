@@ -62,7 +62,7 @@ public final class OperatorEnumTest {
      * test getOperatorEnumByAlias method with GT exception.
      */
     @Test(expected = SoulException.class)
-    public void testAcquireByNameInvalid_GTException() {
+    public void testAcquireByNameInvalidWithGTException() {
         OperatorEnum.getOperatorEnumByAlias(">");
     }
 
@@ -70,7 +70,7 @@ public final class OperatorEnumTest {
      * test getOperatorEnumByAlias method with LT exception.
      */
     @Test(expected = SoulException.class)
-    public void testAcquireByNameInvalid_LTException() {
+    public void testAcquireByNameInvalidWithLTException() {
         OperatorEnum.getOperatorEnumByAlias("<");
     }
 
@@ -78,7 +78,7 @@ public final class OperatorEnumTest {
      * test getOperatorEnumByAlias method with misspelling exception.
      */
     @Test(expected = SoulException.class)
-    public void testAcquireByNameInvalid_MisspellingException() {
+    public void testAcquireByNameInvalidWithMisspellingException() {
         OperatorEnum.getOperatorEnumByAlias("nike");
     }
 }
