@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.apache.dubbo.param;
+package org.dromara.soul.plugin.alibaba.dubbo.param;
 
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.PluginEnum;
@@ -24,7 +24,9 @@ import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.MediaType;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -38,85 +40,79 @@ import static org.mockito.Mockito.mock;
 /**
  * Test case for {@link BodyParamPlugin}.
  *
- * @author HoldDie
- */
+ * @author Phoenix Luo
+ **/
+
+@RunWith(MockitoJUnitRunner.class)
 public final class BodyParamPluginTest {
-
     private SoulPluginChain chain;
-
-    private BodyParamPlugin bodyParamPluginUnderTest;
-
+    
+    private BodyParamPlugin bodyParamPlugin;
+    
     @Before
     public void setUp() {
-        bodyParamPluginUnderTest = new BodyParamPlugin();
+        bodyParamPlugin = new BodyParamPlugin();
         chain = mock(SoulPluginChain.class);
     }
-
+    
     @Test
     public void testGetOrder() {
-        final int result = bodyParamPluginUnderTest.getOrder();
-
+        final int result = bodyParamPlugin.getOrder();
         assertEquals(PluginEnum.DUBBO.getCode() - 1, result);
     }
-
+    
     @Test
     public void testNamed() {
-        final String result = bodyParamPluginUnderTest.named();
-
-        assertEquals("apache-dubbo-body-param", result);
+        final String result = bodyParamPlugin.named();
+        assertEquals("alibaba-dubbo-body-param", result);
     }
-
+    
     @Test
-    public void testExecuteWithNoBody() {
-        ServerWebExchange exchange = MockServerWebExchange.from(
-                MockServerHttpRequest.post("localhost").contentType(MediaType.APPLICATION_JSON).body("{}"));
-        Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
-
-        final Mono<Void> result = bodyParamPluginUnderTest.execute(exchange, chain);
-
-        StepVerifier.create(result).expectSubscription().verifyComplete();
-    }
-
-    @Test
-    public void testExecuteWithSimpleBody() {
-        final ServerWebExchange simpleExchange = MockServerWebExchange.from(
-                MockServerHttpRequest.get("localhost").build());
-        Mockito.when(chain.execute(simpleExchange)).thenReturn(Mono.empty());
-        SoulContext context = new SoulContext();
-        context.setRpcType(RpcTypeEnum.DUBBO.getName());
-        simpleExchange.getAttributes().put(Constants.CONTEXT, context);
-
-        final Mono<Void> result = bodyParamPluginUnderTest.execute(simpleExchange, chain);
-
-        StepVerifier.create(result).expectSubscription().verifyComplete();
-    }
-
-    @Test
-    public void testExecuteWithJsonBody() {
+    public void testJsonBody() {
         final ServerWebExchange exchange = MockServerWebExchange.from(
                 MockServerHttpRequest.post("localhost").contentType(MediaType.APPLICATION_JSON).body("{}"));
         Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
         SoulContext context = new SoulContext();
         context.setRpcType(RpcTypeEnum.DUBBO.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
-
-        final Mono<Void> result = bodyParamPluginUnderTest.execute(exchange, chain);
-
+        final Mono<Void> result = bodyParamPlugin.execute(exchange, chain);
         StepVerifier.create(result).expectSubscription().verifyComplete();
     }
-
+    
     @Test
-    public void testExecuteWithFormBody() {
-        final ServerWebExchange formExchange = MockServerWebExchange.from(
-                MockServerHttpRequest.post("localhost")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED).body("{}"));
-        Mockito.when(chain.execute(formExchange)).thenReturn(Mono.empty());
+    public void testFormatBody() {
+        final ServerWebExchange exchange = MockServerWebExchange.from(
+                MockServerHttpRequest.post("localhost").contentType(MediaType.APPLICATION_FORM_URLENCODED).body("test=test"));
+        Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
         SoulContext context = new SoulContext();
         context.setRpcType(RpcTypeEnum.DUBBO.getName());
-        formExchange.getAttributes().put(Constants.CONTEXT, context);
-
-        final Mono<Void> result = bodyParamPluginUnderTest.execute(formExchange, chain);
-
+        exchange.getAttributes().put(Constants.CONTEXT, context);
+        final Mono<Void> result = bodyParamPlugin.execute(exchange, chain);
         StepVerifier.create(result).expectSubscription().verifyComplete();
     }
+    
+    @Test
+    public void testNoBody() {
+        final ServerWebExchange exchange = MockServerWebExchange.from(
+                MockServerHttpRequest.post("localhost"));
+        Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
+        SoulContext context = new SoulContext();
+        context.setRpcType(RpcTypeEnum.DUBBO.getName());
+        exchange.getAttributes().put(Constants.CONTEXT, context);
+        final Mono<Void> result = bodyParamPlugin.execute(exchange, chain);
+        StepVerifier.create(result).expectSubscription().verifyComplete();
+    }
+    
+    @Test
+    public void testSimpleBody() {
+        final ServerWebExchange exchange = MockServerWebExchange.from(
+                MockServerHttpRequest.post("localhost").body("test"));
+        Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
+        SoulContext context = new SoulContext();
+        context.setRpcType(RpcTypeEnum.DUBBO.getName());
+        exchange.getAttributes().put(Constants.CONTEXT, context);
+        final Mono<Void> result = bodyParamPlugin.execute(exchange, chain);
+        StepVerifier.create(result).expectSubscription().verifyComplete();
+    }
+    
 }
