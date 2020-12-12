@@ -52,21 +52,21 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class UpstreamCheckService {
-    
+
     private static final Map<String, List<DivideUpstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
-    
+
     @Value("${soul.upstream.check:true}")
     private boolean check;
-    
+
     @Value("${soul.upstream.scheduledTime:10}")
     private int scheduledTime;
-    
+
     private final SelectorService selectorService;
-    
+
     private final SelectorMapper selectorMapper;
-    
+
     private final ApplicationEventPublisher eventPublisher;
-    
+
     /**
      * Instantiates a new Upstream check service.
      *
@@ -80,7 +80,7 @@ public class UpstreamCheckService {
         this.selectorMapper = selectorMapper;
         this.eventPublisher = eventPublisher;
     }
-    
+
     /**
      * Sets .
      */
@@ -98,7 +98,7 @@ public class UpstreamCheckService {
                     .scheduleWithFixedDelay(this::scheduled, 10, scheduledTime, TimeUnit.SECONDS);
         }
     }
-    
+
     /**
      * Remove by key.
      *
@@ -107,7 +107,7 @@ public class UpstreamCheckService {
     public static void removeByKey(final String selectorName) {
         UPSTREAM_MAP.remove(selectorName);
     }
-    
+
     /**
      * Submit.
      *
@@ -120,15 +120,15 @@ public class UpstreamCheckService {
         } else {
             UPSTREAM_MAP.put(selectorName, Lists.newArrayList(divideUpstream));
         }
-        
+
     }
-    
+
     private void scheduled() {
         if (UPSTREAM_MAP.size() > 0) {
             UPSTREAM_MAP.forEach(this::check);
         }
     }
-    
+
     private void check(final String selectorName, final List<DivideUpstream> upstreamList) {
         List<DivideUpstream> successList = Lists.newArrayListWithCapacity(upstreamList.size());
         for (DivideUpstream divideUpstream : upstreamList) {
@@ -148,7 +148,7 @@ public class UpstreamCheckService {
             updateSelectorHandler(selectorName, null);
         }
     }
-    
+
     private void updateSelectorHandler(final String selectorName, final List<DivideUpstream> upstreams) {
         SelectorDO selector = selectorService.findByName(selectorName);
         if (Objects.nonNull(selector)) {
@@ -162,11 +162,10 @@ public class UpstreamCheckService {
                 selectorData.setHandle(handler);
             }
             selectorMapper.updateSelective(selector);
-            //发送更新事件
             // publish change event.
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
                     Collections.singletonList(selectorData)));
         }
     }
-    
+
 }

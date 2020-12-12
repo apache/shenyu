@@ -33,7 +33,7 @@ import java.util.Objects;
  * @author tydhot
  */
 public class SofaPluginDataHandler implements PluginDataHandler {
-    
+
     @Override
     public void handlerPlugin(final PluginData pluginData) {
         if (null != pluginData && pluginData.getEnabled()) {
@@ -43,14 +43,14 @@ public class SofaPluginDataHandler implements PluginDataHandler {
                 return;
             }
             if (Objects.isNull(exist) || !sofaRegisterConfig.equals(exist)) {
-                //如果是空，进行初始化操作，
+                // If it is null, initialize it
                 ApplicationConfigCache.getInstance().init(sofaRegisterConfig);
                 ApplicationConfigCache.getInstance().invalidateAll();
             }
             Singleton.INST.single(SofaRegisterConfig.class, sofaRegisterConfig);
         }
     }
-    
+
     @Override
     public String pluginNamed() {
         return PluginEnum.SOFA.getName();

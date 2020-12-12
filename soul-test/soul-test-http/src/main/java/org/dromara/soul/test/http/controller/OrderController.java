@@ -44,7 +44,7 @@ public class OrderController {
      * @return the order dto
      */
     @PostMapping("/save")
-    @SoulSpringMvcClient(path = "/save" , desc = "订单保存")
+    @SoulSpringMvcClient(path = "/save" , desc = "Save order")
     public OrderDTO save(@RequestBody final OrderDTO orderDTO) {
         orderDTO.setName("hello world save order");
         return orderDTO;
@@ -57,7 +57,7 @@ public class OrderController {
      * @return the order dto
      */
     @GetMapping("/findById")
-    @SoulSpringMvcClient(path = "/findById", desc = "根据id获取")
+    @SoulSpringMvcClient(path = "/findById", desc = "Find by id")
     public OrderDTO findById(@RequestParam("id") final String id) {
         OrderDTO orderDTO = new OrderDTO();
         orderDTO.setId(id);
