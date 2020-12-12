@@ -232,13 +232,13 @@ public final class ExtensionLoader<T> {
         }
         Join annotation = subClass.getAnnotation(Join.class);
         if (annotation == null) {
-            throw new IllegalStateException("load extension resources error," + subClass + "with Join annotation");
+            throw new IllegalStateException("load extension resources error," + subClass + " with Join annotation");
         }
         Class<?> oldClass = classes.get(name);
         if (oldClass == null) {
             classes.put(name, subClass);
         } else if (oldClass != subClass) {
-            throw new IllegalStateException("load extension resources error,Duplicate class " + clazz.getName() + "name " + name + " on " + oldClass.getName() + " or" + subClass.getName());
+            throw new IllegalStateException("load extension resources error,Duplicate class " + clazz.getName() + " name " + name + " on " + oldClass.getName() + " or" + subClass.getName());
         }
     }
 
