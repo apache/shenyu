@@ -114,7 +114,7 @@ public class PluginController {
     @PostMapping("")
     public SoulAdminResult createPlugin(@RequestBody final PluginDTO pluginDTO) {
         String result = pluginService.createOrUpdate(pluginDTO);
-        if (StringUtils.isNoneBlank()) {
+        if (StringUtils.isNoneBlank(result)) {
             return SoulAdminResult.error(result);
         }
         return SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS);
