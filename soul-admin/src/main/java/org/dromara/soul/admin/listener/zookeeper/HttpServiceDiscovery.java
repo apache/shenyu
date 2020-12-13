@@ -123,12 +123,11 @@ public class HttpServiceDiscovery implements InitializingBean {
             String[] split = StringUtils.split(parentPath, "/");
             String contextPath = "/" + split[2];
             if (CollectionUtils.isEmpty(currentChilds)) {
-                //表示一个都没了
                 updateSelectorHandler(contextPath, null);
             } else {
                 List<String> uriList = new ArrayList<>();
                 for (String subNode : currentChilds) {
-                    // 读取节点内容
+                    // Read node data
                     String data = zkClient.readData(parentPath + "/" + subNode);
                     uriList.add(data);
                 }
@@ -147,7 +146,7 @@ public class HttpServiceDiscovery implements InitializingBean {
     private void updateServiceList(final List<String> children, final String contextPath) {
         List<String> uriList = new ArrayList<>();
         for (String subNode : children) {
-            // 读取节点内容
+            // Read node data
             String data = zkClient.readData(subNode);
             uriList.add(data);
         }
@@ -168,7 +167,6 @@ public class HttpServiceDiscovery implements InitializingBean {
             }
             selectorMapper.updateSelective(selector);
 
-            //发送更新事件
             // publish change event.
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
                     Collections.singletonList(selectorData)));
