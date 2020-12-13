@@ -61,4 +61,3 @@ public final class SpringBeanUtilsTest {
         Assert.assertNotNull(result);
     }
 }
-
