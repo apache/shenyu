@@ -17,30 +17,30 @@
 
 package org.dromara.soul.metrics.facade;
 
-import com.google.common.base.Preconditions;
-import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.metrics.api.HistogramMetricsTrackerDelegate;
 import org.dromara.soul.metrics.api.SummaryMetricsTrackerDelegate;
 import org.dromara.soul.metrics.config.MetricsConfig;
 import org.dromara.soul.metrics.enums.MetricsLabelEnum;
-import org.dromara.soul.metrics.facade.handler.MetricsTrackerHandler;
-import org.dromara.soul.metrics.spi.MetricsTrackerManager;
-import org.dromara.soul.spi.ExtensionLoader;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Optional;
 import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
- * The Test Case For MetricsTrackerFacade.
+ * The Test For MetricsTrackerFacade.
  *
  * @author nuo-promise
  **/
+@Slf4j
 public class MetricsTrackerFacadeTest {
+
+    private MetricsTrackerFacade metricsTrackerFacade;
 
     private static final String REQUEST_TOTAL_COUNT_NAME = "request_total";
 
@@ -48,79 +48,89 @@ public class MetricsTrackerFacadeTest {
 
     private static final String REQUEST_SUMMARY_NAME = "request_latency_summary_millis";
 
-    @Getter
-    private MetricsTrackerManager metricsTrackerManager;
-
-    private final AtomicBoolean isStarted = new AtomicBoolean(false);
-
     @Before
     public void setUp() {
-        if (this.isStarted.compareAndSet(false, true)) {
-            MetricsConfig  metricsConfig = new MetricsConfig("facade","localhost", 1234, Boolean.FALSE,
+        metricsTrackerFacade = MetricsTrackerFacade.getInstance();
+        start();
+    }
+
+    @Test
+    public void getInstance() {
+        assertNotNull(metricsTrackerFacade);
+    }
+
+    @Test
+    public void start() {
+        if (!metricsTrackerFacade.isStarted()) {
+            MetricsConfig metricsConfig = new MetricsConfig("prometheus","localhost", 1234, Boolean.FALSE,
                     10, "{\"jmxUrl\":\"service:jmx:rmi:///jndi/rmi://127.0.0.1:1234/jmxrmi\"}",new Properties());
-            metricsTrackerManager = ExtensionLoader.getExtensionLoader(MetricsTrackerManager.class).getJoin(metricsConfig.getMetricsName());
-            Preconditions.checkNotNull(metricsTrackerManager,
-                    "Can not find metrics tracker manager with metrics name : %s in metrics configuration.", metricsConfig.getMetricsName());
-            metricsTrackerManager.start(metricsConfig);
-            Integer threadCount = Optional.ofNullable(metricsConfig.getThreadCount()).orElse(Runtime.getRuntime().availableProcessors());
-            MetricsTrackerHandler.getInstance().init(metricsConfig.getAsync(), threadCount, metricsTrackerManager);
+            metricsTrackerFacade.start(metricsConfig);
+            assertTrue(metricsTrackerFacade.isStarted());
         } else {
-            System.out.println("Test metrics tracker has started !");
+            log.info("metrics tracker has started !");
         }
 
     }
 
     @Test
     public void counterInc() {
-        if (isStarted.get()) {
-            MetricsTrackerHandler.getInstance().counterInc(MetricsLabelEnum.REQUEST_TOTAL.getName(), REQUEST_TOTAL_COUNT_NAME);
-        }
+        metricsTrackerFacade.counterInc(MetricsLabelEnum.REQUEST_TOTAL.getName(), REQUEST_TOTAL_COUNT_NAME);
     }
 
     @Test
     public void gaugeInc() {
-        if (isStarted.get()) {
-            MetricsTrackerHandler.getInstance().gaugeInc(MetricsLabelEnum.REQUEST_TOTAL.getName(), REQUEST_TOTAL_COUNT_NAME);
-        }
+        metricsTrackerFacade.gaugeInc(MetricsLabelEnum.REQUEST_TOTAL.getName(), REQUEST_TOTAL_COUNT_NAME);
     }
 
     @Test
     public void gaugeDec() {
-        if (isStarted.get()) {
-            MetricsTrackerHandler.getInstance().gaugeDec(MetricsLabelEnum.REQUEST_TOTAL.getName(), REQUEST_TOTAL_COUNT_NAME);
-        }
+        metricsTrackerFacade.gaugeDec(MetricsLabelEnum.REQUEST_TOTAL.getName(), REQUEST_TOTAL_COUNT_NAME);
+
     }
 
     @Test
     public void histogramStartTimer() {
-        MetricsTrackerHandler.getInstance().histogramStartTimer(MetricsLabelEnum.REQUEST_LATENCY.getName(), REQUEST_HISTOGRAM_NAME);
+        assertTrue(metricsTrackerFacade.histogramStartTimer(MetricsLabelEnum.REQUEST_LATENCY.getName(), REQUEST_HISTOGRAM_NAME).isPresent());
     }
 
     @Test
     public void histogramObserveDuration() {
-        if (isStarted.get()) {
-            Optional<HistogramMetricsTrackerDelegate> histogramMetricsTrackerDelegate = MetricsTrackerHandler.getInstance().histogramStartTimer(MetricsLabelEnum.REQUEST_LATENCY.getName(), REQUEST_HISTOGRAM_NAME);
-            histogramMetricsTrackerDelegate.ifPresent(metricsTrackerDelegate -> MetricsTrackerHandler.getInstance().histogramObserveDuration(metricsTrackerDelegate));
-
-        }
+        Optional<HistogramMetricsTrackerDelegate> histogramMetricsTrackerDelegateOptional = metricsTrackerFacade.histogramStartTimer(MetricsLabelEnum.REQUEST_LATENCY.getName(), REQUEST_HISTOGRAM_NAME);
+        histogramMetricsTrackerDelegateOptional.ifPresent(histogramMetricsTrackerDelegate -> metricsTrackerFacade.histogramObserveDuration(histogramMetricsTrackerDelegate));
+        stop();
+        Optional<HistogramMetricsTrackerDelegate> histogramMetricsTrackerDelegateOptional1 = metricsTrackerFacade.histogramStartTimer(MetricsLabelEnum.REQUEST_LATENCY.getName(), REQUEST_HISTOGRAM_NAME);
+        histogramMetricsTrackerDelegateOptional1.ifPresent(histogramMetricsTrackerDelegate -> metricsTrackerFacade.histogramObserveDuration(histogramMetricsTrackerDelegate));
     }
 
     @Test
     public void summaryStartTimer() {
-        MetricsTrackerHandler.getInstance().summaryStartTimer(MetricsLabelEnum.REQUEST_LATENCY.getName(), REQUEST_SUMMARY_NAME);
+        assertTrue(metricsTrackerFacade.summaryStartTimer(MetricsLabelEnum.REQUEST_LATENCY.getName(), REQUEST_SUMMARY_NAME).isPresent());
     }
 
     @Test
     public void summaryObserveDuration() {
-        if (isStarted.get()) {
-            Optional<SummaryMetricsTrackerDelegate> summaryMetricsTrackerDelegate = MetricsTrackerHandler.getInstance().summaryStartTimer(MetricsLabelEnum.REQUEST_LATENCY.getName(), REQUEST_SUMMARY_NAME);
-            summaryMetricsTrackerDelegate.ifPresent(metricsTrackerDelegate -> MetricsTrackerHandler.getInstance().summaryObserveDuration(metricsTrackerDelegate));
+        Optional<SummaryMetricsTrackerDelegate> summaryMetricsTrackerDelegate = metricsTrackerFacade.summaryStartTimer(MetricsLabelEnum.REQUEST_LATENCY.getName(), REQUEST_SUMMARY_NAME);
+        summaryMetricsTrackerDelegate.ifPresent(metricsTrackerDelegate -> metricsTrackerFacade.summaryObserveDuration(metricsTrackerDelegate));
+        stop();
+        Optional<SummaryMetricsTrackerDelegate> summaryMetricsTrackerDelegate1 = metricsTrackerFacade.summaryStartTimer(MetricsLabelEnum.REQUEST_LATENCY.getName(), REQUEST_SUMMARY_NAME);
+        summaryMetricsTrackerDelegate1.ifPresent(metricsTrackerDelegate -> metricsTrackerFacade.summaryObserveDuration(metricsTrackerDelegate));
+    }
 
-        }
+    @Test
+    public void stop() {
+        assertNotNull(metricsTrackerFacade.getMetricsTrackerManager());
+        metricsTrackerFacade.getMetricsTrackerManager().stop();
+        metricsTrackerFacade.stop();
+        assertFalse(metricsTrackerFacade.isStarted());
     }
 
     @Test
     public void isStarted() {
-        assertTrue(isStarted.get());
+        assertTrue(metricsTrackerFacade.isStarted());
+    }
+
+    @Test
+    public void getMetricsTrackerManager() {
+        assertNotNull(metricsTrackerFacade.getMetricsTrackerManager());
     }
 }
