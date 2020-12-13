@@ -21,6 +21,7 @@ import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.common.exception.CommonErrorCode;
 import org.dromara.soul.common.exception.SoulException;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.dao.DuplicateKeyException;
 
@@ -33,24 +34,34 @@ import static org.junit.Assert.assertEquals;
  */
 public final class ExceptionHandlersTest {
 
-    private final Exception exception = new Exception();
+    private ExceptionHandlers exceptionHandlersUnderTest;
 
-    private final Exception soulException = new SoulException("Test soulException message!");
-
-    private final DuplicateKeyException duplicateKeyException = new DuplicateKeyException("Test duplicateKeyException message!");
+    @Before
+    public void setUp() throws Exception {
+        exceptionHandlersUnderTest = new ExceptionHandlers();
+    }
 
     @Test
-    public void testServerExceptionHandler() {
-        SoulAdminResult exceptionRes = new ExceptionHandlers().serverExceptionHandler(exception);
-        assertEquals(exceptionRes.getCode().intValue(), CommonErrorCode.ERROR);
-        assertEquals(exceptionRes.getMessage(), "The system is busy, please try again later");
+    public void testServerExceptionHandlerByException() {
+        Exception exception = new Exception();
+        SoulAdminResult result = exceptionHandlersUnderTest.serverExceptionHandler(exception);
+        assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
+        assertEquals(result.getMessage(), "The system is busy, please try again later");
+    }
 
-        SoulAdminResult soulExceptionRes = new ExceptionHandlers().serverExceptionHandler(soulException);
-        assertEquals(soulExceptionRes.getCode().intValue(), CommonErrorCode.ERROR);
-        assertEquals(soulExceptionRes.getMessage(), soulException.getMessage());
+    @Test
+    public void testServerExceptionHandlerBySoulException() {
+        Exception soulException = new SoulException("Test soulException message!");
+        SoulAdminResult result = exceptionHandlersUnderTest.serverExceptionHandler(soulException);
+        assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
+        assertEquals(result.getMessage(), soulException.getMessage());
+    }
 
-        SoulAdminResult duplicateKeyExceptionRes = new ExceptionHandlers().serverExceptionHandler(duplicateKeyException);
-        assertEquals(duplicateKeyExceptionRes.getCode().intValue(), CommonErrorCode.ERROR);
-        assertEquals(duplicateKeyExceptionRes.getMessage(), SoulResultMessage.UNIQUE_INDEX_CONFLICT_ERROR);
+    @Test
+    public void testServerExceptionHandlerByDuplicateKeyException() {
+        DuplicateKeyException duplicateKeyException = new DuplicateKeyException("Test duplicateKeyException message!");
+        SoulAdminResult result = exceptionHandlersUnderTest.serverExceptionHandler(duplicateKeyException);
+        assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
+        assertEquals(result.getMessage(), SoulResultMessage.UNIQUE_INDEX_CONFLICT_ERROR);
     }
 }
