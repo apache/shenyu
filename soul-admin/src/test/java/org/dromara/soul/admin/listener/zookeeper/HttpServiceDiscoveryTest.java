@@ -26,7 +26,11 @@ import org.dromara.soul.admin.entity.SelectorDO;
 import org.dromara.soul.admin.mapper.SelectorMapper;
 import org.dromara.soul.admin.service.SelectorService;
 import org.dromara.soul.common.dto.SelectorData;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -41,17 +45,22 @@ import static org.mockito.BDDMockito.given;
  *
  * @author liMingLiang
  */
-@SuppressWarnings({"deprecation"})
+@SuppressWarnings("deprecation")
 @RunWith(MockitoJUnitRunner.class)
 public class HttpServiceDiscoveryTest {
 
     private static final String ZK_URL = "127.0.0.1:21810";
+
     private static final int SLEEP_INTERVAL = 50;
 
     private static final String ROOT = "/soul/register";
+
     private static final String SERVER_NODE = "serverNodeTest";
+
     private static final String SUB_NODE_1 = "SubNode1Test";
+
     private static final String SUB_NODE_2 = "SubNode2Test";
+
     private static final String SUB_NODE_DATA = "SubNodeDataTest";
 
     private static MockEnvironment env;
@@ -129,7 +138,7 @@ public class HttpServiceDiscoveryTest {
         Assert.assertNotNull(httpServiceDiscovery);
     }
 
-    private void createSubNode(ZkClient zkClient, String pathChildNode) {
+    private void createSubNode(final ZkClient zkClient, final String pathChildNode) {
         zkClient.createPersistent(pathChildNode, true);
         zkClient.writeData(pathChildNode, SUB_NODE_DATA);
     }
