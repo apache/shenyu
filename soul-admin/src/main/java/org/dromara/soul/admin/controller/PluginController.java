@@ -28,6 +28,7 @@ import org.dromara.soul.admin.service.PluginService;
 import org.dromara.soul.admin.service.SyncDataService;
 import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.admin.vo.PluginVO;
+import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -80,6 +81,16 @@ public class PluginController {
     public SoulAdminResult queryPlugins(final String name, final Integer currentPage, final Integer pageSize) {
         CommonPager<PluginVO> commonPager = pluginService.listByPage(new PluginQuery(name, new PageParameter(currentPage, pageSize)));
         return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
+    }
+
+    /**
+     * query All plugins.
+     * @return {@linkplain SoulAdminResult}
+     */
+    @GetMapping("/all")
+    public SoulAdminResult queryAllPlugins() {
+        List<PluginData> pluginDataList = pluginService.listAll();
+        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, pluginDataList);
     }
 
     /**
