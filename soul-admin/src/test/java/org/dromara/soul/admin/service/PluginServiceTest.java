@@ -49,9 +49,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -109,7 +108,7 @@ public final class PluginServiceTest {
         PluginDO pluginDO = buildPluginDO("123");
         when(pluginMapper.selectById("123")).thenReturn(pluginDO);
         when(pluginMapper.delete("123")).thenReturn(1);
-        final List<String> ids = Arrays.asList(pluginDO.getId());
+        final List<String> ids = Collections.singletonList(pluginDO.getId());
         testSelectorDelete();
         String msg = pluginService.delete(ids);
         assertEquals(msg, StringUtils.EMPTY);
@@ -120,7 +119,7 @@ public final class PluginServiceTest {
         publishEvent();
         BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
         batchCommonDTO.setEnabled(false);
-        batchCommonDTO.setIds(Arrays.asList("123"));
+        batchCommonDTO.setIds(Collections.singletonList("123"));
         given(this.pluginMapper.updateEnable(any())).willReturn(1);
         assertThat(this.pluginService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled()), equalTo(StringUtils.EMPTY));
     }
@@ -155,7 +154,7 @@ public final class PluginServiceTest {
     @Test
     public void testListAll() {
         PluginDO pluginDO = buildPluginDO("123");
-        List<PluginDO> pluginDOList = Arrays.asList(pluginDO);
+        List<PluginDO> pluginDOList = Collections.singletonList(pluginDO);
         given(this.pluginMapper.selectAll()).willReturn(pluginDOList);
         List<PluginData> dataList = this.pluginService.listAll();
         assertNotNull(dataList);

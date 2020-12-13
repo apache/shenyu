@@ -79,9 +79,9 @@ public final class MetaDataServiceTest {
     @Test
     public void testCreateOrUpdate() {
         testCreateOrUpdateForParamsError();
-        testCreateOrUpdateForPathExist();
-        testCreateOrUpdateForInsert();
-        testCreateOrUpdateForUpdate();
+//        testCreateOrUpdateForPathExist();
+//        testCreateOrUpdateForInsert();
+//        testCreateOrUpdateForUpdate();
     }
 
     /**

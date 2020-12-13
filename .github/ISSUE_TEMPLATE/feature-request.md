@@ -1,7 +1,7 @@
 ---
 name: 🚀 Feature Request
 about: I have a suggestion (and may want to implement it 🙂)!
-labels: 'enhancement'
+labels: 'type: new feature'
 ---
 
 ## Feature Request
@@ -21,4 +21,6 @@ A clear and concise description of what you want to happen. Add any considered d
 A clear and concise description of any alternative solutions or features you've considered.
 
 #### Additional context
+
+Please read the [Contribution Guideline](https://dromara.org/website/en-us/docs/soul/contributor.html) before submitting the PR
 

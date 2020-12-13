@@ -194,6 +194,30 @@ public class GsonUtils {
     }
 
     /**
+     *  To object map map.
+     *
+     * @param json  the json
+     * @param clazz the class
+     * @param <T>   the class
+     * @return the map
+     */
+    public <T> Map<String, T> toObjectMap(final String json, final Class<T> clazz) {
+        return GSON.fromJson(json, TypeToken.getParameterized(Map.class, String.class, clazz).getType());
+    }
+
+    /**
+     *  To object map list.
+     *
+     * @param json  the json
+     * @param clazz the class
+     * @param <T>   the class
+     * @return the map
+     */
+    public <T> Map<String, List<T>> toObjectMapList(final String json, final Class<T> clazz) {
+        return GSON.fromJson(json, TypeToken.getParameterized(Map.class, String.class, TypeToken.getParameterized(List.class, clazz).getType()).getType());
+    }
+
+    /**
      * To tree map tree map.
      *
      * @param json the json

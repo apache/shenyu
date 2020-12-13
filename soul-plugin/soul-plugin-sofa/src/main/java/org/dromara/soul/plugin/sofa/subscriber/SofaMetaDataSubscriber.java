@@ -40,11 +40,11 @@ public class SofaMetaDataSubscriber implements MetaDataSubscriber {
         if (RpcTypeEnum.SOFA.getName().equals(metaData.getRpcType())) {
             MetaData exist = META_DATA.get(metaData.getPath());
             if (Objects.isNull(exist) || Objects.isNull(ApplicationConfigCache.getInstance().get(exist.getServiceName()).refer())) {
-                //第一次初始化
+                // The first initialization
                 ApplicationConfigCache.getInstance().initRef(metaData);
             } else {
                 if (!exist.getServiceName().equals(metaData.getServiceName()) || !exist.getRpcExt().equals(metaData.getRpcExt())) {
-                    //有更新
+                    // update
                     ApplicationConfigCache.getInstance().build(metaData);
                 }
             }

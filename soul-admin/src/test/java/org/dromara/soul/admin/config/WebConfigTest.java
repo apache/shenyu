@@ -33,7 +33,7 @@ import java.util.Map;
 public final class WebConfigTest extends AbstractConfigurationTest {
 
     @Test
-    public void testaddCorsMappings() throws Exception {
+    public void testAddCorsMappings() throws Exception {
         CorsRegistry registry = new CorsRegistry();
         WebConfig webConfig = new WebConfig();
         webConfig.addCorsMappings(registry);
