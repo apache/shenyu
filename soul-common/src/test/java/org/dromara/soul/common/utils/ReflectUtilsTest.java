@@ -20,6 +20,7 @@ package org.dromara.soul.common.utils;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * Test cases for ReflectUtils.
@@ -30,11 +31,18 @@ public final class ReflectUtilsTest {
 
     @Test
     public void testGetFieldValue() {
-        Reflect reflect = new Reflect();
+        final Reflect reflect = new Reflect();
+        final ReflectNonField reflectNonField = new ReflectNonField();
         assertEquals("1", ReflectUtils.getFieldValue(reflect, "a"));
+        assertNull(ReflectUtils.getFieldValue(reflect, ""));
+        assertNull(ReflectUtils.getFieldValue(null, "a"));
+        assertNull(ReflectUtils.getFieldValue(reflectNonField, "a"));
     }
 
-    public static class Reflect {
+    static class Reflect {
         private String a = "1";
+    }
+
+    static class ReflectNonField {
     }
 }

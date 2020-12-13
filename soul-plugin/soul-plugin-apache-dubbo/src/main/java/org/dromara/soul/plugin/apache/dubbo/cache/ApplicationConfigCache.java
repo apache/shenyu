@@ -61,8 +61,9 @@ public final class ApplicationConfigCache {
                         Class<?> cz = config.getClass();
                         Field field = cz.getDeclaredField("ref");
                         field.setAccessible(true);
+                        // After the configuration change, Dubbo destroys the instance, but does not empty it. If it is not handled,
+                        // it will get NULL when reinitializing and cause a NULL pointer problem.
                         field.set(config, null);
-                        //跟改配置之后dubbo 销毁该实例,但是未置空,如果不处理,重新初始化的时候将获取到NULL照成空指针问题.
                     } catch (NoSuchFieldException | IllegalAccessException e) {
                         log.error("modify ref have exception", e);
                     }

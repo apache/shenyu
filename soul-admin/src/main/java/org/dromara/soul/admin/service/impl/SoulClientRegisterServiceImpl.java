@@ -292,11 +292,10 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
             }
             selectorDO.setHandle(handleAdd);
             selectorData.setHandle(handleAdd);
-            //更新数据库
+            // update db
             selectorMapper.updateSelective(selectorDO);
-            //提交过去检查
+            // submit upstreamCheck
             upstreamCheckService.submit(contextPath, addDivideUpstream);
-            //发送更新事件
             // publish change event.
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
                     Collections.singletonList(selectorData)));

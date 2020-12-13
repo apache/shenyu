@@ -68,11 +68,11 @@ public class DividePlugin extends AbstractSoulPlugin {
             Object error = SoulResultWrap.error(SoulResultEnum.CANNOT_FIND_URL.getCode(), SoulResultEnum.CANNOT_FIND_URL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
-        //设置一下 http url
+        // set the http url
         String domain = buildDomain(divideUpstream);
         String realURL = buildRealURL(domain, soulContext, exchange);
         exchange.getAttributes().put(Constants.HTTP_URL, realURL);
-        //设置下超时时间
+        // set the http timeout
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
         exchange.getAttributes().put(Constants.HTTP_RETRY, ruleHandle.getRetry());
         return chain.execute(exchange);
