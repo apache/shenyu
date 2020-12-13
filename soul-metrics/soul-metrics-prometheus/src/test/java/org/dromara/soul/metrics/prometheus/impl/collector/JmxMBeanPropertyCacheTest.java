@@ -22,6 +22,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.management.ObjectName;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -42,8 +44,13 @@ public final class JmxMBeanPropertyCacheTest {
 
     @SneakyThrows
     @Test
-    public void getKeyPropertyList() {
-        ObjectName objectName1 = ObjectName.getInstance("promise1", "promise1", "10");
-        assertThat(this.jmxMBeanPropertyCache.getKeyPropertyList(objectName1).get("promise1"), is("10"));
+    public void testJmxMBeanPropertyCache() {
+        ObjectName objectName1 = new ObjectName("[org.apache.cassandra.metrics:type=ColumnFamily,path=home]");
+        assertThat(this.jmxMBeanPropertyCache.getKeyPropertyList(objectName1).get("type"), is("ColumnFamily"));
+        Set<ObjectName> objectNameSet = new HashSet<>();
+        ObjectName objectName2 = new ObjectName("[org.damara.sou;.metrics:type=ColumnFamily,path=home]");
+        objectNameSet.add(objectName2);
+        this.jmxMBeanPropertyCache.onlyKeepMBeans(objectNameSet);
+        assertThat(this.jmxMBeanPropertyCache.getKeyPropertyList(objectName1).get("type"), is("ColumnFamily"));
     }
 }
