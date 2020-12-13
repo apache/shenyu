@@ -15,24 +15,13 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.client.springcloud.config;
-
-import lombok.Data;
+package org.dromara.soul.spi.fixture;
 
 /**
- * The type Soul spring cloud config.
+ * no join SPI class.
  *
- * @author xiaoyu
+ * @author wyc192273
  */
-@Data
-public class SoulSpringCloudConfig {
+public class SubNoJoinSPI implements NoJoinSPI {
 
-    private String adminUrl;
-
-    private String contextPath;
-
-    /**
-     * Set true means providing proxy for your entire service, or only a few controller.
-     */
-    private boolean full;
 }

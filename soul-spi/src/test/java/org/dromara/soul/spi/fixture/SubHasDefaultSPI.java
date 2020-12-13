@@ -15,24 +15,16 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.client.springcloud.config;
+package org.dromara.soul.spi.fixture;
 
-import lombok.Data;
+import org.dromara.soul.spi.Join;
 
 /**
- * The type Soul spring cloud config.
+ * default spi class.
  *
- * @author xiaoyu
+ * @author wyc192273
  */
-@Data
-public class SoulSpringCloudConfig {
+@Join
+public class SubHasDefaultSPI implements HasDefaultSPI {
 
-    private String adminUrl;
-
-    private String contextPath;
-
-    /**
-     * Set true means providing proxy for your entire service, or only a few controller.
-     */
-    private boolean full;
 }

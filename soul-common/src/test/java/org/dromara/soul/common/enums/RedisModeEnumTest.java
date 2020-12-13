@@ -15,34 +15,28 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.utils;
+package org.dromara.soul.common.enums;
 
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotEquals;
 
 /**
- * Test cases for ReflectUtils.
+ * Test Cases for RedisModeEnum.
  *
- * @author dengliming
+ * @author YarNeCn
  */
-public final class ReflectUtilsTest {
+public class RedisModeEnumTest {
 
     @Test
-    public void testGetFieldValue() {
-        final Reflect reflect = new Reflect();
-        final ReflectNonField reflectNonField = new ReflectNonField();
-        assertEquals("1", ReflectUtils.getFieldValue(reflect, "a"));
-        assertNull(ReflectUtils.getFieldValue(reflect, ""));
-        assertNull(ReflectUtils.getFieldValue(null, "a"));
-        assertNull(ReflectUtils.getFieldValue(reflectNonField, "a"));
-    }
+    public void testAcquireByName() {
+        assertEquals(RedisModeEnum.CLUSTER, RedisModeEnum.acquireByName(RedisModeEnum.CLUSTER.getName()));
+        assertEquals(RedisModeEnum.SENTINEL, RedisModeEnum.acquireByName(RedisModeEnum.SENTINEL.getName()));
+        assertEquals(RedisModeEnum.STANDALONE, RedisModeEnum.acquireByName(RedisModeEnum.STANDALONE.getName()));
+        assertNotEquals(RedisModeEnum.STANDALONE, RedisModeEnum.acquireByName(RedisModeEnum.CLUSTER.getName()));
 
-    static class Reflect {
-        private String a = "1";
-    }
-
-    static class ReflectNonField {
+        assertEquals(RedisModeEnum.STANDALONE, RedisModeEnum.acquireByName(null));
+        assertEquals(RedisModeEnum.STANDALONE, RedisModeEnum.acquireByName(""));
     }
 }

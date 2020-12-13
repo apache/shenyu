@@ -15,24 +15,30 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.client.springcloud.config;
+package org.dromara.soul.common.utils;
 
-import lombok.Data;
+import org.junit.Test;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 
 /**
- * The type Soul spring cloud config.
+ * Test Cases for ThreadUtils.
  *
- * @author xiaoyu
+ * @author onlyonezhongjinhui
  */
-@Data
-public class SoulSpringCloudConfig {
+public final class ThreadUtilsTest {
 
-    private String adminUrl;
+    @Test
+    public void testSleep() {
+        ThreadUtils.sleep(TimeUnit.MILLISECONDS, 1);
+    }
 
-    private String contextPath;
+    @Test
+    public void testSleepInterrupt() {
+        Thread thread = new Thread(() -> ThreadUtils.sleep(TimeUnit.MILLISECONDS, 100));
+        thread.start();
+        LockSupport.parkNanos(100);
+        thread.interrupt();
+    }
 
-    /**
-     * Set true means providing proxy for your entire service, or only a few controller.
-     */
-    private boolean full;
 }

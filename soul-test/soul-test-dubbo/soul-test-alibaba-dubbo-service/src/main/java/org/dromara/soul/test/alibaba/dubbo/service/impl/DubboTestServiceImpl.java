@@ -29,27 +29,27 @@ import org.springframework.stereotype.Service;
  */
 @Service("dubboTestService")
 public class DubboTestServiceImpl implements DubboTestService {
-    
+
     @Override
-    @SoulDubboClient(path = "/findById", desc = "根据用户查询")
+    @SoulDubboClient(path = "/findById", desc = "Query by Id")
     public DubboTest findById(final String id) {
         DubboTest dubboTest = new DubboTest();
         dubboTest.setId(id);
         dubboTest.setName("hello world Soul Alibaba Dubbo, findById");
         return dubboTest;
     }
-    
+
     @Override
-    @SoulDubboClient(path = "/findAll", desc = "获取所有")
+    @SoulDubboClient(path = "/findAll", desc = "Get all data")
     public DubboTest findAll() {
         DubboTest dubboTest = new DubboTest();
         dubboTest.setName("hello world Soul Alibaba Dubbo , findAll");
         dubboTest.setId(String.valueOf(new Random().nextInt()));
         return dubboTest;
     }
-    
+
     @Override
-    @SoulDubboClient(path = "/insert", desc = "插入一条数据")
+    @SoulDubboClient(path = "/insert", desc = "Insert a row of data")
     public DubboTest insert(final DubboTest dubboTest) {
         dubboTest.setName("hello world Soul Alibaba Dubbo: " + dubboTest.getName());
         return dubboTest;
