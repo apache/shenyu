@@ -125,7 +125,7 @@ public class ApacheDubboServiceBeanPostProcessor implements ApplicationListener<
                 .version(StringUtils.isNotEmpty(serviceBean.getVersion()) ? serviceBean.getVersion() : "")
                 .loadbalance(StringUtils.isNotEmpty(serviceBean.getLoadbalance()) ? serviceBean.getLoadbalance() : Constants.DEFAULT_LOADBALANCE)
                 .retries(Objects.isNull(serviceBean.getRetries()) ? Constants.DEFAULT_RETRIES : serviceBean.getRetries())
-                .timeout(Objects.isNull(serviceBean.getTimeout()) ? Constants.DEFAULT_TIMEOUT : serviceBean.getTimeout())
+                .timeout(Objects.isNull(serviceBean.getTimeout()) ? Constants.DEFAULT_CONNECT_TIMEOUT : serviceBean.getTimeout())
                 .url("")
                 .build();
         return OkHttpTools.getInstance().getGson().toJson(build);
