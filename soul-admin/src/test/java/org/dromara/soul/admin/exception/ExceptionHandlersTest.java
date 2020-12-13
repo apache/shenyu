@@ -28,7 +28,7 @@ import org.springframework.dao.DuplicateKeyException;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Test case for ExceptionHandlers.
+ * Test case for {@link ExceptionHandlers}.
  *
  * @author bigwillc
  */
