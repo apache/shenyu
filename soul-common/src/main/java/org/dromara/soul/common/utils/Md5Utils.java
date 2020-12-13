@@ -19,6 +19,7 @@ package org.dromara.soul.common.utils;
 
 import lombok.SneakyThrows;
 
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 
 /**
@@ -60,6 +61,6 @@ public class Md5Utils {
      * @return the string
      */
     public static String md5(final String src) {
-        return md5(src, "UTF-8");
+        return md5(src, StandardCharsets.UTF_8.name());
     }
 }

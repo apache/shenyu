@@ -26,7 +26,7 @@ public class NacosMockConfigService implements ConfigService {
 
     private static final Map<String, String> EMPTY = new HashMap<>();
 
-    private Map<String, Map<String, String>> store = new HashMap<>();
+    private final Map<String, Map<String, String>> store = new HashMap<>();
 
     @Override
     public String getConfig(final String s, final String s1, final long l) {

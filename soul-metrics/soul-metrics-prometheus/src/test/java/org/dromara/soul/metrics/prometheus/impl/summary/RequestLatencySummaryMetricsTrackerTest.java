@@ -17,53 +17,30 @@
 
 package org.dromara.soul.metrics.prometheus.impl.summary;
 
-import io.prometheus.client.Summary;
+import org.dromara.soul.metrics.api.SummaryMetricsTrackerDelegate;
 import org.dromara.soul.metrics.enums.MetricsLabelEnum;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-
-import java.util.concurrent.TimeUnit;
-
-import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 
 /**
- * The Test Case For RequestLatencySummaryMetrics.
+ * Test cases for RequestLatencySummaryMetricsTracker.
  *
  * @author nuo-promise
- **/
+ * @author dengliming
+ */
 public final class RequestLatencySummaryMetricsTrackerTest {
 
-    private Summary requestsLatencySummaryMillis;
+    private final RequestLatencySummaryMetricsTracker requestLatencySummaryMetricsTracker = new RequestLatencySummaryMetricsTracker();
 
-    @Before
-    public void setUp() {
-        requestsLatencySummaryMillis = Summary.build()
-                .name("summary").help("Requests Latency Summary Millis (ms)")
-                .quantile(0.5, 0.05)
-                .quantile(0.95, 0.01)
-                .quantile(0.99, 0.001)
-                .maxAgeSeconds(TimeUnit.MINUTES.toSeconds(5))
-                .ageBuckets(5)
-                .create();
-    }
-
-    @After
-    public void tearDown() {
-        requestsLatencySummaryMillis.clear();
-    }
-
-    @Test(expected = NullPointerException.class)
+    @Test
     public void startTimer() {
-        Summary.Timer timer = requestsLatencySummaryMillis.startTimer();
-        assertNotNull(timer);
-        new PrometheusSummaryMetricsTrackerDelegate(null).observeDuration();
+        SummaryMetricsTrackerDelegate summaryMetricsTrackerDelegate = requestLatencySummaryMetricsTracker.startTimer();
+        assertNotNull(summaryMetricsTrackerDelegate);
     }
 
     @Test
     public void metricsLabel() {
-        assertThat(MetricsLabelEnum.REQUEST_LATENCY.getName(), is("request_latency"));
+        assertEquals(MetricsLabelEnum.REQUEST_LATENCY.getName(), requestLatencySummaryMetricsTracker.metricsLabel());
     }
 }

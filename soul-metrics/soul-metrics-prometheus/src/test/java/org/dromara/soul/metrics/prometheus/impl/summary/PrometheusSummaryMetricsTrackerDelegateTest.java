@@ -22,15 +22,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 /**
- * The Test Case For PrometheusSummaryMetrics.
+ * Test cases for PrometheusSummaryMetricsTrackerDelegate.
  *
  * @author nuo-promise
- **/
+ * @author dengliming
+ */
 @RunWith(MockitoJUnitRunner.class)
 public final class PrometheusSummaryMetricsTrackerDelegateTest {
 
@@ -39,6 +39,8 @@ public final class PrometheusSummaryMetricsTrackerDelegateTest {
 
     @Test
     public void observeDuration() {
-        assertThat(timer.observeDuration(), is(0.0D));
+        PrometheusSummaryMetricsTrackerDelegate prometheusSummaryMetricsTrackerDelegate = new PrometheusSummaryMetricsTrackerDelegate(timer);
+        prometheusSummaryMetricsTrackerDelegate.observeDuration();
+        assertThat(timer.observeDuration(), is(0.0d));
     }
 }

@@ -18,47 +18,32 @@
 package org.dromara.soul.metrics.prometheus.impl.counter;
 
 import io.prometheus.client.Counter;
+import org.dromara.soul.common.utils.ReflectUtils;
 import org.dromara.soul.metrics.enums.MetricsLabelEnum;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 /**
- * The Test Case For HttpRequestCounter.
+ * Test cases for HttpRequestCounterMetricsTracker.
  *
  * @author nuo-promise
- **/
-
+ * @author dengliming
+ */
 public final class HttpRequestCounterMetricsTrackerTest {
 
-    private Counter httpRequestCounter;
-
-    @Before
-    public void setUp() {
-        httpRequestCounter = Counter.build()
-                .name("httpRequestCounter")
-                .labelNames("path", "type")
-                .help("httpRequestCounter not init")
-                .create();
-    }
-
-    @After
-    public void tearDown() {
-        httpRequestCounter.clear();
-    }
+    private final HttpRequestCounterMetricsTracker httpRequestCounterMetricsTracker = new HttpRequestCounterMetricsTracker();
 
     @Test
     public void inc() {
-        double amt = 1.0D;
-        httpRequestCounter.labels("path", "type").inc(amt);
-        assertThat(httpRequestCounter.labels("path", "type").get(), is(1.0D));
+        httpRequestCounterMetricsTracker.inc(3.0d, "path", "type");
+        Counter httpRequestTotal = (Counter) ReflectUtils.getFieldValue(httpRequestCounterMetricsTracker, "HTTP_REQUEST_TOTAL");
+        assertThat(httpRequestTotal.labels("path", "type").get(), is(3.0d));
     }
 
     @Test
     public void metricsLabel() {
-        assertThat(MetricsLabelEnum.HTTP_REQUEST_TOTAL.getName(), is("http_request_total"));
+        assertEquals(MetricsLabelEnum.HTTP_REQUEST_TOTAL.getName(), httpRequestCounterMetricsTracker.metricsLabel());
     }
 }
