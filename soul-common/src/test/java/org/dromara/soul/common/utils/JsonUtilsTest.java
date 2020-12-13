@@ -28,6 +28,7 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Test cases for JsonUtils.
@@ -74,6 +75,9 @@ public final class JsonUtilsTest {
                 })
                 .build();
         assertEquals(EXPECTED_JSON, JsonUtils.toJson(object));
+
+        Object o = new Object();
+        assertEquals("{}", JsonUtils.toJson(o));
     }
 
     @Test
@@ -87,6 +91,12 @@ public final class JsonUtilsTest {
         JsonUtils.removeClass(testMap);
         assertNull(testMap.getOrDefault("class", null));
         assertEquals(testMap.get("not_class").get("not_class"), "ClassNotFoundException.class");
+
+        testMap = new HashMap<>();
+        testMap.put("result", testSubMap);
+        JsonUtils.removeClass(testMap);
+        assertNotNull(testMap.getOrDefault("result", null));
+        assertEquals(testMap.get("result").get("not_class"), "ClassNotFoundException.class");
     }
     
     @Data

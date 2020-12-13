@@ -14,4 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-facade=org.dromara.soul.metrics.facade.TestPrometheusMetricsTrackerManager
+hash=org.dromara.soul.plugin.divide.balance.spi.HashLoadBalance
+random=org.dromara.soul.plugin.divide.balance.spi.RandomLoadBalance
+roundRobin=org.dromara.soul.plugin.divide.balance.spi.RoundRobinLoadBalance
+
