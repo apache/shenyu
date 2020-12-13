@@ -16,3 +16,4 @@
 
 mysql=org.dromara.soul.spi.fixture.MysqlSPI
 oracle=org.dromara.soul.spi.fixture.OracleSPI
+canNotInstantiated=org.dromara.soul.spi.fixture.CanNotInstantiatedSPI

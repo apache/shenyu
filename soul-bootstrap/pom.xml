@@ -27,7 +27,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>soul-bootstrap</artifactId>
-    
+
     <properties>
         <curator.version>4.0.1</curator.version>
     </properties>
@@ -246,7 +246,6 @@
                     <executable>true</executable>
                 </configuration>
             </plugin>
-            <!-- maven install 跳过测试  等价于命令 mvn install -Dmaven.test.skip = true-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>

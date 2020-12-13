@@ -35,26 +35,26 @@ public class RandomLoadBalance extends AbstractLoadBalance {
 
     @Override
     public DivideUpstream doSelect(final List<DivideUpstream> upstreamList, final String ip) {
-        // 总个数
+        // total number
         int length = upstreamList.size();
-        // 总权重
+        // total weight
         int totalWeight = 0;
-        // 权重是否都一样
+        // Whether the weights are the same
         boolean sameWeight = true;
         for (int i = 0; i < length; i++) {
             int weight = upstreamList.get(i).getWeight();
-            // 累计总权重
+            // Cumulative total weight
             totalWeight += weight;
             if (sameWeight && i > 0
                     && weight != upstreamList.get(i - 1).getWeight()) {
-                // 计算所有权重是否一样
+                // Calculate whether the weight of ownership is the same
                 sameWeight = false;
             }
         }
         if (totalWeight > 0 && !sameWeight) {
-            // 如果权重不相同且权重大于0则按总权重数随机
+            // If the weights are not the same and the weights are greater than 0, then random by the total number of weights
             int offset = RANDOM.nextInt(totalWeight);
-            // 并确定随机值落在哪个片断上
+            // Determine which segment the random value falls on
             for (DivideUpstream divideUpstream : upstreamList) {
                 offset -= divideUpstream.getWeight();
                 if (offset < 0) {
@@ -62,7 +62,7 @@ public class RandomLoadBalance extends AbstractLoadBalance {
                 }
             }
         }
-        // 如果权重相同或权重为0则均等随机
+        // If the weights are the same or the weights are 0 then random
         return upstreamList.get(RANDOM.nextInt(length));
     }
 }

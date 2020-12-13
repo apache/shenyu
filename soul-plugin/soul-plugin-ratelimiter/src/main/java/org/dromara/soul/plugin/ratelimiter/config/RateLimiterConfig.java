@@ -40,7 +40,7 @@ public class RateLimiterConfig implements Serializable {
     private String mode = RedisModeEnum.STANDALONE.getName();
 
     /**
-     * 如果是集群或者哨兵模式;分隔.
+     * If it is cluster or sentinel mode, separated with `;`.
      */
     private String url;
 
