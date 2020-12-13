@@ -37,6 +37,8 @@ import org.springframework.mock.env.MockEnvironment;
 import static org.mockito.BDDMockito.given;
 
 /**
+ * Test cases for {@link HttpServiceDiscovery}.
+ *
  * @author liMingLiang
  */
 @SuppressWarnings({"deprecation"})
