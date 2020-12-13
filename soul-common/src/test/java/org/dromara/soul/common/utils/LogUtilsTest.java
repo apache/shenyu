@@ -21,16 +21,22 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.function.Supplier;
+
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Test case for {@link LogUtils}.
  *
  * @author HoldDie
  */
-public class LogUtilsTest {
+public final class LogUtilsTest {
 
     private Logger logger;
 
@@ -38,8 +44,9 @@ public class LogUtilsTest {
 
     @Before
     public void setUp() throws Exception {
-        logger = LoggerFactory.getLogger(LogUtilsTest.class);
-        supplier = () -> "Test case for LogUtils";
+        logger = spy(Logger.class);
+        supplier = mock(Supplier.class);
+        when(supplier.get()).thenReturn("Test case for LogUtils");
     }
 
     @Test
@@ -49,42 +56,114 @@ public class LogUtilsTest {
     }
 
     @Test
-    public void testDebugWithFormat() {
+    public void testAtLeastOnceDebugWithFormat() {
+        when(logger.isDebugEnabled()).thenReturn(true);
         LogUtils.debug(logger, "testDebug: {}", supplier);
+        verify(supplier, atLeastOnce()).get();
     }
 
     @Test
-    public void testDebug() {
+    public void testNeverDebugWithFormat() {
+        when(logger.isDebugEnabled()).thenReturn(false);
+        LogUtils.debug(logger, "testDebug: {}", supplier);
+        verify(supplier, never()).get();
+    }
+
+    @Test
+    public void testAtLeastOnceDebug() {
+        when(logger.isDebugEnabled()).thenReturn(true);
         LogUtils.debug(logger, supplier);
+        verify(supplier, atLeastOnce()).get();
     }
 
     @Test
-    public void testInfoWithFormat() {
+    public void testNeverDebug() {
+        when(logger.isDebugEnabled()).thenReturn(false);
+        LogUtils.debug(logger, supplier);
+        verify(supplier, never()).get();
+    }
+
+    @Test
+    public void testAtLeastOnceInfoWithFormat() {
+        when(logger.isInfoEnabled()).thenReturn(true);
         LogUtils.info(logger, "testInfo: {}", supplier);
+        verify(supplier, atLeastOnce()).get();
     }
 
     @Test
-    public void testInfo() {
+    public void testNeverInfoWithFormat() {
+        when(logger.isInfoEnabled()).thenReturn(false);
+        LogUtils.info(logger, "testInfo: {}", supplier);
+        verify(supplier, never()).get();
+    }
+
+    @Test
+    public void testAtLeastOnceInfo() {
+        when(logger.isInfoEnabled()).thenReturn(true);
         LogUtils.info(logger, supplier);
+        verify(supplier, atLeastOnce()).get();
     }
 
     @Test
-    public void testErrorFormat() {
+    public void testNeverInfo() {
+        when(logger.isInfoEnabled()).thenReturn(false);
+        LogUtils.info(logger, supplier);
+        verify(supplier, never()).get();
+    }
+
+    @Test
+    public void testAtLeastOnceErrorFormat() {
+        when(logger.isErrorEnabled()).thenReturn(true);
         LogUtils.error(logger, "testError: {}", supplier);
+        verify(supplier, atLeastOnce()).get();
     }
 
     @Test
-    public void testError() {
+    public void testNeverErrorFormat() {
+        when(logger.isErrorEnabled()).thenReturn(false);
+        LogUtils.error(logger, "testError: {}", supplier);
+        verify(supplier, never()).get();
+    }
+
+    @Test
+    public void testAtLeastOnceError() {
+        when(logger.isErrorEnabled()).thenReturn(true);
         LogUtils.error(logger, supplier);
+        verify(supplier, atLeastOnce()).get();
     }
 
     @Test
-    public void testWarnWithFormat() {
+    public void testNeverError() {
+        when(logger.isErrorEnabled()).thenReturn(false);
+        LogUtils.error(logger, supplier);
+        verify(supplier, never()).get();
+    }
+
+    @Test
+    public void testAtLeastOnceWarnWithFormat() {
+        when(logger.isWarnEnabled()).thenReturn(true);
         LogUtils.warn(logger, "testWarn: {}", supplier);
+        verify(supplier, atLeastOnce()).get();
     }
 
     @Test
-    public void testWarn() {
+    public void testNeverWarnWithFormat() {
+        when(logger.isWarnEnabled()).thenReturn(false);
+        LogUtils.warn(logger, "testWarn: {}", supplier);
+        verify(supplier, never()).get();
+    }
+
+    @Test
+    public void testAtLeastOnceWarn() {
+        when(logger.isWarnEnabled()).thenReturn(true);
         LogUtils.warn(logger, supplier);
+        verify(supplier, atLeastOnce()).get();
+    }
+
+    @Test
+    public void testNeverWarn() {
+        when(logger.isWarnEnabled()).thenReturn(false);
+        LogUtils.warn(logger, supplier);
+        verify(supplier, never()).get();
     }
 }
