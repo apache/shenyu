@@ -38,7 +38,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Accessors(chain = true)
-public class RuleData implements Serializable {
+public class RuleData  implements Serializable {
 
     private String id;
 
