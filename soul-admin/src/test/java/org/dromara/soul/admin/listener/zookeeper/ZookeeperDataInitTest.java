@@ -71,7 +71,7 @@ public final class ZookeeperDataInitTest {
         Assert.assertNotNull(zookeeperDataInit);
     }
 
-    private boolean pathExist(InvocationOnMock invocation, List<String> pathList) {
+    private boolean pathExist(final InvocationOnMock invocation, final List<String> pathList) {
         String arg = invocation.getArgument(0);
         return pathList.contains(arg);
     }
