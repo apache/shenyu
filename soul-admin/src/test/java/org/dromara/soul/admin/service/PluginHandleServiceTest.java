@@ -47,7 +47,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
-public class PluginHandleServiceTest {
+public final class PluginHandleServiceTest {
+
     @InjectMocks
     private PluginHandleServiceImpl pluginHandleService;
 
