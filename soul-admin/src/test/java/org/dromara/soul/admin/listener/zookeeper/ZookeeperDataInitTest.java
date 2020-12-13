@@ -19,12 +19,18 @@ package org.dromara.soul.admin.listener.zookeeper;
 
 import org.I0Itec.zkclient.ZkClient;
 import org.dromara.soul.admin.service.SyncDataService;
+import org.dromara.soul.common.constant.ZkPathConstants;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import static org.mockito.Mockito.when;
 
@@ -44,9 +50,29 @@ public final class ZookeeperDataInitTest {
 
     @Test
     public void testRun() {
-        when(zkClient.exists(Mockito.anyString())).thenReturn(false);
         ZookeeperDataInit zookeeperDataInit = new ZookeeperDataInit(zkClient, syncDataService);
+
+        when(zkClient.exists(Mockito.anyString())).thenReturn(false);
         zookeeperDataInit.run();
+
+        when(zkClient.exists(Mockito.anyString()))
+                .then(invocation -> pathExist(invocation, Collections.singletonList(
+                        ZkPathConstants.APP_AUTH_PARENT
+                )));
+        zookeeperDataInit.run();
+
+        when(zkClient.exists(Mockito.anyString()))
+                .thenAnswer(invocation -> pathExist(invocation, Arrays.asList(
+                        ZkPathConstants.PLUGIN_PARENT,
+                        ZkPathConstants.APP_AUTH_PARENT
+                )));
+        zookeeperDataInit.run();
+
         Assert.assertNotNull(zookeeperDataInit);
+    }
+
+    private boolean pathExist(InvocationOnMock invocation, List<String> pathList) {
+        String arg = invocation.getArgument(0);
+        return pathList.contains(arg);
     }
 }
