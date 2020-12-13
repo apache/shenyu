@@ -47,7 +47,7 @@ import static org.mockito.BDDMockito.given;
  */
 @SuppressWarnings("deprecation")
 @RunWith(MockitoJUnitRunner.class)
-public class HttpServiceDiscoveryTest {
+public final class HttpServiceDiscoveryTest {
 
     private static final String ZK_URL = "127.0.0.1:21810";
 
@@ -79,11 +79,11 @@ public class HttpServiceDiscoveryTest {
     @BeforeClass
     public static void setUpBeforeClass() {
         env = new MockEnvironment();
-        env.setProperty("soul.http.zookeeperUrl", ZK_URL);
     }
 
     @Before
     public void setUp() throws Exception {
+        env.setProperty("soul.http.zookeeperUrl", ZK_URL);
         env.setProperty("soul.http.register", "true");
         given(selectorService.findByName(Mockito.anyString())).willReturn(new SelectorDO());
         given(selectorService.buildByName(Mockito.anyString())).willReturn(new SelectorData());
@@ -118,6 +118,20 @@ public class HttpServiceDiscoveryTest {
     }
 
     @Test
+    public void testAfterPropertiesSetForSelectorEmpty() {
+        given(selectorService.findByName(Mockito.anyString())).willReturn(null);
+
+        ZkClient zkClient = new ZkClient(ZK_URL);
+        String pathChildNode1 = StringUtils.join(Arrays.array(ROOT, SERVER_NODE, SUB_NODE_1), '/');
+        createSubNode(zkClient, pathChildNode1);
+
+        HttpServiceDiscovery httpServiceDiscovery = new HttpServiceDiscovery(selectorService, selectorMapper, eventPublisher, env);
+        httpServiceDiscovery.afterPropertiesSet();
+
+        Assert.assertTrue(CollectionUtils.isNotEmpty(zkClient.getChildren(ROOT)));
+    }
+
+    @Test
     public void testAfterPropertiesSetForPathNotFound() throws InterruptedException {
         HttpServiceDiscovery httpServiceDiscovery = new HttpServiceDiscovery(selectorService, selectorMapper, eventPublisher, env);
         httpServiceDiscovery.afterPropertiesSet();
@@ -132,6 +146,15 @@ public class HttpServiceDiscoveryTest {
     @Test
     public void testAfterPropertiesSetForSkipInit() {
         env.setProperty("soul.http.register", "false");
+        HttpServiceDiscovery httpServiceDiscovery = new HttpServiceDiscovery(selectorService, selectorMapper, eventPublisher, env);
+        httpServiceDiscovery.afterPropertiesSet();
+
+        Assert.assertNotNull(httpServiceDiscovery);
+    }
+
+    @Test
+    public void testAfterPropertiesSetForZkDisabled() {
+        env.setProperty("soul.http.zookeeperUrl", "");
         HttpServiceDiscovery httpServiceDiscovery = new HttpServiceDiscovery(selectorService, selectorMapper, eventPublisher, env);
         httpServiceDiscovery.afterPropertiesSet();
 
