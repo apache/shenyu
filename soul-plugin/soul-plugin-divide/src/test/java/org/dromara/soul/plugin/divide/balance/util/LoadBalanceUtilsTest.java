@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.divide;
+package org.dromara.soul.plugin.divide.balance.util;
 
 import org.dromara.soul.common.dto.convert.DivideUpstream;
-import org.dromara.soul.plugin.divide.balance.spi.RoundRobinLoadBalance;
+import org.dromara.soul.plugin.divide.balance.utils.LoadBalanceUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -29,32 +29,30 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * The type Load balance test.
+ * The type loadBalance utils test.
  *
- * @author wanglaomo
+ * @author zhanglei
  */
-public final class LoadBalanceTest {
+public final class LoadBalanceUtilsTest {
 
     /**
-     * Round robin load balance test.
+     * Load balance util test.
      */
     @Test
-    public void roundRobinLoadBalanceTest() {
-        List<DivideUpstream> divideUpstreamList =
-                Stream.of(50, 20, 30)
+    public void loadBalanceUtilsTest() {
+        List<DivideUpstream> upstreamList =
+                Stream.of(10, 20, 70)
                         .map(weight -> DivideUpstream.builder()
-                                .upstreamUrl("divide-upstream-" + weight)
+                                .upstreamUrl("upstream-" + weight)
                                 .weight(weight)
                                 .build())
                         .collect(Collectors.toList());
-
-        RoundRobinLoadBalance roundRobinLoadBalance = new RoundRobinLoadBalance();
         Map<String, Integer> countMap = new HashMap<>();
         for (int i = 0; i < 120; i++) {
-            DivideUpstream result = roundRobinLoadBalance.select(divideUpstreamList, "");
+            DivideUpstream result = LoadBalanceUtils.selector(upstreamList, "roundRobin", "");
             int count = countMap.getOrDefault(result.getUpstreamUrl(), 0);
             countMap.put(result.getUpstreamUrl(), ++count);
         }
-        Assert.assertEquals(60, countMap.get("divide-upstream-50").intValue());
+        Assert.assertEquals(12, countMap.get("upstream-10").intValue());
     }
 }

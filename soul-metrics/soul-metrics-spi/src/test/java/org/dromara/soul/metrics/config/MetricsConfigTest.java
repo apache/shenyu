@@ -82,4 +82,66 @@ public final class MetricsConfigTest {
     public void testToString() {
         assertThat(metricsConfig.toString(), is("MetricsConfig(metricsName=prometheus, host=host, port=9999, async=true, threadCount=10, jmxConfig=jmxConfig, props={key=value})"));
     }
+
+    @Test
+    public void setMetricsName() {
+        metricsConfig.setMetricsName("prometheus");
+        assertThat(metricsConfig.getMetricsName(), is("prometheus"));
+    }
+
+    @Test
+    public void setHost() {
+        metricsConfig.setHost("192.168.1.1");
+        assertThat(metricsConfig.getHost(), is("192.168.1.1"));
+    }
+
+    @Test
+    public void setPort() {
+        metricsConfig.setPort(9999);
+        assertThat(metricsConfig.getPort(), is(9999));
+    }
+
+    @Test
+    public void setAsync() {
+        metricsConfig.setAsync(Boolean.FALSE);
+        assertThat(metricsConfig.getAsync(), is(Boolean.FALSE));
+    }
+
+    @Test
+    public void setThreadCount() {
+        metricsConfig.setThreadCount(100);
+        assertThat(metricsConfig.getThreadCount(), is(100));
+    }
+
+    @Test
+    public void setJmxConfig() {
+        metricsConfig.setJmxConfig("jmxConfig");
+        assertThat(metricsConfig.getJmxConfig(), is("jmxConfig"));
+    }
+
+    @Test
+    public void setProps() {
+        Properties properties = new Properties();
+        properties.setProperty("key", "value");
+        metricsConfig.setProps(properties);
+        assertThat(metricsConfig.getProps().getProperty("key"), is("value"));
+    }
+
+    @Test
+    public void testEquals() {
+        Properties properties = new Properties();
+        properties.setProperty("key", "value");
+        MetricsConfig metricsConfig1 = new MetricsConfig("prometheus", "host", 9999, Boolean.TRUE,
+                10, "jmxConfig", properties);
+        assertThat(metricsConfig1, is(metricsConfig));
+    }
+
+    @Test
+    public void testHashCode() {
+        Properties properties = new Properties();
+        properties.setProperty("key", "value");
+        MetricsConfig metricsConfig1 = new MetricsConfig("prometheus", "host", 9999, Boolean.TRUE,
+                10, "jmxConfig", properties);
+        assertThat(metricsConfig1.hashCode(), is(metricsConfig.hashCode()));
+    }
 }
