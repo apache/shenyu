@@ -18,10 +18,12 @@
 package org.dromara.soul.metrics.prometheus;
 
 import io.prometheus.client.CollectorRegistry;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.ReflectUtils;
 import org.dromara.soul.metrics.config.MetricsConfig;
 import org.junit.Before;
 import org.junit.Test;
+
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -65,7 +67,8 @@ public final class PrometheusMetricsTrackerManagerTest {
     public void testRegistered() {
         AtomicBoolean registered = (AtomicBoolean) ReflectUtils.getFieldValue(prometheusMetricsTrackerManager, "registered");
         registered.set(true);
-        MetricsConfig metricsConfig = new MetricsConfig("test", "", 10119, false, 1, null, null);
+        String jmxConfig = GsonUtils.getInstance().toJson("whitelistObjectNames:org.apache.cassandra.metrics:type=ColumnFamily");
+        MetricsConfig metricsConfig = new MetricsConfig("test", "", 10119, false, 1, jmxConfig, null);
         prometheusMetricsTrackerManager.start(metricsConfig);
         assertTrue(prometheusMetricsTrackerManager.getRegistered().get());
     }

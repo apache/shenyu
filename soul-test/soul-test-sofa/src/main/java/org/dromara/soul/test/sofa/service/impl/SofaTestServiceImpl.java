@@ -31,7 +31,7 @@ import java.util.Random;
 public class SofaTestServiceImpl implements DubboTestService {
 
     @Override
-    @SoulSofaClient(path = "/findById", desc = "根据用户查询")
+    @SoulSofaClient(path = "/findById", desc = "Find by Id")
     public DubboTest findById(final String id) {
         DubboTest dubboTest = new DubboTest();
         dubboTest.setId(id);
@@ -40,7 +40,7 @@ public class SofaTestServiceImpl implements DubboTestService {
     }
 
     @Override
-    @SoulSofaClient(path = "/findAll", desc = "获取所有")
+    @SoulSofaClient(path = "/findAll", desc = "Get all data")
     public DubboTest findAll() {
         DubboTest dubboTest = new DubboTest();
         dubboTest.setName("hello world Soul Sofa , findAll");
@@ -49,7 +49,7 @@ public class SofaTestServiceImpl implements DubboTestService {
     }
 
     @Override
-    @SoulSofaClient(path = "/insert", desc = "插入一条数据")
+    @SoulSofaClient(path = "/insert", desc = "Insert a row of data")
     public DubboTest insert(final DubboTest dubboTest) {
         dubboTest.setName("hello world Soul Sofa: " + dubboTest.getName());
         return dubboTest;

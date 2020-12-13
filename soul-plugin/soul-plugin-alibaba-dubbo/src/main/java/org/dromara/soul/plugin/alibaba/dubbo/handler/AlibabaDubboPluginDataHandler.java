@@ -32,7 +32,7 @@ import org.dromara.soul.plugin.base.utils.Singleton;
  * @author xiaoyu
  */
 public class AlibabaDubboPluginDataHandler implements PluginDataHandler {
-    
+
     @Override
     public void handlerPlugin(final PluginData pluginData) {
         if (null != pluginData && pluginData.getEnabled()) {
@@ -42,14 +42,14 @@ public class AlibabaDubboPluginDataHandler implements PluginDataHandler {
                 return;
             }
             if (Objects.isNull(exist) || !dubboRegisterConfig.equals(exist)) {
-                //如果是空，进行初始化操作，
+                // If it is null, initialize it
                 ApplicationConfigCache.getInstance().init(dubboRegisterConfig);
                 ApplicationConfigCache.getInstance().invalidateAll();
             }
             Singleton.INST.single(DubboRegisterConfig.class, dubboRegisterConfig);
         }
     }
-    
+
     @Override
     public String pluginNamed() {
         return PluginEnum.DUBBO.getName();

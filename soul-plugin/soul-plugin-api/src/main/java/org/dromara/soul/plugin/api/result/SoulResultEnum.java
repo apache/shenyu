@@ -32,92 +32,92 @@ public enum SoulResultEnum {
     /**
      * Fail soul result enum.
      */
-    FAIL(-1, "网关内部异常,请您稍后重试!"),
+    FAIL(-1, "Internal exception in gateway. Please try again later!"),
 
     /**
      * Success soul result enum.
      */
-    SUCCESS(200, "访问成功!"),
+    SUCCESS(200, "Access to success!"),
 
     /**
      * Sign is not pass soul result enum.
      */
-    SIGN_IS_NOT_PASS(401, "签名未通过!"),
+    SIGN_IS_NOT_PASS(401, "Sign is not pass soul!"),
 
     /**
      * Payload too large soul result enum.
      */
-    PAYLOAD_TOO_LARGE(403, "您的文件过大"),
+    PAYLOAD_TOO_LARGE(403, "Payload too large!"),
 
     /**
      * Too many requests soul result enum.
      */
-    TOO_MANY_REQUESTS(429, "您已经被限流，请稍后重试!"),
+    TOO_MANY_REQUESTS(429, "You have been restricted, please try again later!"),
 
     /**
      * Meta data error soul result enum.
      */
-    META_DATA_ERROR(430, "DUBBO元数据不完整!"),
+    META_DATA_ERROR(430, "Meta data error!"),
 
     /**
      * Dubbo have body param soul result enum.
      */
-    DUBBO_HAVE_BODY_PARAM(431, "dubbo接口必须要有参数，请在body里面输入json格式！"),
+    DUBBO_HAVE_BODY_PARAM(431, "Dubbo must have body param, please enter the JSON format in the body!"),
 
     /**
      * Sofa have body param soul result enum.
      */
-    SOFA_HAVE_BODY_PARAM(432, "sofa接口必须要有参数，请在body里面输入json格式！"),
+    SOFA_HAVE_BODY_PARAM(432, "Sofa must have body param, please enter the JSON format in the body!"),
 
     /**
      * full selector type enum.
      */
-    PARAM_ERROR(-100, "您的参数错误,请检查相关文档!"),
+    PARAM_ERROR(-100, "Your parameter error, please check the relevant documentation!"),
 
     /**
      * Or match mode enum.
      */
-    TIME_ERROR(-101, "您的时间参数错误或者已经过期!"),
+    TIME_ERROR(-101, "Your time parameter is incorrect or has expired!"),
 
     /**
      * Rule not find soul result enum.
      */
-    RULE_NOT_FIND(-102, "规则未匹配!"),
+    RULE_NOT_FIND(-102, "Rule not found!"),
 
     /**
      * Service result error soul result enum.
      */
-    SERVICE_RESULT_ERROR(-103, "服务调用异常，或者未返回结果"),
+    SERVICE_RESULT_ERROR(-103, "Service invocation exception, or no result is returned!"),
 
     /**
      * Service timeout soul result enum.
      */
-    SERVICE_TIMEOUT(-104, "服务调用超时"),
+    SERVICE_TIMEOUT(-104, "Service call timeout!"),
 
     /**
      * Sing time is timeout soul result enum.
      */
-    SING_TIME_IS_TIMEOUT(-105, "签名时间戳已经超过%s分钟!"),
+    SING_TIME_IS_TIMEOUT(-105, "The signature timestamp has exceeded %s minutes!"),
 
     /**
      * Cannot find url soul result enum.
      */
-    CANNOT_FIND_URL(-106, "未能找到合适的调用url,请检查你的配置!"),
+    CANNOT_FIND_URL(-106, "Can not find url, please check your configuration!"),
 
     /**
      * Cannot find selector soul result enum.
      */
-    CANNOT_FIND_SELECTOR(-107, "未能匹配选择器,请检查你的选择器配置！"),
+    CANNOT_FIND_SELECTOR(-107, "Can not find selector, please check your configuration!"),
 
     /**
      * The Cannot config springcloud serviceid.
      */
-    CANNOT_CONFIG_SPRINGCLOUD_SERVICEID(-108, "您并未配置或未匹配springcloud serviceId"),
+    CANNOT_CONFIG_SPRINGCLOUD_SERVICEID(-108, "You are not configured or do not match springcloud serviceId!"),
 
     /**
      * The Springcloud serviceid is error.
      */
-    SPRINGCLOUD_SERVICEID_IS_ERROR(-109, "springCloud serviceId 不存在或者配置错误！或者注册中心配置错误! "),
+    SPRINGCLOUD_SERVICEID_IS_ERROR(-109, "springCloud serviceId does not exist or is configured incorrectly!"),
 
     /**
      * The Sentinel block error.
