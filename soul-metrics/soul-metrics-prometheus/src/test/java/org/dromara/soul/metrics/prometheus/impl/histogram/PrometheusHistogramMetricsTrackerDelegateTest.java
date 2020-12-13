@@ -22,23 +22,25 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 /**
- * The Test Case For Histogram.
+ * Test cases for PrometheusHistogramMetricsTrackerDelegate.
  *
  * @author nuo-promise
- **/
+ * @author dengliming
+ */
 @RunWith(MockitoJUnitRunner.class)
-public class PrometheusHistogramMetricsTrackerDelegateTest {
+public final class PrometheusHistogramMetricsTrackerDelegateTest {
 
     @Mock
     private Histogram.Timer timer;
 
     @Test
     public void observeDuration() {
-        assertThat(timer.observeDuration(), is(0.0D));
+        PrometheusHistogramMetricsTrackerDelegate prometheusHistogramMetricsTrackerDelegate = new PrometheusHistogramMetricsTrackerDelegate(timer);
+        prometheusHistogramMetricsTrackerDelegate.observeDuration();
+        assertThat(timer.observeDuration(), is(0.0d));
     }
 }

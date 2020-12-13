@@ -54,7 +54,7 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
 
     private static TestingServer zkServer;
 
-    private ZkClient zkClient = new ZkClient("127.0.0.1:21810");
+    private final ZkClient zkClient = new ZkClient("127.0.0.1:21810");
 
     private ConfigService configService;
 

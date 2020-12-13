@@ -47,7 +47,7 @@ public class PaymentTypeService {
                     new ThreadPoolExecutor.AbortPolicy());
 
     /**
-     * 注入远端的服务.
+     * Inject RemoteService.
      */
     private PaymentRemoteService paymentRemoteService;
 
@@ -159,12 +159,12 @@ public class PaymentTypeService {
     private static class ConsultResult {
 
         /**
-         * 咨询结果是否可用.
+         * isEnable.
          */
         private boolean isEnable;
 
         /**
-         * 错误码.
+         * errorCode.
          */
         private String errorCode;
 

@@ -20,6 +20,7 @@ package org.dromara.soul.sync.data.zookeeper;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -44,15 +45,15 @@ import org.dromara.soul.sync.data.api.SyncDataService;
  * @author xiaoyu
  */
 public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable {
-    
+
     private final ZkClient zkClient;
-    
+
     private final PluginDataSubscriber pluginDataSubscriber;
-    
+
     private final List<MetaDataSubscriber> metaDataSubscribers;
-    
+
     private final List<AuthDataSubscriber> authDataSubscribers;
-    
+
     /**
      * Instantiates a new Zookeeper cache manager.
      *
@@ -71,7 +72,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
         watchAppAuth();
         watchMetaData();
     }
-    
+
     private void watcherData() {
         final String pluginParent = ZkPathConstants.PLUGIN_PARENT;
         if (!zkClient.exists(pluginParent)) {
@@ -89,13 +90,13 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
             }
         });
     }
-    
+
     private void watcherAll(final String pluginName) {
         watcherPlugin(pluginName);
         watcherSelector(pluginName);
         watcherRule(pluginName);
     }
-    
+
     private void watcherPlugin(final String pluginName) {
         String pluginPath = ZkPathConstants.buildPluginPath(pluginName);
         if (!zkClient.exists(pluginPath)) {
@@ -104,13 +105,13 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
         PluginData pluginData = zkClient.readData(pluginPath);
         Optional.ofNullable(pluginData).flatMap(data -> Optional.ofNullable(pluginDataSubscriber)).ifPresent(e -> e.onSubscribe(pluginData));
         zkClient.subscribeDataChanges(pluginPath, new IZkDataListener() {
-            
+
             @Override
             public void handleDataChange(final String dataPath, final Object data) {
                 Optional.ofNullable(data)
                         .ifPresent(d -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onSubscribe((PluginData) d)));
             }
-            
+
             @Override
             public void handleDataDeleted(final String dataPath) {
                 final PluginData data = new PluginData();
@@ -119,7 +120,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
             }
         });
     }
-    
+
     private void watcherSelector(final String pluginName) {
         String selectorParentPath = ZkPathConstants.buildSelectorParentPath(pluginName);
         if (!zkClient.exists(selectorParentPath)) {
@@ -133,7 +134,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
                 subscribeSelectorDataChanges(realPath);
             });
         }
-        
+
         zkClient.subscribeChildChanges(selectorParentPath, (parentPath, currentChildren) -> {
             if (CollectionUtils.isNotEmpty(currentChildren)) {
                 List<String> addSubscribePath = addSubscribePath(childrenList, currentChildren);
@@ -142,11 +143,11 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
                     cacheSelectorData(zkClient.readData(realPath));
                     return realPath;
                 }).forEach(this::subscribeSelectorDataChanges);
-                
+
             }
         });
     }
-    
+
     private void watcherRule(final String pluginName) {
         String ruleParent = ZkPathConstants.buildRuleParentPath(pluginName);
         if (!zkClient.exists(ruleParent)) {
@@ -160,11 +161,11 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
                 subscribeRuleDataChanges(realPath);
             });
         }
-        
+
         zkClient.subscribeChildChanges(ruleParent, (parentPath, currentChildren) -> {
             if (CollectionUtils.isNotEmpty(currentChildren)) {
                 List<String> addSubscribePath = addSubscribePath(childrenList, currentChildren);
-                //获取新增的节点数据，并对该节点进行订阅
+                // Get the newly added node data and subscribe to that node
                 addSubscribePath.stream().map(addPath -> {
                     String realPath = buildRealPath(parentPath, addPath);
                     cacheRuleData(zkClient.readData(realPath));
@@ -173,7 +174,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
             }
         });
     }
-    
+
     private void watchAppAuth() {
         final String appAuthParent = ZkPathConstants.APP_AUTH_PARENT;
         if (!zkClient.exists(appAuthParent)) {
@@ -187,7 +188,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
                 subscribeAppAuthDataChanges(realPath);
             });
         }
-        
+
         zkClient.subscribeChildChanges(appAuthParent, (parentPath, currentChildren) -> {
             if (CollectionUtils.isNotEmpty(currentChildren)) {
                 final List<String> addSubscribePath = addSubscribePath(childrenList, currentChildren);
@@ -199,7 +200,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
             }
         });
     }
-    
+
     private void watchMetaData() {
         final String metaDataPath = ZkPathConstants.META_DATA;
         if (!zkClient.exists(metaDataPath)) {
@@ -213,7 +214,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
                 subscribeMetaDataChanges(realPath);
             });
         }
-        
+
         zkClient.subscribeChildChanges(metaDataPath, (parentPath, currentChildren) -> {
             if (CollectionUtils.isNotEmpty(currentChildren)) {
                 final List<String> addSubscribePath = addSubscribePath(childrenList, currentChildren);
@@ -225,72 +226,72 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
             }
         });
     }
-    
+
     private void subscribeSelectorDataChanges(final String path) {
         zkClient.subscribeDataChanges(path, new IZkDataListener() {
             @Override
             public void handleDataChange(final String dataPath, final Object data) {
                 cacheSelectorData((SelectorData) data);
             }
-            
+
             @Override
             public void handleDataDeleted(final String dataPath) {
                 unCacheSelectorData(dataPath);
             }
         });
     }
-    
+
     private void subscribeRuleDataChanges(final String path) {
         zkClient.subscribeDataChanges(path, new IZkDataListener() {
             @Override
             public void handleDataChange(final String dataPath, final Object data) {
                 cacheRuleData((RuleData) data);
             }
-            
+
             @Override
             public void handleDataDeleted(final String dataPath) {
                 unCacheRuleData(dataPath);
             }
         });
     }
-    
+
     private void subscribeAppAuthDataChanges(final String realPath) {
         zkClient.subscribeDataChanges(realPath, new IZkDataListener() {
             @Override
             public void handleDataChange(final String dataPath, final Object data) {
                 cacheAuthData((AppAuthData) data);
             }
-            
+
             @Override
             public void handleDataDeleted(final String dataPath) {
                 unCacheAuthData(dataPath);
             }
         });
     }
-    
+
     private void subscribeMetaDataChanges(final String realPath) {
         zkClient.subscribeDataChanges(realPath, new IZkDataListener() {
             @Override
             public void handleDataChange(final String dataPath, final Object data) {
                 cacheMetaData((MetaData) data);
             }
-    
+
             @SneakyThrows
             @Override
             public void handleDataDeleted(final String dataPath) {
                 final String realPath = dataPath.substring(ZkPathConstants.META_DATA.length() + 1);
                 MetaData metaData = new MetaData();
-                metaData.setPath(URLDecoder.decode(realPath, "UTF-8"));
+                metaData.setPath(URLDecoder.decode(realPath, StandardCharsets.UTF_8.name()));
                 unCacheMetaData(metaData);
             }
         });
     }
-    
+
     private void cacheSelectorData(final SelectorData selectorData) {
         Optional.ofNullable(selectorData)
                 .ifPresent(data -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onSelectorSubscribe(data)));
     }
-    
+
     private void unCacheSelectorData(final String dataPath) {
         SelectorData selectorData = new SelectorData();
         final String selectorId = dataPath.substring(dataPath.lastIndexOf("/") + 1);
@@ -300,12 +301,12 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
         selectorData.setId(selectorId);
         Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSelectorSubscribe(selectorData));
     }
-    
+
     private void cacheRuleData(final RuleData ruleData) {
         Optional.ofNullable(ruleData)
                 .ifPresent(data -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onRuleSubscribe(data)));
     }
-    
+
     private void unCacheRuleData(final String dataPath) {
         String substring = dataPath.substring(dataPath.lastIndexOf("/") + 1);
         final String str = dataPath.substring(ZkPathConstants.RULE_PARENT.length());
@@ -317,37 +318,37 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
         ruleData.setId(list.get(1));
         Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unRuleSubscribe(ruleData));
     }
-    
+
     private void cacheAuthData(final AppAuthData appAuthData) {
         Optional.ofNullable(appAuthData).ifPresent(data -> authDataSubscribers.forEach(e -> e.onSubscribe(data)));
     }
-    
+
     private void unCacheAuthData(final String dataPath) {
         final String key = dataPath.substring(ZkPathConstants.APP_AUTH_PARENT.length() + 1);
         AppAuthData appAuthData = new AppAuthData();
         appAuthData.setAppKey(key);
         authDataSubscribers.forEach(e -> e.unSubscribe(appAuthData));
     }
-    
+
     private void cacheMetaData(final MetaData metaData) {
         Optional.ofNullable(metaData).ifPresent(data -> metaDataSubscribers.forEach(e -> e.onSubscribe(metaData)));
     }
-    
+
     private void unCacheMetaData(final MetaData metaData) {
         Optional.ofNullable(metaData).ifPresent(data -> metaDataSubscribers.forEach(e -> e.unSubscribe(metaData)));
     }
-    
+
     private List<String> addSubscribePath(final List<String> alreadyChildren, final List<String> currentChildren) {
         if (CollectionUtils.isEmpty(alreadyChildren)) {
             return currentChildren;
         }
         return currentChildren.stream().filter(current -> alreadyChildren.stream().noneMatch(current::equals)).collect(Collectors.toList());
     }
-    
+
     private String buildRealPath(final String parent, final String children) {
         return parent + "/" + children;
     }
-    
+
     @Override
     public void close() {
         if (null != zkClient) {

@@ -17,46 +17,31 @@
 
 package org.dromara.soul.metrics.prometheus.impl.histogram;
 
-import io.prometheus.client.Histogram;
+import org.dromara.soul.metrics.api.HistogramMetricsTrackerDelegate;
 import org.dromara.soul.metrics.enums.MetricsLabelEnum;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
-import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 
 /**
- * The Test Case For RequestLatencyHistogram.
+ * Test cases for RequestLatencyHistogramMetricsTracker.
  *
  * @author nuo-promise
- **/
+ * @author dengliming
+ */
 public final class RequestLatencyHistogramMetricsTrackerTest {
 
-    private Histogram requestLatencyHistogram;
+    private final RequestLatencyHistogramMetricsTracker requestLatencyHistogramMetricsTracker = new RequestLatencyHistogramMetricsTracker();
 
-    @Before
-    public void setUp() {
-        requestLatencyHistogram = Histogram.build()
-                .name("histogram").help("Requests Latency Histogram Millis (ms)")
-                .create();
-    }
-
-    @After
-    public void tearDown() {
-        requestLatencyHistogram.clear();
-    }
-
-    @Test(expected = NullPointerException.class)
+    @Test
     public void startTimer() {
-        Histogram.Timer timer = requestLatencyHistogram.startTimer();
-        assertNotNull(timer);
-        new PrometheusHistogramMetricsTrackerDelegate(null).observeDuration();
+        HistogramMetricsTrackerDelegate histogramMetricsTrackerDelegate = requestLatencyHistogramMetricsTracker.startTimer();
+        assertNotNull(histogramMetricsTrackerDelegate);
     }
 
     @Test
     public void metricsLabel() {
-        assertThat(MetricsLabelEnum.REQUEST_LATENCY.getName(), is("request_latency"));
+        assertEquals(MetricsLabelEnum.REQUEST_LATENCY.getName(), requestLatencyHistogramMetricsTracker.metricsLabel());
     }
 }
