@@ -93,6 +93,6 @@ public class ApacheDubboProxyService {
             exchange.getAttributes().put(Constants.DUBBO_RPC_RESULT, ret);
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return ret;
-        })).onErrorMap(exception -> exception instanceof GenericException? new SoulException(((GenericException) exception).getExceptionMessage()):new SoulException(exception));
+        })).onErrorMap(exception -> exception instanceof GenericException ? new SoulException(((GenericException) exception).getExceptionMessage()) : new SoulException(exception));
     }
 }
