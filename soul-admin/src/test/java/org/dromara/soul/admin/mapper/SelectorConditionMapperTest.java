@@ -40,7 +40,7 @@ public final class SelectorConditionMapperTest extends AbstractSpringIntegration
     @Resource
     private SelectorConditionMapper selectorConditionMapper;
 
-    private SelectorConditionDO record = buildSelectorConditionDO();
+    private final SelectorConditionDO record = buildSelectorConditionDO();
 
     @Before
     public void before() {

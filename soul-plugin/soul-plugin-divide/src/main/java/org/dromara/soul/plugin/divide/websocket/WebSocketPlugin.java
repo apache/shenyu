@@ -29,7 +29,7 @@ import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
-import org.dromara.soul.common.dto.convert.rule.DivideRuleHandle;
+import org.dromara.soul.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;

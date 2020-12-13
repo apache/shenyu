@@ -33,7 +33,7 @@ import java.time.Duration;
 public class HttpSyncProperties {
 
     /**
-     * 是否开启 http 同步策略, default: true.
+     * Whether enabled http sync strategy, default: true.
      */
     private boolean enabled = true;
 

@@ -32,7 +32,7 @@ import org.springframework.stereotype.Service;
 public class DubboMultiParamServiceImpl implements DubboMultiParamService {
 
     @Override
-    @SoulDubboClient(path = "/findByIdsAndName", desc = "根据用户ids与名称查询")
+    @SoulDubboClient(path = "/findByIdsAndName", desc = "Query by Ids and name")
     public DubboTest findByIdsAndName(List<Integer> ids, String name) {
         DubboTest test = new DubboTest();
         test.setId(ids.toString());

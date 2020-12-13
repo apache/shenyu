@@ -59,7 +59,7 @@ public class SwaggerConfiguration {
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-                .title("soul-admin接口文档")
+                .title("Soul Admin API Document")
                 .description("")
                 .version("1.0.0")
                 .contact(new Contact("soul", "https://github.com/dromara/soul", ""))
