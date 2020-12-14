@@ -147,11 +147,11 @@ public final class BaseDataCacheTest {
 
     @Test
     public void testCleanSelectorData() {
-        SelectorData globalSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).build();
-        SelectorData signSelectorData = SelectorData.builder().id("2").pluginName(mockPluginName2).build();
+        SelectorData selectorData1 = SelectorData.builder().id("1").pluginName(mockPluginName1).build();
+        SelectorData selectorData2 = SelectorData.builder().id("2").pluginName(mockPluginName2).build();
         ConcurrentHashMap<String, List<SelectorData>> selectorMap = getFieldByName(selectorMapStr);
-        selectorMap.put(mockPluginName1, Lists.newArrayList(globalSelectorData));
-        selectorMap.put(mockPluginName2, Lists.newArrayList(signSelectorData));
+        selectorMap.put(mockPluginName1, Lists.newArrayList(selectorData1));
+        selectorMap.put(mockPluginName2, Lists.newArrayList(selectorData2));
 
         BaseDataCache.getInstance().cleanSelectorData();
         Assert.assertNull(selectorMap.get(mockPluginName1));
@@ -160,15 +160,15 @@ public final class BaseDataCacheTest {
 
     @Test
     public void testCleanSelectorDataSelf() {
-        SelectorData globalSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).build();
-        SelectorData signSelectorData = SelectorData.builder().id("2").pluginName(mockPluginName2).build();
+        SelectorData selectorData1 = SelectorData.builder().id("1").pluginName(mockPluginName1).build();
+        SelectorData selectorData2 = SelectorData.builder().id("2").pluginName(mockPluginName2).build();
         ConcurrentHashMap<String, List<SelectorData>> selectorMap = getFieldByName(selectorMapStr);
-        selectorMap.put(mockPluginName1, Lists.newArrayList(globalSelectorData));
-        selectorMap.put(mockPluginName2, Lists.newArrayList(signSelectorData));
+        selectorMap.put(mockPluginName1, Lists.newArrayList(selectorData1));
+        selectorMap.put(mockPluginName2, Lists.newArrayList(selectorData2));
 
-        BaseDataCache.getInstance().cleanSelectorDataSelf(Lists.newArrayList(globalSelectorData));
+        BaseDataCache.getInstance().cleanSelectorDataSelf(Lists.newArrayList(selectorData1));
         Assert.assertEquals(Lists.newArrayList(), selectorMap.get(mockPluginName1));
-        Assert.assertEquals(Lists.newArrayList(signSelectorData), selectorMap.get(mockPluginName2));
+        Assert.assertEquals(Lists.newArrayList(selectorData2), selectorMap.get(mockPluginName2));
     }
 
     @Test
@@ -205,11 +205,11 @@ public final class BaseDataCacheTest {
 
     @Test
     public void testCleanRuleData() {
-        RuleData globalRuleData = RuleData.builder().id("1").selectorId(mockSelectorId1).build();
-        RuleData signRuleData = RuleData.builder().id("2").selectorId(mockSelectorId2).build();
+        RuleData ruleData1 = RuleData.builder().id("1").selectorId(mockSelectorId1).build();
+        RuleData ruleData2 = RuleData.builder().id("2").selectorId(mockSelectorId2).build();
         ConcurrentHashMap<String, List<RuleData>> ruleMap = getFieldByName(ruleMapStr);
-        ruleMap.put(mockSelectorId1, Lists.newArrayList(globalRuleData));
-        ruleMap.put(mockSelectorId2, Lists.newArrayList(signRuleData));
+        ruleMap.put(mockSelectorId1, Lists.newArrayList(ruleData1));
+        ruleMap.put(mockSelectorId2, Lists.newArrayList(ruleData2));
 
         BaseDataCache.getInstance().cleanRuleData();
         Assert.assertNull(ruleMap.get(mockSelectorId1));
@@ -218,15 +218,15 @@ public final class BaseDataCacheTest {
 
     @Test
     public void testCleanRuleDataSelf() {
-        RuleData globalRuleData = RuleData.builder().id("1").selectorId(mockSelectorId1).build();
-        RuleData signRuleData = RuleData.builder().id("2").selectorId(mockSelectorId2).build();
+        RuleData ruleData1 = RuleData.builder().id("1").selectorId(mockSelectorId1).build();
+        RuleData ruleData2 = RuleData.builder().id("2").selectorId(mockSelectorId2).build();
         ConcurrentHashMap<String, List<RuleData>> ruleMap = getFieldByName(ruleMapStr);
-        ruleMap.put(mockSelectorId1, Lists.newArrayList(globalRuleData));
-        ruleMap.put(mockSelectorId2, Lists.newArrayList(signRuleData));
+        ruleMap.put(mockSelectorId1, Lists.newArrayList(ruleData1));
+        ruleMap.put(mockSelectorId2, Lists.newArrayList(ruleData2));
 
-        BaseDataCache.getInstance().cleanRuleDataSelf(Lists.newArrayList(globalRuleData));
+        BaseDataCache.getInstance().cleanRuleDataSelf(Lists.newArrayList(ruleData1));
         Assert.assertEquals(Lists.newArrayList(), ruleMap.get(mockSelectorId1));
-        Assert.assertEquals(Lists.newArrayList(signRuleData), ruleMap.get(mockSelectorId2));
+        Assert.assertEquals(Lists.newArrayList(ruleData2), ruleMap.get(mockSelectorId2));
     }
 
     @Test
