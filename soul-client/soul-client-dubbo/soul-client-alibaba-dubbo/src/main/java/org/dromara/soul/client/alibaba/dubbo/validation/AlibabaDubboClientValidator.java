@@ -19,38 +19,66 @@ package org.dromara.soul.client.alibaba.dubbo.validation;
 
 import com.alibaba.dubbo.common.URL;
 import com.alibaba.dubbo.common.bytecode.ClassGenerator;
-import com.alibaba.dubbo.common.logger.Logger;
-import com.alibaba.dubbo.common.logger.LoggerFactory;
 import com.alibaba.dubbo.common.utils.ReflectUtils;
 import com.alibaba.dubbo.validation.MethodValidated;
 import com.alibaba.dubbo.validation.Validator;
-import com.alibaba.dubbo.validation.support.jvalidation.JValidator;
-import javassist.*;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtField;
+import javassist.CtNewConstructor;
+import javassist.Modifier;
+import javassist.NotFoundException;
 import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.ClassFile;
 import javassist.bytecode.ConstPool;
-import javassist.bytecode.annotation.*;
+import javassist.bytecode.annotation.ArrayMemberValue;
+import javassist.bytecode.annotation.BooleanMemberValue;
+import javassist.bytecode.annotation.ByteMemberValue;
+import javassist.bytecode.annotation.CharMemberValue;
+import javassist.bytecode.annotation.ClassMemberValue;
+import javassist.bytecode.annotation.DoubleMemberValue;
+import javassist.bytecode.annotation.EnumMemberValue;
+import javassist.bytecode.annotation.FloatMemberValue;
+import javassist.bytecode.annotation.IntegerMemberValue;
+import javassist.bytecode.annotation.LongMemberValue;
+import javassist.bytecode.annotation.MemberValue;
+import javassist.bytecode.annotation.ShortMemberValue;
+import javassist.bytecode.annotation.StringMemberValue;
+import lombok.extern.slf4j.Slf4j;
 
-import javax.validation.*;
+import javax.validation.Constraint;
+import javax.validation.ConstraintViolation;
+import javax.validation.ValidationException;
+import javax.validation.ValidatorFactory;
+import javax.validation.Validation;
 import javax.validation.groups.Default;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.security.ProtectionDomain;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
- * AlibabaDubboClientValidator
+ * AlibabaDubboClientValidator.
  *
  * @author KevinClair
  */
+@Slf4j
 public class AlibabaDubboClientValidator implements Validator {
-    private static final Logger logger = LoggerFactory.getLogger(JValidator.class);
+
     private final Class<?> clazz;
+
     private final javax.validation.Validator validator;
 
-    public AlibabaDubboClientValidator(URL url) {
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public AlibabaDubboClientValidator(final URL url) {
         this.clazz = ReflectUtils.forName(url.getServiceInterface());
         String soulValidation = url.getParameter("soulValidation");
         ValidatorFactory factory;
@@ -59,246 +87,212 @@ public class AlibabaDubboClientValidator implements Validator {
         } else {
             factory = Validation.buildDefaultValidatorFactory();
         }
-
         this.validator = factory.getValidator();
     }
 
-    private static boolean isPrimitives(Class<?> cls) {
-        return cls.isArray() ? isPrimitive(cls.getComponentType()) : isPrimitive(cls);
+    private static boolean isPrimitives(final Class<?> cls) {
+        if (cls.isArray()) {
+            return isPrimitive(cls.getComponentType());
+        }
+        return isPrimitive(cls);
     }
 
-    private static boolean isPrimitive(Class<?> cls) {
-        return cls.isPrimitive() || cls == String.class || cls == Boolean.class || cls == Character.class || Number.class.isAssignableFrom(cls) || Date.class.isAssignableFrom(cls);
+    private static boolean isPrimitive(final Class<?> cls) {
+        return cls.isPrimitive() || cls == String.class || cls == Boolean.class || cls == Character.class
+                || Number.class.isAssignableFrom(cls) || Date.class.isAssignableFrom(cls);
     }
 
-    private static Object getMethodParameterBean(Class<?> clazz, Method method, Object[] args) {
+    private static Object getMethodParameterBean(final Class<?> clazz, final Method method, final Object[] args) {
         if (!hasConstraintParameter(method)) {
             return null;
-        } else {
+        }
+        try {
+            String parameterClassName = generateMethodParameterClassName(clazz, method);
+            Class<?> parameterClass;
             try {
-                String parameterClassName = generateMethodParameterClassName(clazz, method);
-
-                Class parameterClass;
-                try {
-                    parameterClass = Class.forName(parameterClassName, true, clazz.getClassLoader());
-                } catch (ClassNotFoundException var27) {
-                    ClassPool pool = ClassGenerator.getClassPool(clazz.getClassLoader());
-                    CtClass ctClass = pool.makeClass(parameterClassName);
-                    ClassFile classFile = ctClass.getClassFile();
-                    classFile.setVersionToJava5();
-                    ctClass.addConstructor(CtNewConstructor.defaultConstructor(pool.getCtClass(parameterClassName)));
-                    Class<?>[] parameterTypes = method.getParameterTypes();
-                    Annotation[][] parameterAnnotations = method.getParameterAnnotations();
-
-                    for(int i = 0; i < parameterTypes.length; ++i) {
-                        Class<?> type = parameterTypes[i];
-                        Annotation[] annotations = parameterAnnotations[i];
-                        AnnotationsAttribute attribute = new AnnotationsAttribute(classFile.getConstPool(), "RuntimeVisibleAnnotations");
-                        Annotation[] var15 = annotations;
-                        int var16 = annotations.length;
-
-                        for(int var17 = 0; var17 < var16; ++var17) {
-                            Annotation annotation = var15[var17];
-                            if (annotation.annotationType().isAnnotationPresent(Constraint.class)) {
-                                javassist.bytecode.annotation.Annotation ja = new javassist.bytecode.annotation.Annotation(classFile.getConstPool(), pool.getCtClass(annotation.annotationType().getName()));
-                                Method[] members = annotation.annotationType().getMethods();
-                                Method[] var21 = members;
-                                int var22 = members.length;
-
-                                for(int var23 = 0; var23 < var22; ++var23) {
-                                    Method member = var21[var23];
-                                    if (Modifier.isPublic(member.getModifiers()) && member.getParameterTypes().length == 0 && member.getDeclaringClass() == annotation.annotationType()) {
-                                        Object value = member.invoke(annotation);
-                                        if (null != value) {
-                                            MemberValue memberValue = createMemberValue(classFile.getConstPool(), pool.get(member.getReturnType().getName()), value);
-                                            ja.addMemberValue(member.getName(), memberValue);
-                                        }
+                parameterClass = (Class<?>) Class.forName(parameterClassName, true, clazz.getClassLoader());
+            } catch (ClassNotFoundException e) {
+                ClassPool pool = ClassGenerator.getClassPool(clazz.getClassLoader());
+                CtClass ctClass = pool.makeClass(parameterClassName);
+                ClassFile classFile = ctClass.getClassFile();
+                classFile.setVersionToJava5();
+                ctClass.addConstructor(CtNewConstructor.defaultConstructor(pool.getCtClass(parameterClassName)));
+                // parameter fields
+                Class<?>[] parameterTypes = method.getParameterTypes();
+                Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+                for (int i = 0; i < parameterTypes.length; i++) {
+                    Class<?> type = parameterTypes[i];
+                    Annotation[] annotations = parameterAnnotations[i];
+                    AnnotationsAttribute attribute = new AnnotationsAttribute(classFile.getConstPool(), AnnotationsAttribute.visibleTag);
+                    for (Annotation annotation : annotations) {
+                        if (annotation.annotationType().isAnnotationPresent(Constraint.class)) {
+                            javassist.bytecode.annotation.Annotation ja = new javassist.bytecode.annotation.Annotation(
+                                    classFile.getConstPool(), pool.getCtClass(annotation.annotationType().getName()));
+                            Method[] members = annotation.annotationType().getMethods();
+                            for (Method member : members) {
+                                if (Modifier.isPublic(member.getModifiers())
+                                        && member.getParameterTypes().length == 0
+                                        && member.getDeclaringClass() == annotation.annotationType()) {
+                                    Object value = member.invoke(annotation, new Object[0]);
+                                    if (null != value) {
+                                        MemberValue memberValue = createMemberValue(
+                                                classFile.getConstPool(), pool.get(member.getReturnType().getName()), value);
+                                        ja.addMemberValue(member.getName(), memberValue);
                                     }
                                 }
-
-                                attribute.addAnnotation(ja);
                             }
+                            attribute.addAnnotation(ja);
                         }
-
-                        String fieldName = method.getName() + "Argument" + i;
-                        CtField ctField = CtField.make("public " + type.getCanonicalName() + " " + fieldName + ";", pool.getCtClass(parameterClassName));
-                        ctField.getFieldInfo().addAttribute(attribute);
-                        ctClass.addField(ctField);
                     }
-
-                    parameterClass = ctClass.toClass(clazz.getClassLoader(), (ProtectionDomain)null);
+                    String fieldName = method.getName() + "Argument" + i;
+                    CtField ctField = CtField.make("public " + type.getCanonicalName() + " " + fieldName + ";", pool.getCtClass(parameterClassName));
+                    ctField.getFieldInfo().addAttribute(attribute);
+                    ctClass.addField(ctField);
                 }
-
-                Object parameterBean = parameterClass.newInstance();
-
-                for(int i = 0; i < args.length; ++i) {
-                    Field field = parameterClass.getField(method.getName() + "Argument" + i);
-                    field.set(parameterBean, args[i]);
-                }
-
-                return parameterBean;
-            } catch (Throwable var28) {
-                logger.warn(var28.getMessage(), var28);
-                return null;
+                parameterClass = ctClass.toClass(clazz.getClassLoader(), null);
             }
+            Object parameterBean = parameterClass.newInstance();
+            for (int i = 0; i < args.length; i++) {
+                Field field = parameterClass.getField(method.getName() + "Argument" + i);
+                field.set(parameterBean, args[i]);
+            }
+            return parameterBean;
+        } catch (Exception e) {
+            log.warn(e.getMessage(), e);
+            return null;
         }
     }
 
-    private static String generateMethodParameterClassName(Class<?> clazz, Method method) {
-        StringBuilder builder = (new StringBuilder()).append(clazz.getName()).append("_").append(toUpperMethoName(method.getName())).append("Parameter");
-        Class<?>[] parameterTypes = method.getParameterTypes();
-        Class[] var4 = parameterTypes;
-        int var5 = parameterTypes.length;
+    private static String generateMethodParameterClassName(final Class<?> clazz, final Method method) {
+        StringBuilder builder = new StringBuilder().append(clazz.getName())
+                .append("_")
+                .append(toUpperMethoName(method.getName()))
+                .append("Parameter");
 
-        for(int var6 = 0; var6 < var5; ++var6) {
-            Class<?> parameterType = var4[var6];
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        for (Class<?> parameterType : parameterTypes) {
             builder.append("_").append(parameterType.getName());
         }
 
         return builder.toString();
     }
 
-    private static boolean hasConstraintParameter(Method method) {
+    private static boolean hasConstraintParameter(final Method method) {
         Annotation[][] parameterAnnotations = method.getParameterAnnotations();
         if (parameterAnnotations != null && parameterAnnotations.length > 0) {
-            Annotation[][] var2 = parameterAnnotations;
-            int var3 = parameterAnnotations.length;
-
-            for(int var4 = 0; var4 < var3; ++var4) {
-                Annotation[] annotations = var2[var4];
-                Annotation[] var6 = annotations;
-                int var7 = annotations.length;
-
-                for(int var8 = 0; var8 < var7; ++var8) {
-                    Annotation annotation = var6[var8];
+            for (Annotation[] annotations : parameterAnnotations) {
+                for (Annotation annotation : annotations) {
                     if (annotation.annotationType().isAnnotationPresent(Constraint.class)) {
                         return true;
                     }
                 }
             }
         }
-
         return false;
     }
 
-    private static String toUpperMethoName(String methodName) {
+    private static String toUpperMethoName(final String methodName) {
         return methodName.substring(0, 1).toUpperCase() + methodName.substring(1);
     }
 
-    private static MemberValue createMemberValue(ConstPool cp, CtClass type, Object value) throws NotFoundException {
+    // Copy from javassist.bytecode.annotation.Annotation.createMemberValue(ConstPool, CtClass);
+    private static MemberValue createMemberValue(final ConstPool cp, final CtClass type, final Object value) throws NotFoundException {
         MemberValue memberValue = javassist.bytecode.annotation.Annotation.createMemberValue(cp, type);
         if (memberValue instanceof BooleanMemberValue) {
-            ((BooleanMemberValue)memberValue).setValue((Boolean)value);
+            ((BooleanMemberValue) memberValue).setValue((Boolean) value);
         } else if (memberValue instanceof ByteMemberValue) {
-            ((ByteMemberValue)memberValue).setValue((Byte)value);
+            ((ByteMemberValue) memberValue).setValue((Byte) value);
         } else if (memberValue instanceof CharMemberValue) {
-            ((CharMemberValue)memberValue).setValue((Character)value);
+            ((CharMemberValue) memberValue).setValue((Character) value);
         } else if (memberValue instanceof ShortMemberValue) {
-            ((ShortMemberValue)memberValue).setValue((Short)value);
+            ((ShortMemberValue) memberValue).setValue((Short) value);
         } else if (memberValue instanceof IntegerMemberValue) {
-            ((IntegerMemberValue)memberValue).setValue((Integer)value);
+            ((IntegerMemberValue) memberValue).setValue((Integer) value);
         } else if (memberValue instanceof LongMemberValue) {
-            ((LongMemberValue)memberValue).setValue((Long)value);
+            ((LongMemberValue) memberValue).setValue((Long) value);
         } else if (memberValue instanceof FloatMemberValue) {
-            ((FloatMemberValue)memberValue).setValue((Float)value);
+            ((FloatMemberValue) memberValue).setValue((Float) value);
         } else if (memberValue instanceof DoubleMemberValue) {
-            ((DoubleMemberValue)memberValue).setValue((Double)value);
+            ((DoubleMemberValue) memberValue).setValue((Double) value);
         } else if (memberValue instanceof ClassMemberValue) {
-            ((ClassMemberValue)memberValue).setValue(((Class)value).getName());
+            ((ClassMemberValue) memberValue).setValue(((Class<?>) value).getName());
         } else if (memberValue instanceof StringMemberValue) {
-            ((StringMemberValue)memberValue).setValue((String)value);
+            ((StringMemberValue) memberValue).setValue((String) value);
         } else if (memberValue instanceof EnumMemberValue) {
-            ((EnumMemberValue)memberValue).setValue(((Enum)value).name());
+            ((EnumMemberValue) memberValue).setValue(((Enum<?>) value).name());
+            /* else if (memberValue instanceof AnnotationMemberValue) */
         } else if (memberValue instanceof ArrayMemberValue) {
             CtClass arrayType = type.getComponentType();
             int len = Array.getLength(value);
             MemberValue[] members = new MemberValue[len];
-
-            for(int i = 0; i < len; ++i) {
+            for (int i = 0; i < len; i++) {
                 members[i] = createMemberValue(cp, arrayType, Array.get(value, i));
             }
-
-            ((ArrayMemberValue)memberValue).setValue(members);
+            ((ArrayMemberValue) memberValue).setValue(members);
         }
-
         return memberValue;
     }
 
-    public void validate(String methodName, Class<?>[] parameterTypes, Object[] arguments) throws Exception {
-        List<Class<?>> groups = new ArrayList();
-        String methodClassName = this.clazz.getName() + "$" + toUpperMethoName(methodName);
-        Class methodClass = null;
-
+    @Override
+    public void validate(final String methodName, final Class<?>[] parameterTypes, final Object[] arguments) throws Exception {
+        List<Class<?>> groups = new ArrayList<Class<?>>();
+        String methodClassName = clazz.getName() + "$" + toUpperMethoName(methodName);
+        Class<?> methodClass = null;
         try {
             methodClass = Class.forName(methodClassName, false, Thread.currentThread().getContextClassLoader());
             groups.add(methodClass);
-        } catch (ClassNotFoundException var16) {
+        } catch (ClassNotFoundException e) {
+            log.error(e.getMessage(), e);
         }
-
-        Set<ConstraintViolation<?>> violations = new HashSet();
-        Method method = this.clazz.getMethod(methodName, parameterTypes);
+        Set<ConstraintViolation<?>> violations = new HashSet<ConstraintViolation<?>>();
+        Method method = clazz.getMethod(methodName, parameterTypes);
         Class<?>[] methodClasses = null;
         if (method.isAnnotationPresent(MethodValidated.class)) {
-            methodClasses = ((MethodValidated)method.getAnnotation(MethodValidated.class)).value();
+            methodClasses = method.getAnnotation(MethodValidated.class).value();
             groups.addAll(Arrays.asList(methodClasses));
         }
-
+        // add into default group
         groups.add(0, Default.class);
-        groups.add(1, this.clazz);
-        Class<?>[] classgroups = (Class[])groups.toArray(new Class[0]);
-        Object parameterBean = getMethodParameterBean(this.clazz, method, arguments);
+        groups.add(1, clazz);
+
+        // convert list to array
+        Class<?>[] classgroups = groups.toArray(new Class[0]);
+
+        Object parameterBean = getMethodParameterBean(clazz, method, arguments);
         if (parameterBean != null) {
-            violations.addAll(this.validator.validate(parameterBean, classgroups));
+            violations.addAll(validator.validate(parameterBean, classgroups));
         }
 
-        Object[] var12 = arguments;
-        int var13 = arguments.length;
-
-        for(int var14 = 0; var14 < var13; ++var14) {
-            Object arg = var12[var14];
-            this.validate((Set)violations, (Object)arg, (Class[])classgroups);
+        for (Object arg : arguments) {
+            validate(violations, arg, classgroups);
         }
 
         if (!violations.isEmpty()) {
-            logger.error("Failed to validate service: " + this.clazz.getName() + ", method: " + methodName + ", cause: " + violations);
+            log.error("Failed to validate service: " + clazz.getName() + ", method: " + methodName + ", cause: " + violations);
             StringBuilder validateError = new StringBuilder("");
             violations.stream().forEach(each -> validateError.append(each.getMessage()).append(","));
             throw new ValidationException(validateError.toString().substring(0, validateError.length() - 1));
         }
     }
 
-    private void validate(Set<ConstraintViolation<?>> violations, Object arg, Class<?>... groups) {
+    private void validate(final Set<ConstraintViolation<?>> violations, final Object arg, final Class<?>... groups) {
         if (arg != null && !isPrimitives(arg.getClass())) {
             if (Object[].class.isInstance(arg)) {
-                Object[] var4 = (Object[])((Object[])arg);
-                int var5 = var4.length;
-
-                for(int var6 = 0; var6 < var5; ++var6) {
-                    Object item = var4[var6];
-                    this.validate(violations, item, groups);
+                for (Object item : (Object[]) arg) {
+                    validate(violations, item, groups);
+                }
+            } else if (Collection.class.isInstance(arg)) {
+                for (Object item : (Collection<?>) arg) {
+                    validate(violations, item, groups);
+                }
+            } else if (Map.class.isInstance(arg)) {
+                for (Map.Entry<?, ?> entry : ((Map<?, ?>) arg).entrySet()) {
+                    validate(violations, entry.getKey(), groups);
+                    validate(violations, entry.getValue(), groups);
                 }
             } else {
-                Iterator var8;
-                if (Collection.class.isInstance(arg)) {
-                    var8 = ((Collection)arg).iterator();
-
-                    while(var8.hasNext()) {
-                        Object item = var8.next();
-                        this.validate(violations, item, groups);
-                    }
-                } else if (Map.class.isInstance(arg)) {
-                    var8 = ((Map)arg).entrySet().iterator();
-
-                    while(var8.hasNext()) {
-                        Map.Entry<?, ?> entry = (Map.Entry)var8.next();
-                        this.validate(violations, entry.getKey(), groups);
-                        this.validate(violations, entry.getValue(), groups);
-                    }
-                } else {
-                    violations.addAll(this.validator.validate(arg, groups));
-                }
+                violations.addAll(validator.validate(arg, groups));
             }
         }
-
     }
 }

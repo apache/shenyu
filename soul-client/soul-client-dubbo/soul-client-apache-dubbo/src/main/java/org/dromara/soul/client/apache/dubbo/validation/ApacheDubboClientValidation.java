@@ -22,13 +22,13 @@ import org.apache.dubbo.validation.Validation;
 import org.apache.dubbo.validation.Validator;
 
 /**
- * ApacheDubboClientValidation
+ * ApacheDubboClientValidation.
  *
  * @author KevinClair
  */
 public class ApacheDubboClientValidation implements Validation {
     @Override
-    public Validator getValidator(URL url) {
+    public Validator getValidator(final URL url) {
         return new ApacheDubboClientValidator(url);
     }
 }

@@ -17,36 +17,60 @@
 
 package org.dromara.soul.client.apache.dubbo.validation;
 
-import javassist.*;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtField;
+import javassist.CtNewConstructor;
+import javassist.NotFoundException;
 import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.ClassFile;
 import javassist.bytecode.ConstPool;
-import javassist.bytecode.annotation.*;
+import javassist.bytecode.annotation.ArrayMemberValue;
+import javassist.bytecode.annotation.BooleanMemberValue;
+import javassist.bytecode.annotation.ByteMemberValue;
+import javassist.bytecode.annotation.CharMemberValue;
+import javassist.bytecode.annotation.ClassMemberValue;
+import javassist.bytecode.annotation.DoubleMemberValue;
+import javassist.bytecode.annotation.EnumMemberValue;
+import javassist.bytecode.annotation.FloatMemberValue;
+import javassist.bytecode.annotation.IntegerMemberValue;
+import javassist.bytecode.annotation.LongMemberValue;
+import javassist.bytecode.annotation.MemberValue;
+import javassist.bytecode.annotation.ShortMemberValue;
+import javassist.bytecode.annotation.StringMemberValue;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.bytecode.ClassGenerator;
-import org.apache.dubbo.common.logger.Logger;
-import org.apache.dubbo.common.logger.LoggerFactory;
 import org.apache.dubbo.common.utils.ReflectUtils;
 import org.apache.dubbo.validation.MethodValidated;
 import org.apache.dubbo.validation.Validator;
-
-import javax.validation.*;
+import javax.validation.Constraint;
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.ValidationException;
+import javax.validation.ValidatorFactory;
 import javax.validation.groups.Default;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * ApacheDubboClientValidator
+ * ApacheDubboClientValidator.
  *
  * @author KevinClair
  */
+@Slf4j
 public class ApacheDubboClientValidator implements Validator {
-
-    private static final Logger logger = LoggerFactory.getLogger(ApacheDubboClientValidator.class);
 
     private final Class<?> clazz;
 
@@ -55,7 +79,7 @@ public class ApacheDubboClientValidator implements Validator {
     private final javax.validation.Validator validator;
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public ApacheDubboClientValidator(URL url) {
+    public ApacheDubboClientValidator(final URL url) {
         this.clazz = ReflectUtils.forName(url.getServiceInterface());
         String soulValidation = url.getParameter("soulValidation");
         ValidatorFactory factory;
@@ -68,7 +92,7 @@ public class ApacheDubboClientValidator implements Validator {
         this.methodClassMap = new ConcurrentHashMap<>();
     }
 
-    private static Object getMethodParameterBean(Class<?> clazz, Method method, Object[] args) {
+    private static Object getMethodParameterBean(final Class<?> clazz, final Method method, final Object[] args) {
         if (!hasConstraintParameter(method)) {
             return null;
         }
@@ -86,8 +110,8 @@ public class ApacheDubboClientValidator implements Validator {
                 field.set(parameterBean, args[i]);
             }
             return parameterBean;
-        } catch (Throwable e) {
-            logger.warn(e.getMessage(), e);
+        } catch (Exception e) {
+            log.warn(e.getMessage(), e);
             return null;
         }
     }
@@ -99,9 +123,8 @@ public class ApacheDubboClientValidator implements Validator {
      * @param method             invoke method
      * @param parameterClassName generated parameterClassName
      * @return Class<?> generated methodParameterClass
-     * @throws Exception
      */
-    private static Class<?> generateMethodParameterClass(Class<?> clazz, Method method, String parameterClassName)
+    private static Class<?> generateMethodParameterClass(final Class<?> clazz, final Method method, final String parameterClassName)
             throws Exception {
         ClassPool pool = ClassGenerator.getClassPool(clazz.getClassLoader());
         synchronized (parameterClassName.intern()) {
@@ -109,6 +132,7 @@ public class ApacheDubboClientValidator implements Validator {
             try {
                 ctClass = pool.getCtClass(parameterClassName);
             } catch (NotFoundException ignore) {
+                log.error(ignore.getMessage(), ignore);
             }
 
             if (null == ctClass) {
@@ -155,7 +179,7 @@ public class ApacheDubboClientValidator implements Validator {
         }
     }
 
-    private static String generateMethodParameterClassName(Class<?> clazz, Method method) {
+    private static String generateMethodParameterClassName(final Class<?> clazz, final Method method) {
         StringBuilder builder = new StringBuilder().append(clazz.getName())
                 .append("_")
                 .append(toUpperMethoName(method.getName()))
@@ -169,7 +193,7 @@ public class ApacheDubboClientValidator implements Validator {
         return builder.toString();
     }
 
-    private static boolean hasConstraintParameter(Method method) {
+    private static boolean hasConstraintParameter(final Method method) {
         Annotation[][] parameterAnnotations = method.getParameterAnnotations();
         if (parameterAnnotations != null && parameterAnnotations.length > 0) {
             for (Annotation[] annotations : parameterAnnotations) {
@@ -183,12 +207,12 @@ public class ApacheDubboClientValidator implements Validator {
         return false;
     }
 
-    private static String toUpperMethoName(String methodName) {
+    private static String toUpperMethoName(final String methodName) {
         return methodName.substring(0, 1).toUpperCase() + methodName.substring(1);
     }
 
     // Copy from javassist.bytecode.annotation.Annotation.createMemberValue(ConstPool, CtClass);
-    private static MemberValue createMemberValue(ConstPool cp, CtClass type, Object value) throws NotFoundException {
+    private static MemberValue createMemberValue(final ConstPool cp, final CtClass type, final Object value) throws NotFoundException {
         MemberValue memberValue = javassist.bytecode.annotation.Annotation.createMemberValue(cp, type);
         if (memberValue instanceof BooleanMemberValue) {
             ((BooleanMemberValue) memberValue).setValue((Boolean) value);
@@ -212,9 +236,8 @@ public class ApacheDubboClientValidator implements Validator {
             ((StringMemberValue) memberValue).setValue((String) value);
         } else if (memberValue instanceof EnumMemberValue) {
             ((EnumMemberValue) memberValue).setValue(((Enum<?>) value).name());
-        }
-        /* else if (memberValue instanceof AnnotationMemberValue) */
-        else if (memberValue instanceof ArrayMemberValue) {
+            /* else if (memberValue instanceof AnnotationMemberValue) */
+        } else if (memberValue instanceof ArrayMemberValue) {
             CtClass arrayType = type.getComponentType();
             int len = Array.getLength(value);
             MemberValue[] members = new MemberValue[len];
@@ -227,7 +250,7 @@ public class ApacheDubboClientValidator implements Validator {
     }
 
     @Override
-    public void validate(String methodName, Class<?>[] parameterTypes, Object[] arguments) throws Exception {
+    public void validate(final String methodName, final Class<?>[] parameterTypes, final Object[] arguments) throws Exception {
         List<Class<?>> groups = new ArrayList<>();
         Class<?> methodClass = methodClass(methodName);
         if (methodClass != null) {
@@ -257,30 +280,14 @@ public class ApacheDubboClientValidator implements Validator {
         }
 
         if (!violations.isEmpty()) {
-            logger.error("Failed to validate service: " + clazz.getName() + ", method: " + methodName + ", cause: " + violations);
+            log.error("Failed to validate service: " + clazz.getName() + ", method: " + methodName + ", cause: " + violations);
             StringBuilder validateError = new StringBuilder("");
             violations.stream().forEach(each -> validateError.append(each.getMessage()).append(","));
             throw new ValidationException(validateError.toString().substring(0, validateError.length() - 1));
         }
     }
 
-    private Class methodClass(String methodName) {
-        Class<?> methodClass = null;
-        String methodClassName = clazz.getName() + "$" + toUpperMethoName(methodName);
-        Class cached = methodClassMap.get(methodClassName);
-        if (cached != null) {
-            return cached == clazz ? null : cached;
-        }
-        try {
-            methodClass = Class.forName(methodClassName, false, Thread.currentThread().getContextClassLoader());
-            methodClassMap.put(methodClassName, methodClass);
-        } catch (ClassNotFoundException e) {
-            methodClassMap.put(methodClassName, clazz);
-        }
-        return methodClass;
-    }
-
-    private void validate(Set<ConstraintViolation<?>> violations, Object arg, Class<?>... groups) {
+    private void validate(final Set<ConstraintViolation<?>> violations, final Object arg, final Class<?>... groups) {
         if (arg != null && !ReflectUtils.isPrimitives(arg.getClass())) {
             if (arg instanceof Object[]) {
                 for (Object item : (Object[]) arg) {
@@ -299,5 +306,21 @@ public class ApacheDubboClientValidator implements Validator {
                 violations.addAll(validator.validate(arg, groups));
             }
         }
+    }
+
+    private Class methodClass(final String methodName) {
+        Class<?> methodClass = null;
+        String methodClassName = clazz.getName() + "$" + toUpperMethoName(methodName);
+        Class cached = methodClassMap.get(methodClassName);
+        if (cached != null) {
+            return cached == clazz ? null : cached;
+        }
+        try {
+            methodClass = Class.forName(methodClassName, false, Thread.currentThread().getContextClassLoader());
+            methodClassMap.put(methodClassName, methodClass);
+        } catch (ClassNotFoundException e) {
+            methodClassMap.put(methodClassName, clazz);
+        }
+        return methodClass;
     }
 }

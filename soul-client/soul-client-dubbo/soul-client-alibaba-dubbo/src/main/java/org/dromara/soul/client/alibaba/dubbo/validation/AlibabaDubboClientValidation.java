@@ -22,13 +22,13 @@ import com.alibaba.dubbo.validation.Validation;
 import com.alibaba.dubbo.validation.Validator;
 
 /**
- * AlibabaDubboClientValidation
+ * AlibabaDubboClientValidation.
  *
  * @author KevinClair
  */
 public class AlibabaDubboClientValidation implements Validation {
     @Override
-    public Validator getValidator(URL url) {
+    public Validator getValidator(final URL url) {
         return new AlibabaDubboClientValidator(url);
     }
 }
