@@ -19,6 +19,8 @@ package org.dromara.soul.plugin.apache.dubbo.proxy;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+
+import com.alibaba.dubbo.rpc.service.GenericException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -91,6 +93,6 @@ public class ApacheDubboProxyService {
             exchange.getAttributes().put(Constants.DUBBO_RPC_RESULT, ret);
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return ret;
-        })).onErrorMap(SoulException::new);
+        })).onErrorMap(exception -> exception instanceof GenericException ? new SoulException(((GenericException) exception).getExceptionMessage()) : new SoulException(exception));
     }
 }
