@@ -24,11 +24,10 @@ import org.dromara.soul.admin.query.MetaDataQuery;
 import org.dromara.soul.common.utils.UUIDUtils;
 import org.junit.Before;
 import org.junit.Test;
-
 import javax.annotation.Resource;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
-
 import static org.hamcrest.Matchers.comparesEqualTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -187,21 +186,21 @@ public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
     }
 
     private MetaDataDO getMetaDataDO() {
-        MetaDataDO metaDataDO = new MetaDataDO();
-        metaDataDO.setAppName("testAppName");
-        metaDataDO.setPath("testPath");
-        metaDataDO.setPathDesc("testPathDesc");
-        metaDataDO.setRpcType("testRpcType");
-        metaDataDO.setServiceName("testServiceName");
-        metaDataDO.setMethodName("testMethodName");
-        metaDataDO.setParameterTypes("testParameterTypes");
-        metaDataDO.setRpcExt("testRpcExt");
-        metaDataDO.setEnabled(false);
-        metaDataDO.setId(UUIDUtils.getInstance().generateShortUuid());
-        metaDataDO.setDateCreated(new Timestamp(new java.util.Date().getTime()));
-        metaDataDO.setDateUpdated(new Timestamp(new java.util.Date().getTime()));
-
-        return metaDataDO;
+        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+        return MetaDataDO.builder()
+                .appName("testAppName")
+                .path("testPath")
+                .pathDesc("testPathDesc")
+                .rpcType("testRpcType")
+                .serviceName("testServiceName")
+                .methodName("testMethodName")
+                .parameterTypes("testParameterTypes")
+                .rpcExt("testRpcExt")
+                .enabled(false)
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .dateUpdated(now)
+                .dateCreated(now)
+                .build();
     }
 
 }

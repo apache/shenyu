@@ -35,10 +35,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Arrays;
+import java.util.concurrent.ConcurrentNavigableMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.stream.Collectors;
 
 /**
- * Test cases for SignUtils.
+ * Test cases for GsonUtils.
  *
  * @author YuI
  **/
@@ -174,7 +176,7 @@ public class GsonUtilsTest {
     }
 
     /**
-     * test method {@link GsonUtils#toObjectMap(java.lang.String)}.
+     * test method {@link org.dromara.soul.common.utils.GsonUtils#toObjectMap(java.lang.String)}.
      */
     @Test
     public void testToObjectMap() {
@@ -192,6 +194,86 @@ public class GsonUtilsTest {
                 + EXPECTED_JSON + "}";
 
         Map<String, Object> parseMap = GsonUtils.getInstance().toObjectMap(json);
+        map.forEach((key, value) -> {
+            Assert.assertTrue(parseMap.containsKey(key));
+            Object jsonValue = parseMap.get(key);
+            if (jsonValue instanceof JsonElement) {
+                Assert.assertEquals(value, GsonUtils.getInstance().fromJson((JsonElement) jsonValue, TestObject.class));
+            } else {
+                Assert.assertEquals(value, parseMap.get(key));
+            }
+        });
+
+        Assert.assertNull(GsonUtils.getInstance().toObjectMap(null));
+    }
+
+    /**
+     * test method {@link org.dromara.soul.common.utils.GsonUtils#toObjectMap(java.lang.String, java.lang.Class)}.
+     */
+    @Test
+    public void testToObjectMapWithClazz() {
+        Map<String, TestObject> map = new HashMap<String, TestObject>() {
+            {
+                put("data", generateTestObject());
+            }
+        };
+        String json = "{\"data\":" + EXPECTED_JSON + "}";
+
+        Map<String, TestObject> parseMap = GsonUtils.getInstance().toObjectMap(json, TestObject.class);
+        map.forEach((key, value) -> {
+            Assert.assertTrue(parseMap.containsKey(key));
+            Assert.assertEquals(value, parseMap.get(key));
+        });
+
+        Assert.assertNull(GsonUtils.getInstance().toObjectMap(null, String.class));
+    }
+
+    /**
+     * test method {@link org.dromara.soul.common.utils.GsonUtils#toObjectMapList(java.lang.String, java.lang.Class)}.
+     */
+    @Test
+    public void testToObjectMapList() {
+        Map<String, List<String>> map = new HashMap<String, List<String>>() {
+            {
+                put("data1", new ArrayList<String>() {{
+                        add("111");
+                        add("222");
+                    }});
+                put("data2", new ArrayList<String>() {{
+                        add("333");
+                        add("555");
+                    }});
+            }
+        };
+
+        String json = "{\"data1\":[\"111\",\"222\"],\"data2\":[\"333\",\"555\"]}";
+        Map<String, List<String>> parseMap = GsonUtils.getInstance().toObjectMapList(json, String.class);
+        map.forEach((key, value) -> {
+            Assert.assertTrue(parseMap.containsKey(key));
+            Assert.assertEquals(value, parseMap.get(key));
+        });
+
+        Assert.assertNull(GsonUtils.getInstance().toObjectMapList(null, String.class));
+    }
+
+    /**
+     * test method {@link org.dromara.soul.common.utils.GsonUtils#toTreeMap(String)}.
+     */
+    @Test
+    public void testToTreeMap() {
+        ConcurrentNavigableMap<String, Object> map = new ConcurrentSkipListMap<>();
+        map.put("id", 123L);
+        map.put("name", "test");
+        map.put("double", 1.0D);
+        map.put("boolean", true);
+        map.put("data", generateTestObject());
+
+        String json = "{\"name\":\"test\",\"id\":123,\"double\":1.0,\"boolean\":true,\"null\":null,\"data\":"
+                + EXPECTED_JSON + "}";
+
+        Map<String, Object> parseMap = GsonUtils.getInstance().toTreeMap(json);
+        Assert.assertEquals(map.getClass(), parseMap.getClass());
+
         map.forEach((key, value) -> {
             Assert.assertTrue(parseMap.containsKey(key));
             Object jsonValue = parseMap.get(key);
@@ -254,6 +336,8 @@ public class GsonUtilsTest {
                 Assert.assertEquals(value.toString(), parseMap.get(key).toString());
             }
         });
+
+        Assert.assertNull(GsonUtils.getInstance().convertToMap(null));
     }
 
     private static TestObject generateTestObject() {

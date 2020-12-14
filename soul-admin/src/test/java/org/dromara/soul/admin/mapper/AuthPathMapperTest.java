@@ -31,26 +31,26 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 
 /**
- * Test cases for AuthPathMapperTest.
+ * Test cases for AuthPathMapper.
  *
  * @author itmiwang
  */
 public final class AuthPathMapperTest extends AbstractSpringIntegrationTest {
-    
+
     @Resource
     private AuthPathMapper authPathMapper;
-    
+
     @Test
     public void testSaveAndUpdate() {
         AuthPathDO authPathDO = buildAuthPathDO();
         int count = authPathMapper.save(authPathDO);
         assertThat(count, greaterThan(0));
-        
+
         authPathDO.setPath("test_path01");
         count = authPathMapper.update(authPathDO);
         assertThat(count, greaterThan(0));
     }
-    
+
     @Test
     public void testBatchSave() {
         AuthPathDO authPathDO = buildAuthPathDO();
@@ -59,59 +59,59 @@ public final class AuthPathMapperTest extends AbstractSpringIntegrationTest {
         int count = authPathMapper.batchSave(authPathDOList);
         assertThat(count, is(1));
     }
-    
+
     @Test
     public void testFindByAuthId() {
         AuthPathDO authPathDO = buildAuthPathDO();
         int count = authPathMapper.save(authPathDO);
         assertThat(count, greaterThan(0));
-        
+
         List<AuthPathDO> authPathDOList = authPathMapper.findByAuthId(authPathDO.getAuthId());
         assertThat(authPathDOList.size(), is(1));
     }
-    
+
     @Test
     public void testFindByAuthIdAndAppName() {
         AuthPathDO authPathDO = buildAuthPathDO();
         int count = authPathMapper.save(authPathDO);
         assertThat(count, greaterThan(0));
-        
+
         List<AuthPathDO> authPathDOList = authPathMapper.findByAuthIdAndAppName(authPathDO.getAuthId(), authPathDO.getAppName());
         assertThat(authPathDOList.size(), is(1));
     }
-    
+
     @Test
     public void testDeleteByAuthIdAndAppName() {
         AuthPathDO authPathDO = buildAuthPathDO();
         int count = authPathMapper.save(authPathDO);
         assertThat(count, greaterThan(0));
-    
+
         count = authPathMapper.deleteByAuthIdAndAppName(authPathDO.getAuthId(), authPathDO.getAppName());
         assertThat(count, greaterThan(0));
     }
-    
+
     @Test
     public void deleteByAuthId() {
         AuthPathDO authPathDO = buildAuthPathDO();
         int count = authPathMapper.save(authPathDO);
         assertThat(count, greaterThan(0));
-    
+
         count = authPathMapper.deleteByAuthId(authPathDO.getAuthId());
         assertThat(count, greaterThan(0));
     }
-    
+
     private AuthPathDO buildAuthPathDO() {
+        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         String id = UUIDUtils.getInstance().generateShortUuid();
         String authId = UUIDUtils.getInstance().generateShortUuid();
-        AuthPathDO authPathDO = new AuthPathDO();
-        authPathDO.setId(id);
-        authPathDO.setAuthId(authId);
-        authPathDO.setAppName("test_app");
-        authPathDO.setPath("test_path");
-        authPathDO.setEnabled(false);
-        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-        authPathDO.setDateCreated(now);
-        authPathDO.setDateUpdated(now);
-        return authPathDO;
+        return AuthPathDO.builder()
+                .id(id)
+                .authId(authId)
+                .appName("test_app")
+                .path("test_path")
+                .enabled(false)
+                .dateUpdated(now)
+                .dateCreated(now)
+                .build();
     }
 }

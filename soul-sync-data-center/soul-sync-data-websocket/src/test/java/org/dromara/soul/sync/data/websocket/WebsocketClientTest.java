@@ -22,6 +22,7 @@ import io.undertow.websockets.core.AbstractReceiveListener;
 import io.undertow.websockets.core.BufferedTextMessage;
 import io.undertow.websockets.core.WebSocketChannel;
 import io.undertow.websockets.core.WebSockets;
+import lombok.extern.slf4j.Slf4j;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.enums.ReadyState;
 import org.java_websocket.handshake.ServerHandshake;
@@ -29,8 +30,6 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
@@ -44,10 +43,9 @@ import static io.undertow.Handlers.websocket;
  *
  * @author xiaoyu(Myth)
  */
+@Slf4j
 public final class WebsocketClientTest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(WebsocketClientTest.class);
-    
     private static WebSocketClient client;
     
     private static Undertow server;
@@ -87,7 +85,7 @@ public final class WebsocketClientTest {
         client = new WebSocketClient(new URI("ws://localhost:8888/websocket")) {
             @Override
             public void onOpen(final ServerHandshake serverHandshake) {
-                LOGGER.info("Open connection");
+                log.info("Open connection");
             }
 
             @Override
@@ -101,12 +99,12 @@ public final class WebsocketClientTest {
 
             @Override
             public void onError(final Exception e) {
-                LOGGER.error("", e);
+                log.error("", e);
             }
         };
         client.connect();
         while (!client.getReadyState().equals(ReadyState.OPEN)) {
-            LOGGER.debug("connecting...");
+            log.debug("connecting...");
         }
         client.send("xiaoyu");
         latch.await(3, TimeUnit.SECONDS);

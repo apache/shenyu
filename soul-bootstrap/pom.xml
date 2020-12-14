@@ -28,6 +28,10 @@
 
     <artifactId>soul-bootstrap</artifactId>
 
+    <properties>
+        <curator.version>4.0.1</curator.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -143,22 +147,22 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>dubbo</artifactId>
-            <version>2.6.5</version>
+            <version>${alibaba.dubbo.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-client</artifactId>
-            <version>4.0.1</version>
+            <version>${curator.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-framework</artifactId>
-            <version>4.0.1</version>
+            <version>${curator.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-recipes</artifactId>
-            <version>4.0.1</version>
+            <version>${curator.version}</version>
         </dependency>
         <!-- soul  alibaba dubbo plugin end-->
 
@@ -215,6 +219,14 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!-- soul sign plugin start-->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-sign</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- soul sign plugin end-->
+
         <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>soul-spring-boot-starter-plugin-resilience4j</artifactId>
@@ -227,15 +239,6 @@
         <finalName>soul-bootstrap</finalName>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                    <encoding>UTF-8</encoding>
-                </configuration>
-            </plugin>
-            <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
@@ -243,7 +246,6 @@
                     <executable>true</executable>
                 </configuration>
             </plugin>
-            <!-- maven install 跳过测试  等价于命令 mvn install -Dmaven.test.skip = true-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>

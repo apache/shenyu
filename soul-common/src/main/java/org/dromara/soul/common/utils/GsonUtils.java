@@ -24,7 +24,6 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.TypeAdapter;
 import com.google.gson.reflect.TypeToken;
@@ -36,6 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.net.URLDecoder;
 import java.util.ArrayList;
@@ -43,6 +43,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
@@ -57,25 +58,7 @@ public class GsonUtils {
     /**
      * The constant STRING.
      */
-    private static final TypeAdapter<String> STRING = new TypeAdapter<String>() {
-        @SneakyThrows
-        public void write(final JsonWriter out, final String value) {
-            if (StringUtils.isBlank(value)) {
-                out.nullValue();
-                return;
-            }
-            out.value(value);
-        }
-
-        @SneakyThrows
-        public String read(final JsonReader reader) {
-            if (reader.peek() == JsonToken.NULL) {
-                reader.nextNull();
-                return "";
-            }
-            return reader.nextString();
-        }
-    };
+    private static final TypeAdapter<String> STRING = new StringTypeAdapter();
 
     private static final Gson GSON = new GsonBuilder().registerTypeAdapter(String.class, STRING).create();
 
@@ -211,12 +194,36 @@ public class GsonUtils {
     }
 
     /**
+     *  To object map map.
+     *
+     * @param json  the json
+     * @param clazz the class
+     * @param <T>   the class
+     * @return the map
+     */
+    public <T> Map<String, T> toObjectMap(final String json, final Class<T> clazz) {
+        return GSON.fromJson(json, TypeToken.getParameterized(Map.class, String.class, clazz).getType());
+    }
+
+    /**
+     *  To object map list.
+     *
+     * @param json  the json
+     * @param clazz the class
+     * @param <T>   the class
+     * @return the map
+     */
+    public <T> Map<String, List<T>> toObjectMapList(final String json, final Class<T> clazz) {
+        return GSON.fromJson(json, TypeToken.getParameterized(Map.class, String.class, TypeToken.getParameterized(List.class, clazz).getType()).getType());
+    }
+
+    /**
      * To tree map tree map.
      *
      * @param json the json
      * @return the tree map
      */
-    public ConcurrentSkipListMap<String, Object> toTreeMap(final String json) {
+    public ConcurrentNavigableMap<String, Object> toTreeMap(final String json) {
         return GSON_MAP.fromJson(json, new TypeToken<ConcurrentSkipListMap<String, Object>>() {
         }.getType());
     }
@@ -230,46 +237,72 @@ public class GsonUtils {
     public Map<String, Object> convertToMap(final String json) {
         Map<String, Object> map = GSON_MAP.fromJson(json, new TypeToken<Map<String, Object>>() {
         }.getType());
-        if (!map.isEmpty()) {
-            for (String key : map.keySet()) {
-                Object value = map.get(key);
-                if (value instanceof String) {
-                    String valueStr = ((String) value).trim();
-                    if (valueStr.startsWith("{") && valueStr.endsWith("}")) {
-                        Map<String, Object> mv = convertToMap(value.toString());
-                        map.put(key, mv);
-                    }
-                } else if (value instanceof JsonObject) {
-                    map.put(key, convertToMap(value.toString()));
-                } else if (value instanceof JsonArray) {
-                    JsonArray jsonArray = (JsonArray) value;
-                    List<Object> mapList = new ArrayList<>(jsonArray.size());
-                    for (Object object : jsonArray) {
-                        String objStr = this.toJson(object);
-                        if (objStr.startsWith("{") && objStr.endsWith("}")) {
-                            mapList.add(convertToMap(object.toString()));
-                        } else {
-                            mapList.add(objStr);
-                        }
-                    }
-                    map.put(key, mapList);
+
+        if (map == null || map.isEmpty()) {
+            return map;
+        }
+
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            if (value instanceof String) {
+                String valueStr = ((String) value).trim();
+                if (valueStr.startsWith("{") && valueStr.endsWith("}")) {
+                    Map<String, Object> mv = convertToMap(value.toString());
+                    map.put(key, mv);
                 }
+            } else if (value instanceof JsonObject) {
+                map.put(key, convertToMap(value.toString()));
+            } else if (value instanceof JsonArray) {
+                JsonArray jsonArray = (JsonArray) value;
+                map.put(key, jsonArrayToListInConvertToMap(jsonArray));
             }
         }
+
         return map;
     }
 
-    private static class MapDeserializer<T, U> implements JsonDeserializer<Map<T, U>> {
+    /**
+     * translate JsonArray in covertToMap of Method.
+     *
+     * @param jsonArray the Gson's Object {@link com.google.gson.JsonArray}
+     * @return list about translating jsonArray
+     */
+    private List<Object> jsonArrayToListInConvertToMap(final JsonArray jsonArray) {
+        List<Object> list = new ArrayList<>(jsonArray.size());
+        for (JsonElement jsonElement : jsonArray) {
+            String objStr = jsonElement.getAsString();
+            if (objStr.startsWith("{") && objStr.endsWith("}")) {
+                list.add(convertToMap(jsonElement.toString()));
+            } else {
+                list.add(objStr);
+            }
+        }
 
+        return list;
+    }
+
+    private static class MapDeserializer<T, U> implements JsonDeserializer<Map<T, U>> {
+        @SuppressWarnings("unchecked")
+        @SneakyThrows
         @Override
-        public Map<T, U> deserialize(final JsonElement json, final Type type, final JsonDeserializationContext context) throws JsonParseException {
+        public Map<T, U> deserialize(final JsonElement json, final Type type, final JsonDeserializationContext context) {
             if (!json.isJsonObject()) {
                 return null;
             }
 
             JsonObject jsonObject = json.getAsJsonObject();
             Set<Map.Entry<String, JsonElement>> jsonEntrySet = jsonObject.entrySet();
-            Map<T, U> resultMap = new LinkedHashMap<>();
+
+            String className = ((ParameterizedType) type).getRawType().getTypeName();
+            Class<Map<?, ?>> mapClass = (Class<Map<?, ?>>) Class.forName(className);
+
+            Map<T, U> resultMap;
+            if (mapClass.isInterface()) {
+                resultMap = new LinkedHashMap<>();
+            } else {
+                resultMap = (Map<T, U>) mapClass.getConstructor().newInstance();
+            }
 
             for (Map.Entry<String, JsonElement> entry : jsonEntrySet) {
                 U value = context.deserialize(entry.getValue(), this.getType(entry.getValue()));
@@ -285,7 +318,7 @@ public class GsonUtils {
          * @param element the element
          * @return Class class
          */
-        public Class getType(final JsonElement element) {
+        public Class<?> getType(final JsonElement element) {
             if (!element.isJsonPrimitive()) {
                 return element.getClass();
             }
@@ -293,19 +326,41 @@ public class GsonUtils {
             final JsonPrimitive primitive = element.getAsJsonPrimitive();
             if (primitive.isString()) {
                 return String.class;
-            } else if (primitive.isNumber()) {
+            }
+            if (primitive.isNumber()) {
                 String numStr = primitive.getAsString();
                 if (numStr.contains(DOT) || numStr.contains(E)
                         || numStr.contains("E")) {
                     return Double.class;
                 }
                 return Long.class;
-            } else if (primitive.isBoolean()) {
-                return Boolean.class;
-            } else {
-                return element.getClass();
             }
+            if (primitive.isBoolean()) {
+                return Boolean.class;
+            }
+            return element.getClass();
         }
     }
 
+    private static class StringTypeAdapter extends TypeAdapter<String> {
+        @SneakyThrows
+        @Override
+        public void write(final JsonWriter out, final String value) {
+            if (StringUtils.isBlank(value)) {
+                out.nullValue();
+                return;
+            }
+            out.value(value);
+        }
+
+        @SneakyThrows
+        @Override
+        public String read(final JsonReader reader) {
+            if (reader.peek() == JsonToken.NULL) {
+                reader.nextNull();
+                return "";
+            }
+            return reader.nextString();
+        }
+    }
 }

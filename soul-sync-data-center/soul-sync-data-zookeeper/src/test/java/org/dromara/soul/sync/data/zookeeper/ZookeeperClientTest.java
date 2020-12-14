@@ -19,6 +19,7 @@ package org.dromara.soul.sync.data.zookeeper;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import org.I0Itec.zkclient.IZkDataListener;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -34,9 +35,9 @@ import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.dto.convert.RateLimiterHandle;
 import org.dromara.soul.common.dto.convert.RewriteHandle;
 import org.dromara.soul.common.dto.convert.WafHandle;
-import org.dromara.soul.common.dto.convert.rule.DivideRuleHandle;
-import org.dromara.soul.common.dto.convert.rule.DubboRuleHandle;
-import org.dromara.soul.common.dto.convert.rule.SpringCloudRuleHandle;
+import org.dromara.soul.common.dto.convert.rule.impl.DivideRuleHandle;
+import org.dromara.soul.common.dto.convert.rule.impl.DubboRuleHandle;
+import org.dromara.soul.common.dto.convert.rule.impl.SpringCloudRuleHandle;
 import org.dromara.soul.common.dto.convert.selector.DubboSelectorHandle;
 import org.dromara.soul.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.dromara.soul.common.enums.LoadBalanceEnum;
@@ -53,8 +54,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -66,10 +65,9 @@ import java.util.concurrent.TimeUnit;
 /**
  * The type Zookeeper client test.
  */
+@Slf4j
 @SuppressWarnings("all")
 public final class ZookeeperClientTest {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperClientTest.class);
 
     private static final String ROOT_PATH = "/xiaoyu";
 
@@ -315,18 +313,20 @@ public final class ZookeeperClientTest {
     }
 
     private static Pair<SpringCloudSelectorHandle, SpringCloudRuleHandle> buildSpringCloudHandle() {
-        SpringCloudSelectorHandle selectorHandle = new SpringCloudSelectorHandle();
-        selectorHandle.setServiceId("xiaoyu");
+        SpringCloudSelectorHandle selectorHandle = SpringCloudSelectorHandle.builder()
+                .serviceId("xiaoyu")
+                .build();
         SpringCloudRuleHandle ruleHandle = new SpringCloudRuleHandle();
         ruleHandle.setPath("/xiaoyu");
         return new ImmutablePair<>(selectorHandle, ruleHandle);
     }
 
     private static List<DivideUpstream> buildUpstreamList() {
-        DivideUpstream upstream = new DivideUpstream();
-        upstream.setUpstreamHost("localhost");
-        upstream.setUpstreamUrl("http://localhost:8081");
-        upstream.setWeight(90);
+        DivideUpstream upstream = DivideUpstream.builder()
+                .upstreamHost("localhost")
+                .upstreamUrl("http://localhost:8081")
+                .weight(90)
+                .build();
         List<DivideUpstream> upstreams = Lists.newArrayList();
         upstreams.add(upstream);
         return upstreams;
@@ -362,7 +362,7 @@ public final class ZookeeperClientTest {
             }
             zkClient.writeData(pluginPath, buildByName(pluginEnum.getName()));
             PluginData data = zkClient.readData(pluginPath);
-            LOGGER.debug(data.toString());
+            log.debug(data.toString());
         });
     }
 
@@ -383,9 +383,9 @@ public final class ZookeeperClientTest {
             zkClient.subscribeDataChanges(pluginPath, new IZkDataListener() {
                 @Override
                 public void handleDataChange(final String dataPath, final Object data) {
-                    LOGGER.info("node data changed!");
-                    LOGGER.info("path=>" + dataPath);
-                    LOGGER.info("data=>" + data);
+                    log.info("node data changed!");
+                    log.info("path=>" + dataPath);
+                    log.info("data=>" + data);
                     final String key = dataPath
                             .substring(dataPath.lastIndexOf("/") + 1, dataPath.length());
                     PLUGIN_ZK_DTO_MAP.put(key, (PluginData) data);
@@ -399,7 +399,7 @@ public final class ZookeeperClientTest {
 
         });
 
-        LOGGER.info("ready!");
+        log.info("ready!");
         //junit测试时，防止线程退出
         long endTime = System.currentTimeMillis() + 5000L;
         while (System.currentTimeMillis() >= endTime) {
@@ -446,7 +446,7 @@ public final class ZookeeperClientTest {
         }
         zkClient.writeData(PLUGIN, buildMap());
         Map<String, PluginData> resultMap = zkClient.readData(PLUGIN);
-        resultMap.forEach((k, v) -> LOGGER.debug(k + ":" + v.toString()));
+        resultMap.forEach((k, v) -> log.debug(k + ":" + v.toString()));
     }
 
     /**
@@ -455,7 +455,7 @@ public final class ZookeeperClientTest {
     @After
     public void dispose() {
         zkClient.close();
-        LOGGER.info("zkclient closed!");
+        log.info("zkclient closed!");
     }
 
     /**
@@ -482,25 +482,25 @@ public final class ZookeeperClientTest {
         zkClient.subscribeDataChanges(PLUGIN, new IZkDataListener() {
             @Override
             public void handleDataChange(final String path, final Object o) {
-                LOGGER.info("node data changed!");
-                LOGGER.info("path=>" + path);
-                LOGGER.info("data=>" + o);
+                log.info("node data changed!");
+                log.info("path=>" + path);
+                log.info("data=>" + o);
                 Map<String, PluginData> map;
                 map = (Map<String, PluginData>) o;
-                LOGGER.info(map.toString());
-                LOGGER.info("--------------");
+                log.info(map.toString());
+                log.info("--------------");
             }
 
             @Override
             public void handleDataDeleted(final String path) {
-                LOGGER.info("node data deleted!");
-                LOGGER.info("path=>" + path);
-                LOGGER.info("--------------");
+                log.info("node data deleted!");
+                log.info("path=>" + path);
+                log.info("--------------");
 
             }
         });
 
-        LOGGER.info("ready!");
+        log.info("ready!");
 
         long endTime = System.currentTimeMillis() + 5000L;
         while (System.currentTimeMillis() >= endTime) {

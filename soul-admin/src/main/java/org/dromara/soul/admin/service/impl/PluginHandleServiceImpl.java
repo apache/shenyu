@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
  *
  * @author liangziqiang.
  * @author dengliming
+ * @author nuo-promise
  */
 @Service("pluginHandleService")
 public class PluginHandleServiceImpl implements PluginHandleService {
@@ -94,9 +95,10 @@ public class PluginHandleServiceImpl implements PluginHandleService {
 
     @Override
     public List<PluginHandleVO> list(final String pluginId, final Integer type) {
-        PluginHandleQuery pluginHandleQuery = new PluginHandleQuery();
-        pluginHandleQuery.setPluginId(pluginId);
-        pluginHandleQuery.setType(type);
+        PluginHandleQuery pluginHandleQuery = PluginHandleQuery.builder()
+                .pluginId(pluginId)
+                .type(type)
+                .build();
         return pluginHandleMapper.selectByQuery(pluginHandleQuery)
                 .stream()
                 .map(this::buildPluginHandleVO)

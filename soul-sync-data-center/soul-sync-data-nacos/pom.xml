@@ -28,6 +28,10 @@
 
     <artifactId>soul-sync-data-nacos</artifactId>
 
+    <properties>
+        <nacos-client.version>1.2.0</nacos-client.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.dromara</groupId>
@@ -37,7 +41,7 @@
         <dependency>
             <groupId>com.alibaba.nacos</groupId>
             <artifactId>nacos-client</artifactId>
-            <version>1.2.0</version>
+            <version>${nacos-client.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
