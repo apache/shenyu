@@ -64,10 +64,10 @@ public class RateLimiterPlugin extends AbstractSoulPlugin {
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
-        if(checkIfShortCircuit(selector, rule)){
+        if (checkIfShortCircuit(selector, rule)) {
             Object error = SoulResultWrap.error(SoulResultEnum.REQUEST_FAILED_EARLY.getCode(), SoulResultEnum.REQUEST_FAILED_EARLY.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
-        }else{
+        } else {
             final String handle = rule.getHandle();
             final RateLimiterHandle limiterHandle = GsonUtils.getInstance().fromJson(handle, RateLimiterHandle.class);
             return redisRateLimiter.isAllowed(rule.getId(), limiterHandle.getReplenishRate(), limiterHandle.getBurstCapacity())
@@ -83,23 +83,23 @@ public class RateLimiterPlugin extends AbstractSoulPlugin {
 
     }
 
-    private boolean checkIfShortCircuit( SelectorData selector, RuleData rule) {
+    private boolean checkIfShortCircuit(final SelectorData selector, final RuleData rule) {
         return checkByPluginName(PluginEnum.DIVIDE.getName(), selector, rule)
                 && checkByPluginName(PluginEnum.SPRING_CLOUD.getName(), selector, rule)
-                &&checkByPluginName(PluginEnum.WEB_SOCKET.getName(), selector, rule)
+                && checkByPluginName(PluginEnum.WEB_SOCKET.getName(), selector, rule)
                 && checkByPluginName(PluginEnum.DUBBO.getName(), selector, rule)
-                &&checkByPluginName(PluginEnum.SOFA.getName(), selector, rule);
+                && checkByPluginName(PluginEnum.SOFA.getName(), selector, rule);
     }
-    private boolean checkByPluginName( final String pluginName, final SelectorData selector, final RuleData rule){
+
+    private boolean checkByPluginName(final String pluginName, final SelectorData selector, final RuleData rule) {
         final PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(pluginName);
-        if(pluginData != null && pluginData.getEnabled()){
-            if ( !BaseDataCache.getInstance().obtainSelectorData(pluginName).contains(selector)){
+        if (pluginData != null && pluginData.getEnabled()) {
+            if (!BaseDataCache.getInstance().obtainSelectorData(pluginName).contains(selector)) {
                 return true;
-            }else return !BaseDataCache.getInstance().obtainRuleData(selector.getId()).contains(rule);
+            } else return !BaseDataCache.getInstance().obtainRuleData(selector.getId()).contains(rule);
         }
         return false;
     }
-
 
 
 }
