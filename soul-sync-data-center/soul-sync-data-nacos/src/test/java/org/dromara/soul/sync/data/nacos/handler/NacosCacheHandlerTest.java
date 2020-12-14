@@ -17,48 +17,81 @@
 
 package org.dromara.soul.sync.data.nacos.handler;
 
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.nacos.api.config.ConfigFactory;
 import com.alibaba.nacos.api.config.ConfigService;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.AppAuthData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.MetaData;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.sync.data.api.AuthDataSubscriber;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
-import org.junit.Test;
-import org.junit.Before;
 import org.junit.Assert;
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collections;
+import org.junit.Before;
+import org.junit.Test;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Collections;
+import java.util.Set;
+import java.util.Objects;
+import java.util.Map;
+import java.util.HashSet;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * Test cases for {@link NacosCacheHandler}.
  *
  * @author kminjava
  */
+@Slf4j
 @SuppressWarnings("all")
-public class NacosCacheHandlerTest {
+public final class NacosCacheHandlerTest {
+    private static final ConcurrentMap<String, PluginData> PLUGIN_MAP = Maps.newConcurrentMap();
+
+    private static final ConcurrentMap<String, List<SelectorData>> SELECTOR_MAP = Maps.newConcurrentMap();
+
+    private static final ConcurrentMap<String, List<RuleData>> RULE_MAP = Maps.newConcurrentMap();
+
+    private static final ConcurrentMap<String, AppAuthData> AUTH_MAP = Maps.newConcurrentMap();
+
+    private static final ConcurrentMap<String, MetaData> META_DATA = Maps.newConcurrentMap();
+
+    private static final Comparator<SelectorData> SELECTOR_DATA_COMPARATOR = Comparator.comparing(SelectorData::getSort);
+
+    private static final Comparator<RuleData> RULE_DATA_COMPARATOR = Comparator.comparing(RuleData::getSort);
+
+    private static final String GROUP = "DEFAULT_GROUP";
+
+    private static final String PLUGIN_DATA_ID = "soul.plugin.json";
+
+    private static final String SELECTOR_DATA_ID = "soul.selector.json";
+
+    private static final String RULE_DATA_ID = "soul.rule.json";
+
+    private static final String AUTH_DATA_ID = "soul.auth.json";
+
+    private static final String META_DATA_ID = "soul.meta.json";
 
     private NacosCacheHandler nacosCacheHandlerService;
 
     private ConfigService configService;
 
     @Before
-    public void setUp() throws Exception {
-        configService = ConfigFactory.createConfigService("127.0.0.1:8848");
+    public void setUp() {
+        configService = new NacosMockConfigService();
     }
 
     /**
@@ -67,10 +100,18 @@ public class NacosCacheHandlerTest {
     @SneakyThrows
     @Test
     public void testUpdatePluginMap() {
-        //init nacos plugin data
-        final String configInfo = mockConfigsFetchResponseJson();
-        JSONObject object = JSON.parseObject(configInfo);
-        final String pulginData = object.getString("pluginData");
+        String pluginName1 = "PLUGIN_NAME_1";
+        String pluginName2 = "PLUGIN_NAME_2";
+        PluginData pluginData1 =
+                PluginData.builder().name(pluginName1).id("plugin_1").config("config_1").build();
+        PluginData pluginData2 =
+                PluginData.builder().name(pluginName2).id("plugin_2").config("config_2").build();
+
+        String pluginData = GsonUtils.getInstance()
+                .toJson(ImmutableMap.of(pluginName2, pluginData2, pluginName1, pluginData1));
+
+        changePluginData(ImmutableList.of(pluginData1, pluginData2));
+
         final CountDownLatch latch = new CountDownLatch(2);
         final List<PluginData> onSubscribeList = new ArrayList<>();
         final List<PluginData> unsubscribeList = new ArrayList<>();
@@ -87,10 +128,14 @@ public class NacosCacheHandlerTest {
                 latch.countDown();
             }
         }, Collections.emptyList(), Collections.emptyList());
-        nacosCacheHandlerService.updatePluginMap(pulginData);
+        nacosCacheHandlerService.updatePluginMap(pluginData);
         latch.await(500, TimeUnit.MILLISECONDS);
-        Assert.assertEquals(9, onSubscribeList.size());
-        Assert.assertEquals(9, unsubscribeList.size());
+        Assert.assertEquals(2, onSubscribeList.size());
+        Assert.assertEquals(2, unsubscribeList.size());
+        Assert.assertEquals(
+                configService.getConfig(PLUGIN_DATA_ID, GROUP, 1),
+                GsonUtils.getInstance()
+                        .toJson(ImmutableMap.of(pluginName2, pluginData2, pluginName1, pluginData1)));
 
     }
 
@@ -100,10 +145,25 @@ public class NacosCacheHandlerTest {
     @SneakyThrows
     @Test
     public void testUpdateSelectorMap() {
-        final String configInfo = mockConfigsFetchResponseJson();
-        JSONObject object = JSON.parseObject(configInfo);
-        final String selectorDataParam = object.getString("selectorData");
+        String selectorDataPluginName1 = "SELECTOR_DATA_1";
+        String selectorDataPluginName2 = "SELECTOR_DATA_2";
+        SelectorData selectorData1 =
+                SelectorData.builder()
+                        .pluginName(selectorDataPluginName1)
+                        .id("select_1")
+                        .name("SELECT_DATA_NAME_1")
+                        .build();
+        SelectorData selectorData2 =
+                SelectorData.builder()
+                        .pluginName(selectorDataPluginName2)
+                        .id("select_2")
+                        .name("SELECT_DATA_NAME_2")
+                        .build();
 
+        changeSelectorData(ImmutableList.of(selectorData1, selectorData2));
+        String selectorDataParam = GsonUtils.getInstance()
+                .toJson(ImmutableMap.of(selectorDataPluginName2, ImmutableList.of(selectorData2),
+                        selectorDataPluginName1, ImmutableList.of(selectorData1)));
         final CountDownLatch latch = new CountDownLatch(2);
         final List<SelectorData> subscribeList = new ArrayList<>();
         final List<SelectorData> unsubscribeList = new ArrayList<>();
@@ -123,6 +183,15 @@ public class NacosCacheHandlerTest {
         nacosCacheHandlerService.updateSelectorMap(selectorDataParam);
         Assert.assertEquals(2, subscribeList.size());
         Assert.assertEquals(2, unsubscribeList.size());
+        Assert.assertEquals(
+                configService.getConfig(SELECTOR_DATA_ID, GROUP, 1),
+                GsonUtils.getInstance()
+                        .toJson(
+                                ImmutableMap.of(
+                                        selectorDataPluginName2,
+                                        ImmutableList.of(selectorData2),
+                                        selectorDataPluginName1,
+                                        ImmutableList.of(selectorData1))));
     }
 
     /**
@@ -131,13 +200,23 @@ public class NacosCacheHandlerTest {
     @SneakyThrows
     @Test
     public void testUpdateRuleMap() {
+        String ruleDataId1 = "RULE_DATA_1";
+        String ruleDataId2 = "RULE_DATA_2";
+        String selectorId1 = "ID_1";
+        String selectorId2 = "ID_2";
+        RuleData ruleData1 = RuleData.builder().selectorId(selectorId1).id(ruleDataId1).build();
+        RuleData ruleData2 = RuleData.builder().selectorId(selectorId2).id(ruleDataId2).build();
+        String ruleDataParam = GsonUtils.getInstance()
+                .toJson(
+                        ImmutableMap.of(
+                                selectorId2,
+                                ImmutableList.of(ruleData2),
+                                selectorId1,
+                                ImmutableList.of(ruleData1)));
+        changeRuleData(ImmutableList.of(ruleData1, ruleData2));
         final CountDownLatch latch = new CountDownLatch(2);
         final List<RuleData> subscribeList = new ArrayList<>();
         final List<RuleData> unsubscribeList = new ArrayList<>();
-        // init ruleData
-        final String configInfo = mockConfigsFetchResponseJson();
-        JSONObject object = JSON.parseObject(configInfo);
-        final String ruleDataParam = object.getString("ruleData");
         nacosCacheHandlerService = new NacosCacheHandler(configService, new PluginDataSubscriber() {
             @Override
             public void onRuleSubscribe(final RuleData ruleData) {
@@ -155,6 +234,15 @@ public class NacosCacheHandlerTest {
         latch.await(10, TimeUnit.SECONDS);
         Assert.assertEquals(2, subscribeList.size());
         Assert.assertEquals(2, unsubscribeList.size());
+        Assert.assertEquals(
+                configService.getConfig(RULE_DATA_ID, GROUP, 1),
+                GsonUtils.getInstance()
+                        .toJson(
+                                ImmutableMap.of(
+                                        selectorId2,
+                                        ImmutableList.of(ruleData2),
+                                        selectorId1,
+                                        ImmutableList.of(ruleData1))));
     }
 
     /**
@@ -163,10 +251,14 @@ public class NacosCacheHandlerTest {
     @SneakyThrows
     @Test
     public void testUpdateMetaDataMap() {
-        final String configInfo = mockConfigsFetchResponseJson();
-        JSONObject object = JSON.parseObject(configInfo);
-        //init metaData
-        final String metaDataParam = object.getString("metaData");
+        String metadataPath1 = "METADATA_PATH_1";
+        String metadataPath2 = "METADATA_PATH_2";
+        MetaData metaData1 = MetaData.builder().path(metadataPath1).id("meta_1").build();
+        MetaData metaData2 = MetaData.builder().path(metadataPath2).id("meta_2").build();
+
+        changeMetaData(ImmutableList.of(metaData1, metaData2));
+        String metaDataParam = GsonUtils.getInstance()
+                .toJson(ImmutableMap.of(metadataPath1, metaData1, metadataPath2, metaData2));
         final CountDownLatch latch = new CountDownLatch(2);
         final List<MetaData> subscribeList = new ArrayList<>();
         final List<MetaData> unsubscribeList = new ArrayList<>();
@@ -189,6 +281,10 @@ public class NacosCacheHandlerTest {
         latch.await(500, TimeUnit.MILLISECONDS);
         Assert.assertEquals(2, subscribeList.size());
         Assert.assertEquals(2, unsubscribeList.size());
+        Assert.assertEquals(
+                configService.getConfig(META_DATA_ID, GROUP, 1),
+                GsonUtils.getInstance()
+                        .toJson(ImmutableMap.of(metadataPath1, metaData1, metadataPath2, metaData2)));
     }
 
     /**
@@ -197,13 +293,20 @@ public class NacosCacheHandlerTest {
     @SneakyThrows
     @Test
     public void testUpdateAuthMap() {
+        String mockAppKey = "MOCK_APP_KEY";
+        String mockAppKey2 = "MOCK_APP_KEY2";
+        String mockAppSecret = "MOCK_APP_SECRET";
+        AppAuthData appAuthData =
+                AppAuthData.builder().appKey(mockAppKey).appSecret(mockAppSecret).enabled(true).build();
+        AppAuthData appAuthData2 =
+                AppAuthData.builder().appKey(mockAppKey2).appSecret(mockAppSecret).enabled(true).build();
+
+        changeAuthData(ImmutableList.of(appAuthData, appAuthData2));
+        String appAuthDataParam = GsonUtils.getInstance()
+                .toJson(ImmutableMap.of(mockAppKey2, appAuthData2, mockAppKey, appAuthData));
         final CountDownLatch latch = new CountDownLatch(2);
         final List<AppAuthData> subscribeList = new ArrayList<>();
         final List<AppAuthData> unsubscribeList = new ArrayList<>();
-        //init appAuthdData
-        final String configInfo = mockConfigsFetchResponseJson();
-        JSONObject object = JSON.parseObject(configInfo);
-        final String appAuthDataParam = object.getString("appAuthData");
 
         AuthDataSubscriber authDataSubscriber = new AuthDataSubscriber() {
             @Override
@@ -225,21 +328,140 @@ public class NacosCacheHandlerTest {
         latch.await(500, TimeUnit.MILLISECONDS);
         Assert.assertEquals(2, subscribeList.size());
         Assert.assertEquals(2, unsubscribeList.size());
+        Assert.assertEquals(
+                configService.getConfig(AUTH_DATA_ID, GROUP, 100),
+                GsonUtils.getInstance()
+                        .toJson(ImmutableMap.of(mockAppKey2, appAuthData2, mockAppKey, appAuthData)));
     }
 
-    // mock configs fetch api response
-    private String mockConfigsFetchResponseJson() {
-        try (FileInputStream fis = new FileInputStream(this.getClass().getClassLoader().getResource("plugin.json").getPath());
-             InputStreamReader reader = new InputStreamReader(fis);
-             BufferedReader bufferedReader = new BufferedReader(reader);
-        ) {
-            StringBuilder builder = new StringBuilder();
-            bufferedReader.lines().forEach(builder::append);
-            return builder.toString();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+    private void changePluginData(final List<PluginData> changed) {
+        updateDataMap(getConfig(PLUGIN_DATA_ID));
+
+        changed.forEach(plugin -> PLUGIN_MAP.put(plugin.getName(), plugin));
+
+        publishConfig(PLUGIN_DATA_ID, PLUGIN_MAP);
+    }
+
+    private void changeSelectorData(final List<SelectorData> changed) {
+        changeSelectorDataMap(getConfig(SELECTOR_DATA_ID));
+
+        changed.forEach(selector -> {
+            List<SelectorData> ls = SELECTOR_MAP
+                    .getOrDefault(selector.getPluginName(), new ArrayList<>())
+                    .stream()
+                    .filter(s -> !s.getId().equals(selector.getId()))
+                    .sorted(SELECTOR_DATA_COMPARATOR)
+                    .collect(Collectors.toList());
+            ls.add(selector);
+            SELECTOR_MAP.put(selector.getPluginName(), ls);
+        });
+
+        publishConfig(SELECTOR_DATA_ID, SELECTOR_MAP);
+    }
+
+    private void changeRuleData(final List<RuleData> changed) {
+        changeRuleDataMap(getConfig(RULE_DATA_ID));
+
+        changed.forEach(rule -> {
+            List<RuleData> ls = RULE_MAP
+                    .getOrDefault(rule.getSelectorId(), new ArrayList<>())
+                    .stream()
+                    .filter(s -> !s.getId().equals(rule.getSelectorId()))
+                    .sorted(RULE_DATA_COMPARATOR)
+                    .collect(Collectors.toList());
+            ls.add(rule);
+            RULE_MAP.put(rule.getSelectorId(), ls);
+        });
+
+        publishConfig(RULE_DATA_ID, RULE_MAP);
+    }
+
+    private void changeMetaData(final List<MetaData> changed) {
+        changeMetaDataMap(getConfig(META_DATA_ID));
+
+        changed.forEach(meta -> {
+            META_DATA
+                    .values()
+                    .stream()
+                    .filter(md -> Objects.equals(md.getId(), meta.getId()))
+                    .forEach(md -> META_DATA.remove(md.getPath()));
+
+            META_DATA.put(meta.getPath(), meta);
+        });
+        publishConfig(META_DATA_ID, META_DATA);
+    }
+
+    private void changeAuthData(final List<AppAuthData> changed) {
+        changeAppAuthDataMap(getConfig(AUTH_DATA_ID));
+
+        changed.forEach(appAuth -> AUTH_MAP.put(appAuth.getAppKey(), appAuth));
+
+        publishConfig(AUTH_DATA_ID, AUTH_MAP);
+    }
+
+    private void changeAppAuthDataMap(final String configInfo) {
+        JsonObject jo = GsonUtils.getInstance().fromJson(configInfo, JsonObject.class);
+        Set<String> set = new HashSet<>(AUTH_MAP.keySet());
+        for (Map.Entry<String, JsonElement> e : jo.entrySet()) {
+            set.remove(e.getKey());
+            AUTH_MAP.put(e.getKey(), GsonUtils.getInstance().fromJson(e.getValue(), AppAuthData.class));
         }
+        AUTH_MAP.keySet().removeAll(set);
+
+    }
+
+    private void changeMetaDataMap(final String configInfo) {
+        JsonObject jo = GsonUtils.getInstance().fromJson(configInfo, JsonObject.class);
+        Set<String> set = new HashSet<>(META_DATA.keySet());
+        for (Map.Entry<String, JsonElement> e : jo.entrySet()) {
+            set.remove(e.getKey());
+            META_DATA.put(e.getKey(), GsonUtils.getInstance().fromJson(e.getValue(), MetaData.class));
+        }
+        META_DATA.keySet().removeAll(set);
+    }
+
+    private void changeRuleDataMap(final String configInfo) {
+        JsonObject jo = GsonUtils.getInstance().fromJson(configInfo, JsonObject.class);
+        Set<String> set = new HashSet<>(RULE_MAP.keySet());
+        for (Map.Entry<String, JsonElement> e : jo.entrySet()) {
+            set.remove(e.getKey());
+            List<RuleData> ls = new ArrayList<>();
+            e.getValue().getAsJsonArray().forEach(je -> ls.add(GsonUtils.getInstance().fromJson(je, RuleData.class)));
+            RULE_MAP.put(e.getKey(), ls);
+        }
+        RULE_MAP.keySet().removeAll(set);
+    }
+
+    private void changeSelectorDataMap(final String config) {
+        JsonObject jo = GsonUtils.getInstance().fromJson(config, JsonObject.class);
+        Set<String> set = new HashSet<>(SELECTOR_MAP.keySet());
+        for (Map.Entry<String, JsonElement> e : jo.entrySet()) {
+            set.remove(e.getKey());
+            List<SelectorData> ls = new ArrayList<>();
+            e.getValue().getAsJsonArray().forEach(je -> ls.add(GsonUtils.getInstance().fromJson(je, SelectorData.class)));
+            SELECTOR_MAP.put(e.getKey(), ls);
+        }
+        SELECTOR_MAP.keySet().removeAll(set);
+    }
+
+    private void updateDataMap(final String configInfo) {
+        JsonObject jo = GsonUtils.getInstance().fromJson(configInfo, JsonObject.class);
+        Set<String> set = new HashSet<>(PLUGIN_MAP.keySet());
+        for (Map.Entry<String, JsonElement> e : jo.entrySet()) {
+            set.remove(e.getKey());
+            PLUGIN_MAP.put(e.getKey(), GsonUtils.getInstance().fromJson(e.getValue(), PluginData.class));
+        }
+        PLUGIN_MAP.keySet().removeAll(set);
+    }
+
+    @SneakyThrows
+    private String getConfig(final String dataId) {
+        return configService.getConfig(dataId, GROUP, 6000);
+    }
+
+    @SneakyThrows
+    private void publishConfig(final String dataId, final Object data) {
+        configService.publishConfig(dataId, GROUP, GsonUtils.getInstance().toJson(data));
     }
 
 }
