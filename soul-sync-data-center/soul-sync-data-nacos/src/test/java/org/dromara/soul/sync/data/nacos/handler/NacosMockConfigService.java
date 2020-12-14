@@ -19,7 +19,6 @@ package org.dromara.soul.sync.data.nacos.handler;
 
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.listener.Listener;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,7 +36,6 @@ public class NacosMockConfigService implements ConfigService {
     @Override
     public String getConfigAndSignListener(
             final String s, final String s1, final long l, final Listener listener) {
-
         return null;
     }
 
