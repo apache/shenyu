@@ -163,11 +163,11 @@ public class SelectorServiceImpl implements SelectorService {
                 UpstreamCheckService.removeByKey(selectorDO.getName());
             }
 
-            //发送删除选择器事件
+            // publish delete event of Selector
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.DELETE,
                     Collections.singletonList(SelectorDO.transFrom(selectorDO, pluginDO.getName(), null))));
 
-            //清除规则与规则条件
+            // delete rule and ruleCondition
             final List<RuleDO> ruleDOList = ruleMapper.selectByQuery(new RuleQuery(id, null));
             if (CollectionUtils.isNotEmpty(ruleDOList)) {
                 for (RuleDO ruleDO : ruleDOList) {

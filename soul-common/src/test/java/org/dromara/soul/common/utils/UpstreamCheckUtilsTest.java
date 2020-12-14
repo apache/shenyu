@@ -20,6 +20,13 @@ package org.dromara.soul.common.utils;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+import lombok.SneakyThrows;
 
 /**
  * Test cases for UpstreamCheckUtils.
@@ -39,7 +46,27 @@ public final class UpstreamCheckUtilsTest {
     }
 
     @Test
-    public void testNormalIp() {
-        assertFalse(UpstreamCheckUtils.checkUrl("http://127.0.0.1"));
+    public void testPingHostname() {
+        assertTrue(UpstreamCheckUtils.checkUrl("localhost"));
+    }
+
+    @Test
+    @SneakyThrows
+    public void testSocketConnect() {
+        Runnable runnable = () -> {
+            ServerSocket serverSocket;
+            try {
+                serverSocket = new ServerSocket(13098);
+                Socket socket = serverSocket.accept();
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        };
+        new Thread(runnable).start();
+        Thread.sleep(100);
+        assertTrue(UpstreamCheckUtils.checkUrl("127.0.0.1:13098"));
+        assertFalse(UpstreamCheckUtils.checkUrl("http://127.0.0.1:13099"));
+        assertTrue(UpstreamCheckUtils.checkUrl("http://127.0.0.1:13098"));
     }
 }

@@ -45,7 +45,7 @@ public class ExceptionHandlers {
             SoulException soulException = (SoulException) exception;
             message = soulException.getMessage();
         } else {
-            message = "系统繁忙,请稍后重试";
+            message = "The system is busy, please try again later";
         }
         return SoulAdminResult.error(message);
     }
