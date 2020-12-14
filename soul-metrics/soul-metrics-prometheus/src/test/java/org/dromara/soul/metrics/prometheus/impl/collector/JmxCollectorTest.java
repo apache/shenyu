@@ -18,16 +18,20 @@
 package org.dromara.soul.metrics.prometheus.impl.collector;
 
 import org.dromara.soul.metrics.config.JmxConfig;
+import org.dromara.soul.metrics.prometheus.impl.collector.support.JmxCollectorConfigObject;
 import org.junit.Assert;
 import org.junit.Test;
 
 import javax.management.MalformedObjectNameException;
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 /**
  * The type Jmx collector test.
+ *
+ * @author davidliu
  */
 public final class JmxCollectorTest {
     
@@ -38,8 +42,7 @@ public final class JmxCollectorTest {
      */
     @Test
     public void testAnyJmxCollectorInstanceInvokeDescribeMethodReturnTheSameResult() throws MalformedObjectNameException {
-        final String configJson = "{}";
-        final JmxCollector jmxCollectorInitWithEmptyJson = new JmxCollector(configJson);
+        final JmxCollector jmxCollectorInitWithEmptyJson = new JmxCollector(new JmxCollectorConfigObject().toConfigJson());
         final JmxCollector jmxCollectorInitWithNullObject = new JmxCollector(null);
         jmxCollectorInitWithEmptyJson.describe();
         Assert.assertEquals(jmxCollectorInitWithEmptyJson.describe(), jmxCollectorInitWithNullObject.describe());
@@ -53,9 +56,10 @@ public final class JmxCollectorTest {
      */
     @Test
     public void testInitJmxConfigWithStartWithDelaySecondsThenInvokeCollectMethodWithinStartDelaySeconds() throws MalformedObjectNameException, InterruptedException {
-        // given correct value
-        final String configJson = "{\"startDelaySeconds\": 1}";
-        final JmxCollector jmxCollector = new JmxCollector(configJson);
+        final int startDelaySeconds = 1;
+        JmxCollectorConfigObject configObject = new JmxCollectorConfigObject();
+        configObject.setStartDelaySeconds(startDelaySeconds);
+        final JmxCollector jmxCollector = new JmxCollector(configObject.toConfigJson());
         // when collect within giving startDelaySeconds value, it should throw exception
         try {
             jmxCollector.collect();
@@ -73,9 +77,11 @@ public final class JmxCollectorTest {
      */
     @Test
     public void testInitJmxConfigWithStartWithDelaySecondsThenInvokeCollectMethodAfterStartDelaySeconds() throws MalformedObjectNameException, InterruptedException {
-        final String configJson = "{\"startDelaySeconds\": 1}";
-        final JmxCollector jmxCollector = new JmxCollector(configJson);
-        TimeUnit.SECONDS.sleep(1);
+        final int startDelaySeconds = 1;
+        JmxCollectorConfigObject configObject = new JmxCollectorConfigObject();
+        configObject.setStartDelaySeconds(startDelaySeconds);
+        final JmxCollector jmxCollector = new JmxCollector(configObject.toConfigJson());
+        TimeUnit.SECONDS.sleep(startDelaySeconds);
         // after startDelaySeconds, it should return
         Assert.assertNotNull(jmxCollector.collect());
     }
@@ -87,7 +93,7 @@ public final class JmxCollectorTest {
      */
     @Test
     public void testInitJmxConfigWithWrongStartWithDelaySeconds() throws MalformedObjectNameException {
-        // given wrong value
+        // given startDelaySeconds wrong value
         try {
             new JmxCollector("{\"startDelaySeconds\": \"a\"}");
         } catch (Exception e) {
@@ -95,7 +101,7 @@ public final class JmxCollectorTest {
             Assert.assertEquals("Invalid number provided for startDelaySeconds", e.getMessage());
         }
         // additional coverage with none functional config
-        new JmxCollector("{\"hello\": \"world\"}");
+        new JmxCollector("{\"foo\": \"bar\"}");
     }
     
     /**
@@ -108,18 +114,26 @@ public final class JmxCollectorTest {
     @Test
     public void testInitJmxConfigWithHostPortAndJmxUrl() throws MalformedObjectNameException, NoSuchFieldException, IllegalAccessException {
         // when config both hostPort and jmxUrl, exception should be thrown
+        final String jmxHostPort = "127.0.0.1:9876";
+        final String jmxUrl = "service:jmx:rmi:///jndi/rmi://127.0.0.1:9876/jmxrmi";
+        JmxCollectorConfigObject configObject = new JmxCollectorConfigObject();
+        configObject.setHostPort(jmxHostPort);
+        configObject.setJmxUrl(jmxUrl);
         try {
-            new JmxCollector("{\"hostPort\": \"127.0.0.1:9876\", \"jmxUrl\": \"jmx\"}");
+            new JmxCollector(configObject.toConfigJson());
         } catch (Exception e) {
             Assert.assertTrue(e instanceof IllegalArgumentException);
             Assert.assertEquals("At most one of hostPort and jmxUrl must be provided", e.getMessage());
         }
         
-        JmxCollector jmxCollectorInitWithHostPort = new JmxCollector("{\"hostPort\": \"127.0.0.1:9876\"}");
-        Assert.assertEquals("service:jmx:rmi:///jndi/rmi://127.0.0.1:9876/jmxrmi", this.dissectJmxConfigFromJmxCollector(jmxCollectorInitWithHostPort).getJmxUrl());
+        configObject.setJmxUrl(null);
+        final JmxCollector jmxCollectorInitWithHostPort = new JmxCollector(configObject.toConfigJson());
+        Assert.assertEquals(jmxUrl, this.dissectJmxConfigFromJmxCollector(jmxCollectorInitWithHostPort).getJmxUrl());
         
-        JmxCollector jmxCollectorInitWithJmxUrl = new JmxCollector("{\"jmxUrl\": \"service:jmx:rmi:///jndi/rmi://127.0.0.1:9876/jmxrmi\"}");
-        Assert.assertEquals("service:jmx:rmi:///jndi/rmi://127.0.0.1:9876/jmxrmi", this.dissectJmxConfigFromJmxCollector(jmxCollectorInitWithJmxUrl).getJmxUrl());
+        configObject.setHostPort(null);
+        configObject.setJmxUrl(jmxUrl);
+        final JmxCollector jmxCollectorInitWithJmxUrl = new JmxCollector(configObject.toConfigJson());
+        Assert.assertEquals(jmxUrl, this.dissectJmxConfigFromJmxCollector(jmxCollectorInitWithJmxUrl).getJmxUrl());
     }
     
     /**
@@ -131,19 +145,35 @@ public final class JmxCollectorTest {
      */
     @Test
     public void testInitJmxConfigWithAllPropsInnerJmxConfigPropShouldEqualInbound() throws MalformedObjectNameException, NoSuchFieldException, IllegalAccessException {
-        String cfgJson = "{\"startDelaySeconds\":0,\"jmxUrl\":\"service:jmx:rmi:///jndi/rmi://127.0.0.1:9876/jmxrmi\",\"username\":\"username\",\"password\":\"password\","
-                + "\"ssl\":false,\"lowercaseOutputName\":true,\"lowercaseOutputLabelNames\":true,\"whitelistObjectNames\":[\"JmxTest:name=wlo\"],"
-                + "\"blacklistObjectNames\":[\"JmxTest:name=blo\"],\"rules\":[{\"pattern\":\"arp\",\"name\":\"name\",\"value\":\"value\",\"valueFactor\":0.2,\"help\":\"help\","
-                + "\"attrNameSnakeCase\":true,\"type\":\"UNTYPED\", \"labels\": {\"labelName\":\"labelValue\"}}]}";
+        final JmxCollectorConfigObject configObject = new JmxCollectorConfigObject();
+        configObject.setStartDelaySeconds(0);
+        configObject.setJmxUrl("service:jmx:rmi:///jndi/rmi://127.0.0.1:9876/jmxrmi");
+        configObject.setUsername("username");
+        configObject.setPassword("password");
+        configObject.setSsl(false);
+        configObject.setLowercaseOutputName(true);
+        configObject.setLowercaseOutputLabelNames(true);
+        configObject.setWhitelistObjectNames(Collections.singletonList("JmxTest:name=wlo"));
+        configObject.setBlacklistObjectNames(Collections.singletonList("JmxTest:name=blo"));
+        JmxCollectorConfigObject.Rule configObjectRule = new JmxCollectorConfigObject.Rule();
+        configObjectRule.setPattern("arp");
+        configObjectRule.setName("name");
+        configObjectRule.setValue("value");
+        configObjectRule.setValueFactor(0.2D);
+        configObjectRule.setHelp("help");
+        configObjectRule.setAttrNameSnakeCase(true);
+        configObjectRule.setType("UNTYPED");
+        configObjectRule.setLabels(Collections.singletonMap("labelName", "labelValue"));
+        configObject.setRules(Collections.singletonList(configObjectRule));
         
-        JmxConfig jmxConfig = this.dissectJmxConfigFromJmxCollector(new JmxCollector(cfgJson));
-        Assert.assertEquals("service:jmx:rmi:///jndi/rmi://127.0.0.1:9876/jmxrmi", jmxConfig.getJmxUrl());
-        Assert.assertEquals("username", jmxConfig.getUsername());
-        Assert.assertEquals("password", jmxConfig.getPassword());
+        JmxConfig jmxConfig = this.dissectJmxConfigFromJmxCollector(new JmxCollector(configObject.toConfigJson()));
+        Assert.assertEquals(configObject.getJmxUrl(), jmxConfig.getJmxUrl());
+        Assert.assertEquals(configObject.getUsername(), jmxConfig.getUsername());
+        Assert.assertEquals(configObject.getPassword(), jmxConfig.getPassword());
         Assert.assertFalse(jmxConfig.isSsl());
         Assert.assertTrue(jmxConfig.isLowercaseOutputLabelNames());
         Assert.assertTrue(jmxConfig.isLowercaseOutputName());
-        Assert.assertEquals(0, (int) jmxConfig.getStartDelaySeconds());
+        Assert.assertEquals(configObject.getStartDelaySeconds(), jmxConfig.getStartDelaySeconds());
         Assert.assertEquals(1, jmxConfig.getRules().size());
         Assert.assertEquals(1, jmxConfig.getBlacklistObjectNames().size());
         Assert.assertEquals(1, jmxConfig.getWhitelistObjectNames().size());
@@ -151,13 +181,13 @@ public final class JmxCollectorTest {
         Assert.assertEquals("JmxTest:name=wlo", jmxConfig.getWhitelistObjectNames().iterator().next().getCanonicalName());
         JmxConfig.Rule rule = jmxConfig.getRules().iterator().next();
         
-        Assert.assertEquals("help", rule.getHelp());
-        Assert.assertEquals(Pattern.compile("^.*(?:arp).*$").pattern(), rule.getPattern().pattern());
-        Assert.assertEquals("name", rule.getName());
-        Assert.assertEquals("value", rule.getValue());
-        Assert.assertEquals(JmxConfig.Type.UNTYPED, rule.getType());
+        Assert.assertEquals(configObjectRule.getHelp(), rule.getHelp());
+        Assert.assertEquals(Pattern.compile("^.*(?:" + configObjectRule.getPattern() + ").*$").pattern(), rule.getPattern().pattern());
+        Assert.assertEquals(configObjectRule.getName(), rule.getName());
+        Assert.assertEquals(configObjectRule.getValue(), rule.getValue());
+        Assert.assertEquals(configObjectRule.getType(), rule.getType().name());
         Assert.assertTrue(rule.isAttrNameSnakeCase());
-        Assert.assertEquals(0.2D, rule.getValueFactor(), 0.0);
+        Assert.assertEquals(configObjectRule.getValueFactor(), rule.getValueFactor(), 0.0);
     }
     
     /**
@@ -174,15 +204,16 @@ public final class JmxCollectorTest {
         final String cfgJsonScene1 = "{\"startDelaySeconds\":0,\"jmxUrl\":\"service:jmx:rmi:///jndi/rmi://127.0.0.1:9876/jmxrmi\",\"username\":\"username\",\"password\":\"password\","
                 + "\"ssl\":false,\"lowercaseOutputName\":true,\"lowercaseOutputLabelNames\":true,\"whitelistObjectNames\":[\"JmxTest:name=wlo\"],"
                 + "\"blacklistObjectNames\":[\"JmxTest:name=blo\"],\"rules\":[{\"name\": \"name\", \"pattern\":\"arp\", \"labels\":{\"labelName\":\"labelValue\"}}]}";
-        JmxConfig jmxConfigScene1 = this.dissectJmxConfigFromJmxCollector(new JmxCollector(cfgJsonScene1));
+        final JmxConfig jmxConfigScene1 = this.dissectJmxConfigFromJmxCollector(new JmxCollector(cfgJsonScene1));
         Assert.assertEquals(1, jmxConfigScene1.getRules().size());
         Assert.assertEquals(1.0D, jmxConfigScene1.getRules().iterator().next().getValueFactor(), 0.0);
+        
         // giving rule wrong double value, default should acquire
         final String cfgJsonScene2 = "{\"startDelaySeconds\":0,\"jmxUrl\":\"service:jmx:rmi:///jndi/rmi://127.0.0.1:9876/jmxrmi\",\"username\":\"username\",\"password\":\"password\","
                 + "\"ssl\":false,\"lowercaseOutputName\":true,\"lowercaseOutputLabelNames\":true,\"whitelistObjectNames\":[\"JmxTest:name=wlo\"],"
                 + "\"blacklistObjectNames\":[\"JmxTest:name=blo\"],\"rules\":[{\"name\": \"name\", \"pattern\":\"arp\", \"valueFactor\":\"value\", \"labels\": "
                 + "{\"labelName\":\"labelValue\"}}]}";
-        JmxConfig jmxConfigScene2 = this.dissectJmxConfigFromJmxCollector(new JmxCollector(cfgJsonScene2));
+        final JmxConfig jmxConfigScene2 = this.dissectJmxConfigFromJmxCollector(new JmxCollector(cfgJsonScene2));
         Assert.assertEquals(1, jmxConfigScene2.getRules().size());
         Assert.assertEquals(1.0D, jmxConfigScene1.getRules().iterator().next().getValueFactor(), 0.0);
     }
@@ -202,6 +233,7 @@ public final class JmxCollectorTest {
             Assert.assertTrue(e instanceof IllegalArgumentException);
             Assert.assertEquals("Must provide name, if help or labels are given: {}", e.getMessage());
         }
+        
         // giving non correct rule name and pattern, rule name and pattern validation should be failed
         final String cfgJsonScene4 = "{\"startDelaySeconds\":0,\"jmxUrl\":\"service:jmx:rmi:///jndi/rmi://127.0.0.1:9876/jmxrmi\",\"username\":\"username\","
                 + "\"password\":\"password\",\"ssl\":false,\"lowercaseOutputName\":true,\"lowercaseOutputLabelNames\":true,\"whitelistObjectNames\":[\"JmxTest:name=wlo\"],"
@@ -215,7 +247,7 @@ public final class JmxCollectorTest {
     }
     
     /**
-     * Reflect to dissect JmxConfig instance from JmxCollector
+     * Reflect to dissect JmxConfig instance from JmxCollector.
      *
      * @param jmxCollector giving JmxCollector instance
      * @return JmxConfig instance
@@ -223,7 +255,7 @@ public final class JmxCollectorTest {
      * @throws IllegalAccessException IllegalAccessException
      */
     private JmxConfig dissectJmxConfigFromJmxCollector(final JmxCollector jmxCollector) throws NoSuchFieldException, IllegalAccessException {
-        Field configField = JmxCollector.class.getDeclaredField("config");
+        final Field configField = JmxCollector.class.getDeclaredField("config");
         configField.setAccessible(true);
         return (JmxConfig) configField.get(jmxCollector);
     }
