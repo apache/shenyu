@@ -68,7 +68,12 @@ public enum SoulResultEnum {
      * Sofa have body param soul result enum.
      */
     SOFA_HAVE_BODY_PARAM(432, "sofa接口必须要有参数，请在body里面输入json格式！"),
-    
+
+    /**
+     * Too many requests soul result enum.
+     */
+    REQUEST_FAILED_EARLY(433, "后置插件没有包含前置插件的条件设置，提前失败"),
+
     /**
      * full selector type enum.
      */
