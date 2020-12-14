@@ -26,6 +26,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
+
 /**
  * Test cases for UUIDUtils.
  *
@@ -71,8 +74,9 @@ public final class UUIDUtilsTest {
         Class[] p = {long.class};
         Method method = uUIDUtilsClass.getDeclaredMethod("tilNextMillis", p);
         method.setAccessible(true);
-        long result = (long) method.invoke(UUIDUtils.getInstance(), 1288834974657L);
-        Assert.assertEquals(result, System.currentTimeMillis());
+        long lastTimestamp = System.currentTimeMillis();
+        long result = (long) method.invoke(UUIDUtils.getInstance(), lastTimestamp);
+        assertThat(result, greaterThan(lastTimestamp));
     }
 
     @Test
