@@ -1,4 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.dromara.soul.admin.mapper.SelectorMapper">
     <resultMap id="BaseResultMap" type="org.dromara.soul.admin.entity.SelectorDO">
@@ -17,7 +34,7 @@
 
     <sql id="Base_Column_List">
         id, date_created, date_updated, plugin_id, name, match_mode,
-        type, sort, enabled, loged, continued
+        type, sort, enabled, loged, continued,handle
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -25,6 +42,13 @@
         <include refid="Base_Column_List"/>
         from selector
         where id = #{id,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByName" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from selector
+        where name = #{name,jdbcType=VARCHAR}
     </select>
 
     <select id="selectByQuery" parameterType="org.dromara.soul.admin.query.SelectorQuery" resultMap="BaseResultMap">
@@ -39,6 +63,15 @@
         </if>
     </select>
 
+    <select id="findByPluginId" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from selector
+        where plugin_id = #{pluginId,jdbcType=VARCHAR}
+
+    </select>
+
+
     <select id="countByQuery" parameterType="org.dromara.soul.admin.query.SelectorQuery" resultType="java.lang.Integer">
         select count(1)
         from selector
@@ -47,14 +80,20 @@
         </if>
     </select>
 
+    <select id="selectAll" resultType="org.dromara.soul.admin.entity.SelectorDO" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from selector
+    </select>
+
     <insert id="insert" parameterType="org.dromara.soul.admin.entity.SelectorDO">
         insert into selector (id, date_created, date_updated,
         plugin_id, name, match_mode, type, sort, enabled,
-        loged, continued)
+        loged, continued,handle)
         values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
         #{pluginId,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{matchMode,jdbcType=INTEGER},
         #{type,jdbcType=INTEGER}, #{sort,jdbcType=INTEGER}, #{enabled,jdbcType=TINYINT},
-        #{loged,jdbcType=TINYINT},  #{continued,jdbcType=TINYINT})
+        #{loged,jdbcType=TINYINT},  #{continued,jdbcType=TINYINT},#{handle,jdbcType=VARCHAR})
     </insert>
 
     <insert id="insertSelective" parameterType="org.dromara.soul.admin.entity.SelectorDO">
@@ -91,6 +130,11 @@
             <if test="continued != null">
                 continued,
             </if>
+
+            <if test="handle != null">
+                handle,
+            </if>
+
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             #{id,jdbcType=VARCHAR},
@@ -124,6 +168,9 @@
             <if test="continued != null">
                 #{continued,jdbcType=TINYINT},
             </if>
+            <if test="handle != null">
+                #{handle,jdbcType=VARCHAR},
+            </if>
         </trim>
     </insert>
 
@@ -138,7 +185,8 @@
         sort = #{sort,jdbcType=INTEGER},
         enabled = #{enabled,jdbcType=TINYINT},
         loged = #{loged,jdbcType=TINYINT},
-        continued = #{continued,jdbcType=TINYINT}
+        continued = #{continued,jdbcType=TINYINT},
+        handle = #{handle,jdbcType=VARCHAR}
         where id = #{id,jdbcType=VARCHAR}
     </update>
 
@@ -175,6 +223,9 @@
             <if test="continued != null">
                 continued = #{continued,jdbcType=TINYINT},
             </if>
+            <if test="handle != null">
+                handle = #{handle,jdbcType=VARCHAR},
+            </if>
         </set>
         where id = #{id,jdbcType=VARCHAR}
     </update>
@@ -182,5 +233,11 @@
     <delete id="delete" parameterType="java.lang.String">
         delete from selector
         where id = #{id,jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="deleteByPluginId" parameterType="java.lang.String">
+        delete from selector
+        where plugin_id = #{pluginId,jdbcType=VARCHAR}
+
     </delete>
 </mapper>

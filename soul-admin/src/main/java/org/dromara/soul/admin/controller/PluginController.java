@@ -1,22 +1,44 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.dromara.soul.admin.controller;
 
+import org.apache.commons.lang3.StringUtils;
+import org.dromara.soul.admin.dto.BatchCommonDTO;
 import org.dromara.soul.admin.dto.PluginDTO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.PluginQuery;
+import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.service.PluginService;
+import org.dromara.soul.admin.service.SyncDataService;
+import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.admin.vo.PluginVO;
-import org.dromara.soul.common.result.SoulResult;
+import org.dromara.soul.common.dto.PluginData;
+import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import reactor.core.publisher.Mono;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Objects;
@@ -32,9 +54,19 @@ public class PluginController {
 
     private final PluginService pluginService;
 
+    private final SyncDataService syncDataService;
+
+    /**
+     * Instantiates a new Plugin controller.
+     *
+     * @param pluginService   the plugin service
+     * @param syncDataService the sync data service
+     */
     @Autowired(required = false)
-    public PluginController(final PluginService pluginService) {
+    public PluginController(final PluginService pluginService,
+                            final SyncDataService syncDataService) {
         this.pluginService = pluginService;
+        this.syncDataService = syncDataService;
     }
 
     /**
@@ -43,48 +75,49 @@ public class PluginController {
      * @param name        plugin name.
      * @param currentPage current page.
      * @param pageSize    page size.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulAdminResult}
      */
     @GetMapping("")
-    public Mono<SoulResult> queryPlugins(final String name, final Integer currentPage, final Integer pageSize) {
-        try {
-            CommonPager<PluginVO> commonPager = pluginService.listByPage(new PluginQuery(name, new PageParameter(currentPage, pageSize)));
-            return Mono.create(soulResult -> soulResult.success(SoulResult.success("query plugins success", commonPager)));
-        } catch (Exception e) {
-            return Mono.create(soulResult -> soulResult.success(SoulResult.error("query plugins exception")));
-        }
+    public SoulAdminResult queryPlugins(final String name, final Integer currentPage, final Integer pageSize) {
+        CommonPager<PluginVO> commonPager = pluginService.listByPage(new PluginQuery(name, new PageParameter(currentPage, pageSize)));
+        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
+    }
+
+    /**
+     * query All plugins.
+     * @return {@linkplain SoulAdminResult}
+     */
+    @GetMapping("/all")
+    public SoulAdminResult queryAllPlugins() {
+        List<PluginData> pluginDataList = pluginService.listAll();
+        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, pluginDataList);
     }
 
     /**
      * detail plugin.
      *
      * @param id plugin id.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulAdminResult}
      */
     @GetMapping("/{id}")
-    public Mono<SoulResult> detailPlugin(@PathVariable("id") final String id) {
-        try {
-            PluginVO pluginVO = pluginService.findById(id);
-            return Mono.create(soulResult -> soulResult.success(SoulResult.success("detail plugin success", pluginVO)));
-        } catch (Exception e) {
-            return Mono.create(soulResult -> soulResult.success(SoulResult.error("detail plugin exception")));
-        }
+    public SoulAdminResult detailPlugin(@PathVariable("id") final String id) {
+        PluginVO pluginVO = pluginService.findById(id);
+        return SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, pluginVO);
     }
 
     /**
      * create plugin.
      *
      * @param pluginDTO plugin.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulAdminResult}
      */
     @PostMapping("")
-    public Mono<SoulResult> createPlugin(@RequestBody final PluginDTO pluginDTO) {
-        try {
-            Integer createCount = pluginService.createOrUpdate(pluginDTO);
-            return Mono.create(soulResult -> soulResult.success(SoulResult.success("create plugin success", createCount)));
-        } catch (Exception e) {
-            return Mono.create(soulResult -> soulResult.success(SoulResult.error("create plugin exception")));
+    public SoulAdminResult createPlugin(@RequestBody final PluginDTO pluginDTO) {
+        String result = pluginService.createOrUpdate(pluginDTO);
+        if (StringUtils.isNoneBlank(result)) {
+            return SoulAdminResult.error(result);
         }
+        return SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS);
     }
 
     /**
@@ -92,63 +125,78 @@ public class PluginController {
      *
      * @param id        primary key.
      * @param pluginDTO plugin.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulAdminResult}
      */
     @PutMapping("/{id}")
-    public Mono<SoulResult> updatePlugin(@PathVariable("id") final String id, @RequestBody final PluginDTO pluginDTO) {
-        try {
-            Objects.requireNonNull(pluginDTO);
-            pluginDTO.setId(id);
-            Integer updateCount = pluginService.createOrUpdate(pluginDTO);
-            return Mono.create(soulResult -> soulResult.success(SoulResult.success("update plugin success", updateCount)));
-        } catch (Exception e) {
-            return Mono.create(soulResult -> soulResult.success(SoulResult.error("update plugin exception")));
+    public SoulAdminResult updatePlugin(@PathVariable("id") final String id, @RequestBody final PluginDTO pluginDTO) {
+        Objects.requireNonNull(pluginDTO);
+        pluginDTO.setId(id);
+        final String result = pluginService.createOrUpdate(pluginDTO);
+        if (StringUtils.isNoneBlank(result)) {
+            return SoulAdminResult.error(result);
         }
+        return SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS);
     }
 
     /**
      * delete plugins.
      *
      * @param ids primary key.
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulAdminResult}
      */
     @DeleteMapping("/batch")
-    public Mono<SoulResult> deletePlugins(@RequestBody final List<String> ids) {
-        try {
-            Integer deleteCount = pluginService.delete(ids);
-            return Mono.create(soulResult -> soulResult.success(SoulResult.success("delete plugins success", deleteCount)));
-        } catch (Exception e) {
-            return Mono.create(soulResult -> soulResult.success(SoulResult.error("delete plugins exception")));
+    public SoulAdminResult deletePlugins(@RequestBody final List<String> ids) {
+        final String result = pluginService.delete(ids);
+        if (StringUtils.isNoneBlank(result)) {
+            return SoulAdminResult.error(result);
         }
+        return SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS);
     }
+
+    /**
+     * Enable mono.
+     *
+     * @param batchCommonDTO the batch common dto
+     * @return the mono
+     */
+    @PostMapping("/enabled")
+    public SoulAdminResult enabled(@RequestBody final BatchCommonDTO batchCommonDTO) {
+        final String result = pluginService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled());
+        if (StringUtils.isNoneBlank(result)) {
+            return SoulAdminResult.error(result);
+        }
+        return SoulAdminResult.success(SoulResultMessage.ENABLE_SUCCESS);
+    }
+
 
     /**
      * sync plugins.
      *
-     * @return {@linkplain Mono}
+     * @return {@linkplain SoulAdminResult}
      */
     @PostMapping("/syncPluginAll")
-    public Mono<SoulResult> syncPluginAll() {
-        try {
-            Integer syncCount = pluginService.syncPluginAll();
-            return Mono.create(soulResult -> soulResult.success(SoulResult.success("sync plugins success", syncCount)));
-        } catch (Exception e) {
-            return Mono.create(soulResult -> soulResult.success(SoulResult.error("sync plugins exception")));
+    public SoulAdminResult syncPluginAll() {
+        boolean success = syncDataService.syncAll(DataEventTypeEnum.REFRESH);
+        if (success) {
+            return SoulAdminResult.success(SoulResultMessage.SYNC_SUCCESS);
+        } else {
+            return SoulAdminResult.error(SoulResultMessage.SYNC_FAIL);
         }
     }
 
     /**
-     * sync plugins.
+     * Sync plugin data.
      *
-     * @return {@linkplain Mono}
+     * @param id the id
+     * @return the mono
      */
     @PutMapping("/syncPluginData/{id}")
-    public Mono<SoulResult> syncPluginData(@PathVariable("id") final String id) {
-        try {
-            Integer syncCount = pluginService.syncPluginData(id);
-            return Mono.create(soulResult -> soulResult.success(SoulResult.success("sync plugins success", syncCount)));
-        } catch (Exception e) {
-            return Mono.create(soulResult -> soulResult.success(SoulResult.error("sync plugins exception")));
+    public SoulAdminResult syncPluginData(@PathVariable("id") final String id) {
+        boolean success = syncDataService.syncPluginData(id);
+        if (success) {
+            return SoulAdminResult.success(SoulResultMessage.SYNC_SUCCESS);
+        } else {
+            return SoulAdminResult.error(SoulResultMessage.SYNC_FAIL);
         }
     }
 }

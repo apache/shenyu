@@ -1,19 +1,18 @@
 /*
- *   Licensed to the Apache Software Foundation (ASF) under one or more
- *   contributor license agreements.  See the NOTICE file distributed with
- *   this work for additional information regarding copyright ownership.
- *   The ASF licenses this file to You under the Apache License, Version 2.0
- *   (the "License"); you may not use this file except in compliance with
- *   the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.dromara.soul.common.constant;
@@ -26,23 +25,35 @@ package org.dromara.soul.common.constant;
 public final class ZkPathConstants implements Constants {
 
     /**
-     * The constant SELECTOR_PARENT.
-     */
-    public static final String SELECTOR_PARENT = "/soul/selector";
-
-    /**
      * The constant SELECTOR_JOIN_RULE.
      */
     public static final String SELECTOR_JOIN_RULE = "-";
 
-    private static final String PLUGIN_PARENT = "/soul/plugin";
+    private static final String PRE_FIX = "/soul";
 
-    private static final String RULE_PARENT = "/soul/rule";
+    /**
+     * The constant PLUGIN_PARENT.
+     */
+    public static final String PLUGIN_PARENT = PRE_FIX + "/plugin";
+
+    /**
+     * The constant SELECTOR_PARENT.
+     */
+    public static final String SELECTOR_PARENT = PRE_FIX + "/selector";
+
+    public static final String RULE_PARENT = PRE_FIX + "/rule";
 
     /**
      * The constant APP_AUTH_PARENT.
      */
-    public static final String APP_AUTH_PARENT = "/soul/auth";
+    public static final String APP_AUTH_PARENT = PRE_FIX + "/auth";
+
+    /**
+     * The constant META_DATA.
+     */
+    public static final String META_DATA = PRE_FIX + "/metaData";
+
+    private static final String SEPARATOR = "/";
 
     /**
      * acquire app_auth_path.
@@ -51,7 +62,17 @@ public final class ZkPathConstants implements Constants {
      * @return app_auth_path string
      */
     public static String buildAppAuthPath(final String appKey) {
-        return String.join("/", APP_AUTH_PARENT, appKey);
+        return String.join(SEPARATOR, APP_AUTH_PARENT, appKey);
+    }
+
+    /**
+     * Build meta data path string.
+     *
+     * @param path the path
+     * @return the string
+     */
+    public static String buildMetaDataPath(final String path) {
+        return String.join(SEPARATOR, META_DATA, path);
     }
 
     /**
@@ -60,7 +81,7 @@ public final class ZkPathConstants implements Constants {
      * @return zk path for plugin
      */
     public static String buildPluginParentPath() {
-        return String.join("/", PLUGIN_PARENT);
+        return String.join(SEPARATOR, PLUGIN_PARENT);
     }
 
     /**
@@ -70,7 +91,7 @@ public final class ZkPathConstants implements Constants {
      * @return zk path for plugin
      */
     public static String buildPluginPath(final String pluginName) {
-        return String.join("/", PLUGIN_PARENT, pluginName);
+        return String.join(SEPARATOR, PLUGIN_PARENT, pluginName);
     }
 
     /**
@@ -80,7 +101,7 @@ public final class ZkPathConstants implements Constants {
      * @return zk path for selector
      */
     public static String buildSelectorParentPath(final String pluginName) {
-        return String.join("/", SELECTOR_PARENT, pluginName);
+        return String.join(SEPARATOR, SELECTOR_PARENT, pluginName);
     }
 
     /**
@@ -91,7 +112,7 @@ public final class ZkPathConstants implements Constants {
      * @return zk full path for selector
      */
     public static String buildSelectorRealPath(final String pluginName, final String selectorId) {
-        return String.join("/", SELECTOR_PARENT, pluginName, selectorId);
+        return String.join(SEPARATOR, SELECTOR_PARENT, pluginName, selectorId);
     }
 
     /**
@@ -101,7 +122,7 @@ public final class ZkPathConstants implements Constants {
      * @return zk rule parent path.
      */
     public static String buildRuleParentPath(final String pluginName) {
-        return String.join("/", RULE_PARENT, pluginName);
+        return String.join(SEPARATOR, RULE_PARENT, pluginName);
     }
 
     /**
@@ -113,7 +134,7 @@ public final class ZkPathConstants implements Constants {
      * @return /soul/rule/pluginName/selectorId-ruleId
      */
     public static String buildRulePath(final String pluginName, final String selectorId, final String ruleId) {
-        return String.join("/", buildRuleParentPath(pluginName), selectorId + SELECTOR_JOIN_RULE + ruleId);
+        return String.join(SEPARATOR, buildRuleParentPath(pluginName), String.join(SELECTOR_JOIN_RULE, selectorId, ruleId));
     }
 
 }

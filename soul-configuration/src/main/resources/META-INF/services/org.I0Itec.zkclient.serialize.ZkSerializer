@@ -1,4 +1,0 @@
-org.dromara.soul.configuration.zookeeper.serializer.KryoSerializer
-org.dromara.soul.configuration.zookeeper.serializer.HessianSerializer
-org.dromara.soul.configuration.zookeeper.serializer.ProtostuffSerializer
-org.dromara.soul.configuration.zookeeper.serializer.JavaSerializer
