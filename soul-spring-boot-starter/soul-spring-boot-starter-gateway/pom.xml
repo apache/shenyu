@@ -36,16 +36,4 @@
         </dependency>
     </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>${maven-javadoc-plugin.version}</version>
-                <configuration>
-                    <overview>${basedir}/src/main/javadoc/gateway.html</overview>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>
