@@ -1,24 +1,23 @@
 /*
- *
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * Contributor license agreements.See the NOTICE file distributed with
- * This work for additional information regarding copyright ownership.
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * he License.You may obtain a copy of the License at
+ * the License.  You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.dromara.soul.plugin.httpclient;
 
+import io.netty.channel.ConnectTimeoutException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
@@ -39,7 +38,8 @@ import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
+import reactor.retry.Backoff;
+import reactor.retry.Retry;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Optional;
@@ -62,7 +62,7 @@ public class WebClientPlugin implements SoulPlugin {
     public WebClientPlugin(final WebClient webClient) {
         this.webClient = webClient;
     }
-    
+
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final SoulPluginChain chain) {
         final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
@@ -73,12 +73,13 @@ public class WebClientPlugin implements SoulPlugin {
             return WebFluxResultUtils.result(exchange, error);
         }
         long timeout = (long) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_TIME_OUT)).orElse(3000L);
-        log.info("you request,The resulting urlPath is :{}", urlPath);
+        int retryTimes = (int) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY)).orElse(0);
+        log.info("you request,The resulting urlPath is :{}, retryTimes: {}", urlPath, retryTimes);
         HttpMethod method = HttpMethod.valueOf(exchange.getRequest().getMethodValue());
         WebClient.RequestBodySpec requestBodySpec = webClient.method(method).uri(urlPath);
-        return handleRequestBody(requestBodySpec, exchange, timeout, chain);
+        return handleRequestBody(requestBodySpec, exchange, timeout, retryTimes, chain);
     }
-    
+
     @Override
     public int getOrder() {
         return PluginEnum.DIVIDE.getCode() + 1;
@@ -107,6 +108,7 @@ public class WebClientPlugin implements SoulPlugin {
     private Mono<Void> handleRequestBody(final WebClient.RequestBodySpec requestBodySpec,
                                          final ServerWebExchange exchange,
                                          final long timeout,
+                                         final int retryTimes,
                                          final SoulPluginChain chain) {
         return requestBodySpec.headers(httpHeaders -> {
             httpHeaders.addAll(exchange.getRequest().getHeaders());
@@ -117,6 +119,9 @@ public class WebClientPlugin implements SoulPlugin {
                 .exchange()
                 .doOnError(e -> log.error(e.getMessage()))
                 .timeout(Duration.ofMillis(timeout))
+                .retryWhen(Retry.onlyIf(x -> x.exception() instanceof ConnectTimeoutException)
+                    .retryMax(retryTimes)
+                    .backoff(Backoff.exponential(Duration.ofMillis(200), Duration.ofSeconds(20), 2, true)))
                 .flatMap(e -> doNext(e, exchange, chain));
 
     }

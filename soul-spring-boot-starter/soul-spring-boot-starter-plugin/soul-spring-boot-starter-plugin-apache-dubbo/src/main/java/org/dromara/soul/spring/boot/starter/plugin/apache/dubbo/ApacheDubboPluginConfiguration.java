@@ -1,19 +1,18 @@
 /*
- *   Licensed to the Apache Software Foundation (ASF) under one or more
- *   contributor license agreements.  See the NOTICE file distributed with
- *   this work for additional information regarding copyright ownership.
- *   The ASF licenses this file to You under the Apache License, Version 2.0
- *   (the "License"); you may not use this file except in compliance with
- *   the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.dromara.soul.spring.boot.starter.plugin.apache.dubbo;
@@ -41,7 +40,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnClass(ApacheDubboPlugin.class)
 public class ApacheDubboPluginConfiguration {
-    
+
     /**
      * Dubbo plugin soul plugin.
      *
@@ -52,7 +51,7 @@ public class ApacheDubboPluginConfiguration {
     public SoulPlugin apacheDubboPlugin(final ObjectProvider<DubboParamResolveService> dubboParamResolveService) {
         return new ApacheDubboPlugin(new ApacheDubboProxyService(dubboParamResolveService.getIfAvailable()));
     }
-    
+
     /**
      * Body param plugin soul plugin.
      *
@@ -62,7 +61,7 @@ public class ApacheDubboPluginConfiguration {
     public SoulPlugin bodyParamPlugin() {
         return new BodyParamPlugin();
     }
-    
+
     /**
      * Dubbo response plugin soul plugin.
      *
@@ -72,7 +71,7 @@ public class ApacheDubboPluginConfiguration {
     public SoulPlugin dubboResponsePlugin() {
         return new DubboResponsePlugin();
     }
-    
+
     /**
      * Apache dubbo plugin data handler plugin data handler.
      *
@@ -82,7 +81,7 @@ public class ApacheDubboPluginConfiguration {
     public PluginDataHandler apacheDubboPluginDataHandler() {
         return new ApacheDubboPluginDataHandler();
     }
-    
+
     /**
      * Apache dubbo meta data subscriber meta data subscriber.
      *

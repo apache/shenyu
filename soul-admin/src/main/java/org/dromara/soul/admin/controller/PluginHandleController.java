@@ -1,7 +1,22 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.dromara.soul.admin.controller;
 
-import java.util.List;
-import java.util.Objects;
 import org.dromara.soul.admin.dto.PluginHandleDTO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
@@ -9,6 +24,7 @@ import org.dromara.soul.admin.query.PluginHandleQuery;
 import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.service.PluginHandleService;
 import org.dromara.soul.admin.vo.PluginHandleVO;
+import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +34,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.Objects;
 
 /**
  * this is a plugin handle controller.
@@ -42,31 +61,32 @@ public class PluginHandleController {
      */
     @GetMapping("")
     public SoulAdminResult queryPluginHandles(final String pluginId, final Integer currentPage, final Integer pageSize) {
-        CommonPager<PluginHandleVO> commonPager = pluginHandleService.listByPage(new PluginHandleQuery(pluginId, new PageParameter(currentPage, pageSize)));
-        return SoulAdminResult.success("query plugin handle success", commonPager);
+        CommonPager<PluginHandleVO> commonPager = pluginHandleService.listByPage(new PluginHandleQuery(pluginId, null, new PageParameter(currentPage, pageSize)));
+        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
     }
 
     /**
      * query plugin handle by plugin id.
      * @param pluginId  plugin id.
+     * @param type type 1:selector,2:rule
      * @return {@linkplain SoulAdminResult}
      */
-    @GetMapping("/all/{pluginId}")
-    public SoulAdminResult queryAllPluginHandlesByPluginId(@PathVariable("pluginId") final String pluginId) {
-        List<PluginHandleVO> pluginHandleVOS = pluginHandleService.list(pluginId);
-        return SoulAdminResult.success("query plugin handle success", pluginHandleVOS);
+    @GetMapping("/all/{pluginId}/{type}")
+    public SoulAdminResult queryAllPluginHandlesByPluginId(@PathVariable("pluginId") final String pluginId, @PathVariable("type") final Integer type) {
+        List<PluginHandleVO> pluginHandleVOS = pluginHandleService.list(pluginId, type);
+        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, pluginHandleVOS);
     }
 
     /**
-     * detail rule.
+     * get plugin handle detail.
      *
-     * @param id rule id.
+     * @param id plugin handle id.
      * @return {@linkplain SoulAdminResult}
      */
     @GetMapping("/{id}")
     public SoulAdminResult detailRule(@PathVariable("id") final String id) {
         PluginHandleVO pluginHandleVO = pluginHandleService.findById(id);
-        return SoulAdminResult.success("detail plugin handle success", pluginHandleVO);
+        return SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, pluginHandleVO);
     }
 
     /**
@@ -77,7 +97,7 @@ public class PluginHandleController {
     @PostMapping("")
     public SoulAdminResult createPluginHandle(@RequestBody final PluginHandleDTO pluginHandleDTO) {
         Integer createCount = pluginHandleService.createOrUpdate(pluginHandleDTO);
-        return SoulAdminResult.success("add plugin handle success", createCount);
+        return SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS, createCount);
     }
 
     /**
@@ -91,7 +111,7 @@ public class PluginHandleController {
         Objects.requireNonNull(pluginHandleDTO);
         pluginHandleDTO.setId(id);
         Integer updateCount = pluginHandleService.createOrUpdate(pluginHandleDTO);
-        return SoulAdminResult.success("update plugin handle success", updateCount);
+        return SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS, updateCount);
     }
 
     /**
@@ -102,6 +122,6 @@ public class PluginHandleController {
     @DeleteMapping("/batch")
     public SoulAdminResult deletePluginHandles(@RequestBody final List<String> ids) {
         Integer deleteCount = pluginHandleService.deletePluginHandles(ids);
-        return SoulAdminResult.success("delete plugin handle success", deleteCount);
+        return SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, deleteCount);
     }
 }

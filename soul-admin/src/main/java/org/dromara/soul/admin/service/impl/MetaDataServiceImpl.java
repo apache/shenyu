@@ -1,32 +1,24 @@
 /*
- *
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * Contributor license agreements.See the NOTICE file distributed with
- * This work for additional information regarding copyright ownership.
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * he License.You may obtain a copy of the License at
+ * the License.  You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.dromara.soul.admin.service.impl;
 
 import com.google.common.collect.Lists;
-import java.sql.Timestamp;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.MetaDataDTO;
@@ -45,27 +37,32 @@ import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.utils.UUIDUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.sql.Timestamp;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * The type Meta data service.
  *
  * @author xiaoyu
  */
+@Slf4j
 @Service("metaDataService")
 public class MetaDataServiceImpl implements MetaDataService {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(MetaDataServiceImpl.class);
-    
+
     private final MetaDataMapper metaDataMapper;
-    
+
     private final ApplicationEventPublisher eventPublisher;
-    
+
     /**
      * Instantiates a new Meta data service.
      *
@@ -77,7 +74,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         this.metaDataMapper = metaDataMapper;
         this.eventPublisher = eventPublisher;
     }
-    
+
     @Override
     public String createOrUpdate(final MetaDataDTO metaDataDTO) {
         String msg = checkData(metaDataDTO);
@@ -104,7 +101,7 @@ public class MetaDataServiceImpl implements MetaDataService {
                 Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDTO))));
         return StringUtils.EMPTY;
     }
-    
+
     @Override
     @Transactional
     public int delete(final List<String> ids) {
@@ -119,7 +116,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.DELETE, metaDataList));
         return count;
     }
-    
+
     @Override
     public String enabled(final List<String> ids, final Boolean enabled) {
         List<MetaData> metaDataList = Lists.newArrayList();
@@ -137,7 +134,7 @@ public class MetaDataServiceImpl implements MetaDataService {
                 metaDataList));
         return StringUtils.EMPTY;
     }
-    
+
     @Override
     public void syncData() {
         List<MetaDataDO> all = metaDataMapper.findAll();
@@ -145,30 +142,30 @@ public class MetaDataServiceImpl implements MetaDataService {
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, DataEventTypeEnum.REFRESH, MetaDataTransfer.INSTANCE.mapToDataAll(all)));
         }
     }
-    
+
     @Override
     public MetaDataVO findById(final String id) {
         return Optional.ofNullable(MetaDataTransfer.INSTANCE.mapToVO(metaDataMapper.selectById(id))).orElse(new MetaDataVO());
     }
-    
+
     @Override
     public CommonPager<MetaDataVO> listByPage(final MetaDataQuery metaDataQuery) {
         PageParameter pageParameter = metaDataQuery.getPageParameter();
         Integer count = metaDataMapper.countByQuery(metaDataQuery);
         return PageResultUtils.result(pageParameter, count, () -> metaDataMapper.selectByQuery(metaDataQuery).stream().map(MetaDataTransfer.INSTANCE::mapToVO).collect(Collectors.toList()));
     }
-    
+
     @Override
     public List<MetaDataVO> findAll() {
         return MetaDataTransfer.INSTANCE.mapToVOList(metaDataMapper.selectAll());
     }
-    
+
     @Override
     public Map<String, List<MetaDataVO>> findAllGroup() {
         List<MetaDataVO> metaDataVOS = MetaDataTransfer.INSTANCE.mapToVOList(metaDataMapper.selectAll());
         return metaDataVOS.stream().collect(Collectors.groupingBy(MetaDataVO::getAppName));
     }
-    
+
     @Override
     public List<MetaData> listAll() {
         return metaDataMapper.selectAll()
@@ -177,11 +174,11 @@ public class MetaDataServiceImpl implements MetaDataService {
                 .map(MetaDataTransfer.INSTANCE::mapToData)
                 .collect(Collectors.toList());
     }
-    
+
     private String checkData(final MetaDataDTO metaDataDTO) {
         Boolean success = checkParam(metaDataDTO);
         if (!success) {
-            LOGGER.error("metaData create param is error,{}", metaDataDTO.toString());
+            log.error("metaData create param is error, {}", metaDataDTO.toString());
             return AdminConstants.PARAMS_ERROR;
         }
         final MetaDataDO exist = metaDataMapper.findByPath(metaDataDTO.getPath());
@@ -190,7 +187,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         }
         return StringUtils.EMPTY;
     }
-    
+
     private Boolean checkParam(final MetaDataDTO metaDataDTO) {
         return !StringUtils.isEmpty(metaDataDTO.getAppName())
                 && !StringUtils.isEmpty(metaDataDTO.getPath())

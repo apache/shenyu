@@ -67,6 +67,8 @@ public class DefaultSoulContextBuilder implements SoulContextBuilder {
                 soulContext.setRpcType(metaData.getRpcType());
             } else if (RpcTypeEnum.DUBBO.getName().equals(metaData.getRpcType())) {
                 setSoulContextByDubbo(soulContext, metaData);
+            } else if (RpcTypeEnum.SOFA.getName().equals(metaData.getRpcType())) {
+                setSoulContextBySofa(soulContext, metaData);
             } else {
                 setSoulContextByHttp(soulContext, path);
                 soulContext.setRpcType(RpcTypeEnum.HTTP.getName());
@@ -84,6 +86,13 @@ public class DefaultSoulContextBuilder implements SoulContextBuilder {
     }
     
     private void setSoulContextByDubbo(final SoulContext soulContext, final MetaData metaData) {
+        soulContext.setModule(metaData.getAppName());
+        soulContext.setMethod(metaData.getServiceName());
+        soulContext.setRpcType(metaData.getRpcType());
+        soulContext.setContextPath(metaData.getContextPath());
+    }
+
+    private void setSoulContextBySofa(final SoulContext soulContext, final MetaData metaData) {
         soulContext.setModule(metaData.getAppName());
         soulContext.setMethod(metaData.getServiceName());
         soulContext.setRpcType(metaData.getRpcType());

@@ -19,10 +19,12 @@ package org.dromara.soul.sync.data.zookeeper;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
 import org.I0Itec.zkclient.IZkDataListener;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.curator.test.TestingServer;
 import org.dromara.soul.common.constant.ZkPathConstants;
 import org.dromara.soul.common.dto.AppAuthData;
 import org.dromara.soul.common.dto.ConditionData;
@@ -33,9 +35,9 @@ import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.dto.convert.RateLimiterHandle;
 import org.dromara.soul.common.dto.convert.RewriteHandle;
 import org.dromara.soul.common.dto.convert.WafHandle;
-import org.dromara.soul.common.dto.convert.rule.DivideRuleHandle;
-import org.dromara.soul.common.dto.convert.rule.DubboRuleHandle;
-import org.dromara.soul.common.dto.convert.rule.SpringCloudRuleHandle;
+import org.dromara.soul.common.dto.convert.rule.impl.DivideRuleHandle;
+import org.dromara.soul.common.dto.convert.rule.impl.DubboRuleHandle;
+import org.dromara.soul.common.dto.convert.rule.impl.SpringCloudRuleHandle;
 import org.dromara.soul.common.dto.convert.selector.DubboSelectorHandle;
 import org.dromara.soul.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.dromara.soul.common.enums.LoadBalanceEnum;
@@ -47,10 +49,11 @@ import org.dromara.soul.common.enums.SelectorTypeEnum;
 import org.dromara.soul.common.enums.WafEnum;
 import org.dromara.soul.common.utils.JsonUtils;
 import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -62,43 +65,53 @@ import java.util.concurrent.TimeUnit;
 /**
  * The type Zookeeper client test.
  */
+@Slf4j
 @SuppressWarnings("all")
-public class ZookeeperClientTest {
-    
-    private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperClientTest.class);
-    
+public final class ZookeeperClientTest {
+
     private static final String ROOT_PATH = "/xiaoyu";
-    
+
     private static final String PLUGIN = "/soul/plugin";
-    
+
     private static final Map<String, PluginData> PLUGIN_ZK_DTO_MAP = Maps.newConcurrentMap();
-    
+
+    private static TestingServer zkServer;
+
     private ZkClient zkClient;
-    
-    @Before
-    public void setUp() {
-        zkClient = new ZkClient("127.0.0.1:2181");
+
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        zkServer = new TestingServer(21810, true);
     }
-    
+
+    @Before
+    public void setUp() throws Exception {
+        zkClient = new ZkClient("127.0.0.1:21810");
+    }
+
+    @After
+    public void after() {
+        zkClient.close();
+    }
+
+    @AfterClass
+    public static void tearDown() throws Exception {
+        zkServer.stop();
+    }
+
     /**
      * Test.
      */
     @Test
-    public void test() {
+    public void testReadAndWrite() {
         if (!zkClient.exists(ROOT_PATH)) {
             zkClient.createPersistent(ROOT_PATH, true);
         }
         zkClient.writeData(ROOT_PATH, new PluginData("1", PluginEnum.DIVIDE.getName(), "", 0, Boolean.TRUE));
         final Object o = zkClient.readData(ROOT_PATH);
-        System.out.println(o.toString());
+        Assert.assertNotNull(o);
     }
-    
-    @Test
-    public void readData() {
-        final Object o = zkClient.readData(ROOT_PATH);
-        System.out.println(o.toString());
-    }
-    
+
     /**
      * Test insert app auth.
      */
@@ -109,17 +122,16 @@ public class ZookeeperClientTest {
         appAuthZkDTO.setAppSecret("123456");
         appAuthZkDTO.setEnabled(true);
         final String path = ZkPathConstants.buildAppAuthPath(appAuthZkDTO.getAppKey());
-        
+
         if (!zkClient.exists(path)) {
             zkClient.createPersistent(path, true);
         }
         zkClient.writeData(path, appAuthZkDTO);
-        
+
         final Object o = zkClient.readData(path);
-        System.out.println(o.toString());
-        
+        Assert.assertNotNull(o);
     }
-    
+
     /**
      * Test write divide selector.
      */
@@ -128,7 +140,7 @@ public class ZookeeperClientTest {
         final SelectorData selectorData = buildSelectorData("eee", "eeex", PluginEnum.DIVIDE.getName());
         writeSelector(selectorData);
     }
-    
+
     /**
      * Test write dubbo selector and rule.
      */
@@ -136,7 +148,7 @@ public class ZookeeperClientTest {
     public void testWriteDubboSelectorAndRule() {
         writeSelectorAndRule(PluginEnum.DUBBO.getName());
     }
-    
+
     /**
      * Test write rate limiter selector.
      */
@@ -144,7 +156,7 @@ public class ZookeeperClientTest {
     public void testWriteRateLimiterSelector() {
         writeSelectorAndRule(PluginEnum.RATE_LIMITER.getName());
     }
-    
+
     /**
      * Test write waf selector.
      */
@@ -152,7 +164,7 @@ public class ZookeeperClientTest {
     public void testWriteWafSelector() {
         writeSelectorAndRule(PluginEnum.WAF.getName());
     }
-    
+
     /**
      * Test write rewrite selector.
      */
@@ -160,20 +172,20 @@ public class ZookeeperClientTest {
     public void testWriteRewriteSelector() {
         writeSelectorAndRule(PluginEnum.REWRITE.getName());
     }
-    
+
     private void writeSelectorAndRule(final String pluginName) {
         final SelectorData selectorZkDTO = buildSelectorData("aaa", "aaa", pluginName);
-        
+
         writeSelector(selectorZkDTO);
-        
+
         final RuleData ruleZkDTO = buildRuleDTO("xxx", selectorZkDTO.getId(), selectorZkDTO.getPluginName());
-        
+
         final String rulePath = ZkPathConstants
                 .buildRulePath(selectorZkDTO.getPluginName(), ruleZkDTO.getSelectorId(), ruleZkDTO.getId());
         writeRule(rulePath, ruleZkDTO);
     }
-    
-    
+
+
     /**
      * Test insert rule.
      */
@@ -185,22 +197,21 @@ public class ZookeeperClientTest {
         if (!zkClient.exists(rulePath)) {
             zkClient.createPersistent(rulePath, true);
         }
-        
+
         zkClient.writeData(rulePath, ruleZkDTO);
-        
+
         final RuleData zkDTO = zkClient.readData(rulePath);
-        LOGGER.info(zkDTO.toString());
-        
+        Assert.assertNotNull(zkDTO);
     }
-    
+
     private void writeRule(final String rulePath, final RuleData ruleZkDTO) {
         if (!zkClient.exists(rulePath)) {
             zkClient.createPersistent(rulePath, true);
         }
-        
+
         zkClient.writeData(rulePath, ruleZkDTO);
     }
-    
+
     private void writeSelector(final SelectorData selectorData) {
         final String selectorRealPath =
                 ZkPathConstants.buildSelectorRealPath(selectorData.getPluginName(), selectorData.getId());
@@ -209,7 +220,7 @@ public class ZookeeperClientTest {
         }
         zkClient.writeData(selectorRealPath, selectorData);
     }
-    
+
     private SelectorData buildSelectorData(final String id, final String name, final String pluginName) {
         SelectorData selectorData = new SelectorData();
         selectorData.setId(id);
@@ -225,7 +236,7 @@ public class ZookeeperClientTest {
         selectorData.setConditionList(Collections.singletonList(conditionZkDTO));
         return selectorData;
     }
-    
+
     private RuleData buildRuleDTO(final String id, final String selectorId, final String pluginName) {
         RuleData dto1 = new RuleData();
         dto1.setId(id);
@@ -251,7 +262,7 @@ public class ZookeeperClientTest {
         dto1.setSort(120);
         return dto1;
     }
-    
+
     /**
      * The entry point of application.
      *
@@ -260,18 +271,18 @@ public class ZookeeperClientTest {
     public static void main(final String[] args) {
         System.out.println(JsonUtils.toJson(buildSpringCloudHandle()));
     }
-    
+
     private static Pair<List<DivideUpstream>, DivideRuleHandle> buildDivideHandle() {
-        
+
         DivideRuleHandle ruleHandle = new DivideRuleHandle();
-        
+
         ruleHandle.setLoadBalance(LoadBalanceEnum.ROUND_ROBIN.getName());
-        
+
         ruleHandle.setTimeout(1000);
-        
+
         return new ImmutablePair<>(buildUpstreamList(), ruleHandle);
     }
-    
+
     private static Pair<DubboSelectorHandle, DubboRuleHandle> buildDubboHandle() {
         DubboSelectorHandle selectorHandle = new DubboSelectorHandle();
         selectorHandle.setAppName("local");
@@ -280,54 +291,56 @@ public class ZookeeperClientTest {
         ruleHandle.setTimeout(3000);
         return new ImmutablePair<>(selectorHandle, ruleHandle);
     }
-    
+
     private static RateLimiterHandle buildRateLimiterHandle() {
         RateLimiterHandle rateLimiterHandle = new RateLimiterHandle();
         rateLimiterHandle.setBurstCapacity(1);
         rateLimiterHandle.setReplenishRate(1);
         return rateLimiterHandle;
     }
-    
+
     private static WafHandle buildWafHandle() {
         WafHandle wafHandle = new WafHandle();
         wafHandle.setPermission(WafEnum.ALLOW.getName());
         wafHandle.setStatusCode("403");
         return wafHandle;
     }
-    
+
     private static RewriteHandle buildRewriteHandle() {
         RewriteHandle rewriteHandle = new RewriteHandle();
         rewriteHandle.setRewriteURI("rewrite");
         return rewriteHandle;
     }
-    
+
     private static Pair<SpringCloudSelectorHandle, SpringCloudRuleHandle> buildSpringCloudHandle() {
-        SpringCloudSelectorHandle selectorHandle = new SpringCloudSelectorHandle();
-        selectorHandle.setServiceId("xiaoyu");
+        SpringCloudSelectorHandle selectorHandle = SpringCloudSelectorHandle.builder()
+                .serviceId("xiaoyu")
+                .build();
         SpringCloudRuleHandle ruleHandle = new SpringCloudRuleHandle();
         ruleHandle.setPath("/xiaoyu");
         return new ImmutablePair<>(selectorHandle, ruleHandle);
     }
-    
+
     private static List<DivideUpstream> buildUpstreamList() {
+        DivideUpstream upstream = DivideUpstream.builder()
+                .upstreamHost("localhost")
+                .upstreamUrl("http://localhost:8081")
+                .weight(90)
+                .build();
         List<DivideUpstream> upstreams = Lists.newArrayList();
-        DivideUpstream upstream = new DivideUpstream();
-        upstream.setUpstreamHost("localhost");
-        upstream.setUpstreamUrl("http://localhost:8081");
-        upstream.setWeight(90);
         upstreams.add(upstream);
         return upstreams;
     }
-    
+
     /**
      * Test delete.
      */
     @Test
     public void testDelete() {
         final String dividePath = ZkPathConstants.buildSelectorParentPath(PluginEnum.DIVIDE.getName());
-        zkClient.delete(dividePath);
+        Assert.assertTrue(zkClient.deleteRecursive(dividePath));
     }
-    
+
     private ConditionData buildConditionZkDTO() {
         ConditionData condition = new ConditionData();
         condition.setOperator(OperatorEnum.EQ.getAlias());
@@ -336,7 +349,7 @@ public class ZookeeperClientTest {
         condition.setParamType(ParamTypeEnum.POST.getName());
         return condition;
     }
-    
+
     /**
      * Test write plugin.
      */
@@ -349,10 +362,10 @@ public class ZookeeperClientTest {
             }
             zkClient.writeData(pluginPath, buildByName(pluginEnum.getName()));
             PluginData data = zkClient.readData(pluginPath);
-            LOGGER.debug(data.toString());
+            log.debug(data.toString());
         });
     }
-    
+
     /**
      * Test load plugin data.
      *
@@ -362,49 +375,59 @@ public class ZookeeperClientTest {
     public void testLoadPluginData() throws InterruptedException {
         Arrays.stream(PluginEnum.values()).forEach(pluginEnum -> {
             String pluginPath = PLUGIN + "/" + pluginEnum.getName();
+            if (!zkClient.exists(pluginPath)) {
+                return;
+            }
             PluginData data = zkClient.readData(pluginPath);
             PLUGIN_ZK_DTO_MAP.put(pluginEnum.getName(), data);
             zkClient.subscribeDataChanges(pluginPath, new IZkDataListener() {
                 @Override
                 public void handleDataChange(final String dataPath, final Object data) {
-                    LOGGER.info("node data changed!");
-                    LOGGER.info("path=>" + dataPath);
-                    LOGGER.info("data=>" + data);
+                    log.info("node data changed!");
+                    log.info("path=>" + dataPath);
+                    log.info("data=>" + data);
                     final String key = dataPath
                             .substring(dataPath.lastIndexOf("/") + 1, dataPath.length());
                     PLUGIN_ZK_DTO_MAP.put(key, (PluginData) data);
                 }
-                
+
                 @Override
                 public void handleDataDeleted(final String dataPath) {
-                
+
                 }
             });
-            
+
         });
-        
-        LOGGER.info("ready!");
+
+        log.info("ready!");
         //junit测试时，防止线程退出
-        while (true) {
-            TimeUnit.SECONDS.sleep(5);
+        long endTime = System.currentTimeMillis() + 5000L;
+        while (System.currentTimeMillis() >= endTime) {
+            TimeUnit.SECONDS.sleep(1);
         }
-        
+
     }
-    
+
     /**
      * Test update plugin.
      */
     @Test
     public void testUpdatePlugin() {
         String divide = PLUGIN + "/" + PluginEnum.DIVIDE.getName();
+        if (!zkClient.exists(divide)) {
+            zkClient.createPersistent(divide, true);
+        }
         PluginData divideDTO = new PluginData("3", PluginEnum.DIVIDE.getName(), "", 0, false);
         zkClient.writeData(divide, divideDTO);
-        
+
         String global = PLUGIN + "/" + PluginEnum.GLOBAL.getName();
+        if (!zkClient.exists(global)) {
+            zkClient.createPersistent(global, true);
+        }
         PluginData globalDTO = new PluginData("4", PluginEnum.GLOBAL.getName(), "", 0, false);
         zkClient.writeData(global, globalDTO);
     }
-    
+
     private PluginData buildByName(final String name) {
         PluginData pluginData = new PluginData();
         pluginData.setEnabled(true);
@@ -412,7 +435,7 @@ public class ZookeeperClientTest {
         pluginData.setName(name);
         return pluginData;
     }
-    
+
     /**
      * Test plugin.
      */
@@ -423,28 +446,31 @@ public class ZookeeperClientTest {
         }
         zkClient.writeData(PLUGIN, buildMap());
         Map<String, PluginData> resultMap = zkClient.readData(PLUGIN);
-        resultMap.forEach((k, v) -> LOGGER.debug(k + ":" + v.toString()));
+        resultMap.forEach((k, v) -> log.debug(k + ":" + v.toString()));
     }
-    
+
     /**
      * Dispose.
      */
     @After
     public void dispose() {
         zkClient.close();
-        LOGGER.info("zkclient closed!");
+        log.info("zkclient closed!");
     }
-    
+
     /**
      * Test plugin update.
      */
     @Test
     public void testPluginUpdate() {
+        if (!zkClient.exists(PLUGIN)) {
+            zkClient.createPersistent(PLUGIN, true);
+        }
         final Map<String, PluginData> map = buildMap();
         map.put(PluginEnum.DIVIDE.getName(), new PluginData("2", PluginEnum.DIVIDE.getName(), "", 0, Boolean.FALSE));
         zkClient.writeData(PLUGIN, map);
     }
-    
+
     /**
      * Test listener.
      *
@@ -456,31 +482,32 @@ public class ZookeeperClientTest {
         zkClient.subscribeDataChanges(PLUGIN, new IZkDataListener() {
             @Override
             public void handleDataChange(final String path, final Object o) {
-                LOGGER.info("node data changed!");
-                LOGGER.info("path=>" + path);
-                LOGGER.info("data=>" + o);
+                log.info("node data changed!");
+                log.info("path=>" + path);
+                log.info("data=>" + o);
                 Map<String, PluginData> map;
                 map = (Map<String, PluginData>) o;
-                LOGGER.info(map.toString());
-                LOGGER.info("--------------");
+                log.info(map.toString());
+                log.info("--------------");
             }
-            
+
             @Override
             public void handleDataDeleted(final String path) {
-                LOGGER.info("node data deleted!");
-                LOGGER.info("path=>" + path);
-                LOGGER.info("--------------");
-                
+                log.info("node data deleted!");
+                log.info("path=>" + path);
+                log.info("--------------");
+
             }
         });
-        
-        LOGGER.info("ready!");
-        
-        while (true) {
-            TimeUnit.SECONDS.sleep(5);
+
+        log.info("ready!");
+
+        long endTime = System.currentTimeMillis() + 5000L;
+        while (System.currentTimeMillis() >= endTime) {
+            TimeUnit.SECONDS.sleep(1);
         }
     }
-    
+
     /**
      * Test update configuration.
      */
@@ -494,7 +521,7 @@ public class ZookeeperClientTest {
         zkClient.delete(ROOT_PATH);
         zkClient.delete(ROOT_PATH);
     }
-    
+
     private Map<String, PluginData> buildMap() {
         Map<String, PluginData> pluginMap = Maps.newHashMap();
         pluginMap.put(PluginEnum.DIVIDE.getName(), new PluginData("6", PluginEnum.DIVIDE.getName(), "", 0, Boolean.TRUE));
