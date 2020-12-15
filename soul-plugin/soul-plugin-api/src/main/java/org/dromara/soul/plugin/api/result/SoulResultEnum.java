@@ -70,11 +70,6 @@ public enum SoulResultEnum {
     SOFA_HAVE_BODY_PARAM(432, "Sofa must have body param, please enter the JSON format in the body!"),
 
     /**
-     * Request failed early.
-     */
-    REQUEST_FAILED_EARLY(433, "The post plug-in does not include the condition that the front plug-in has successfully matched"),
-
-    /**
      * full selector type enum.
      */
     PARAM_ERROR(-100, "Your parameter error, please check the relevant documentation!"),

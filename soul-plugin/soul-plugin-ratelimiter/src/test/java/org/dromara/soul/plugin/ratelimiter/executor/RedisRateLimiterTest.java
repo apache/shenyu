@@ -52,7 +52,7 @@ import com.google.common.collect.Lists;
  */
 @RunWith(MockitoJUnitRunner.class)
 @Slf4j
-public final class RedisRateLimiterTest {
+public final class  RedisRateLimiterTest {
 
     private static final String DEFAULT_TEST_ID = "testId";
 
