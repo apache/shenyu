@@ -54,7 +54,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Test cases for {@link DashboardUserController}.
  */
 @RunWith(MockitoJUnitRunner.class)
-public class DashboardUserControllerTest {
+public final class DashboardUserControllerTest {
 
     private MockMvc mockMvc;
 

@@ -18,6 +18,7 @@
 package org.dromara.soul.plugin.sofa.response;
 
 import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,6 +31,8 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * SofaResponsePluginTest.
@@ -65,5 +68,19 @@ public final class SofaResponsePluginTest {
         sofaResponsePlugin = new SofaResponsePlugin();
         exchange.getAttributes().put(Constants.SOFA_RPC_RESULT, response);
         StepVerifier.create(sofaResponsePlugin.execute(exchange, chain)).expectSubscription().verifyError(NullPointerException.class);
+    }
+
+    @Test
+    public void testNamed() {
+        sofaResponsePlugin = new SofaResponsePlugin();
+        final String result = sofaResponsePlugin.named();
+        assertEquals(PluginEnum.RESPONSE.getName(), result);
+    }
+
+    @Test
+    public void testGetOrder() {
+        sofaResponsePlugin = new SofaResponsePlugin();
+        final int result = sofaResponsePlugin.getOrder();
+        assertEquals(PluginEnum.RESPONSE.getCode(), result);
     }
 }

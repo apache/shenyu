@@ -18,6 +18,7 @@
 package org.dromara.soul.plugin.sofa.param;
 
 import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
@@ -33,6 +34,8 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * BodyParamPluginTest.
@@ -94,5 +97,19 @@ public final class BodyParamPluginTest {
         context.setRpcType(RpcTypeEnum.SOFA.getName());
         formExchange.getAttributes().put(Constants.CONTEXT, context);
         StepVerifier.create(bodyParamPlugin.execute(formExchange, chain)).expectSubscription().verifyComplete();
+    }
+
+    @Test
+    public void testGetOrder() {
+        bodyParamPlugin = new BodyParamPlugin();
+        final int result = bodyParamPlugin.getOrder();
+        assertEquals(PluginEnum.SOFA.getCode() - 1, result);
+    }
+
+    @Test
+    public void testNamed() {
+        bodyParamPlugin = new BodyParamPlugin();
+        final String result = bodyParamPlugin.named();
+        assertEquals("sofa-body-param", result);
     }
 }
