@@ -378,6 +378,16 @@ public interface Constants {
     int SENTINEL_RESPONSE_RULE_GRADE = 0;
 
     /**
+     * Replenish rate in rate_limiter plugin.
+     */
+    int REPLENISH_RATE = 1;
+
+    /**
+     * Sentinel response RT degrade rule.
+     */
+    int BURST_CAPACITY = 100;
+
+    /**
      * String q.
      */
     default void findConstants() {

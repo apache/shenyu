@@ -18,6 +18,7 @@
 package org.dromara.soul.common.dto.convert;
 
 import lombok.Data;
+import org.dromara.soul.common.constant.Constants;
 
 /**
  * this is rateLimiter plugin handle.
@@ -30,12 +31,12 @@ public class RateLimiterHandle {
     /**
      * replenish rate.
      */
-    private double replenishRate;
+    private double replenishRate = Constants.REPLENISH_RATE;
 
     /**
      * burst capacity.
      */
-    private double burstCapacity;
+    private double burstCapacity = Constants.BURST_CAPACITY;
 
     /**
      * loged.
