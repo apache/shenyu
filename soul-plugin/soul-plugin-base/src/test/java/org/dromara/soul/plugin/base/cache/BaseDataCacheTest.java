@@ -85,11 +85,11 @@ public final class BaseDataCacheTest {
 
     @Test
     public void testCleanPluginData() {
-        PluginData pluginData1 = PluginData.builder().name(mockName1).build();
-        PluginData pluginData2 = PluginData.builder().name(mockName2).build();
+        PluginData firstCachedPluginData = PluginData.builder().name(mockName1).build();
+        PluginData secondCachedPluginData = PluginData.builder().name(mockName2).build();
         ConcurrentHashMap<String, PluginData> pluginMap = getFieldByName(pluginMapStr);
-        pluginMap.put(mockName1, pluginData1);
-        pluginMap.put(mockName2, pluginData2);
+        pluginMap.put(mockName1, firstCachedPluginData);
+        pluginMap.put(mockName2, secondCachedPluginData);
         Assert.assertNotNull(pluginMap.get(mockName1));
         Assert.assertNotNull(pluginMap.get(mockName2));
 
@@ -100,15 +100,15 @@ public final class BaseDataCacheTest {
 
     @Test
     public void testCleanPluginDataSelf() {
-        PluginData pluginData1 = PluginData.builder().name(mockName1).build();
-        PluginData pluginData2 = PluginData.builder().name(mockName2).build();
+        PluginData firstCachedPluginData = PluginData.builder().name(mockName1).build();
+        PluginData secondCachedPluginData = PluginData.builder().name(mockName2).build();
         ConcurrentHashMap<String, PluginData> pluginMap = getFieldByName(pluginMapStr);
-        pluginMap.put(mockName1, pluginData1);
-        pluginMap.put(mockName2, pluginData2);
+        pluginMap.put(mockName1, firstCachedPluginData);
+        pluginMap.put(mockName2, secondCachedPluginData);
         Assert.assertNotNull(pluginMap.get(mockName1));
         Assert.assertNotNull(pluginMap.get(mockName2));
 
-        List<PluginData> pluginDataList = Lists.newArrayList(pluginData1);
+        List<PluginData> pluginDataList = Lists.newArrayList(firstCachedPluginData);
         BaseDataCache.getInstance().cleanPluginDataSelf(pluginDataList);
         Assert.assertNull(pluginMap.get(mockName1));
         Assert.assertNotNull(pluginMap.get(mockName2));
@@ -125,14 +125,14 @@ public final class BaseDataCacheTest {
 
     @Test
     public void testCacheSelectData() {
-        SelectorData selectorData1 = SelectorData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
-        BaseDataCache.getInstance().cacheSelectData(selectorData1);
+        SelectorData firstCachedSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).sort(1).build();
+        BaseDataCache.getInstance().cacheSelectData(firstCachedSelectorData);
         ConcurrentHashMap<String, List<SelectorData>> selectorMap = getFieldByName(selectorMapStr);
-        Assert.assertEquals(Lists.newArrayList(selectorData1), selectorMap.get(mockPluginName1));
+        Assert.assertEquals(Lists.newArrayList(firstCachedSelectorData), selectorMap.get(mockPluginName1));
 
-        SelectorData selectorData2 = SelectorData.builder().id("2").pluginName(mockPluginName1).sort(2).build();
-        BaseDataCache.getInstance().cacheSelectData(selectorData2);
-        Assert.assertEquals(Lists.newArrayList(selectorData1, selectorData2), selectorMap.get(mockPluginName1));
+        SelectorData secondCachedSelectorData = SelectorData.builder().id("2").pluginName(mockPluginName1).sort(2).build();
+        BaseDataCache.getInstance().cacheSelectData(secondCachedSelectorData);
+        Assert.assertEquals(Lists.newArrayList(firstCachedSelectorData, secondCachedSelectorData), selectorMap.get(mockPluginName1));
     }
 
     @Test
@@ -147,11 +147,11 @@ public final class BaseDataCacheTest {
 
     @Test
     public void testCleanSelectorData() {
-        SelectorData globalSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).build();
-        SelectorData signSelectorData = SelectorData.builder().id("2").pluginName(mockPluginName2).build();
+        SelectorData firstCachedSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).build();
+        SelectorData secondCachedSelectorData = SelectorData.builder().id("2").pluginName(mockPluginName2).build();
         ConcurrentHashMap<String, List<SelectorData>> selectorMap = getFieldByName(selectorMapStr);
-        selectorMap.put(mockPluginName1, Lists.newArrayList(globalSelectorData));
-        selectorMap.put(mockPluginName2, Lists.newArrayList(signSelectorData));
+        selectorMap.put(mockPluginName1, Lists.newArrayList(firstCachedSelectorData));
+        selectorMap.put(mockPluginName2, Lists.newArrayList(secondCachedSelectorData));
 
         BaseDataCache.getInstance().cleanSelectorData();
         Assert.assertNull(selectorMap.get(mockPluginName1));
@@ -160,15 +160,15 @@ public final class BaseDataCacheTest {
 
     @Test
     public void testCleanSelectorDataSelf() {
-        SelectorData globalSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).build();
-        SelectorData signSelectorData = SelectorData.builder().id("2").pluginName(mockPluginName2).build();
+        SelectorData firstCachedSelectorData = SelectorData.builder().id("1").pluginName(mockPluginName1).build();
+        SelectorData secondCachedSelectorData = SelectorData.builder().id("2").pluginName(mockPluginName2).build();
         ConcurrentHashMap<String, List<SelectorData>> selectorMap = getFieldByName(selectorMapStr);
-        selectorMap.put(mockPluginName1, Lists.newArrayList(globalSelectorData));
-        selectorMap.put(mockPluginName2, Lists.newArrayList(signSelectorData));
+        selectorMap.put(mockPluginName1, Lists.newArrayList(firstCachedSelectorData));
+        selectorMap.put(mockPluginName2, Lists.newArrayList(secondCachedSelectorData));
 
-        BaseDataCache.getInstance().cleanSelectorDataSelf(Lists.newArrayList(globalSelectorData));
+        BaseDataCache.getInstance().cleanSelectorDataSelf(Lists.newArrayList(firstCachedSelectorData));
         Assert.assertEquals(Lists.newArrayList(), selectorMap.get(mockPluginName1));
-        Assert.assertEquals(Lists.newArrayList(signSelectorData), selectorMap.get(mockPluginName2));
+        Assert.assertEquals(Lists.newArrayList(secondCachedSelectorData), selectorMap.get(mockPluginName2));
     }
 
     @Test
@@ -183,14 +183,14 @@ public final class BaseDataCacheTest {
 
     @Test
     public void testCacheRuleData() {
-        RuleData ruleData1 = RuleData.builder().id("1").selectorId(mockSelectorId1).sort(1).build();
-        BaseDataCache.getInstance().cacheRuleData(ruleData1);
+        RuleData firstCachedRuleData = RuleData.builder().id("1").selectorId(mockSelectorId1).sort(1).build();
+        BaseDataCache.getInstance().cacheRuleData(firstCachedRuleData);
         ConcurrentHashMap<String, List<RuleData>> ruleMap = getFieldByName(ruleMapStr);
-        Assert.assertEquals(Lists.newArrayList(ruleData1), ruleMap.get(mockSelectorId1));
+        Assert.assertEquals(Lists.newArrayList(firstCachedRuleData), ruleMap.get(mockSelectorId1));
 
-        RuleData ruleData2 = RuleData.builder().id("2").selectorId(mockSelectorId1).sort(2).build();
-        BaseDataCache.getInstance().cacheRuleData(ruleData2);
-        Assert.assertEquals(Lists.newArrayList(ruleData1, ruleData2), ruleMap.get(mockSelectorId1));
+        RuleData secondCachedRuleData = RuleData.builder().id("2").selectorId(mockSelectorId1).sort(2).build();
+        BaseDataCache.getInstance().cacheRuleData(secondCachedRuleData);
+        Assert.assertEquals(Lists.newArrayList(firstCachedRuleData, secondCachedRuleData), ruleMap.get(mockSelectorId1));
     }
 
     @Test
@@ -205,11 +205,11 @@ public final class BaseDataCacheTest {
 
     @Test
     public void testCleanRuleData() {
-        RuleData globalRuleData = RuleData.builder().id("1").selectorId(mockSelectorId1).build();
-        RuleData signRuleData = RuleData.builder().id("2").selectorId(mockSelectorId2).build();
+        RuleData firstCachedRuleData = RuleData.builder().id("1").selectorId(mockSelectorId1).build();
+        RuleData secondCachedRuleData = RuleData.builder().id("2").selectorId(mockSelectorId2).build();
         ConcurrentHashMap<String, List<RuleData>> ruleMap = getFieldByName(ruleMapStr);
-        ruleMap.put(mockSelectorId1, Lists.newArrayList(globalRuleData));
-        ruleMap.put(mockSelectorId2, Lists.newArrayList(signRuleData));
+        ruleMap.put(mockSelectorId1, Lists.newArrayList(firstCachedRuleData));
+        ruleMap.put(mockSelectorId2, Lists.newArrayList(secondCachedRuleData));
 
         BaseDataCache.getInstance().cleanRuleData();
         Assert.assertNull(ruleMap.get(mockSelectorId1));
@@ -218,15 +218,15 @@ public final class BaseDataCacheTest {
 
     @Test
     public void testCleanRuleDataSelf() {
-        RuleData globalRuleData = RuleData.builder().id("1").selectorId(mockSelectorId1).build();
-        RuleData signRuleData = RuleData.builder().id("2").selectorId(mockSelectorId2).build();
+        RuleData firstCachedRuleData = RuleData.builder().id("1").selectorId(mockSelectorId1).build();
+        RuleData secondCachedRuleData = RuleData.builder().id("2").selectorId(mockSelectorId2).build();
         ConcurrentHashMap<String, List<RuleData>> ruleMap = getFieldByName(ruleMapStr);
-        ruleMap.put(mockSelectorId1, Lists.newArrayList(globalRuleData));
-        ruleMap.put(mockSelectorId2, Lists.newArrayList(signRuleData));
+        ruleMap.put(mockSelectorId1, Lists.newArrayList(firstCachedRuleData));
+        ruleMap.put(mockSelectorId2, Lists.newArrayList(secondCachedRuleData));
 
-        BaseDataCache.getInstance().cleanRuleDataSelf(Lists.newArrayList(globalRuleData));
+        BaseDataCache.getInstance().cleanRuleDataSelf(Lists.newArrayList(firstCachedRuleData));
         Assert.assertEquals(Lists.newArrayList(), ruleMap.get(mockSelectorId1));
-        Assert.assertEquals(Lists.newArrayList(signRuleData), ruleMap.get(mockSelectorId2));
+        Assert.assertEquals(Lists.newArrayList(secondCachedRuleData), ruleMap.get(mockSelectorId2));
     }
 
     @Test
