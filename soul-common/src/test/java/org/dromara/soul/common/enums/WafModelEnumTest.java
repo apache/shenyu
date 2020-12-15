@@ -17,36 +17,20 @@
 
 package org.dromara.soul.common.enums;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 /**
- * load balance enum.
+ * Test case for WafModelEnum.
  *
- * @author xiaoyu(Myth)
+ * @author xwzwmt
  */
-@RequiredArgsConstructor
-@Getter
-public enum LoadBalanceEnum {
+public final class WafModelEnumTest {
 
-    /**
-     * Hash load balance enum.
-     */
-    HASH(1, "hash", true),
-
-    /**
-     * Random load balance enum.
-     */
-    RANDOM(2, "random", true),
-
-    /**
-     * Round robin load balance enum.
-     */
-    ROUND_ROBIN(3, "roundRobin", true);
-
-    private final int code;
-
-    private final String name;
-
-    private final boolean support;
+    @Test
+    public void testGetName() {
+        assertEquals("black", WafModelEnum.BLACK.getName());
+        assertEquals("mixed", WafModelEnum.MIXED.getName());
+    }
 }
