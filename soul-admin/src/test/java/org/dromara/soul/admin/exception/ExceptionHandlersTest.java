@@ -37,7 +37,7 @@ public final class ExceptionHandlersTest {
     private ExceptionHandlers exceptionHandlersUnderTest;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         exceptionHandlersUnderTest = new ExceptionHandlers();
     }
 

@@ -20,12 +20,12 @@ package org.dromara.soul.common.enums;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+
 /**
  * Test case for WafModelEnum.
  *
  * @author xwzwmt
  */
-
 public final class WafModelEnumTest {
 
     @Test
