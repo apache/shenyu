@@ -282,7 +282,7 @@ public final class AppAuthServiceTest {
     }
 
     private AppAuthDO buildAppAuthDO() {
-        AppAuthDO appAuthDO = AppAuthDO.buildAppAuthDO(buildAppAuthDTO());
+        AppAuthDO appAuthDO = AppAuthDO.buildWith(buildAppAuthDTO());
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         appAuthDO.setDateCreated(now);
         appAuthDO.setDateUpdated(now);
