@@ -20,48 +20,43 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>soul-plugin</artifactId>
+        <artifactId>soul-examples</artifactId>
         <groupId>org.dromara</groupId>
-        <version>2.2.1</version>
+        <version>2.1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>soul-plugin-monitor</artifactId>
+    <artifactId>soul-examples-sofa</artifactId>
+
+    <properties>
+        <rpc-sofa-boot-starter.version>6.0.4</rpc-sofa-boot-starter.version>
+    </properties>
 
     <dependencies>
         <dependency>
+            <groupId>com.alipay.sofa</groupId>
+            <artifactId>rpc-sofa-boot-starter</artifactId>
+            <version>${rpc-sofa-boot-starter.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.dromara</groupId>
-            <artifactId>soul-plugin-base</artifactId>
+            <artifactId>soul-examples-dubbo-api</artifactId>
             <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.dromara</groupId>
-            <artifactId>soul-metrics-facade</artifactId>
-            <version>${project.version}</version>
+            <artifactId>soul-spring-boot-starter-client-sofa</artifactId>
+            <version>${soul.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>guava</artifactId>
+                    <groupId>com.google.guava</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
-
-        <dependency>
-            <groupId>org.dromara</groupId>
-            <artifactId>soul-metrics-prometheus</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.dromara</groupId>
-            <artifactId>soul-metrics-spi</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.projectreactor</groupId>
-            <artifactId>reactor-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-
     </dependencies>
+
 
 </project>
