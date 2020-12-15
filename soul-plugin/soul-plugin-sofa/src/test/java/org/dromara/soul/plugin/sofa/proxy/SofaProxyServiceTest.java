@@ -48,7 +48,7 @@ import java.lang.reflect.Field;
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class SofaProxyServiceTest {
-    private static final String SERVICE_NAME = "org.dromara.soul.test.dubbo.api.service.DubboTestService";
+    private static final String PATH = "/sofa/findAll";
 
     private static final String METHOD_NAME = "findAll";
 
@@ -66,8 +66,8 @@ public final class SofaProxyServiceTest {
         metaData = new MetaData();
         metaData.setId("1332017966661636096");
         metaData.setAppName("sofa");
-        metaData.setPath("/sofa/findAll");
-        metaData.setServiceName(SERVICE_NAME);
+        metaData.setPath(PATH);
+        metaData.setServiceName("org.dromara.soul.test.dubbo.api.service.DubboTestService");
         metaData.setMethodName(METHOD_NAME);
         metaData.setRpcType(RpcTypeEnum.SOFA.getName());
     }
@@ -82,12 +82,12 @@ public final class SofaProxyServiceTest {
         ConsumerConfig consumerConfig = mock(ConsumerConfig.class);
         GenericService genericService = mock(GenericService.class);
         when(consumerConfig.refer()).thenReturn(genericService);
-        when(consumerConfig.getInterfaceId()).thenReturn(SERVICE_NAME);
+        when(consumerConfig.getInterfaceId()).thenReturn(PATH);
         when(genericService.$invoke(METHOD_NAME, LEFT, RIGHT)).thenReturn(null);
         ApplicationConfigCache applicationConfigCache = ApplicationConfigCache.getInstance();
         Field field = ApplicationConfigCache.class.getDeclaredField("cache");
         field.setAccessible(true);
-        ((LoadingCache) field.get(applicationConfigCache)).put(SERVICE_NAME, consumerConfig);
+        ((LoadingCache) field.get(applicationConfigCache)).put(PATH, consumerConfig);
         SofaProxyService sofaProxyService = new SofaProxyService(new SofaParamResolveServiceImpl());
         sofaProxyService.genericInvoker("", metaData, exchange);
         RpcInvokeContext.getContext().getResponseCallback().onAppResponse("success", null, null);
