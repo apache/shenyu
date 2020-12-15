@@ -53,11 +53,10 @@ public class WafPlugin extends AbstractSoulPlugin {
         if (Objects.isNull(selector) && Objects.isNull(rule)) {
             if (WafModelEnum.BLACK.getName().equals(wafConfig.getModel())) {
                 return chain.execute(exchange);
-            } else {
-                exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-                Object error = SoulResultWrap.error(403, Constants.REJECT_MSG, null);
-                return WebFluxResultUtils.result(exchange, error);
             }
+            exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+            Object error = SoulResultWrap.error(403, Constants.REJECT_MSG, null);
+            return WebFluxResultUtils.result(exchange, error);
         }
         String handle = rule.getHandle();
         WafHandle wafHandle = GsonUtils.getInstance().fromJson(handle, WafHandle.class);

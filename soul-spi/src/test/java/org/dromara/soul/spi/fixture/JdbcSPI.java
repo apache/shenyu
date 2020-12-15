@@ -24,7 +24,7 @@ import org.dromara.soul.spi.SPI;
  */
 @SPI
 public interface JdbcSPI {
-    
+
     /**
      * Gets class name.
      *

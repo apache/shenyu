@@ -22,11 +22,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
+import org.dromara.soul.common.dto.convert.SentinelHandle;
 import org.dromara.soul.common.enums.PluginEnum;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
+import org.dromara.soul.plugin.base.utils.UriUtils;
+import org.dromara.soul.plugin.sentinel.fallback.SentinelFallbackHandler;
 import org.dromara.soul.plugin.sentinel.handler.SentinelRuleHandle;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -38,12 +44,25 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class SentinelPlugin extends AbstractSoulPlugin {
 
+    private final SentinelFallbackHandler sentinelFallbackHandler;
+
+    public SentinelPlugin(final SentinelFallbackHandler sentinelFallbackHandler) {
+        this.sentinelFallbackHandler = sentinelFallbackHandler;
+    }
+
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
         final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
         String resourceName = SentinelRuleHandle.getResourceName(rule);
-        return chain.execute(exchange).transform(new SentinelReactorTransformer<>(resourceName));
+        SentinelHandle sentinelHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), SentinelHandle.class);
+        return chain.execute(exchange).transform(new SentinelReactorTransformer<>(resourceName)).doOnSuccess(v -> {
+            if (exchange.getResponse().getStatusCode() != HttpStatus.OK) {
+                HttpStatus status = exchange.getResponse().getStatusCode();
+                exchange.getResponse().setStatusCode(null);
+                throw new SentinelFallbackException(status);
+            }
+        }).onErrorResume(throwable -> sentinelFallbackHandler.fallback(exchange, UriUtils.createUri(sentinelHandle.getFallbackUri()), throwable));
     }
 
     @Override
@@ -54,5 +73,12 @@ public class SentinelPlugin extends AbstractSoulPlugin {
     @Override
     public int getOrder() {
         return PluginEnum.SENTINEL.getCode();
+    }
+
+    public static class SentinelFallbackException extends HttpStatusCodeException {
+
+        public SentinelFallbackException(final HttpStatus statusCode) {
+            super(statusCode);
+        }
     }
 }

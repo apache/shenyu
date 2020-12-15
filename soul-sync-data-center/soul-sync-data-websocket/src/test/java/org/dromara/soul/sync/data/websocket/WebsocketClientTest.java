@@ -17,56 +17,96 @@
 
 package org.dromara.soul.sync.data.websocket;
 
+import io.undertow.Undertow;
+import io.undertow.websockets.core.AbstractReceiveListener;
+import io.undertow.websockets.core.BufferedTextMessage;
+import io.undertow.websockets.core.WebSocketChannel;
+import io.undertow.websockets.core.WebSockets;
+import lombok.extern.slf4j.Slf4j;
 import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.enums.ReadyState;
 import org.java_websocket.handshake.ServerHandshake;
-import org.junit.Before;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.net.URI;
-import java.net.URISyntaxException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import static io.undertow.Handlers.path;
+import static io.undertow.Handlers.websocket;
 
 /**
+ * The type Websocket client test.
+ *
  * @author xiaoyu(Myth)
  */
-public class WebsocketClientTest {
+@Slf4j
+public final class WebsocketClientTest {
+
+    private static WebSocketClient client;
     
-    public static WebSocketClient client;
+    private static Undertow server;
     
-    @Before
-    public void setUp() {
-        try {
-            client = new WebSocketClient(new URI("ws://localhost:8888/websocket")) {
-                @Override
-                public void onOpen(final ServerHandshake serverHandshake) {
-                    System.out.println("打开链接");
-                }
-                
-                @Override
-                public void onMessage(final String s) {
-                    System.out.println("收到消息" + s);
-                }
-                
-                @Override
-                public void onClose(final int i, final String s, final boolean b) {
-                    System.out.println("链接已关闭");
-                }
-                
-                @Override
-                public void onError(final Exception e) {
-                    e.printStackTrace();
-                    System.out.println("发生错误已关闭");
-                }
-            };
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
-        client.connect();
-        
+    @BeforeClass
+    public static void init() {
+        server = Undertow.builder()
+                .addHttpListener(8888, "localhost")
+                .setHandler(path()
+                        .addPrefixPath("/websocket", websocket((exchange, channel) -> {
+                            channel.getReceiveSetter().set(new AbstractReceiveListener() {
+
+                                @Override
+                                protected void onFullTextMessage(final WebSocketChannel channel, final BufferedTextMessage message) {
+                                    WebSockets.sendText(message.getData(), channel, null);
+                                }
+                            });
+                            channel.resumeReceives();
+                        })))
+                .build();
+        server.start();
+    }
+    
+    @AfterClass
+    public static void after() {
+        server.stop();
+    }
+    
+    @After
+    public void destroy() {
+        client.close();
     }
     
     @Test
-    public void send() {
+    public void send() throws Exception {
+        final CountDownLatch latch = new CountDownLatch(1);
+        client = new WebSocketClient(new URI("ws://localhost:8888/websocket")) {
+            @Override
+            public void onOpen(final ServerHandshake serverHandshake) {
+                log.info("Open connection");
+            }
+
+            @Override
+            public void onMessage(final String s) {
+                latch.countDown();
+            }
+
+            @Override
+            public void onClose(final int i, final String s, final boolean b) {
+            }
+
+            @Override
+            public void onError(final Exception e) {
+                log.error("", e);
+            }
+        };
+        client.connect();
+        while (!client.getReadyState().equals(ReadyState.OPEN)) {
+            log.debug("connecting...");
+        }
         client.send("xiaoyu");
+        latch.await(3, TimeUnit.SECONDS);
     }
-    
 }

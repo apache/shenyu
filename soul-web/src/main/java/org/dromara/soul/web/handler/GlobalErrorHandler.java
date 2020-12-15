@@ -17,11 +17,9 @@
 
 package org.dromara.soul.web.handler;
 
-import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.base.utils.SoulResultWrap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.web.ErrorProperties;
 import org.springframework.boot.autoconfigure.web.ResourceProperties;
 import org.springframework.boot.autoconfigure.web.reactive.error.DefaultErrorWebExceptionHandler;
@@ -34,14 +32,15 @@ import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+import java.util.Map;
+
 /**
  * GlobalErrorHandler.
  *
  * @author xiaoyu(Myth)
  */
+@Slf4j
 public class GlobalErrorHandler extends DefaultErrorWebExceptionHandler {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(GlobalErrorHandler.class);
 
     /**
      * Instantiates a new Global error handler.
@@ -82,7 +81,7 @@ public class GlobalErrorHandler extends DefaultErrorWebExceptionHandler {
 
     private void logError(final ServerRequest request) {
         Throwable ex = getError(request);
-        LOGGER.error(request.exchange().getLogPrefix() + formatError(ex, request));
+        log.error(request.exchange().getLogPrefix() + formatError(ex, request));
     }
 
     private String formatError(final Throwable ex, final ServerRequest request) {

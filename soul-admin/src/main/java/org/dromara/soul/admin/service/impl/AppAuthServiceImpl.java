@@ -67,6 +67,7 @@ import java.util.stream.Collectors;
  * AppAuthServiceImpl.
  *
  * @author xiaoyu(Myth)
+ * @author nuo-promise
  */
 @Service("appAuthService")
 public class AppAuthServiceImpl implements AppAuthService {
@@ -97,37 +98,39 @@ public class AppAuthServiceImpl implements AppAuthService {
                 || CollectionUtils.isEmpty(authApplyDTO.getPathList())) {
             return SoulAdminResult.error(SoulResultMessage.PARAMETER_ERROR);
         }
-        AppAuthDO appAuthDO = new AppAuthDO();
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-        appAuthDO.setId(UUIDUtils.getInstance().generateShortUuid());
-        appAuthDO.setUserId(authApplyDTO.getUserId());
-        appAuthDO.setPhone(authApplyDTO.getPhone());
-        appAuthDO.setExtInfo(authApplyDTO.getExtInfo());
-        appAuthDO.setAppKey(SignUtils.getInstance().generateKey());
-        appAuthDO.setAppSecret(SignUtils.getInstance().generateKey());
-        appAuthDO.setEnabled(true);
-        appAuthDO.setDateUpdated(currentTime);
-        appAuthDO.setDateCreated(currentTime);
+        AppAuthDO appAuthDO = AppAuthDO.builder()
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .userId(authApplyDTO.getUserId())
+                .phone(authApplyDTO.getPhone())
+                .extInfo(authApplyDTO.getExtInfo())
+                .appKey(SignUtils.getInstance().generateKey())
+                .appSecret(SignUtils.getInstance().generateKey())
+                .enabled(true)
+                .dateUpdated(currentTime)
+                .dateCreated(currentTime)
+                .build();
         appAuthMapper.insert(appAuthDO);
-        //保存业务参数
+        // save authParam
         AuthParamDO authParamDO = buildAuthParamDO(appAuthDO.getId(), authApplyDTO.getAppName(), authApplyDTO.getAppParam());
         authParamMapper.save(authParamDO);
-        //保存申请的path
+        // save authPath
         List<AuthPathDO> collect = authApplyDTO.getPathList()
                 .stream()
                 .map(path -> buildAuthPathDO(path, appAuthDO.getId(), authApplyDTO.getAppName()))
                 .collect(Collectors.toList());
         authPathMapper.batchSave(collect);
 
-        AppAuthData data = new AppAuthData();
-        data.setAppKey(appAuthDO.getAppKey());
-        data.setAppSecret(appAuthDO.getAppSecret());
-        data.setEnabled(appAuthDO.getEnabled());
+        AppAuthData data = AppAuthData.builder()
+                .appKey(appAuthDO.getAppKey())
+                .appSecret(appAuthDO.getAppSecret())
+                .enabled(appAuthDO.getEnabled())
+                .build();
 
         data.setParamDataList(Lists.newArrayList(new AuthParamData(authParamDO.getAppName(), authParamDO.getAppParam())));
 
         data.setPathDataList(collect.stream().map(authPathDO ->
-                new AuthPathData(authPathDO.getAppName(), authPathDO.getPath(), authPathDO.getEnabled()))
+                AuthPathData.builder().appName(authPathDO.getAppName()).path(authPathDO.getPath()).enabled(authPathDO.getEnabled()).build())
                 .collect(Collectors.toList()));
 
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.CREATE,
@@ -150,22 +153,20 @@ public class AppAuthServiceImpl implements AppAuthService {
 
         AuthParamDO authParamDO = authParamMapper.findByAuthIdAndAppName(appAuthDO.getId(), authApplyDTO.getAppName());
         if (Objects.isNull(authParamDO)) {
-            //保存业务参数
+            // save authParam
             authParamMapper.save(buildAuthParamDO(appAuthDO.getId(), authApplyDTO.getAppName(), authApplyDTO.getAppParam()));
         }
         List<AuthPathDO> existList = authPathMapper.findByAuthIdAndAppName(appAuthDO.getId(), authApplyDTO.getAppName());
         if (CollectionUtils.isNotEmpty(existList)) {
-            //删除后
             authPathMapper.deleteByAuthIdAndAppName(appAuthDO.getId(), authApplyDTO.getAppName());
         }
-        //新增
         List<AuthPathDO> collect = authApplyDTO.getPathList()
                 .stream()
                 .map(path -> buildAuthPathDO(path, appAuthDO.getId(), authApplyDTO.getAppName()))
                 .collect(Collectors.toList());
         authPathMapper.batchSave(collect);
 
-        //发送响应事件
+        // publish create Event of APP_AUTH
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.CREATE,
                 Collections.singletonList(buildByEntity(appAuthDO))));
 
@@ -249,8 +250,13 @@ public class AppAuthServiceImpl implements AppAuthService {
             eventType = DataEventTypeEnum.UPDATE;
         }
         // publish AppAuthData's event
-        AppAuthData data = new AppAuthData(appAuthDO.getAppKey(), appAuthDO.getAppSecret(),
-                appAuthDO.getEnabled(), null, null);
+        AppAuthData data = AppAuthData.builder()
+                .appKey(appAuthDO.getAppKey())
+                .appSecret(appAuthDO.getAppSecret())
+                .enabled(appAuthDO.getEnabled())
+                .paramDataList(null)
+                .pathDataList(null)
+                .build();
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, eventType, Collections.singletonList(data)));
 
         return appAuthCount;
@@ -260,12 +266,19 @@ public class AppAuthServiceImpl implements AppAuthService {
     public int delete(final List<String> ids) {
         int appAuthCount = 0;
         for (String id : ids) {
+            final AppAuthDO appAuthDO = appAuthMapper.selectById(id);
             appAuthCount += appAuthMapper.delete(id);
             authParamMapper.deleteByAuthId(id);
             authPathMapper.deleteByAuthId(id);
+
             // publish delete event of AppAuthData
-            AppAuthDO appAuthDO = appAuthMapper.selectById(id);
-            AppAuthData data = new AppAuthData(appAuthDO.getAppKey(), appAuthDO.getAppSecret(), appAuthDO.getEnabled(), null, null);
+            AppAuthData data = AppAuthData.builder()
+                    .appKey(appAuthDO.getAppKey())
+                    .appSecret(appAuthDO.getAppSecret())
+                    .enabled(appAuthDO.getEnabled())
+                    .paramDataList(null)
+                    .pathDataList(null)
+                    .build();
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.DELETE, Collections.singletonList(data)));
         }
         return appAuthCount;
@@ -354,34 +367,35 @@ public class AppAuthServiceImpl implements AppAuthService {
 
     private AuthParamDO buildAuthParamDO(final String authId, final String appName, final String appParam) {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-        AuthParamDO authParamDO = new AuthParamDO();
-        authParamDO.setId(UUIDUtils.getInstance().generateShortUuid());
-        authParamDO.setAuthId(authId);
-        authParamDO.setAppName(appName);
-        authParamDO.setAppParam(appParam);
-        authParamDO.setDateUpdated(currentTime);
-        authParamDO.setDateCreated(currentTime);
-        return authParamDO;
+        return AuthParamDO.builder()
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .authId(authId)
+                .appName(appName)
+                .appParam(appParam)
+                .dateUpdated(currentTime)
+                .dateCreated(currentTime)
+                .build();
     }
 
     private AuthPathDO buildAuthPathDO(final String path, final String authId, final String appName) {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-        AuthPathDO authPathDO = new AuthPathDO();
-        authPathDO.setId(UUIDUtils.getInstance().generateShortUuid());
-        authPathDO.setAuthId(authId);
-        authPathDO.setAppName(appName);
-        authPathDO.setPath(path);
-        authPathDO.setEnabled(true);
-        authPathDO.setDateUpdated(currentTime);
-        authPathDO.setDateCreated(currentTime);
-        return authPathDO;
+        return AuthPathDO.builder()
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .authId(authId)
+                .appName(appName)
+                .path(path)
+                .enabled(true)
+                .dateCreated(currentTime)
+                .dateUpdated(currentTime)
+                .build();
     }
 
     private AppAuthData buildByEntity(final AppAuthDO appAuthDO) {
-        AppAuthData data = new AppAuthData();
-        data.setAppKey(appAuthDO.getAppKey());
-        data.setAppSecret(appAuthDO.getAppSecret());
-        data.setEnabled(appAuthDO.getEnabled());
+        AppAuthData data = AppAuthData.builder()
+                .appKey(appAuthDO.getAppKey())
+                .appSecret(appAuthDO.getAppSecret())
+                .enabled(appAuthDO.getEnabled())
+                .build();
         List<AuthParamDO> authParamDOList = authParamMapper.findByAuthId(appAuthDO.getId());
         if (CollectionUtils.isNotEmpty(authParamDOList)) {
             data.setParamDataList(authParamDOList.stream()

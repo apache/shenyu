@@ -25,11 +25,14 @@
         <result column="plugin_id" jdbcType="VARCHAR" property="pluginId"/>
         <result column="field" jdbcType="VARCHAR" property="field"/>
         <result column="label" jdbcType="VARCHAR" property="label"/>
-        <result column="data_type" jdbcType="VARCHAR" property="dataType"/>
+        <result column="data_type" jdbcType="INTEGER" property="dataType"/>
+        <result column="type" jdbcType="INTEGER" property="type"/>
+        <result column="sort" jdbcType="INTEGER" property="sort"/>
+        <result column="ext_obj" jdbcType="VARCHAR" property="extObj"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,plugin_id, field, label, data_type, date_created, date_updated
+        id,plugin_id, field, label, data_type,type,sort, ext_obj,date_created, date_updated
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -49,10 +52,11 @@
     </delete>
 
     <insert id="insert" parameterType="org.dromara.soul.admin.entity.PluginHandleDO">
-    insert into plugin_handle (id, plugin_id, field, label,data_type, date_created, date_updated
+    insert into plugin_handle (id, plugin_id, field, label,data_type,type,sort,ext_obj, date_created, date_updated
       )
     values (#{id,jdbcType=VARCHAR}, #{pluginId,jdbcType=VARCHAR}, #{field,jdbcType=VARCHAR},
-      #{label,jdbcType=VARCHAR},#{dataType,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP}
+      #{label,jdbcType=VARCHAR},#{dataType,jdbcType=INTEGER},#{type,jdbcType=INTEGER}, #{sort,jdbcType=INTEGER},
+      #{extObj,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP}
       )
   </insert>
 
@@ -73,6 +77,15 @@
             </if>
             <if test="dataType != null">
                 data_type,
+            </if>
+            <if test="type != null">
+                type,
+            </if>
+            <if test="sort != null">
+                sort,
+            </if>
+            <if test="extObj != null">
+                ext_obj,
             </if>
             <if test="dateCreated != null">
                 date_created,
@@ -95,7 +108,16 @@
                 #{label,jdbcType=VARCHAR},
             </if>
             <if test="dataType != null">
-                #{dataType,jdbcType=VARCHAR},
+                #{dataType,jdbcType=INTEGER},
+            </if>
+            <if test="type != null">
+                #{type,jdbcType=INTEGER},
+            </if>
+            <if test="sort != null">
+                #{sort,jdbcType=INTEGER},
+            </if>
+            <if test="extObj != null">
+                #{extObj,jdbcType=VARCHAR},
             </if>
             <if test="dateCreated != null">
                 #{dateCreated,jdbcType=TIMESTAMP},
@@ -118,7 +140,16 @@
                 label = #{label,jdbcType=VARCHAR},
             </if>
             <if test="dataType != null">
-               data_type= #{dataType,jdbcType=VARCHAR},
+               data_type= #{dataType,jdbcType=INTEGER},
+            </if>
+            <if test="type != null">
+                type= #{type,jdbcType=INTEGER},
+            </if>
+            <if test="sort != null">
+                sort= #{sort,jdbcType=INTEGER},
+            </if>
+            <if test="extObj != null">
+                ext_obj= #{extObj,jdbcType=VARCHAR},
             </if>
             <if test="dateCreated != null">
                 date_created = #{dateCreated,jdbcType=TIMESTAMP},
@@ -134,7 +165,10 @@
     set plugin_id = #{pluginId,jdbcType=VARCHAR},
       field = #{field,jdbcType=VARCHAR},
       label = #{label,jdbcType=VARCHAR},
-      data_type = #{dataType,jdbcType=VARCHAR},
+      data_type = #{dataType,jdbcType=INTEGER},
+      type = #{type,jdbcType=INTEGER},
+      sort = #{sort,jdbcType=INTEGER},
+      ext_obj = #{extObj,jdbcType=VARCHAR},
       date_created = #{dateCreated,jdbcType=TIMESTAMP},
       date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=VARCHAR}
@@ -151,9 +185,14 @@
         select
         <include refid="Base_Column_List"/>
         from plugin_handle
+        where 1=1
         <if test="pluginId != null">
-            where plugin_id = #{pluginId,jdbcType=VARCHAR}
+            and plugin_id = #{pluginId,jdbcType=VARCHAR}
         </if>
+        <if test="type != null">
+            and type = #{type,jdbcType=INTEGER}
+        </if>
+        order by plugin_id,sort
         <if test="pageParameter != null">
             limit #{pageParameter.offset},#{pageParameter.pageSize}
         </if>

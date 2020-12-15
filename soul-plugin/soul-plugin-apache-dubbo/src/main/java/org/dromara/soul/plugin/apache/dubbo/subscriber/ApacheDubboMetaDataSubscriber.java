@@ -39,10 +39,11 @@ public class ApacheDubboMetaDataSubscriber implements MetaDataSubscriber {
         if (RpcTypeEnum.DUBBO.getName().equals(metaData.getRpcType())) {
             MetaData exist = META_DATA.get(metaData.getPath());
             if (Objects.isNull(META_DATA.get(metaData.getPath())) || Objects.isNull(ApplicationConfigCache.getInstance().get(metaData.getPath()))) {
-                //第一次初始化
+                // The first initialization
                 ApplicationConfigCache.getInstance().initRef(metaData);
             } else {
-                //有更新,只支持serviceName rpcExt parameterTypes methodName四种属性的更新，因为这四种属性会影响dubbo的调用；
+                // There are updates, which only support the update of four properties of serviceName rpcExt parameterTypes methodName,
+                // because these four properties will affect the call of Dubbo;
                 if (!metaData.getServiceName().equals(exist.getServiceName())
                         || !metaData.getRpcExt().equals(exist.getRpcExt())
                         || !metaData.getParameterTypes().equals(exist.getParameterTypes())

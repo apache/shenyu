@@ -26,7 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 
 /**
- * The type Ur i utils.
+ * The type Uri utils.
  *
  * @author xiaoyu(Myth)
  */

@@ -17,11 +17,6 @@
 
 package org.dromara.soul.admin.listener.zookeeper;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -34,13 +29,17 @@ import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * The type Http service discovery.
@@ -54,8 +53,6 @@ import org.springframework.stereotype.Component;
 public class HttpServiceDiscovery implements InitializingBean {
 
     private static final String ROOT = "/soul/register";
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(HttpServiceDiscovery.class);
 
     private ZkClient zkClient;
 
@@ -126,12 +123,11 @@ public class HttpServiceDiscovery implements InitializingBean {
             String[] split = StringUtils.split(parentPath, "/");
             String contextPath = "/" + split[2];
             if (CollectionUtils.isEmpty(currentChilds)) {
-                //表示一个都没了
                 updateSelectorHandler(contextPath, null);
             } else {
                 List<String> uriList = new ArrayList<>();
                 for (String subNode : currentChilds) {
-                    // 读取节点内容
+                    // Read node data
                     String data = zkClient.readData(parentPath + "/" + subNode);
                     uriList.add(data);
                 }
@@ -150,7 +146,7 @@ public class HttpServiceDiscovery implements InitializingBean {
     private void updateServiceList(final List<String> children, final String contextPath) {
         List<String> uriList = new ArrayList<>();
         for (String subNode : children) {
-            // 读取节点内容
+            // Read node data
             String data = zkClient.readData(subNode);
             uriList.add(data);
         }
@@ -171,7 +167,6 @@ public class HttpServiceDiscovery implements InitializingBean {
             }
             selectorMapper.updateSelective(selector);
 
-            //发送更新事件
             // publish change event.
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
                     Collections.singletonList(selectorData)));
@@ -180,11 +175,12 @@ public class HttpServiceDiscovery implements InitializingBean {
 
     private List<DivideUpstream> buildDivideUpstream(final List<String> uriList) {
         return uriList.stream().map(uri -> {
-            DivideUpstream divideUpstream = new DivideUpstream();
-            divideUpstream.setUpstreamHost("localhost");
-            divideUpstream.setProtocol("http://");
-            divideUpstream.setUpstreamUrl(uri);
-            divideUpstream.setWeight(50);
+            DivideUpstream divideUpstream = DivideUpstream.builder()
+                    .upstreamHost("localhost")
+                    .protocol("http://")
+                    .upstreamUrl(uri)
+                    .weight(50)
+                    .build();
             return divideUpstream;
         }).collect(Collectors.toList());
     }

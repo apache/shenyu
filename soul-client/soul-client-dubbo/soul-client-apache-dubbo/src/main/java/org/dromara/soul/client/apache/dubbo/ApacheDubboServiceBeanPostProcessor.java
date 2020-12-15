@@ -17,27 +17,30 @@
 
 package org.dromara.soul.client.apache.dubbo;
 
-import java.io.IOException;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.dubbo.common.Constants;
+import org.apache.dubbo.common.utils.StringUtils;
+import org.apache.dubbo.config.spring.ServiceBean;
+import org.dromara.soul.client.common.utils.OkHttpTools;
+import org.dromara.soul.client.common.utils.RegisterUtils;
+import org.dromara.soul.client.dubbo.common.annotation.SoulDubboClient;
+import org.dromara.soul.client.dubbo.common.config.DubboConfig;
+import org.dromara.soul.client.dubbo.common.dto.MetaDataDTO;
+import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.ReflectionUtils;
+
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.dubbo.common.Constants;
-import org.apache.dubbo.common.utils.StringUtils;
-import org.apache.dubbo.config.spring.ServiceBean;
-import org.dromara.soul.client.common.utils.OkHttpTools;
-import org.dromara.soul.client.dubbo.common.annotation.SoulDubboClient;
-import org.dromara.soul.client.dubbo.common.config.DubboConfig;
-import org.dromara.soul.client.dubbo.common.dto.MetaDataDTO;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * The Apache Dubbo ServiceBean PostProcessor.
@@ -45,7 +48,7 @@ import org.springframework.util.ReflectionUtils;
  * @author xiaoyu
  */
 @Slf4j
-public class ApacheDubboServiceBeanPostProcessor implements BeanPostProcessor {
+public class ApacheDubboServiceBeanPostProcessor implements ApplicationListener<ContextRefreshedEvent> {
 
     private DubboConfig dubboConfig;
 
@@ -65,14 +68,6 @@ public class ApacheDubboServiceBeanPostProcessor implements BeanPostProcessor {
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
     }
 
-    @Override
-    public Object postProcessBeforeInitialization(final Object bean, final String beanName) throws BeansException {
-        if (bean instanceof ServiceBean) {
-            executorService.execute(() -> handler((ServiceBean) bean));
-        }
-        return bean;
-    }
-
     private void handler(final ServiceBean serviceBean) {
         Class<?> clazz = serviceBean.getRef().getClass();
         if (ClassUtils.isCglibProxyClass(clazz)) {
@@ -88,7 +83,7 @@ public class ApacheDubboServiceBeanPostProcessor implements BeanPostProcessor {
         for (Method method : methods) {
             SoulDubboClient soulDubboClient = method.getAnnotation(SoulDubboClient.class);
             if (Objects.nonNull(soulDubboClient)) {
-                post(buildJsonParams(serviceBean, soulDubboClient, method));
+                RegisterUtils.doRegister(buildJsonParams(serviceBean, soulDubboClient, method), url, RpcTypeEnum.DUBBO);
             }
         }
     }
@@ -120,7 +115,7 @@ public class ApacheDubboServiceBeanPostProcessor implements BeanPostProcessor {
                 .rpcType("dubbo")
                 .enabled(soulDubboClient.enabled())
                 .build();
-        return OkHttpTools.getInstance().getGosn().toJson(metaDataDTO);
+        return OkHttpTools.getInstance().getGson().toJson(metaDataDTO);
 
     }
 
@@ -133,20 +128,19 @@ public class ApacheDubboServiceBeanPostProcessor implements BeanPostProcessor {
                 .timeout(Objects.isNull(serviceBean.getTimeout()) ? Constants.DEFAULT_CONNECT_TIMEOUT : serviceBean.getTimeout())
                 .url("")
                 .build();
-        return OkHttpTools.getInstance().getGosn().toJson(build);
+        return OkHttpTools.getInstance().getGson().toJson(build);
 
     }
 
-    private void post(final String json) {
-        try {
-            String result = OkHttpTools.getInstance().post(url, json);
-            if (Objects.equals(result, "success")) {
-                log.info("dubbo client register success :{} ", json);
-            } else {
-                log.error("dubbo client register error :{} ", json);
-            }
-        } catch (IOException e) {
-            log.error("cannot register soul admin param :{}", url + ":" + json);
+    @Override
+    public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
+        if (Objects.nonNull(contextRefreshedEvent.getApplicationContext().getParent())) {
+            return;
+        }
+        // Fix bug(https://github.com/dromara/soul/issues/415), upload dubbo metadata on ContextRefreshedEvent
+        Map<String, ServiceBean> serviceBean = contextRefreshedEvent.getApplicationContext().getBeansOfType(ServiceBean.class);
+        for (Map.Entry<String, ServiceBean> entry : serviceBean.entrySet()) {
+            executorService.execute(() -> handler(entry.getValue()));
         }
     }
 }

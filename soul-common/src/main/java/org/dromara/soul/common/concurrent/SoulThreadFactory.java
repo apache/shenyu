@@ -34,10 +34,13 @@ public final class SoulThreadFactory implements ThreadFactory {
     private final boolean daemon;
 
     private final String namePrefix;
+    
+    private final int priority;
 
-    private SoulThreadFactory(final String namePrefix, final boolean daemon) {
+    private SoulThreadFactory(final String namePrefix, final boolean daemon, final int priority) {
         this.namePrefix = namePrefix;
         this.daemon = daemon;
+        this.priority = priority;
     }
 
     /**
@@ -48,7 +51,19 @@ public final class SoulThreadFactory implements ThreadFactory {
      * @return {@linkplain ThreadFactory}
      */
     public static ThreadFactory create(final String namePrefix, final boolean daemon) {
-        return new SoulThreadFactory(namePrefix, daemon);
+        return create(namePrefix, daemon, Thread.NORM_PRIORITY);
+    }
+    
+    /**
+     * create custom thread factory.
+     *
+     * @param namePrefix prefix
+     * @param daemon     daemon
+     * @param priority     priority
+     * @return {@linkplain ThreadFactory}
+     */
+    public static ThreadFactory create(final String namePrefix, final boolean daemon, final int priority) {
+        return new SoulThreadFactory(namePrefix, daemon, priority);
     }
 
     @Override
@@ -56,9 +71,8 @@ public final class SoulThreadFactory implements ThreadFactory {
         Thread thread = new Thread(THREAD_GROUP, runnable,
                 THREAD_GROUP.getName() + "-" + namePrefix + "-" + THREAD_NUMBER.getAndIncrement());
         thread.setDaemon(daemon);
-        if (thread.getPriority() != Thread.NORM_PRIORITY) {
-            thread.setPriority(Thread.NORM_PRIORITY);
-        }
+        thread.setPriority(priority);
+        
         return thread;
     }
 }

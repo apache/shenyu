@@ -17,12 +17,11 @@
 
 package org.dromara.soul.admin.listener.websocket;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.service.SyncDataService;
 import org.dromara.soul.admin.spring.SpringBeanUtils;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
@@ -41,10 +40,9 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * @author huangxiaofeng
  * @since 2.0.0
  */
+@Slf4j
 @ServerEndpoint("/websocket")
 public class WebsocketCollector {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(WebsocketCollector.class);
 
     private static final Set<Session> SESSION_SET = new CopyOnWriteArraySet<>();
 
@@ -57,7 +55,7 @@ public class WebsocketCollector {
      */
     @OnOpen
     public void onOpen(final Session session) {
-        LOGGER.info("websocket on open successful....");
+        log.info("websocket on open successful....");
         SESSION_SET.add(session);
     }
 
@@ -96,7 +94,7 @@ public class WebsocketCollector {
     public void onError(final Session session, final Throwable error) {
         SESSION_SET.remove(session);
         WebsocketCollector.session = null;
-        LOGGER.error("websocket collection error:", error);
+        log.error("websocket collection error: ", error);
     }
 
     /**
@@ -111,7 +109,7 @@ public class WebsocketCollector {
                 try {
                     session.getBasicRemote().sendText(message);
                 } catch (IOException e) {
-                    LOGGER.error("websocket send result is exception :", e);
+                    log.error("websocket send result is exception: ", e);
                 }
                 return;
             }
@@ -119,7 +117,7 @@ public class WebsocketCollector {
                 try {
                     session.getBasicRemote().sendText(message);
                 } catch (IOException e) {
-                    LOGGER.error("websocket send result is exception :", e);
+                    log.error("websocket send result is exception: ", e);
                 }
             }
         }

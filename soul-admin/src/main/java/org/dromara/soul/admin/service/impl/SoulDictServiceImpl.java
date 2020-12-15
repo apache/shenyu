@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
  * SoulDictServiceImpl.
  *
  * @author dengliming
+ * @author nuo-promise
  */
 @Service("soulDictService")
 public class SoulDictServiceImpl implements SoulDictService {
@@ -62,7 +63,7 @@ public class SoulDictServiceImpl implements SoulDictService {
 
     @Override
     public Integer createOrUpdate(final SoulDictDTO soulDictDTO) {
-        int count = 0;
+        int count;
         SoulDictDO soulDictDO = SoulDictDO.buildSoulDictDO(soulDictDTO);
         if (StringUtils.isEmpty(soulDictDTO.getId())) {
             count = soulDictMapper.insertSelective(soulDictDO);

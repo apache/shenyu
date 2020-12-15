@@ -55,6 +55,11 @@ public interface Constants {
     String DUBBO_RPC_RESULT_EMPTY = "dubbo has not return value!";
 
     /**
+     * The constant DUBBO_TAG_ROUTE.
+     */
+    String DUBBO_TAG_ROUTE = "Dubbo_Tag_Route";
+
+    /**
      * The constant SOFA_RPC_RESULT.
      */
     String SOFA_RPC_RESULT = "sofa_rpc_result";
@@ -78,6 +83,11 @@ public interface Constants {
      * The constant HTTP_TIME_OUT.
      */
     String HTTP_TIME_OUT = "httpTimeOut";
+
+    /**
+     * The constant HTTP_RETRY.
+     */
+    String HTTP_RETRY = "httpRetry";
 
     /**
      * Original response Content-Type attribute name.
@@ -157,22 +167,22 @@ public interface Constants {
     /**
      * The constant SIGN_PARAMS_ERROR.
      */
-    String SIGN_PARAMS_ERROR = "认证参数传入不完整!";
+    String SIGN_PARAMS_ERROR = "sign parameters are incomplete!";
 
     /**
      * The constant SIGN_APP_KEY_IS_NOT_EXIST.
      */
-    String SIGN_APP_KEY_IS_NOT_EXIST = "认证签名APP_KEY,不存在";
+    String SIGN_APP_KEY_IS_NOT_EXIST = "sign appKey does not exist.";
 
     /**
      * The constant SIGN_PATH_NOT_EXIST.
      */
-    String SIGN_PATH_NOT_EXIST = "认证Key未配置路径获取未匹配";
+    String SIGN_PATH_NOT_EXIST = "you have not configured the sign path.";
 
     /**
      * The constant SIGN_VALUE_IS_ERROR.
      */
-    String SIGN_VALUE_IS_ERROR = "签名值错误！";
+    String SIGN_VALUE_IS_ERROR = "signature value is error!";
 
     /**
      * The constant TIMESTAMP.
@@ -281,9 +291,96 @@ public interface Constants {
      */
     int HYSTRIX_THREAD_POOL_QUEUE_SIZE = 12;
 
+
+    /**
+     * ratelimiter timeoutDurationRate.
+     */
+    int TIMEOUT_DURATION_RATE = 5000;
+
+    /**
+     * ratelimiter limitRefreshPeriod.
+     */
+    int LIMIT_REFRESH_PERIOD = 500;
+
+    /**
+     * ratelimiter limitForPeriod.
+     */
+    int LIMIT_FOR_PERIOD = 50;
+
+    /**
+     * circuitBreaker circuitEnable.
+     */
+    int CIRCUIT_ENABLE = 0;
+
+    /**
+     * circuitBreaker timeoutDuration.
+     */
+    long TIMEOUT_DURATION = 30000;
+
+    /**
+     * circuitBreaker slidingWindowSize.
+     */
+    int SLIDING_WINDOW_SIZE = 100;
+
+    /**
+     * circuitBreaker slidingWindowType.
+     */
+    int SLIDING_WINDOW_TYPE = 0;
+
+    /**
+     * circuitBreaker minimumNumberOfCalls.
+     */
+    int MINIMUM_NUMBER_OF_CALLS = 100;
+
+    /**
+     * circuitBreaker waitIntervalFunctionInOpenState.
+     */
+    int WAIT_INTERVAL_FUNCTION_IN_OPEN_STATE = 60000;
+
+    /**
+     * circuitBreaker waitIntervalFunctionInOpenState.
+     */
+    int PERMITTED_NUMBER_OF_CALLS_IN_HALF_OPEN_STATE = 10;
+
+    /**
+     * circuitBreaker failureRateThreshold.
+     */
+    float FAILURE_RATE_THRESHOLD = 50;
+
+    /**
+     * circuitBreaker automaticTransitionFromOpenToHalfOpenEnabled.
+     */
+    boolean AUTOMATIC_TRANSITION_FROM_OPEN_TO_HALF_OPEN_ENABLED = false;
+
+    /**
+     * Enable the flow rule.
+     */
+    int SENTINEL_ENABLE_FLOW_RULE = 1;
+
+    /**
+     * Sentinel qps flow grade.
+     */
+    int SENTINEL_QPS_FLOW_GRADE = 1;
+
+    /**
+     * Sentinel flow reject behavior.
+     */
+    int SENTINEL_FLOW_REJECT = 0;
+
+    /**
+     * Enable the degrade rule.
+     */
+    int SENTINEL_ENABLE_DEGRADE_RULE = 1;
+
+    /**
+     * Sentinel response RT degrade rule.
+     */
+    int SENTINEL_RESPONSE_RULE_GRADE = 0;
+
     /**
      * String q.
      */
-    default void findConstants() { }
+    default void findConstants() {
+    }
 }
 

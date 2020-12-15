@@ -20,10 +20,10 @@ package org.dromara.soul.admin.vo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.dromara.soul.admin.entity.SoulDictDO;
+import org.dromara.soul.common.utils.DateUtils;
 
 import java.io.Serializable;
-import java.time.format.DateTimeFormatter;
-import java.util.Objects;
+import java.util.Optional;
 
 /**
  * this is soul dict view to web front.
@@ -91,14 +91,12 @@ public class SoulDictVO implements Serializable {
      * @return {@linkplain SoulDictVO}
      */
     public static SoulDictVO buildSoulDictVO(final SoulDictDO soulDictDO) {
-        if (Objects.isNull(soulDictDO)) {
-            return null;
-        }
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        return new SoulDictVO(soulDictDO.getId(), soulDictDO.getType(),
-                soulDictDO.getDictCode(), soulDictDO.getDictName(),
-                soulDictDO.getDictValue(), soulDictDO.getDesc(), soulDictDO.getSort(), soulDictDO.getEnabled(),
-                dateTimeFormatter.format(soulDictDO.getDateCreated().toLocalDateTime()),
-                dateTimeFormatter.format(soulDictDO.getDateUpdated().toLocalDateTime()));
+        return Optional.ofNullable(soulDictDO)
+                .map(it -> new SoulDictVO(soulDictDO.getId(), soulDictDO.getType(),
+                        soulDictDO.getDictCode(), soulDictDO.getDictName(),
+                        soulDictDO.getDictValue(), soulDictDO.getDesc(), soulDictDO.getSort(), soulDictDO.getEnabled(),
+                        DateUtils.localDateTimeToString(soulDictDO.getDateCreated().toLocalDateTime()),
+                        DateUtils.localDateTimeToString(soulDictDO.getDateUpdated().toLocalDateTime())))
+                .orElse(null);
     }
 }

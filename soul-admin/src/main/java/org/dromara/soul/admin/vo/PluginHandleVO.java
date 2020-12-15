@@ -17,20 +17,20 @@
 
 package org.dromara.soul.admin.vo;
 
-import java.io.Serializable;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Objects;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.dromara.soul.admin.entity.PluginHandleDO;
+import org.dromara.soul.common.utils.DateUtils;
+
+import java.io.Serializable;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * this is plugin handle view to web front.
  *
- * @author liangziqiang
- * @author dengliming
+ * @author liangziqiang.
+ * @author dengliming.
  */
 @Data
 @AllArgsConstructor
@@ -40,7 +40,6 @@ public class PluginHandleVO implements Serializable {
      * primary key.
      */
     private String id;
-
 
     /**
      * plugin id.
@@ -61,9 +60,26 @@ public class PluginHandleVO implements Serializable {
      * the data type.
      * 1 indicates number
      * 2 indicates string
-     * 3 indicates select box
+     * 3 indicates select box.
      */
-    private String dataType;
+    private Integer dataType;
+
+    /**
+     *  the attribute type.
+     *  1  selector,
+     *  2  rule.
+     */
+    private Integer type;
+
+    /**
+     * the attribute sort.
+     */
+    private Integer sort;
+
+    /**
+     * the attribute extObj.
+     */
+    private String extObj;
 
     /**
      * created time.
@@ -85,13 +101,12 @@ public class PluginHandleVO implements Serializable {
      * @return {@linkplain PluginHandleVO}
      */
     public static PluginHandleVO buildPluginHandleVO(final PluginHandleDO pluginHandleDO, final List<SoulDictVO> dictOptions) {
-        if (Objects.isNull(pluginHandleDO)) {
-            return null;
-        }
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        return new PluginHandleVO(pluginHandleDO.getId(), pluginHandleDO.getPluginId(),
-                pluginHandleDO.getField(), pluginHandleDO.getLabel(),
-                String.valueOf(pluginHandleDO.getDataType()), dateTimeFormatter.format(pluginHandleDO.getDateCreated().toLocalDateTime()),
-                dateTimeFormatter.format(pluginHandleDO.getDateUpdated().toLocalDateTime()), dictOptions);
+        return Optional.ofNullable(pluginHandleDO)
+                .map(it -> new PluginHandleVO(pluginHandleDO.getId(), pluginHandleDO.getPluginId(),
+                        pluginHandleDO.getField(), pluginHandleDO.getLabel(),
+                        pluginHandleDO.getDataType(), pluginHandleDO.getType(), pluginHandleDO.getSort(), pluginHandleDO.getExtObj(),
+                        DateUtils.localDateTimeToString(pluginHandleDO.getDateCreated().toLocalDateTime()),
+                        DateUtils.localDateTimeToString(pluginHandleDO.getDateUpdated().toLocalDateTime()), dictOptions))
+                .orElse(null);
     }
 }
