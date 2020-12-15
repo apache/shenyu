@@ -17,11 +17,6 @@
 
 package org.dromara.soul.plugin.ratelimiter.executor;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.plugin.base.utils.Singleton;
 import org.dromara.soul.plugin.ratelimiter.response.RateLimiterResponse;
@@ -33,6 +28,12 @@ import org.springframework.scripting.support.ResourceScriptSource;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * See https://stripe.com/blog/rate-limiters and
  * https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L11-L34
@@ -43,11 +44,11 @@ import reactor.core.publisher.Mono;
  */
 @Slf4j
 public class RedisRateLimiter {
-    
+
     private RedisScript<List<Long>> script;
-    
+
     private AtomicBoolean initialized = new AtomicBoolean(false);
-    
+
     /**
      * Instantiates a new Redis rate limiter.
      */
@@ -55,7 +56,7 @@ public class RedisRateLimiter {
         this.script = redisScript();
         initialized.compareAndSet(false, true);
     }
-    
+
     /**
      * This uses a basic token bucket algorithm and relies on the fact that Redis scripts
      * execute atomically. No other operations can run between fetching the count and
@@ -88,14 +89,14 @@ public class RedisRateLimiter {
                     log.error("Error determining if user allowed from redis:{}", throwable.getMessage());
                 });
     }
-    
+
     private static List<String> getKeys(final String id) {
         String prefix = "request_rate_limiter.{" + id;
         String tokenKey = prefix + "}.tokens";
         String timestampKey = prefix + "}.timestamp";
         return Arrays.asList(tokenKey, timestampKey);
     }
-    
+
     @SuppressWarnings("unchecked")
     private RedisScript<List<Long>> redisScript() {
         DefaultRedisScript redisScript = new DefaultRedisScript<>();
@@ -103,5 +104,5 @@ public class RedisRateLimiter {
         redisScript.setResultType(List.class);
         return redisScript;
     }
-    
+
 }

@@ -53,7 +53,7 @@ public enum SoulResultEnum {
      * Too many requests soul result enum.
      */
     TOO_MANY_REQUESTS(429, "您已经被限流，请稍后重试!"),
-    
+
     /**
      * Meta data error soul result enum.
      */
