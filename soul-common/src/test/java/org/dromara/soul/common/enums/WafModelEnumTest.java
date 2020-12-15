@@ -25,7 +25,9 @@ import static org.junit.Assert.assertEquals;
  *
  * @author xwzwmt
  */
+
 public final class WafModelEnumTest {
+
     @Test
     public void testGetName() {
         assertEquals("black", WafModelEnum.BLACK.getName());
