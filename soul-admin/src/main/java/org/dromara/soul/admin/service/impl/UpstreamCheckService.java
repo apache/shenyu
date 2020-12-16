@@ -28,8 +28,10 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.dromara.soul.admin.entity.PluginDO;
 import org.dromara.soul.admin.entity.SelectorDO;
 import org.dromara.soul.admin.listener.DataChangedEvent;
+import org.dromara.soul.admin.mapper.PluginMapper;
 import org.dromara.soul.admin.mapper.SelectorMapper;
 import org.dromara.soul.admin.service.SelectorService;
 import org.dromara.soul.common.concurrent.SoulThreadFactory;
@@ -37,6 +39,7 @@ import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
+import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.UpstreamCheckUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,6 +70,8 @@ public class UpstreamCheckService {
 
     private final ApplicationEventPublisher eventPublisher;
 
+    private final PluginMapper pluginMapper;
+
     /**
      * Instantiates a new Upstream check service.
      *
@@ -75,24 +80,30 @@ public class UpstreamCheckService {
      * @param eventPublisher  the event publisher
      */
     @Autowired(required = false)
-    public UpstreamCheckService(final SelectorService selectorService, final SelectorMapper selectorMapper, final ApplicationEventPublisher eventPublisher) {
+    public UpstreamCheckService(final SelectorService selectorService, final SelectorMapper selectorMapper,
+                                final ApplicationEventPublisher eventPublisher, final PluginMapper pluginMapper) {
         this.selectorService = selectorService;
         this.selectorMapper = selectorMapper;
         this.eventPublisher = eventPublisher;
+        this.pluginMapper = pluginMapper;
     }
 
     /**
-     * Sets .
+     * Setup selectors of divide plugin.
      */
     @PostConstruct
     public void setup() {
-        List<SelectorDO> selectorDOList = selectorMapper.findByPluginId("5");
-        for (SelectorDO selectorDO : selectorDOList) {
-            List<DivideUpstream> divideUpstreams = GsonUtils.getInstance().fromList(selectorDO.getHandle(), DivideUpstream.class);
-            if (CollectionUtils.isNotEmpty(divideUpstreams)) {
-                UPSTREAM_MAP.put(selectorDO.getName(), divideUpstreams);
+        PluginDO pluginDO = pluginMapper.selectByName(PluginEnum.DIVIDE.getName());
+        if (pluginDO != null) {
+            List<SelectorDO> selectorDOList = selectorMapper.findByPluginId(pluginDO.getId());
+            for (SelectorDO selectorDO : selectorDOList) {
+                List<DivideUpstream> divideUpstreams = GsonUtils.getInstance().fromList(selectorDO.getHandle(), DivideUpstream.class);
+                if (CollectionUtils.isNotEmpty(divideUpstreams)) {
+                    UPSTREAM_MAP.put(selectorDO.getName(), divideUpstreams);
+                }
             }
         }
+
         if (check) {
             new ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), SoulThreadFactory.create("scheduled-upstream-task", false))
                     .scheduleWithFixedDelay(this::scheduled, 10, scheduledTime, TimeUnit.SECONDS);
