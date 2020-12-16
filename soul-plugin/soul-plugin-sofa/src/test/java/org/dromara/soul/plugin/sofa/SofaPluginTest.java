@@ -21,10 +21,14 @@ import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
+import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
 import org.dromara.soul.plugin.sofa.proxy.SofaProxyService;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -80,4 +84,28 @@ public final class SofaPluginTest {
         SelectorData selectorData = mock(SelectorData.class);
         StepVerifier.create(sofaPlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
     }
+
+    @Test
+    public void testNamed() {
+        final String result = sofaPlugin.named();
+        assertEquals(PluginEnum.SOFA.getName(), result);
+    }
+
+    @Test
+    public void testSkip() {
+        final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
+        SoulContext context = mock(SoulContext.class);
+        when(context.getRpcType()).thenReturn(RpcTypeEnum.SOFA.getName());
+        exchange.getAttributes().put(Constants.CONTEXT, context);
+        exchange.getAttributes().put(Constants.META_DATA, metaData);
+        final Boolean result = sofaPlugin.skip(exchange);
+        assertFalse(result);
+    }
+
+    @Test
+    public void testGetOrder() {
+        final int result = sofaPlugin.getOrder();
+        assertEquals(PluginEnum.SOFA.getCode(), result);
+    }
+
 }
