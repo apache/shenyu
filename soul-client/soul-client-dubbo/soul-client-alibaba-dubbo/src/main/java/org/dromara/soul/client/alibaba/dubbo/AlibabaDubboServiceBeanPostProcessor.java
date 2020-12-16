@@ -59,8 +59,8 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
     public AlibabaDubboServiceBeanPostProcessor(final DubboConfig dubboConfig) {
         String contextPath = dubboConfig.getContextPath();
         String adminUrl = dubboConfig.getAdminUrl();
-        if (contextPath == null || "".equals(contextPath)
-                || adminUrl == null || "".equals(adminUrl)) {
+        if (StringUtils.isEmpty(contextPath)
+                || StringUtils.isEmpty(adminUrl)) {
             throw new RuntimeException("Alibaba dubbo client must config the contextPath, adminUrl");
         }
         this.dubboConfig = dubboConfig;
@@ -90,7 +90,7 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
 
     private String buildJsonParams(final ServiceBean serviceBean, final SoulDubboClient soulDubboClient, final Method method) {
         String appName = dubboConfig.getAppName();
-        if (appName == null || "".equals(appName)) {
+        if (StringUtils.isEmpty(appName)) {
             appName = serviceBean.getApplication().getName();
         }
         String path = dubboConfig.getContextPath() + soulDubboClient.path();
