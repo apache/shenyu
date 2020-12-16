@@ -130,21 +130,6 @@ public interface Constants {
     String APP_KEY = "appKey";
 
     /**
-     * The constant EXT_INFO.
-     */
-    String EXT_INFO = "extInfo";
-
-    /**
-     * The constant PATH_VARIABLE.
-     */
-    String PATH_VARIABLE = "pathVariable";
-
-    /**
-     * The constant HTTP_METHOD.
-     */
-    String HTTP_METHOD = "httpMethod";
-
-    /**
      * The constant RPC_TYPE.
      */
     String RPC_TYPE = "rpcType";
@@ -200,41 +185,6 @@ public interface Constants {
     String REWRITE_URI = "rewrite_uri";
 
     /**
-     * The constant HTTP_ERROR_RESULT.
-     */
-    String HTTP_ERROR_RESULT = "this is bad request or fuse ing please try again later";
-
-    /**
-     * The constant DUBBO_ERROR_RESULT.
-     */
-    String DUBBO_ERROR_RESULT = "dubbo rpc have error or fuse ing please check your param and  try again later";
-
-    /**
-     * The constant SPRING_CLOUD_ERROR_RESULT.
-     */
-    String SPRING_CLOUD_ERROR_RESULT = "spring cloud rpc have error or fuse ing please check your param and  try again later";
-
-    /**
-     * The constant TIMEOUT_RESULT.
-     */
-    String TIMEOUT_RESULT = "this request is time out  Please try again later";
-
-    /**
-     * The constant UPSTREAM_NOT_FIND.
-     */
-    String UPSTREAM_NOT_FIND = "this can not rule upstream please check you configuration!";
-
-    /**
-     * The constant TOO_MANY_REQUESTS.
-     */
-    String TOO_MANY_REQUESTS = "the request is too fast please try again later";
-
-    /**
-     * The constant SIGN_IS_NOT_PASS.
-     */
-    String SIGN_IS_NOT_PASS = "sign is not pass,Please check you sign algorithm!";
-
-    /**
      * The constant LINE_SEPARATOR.
      */
     String LINE_SEPARATOR = System.getProperty("line.separator");
@@ -268,8 +218,6 @@ public interface Constants {
      * The constant COLONS.
      */
     String COLONS = ":";
-
-    String REQUEST_LATENCY = "REQUEST_LATENCY";
 
     /**
      * hystrix thead pool core size.
@@ -376,11 +324,5 @@ public interface Constants {
      * Sentinel response RT degrade rule.
      */
     int SENTINEL_RESPONSE_RULE_GRADE = 0;
-
-    /**
-     * String q.
-     */
-    default void findConstants() {
-    }
 }
 
