@@ -164,8 +164,8 @@ public class MockJmxServer implements Closeable {
         if (serverPort == 0) {
             serverPort = registryPort;
         }
-        String serverHost = "localhost";
-        String registryHost = "";
+        final String serverHost = "127.0.0.1";
+        final String registryHost = "127.0.0.1";
         if (serviceUrl == null) {
             serviceUrl = "service:jmx:rmi://" + serverHost + ":" + serverPort + "/jndi/rmi://" + registryHost + ":" + registryPort + "/jmxrmi";
         }
