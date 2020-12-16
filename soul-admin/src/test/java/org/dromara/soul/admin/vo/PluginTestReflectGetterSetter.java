@@ -17,17 +17,17 @@
 
 package org.dromara.soul.admin.vo;
 
-import org.dromara.soul.admin.vo.base.BaseVOTest;
+import org.dromara.soul.admin.vo.base.ReflectGetterSetterBaseTest;
 
 /**
- * Test case for DashboardUserVO.
+ * Test case for PluginVO.
  *
  * @author midnight2104
  */
-public class DashboardUserVOTest extends BaseVOTest<DashboardUserVO> {
+public class PluginTestReflectGetterSetter extends ReflectGetterSetterBaseTest<PluginVO> {
 
     @Override
-    protected DashboardUserVO getTargetClass() {
-        return new DashboardUserVO();
+    protected PluginVO getTargetClass() {
+        return new PluginVO();
     }
 }

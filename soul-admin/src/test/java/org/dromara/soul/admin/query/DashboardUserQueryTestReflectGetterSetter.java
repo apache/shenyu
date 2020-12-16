@@ -15,19 +15,19 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.vo;
+package org.dromara.soul.admin.query;
 
-import org.dromara.soul.admin.vo.base.BaseVOTest;
+import org.dromara.soul.admin.vo.base.ReflectGetterSetterBaseTest;
 
 /**
- * Test case for RuleVO.
+ * Test case for DashboardUserQuery.
  *
- * @author midnight2104
+ * @author wuudongdong
  */
-public class RuleVOTest extends BaseVOTest<RuleVO> {
+public final class DashboardUserQueryTestReflectGetterSetter extends ReflectGetterSetterBaseTest<DashboardUserQuery> {
 
     @Override
-    protected RuleVO getTargetClass() {
-        return new RuleVO();
+    protected DashboardUserQuery getTargetClass() {
+        return new DashboardUserQuery();
     }
 }

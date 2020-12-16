@@ -33,14 +33,14 @@ import java.lang.reflect.Method;
  */
 @SpringBootTest
 @RunWith(MockitoJUnitRunner.class)
-public abstract class BaseVOTest<T> {
+public abstract class ReflectGetterSetterBaseTest<T> {
 
     protected abstract T getTargetClass();
 
     /**
      * invoke getter and setter method by reflect.
      *
-     * @throw Exception maybe throw reflect Exception.
+     * @throws Exception maybe throw reflect Exception.
      */
     private void invokeGetAndSet() throws Exception {
         T targetClass = getTargetClass();
