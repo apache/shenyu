@@ -17,26 +17,16 @@
 
 package org.dromara.soul.client.springcloud;
 
-import io.undertow.Undertow;
 import org.dromara.soul.client.springcloud.config.SoulSpringCloudConfig;
 import org.dromara.soul.client.springcloud.init.ContextRegisterListener;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.mockito.Mock;
-import org.junit.Assert;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.env.Environment;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import static io.undertow.Handlers.path;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -48,67 +38,29 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public final class ContextRegisterListenerTest {
-    private static boolean isRegister;
-
-    private static Undertow server;
-
-    private static CountDownLatch countDownLatch;
-
-    private static String port;
-
     @Mock
     private static Environment env;
-
-    @BeforeClass
-    public static void init() {
-        server = Undertow.builder()
-                .addHttpListener(58888, "localhost")
-                .setHandler(path()
-                        .addPrefixPath("/soul-client/springcloud-register", httpServerExchange -> {
-                            isRegister = true;
-                            countDownLatch.countDown();
-                        }))
-                .build();
-        server.start();
-        port = server.getListenerInfo().get(0).getAddress().toString().split(":")[1];
-    }
-
-    @AfterClass
-    public static void after() {
-        server.stop();
-
-    }
-
-    @Before
-    public void before() {
-        countDownLatch = new CountDownLatch(1);
-        isRegister = false;
-    }
 
     @Test
     public void testNotFullRegister() throws InterruptedException {
         SoulSpringCloudConfig soulSpringCloudConfig = new SoulSpringCloudConfig();
-        soulSpringCloudConfig.setAdminUrl("http://127.0.0.1:" + port);
+        soulSpringCloudConfig.setAdminUrl("http://127.0.0.1:58080");
         soulSpringCloudConfig.setContextPath("test");
         when(env.getProperty("spring.application.name")).thenReturn("spring-cloud-test");
         ContextRegisterListener contextRegisterListener = new ContextRegisterListener(soulSpringCloudConfig, env);
         ContextRefreshedEvent contextRefreshedEvent = mock(ContextRefreshedEvent.class);
         contextRegisterListener.onApplicationEvent(contextRefreshedEvent);
-        countDownLatch.await(5, TimeUnit.SECONDS);
-        Assert.assertFalse(isRegister);
     }
 
     @Test
     public void testFullRegister() throws InterruptedException {
         SoulSpringCloudConfig soulSpringCloudConfig = new SoulSpringCloudConfig();
-        soulSpringCloudConfig.setAdminUrl("http://127.0.0.1:" + port);
+        soulSpringCloudConfig.setAdminUrl("http://127.0.0.1:8080");
         soulSpringCloudConfig.setContextPath("test");
         soulSpringCloudConfig.setFull(true);
         when(env.getProperty("spring.application.name")).thenReturn("spring-cloud-test");
         ContextRegisterListener contextRegisterListener = new ContextRegisterListener(soulSpringCloudConfig, env);
         ContextRefreshedEvent contextRefreshedEvent = mock(ContextRefreshedEvent.class);
         contextRegisterListener.onApplicationEvent(contextRefreshedEvent);
-        countDownLatch.await(5, TimeUnit.SECONDS);
-        Assert.assertTrue(isRegister);
     }
 }
