@@ -41,10 +41,6 @@ public class AppAuthQuery implements Serializable {
 
     private String phone;
 
-    private Integer currentPage;
-
-    private Integer pageSize;
-
     /**
      * page parameter.
      */
