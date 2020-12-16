@@ -60,53 +60,6 @@ public class JmxCollector extends Collector implements Collector.Describable {
         config = loadConfig(GsonUtils.getInstance().toObjectMap(json));
     }
     
-    private static String toSnakeAndLowerCase(final String attrName) {
-        if (attrName == null || attrName.isEmpty()) {
-            return attrName;
-        }
-        char firstChar = attrName.subSequence(0, 1).charAt(0);
-        boolean prevCharIsUpperCaseOrUnderscore = Character.isUpperCase(firstChar) || firstChar == '_';
-        StringBuilder resultBuilder = new StringBuilder(attrName.length()).append(Character.toLowerCase(firstChar));
-        for (char attrChar : attrName.substring(1).toCharArray()) {
-            boolean charIsUpperCase = Character.isUpperCase(attrChar);
-            if (!prevCharIsUpperCaseOrUnderscore && charIsUpperCase) {
-                resultBuilder.append("_");
-            }
-            resultBuilder.append(Character.toLowerCase(attrChar));
-            prevCharIsUpperCaseOrUnderscore = charIsUpperCase || attrChar == '_';
-        }
-        return resultBuilder.toString();
-    }
-    
-    private static String safeName(final String name) {
-        if (name == null) {
-            return null;
-        }
-        boolean prevCharIsUnderscore = false;
-        StringBuilder safeNameBuilder = new StringBuilder(name.length());
-        if (!name.isEmpty() && Character.isDigit(name.charAt(0))) {
-            // prevent a numeric prefix.
-            safeNameBuilder.append("_");
-        }
-        for (char nameChar : name.toCharArray()) {
-            boolean isUnsafeChar = !JmxCollector.isLegalCharacter(nameChar);
-            if (isUnsafeChar || nameChar == '_') {
-                if (!prevCharIsUnderscore) {
-                    safeNameBuilder.append("_");
-                    prevCharIsUnderscore = true;
-                }
-            } else {
-                safeNameBuilder.append(nameChar);
-                prevCharIsUnderscore = false;
-            }
-        }
-        return safeNameBuilder.toString();
-    }
-    
-    private static boolean isLegalCharacter(final char input) {
-        return (input == ':') || (input == '_') || (input >= 'a' && input <= 'z') || (input >= 'A' && input <= 'Z') || (input >= '0' && input <= '9');
-    }
-    
     private JmxConfig loadConfig(final Map<String, Object> paramMap) throws MalformedObjectNameException {
         JmxConfig cfg = new JmxConfig();
         if (paramMap == null || paramMap.size() == 0) {
@@ -213,6 +166,53 @@ public class JmxCollector extends Collector implements Collector.Describable {
             cfg.getRules().add(new JmxConfig.Rule());
         }
         return cfg;
+    }
+    
+    private static String toSnakeAndLowerCase(final String attrName) {
+        if (attrName == null || attrName.isEmpty()) {
+            return attrName;
+        }
+        char firstChar = attrName.subSequence(0, 1).charAt(0);
+        boolean prevCharIsUpperCaseOrUnderscore = Character.isUpperCase(firstChar) || firstChar == '_';
+        StringBuilder resultBuilder = new StringBuilder(attrName.length()).append(Character.toLowerCase(firstChar));
+        for (char attrChar : attrName.substring(1).toCharArray()) {
+            boolean charIsUpperCase = Character.isUpperCase(attrChar);
+            if (!prevCharIsUpperCaseOrUnderscore && charIsUpperCase) {
+                resultBuilder.append("_");
+            }
+            resultBuilder.append(Character.toLowerCase(attrChar));
+            prevCharIsUpperCaseOrUnderscore = charIsUpperCase || attrChar == '_';
+        }
+        return resultBuilder.toString();
+    }
+    
+    private static String safeName(final String name) {
+        if (name == null) {
+            return null;
+        }
+        boolean prevCharIsUnderscore = false;
+        StringBuilder safeNameBuilder = new StringBuilder(name.length());
+        if (!name.isEmpty() && Character.isDigit(name.charAt(0))) {
+            // prevent a numeric prefix.
+            safeNameBuilder.append("_");
+        }
+        for (char nameChar : name.toCharArray()) {
+            boolean isUnsafeChar = !JmxCollector.isLegalCharacter(nameChar);
+            if (isUnsafeChar || nameChar == '_') {
+                if (!prevCharIsUnderscore) {
+                    safeNameBuilder.append("_");
+                    prevCharIsUnderscore = true;
+                }
+            } else {
+                safeNameBuilder.append(nameChar);
+                prevCharIsUnderscore = false;
+            }
+        }
+        return safeNameBuilder.toString();
+    }
+    
+    private static boolean isLegalCharacter(final char input) {
+        return (input == ':') || (input == '_') || (input >= 'a' && input <= 'z') || (input >= 'A' && input <= 'Z') || (input >= '0' && input <= '9');
     }
     
     @Override
