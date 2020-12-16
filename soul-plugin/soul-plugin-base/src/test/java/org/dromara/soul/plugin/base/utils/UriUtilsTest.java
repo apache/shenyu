@@ -30,7 +30,7 @@ import java.net.URI;
  * @author zhanglei
  */
 @RunWith(MockitoJUnitRunner.class)
-public class UriUtilsTest {
+public final class UriUtilsTest {
 
     @Test
     public void createUriTest() {

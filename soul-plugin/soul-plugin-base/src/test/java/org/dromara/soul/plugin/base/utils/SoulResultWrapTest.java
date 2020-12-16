@@ -36,7 +36,7 @@ import static org.mockito.Mockito.when;
  * @author zhanglei
  */
 @RunWith(MockitoJUnitRunner.class)
-public class SoulResultWrapTest {
+public final class SoulResultWrapTest {
 
     @Before
     public void setUp() {

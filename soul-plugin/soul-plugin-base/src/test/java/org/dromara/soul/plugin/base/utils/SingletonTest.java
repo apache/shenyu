@@ -31,7 +31,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author zhanglei
  */
 @RunWith(MockitoJUnitRunner.class)
-public class SingletonTest {
+public final class SingletonTest {
 
     private SingletonTest singletonTest;
 

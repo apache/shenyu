@@ -43,7 +43,7 @@ import static org.mockito.Mockito.when;
  * @author zhanglei
  */
 @RunWith(MockitoJUnitRunner.class)
-public class CheckUtilsTest {
+public final class CheckUtilsTest {
 
     private ServerWebExchange exchange;
 
