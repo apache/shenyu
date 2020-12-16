@@ -200,10 +200,23 @@ public final class JmxCollectorTest {
     @Test
     public void testInitJmxConfigWithPartialPropsThenCompareJmxConfigRuleWhetherAcquireDefaultValues() throws MalformedObjectNameException, NoSuchFieldException,
             IllegalAccessException {
-        // not give rule value factor, default should acquire
-        final String cfgJsonScene1 = "{\"startDelaySeconds\":0,\"jmxUrl\":\"service:jmx:rmi:///jndi/rmi://127.0.0.1:9876/jmxrmi\",\"username\":\"username\",\"password\":\"password\","
-                + "\"ssl\":false,\"lowercaseOutputName\":true,\"lowercaseOutputLabelNames\":true,\"whitelistObjectNames\":[\"JmxTest:name=wlo\"],"
-                + "\"blacklistObjectNames\":[\"JmxTest:name=blo\"],\"rules\":[{\"name\": \"name\", \"pattern\":\"arp\", \"labels\":{\"labelName\":\"labelValue\"}}]}";
+        final JmxCollectorConfigObject configObject = new JmxCollectorConfigObject();
+        configObject.setStartDelaySeconds(0);
+        configObject.setJmxUrl("service:jmx:rmi:///jndi/rmi://127.0.0.1:9876/jmxrmi");
+        configObject.setUsername("username");
+        configObject.setPassword("password");
+        configObject.setSsl(false);
+        configObject.setLowercaseOutputName(true);
+        configObject.setLowercaseOutputLabelNames(true);
+        configObject.setWhitelistObjectNames(Collections.singletonList("JmxTest:name=wlo"));
+        configObject.setBlacklistObjectNames(Collections.singletonList("JmxTest:name=blo"));
+        JmxCollectorConfigObject.Rule configObjectRule = new JmxCollectorConfigObject.Rule();
+        configObjectRule.setPattern("arp");
+        configObjectRule.setName("name");
+        configObjectRule.setLabels(Collections.singletonMap("labelName", "labelValue"));
+        configObject.setRules(Collections.singletonList(configObjectRule));
+        
+        final String cfgJsonScene1 = configObject.toConfigJson();
         final JmxConfig jmxConfigScene1 = this.dissectJmxConfigFromJmxCollector(new JmxCollector(cfgJsonScene1));
         Assert.assertEquals(1, jmxConfigScene1.getRules().size());
         Assert.assertEquals(1.0D, jmxConfigScene1.getRules().iterator().next().getValueFactor(), 0.0);
@@ -224,22 +237,41 @@ public final class JmxCollectorTest {
     @Test
     public void testInitJmxConfigWithPartialPropsThenRuleValidationFailed() {
         // giving non value JmxConfig rule, rule validation should be failed
-        final String cfgJsonScene3 = "{\"startDelaySeconds\":0,\"jmxUrl\":\"service:jmx:rmi:///jndi/rmi://127.0.0.1:9876/jmxrmi\",\"username\":\"username\","
-                + "\"password\":\"password\",\"ssl\":false,\"lowercaseOutputName\":true,\"lowercaseOutputLabelNames\":true,\"whitelistObjectNames\":[\"JmxTest:name=wlo\"],"
-                + "\"blacklistObjectNames\":[\"JmxTest:name=blo\"],\"rules\":[{}]}";
+        final JmxCollectorConfigObject configObjectWithEmptyRules = new JmxCollectorConfigObject();
+        configObjectWithEmptyRules.setStartDelaySeconds(0);
+        configObjectWithEmptyRules.setJmxUrl("service:jmx:rmi:///jndi/rmi://127.0.0.1:9876/jmxrmi");
+        configObjectWithEmptyRules.setUsername("username");
+        configObjectWithEmptyRules.setPassword("password");
+        configObjectWithEmptyRules.setSsl(false);
+        configObjectWithEmptyRules.setLowercaseOutputName(true);
+        configObjectWithEmptyRules.setLowercaseOutputLabelNames(true);
+        configObjectWithEmptyRules.setWhitelistObjectNames(Collections.singletonList("JmxTest:name=wlo"));
+        configObjectWithEmptyRules.setBlacklistObjectNames(Collections.singletonList("JmxTest:name=blo"));
+        configObjectWithEmptyRules.setRules(Collections.emptyList());
+        
         try {
-            new JmxCollector(cfgJsonScene3);
+            new JmxCollector(configObjectWithEmptyRules.toConfigJson());
         } catch (Exception e) {
             Assert.assertTrue(e instanceof IllegalArgumentException);
             Assert.assertEquals("Must provide name, if help or labels are given: {}", e.getMessage());
         }
         
         // giving non correct rule name and pattern, rule name and pattern validation should be failed
-        final String cfgJsonScene4 = "{\"startDelaySeconds\":0,\"jmxUrl\":\"service:jmx:rmi:///jndi/rmi://127.0.0.1:9876/jmxrmi\",\"username\":\"username\","
-                + "\"password\":\"password\",\"ssl\":false,\"lowercaseOutputName\":true,\"lowercaseOutputLabelNames\":true,\"whitelistObjectNames\":[\"JmxTest:name=wlo\"],"
-                + "\"blacklistObjectNames\":[\"JmxTest:name=blo\"],\"rules\":[{\"name\": \"name\"}]}";
+        final JmxCollectorConfigObject configObjectToTestPatternValidationFailed = new JmxCollectorConfigObject();
+        configObjectToTestPatternValidationFailed.setStartDelaySeconds(0);
+        configObjectToTestPatternValidationFailed.setJmxUrl("service:jmx:rmi:///jndi/rmi://127.0.0.1:9876/jmxrmi");
+        configObjectToTestPatternValidationFailed.setUsername("username");
+        configObjectToTestPatternValidationFailed.setPassword("password");
+        configObjectToTestPatternValidationFailed.setSsl(false);
+        configObjectToTestPatternValidationFailed.setLowercaseOutputName(true);
+        configObjectToTestPatternValidationFailed.setLowercaseOutputLabelNames(true);
+        configObjectToTestPatternValidationFailed.setWhitelistObjectNames(Collections.singletonList("JmxTest:name=wlo"));
+        configObjectToTestPatternValidationFailed.setBlacklistObjectNames(Collections.singletonList("JmxTest:name=blo"));
+        JmxCollectorConfigObject.Rule configObjectRule = new JmxCollectorConfigObject.Rule();
+        configObjectRule.setName("name");
+        configObjectToTestPatternValidationFailed.setRules(Collections.singletonList(configObjectRule));
         try {
-            new JmxCollector(cfgJsonScene4);
+            new JmxCollector(configObjectToTestPatternValidationFailed.toConfigJson());
         } catch (Exception e) {
             Assert.assertTrue(e instanceof IllegalArgumentException);
             Assert.assertTrue(e.getMessage().contains("Must provide pattern, if name is given:"));

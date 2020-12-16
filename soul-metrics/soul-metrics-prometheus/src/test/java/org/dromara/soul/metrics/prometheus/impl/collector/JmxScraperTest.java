@@ -18,20 +18,28 @@
 package org.dromara.soul.metrics.prometheus.impl.collector;
 
 import org.dromara.soul.metrics.config.JmxConfig;
-import org.dromara.soul.metrics.prometheus.impl.collector.support.JmxTestServer;
-import org.dromara.soul.metrics.prometheus.impl.collector.support.MockDynamicMBean;
+import org.dromara.soul.metrics.prometheus.impl.collector.support.JmxCollectorConfigObject;
+import org.dromara.soul.metrics.prometheus.impl.collector.support.MockJmxServer;
+import org.dromara.soul.metrics.prometheus.impl.collector.support.MockMetrics;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import javax.management.JMException;
-import javax.management.MalformedObjectNameException;
+import javax.management.MBeanException;
 import javax.management.ObjectName;
+import javax.management.openmbean.CompositeData;
+import javax.management.openmbean.CompositeDataSupport;
+import javax.management.openmbean.CompositeType;
+import javax.management.openmbean.OpenType;
+import javax.management.openmbean.SimpleType;
+import javax.management.openmbean.TabularData;
+import javax.management.openmbean.TabularDataSupport;
+import javax.management.openmbean.TabularType;
+import java.lang.management.ManagementFactory;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -41,21 +49,48 @@ import java.util.Map;
  */
 public final class JmxScraperTest {
     
-    private static JmxTestServer jmxTestServer;
+    private static final int MOCK_JMX_SERVER_REGISTRY_PORT = 9876;
+    
+    private static MockJmxServer mockJmxServer;
     
     @BeforeClass
-    public static void setup() throws JMException {
-        jmxTestServer = new JmxTestServer(9876);
-        jmxTestServer.start();
-        jmxTestServer.register(new MockDynamicMBean("white list object", true), new ObjectName("JmxTest", "wk1", "wlo"));
-        jmxTestServer.register(new MockDynamicMBean("black list object", true), new ObjectName("JmxTest", "name", "blo"));
-        jmxTestServer.register(new MockDynamicMBean("white list object not readable", false), new ObjectName("JmxTest", "wk2", "wlo"));
-        jmxTestServer.register(new MockDynamicMBean(null, true), new ObjectName("JmxTest", "wk3", "wlo"));
+    public static void setup() throws Exception {
+        mockJmxServer = new MockJmxServer(MOCK_JMX_SERVER_REGISTRY_PORT);
+        mockJmxServer.start();
+        mockJmxServer.register(new MockMetrics(11, "foo", new Date(), buildMockCompositeData(), buildMockTabularData(), new int[0], new String[0]),
+                new ObjectName("JmxTest:name=mock1"));
     }
     
     @AfterClass
     public static void tearDown() {
-        jmxTestServer.stop();
+        mockJmxServer.stop();
+    }
+    
+    private static CompositeData buildMockCompositeData() throws Exception {
+        ObjectName name = new ObjectName("com.sun.management:type=HotSpotDiagnostic");
+        String operationName = "getVMOption";
+        Object[] params = new Object[]{"SurvivorRatio"};
+        String[] signature = new String[]{String.class.getName()};
+        Object result = ManagementFactory.getPlatformMBeanServer().invoke(name, operationName, params, signature);
+        return (CompositeDataSupport) result;
+    }
+    
+    private static TabularData buildMockTabularData() throws MBeanException {
+        try {
+            CompositeType jobType = new CompositeType("Job", "Scheduler job",
+                    new String[]{"Job", "Schedule"},
+                    new String[]{"Job Name", "Job Scheduling"},
+                    new OpenType[]{SimpleType.STRING, SimpleType.STRING});
+            TabularType tableType = new TabularType("Jobs", "Tables of all jobs", jobType, new String[]{"Job"});
+            TabularData table = new TabularDataSupport(tableType);
+            CompositeData data = new CompositeDataSupport(jobType,
+                    new String[]{"Job", "Schedule"},
+                    new Object[]{"JobName", "Job Schedule"});
+            table.put(data);
+            return table;
+        } catch (Exception e) {
+            throw new MBeanException(null, e.toString());
+        }
     }
     
     /**
@@ -71,31 +106,62 @@ public final class JmxScraperTest {
     
     @Test
     public void testJmxScraperWithNonEmptyJmxUrl() throws Exception {
-        // jmx config json
-        String cfgJson = "{\"startDelaySeconds\":0,\"jmxUrl\":\"service:jmx:rmi:///jndi/rmi://127.0.0.1:9876/jmxrmi\",\"username\":\"username\",\"password\":\"password\","
-                + "\"ssl\":false,\"lowercaseOutputName\":true,\"lowercaseOutputLabelNames\":true,\"whitelistObjectNames\":[\"JmxTest:name=wlo\"],"
-                + "\"blacklistObjectNames\":[\"JmxTest:name=blo\"],\"rules\":[{\"pattern\":\"o\",\"name\":\"name\",\"value\":\"1\",\"valueFactor\":0.2,\"help\":\"help\","
-                + "\"attrNameSnakeCase\":true,\"type\":\"UNTYPED\", \"labels\": {\"labelName\":\"labelValue\"}}]}";
-        
         final String mockJmxUrl = "service:jmx:rmi:///jndi/rmi://127.0.0.1:9876/jmxrmi";
-        final List<ObjectName> whiteListObjects = Arrays.asList(new ObjectName("JmxTest", "wk1", "wlo"), new ObjectName("JmxTest", "wk2", "wlo"), new ObjectName("JmxTest", "wk3", "wlo"));
-        final List<ObjectName> blackListObjects = Collections.singletonList(new ObjectName("JmxTest", "name", "blo"));
-        new JmxScraper(mockJmxUrl, "username", "password", false, whiteListObjects, blackListObjects, this.buildJmxCollectorReceiver(cfgJson), new JmxMBeanPropertyCache()).doScrape();
+        final List<ObjectName> whiteListObjects = Collections.singletonList(new ObjectName("JmxTest:name=mock*"));
+        final List<ObjectName> blackListObjects = Collections.singletonList(new ObjectName("JmxTest:name=b*"));
+        // prepare jmx config
+        JmxCollectorConfigObject configObject = new JmxCollectorConfigObject();
+        configObject.setStartDelaySeconds(0);
+        configObject.setJmxUrl(mockJmxUrl);
+        configObject.setUsername("username");
+        configObject.setPassword("password");
+        configObject.setSsl(false);
+        configObject.setLowercaseOutputName(true);
+        configObject.setLowercaseOutputLabelNames(true);
+        configObject.setWhitelistObjectNames(Collections.singletonList("JmxTest:name=mock*"));
+        configObject.setBlacklistObjectNames(Collections.singletonList("JmxTest:name=blo"));
+        JmxCollectorConfigObject.Rule configRule = new JmxCollectorConfigObject.Rule();
+        configRule.setName("name");
+        configRule.setPattern("o");
+        configRule.setValue("1");
+        configRule.setValueFactor(0.2);
+        configRule.setHelp("help");
+        configRule.setAttrNameSnakeCase(true);
+        configRule.setType("UNTYPED");
+        configRule.setLabels(Collections.singletonMap("labelName", "labelValue"));
+        configObject.setRules(Collections.singletonList(configRule));
+        
+        JmxCollector.Receiver receiver = this.reflectBuildJmxCollectorReceiver(new JmxCollector(configObject.toConfigJson()));
+        new JmxScraper(mockJmxUrl, "username", "password", false, whiteListObjects, blackListObjects, receiver, new JmxMBeanPropertyCache()).doScrape();
     }
     
     @Test
     public void testJmxScraperWithNonEmptyJmxUrlThenReceivedByReceiverDefaultExport() throws Exception {
-        // jmx config json
-        String cfgJson = "{\"startDelaySeconds\":0,\"jmxUrl\":\"service:jmx:rmi:///jndi/rmi://127.0.0.1:9876/jmxrmi\",\"username\":\"username\",\"password\":\"password\","
-                + "\"ssl\":false,\"lowercaseOutputName\":true,\"lowercaseOutputLabelNames\":true,\"whitelistObjectNames\":[\"JmxTest:name=wlo\"],"
-                + "\"blacklistObjectNames\":[\"JmxTest:name=blo\"],\"rules\":[{\"pattern\":\"o\",\"name\":\"name\",\"value\":\"1\",\"valueFactor\":0.2,"
-                + "\"attrNameSnakeCase\":true,\"type\":\"UNTYPED\"}]}";
-        
         final String mockJmxUrl = "service:jmx:rmi:///jndi/rmi://127.0.0.1:9876/jmxrmi";
-        final List<ObjectName> whiteListObjects = Arrays.asList(new ObjectName("JmxTest", "wk1", "wlo"), new ObjectName("JmxTest", "wk2", "wlo"), new ObjectName("JmxTest", "wk3", "wlo"));
-        final List<ObjectName> blackListObjects = Collections.singletonList(new ObjectName("JmxTest", "name", "blo"));
+        final List<ObjectName> whiteListObjects = Collections.singletonList(new ObjectName("JmxTest:name=mock*"));
+        final List<ObjectName> blackListObjects = Collections.singletonList(new ObjectName("JmxTest:name=blo"));
         
-        JmxCollector jmxCollector = new JmxCollector(cfgJson);
+        // prepare jmx config
+        JmxCollectorConfigObject configObject = new JmxCollectorConfigObject();
+        configObject.setStartDelaySeconds(0);
+        configObject.setJmxUrl(mockJmxUrl);
+        configObject.setUsername("username");
+        configObject.setPassword("password");
+        configObject.setSsl(false);
+        configObject.setLowercaseOutputName(true);
+        configObject.setLowercaseOutputLabelNames(true);
+        configObject.setWhitelistObjectNames(Collections.singletonList("JmxTest:name=mock*"));
+        configObject.setBlacklistObjectNames(Collections.singletonList("JmxTest:name=blo"));
+        JmxCollectorConfigObject.Rule configRule = new JmxCollectorConfigObject.Rule();
+        configRule.setPattern("o");
+        configRule.setName("name");
+        configRule.setValue("1");
+        configRule.setValueFactor(0.2);
+        configRule.setAttrNameSnakeCase(true);
+        configRule.setType("UNTYPED");
+        configObject.setRules(Collections.singletonList(configRule));
+        
+        JmxCollector jmxCollector = new JmxCollector(configObject.toConfigJson());
         Class<JmxCollector.Receiver> receiverClass = JmxCollector.Receiver.class;
         Constructor<?>[] constructors = receiverClass.getDeclaredConstructors();
         constructors[0].setAccessible(true);
@@ -107,15 +173,12 @@ public final class JmxScraperTest {
         rule.setName(null);
         rule.setLabelValues(null);
         
-        JmxCollector.Receiver receiver = (JmxCollector.Receiver) constructors[0].newInstance(jmxCollector);
+        JmxCollector.Receiver receiver = this.reflectBuildJmxCollectorReceiver(jmxCollector);
         new JmxScraper(mockJmxUrl, "username", "password", false, whiteListObjects, blackListObjects, receiver, new JmxMBeanPropertyCache()).doScrape();
     }
     
-    private JmxCollector.Receiver buildJmxCollectorReceiver(final String jmxCfgJson) throws MalformedObjectNameException, IllegalAccessException, InvocationTargetException,
-            InstantiationException {
-        JmxCollector jmxCollector = new JmxCollector(jmxCfgJson);
-        Class<JmxCollector.Receiver> receiverClass = JmxCollector.Receiver.class;
-        Constructor<?>[] constructors = receiverClass.getDeclaredConstructors();
+    private JmxCollector.Receiver reflectBuildJmxCollectorReceiver(final JmxCollector jmxCollector) throws Exception {
+        Constructor<?>[] constructors = JmxCollector.Receiver.class.getDeclaredConstructors();
         constructors[0].setAccessible(true);
         return (JmxCollector.Receiver) constructors[0].newInstance(jmxCollector);
     }
