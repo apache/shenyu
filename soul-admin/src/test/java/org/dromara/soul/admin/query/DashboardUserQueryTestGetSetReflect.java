@@ -15,19 +15,19 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.vo;
+package org.dromara.soul.admin.query;
 
-import org.dromara.soul.admin.vo.base.BaseVOTest;
+import org.dromara.soul.admin.vo.base.GetSetReflectBaseTest;
 
 /**
- * Test case for MetaDataVO.
+ * Test case for DashboardUserQuery.
  *
- * @author midnight2104
+ * @author wuudongdong
  */
-public class MetaDataVOTest extends BaseVOTest<MetaDataVO> {
+public final class DashboardUserQueryTestGetSetReflect extends GetSetReflectBaseTest<DashboardUserQuery> {
 
     @Override
-    protected MetaDataVO getTargetClass() {
-        return new MetaDataVO();
+    protected DashboardUserQuery getTargetClass() {
+        return new DashboardUserQuery();
     }
 }

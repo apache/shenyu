@@ -15,19 +15,19 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.vo;
+package org.dromara.soul.admin.query;
 
-import org.dromara.soul.admin.vo.base.BaseVOTest;
+import org.dromara.soul.admin.vo.base.GetSetReflectBaseTest;
 
 /**
- * Test case for EnumVO.
+ * Test case for PluginQuery.
  *
- * @author midnight2104
+ * @author wuudongdong
  */
-public class EnumVOTest extends BaseVOTest<EnumVO> {
+public final class PluginQueryTestGetSetReflect extends GetSetReflectBaseTest<PluginQuery> {
 
     @Override
-    protected EnumVO getTargetClass() {
-        return new EnumVO();
+    protected PluginQuery getTargetClass() {
+        return new PluginQuery();
     }
 }

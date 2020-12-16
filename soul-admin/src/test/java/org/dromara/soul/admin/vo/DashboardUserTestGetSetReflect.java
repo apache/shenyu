@@ -15,19 +15,19 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.query;
+package org.dromara.soul.admin.vo;
 
-import org.dromara.soul.admin.vo.base.BaseVOTest;
+import org.dromara.soul.admin.vo.base.GetSetReflectBaseTest;
 
 /**
- * Test case for SelectorConditionQuery.
+ * Test case for DashboardUserVO.
  *
- * @author wuudongdong
+ * @author midnight2104
  */
-public final class SelectorConditionQueryTest extends BaseVOTest<SelectorConditionQuery> {
+public class DashboardUserTestGetSetReflect extends GetSetReflectBaseTest<DashboardUserVO> {
 
     @Override
-    protected SelectorConditionQuery getTargetClass() {
-        return new SelectorConditionQuery();
+    protected DashboardUserVO getTargetClass() {
+        return new DashboardUserVO();
     }
 }

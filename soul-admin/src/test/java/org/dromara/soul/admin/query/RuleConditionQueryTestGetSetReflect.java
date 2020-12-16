@@ -17,17 +17,17 @@
 
 package org.dromara.soul.admin.query;
 
-import org.dromara.soul.admin.vo.base.BaseVOTest;
+import org.dromara.soul.admin.vo.base.GetSetReflectBaseTest;
 
 /**
- * Test case for SoulDictQuery.
+ * Test case for RuleConditionQuery.
  *
  * @author wuudongdong
  */
-public final class SoulDictQueryTest extends BaseVOTest<SoulDictQuery> {
+public final class RuleConditionQueryTestGetSetReflect extends GetSetReflectBaseTest<RuleConditionQuery> {
 
     @Override
-    protected SoulDictQuery getTargetClass() {
-        return new SoulDictQuery();
+    protected RuleConditionQuery getTargetClass() {
+        return new RuleConditionQuery();
     }
 }

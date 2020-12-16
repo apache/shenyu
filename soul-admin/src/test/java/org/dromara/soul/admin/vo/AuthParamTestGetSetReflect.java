@@ -15,19 +15,19 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.query;
+package org.dromara.soul.admin.vo;
 
-import org.dromara.soul.admin.vo.base.BaseVOTest;
+import org.dromara.soul.admin.vo.base.GetSetReflectBaseTest;
 
 /**
- * Test case for SelectorQuery.
+ * Test case for AuthParamVO.
  *
- * @author wuudongdong
+ * @author midnight2104
  */
-public final class SelectorQueryTest extends BaseVOTest<SelectorQuery> {
+public class AuthParamTestGetSetReflect extends GetSetReflectBaseTest<AuthParamVO> {
 
     @Override
-    protected SelectorQuery getTargetClass() {
-        return new SelectorQuery();
+    protected AuthParamVO getTargetClass() {
+        return new AuthParamVO();
     }
 }

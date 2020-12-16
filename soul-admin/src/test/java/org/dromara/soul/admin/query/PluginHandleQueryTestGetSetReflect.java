@@ -17,14 +17,14 @@
 
 package org.dromara.soul.admin.query;
 
-import org.dromara.soul.admin.vo.base.BaseVOTest;
+import org.dromara.soul.admin.vo.base.GetSetReflectBaseTest;
 
 /**
  * Test case for PluginHandleQuery.
  *
  * @author wuudongdong
  */
-public final class PluginHandleQueryTest extends BaseVOTest<PluginHandleQuery> {
+public final class PluginHandleQueryTestGetSetReflect extends GetSetReflectBaseTest<PluginHandleQuery> {
 
     @Override
     protected PluginHandleQuery getTargetClass() {

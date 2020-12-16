@@ -17,17 +17,17 @@
 
 package org.dromara.soul.admin.query;
 
-import org.dromara.soul.admin.vo.base.BaseVOTest;
+import org.dromara.soul.admin.vo.base.GetSetReflectBaseTest;
 
 /**
- * Test case for DashboardUserQuery.
+ * Test case for MetaDataQuery.
  *
  * @author wuudongdong
  */
-public final class DashboardUserQueryTest extends BaseVOTest<DashboardUserQuery> {
+public final class MetaDataQueryTestGetSetReflect extends GetSetReflectBaseTest<MetaDataQuery> {
 
     @Override
-    protected DashboardUserQuery getTargetClass() {
-        return new DashboardUserQuery();
+    protected MetaDataQuery getTargetClass() {
+        return new MetaDataQuery();
     }
 }

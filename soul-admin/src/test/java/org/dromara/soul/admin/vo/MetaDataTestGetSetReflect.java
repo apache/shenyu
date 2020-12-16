@@ -17,17 +17,17 @@
 
 package org.dromara.soul.admin.vo;
 
-import org.dromara.soul.admin.vo.base.BaseVOTest;
+import org.dromara.soul.admin.vo.base.GetSetReflectBaseTest;
 
 /**
- * Test case for SelectorConditionVO.
+ * Test case for MetaDataVO.
  *
  * @author midnight2104
  */
-public class SelectorConditionVOTest extends BaseVOTest<SelectorConditionVO> {
+public class MetaDataTestGetSetReflect extends GetSetReflectBaseTest<MetaDataVO> {
 
     @Override
-    protected SelectorConditionVO getTargetClass() {
-        return new SelectorConditionVO();
+    protected MetaDataVO getTargetClass() {
+        return new MetaDataVO();
     }
 }

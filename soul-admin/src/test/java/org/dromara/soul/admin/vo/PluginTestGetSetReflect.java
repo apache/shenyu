@@ -15,19 +15,19 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.query;
+package org.dromara.soul.admin.vo;
 
-import org.dromara.soul.admin.vo.base.BaseVOTest;
+import org.dromara.soul.admin.vo.base.GetSetReflectBaseTest;
 
 /**
- * Test case for AppAuthQuery.
+ * Test case for PluginVO.
  *
- * @author wuudongdong
+ * @author midnight2104
  */
-public final class AppAuthQueryTest extends BaseVOTest<AppAuthQuery> {
+public class PluginTestGetSetReflect extends GetSetReflectBaseTest<PluginVO> {
 
     @Override
-    protected AppAuthQuery getTargetClass() {
-        return new AppAuthQuery();
+    protected PluginVO getTargetClass() {
+        return new PluginVO();
     }
 }

@@ -17,17 +17,17 @@
 
 package org.dromara.soul.admin.query;
 
-import org.dromara.soul.admin.vo.base.BaseVOTest;
+import org.dromara.soul.admin.vo.base.GetSetReflectBaseTest;
 
 /**
- * Test case for PluginQuery.
+ * Test case for RuleQuery.
  *
  * @author wuudongdong
  */
-public final class PluginQueryTest extends BaseVOTest<PluginQuery> {
+public final class RuleQueryTestGetSetReflect extends GetSetReflectBaseTest<RuleQuery> {
 
     @Override
-    protected PluginQuery getTargetClass() {
-        return new PluginQuery();
+    protected RuleQuery getTargetClass() {
+        return new RuleQuery();
     }
 }
