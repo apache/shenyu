@@ -25,7 +25,7 @@ import org.junit.Test;
  *
  * @author tyjwan
  */
-public class LoadBalanceEnumTest {
+public final class LoadBalanceEnumTest {
 
     @Test
     public void testHashLoadBalance() {
