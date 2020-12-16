@@ -30,6 +30,7 @@ import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.AppAuthQuery;
 import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.utils.SoulResultMessage;
+import org.dromara.soul.admin.vo.AuthPathVO;
 import org.dromara.soul.common.utils.DateUtils;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.exception.CommonErrorCode;
@@ -92,12 +93,22 @@ public final class AppAuthControllerTest {
         authApplyDTO.setAppParam("{\"type\": \"test\"}");
         authApplyDTO.setExtInfo("{\"extInfo\": \"test\"}");
         authApplyDTO.setPathList(pathList);
-        given(this.appAuthService.applyCreate(authApplyDTO)).willReturn(SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS));
+        given(this.appAuthService.applyCreate(authApplyDTO)).willReturn(
+                SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS));
         this.mockMvc.perform(MockMvcRequestBuilders.post("/appAuth/apply")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(authApplyDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(SoulResultMessage.CREATE_SUCCESS)))
+                .andReturn();
+    }
+
+    @Test
+    public void testUpdateSk() throws Exception {
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/appAuth/updateSk")
+                .param("appKey", "testAppKey")
+                .param("appSecret", "updateAppSecret"))
+                .andExpect(status().isOk())
                 .andReturn();
     }
 
@@ -134,12 +145,28 @@ public final class AppAuthControllerTest {
         AppAuthDTO appAuthDTO = new AppAuthDTO();
         appAuthDTO.setId("0001");
         appAuthDTO.setPhone("18600000001");
-        given(this.appAuthService.updateDetail(appAuthDTO)).willReturn(SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS));
+        given(this.appAuthService.updateDetail(appAuthDTO)).willReturn(
+                SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS));
         this.mockMvc.perform(MockMvcRequestBuilders.post("/appAuth/updateDetail")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(appAuthDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(SoulResultMessage.UPDATE_SUCCESS)))
+                .andReturn();
+    }
+
+    @Test
+    public void testDetailPath() throws Exception {
+        final AuthPathVO authPathVO = new AuthPathVO();
+        authPathVO.setId("0001");
+        authPathVO.setAppName("testApp");
+        authPathVO.setPath("/test");
+        given(this.appAuthService.detailPath("0001")).willReturn(Collections.singletonList(authPathVO));
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/appAuth/detailPath")
+                .param("id", "0001"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(SoulResultMessage.DETAIL_SUCCESS)))
+                .andExpect(jsonPath("$.data[0].path", is(authPathVO.getPath())))
                 .andReturn();
     }
 
@@ -185,7 +212,8 @@ public final class AppAuthControllerTest {
         final BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
         batchCommonDTO.setIds(Arrays.asList("0001", "0002"));
         batchCommonDTO.setEnabled(true);
-        given(this.appAuthService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled())).willReturn(StringUtils.EMPTY);
+        given(this.appAuthService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled()))
+                .willReturn(StringUtils.EMPTY);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/appAuth/batchEnabled")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
@@ -194,4 +222,10 @@ public final class AppAuthControllerTest {
                 .andReturn();
     }
 
+    @Test
+    public void testSyncData() throws Exception {
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/appAuth/syncData"))
+                .andExpect(status().isOk())
+                .andReturn();
+    }
 }
