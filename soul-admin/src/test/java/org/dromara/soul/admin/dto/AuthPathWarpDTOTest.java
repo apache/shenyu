@@ -30,6 +30,7 @@ import java.util.List;
  * @author Jiang Jining
  */
 public final class AuthPathWarpDTOTest {
+    
     private AuthPathWarpDTO authPathWarpDTO;
     
     @Before

@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Assertions;
 public final class SelectorDTOTest {
     
     private SelectorDTO selectorDTOBuilder;
+    
     private SelectorDTO selectorDTOConstructor;
     
     @Before

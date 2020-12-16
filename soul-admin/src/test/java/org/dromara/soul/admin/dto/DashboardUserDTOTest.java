@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Assertions;
 public final class DashboardUserDTOTest {
     
     private DashboardUserDTO dashboardUserDTO;
+   
     private DashboardUserDTO dashboardUserDTOConstructor;
     
     @Before
@@ -52,5 +53,4 @@ public final class DashboardUserDTOTest {
         dashboardUserDTO.setId("1335612349480407040");
         Assertions.assertEquals(dashboardUserDTO.getId(), "1335612349480407040");
     }
-    
 }

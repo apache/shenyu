@@ -30,6 +30,7 @@ import java.util.List;
  * @author Jiang Jining
  */
 public final class AppAuthDTOTest {
+    
     private AppAuthDTO appAuthDTO;
     
     @Before

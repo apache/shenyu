@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Assertions;
  * @author Jiang Jining
  */
 public final class AuthPathDTOTest {
+    
     private AuthPathDTO authPathDTO;
     
     @Before

@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Assertions;
  * @author Jiang Jining
  */
 public final class PluginDTOTest {
+    
     private PluginDTO pluginDTO;
     
     @Before
@@ -50,5 +51,4 @@ public final class PluginDTOTest {
         pluginDTO.setEnabled(true);
         Assertions.assertTrue(pluginDTO.getEnabled());
     }
-    
 }
