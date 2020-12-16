@@ -121,7 +121,7 @@ public final class ApplicationConfigCache {
      */
     public ConsumerConfig<GenericService> initRef(final MetaData metaData) {
         try {
-            ConsumerConfig<GenericService> referenceConfig = cache.get(metaData.getServiceName());
+            ConsumerConfig<GenericService> referenceConfig = cache.get(metaData.getPath());
             if (StringUtils.isNoneBlank(referenceConfig.getInterfaceId())) {
                 return referenceConfig;
             }
@@ -159,7 +159,7 @@ public final class ApplicationConfigCache {
         Object obj = reference.refer();
         if (obj != null) {
             log.info("init sofa reference success there meteData is :{}", metaData.toString());
-            cache.put(metaData.getServiceName(), reference);
+            cache.put(metaData.getPath(), reference);
         }
         return reference;
     }
@@ -178,12 +178,12 @@ public final class ApplicationConfigCache {
      * Get reference config.
      *
      * @param <T>         the type parameter
-     * @param serviceName the service name
+     * @param path        path
      * @return the reference config
      */
-    public <T> ConsumerConfig<T> get(final String serviceName) {
+    public <T> ConsumerConfig<T> get(final String path) {
         try {
-            return (ConsumerConfig<T>) cache.get(serviceName);
+            return (ConsumerConfig<T>) cache.get(path);
         } catch (ExecutionException e) {
             throw new SoulException(e.getCause());
         }

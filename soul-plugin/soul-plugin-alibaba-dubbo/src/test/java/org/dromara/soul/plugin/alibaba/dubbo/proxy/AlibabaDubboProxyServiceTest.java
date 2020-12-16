@@ -15,39 +15,36 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.sofa.proxy;
+package org.dromara.soul.plugin.alibaba.dubbo.proxy;
 
-import com.alipay.sofa.rpc.api.GenericService;
-import com.alipay.sofa.rpc.config.ConsumerConfig;
-import com.alipay.sofa.rpc.context.RpcInvokeContext;
+import com.alibaba.dubbo.config.ReferenceConfig;
+import com.alibaba.dubbo.rpc.service.GenericService;
 import com.google.common.cache.LoadingCache;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.enums.RpcTypeEnum;
-import org.dromara.soul.plugin.api.sofa.SofaParamResolveService;
-import org.dromara.soul.plugin.sofa.cache.ApplicationConfigCache;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import org.dromara.soul.plugin.alibaba.dubbo.cache.ApplicationConfigCache;
+import org.dromara.soul.plugin.api.dubbo.DubboParamResolveService;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
-import org.springframework.mock.web.server.MockServerWebExchange;
-import org.springframework.web.server.ServerWebExchange;
 
 import java.lang.reflect.Field;
 
 /**
- * SofaProxyServiceTest.
+ * AlibabaDubboProxyServiceTest.
  *
  * @author tydhot
  */
 @RunWith(MockitoJUnitRunner.class)
-public final class SofaProxyServiceTest {
+public final class AlibabaDubboProxyServiceTest {
     private static final String PATH = "/sofa/findAll";
 
     private static final String METHOD_NAME = "findAll";
@@ -58,11 +55,8 @@ public final class SofaProxyServiceTest {
 
     private MetaData metaData;
 
-    private ServerWebExchange exchange;
-
     @Before
     public void setup() {
-        exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
         metaData = new MetaData();
         metaData.setId("1332017966661636096");
         metaData.setAppName("sofa");
@@ -79,26 +73,24 @@ public final class SofaProxyServiceTest {
 
     @Test
     public void test() throws NoSuchFieldException, IllegalAccessException {
-        ConsumerConfig consumerConfig = mock(ConsumerConfig.class);
+        ReferenceConfig referenceConfig = mock(ReferenceConfig.class);
         GenericService genericService = mock(GenericService.class);
-        when(consumerConfig.refer()).thenReturn(genericService);
-        when(consumerConfig.getInterfaceId()).thenReturn(PATH);
+        when(referenceConfig.get()).thenReturn(genericService);
+        when(referenceConfig.getInterface()).thenReturn(PATH);
         when(genericService.$invoke(METHOD_NAME, LEFT, RIGHT)).thenReturn(null);
         ApplicationConfigCache applicationConfigCache = ApplicationConfigCache.getInstance();
         Field field = ApplicationConfigCache.class.getDeclaredField("cache");
         field.setAccessible(true);
-        ((LoadingCache) field.get(applicationConfigCache)).put(PATH, consumerConfig);
-        SofaProxyService sofaProxyService = new SofaProxyService(new SofaParamResolveServiceImpl());
-        sofaProxyService.genericInvoker("", metaData, exchange);
-        RpcInvokeContext.getContext().getResponseCallback().onAppResponse("success", null, null);
+        ((LoadingCache) field.get(applicationConfigCache)).put(PATH, referenceConfig);
+        AlibabaDubboProxyService alibabaDubboProxyService = new AlibabaDubboProxyService(new DubboParamResolveServiceImpl());
+        Assert.assertNull(alibabaDubboProxyService.genericInvoker("", metaData));
     }
 
-    class SofaParamResolveServiceImpl implements SofaParamResolveService {
+    class DubboParamResolveServiceImpl implements DubboParamResolveService {
 
         @Override
         public Pair<String[], Object[]> buildParameter(final String body, final String parameterTypes) {
             return new ImmutablePair<>(LEFT, RIGHT);
         }
     }
-
 }
