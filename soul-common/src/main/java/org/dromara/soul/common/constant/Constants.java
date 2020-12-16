@@ -324,5 +324,16 @@ public interface Constants {
      * Sentinel response RT degrade rule.
      */
     int SENTINEL_RESPONSE_RULE_GRADE = 0;
+
+    /**
+     * Burst capacity in rate limiter.
+     */
+    int BURST_CAPACITY = 100;
+
+    /**
+     * Replenish rate in rate limiter.
+     */
+    int REPLENISH_RATE = 1;
+
 }
 
