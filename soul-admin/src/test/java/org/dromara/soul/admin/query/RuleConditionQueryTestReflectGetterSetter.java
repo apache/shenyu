@@ -17,17 +17,17 @@
 
 package org.dromara.soul.admin.query;
 
-import org.dromara.soul.admin.vo.base.GetSetReflectBaseTest;
+import org.dromara.soul.admin.vo.base.ReflectGetterSetterBaseTest;
 
 /**
- * Test case for PluginHandleQuery.
+ * Test case for RuleConditionQuery.
  *
  * @author wuudongdong
  */
-public final class PluginHandleQueryTestGetSetReflect extends GetSetReflectBaseTest<PluginHandleQuery> {
+public final class RuleConditionQueryTestReflectGetterSetter extends ReflectGetterSetterBaseTest<RuleConditionQuery> {
 
     @Override
-    protected PluginHandleQuery getTargetClass() {
-        return new PluginHandleQuery();
+    protected RuleConditionQuery getTargetClass() {
+        return new RuleConditionQuery();
     }
 }

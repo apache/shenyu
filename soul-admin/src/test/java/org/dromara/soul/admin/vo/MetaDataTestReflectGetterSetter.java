@@ -17,17 +17,17 @@
 
 package org.dromara.soul.admin.vo;
 
-import org.dromara.soul.admin.vo.base.GetSetReflectBaseTest;
+import org.dromara.soul.admin.vo.base.ReflectGetterSetterBaseTest;
 
 /**
- * Test case for DashboardUserVO.
+ * Test case for MetaDataVO.
  *
  * @author midnight2104
  */
-public class DashboardUserTestGetSetReflect extends GetSetReflectBaseTest<DashboardUserVO> {
+public class MetaDataTestReflectGetterSetter extends ReflectGetterSetterBaseTest<MetaDataVO> {
 
     @Override
-    protected DashboardUserVO getTargetClass() {
-        return new DashboardUserVO();
+    protected MetaDataVO getTargetClass() {
+        return new MetaDataVO();
     }
 }

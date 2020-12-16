@@ -33,7 +33,7 @@ import java.lang.reflect.Method;
  */
 @SpringBootTest
 @RunWith(MockitoJUnitRunner.class)
-public abstract class GetSetReflectBaseTest<T> {
+public abstract class ReflectGetterSetterBaseTest<T> {
 
     protected abstract T getTargetClass();
 

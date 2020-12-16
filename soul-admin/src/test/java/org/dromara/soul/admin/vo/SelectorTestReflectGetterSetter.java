@@ -15,19 +15,19 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.query;
+package org.dromara.soul.admin.vo;
 
-import org.dromara.soul.admin.vo.base.GetSetReflectBaseTest;
+import org.dromara.soul.admin.vo.base.ReflectGetterSetterBaseTest;
 
 /**
- * Test case for MetaDataQuery.
+ * Test case for SelectorVO.
  *
- * @author wuudongdong
+ * @author midnight2104
  */
-public final class MetaDataQueryTestGetSetReflect extends GetSetReflectBaseTest<MetaDataQuery> {
+public class SelectorTestReflectGetterSetter extends ReflectGetterSetterBaseTest<SelectorVO> {
 
     @Override
-    protected MetaDataQuery getTargetClass() {
-        return new MetaDataQuery();
+    protected SelectorVO getTargetClass() {
+        return new SelectorVO();
     }
 }

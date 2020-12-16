@@ -17,17 +17,17 @@
 
 package org.dromara.soul.admin.vo;
 
-import org.dromara.soul.admin.vo.base.GetSetReflectBaseTest;
+import org.dromara.soul.admin.vo.base.ReflectGetterSetterBaseTest;
 
 /**
- * Test case for RuleVO.
+ * Test case for EnumVO.
  *
  * @author midnight2104
  */
-public class RuleTestGetSetReflect extends GetSetReflectBaseTest<RuleVO> {
+public class EnumTestReflectGetterSetter extends ReflectGetterSetterBaseTest<EnumVO> {
 
     @Override
-    protected RuleVO getTargetClass() {
-        return new RuleVO();
+    protected EnumVO getTargetClass() {
+        return new EnumVO();
     }
 }

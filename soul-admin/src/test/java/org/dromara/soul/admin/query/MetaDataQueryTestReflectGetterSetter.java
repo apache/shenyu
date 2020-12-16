@@ -17,17 +17,17 @@
 
 package org.dromara.soul.admin.query;
 
-import org.dromara.soul.admin.vo.base.GetSetReflectBaseTest;
+import org.dromara.soul.admin.vo.base.ReflectGetterSetterBaseTest;
 
 /**
- * Test case for SelectorQuery.
+ * Test case for MetaDataQuery.
  *
  * @author wuudongdong
  */
-public final class SelectorQueryTestGetSetReflect extends GetSetReflectBaseTest<SelectorQuery> {
+public final class MetaDataQueryTestReflectGetterSetter extends ReflectGetterSetterBaseTest<MetaDataQuery> {
 
     @Override
-    protected SelectorQuery getTargetClass() {
-        return new SelectorQuery();
+    protected MetaDataQuery getTargetClass() {
+        return new MetaDataQuery();
     }
 }

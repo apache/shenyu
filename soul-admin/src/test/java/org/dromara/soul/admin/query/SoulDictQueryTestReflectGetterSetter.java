@@ -15,19 +15,19 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.vo;
+package org.dromara.soul.admin.query;
 
-import org.dromara.soul.admin.vo.base.GetSetReflectBaseTest;
+import org.dromara.soul.admin.vo.base.ReflectGetterSetterBaseTest;
 
 /**
- * Test case for SelectorVO.
+ * Test case for SoulDictQuery.
  *
- * @author midnight2104
+ * @author wuudongdong
  */
-public class SelectorTestGetSetReflect extends GetSetReflectBaseTest<SelectorVO> {
+public final class SoulDictQueryTestReflectGetterSetter extends ReflectGetterSetterBaseTest<SoulDictQuery> {
 
     @Override
-    protected SelectorVO getTargetClass() {
-        return new SelectorVO();
+    protected SoulDictQuery getTargetClass() {
+        return new SoulDictQuery();
     }
 }

@@ -17,17 +17,17 @@
 
 package org.dromara.soul.admin.query;
 
-import org.dromara.soul.admin.vo.base.GetSetReflectBaseTest;
+import org.dromara.soul.admin.vo.base.ReflectGetterSetterBaseTest;
 
 /**
- * Test case for RuleConditionQuery.
+ * Test case for DashboardUserQuery.
  *
  * @author wuudongdong
  */
-public final class RuleConditionQueryTestGetSetReflect extends GetSetReflectBaseTest<RuleConditionQuery> {
+public final class DashboardUserQueryTestReflectGetterSetter extends ReflectGetterSetterBaseTest<DashboardUserQuery> {
 
     @Override
-    protected RuleConditionQuery getTargetClass() {
-        return new RuleConditionQuery();
+    protected DashboardUserQuery getTargetClass() {
+        return new DashboardUserQuery();
     }
 }

@@ -17,17 +17,17 @@
 
 package org.dromara.soul.admin.vo;
 
-import org.dromara.soul.admin.vo.base.GetSetReflectBaseTest;
+import org.dromara.soul.admin.vo.base.ReflectGetterSetterBaseTest;
 
 /**
- * Test case for AuthParamVO.
+ * Test case for RuleConditionVO.
  *
  * @author midnight2104
  */
-public class AuthParamTestGetSetReflect extends GetSetReflectBaseTest<AuthParamVO> {
+public class RuleConditionTestReflectGetterSetter extends ReflectGetterSetterBaseTest<RuleConditionVO> {
 
     @Override
-    protected AuthParamVO getTargetClass() {
-        return new AuthParamVO();
+    protected RuleConditionVO getTargetClass() {
+        return new RuleConditionVO();
     }
 }
