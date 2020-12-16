@@ -96,7 +96,7 @@ public final class JmxScraperTest {
     /**
      * case: Giving empty jmxUrl, then invoke {@link JmxScraper#doScrape()}.
      *
-     * @throws Exception the exception
+     * @throws Exception the Exception
      */
     @Test
     public void testJmxScraperWithEmptyJmxUrl() throws Exception {
@@ -104,6 +104,11 @@ public final class JmxScraperTest {
         new JmxScraper("", "", "", false, objectNames, new LinkedList<>(), new StdoutWriter(), new JmxMBeanPropertyCache()).doScrape();
     }
     
+    /**
+     * case: Giving non empty jmxUrl, then invoke {@link JmxScraper#doScrape()}.
+     *
+     * @throws Exception the Exception
+     */
     @Test
     public void testJmxScraperWithNonEmptyJmxUrl() throws Exception {
         final String mockJmxUrl = "service:jmx:rmi:///jndi/rmi://127.0.0.1:9876/jmxrmi";
@@ -135,6 +140,11 @@ public final class JmxScraperTest {
         new JmxScraper(mockJmxUrl, "username", "password", false, whiteListObjects, blackListObjects, receiver, new JmxMBeanPropertyCache()).doScrape();
     }
     
+    /**
+     * case: Giving non empty jmxUrl, and reflect to set rule to null then invoke {@link JmxScraper#doScrape()}.
+     *
+     * @throws Exception the Exception
+     */
     @Test
     public void testJmxScraperWithNonEmptyJmxUrlThenReceivedByReceiverDefaultExport() throws Exception {
         final String mockJmxUrl = "service:jmx:rmi:///jndi/rmi://127.0.0.1:9876/jmxrmi";
