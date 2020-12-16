@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.web.forwarde;
+package org.dromara.soul.web.forward;
 
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.plugin.api.RemoteAddressResolver;
