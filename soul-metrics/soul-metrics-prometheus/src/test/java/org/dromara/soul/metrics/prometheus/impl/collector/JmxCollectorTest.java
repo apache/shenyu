@@ -25,7 +25,6 @@ import org.junit.Test;
 import javax.management.MalformedObjectNameException;
 import java.lang.reflect.Field;
 import java.util.Collections;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 /**
@@ -73,16 +72,13 @@ public final class JmxCollectorTest {
      * case: Test init JmxConfig with startDelaySeconds, invoke collect method after startDelaySeconds.
      *
      * @throws MalformedObjectNameException MalformedObjectNameException
-     * @throws InterruptedException         InterruptedException
      */
     @Test
-    public void testInitJmxConfigWithStartWithDelaySecondsThenInvokeCollectMethodAfterStartDelaySeconds() throws MalformedObjectNameException, InterruptedException {
-        final int startDelaySeconds = 1;
+    public void testInitJmxConfigWithStartWithDelaySecondsThenInvokeCollectMethodAfterStartDelaySeconds() throws MalformedObjectNameException {
+        final int startDelaySeconds = 0;
         JmxCollectorConfigObject configObject = new JmxCollectorConfigObject();
         configObject.setStartDelaySeconds(startDelaySeconds);
         final JmxCollector jmxCollector = new JmxCollector(configObject.toConfigJson());
-        TimeUnit.SECONDS.sleep(startDelaySeconds);
-        // after startDelaySeconds, it should return
         Assert.assertNotNull(jmxCollector.collect());
     }
     
