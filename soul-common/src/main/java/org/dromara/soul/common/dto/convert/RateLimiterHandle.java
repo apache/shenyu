@@ -31,12 +31,12 @@ public class RateLimiterHandle {
     /**
      * replenish rate.
      */
-    private double replenishRate = Constants.REPLENISH_RATE;
+    private double replenishRate;
 
     /**
      * burst capacity.
      */
-    private double burstCapacity = Constants.BURST_CAPACITY;
+    private double burstCapacity;
 
     /**
      * loged.
