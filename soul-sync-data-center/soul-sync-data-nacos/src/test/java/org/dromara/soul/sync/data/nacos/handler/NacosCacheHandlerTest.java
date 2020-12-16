@@ -48,7 +48,6 @@ import java.util.Map;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -129,7 +128,6 @@ public final class NacosCacheHandlerTest {
             }
         }, Collections.emptyList(), Collections.emptyList());
         nacosCacheHandlerService.updatePluginMap(pluginData);
-        latch.await(500, TimeUnit.MILLISECONDS);
         Assert.assertEquals(2, onSubscribeList.size());
         Assert.assertEquals(2, unsubscribeList.size());
         Assert.assertEquals(
@@ -231,7 +229,6 @@ public final class NacosCacheHandlerTest {
             }
         }, Collections.emptyList(), Collections.emptyList());
         nacosCacheHandlerService.updateRuleMap(ruleDataParam);
-        latch.await(10, TimeUnit.SECONDS);
         Assert.assertEquals(2, subscribeList.size());
         Assert.assertEquals(2, unsubscribeList.size());
         Assert.assertEquals(
@@ -278,7 +275,6 @@ public final class NacosCacheHandlerTest {
         nacosCacheHandlerService = new NacosCacheHandler(configService, null, Lists.newArrayList(metaDataSubscriber),
                 Collections.emptyList());
         nacosCacheHandlerService.updateMetaDataMap(metaDataParam);
-        latch.await(500, TimeUnit.MILLISECONDS);
         Assert.assertEquals(2, subscribeList.size());
         Assert.assertEquals(2, unsubscribeList.size());
         Assert.assertEquals(
@@ -325,7 +321,6 @@ public final class NacosCacheHandlerTest {
                 Collections.emptyList(), Lists.newArrayList(authDataSubscriber));
 
         nacosCacheHandlerService.updateAuthMap(appAuthDataParam);
-        latch.await(500, TimeUnit.MILLISECONDS);
         Assert.assertEquals(2, subscribeList.size());
         Assert.assertEquals(2, unsubscribeList.size());
         Assert.assertEquals(
