@@ -18,6 +18,7 @@
 package org.dromara.soul.common.enums;
 
 import org.junit.Test;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
@@ -25,7 +26,7 @@ import static org.junit.Assert.assertNotEquals;
  * Test Cases for SelectorTypeEnum.
  * @author bran.chen
  */
-public class SelectorTypeEnumTest {
+public final class SelectorTypeEnumTest {
 
     @Test
     public void testGetMatchModeByCode() {
