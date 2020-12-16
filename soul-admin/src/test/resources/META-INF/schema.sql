@@ -14,11 +14,7 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-SET MODE MySQL;
-
 CREATE Schema IF NOT EXISTS  `soul`;
-
-USE `soul`;
 
 /*Table structure for table `dashboard_user` */
 CREATE TABLE IF NOT EXISTS `dashboard_user` (

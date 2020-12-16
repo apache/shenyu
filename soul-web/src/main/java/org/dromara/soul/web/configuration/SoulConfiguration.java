@@ -35,7 +35,7 @@ import org.dromara.soul.web.filter.CrossFilter;
 import org.dromara.soul.web.filter.FileSizeFilter;
 import org.dromara.soul.web.filter.TimeWebFilter;
 import org.dromara.soul.web.filter.WebSocketParamFilter;
-import org.dromara.soul.web.forwarde.ForwardedRemoteAddressResolver;
+import org.dromara.soul.web.forward.ForwardedRemoteAddressResolver;
 import org.dromara.soul.web.handler.SoulWebHandler;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -62,7 +62,7 @@ import org.springframework.web.server.WebFilter;
 public class SoulConfiguration {
 
     /**
-     * init SoulWebHandler.
+     * Init SoulWebHandler.
      *
      * @param plugins this plugins is All impl SoulPlugin.
      * @return {@linkplain SoulWebHandler}
@@ -72,7 +72,7 @@ public class SoulConfiguration {
         List<SoulPlugin> pluginList = plugins.getIfAvailable(Collections::emptyList);
         final List<SoulPlugin> soulPlugins = pluginList.stream()
                 .sorted(Comparator.comparingInt(SoulPlugin::getOrder)).collect(Collectors.toList());
-        soulPlugins.forEach(soulPlugin -> log.info("loader plugin:[{}] [{}]", soulPlugin.named(), soulPlugin.getClass().getName()));
+        soulPlugins.forEach(soulPlugin -> log.info("load plugin:[{}] [{}]", soulPlugin.named(), soulPlugin.getClass().getName()));
         return new SoulWebHandler(soulPlugins);
     }
 
@@ -170,7 +170,7 @@ public class SoulConfiguration {
     }
 
     /**
-     * init time web filter.
+     * Init time web filter.
      *
      * @param soulConfig the soul config
      * @return {@linkplain TimeWebFilter}
