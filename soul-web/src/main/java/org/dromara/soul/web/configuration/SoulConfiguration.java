@@ -153,7 +153,7 @@ public class SoulConfiguration {
     @Bean
     @Order(-10)
     @ConditionalOnProperty(name = "soul.file.enabled", havingValue = "true")
-    public WebFilter fileSizeFilter(SoulConfig soulConfig) {
+    public WebFilter fileSizeFilter(final SoulConfig soulConfig) {
         return new FileSizeFilter(soulConfig.getFileMaxSize());
     }
 
