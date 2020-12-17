@@ -185,8 +185,6 @@ public final class AppAuthServiceTest {
         given(this.appAuthMapper.countByQuery(any())).willReturn(1);
         given(this.appAuthMapper.selectByQuery(any())).willReturn(Collections.singletonList(appAuthDO));
         AppAuthQuery appAuthQuery = new AppAuthQuery();
-        appAuthQuery.setCurrentPage(1);
-        appAuthQuery.setPageSize(10);
         appAuthQuery.setPageParameter(new PageParameter());
         CommonPager<AppAuthVO> appAuthVOCommonPager = this.appAuthService.listByPage(appAuthQuery);
         assertEquals(1, appAuthVOCommonPager.getDataList().size());
