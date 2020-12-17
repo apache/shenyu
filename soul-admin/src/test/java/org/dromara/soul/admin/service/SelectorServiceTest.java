@@ -20,8 +20,13 @@ package org.dromara.soul.admin.service;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.SelectorConditionDTO;
 import org.dromara.soul.admin.dto.SelectorDTO;
-import org.dromara.soul.admin.entity.*;
-import org.dromara.soul.admin.mapper.*;
+import org.dromara.soul.admin.entity.PluginDO;
+import org.dromara.soul.admin.entity.SelectorDO;
+import org.dromara.soul.admin.mapper.RuleConditionMapper;
+import org.dromara.soul.admin.mapper.RuleMapper;
+import org.dromara.soul.admin.mapper.SelectorMapper;
+import org.dromara.soul.admin.mapper.SelectorConditionMapper;
+import org.dromara.soul.admin.mapper.PluginMapper;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.SelectorQuery;
@@ -40,11 +45,19 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Arrays;
+import java.util.Random;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
 /**
