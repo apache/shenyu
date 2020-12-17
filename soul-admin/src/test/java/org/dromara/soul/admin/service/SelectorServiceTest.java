@@ -103,7 +103,7 @@ public final class SelectorServiceTest {
     }
 
     @Test
-    public void testCreateOrUpdate(){
+    public void testCreateOrUpdate() {
         publishEvent();
         testCreate();
         testUpdate();
@@ -133,7 +133,7 @@ public final class SelectorServiceTest {
     }
 
     @Test
-    public void testFindByName(){
+    public void testFindByName() {
         SelectorDO selectorDO1 = buildSelectorDO();
         given(this.selectorMapper.selectByName(eq("kuan"))).willReturn(selectorDO1);
         SelectorDO selectorDO2 = this.selectorService.findByName("kuan");
@@ -171,13 +171,13 @@ public final class SelectorServiceTest {
         assertEquals(selectorDOs.size(), dataList.size());
     }
 
-    public void testUpdate(){
+    public void testUpdate() {
         SelectorDTO selectorDTO = buildSelectorDTO("456");
         given(this.selectorMapper.updateSelective(any())).willReturn(1);
         assertThat(this.selectorService.createOrUpdate(selectorDTO), greaterThan(0));
     }
 
-    private void testCreate(){
+    private void testCreate() {
         SelectorDTO selectorDTO = buildSelectorDTO("");
         given(this.selectorMapper.insertSelective(any())).willReturn(1);
         assertThat(this.selectorService.createOrUpdate(selectorDTO), greaterThan(0));
@@ -198,7 +198,7 @@ public final class SelectorServiceTest {
         assertEquals(selectorId, selectorDTO.getId());
     }
 
-    private void publishEvent(){
+    private void publishEvent() {
         PluginDO pluginDO = buildPluginDO();
         SelectorDO selectorDO = buildSelectorDO();
         given(this.selectorMapper.selectById("456")).willReturn(selectorDO);
@@ -212,7 +212,7 @@ public final class SelectorServiceTest {
         return pluginDO;
     }
 
-    private SelectorDO buildSelectorDO(){
+    private SelectorDO buildSelectorDO() {
         SelectorDTO selectorDTO = new SelectorDTO();
         selectorDTO.setId("456");
         selectorDTO.setPluginId("789");
@@ -232,7 +232,7 @@ public final class SelectorServiceTest {
         return selectorDO;
     }
 
-    private SelectorDTO buildSelectorDTO(String id){
+    private SelectorDTO buildSelectorDTO(String id) {
         SelectorDTO selectorDTO = new SelectorDTO();
         if (StringUtils.isNotBlank(id)) {
             selectorDTO.setId(id);
@@ -259,7 +259,7 @@ public final class SelectorServiceTest {
         return Collections.singletonList(buildSelectorDO());
     }
 
-    private SelectorQuery buildSelectorQuery(){
+    private SelectorQuery buildSelectorQuery() {
         SelectorQuery selectorQuery = new SelectorQuery();
         selectorQuery.setPluginId("789");
         selectorQuery.setPageParameter(new PageParameter());
