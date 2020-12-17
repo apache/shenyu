@@ -15,26 +15,27 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.utils;
+package org.dromara.soul.common.enums;
 
 import org.junit.Test;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 /**
- * Test cases for ParamCheckUtils.
+ * Test Cases for PluginRoleEnum.
  *
- * @author marina432
+ * @author itdachaoge
  */
-public final class ParamCheckUtilsTest {
+public final class PluginRoleEnumTest {
 
     @Test
-    public void testDubboBodyIsEmpty() {
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty(null));
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty(""));
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty("{}"));
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty("null"));
-        assertFalse(ParamCheckUtils.dubboBodyIsEmpty("123"));
+    public void testGetCode() {
+        assertEquals(0, PluginRoleEnum.SYS.getCode().intValue());
+        assertEquals(1, PluginRoleEnum.CUSTOM.getCode().intValue());
+    }
+
+    @Test
+    public void testGetName() {
+        assertEquals("sys", PluginRoleEnum.SYS.getName());
+        assertEquals("custom", PluginRoleEnum.CUSTOM.getName());
     }
 }
