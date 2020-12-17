@@ -20,12 +20,8 @@ package org.dromara.soul.client.sofa;
 
 import com.alipay.sofa.runtime.service.component.impl.ServiceImpl;
 import com.alipay.sofa.runtime.spring.factory.ServiceFactoryBean;
-import io.undertow.Undertow;
 import org.dromara.soul.client.sofa.common.annotation.SoulSofaClient;
 import org.dromara.soul.client.sofa.common.config.SofaConfig;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -36,10 +32,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.lang.reflect.Field;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import static io.undertow.Handlers.path;
 
 /**
  * Test case for SofaServiceBeanPostProcessor.
@@ -49,43 +41,15 @@ import static io.undertow.Handlers.path;
 @RunWith(MockitoJUnitRunner.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public final class SofaServiceBeanPostProcessorTest {
-
-    private static Undertow server;
-
-    private static long registerNum;
-
-    private static CountDownLatch countDownLatch;
-
     private static SofaServiceBeanPostProcessor sofaServiceBeanPostProcessorUnderTest;
 
     @BeforeClass
     public static void init() {
-        // config server
-        server = Undertow.builder()
-                .addHttpListener(59095, "localhost")
-                .setHandler(path().addPrefixPath("/soul-client/sofa-register", httpServerExchange -> {
-                    registerNum++;
-                    countDownLatch.countDown();
-                }))
-                .build();
-        server.start();
-        String port = server.getListenerInfo().get(0).getAddress().toString().split(":")[1];
         SofaConfig mockSofaConfig = new SofaConfig();
-        mockSofaConfig.setAdminUrl("http://localhost:" + port);
+        mockSofaConfig.setAdminUrl("http://localhost:58080");
         mockSofaConfig.setAppName("sofa");
         mockSofaConfig.setContextPath("/sofa");
         sofaServiceBeanPostProcessorUnderTest = new SofaServiceBeanPostProcessor(mockSofaConfig);
-    }
-
-    @AfterClass
-    public static void after() {
-        server.stop();
-    }
-
-    @Before
-    public void before() {
-        countDownLatch = new CountDownLatch(1);
-        registerNum = 0;
     }
 
     @Test
@@ -101,16 +65,12 @@ public final class SofaServiceBeanPostProcessorTest {
         interfaceClassField.set(serviceFactoryBean, SoulSofaServiceImpl.class);
         sofaServiceBeanPostProcessorUnderTest
                 .postProcessAfterInitialization(serviceFactoryBean, "soulSofaServiceImpl");
-        countDownLatch.await(5, TimeUnit.SECONDS);
-        Assert.assertEquals(1L, registerNum);
     }
 
     @Test
-    public void testPostProcessAfterInitializationWithNormalBean() throws Exception {
+    public void testPostProcessAfterInitializationWithNormalBean() {
         sofaServiceBeanPostProcessorUnderTest
                 .postProcessAfterInitialization(new SofaServiceImpl(), "sofaServiceImpl");
-        countDownLatch.await(500L, TimeUnit.MILLISECONDS);
-        Assert.assertEquals(0L, registerNum);
     }
 
     interface SofaService {
