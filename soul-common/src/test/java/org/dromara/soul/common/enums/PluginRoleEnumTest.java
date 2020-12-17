@@ -25,7 +25,7 @@ import static org.junit.Assert.assertEquals;
  *
  * @author itdachaoge
  */
-public class PluginRoleEnumTest {
+public final class PluginRoleEnumTest {
 
     @Test
     public void testGetCode() {
