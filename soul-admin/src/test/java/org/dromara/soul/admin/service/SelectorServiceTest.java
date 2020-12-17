@@ -95,9 +95,6 @@ public final class SelectorServiceTest {
                 ruleMapper, ruleConditionMapper, eventPublisher);
     }
 
-    /**
-     * case for register
-     */
     @Test
     public void testRegister() {
         publishEvent();
@@ -105,9 +102,6 @@ public final class SelectorServiceTest {
         testRegisterUpdate();
     }
 
-    /**
-     * case for createOrUpdate
-     */
     @Test
     public void testCreateOrUpdate(){
         publishEvent();
@@ -115,9 +109,6 @@ public final class SelectorServiceTest {
         testUpdate();
     }
 
-    /**
-     * case for delete
-     */
     @Test
     public void testDelete() {
         publishEvent();
@@ -129,9 +120,6 @@ public final class SelectorServiceTest {
         assertEquals(this.selectorService.delete(ids), ids.size());
     }
 
-    /**
-     * case for findById
-     */
     @Test
     public void testFindById() {
         SelectorDO selectorDO = buildSelectorDO();
@@ -144,9 +132,6 @@ public final class SelectorServiceTest {
         selectorConditions.forEach(selectorConditionVO -> assertEquals(selectorConditionVO.getSelectorId(), selectorDO.getId()));
     }
 
-    /**
-     * case for findByName
-     */
     @Test
     public void testFindByName(){
         SelectorDO selectorDO1 = buildSelectorDO();
@@ -156,9 +141,6 @@ public final class SelectorServiceTest {
         assertEquals(selectorDO1.getId(), selectorDO2.getId());
     }
 
-    /**
-     * case for listByPage
-     */
     @Test
     public void testListByPage() {
         final List<SelectorDO> selectorDOs = buildSelectorDOList();
@@ -170,9 +152,6 @@ public final class SelectorServiceTest {
         assertEquals(selectorDOs.size(), result.getDataList().size());
     }
 
-    /**
-     * case for findByPluginId
-     */
     @Test
     public void testFindByPluginId() {
         final List<SelectorDO> selectorDOs = buildSelectorDOList();
@@ -183,9 +162,6 @@ public final class SelectorServiceTest {
         res.forEach(selectorData -> assertEquals("789", selectorData.getPluginId()));
     }
 
-    /**
-     * case for listAll
-     */
     @Test
     public void testListAll() {
         final List<SelectorDO> selectorDOs = buildSelectorDOList();
