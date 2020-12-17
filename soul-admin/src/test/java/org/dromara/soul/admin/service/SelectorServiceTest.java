@@ -171,7 +171,7 @@ public final class SelectorServiceTest {
         assertEquals(selectorDOs.size(), dataList.size());
     }
 
-    public void testUpdate() {
+    private void testUpdate() {
         SelectorDTO selectorDTO = buildSelectorDTO("456");
         given(this.selectorMapper.updateSelective(any())).willReturn(1);
         assertThat(this.selectorService.createOrUpdate(selectorDTO), greaterThan(0));
@@ -232,7 +232,7 @@ public final class SelectorServiceTest {
         return selectorDO;
     }
 
-    private SelectorDTO buildSelectorDTO(String id) {
+    private SelectorDTO buildSelectorDTO(final String id) {
         SelectorDTO selectorDTO = new SelectorDTO();
         if (StringUtils.isNotBlank(id)) {
             selectorDTO.setId(id);
