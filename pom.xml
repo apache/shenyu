@@ -590,6 +590,8 @@
                         <!-- document files -->
                         <exclude>**/*.md</exclude>
                         <excldue>**/*.MD</excldue>
+                        <excldue>**/*.conf</excldue>
+                        <excldue>**/*.tars</excldue>
                         <exclude>**/*.txt</exclude>
                         <exclude>**/docs/**</exclude>
                         <!-- UI files -->
