@@ -111,10 +111,10 @@ public class AppAuthServiceImpl implements AppAuthService {
                 .dateCreated(currentTime)
                 .build();
         appAuthMapper.insert(appAuthDO);
-        //保存业务参数
+        // save authParam
         AuthParamDO authParamDO = buildAuthParamDO(appAuthDO.getId(), authApplyDTO.getAppName(), authApplyDTO.getAppParam());
         authParamMapper.save(authParamDO);
-        //保存申请的path
+        // save authPath
         List<AuthPathDO> collect = authApplyDTO.getPathList()
                 .stream()
                 .map(path -> buildAuthPathDO(path, appAuthDO.getId(), authApplyDTO.getAppName()))
@@ -153,22 +153,20 @@ public class AppAuthServiceImpl implements AppAuthService {
 
         AuthParamDO authParamDO = authParamMapper.findByAuthIdAndAppName(appAuthDO.getId(), authApplyDTO.getAppName());
         if (Objects.isNull(authParamDO)) {
-            //保存业务参数
+            // save authParam
             authParamMapper.save(buildAuthParamDO(appAuthDO.getId(), authApplyDTO.getAppName(), authApplyDTO.getAppParam()));
         }
         List<AuthPathDO> existList = authPathMapper.findByAuthIdAndAppName(appAuthDO.getId(), authApplyDTO.getAppName());
         if (CollectionUtils.isNotEmpty(existList)) {
-            //删除后
             authPathMapper.deleteByAuthIdAndAppName(appAuthDO.getId(), authApplyDTO.getAppName());
         }
-        //新增
         List<AuthPathDO> collect = authApplyDTO.getPathList()
                 .stream()
                 .map(path -> buildAuthPathDO(path, appAuthDO.getId(), authApplyDTO.getAppName()))
                 .collect(Collectors.toList());
         authPathMapper.batchSave(collect);
 
-        //发送响应事件
+        // publish create Event of APP_AUTH
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.CREATE,
                 Collections.singletonList(buildByEntity(appAuthDO))));
 

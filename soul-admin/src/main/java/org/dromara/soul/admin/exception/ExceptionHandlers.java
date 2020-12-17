@@ -17,11 +17,10 @@
 
 package org.dromara.soul.admin.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.common.exception.SoulException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -33,21 +32,20 @@ import org.springframework.web.bind.annotation.ResponseBody;
  *
  * @author xiaoyu
  */
+@Slf4j
 @ControllerAdvice
 public class ExceptionHandlers {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(ExceptionHandlers.class);
 
     @ExceptionHandler(Exception.class)
     @ResponseBody
     protected SoulAdminResult serverExceptionHandler(final Exception exception) {
-        LOGGER.error(exception.getMessage(), exception);
+        log.error(exception.getMessage(), exception);
         String message;
         if (exception instanceof SoulException) {
             SoulException soulException = (SoulException) exception;
             message = soulException.getMessage();
         } else {
-            message = "系统繁忙,请稍后重试";
+            message = "The system is busy, please try again later";
         }
         return SoulAdminResult.error(message);
     }
@@ -55,7 +53,7 @@ public class ExceptionHandlers {
     @ResponseBody
     @ExceptionHandler(DuplicateKeyException.class)
     protected SoulAdminResult serverExceptionHandler(final DuplicateKeyException exception) {
-        LOGGER.error(exception.getMessage(), exception);
+        log.error(exception.getMessage(), exception);
         return SoulAdminResult.error(SoulResultMessage.UNIQUE_INDEX_CONFLICT_ERROR);
     }
 }

@@ -18,25 +18,24 @@
 package org.dromara.soul.plugin.hystrix.command;
 
 import com.netflix.hystrix.HystrixObservableCommand;
-import java.net.URI;
+import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.base.utils.UriUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import rx.Observable;
 import rx.RxReactiveStreams;
+
+import java.net.URI;
 
 /**
  * the Hystrix command.
  *
  * @author xiaoyu(Myth)
  */
+@Slf4j
 public class HystrixCommand extends HystrixObservableCommand<Void> implements Command {
     
-    private static final Logger LOGGER = LoggerFactory.getLogger(HystrixCommand.class);
-
     private final ServerWebExchange exchange;
 
     private final SoulPluginChain chain;
@@ -74,7 +73,7 @@ public class HystrixCommand extends HystrixObservableCommand<Void> implements Co
 
     private Mono<Void> doFallback() {
         if (isFailedExecution()) {
-            LOGGER.error("hystrix execute have error:", getExecutionException());
+            log.error("hystrix execute have error: ", getExecutionException());
         }
         final Throwable exception = getExecutionException();
         return doFallback(exchange, exception);

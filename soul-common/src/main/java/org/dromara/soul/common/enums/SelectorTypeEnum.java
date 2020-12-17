@@ -34,12 +34,12 @@ public enum SelectorTypeEnum {
     /**
      * full selector type enum.
      */
-    FULL_FLOW(0, "全流量"),
+    FULL_FLOW(0, "full"),
 
     /**
      * Or match mode enum.
      */
-    CUSTOM_FLOW(1, "自定义流量");
+    CUSTOM_FLOW(1, "custom");
 
     private final int code;
 

@@ -17,15 +17,14 @@
 
 package org.dromara.soul.plugin.divide;
 
-import java.util.List;
-import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
-import org.dromara.soul.common.dto.convert.rule.DivideRuleHandle;
+import org.dromara.soul.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
@@ -37,19 +36,19 @@ import org.dromara.soul.plugin.base.utils.SoulResultWrap;
 import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
 import org.dromara.soul.plugin.divide.balance.utils.LoadBalanceUtils;
 import org.dromara.soul.plugin.divide.cache.UpstreamCacheManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Divide Plugin.
  *
  * @author xiaoyu(Myth)
  */
+@Slf4j
 public class DividePlugin extends AbstractSoulPlugin {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(DividePlugin.class);
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
@@ -58,23 +57,24 @@ public class DividePlugin extends AbstractSoulPlugin {
         final DivideRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), DivideRuleHandle.class);
         final List<DivideUpstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
         if (CollectionUtils.isEmpty(upstreamList)) {
-            LOGGER.error("divide upstream configuration error：{}", rule.toString());
+            log.error("divide upstream configuration error： {}", rule.toString());
             Object error = SoulResultWrap.error(SoulResultEnum.CANNOT_FIND_URL.getCode(), SoulResultEnum.CANNOT_FIND_URL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         final String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
         DivideUpstream divideUpstream = LoadBalanceUtils.selector(upstreamList, ruleHandle.getLoadBalance(), ip);
         if (Objects.isNull(divideUpstream)) {
-            LOGGER.error("divide has no upstream");
+            log.error("divide has no upstream");
             Object error = SoulResultWrap.error(SoulResultEnum.CANNOT_FIND_URL.getCode(), SoulResultEnum.CANNOT_FIND_URL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
-        //设置一下 http url
+        // set the http url
         String domain = buildDomain(divideUpstream);
         String realURL = buildRealURL(domain, soulContext, exchange);
         exchange.getAttributes().put(Constants.HTTP_URL, realURL);
-        //设置下超时时间
+        // set the http timeout
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
+        exchange.getAttributes().put(Constants.HTTP_RETRY, ruleHandle.getRetry());
         return chain.execute(exchange);
     }
 

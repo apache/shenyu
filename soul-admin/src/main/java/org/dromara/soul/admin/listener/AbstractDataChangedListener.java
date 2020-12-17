@@ -18,6 +18,7 @@
 package org.dromara.soul.admin.listener;
 
 import com.google.gson.reflect.TypeToken;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.admin.service.AppAuthService;
 import org.dromara.soul.admin.service.MetaDataService;
@@ -34,8 +35,6 @@ import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.Md5Utils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 
 import javax.annotation.Resource;
@@ -53,6 +52,7 @@ import java.util.concurrent.ConcurrentMap;
  * @author huangxiaofeng
  * @since 2.0.0
  */
+@Slf4j
 @SuppressWarnings("all")
 public abstract class AbstractDataChangedListener implements DataChangedListener, InitializingBean {
 
@@ -60,8 +60,6 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
      * The constant CACHE.
      */
     protected static final ConcurrentMap<String, ConfigDataCache> CACHE = new ConcurrentHashMap<>();
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractDataChangedListener.class);
 
     @Resource
     private AppAuthService appAuthService;
@@ -233,7 +231,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
         String json = GsonUtils.getInstance().toJson(data);
         ConfigDataCache newVal = new ConfigDataCache(group.name(), json, Md5Utils.md5(json), System.currentTimeMillis());
         ConfigDataCache oldVal = CACHE.put(newVal.getGroup(), newVal);
-        LOGGER.info("update config cache[{}], old:{}, updated:{}", group, oldVal, newVal);
+        log.info("update config cache[{}], old: {}, updated: {}", group, oldVal, newVal);
     }
 
     /**

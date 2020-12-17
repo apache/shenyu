@@ -46,10 +46,10 @@ public class NacosConfiguration {
     public ConfigService nacosConfigService(final NacosProperties nacosProp) throws Exception {
         Properties properties = new Properties();
         if (nacosProp.getAcm() != null && nacosProp.getAcm().isEnabled()) {
-            //使用阿里云ACM服务
+            // Use aliyun ACM service
             properties.put(PropertyKeyConst.ENDPOINT, nacosProp.getAcm().getEndpoint());
             properties.put(PropertyKeyConst.NAMESPACE, nacosProp.getAcm().getNamespace());
-            //使用子账户ACM管理权限
+            // Use subaccount ACM administrative authority
             properties.put(PropertyKeyConst.ACCESS_KEY, nacosProp.getAcm().getAccessKey());
             properties.put(PropertyKeyConst.SECRET_KEY, nacosProp.getAcm().getSecretKey());
         } else {

@@ -43,7 +43,7 @@ public final class AppAuthMapperTest extends AbstractSpringIntegrationTest {
     @Resource
     private AppAuthMapper appAuthMapper;
 
-    private AppAuthDO appAuthDO = buildAppAuthDO();
+    private final AppAuthDO appAuthDO = buildAppAuthDO();
 
     @Before
     public void before() {

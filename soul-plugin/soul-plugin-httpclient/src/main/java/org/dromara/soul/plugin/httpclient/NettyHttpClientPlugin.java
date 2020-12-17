@@ -19,17 +19,16 @@ package org.dromara.soul.plugin.httpclient;
 
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
+import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
-import org.dromara.soul.plugin.api.result.SoulResultEnum;
-import org.dromara.soul.plugin.base.utils.SoulResultWrap;
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
+import org.dromara.soul.plugin.api.result.SoulResultEnum;
+import org.dromara.soul.plugin.base.utils.SoulResultWrap;
 import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -54,12 +53,8 @@ import java.util.concurrent.TimeoutException;
  *
  * @author xiaoyu
  */
+@Slf4j
 public class NettyHttpClientPlugin implements SoulPlugin {
-
-    /**
-     * logger.
-     */
-    private static final Logger LOGGER = LoggerFactory.getLogger(NettyHttpClientPlugin.class);
 
     private final HttpClient httpClient;
 
@@ -86,7 +81,7 @@ public class NettyHttpClientPlugin implements SoulPlugin {
             Object error = SoulResultWrap.error(SoulResultEnum.CANNOT_FIND_URL.getCode(), SoulResultEnum.CANNOT_FIND_URL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
-        LOGGER.info("you request,The resulting urlPath is :{}", url);
+        log.info("you request, The resulting urlPath is: {}", url);
         Flux<HttpClientResponse> responseFlux = this.httpClient.headers(headers -> headers.add(httpHeaders))
                 .request(method).uri(url).send((req, nettyOutbound) ->
                         nettyOutbound.send(request.getBody().map(dataBuffer -> ((NettyDataBuffer) dataBuffer) .getNativeBuffer())))

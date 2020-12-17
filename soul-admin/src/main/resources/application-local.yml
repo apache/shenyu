@@ -34,7 +34,6 @@ mybatis:
   config-location: classpath:/mybatis/mybatis-config.xml
   mapper-locations: classpath:/mappers/*.xml
 
-
 soul:
   sync:
     websocket:

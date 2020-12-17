@@ -53,7 +53,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author chenxi
  */
 @RunWith(MockitoJUnitRunner.class)
-public class SelectorControllerTest {
+public final class SelectorControllerTest {
 
     private MockMvc mockMvc;
 

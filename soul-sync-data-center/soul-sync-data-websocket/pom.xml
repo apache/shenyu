@@ -36,7 +36,7 @@
         <dependency>
             <groupId>org.java-websocket</groupId>
             <artifactId>Java-WebSocket</artifactId>
-            <version>1.5.0</version>
+            <version>${java-websocket.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
