@@ -15,19 +15,19 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.query;
+package org.dromara.soul.admin.vo;
 
-import org.dromara.soul.admin.vo.base.ReflectGetterSetterBaseTest;
+import org.dromara.soul.admin.AbstractReflectGetterSetterTest;
 
 /**
- * Test case for AppAuthQuery.
+ * Test case for DashboardUserVO.
  *
- * @author wuudongdong
+ * @author midnight2104
  */
-public final class AppAuthQueryTestReflectGetterSetter extends ReflectGetterSetterBaseTest<AppAuthQuery> {
+public final class DashboardUserVOTest extends AbstractReflectGetterSetterTest {
 
     @Override
-    protected AppAuthQuery getTargetClass() {
-        return new AppAuthQuery();
+    protected Class<?> getTargetClass() {
+        return DashboardUserVO.class;
     }
 }
