@@ -478,6 +478,7 @@
                 <version>${maven-javadoc-plugin.version}</version>
                 <configuration>
                     <aggregate>true</aggregate>
+                    <sourcepath>src/main/java</sourcepath>
                 </configuration>
                 <executions>
                     <execution>

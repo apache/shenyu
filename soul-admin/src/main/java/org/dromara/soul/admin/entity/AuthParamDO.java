@@ -21,6 +21,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.dromara.soul.common.utils.UUIDUtils;
+
+import java.sql.Timestamp;
 
 /**
  * The type Auth param do.
@@ -39,4 +42,24 @@ public final class AuthParamDO extends BaseDO {
     private String appName;
 
     private String appParam;
+
+    /**
+     * Build AuthParamDO object with given params.
+     *
+     * @param authId    {@linkplain String}
+     * @param appName   {@linkplain String}
+     * @param appParam  {@linkplain String}
+     * @return          {@linkplain AuthParamDO}
+     */
+    public static AuthParamDO create(final String authId, final String appName, final String appParam) {
+        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+        return AuthParamDO.builder()
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .authId(authId)
+                .appName(appName)
+                .appParam(appParam)
+                .dateUpdated(currentTime)
+                .dateCreated(currentTime)
+                .build();
+    }
 }

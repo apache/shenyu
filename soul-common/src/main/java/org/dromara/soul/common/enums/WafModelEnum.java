@@ -40,5 +40,4 @@ public enum WafModelEnum {
     MIXED("mixed");
 
     private final String name;
-
 }

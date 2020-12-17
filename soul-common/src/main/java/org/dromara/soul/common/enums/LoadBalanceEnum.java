@@ -49,6 +49,4 @@ public enum LoadBalanceEnum {
     private final String name;
 
     private final boolean support;
-
-
 }
