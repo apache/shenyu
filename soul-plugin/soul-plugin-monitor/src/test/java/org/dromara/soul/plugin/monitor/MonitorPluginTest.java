@@ -53,7 +53,6 @@ public final class MonitorPluginTest {
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         SelectorData selectorData = mock(SelectorData.class);
         RuleData data = mock(RuleData.class);
-
         Mono<Void> voidMono = monitorPlugin.doExecute(exchange, chain, selectorData, data);
         StepVerifier.create(voidMono).expectSubscription().verifyComplete();
     }
