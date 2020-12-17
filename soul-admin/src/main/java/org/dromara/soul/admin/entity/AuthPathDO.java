@@ -53,7 +53,7 @@ public final class AuthPathDO extends BaseDO {
      * @param appName   {@linkplain String}
      * @return          {@linkplain AuthPathDO}
      */
-    public static AuthPathDO buildWith(final String path, final String authId, final String appName) {
+    public static AuthPathDO create(final String path, final String authId, final String appName) {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         return AuthPathDO.builder()
                 .id(UUIDUtils.getInstance().generateShortUuid())

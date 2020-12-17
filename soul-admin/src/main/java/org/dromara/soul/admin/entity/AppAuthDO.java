@@ -69,7 +69,7 @@ public final class AppAuthDO extends BaseDO {
      * @param appAuthDTO {@linkplain AppAuthDTO}
      * @return {@linkplain AppAuthDO}
      */
-    public static AppAuthDO buildWith(final AppAuthDTO appAuthDTO) {
+    public static AppAuthDO create(final AppAuthDTO appAuthDTO) {
         return Optional.ofNullable(appAuthDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             AppAuthDO appAuthDO = AppAuthDO.builder()
@@ -94,7 +94,7 @@ public final class AppAuthDO extends BaseDO {
      * @param authApplyDTO {@linkplain AuthApplyDTO}
      * @return {@linkplain AppAuthDO}
      */
-    public static AppAuthDO buildWith(final AuthApplyDTO authApplyDTO) {
+    public static AppAuthDO create(final AuthApplyDTO authApplyDTO) {
         return Optional.ofNullable(authApplyDTO).map(iterm -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             return AppAuthDO.builder()

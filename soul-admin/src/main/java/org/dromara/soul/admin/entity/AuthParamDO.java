@@ -51,7 +51,7 @@ public final class AuthParamDO extends BaseDO {
      * @param appParam  {@linkplain String}
      * @return          {@linkplain AuthParamDO}
      */
-    public static AuthParamDO buildWith(final String authId, final String appName, final String appParam) {
+    public static AuthParamDO create(final String authId, final String appName, final String appParam) {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         return AuthParamDO.builder()
                 .id(UUIDUtils.getInstance().generateShortUuid())

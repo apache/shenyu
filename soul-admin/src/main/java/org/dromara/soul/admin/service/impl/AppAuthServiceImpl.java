@@ -96,15 +96,15 @@ public class AppAuthServiceImpl implements AppAuthService {
                 || CollectionUtils.isEmpty(authApplyDTO.getPathList())) {
             return SoulAdminResult.error(SoulResultMessage.PARAMETER_ERROR);
         }
-        AppAuthDO appAuthDO = AppAuthDO.buildWith(authApplyDTO);
+        AppAuthDO appAuthDO = AppAuthDO.create(authApplyDTO);
         appAuthMapper.insert(appAuthDO);
         // save authParam
-        AuthParamDO authParamDO = AuthParamDO.buildWith(appAuthDO.getId(), authApplyDTO.getAppName(), authApplyDTO.getAppParam());
+        AuthParamDO authParamDO = AuthParamDO.create(appAuthDO.getId(), authApplyDTO.getAppName(), authApplyDTO.getAppParam());
         authParamMapper.save(authParamDO);
         // save authPath
         List<AuthPathDO> collect = authApplyDTO.getPathList()
                 .stream()
-                .map(path -> AuthPathDO.buildWith(path, appAuthDO.getId(), authApplyDTO.getAppName()))
+                .map(path -> AuthPathDO.create(path, appAuthDO.getId(), authApplyDTO.getAppName()))
                 .collect(Collectors.toList());
         authPathMapper.batchSave(collect);
 
@@ -141,7 +141,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         AuthParamDO authParamDO = authParamMapper.findByAuthIdAndAppName(appAuthDO.getId(), authApplyDTO.getAppName());
         if (Objects.isNull(authParamDO)) {
             // save authParam
-            authParamMapper.save(AuthParamDO.buildWith(appAuthDO.getId(), authApplyDTO.getAppName(), authApplyDTO.getAppParam()));
+            authParamMapper.save(AuthParamDO.create(appAuthDO.getId(), authApplyDTO.getAppName(), authApplyDTO.getAppParam()));
         }
         List<AuthPathDO> existList = authPathMapper.findByAuthIdAndAppName(appAuthDO.getId(), authApplyDTO.getAppName());
         if (CollectionUtils.isNotEmpty(existList)) {
@@ -149,7 +149,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         }
         List<AuthPathDO> collect = authApplyDTO.getPathList()
                 .stream()
-                .map(path -> AuthPathDO.buildWith(path, appAuthDO.getId(), authApplyDTO.getAppName()))
+                .map(path -> AuthPathDO.create(path, appAuthDO.getId(), authApplyDTO.getAppName()))
                 .collect(Collectors.toList());
         authPathMapper.batchSave(collect);
 
@@ -173,7 +173,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         if (CollectionUtils.isNotEmpty(authParamDTOList)) {
             authParamMapper.deleteByAuthId(appAuthDTO.getId());
             List<AuthParamDO> authParamDOList = authParamDTOList.stream()
-                    .map(dto -> AuthParamDO.buildWith(appAuthDTO.getId(), dto.getAppName(), dto.getAppParam()))
+                    .map(dto -> AuthParamDO.create(appAuthDTO.getId(), dto.getAppName(), dto.getAppParam()))
                     .collect(Collectors.toList());
             authParamMapper.batchSave(authParamDOList);
         }
@@ -194,7 +194,7 @@ public class AppAuthServiceImpl implements AppAuthService {
         if (CollectionUtils.isNotEmpty(authPathDTOList)) {
             authPathMapper.deleteByAuthId(authPathWarpDTO.getId());
             List<AuthPathDO> collect = authPathDTOList.stream()
-                    .map(authPathDTO -> AuthPathDO.buildWith(authPathDTO.getPath(), appAuthDO.getId(), authPathDTO.getAppName()))
+                    .map(authPathDTO -> AuthPathDO.create(authPathDTO.getPath(), appAuthDO.getId(), authPathDTO.getAppName()))
                     .collect(Collectors.toList());
             authPathMapper.batchSave(collect);
         }
@@ -226,7 +226,7 @@ public class AppAuthServiceImpl implements AppAuthService {
     @Override
     public int createOrUpdate(final AppAuthDTO appAuthDTO) {
         int appAuthCount;
-        AppAuthDO appAuthDO = AppAuthDO.buildWith(appAuthDTO);
+        AppAuthDO appAuthDO = AppAuthDO.create(appAuthDTO);
         DataEventTypeEnum eventType;
         if (StringUtils.isEmpty(appAuthDTO.getId())) {
             appAuthDO.setAppSecret(SignUtils.getInstance().generateKey());
