@@ -17,14 +17,9 @@
 
 package org.dromara.soul.client.springcloud;
 
-import io.undertow.Undertow;
 import org.dromara.soul.client.springcloud.annotation.SoulSpringCloudClient;
 import org.dromara.soul.client.springcloud.config.SoulSpringCloudConfig;
 import org.dromara.soul.client.springcloud.init.SpringCloudClientBeanPostProcessor;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,11 +31,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import static io.undertow.Handlers.path;
 import static org.mockito.Mockito.when;
 
 /**
@@ -54,65 +44,28 @@ public final class SpringMvcClientBeanPostProcessorTest {
     @Mock
     private static Environment env;
 
-    private static Undertow server;
-
-    private static boolean isRegister;
-
     private static SpringCloudClientBeanPostProcessor springCloudClientBeanPostProcessor;
 
-    private static CountDownLatch countDownLatch;
-
-    private static String port;
-
     private final SpringMvcClientTestBean springMvcClientTestBean = new SpringMvcClientTestBean();
-
-    @BeforeClass
-    public static void init() {
-        server = Undertow.builder()
-                .addHttpListener(58888, "localhost")
-                .setHandler(path()
-                        .addPrefixPath("/soul-client/springcloud-register", httpServerExchange -> {
-                            isRegister = true;
-                            countDownLatch.countDown();
-                        }))
-                .build();
-        server.start();
-        port = server.getListenerInfo().get(0).getAddress().toString().split(":")[1];
-    }
-
-    @AfterClass
-    public static void after() {
-        server.stop();
-    }
-
-    @Before
-    public void before() {
-        countDownLatch = new CountDownLatch(1);
-        isRegister = false;
-    }
 
     @Test
     public void testSoulBeanProcess() throws InterruptedException {
         SoulSpringCloudConfig soulSpringCloudConfig = new SoulSpringCloudConfig();
-        soulSpringCloudConfig.setAdminUrl("http://127.0.0.1:" + port);
+        soulSpringCloudConfig.setAdminUrl("http://127.0.0.1:58080");
         soulSpringCloudConfig.setContextPath("test");
         when(env.getProperty("spring.application.name")).thenReturn("spring-cloud-test");
         springCloudClientBeanPostProcessor = new SpringCloudClientBeanPostProcessor(soulSpringCloudConfig, env);
         springCloudClientBeanPostProcessor.postProcessAfterInitialization(springMvcClientTestBean, "springMvcClientTestBean");
-        countDownLatch.await(5, TimeUnit.SECONDS);
-        Assert.assertTrue(isRegister);
     }
 
     @Test
     public void testNormalBeanProcess() throws InterruptedException {
         SoulSpringCloudConfig soulSpringCloudConfig = new SoulSpringCloudConfig();
-        soulSpringCloudConfig.setAdminUrl("http://127.0.0.1:" + port);
+        soulSpringCloudConfig.setAdminUrl("http://127.0.0.1:8080");
         soulSpringCloudConfig.setContextPath("test");
         when(env.getProperty("spring.application.name")).thenReturn("spring-cloud-test");
         springCloudClientBeanPostProcessor = new SpringCloudClientBeanPostProcessor(soulSpringCloudConfig, env);
         springCloudClientBeanPostProcessor.postProcessAfterInitialization(new Object(), "normalBean");
-        countDownLatch.await(5, TimeUnit.SECONDS);
-        Assert.assertFalse(isRegister);
     }
 
     @RestController
