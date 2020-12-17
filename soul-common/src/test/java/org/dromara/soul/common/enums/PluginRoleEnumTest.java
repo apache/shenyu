@@ -15,23 +15,27 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.web.config;
+package org.dromara.soul.common.enums;
 
-import lombok.Data;
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 /**
- * The type Soul config.
+ * Test Cases for PluginRoleEnum.
  *
- * @author xiaoyu(Myth)
+ * @author itdachaoge
  */
-@Data
-public class SoulConfig {
+public final class PluginRoleEnumTest {
 
-    private Integer filterTime = 10;
+    @Test
+    public void testGetCode() {
+        assertEquals(0, PluginRoleEnum.SYS.getCode().intValue());
+        assertEquals(1, PluginRoleEnum.CUSTOM.getCode().intValue());
+    }
 
-    private Boolean filterTimeEnable = false;
-
-    private Integer upstreamScheduledTime = 30;
-    
-    private Integer fileMaxSize = 10;
+    @Test
+    public void testGetName() {
+        assertEquals("sys", PluginRoleEnum.SYS.getName());
+        assertEquals("custom", PluginRoleEnum.CUSTOM.getName());
+    }
 }
