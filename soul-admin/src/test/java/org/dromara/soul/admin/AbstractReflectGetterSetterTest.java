@@ -104,8 +104,13 @@ public abstract class AbstractReflectGetterSetterTest {
         Set<String> excludeFields = getExcludeFields();
 
         Stream.of(fields)
-                .filter(f -> !f.isSynthetic() && (excludeFields == null || !excludeFields.contains(f.getName())))
-                .peek(f -> {
+                .forEach(f -> {
+                    if (f.isSynthetic()) {
+                        return;
+                    }
+                    if (excludeFields != null && excludeFields.contains(f.getName())) {
+                        return;
+                    }
                     try {
                         //get the get and set methods of the field by PropertyDescriptor
                         PropertyDescriptor property = new PropertyDescriptor(f.getName(), clazz);
@@ -116,7 +121,6 @@ public abstract class AbstractReflectGetterSetterTest {
 
                         setter.invoke(target, setValue);
                         final Object getValue = getter.invoke(target);
-
                         assertEquals(setValue, getValue,
                                 property.getDisplayName() + " getter / setter do not produce the same result."
                         );
