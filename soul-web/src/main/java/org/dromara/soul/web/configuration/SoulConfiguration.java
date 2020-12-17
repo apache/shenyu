@@ -60,7 +60,7 @@ import org.springframework.web.server.WebFilter;
 @Import(value = {ErrorHandlerConfiguration.class, SoulExtConfiguration.class, SpringExtConfiguration.class})
 @Slf4j
 public class SoulConfiguration {
-
+    
     /**
      * Init SoulWebHandler.
      *
@@ -75,16 +75,17 @@ public class SoulConfiguration {
         soulPlugins.forEach(soulPlugin -> log.info("load plugin:[{}] [{}]", soulPlugin.named(), soulPlugin.getClass().getName()));
         return new SoulWebHandler(soulPlugins);
     }
-
+    
     /**
      * init dispatch handler.
+     *
      * @return {@link DispatcherHandler}.
      */
     @Bean("dispatcherHandler")
     public DispatcherHandler dispatcherHandler() {
         return new DispatcherHandler();
     }
-
+    
     /**
      * Plugin data subscriber plugin data subscriber.
      *
@@ -95,7 +96,7 @@ public class SoulConfiguration {
     public PluginDataSubscriber pluginDataSubscriber(final ObjectProvider<List<PluginDataHandler>> pluginDataHandlerList) {
         return new CommonPluginDataSubscriber(pluginDataHandlerList.getIfAvailable(Collections::emptyList));
     }
-
+    
     /**
      * Generic param resolve service generic param resolve service.
      *
@@ -106,7 +107,7 @@ public class SoulConfiguration {
     public DubboParamResolveService dubboMultiParameterResolveServiceImpl() {
         return new DubboMultiParameterResolveServiceImpl();
     }
-
+    
     /**
      * Generic param resolve service dubbo param resolve service.
      *
@@ -117,7 +118,7 @@ public class SoulConfiguration {
     public DubboParamResolveService defaultDubboParamResolveService() {
         return new DefaultDubboParamResolveService();
     }
-
+    
     /**
      * Remote address resolver remote address resolver.
      *
@@ -128,7 +129,7 @@ public class SoulConfiguration {
     public RemoteAddressResolver remoteAddressResolver() {
         return new ForwardedRemoteAddressResolver(1);
     }
-
+    
     /**
      * Cross filter web filter.
      * if you application has cross-domain.
@@ -144,20 +145,20 @@ public class SoulConfiguration {
     public WebFilter crossFilter() {
         return new CrossFilter();
     }
-
+    
     /**
      * Body web filter web filter.
      *
+     * @param soulConfig the soul config
      * @return the web filter
      */
     @Bean
     @Order(-10)
     @ConditionalOnProperty(name = "soul.file.enabled", havingValue = "true")
-    public WebFilter fileSizeFilter() {
-        return new FileSizeFilter();
+    public WebFilter fileSizeFilter(final SoulConfig soulConfig) {
+        return new FileSizeFilter(soulConfig.getFileMaxSize());
     }
-
-
+    
     /**
      * Soul config soul config.
      *
@@ -168,7 +169,7 @@ public class SoulConfiguration {
     public SoulConfig soulConfig() {
         return new SoulConfig();
     }
-
+    
     /**
      * Init time web filter.
      *
@@ -181,7 +182,7 @@ public class SoulConfiguration {
     public WebFilter timeWebFilter(final SoulConfig soulConfig) {
         return new TimeWebFilter(soulConfig);
     }
-
+    
     /**
      * Web socket web filter web filter.
      *
