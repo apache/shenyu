@@ -15,23 +15,20 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.web.config;
+package org.dromara.soul.client.alibaba.dubbo.validation;
 
-import lombok.Data;
+import com.alibaba.dubbo.common.URL;
+import com.alibaba.dubbo.validation.Validation;
+import com.alibaba.dubbo.validation.Validator;
 
 /**
- * The type Soul config.
+ * AlibabaDubboClientValidation.
  *
- * @author xiaoyu(Myth)
+ * @author KevinClair
  */
-@Data
-public class SoulConfig {
-
-    private Integer filterTime = 10;
-
-    private Boolean filterTimeEnable = false;
-
-    private Integer upstreamScheduledTime = 30;
-    
-    private Integer fileMaxSize = 10;
+public class AlibabaDubboClientValidation implements Validation {
+    @Override
+    public Validator getValidator(final URL url) {
+        return new AlibabaDubboClientValidator(url);
+    }
 }

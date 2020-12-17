@@ -15,23 +15,4 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.web.config;
-
-import lombok.Data;
-
-/**
- * The type Soul config.
- *
- * @author xiaoyu(Myth)
- */
-@Data
-public class SoulConfig {
-
-    private Integer filterTime = 10;
-
-    private Boolean filterTimeEnable = false;
-
-    private Integer upstreamScheduledTime = 30;
-    
-    private Integer fileMaxSize = 10;
-}
+soulValidation=org.dromara.soul.client.alibaba.dubbo.validation.AlibabaDubboClientValidation

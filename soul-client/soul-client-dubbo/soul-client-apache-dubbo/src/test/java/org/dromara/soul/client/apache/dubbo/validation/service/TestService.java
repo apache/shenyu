@@ -15,23 +15,33 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.web.config;
+package org.dromara.soul.client.apache.dubbo.validation.service;
 
+import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import javax.validation.constraints.NotNull;
 
 /**
- * The type Soul config.
+ * TestService.
  *
- * @author xiaoyu(Myth)
+ * @author KevinClair
  */
-@Data
-public class SoulConfig {
+public interface TestService {
 
-    private Integer filterTime = 10;
+    /**
+     * test method.
+     *
+     * @param testObject testObject
+     * @return String
+     */
+    String test(TestObject testObject);
 
-    private Boolean filterTimeEnable = false;
-
-    private Integer upstreamScheduledTime = 30;
-    
-    private Integer fileMaxSize = 10;
+    @Data
+    @Builder
+    @EqualsAndHashCode
+    class TestObject {
+        @NotNull(message = "age cannot be null.")
+        private Integer age;
+    }
 }

@@ -17,12 +17,12 @@
 
 package org.dromara.soul.web.filter;
 
+import java.util.List;
 import org.dromara.soul.plugin.api.result.SoulResultEnum;
 import org.dromara.soul.plugin.base.utils.SoulResultWrap;
 import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
 import org.dromara.soul.web.filter.support.BodyInserterContext;
 import org.dromara.soul.web.filter.support.CachedBodyOutputMessage;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -43,8 +43,6 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-
 /**
  * The type File size filter.
  *
@@ -53,15 +51,15 @@ import java.util.List;
 public class FileSizeFilter implements WebFilter {
 
     private static final int BYTES_PER_MB = 1024 * 1024;
-
-    @Value("${file.size:10}")
-    private int maxSize;
+    
+    private final int fileMaxSize;
 
     private final List<HttpMessageReader<?>> messageReaders;
 
-    public FileSizeFilter() {
-        HandlerStrategies.builder().codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(maxSize * BYTES_PER_MB));
+    public FileSizeFilter(final int fileMaxSize) {
+        HandlerStrategies.builder().codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(fileMaxSize * BYTES_PER_MB));
         this.messageReaders = HandlerStrategies.withDefaults().messageReaders();
+        this.fileMaxSize = fileMaxSize;
     }
 
     @Override
@@ -72,7 +70,7 @@ public class FileSizeFilter implements WebFilter {
                     messageReaders);
             return serverRequest.bodyToMono(DataBuffer.class)
                     .flatMap(size -> {
-                        if (size.capacity() > BYTES_PER_MB * maxSize) {
+                        if (size.capacity() > BYTES_PER_MB * fileMaxSize) {
                             ServerHttpResponse response = exchange.getResponse();
                             response.setStatusCode(HttpStatus.BAD_REQUEST);
                             Object error = SoulResultWrap.error(SoulResultEnum.PAYLOAD_TOO_LARGE.getCode(), SoulResultEnum.PAYLOAD_TOO_LARGE.getMsg(), null);

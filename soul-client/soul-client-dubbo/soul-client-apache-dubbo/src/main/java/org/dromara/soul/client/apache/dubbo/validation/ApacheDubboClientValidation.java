@@ -15,23 +15,20 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.web.config;
+package org.dromara.soul.client.apache.dubbo.validation;
 
-import lombok.Data;
+import org.apache.dubbo.common.URL;
+import org.apache.dubbo.validation.Validation;
+import org.apache.dubbo.validation.Validator;
 
 /**
- * The type Soul config.
+ * ApacheDubboClientValidation.
  *
- * @author xiaoyu(Myth)
+ * @author KevinClair
  */
-@Data
-public class SoulConfig {
-
-    private Integer filterTime = 10;
-
-    private Boolean filterTimeEnable = false;
-
-    private Integer upstreamScheduledTime = 30;
-    
-    private Integer fileMaxSize = 10;
+public class ApacheDubboClientValidation implements Validation {
+    @Override
+    public Validator getValidator(final URL url) {
+        return new ApacheDubboClientValidator(url);
+    }
 }
