@@ -68,7 +68,7 @@ public class SofaProxyService {
      * @throws SoulException the soul exception
      */
     public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws SoulException {
-        ConsumerConfig<GenericService> reference = ApplicationConfigCache.getInstance().get(metaData.getServiceName());
+        ConsumerConfig<GenericService> reference = ApplicationConfigCache.getInstance().get(metaData.getPath());
         if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getInterfaceId())) {
             ApplicationConfigCache.getInstance().invalidate(metaData.getServiceName());
             reference = ApplicationConfigCache.getInstance().initRef(metaData);
