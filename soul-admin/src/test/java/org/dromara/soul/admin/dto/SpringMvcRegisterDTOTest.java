@@ -28,40 +28,40 @@ import org.junit.jupiter.api.Assertions;
  */
 public final class SpringMvcRegisterDTOTest {
     
-    private SpringMvcRegisterDTO springCloudRegisterDTO;
+    private SpringMvcRegisterDTO springMvcRegisterDTO;
     
     @Before
     public void initSpringCloudRegisterDTO() {
-        springCloudRegisterDTO = new SpringMvcRegisterDTO();
-        springCloudRegisterDTO.setEnabled(false);
-        springCloudRegisterDTO.setRegisterMetaData(false);
-        springCloudRegisterDTO.setHost("127.0.0.1");
-        springCloudRegisterDTO.setPort(8080);
-        springCloudRegisterDTO.setPath("Test path");
-        springCloudRegisterDTO.setRuleName("Test rule");
-        springCloudRegisterDTO.setAppName("Test app name");
-        springCloudRegisterDTO.setRpcType("Test RPC type");
-        springCloudRegisterDTO.setPathDesc("Test path desc");
-        springCloudRegisterDTO.setContext("Test context");
-        springCloudRegisterDTO.setRegisterMetaData(false);
+        springMvcRegisterDTO = new SpringMvcRegisterDTO();
+        springMvcRegisterDTO.setEnabled(false);
+        springMvcRegisterDTO.setRegisterMetaData(false);
+        springMvcRegisterDTO.setHost("127.0.0.1");
+        springMvcRegisterDTO.setPort(8080);
+        springMvcRegisterDTO.setPath("Test path");
+        springMvcRegisterDTO.setRuleName("Test rule");
+        springMvcRegisterDTO.setAppName("Test app name");
+        springMvcRegisterDTO.setRpcType("Test RPC type");
+        springMvcRegisterDTO.setPathDesc("Test path desc");
+        springMvcRegisterDTO.setContext("Test context");
+        springMvcRegisterDTO.setRegisterMetaData(false);
     }
     
     @Test
     public void testSpringCloudRegisterDTO() {
-        Assertions.assertNotNull(springCloudRegisterDTO);
-        Assertions.assertFalse(springCloudRegisterDTO.isEnabled());
-        Assertions.assertEquals(springCloudRegisterDTO.getHost(), "127.0.0.1");
-        Assertions.assertEquals(springCloudRegisterDTO.getPort(), 8080);
-        Assertions.assertEquals(springCloudRegisterDTO.getPath(), "Test path");
-        Assertions.assertEquals(springCloudRegisterDTO.getRuleName(), "Test rule");
-        Assertions.assertEquals(springCloudRegisterDTO.getAppName(), "Test app name");
-        Assertions.assertEquals(springCloudRegisterDTO.getRpcType(), "Test RPC type");
-        Assertions.assertEquals(springCloudRegisterDTO.getPathDesc(), "Test path desc");
-        Assertions.assertEquals(springCloudRegisterDTO.getContext(), "Test context");
-        Assertions.assertFalse(springCloudRegisterDTO.isRegisterMetaData());
-        springCloudRegisterDTO.setEnabled(true);
-        springCloudRegisterDTO.setRegisterMetaData(true);
-        Assertions.assertTrue(springCloudRegisterDTO.isEnabled());
-        Assertions.assertTrue(springCloudRegisterDTO.isRegisterMetaData());
+        Assertions.assertNotNull(springMvcRegisterDTO);
+        Assertions.assertFalse(springMvcRegisterDTO.isEnabled());
+        Assertions.assertEquals(springMvcRegisterDTO.getHost(), "127.0.0.1");
+        Assertions.assertEquals(springMvcRegisterDTO.getPort(), 8080);
+        Assertions.assertEquals(springMvcRegisterDTO.getPath(), "Test path");
+        Assertions.assertEquals(springMvcRegisterDTO.getRuleName(), "Test rule");
+        Assertions.assertEquals(springMvcRegisterDTO.getAppName(), "Test app name");
+        Assertions.assertEquals(springMvcRegisterDTO.getRpcType(), "Test RPC type");
+        Assertions.assertEquals(springMvcRegisterDTO.getPathDesc(), "Test path desc");
+        Assertions.assertEquals(springMvcRegisterDTO.getContext(), "Test context");
+        Assertions.assertFalse(springMvcRegisterDTO.isRegisterMetaData());
+        springMvcRegisterDTO.setEnabled(true);
+        springMvcRegisterDTO.setRegisterMetaData(true);
+        Assertions.assertTrue(springMvcRegisterDTO.isEnabled());
+        Assertions.assertTrue(springMvcRegisterDTO.isRegisterMetaData());
     }
 }
