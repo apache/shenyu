@@ -141,9 +141,7 @@ public final class SelectorServiceTest {
         assertEquals(selectorVO.getId(), selectorDO.getId());
 
         List<SelectorConditionVO> selectorConditions = selectorVO.getSelectorConditions();
-        selectorConditions.forEach(selectorConditionVO -> {
-            assertEquals(selectorConditionVO.getSelectorId(), selectorDO.getId());
-        });
+        selectorConditions.forEach(selectorConditionVO -> assertEquals(selectorConditionVO.getSelectorId(), selectorDO.getId()));
     }
 
     /**
@@ -182,9 +180,7 @@ public final class SelectorServiceTest {
         PluginDO pluginDO = buildPluginDO();
         given(this.pluginMapper.selectById(eq("789"))).willReturn(pluginDO);
         List<SelectorData> res = this.selectorService.findByPluginId("789");
-        res.forEach(selectorData -> {
-            assertEquals("789", selectorData.getPluginId());
-        });
+        res.forEach(selectorData -> assertEquals("789", selectorData.getPluginId()));
     }
 
     /**
