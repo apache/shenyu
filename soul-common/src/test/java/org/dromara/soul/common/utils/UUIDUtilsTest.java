@@ -21,8 +21,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
+
 /**
- * Test cases for UUIDUtilsTest.
+ * Test cases for UUIDUtils.
  *
  * @author BetterWp
  */
@@ -40,4 +48,65 @@ public final class UUIDUtilsTest {
         Assert.assertTrue(StringUtils.isNotEmpty(shortUuid));
         Assert.assertEquals(19, shortUuid.length());
     }
+
+    @Test
+    public void testConstructor() throws Exception {
+        Class uUIDUtilsClass = UUIDUtils.getInstance().getClass();
+        Class[] p = {long.class, long.class, long.class};
+        Constructor constructor = uUIDUtilsClass.getDeclaredConstructor(p);
+        constructor.setAccessible(true);
+        try {
+            constructor.newInstance(-1L, 10L, 10L);
+        } catch (InvocationTargetException ex) {
+            Assert.assertTrue(ex.getCause().getMessage().startsWith("worker Id can't be greater than"));
+        }
+
+        try {
+            constructor.newInstance(10L, -1L, 10L);
+        } catch (InvocationTargetException ex) {
+            Assert.assertTrue(ex.getCause().getMessage().startsWith("datacenter Id can't be greater than"));
+        }
+    }
+
+    @Test
+    public void testTilNextMillis() throws Exception {
+        Class uUIDUtilsClass = UUIDUtils.getInstance().getClass();
+        Class[] p = {long.class};
+        Method method = uUIDUtilsClass.getDeclaredMethod("tilNextMillis", p);
+        method.setAccessible(true);
+        long lastTimestamp = System.currentTimeMillis();
+        long result = (long) method.invoke(UUIDUtils.getInstance(), lastTimestamp);
+        assertThat(result, greaterThan(lastTimestamp));
+    }
+
+    @Test
+    public void testNextIdException() throws Exception {
+        UUIDUtils uuidUtils = UUIDUtils.getInstance();
+        Class uUIDUtilsClass = uuidUtils.getClass();
+        Field field = uUIDUtilsClass.getDeclaredField("lastTimestamp");
+        field.setAccessible(true);
+        field.set(uuidUtils, 1617757060000L);
+
+        Method method = uUIDUtilsClass.getDeclaredMethod("nextId");
+        method.setAccessible(true);
+        try {
+            method.invoke(UUIDUtils.getInstance());
+        } catch (InvocationTargetException ex) {
+            Assert.assertTrue(ex.getCause().getMessage().startsWith("Clock moved backwards."));
+        }
+    }
+
+    @Test
+    public void testNextId() throws Exception {
+        UUIDUtils uuidUtils = UUIDUtils.getInstance();
+        Class uUIDUtilsClass = uuidUtils.getClass();
+        Field field = uUIDUtilsClass.getDeclaredField("lastTimestamp");
+        field.setAccessible(true);
+        field.set(uuidUtils, System.currentTimeMillis());
+
+        Method method = uUIDUtilsClass.getDeclaredMethod("nextId");
+        method.setAccessible(true);
+        method.invoke(UUIDUtils.getInstance());
+    }
+
 }

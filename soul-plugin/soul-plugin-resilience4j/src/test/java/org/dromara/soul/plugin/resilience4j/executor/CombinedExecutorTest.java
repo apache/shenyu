@@ -32,7 +32,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
 
 /**
- * CircuitBreaker executor test.
+ * CombinedExecutor test.
  *
  * @author zhanglei
  */
@@ -54,9 +54,10 @@ public final class CombinedExecutorTest {
         when(conf.getTimeLimiterConfig()).thenReturn(TimeLimiterConfig.ofDefaults());
         when(conf.getCircuitBreakerConfig()).thenReturn(CircuitBreakerConfig.ofDefaults());
         Mono mono = Mono.just("ERROR");
-        StepVerifier.create(combinedExecutor.run(Mono.just("SOUL"), throwable -> {
-            return mono;
-        }, conf)).expectSubscription().expectNext("SOUL").verifyComplete();
+        StepVerifier.create(combinedExecutor.run(Mono.just("SOUL"), throwable -> mono, conf))
+                .expectSubscription()
+                .expectNext("SOUL")
+                .verifyComplete();
 
     }
 
@@ -67,8 +68,8 @@ public final class CombinedExecutorTest {
         when(conf.getRateLimiterConfig()).thenReturn(RateLimiterConfig.ofDefaults());
         when(conf.getTimeLimiterConfig()).thenReturn(TimeLimiterConfig.ofDefaults());
         when(conf.getCircuitBreakerConfig()).thenReturn(CircuitBreakerConfig.ofDefaults());
-        StepVerifier.create(combinedExecutor.run(Mono.error(new RuntimeException()), throwable -> {
-            return Mono.error(throwable);
-        }, conf)).expectSubscription().expectError(RuntimeException.class);
+        StepVerifier.create(combinedExecutor.run(Mono.error(new RuntimeException()), throwable -> Mono.error(throwable), conf))
+                .expectSubscription()
+                .expectError(RuntimeException.class);
     }
 }

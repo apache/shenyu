@@ -185,8 +185,6 @@ public final class AppAuthServiceTest {
         given(this.appAuthMapper.countByQuery(any())).willReturn(1);
         given(this.appAuthMapper.selectByQuery(any())).willReturn(Collections.singletonList(appAuthDO));
         AppAuthQuery appAuthQuery = new AppAuthQuery();
-        appAuthQuery.setCurrentPage(1);
-        appAuthQuery.setPageSize(10);
         appAuthQuery.setPageParameter(new PageParameter());
         CommonPager<AppAuthVO> appAuthVOCommonPager = this.appAuthService.listByPage(appAuthQuery);
         assertEquals(1, appAuthVOCommonPager.getDataList().size());
@@ -282,7 +280,7 @@ public final class AppAuthServiceTest {
     }
 
     private AppAuthDO buildAppAuthDO() {
-        AppAuthDO appAuthDO = AppAuthDO.buildAppAuthDO(buildAppAuthDTO());
+        AppAuthDO appAuthDO = AppAuthDO.create(buildAppAuthDTO());
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         appAuthDO.setDateCreated(now);
         appAuthDO.setDateUpdated(now);

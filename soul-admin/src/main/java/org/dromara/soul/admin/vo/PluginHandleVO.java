@@ -19,6 +19,7 @@ package org.dromara.soul.admin.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.dromara.soul.admin.entity.PluginHandleDO;
 import org.dromara.soul.common.utils.DateUtils;
 
@@ -34,13 +35,13 @@ import java.util.Optional;
  */
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class PluginHandleVO implements Serializable {
 
     /**
      * primary key.
      */
     private String id;
-
 
     /**
      * plugin id.

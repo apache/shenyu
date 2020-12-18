@@ -33,7 +33,7 @@ import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
 /**
- * this is web handler request starter.
+ * This is web handler request starter.
  *
  * @author xiaoyu(Myth)
  */
@@ -103,12 +103,10 @@ public final class SoulWebHandler implements WebHandler {
                     Boolean skip = plugin.skip(exchange);
                     if (skip) {
                         return this.execute(exchange);
-                    } else {
-                        return plugin.execute(exchange, this);
                     }
-                } else {
-                    return Mono.empty();
+                    return plugin.execute(exchange, this);
                 }
+                return Mono.empty();
             });
         }
     }

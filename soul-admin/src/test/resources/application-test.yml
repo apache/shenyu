@@ -29,7 +29,6 @@ spring:
     username: sa
     password:
     driver-class-name: org.h2.Driver
-    schema: classpath:META-INF/schema.sql
 
 mybatis:
   config-location: classpath:/mybatis/mybatis-config.xml

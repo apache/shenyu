@@ -17,6 +17,7 @@
 
 package org.dromara.soul.admin.listener.http;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -36,8 +37,6 @@ import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.exception.SoulException;
 import org.dromara.soul.common.utils.GsonUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 
 import javax.servlet.AsyncContext;
@@ -65,10 +64,9 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author huangxiaofeng
  * @since 2.0.0
  */
+@Slf4j
 @SuppressWarnings("all")
 public class HttpLongPollingDataChangedListener extends AbstractDataChangedListener {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(HttpLongPollingDataChangedListener.class);
 
     private static final String X_REAL_IP = "X-Real-IP";
 
@@ -103,15 +101,15 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         long syncInterval = httpSyncProperties.getRefreshInterval().toMillis();
         // Periodically check the data for changes and update the cache
         scheduler.scheduleWithFixedDelay(() -> {
-            LOGGER.info("http sync strategy refresh config start.");
+            log.info("http sync strategy refresh config start.");
             try {
                 this.refreshLocalCache();
-                LOGGER.info("http sync strategy refresh config success.");
+                log.info("http sync strategy refresh config success.");
             } catch (Exception e) {
-                LOGGER.error("http sync strategy refresh config error!", e);
+                log.error("http sync strategy refresh config error!", e);
             }
         }, syncInterval, syncInterval, TimeUnit.MILLISECONDS);
-        LOGGER.info("http sync strategy refresh interval: {}ms", syncInterval);
+        log.info("http sync strategy refresh interval: {}ms", syncInterval);
     }
 
     private void refreshLocalCache() {
@@ -138,7 +136,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         // response immediately.
         if (CollectionUtils.isNotEmpty(changedGroup)) {
             this.generateResponse(response, changedGroup);
-            LOGGER.info("send response with the changed group, ip={}, group={}", clientIp, changedGroup);
+            log.info("send response with the changed group, ip={}, group={}", clientIp, changedGroup);
             return;
         }
 
@@ -263,7 +261,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             response.setStatus(HttpServletResponse.SC_OK);
             response.getWriter().println(GsonUtils.getInstance().toJson(SoulAdminResult.success(SoulResultMessage.SUCCESS, changedGroups)));
         } catch (IOException ex) {
-            LOGGER.error("Sending response failed.", ex);
+            log.error("Sending response failed.", ex);
         }
     }
 
@@ -312,7 +310,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
                 LongPollingClient client = iter.next();
                 iter.remove();
                 client.sendResponse(Collections.singletonList(groupKey));
-                LOGGER.info("send response with the changed group,ip={},group={},changeTime={}", client.ip, groupKey, changeTime);
+                log.info("send response with the changed group,ip={}, group={}, changeTime={}", client.ip, groupKey, changeTime);
             }
         }
     }

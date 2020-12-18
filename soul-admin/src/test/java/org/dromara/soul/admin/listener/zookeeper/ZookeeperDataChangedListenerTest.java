@@ -59,7 +59,7 @@ public final class ZookeeperDataChangedListenerTest {
     }
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         zkClient = new ZkClient("127.0.0.1:21810");
         this.zookeeperDataChangedListener = new ZookeeperDataChangedListener(zkClient);
     }

@@ -28,8 +28,10 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.dromara.soul.admin.entity.PluginDO;
 import org.dromara.soul.admin.entity.SelectorDO;
 import org.dromara.soul.admin.listener.DataChangedEvent;
+import org.dromara.soul.admin.mapper.PluginMapper;
 import org.dromara.soul.admin.mapper.SelectorMapper;
 import org.dromara.soul.admin.service.SelectorService;
 import org.dromara.soul.common.concurrent.SoulThreadFactory;
@@ -37,6 +39,7 @@ import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
+import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.UpstreamCheckUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,20 +55,22 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class UpstreamCheckService {
-    
+
     private static final Map<String, List<DivideUpstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
-    
+
     @Value("${soul.upstream.check:true}")
     private boolean check;
-    
+
     @Value("${soul.upstream.scheduledTime:10}")
     private int scheduledTime;
-    
+
     private final SelectorService selectorService;
-    
+
     private final SelectorMapper selectorMapper;
-    
+
     private final ApplicationEventPublisher eventPublisher;
+
+    private final PluginMapper pluginMapper;
     
     /**
      * Instantiates a new Upstream check service.
@@ -73,24 +78,30 @@ public class UpstreamCheckService {
      * @param selectorService the selector service
      * @param selectorMapper  the selector mapper
      * @param eventPublisher  the event publisher
+     * @param pluginMapper    the plugin mapper
      */
     @Autowired(required = false)
-    public UpstreamCheckService(final SelectorService selectorService, final SelectorMapper selectorMapper, final ApplicationEventPublisher eventPublisher) {
+    public UpstreamCheckService(final SelectorService selectorService, final SelectorMapper selectorMapper,
+                                final ApplicationEventPublisher eventPublisher, final PluginMapper pluginMapper) {
         this.selectorService = selectorService;
         this.selectorMapper = selectorMapper;
         this.eventPublisher = eventPublisher;
+        this.pluginMapper = pluginMapper;
     }
     
     /**
-     * Sets .
+     * Setup selectors of divide plugin.
      */
     @PostConstruct
     public void setup() {
-        List<SelectorDO> selectorDOList = selectorMapper.findByPluginId("5");
-        for (SelectorDO selectorDO : selectorDOList) {
-            List<DivideUpstream> divideUpstreams = GsonUtils.getInstance().fromList(selectorDO.getHandle(), DivideUpstream.class);
-            if (CollectionUtils.isNotEmpty(divideUpstreams)) {
-                UPSTREAM_MAP.put(selectorDO.getName(), divideUpstreams);
+        PluginDO pluginDO = pluginMapper.selectByName(PluginEnum.DIVIDE.getName());
+        if (pluginDO != null) {
+            List<SelectorDO> selectorDOList = selectorMapper.findByPluginId(pluginDO.getId());
+            for (SelectorDO selectorDO : selectorDOList) {
+                List<DivideUpstream> divideUpstreams = GsonUtils.getInstance().fromList(selectorDO.getHandle(), DivideUpstream.class);
+                if (CollectionUtils.isNotEmpty(divideUpstreams)) {
+                    UPSTREAM_MAP.put(selectorDO.getName(), divideUpstreams);
+                }
             }
         }
         if (check) {
@@ -120,15 +131,14 @@ public class UpstreamCheckService {
         } else {
             UPSTREAM_MAP.put(selectorName, Lists.newArrayList(divideUpstream));
         }
-        
     }
-    
+
     private void scheduled() {
         if (UPSTREAM_MAP.size() > 0) {
             UPSTREAM_MAP.forEach(this::check);
         }
     }
-    
+
     private void check(final String selectorName, final List<DivideUpstream> upstreamList) {
         List<DivideUpstream> successList = Lists.newArrayListWithCapacity(upstreamList.size());
         for (DivideUpstream divideUpstream : upstreamList) {
@@ -148,7 +158,7 @@ public class UpstreamCheckService {
             updateSelectorHandler(selectorName, null);
         }
     }
-    
+
     private void updateSelectorHandler(final String selectorName, final List<DivideUpstream> upstreams) {
         SelectorDO selector = selectorService.findByName(selectorName);
         if (Objects.nonNull(selector)) {
@@ -162,11 +172,9 @@ public class UpstreamCheckService {
                 selectorData.setHandle(handler);
             }
             selectorMapper.updateSelective(selector);
-            //发送更新事件
             // publish change event.
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
                     Collections.singletonList(selectorData)));
         }
     }
-    
 }

@@ -17,9 +17,8 @@
 
 package org.dromara.soul.common.utils;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.security.CodeSource;
 
@@ -28,9 +27,8 @@ import java.security.CodeSource;
  *
  * @author xiaoyu(Myth)
  */
+@Slf4j
 public final class VersionUtils {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(VersionUtils.class);
 
     private static final String VERSION = getVersion(VersionUtils.class, "1.0.0");
 
@@ -68,7 +66,7 @@ public final class VersionUtils {
         CodeSource codeSource = cls.getProtectionDomain().getCodeSource();
 
         if (codeSource == null) {
-            LOGGER.info("No codeSource for class " + cls.getName() + " when getVersion, use default version " + defaultVersion);
+            log.info("No codeSource for class {} when getVersion, use default version {}", cls.getName(), defaultVersion);
             return defaultVersion;
         }
         String file = codeSource.getLocation().getFile();
@@ -84,11 +82,10 @@ public final class VersionUtils {
             }
             while (file.length() > 0 && !Character.isDigit(file.charAt(0))) {
                 i = file.indexOf("-");
-                if (i >= 0) {
-                    file = file.substring(i + 1);
-                } else {
+                if (i < 0) {
                     break;
                 }
+                file = file.substring(i + 1);
             }
             version = file;
         }
