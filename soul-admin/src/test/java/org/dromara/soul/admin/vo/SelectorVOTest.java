@@ -15,19 +15,19 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.query;
+package org.dromara.soul.admin.vo;
 
-import org.dromara.soul.admin.vo.base.ReflectGetterSetterBaseTest;
+import org.dromara.soul.admin.AbstractReflectGetterSetterTest;
 
 /**
- * Test case for SelectorConditionQuery.
+ * Test case for SelectorVO.
  *
- * @author wuudongdong
+ * @author midnight2104
  */
-public final class SelectorConditionQueryTestReflectGetterSetter extends ReflectGetterSetterBaseTest<SelectorConditionQuery> {
+public final class SelectorVOTest extends AbstractReflectGetterSetterTest {
 
     @Override
-    protected SelectorConditionQuery getTargetClass() {
-        return new SelectorConditionQuery();
+    protected Class<?> getTargetClass() {
+        return SelectorVO.class;
     }
 }
