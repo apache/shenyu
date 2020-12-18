@@ -17,17 +17,34 @@
 
 package org.dromara.soul.admin.vo;
 
-import org.dromara.soul.admin.vo.base.ReflectGetterSetterBaseTest;
+import org.dromara.soul.admin.AbstractReflectGetterSetterTest;
+import org.dromara.soul.admin.entity.PluginDO;
+import org.dromara.soul.common.enums.PluginEnum;
+import org.junit.Test;
+
+import java.sql.Timestamp;
+
+import static org.junit.Assert.assertNotNull;
 
 /**
- * Test case for DashboardUserVO.
+ * Test case for PluginVO.
  *
  * @author midnight2104
  */
-public class DashboardUserTestReflectGetterSetter extends ReflectGetterSetterBaseTest<DashboardUserVO> {
+public final class PluginVOTest extends AbstractReflectGetterSetterTest {
 
     @Override
-    protected DashboardUserVO getTargetClass() {
-        return new DashboardUserVO();
+    protected Class<?> getTargetClass() {
+        return PluginVO.class;
+    }
+
+    @Test
+    public void testBuildPluginVO() {
+        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+        assertNotNull(PluginVO.buildPluginVO(PluginDO.builder()
+                .name(PluginEnum.GLOBAL.getName())
+                .dateCreated(currentTime)
+                .dateUpdated(currentTime)
+                .build()));
     }
 }

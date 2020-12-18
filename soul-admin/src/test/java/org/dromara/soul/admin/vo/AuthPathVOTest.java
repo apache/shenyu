@@ -17,17 +17,17 @@
 
 package org.dromara.soul.admin.vo;
 
-import org.dromara.soul.admin.vo.base.ReflectGetterSetterBaseTest;
+import org.dromara.soul.admin.AbstractReflectGetterSetterTest;
 
 /**
- * Test case for MetaDataVO.
+ * Test case for AuthPathVO.
  *
  * @author midnight2104
  */
-public class MetaDataTestReflectGetterSetter extends ReflectGetterSetterBaseTest<MetaDataVO> {
+public final class AuthPathVOTest extends AbstractReflectGetterSetterTest {
 
     @Override
-    protected MetaDataVO getTargetClass() {
-        return new MetaDataVO();
+    protected Class<?> getTargetClass() {
+        return AuthPathVO.class;
     }
 }

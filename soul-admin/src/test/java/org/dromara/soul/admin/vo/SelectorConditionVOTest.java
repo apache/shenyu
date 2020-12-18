@@ -18,16 +18,35 @@
 package org.dromara.soul.admin.vo;
 
 import org.dromara.soul.admin.AbstractReflectGetterSetterTest;
+import org.dromara.soul.admin.entity.SelectorConditionDO;
+import org.dromara.soul.common.enums.OperatorEnum;
+import org.dromara.soul.common.enums.ParamTypeEnum;
+import org.junit.Test;
+
+import java.sql.Timestamp;
+
+import static org.junit.Assert.assertNotNull;
 
 /**
- * Test case for PluginHandleVO.
+ * Test case for SelectorConditionVO.
  *
  * @author midnight2104
  */
-public final class PluginHandleVOTest extends AbstractReflectGetterSetterTest {
+public final class SelectorConditionVOTest extends AbstractReflectGetterSetterTest {
 
     @Override
     protected Class<?> getTargetClass() {
-        return PluginHandleVO.class;
+        return SelectorConditionVO.class;
+    }
+
+    @Test
+    public void testBuildSelectorConditionVO() {
+        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+        assertNotNull(SelectorConditionVO.buildSelectorConditionVO(SelectorConditionDO.builder()
+                .paramType(ParamTypeEnum.POST.getName())
+                .operator(OperatorEnum.MATCH.getAlias())
+                .dateCreated(currentTime)
+                .dateUpdated(currentTime)
+                .build()));
     }
 }
