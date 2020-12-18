@@ -15,19 +15,19 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.vo;
+package org.dromara.soul.admin.query;
 
-import org.dromara.soul.admin.vo.base.ReflectGetterSetterBaseTest;
+import org.dromara.soul.admin.AbstractReflectGetterSetterTest;
 
 /**
- * Test case for PluginVO.
+ * Test case for RuleQuery.
  *
- * @author midnight2104
+ * @author wuudongdong
  */
-public class PluginTestReflectGetterSetter extends ReflectGetterSetterBaseTest<PluginVO> {
+public final class RuleQueryTest extends AbstractReflectGetterSetterTest {
 
     @Override
-    protected PluginVO getTargetClass() {
-        return new PluginVO();
+    protected Class<?> getTargetClass() {
+        return RuleQuery.class;
     }
 }

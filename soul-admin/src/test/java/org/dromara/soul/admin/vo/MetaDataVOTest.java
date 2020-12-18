@@ -15,19 +15,19 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.query;
+package org.dromara.soul.admin.vo;
 
-import org.dromara.soul.admin.vo.base.ReflectGetterSetterBaseTest;
+import org.dromara.soul.admin.AbstractReflectGetterSetterTest;
 
 /**
- * Test case for DashboardUserQuery.
+ * Test case for MetaDataVO.
  *
- * @author wuudongdong
+ * @author midnight2104
  */
-public final class DashboardUserQueryTestReflectGetterSetter extends ReflectGetterSetterBaseTest<DashboardUserQuery> {
+public final class MetaDataVOTest extends AbstractReflectGetterSetterTest {
 
     @Override
-    protected DashboardUserQuery getTargetClass() {
-        return new DashboardUserQuery();
+    protected Class<?> getTargetClass() {
+        return MetaDataVO.class;
     }
 }

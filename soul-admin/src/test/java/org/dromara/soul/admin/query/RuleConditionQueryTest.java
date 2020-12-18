@@ -17,17 +17,17 @@
 
 package org.dromara.soul.admin.query;
 
-import org.dromara.soul.admin.vo.base.ReflectGetterSetterBaseTest;
+import org.dromara.soul.admin.AbstractReflectGetterSetterTest;
 
 /**
- * Test case for SelectorQuery.
+ * Test case for RuleConditionQuery.
  *
  * @author wuudongdong
  */
-public final class SelectorQueryTestReflectGetterSetter extends ReflectGetterSetterBaseTest<SelectorQuery> {
+public final class RuleConditionQueryTest extends AbstractReflectGetterSetterTest {
 
     @Override
-    protected SelectorQuery getTargetClass() {
-        return new SelectorQuery();
+    protected Class<?> getTargetClass() {
+        return RuleConditionQuery.class;
     }
 }

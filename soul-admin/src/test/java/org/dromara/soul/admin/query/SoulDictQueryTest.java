@@ -17,17 +17,17 @@
 
 package org.dromara.soul.admin.query;
 
-import org.dromara.soul.admin.vo.base.ReflectGetterSetterBaseTest;
+import org.dromara.soul.admin.AbstractReflectGetterSetterTest;
 
 /**
  * Test case for SoulDictQuery.
  *
  * @author wuudongdong
  */
-public final class SoulDictQueryTestReflectGetterSetter extends ReflectGetterSetterBaseTest<SoulDictQuery> {
+public final class SoulDictQueryTest extends AbstractReflectGetterSetterTest {
 
     @Override
-    protected SoulDictQuery getTargetClass() {
-        return new SoulDictQuery();
+    protected Class<?> getTargetClass() {
+        return SoulDictQuery.class;
     }
 }
