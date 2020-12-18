@@ -21,15 +21,14 @@ import org.hamcrest.collection.IsMapContaining;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
+import org.junit.rules.ExpectedException;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.allOf;
-import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for HttpParamConverter.
@@ -40,6 +39,9 @@ public final class HttpParamConverterTest {
 
     @Rule
     public ErrorCollector collector = new ErrorCollector();
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void testOfString() {
@@ -58,11 +60,9 @@ public final class HttpParamConverterTest {
     public void testDecodeQueryParam() {
         assertEquals("a=1&b=2", HttpParamConverter.decodeQueryParam("a%3d1%26b%3d2"));
 
-        try {
-            HttpParamConverter.decodeQueryParam("%%");
-        } catch (Throwable throwable) {
-            assertThat(throwable.getMessage(), is("URLDecoder: Incomplete trailing escape (%) pattern"));
-        }
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Incomplete trailing escape (%) pattern");
+        assertEquals("a=1&b=2", HttpParamConverter.decodeQueryParam("a%3d1%26b%3d2%%"));
 
     }
 
