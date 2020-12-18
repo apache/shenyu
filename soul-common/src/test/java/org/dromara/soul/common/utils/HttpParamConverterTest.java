@@ -27,7 +27,9 @@ import org.springframework.util.MultiValueMap;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.allOf;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for HttpParamConverter.
@@ -50,11 +52,20 @@ public final class HttpParamConverterTest {
         collector.checkThat(params,
                 allOf(IsMapContaining.hasEntry("a", "1"),
                         IsMapContaining.hasEntry("b", "2")));
+
+        Map<String, String> params1 = HttpParamConverter.initQueryParams(new String());
     }
 
     @Test
     public void testDecodeQueryParam() {
         assertEquals("a=1&b=2", HttpParamConverter.decodeQueryParam("a%3d1%26b%3d2"));
+
+        try {
+            HttpParamConverter.decodeQueryParam("%%");
+        } catch (Throwable throwable) {
+            assertThat(throwable.getMessage(),is("URLDecoder: Incomplete trailing escape (%) pattern"));
+        }
+
     }
 
     @Test
