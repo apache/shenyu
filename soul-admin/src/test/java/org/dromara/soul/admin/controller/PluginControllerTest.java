@@ -27,6 +27,7 @@ import org.dromara.soul.admin.service.PluginService;
 import org.dromara.soul.admin.service.SyncDataService;
 import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.admin.vo.PluginVO;
+import org.dromara.soul.common.constant.AdminConstants;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.utils.DateUtils;
 import org.dromara.soul.common.utils.GsonUtils;
@@ -130,6 +131,23 @@ public final class PluginControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(SoulResultMessage.CREATE_SUCCESS)))
                 .andReturn();
+
+        given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(AdminConstants.PLUGIN_NAME_IS_EXIST);
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin/")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(GsonUtils.getInstance().toJson(pluginDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(AdminConstants.PLUGIN_NAME_IS_EXIST)))
+                .andReturn();
+
+        given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(AdminConstants.PLUGIN_NAME_NOT_EXIST);
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin/")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(GsonUtils.getInstance().toJson(pluginDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(AdminConstants.PLUGIN_NAME_NOT_EXIST)))
+                .andReturn();
+
     }
 
     @Test
@@ -144,6 +162,22 @@ public final class PluginControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(SoulResultMessage.UPDATE_SUCCESS)))
                 .andReturn();
+
+        given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(AdminConstants.PLUGIN_NAME_IS_EXIST);
+        this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin/{id}", "123")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(GsonUtils.getInstance().toJson(pluginDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(AdminConstants.PLUGIN_NAME_IS_EXIST)))
+                .andReturn();
+
+        given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(AdminConstants.PLUGIN_NAME_NOT_EXIST);
+        this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin/{id}", "123")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(GsonUtils.getInstance().toJson(pluginDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(AdminConstants.PLUGIN_NAME_NOT_EXIST)))
+                .andReturn();
     }
 
     @Test
@@ -154,6 +188,22 @@ public final class PluginControllerTest {
                 .content("[\"123\"]"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(SoulResultMessage.DELETE_SUCCESS)))
+                .andReturn();
+
+        given(this.pluginService.delete(Collections.singletonList("123"))).willReturn(AdminConstants.SYS_PLUGIN_ID_NOT_EXIST);
+        this.mockMvc.perform(MockMvcRequestBuilders.delete("/plugin/batch")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("[\"123\"]"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(AdminConstants.SYS_PLUGIN_ID_NOT_EXIST)))
+                .andReturn();
+
+        given(this.pluginService.delete(Collections.singletonList("123"))).willReturn(AdminConstants.SYS_PLUGIN_NOT_DELETE);
+        this.mockMvc.perform(MockMvcRequestBuilders.delete("/plugin/batch")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("[\"123\"]"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(AdminConstants.SYS_PLUGIN_NOT_DELETE)))
                 .andReturn();
     }
 
@@ -169,6 +219,14 @@ public final class PluginControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(SoulResultMessage.ENABLE_SUCCESS)))
                 .andReturn();
+
+        given(this.pluginService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled())).willReturn(AdminConstants.SYS_PLUGIN_ID_NOT_EXIST);
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin/enabled")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(AdminConstants.SYS_PLUGIN_ID_NOT_EXIST)))
+                .andReturn();
     }
 
     @Test
@@ -178,6 +236,12 @@ public final class PluginControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(SoulResultMessage.SYNC_SUCCESS)))
                 .andReturn();
+
+        given(this.syncDataService.syncAll(DataEventTypeEnum.REFRESH)).willReturn(false);
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin/syncPluginAll"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(SoulResultMessage.SYNC_FAIL)))
+                .andReturn();
     }
 
     @Test
@@ -186,6 +250,12 @@ public final class PluginControllerTest {
         this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin/syncPluginData/{id}", "123"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(SoulResultMessage.SYNC_SUCCESS)))
+                .andReturn();
+
+        given(this.syncDataService.syncPluginData("123")).willReturn(false);
+        this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin/syncPluginData/{id}", "123"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(SoulResultMessage.SYNC_FAIL)))
                 .andReturn();
     }
 
