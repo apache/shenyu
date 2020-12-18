@@ -52,8 +52,6 @@ public final class HttpParamConverterTest {
         collector.checkThat(params,
                 allOf(IsMapContaining.hasEntry("a", "1"),
                         IsMapContaining.hasEntry("b", "2")));
-
-        Map<String, String> params1 = HttpParamConverter.initQueryParams(new String());
     }
 
     @Test
@@ -63,7 +61,7 @@ public final class HttpParamConverterTest {
         try {
             HttpParamConverter.decodeQueryParam("%%");
         } catch (Throwable throwable) {
-            assertThat(throwable.getMessage(),is("URLDecoder: Incomplete trailing escape (%) pattern"));
+            assertThat(throwable.getMessage(), is("URLDecoder: Incomplete trailing escape (%) pattern"));
         }
 
     }
