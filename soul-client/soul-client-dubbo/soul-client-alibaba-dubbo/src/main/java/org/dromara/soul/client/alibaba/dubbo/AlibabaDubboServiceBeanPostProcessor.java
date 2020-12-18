@@ -68,7 +68,7 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
     }
     
-    @SuppressWarnings({"rawtypes"})
+    @SuppressWarnings("rawtypes")
     private void handler(final ServiceBean serviceBean) {
         Class<?> clazz = serviceBean.getRef().getClass();
         if (ClassUtils.isCglibProxyClass(clazz)) {
@@ -89,7 +89,7 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
         }
     }
     
-    @SuppressWarnings({"rawtypes"})
+    @SuppressWarnings("rawtypes")
     private String buildJsonParams(final ServiceBean serviceBean, final SoulDubboClient soulDubboClient, final Method method) {
         String appName = dubboConfig.getAppName();
         if (StringUtils.isEmpty(appName)) {
@@ -121,7 +121,7 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
         
     }
     
-    @SuppressWarnings({"rawtypes"})
+    @SuppressWarnings("rawtypes")
     private String buildRpcExt(final ServiceBean serviceBean) {
         MetaDataDTO.RpcExt build = MetaDataDTO.RpcExt.builder()
                 .group(StringUtils.isNotEmpty(serviceBean.getGroup()) ? serviceBean.getGroup() : "")
@@ -136,7 +136,7 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
     }
     
     @Override
-    @SuppressWarnings({"rawtypes"})
+    @SuppressWarnings("rawtypes")
     public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
         if (Objects.nonNull(contextRefreshedEvent.getApplicationContext().getParent())) {
             return;
