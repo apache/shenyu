@@ -132,7 +132,7 @@
 
 所有的数据都被缓存在 JVM 的 ConcurrentHashMap 中，所以它非常快。
 
-当用户在后台界面管理改变时，Soul 通过监听 ZooKeeper node，WebSocket push，HTTP longPull 来动态更新缓存。
+当用户在后台界面改变配置信息时，Soul 通过监听 ZooKeeper node，WebSocket push，HTTP longPull 来动态更新缓存。
 
   ![](https://yu199195.github.io/images/soul/soul-config-processor.png)
 

@@ -103,7 +103,7 @@
 
    * Support for cluster deployment.
    
-   * Support A/B test and grayscale publishing。
+   * Support A/B test and grayscale publishing.
    
 --------------------------------------------------------------------------------  
  
