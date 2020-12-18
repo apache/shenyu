@@ -19,6 +19,7 @@ package org.dromara.soul.admin.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.dromara.soul.admin.entity.SoulDictDO;
 import org.dromara.soul.common.utils.DateUtils;
 
@@ -32,6 +33,7 @@ import java.util.Optional;
  */
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class SoulDictVO implements Serializable {
 
     /**
