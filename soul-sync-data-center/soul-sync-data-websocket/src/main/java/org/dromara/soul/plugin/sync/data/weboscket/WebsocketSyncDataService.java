@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class WebsocketSyncDataService implements SyncDataService, AutoCloseable {
 
-    private List<WebSocketClient> clients = new ArrayList<>();
+    private final List<WebSocketClient> clients = new ArrayList<>();
 
     private final ScheduledThreadPoolExecutor executor;
     
