@@ -15,7 +15,7 @@
 
 server:
   port: 9095
-  address: 0.0.0.0
+#  address: 0.0.0.0
 
 spring:
   thymeleaf:
@@ -25,9 +25,9 @@ spring:
     prefix: classpath:/static/
     suffix: .html
   datasource:
-    url: jdbc:mysql://localhost:3306/soul?useUnicode=true&characterEncoding=utf-8
+    url: jdbc:mysql://localhost:3306/soul?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=GMT%2b8
     username: root
-    password:
+    password: 123456
     driver-class-name: com.mysql.jdbc.Driver
 
 mybatis:
