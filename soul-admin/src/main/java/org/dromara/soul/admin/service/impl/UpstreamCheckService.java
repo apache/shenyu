@@ -71,13 +71,14 @@ public class UpstreamCheckService {
     private final ApplicationEventPublisher eventPublisher;
 
     private final PluginMapper pluginMapper;
-
+    
     /**
      * Instantiates a new Upstream check service.
      *
      * @param selectorService the selector service
      * @param selectorMapper  the selector mapper
      * @param eventPublisher  the event publisher
+     * @param pluginMapper    the plugin mapper
      */
     @Autowired(required = false)
     public UpstreamCheckService(final SelectorService selectorService, final SelectorMapper selectorMapper,
@@ -87,7 +88,7 @@ public class UpstreamCheckService {
         this.eventPublisher = eventPublisher;
         this.pluginMapper = pluginMapper;
     }
-
+    
     /**
      * Setup selectors of divide plugin.
      */
@@ -103,13 +104,12 @@ public class UpstreamCheckService {
                 }
             }
         }
-
         if (check) {
             new ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), SoulThreadFactory.create("scheduled-upstream-task", false))
                     .scheduleWithFixedDelay(this::scheduled, 10, scheduledTime, TimeUnit.SECONDS);
         }
     }
-
+    
     /**
      * Remove by key.
      *
@@ -118,7 +118,7 @@ public class UpstreamCheckService {
     public static void removeByKey(final String selectorName) {
         UPSTREAM_MAP.remove(selectorName);
     }
-
+    
     /**
      * Submit.
      *
@@ -131,7 +131,6 @@ public class UpstreamCheckService {
         } else {
             UPSTREAM_MAP.put(selectorName, Lists.newArrayList(divideUpstream));
         }
-
     }
 
     private void scheduled() {
@@ -178,5 +177,4 @@ public class UpstreamCheckService {
                     Collections.singletonList(selectorData)));
         }
     }
-
 }

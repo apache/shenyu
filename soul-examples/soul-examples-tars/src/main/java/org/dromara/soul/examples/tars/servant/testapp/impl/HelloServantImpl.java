@@ -15,19 +15,18 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.query;
+package org.dromara.soul.examples.tars.servant.testapp.impl;
 
-import org.dromara.soul.admin.vo.base.ReflectGetterSetterBaseTest;
+import com.qq.tars.spring.annotation.TarsServant;
+import org.dromara.soul.examples.tars.servant.testapp.HelloServant;
 
 /**
- * Test case for DashboardUserQuery.
- *
- * @author wuudongdong
+ * @author tydhot
  */
-public final class DashboardUserQueryTestReflectGetterSetter extends ReflectGetterSetterBaseTest<DashboardUserQuery> {
-
+@TarsServant("HelloObj")
+public class HelloServantImpl implements HelloServant {
     @Override
-    protected DashboardUserQuery getTargetClass() {
-        return new DashboardUserQuery();
+    public String hello(int no, String name) {
+        return String.format("hello no=%s, name=%s, time=%s", no, name, System.currentTimeMillis());
     }
 }

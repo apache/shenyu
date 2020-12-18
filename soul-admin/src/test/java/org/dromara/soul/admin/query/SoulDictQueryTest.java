@@ -15,26 +15,19 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.utils;
+package org.dromara.soul.admin.query;
 
-import org.junit.Test;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import org.dromara.soul.admin.AbstractReflectGetterSetterTest;
 
 /**
- * Test cases for ParamCheckUtils.
+ * Test case for SoulDictQuery.
  *
- * @author marina432
+ * @author wuudongdong
  */
-public final class ParamCheckUtilsTest {
+public final class SoulDictQueryTest extends AbstractReflectGetterSetterTest {
 
-    @Test
-    public void testDubboBodyIsEmpty() {
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty(null));
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty(""));
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty("{}"));
-        assertTrue(ParamCheckUtils.dubboBodyIsEmpty("null"));
-        assertFalse(ParamCheckUtils.dubboBodyIsEmpty("123"));
+    @Override
+    protected Class<?> getTargetClass() {
+        return SoulDictQuery.class;
     }
 }

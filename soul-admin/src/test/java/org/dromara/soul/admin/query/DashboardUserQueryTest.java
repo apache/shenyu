@@ -15,19 +15,19 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.vo;
+package org.dromara.soul.admin.query;
 
-import org.dromara.soul.admin.vo.base.ReflectGetterSetterBaseTest;
+import org.dromara.soul.admin.AbstractReflectGetterSetterTest;
 
 /**
- * Test case for EnumVO.
+ * Test case for DashboardUserQuery.
  *
- * @author midnight2104
+ * @author wuudongdong
  */
-public class EnumTestReflectGetterSetter extends ReflectGetterSetterBaseTest<EnumVO> {
+public final class DashboardUserQueryTest extends AbstractReflectGetterSetterTest {
 
     @Override
-    protected EnumVO getTargetClass() {
-        return new EnumVO();
+    protected Class<?> getTargetClass() {
+        return DashboardUserQuery.class;
     }
 }

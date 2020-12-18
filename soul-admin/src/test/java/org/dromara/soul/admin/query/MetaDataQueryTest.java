@@ -17,17 +17,17 @@
 
 package org.dromara.soul.admin.query;
 
-import org.dromara.soul.admin.vo.base.ReflectGetterSetterBaseTest;
+import org.dromara.soul.admin.AbstractReflectGetterSetterTest;
 
 /**
  * Test case for MetaDataQuery.
  *
  * @author wuudongdong
  */
-public final class MetaDataQueryTestReflectGetterSetter extends ReflectGetterSetterBaseTest<MetaDataQuery> {
+public final class MetaDataQueryTest extends AbstractReflectGetterSetterTest {
 
     @Override
-    protected MetaDataQuery getTargetClass() {
-        return new MetaDataQuery();
+    protected Class<?> getTargetClass() {
+        return MetaDataQuery.class;
     }
 }
