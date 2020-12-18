@@ -36,7 +36,7 @@ import java.util.List;
  * @author BetterWp
  */
 @RunWith(MockitoJUnitRunner.class)
-public class OrMatchStrategyTest {
+public final class OrMatchStrategyTest {
 
     private ServerWebExchange exchange;
 
