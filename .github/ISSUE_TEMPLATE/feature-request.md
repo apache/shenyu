@@ -22,3 +22,5 @@ A clear and concise description of any alternative solutions or features you've 
 
 #### Additional context
 
+Please read the [Contribution Guideline](https://dromara.org/website/en-us/docs/soul/contributor.html) before submitting the PR
+

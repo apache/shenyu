@@ -75,7 +75,7 @@ public class AlibabaDubboProxyService {
             return genericService.$invoke(metaData.getMethodName(), pair.getLeft(), pair.getRight());
         } catch (GenericException e) {
             log.error("dubbo invoker have exception", e);
-            throw new SoulException(e.getMessage());
+            throw new SoulException(e.getExceptionMessage());
         }
     }
 }

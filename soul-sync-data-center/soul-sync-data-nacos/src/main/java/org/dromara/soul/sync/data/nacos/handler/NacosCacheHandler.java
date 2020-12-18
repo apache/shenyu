@@ -21,11 +21,15 @@ import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.listener.Listener;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonParseException;
+
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Executor;
+import java.util.stream.Collectors;
+
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -82,9 +86,12 @@ public class NacosCacheHandler {
 
     protected void updatePluginMap(final String configInfo) {
         try {
-            List<PluginData> pluginDataList = GsonUtils.getInstance().fromList(configInfo, PluginData.class);
-            pluginDataList.forEach(pluginData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSubscribe(pluginData)));
-            pluginDataList.forEach(pluginData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onSubscribe(pluginData)));
+            // Fix bug #656(https://github.com/dromara/soul/issues/656)
+            List<PluginData> pluginDataList = GsonUtils.getInstance().toObjectMap(configInfo, PluginData.class).values().stream().collect(Collectors.toList());
+            pluginDataList.forEach(pluginData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
+                subscriber.unSubscribe(pluginData);
+                subscriber.onSubscribe(pluginData);
+            }));
         } catch (JsonParseException e) {
             log.error("sync plugin data have error:", e);
         }
@@ -92,9 +99,11 @@ public class NacosCacheHandler {
 
     protected void updateSelectorMap(final String configInfo) {
         try {
-            List<SelectorData> selectorDataList = GsonUtils.getInstance().fromList(configInfo, SelectorData.class);
-            selectorDataList.forEach(selectorData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSelectorSubscribe(selectorData)));
-            selectorDataList.forEach(selectorData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onSelectorSubscribe(selectorData)));
+            List<SelectorData> selectorDataList = GsonUtils.getInstance().toObjectMapList(configInfo, SelectorData.class).values().stream().flatMap(Collection::stream).collect(Collectors.toList());
+            selectorDataList.forEach(selectorData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
+                subscriber.unSelectorSubscribe(selectorData);
+                subscriber.onSelectorSubscribe(selectorData);
+            }));
         } catch (JsonParseException e) {
             log.error("sync selector data have error:", e);
         }
@@ -102,9 +111,13 @@ public class NacosCacheHandler {
 
     protected void updateRuleMap(final String configInfo) {
         try {
-            List<RuleData> ruleDataList = GsonUtils.getInstance().fromList(configInfo, RuleData.class);
-            ruleDataList.forEach(ruleData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unRuleSubscribe(ruleData)));
-            ruleDataList.forEach(ruleData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onRuleSubscribe(ruleData)));
+            List<RuleData> ruleDataList = GsonUtils.getInstance().toObjectMapList(configInfo, RuleData.class).values()
+                    .stream().flatMap(Collection::stream)
+                    .collect(Collectors.toList());
+            ruleDataList.forEach(ruleData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
+                subscriber.unRuleSubscribe(ruleData);
+                subscriber.onRuleSubscribe(ruleData);
+            }));
         } catch (JsonParseException e) {
             log.error("sync rule data have error:", e);
         }
@@ -112,9 +125,11 @@ public class NacosCacheHandler {
 
     protected void updateMetaDataMap(final String configInfo) {
         try {
-            List<MetaData> metaDataList = GsonUtils.getInstance().fromList(configInfo, MetaData.class);
-            metaDataList.forEach(metaData -> metaDataSubscribers.forEach(subscriber -> subscriber.unSubscribe(metaData)));
-            metaDataList.forEach(metaData -> metaDataSubscribers.forEach(subscriber -> subscriber.onSubscribe(metaData)));
+            List<MetaData> metaDataList = GsonUtils.getInstance().toObjectMap(configInfo, MetaData.class).values().stream().collect(Collectors.toList());
+            metaDataList.forEach(metaData -> metaDataSubscribers.forEach(subscriber -> {
+                subscriber.unSubscribe(metaData);
+                subscriber.onSubscribe(metaData);
+            }));
         } catch (JsonParseException e) {
             log.error("sync meta data have error:", e);
         }
@@ -122,9 +137,11 @@ public class NacosCacheHandler {
 
     protected void updateAuthMap(final String configInfo) {
         try {
-            List<AppAuthData> appAuthDataList = GsonUtils.getInstance().fromList(configInfo, AppAuthData.class);
-            appAuthDataList.forEach(authData -> authDataSubscribers.forEach(subscriber -> subscriber.unSubscribe(authData)));
-            appAuthDataList.forEach(authData -> authDataSubscribers.forEach(subscriber -> subscriber.onSubscribe(authData)));
+            List<AppAuthData> appAuthDataList = GsonUtils.getInstance().toObjectMap(configInfo, AppAuthData.class).values().stream().collect(Collectors.toList());
+            appAuthDataList.forEach(appAuthData -> authDataSubscribers.forEach(subscriber -> {
+                subscriber.unSubscribe(appAuthData);
+                subscriber.onSubscribe(appAuthData);
+            }));
         } catch (JsonParseException e) {
             log.error("sync auth data have error:", e);
         }

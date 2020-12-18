@@ -273,7 +273,7 @@ public class JmxScraper {
                         LinkedList<String> attrNames = extendedAttrKeys;
                         String typ = type.getType(valueIdx).getTypeName();
                         String name = valueIdx;
-                        if ("value".equalsIgnoreCase(valueIdx.toLowerCase())) {
+                        if ("value".equalsIgnoreCase(valueIdx)) {
                             // Skip appending 'value' to the name
                             attrNames = attrKeys;
                             name = attrName;

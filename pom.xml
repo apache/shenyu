@@ -478,6 +478,7 @@
                 <version>${maven-javadoc-plugin.version}</version>
                 <configuration>
                     <aggregate>true</aggregate>
+                    <sourcepath>src/main/java</sourcepath>
                 </configuration>
                 <executions>
                     <execution>
@@ -589,6 +590,8 @@
                         <!-- document files -->
                         <exclude>**/*.md</exclude>
                         <excldue>**/*.MD</excldue>
+                        <excldue>**/*.conf</excldue>
+                        <excldue>**/*.tars</excldue>
                         <exclude>**/*.txt</exclude>
                         <exclude>**/docs/**</exclude>
                         <!-- UI files -->
