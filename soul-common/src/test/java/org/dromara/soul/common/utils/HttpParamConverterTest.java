@@ -54,10 +54,10 @@ public final class HttpParamConverterTest {
         collector.checkThat(params,
                 allOf(IsMapContaining.hasEntry("a", "1"),
                         IsMapContaining.hasEntry("b", "2"),
-                        IsMapContaining.hasEntry("c","")));
+                        IsMapContaining.hasEntry("c", "")));
 
         params = HttpParamConverter.initQueryParams("");
-        assertEquals(0,params.size());
+        assertEquals(0, params.size());
     }
 
     @Test
