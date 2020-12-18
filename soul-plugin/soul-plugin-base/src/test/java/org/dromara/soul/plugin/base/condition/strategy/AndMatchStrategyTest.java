@@ -53,7 +53,7 @@ public final class AndMatchStrategyTest {
         matchConditionData.setParamType("uri");
         matchConditionData.setParamValue("/http/**");
         ConditionData eqConditionData = new ConditionData();
-        eqConditionData.setOperator("match");
+        eqConditionData.setOperator("=");
         eqConditionData.setParamName("soul");
         eqConditionData.setParamType("uri");
         eqConditionData.setParamValue("/http/test");
