@@ -36,7 +36,7 @@ public interface MockValidatorTarget {
      */
     @MethodValidated
     void method1(String anything);
-    
+
     /**
      * mock method: method2.
      *
@@ -44,45 +44,45 @@ public interface MockValidatorTarget {
      */
     @MethodValidated
     void method2(@NotNull @MockConstraint MockValidationParameter mockValidationParameter);
-    
+
     /**
      * mock method: method3.
      *
      * @param parameters parameter
      */
     void method3(MockValidationParameter[] parameters);
-    
+
     /**
      * mock method: method4.
      *
      * @param strings parameter
      */
     void method4(List<String> strings);
-    
+
     /**
      * mock method: method5.
      *
      * @param map parameter
      */
     void method5(Map<String, String> map);
-    
+
     interface Method1 {
-    
+
     }
-    
+
     interface Method2 {
-    
+
     }
-    
+
     interface Method3 {
-    
+
     }
-    
+
     interface Method4 {
-    
+
     }
-    
+
     interface Method5 {
-    
+
     }
 }

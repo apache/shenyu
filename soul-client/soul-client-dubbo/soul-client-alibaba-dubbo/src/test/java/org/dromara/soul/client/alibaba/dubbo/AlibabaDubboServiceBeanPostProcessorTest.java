@@ -39,9 +39,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class AlibabaDubboServiceBeanPostProcessorTest {
-    
+
     private static AlibabaDubboServiceBeanPostProcessor alibabaDubboServiceBeanPostProcessor;
-    
+
     @Test
     public void testOnApplicationEventWithNonDubboConfigContextPath() {
         DubboConfig mockDubboConfig = new DubboConfig();
@@ -53,7 +53,7 @@ public class AlibabaDubboServiceBeanPostProcessorTest {
         } catch (RuntimeException e) {
             Assert.assertEquals("Alibaba dubbo client must config the contextPath, adminUrl", e.getMessage());
         }
-        
+
         try {
             mockDubboConfig.setAdminUrl(null);
             mockDubboConfig.setContextPath("/dubbo");
@@ -62,59 +62,59 @@ public class AlibabaDubboServiceBeanPostProcessorTest {
             Assert.assertEquals("Alibaba dubbo client must config the contextPath, adminUrl", e.getMessage());
         }
     }
-    
+
     @Test
     public void testOnApplicationEventNormally() {
         DubboConfig mockDubboConfig = new DubboConfig();
         mockDubboConfig.setAdminUrl("http://127.0.0.1:28080");
         mockDubboConfig.setContextPath("/dubbo");
         alibabaDubboServiceBeanPostProcessor = new AlibabaDubboServiceBeanPostProcessor(mockDubboConfig);
-        
+
         ApplicationContext applicationContext = new AnnotationConfigApplicationContext(MockApplicationConfiguration.class);
         ContextRefreshedEvent contextRefreshedEvent = new ContextRefreshedEvent(applicationContext);
         alibabaDubboServiceBeanPostProcessor.onApplicationEvent(contextRefreshedEvent);
     }
-    
+
     @Test
     public void testOnApplicationEventWithNonNullContextRefreshedEventParent() {
         DubboConfig mockDubboConfig = new DubboConfig();
         mockDubboConfig.setAdminUrl("http://127.0.0.1:28080");
         mockDubboConfig.setContextPath("/dubbo");
         alibabaDubboServiceBeanPostProcessor = new AlibabaDubboServiceBeanPostProcessor(mockDubboConfig);
-        
+
         ApplicationContext mockApplicationContext = mock(ApplicationContext.class);
         when(mockApplicationContext.getParent()).thenReturn(new AnnotationConfigApplicationContext());
         ContextRefreshedEvent contextRefreshedEvent = new ContextRefreshedEvent(mockApplicationContext);
         alibabaDubboServiceBeanPostProcessor.onApplicationEvent(contextRefreshedEvent);
     }
-    
+
     interface MockDubboService {
         String foo();
     }
-    
+
     static class MockDubboServiceImpl implements MockDubboService {
-        
+
         @Override
         @SoulDubboClient(path = "/mock/foo")
         public String foo() {
             return "bar";
         }
     }
-    
+
     static class MockApplicationConfiguration {
-        
+
         @Bean
         public MockDubboService dubboService() {
             NameMatchMethodPointcutAdvisor advisor = new NameMatchMethodPointcutAdvisor();
             advisor.setAdvice(new PerformanceMonitorInterceptor());
             advisor.setMappedName("foo");
-            
+
             ProxyFactoryBean proxyFactoryBean = new ProxyFactoryBean();
             proxyFactoryBean.setProxyTargetClass(true);
             proxyFactoryBean.setTarget(new MockDubboServiceImpl());
             return (MockDubboService) proxyFactoryBean.getObject();
         }
-        
+
         @Bean
         public ServiceBean<Object> mockServiceBean() {
             Service service = mock(Service.class);

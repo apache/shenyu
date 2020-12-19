@@ -72,11 +72,11 @@ import java.util.Set;
  */
 @Slf4j
 public class AlibabaDubboClientValidator implements Validator {
-    
+
     private final Class<?> clazz;
-    
+
     private final javax.validation.Validator validator;
-    
+
     @SuppressWarnings({"unchecked", "rawtypes"})
     public AlibabaDubboClientValidator(final URL url) {
         this.clazz = ReflectUtils.forName(url.getServiceInterface());
@@ -89,19 +89,19 @@ public class AlibabaDubboClientValidator implements Validator {
         }
         this.validator = factory.getValidator();
     }
-    
+
     private static boolean isPrimitives(final Class<?> cls) {
         if (cls.isArray()) {
             return isPrimitive(cls.getComponentType());
         }
         return isPrimitive(cls);
     }
-    
+
     private static boolean isPrimitive(final Class<?> cls) {
         return cls.isPrimitive() || cls == String.class || cls == Boolean.class || cls == Character.class
                 || Number.class.isAssignableFrom(cls) || Date.class.isAssignableFrom(cls);
     }
-    
+
     private static Object getMethodParameterBean(final Class<?> clazz, final Method method, final Object[] args) {
         if (!hasConstraintParameter(method)) {
             return null;
@@ -162,21 +162,21 @@ public class AlibabaDubboClientValidator implements Validator {
             return null;
         }
     }
-    
+
     private static String generateMethodParameterClassName(final Class<?> clazz, final Method method) {
         StringBuilder builder = new StringBuilder().append(clazz.getName())
                 .append("_")
                 .append(toUpperMethoName(method.getName()))
                 .append("Parameter");
-        
+
         Class<?>[] parameterTypes = method.getParameterTypes();
         for (Class<?> parameterType : parameterTypes) {
             builder.append("_").append(parameterType.getName());
         }
-        
+
         return builder.toString();
     }
-    
+
     private static boolean hasConstraintParameter(final Method method) {
         Annotation[][] parameterAnnotations = method.getParameterAnnotations();
         if (parameterAnnotations.length > 0) {
@@ -190,11 +190,11 @@ public class AlibabaDubboClientValidator implements Validator {
         }
         return false;
     }
-    
+
     private static String toUpperMethoName(final String methodName) {
         return methodName.substring(0, 1).toUpperCase() + methodName.substring(1);
     }
-    
+
     // Copy from javassist.bytecode.annotation.Annotation.createMemberValue(ConstPool, CtClass);
     private static MemberValue createMemberValue(final ConstPool cp, final CtClass type, final Object value) throws NotFoundException {
         MemberValue memberValue = javassist.bytecode.annotation.Annotation.createMemberValue(cp, type);
@@ -232,7 +232,7 @@ public class AlibabaDubboClientValidator implements Validator {
         }
         return memberValue;
     }
-    
+
     @Override
     public void validate(final String methodName, final Class<?>[] parameterTypes, final Object[] arguments) throws Exception {
         List<Class<?>> groups = new ArrayList<>();
@@ -254,19 +254,19 @@ public class AlibabaDubboClientValidator implements Validator {
         // add into default group
         groups.add(0, Default.class);
         groups.add(1, clazz);
-        
+
         // convert list to array
         Class<?>[] classGroups = groups.toArray(new Class[0]);
-        
+
         Object parameterBean = getMethodParameterBean(clazz, method, arguments);
         if (parameterBean != null) {
             violations.addAll(validator.validate(parameterBean, classGroups));
         }
-        
+
         for (Object arg : arguments) {
             validate(violations, arg, classGroups);
         }
-        
+
         if (!violations.isEmpty()) {
             log.error("Failed to validate service: " + clazz.getName() + ", method: " + methodName + ", cause: " + violations);
             StringBuilder validateError = new StringBuilder();
@@ -274,7 +274,7 @@ public class AlibabaDubboClientValidator implements Validator {
             throw new ValidationException(validateError.substring(0, validateError.length() - 1));
         }
     }
-    
+
     private void validate(final Set<ConstraintViolation<?>> violations, final Object arg, final Class<?>... groups) {
         if (arg != null && !isPrimitives(arg.getClass())) {
             if (arg instanceof Object[]) {

@@ -26,7 +26,7 @@ import javax.validation.ConstraintValidatorContext;
  * @author David Liu
  */
 public class MockConstraintValidator implements ConstraintValidator<MockConstraint, Object> {
-    
+
     @Override
     public boolean isValid(final Object value, final ConstraintValidatorContext context) {
         // mock return

@@ -33,10 +33,10 @@ public class MockValidationParameter {
      */
     @NotNull
     private String stringParameter;
-    
+
     public MockValidationParameter() {
     }
-    
+
     /**
      * constructor with parameter.
      *

@@ -49,13 +49,13 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener<ContextRefreshedEvent> {
-    
+
     private final DubboConfig dubboConfig;
-    
+
     private final ExecutorService executorService;
-    
+
     private final String url;
-    
+
     public AlibabaDubboServiceBeanPostProcessor(final DubboConfig dubboConfig) {
         String contextPath = dubboConfig.getContextPath();
         String adminUrl = dubboConfig.getAdminUrl();
@@ -67,7 +67,7 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
         url = dubboConfig.getAdminUrl() + "/soul-client/dubbo-register";
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
     }
-    
+
     @SuppressWarnings("rawtypes")
     private void handler(final ServiceBean serviceBean) {
         Class<?> clazz = serviceBean.getRef().getClass();
@@ -88,7 +88,7 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
             }
         }
     }
-    
+
     @SuppressWarnings("rawtypes")
     private String buildJsonParams(final ServiceBean serviceBean, final SoulDubboClient soulDubboClient, final Method method) {
         String appName = dubboConfig.getAppName();
@@ -118,9 +118,8 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
                 .enabled(soulDubboClient.enabled())
                 .build();
         return OkHttpTools.getInstance().getGson().toJson(metaDataDTO);
-        
     }
-    
+
     @SuppressWarnings("rawtypes")
     private String buildRpcExt(final ServiceBean serviceBean) {
         MetaDataDTO.RpcExt build = MetaDataDTO.RpcExt.builder()
@@ -132,9 +131,9 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
                 .url("")
                 .build();
         return OkHttpTools.getInstance().getGson().toJson(build);
-        
+
     }
-    
+
     @Override
     @SuppressWarnings("rawtypes")
     public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
