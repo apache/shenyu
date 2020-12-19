@@ -15,19 +15,27 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.query;
+package org.dromara.soul.examples.tars;
 
-import org.dromara.soul.admin.vo.base.ReflectGetterSetterBaseTest;
+import com.qq.tars.spring.annotation.EnableTarsServer;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * Test case for RuleQuery.
- *
- * @author wuudongdong
+ * SoulTestTarsApplication.
+ * @author tydhot
  */
-public final class RuleQueryTestReflectGetterSetter extends ReflectGetterSetterBaseTest<RuleQuery> {
+@SpringBootApplication
+@EnableTarsServer
+public class SoulTestTarsApplication {
 
-    @Override
-    protected RuleQuery getTargetClass() {
-        return new RuleQuery();
+    /**
+     * main.
+     *
+     * @param args args
+     */
+    public static void main(final String[] args) {
+        SpringApplication.run(SoulTestTarsApplication.class, args);
     }
+
 }

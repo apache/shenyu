@@ -17,16 +17,16 @@
 
 package org.dromara.soul.common.utils;
 
+import lombok.SneakyThrows;
+import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
+
 import java.net.URLDecoder;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import lombok.SneakyThrows;
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
 
 /**
  * The type Http param converter.
@@ -63,15 +63,15 @@ public final class HttpParamConverter {
      * @param query the query
      * @return the map
      */
-    static Map<String, String> initQueryParams(final String query) {
+    public static Map<String, String> initQueryParams(final String query) {
         final Map<String, String> queryParams = new LinkedHashMap<>();
-        if (query != null) {
+        if (!StringUtils.isEmpty(query)) {
             final Matcher matcher = PATTERN.matcher(query);
             while (matcher.find()) {
                 String name = decodeQueryParam(matcher.group(1));
                 String eq = matcher.group(2);
                 String value = matcher.group(3);
-                value = value != null ? decodeQueryParam(value) : (StringUtils.hasLength(eq) ? "" : null);
+                value = !StringUtils.isEmpty(value) ? decodeQueryParam(value) : (StringUtils.hasLength(eq) ? "" : null);
                 queryParams.put(name, value);
             }
         }
@@ -85,7 +85,7 @@ public final class HttpParamConverter {
      * @return the string
      */
     @SneakyThrows
-    static String decodeQueryParam(final String value) {
+    public static String decodeQueryParam(final String value) {
         return URLDecoder.decode(value, "UTF-8");
     }
 }
