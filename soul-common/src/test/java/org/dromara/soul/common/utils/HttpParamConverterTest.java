@@ -50,11 +50,12 @@ public final class HttpParamConverterTest {
 
     @Test
     public void testInitQueryParams() {
-        Map<String, String> params = HttpParamConverter.initQueryParams("a=1&b=2&c=");
+        Map<String, String> params = HttpParamConverter.initQueryParams("a=1&b=2&c=&d");
         collector.checkThat(params,
                 allOf(IsMapContaining.hasEntry("a", "1"),
                         IsMapContaining.hasEntry("b", "2"),
-                        IsMapContaining.hasEntry("c", "")));
+                        IsMapContaining.hasEntry("c", ""),
+                        IsMapContaining.hasEntry("d", null)));
 
         params = HttpParamConverter.initQueryParams("");
         assertEquals(0, params.size());
