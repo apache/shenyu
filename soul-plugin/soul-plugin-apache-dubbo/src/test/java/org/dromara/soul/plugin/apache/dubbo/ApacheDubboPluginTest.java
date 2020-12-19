@@ -115,7 +115,7 @@ public final class ApacheDubboPluginTest {
     }
 
     @Test
-    public void named() {
+    public void testNamed() {
         final String result = apacheDubboPlugin.named();
         assertEquals(PluginEnum.DUBBO.getName(), result);
     }
