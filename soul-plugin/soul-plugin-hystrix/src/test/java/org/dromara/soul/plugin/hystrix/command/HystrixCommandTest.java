@@ -30,6 +30,7 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import rx.observers.TestSubscriber;
 
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
@@ -37,6 +38,7 @@ import java.net.InetSocketAddress;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * The Test Case For HystrixCommand.
@@ -91,5 +93,32 @@ public final class HystrixCommandTest {
         Method method = clazz.getDeclaredMethod("construct");
         method.setAccessible(true);
         assertNotNull(method.invoke(this.hystrixCommand));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testResumeWithFallback() {
+        MockServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost:8080/http")
+                .remoteAddress(new InetSocketAddress(8092))
+                .header("MetaDataCache", "Hello")
+                .build());
+        HystrixHandle hystrixHandle = new HystrixHandle();
+        hystrixHandle.setGroupKey("groupKey");
+        hystrixHandle.setCommandKey("commandKey");
+        final HystrixCommandProperties.Setter propertiesSetter =
+                HystrixCommandProperties.Setter()
+                        .withExecutionTimeoutInMilliseconds((int) hystrixHandle.getTimeout())
+                        .withCircuitBreakerEnabled(true)
+                        .withExecutionIsolationStrategy(HystrixCommandProperties.ExecutionIsolationStrategy.SEMAPHORE)
+                        .withExecutionIsolationSemaphoreMaxConcurrentRequests(hystrixHandle.getMaxConcurrentRequests())
+                        .withCircuitBreakerErrorThresholdPercentage(hystrixHandle.getErrorThresholdPercentage())
+                        .withCircuitBreakerRequestVolumeThreshold(hystrixHandle.getRequestVolumeThreshold())
+                        .withCircuitBreakerSleepWindowInMilliseconds(hystrixHandle.getSleepWindowInMilliseconds());
+        HystrixObservableCommand.Setter setter = HystrixObservableCommand.Setter
+                .withGroupKey(HystrixCommandGroupKey.Factory.asKey(hystrixHandle.getGroupKey()))
+                .andCommandKey(HystrixCommandKey.Factory.asKey(hystrixHandle.getCommandKey()))
+                .andCommandPropertiesDefaults(propertiesSetter);
+        HystrixCommand hystrixCommand = new HystrixCommand(setter, exchange, mock(SoulPluginChain.class), null);
+        TestSubscriber<Void> testSubscriberWithNull = new TestSubscriber<>();
+        when(hystrixCommand.resumeWithFallback().subscribe(testSubscriberWithNull)).thenThrow(NullPointerException.class);
     }
 }

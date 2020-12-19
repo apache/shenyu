@@ -29,6 +29,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
 
@@ -80,5 +81,10 @@ public final class HystrixCommandOnThreadTest {
     @Test
     public void testGetCallBackUri() {
         assertEquals(hystrixCommandOnThread.getCallBackUri().getHost(), "callback");
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testGetFallback() {
+        StepVerifier.create(hystrixCommandOnThread.getFallback()).expectSubscription().verifyComplete();
     }
 }

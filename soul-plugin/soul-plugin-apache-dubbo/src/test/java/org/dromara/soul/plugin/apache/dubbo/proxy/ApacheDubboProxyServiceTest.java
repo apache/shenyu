@@ -21,38 +21,35 @@ import com.google.common.cache.LoadingCache;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.dubbo.config.ReferenceConfig;
+import org.apache.dubbo.rpc.RpcContext;
 import org.apache.dubbo.rpc.service.GenericService;
 import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.plugin.apache.dubbo.cache.ApplicationConfigCache;
 import org.dromara.soul.plugin.api.dubbo.DubboParamResolveService;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.lang.reflect.Field;
-import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * ApacheDubboProxyServiceTest.
+ * The Test Case For ApacheDubboProxyService.
  *
- * @author tydhot
- */
-@RunWith(MockitoJUnitRunner.class)
+ * @author nuo-promise
+ **/
 public final class ApacheDubboProxyServiceTest {
-    private static final String PATH = "/sofa/findAll";
 
-    private static final String METHOD_NAME = "findAll";
+    private static final String PATH = "/dubbo/findAll";
 
     private static final String[] LEFT = new String[]{};
+
+    private static final String METHOD_NAME = "findAll";
 
     private static final Object[] RIGHT = new Object[]{};
 
@@ -61,37 +58,31 @@ public final class ApacheDubboProxyServiceTest {
     private ServerWebExchange exchange;
 
     @Before
-    public void setup() {
+    public void setUp() {
         exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
         metaData = new MetaData();
         metaData.setId("1332017966661636096");
-        metaData.setAppName("sofa");
+        metaData.setAppName("dubbo");
         metaData.setPath(PATH);
         metaData.setServiceName("org.dromara.soul.test.dubbo.api.service.DubboTestService");
         metaData.setMethodName(METHOD_NAME);
-        metaData.setRpcType(RpcTypeEnum.SOFA.getName());
+        metaData.setRpcType(RpcTypeEnum.DUBBO.getName());
     }
 
-    @After
-    public void after() {
-        ApplicationConfigCache.getInstance().invalidateAll();
-    }
-
-    @Test
-    public void test() throws NoSuchFieldException, IllegalAccessException {
+    @Test(expected = NullPointerException.class)
+    public void genericInvoker() throws NoSuchFieldException, IllegalAccessException {
         ReferenceConfig referenceConfig = mock(ReferenceConfig.class);
         GenericService genericService = mock(GenericService.class);
         when(referenceConfig.get()).thenReturn(genericService);
         when(referenceConfig.getInterface()).thenReturn(PATH);
-        CompletableFuture<Object> future = new CompletableFuture<>();
-        when(genericService.$invokeAsync(METHOD_NAME, LEFT, RIGHT)).thenReturn(future);
+        when(genericService.$invoke(PATH, LEFT, RIGHT)).thenReturn(null);
         ApplicationConfigCache applicationConfigCache = ApplicationConfigCache.getInstance();
         Field field = ApplicationConfigCache.class.getDeclaredField("cache");
         field.setAccessible(true);
         ((LoadingCache) field.get(applicationConfigCache)).put(PATH, referenceConfig);
         ApacheDubboProxyService apacheDubboProxyService = new ApacheDubboProxyService(new DubboParamResolveServiceImpl());
         apacheDubboProxyService.genericInvoker("", metaData, exchange);
-        future.complete("success");
+        System.out.println("response" + RpcContext.getContext().getResponse());
     }
 
     class DubboParamResolveServiceImpl implements DubboParamResolveService {
