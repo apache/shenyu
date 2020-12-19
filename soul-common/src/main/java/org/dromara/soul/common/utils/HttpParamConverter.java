@@ -63,7 +63,7 @@ public final class HttpParamConverter {
      * @param query the query
      * @return the map
      */
-    static Map<String, String> initQueryParams(final String query) {
+    public static Map<String, String> initQueryParams(final String query) {
         final Map<String, String> queryParams = new LinkedHashMap<>();
         if (!StringUtils.isEmpty(query)) {
             final Matcher matcher = PATTERN.matcher(query);
@@ -85,7 +85,7 @@ public final class HttpParamConverter {
      * @return the string
      */
     @SneakyThrows
-    static String decodeQueryParam(final String value) {
+    public static String decodeQueryParam(final String value) {
         return URLDecoder.decode(value, "UTF-8");
     }
 }
