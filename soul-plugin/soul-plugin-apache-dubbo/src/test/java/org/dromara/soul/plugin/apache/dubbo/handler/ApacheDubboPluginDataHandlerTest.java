@@ -19,27 +19,23 @@ package org.dromara.soul.plugin.apache.dubbo.handler;
 
 import org.dromara.soul.common.config.DubboRegisterConfig;
 import org.dromara.soul.common.dto.PluginData;
-import org.dromara.soul.plugin.base.utils.Singleton;
-import org.junit.Assert;
+import org.dromara.soul.common.enums.PluginEnum;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.junit.Before;
-import org.junit.FixMethodOrder;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.MethodSorters;
-import org.mockito.junit.MockitoJUnitRunner;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
 
 /**
- * Test cases for ApacheDubboPluginDataHandler.
+ * The Test Case For ApacheDubboPluginDataHandler.
  *
- * @author kennhua
- */
-@RunWith(MockitoJUnitRunner.class)
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+ * @author nuo-promise
+ **/
 public final class ApacheDubboPluginDataHandlerTest {
 
     private ApacheDubboPluginDataHandler apacheDubboPluginDataHandler;
-
-    private final String registryConfig = "{\"protocol\":\"zookeeper\",\"register\":\"127.0.0.1:2181\"}";
 
     @Before
     public void setUp() {
@@ -47,16 +43,19 @@ public final class ApacheDubboPluginDataHandlerTest {
     }
 
     @Test
-    public void testPluginEnable() {
-        PluginData pluginData = new PluginData("", "", registryConfig, 1, true);
+    public void handlerPlugin() {
+        DubboRegisterConfig dubboRegisterConfig = mock(DubboRegisterConfig.class);
+        PluginData pluginData = PluginData.builder()
+                .enabled(true)
+                .config(GsonUtils.getInstance().toJson(dubboRegisterConfig))
+                .build();
         apacheDubboPluginDataHandler.handlerPlugin(pluginData);
-        Assert.assertEquals(Singleton.INST.get(DubboRegisterConfig.class).getRegister(), "127.0.0.1:2181");
+        pluginData.setConfig(null);
+        apacheDubboPluginDataHandler.handlerPlugin(pluginData);
     }
 
     @Test
-    public void testPluginDisable() {
-        PluginData pluginData = new PluginData("", "", registryConfig, 1, false);
-        apacheDubboPluginDataHandler.handlerPlugin(pluginData);
-        Assert.assertNull(Singleton.INST.get(DubboRegisterConfig.class));
+    public void pluginNamed() {
+        assertThat(apacheDubboPluginDataHandler.pluginNamed(), is(PluginEnum.DUBBO.getName()));
     }
 }
