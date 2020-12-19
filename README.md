@@ -85,7 +85,7 @@
  
  * soul-sync-data-center : provider ZooKeeper, HTTP, WebSocket, Nacos to sync data
  
- * soul-test : the RPC test project
+ * soul-examples : the RPC examples project
  
  * soul-web : core processing packages including plugins, request routing and forwarding, and so on
  
