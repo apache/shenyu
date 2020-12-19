@@ -85,7 +85,7 @@
 
  * soul-sync-data-center : 提供 ZooKeeper，HTTP，WebSocket，Nacos 的方式同步数据
 
- * soul-test : RPC 测试项目
+ * soul-examples : RPC 示例项目
 
  * soul-web : 包括插件、请求路由和转发等的核心处理包
 
