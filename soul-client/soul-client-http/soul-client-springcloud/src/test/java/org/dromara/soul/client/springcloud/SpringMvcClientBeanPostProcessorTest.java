@@ -17,26 +17,40 @@
 
 package org.dromara.soul.client.springcloud;
 
+import org.dromara.soul.client.common.utils.RegisterUtils;
 import org.dromara.soul.client.springcloud.annotation.SoulSpringCloudClient;
 import org.dromara.soul.client.springcloud.config.SoulSpringCloudConfig;
 import org.dromara.soul.client.springcloud.init.SpringCloudClientBeanPostProcessor;
+import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 import org.springframework.core.env.Environment;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 /**
  * SpringMvcClientBeanPostProcessorTest.
  *
  * @author kaitoShy
+ * @author dengliming
  */
 @RunWith(MockitoJUnitRunner.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -44,28 +58,50 @@ public final class SpringMvcClientBeanPostProcessorTest {
     @Mock
     private static Environment env;
 
-    private static SpringCloudClientBeanPostProcessor springCloudClientBeanPostProcessor;
-
     private final SpringMvcClientTestBean springMvcClientTestBean = new SpringMvcClientTestBean();
 
-    @Test
-    public void testSoulBeanProcess() throws InterruptedException {
-        SoulSpringCloudConfig soulSpringCloudConfig = new SoulSpringCloudConfig();
-        soulSpringCloudConfig.setAdminUrl("http://127.0.0.1:58080");
-        soulSpringCloudConfig.setContextPath("test");
+    @Before
+    public void init() {
         when(env.getProperty("spring.application.name")).thenReturn("spring-cloud-test");
-        springCloudClientBeanPostProcessor = new SpringCloudClientBeanPostProcessor(soulSpringCloudConfig, env);
-        springCloudClientBeanPostProcessor.postProcessAfterInitialization(springMvcClientTestBean, "springMvcClientTestBean");
     }
 
     @Test
-    public void testNormalBeanProcess() throws InterruptedException {
+    public void testSoulBeanProcess() {
+        // config with full
+        SpringCloudClientBeanPostProcessor springCloudClientBeanPostProcessor = buildSpringCloudClientBeanPostProcessor(true);
+        assertEquals(springMvcClientTestBean, springCloudClientBeanPostProcessor.postProcessAfterInitialization(springMvcClientTestBean, "springMvcClientTestBean"));
+    }
+
+    @Test
+    public void testNormalBeanProcess() {
+        SpringCloudClientBeanPostProcessor springCloudClientBeanPostProcessor = buildSpringCloudClientBeanPostProcessor(false);
+        Object normalBean = new Object();
+        assertEquals(normalBean, springCloudClientBeanPostProcessor.postProcessAfterInitialization(normalBean, "normalBean"));
+    }
+
+    @Test
+    public void testWithSoulClientAnnotation() {
+        try (MockedStatic mocked = mockStatic(RegisterUtils.class)) {
+            mocked.when(() -> RegisterUtils.doRegister(any(), any(), any()))
+                    .thenAnswer((Answer<Void>) invocation -> null);
+            SpringCloudClientBeanPostProcessor springCloudClientBeanPostProcessor = buildSpringCloudClientBeanPostProcessor(false);
+            ReflectionTestUtils.setField(springCloudClientBeanPostProcessor, "executorService", new ThreadPoolExecutor(1,
+                    1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>()) {
+                @Override
+                public void execute(final Runnable command) {
+                    command.run();
+                }
+            });
+            assertEquals(springMvcClientTestBean, springCloudClientBeanPostProcessor.postProcessAfterInitialization(springMvcClientTestBean, "normalBean"));
+        }
+    }
+
+    private SpringCloudClientBeanPostProcessor buildSpringCloudClientBeanPostProcessor(final boolean full) {
         SoulSpringCloudConfig soulSpringCloudConfig = new SoulSpringCloudConfig();
         soulSpringCloudConfig.setAdminUrl("http://127.0.0.1:8080");
         soulSpringCloudConfig.setContextPath("test");
-        when(env.getProperty("spring.application.name")).thenReturn("spring-cloud-test");
-        springCloudClientBeanPostProcessor = new SpringCloudClientBeanPostProcessor(soulSpringCloudConfig, env);
-        springCloudClientBeanPostProcessor.postProcessAfterInitialization(new Object(), "normalBean");
+        soulSpringCloudConfig.setFull(full);
+        return new SpringCloudClientBeanPostProcessor(soulSpringCloudConfig, env);
     }
 
     @RestController

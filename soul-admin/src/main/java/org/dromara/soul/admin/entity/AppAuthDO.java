@@ -95,13 +95,13 @@ public final class AppAuthDO extends BaseDO {
      * @return {@linkplain AppAuthDO}
      */
     public static AppAuthDO create(final AuthApplyDTO authApplyDTO) {
-        return Optional.ofNullable(authApplyDTO).map(iterm -> {
+        return Optional.ofNullable(authApplyDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             return AppAuthDO.builder()
                     .id(UUIDUtils.getInstance().generateShortUuid())
-                    .userId(iterm.getUserId())
-                    .phone(iterm.getPhone())
-                    .extInfo(iterm.getExtInfo())
+                    .userId(item.getUserId())
+                    .phone(item.getPhone())
+                    .extInfo(item.getExtInfo())
                     .appKey(SignUtils.getInstance().generateKey())
                     .appSecret(SignUtils.getInstance().generateKey())
                     .enabled(true)
