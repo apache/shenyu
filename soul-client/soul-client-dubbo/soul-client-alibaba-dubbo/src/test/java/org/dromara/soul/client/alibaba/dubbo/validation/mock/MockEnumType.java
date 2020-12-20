@@ -15,33 +15,13 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.client.alibaba.dubbo.validation.service;
-
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import javax.validation.constraints.NotNull;
+package org.dromara.soul.client.alibaba.dubbo.validation.mock;
 
 /**
- * TestService.
+ * Mock Enum Type.
  *
- * @author KevinClair
+ * @author David Liu
  */
-public interface TestService {
-
-    /**
-     * test method.
-     *
-     * @param testObject testObject
-     * @return String
-     */
-    String test(TestObject testObject);
-
-    @Data
-    @Builder
-    @EqualsAndHashCode
-    class TestObject {
-        @NotNull(message = "age cannot be null.")
-        private Integer age;
-    }
+public enum MockEnumType {
+    MEMBER;
 }

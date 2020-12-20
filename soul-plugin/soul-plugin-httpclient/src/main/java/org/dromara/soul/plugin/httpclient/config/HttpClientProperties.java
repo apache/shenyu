@@ -195,11 +195,6 @@ public class HttpClientProperties {
          *
          * @return the x 509 certificate [ ]
          */
-        /**
-         * Get trusted x 509 certificates for trust manager x 509 certificate [ ].
-         *
-         * @return the x 509 certificate [ ]
-         */
         public X509Certificate[] getTrustedX509CertificatesForTrustManager() {
             try {
                 CertificateFactory certificateFactory = CertificateFactory
@@ -216,7 +211,8 @@ public class HttpClientProperties {
                                 "Could not load certificate '" + trustedCert + "'", e);
                     }
                 }
-                return allCerts.toArray(new X509Certificate[allCerts.size()]);
+                X509Certificate[] x509Certificates = new X509Certificate[allCerts.size()];
+                return allCerts.toArray(x509Certificates);
             } catch (CertificateException e) {
                 throw new WebServerException("Could not load CertificateFactory X.509", e);
             }
