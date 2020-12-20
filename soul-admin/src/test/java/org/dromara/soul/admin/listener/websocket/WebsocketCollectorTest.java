@@ -36,7 +36,9 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * Test case for WebsocketCollector.
@@ -72,7 +74,6 @@ public final class WebsocketCollectorTest {
 
             @Override
             public void onError(final Exception e) {
-                log.error("error happened", e);
             }
         };
     }
@@ -130,7 +131,7 @@ public final class WebsocketCollectorTest {
         return (Session) getField("session");
     }
 
-    private Object getField(String fieldName) throws ClassNotFoundException {
+    private Object getField(final String fieldName) throws ClassNotFoundException {
         Class clazz = Class.forName("org.dromara.soul.admin.listener.websocket.WebsocketCollector");
         Field[] declaredFields = clazz.getDeclaredFields();
         return Arrays.stream(declaredFields)
