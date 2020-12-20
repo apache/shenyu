@@ -49,9 +49,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
 
-    private SofaConfig sofaConfig;
+    private final SofaConfig sofaConfig;
 
-    private ExecutorService executorService;
+    private final ExecutorService executorService;
 
     private final String url;
 
@@ -76,9 +76,9 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
     }
 
     private void handler(final ServiceFactoryBean serviceBean) {
-        Class<?> clazz = null;
+        Class<?> clazz;
         try {
-            clazz = ((Service) serviceBean.getObject()).getTarget().getClass();
+            clazz = ((Service) Objects.requireNonNull(serviceBean.getObject())).getTarget().getClass();
         } catch (Exception e) {
             log.error("failed to get sofa target class");
             return;

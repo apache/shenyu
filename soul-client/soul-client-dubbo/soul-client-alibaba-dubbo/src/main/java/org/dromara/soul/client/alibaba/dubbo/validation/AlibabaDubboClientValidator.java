@@ -48,9 +48,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.validation.Constraint;
 import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
 import javax.validation.ValidationException;
 import javax.validation.ValidatorFactory;
-import javax.validation.Validation;
 import javax.validation.groups.Default;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
@@ -166,7 +166,7 @@ public class AlibabaDubboClientValidator implements Validator {
     private static String generateMethodParameterClassName(final Class<?> clazz, final Method method) {
         StringBuilder builder = new StringBuilder().append(clazz.getName())
                 .append("_")
-                .append(toUpperMethoName(method.getName()))
+                .append(toUpperMethodName(method.getName()))
                 .append("Parameter");
 
         Class<?>[] parameterTypes = method.getParameterTypes();
@@ -191,7 +191,7 @@ public class AlibabaDubboClientValidator implements Validator {
         return false;
     }
 
-    private static String toUpperMethoName(final String methodName) {
+    private static String toUpperMethodName(final String methodName) {
         return methodName.substring(0, 1).toUpperCase() + methodName.substring(1);
     }
 
@@ -236,19 +236,17 @@ public class AlibabaDubboClientValidator implements Validator {
     @Override
     public void validate(final String methodName, final Class<?>[] parameterTypes, final Object[] arguments) throws Exception {
         List<Class<?>> groups = new ArrayList<>();
-        String methodClassName = clazz.getName() + "$" + toUpperMethoName(methodName);
-        Class<?> methodClass;
+        String methodClassName = clazz.getName() + "$" + toUpperMethodName(methodName);
         try {
-            methodClass = Class.forName(methodClassName, false, Thread.currentThread().getContextClassLoader());
+            Class<?> methodClass = Class.forName(methodClassName, false, Thread.currentThread().getContextClassLoader());
             groups.add(methodClass);
         } catch (ClassNotFoundException e) {
             log.error(e.getMessage(), e);
         }
         Set<ConstraintViolation<?>> violations = new HashSet<>();
         Method method = clazz.getMethod(methodName, parameterTypes);
-        Class<?>[] methodClasses;
         if (method.isAnnotationPresent(MethodValidated.class)) {
-            methodClasses = method.getAnnotation(MethodValidated.class).value();
+            Class<?>[] methodClasses = method.getAnnotation(MethodValidated.class).value();
             groups.addAll(Arrays.asList(methodClasses));
         }
         // add into default group
@@ -256,7 +254,7 @@ public class AlibabaDubboClientValidator implements Validator {
         groups.add(1, clazz);
 
         // convert list to array
-        Class<?>[] classGroups = groups.toArray(new Class[0]);
+        Class<?>[] classGroups = groups.toArray(new Class<?>[0]);
 
         Object parameterBean = getMethodParameterBean(clazz, method, arguments);
         if (parameterBean != null) {

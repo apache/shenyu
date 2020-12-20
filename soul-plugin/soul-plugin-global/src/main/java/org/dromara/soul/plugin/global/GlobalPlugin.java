@@ -34,7 +34,7 @@ import reactor.core.publisher.Mono;
  */
 public class GlobalPlugin implements SoulPlugin {
     
-    private SoulContextBuilder builder;
+    private final SoulContextBuilder builder;
     
     /**
      * Instantiates a new Global plugin.

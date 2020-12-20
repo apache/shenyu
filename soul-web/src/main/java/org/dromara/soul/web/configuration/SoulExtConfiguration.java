@@ -38,7 +38,7 @@ public class SoulExtConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(value = SoulResult.class, search = SearchStrategy.ALL)
-    public SoulResult soulResult() {
+    public SoulResult<?> soulResult() {
         return new DefaultSoulResult();
     }
 

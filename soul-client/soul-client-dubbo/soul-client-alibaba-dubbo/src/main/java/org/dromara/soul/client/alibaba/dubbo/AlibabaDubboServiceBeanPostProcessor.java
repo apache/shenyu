@@ -68,8 +68,7 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
     }
 
-    @SuppressWarnings("rawtypes")
-    private void handler(final ServiceBean serviceBean) {
+    private void handler(final ServiceBean<?> serviceBean) {
         Class<?> clazz = serviceBean.getRef().getClass();
         if (ClassUtils.isCglibProxyClass(clazz)) {
             String superClassName = clazz.getGenericSuperclass().getTypeName();
@@ -89,8 +88,7 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
         }
     }
 
-    @SuppressWarnings("rawtypes")
-    private String buildJsonParams(final ServiceBean serviceBean, final SoulDubboClient soulDubboClient, final Method method) {
+    private String buildJsonParams(final ServiceBean<?> serviceBean, final SoulDubboClient soulDubboClient, final Method method) {
         String appName = dubboConfig.getAppName();
         if (StringUtils.isEmpty(appName)) {
             appName = serviceBean.getApplication().getName();
@@ -118,10 +116,10 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
                 .enabled(soulDubboClient.enabled())
                 .build();
         return OkHttpTools.getInstance().getGson().toJson(metaDataDTO);
+
     }
 
-    @SuppressWarnings("rawtypes")
-    private String buildRpcExt(final ServiceBean serviceBean) {
+    private String buildRpcExt(final ServiceBean<?> serviceBean) {
         MetaDataDTO.RpcExt build = MetaDataDTO.RpcExt.builder()
                 .group(StringUtils.isNotEmpty(serviceBean.getGroup()) ? serviceBean.getGroup() : "")
                 .version(StringUtils.isNotEmpty(serviceBean.getVersion()) ? serviceBean.getVersion() : "")
@@ -135,7 +133,6 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
     public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
         if (Objects.nonNull(contextRefreshedEvent.getApplicationContext().getParent())) {
             return;
