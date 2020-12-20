@@ -83,6 +83,11 @@ public enum PluginEnum {
     DIVIDE(50, 0, "divide"),
 
     /**
+     * WebClient plugin enum.
+     */
+    WEB_CLIENT(51, 0, "webClient"),
+
+    /**
      * springCloud plugin enum.
      */
     SPRING_CLOUD(50, 0, "springCloud"),
