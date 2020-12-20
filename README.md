@@ -65,29 +65,29 @@
   
 # Modules
 
- * soul-admin : Plugins and other information configuration management background
+ * soul-admin : plugins and other information configuration management background
  
- * soul-bootstrap : With the startup project, users can refer to
+ * soul-bootstrap : with the startup project, users can refer to
  
- * soul-client : User fast access with Spring MVC, Dubbo, Spring Cloud.
+ * soul-client : user fast access with Spring MVC, Dubbo, Spring Cloud.
   
- * soul-common : Framework common class
+ * soul-common : framework common class
  
  * soul-dist : build project
 
  * soul-metrics : metrics impl by prometheus.
  
- * soul-plugin : soul provider plugin collection.
+ * soul-plugin : Soul provider plugin collection.
  
- * soul-spi : soul spi define.
+ * soul-spi : Soul spi define.
  
- * soul-spring-boot-starter : Support for the spring boot starter
+ * soul-spring-boot-starter : support for the spring boot starter
  
- * soul-sync-data-center : provider zookeeper, http, websocket, nacos to sync data
+ * soul-sync-data-center : provider ZooKeeper, HTTP, WebSocket, Nacos to sync data
  
- * soul-test : the rpc test project
+ * soul-examples : the RPC examples project
  
- * soul-web : Core processing packages including plugins, request routing and forwarding, and so on
+ * soul-web : core processing packages including plugins, request routing and forwarding, and so on
  
 --------------------------------------------------------------------------------   
  
@@ -95,7 +95,7 @@
 
    * Soul provides plugins such as current limiting, fusing, forwarding, routing monitoring and so on.
    
-   * Seamless docking with HTTP,Restful,websocket,dubbo and springcloud.
+   * Seamless docking with HTTP, RESTful, WebSocket, Dubbo and Spring Cloud.
    
    * Plug-in hot plug, users can customize the development.
    
@@ -103,7 +103,7 @@
 
    * Support for cluster deployment.
    
-   * Support A/B test and grayscale publishing。
+   * Support A/B test and grayscale publishing.
    
 --------------------------------------------------------------------------------  
  
@@ -111,7 +111,7 @@
 
  Whenever a request comes in, Soul executes all open plugins through the chain of responsibility.
  
- As the heart of soul, plugins are extensible and hot-pluggable.
+ As the heart of Soul, plugins are extensible and hot-pluggable.
  
  Different plugins do different things.
  
@@ -137,9 +137,7 @@
  
   All data have been cached using ConcurrentHashMap in the JVM, so it's very fast.
   
-  When the user is managing changes in the background,
-  
-  Soul dynamically updates the cache by listening to the zookeeper node, websocket push, http longPull.
+  When the user is managing changes in the background, Soul dynamically updates the cache by listening to the ZooKeeper node, WebSocket push, HTTP longPull.
   
   ![](https://yu199195.github.io/images/soul/soul-config-processor.png)
   
@@ -151,7 +149,7 @@
  
    * JDK 1.8+
    
-   * Mysql
+   * MySQL
    
 --------------------------------------------------------------------------------     
    
@@ -190,7 +188,7 @@
 
 # Known Users
 
-In order of registration, More access companies are welcome to register at[https://github.com/Dromara/soul/issues/68](https://github.com/Dromara/soul/issues/68) (For open source users only)
+In order of registration, More access companies are welcome to register at [https://github.com/Dromara/soul/issues/68](https://github.com/Dromara/soul/issues/68) (For open source users only)
 
 <table>
   <tbody>
@@ -247,7 +245,7 @@ In order of registration, More access companies are welcome to register at[https
   <tbody>
     <tr>
       <td><img src="https://yu199195.github.io/images/public.jpg"   alt="微信公众号"/>
-      <td><img src="https://yu199195.github.io/images/soul-qq.png"  alt="QQ交流群"/>
+      <td><img src="https://yu199195.github.io/images/soul-qq.png"  alt="QQ 交流群"/>
       <td><img src="http://www.iocoder.cn/images/common/erweima.jpg"  alt="芋道源码"/>
     </tr>
   </tbody>
