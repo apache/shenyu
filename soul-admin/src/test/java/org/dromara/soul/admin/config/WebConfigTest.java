@@ -55,10 +55,10 @@ public final class WebConfigTest extends AbstractConfigurationTest {
     }
 
     private String getCorsConfigurationsString(final CorsRegistry registry) throws Exception {
-        Class registryClass = registry.getClass();
+        Class<?> registryClass = registry.getClass();
         Method getCorsConfigurationsMethod = registryClass.getDeclaredMethod("getCorsConfigurations");
         getCorsConfigurationsMethod.setAccessible(true);
-        Map invokeResult = (Map) getCorsConfigurationsMethod.invoke(registry);
+        Object invokeResult = getCorsConfigurationsMethod.invoke(registry);
         return JSONObject.toJSONString(invokeResult);
     }
 }
