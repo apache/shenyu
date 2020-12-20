@@ -18,7 +18,10 @@
 package org.dromara.soul.plugin.apache.dubbo.response;
 
 import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.enums.PluginEnum;
+import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.plugin.api.SoulPluginChain;
+import org.dromara.soul.plugin.api.context.SoulContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,13 +34,19 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-/**
- * the test for {@link DubboResponsePlugin}.
- * @author kaito
- */
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
+/**
+ * The Test Case For DubboResponsePlugin.
+ *
+ * @author nuo-promise
+ **/
 @RunWith(MockitoJUnitRunner.class)
-public final class ApacheDubboResponsePluginTest {
+public final class DubboResponsePluginTest {
+
     @Mock
     private SoulPluginChain chain;
 
@@ -46,23 +55,45 @@ public final class ApacheDubboResponsePluginTest {
     private DubboResponsePlugin dubboResponsePlugin;
 
     @Before
-    public void setup() {
+    public void setUp() {
+        dubboResponsePlugin = new DubboResponsePlugin();
         exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
     }
 
     @Test
     public void testNoResult() {
         Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
-        dubboResponsePlugin = new DubboResponsePlugin();
         StepVerifier.create(dubboResponsePlugin.execute(exchange, chain)).expectSubscription().verifyError();
     }
 
     @Test
     public void testGetResult() {
-        final String response = "{}";
         Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
-        dubboResponsePlugin = new DubboResponsePlugin();
+        String response = "{}";
         exchange.getAttributes().put(Constants.DUBBO_RPC_RESULT, response);
         StepVerifier.create(dubboResponsePlugin.execute(exchange, chain)).expectSubscription().verifyError(NullPointerException.class);
+    }
+
+    @Test
+    public void skip() {
+        ServerWebExchange exchange = MockServerWebExchange
+                .from(MockServerHttpRequest.get("http://localhost:8888/test").build());
+        SoulContext soulContext = new SoulContext();
+        soulContext.setRpcType(RpcTypeEnum.DUBBO.getName());
+        exchange.getAttributes().put(Constants.CONTEXT, soulContext);
+        assertFalse(dubboResponsePlugin.skip(exchange));
+        soulContext.setRpcType(RpcTypeEnum.HTTP.getName());
+        exchange.getAttributes().put(Constants.CONTEXT, soulContext);
+        assertTrue(dubboResponsePlugin.skip(exchange));
+    }
+
+    @Test
+    public void getOrder() {
+        assertThat(dubboResponsePlugin.getOrder(), is(PluginEnum.RESPONSE.getCode()));
+    }
+
+    @Test
+    public void named() {
+        assertThat(dubboResponsePlugin.named(), is(PluginEnum.RESPONSE.getName()));
     }
 }

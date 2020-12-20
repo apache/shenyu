@@ -18,6 +18,7 @@
 package org.dromara.soul.client.apache.dubbo.validation;
 
 import org.apache.dubbo.common.URL;
+import org.apache.dubbo.validation.Validator;
 import org.dromara.soul.client.apache.dubbo.validation.service.TestService;
 import org.junit.Test;
 
@@ -44,7 +45,7 @@ public class ApacheDubboClientValidatorTest {
                 + "&keep.alive=true&methods=test&pid=67352&qos.enable=false&release=2.7.0"
                 + "&side=provider&threadpool=fixed&threads=500&timeout=20000"
                 + "&timestamp=1608119259859&validation=soulValidation");
-        ApacheDubboClientValidator apacheDubboClientValidator = new ApacheDubboClientValidator(url);
+        Validator apacheDubboClientValidator = new ApacheDubboClientValidation().getValidator(url);
         try {
             apacheDubboClientValidator.validate("test",
                     new Class[]{TestService.TestObject.class},
