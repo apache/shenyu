@@ -70,6 +70,7 @@ public final class CombinedExecutorTest {
         when(conf.getCircuitBreakerConfig()).thenReturn(CircuitBreakerConfig.ofDefaults());
         StepVerifier.create(combinedExecutor.run(Mono.error(new RuntimeException()), throwable -> Mono.error(throwable), conf))
                 .expectSubscription()
-                .expectError(RuntimeException.class);
+                .expectError(RuntimeException.class)
+                .verify();
     }
 }

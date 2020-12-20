@@ -48,9 +48,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.validation.Constraint;
 import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
 import javax.validation.ValidationException;
 import javax.validation.ValidatorFactory;
-import javax.validation.Validation;
 import javax.validation.groups.Default;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
@@ -110,7 +110,7 @@ public class AlibabaDubboClientValidator implements Validator {
             String parameterClassName = generateMethodParameterClassName(clazz, method);
             Class<?> parameterClass;
             try {
-                parameterClass = (Class<?>) Class.forName(parameterClassName, true, clazz.getClassLoader());
+                parameterClass = Class.forName(parameterClassName, true, clazz.getClassLoader());
             } catch (ClassNotFoundException e) {
                 ClassPool pool = ClassGenerator.getClassPool(clazz.getClassLoader());
                 CtClass ctClass = pool.makeClass(parameterClassName);
@@ -133,7 +133,7 @@ public class AlibabaDubboClientValidator implements Validator {
                                 if (Modifier.isPublic(member.getModifiers())
                                         && member.getParameterTypes().length == 0
                                         && member.getDeclaringClass() == annotation.annotationType()) {
-                                    Object value = member.invoke(annotation, new Object[0]);
+                                    Object value = member.invoke(annotation);
                                     if (null != value) {
                                         MemberValue memberValue = createMemberValue(
                                                 classFile.getConstPool(), pool.get(member.getReturnType().getName()), value);
@@ -166,7 +166,7 @@ public class AlibabaDubboClientValidator implements Validator {
     private static String generateMethodParameterClassName(final Class<?> clazz, final Method method) {
         StringBuilder builder = new StringBuilder().append(clazz.getName())
                 .append("_")
-                .append(toUpperMethoName(method.getName()))
+                .append(toUpperMethodName(method.getName()))
                 .append("Parameter");
 
         Class<?>[] parameterTypes = method.getParameterTypes();
@@ -179,7 +179,7 @@ public class AlibabaDubboClientValidator implements Validator {
 
     private static boolean hasConstraintParameter(final Method method) {
         Annotation[][] parameterAnnotations = method.getParameterAnnotations();
-        if (parameterAnnotations != null && parameterAnnotations.length > 0) {
+        if (parameterAnnotations.length > 0) {
             for (Annotation[] annotations : parameterAnnotations) {
                 for (Annotation annotation : annotations) {
                     if (annotation.annotationType().isAnnotationPresent(Constraint.class)) {
@@ -191,7 +191,7 @@ public class AlibabaDubboClientValidator implements Validator {
         return false;
     }
 
-    private static String toUpperMethoName(final String methodName) {
+    private static String toUpperMethodName(final String methodName) {
         return methodName.substring(0, 1).toUpperCase() + methodName.substring(1);
     }
 
@@ -235,20 +235,18 @@ public class AlibabaDubboClientValidator implements Validator {
 
     @Override
     public void validate(final String methodName, final Class<?>[] parameterTypes, final Object[] arguments) throws Exception {
-        List<Class<?>> groups = new ArrayList<Class<?>>();
-        String methodClassName = clazz.getName() + "$" + toUpperMethoName(methodName);
-        Class<?> methodClass = null;
+        List<Class<?>> groups = new ArrayList<>();
+        String methodClassName = clazz.getName() + "$" + toUpperMethodName(methodName);
         try {
-            methodClass = Class.forName(methodClassName, false, Thread.currentThread().getContextClassLoader());
+            Class<?> methodClass = Class.forName(methodClassName, false, Thread.currentThread().getContextClassLoader());
             groups.add(methodClass);
         } catch (ClassNotFoundException e) {
             log.error(e.getMessage(), e);
         }
-        Set<ConstraintViolation<?>> violations = new HashSet<ConstraintViolation<?>>();
+        Set<ConstraintViolation<?>> violations = new HashSet<>();
         Method method = clazz.getMethod(methodName, parameterTypes);
-        Class<?>[] methodClasses = null;
         if (method.isAnnotationPresent(MethodValidated.class)) {
-            methodClasses = method.getAnnotation(MethodValidated.class).value();
+            Class<?>[] methodClasses = method.getAnnotation(MethodValidated.class).value();
             groups.addAll(Arrays.asList(methodClasses));
         }
         // add into default group
@@ -256,36 +254,36 @@ public class AlibabaDubboClientValidator implements Validator {
         groups.add(1, clazz);
 
         // convert list to array
-        Class<?>[] classgroups = groups.toArray(new Class[0]);
+        Class<?>[] classGroups = groups.toArray(new Class<?>[0]);
 
         Object parameterBean = getMethodParameterBean(clazz, method, arguments);
         if (parameterBean != null) {
-            violations.addAll(validator.validate(parameterBean, classgroups));
+            violations.addAll(validator.validate(parameterBean, classGroups));
         }
 
         for (Object arg : arguments) {
-            validate(violations, arg, classgroups);
+            validate(violations, arg, classGroups);
         }
 
         if (!violations.isEmpty()) {
             log.error("Failed to validate service: " + clazz.getName() + ", method: " + methodName + ", cause: " + violations);
-            StringBuilder validateError = new StringBuilder("");
-            violations.stream().forEach(each -> validateError.append(each.getMessage()).append(","));
-            throw new ValidationException(validateError.toString().substring(0, validateError.length() - 1));
+            StringBuilder validateError = new StringBuilder();
+            violations.forEach(each -> validateError.append(each.getMessage()).append(","));
+            throw new ValidationException(validateError.substring(0, validateError.length() - 1));
         }
     }
 
     private void validate(final Set<ConstraintViolation<?>> violations, final Object arg, final Class<?>... groups) {
         if (arg != null && !isPrimitives(arg.getClass())) {
-            if (Object[].class.isInstance(arg)) {
+            if (arg instanceof Object[]) {
                 for (Object item : (Object[]) arg) {
                     validate(violations, item, groups);
                 }
-            } else if (Collection.class.isInstance(arg)) {
+            } else if (arg instanceof Collection) {
                 for (Object item : (Collection<?>) arg) {
                     validate(violations, item, groups);
                 }
-            } else if (Map.class.isInstance(arg)) {
+            } else if (arg instanceof Map) {
                 for (Map.Entry<?, ?> entry : ((Map<?, ?>) arg).entrySet()) {
                     validate(violations, entry.getKey(), groups);
                     validate(violations, entry.getValue(), groups);

@@ -2,7 +2,7 @@
     <a href="https://dromara.org"><img src="https://yu199195.github.io/images/soul/soul-logo.png" width="45%"></a>
 </p>
 <p align="center">
-  <strong>可扩展，高性能，响应式的API网关</strong>
+  <strong>可扩展，高性能，响应式的 API 网关</strong>
 </p>
 <p align="center">
   <a href="https://dromara.org">https://dromara.org/</a>
@@ -69,23 +69,23 @@
 
  * soul-bootstrap : 用于启动项目，用户可以参考
 
- * soul-client : 用户可以使用springMvc,dubbo,springCloud快速访问
+ * soul-client : 用户可以使用 Spring MVC，Dubbo，Spring Cloud 快速访问
   
  * soul-common : 框架的通用类
 
  * soul-dist : 构建项目
 
- * soul-metrics : prometheus（普罗米修斯）实现的metrics
+ * soul-metrics : prometheus（普罗米修斯）实现的 metrics
 
- * soul-plugin : soul支持的插件集合
+ * soul-plugin : Soul 支持的插件集合
 
- * soul-spi : 定义soul spi
+ * soul-spi : 定义 Soul spi
 
- * soul-spring-boot-starter : 支持springboot starter
+ * soul-spring-boot-starter : 支持 spring boot starter
 
- * soul-sync-data-center : 提供zookeeper, http, websocket, nacos的方式同步数据
+ * soul-sync-data-center : 提供 ZooKeeper，HTTP，WebSocket，Nacos 的方式同步数据
 
- * soul-test : rpc测试项目
+ * soul-examples : RPC 示例项目
 
  * soul-web : 包括插件、请求路由和转发等的核心处理包
 
@@ -94,19 +94,19 @@
 # 功能特点
 
    * 提供了诸如限流、熔断、转发和路由监控等插件；
-   * 与HTTP、Restful、websocket、dubbo和springCloud无缝对接；
+   * 与 HTTP、RESTful、WebSocket、Dubbo 和 Spring Cloud 无缝对接；
    * 支持热插拔，用户可以定制化开发；
    * 为了灵活的适配，选择器和规则可以动态的适配；
    * 支持集群部署；
-   * 支持A/B测试和灰度发布。
+   * 支持 A/B 测试和灰度发布。
 
 --------------------------------------------------------------------------------
 
 # 插件
 
-无论请求何时进入，Soul会通过响应链执行所有已打开的插件。
+无论请求何时进入，Soul 会通过响应链执行所有已打开的插件。
 
-插件是Soul 的灵魂，并且插件也是可扩展和热插拔的。
+插件是 Soul 的灵魂，并且插件也是可扩展和热插拔的。
 
 不同的插件实现不同的功能。
 
@@ -118,7 +118,7 @@
 
 # 选择器和规则
 
-选择器和规则会根据你HTTP的请求头路由你的请求。
+选择器和规则会根据 HTTP 的请求头来路由你的请求。
 
 选择器是你的第一个路由，它是粗粒度的，举个例子，模块级别。
 
@@ -130,9 +130,9 @@
 
 # 数据缓存 & 数据同步
 
-所有的数据都被缓存在JVM的ConcurrentHashMap中，所以它非常快。
+所有的数据都被缓存在 JVM 的 ConcurrentHashMap 中，所以它非常快。
 
-当用户在后台界面管理改变时，Soul通过监听zookeeper node，websocket push和http longPull来动态更新缓存。
+当用户在后台界面改变配置信息时，Soul 通过监听 ZooKeeper node，WebSocket push，HTTP longPull 来动态更新缓存。
 
   ![](https://yu199195.github.io/images/soul/soul-config-processor.png)
 
@@ -144,15 +144,15 @@
 
    * JDK 1.8+
    
-   * Mysql
+   * MySQL
 
 --------------------------------------------------------------------------------
 
 # 关于
 
-Soul已在我们的生产环境中使用，它的性能和灵活性使我们用起来很酷。
+Soul 已在我们的生产环境中使用，它的性能和灵活性使我们用起来很酷。
 
-在双11中，我们部署了6个集群，这些集群支持了我们的大量业务。
+在双 11 中，我们部署了 6 个集群，这些集群支持了我们的大量业务。
 
 --------------------------------------------------------------------------------
 
@@ -183,7 +183,7 @@ Soul已在我们的生产环境中使用，它的性能和灵活性使我们用�
 
 # 目前已知用户
 
-为了便于登记，欢迎已经使用了Soul的公司在[https://github.com/Dromara/soul/issues/68](https://github.com/Dromara/soul/issues/68)注册。（仅适用于开源用户）
+为了便于登记，欢迎已经使用了 Soul 的公司在 [https://github.com/Dromara/soul/issues/68](https://github.com/Dromara/soul/issues/68) 注册。（仅适用于开源用户）
 
 <table>
   <tbody>
@@ -234,13 +234,13 @@ Soul已在我们的生产环境中使用，它的性能和灵活性使我们用�
 <table>
   <thead>
     <th>微信公众号</th>
-    <th>QQ交流群</th>
+    <th>QQ 交流群</th>
     <th>芋道源码</th>
   </thead>
   <tbody>
     <tr>
       <td><img src="https://yu199195.github.io/images/public.jpg"   alt="微信公众号"/>
-      <td><img src="https://yu199195.github.io/images/soul-qq.png"  alt="QQ交流群"/>
+      <td><img src="https://yu199195.github.io/images/soul-qq.png"  alt="QQ 交流群"/>
       <td><img src="http://www.iocoder.cn/images/common/erweima.jpg"  alt="芋道源码"/>
     </tr>
   </tbody>

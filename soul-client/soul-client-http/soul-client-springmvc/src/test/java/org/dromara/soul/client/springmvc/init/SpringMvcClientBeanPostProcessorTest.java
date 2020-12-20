@@ -38,174 +38,146 @@ import org.springframework.web.bind.annotation.RestController;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public final class SpringMvcClientBeanPostProcessorTest {
 
-    private final SpringMvcClientTestBeanSpecified springMvcClientTestBeanSpecified = new SpringMvcClientTestBeanSpecified();
+    private static final String ADMIN_URL = "http://127.0.0.1:58080";
 
-    private final SpringMvcClientTestBeanWildcardMatching springMvcClientTestBeanWildcardMatching = new SpringMvcClientTestBeanWildcardMatching();
+    private static final String CONTEXT_PATH = "test";
 
-    private final SpringMvcClientTestBeanWithRuleName springMvcClientTestBeanWithRuleName = new SpringMvcClientTestBeanWithRuleName();
+    private static final boolean FULL = true;
+
+    private static final String HOST = "127.0.0.1";
+
+    private static final int PORT = 58889;
+
+    private static final String EMPTY_STRING = "";
+
+    private static final String APP_NAME = "test-mvc";
+
+    private final TestBeanSpecified testBeanSpecified = new TestBeanSpecified();
+
+    private final TestBeanWildcardMatching testBeanWildcardMatching = new TestBeanWildcardMatching();
+
+    private final TestBeanWithRuleName testBeanWithRuleName = new TestBeanWithRuleName();
 
     @Test(expected = RuntimeException.class)
     public void testCreateWithContextPathIsNull() {
-        createBeanPostProcessorWithContextPathIsNull();
+        createBeanPostProcessor(ADMIN_URL, null, FULL, HOST, PORT);
     }
 
     @Test(expected = RuntimeException.class)
     public void testCreateWithContextPathIsEmpty() {
-        createBeanPostProcessorWithContextPathIsEmpty();
+        createBeanPostProcessor(ADMIN_URL, EMPTY_STRING, FULL, HOST, PORT);
     }
 
     @Test(expected = RuntimeException.class)
     public void testCreateWithAdminUrlIsNull() {
-        createBeanPostProcessorWithAdminUrlIsNull();
+        createBeanPostProcessor(null, CONTEXT_PATH, FULL, HOST, PORT);
     }
 
     @Test(expected = RuntimeException.class)
     public void testCreateWithAdminUrlIsEmpty() {
-        createBeanPostProcessorWithAdminUrlIsEmpty();
+        createBeanPostProcessor(EMPTY_STRING, CONTEXT_PATH, FULL, HOST, PORT);
     }
 
     @Test(expected = RuntimeException.class)
     public void testCreateWithPortIsNull() {
-        createBeanPostProcessorWithPortIsNull();
+        createBeanPostProcessor(ADMIN_URL, CONTEXT_PATH, FULL, HOST, null);
     }
 
     @Test
-    public void testSoulBeanProcess() {
-        createBeanPostProcessor().postProcessAfterInitialization(springMvcClientTestBeanSpecified, "SpringMvcClientTestBeanSpecified");
+    public void testBeanProcess() {
+        createDefaultBeanPostProcessor().postProcessAfterInitialization(testBeanSpecified, "TestBeanSpecified");
     }
 
     @Test
-    public void testSoulBeanProcessWithoutHost() {
-        createBeanPostProcessorWithoutHost().postProcessAfterInitialization(springMvcClientTestBeanSpecified, "SpringMvcClientTestBeanSpecified");
+    public void testBeanProcessWithoutHost() {
+        SpringMvcClientBeanPostProcessor processor = createBeanPostProcessor(ADMIN_URL, CONTEXT_PATH, !FULL, null, PORT);
+        processor.postProcessAfterInitialization(testBeanSpecified, "TestBeanSpecified");
     }
 
     @Test
-    public void testSoulBeanProcessWithEmptyHost() {
-        createBeanPostProcessorWithEmptyHost().postProcessAfterInitialization(springMvcClientTestBeanSpecified, "SpringMvcClientTestBeanSpecified");
+    public void testBeanProcessWithEmptyHost() {
+        SpringMvcClientBeanPostProcessor processor = createBeanPostProcessor(ADMIN_URL, CONTEXT_PATH, !FULL, EMPTY_STRING, PORT);
+        processor.postProcessAfterInitialization(testBeanSpecified, "TestBeanSpecified");
     }
 
     @Test
-    public void testSoulBeanProcessWithoutFull() {
-        createBeanPostProcessorWithoutFull().postProcessAfterInitialization(springMvcClientTestBeanSpecified, "SpringMvcClientTestBeanSpecified");
+    public void testBeanProcessWithoutFull() {
+        SpringMvcClientBeanPostProcessor processor = createBeanPostProcessor(ADMIN_URL, CONTEXT_PATH, !FULL, HOST, PORT);
+        processor.postProcessAfterInitialization(testBeanSpecified, "TestBeanSpecified");
     }
 
     @Test
-    public void testSoulBeanProcessWildcardMatching() {
-        createBeanPostProcessorWithoutFull().postProcessAfterInitialization(springMvcClientTestBeanWildcardMatching, "SpringMvcClientTestBeanWildcardMatching");
+    public void testBeanProcessWildcardMatching() {
+        SpringMvcClientBeanPostProcessor processor = createBeanPostProcessor(ADMIN_URL, CONTEXT_PATH, !FULL, HOST, PORT);
+        processor.postProcessAfterInitialization(testBeanWildcardMatching, "TestBeanWildcardMatching");
     }
 
     @Test
     public void testBeanProcessWithRuleName() {
-        createBeanPostProcessorWithoutFull().postProcessAfterInitialization(springMvcClientTestBeanWithRuleName, "springMvcClientTestBeanWithRuleName");
+        SpringMvcClientBeanPostProcessor beanPostProcessor = createBeanPostProcessor(ADMIN_URL, CONTEXT_PATH, !FULL, HOST, PORT);
+        beanPostProcessor.postProcessAfterInitialization(testBeanWithRuleName, "TestBeanWithRuleName");
     }
 
     @Test
-    public void testNormalBeanProcess() {
-        createBeanPostProcessor().postProcessAfterInitialization(new Object(), "normalBean");
+    public void testBeanProcessWithNormalBean() {
+        createDefaultBeanPostProcessor().postProcessAfterInitialization(new Object(), "normalBean");
     }
 
-    private void createBeanPostProcessorWithContextPathIsNull() {
-        SoulSpringMvcConfig soulSpringMvcConfig = createSoulSpringMvcConfigWithFillAllField();
-        soulSpringMvcConfig.setContextPath(null);
-        new SpringMvcClientBeanPostProcessor(soulSpringMvcConfig);
+    private SpringMvcClientBeanPostProcessor createDefaultBeanPostProcessor() {
+        return createBeanPostProcessor(ADMIN_URL, CONTEXT_PATH, FULL, HOST, PORT);
     }
 
-    private void createBeanPostProcessorWithContextPathIsEmpty() {
-        SoulSpringMvcConfig soulSpringMvcConfig = createSoulSpringMvcConfigWithFillAllField();
-        soulSpringMvcConfig.setContextPath("");
-        new SpringMvcClientBeanPostProcessor(soulSpringMvcConfig);
-    }
-
-    private void createBeanPostProcessorWithAdminUrlIsNull() {
-        SoulSpringMvcConfig soulSpringMvcConfig = createSoulSpringMvcConfigWithFillAllField();
-        soulSpringMvcConfig.setAdminUrl(null);
-        new SpringMvcClientBeanPostProcessor(soulSpringMvcConfig);
-    }
-
-    private void createBeanPostProcessorWithAdminUrlIsEmpty() {
-        SoulSpringMvcConfig soulSpringMvcConfig = createSoulSpringMvcConfigWithFillAllField();
-        soulSpringMvcConfig.setAdminUrl("");
-        new SpringMvcClientBeanPostProcessor(soulSpringMvcConfig);
-    }
-
-    private void createBeanPostProcessorWithPortIsNull() {
-        SoulSpringMvcConfig soulSpringMvcConfig = createSoulSpringMvcConfigWithFillAllField();
-        soulSpringMvcConfig.setPort(null);
-        new SpringMvcClientBeanPostProcessor(soulSpringMvcConfig);
-    }
-
-    private SpringMvcClientBeanPostProcessor createBeanPostProcessorWithoutFull() {
-        SoulSpringMvcConfig soulSpringMvcConfig = createSoulSpringMvcConfigWithFillAllField();
-        soulSpringMvcConfig.setFull(false);
-        return new SpringMvcClientBeanPostProcessor(soulSpringMvcConfig);
-    }
-
-    private SpringMvcClientBeanPostProcessor createBeanPostProcessorWithoutHost() {
-        SoulSpringMvcConfig soulSpringMvcConfig = createSoulSpringMvcConfigWithFillAllField();
-        soulSpringMvcConfig.setFull(false);
-        soulSpringMvcConfig.setHost(null);
-        return new SpringMvcClientBeanPostProcessor(soulSpringMvcConfig);
-    }
-
-    private SpringMvcClientBeanPostProcessor createBeanPostProcessorWithEmptyHost() {
-        SoulSpringMvcConfig soulSpringMvcConfig = createSoulSpringMvcConfigWithFillAllField();
-        soulSpringMvcConfig.setFull(false);
-        soulSpringMvcConfig.setHost("");
-        return new SpringMvcClientBeanPostProcessor(soulSpringMvcConfig);
-    }
-
-    private SpringMvcClientBeanPostProcessor createBeanPostProcessor() {
-        SoulSpringMvcConfig soulSpringMvcConfig = createSoulSpringMvcConfigWithFillAllField();
-        return new SpringMvcClientBeanPostProcessor(soulSpringMvcConfig);
-    }
-
-    private SoulSpringMvcConfig createSoulSpringMvcConfigWithFillAllField() {
+    private SpringMvcClientBeanPostProcessor createBeanPostProcessor(final String adminUrl,
+                                                                     final String contextPath,
+                                                                     final Boolean full,
+                                                                     final String host,
+                                                                     final Integer port) {
         SoulSpringMvcConfig soulSpringMvcConfig = new SoulSpringMvcConfig();
-        soulSpringMvcConfig.setAdminUrl("http://127.0.0.1:58080");
-        soulSpringMvcConfig.setContextPath("test");
-        soulSpringMvcConfig.setAppName("test-mvc");
-        soulSpringMvcConfig.setFull(true);
-        soulSpringMvcConfig.setHost("127.0.0.1");
-        soulSpringMvcConfig.setPort(58889);
-        return soulSpringMvcConfig;
+        soulSpringMvcConfig.setAdminUrl(adminUrl);
+        soulSpringMvcConfig.setContextPath(contextPath);
+        soulSpringMvcConfig.setAppName(APP_NAME);
+        soulSpringMvcConfig.setFull(full);
+        soulSpringMvcConfig.setHost(host);
+        soulSpringMvcConfig.setPort(port);
+        return new SpringMvcClientBeanPostProcessor(soulSpringMvcConfig);
     }
 
     @RestController
     @RequestMapping("/order")
     @SoulSpringMvcClient(path = "/order")
-    static class SpringMvcClientTestBeanSpecified {
+    static class TestBeanSpecified {
         @PostMapping("/save")
         @SoulSpringMvcClient(path = "/save")
         public String save(@RequestBody final String body) {
-            return "" + body;
+            return EMPTY_STRING + body;
         }
     }
 
     @RestController
     @RequestMapping("/goods")
     @SoulSpringMvcClient(path = "/goods/*")
-    static class SpringMvcClientTestBeanWildcardMatching {
+    static class TestBeanWildcardMatching {
         @PostMapping("/save")
         @SoulSpringMvcClient(path = "/save")
         public String save(@RequestBody final String body) {
-            return "" + body;
+            return EMPTY_STRING + body;
         }
 
         @PostMapping("/update")
         @SoulSpringMvcClient(path = "/update")
         public String update(@RequestBody final String body) {
-            return "" + body;
+            return EMPTY_STRING + body;
         }
     }
 
     @RestController
     @RequestMapping("/transaction")
     @SoulSpringMvcClient(path = "/transaction")
-    static class SpringMvcClientTestBeanWithRuleName {
+    static class TestBeanWithRuleName {
         @PostMapping("/save")
         @SoulSpringMvcClient(path = "/save", ruleName = "test transaction save rule name")
         public String save(@RequestBody final String body) {
-            return "" + body;
+            return EMPTY_STRING + body;
         }
     }
 }
