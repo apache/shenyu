@@ -52,6 +52,25 @@ public final class HystrixPluginTest {
         hystrixPlugin = new HystrixPlugin();
     }
 
+    @Test(expected = NullPointerException.class)
+    public void testDoExecuteNullException() {
+        final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
+        SoulContext soulContext = mock(SoulContext.class);
+        exchange.getAttributes().put(Constants.CONTEXT, soulContext);
+        SoulPluginChain chain = mock(SoulPluginChain.class);
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+        HystrixHandle hystrixHandle = new HystrixHandle();
+        hystrixHandle.setMaxConcurrentRequests(0);
+        hystrixHandle.setErrorThresholdPercentage(0);
+        hystrixHandle.setRequestVolumeThreshold(0);
+        hystrixHandle.setSleepWindowInMilliseconds(0);
+        RuleData rule = new RuleData();
+        rule.setHandle(GsonUtils.getInstance().toJson(hystrixHandle));
+        SelectorData selectorData = mock(SelectorData.class);
+        Mono<Void> mono = hystrixPlugin.doExecute(exchange, chain, selectorData, rule);
+        StepVerifier.create(mono).expectSubscription().verifyComplete();
+    }
+
     @Test
     public void testDoExecute() {
         final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
@@ -61,7 +80,7 @@ public final class HystrixPluginTest {
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         HystrixHandle hystrixHandle = new HystrixHandle();
         hystrixHandle.setGroupKey("groupKey");
-        hystrixHandle.setCommandKey("commandKey");
+        hystrixHandle.setCommandKey(" commandKey");
         hystrixHandle.setMaxConcurrentRequests(0);
         hystrixHandle.setErrorThresholdPercentage(0);
         hystrixHandle.setRequestVolumeThreshold(0);

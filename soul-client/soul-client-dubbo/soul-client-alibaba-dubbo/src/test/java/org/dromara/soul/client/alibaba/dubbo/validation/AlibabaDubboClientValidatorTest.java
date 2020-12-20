@@ -18,6 +18,7 @@
 package org.dromara.soul.client.alibaba.dubbo.validation;
 
 import com.alibaba.dubbo.common.URL;
+import com.alibaba.dubbo.validation.Validator;
 import org.dromara.soul.client.alibaba.dubbo.validation.service.TestService;
 import org.junit.Test;
 
@@ -43,7 +44,7 @@ public class AlibabaDubboClientValidatorTest {
                 + "&keep.alive=true&methods=test&pid=67352&qos.enable=false&release=2.7.0"
                 + "&side=provider&threadpool=fixed&threads=500&timeout=20000"
                 + "&timestamp=1608119259859&validation=soulValidation");
-        AlibabaDubboClientValidator alibabaDubboClientValidator = new AlibabaDubboClientValidator(url);
+        Validator alibabaDubboClientValidator = new AlibabaDubboClientValidation().getValidator(url);
         try {
             alibabaDubboClientValidator.validate("test",
                     new Class[]{TestService.TestObject.class},

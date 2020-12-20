@@ -38,8 +38,13 @@ public final class AesUtilsTest {
     }
 
     @Test
-    public void testAesEncryptionForNull() {
+    public void testAesEncryptionForEmptyString() {
         assertThat(AesUtils.aesEncryption("", AES_KEY), nullValue());
+    }
+
+    @Test
+    public void testAesEncryptionForNull() {
+        assertThat(AesUtils.aesEncryption(null, AES_KEY), nullValue());
     }
 
     @Test
@@ -48,7 +53,12 @@ public final class AesUtilsTest {
     }
 
     @Test
-    public void testAesDecryptionForNull() {
+    public void testAesDecryptionForEmptyString() {
         assertThat(AesUtils.aesDecryption("", AES_KEY), nullValue());
+    }
+
+    @Test
+    public void testAesDecryptionForNull() {
+        assertThat(AesUtils.aesDecryption(null, AES_KEY), nullValue());
     }
 }
