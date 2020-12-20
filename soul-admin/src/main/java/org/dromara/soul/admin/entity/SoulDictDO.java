@@ -81,7 +81,6 @@ public final class SoulDictDO extends BaseDO {
      * @return {@linkplain SoulDictDO}
      */
     public static SoulDictDO buildSoulDictDO(final SoulDictDTO soulDictDTO) {
-
         return Optional.ofNullable(soulDictDTO).map(item -> {
             SoulDictDO soulDictDO = SoulDictDO.builder()
                     .id(item.getId())
