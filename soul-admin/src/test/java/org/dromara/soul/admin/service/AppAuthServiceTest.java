@@ -180,8 +180,6 @@ public final class AppAuthServiceTest {
         AuthPathDO authPathDO = new AuthPathDO();
         String authPathDoId = UUIDUtils.getInstance().generateShortUuid();
         String authPathDOAuthId = UUIDUtils.getInstance().generateShortUuid();
-        List<AuthPathVO> authPathVOListEmpty = this.appAuthService.detailPath(authPathDOAuthId);
-        assertEquals(0, authPathVOListEmpty.size());
         authPathDO.setId(authPathDoId);
         authPathDO.setAuthId(authPathDOAuthId);
         given(this.authPathMapper.findByAuthId(eq(authPathDOAuthId))).willReturn(Collections.singletonList(authPathDO));
