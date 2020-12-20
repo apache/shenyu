@@ -32,7 +32,7 @@ public final class PageParameterTest {
     private PageParameter pageParameterUnderTest;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         pageParameterUnderTest = new PageParameter(1, 10, 100);
     }
 
