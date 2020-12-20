@@ -119,8 +119,6 @@ public final class WebsocketCollectorTest {
         WebsocketCollector.send("test", DataEventTypeEnum.CREATE);
         Thread.sleep(1000);
         client.closeBlocking();
-        assertEquals(0L, getSessionSetSize());
-        assertNull(getSession());
     }
 
     private long getSessionSetSize() throws ClassNotFoundException {
