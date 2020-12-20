@@ -20,7 +20,6 @@ package org.dromara.soul.admin.result;
 import lombok.Data;
 import org.dromara.soul.common.exception.CommonErrorCode;
 import org.springframework.http.HttpStatus;
-
 import java.io.Serializable;
 
 /**
@@ -54,7 +53,6 @@ public class SoulAdminResult implements Serializable {
      * @param data    the data
      */
     public SoulAdminResult(final Integer code, final String message, final Object data) {
-
         this.code = code;
         this.message = message;
         this.data = data;

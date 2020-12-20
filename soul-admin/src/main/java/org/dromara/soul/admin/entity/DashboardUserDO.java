@@ -24,7 +24,6 @@ import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.DashboardUserDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
-
 import java.sql.Timestamp;
 import java.util.Optional;
 
@@ -67,7 +66,6 @@ public final class DashboardUserDO extends BaseDO {
      * @return {@linkplain DashboardUserDO}
      */
     public static DashboardUserDO buildDashboardUserDO(final DashboardUserDTO dashboardUserDTO) {
-
         return Optional.ofNullable(dashboardUserDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             DashboardUserDO dashboardUserDO = DashboardUserDO.builder()

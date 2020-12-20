@@ -28,7 +28,6 @@ import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.MatchModeEnum;
 import org.dromara.soul.common.enums.SelectorTypeEnum;
 import org.dromara.soul.common.utils.UUIDUtils;
-
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;

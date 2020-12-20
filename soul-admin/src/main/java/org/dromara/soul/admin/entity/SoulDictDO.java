@@ -24,7 +24,6 @@ import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.SoulDictDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
-
 import java.util.Optional;
 
 /**
@@ -81,7 +80,6 @@ public final class SoulDictDO extends BaseDO {
      * @return {@linkplain SoulDictDO}
      */
     public static SoulDictDO buildSoulDictDO(final SoulDictDTO soulDictDTO) {
-
         return Optional.ofNullable(soulDictDTO).map(item -> {
             SoulDictDO soulDictDO = SoulDictDO.builder()
                     .id(item.getId())

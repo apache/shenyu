@@ -22,7 +22,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.dromara.soul.common.utils.UUIDUtils;
-
 import java.sql.Timestamp;
 
 /**

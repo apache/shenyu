@@ -24,7 +24,6 @@ import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.SelectorConditionDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
-
 import java.sql.Timestamp;
 import java.util.Optional;
 
@@ -72,7 +71,6 @@ public final class SelectorConditionDO extends BaseDO {
      * @return {@linkplain SelectorConditionDO}
      */
     public static SelectorConditionDO buildSelectorConditionDO(final SelectorConditionDTO selectorConditionDTO) {
-
         return Optional.ofNullable(selectorConditionDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             SelectorConditionDO selectorConditionDO = SelectorConditionDO.builder()

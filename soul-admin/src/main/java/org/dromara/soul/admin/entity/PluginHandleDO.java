@@ -24,7 +24,6 @@ import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.PluginHandleDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
-
 import java.util.Optional;
 
 /**

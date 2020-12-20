@@ -24,7 +24,6 @@ import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.PluginDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
-
 import java.sql.Timestamp;
 import java.util.Optional;
 
