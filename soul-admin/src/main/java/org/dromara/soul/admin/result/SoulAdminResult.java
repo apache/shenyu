@@ -20,6 +20,7 @@ package org.dromara.soul.admin.result;
 import lombok.Data;
 import org.dromara.soul.common.exception.CommonErrorCode;
 import org.springframework.http.HttpStatus;
+
 import java.io.Serializable;
 
 /**
