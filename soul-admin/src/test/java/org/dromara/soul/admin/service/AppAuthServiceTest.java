@@ -24,6 +24,7 @@ import org.dromara.soul.admin.dto.AuthApplyDTO;
 import org.dromara.soul.admin.dto.AuthPathWarpDTO;
 import org.dromara.soul.admin.dto.BatchCommonDTO;
 import org.dromara.soul.admin.entity.AppAuthDO;
+import org.dromara.soul.admin.entity.AuthParamDO;
 import org.dromara.soul.admin.entity.AuthPathDO;
 import org.dromara.soul.admin.mapper.AppAuthMapper;
 import org.dromara.soul.admin.mapper.AuthParamMapper;
@@ -161,10 +162,17 @@ public final class AppAuthServiceTest {
 
     @Test
     public void testFindById() {
+        String authId = UUIDUtils.getInstance().generateShortUuid();
+        String appName = "testAppName";
+        String appParam = "{\"type\": \"test\"}";
+        AuthParamDO authParamDO = AuthParamDO.create(authId, appName, appParam);
+        List<AuthParamDO> authParamDOList = Collections.singletonList(authParamDO);
+        given(this.authParamMapper.findByAuthId(eq(appAuthDO.getId()))).willReturn(authParamDOList);
         given(this.appAuthMapper.selectById(eq(appAuthDO.getId()))).willReturn(appAuthDO);
         AppAuthVO appAuthVO = this.appAuthService.findById(appAuthDO.getId());
         assertNotNull(appAuthVO);
         assertEquals(appAuthDO.getId(), appAuthVO.getId());
+        assertNotNull(appAuthVO.getAuthParamVOList());
     }
 
     @Test
@@ -172,6 +180,8 @@ public final class AppAuthServiceTest {
         AuthPathDO authPathDO = new AuthPathDO();
         String authPathDoId = UUIDUtils.getInstance().generateShortUuid();
         String authPathDOAuthId = UUIDUtils.getInstance().generateShortUuid();
+        List<AuthPathVO> authPathVOListEmpty = this.appAuthService.detailPath(authPathDOAuthId);
+        assertEquals(0, authPathVOListEmpty.size());
         authPathDO.setId(authPathDoId);
         authPathDO.setAuthId(authPathDOAuthId);
         given(this.authPathMapper.findByAuthId(eq(authPathDOAuthId))).willReturn(Collections.singletonList(authPathDO));
