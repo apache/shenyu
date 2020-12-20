@@ -28,21 +28,26 @@ import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Test case for {@link ApacheDubboPlugin}.
+ * The Test Case For ApachDubboPlugin.
  *
- * @author songyuequan
- */
+ * @author nuo-promise
+ **/
+@RunWith(MockitoJUnitRunner.class)
 public final class ApacheDubboPluginTest {
 
     private ApacheDubboPlugin apacheDubboPlugin;
@@ -50,6 +55,9 @@ public final class ApacheDubboPluginTest {
     private MetaData metaData;
 
     private ServerWebExchange exchange;
+
+    @Mock
+    private SoulPluginChain chain;
 
     @Before
     public void setUp() {
@@ -62,8 +70,48 @@ public final class ApacheDubboPluginTest {
         metaData.setMethodName("findAll");
         metaData.setRpcType(RpcTypeEnum.DUBBO.getName());
         ApacheDubboProxyService apacheDubboProxyService = mock(ApacheDubboProxyService.class);
-        when(apacheDubboProxyService.genericInvoker(null, metaData, exchange)).thenReturn(Mono.empty());
         apacheDubboPlugin = new ApacheDubboPlugin(apacheDubboProxyService);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void doExecute() {
+        SoulContext context = mock(SoulContext.class);
+        exchange.getAttributes().put(Constants.CONTEXT, context);
+        exchange.getAttributes().put(Constants.DUBBO_PARAMS, "{key:value}");
+        exchange.getAttributes().put(Constants.META_DATA, metaData);
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+        SelectorData selectorData = mock(SelectorData.class);
+        RuleData data = mock(RuleData.class);
+        StepVerifier.create(apacheDubboPlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testParameterNotNullExecute() {
+        SoulContext context = mock(SoulContext.class);
+        exchange.getAttributes().put(Constants.CONTEXT, context);
+        metaData.setParameterTypes("parameterTypes");
+        exchange.getAttributes().put(Constants.META_DATA, metaData);
+        SelectorData selectorData = mock(SelectorData.class);
+        RuleData data = mock(RuleData.class);
+        StepVerifier.create(apacheDubboPlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testMethodIsNullExecute() {
+        SoulContext context = mock(SoulContext.class);
+        exchange.getAttributes().put(Constants.CONTEXT, context);
+        exchange.getAttributes().put(Constants.DUBBO_PARAMS, "{key:value}");
+        MetaData metaData = MetaData.builder()
+                .id("1332017966661636096")
+                .appName("dubbo")
+                .path("/dubbo/findAll")
+                .serviceName("org.dromara.soul.test.dubbo.api.service.DubboTestService")
+                .rpcType(RpcTypeEnum.DUBBO.getName())
+                .build();
+        exchange.getAttributes().put(Constants.META_DATA, metaData);
+        SelectorData selectorData = mock(SelectorData.class);
+        RuleData data = mock(RuleData.class);
+        StepVerifier.create(apacheDubboPlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
     }
 
     @Test
@@ -73,7 +121,7 @@ public final class ApacheDubboPluginTest {
     }
 
     @Test
-    public void testSkip() {
+    public void skip() {
         final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
         SoulContext context = mock(SoulContext.class);
         when(context.getRpcType()).thenReturn(RpcTypeEnum.DUBBO.getName());
@@ -84,20 +132,8 @@ public final class ApacheDubboPluginTest {
     }
 
     @Test
-    public void testGetOrder() {
+    public void getOrder() {
         final int result = apacheDubboPlugin.getOrder();
         assertEquals(PluginEnum.DUBBO.getCode(), result);
-    }
-
-    @Test
-    public void testApacheDubboPlugin() {
-        RuleData ruleData = mock(RuleData.class);
-        SoulContext context = mock(SoulContext.class);
-        exchange.getAttributes().put(Constants.CONTEXT, context);
-        exchange.getAttributes().put(Constants.META_DATA, metaData);
-        SoulPluginChain chain = mock(SoulPluginChain.class);
-        when(chain.execute(exchange)).thenReturn(Mono.empty());
-        SelectorData selectorData = mock(SelectorData.class);
-        StepVerifier.create(apacheDubboPlugin.doExecute(exchange, chain, selectorData, ruleData)).expectSubscription().verifyComplete();
     }
 }
