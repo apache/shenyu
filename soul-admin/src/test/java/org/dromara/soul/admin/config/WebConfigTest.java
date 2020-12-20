@@ -23,7 +23,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import java.lang.reflect.Method;
-import java.util.Map;
 
 /**
  * Test cases for WebConfig.
