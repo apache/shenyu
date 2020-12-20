@@ -35,7 +35,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public final class ContextRegisterListenerTest {
     @Test
-    public void testNotFullRegister() throws InterruptedException {
+    public void testNotFullRegister() {
         SoulSpringMvcConfig soulSpringMvcConfig = new SoulSpringMvcConfig();
         soulSpringMvcConfig.setAdminUrl("http://127.0.0.1:8080");
         soulSpringMvcConfig.setAppName("test-mvc");
@@ -47,7 +47,7 @@ public final class ContextRegisterListenerTest {
     }
 
     @Test
-    public void testFullRegister() throws InterruptedException {
+    public void testFullRegister() {
         SoulSpringMvcConfig soulSpringMvcConfig = new SoulSpringMvcConfig();
         soulSpringMvcConfig.setAdminUrl("http://127.0.0.1:8080");
         soulSpringMvcConfig.setAppName("test-mvc");
