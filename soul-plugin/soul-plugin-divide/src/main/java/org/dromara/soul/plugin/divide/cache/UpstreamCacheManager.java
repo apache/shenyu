@@ -19,12 +19,10 @@ package org.dromara.soul.plugin.divide.cache;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.common.concurrent.SoulThreadFactory;
 import org.dromara.soul.common.dto.SelectorData;
@@ -95,7 +93,6 @@ public final class UpstreamCacheManager {
         } else {
             UPSTREAM_MAP.remove(selectorData.getId());
             UPSTREAM_MAP_TEMP.remove(selectorData.getId());
-
         }
     }
 
@@ -123,6 +120,6 @@ public final class UpstreamCacheManager {
             }
         }
         return resultList;
-    }
 
+    }
 }
