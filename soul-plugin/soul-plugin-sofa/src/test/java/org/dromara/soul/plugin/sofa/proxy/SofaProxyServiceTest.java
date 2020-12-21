@@ -27,9 +27,6 @@ import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.plugin.api.sofa.SofaParamResolveService;
 import org.dromara.soul.plugin.sofa.cache.ApplicationConfigCache;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,6 +37,9 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.lang.reflect.Field;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * SofaProxyServiceTest.
@@ -93,7 +93,7 @@ public final class SofaProxyServiceTest {
         RpcInvokeContext.getContext().getResponseCallback().onAppResponse("success", null, null);
     }
 
-    class SofaParamResolveServiceImpl implements SofaParamResolveService {
+    static class SofaParamResolveServiceImpl implements SofaParamResolveService {
 
         @Override
         public Pair<String[], Object[]> buildParameter(final String body, final String parameterTypes) {
