@@ -41,6 +41,7 @@ public final class UpstreamCacheManager {
     private static final UpstreamCacheManager INSTANCE = new UpstreamCacheManager();
 
     private static final Map<String, List<DivideUpstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
+
     private static final Map<String, List<DivideUpstream>> UPSTREAM_MAP_TEMP = Maps.newConcurrentMap();
 
     private UpstreamCacheManager() {
