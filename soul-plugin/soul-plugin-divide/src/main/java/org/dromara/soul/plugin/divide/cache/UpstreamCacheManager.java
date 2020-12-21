@@ -41,12 +41,13 @@ public final class UpstreamCacheManager {
     private static final UpstreamCacheManager INSTANCE = new UpstreamCacheManager();
     
     private static final Map<String, List<DivideUpstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
-    
+    private static final Map<String, List<DivideUpstream>> UPSTREAM_MAP_TEMP = Maps.newConcurrentMap();
+
     private UpstreamCacheManager() {
         boolean check = Boolean.parseBoolean(System.getProperty("soul.upstream.check", "false"));
-        if (check) {
-            new ScheduledThreadPoolExecutor(1, SoulThreadFactory.create("scheduled-upstream-task", false))
-                    .scheduleWithFixedDelay(this::scheduled,
+            if (check) {
+                new ScheduledThreadPoolExecutor(1, SoulThreadFactory.create("scheduled-upstream-task", false))
+                        .scheduleWithFixedDelay(this::scheduled,
                             30, Integer.parseInt(System.getProperty("soul.upstream.scheduledTime", "30")), TimeUnit.SECONDS);
         }
     }
@@ -67,7 +68,7 @@ public final class UpstreamCacheManager {
      * @return the list
      */
     public List<DivideUpstream> findUpstreamListBySelectorId(final String selectorId) {
-        return UPSTREAM_MAP.get(selectorId);
+        return UPSTREAM_MAP_TEMP.get(selectorId);
     }
     
     /**
@@ -76,7 +77,7 @@ public final class UpstreamCacheManager {
      * @param key the key
      */
     public void removeByKey(final String key) {
-        UPSTREAM_MAP.remove(key);
+        UPSTREAM_MAP_TEMP.remove(key);
     }
     
     /**
@@ -88,8 +89,11 @@ public final class UpstreamCacheManager {
         final List<DivideUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream.class);
         if (null != upstreamList && upstreamList.size() > 0) {
             UPSTREAM_MAP.put(selectorData.getId(), upstreamList);
+            UPSTREAM_MAP_TEMP.put(selectorData.getId(), upstreamList);
         } else {
             UPSTREAM_MAP.remove(selectorData.getId());
+            UPSTREAM_MAP_TEMP.remove(selectorData.getId());
+
         }
     }
     
@@ -98,9 +102,9 @@ public final class UpstreamCacheManager {
             UPSTREAM_MAP.forEach((k, v) -> {
                 List<DivideUpstream> result = check(v);
                 if (result.size() > 0) {
-                    UPSTREAM_MAP.put(k, result);
+                    UPSTREAM_MAP_TEMP.put(k, result);
                 } else {
-                    UPSTREAM_MAP.remove(k);
+                    UPSTREAM_MAP_TEMP.remove(k);
                 }
             });
         }
