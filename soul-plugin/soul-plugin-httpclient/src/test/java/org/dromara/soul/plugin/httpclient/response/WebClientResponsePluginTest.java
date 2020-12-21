@@ -21,12 +21,16 @@ import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
+import org.dromara.soul.plugin.api.result.SoulResult;
+import org.dromara.soul.plugin.base.utils.SpringBeanUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -40,6 +44,7 @@ import reactor.test.StepVerifier;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.reset;
 
 /**
  * The test case for WebClientResponsePlugin.
@@ -49,27 +54,17 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public final class WebClientResponsePluginTest {
 
-    private ServerWebExchange exchange;
-
     private SoulPluginChain chain;
 
     private WebClientResponsePlugin webClientResponsePlugin;
 
     @Before
     public void setup() {
-        chain = mock(SoulPluginChain.class);
-        exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test").build());
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        SpringBeanUtils.getInstance().setCfgContext(context);
+        when(context.getBean(SoulResult.class)).thenReturn(mock(SoulResult.class));
 
-        ClientResponse mockResponse = mock(ClientResponse.class);
-        MultiValueMap<String, ResponseCookie> cookies = new LinkedMultiValueMap<>();
-        cookies.add("id", mock(ResponseCookie.class));
-        when(mockResponse.cookies()).thenReturn(cookies);
-        ClientResponse.Headers headers = mock(ClientResponse.Headers.class);
-        when(headers.asHttpHeaders()).thenReturn(mock(HttpHeaders.class));
-        when(mockResponse.headers()).thenReturn(headers);
-        exchange.getAttributes().put(Constants.CONTEXT, mock(SoulContext.class));
-        exchange.getAttributes().put(Constants.HTTP_URL, "/test");
-        exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, mockResponse);
+        chain = mock(SoulPluginChain.class);
 
         webClientResponsePlugin = new WebClientResponsePlugin();
     }
@@ -79,9 +74,25 @@ public final class WebClientResponsePluginTest {
      */
     @Test
     public void testExecuted() {
-        when(chain.execute(exchange)).thenReturn(Mono.empty());
-        Mono<Void> mono = webClientResponsePlugin.execute(exchange, chain);
-        StepVerifier.create(mono).expectSubscription().verifyError();
+        ServerWebExchange exchangeNormal = generateServerWebExchange();
+        reset(chain);
+        when(chain.execute(exchangeNormal)).thenReturn(Mono.empty());
+        Mono<Void> monoSuccess = webClientResponsePlugin.execute(exchangeNormal, chain);
+        StepVerifier.create(monoSuccess).expectSubscription().verifyError();
+
+        ServerWebExchange exchangeBadGateway = generateServerWebExchange();
+        exchangeBadGateway.getResponse().setStatusCode(HttpStatus.BAD_GATEWAY);
+        reset(chain);
+        when(chain.execute(exchangeBadGateway)).thenReturn(Mono.empty());
+        Mono<Void> monoBadGateway = webClientResponsePlugin.execute(exchangeBadGateway, chain);
+        StepVerifier.create(monoBadGateway).expectSubscription().verifyComplete();
+
+        ServerWebExchange exchangeGatewayTimeout = generateServerWebExchange();
+        exchangeGatewayTimeout.getResponse().setStatusCode(HttpStatus.GATEWAY_TIMEOUT);
+        reset(chain);
+        when(chain.execute(exchangeGatewayTimeout)).thenReturn(Mono.empty());
+        Mono<Void> monoGatewayTimeout = webClientResponsePlugin.execute(exchangeGatewayTimeout, chain);
+        StepVerifier.create(monoGatewayTimeout).expectSubscription().verifyComplete();
     }
 
     /**
@@ -89,6 +100,7 @@ public final class WebClientResponsePluginTest {
      */
     @Test
     public void testSkip() {
+        ServerWebExchange exchange = generateServerWebExchange();
         Assert.assertTrue(webClientResponsePlugin.skip(exchange));
     }
 
@@ -102,4 +114,22 @@ public final class WebClientResponsePluginTest {
         assertEquals(PluginEnum.RESPONSE.getName(), webClientResponsePlugin.named());
     }
 
+    private ServerWebExchange generateServerWebExchange() {
+        ClientResponse mockResponse = mock(ClientResponse.class);
+        MultiValueMap<String, ResponseCookie> cookies = new LinkedMultiValueMap<>();
+        cookies.add("id", mock(ResponseCookie.class));
+        when(mockResponse.cookies()).thenReturn(cookies);
+        ClientResponse.Headers headers = mock(ClientResponse.Headers.class);
+        when(headers.asHttpHeaders()).thenReturn(mock(HttpHeaders.class));
+        when(mockResponse.headers()).thenReturn(headers);
+
+        ServerWebExchange exchange = MockServerWebExchange
+                .from(MockServerHttpRequest.get("/badGateway").build());
+
+        exchange.getAttributes().put(Constants.CONTEXT, mock(SoulContext.class));
+        exchange.getAttributes().put(Constants.HTTP_URL, "/test");
+        exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, mockResponse);
+
+        return exchange;
+    }
 }
