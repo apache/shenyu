@@ -18,7 +18,6 @@
 package org.dromara.soul.client.springmvc.utils;
 
 import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 
 /**
