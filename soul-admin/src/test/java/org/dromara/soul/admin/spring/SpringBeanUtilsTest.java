@@ -35,7 +35,7 @@ public final class SpringBeanUtilsTest {
     private SpringBeanUtils springBeanUtilsUnderTest;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         springBeanUtilsUnderTest = SpringBeanUtils.getInstance();
     }
 
@@ -59,5 +59,13 @@ public final class SpringBeanUtilsTest {
     public void testGetInstance() {
         final SpringBeanUtils result = SpringBeanUtils.getInstance();
         Assert.assertNotNull(result);
+    }
+
+    /**
+     * Test Bean.
+     *
+     * @author HoldDie
+     */
+    static final class TestBean {
     }
 }

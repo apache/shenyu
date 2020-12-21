@@ -39,9 +39,9 @@ import reactor.core.scheduler.Schedulers;
  */
 public final class SoulWebHandler implements WebHandler {
 
-    private List<SoulPlugin> plugins;
+    private final List<SoulPlugin> plugins;
 
-    private Scheduler scheduler;
+    private final Scheduler scheduler;
 
     /**
      * Instantiates a new Soul web handler.

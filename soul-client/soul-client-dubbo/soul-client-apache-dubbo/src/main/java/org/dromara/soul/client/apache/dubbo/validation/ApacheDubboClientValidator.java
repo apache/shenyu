@@ -74,7 +74,7 @@ public class ApacheDubboClientValidator implements Validator {
 
     private final Class<?> clazz;
 
-    private final Map<String, Class> methodClassMap;
+    private final Map<String, Class<?>> methodClassMap;
 
     private final javax.validation.Validator validator;
 
@@ -131,8 +131,8 @@ public class ApacheDubboClientValidator implements Validator {
             CtClass ctClass = null;
             try {
                 ctClass = pool.getCtClass(parameterClassName);
-            } catch (NotFoundException ignore) {
-                log.error(ignore.getMessage(), ignore);
+            } catch (NotFoundException neglect) {
+                log.error(neglect.getMessage(), neglect);
             }
 
             if (null == ctClass) {
@@ -195,7 +195,7 @@ public class ApacheDubboClientValidator implements Validator {
 
     private static boolean hasConstraintParameter(final Method method) {
         Annotation[][] parameterAnnotations = method.getParameterAnnotations();
-        if (parameterAnnotations != null && parameterAnnotations.length > 0) {
+        if (parameterAnnotations.length > 0) {
             for (Annotation[] annotations : parameterAnnotations) {
                 for (Annotation annotation : annotations) {
                     if (annotation.annotationType().isAnnotationPresent(Constraint.class)) {
@@ -268,22 +268,23 @@ public class ApacheDubboClientValidator implements Validator {
         groups.add(1, clazz);
 
         // convert list to array
-        Class<?>[] classgroups = groups.toArray(new Class[groups.size()]);
+        Class<?>[] classGroups = new Class<?>[groups.size()];
+        classGroups = groups.toArray(classGroups);
 
         Object parameterBean = getMethodParameterBean(clazz, method, arguments);
         if (parameterBean != null) {
-            violations.addAll(validator.validate(parameterBean, classgroups));
+            violations.addAll(validator.validate(parameterBean, classGroups));
         }
 
         for (Object arg : arguments) {
-            validate(violations, arg, classgroups);
+            validate(violations, arg, classGroups);
         }
 
         if (!violations.isEmpty()) {
             log.error("Failed to validate service: " + clazz.getName() + ", method: " + methodName + ", cause: " + violations);
-            StringBuilder validateError = new StringBuilder("");
-            violations.stream().forEach(each -> validateError.append(each.getMessage()).append(","));
-            throw new ValidationException(validateError.toString().substring(0, validateError.length() - 1));
+            StringBuilder validateError = new StringBuilder();
+            violations.forEach(each -> validateError.append(each.getMessage()).append(","));
+            throw new ValidationException(validateError.substring(0, validateError.length() - 1));
         }
     }
 
@@ -308,10 +309,10 @@ public class ApacheDubboClientValidator implements Validator {
         }
     }
 
-    private Class methodClass(final String methodName) {
+    private Class<?> methodClass(final String methodName) {
         Class<?> methodClass = null;
         String methodClassName = clazz.getName() + "$" + toUpperMethoName(methodName);
-        Class cached = methodClassMap.get(methodClassName);
+        Class<?> cached = methodClassMap.get(methodClassName);
         if (cached != null) {
             return cached == clazz ? null : cached;
         }
