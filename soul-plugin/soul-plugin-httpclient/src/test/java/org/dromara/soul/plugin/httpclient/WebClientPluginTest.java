@@ -101,12 +101,12 @@ public final class WebClientPluginTest {
 
     @Test
     public void testGetOrder() {
-        assertEquals(PluginEnum.WEB_CLIENT.getCode(), webClientPlugin.getOrder());
+        assertEquals(PluginEnum.DIVIDE.getCode() + 1, webClientPlugin.getOrder());
     }
 
     @Test
     public void testNamed() {
-        assertEquals(PluginEnum.WEB_CLIENT.getName(), webClientPlugin.named());
+        assertEquals("webClient", webClientPlugin.named());
     }
 
     private WebClient mockWebClientOK() {
