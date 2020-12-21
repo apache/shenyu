@@ -59,7 +59,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * The Test Case For SpringCloudPlugin.
+ * The Test Case For {@link SpringCloudPlugin}.
  *
  * @author nuo-promise
  **/
