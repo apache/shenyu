@@ -17,138 +17,101 @@
 
 package org.dromara.soul.plugin.springcloud;
 
-import com.google.common.collect.Lists;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
+import org.dromara.soul.common.dto.convert.rule.impl.SpringCloudRuleHandle;
+import org.dromara.soul.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
-import org.dromara.soul.plugin.api.result.DefaultSoulResult;
-import org.dromara.soul.plugin.api.result.SoulResult;
-import org.dromara.soul.plugin.base.utils.SpringBeanUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.cloud.client.DefaultServiceInstance;
+import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpMethod;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Test case for {@link SpringCloudPlugin}.
+ * The Test Case For SpringCloudPlugin.
  *
- * @author HoldDie
- */
+ * @author nuo-promise
+ **/
 @RunWith(MockitoJUnitRunner.class)
-public final class SpringCloudPluginTest {
+public class SpringCloudPluginTest {
 
     @Mock
-    private LoadBalancerClient mockLoadBalancer;
+    private LoadBalancerClient loadBalancerClient;
 
-    private SpringCloudPlugin springCloudPluginUnderTest;
+    private SpringCloudPlugin springCloudPlugin;
 
     private ServerWebExchange exchange;
 
-    private SoulPluginChain chain;
-
-    private SelectorData selector;
-
-    private RuleData rule;
-
-    private SoulContext soulContext;
-
     @Before
     public void setUp() {
-        ConfigurableApplicationContext applicationContext = mock(ConfigurableApplicationContext.class);
-        when(applicationContext.getBean(SoulResult.class)).thenReturn(new DefaultSoulResult());
-        SpringBeanUtils springBeanUtils = SpringBeanUtils.getInstance();
-        springBeanUtils.setCfgContext(applicationContext);
-        MultiValueMap<String, String> valueMap = new LinkedMultiValueMap<>(1);
-        valueMap.put("param", Lists.newArrayList("123"));
-        exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").queryParams(valueMap).build());
-        soulContext = mock(SoulContext.class);
-        when(soulContext.getRpcType()).thenReturn(RpcTypeEnum.SPRING_CLOUD.getName());
+        springCloudPlugin = new SpringCloudPlugin(loadBalancerClient);
+        exchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost/springcloud?type=cloud").build());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void doExecute() {
+        final SoulPluginChain chain = mock(SoulPluginChain.class);
+        final SpringCloudSelectorHandle springCloudSelectorHandle = SpringCloudSelectorHandle.builder()
+                .serviceId("serviceId")
+                .build();
+        final SelectorData selectorData = SelectorData.builder()
+                .handle(GsonUtils.getInstance().toJson(springCloudSelectorHandle))
+                .build();
+        StepVerifier.create(springCloudPlugin.doExecute(exchange, chain, selectorData, null)).expectSubscription().verifyComplete();
+        final SpringCloudRuleHandle springCloudRuleHandle = new SpringCloudRuleHandle();
+        springCloudRuleHandle.setPath("/springcloud");
+        springCloudRuleHandle.setTimeout(1000L);
+        final RuleData rule = RuleData.builder()
+                .handle(GsonUtils.getInstance().toJson(springCloudRuleHandle))
+                .build();
+        ServiceInstance serviceInstance = mock(ServiceInstance.class);
+        when(loadBalancerClient.choose("serviceId")).thenReturn(serviceInstance);
+        SoulContext soulContext = new SoulContext();
+        soulContext.setRealUrl("http://localhost/test");
+        soulContext.setHttpMethod(HttpMethod.GET.name());
         exchange.getAttributes().put(Constants.CONTEXT, soulContext);
-        chain = mock(SoulPluginChain.class);
-        when(this.chain.execute(exchange)).thenReturn(Mono.empty());
-        selector = mock(SelectorData.class);
-        rule = mock(RuleData.class);
-        springCloudPluginUnderTest = new SpringCloudPlugin(mockLoadBalancer);
+        when(loadBalancerClient.reconstructURI(serviceInstance, URI.create(soulContext.getRealUrl()))).thenReturn(mock(URI.class));
+        StepVerifier.create(springCloudPlugin.doExecute(exchange, chain, selectorData, rule)).expectSubscription().verifyComplete();
     }
 
     @Test
-    public void testGetOrder() {
-        final int result = springCloudPluginUnderTest.getOrder();
+    public void getOrder() {
+        final int result = springCloudPlugin.getOrder();
         assertEquals(PluginEnum.SPRING_CLOUD.getCode(), result);
     }
 
     @Test
-    public void testNamed() {
-        final String result = springCloudPluginUnderTest.named();
+    public void named() {
+        final String result = springCloudPlugin.named();
         assertEquals(PluginEnum.SPRING_CLOUD.getName(), result);
     }
 
     @Test
-    public void testSkip() {
-        final Boolean result = springCloudPluginUnderTest.skip(exchange);
-        assertFalse(result);
-    }
-
-    @Test
-    public void testSpringCloudPluginRuleEmpty() {
-        Mono<Void> execute = springCloudPluginUnderTest.doExecute(exchange, chain, selector, null);
-        StepVerifier.create(execute).expectSubscription().verifyComplete();
-    }
-
-    @Test
-    public void testSpringCloudPluginNotConfigServiceId() {
-
-        when(selector.getHandle()).thenReturn("{}");
-        when(rule.getHandle()).thenReturn("{}");
-        Mono<Void> execute = springCloudPluginUnderTest.doExecute(exchange, chain, selector, rule);
-        StepVerifier.create(execute).expectSubscription().verifyComplete();
-    }
-
-    @Test
-    public void testSpringCloudPluginErrorServiceId() {
-        when(selector.getHandle()).thenReturn("{\"serviceId\":\"service1\"}");
-        when(rule.getHandle()).thenReturn("{\"path\":\"service/\"}");
-        when(mockLoadBalancer.choose(any())).thenReturn(null);
-        Mono<Void> execute = springCloudPluginUnderTest.doExecute(exchange, chain, selector, rule);
-        StepVerifier.create(execute).expectSubscription().verifyComplete();
-    }
-
-    @Test
-    public void testSpringCloudPluginNormal() throws URISyntaxException {
-        when(soulContext.getRealUrl()).thenReturn("http://127.0.0.1");
-        when(soulContext.getHttpMethod()).thenReturn(HttpMethod.GET.name());
+    public void skip() {
+        SoulContext soulContext = new SoulContext();
+        soulContext.setRpcType(RpcTypeEnum.SPRING_CLOUD.getName());
         exchange.getAttributes().put(Constants.CONTEXT, soulContext);
-        when(selector.getHandle()).thenReturn("{\"serviceId\":\"service1\"}");
-        when(rule.getHandle()).thenReturn("{\"path\":\"service1/\"}");
-        when(mockLoadBalancer.choose(any()))
-                .thenReturn(new DefaultServiceInstance("instanceId", "service1", "127.0.0.1", 8080, true));
-        when(mockLoadBalancer.reconstructURI(any(), any())).thenReturn(new URI("https://localhost:8080/service1/"));
-        Mono<Void> execute = springCloudPluginUnderTest.doExecute(exchange, chain, selector, rule);
-        StepVerifier.create(execute).expectSubscription().verifyComplete();
+        final Boolean result = springCloudPlugin.skip(exchange);
+        assertFalse(result);
     }
 }
