@@ -94,7 +94,7 @@ public final class ApacheDubboProxyServiceTest {
         future.complete("success");
     }
 
-    class DubboParamResolveServiceImpl implements DubboParamResolveService {
+    static class DubboParamResolveServiceImpl implements DubboParamResolveService {
 
         @Override
         public Pair<String[], Object[]> buildParameter(final String body, final String parameterTypes) {
