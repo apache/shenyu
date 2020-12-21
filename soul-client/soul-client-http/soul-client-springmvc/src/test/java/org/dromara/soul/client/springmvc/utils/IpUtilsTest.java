@@ -18,17 +18,43 @@
 package org.dromara.soul.client.springmvc.utils;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.internal.stubbing.answers.ThrowsExceptionForClassType;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 import static org.junit.Assert.assertEquals;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 /**
  * Test case for {@link IpUtils}.
  *
  * @author HoldDie
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(IpUtils.class)
 public final class IpUtilsTest {
 
+    @Mock
+    InetAddress inetAddress;
+
     @Test
-    public void testGetHost() {
+    public void testGetHost() throws UnknownHostException {
+        PowerMockito.mockStatic(InetAddress.class);
+        when(InetAddress.getLocalHost()).thenReturn(inetAddress);
+        when(inetAddress.getHostAddress()).thenReturn("127.0.0.1");
+        assertEquals("127.0.0.1", IpUtils.getHost());
+    }
+
+    @Test
+    public void testGetHostWithException() throws UnknownHostException {
+        PowerMockito.mockStatic(InetAddress.class);
+        when(InetAddress.getLocalHost()).then(new ThrowsExceptionForClassType(UnknownHostException.class));
         assertEquals("127.0.0.1", IpUtils.getHost());
     }
 }
