@@ -20,8 +20,10 @@ package org.dromara.soul.plugin.divide.balance.spi;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.spi.Join;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
+
 
 /**
  * random algorithm impl.
@@ -35,34 +37,55 @@ public class RandomLoadBalance extends AbstractLoadBalance {
 
     @Override
     public DivideUpstream doSelect(final List<DivideUpstream> upstreamList, final String ip) {
-        // total number
-        int length = upstreamList.size();
-        // total weight
-        int totalWeight = 0;
-        // Whether the weights are the same
-        boolean sameWeight = true;
-        for (int i = 0; i < length; i++) {
-            int weight = upstreamList.get(i).getWeight();
-            // Cumulative total weight
-            totalWeight += weight;
-            if (sameWeight && i > 0
-                    && weight != upstreamList.get(i - 1).getWeight()) {
-                // Calculate whether the weight of ownership is the same
-                sameWeight = false;
-            }
-        }
+        upstreamList.sort(Comparator.comparingInt(DivideUpstream::getWeight));
+        int totalWeight = calculateTotalWeight(upstreamList);
+        boolean sameWeight = isAllUpStreamSameWeight(upstreamList);
         if (totalWeight > 0 && !sameWeight) {
-            // If the weights are not the same and the weights are greater than 0, then random by the total number of weights
-            int offset = RANDOM.nextInt(totalWeight);
-            // Determine which segment the random value falls on
-            for (DivideUpstream divideUpstream : upstreamList) {
-                offset -= divideUpstream.getWeight();
-                if (offset < 0) {
-                    return divideUpstream;
-                }
-            }
+            return random(totalWeight, upstreamList);
         }
         // If the weights are the same or the weights are 0 then random
-        return upstreamList.get(RANDOM.nextInt(length));
+        return random(upstreamList);
+    }
+
+    private boolean isAllUpStreamSameWeight(final List<DivideUpstream> upstreamList) {
+        boolean sameWeight = true;
+        int length = upstreamList.size();
+        for (int i = 0; i < length; i++) {
+            int weight = upstreamList.get(i).getWeight();
+            if (i > 0 && weight != upstreamList.get(i - 1).getWeight()) {
+                // Calculate whether the weight of ownership is the same
+                sameWeight = false;
+                break;
+            }
+        }
+        return sameWeight;
+    }
+
+    private int calculateTotalWeight(final List<DivideUpstream> upstreamList) {
+        // total weight
+        int totalWeight = 0;
+        for (DivideUpstream divideUpstream : upstreamList) {
+            int weight = divideUpstream.getWeight();
+            // Cumulative total weight
+            totalWeight += weight;
+        }
+        return totalWeight;
+    }
+
+    private DivideUpstream random(final int totalWeight, final List<DivideUpstream> upstreamList) {
+        // If the weights are not the same and the weights are greater than 0, then random by the total number of weights
+        int offset = RANDOM.nextInt(totalWeight);
+        // Determine which segment the random value falls on
+        for (DivideUpstream divideUpstream : upstreamList) {
+            offset -= divideUpstream.getWeight();
+            if (offset < 0) {
+                return divideUpstream;
+            }
+        }
+        return null;
+    }
+
+    private DivideUpstream random(final List<DivideUpstream> upstreamList) {
+        return upstreamList.get(RANDOM.nextInt(upstreamList.size()));
     }
 }
