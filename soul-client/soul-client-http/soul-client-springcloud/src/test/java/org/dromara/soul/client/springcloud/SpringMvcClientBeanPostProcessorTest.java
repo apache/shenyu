@@ -15,11 +15,12 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.client.springcloud.init;
+package org.dromara.soul.client.springcloud;
 
 import org.dromara.soul.client.common.utils.RegisterUtils;
 import org.dromara.soul.client.springcloud.annotation.SoulSpringCloudClient;
 import org.dromara.soul.client.springcloud.config.SoulSpringCloudConfig;
+import org.dromara.soul.client.springcloud.init.SpringCloudClientBeanPostProcessor;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
