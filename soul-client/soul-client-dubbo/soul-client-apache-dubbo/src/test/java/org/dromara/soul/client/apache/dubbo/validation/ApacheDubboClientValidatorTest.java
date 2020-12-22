@@ -106,13 +106,10 @@ public final class ApacheDubboClientValidatorTest {
 
     @Test
     public void testValidateWithArrayArg() throws Exception {
-        apacheDubboClientValidatorUnderTest
-                .validate(
-                        "methodThree",
-                        new Class<?>[]{MockValidationParameter[].class},
-                        new Object[]{new MockValidationParameter[]{
-                                new MockValidationParameter("parameter")}
-                        });
+        MockValidationParameter parameter = new MockValidationParameter("parameter");
+        MockValidationParameter[] mockValidationParameters = {parameter};
+        Object[] objects = {mockValidationParameters};
+        apacheDubboClientValidatorUnderTest.validate("methodThree", new Class<?>[]{MockValidationParameter[].class}, objects);
     }
 
     @Test
