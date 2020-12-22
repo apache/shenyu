@@ -47,18 +47,18 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 /**
- * SpringMvcClientBeanPostProcessorTest.
+ * Test for SpringCloudClientBeanPostProcessor.
  *
  * @author kaitoShy
  * @author dengliming
  */
 @RunWith(MockitoJUnitRunner.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public final class SpringMvcClientBeanPostProcessorTest {
+public final class SpringCloudClientBeanPostProcessorTest {
     @Mock
     private static Environment env;
 
-    private final SpringMvcClientTestBean springMvcClientTestBean = new SpringMvcClientTestBean();
+    private final SpringCloudClientTestBean springCloudClientTestBean = new SpringCloudClientTestBean();
 
     @Before
     public void init() {
@@ -69,7 +69,7 @@ public final class SpringMvcClientBeanPostProcessorTest {
     public void testSoulBeanProcess() {
         // config with full
         SpringCloudClientBeanPostProcessor springCloudClientBeanPostProcessor = buildSpringCloudClientBeanPostProcessor(true);
-        assertEquals(springMvcClientTestBean, springCloudClientBeanPostProcessor.postProcessAfterInitialization(springMvcClientTestBean, "springMvcClientTestBean"));
+        assertEquals(springCloudClientTestBean, springCloudClientBeanPostProcessor.postProcessAfterInitialization(springCloudClientTestBean, "springCloudClientTestBean"));
     }
 
     @Test
@@ -92,7 +92,7 @@ public final class SpringMvcClientBeanPostProcessorTest {
                     command.run();
                 }
             });
-            assertEquals(springMvcClientTestBean, springCloudClientBeanPostProcessor.postProcessAfterInitialization(springMvcClientTestBean, "normalBean"));
+            assertEquals(springCloudClientTestBean, springCloudClientBeanPostProcessor.postProcessAfterInitialization(springCloudClientTestBean, "normalBean"));
         }
     }
 
@@ -107,7 +107,7 @@ public final class SpringMvcClientBeanPostProcessorTest {
     @RestController
     @RequestMapping("/order")
     @SoulSpringCloudClient(path = "/order")
-    static class SpringMvcClientTestBean {
+    static class SpringCloudClientTestBean {
         @PostMapping("/save")
         @SoulSpringCloudClient(path = "/save")
         public String save(@RequestBody final String body) {

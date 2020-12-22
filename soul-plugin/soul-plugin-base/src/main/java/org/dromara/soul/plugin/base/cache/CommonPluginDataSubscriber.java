@@ -25,6 +25,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
+import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 
@@ -48,14 +49,12 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     
     @Override
     public void onSubscribe(final PluginData pluginData) {
-        BaseDataCache.getInstance().cachePluginData(pluginData);
-        Optional.ofNullable(handlerMap.get(pluginData.getName())).ifPresent(handler -> handler.handlerPlugin(pluginData));
+        subscribeDataHandler(pluginData, DataEventTypeEnum.UPDATE);
     }
     
     @Override
     public void unSubscribe(final PluginData pluginData) {
-        BaseDataCache.getInstance().removePluginData(pluginData);
-        Optional.ofNullable(handlerMap.get(pluginData.getName())).ifPresent(handler -> handler.removePlugin(pluginData));
+        subscribeDataHandler(pluginData, DataEventTypeEnum.DELETE);
     }
     
     @Override
@@ -73,14 +72,12 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     
     @Override
     public void onSelectorSubscribe(final SelectorData selectorData) {
-        BaseDataCache.getInstance().cacheSelectData(selectorData);
-        Optional.ofNullable(handlerMap.get(selectorData.getPluginName())).ifPresent(handler -> handler.handlerSelector(selectorData));
+        subscribeDataHandler(selectorData, DataEventTypeEnum.UPDATE);
     }
     
     @Override
     public void unSelectorSubscribe(final SelectorData selectorData) {
-        BaseDataCache.getInstance().removeSelectData(selectorData);
-        Optional.ofNullable(handlerMap.get(selectorData.getPluginName())).ifPresent(handler -> handler.removeSelector(selectorData));
+        subscribeDataHandler(selectorData, DataEventTypeEnum.DELETE);
     }
     
     @Override
@@ -98,14 +95,12 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     
     @Override
     public void onRuleSubscribe(final RuleData ruleData) {
-        BaseDataCache.getInstance().cacheRuleData(ruleData);
-        Optional.ofNullable(handlerMap.get(ruleData.getPluginName())).ifPresent(handler -> handler.handlerRule(ruleData));
+        subscribeDataHandler(ruleData, DataEventTypeEnum.UPDATE);
     }
     
     @Override
     public void unRuleSubscribe(final RuleData ruleData) {
-        BaseDataCache.getInstance().removeRuleData(ruleData);
-        Optional.ofNullable(handlerMap.get(ruleData.getPluginName())).ifPresent(handler -> handler.removeRule(ruleData));
+        subscribeDataHandler(ruleData, DataEventTypeEnum.DELETE);
     }
     
     @Override
@@ -119,5 +114,38 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
             return;
         }
         BaseDataCache.getInstance().cleanRuleDataSelf(ruleDataList);
+    }
+    
+    private <T> void subscribeDataHandler(final T classData, final DataEventTypeEnum dataType) {
+        Optional.ofNullable(classData).ifPresent(data -> {
+            if (data instanceof PluginData) {
+                PluginData pluginData = (PluginData) data;
+                if (dataType == DataEventTypeEnum.UPDATE) {
+                    BaseDataCache.getInstance().cachePluginData(pluginData);
+                    Optional.ofNullable(handlerMap.get(pluginData.getName())).ifPresent(handler -> handler.handlerPlugin(pluginData));
+                } else if (dataType == DataEventTypeEnum.DELETE) {
+                    BaseDataCache.getInstance().removePluginData(pluginData);
+                    Optional.ofNullable(handlerMap.get(pluginData.getName())).ifPresent(handler -> handler.removePlugin(pluginData));
+                }
+            } else if (data instanceof SelectorData) {
+                SelectorData selectorData = (SelectorData) data;
+                if (dataType == DataEventTypeEnum.UPDATE) {
+                    BaseDataCache.getInstance().cacheSelectData(selectorData);
+                    Optional.ofNullable(handlerMap.get(selectorData.getPluginName())).ifPresent(handler -> handler.handlerSelector(selectorData));
+                } else if (dataType == DataEventTypeEnum.DELETE) {
+                    BaseDataCache.getInstance().removeSelectData(selectorData);
+                    Optional.ofNullable(handlerMap.get(selectorData.getPluginName())).ifPresent(handler -> handler.removeSelector(selectorData));
+                }
+            } else if (data instanceof RuleData) {
+                RuleData ruleData = (RuleData) data;
+                if (dataType == DataEventTypeEnum.UPDATE) {
+                    BaseDataCache.getInstance().cacheRuleData(ruleData);
+                    Optional.ofNullable(handlerMap.get(ruleData.getPluginName())).ifPresent(handler -> handler.handlerRule(ruleData));
+                } else if (dataType == DataEventTypeEnum.DELETE) {
+                    BaseDataCache.getInstance().removeRuleData(ruleData);
+                    Optional.ofNullable(handlerMap.get(ruleData.getPluginName())).ifPresent(handler -> handler.removeRule(ruleData));
+                }
+            }
+        });
     }
 }
