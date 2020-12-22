@@ -140,7 +140,7 @@ public final class BaseDataCache {
      * @return the plugin data
      */
     public PluginData obtainPluginData(final String pluginName) {
-        return Optional.ofNullable(pluginName).map(PLUGIN_MAP::get).orElse(null);
+        return PLUGIN_MAP.get(pluginName);
     }
     
     /**
@@ -187,7 +187,7 @@ public final class BaseDataCache {
      * @return the list
      */
     public List<SelectorData> obtainSelectorData(final String pluginName) {
-        return Optional.ofNullable(pluginName).map(SELECTOR_MAP::get).orElse(null);
+        return SELECTOR_MAP.get(pluginName);
     }
     
     /**
@@ -234,6 +234,6 @@ public final class BaseDataCache {
      * @return the list
      */
     public List<RuleData> obtainRuleData(final String selectorId) {
-        return Optional.ofNullable(selectorId).map(RULE_MAP::get).orElse(null);
+        return RULE_MAP.get(selectorId);
     }
 }
