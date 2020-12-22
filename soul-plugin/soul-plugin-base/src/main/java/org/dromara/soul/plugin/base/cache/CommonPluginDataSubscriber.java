@@ -116,7 +116,7 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
         BaseDataCache.getInstance().cleanRuleDataSelf(ruleDataList);
     }
     
-    private <T> void subscribeDataHandler(final T classData, DataEventTypeEnum dataType) {
+    private <T> void subscribeDataHandler(final T classData, final DataEventTypeEnum dataType) {
         Optional.ofNullable(classData).ifPresent(data -> {
             if (data instanceof PluginData) {
                 PluginData pluginData = (PluginData) data;
