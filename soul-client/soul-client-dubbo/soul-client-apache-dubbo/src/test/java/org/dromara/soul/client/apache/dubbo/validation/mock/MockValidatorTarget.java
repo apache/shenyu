@@ -31,59 +31,59 @@ import java.util.Map;
 public interface MockValidatorTarget {
 
     /**
-     * mock method: method1.
+     * mock method: methodOne.
      *
      * @param anything parameter
      */
     @MethodValidated
-    void method1(String anything);
+    void methodOne(String anything);
 
     /**
-     * mock method: method2.
+     * mock method: methodTwo.
      *
      * @param mockValidationParameter parameter
      */
     @MethodValidated
-    void method2(@NotNull @MockConstraint MockValidationParameter mockValidationParameter);
+    void methodTwo(@NotNull @MockConstraint MockValidationParameter mockValidationParameter);
 
     /**
-     * mock method: method3.
+     * mock method: methodThree.
      *
      * @param parameters parameter
      */
-    void method3(MockValidationParameter[] parameters);
+    void methodThree(MockValidationParameter[] parameters);
 
     /**
-     * mock method: method4.
+     * mock method: methodFour.
      *
      * @param strings parameter
      */
-    void method4(List<String> strings);
+    void methodFour(List<String> strings);
 
     /**
-     * mock method: method5.
+     * mock method: methodFive.
      *
      * @param map parameter
      */
-    void method5(Map<String, String> map);
+    void methodFive(Map<String, String> map);
 
-    interface Method1 {
-
-    }
-
-    interface Method2 {
+    interface MethodOne {
 
     }
 
-    interface Method3 {
+    interface MethodTwo {
 
     }
 
-    interface Method4 {
+    interface MethodThree {
 
     }
 
-    interface Method5 {
+    interface MethodFour {
+
+    }
+
+    interface MethodFive {
 
     }
 }

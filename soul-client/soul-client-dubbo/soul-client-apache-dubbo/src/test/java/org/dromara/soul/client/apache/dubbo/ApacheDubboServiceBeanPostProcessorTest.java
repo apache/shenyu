@@ -45,7 +45,7 @@ import static org.mockito.Mockito.when;
 /**
  * Test case for {@link ApacheDubboServiceBeanPostProcessor}.
  *
- * @date 2020/12/22 8:49 PM
+ * @author HoldDie
  */
 @RunWith(MockitoJUnitRunner.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
