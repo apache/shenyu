@@ -37,7 +37,7 @@ public class RandomLoadBalanceTest {
 
     @Before
     public void setUp() {
-        this.randomLoadBalances = Stream.of(10, 40, 50)
+        this.randomLoadBalances = Stream.of(10, 50, 40)
                 .map(weight -> DivideUpstream.builder()
                         .upstreamUrl("divide-upstream-" + weight)
                         .weight(weight)
