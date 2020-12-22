@@ -17,6 +17,7 @@
 
 package org.dromara.soul.plugin.apache.dubbo.param;
 
+import org.apache.dubbo.common.utils.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
@@ -24,99 +25,74 @@ import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
-import org.springframework.http.MediaType;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 
 /**
- * Test case for {@link BodyParamPlugin}.
+ * The Test Case For BodyParamPlugin.
  *
- * @author HoldDie
- */
+ * @author nuo-promise
+ **/
 public final class BodyParamPluginTest {
 
-    private SoulPluginChain chain;
-
-    private BodyParamPlugin bodyParamPluginUnderTest;
+    private BodyParamPlugin bodyParamPlugin;
 
     @Before
     public void setUp() {
-        bodyParamPluginUnderTest = new BodyParamPlugin();
-        chain = mock(SoulPluginChain.class);
+        bodyParamPlugin = new BodyParamPlugin();
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testExecute() {
+        execute(null, null);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testExecuteNoContentTypeName() {
+        execute(RpcTypeEnum.DUBBO.getName(), null);
     }
 
     @Test
-    public void testGetOrder() {
-        final int result = bodyParamPluginUnderTest.getOrder();
-
-        assertEquals(PluginEnum.DUBBO.getCode() - 1, result);
+    public void testExecuteHaveJsonContentName() {
+        execute(RpcTypeEnum.DUBBO.getName(), "application/json");
     }
 
     @Test
-    public void testNamed() {
-        final String result = bodyParamPluginUnderTest.named();
+    public void testExecuteHaveWwwContentName() {
+        execute(RpcTypeEnum.DUBBO.getName(), "application/x-www-form-urlencoded");
+    }
 
-        assertEquals("apache-dubbo-body-param", result);
+    private void execute(final String rpcTypeName, final String contentTypeName) {
+        ServerWebExchange exchange = MockServerWebExchange
+                .from(MockServerHttpRequest.get("http://localhost:8888/test").build());
+        SoulPluginChain chain = mock(SoulPluginChain.class);
+        SoulContext soulContext = new SoulContext();
+
+        if (StringUtils.isNotEmpty(rpcTypeName)) {
+            soulContext.setRpcType(rpcTypeName);
+            if (StringUtils.isNotEmpty(contentTypeName)) {
+                exchange = MockServerWebExchange
+                        .from(MockServerHttpRequest.get("http://localhost:8888/test").header("Content-Type", contentTypeName).build());
+            }
+            exchange.getAttributes().put(Constants.CONTEXT, soulContext);
+        }
+
+        StepVerifier.create(bodyParamPlugin.execute(exchange, chain)).expectError(NullPointerException.class).verifyThenAssertThat();
     }
 
     @Test
-    public void testExecuteWithNoBody() {
-        ServerWebExchange exchange = MockServerWebExchange.from(
-                MockServerHttpRequest.post("localhost").contentType(MediaType.APPLICATION_JSON).body("{}"));
-        Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
-
-        final Mono<Void> result = bodyParamPluginUnderTest.execute(exchange, chain);
-
-        StepVerifier.create(result).expectSubscription().verifyComplete();
+    public void getOrder() {
+        assertThat(bodyParamPlugin.getOrder(), is(PluginEnum.DUBBO.getCode() - 1));
     }
 
     @Test
-    public void testExecuteWithSimpleBody() {
-        final ServerWebExchange simpleExchange = MockServerWebExchange.from(
-                MockServerHttpRequest.get("localhost").build());
-        Mockito.when(chain.execute(simpleExchange)).thenReturn(Mono.empty());
-        SoulContext context = new SoulContext();
-        context.setRpcType(RpcTypeEnum.DUBBO.getName());
-        simpleExchange.getAttributes().put(Constants.CONTEXT, context);
-
-        final Mono<Void> result = bodyParamPluginUnderTest.execute(simpleExchange, chain);
-
-        StepVerifier.create(result).expectSubscription().verifyComplete();
-    }
-
-    @Test
-    public void testExecuteWithJsonBody() {
-        final ServerWebExchange exchange = MockServerWebExchange.from(
-                MockServerHttpRequest.post("localhost").contentType(MediaType.APPLICATION_JSON).body("{}"));
-        Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
-        SoulContext context = new SoulContext();
-        context.setRpcType(RpcTypeEnum.DUBBO.getName());
-        exchange.getAttributes().put(Constants.CONTEXT, context);
-
-        final Mono<Void> result = bodyParamPluginUnderTest.execute(exchange, chain);
-
-        StepVerifier.create(result).expectSubscription().verifyComplete();
-    }
-
-    @Test
-    public void testExecuteWithFormBody() {
-        final ServerWebExchange formExchange = MockServerWebExchange.from(
-                MockServerHttpRequest.post("localhost")
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED).body("{}"));
-        Mockito.when(chain.execute(formExchange)).thenReturn(Mono.empty());
-        SoulContext context = new SoulContext();
-        context.setRpcType(RpcTypeEnum.DUBBO.getName());
-        formExchange.getAttributes().put(Constants.CONTEXT, context);
-
-        final Mono<Void> result = bodyParamPluginUnderTest.execute(formExchange, chain);
-
-        StepVerifier.create(result).expectSubscription().verifyComplete();
+    public void named() {
+        assertThat(bodyParamPlugin.named(), is("apache-dubbo-body-param"));
     }
 }

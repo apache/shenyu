@@ -48,8 +48,6 @@ public final class SofaResponsePluginTest {
 
     private SofaResponsePlugin sofaResponsePlugin;
 
-    private String response = "{}";
-
     @Before
     public void setup() {
         exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
@@ -66,6 +64,7 @@ public final class SofaResponsePluginTest {
     public void testGetResult() {
         Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
         sofaResponsePlugin = new SofaResponsePlugin();
+        String response = "{}";
         exchange.getAttributes().put(Constants.SOFA_RPC_RESULT, response);
         StepVerifier.create(sofaResponsePlugin.execute(exchange, chain)).expectSubscription().verifyError(NullPointerException.class);
     }

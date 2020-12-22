@@ -38,7 +38,7 @@ public final class RuleHandleFactory {
     /**
      * The RpcType to RuleHandle class map.
      */
-    private static final Map<RpcTypeEnum, Class<? extends RuleHandle>> RPC_TYPE_TO_RULE_HANDLE_CLASS = new ConcurrentHashMap();
+    private static final Map<RpcTypeEnum, Class<? extends RuleHandle>> RPC_TYPE_TO_RULE_HANDLE_CLASS = new ConcurrentHashMap<>();
 
     /**
      * The default RuleHandle.
