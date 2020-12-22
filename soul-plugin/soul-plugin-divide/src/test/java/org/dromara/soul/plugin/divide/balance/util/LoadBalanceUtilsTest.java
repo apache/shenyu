@@ -59,7 +59,7 @@ public final class LoadBalanceUtilsTest {
     @Test
     public void loadBalanceUtilsDisOrderedWeightTest() {
         List<DivideUpstream> upstreamList =
-                Stream.of(70, 20, 10)
+                Stream.of(70, 10, 20)
                         .map(weight -> DivideUpstream.builder()
                                 .upstreamUrl("upstream-" + weight)
                                 .weight(weight)
