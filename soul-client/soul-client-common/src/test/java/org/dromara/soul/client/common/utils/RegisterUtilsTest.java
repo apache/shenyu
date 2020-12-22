@@ -33,6 +33,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mockStatic;
 
+/**
+ * Test case for {@link RegisterUtils}.
+ *
+ * @author Young Bean
+ */
 public final class RegisterUtilsTest {
 
     private OkHttpTools okHttpTools;
@@ -71,7 +76,6 @@ public final class RegisterUtilsTest {
         try (MockedStatic<OkHttpTools> okHttpToolsMockedStatic = mockStatic(OkHttpTools.class)) {
             okHttpToolsMockedStatic.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
             RegisterUtils.doRegister(json, url, RpcTypeEnum.DUBBO);
-            okHttpToolsMockedStatic.clearInvocations();
         }
     }
 
@@ -83,7 +87,6 @@ public final class RegisterUtilsTest {
         try (MockedStatic<OkHttpTools> okHttpToolsMockedStatic = mockStatic(OkHttpTools.class)) {
             okHttpToolsMockedStatic.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
             RegisterUtils.doRegister(json, url, RpcTypeEnum.DUBBO);
-            okHttpToolsMockedStatic.clearInvocations();
         }
     }
 
@@ -95,7 +98,6 @@ public final class RegisterUtilsTest {
         try (MockedStatic<OkHttpTools> okHttpToolsMockedStatic = mockStatic(OkHttpTools.class)) {
             okHttpToolsMockedStatic.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
             RegisterUtils.doRegister(json, url, RpcTypeEnum.DUBBO);
-            okHttpToolsMockedStatic.clearInvocations();
         }
     }
 }
