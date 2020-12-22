@@ -17,16 +17,17 @@
 
 package org.dromara.soul.plugin.base.cache;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * The type Common plugin data subscriber.
@@ -45,17 +46,57 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     public CommonPluginDataSubscriber(final List<PluginDataHandler> pluginDataHandlerList) {
         this.handlerMap = pluginDataHandlerList.stream().collect(Collectors.toConcurrentMap(PluginDataHandler::pluginNamed, e -> e));
     }
-    
+
+    /**
+     * check pluginData,selectorData,RuleData not Null and onSubscribe.
+     *
+     * @param classData the plugin,selector,rule data
+     * @param <T> the plugin,selector,rule class type
+     */
+    private <T> void onSubscribeCheckData(final T classData) {
+        Optional.ofNullable(classData).ifPresent(data -> {
+            if (data instanceof PluginData) {
+                BaseDataCache.getInstance().cachePluginData((PluginData) data);
+                Optional.ofNullable(handlerMap.get(((PluginData) data).getName())).ifPresent(handler -> handler.handlerPlugin((PluginData) data));
+            } else if (data instanceof SelectorData) {
+                BaseDataCache.getInstance().cacheSelectData((SelectorData) data);
+                Optional.ofNullable(handlerMap.get(((SelectorData) data).getPluginName())).ifPresent(handler -> handler.handlerSelector((SelectorData) data));
+            } else if (data instanceof RuleData) {
+                BaseDataCache.getInstance().cacheRuleData((RuleData) data);
+                Optional.ofNullable(handlerMap.get(((RuleData) data).getPluginName())).ifPresent(handler -> handler.handlerRule((RuleData) data));
+            }
+        });
+    }
+
+    /**
+     *  check pluginData,selectorData,RuleData not Null and unSubscribe.
+     *
+     * @param classData the plugin,selector,rule data
+     * @param <T> the plugin,selector,rule class type
+     */
+    private <T> void unSubscribeCheckData(final T classData) {
+        Optional.ofNullable(classData).ifPresent(data -> {
+            if (data instanceof PluginData) {
+                BaseDataCache.getInstance().removePluginData((PluginData) data);
+                Optional.ofNullable(handlerMap.get(((PluginData) data).getName())).ifPresent(handler -> handler.removePlugin((PluginData) data));
+            } else if (data instanceof SelectorData) {
+                BaseDataCache.getInstance().removeSelectData((SelectorData) data);
+                Optional.ofNullable(handlerMap.get(((SelectorData) data).getPluginName())).ifPresent(handler -> handler.removeSelector((SelectorData) data));
+            } else if (data instanceof RuleData) {
+                BaseDataCache.getInstance().removeRuleData((RuleData) data);
+                Optional.ofNullable(handlerMap.get(((RuleData) data).getPluginName())).ifPresent(handler -> handler.removeRule((RuleData) data));
+            }
+        });
+    }
+
     @Override
     public void onSubscribe(final PluginData pluginData) {
-        BaseDataCache.getInstance().cachePluginData(pluginData);
-        Optional.ofNullable(handlerMap.get(pluginData.getName())).ifPresent(handler -> handler.handlerPlugin(pluginData));
+        onSubscribeCheckData(pluginData);
     }
     
     @Override
     public void unSubscribe(final PluginData pluginData) {
-        BaseDataCache.getInstance().removePluginData(pluginData);
-        Optional.ofNullable(handlerMap.get(pluginData.getName())).ifPresent(handler -> handler.removePlugin(pluginData));
+        unSubscribeCheckData(pluginData);
     }
     
     @Override
@@ -73,14 +114,12 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     
     @Override
     public void onSelectorSubscribe(final SelectorData selectorData) {
-        BaseDataCache.getInstance().cacheSelectData(selectorData);
-        Optional.ofNullable(handlerMap.get(selectorData.getPluginName())).ifPresent(handler -> handler.handlerSelector(selectorData));
+        onSubscribeCheckData(selectorData);
     }
     
     @Override
     public void unSelectorSubscribe(final SelectorData selectorData) {
-        BaseDataCache.getInstance().removeSelectData(selectorData);
-        Optional.ofNullable(handlerMap.get(selectorData.getPluginName())).ifPresent(handler -> handler.removeSelector(selectorData));
+        unSubscribeCheckData(selectorData);
     }
     
     @Override
@@ -98,14 +137,12 @@ public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     
     @Override
     public void onRuleSubscribe(final RuleData ruleData) {
-        BaseDataCache.getInstance().cacheRuleData(ruleData);
-        Optional.ofNullable(handlerMap.get(ruleData.getPluginName())).ifPresent(handler -> handler.handlerRule(ruleData));
+        onSubscribeCheckData(ruleData);
     }
     
     @Override
     public void unRuleSubscribe(final RuleData ruleData) {
-        BaseDataCache.getInstance().removeRuleData(ruleData);
-        Optional.ofNullable(handlerMap.get(ruleData.getPluginName())).ifPresent(handler -> handler.removeRule(ruleData));
+        unSubscribeCheckData(ruleData);
     }
     
     @Override
