@@ -20,7 +20,6 @@ package org.dromara.soul.plugin.divide.balance.spi;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.spi.Join;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
@@ -37,7 +36,6 @@ public class RandomLoadBalance extends AbstractLoadBalance {
 
     @Override
     public DivideUpstream doSelect(final List<DivideUpstream> upstreamList, final String ip) {
-        upstreamList.sort(Comparator.comparingInt(DivideUpstream::getWeight));
         int totalWeight = calculateTotalWeight(upstreamList);
         boolean sameWeight = isAllUpStreamSameWeight(upstreamList);
         if (totalWeight > 0 && !sameWeight) {
