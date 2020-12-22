@@ -23,13 +23,15 @@ import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * Test Case for SpringCloudClientBeanPostProcessor.
  *
  * @author DaveModl (davemo-coderpersonal@hotmail.com)
  */
-public final class SpringCloudClientBeanPostProcessorTestConfig {
+@Configuration
+public class SpringCloudClientBeanPostProcessorTestConfig {
 
     /**
      *  return bean springCloudClientBeanPostProcessorRegistrar.
