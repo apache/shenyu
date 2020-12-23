@@ -56,21 +56,22 @@ public abstract class AbstractLoadBalance implements LoadBalance {
         return weight;
     }
 
-    private int getWeight(final long timestamp,final int warmup,int weight) {
-        if (weight > 0 && timestamp > 0) {
+    private int getWeight(final long timestamp,final int warmup,final int urlWeight) {
+
+        if (urlWeight > 0 && timestamp > 0) {
             int uptime = (int) (System.currentTimeMillis() - timestamp);
 
             if (uptime > 0 && uptime < warmup) {
-                weight = calculateWarmupWeight(uptime, warmup, weight);
+                return calculateWarmupWeight(uptime, warmup, urlWeight);
+
             }
         }
-
-        return weight;
+        return urlWeight;
     }
 
-    private int calculateWarmupWeight(final int uptime,final int warmup,final int weight) {
-        int ww = (int) ((float) uptime / ((float) warmup / (float) weight));
-        return ww < 1 ? 1 : (ww > weight ? weight : ww);
+    private int calculateWarmupWeight(final int uptime,final int warmup,final int urlWeight) {
+        int ww = (int) ((float) uptime / ((float) warmup / (float) urlWeight));
+        return ww < 1 ? 1 : (ww > urlWeight ? urlWeight : ww);
     }
 
 }
