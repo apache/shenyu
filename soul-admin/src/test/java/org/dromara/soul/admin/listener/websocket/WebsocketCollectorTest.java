@@ -18,27 +18,23 @@
 package org.dromara.soul.admin.listener.websocket;
 
 import lombok.extern.slf4j.Slf4j;
-import org.dromara.soul.admin.SoulAdminBootstrap;
+import org.dromara.soul.admin.service.SyncDataService;
+import org.dromara.soul.admin.spring.SpringBeanUtils;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
-import org.java_websocket.client.WebSocketClient;
-import org.java_websocket.handshake.ServerHandshake;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
-import java.lang.reflect.Field;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Test case for WebsocketCollector.
@@ -46,105 +42,76 @@ import static org.junit.Assert.assertNull;
  * @author wuudongdong
  */
 @Slf4j
-@ActiveProfiles("test")
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = SoulAdminBootstrap.class, webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
-        properties = "spring.autoconfigure.exclude=org.springframework.boot.actuate.autoconfigure.jdbc.DataSourceHealthContributorAutoConfiguration")
 public final class WebsocketCollectorTest {
 
-    private WebSocketClient client;
+    private WebsocketCollector websocketCollector;
+
+    private Session session;
 
     @Before
-    public void setUp() throws URISyntaxException {
-        client = new WebSocketClient(new URI("ws://localhost:9095/websocket")) {
-            @Override
-            public void onOpen(final ServerHandshake serverHandshake) {
-                log.info("Open connection");
-            }
-
-            @Override
-            public void onMessage(final String s) {
-                log.info("message : {}", s);
-            }
-
-            @Override
-            public void onClose(final int i, final String s, final boolean b) {
-                log.info("connection closed");
-            }
-
-            @Override
-            public void onError(final Exception e) {
-            }
-        };
+    public void setUp() {
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        SpringBeanUtils.getInstance().setCfgContext(context);
+        SyncDataService syncDataService = mock(SyncDataService.class);
+        when(SpringBeanUtils.getInstance().getBean(SyncDataService.class)).thenReturn(syncDataService);
+        when(syncDataService.syncAll(DataEventTypeEnum.MYSELF)).thenReturn(true);
+        session = mock(Session.class);
+        RemoteEndpoint.Basic basic = mock(RemoteEndpoint.Basic.class);
+        when(session.getBasicRemote()).thenReturn(basic);
+        websocketCollector = new WebsocketCollector();
     }
 
     @Test
-    public void testOnOpen() throws Exception {
-        client.connectBlocking();
-        Thread.sleep(1000);
+    public void testOnOpen() {
+        websocketCollector.onOpen(session);
         assertEquals(1L, getSessionSetSize());
-        client.closeBlocking();
+        websocketCollector.onClose(session);
     }
 
     @Test
-    public void testOnMessage() throws Exception {
-        client.connectBlocking();
-        Thread.sleep(1000);
-        client.send(DataEventTypeEnum.MYSELF.name());
-        Thread.sleep(1000);
+    public void testOnMessage() {
+        websocketCollector.onOpen(session);
+        websocketCollector.onMessage(DataEventTypeEnum.MYSELF.name(), session);
         assertNotNull(getSession());
-        client.closeBlocking();
+        websocketCollector.onClose(session);
     }
 
     @Test
-    public void testOnClose() throws Exception {
-        client.connectBlocking();
-        Thread.sleep(1000);
+    public void testOnClose() {
+        websocketCollector.onOpen(session);
         assertEquals(1L, getSessionSetSize());
-        client.closeBlocking();
-        Thread.sleep(1000);
+        websocketCollector.onClose(session);
         assertEquals(0L, getSessionSetSize());
         assertNull(getSession());
     }
 
     @Test
-    public void testSend() throws Exception {
-        client.connectBlocking();
-        Thread.sleep(1000);
-        client.send(DataEventTypeEnum.MYSELF.name());
-        Thread.sleep(1000);
-        assertNotNull(getSession());
+    public void testOnError() {
+        websocketCollector.onOpen(session);
+        assertEquals(1L, getSessionSetSize());
+        Throwable throwable = mock(Throwable.class);
+        websocketCollector.onError(session, throwable);
+        assertEquals(0L, getSessionSetSize());
+        assertNull(getSession());
+    }
+
+    @Test
+    public void testSend() {
+        websocketCollector.onOpen(session);
+        assertEquals(1L, getSessionSetSize());
+        websocketCollector.onMessage(DataEventTypeEnum.MYSELF.name(), session);
         WebsocketCollector.send(null, DataEventTypeEnum.MYSELF);
         WebsocketCollector.send("test", DataEventTypeEnum.MYSELF);
         WebsocketCollector.send("test", DataEventTypeEnum.CREATE);
-        Thread.sleep(1000);
-        client.closeBlocking();
+        websocketCollector.onClose(session);
     }
 
-    private long getSessionSetSize() throws ClassNotFoundException {
-        return ((Set) getField("SESSION_SET")).size();
+    private long getSessionSetSize() {
+        Set sessionSet = (Set) ReflectionTestUtils.getField(WebsocketCollector.class, "SESSION_SET");
+        return sessionSet == null ? -1 : sessionSet.size();
     }
 
-    private Session getSession() throws ClassNotFoundException {
-        return (Session) getField("session");
-    }
-
-    private Object getField(final String fieldName) throws ClassNotFoundException {
-        Class clazz = Class.forName("org.dromara.soul.admin.listener.websocket.WebsocketCollector");
-        Field[] declaredFields = clazz.getDeclaredFields();
-        return Arrays.stream(declaredFields)
-                .filter(each -> {
-                    each.setAccessible(true);
-                    return fieldName.equals(each.getName());
-                })
-                .findFirst()
-                .map(each -> {
-                    try {
-                        return each.get(clazz);
-                    } catch (IllegalAccessException e) {
-                        log.error("get field error", e);
-                        return null;
-                    }
-                }).orElse(null);
+    private Session getSession() {
+        return (Session) ReflectionTestUtils.getField(WebsocketCollector.class, "session");
     }
 }
