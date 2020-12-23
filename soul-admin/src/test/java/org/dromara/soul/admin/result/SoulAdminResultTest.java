@@ -26,7 +26,6 @@ import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Test case for {@link SoulAdminResult}.
@@ -39,7 +38,6 @@ public final class SoulAdminResultTest {
 
     @Before
     public void setUp() throws Exception {
-        initMocks(this);
         soulAdminResultUnderTest = new SoulAdminResult(0, "message", "data");
     }
 
