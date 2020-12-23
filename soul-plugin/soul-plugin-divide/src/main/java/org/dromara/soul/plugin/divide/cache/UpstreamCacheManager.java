@@ -19,8 +19,6 @@ package org.dromara.soul.plugin.divide.cache;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -48,7 +46,7 @@ public final class UpstreamCacheManager {
 
 
     /**
-     * suggest soul.upstream.scheduledTime set 1 SECONDS
+     * suggest soul.upstream.scheduledTime set 1 SECONDS.
      */
     private UpstreamCacheManager() {
         boolean check = Boolean.parseBoolean(System.getProperty("soul.upstream.check", "false"));
