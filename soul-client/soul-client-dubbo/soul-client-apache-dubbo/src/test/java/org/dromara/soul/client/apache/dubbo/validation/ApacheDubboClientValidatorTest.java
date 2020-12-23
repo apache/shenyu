@@ -19,8 +19,17 @@ package org.dromara.soul.client.apache.dubbo.validation;
 
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.validation.Validator;
+import org.dromara.soul.client.apache.dubbo.validation.mock.MockValidationParameter;
 import org.dromara.soul.client.apache.dubbo.validation.service.TestService;
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+
+import javax.validation.ValidationException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
@@ -29,7 +38,12 @@ import static org.junit.Assert.assertEquals;
  *
  * @author KevinClair
  */
-public class ApacheDubboClientValidatorTest {
+public final class ApacheDubboClientValidatorTest {
+
+    private static final String MOCK_SERVICE_URL =
+            "mock://localhost:28000/org.dromara.soul.client.apache.dubbo.validation.mock.MockValidatorTarget";
+
+    private ApacheDubboClientValidator apacheDubboClientValidatorUnderTest;
 
     /**
      * test method {@link ApacheDubboClientValidator#validate(java.lang.String, java.lang.Class[], java.lang.Object[])}.
@@ -53,5 +67,65 @@ public class ApacheDubboClientValidatorTest {
         } catch (Exception e) {
             assertEquals("age cannot be null.", e.getMessage());
         }
+    }
+
+    @Before
+    public void setUp() {
+        URL url = URL.valueOf(MOCK_SERVICE_URL);
+        apacheDubboClientValidatorUnderTest = new ApacheDubboClientValidator(url);
+    }
+
+    @Test(expected = NoSuchMethodException.class)
+    public void testValidateWithNonExistMethod() throws Exception {
+        apacheDubboClientValidatorUnderTest
+                .validate("nonExistingMethod", new Class<?>[]{String.class}, new Object[]{"arg1"});
+    }
+
+    @Test
+    public void testValidateWithExistMethod() throws Exception {
+        final URL url = URL.valueOf(MOCK_SERVICE_URL + "?soulValidation=org.hibernate.validator.HibernateValidator");
+        ApacheDubboClientValidator apacheDubboClientValidator = new ApacheDubboClientValidator(url);
+        apacheDubboClientValidator
+                .validate("methodOne", new Class<?>[]{String.class}, new Object[]{"anything"});
+        apacheDubboClientValidator
+                .validate("methodOne", new Class<?>[]{String.class}, new Object[]{"anything"});
+    }
+
+    @Test
+    public void testValidateWhenMeetsConstraintThenValidationFailed() {
+        try {
+            apacheDubboClientValidatorUnderTest
+                    .validate(
+                            "methodTwo",
+                            new Class<?>[]{MockValidationParameter.class},
+                            new Object[]{new MockValidationParameter("NotBeNull")});
+        } catch (Exception e) {
+            Assert.assertTrue(e instanceof ValidationException);
+        }
+    }
+
+    @Test
+    public void testValidateWithArrayArg() throws Exception {
+        MockValidationParameter parameter = new MockValidationParameter("parameter");
+        MockValidationParameter[] mockValidationParameters = {parameter};
+        Object[] objects = {mockValidationParameters};
+        apacheDubboClientValidatorUnderTest.validate("methodThree", new Class<?>[]{MockValidationParameter[].class}, objects);
+    }
+
+    @Test
+    public void testItWithCollectionArg() throws Exception {
+        apacheDubboClientValidatorUnderTest
+                .validate(
+                        "methodFour", 
+                        new Class<?>[]{List.class}, 
+                        new Object[]{Collections.singletonList("parameter")});
+    }
+
+    @Test
+    public void testItWithMapArg() throws Exception {
+        final Map<String, String> map = new HashMap<>();
+        map.put("key", "value");
+        apacheDubboClientValidatorUnderTest.validate(
+                "methodFive", new Class<?>[]{Map.class}, new Object[]{map});
     }
 }
