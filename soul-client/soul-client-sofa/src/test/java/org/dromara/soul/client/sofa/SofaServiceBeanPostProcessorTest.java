@@ -20,9 +20,12 @@ package org.dromara.soul.client.sofa;
 
 import com.alipay.sofa.runtime.service.component.impl.ServiceImpl;
 import com.alipay.sofa.runtime.spring.factory.ServiceFactoryBean;
+import io.undertow.Undertow;
 import org.dromara.soul.client.sofa.common.annotation.SoulSofaClient;
 import org.dromara.soul.client.sofa.common.config.SofaConfig;
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,6 +35,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.lang.reflect.Field;
+import java.util.concurrent.CountDownLatch;
+
+import static io.undertow.Handlers.path;
 
 /**
  * Test case for SofaServiceBeanPostProcessor.
@@ -41,15 +47,38 @@ import java.lang.reflect.Field;
 @RunWith(MockitoJUnitRunner.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public final class SofaServiceBeanPostProcessorTest {
+
+    private static Undertow server;
+
+    private static long registerNum;
+
+    private static CountDownLatch countDownLatch;
+
     private static SofaServiceBeanPostProcessor sofaServiceBeanPostProcessorUnderTest;
 
-    @BeforeClass
-    public static void init() {
+    @Before
+    public void init() {
+        registerNum = 0;
+        countDownLatch = new CountDownLatch(1);
+        server = Undertow.builder()
+                .addHttpListener(59095, "localhost")
+                .setHandler(path().addPrefixPath("/soul-client/sofa-register", httpServerExchange -> {
+                    registerNum++;
+                    countDownLatch.countDown();
+                }))
+                .build();
+        server.start();
+        String port = server.getListenerInfo().get(0).getAddress().toString().split(":")[1];
         SofaConfig mockSofaConfig = new SofaConfig();
-        mockSofaConfig.setAdminUrl("http://localhost:58080");
+        mockSofaConfig.setAdminUrl("http://localhost:" + port);
         mockSofaConfig.setAppName("sofa");
         mockSofaConfig.setContextPath("/sofa");
         sofaServiceBeanPostProcessorUnderTest = new SofaServiceBeanPostProcessor(mockSofaConfig);
+    }
+
+    @After
+    public void after() {
+        server.stop();
     }
 
     @Test
@@ -65,12 +94,34 @@ public final class SofaServiceBeanPostProcessorTest {
         interfaceClassField.set(serviceFactoryBean, SoulSofaServiceImpl.class);
         sofaServiceBeanPostProcessorUnderTest
                 .postProcessAfterInitialization(serviceFactoryBean, "soulSofaServiceImpl");
+        countDownLatch.await();
+        Assert.assertEquals(1L, registerNum);
     }
 
     @Test
-    public void testPostProcessAfterInitializationWithNormalBean() {
+    public void testPostProcessAfterInitializationByCglibProxy() throws Exception {
+        ServiceFactoryBean serviceFactoryBean = new ServiceFactoryBean();
+        Class<?> serviceFactoryBeanClass = serviceFactoryBean.getClass();
+        Field serviceField = serviceFactoryBeanClass.getDeclaredField("service");
+        serviceField.setAccessible(true);
+        serviceField.set(serviceFactoryBean,
+                new ServiceImpl("uniqueId", AbstractSofaService.class, new $SofaServiceExt()));
+
+        Field interfaceClassField = serviceFactoryBeanClass.getSuperclass().getDeclaredField("interfaceClass");
+        interfaceClassField.setAccessible(true);
+        interfaceClassField.set(serviceFactoryBean, $SofaServiceExt.class);
+
+        sofaServiceBeanPostProcessorUnderTest
+                .postProcessAfterInitialization(serviceFactoryBean, "soulSofaServiceImpl");
+        countDownLatch.await();
+        Assert.assertEquals(1L, registerNum);
+    }
+
+    @Test
+    public void testPostProcessAfterInitializationWithNormalBean() throws InterruptedException {
         sofaServiceBeanPostProcessorUnderTest
                 .postProcessAfterInitialization(new SofaServiceImpl(), "sofaServiceImpl");
+        Assert.assertEquals(0L, registerNum);
     }
 
     interface SofaService {
@@ -90,6 +141,21 @@ public final class SofaServiceBeanPostProcessorTest {
     static class SofaServiceImpl implements SofaService {
         @Override
         public String save(@RequestBody final String body) {
+            return "" + body;
+        }
+    }
+
+    static abstract class AbstractSofaService {
+
+        @SoulSofaClient(path = "/save")
+        abstract String save(String body);
+    }
+
+    @Service("sofaServiceExt")
+    static class $SofaServiceExt extends AbstractSofaService {
+
+        @Override
+        String save(String body) {
             return "" + body;
         }
     }
