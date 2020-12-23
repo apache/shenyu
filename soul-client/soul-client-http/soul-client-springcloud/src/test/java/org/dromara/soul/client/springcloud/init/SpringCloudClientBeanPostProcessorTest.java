@@ -66,7 +66,7 @@ public final class SpringCloudClientBeanPostProcessorTest {
     }
 
     @Test
-    public void test() {
+    public void testNormal() {
         SpringCloudClientBeanPostProcessor origin = new SpringCloudClientBeanPostProcessor(CONFIG, ENVIRONMENT);
         Assert.assertNotNull(origin);
         //full
@@ -88,6 +88,12 @@ public final class SpringCloudClientBeanPostProcessorTest {
             });
             assertEquals(SPRING_MVC_CLIENT_TEST_BEAN, other.postProcessAfterInitialization(SPRING_MVC_CLIENT_TEST_BEAN, "normalBean"));
         }
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testThrows() {
+        CONFIG.setAdminUrl("");
+        SpringCloudClientBeanPostProcessor throwTest = new SpringCloudClientBeanPostProcessor(CONFIG, ENVIRONMENT);
     }
 
     /**
