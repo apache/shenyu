@@ -38,25 +38,59 @@ public final class HashLoadBalanceTest {
 
     private Method hash;
 
-    private List<DivideUpstream> hashLoadBalances;
+    private List<DivideUpstream> hashLoadBalancesOrdered;
 
-    private ConcurrentSkipListMap<Long, DivideUpstream> treeMap;
+    private List<DivideUpstream> hashLoadBalancesDisordered;
+
+    private List<DivideUpstream> hashLoadBalancesReversed;
+
+    private ConcurrentSkipListMap<Long, DivideUpstream> treeMapOrdered;
+
+    private ConcurrentSkipListMap<Long, DivideUpstream> treeMapDisordered;
+
+    private ConcurrentSkipListMap<Long, DivideUpstream> treeMapReversed;
 
     @Before
     public void setUp() throws Exception {
         this.hash = HashLoadBalance.class.getDeclaredMethod("hash", String.class);
         this.hash.setAccessible(true);
-        this.hashLoadBalances = Stream.of(1, 2, 3)
+        this.hashLoadBalancesOrdered = Stream.of(1, 2, 3)
                 .map(weight -> DivideUpstream.builder()
                         .upstreamUrl("divide-upstream-" + weight)
                         .build())
                 .collect(Collectors.toList());
-        this.treeMap = new ConcurrentSkipListMap<>();
-        for (DivideUpstream address : hashLoadBalances) {
+        this.hashLoadBalancesDisordered = Stream.of(2, 1, 3)
+                .map(weight -> DivideUpstream.builder()
+                        .upstreamUrl("divide-upstream-" + weight)
+                        .build())
+                .collect(Collectors.toList());
+        this.hashLoadBalancesReversed = Stream.of(3, 2, 1)
+                .map(weight -> DivideUpstream.builder()
+                        .upstreamUrl("divide-upstream-" + weight)
+                        .build())
+                .collect(Collectors.toList());
+        this.treeMapOrdered = new ConcurrentSkipListMap<>();
+        this.treeMapDisordered = new ConcurrentSkipListMap<>();
+        this.treeMapReversed = new ConcurrentSkipListMap<>();
+        for (DivideUpstream address : hashLoadBalancesOrdered) {
             for (int i = 0; i < 5; i++) {
                 String hashKey = "SOUL-" + address.getUpstreamUrl() + "-HASH-" + i;
                 Object o = hash.invoke(null, hashKey);
-                treeMap.put(Long.parseLong(o.toString()), address);
+                treeMapOrdered.put(Long.parseLong(o.toString()), address);
+            }
+        }
+        for (DivideUpstream address : hashLoadBalancesReversed) {
+            for (int i = 0; i < 5; i++) {
+                String hashKey = "SOUL-" + address.getUpstreamUrl() + "-HASH-" + i;
+                Object o = hash.invoke(null, hashKey);
+                treeMapReversed.put(Long.parseLong(o.toString()), address);
+            }
+        }
+        for (DivideUpstream address : hashLoadBalancesDisordered) {
+            for (int i = 0; i < 5; i++) {
+                String hashKey = "SOUL-" + address.getUpstreamUrl() + "-HASH-" + i;
+                Object o = hash.invoke(null, hashKey);
+                treeMapDisordered.put(Long.parseLong(o.toString()), address);
             }
         }
     }
@@ -65,13 +99,38 @@ public final class HashLoadBalanceTest {
      * Hash load balance test.
      */
     @Test
-    public void hashLoadBalanceTest() throws Exception {
+    public void hashLoadBalanceOrderedWeightTest() throws Exception {
         final String ip = "127.0.0.1";
         final HashLoadBalance hashLoadBalance = new HashLoadBalance();
-        final DivideUpstream divideUpstream = hashLoadBalance.select(hashLoadBalances, ip);
+        final DivideUpstream divideUpstream = hashLoadBalance.select(hashLoadBalancesOrdered, ip);
         final Long hashKey = Long.parseLong(hash.invoke(null, ip).toString());
-        final SortedMap<Long, DivideUpstream> lastRing = treeMap.tailMap(hashKey);
+        final SortedMap<Long, DivideUpstream> lastRing = treeMapOrdered.tailMap(hashKey);
         final DivideUpstream assertUp = lastRing.get(lastRing.firstKey());
         Assert.assertEquals(assertUp.getUpstreamUrl(), divideUpstream.getUpstreamUrl());
+
+    }
+
+    @Test
+    public void hashLoadBalanceDisorderedWeightTest() throws Exception {
+        final String ip = "127.0.0.1";
+        final HashLoadBalance hashLoadBalance = new HashLoadBalance();
+        final DivideUpstream divideUpstream = hashLoadBalance.select(hashLoadBalancesDisordered, ip);
+        final Long hashKey = Long.parseLong(hash.invoke(null, ip).toString());
+        final SortedMap<Long, DivideUpstream> lastRing = treeMapDisordered.tailMap(hashKey);
+        final DivideUpstream assertUp = lastRing.get(lastRing.firstKey());
+        Assert.assertEquals(assertUp.getUpstreamUrl(), divideUpstream.getUpstreamUrl());
+
+    }
+
+    @Test
+    public void hashLoadBalanceReversedWeightTest() throws Exception {
+        final String ip = "127.0.0.1";
+        final HashLoadBalance hashLoadBalance = new HashLoadBalance();
+        final DivideUpstream divideUpstream = hashLoadBalance.select(hashLoadBalancesReversed, ip);
+        final Long hashKey = Long.parseLong(hash.invoke(null, ip).toString());
+        final SortedMap<Long, DivideUpstream> lastRing = treeMapReversed.tailMap(hashKey);
+        final DivideUpstream assertUp = lastRing.get(lastRing.firstKey());
+        Assert.assertEquals(assertUp.getUpstreamUrl(), divideUpstream.getUpstreamUrl());
+
     }
 }
