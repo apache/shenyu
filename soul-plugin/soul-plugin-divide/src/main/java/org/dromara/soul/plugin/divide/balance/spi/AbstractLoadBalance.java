@@ -50,13 +50,13 @@ public abstract class AbstractLoadBalance implements LoadBalance {
         return doSelect(upstreamList, ip);
     }
 
-    protected int getWeight(DivideUpstream upstream) {
+    protected int getWeight(final DivideUpstream upstream) {
 
         int weight = getWeight(upstream.getTimestamp(), 60000, upstream.getWeight());
         return weight;
     }
 
-    protected int getWeight(long timestamp, int warmup, int weight) {
+    private int getWeight(final long timestamp,final int warmup,int weight) {
         if (weight > 0 && timestamp > 0) {
             int uptime = (int) (System.currentTimeMillis() - timestamp);
 
@@ -68,7 +68,7 @@ public abstract class AbstractLoadBalance implements LoadBalance {
         return weight;
     }
 
-    private int calculateWarmupWeight(int uptime, int warmup, int weight) {
+    private int calculateWarmupWeight(final int uptime,final int warmup,final int weight) {
         int ww = (int) ((float) uptime / ((float) warmup / (float) weight));
         return ww < 1 ? 1 : (ww > weight ? weight : ww);
     }
