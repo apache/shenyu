@@ -15,33 +15,34 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.client.alibaba.dubbo.validation.service;
+package org.dromara.soul.client.alibaba.dubbo.validation.mock;
 
-import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+
 import javax.validation.constraints.NotNull;
 
 /**
- * TestService.
+ * Mock ValidationParameter.
  *
- * @author KevinClair
+ * @author David Liu
  */
-public interface TestService {
+@Data
+public class MockValidationParameter {
+    /**
+     * String parameter.
+     */
+    @NotNull
+    private String stringParameter;
+
+    public MockValidationParameter() {
+    }
 
     /**
-     * test method.
+     * constructor with parameter.
      *
-     * @param testObject testObject
-     * @return String
+     * @param stringParameter the String parameter.
      */
-    String test(TestObject testObject);
-
-    @Data
-    @Builder
-    @EqualsAndHashCode
-    class TestObject {
-        @NotNull(message = "age cannot be null.")
-        private Integer age;
+    public MockValidationParameter(final String stringParameter) {
+        this.stringParameter = stringParameter;
     }
 }

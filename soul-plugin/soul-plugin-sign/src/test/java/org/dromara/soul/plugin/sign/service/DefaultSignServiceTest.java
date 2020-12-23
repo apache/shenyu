@@ -142,7 +142,7 @@ public final class DefaultSignServiceTest {
     
     @Test
     public void overdueTest() {
-        Long errorTimestamp = Long.valueOf(this.passed.getTimestamp()) - Long.valueOf((delay + 1) * 1000 * 60);
+        Long errorTimestamp = Long.parseLong(this.passed.getTimestamp()) - (long) ((delay + 1) * 1000 * 60);
         this.passed.setTimestamp(errorTimestamp.toString());
         this.passed.setSign(buildSign(secretKey, this.passed.getTimestamp(), this.passed.getPath()));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);

@@ -44,7 +44,7 @@ public final class OkHttpTools {
 
     private static final Gson GSON = new Gson();
 
-    private OkHttpClient client;
+    private final OkHttpClient client;
 
     private OkHttpTools() {
         OkHttpClient.Builder builder = new OkHttpClient.Builder();

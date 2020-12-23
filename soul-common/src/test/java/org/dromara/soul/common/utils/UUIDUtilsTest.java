@@ -51,9 +51,9 @@ public final class UUIDUtilsTest {
 
     @Test
     public void testConstructor() throws Exception {
-        Class uUIDUtilsClass = UUIDUtils.getInstance().getClass();
-        Class[] p = {long.class, long.class, long.class};
-        Constructor constructor = uUIDUtilsClass.getDeclaredConstructor(p);
+        Class<?> uUIDUtilsClass = UUIDUtils.getInstance().getClass();
+        Class<?>[] p = {long.class, long.class, long.class};
+        Constructor<?> constructor = uUIDUtilsClass.getDeclaredConstructor(p);
         constructor.setAccessible(true);
         try {
             constructor.newInstance(-1L, 10L, 10L);
@@ -70,8 +70,8 @@ public final class UUIDUtilsTest {
 
     @Test
     public void testTilNextMillis() throws Exception {
-        Class uUIDUtilsClass = UUIDUtils.getInstance().getClass();
-        Class[] p = {long.class};
+        Class<?> uUIDUtilsClass = UUIDUtils.getInstance().getClass();
+        Class<?>[] p = {long.class};
         Method method = uUIDUtilsClass.getDeclaredMethod("tilNextMillis", p);
         method.setAccessible(true);
         long lastTimestamp = System.currentTimeMillis();
@@ -82,7 +82,7 @@ public final class UUIDUtilsTest {
     @Test
     public void testNextIdException() throws Exception {
         UUIDUtils uuidUtils = UUIDUtils.getInstance();
-        Class uUIDUtilsClass = uuidUtils.getClass();
+        Class<?> uUIDUtilsClass = uuidUtils.getClass();
         Field field = uUIDUtilsClass.getDeclaredField("lastTimestamp");
         field.setAccessible(true);
         field.set(uuidUtils, 1617757060000L);
@@ -99,7 +99,7 @@ public final class UUIDUtilsTest {
     @Test
     public void testNextId() throws Exception {
         UUIDUtils uuidUtils = UUIDUtils.getInstance();
-        Class uUIDUtilsClass = uuidUtils.getClass();
+        Class<?> uUIDUtilsClass = uuidUtils.getClass();
         Field field = uUIDUtilsClass.getDeclaredField("lastTimestamp");
         field.setAccessible(true);
         field.set(uuidUtils, System.currentTimeMillis());

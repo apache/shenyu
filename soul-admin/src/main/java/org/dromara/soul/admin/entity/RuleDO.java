@@ -85,7 +85,6 @@ public final class RuleDO extends BaseDO {
      * @return {@linkplain RuleDO}
      */
     public static RuleDO buildRuleDO(final RuleDTO ruleDTO) {
-
         return Optional.ofNullable(ruleDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             RuleDO ruleDO = RuleDO.builder()

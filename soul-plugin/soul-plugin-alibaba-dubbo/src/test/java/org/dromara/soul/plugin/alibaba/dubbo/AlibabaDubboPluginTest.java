@@ -28,7 +28,9 @@ import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -39,13 +41,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Test case for AlibabaDubboPlugin.
  *
  * @author HoldDie
  */
+@RunWith(MockitoJUnitRunner.Silent.class)
 public final class AlibabaDubboPluginTest {
     @Mock
     private AlibabaDubboProxyService mockAlibabaDubboProxyService;
@@ -56,7 +58,6 @@ public final class AlibabaDubboPluginTest {
 
     @Before
     public void setUp() {
-        initMocks(this);
         metaData = new MetaData();
         metaData.setId("1332017966661636096");
         metaData.setAppName("dubbo");
