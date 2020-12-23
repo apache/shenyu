@@ -24,8 +24,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.mock.env.MockEnvironment;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -39,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 
 /**
@@ -68,14 +69,13 @@ public final class SpringCloudClientBeanPostProcessorTest {
 
     @Test
     public void test() {
-        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringCloudClientBeanPostProcessorTestConfig.class);
-        SpringCloudClientBeanPostProcessor beanPostProcessor = context.getBean(SpringCloudClientBeanPostProcessor.class, CONFIG, ENVIRONMENT);
-        Assert.assertNotNull(beanPostProcessor);
+        SpringCloudClientBeanPostProcessor origin = new SpringCloudClientBeanPostProcessor(CONFIG, ENVIRONMENT);
+        Assert.assertNotNull(origin);
         //full
-        Assert.assertEquals(beanPostProcessor, beanPostProcessor.postProcessAfterInitialization(beanPostProcessor, "springCloudClientBeanPostProcessor"));
+        Assert.assertEquals(origin, origin.postProcessAfterInitialization(origin, "springCloudClientBeanPostProcessor"));
         CONFIG.setFull(false);
         //not full
-        SpringCloudClientBeanPostProcessor other = context.getBean(SpringCloudClientBeanPostProcessor.class, CONFIG, ENVIRONMENT);
+        SpringCloudClientBeanPostProcessor other = new SpringCloudClientBeanPostProcessor(CONFIG, ENVIRONMENT);
         //from SpringMvcClientBeanPostProcessorTest
         Assert.assertEquals(other, other.postProcessAfterInitialization(other, "springCloudClientBeanPostProcessor"));
         try (MockedStatic mocked = mockStatic(RegisterUtils.class)) {
