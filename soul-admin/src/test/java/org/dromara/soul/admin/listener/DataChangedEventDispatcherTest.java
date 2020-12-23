@@ -49,7 +49,7 @@ import org.springframework.context.ApplicationContext;
  * @author wyc192273
  */
 @RunWith(MockitoJUnitRunner.class)
-public class DataChangedEventDispatcherTest {
+public final class DataChangedEventDispatcherTest {
 
     @InjectMocks
     private DataChangedEventDispatcher dataChangedEventDispatcher;
