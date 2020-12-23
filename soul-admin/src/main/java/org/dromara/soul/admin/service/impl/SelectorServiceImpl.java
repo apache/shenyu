@@ -17,10 +17,6 @@
 
 package org.dromara.soul.admin.service.impl;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.SelectorConditionDTO;
@@ -56,18 +52,24 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 /**
  * SelectorServiceImpl.
  *
  * @author jiangxiaofeng(Nicholas)
  * @author xiaoyu
+ * @author  nuo-promise
  */
 @Service("selectorService")
 public class SelectorServiceImpl implements SelectorService {
 
-    private SelectorMapper selectorMapper;
+    private final SelectorMapper selectorMapper;
 
-    private SelectorConditionMapper selectorConditionMapper;
+    private final SelectorConditionMapper selectorConditionMapper;
 
     private final RuleMapper ruleMapper;
 
@@ -135,12 +137,7 @@ public class SelectorServiceImpl implements SelectorService {
                 selectorConditionMapper.insertSelective(selectorConditionDO);
             });
         }
-        PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
-        List<ConditionData> conditionDataList =
-                selectorConditionDTOs.stream().map(ConditionTransfer.INSTANCE::mapToSelectorDTO).collect(Collectors.toList());
-        // publish change event.
-        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
-                Collections.singletonList(SelectorDO.transFrom(selectorDO, pluginDO.getName(), conditionDataList))));
+        publishEvent(selectorDO, selectorConditionDTOs);
         return selectorCount;
     }
 
@@ -166,11 +163,11 @@ public class SelectorServiceImpl implements SelectorService {
                 UpstreamCheckService.removeByKey(selectorDO.getName());
             }
 
-            //发送删除选择器事件
+            // publish delete event of Selector
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.DELETE,
                     Collections.singletonList(SelectorDO.transFrom(selectorDO, pluginDO.getName(), null))));
 
-            //清除规则与规则条件
+            // delete rule and ruleCondition
             final List<RuleDO> ruleDOList = ruleMapper.selectByQuery(new RuleQuery(id, null));
             if (CollectionUtils.isNotEmpty(ruleDOList)) {
                 for (RuleDO ruleDO : ruleDOList) {

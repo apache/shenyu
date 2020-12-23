@@ -69,21 +69,11 @@ public final class RateLimiterTest {
     }
 
     @Test
-    public void delayTest() {
-        when(rateLimiter.reservePermission()).thenReturn(Duration.ofMillis(50).toNanos());
-        StepVerifier.create(Mono.error(new RuntimeException("SOUL"))
-                .transformDeferred(RateLimiterOperator.of(rateLimiter)))
-                .expectSubscription()
-                .expectError(RuntimeException.class)
-                .verify(Duration.ofMillis(150));
-    }
-
-    @Test
     public void limitTest() {
         when(rateLimiter.reservePermission()).thenReturn(-1L);
         StepVerifier.create(Mono.just("SOUL")
                 .transformDeferred(RateLimiterOperator.of(rateLimiter)))
                 .expectError(RequestNotPermitted.class)
-                .verify(Duration.ofSeconds(1));
+                .verify();
     }
 }

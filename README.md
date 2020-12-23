@@ -9,6 +9,10 @@
 </p>
 
 <p align="center">
+  English | <a href="https://github.com/dromara/soul/blob/master/README_cn.md">简体中文</a>
+</p>
+
+<p align="center">
     <a target="_blank" href="http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22org.dromara%22%20AND%soul">
         <img src="https://img.shields.io/maven-central/v/org.dromara/soul.svg?label=maven%20central" />
     </a>
@@ -61,37 +65,37 @@
   
 # Modules
 
- * soul-admin : Plug-in and other information configuration management background
+ * soul-admin : plugins and other information configuration management background
  
- * soul-bootstrap : With the startup project, users can refer to
+ * soul-bootstrap : with the startup project, users can refer to
  
- * soul-client : User fast access with springMvc,dubbo,springCloud
+ * soul-client : user fast access with Spring MVC, Dubbo, Spring Cloud.
   
- * soul-common : Framework common class
+ * soul-common : framework common class
  
  * soul-dist : build project
 
  * soul-metrics : metrics impl by prometheus.
  
- * soul-plugin : soul provider plugin collection.
+ * soul-plugin : Soul provider plugin collection.
  
- * soul-spi : soul spi define.
+ * soul-spi : Soul spi define.
  
- * soul-spring-boot-starter : Support for the spring boot starter
+ * soul-spring-boot-starter : support for the spring boot starter
  
- * soul-sync-data-center : provider zookeeper, http, websocket, nacos to sync data
+ * soul-sync-data-center : provider ZooKeeper, HTTP, WebSocket, Nacos to sync data
  
- * soul-test : the rpc test project
+ * soul-examples : the RPC examples project
  
- * soul-web : Core processing packages include plug-ins, request routing and forwarding, and so on
+ * soul-web : core processing packages including plugins, request routing and forwarding, and so on
  
 --------------------------------------------------------------------------------   
  
 # Features
 
-   * It provides plugins such as current limiting, fusing, forwarding, routing monitoring and so on.
+   * Soul provides plugins such as current limiting, fusing, forwarding, routing monitoring and so on.
    
-   * Seamless docking with HTTP,Restful,websocket,dubbo and springcloud.
+   * Seamless docking with HTTP, RESTful, WebSocket, Dubbo and Spring Cloud.
    
    * Plug-in hot plug, users can customize the development.
    
@@ -99,19 +103,19 @@
 
    * Support for cluster deployment.
    
-   * Support A/B test and grayscale publishing。
+   * Support A/B test and grayscale publishing.
    
 --------------------------------------------------------------------------------  
  
 # Plugin
 
- Whenever a request comes in ,Soul Execute all open plug-ins through the chain of responsibility.
+ Whenever a request comes in, Soul executes all open plugins through the chain of responsibility.
  
- Plugins are the heart of soul And plug-ins are extensible and hot-pluggable.
+ As the heart of Soul, plugins are extensible and hot-pluggable.
  
- Different plug-ins do different things 
+ Different plugins do different things.
  
- Of course, users can also customize plug-ins to meet their own needs.
+ Of course, users can also customize plugins to meet their own needs.
  
  If you want to customize, see [plugin-extend](https://dromara.org/website/zh-cn/docs/soul/extend.html)
  
@@ -131,11 +135,9 @@
    
 # Data Caching & Data Sync
  
-  All data is cached ConcurrentHashMap in the JVM So it's very fast.
+  All data have been cached using ConcurrentHashMap in the JVM, so it's very fast.
   
-  When the user is managing changes in the background,
-  
-  Soul dynamically updates the cache by listening to the zookeeper node, websocket push,http longPull.
+  When the user is managing changes in the background, Soul dynamically updates the cache by listening to the ZooKeeper node, WebSocket push, HTTP longPull.
   
   ![](https://yu199195.github.io/images/soul/soul-config-processor.png)
   
@@ -147,13 +149,13 @@
  
    * JDK 1.8+
    
-   * Mysql
+   * MySQL
    
 --------------------------------------------------------------------------------     
    
 # About
   
-   Soul Has been used in our production environment,Its performance and flexibility allow us to use up very cool.
+   Soul has been used in our production environment,its performance and flexibility allow us to use up very cool.
    
    In double 11, we deployed 6 clusters, which supported a large volume of our business.
    
@@ -186,7 +188,7 @@
 
 # Known Users
 
-In order of registration, More access companies are welcome to register at[https://github.com/Dromara/soul/issues/68](https://github.com/Dromara/soul/issues/68) (For open source users only)
+In order of registration, More access companies are welcome to register at [https://github.com/Dromara/soul/issues/68](https://github.com/Dromara/soul/issues/68) (For open source users only)
 
 <table>
   <tbody>
@@ -243,7 +245,7 @@ In order of registration, More access companies are welcome to register at[https
   <tbody>
     <tr>
       <td><img src="https://yu199195.github.io/images/public.jpg"   alt="微信公众号"/>
-      <td><img src="https://yu199195.github.io/images/soul-qq.png"  alt="QQ交流群"/>
+      <td><img src="https://yu199195.github.io/images/soul-qq.png"  alt="QQ 交流群"/>
       <td><img src="http://www.iocoder.cn/images/common/erweima.jpg"  alt="芋道源码"/>
     </tr>
   </tbody>

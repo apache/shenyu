@@ -26,14 +26,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 
 /**
- * The type Ur i utils.
+ * The type Uri utils.
  *
  * @author xiaoyu(Myth)
  */
 public class UpstreamCheckUtils {
 
     private static final Pattern PATTERN = Pattern
-            .compile("(http:\\/\\/|https:\\/\\/)?(?:(?:[0,1]?\\d?\\d|2[0-4]\\d|25[0-5])\\.){3}(?:[0,1]?\\d?\\d|2[0-4]\\d|25[0-5]):\\d{0,5}");
+            .compile("(http://|https://)?(?:(?:[0,1]?\\d?\\d|2[0-4]\\d|25[0-5])\\.){3}(?:[0,1]?\\d?\\d|2[0-4]\\d|25[0-5]):\\d{0,5}");
 
     private static final String HTTP = "http";
 

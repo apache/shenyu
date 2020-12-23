@@ -18,14 +18,24 @@
 package org.dromara.soul.admin.entity;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+import org.dromara.soul.common.utils.UUIDUtils;
+
+import java.sql.Timestamp;
 
 /**
  * The type Auth path do.
  *
  * @author xiaoyu
+ * @author nuo-promise
  */
 @Data
-public class AuthPathDO extends BaseDO {
+@SuperBuilder
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public final class AuthPathDO extends BaseDO {
 
     private String authId;
 
@@ -35,5 +45,24 @@ public class AuthPathDO extends BaseDO {
 
     private Boolean enabled;
 
-
+    /**
+     * Build AuthPathDO object with given params.
+     *
+     * @param path      {@linkplain String}
+     * @param authId    {@linkplain String}
+     * @param appName   {@linkplain String}
+     * @return          {@linkplain AuthPathDO}
+     */
+    public static AuthPathDO create(final String path, final String authId, final String appName) {
+        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+        return AuthPathDO.builder()
+                .id(UUIDUtils.getInstance().generateShortUuid())
+                .authId(authId)
+                .appName(appName)
+                .path(path)
+                .enabled(true)
+                .dateCreated(currentTime)
+                .dateUpdated(currentTime)
+                .build();
+    }
 }

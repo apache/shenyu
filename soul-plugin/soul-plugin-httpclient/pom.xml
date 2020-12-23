@@ -34,19 +34,38 @@
             <artifactId>soul-plugin-base</artifactId>
             <version>${project.version}</version>
         </dependency>
+
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-codec-http</artifactId>
         </dependency>
+
         <dependency>
             <groupId>io.projectreactor.netty</groupId>
             <artifactId>reactor-netty</artifactId>
         </dependency>
 
         <dependency>
+            <groupId>io.projectreactor.addons</groupId>
+            <artifactId>reactor-extra</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>com.github.tomakehurst</groupId>
             <artifactId>wiremock-standalone</artifactId>
             <version>${wiremock.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-test</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

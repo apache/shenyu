@@ -18,6 +18,9 @@
 package org.dromara.soul.admin.entity;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.DashboardUserDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
@@ -29,9 +32,13 @@ import java.util.Optional;
  * DashboardUserDO.
  *
  * @author jiangxiaofeng(Nicholas)
+ * @author nuo-promise
  */
 @Data
-public class DashboardUserDO extends BaseDO {
+@SuperBuilder
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public final class DashboardUserDO extends BaseDO {
 
     /**
      * user name.
@@ -61,8 +68,13 @@ public class DashboardUserDO extends BaseDO {
      */
     public static DashboardUserDO buildDashboardUserDO(final DashboardUserDTO dashboardUserDTO) {
         return Optional.ofNullable(dashboardUserDTO).map(item -> {
-            DashboardUserDO dashboardUserDO = new DashboardUserDO();
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            DashboardUserDO dashboardUserDO = DashboardUserDO.builder()
+                    .userName(item.getUserName())
+                    .password(item.getPassword())
+                    .role(item.getRole())
+                    .dateUpdated(currentTime)
+                    .build();
             if (StringUtils.isEmpty(item.getId())) {
                 dashboardUserDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 dashboardUserDO.setEnabled(true);
@@ -71,10 +83,6 @@ public class DashboardUserDO extends BaseDO {
                 dashboardUserDO.setId(item.getId());
                 dashboardUserDO.setEnabled(item.getEnabled());
             }
-            dashboardUserDO.setUserName(item.getUserName());
-            dashboardUserDO.setPassword(item.getPassword());
-            dashboardUserDO.setRole(item.getRole());
-            dashboardUserDO.setDateUpdated(currentTime);
             return dashboardUserDO;
         }).orElse(null);
     }

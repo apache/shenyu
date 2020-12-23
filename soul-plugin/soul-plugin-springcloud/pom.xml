@@ -28,6 +28,10 @@
 
     <artifactId>soul-plugin-springcloud</artifactId>
 
+    <properties>
+        <spring-cloud-commons.version>2.2.0.RELEASE</spring-cloud-commons.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.dromara</groupId>
@@ -37,8 +41,18 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-commons</artifactId>
-            <version>2.2.0.RELEASE</version>
+            <version>${spring-cloud-commons.version}</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-test</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

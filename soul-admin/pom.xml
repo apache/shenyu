@@ -27,6 +27,10 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>soul-admin</artifactId>
 
+    <properties>
+        <nacos-client.version>1.2.0</nacos-client.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.dromara</groupId>
@@ -59,7 +63,6 @@
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
-        <!--自动配置 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
@@ -101,13 +104,12 @@
         <dependency>
             <groupId>com.github.pagehelper</groupId>
             <artifactId>pagehelper</artifactId>
-            <version>5.1.1</version>
         </dependency>
 
         <dependency>
             <groupId>com.alibaba.nacos</groupId>
             <artifactId>nacos-client</artifactId>
-            <version>1.2.0</version>
+            <version>${nacos-client.version}</version>
         </dependency>
 
         <dependency>
@@ -145,7 +147,6 @@
             <artifactId>hessian</artifactId>
         </dependency>
 
-
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
@@ -164,21 +165,36 @@
             <artifactId>springfox-swagger-ui</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>${h2.version}</version>
+            <scope>test</scope>
+        </dependency>
 
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-test</artifactId>
+            <version>${curator-test.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.undertow</groupId>
+            <artifactId>undertow-core</artifactId>
+            <version>${undertow.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.java-websocket</groupId>
+            <artifactId>Java-WebSocket</artifactId>
+            <version>${java-websocket.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
         <finalName>soul-admin</finalName>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>${jdk.version}</source>
-                    <target>${jdk.version}</target>
-                    <encoding>${project.build.sourceEncoding}</encoding>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -188,18 +204,18 @@
                 </configuration>
             </plugin>
 
-            <!--这里是为了打包前端的、如果你本地不需要可以配置的frontend.plugin.skip=true即可-->
+            <!--This is to package the frontend, if you don't need to configure frontend.plugin.skip=true locally.-->
             <plugin>
                 <groupId>com.github.eirslett</groupId>
                 <artifactId>frontend-maven-plugin</artifactId>
-                <version>1.6</version>
+                <version>${frontend-maven-plugin.version}</version>
                 <configuration>
                     <workingDirectory>${project.parent.basedir}/soul-dashboard</workingDirectory>
-                    <nodeVersion>v12.14.1</nodeVersion>
+                    <nodeVersion>${frontend-maven-plugin.node.version}</nodeVersion>
                     <skip>${frontend.plugin.skip}</skip>
                 </configuration>
                 <executions>
-                    <!--如果你本地已经安装nodejs环境，这步也可以注释-->
+                    <!--If you have installed the nodejs environment locally, this step can also be annotated.-->
                     <execution>
                         <id>install node and npm</id>
                         <goals>
@@ -230,9 +246,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>2.6</version>
+                <version>${maven-resources-plugin.version}</version>
                 <configuration>
-                    <encoding>UTF-8</encoding>
+                    <encoding>${project.build.sourceEncoding}</encoding>
                     <useDefaultDelimiters>true</useDefaultDelimiters>
                     <resources>
                         <resource>
@@ -243,9 +259,14 @@
                             <targetPath>${basedir}/target/classes</targetPath>
                             <directory>src/main/resources</directory>
                         </resource>
+                        <resource>
+                            <targetPath>${basedir}/target/test-classes</targetPath>
+                            <directory>src/test/resources</directory>
+                        </resource>
                     </resources>
                 </configuration>
             </plugin>
         </plugins>
+
     </build>
 </project>

@@ -28,13 +28,14 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Test cases for JsonUtils.
  *
  * @author strawberry-crisis
  */
-public class JsonUtilsTest {
+public final class JsonUtilsTest {
     
     private static final String EXPECTED_JSON = "{\"id\":123,\"name\":\"test object\",\"deleted\":false,"
              + "\"testList\":[\"test_string_0\",\"test_string_1\",\"test_string_2\",\"test_string_3\",\"test_string_4\",\"test_string_5\","
@@ -74,6 +75,9 @@ public class JsonUtilsTest {
                 })
                 .build();
         assertEquals(EXPECTED_JSON, JsonUtils.toJson(object));
+
+        Object o = new Object();
+        assertEquals("{}", JsonUtils.toJson(o));
     }
 
     @Test
@@ -87,6 +91,12 @@ public class JsonUtilsTest {
         JsonUtils.removeClass(testMap);
         assertNull(testMap.getOrDefault("class", null));
         assertEquals(testMap.get("not_class").get("not_class"), "ClassNotFoundException.class");
+
+        testMap = new HashMap<>();
+        testMap.put("result", testSubMap);
+        JsonUtils.removeClass(testMap);
+        assertNotNull(testMap.getOrDefault("result", null));
+        assertEquals(testMap.get("result").get("not_class"), "ClassNotFoundException.class");
     }
     
     @Data

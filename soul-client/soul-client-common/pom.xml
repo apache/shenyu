@@ -29,6 +29,11 @@
     <artifactId>soul-client-common</artifactId>
 
     <dependencies>
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
@@ -40,10 +45,6 @@
             <artifactId>gson</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-        </dependency>
     </dependencies>
 
 

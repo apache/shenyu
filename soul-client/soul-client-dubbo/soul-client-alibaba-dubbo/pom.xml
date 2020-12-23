@@ -42,7 +42,7 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>dubbo</artifactId>
-            <version>2.6.0</version>
+            <version>${alibaba.dubbo.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -59,6 +59,23 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>5.2.5.Final</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.el</groupId>
+            <artifactId>el-api</artifactId>
+            <version>2.2</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

@@ -25,10 +25,7 @@ package org.dromara.soul.admin.listener;
  * @since 2.0.0
  */
 public class ConfigDataCache {
-
-    /**
-     * The Group.
-     */
+    
     private final String group;
 
     private volatile String md5;
@@ -36,21 +33,22 @@ public class ConfigDataCache {
     private final String json;
 
     private volatile long lastModifyTime;
-
+    
     /**
      * Instantiates a new Config data cache.
      *
      * @param group          the group
-     * @param md5            the md 5
+     * @param json           the json
+     * @param md5            the md5
      * @param lastModifyTime the last modify time
      */
-    ConfigDataCache(final String group, final String json, final String md5, final long lastModifyTime) {
+    public ConfigDataCache(final String group, final String json, final String md5, final long lastModifyTime) {
         this.group = group;
         this.json = json;
         this.md5 = md5;
         this.lastModifyTime = lastModifyTime;
     }
-
+    
     /**
      * Update.
      *
@@ -61,7 +59,7 @@ public class ConfigDataCache {
         this.md5 = md5;
         this.lastModifyTime = lastModifyTime;
     }
-
+    
     /**
      * Gets group.
      *
@@ -70,16 +68,16 @@ public class ConfigDataCache {
     public String getGroup() {
         return group;
     }
-
+    
     /**
-     * Gets md 5.
+     * Gets md5.
      *
-     * @return the md 5
+     * @return the md5
      */
     public String getMd5() {
         return md5;
     }
-
+    
     /**
      * Gets last modify time.
      *
@@ -88,7 +86,7 @@ public class ConfigDataCache {
     public long getLastModifyTime() {
         return lastModifyTime;
     }
-
+    
     /**
      * Gets json.
      *
@@ -100,11 +98,10 @@ public class ConfigDataCache {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("{");
-        sb.append("group='").append(group).append('\'');
-        sb.append(", md5='").append(md5).append('\'');
-        sb.append(", lastModifyTime=").append(lastModifyTime);
-        sb.append('}');
-        return sb.toString();
+        return "{"
+                + "group='" + group + '\''
+                + ", md5='" + md5 + '\''
+                + ", lastModifyTime=" + lastModifyTime
+                + '}';
     }
 }

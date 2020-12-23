@@ -16,7 +16,7 @@
   ~ limitations under the License.
   -->
 
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.dromara.soul.admin.mapper.AppAuthMapper">
     <resultMap id="BaseResultMap" type="org.dromara.soul.admin.entity.AppAuthDO">
         <id column="id" jdbcType="VARCHAR" property="id"/>
@@ -159,13 +159,13 @@
                 #{enabled,jdbcType=TINYINT},
             </if>
             <if test="userId != null">
-                #{user_id,jdbcType=VARCHAR},
+                #{userId,jdbcType=VARCHAR},
             </if>
             <if test="phone != null">
                 #{phone,jdbcType=VARCHAR},
             </if>
             <if test="extInfo != null">
-                #{ext_info,jdbcType=VARCHAR},
+                #{extInfo,jdbcType=VARCHAR},
             </if>
         </trim>
     </insert>

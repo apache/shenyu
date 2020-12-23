@@ -54,7 +54,6 @@ public class SoulAdminResult implements Serializable {
      * @param data    the data
      */
     public SoulAdminResult(final Integer code, final String message, final Object data) {
-
         this.code = code;
         this.message = message;
         this.data = data;

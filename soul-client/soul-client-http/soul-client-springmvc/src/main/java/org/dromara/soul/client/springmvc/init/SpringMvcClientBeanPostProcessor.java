@@ -17,18 +17,14 @@
 
 package org.dromara.soul.client.springmvc.init;
 
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.util.Objects;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.client.common.utils.OkHttpTools;
+import org.dromara.soul.client.common.utils.RegisterUtils;
 import org.dromara.soul.client.springmvc.annotation.SoulSpringMvcClient;
 import org.dromara.soul.client.springmvc.config.SoulSpringMvcConfig;
 import org.dromara.soul.client.springmvc.dto.SpringMvcRegisterDTO;
 import org.dromara.soul.client.springmvc.utils.IpUtils;
+import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -37,6 +33,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.lang.reflect.Method;
+import java.util.Objects;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The type Soul spring mvc client bean post processor.
@@ -87,7 +89,8 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
             if (Objects.nonNull(clazzAnnotation)) {
                 if (clazzAnnotation.path().indexOf("*") > 1) {
                     String finalPrePath = prePath;
-                    executorService.execute(() -> post(buildJsonParams(clazzAnnotation, contextPath, finalPrePath)));
+                    executorService.execute(() -> RegisterUtils.doRegister(buildJsonParams(clazzAnnotation, contextPath, finalPrePath),
+                            url, RpcTypeEnum.HTTP));
                     return bean;
                 }
                 prePath = clazzAnnotation.path();
@@ -97,24 +100,12 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
                 SoulSpringMvcClient soulSpringMvcClient = AnnotationUtils.findAnnotation(method, SoulSpringMvcClient.class);
                 if (Objects.nonNull(soulSpringMvcClient)) {
                     String finalPrePath = prePath;
-                    executorService.execute(() -> post(buildJsonParams(soulSpringMvcClient, contextPath, finalPrePath)));
+                    executorService.execute(() -> RegisterUtils.doRegister(buildJsonParams(soulSpringMvcClient, contextPath,
+                            finalPrePath), url, RpcTypeEnum.HTTP));
                 }
             }
         }
         return bean;
-    }
-
-    private void post(final String json) {
-        try {
-            String result = OkHttpTools.getInstance().post(url, json);
-            if (Objects.equals(result, "success")) {
-                log.info("http client register success :{} ", json);
-            } else {
-                log.error("http client register error :{} ", json);
-            }
-        } catch (IOException e) {
-            log.error("cannot register soul admin param :{}", url + ":" + json);
-        }
     }
 
     private String buildJsonParams(final SoulSpringMvcClient soulSpringMvcClient, final String contextPath, final String prePath) {
@@ -138,7 +129,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
                 .ruleName(ruleName)
                 .registerMetaData(soulSpringMvcClient.registerMetaData())
                 .build();
-        return OkHttpTools.getInstance().getGosn().toJson(registerDTO);
+        return OkHttpTools.getInstance().getGson().toJson(registerDTO);
     }
 }
 

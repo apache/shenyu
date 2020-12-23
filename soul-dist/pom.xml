@@ -65,9 +65,9 @@
                             <goal>run</goal>
                         </goals>
                         <configuration>
-                            <tasks>
+                            <target>
                                 <copy file="${project.build.directory}/dromara-soul-bin.tar.gz" tofile="${project.basedir}/../dist/dromara-soul-bin.tar.gz" overwrite="true" />
-                            </tasks>
+                            </target>
                         </configuration>
                     </execution>
                 </executions>

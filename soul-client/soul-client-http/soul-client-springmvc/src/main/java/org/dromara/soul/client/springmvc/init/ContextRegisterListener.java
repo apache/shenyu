@@ -17,16 +17,17 @@
 
 package org.dromara.soul.client.springmvc.init;
 
-import java.io.IOException;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.client.common.utils.OkHttpTools;
+import org.dromara.soul.client.common.utils.RegisterUtils;
 import org.dromara.soul.client.springmvc.config.SoulSpringMvcConfig;
 import org.dromara.soul.client.springmvc.dto.SpringMvcRegisterDTO;
 import org.dromara.soul.client.springmvc.utils.IpUtils;
+import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The type Context register listener.
@@ -65,20 +66,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
             return;
         }
         if (soulSpringMvcConfig.isFull()) {
-            post(buildJsonParams(soulSpringMvcConfig.getContextPath()));
-        }
-    }
-
-    private void post(final String json) {
-        try {
-            String result = OkHttpTools.getInstance().post(url, json);
-            if (Objects.equals(result, "success")) {
-                log.info("http context register success :{} ", json);
-            } else {
-                log.error("http context register error :{} ", json);
-            }
-        } catch (IOException e) {
-            log.error("cannot register soul admin param :{}", url + ":" + json);
+            RegisterUtils.doRegister(buildJsonParams(soulSpringMvcConfig.getContextPath()), url, RpcTypeEnum.HTTP);
         }
     }
 
@@ -98,6 +86,6 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
                 .enabled(true)
                 .ruleName(path)
                 .build();
-        return OkHttpTools.getInstance().getGosn().toJson(registerDTO);
+        return OkHttpTools.getInstance().getGson().toJson(registerDTO);
     }
 }

@@ -25,39 +25,44 @@ package org.dromara.soul.common.constant;
 public final class AdminConstants {
 
     /**
+     * The constant SUCCESS, equals to SoulResultMessage.SUCCESS.
+     */
+    public static final String SUCCESS = "success";
+
+    /**
      * The constant PLUGIN_NAME_IS_EXIST.
      */
-    public static final String PLUGIN_NAME_IS_EXIST = "插件名称已经存在，不能重复添加!";
+    public static final String PLUGIN_NAME_IS_EXIST = "The plugin name already exists and can't be added repeatedly!";
 
     /**
      * The constant ID_NOT_EXIST.
      */
-    public static final String ID_NOT_EXIST = "id不存在！";
+    public static final String ID_NOT_EXIST = "ID NOT EXIST!";
 
     /**
      * The constant PLUGIN_NAME_NOT_EXIST.
      */
-    public static final String PLUGIN_NAME_NOT_EXIST = "插件名称已经不存在!";
+    public static final String PLUGIN_NAME_NOT_EXIST = "The plugin name not exist!";
 
     /**
      * The constant SYS_PLUGIN_NOT_DELETE.
      */
-    public static final String SYS_PLUGIN_NOT_DELETE = "系统插件不能删除!";
+    public static final String SYS_PLUGIN_NOT_DELETE = "System plugins can't be deleted!";
 
     /**
      * The constant SYS_PLUGIN_ID_NOT_EXIST.
      */
-    public static final String SYS_PLUGIN_ID_NOT_EXIST = "插件id不存在！";
+    public static final String SYS_PLUGIN_ID_NOT_EXIST = "The plugin id does not exist！";
 
     /**
      * The constant DATA_PATH_IS_EXIST.
      */
-    public static final String DATA_PATH_IS_EXIST = "路径已经存在，不能重复添加!";
+    public static final String DATA_PATH_IS_EXIST = "The path already exists and can't be added repeatedly!";
 
     /**
      * The constant PARAMS_ERROR.
      */
-    public static final String PARAMS_ERROR = "参数不完整！";
+    public static final String PARAMS_ERROR = "Error parameter！";
 
 
 }

@@ -16,7 +16,7 @@
   ~ limitations under the License.
   -->
 
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.dromara.soul.admin.mapper.PluginHandleMapper">
     <resultMap id="BaseResultMap" type="org.dromara.soul.admin.entity.PluginHandleDO">
         <id column="id" jdbcType="VARCHAR" property="id"/>
@@ -28,10 +28,11 @@
         <result column="data_type" jdbcType="INTEGER" property="dataType"/>
         <result column="type" jdbcType="INTEGER" property="type"/>
         <result column="sort" jdbcType="INTEGER" property="sort"/>
+        <result column="ext_obj" jdbcType="VARCHAR" property="extObj"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,plugin_id, field, label, data_type,type,sort, date_created, date_updated
+        id,plugin_id, field, label, data_type,type,sort, ext_obj,date_created, date_updated
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -51,11 +52,11 @@
     </delete>
 
     <insert id="insert" parameterType="org.dromara.soul.admin.entity.PluginHandleDO">
-    insert into plugin_handle (id, plugin_id, field, label,data_type,type,sort, date_created, date_updated
+    insert into plugin_handle (id, plugin_id, field, label,data_type,type,sort,ext_obj, date_created, date_updated
       )
     values (#{id,jdbcType=VARCHAR}, #{pluginId,jdbcType=VARCHAR}, #{field,jdbcType=VARCHAR},
       #{label,jdbcType=VARCHAR},#{dataType,jdbcType=INTEGER},#{type,jdbcType=INTEGER}, #{sort,jdbcType=INTEGER},
-      #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP}
+      #{extObj,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP}
       )
   </insert>
 
@@ -82,6 +83,9 @@
             </if>
             <if test="sort != null">
                 sort,
+            </if>
+            <if test="extObj != null">
+                ext_obj,
             </if>
             <if test="dateCreated != null">
                 date_created,
@@ -112,6 +116,9 @@
             <if test="sort != null">
                 #{sort,jdbcType=INTEGER},
             </if>
+            <if test="extObj != null">
+                #{extObj,jdbcType=VARCHAR},
+            </if>
             <if test="dateCreated != null">
                 #{dateCreated,jdbcType=TIMESTAMP},
             </if>
@@ -141,6 +148,9 @@
             <if test="sort != null">
                 sort= #{sort,jdbcType=INTEGER},
             </if>
+            <if test="extObj != null">
+                ext_obj= #{extObj,jdbcType=VARCHAR},
+            </if>
             <if test="dateCreated != null">
                 date_created = #{dateCreated,jdbcType=TIMESTAMP},
             </if>
@@ -158,6 +168,7 @@
       data_type = #{dataType,jdbcType=INTEGER},
       type = #{type,jdbcType=INTEGER},
       sort = #{sort,jdbcType=INTEGER},
+      ext_obj = #{extObj,jdbcType=VARCHAR},
       date_created = #{dateCreated,jdbcType=TIMESTAMP},
       date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=VARCHAR}
@@ -181,7 +192,7 @@
         <if test="type != null">
             and type = #{type,jdbcType=INTEGER}
         </if>
-        order by sort
+        order by plugin_id,sort
         <if test="pageParameter != null">
             limit #{pageParameter.offset},#{pageParameter.pageSize}
         </if>

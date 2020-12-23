@@ -45,16 +45,16 @@ import java.util.concurrent.ExecutionException;
  */
 @Slf4j
 public final class ApplicationConfigCache {
-    
+
     private ApplicationConfig applicationConfig;
-    
+
     private RegistryConfig registryConfig;
-    
+
     private final int maxCount = 50000;
-    
+
     private final LoadingCache<String, ConsumerConfig<GenericService>> cache = CacheBuilder.newBuilder()
             .maximumWeight(maxCount)
-            .weigher((Weigher<String, ConsumerConfig<GenericService>>) (string, ReferenceConfig) -> getSize())
+            .weigher((Weigher<String, ConsumerConfig<GenericService>>) (string, referenceConfig) -> getSize())
             .removalListener(notification -> {
                 ConsumerConfig<GenericService> config = notification.getValue();
                 if (config != null) {
@@ -63,7 +63,8 @@ public final class ApplicationConfigCache {
                         Field field = cz.getDeclaredField("consumerBootstrap");
                         field.setAccessible(true);
                         field.set(config, null);
-                        //跟改配置之后sofa 销毁该实例,但是未置空,如果不处理,重新初始化的时候将获取到NULL照成空指针问题.
+                        // After the configuration change, sofa destroys the instance, but does not empty it. If it is not handled,
+                        // it will get NULL when reinitializing and cause a NULL pointer problem.
                     } catch (NoSuchFieldException | IllegalAccessException e) {
                         log.error("modify ref have exception", e);
                     }
@@ -75,14 +76,14 @@ public final class ApplicationConfigCache {
                     return new ConsumerConfig<>();
                 }
             });
-    
+
     private ApplicationConfigCache() {
     }
-    
+
     private int getSize() {
         return (int) cache.size();
     }
-    
+
     /**
      * Gets instance.
      *
@@ -91,7 +92,7 @@ public final class ApplicationConfigCache {
     public static ApplicationConfigCache getInstance() {
         return ApplicationConfigCacheInstance.INSTANCE;
     }
-    
+
     /**
      * Init.
      *
@@ -111,7 +112,7 @@ public final class ApplicationConfigCache {
             registryConfig.setAddress(sofaRegisterConfig.getRegister());
         }
     }
-    
+
     /**
      * Init ref reference config.
      *
@@ -120,7 +121,7 @@ public final class ApplicationConfigCache {
      */
     public ConsumerConfig<GenericService> initRef(final MetaData metaData) {
         try {
-            ConsumerConfig<GenericService> referenceConfig = cache.get(metaData.getServiceName());
+            ConsumerConfig<GenericService> referenceConfig = cache.get(metaData.getPath());
             if (StringUtils.isNoneBlank(referenceConfig.getInterfaceId())) {
                 return referenceConfig;
             }
@@ -128,9 +129,9 @@ public final class ApplicationConfigCache {
             log.error("init sofa ref ex:{}", e.getMessage());
         }
         return build(metaData);
-        
+
     }
-    
+
     /**
      * Build reference config.
      *
@@ -158,36 +159,36 @@ public final class ApplicationConfigCache {
         Object obj = reference.refer();
         if (obj != null) {
             log.info("init sofa reference success there meteData is :{}", metaData.toString());
-            cache.put(metaData.getServiceName(), reference);
+            cache.put(metaData.getPath(), reference);
         }
         return reference;
     }
-    
+
     private String buildLoadBalanceName(final String loadBalance) {
         if (LoadBalanceEnum.HASH.getName().equals(loadBalance) || StringUtils.equalsIgnoreCase("consistenthash", loadBalance)) {
             return "consistentHash";
-        } else if (LoadBalanceEnum.ROUND_ROBIN.getName().equals(loadBalance) || StringUtils.equalsIgnoreCase("roundrobin", loadBalance)) {
-            return "roundRobin";
-        } else {
-            return loadBalance;
         }
+        if (LoadBalanceEnum.ROUND_ROBIN.getName().equals(loadBalance) || StringUtils.equalsIgnoreCase("roundrobin", loadBalance)) {
+            return "roundRobin";
+        }
+        return loadBalance;
     }
-    
+
     /**
      * Get reference config.
      *
      * @param <T>         the type parameter
-     * @param serviceName the service name
+     * @param path        path
      * @return the reference config
      */
-    public <T> ConsumerConfig<T> get(final String serviceName) {
+    public <T> ConsumerConfig<T> get(final String path) {
         try {
-            return (ConsumerConfig<T>) cache.get(serviceName);
+            return (ConsumerConfig<T>) cache.get(path);
         } catch (ExecutionException e) {
             throw new SoulException(e.getCause());
         }
     }
-    
+
     /**
      * Invalidate.
      *
@@ -196,14 +197,14 @@ public final class ApplicationConfigCache {
     public void invalidate(final String serviceName) {
         cache.invalidate(serviceName);
     }
-    
+
     /**
      * Invalidate all.
      */
     public void invalidateAll() {
         cache.invalidateAll();
     }
-    
+
     /**
      * The type Application config cache instance.
      */
@@ -213,17 +214,17 @@ public final class ApplicationConfigCache {
          */
         static final ApplicationConfigCache INSTANCE = new ApplicationConfigCache();
     }
-    
+
     /**
      * The type Sofa param ext info.
      */
     @Data
     static class SofaParamExtInfo {
-        
+
         private String loadbalance;
-        
+
         private Integer retries;
-        
+
         private Integer timeout;
     }
 }

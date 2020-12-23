@@ -30,7 +30,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ComplexBeanTest implements Serializable {
+public final class ComplexBeanTest implements Serializable {
 
     private DubboTest dubboTest;
 

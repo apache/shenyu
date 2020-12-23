@@ -18,6 +18,9 @@
 package org.dromara.soul.admin.entity;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.RuleDTO;
 import org.dromara.soul.common.dto.ConditionData;
@@ -32,9 +35,13 @@ import java.util.Optional;
  * RuleDO.
  *
  * @author jiangxiaofeng(Nicholas)
+ * @author nuo-promise
  */
 @Data
-public class RuleDO extends BaseDO {
+@SuperBuilder
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public final class RuleDO extends BaseDO {
 
     /**
      * selector id.
@@ -79,23 +86,23 @@ public class RuleDO extends BaseDO {
      */
     public static RuleDO buildRuleDO(final RuleDTO ruleDTO) {
         return Optional.ofNullable(ruleDTO).map(item -> {
-            RuleDO ruleDO = new RuleDO();
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            RuleDO ruleDO = RuleDO.builder()
+                    .selectorId(item.getSelectorId())
+                    .matchMode(item.getMatchMode())
+                    .name(item.getName())
+                    .enabled(item.getEnabled())
+                    .loged(item.getLoged())
+                    .sort(item.getSort())
+                    .handle(item.getHandle())
+                    .dateUpdated(currentTime)
+                    .build();
             if (StringUtils.isEmpty(item.getId())) {
                 ruleDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 ruleDO.setDateCreated(currentTime);
             } else {
                 ruleDO.setId(item.getId());
             }
-
-            ruleDO.setSelectorId(item.getSelectorId());
-            ruleDO.setMatchMode(item.getMatchMode());
-            ruleDO.setName(item.getName());
-            ruleDO.setEnabled(item.getEnabled());
-            ruleDO.setLoged(item.getLoged());
-            ruleDO.setSort(item.getSort());
-            ruleDO.setHandle(item.getHandle());
-            ruleDO.setDateUpdated(currentTime);
             return ruleDO;
         }).orElse(null);
     }
@@ -109,15 +116,17 @@ public class RuleDO extends BaseDO {
      * @return the rule data
      */
     public static RuleData transFrom(final RuleDO ruleDO, final String pluginName, final List<ConditionData> conditionDataList) {
-        return new RuleData(ruleDO.getId(),
-                ruleDO.getName(),
-                pluginName,
-                ruleDO.getSelectorId(),
-                ruleDO.getMatchMode(),
-                ruleDO.getSort(),
-                ruleDO.getEnabled(),
-                ruleDO.getLoged(),
-                ruleDO.getHandle(),
-                conditionDataList);
+        return RuleData.builder()
+                .id(ruleDO.getId())
+                .name(ruleDO.getName())
+                .pluginName(pluginName)
+                .selectorId(ruleDO.getSelectorId())
+                .matchMode(ruleDO.getMatchMode())
+                .sort(ruleDO.getSort())
+                .enabled(ruleDO.getEnabled())
+                .loged(ruleDO.getLoged())
+                .handle(ruleDO.getHandle())
+                .conditionDataList(conditionDataList)
+                .build();
     }
 }

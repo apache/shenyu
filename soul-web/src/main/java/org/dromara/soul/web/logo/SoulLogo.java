@@ -45,7 +45,7 @@ public class SoulLogo implements ApplicationListener<ApplicationEnvironmentPrepa
             + "                    \n"
             + "                   \n";
 
-    private volatile AtomicBoolean alreadyLog = new AtomicBoolean(false);
+    private final AtomicBoolean alreadyLog = new AtomicBoolean(false);
 
     @Override
     public void onApplicationEvent(final ApplicationEnvironmentPreparedEvent event) {

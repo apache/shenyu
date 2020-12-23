@@ -20,6 +20,8 @@ package org.dromara.soul.common.enums;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Arrays;
+
 /**
  * The enum Redis mode enum.
  *
@@ -44,6 +46,21 @@ public enum RedisModeEnum {
      */
     STANDALONE("Standalone");
 
+    /**
+     * Redis Mode Name.
+     */
     private final String name;
+
+    /**
+     * Acquire by name data sync enum.
+     *
+     * @param name redisModeName
+     * @return RedisModeEnum
+     */
+    public static RedisModeEnum acquireByName(final String name) {
+        return Arrays.stream(RedisModeEnum.values())
+                .filter(e -> e.getName().equals(name)).findFirst()
+                .orElse(RedisModeEnum.STANDALONE);
+    }
 
 }

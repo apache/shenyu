@@ -44,14 +44,17 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class WebsocketSyncDataService implements SyncDataService, AutoCloseable {
 
-    private List<WebSocketClient> clients = new ArrayList<>();
+    private final List<WebSocketClient> clients = new ArrayList<>();
 
     private final ScheduledThreadPoolExecutor executor;
-
+    
     /**
      * Instantiates a new Websocket sync cache.
      *
-     * @param websocketConfig the websocket config
+     * @param websocketConfig      the websocket config
+     * @param pluginDataSubscriber the plugin data subscriber
+     * @param metaDataSubscribers  the meta data subscribers
+     * @param authDataSubscribers  the auth data subscribers
      */
     public WebsocketSyncDataService(final WebsocketConfig websocketConfig,
                                     final PluginDataSubscriber pluginDataSubscriber,
@@ -66,7 +69,6 @@ public class WebsocketSyncDataService implements SyncDataService, AutoCloseable 
                 log.error("websocket url({}) is error", url, e);
             }
         }
-
         try {
             for (WebSocketClient client : clients) {
                 boolean success = client.connectBlocking(3000, TimeUnit.MILLISECONDS);
@@ -91,13 +93,12 @@ public class WebsocketSyncDataService implements SyncDataService, AutoCloseable 
                 }, 10, 30, TimeUnit.SECONDS);
             }
             /* client.setProxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress("proxyaddress", 80)));*/
-
         } catch (InterruptedException e) {
             log.info("websocket connection...exception....", e);
         }
 
     }
-
+    
     @Override
     public void close() {
         for (WebSocketClient client : clients) {
