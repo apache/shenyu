@@ -21,6 +21,7 @@ import org.hamcrest.collection.IsMapContaining;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ErrorCollector;
+import org.junit.rules.ExpectedException;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -39,6 +40,9 @@ public final class HttpParamConverterTest {
     @Rule
     public ErrorCollector collector = new ErrorCollector();
 
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+
     @Test
     public void testOfString() {
         assertEquals("{\"a\":\"1\",\"b\":\"2\"}", HttpParamConverter.ofString(() -> "a=1&b=2"));
@@ -46,15 +50,25 @@ public final class HttpParamConverterTest {
 
     @Test
     public void testInitQueryParams() {
-        Map<String, String> params = HttpParamConverter.initQueryParams("a=1&b=2");
+        Map<String, String> params = HttpParamConverter.initQueryParams("a=1&b=2&c=&d");
         collector.checkThat(params,
                 allOf(IsMapContaining.hasEntry("a", "1"),
-                        IsMapContaining.hasEntry("b", "2")));
+                        IsMapContaining.hasEntry("b", "2"),
+                        IsMapContaining.hasEntry("c", ""),
+                        IsMapContaining.hasEntry("d", null)));
+
+        params = HttpParamConverter.initQueryParams("");
+        assertEquals(0, params.size());
     }
 
     @Test
     public void testDecodeQueryParam() {
         assertEquals("a=1&b=2", HttpParamConverter.decodeQueryParam("a%3d1%26b%3d2"));
+
+        thrown.expect(IllegalArgumentException.class);
+        thrown.expectMessage("Incomplete trailing escape (%) pattern");
+        assertEquals("a=1&b=2", HttpParamConverter.decodeQueryParam("a%3d1%26b%3d2%%"));
+
     }
 
     @Test

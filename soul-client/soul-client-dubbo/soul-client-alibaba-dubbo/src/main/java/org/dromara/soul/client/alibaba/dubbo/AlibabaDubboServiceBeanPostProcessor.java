@@ -50,9 +50,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener<ContextRefreshedEvent> {
 
-    private DubboConfig dubboConfig;
+    private final DubboConfig dubboConfig;
 
-    private ExecutorService executorService;
+    private final ExecutorService executorService;
 
     private final String url;
 
@@ -68,7 +68,7 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
     }
 
-    private void handler(final ServiceBean serviceBean) {
+    private void handler(final ServiceBean<?> serviceBean) {
         Class<?> clazz = serviceBean.getRef().getClass();
         if (ClassUtils.isCglibProxyClass(clazz)) {
             String superClassName = clazz.getGenericSuperclass().getTypeName();
@@ -88,7 +88,7 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
         }
     }
 
-    private String buildJsonParams(final ServiceBean serviceBean, final SoulDubboClient soulDubboClient, final Method method) {
+    private String buildJsonParams(final ServiceBean<?> serviceBean, final SoulDubboClient soulDubboClient, final Method method) {
         String appName = dubboConfig.getAppName();
         if (StringUtils.isEmpty(appName)) {
             appName = serviceBean.getApplication().getName();
@@ -119,7 +119,7 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
 
     }
 
-    private String buildRpcExt(final ServiceBean serviceBean) {
+    private String buildRpcExt(final ServiceBean<?> serviceBean) {
         MetaDataDTO.RpcExt build = MetaDataDTO.RpcExt.builder()
                 .group(StringUtils.isNotEmpty(serviceBean.getGroup()) ? serviceBean.getGroup() : "")
                 .version(StringUtils.isNotEmpty(serviceBean.getVersion()) ? serviceBean.getVersion() : "")

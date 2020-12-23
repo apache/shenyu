@@ -22,8 +22,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.AppAuthDTO;
 import org.dromara.soul.admin.dto.AuthApplyDTO;
 import org.dromara.soul.admin.dto.AuthPathWarpDTO;
+import org.dromara.soul.admin.dto.AuthParamDTO;
+import org.dromara.soul.admin.dto.AuthPathDTO;
 import org.dromara.soul.admin.dto.BatchCommonDTO;
 import org.dromara.soul.admin.entity.AppAuthDO;
+import org.dromara.soul.admin.entity.AuthParamDO;
 import org.dromara.soul.admin.entity.AuthPathDO;
 import org.dromara.soul.admin.mapper.AppAuthMapper;
 import org.dromara.soul.admin.mapper.AuthParamMapper;
@@ -109,8 +112,9 @@ public final class AppAuthServiceTest {
         AppAuthDTO appAuthDTO = new AppAuthDTO();
         SoulAdminResult parameterErrorResult = this.appAuthService.updateDetail(appAuthDTO);
         assertEquals(SoulResultMessage.PARAMETER_ERROR, parameterErrorResult.getMessage());
-
         appAuthDTO = buildAppAuthDTO(UUIDUtils.getInstance().generateShortUuid());
+        List<AuthParamDTO> authParamDTOList = Collections.singletonList(buildAuthParamDTO());
+        appAuthDTO.setAuthParamDTOList(authParamDTOList);
         SoulAdminResult successResult = this.appAuthService.updateDetail(appAuthDTO);
         assertEquals(CommonErrorCode.SUCCESSFUL, successResult.getCode().intValue());
     }
@@ -118,7 +122,9 @@ public final class AppAuthServiceTest {
     @Test
     public void testUpdateDetailPath() {
         AuthPathWarpDTO authPathWarpDTO = new AuthPathWarpDTO();
+        List<AuthPathDTO> authPathDTOList = Collections.singletonList(buildAuthPathDTO());
         authPathWarpDTO.setId(UUIDUtils.getInstance().generateShortUuid());
+        authPathWarpDTO.setAuthPathDTOList(authPathDTOList);
         SoulAdminResult idNotExistResult = this.appAuthService.updateDetailPath(authPathWarpDTO);
         assertEquals(AdminConstants.ID_NOT_EXIST, idNotExistResult.getMessage());
 
@@ -161,10 +167,17 @@ public final class AppAuthServiceTest {
 
     @Test
     public void testFindById() {
+        String authId = UUIDUtils.getInstance().generateShortUuid();
+        String appName = "testAppName";
+        String appParam = "{\"type\": \"test\"}";
+        AuthParamDO authParamDO = AuthParamDO.create(authId, appName, appParam);
+        List<AuthParamDO> authParamDOList = Collections.singletonList(authParamDO);
+        given(this.authParamMapper.findByAuthId(eq(appAuthDO.getId()))).willReturn(authParamDOList);
         given(this.appAuthMapper.selectById(eq(appAuthDO.getId()))).willReturn(appAuthDO);
         AppAuthVO appAuthVO = this.appAuthService.findById(appAuthDO.getId());
         assertNotNull(appAuthVO);
         assertEquals(appAuthDO.getId(), appAuthVO.getId());
+        assertNotNull(appAuthVO.getAuthParamVOList());
     }
 
     @Test
@@ -172,6 +185,8 @@ public final class AppAuthServiceTest {
         AuthPathDO authPathDO = new AuthPathDO();
         String authPathDoId = UUIDUtils.getInstance().generateShortUuid();
         String authPathDOAuthId = UUIDUtils.getInstance().generateShortUuid();
+        List<AuthPathVO> authPathVOListEmpty = this.appAuthService.detailPath(authPathDOAuthId);
+        assertEquals(0, authPathVOListEmpty.size());
         authPathDO.setId(authPathDoId);
         authPathDO.setAuthId(authPathDOAuthId);
         given(this.authPathMapper.findByAuthId(eq(authPathDOAuthId))).willReturn(Collections.singletonList(authPathDO));
@@ -246,7 +261,21 @@ public final class AppAuthServiceTest {
     }
 
     private void testApplyUpdateSuccess() {
+        AuthApplyDTO authApplyDTO = buildAuthApplyDTO();
+        AuthPathDO authPathDO = new AuthPathDO();
+        String authPathDoId = UUIDUtils.getInstance().generateShortUuid();
+        String authPathDOAuthId = UUIDUtils.getInstance().generateShortUuid();
+        authPathDO.setId(authPathDoId);
+        authPathDO.setAuthId(authPathDOAuthId);
+        String appName = "testAppName";
+        String appParam = "{\"type\": \"test\"}";
+        AuthParamDO authParamDO = AuthParamDO.create(appAuthDO.getId(), appName, appParam);
+        List<AuthParamDO> authParamDOList = Collections.singletonList(authParamDO);
+        given(this.authPathMapper.findByAuthIdAndAppName(
+                eq(appAuthDO.getId()), eq(authApplyDTO.getAppName()))).willReturn(Collections.singletonList(authPathDO));
         given(this.appAuthMapper.findByAppKey(appAuthDO.getAppKey())).willReturn(appAuthDO);
+        given(authPathMapper.findByAuthId(eq(appAuthDO.getId()))).willReturn(Collections.singletonList(authPathDO));
+        given(authParamMapper.findByAuthId(eq(appAuthDO.getId()))).willReturn(authParamDOList);
         SoulAdminResult successResult = this.appAuthService.applyUpdate(buildAuthApplyDTO());
         assertEquals(SoulResultMessage.UPDATE_SUCCESS, successResult.getMessage());
     }
@@ -285,5 +314,19 @@ public final class AppAuthServiceTest {
         appAuthDO.setDateCreated(now);
         appAuthDO.setDateUpdated(now);
         return appAuthDO;
+    }
+
+    private AuthParamDTO buildAuthParamDTO() {
+        AuthParamDTO authParamDTO = new AuthParamDTO();
+        authParamDTO.setAppName("testAppName");
+        authParamDTO.setAppParam("{\"type\":\"test\"}");
+        return authParamDTO;
+    }
+
+    private AuthPathDTO buildAuthPathDTO() {
+        AuthPathDTO authPathDTO = new AuthPathDTO();
+        authPathDTO.setAppName("testAppName");
+        authPathDTO.setPath("/test");
+        return authPathDTO;
     }
 }
