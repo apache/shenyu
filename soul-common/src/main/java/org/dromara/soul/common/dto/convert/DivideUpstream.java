@@ -55,12 +55,12 @@ public class DivideUpstream implements Serializable {
     private int weight;
 
     /**
-     * false close/ true open
+     * false close/ true open.
      */
     private boolean status = true;
 
     /**
-     * starup time
+     * starup time.
      */
     private long timestamp;
 
