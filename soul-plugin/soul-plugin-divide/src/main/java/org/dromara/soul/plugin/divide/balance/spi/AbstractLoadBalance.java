@@ -51,19 +51,15 @@ public abstract class AbstractLoadBalance implements LoadBalance {
     }
 
     protected int getWeight(final DivideUpstream upstream) {
-
         int weight = getWeight(upstream.getTimestamp(), 60000, upstream.getWeight());
         return weight;
     }
 
     private int getWeight(final long timestamp, final int warmup, final int weight) {
-
         if (weight > 0 && timestamp > 0) {
             int uptime = (int) (System.currentTimeMillis() - timestamp);
-
             if (uptime > 0 && uptime < warmup) {
                 return calculateWarmupWeight(uptime, warmup, weight);
-
             }
         }
         return weight;
