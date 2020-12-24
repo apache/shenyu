@@ -34,6 +34,7 @@
         <module>soul-spring-boot-starter-client-alibaba-dubbo</module>
         <module>soul-spring-boot-starter-client-apache-dubbo</module>
         <module>soul-spring-boot-starter-client-sofa</module>
+        <module>soul-spring-boot-starter-client-tars</module>
     </modules>
 
 
