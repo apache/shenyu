@@ -64,4 +64,9 @@ public class DivideUpstream implements Serializable {
      */
     private long timestamp;
 
+    /**
+     * warmup.
+     */
+    private int warmup;
+
 }
