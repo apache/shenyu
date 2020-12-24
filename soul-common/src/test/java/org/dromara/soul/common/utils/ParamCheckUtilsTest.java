@@ -18,6 +18,8 @@
 package org.dromara.soul.common.utils;
 
 import org.junit.Test;
+
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -33,5 +35,6 @@ public final class ParamCheckUtilsTest {
         assertTrue(ParamCheckUtils.dubboBodyIsEmpty(""));
         assertTrue(ParamCheckUtils.dubboBodyIsEmpty("{}"));
         assertTrue(ParamCheckUtils.dubboBodyIsEmpty("null"));
+        assertFalse(ParamCheckUtils.dubboBodyIsEmpty("123"));
     }
 }

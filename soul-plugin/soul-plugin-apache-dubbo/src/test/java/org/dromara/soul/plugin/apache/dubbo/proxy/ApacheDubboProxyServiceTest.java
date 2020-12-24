@@ -42,13 +42,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * ApacheDubboProxyServiceTest.
+ * The Test Case For ApacheDubboProxyService.
  *
  * @author tydhot
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class ApacheDubboProxyServiceTest {
-    private static final String PATH = "/sofa/findAll";
+    private static final String PATH = "/duubo/findAll";
 
     private static final String METHOD_NAME = "findAll";
 
@@ -65,11 +65,11 @@ public final class ApacheDubboProxyServiceTest {
         exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
         metaData = new MetaData();
         metaData.setId("1332017966661636096");
-        metaData.setAppName("sofa");
+        metaData.setAppName("dubbo");
         metaData.setPath(PATH);
         metaData.setServiceName("org.dromara.soul.test.dubbo.api.service.DubboTestService");
         metaData.setMethodName(METHOD_NAME);
-        metaData.setRpcType(RpcTypeEnum.SOFA.getName());
+        metaData.setRpcType(RpcTypeEnum.DUBBO.getName());
     }
 
     @After
@@ -94,7 +94,7 @@ public final class ApacheDubboProxyServiceTest {
         future.complete("success");
     }
 
-    class DubboParamResolveServiceImpl implements DubboParamResolveService {
+    static class DubboParamResolveServiceImpl implements DubboParamResolveService {
 
         @Override
         public Pair<String[], Object[]> buildParameter(final String body, final String parameterTypes) {

@@ -17,17 +17,36 @@
 
 package org.dromara.soul.admin.vo;
 
-import org.dromara.soul.admin.vo.base.BaseVOTest;
+import org.dromara.soul.admin.AbstractReflectGetterSetterTest;
+import org.dromara.soul.admin.entity.RuleConditionDO;
+import org.dromara.soul.common.enums.OperatorEnum;
+import org.dromara.soul.common.enums.ParamTypeEnum;
+import org.junit.Test;
+
+import java.sql.Timestamp;
+
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Test case for RuleConditionVO.
  *
  * @author midnight2104
  */
-public class RuleConditionVOTest extends BaseVOTest<RuleConditionVO> {
+public final class RuleConditionVOTest extends AbstractReflectGetterSetterTest {
 
     @Override
-    protected RuleConditionVO getTargetClass() {
-        return new RuleConditionVO();
+    protected Class<?> getTargetClass() {
+        return RuleConditionVO.class;
+    }
+
+    @Test
+    public void testBuildRuleConditionVO() {
+        Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+        assertNotNull(RuleConditionVO.buildRuleConditionVO(RuleConditionDO.builder()
+                .paramType(ParamTypeEnum.POST.getName())
+                .operator(OperatorEnum.MATCH.getAlias())
+                .dateCreated(currentTime)
+                .dateUpdated(currentTime)
+                .build()));
     }
 }

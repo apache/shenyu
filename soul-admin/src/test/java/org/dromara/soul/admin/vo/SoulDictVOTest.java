@@ -17,59 +17,17 @@
 
 package org.dromara.soul.admin.vo;
 
-import org.dromara.soul.admin.entity.SoulDictDO;
-import org.dromara.soul.common.utils.UUIDUtils;
-import org.junit.jupiter.api.Test;
-
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
+import org.dromara.soul.admin.AbstractReflectGetterSetterTest;
 
 /**
  * Test case for SoulDictVO.
  *
  * @author midnight2104
  */
-public class SoulDictVOTest {
+public final class SoulDictVOTest extends AbstractReflectGetterSetterTest {
 
-    /**
-     * test getter and setter method of SoulDictVO.
-     */
-    @Test
-    public void shouldSuccessGetAndSetMethod() {
-        SoulDictVO soulDictVO = getSoulDictVO();
-
-        assert soulDictVO != null;
-
-        soulDictVO.setId(soulDictVO.getId());
-        soulDictVO.setSort(soulDictVO.getSort());
-        soulDictVO.setDesc(soulDictVO.getDesc());
-        soulDictVO.setDictCode(soulDictVO.getDictCode());
-        soulDictVO.setDictName(soulDictVO.getDictName());
-        soulDictVO.setEnabled(soulDictVO.getEnabled());
-        soulDictVO.setType(soulDictVO.getType());
-        soulDictVO.setDateCreated(soulDictVO.getDateUpdated());
-        soulDictVO.setDateUpdated(soulDictVO.getDateUpdated());
-    }
-
-    /**
-     * get SoulDictVO.
-     *
-     * @return soulDictVO object
-     */
-    private SoulDictVO getSoulDictVO() {
-        Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-        String id = UUIDUtils.getInstance().generateShortUuid();
-
-        return SoulDictVO.buildSoulDictVO(SoulDictDO.builder()
-                .id(id)
-                .sort(1)
-                .desc("test")
-                .dictCode("t_dict_1")
-                .dictName("t_d_v")
-                .enabled(false)
-                .type("rule")
-                .dateCreated(now)
-                .dateUpdated(now)
-                .build());
+    @Override
+    protected Class<?> getTargetClass() {
+        return SoulDictVO.class;
     }
 }

@@ -32,5 +32,6 @@ public class SoulConfig {
     private Boolean filterTimeEnable = false;
 
     private Integer upstreamScheduledTime = 30;
-
+    
+    private Integer fileMaxSize = 10;
 }

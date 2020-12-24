@@ -44,6 +44,7 @@
         <module>soul-examples-springcloud</module>
         <module>soul-examples-eureka</module>
         <module>soul-examples-sofa</module>
+        <module>soul-examples-tars</module>
     </modules>
 
     <build>

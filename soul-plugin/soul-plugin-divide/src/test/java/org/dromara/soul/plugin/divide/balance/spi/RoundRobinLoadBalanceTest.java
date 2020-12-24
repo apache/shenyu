@@ -38,9 +38,49 @@ public final class RoundRobinLoadBalanceTest {
      * Round robin load balance test.
      */
     @Test
-    public void roundRobinLoadBalanceTest() {
+    public void roundRobinLoadBalanceDisorderedWeightTest() {
         List<DivideUpstream> divideUpstreamList =
                 Stream.of(50, 20, 30)
+                        .map(weight -> DivideUpstream.builder()
+                                .upstreamUrl("divide-upstream-" + weight)
+                                .weight(weight)
+                                .build())
+                        .collect(Collectors.toList());
+
+        RoundRobinLoadBalance roundRobinLoadBalance = new RoundRobinLoadBalance();
+        Map<String, Integer> countMap = new HashMap<>();
+        for (int i = 0; i < 120; i++) {
+            DivideUpstream result = roundRobinLoadBalance.select(divideUpstreamList, "");
+            int count = countMap.getOrDefault(result.getUpstreamUrl(), 0);
+            countMap.put(result.getUpstreamUrl(), ++count);
+        }
+        Assert.assertEquals(60, countMap.get("divide-upstream-50").intValue());
+    }
+
+    @Test
+    public void roundRobinLoadBalanceOrderedWeightTest() {
+        List<DivideUpstream> divideUpstreamList =
+                Stream.of(20, 30, 50)
+                        .map(weight -> DivideUpstream.builder()
+                                .upstreamUrl("divide-upstream-" + weight)
+                                .weight(weight)
+                                .build())
+                        .collect(Collectors.toList());
+
+        RoundRobinLoadBalance roundRobinLoadBalance = new RoundRobinLoadBalance();
+        Map<String, Integer> countMap = new HashMap<>();
+        for (int i = 0; i < 120; i++) {
+            DivideUpstream result = roundRobinLoadBalance.select(divideUpstreamList, "");
+            int count = countMap.getOrDefault(result.getUpstreamUrl(), 0);
+            countMap.put(result.getUpstreamUrl(), ++count);
+        }
+        Assert.assertEquals(60, countMap.get("divide-upstream-50").intValue());
+    }
+
+    @Test
+    public void roundRobinLoadBalanceReversedWeightTest() {
+        List<DivideUpstream> divideUpstreamList =
+                Stream.of(50, 30, 20)
                         .map(weight -> DivideUpstream.builder()
                                 .upstreamUrl("divide-upstream-" + weight)
                                 .weight(weight)

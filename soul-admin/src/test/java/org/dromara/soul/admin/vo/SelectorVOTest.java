@@ -17,17 +17,17 @@
 
 package org.dromara.soul.admin.vo;
 
-import org.dromara.soul.admin.vo.base.BaseVOTest;
+import org.dromara.soul.admin.AbstractReflectGetterSetterTest;
 
 /**
  * Test case for SelectorVO.
  *
  * @author midnight2104
  */
-public class SelectorVOTest extends BaseVOTest<SelectorVO> {
+public final class SelectorVOTest extends AbstractReflectGetterSetterTest {
 
     @Override
-    protected SelectorVO getTargetClass() {
-        return new SelectorVO();
+    protected Class<?> getTargetClass() {
+        return SelectorVO.class;
     }
 }
