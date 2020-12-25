@@ -108,6 +108,11 @@ public enum PluginEnum {
     SOFA(60, 0, "sofa"),
 
     /**
+     * Tars plugin enum.
+     */
+    TARS(60, 0, "tars"),
+
+    /**
      * Monitor plugin enum.
      */
     MONITOR(80, 0, "monitor"),

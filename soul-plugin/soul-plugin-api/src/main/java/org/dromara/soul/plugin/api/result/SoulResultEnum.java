@@ -70,6 +70,16 @@ public enum SoulResultEnum {
     SOFA_HAVE_BODY_PARAM(432, "Sofa must have body param, please enter the JSON format in the body!"),
 
     /**
+     * Tars have body param soul result enum.
+     */
+    TARS_HAVE_BODY_PARAM(433, "Tars must have body param, please enter the JSON format in the body!"),
+
+    /**
+     * Tars invoke soul result enum.
+     */
+    TARS_INVOKE(434, "Tars invoke error!"),
+
+    /**
      * full selector type enum.
      */
     PARAM_ERROR(-100, "Your parameter error, please check the relevant documentation!"),

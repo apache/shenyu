@@ -50,6 +50,11 @@ public enum RpcTypeEnum {
     SOFA("sofa", true),
 
     /**
+     * Tars rpc type enum.
+     */
+    TARS("tars", true),
+
+    /**
      * Web socket rpc type enum.
      */
     WEB_SOCKET("websocket", true),
