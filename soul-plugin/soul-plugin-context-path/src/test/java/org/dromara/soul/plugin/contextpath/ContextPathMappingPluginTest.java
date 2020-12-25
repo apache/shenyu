@@ -58,8 +58,6 @@ public final class ContextPathMappingPluginTest {
 
     private ServerWebExchange exchange;
 
-    private DefaultSoulResult soulResult;
-
     private ContextPathMappingPlugin contextPathMappingPlugin;
 
     @Before
@@ -68,7 +66,7 @@ public final class ContextPathMappingPluginTest {
         this.ruleData = mock(RuleData.class);
         this.chain = mock(SoulPluginChain.class);
         this.selectorData = mock(SelectorData.class);
-        this.soulResult = new DefaultSoulResult();
+        DefaultSoulResult soulResult = new DefaultSoulResult();
         this.contextPathMappingPlugin = new ContextPathMappingPlugin();
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
         this.exchange.getAttributes().put(Constants.CONTEXT, soulContext);

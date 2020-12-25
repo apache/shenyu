@@ -98,8 +98,6 @@ public class ContextPathMappingPlugin extends AbstractSoulPlugin {
         Optional<String> optional = Arrays.stream(context.getPath()
                 .split(handle.getContextPath()))
                 .reduce((first, last) -> last);
-        if (optional.isPresent()) {
-            context.setRealUrl(optional.get());
-        }
+        optional.ifPresent(context::setRealUrl);
     }
 }
