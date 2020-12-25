@@ -111,6 +111,7 @@
         <frontend.plugin.skip>true</frontend.plugin.skip>
         <swagger.version>2.9.2</swagger.version>
         <sofa.rpc.version>5.7.6</sofa.rpc.version>
+        <tars.version>1.7.2</tars.version>
         <skipTests>false</skipTests>
         <undertow.version>2.2.2.Final</undertow.version>
         <curator-test.version>3.3.0</curator-test.version>
@@ -318,6 +319,12 @@
                 <groupId>io.springfox</groupId>
                 <artifactId>springfox-swagger-ui</artifactId>
                 <version>${swagger.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.tencent.tars</groupId>
+                <artifactId>tars-spring-boot-starter</artifactId>
+                <version>${tars.version}</version>
             </dependency>
 
         </dependencies>
