@@ -193,6 +193,8 @@ INSERT IGNORE INTO `plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `da
 INSERT IGNORE INTO `plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('10', 'sentinel', '1','0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT IGNORE INTO `plugin` (`id`, `name`,`role`, `config`, `enabled`, `date_created`, `date_updated`) VALUES ('11', 'sofa', '0', '{"protocol":"zookeeper","register":"127.0.0.1:2181"}', '0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT IGNORE INTO `plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('12', 'resilience4j', '1','0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
+INSERT IGNORE INTO `plugin` (`id`, `name`,`role`, `enabled`, `date_created`, `date_updated`) VALUES ('14', 'context_path', '1','0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
+
 
 /**default admin user**/
 INSERT IGNORE INTO `dashboard_user` (`id`, `user_name`, `password`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('1', 'admin', 'jHcpKkiDbbQh7W7hh8yQSA==', '1', '1', '2018-06-23 15:12:22', '2018-06-23 15:12:23');
@@ -237,3 +239,4 @@ INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('26', '12', 'waitIntervalFunctionInOpenState', '熔断器开启持续时间', 1, 2, 2, '2020-11-28 11:29:01', '2020-11-28 11:29:01');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('27', '12', 'permittedNumberOfCallsInHalfOpenState', '半开阈值', 1, 2, 2, '2020-11-28 11:29:55', '2020-11-28 11:29:55');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('28', '12', 'failureRateThreshold', '熔断错误率', 1, 2, 2, '2020-11-28 11:30:40', '2020-11-28 11:30:40');
+
