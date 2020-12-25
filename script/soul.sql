@@ -241,3 +241,5 @@ INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('27', '12', 'permittedNumberOfCallsInHalfOpenState', '半开阈值', 1, 2, 2, '2020-11-28 11:29:55', '2020-11-28 11:29:55');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('28', '12', 'failureRateThreshold', '熔断错误率', 1, 2, 2, '2020-11-28 11:30:40', '2020-11-28 11:30:40');
 
+/*insert plugin_handle data for context path*/
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('28', '14', 'contextPath', 'contextPath', 2, 2, 0, '2020-12-25 16:13:09', '2020-12-25 16:13:09');
