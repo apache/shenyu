@@ -66,12 +66,12 @@ public final class ContextPathMappingPluginTest {
         this.ruleData = mock(RuleData.class);
         this.chain = mock(SoulPluginChain.class);
         this.selectorData = mock(SelectorData.class);
-        DefaultSoulResult soulResult = new DefaultSoulResult();
         this.contextPathMappingPlugin = new ContextPathMappingPlugin();
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
         this.exchange.getAttributes().put(Constants.CONTEXT, soulContext);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        final DefaultSoulResult soulResult = new DefaultSoulResult();
         when(context.getBean(SoulResult.class)).thenReturn(soulResult);
         SpringBeanUtils.getInstance().setCfgContext(context);
     }
