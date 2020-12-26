@@ -122,11 +122,17 @@ public final class WebClientPluginTest {
         assertFalse(webClientPlugin.skip(exchangeSpringCloud));
     }
 
+    /**
+     * test case for WebClientPlugin {@link WebClientPlugin#getOrder()}.
+     */
     @Test
     public void testGetOrder() {
         assertEquals(PluginEnum.DIVIDE.getCode() + 1, webClientPlugin.getOrder());
     }
 
+    /**
+     * test case for WebClientPlugin {@link WebClientPlugin#named()}.
+     */
     @Test
     public void testNamed() {
         assertEquals("webClient", webClientPlugin.named());
