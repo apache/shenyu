@@ -17,29 +17,29 @@
 
 package org.dromara.soul.plugin.sentinel.handler;
 
+import com.alibaba.csp.sentinel.slots.block.degrade.DegradeRule;
 import com.alibaba.csp.sentinel.slots.block.degrade.DegradeRuleManager;
+import com.alibaba.csp.sentinel.slots.block.flow.FlowRule;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowRuleManager;
 import org.dromara.soul.common.dto.RuleData;
+import org.dromara.soul.common.dto.convert.SentinelHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 
+import static org.hamcrest.Matchers.is;
+
+import org.dromara.soul.common.utils.GsonUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(MockitoJUnitRunner.class)
 public final class SentinelRuleHandleTest {
-
-    private static final String FLOW_RULE_HANDLER = "{\"flowRuleEnable\":\"1\",\"flowRuleCount\":\"1\","
-            + "\"degradeRuleEnable\":\"0\",\"degradeRuleCount\":\"0\"}";
-
-    private static final String DEGRADE_RULE_HANDLER = "{\"flowRuleEnable\":\"0\",\"flowRuleCount\":\"0\","
-            + "\"degradeRuleEnable\":\"1\",\"degradeRuleCount\":\"1\",\"degradeRuleTimeWindow\":\"1\"}";
 
     private SentinelRuleHandle sentinelRuleHandle;
 
@@ -49,46 +49,32 @@ public final class SentinelRuleHandleTest {
     }
 
     @Test
-    public void handlerRuleTest() {
-        testFlowRuleEnable();
-        testDegradeRuleManager();
-    }
-
-    @Test
     public void pluginNamedTest() {
-        assertEquals(sentinelRuleHandle.pluginNamed(), PluginEnum.SENTINEL.getName());
+        assertEquals(PluginEnum.SENTINEL.getName(), sentinelRuleHandle.pluginNamed());
     }
 
     @Test
     public void removeRule() {
-        RuleData ruleData = build("");
-        sentinelRuleHandle.removeRule(ruleData);
+        RuleData data = new RuleData();
+        data.setSelectorId("sentinel");
+        data.setName("removeRule");
+        SentinelHandle sentinelHandle = new SentinelHandle();
+        sentinelHandle.setFlowRuleCount(10);
+        sentinelHandle.setFlowRuleGrade(0);
+        sentinelHandle.setFlowRuleControlBehavior(0);
+        sentinelHandle.setDegradeRuleCount(1);
+        sentinelHandle.setDegradeRuleGrade(0);
+        sentinelHandle.setDegradeRuleTimeWindow(5);
+        data.setHandle(GsonUtils.getGson().toJson(sentinelHandle));
+        sentinelRuleHandle.handlerRule(data);
+        FlowRule flowRule = FlowRuleManager.getRules().get(0);
+        assertThat(flowRule.getCount(), is(10.0));
+        assertThat(flowRule.getResource(), is("sentinel_removeRule"));
+        DegradeRule degradeRule = DegradeRuleManager.getRules().get(0);
+        assertThat(degradeRule.getCount(), is(1.0));
+        assertThat(degradeRule.getResource(), is("sentinel_removeRule"));
+        sentinelRuleHandle.removeRule(data);
         assertTrue(FlowRuleManager.getRules().isEmpty());
-    }
-
-    private void testFlowRuleEnable() {
-        RuleData ruleData = build(FLOW_RULE_HANDLER);
-        sentinelRuleHandle.handlerRule(ruleData);
-        assertFalse(FlowRuleManager.getRules().isEmpty());
-    }
-
-    private void testDegradeRuleManager() {
-        RuleData ruleData = build(DEGRADE_RULE_HANDLER);
-        sentinelRuleHandle.handlerRule(ruleData);
-        assertFalse(DegradeRuleManager.getRules().isEmpty());
-    }
-
-    private RuleData build(final String handler) {
-        RuleData ruleData = new RuleData();
-        ruleData.setId(null);
-        ruleData.setEnabled(true);
-        ruleData.setHandle(handler);
-        ruleData.setLoged(true);
-        ruleData.setMatchMode(1);
-        ruleData.setName("sentinel");
-        ruleData.setPluginName("sentinel");
-        ruleData.setSelectorId("1");
-        ruleData.setSort(1);
-        return ruleData;
+        assertTrue(DegradeRuleManager.getRules().isEmpty());
     }
 }
