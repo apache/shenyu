@@ -22,6 +22,7 @@ import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.config.ConfigService;
 import org.dromara.soul.admin.AbstractConfigurationTest;
 import org.junit.Test;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import java.util.Properties;
@@ -47,7 +48,22 @@ public final class NacosConfigurationTest extends AbstractConfigurationTest {
         load(NacosConfiguration.class, inlinedProperties);
         ConfigService configService = (ConfigService) getContext().getBean("nacosConfigService");
         assertNotNull(configService);
+    }
 
+    @Test(expected = BeanCreationException.class)
+    public void testNacosConfigService() {
+        String[] inlinedProperties = new String[]{
+            "soul.sync.nacos.url=localhost:8848",
+            "soul.sync.nacos.namespace=1c10d748-af86-43b9-8265-75f487d20c6c",
+            "soul.sync.nacos.acm.enabled=true",
+            "soul.sync.nacos.acm.endpoint=localhost:8849",
+            "soul.sync.nacos.acm.namespace=namespace",
+            "soul.sync.nacos.acm.accessKey=accessKey",
+            "soul.sync.nacos.acm.secretKey=secretKey",
+        };
+        load(NacosConfiguration.class, inlinedProperties);
+        ConfigService configService = (ConfigService) getContext().getBean("nacosConfigService");
+        assertNotNull(configService);
     }
 
     @Test
