@@ -39,9 +39,45 @@ public final class LoadBalanceUtilsTest {
      * Load balance util test.
      */
     @Test
-    public void loadBalanceUtilsTest() {
+    public void loadBalanceUtilsOrderedWeightTest() {
         List<DivideUpstream> upstreamList =
                 Stream.of(10, 20, 70)
+                        .map(weight -> DivideUpstream.builder()
+                                .upstreamUrl("upstream-" + weight)
+                                .weight(weight)
+                                .build())
+                        .collect(Collectors.toList());
+        Map<String, Integer> countMap = new HashMap<>();
+        for (int i = 0; i < 120; i++) {
+            DivideUpstream result = LoadBalanceUtils.selector(upstreamList, "roundRobin", "");
+            int count = countMap.getOrDefault(result.getUpstreamUrl(), 0);
+            countMap.put(result.getUpstreamUrl(), ++count);
+        }
+        Assert.assertEquals(12, countMap.get("upstream-10").intValue());
+    }
+
+    @Test
+    public void loadBalanceUtilsDisOrderedWeightTest() {
+        List<DivideUpstream> upstreamList =
+                Stream.of(70, 10, 20)
+                        .map(weight -> DivideUpstream.builder()
+                                .upstreamUrl("upstream-" + weight)
+                                .weight(weight)
+                                .build())
+                        .collect(Collectors.toList());
+        Map<String, Integer> countMap = new HashMap<>();
+        for (int i = 0; i < 120; i++) {
+            DivideUpstream result = LoadBalanceUtils.selector(upstreamList, "roundRobin", "");
+            int count = countMap.getOrDefault(result.getUpstreamUrl(), 0);
+            countMap.put(result.getUpstreamUrl(), ++count);
+        }
+        Assert.assertEquals(12, countMap.get("upstream-10").intValue());
+    }
+
+    @Test
+    public void loadBalanceUtilsReversedWeightTest() {
+        List<DivideUpstream> upstreamList =
+                Stream.of(70, 20, 10)
                         .map(weight -> DivideUpstream.builder()
                                 .upstreamUrl("upstream-" + weight)
                                 .weight(weight)

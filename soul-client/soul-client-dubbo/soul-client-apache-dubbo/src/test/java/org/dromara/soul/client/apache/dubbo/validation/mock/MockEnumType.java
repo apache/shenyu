@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.spring;
+package org.dromara.soul.client.apache.dubbo.validation.mock;
 
 /**
- * Test Bean.
+ * MockEnumType.
  *
  * @author HoldDie
  */
-public final class TestBean {
+public enum MockEnumType {
+    MEMBER
 }

@@ -90,4 +90,15 @@ public class SoulClientController {
     public String registerSofaRpc(@RequestBody final MetaDataDTO metaDataDTO) {
         return soulClientRegisterService.registerSofa(metaDataDTO);
     }
+
+    /**
+     * Register rpc string.
+     *
+     * @param metaDataDTO the meta data dto
+     * @return the string
+     */
+    @PostMapping("/tars-register")
+    public String registerTarsRpc(@RequestBody final MetaDataDTO metaDataDTO) {
+        return soulClientRegisterService.registerTars(metaDataDTO);
+    }
 }
