@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.page;
+package org.dromara.soul.admin.dto;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -23,37 +23,30 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Test case for {@link PageParameter}.
+ * test cast for {@link AuthPathApplyDTO}.
  *
  * @author HoldDie
  */
-public final class PageParameterTest {
+public final class AuthPathApplyDTOTest {
 
-    private PageParameter pageParameterUnderTest;
+    private AuthPathApplyDTO authPathApplyDTOUnderTest;
 
     @Before
-    public void setUp() {
-        pageParameterUnderTest = new PageParameter();
-        pageParameterUnderTest = new PageParameter(1, 10);
-        pageParameterUnderTest = new PageParameter(1, 10, 100);
-    }
-
-    @Test
-    public void testEquals() {
-        assertEquals(pageParameterUnderTest.getCurrentPage(), 1);
-        assertEquals(pageParameterUnderTest.getPageSize(), 10);
-        assertEquals(pageParameterUnderTest.getNextPage(), 2);
+    public void setUp() throws Exception {
+        authPathApplyDTOUnderTest = new AuthPathApplyDTO();
+        authPathApplyDTOUnderTest.setPath("/");
+        authPathApplyDTOUnderTest.setAppName("soul");
     }
 
     @Test
     public void testHashCode() {
-        final int result = pageParameterUnderTest.hashCode();
-        assertEquals(1837494617, result);
+        final int result = authPathApplyDTOUnderTest.hashCode();
+        assertEquals(208649417, result);
     }
 
     @Test
     public void testToString() {
-        final String result = pageParameterUnderTest.toString();
-        assertEquals("PageParameter(currentPage=1, prePage=1, nextPage=2, pageSize=10, offset=0, totalPage=10, totalCount=100)", result);
+        final String result = authPathApplyDTOUnderTest.toString();
+        assertEquals("AuthPathApplyDTO(appName=soul, path=/)", result);
     }
 }

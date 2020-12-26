@@ -277,7 +277,9 @@ public final class SelectorServiceTest {
         selectorConditionDTO1.setId("111");
         SelectorConditionDTO selectorConditionDTO2 = new SelectorConditionDTO();
         selectorConditionDTO2.setId("222");
-        selectorDTO.setSelectorConditions(Arrays.asList(selectorConditionDTO1, selectorConditionDTO2));
+        SelectorConditionDTO selectorConditionDTO3 = new SelectorConditionDTO();
+        selectorConditionDTO2.setId("");
+        selectorDTO.setSelectorConditions(Arrays.asList(selectorConditionDTO1, selectorConditionDTO2, selectorConditionDTO3));
         return selectorDTO;
     }
 
