@@ -79,7 +79,7 @@ public final class ApacheDubboMetaDataSubscriberTest {
         try {
             apacheDubboMetaDataSubscriber.onSubscribe(metaData);
         } catch (IllegalStateException ex) {
-            System.out.println("onSubscribe Error");
+            System.err.println("onSubscribe Error");
         }
         apacheDubboMetaDataSubscriber.unSubscribe(metaData);
     }
