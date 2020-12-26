@@ -17,6 +17,7 @@
 
 package org.dromara.soul.web.forward;
 
+import org.dromara.soul.common.utils.ReflectUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,7 +46,7 @@ public final class ForwardedRemoteAddressResolverTest {
 
         ForwardedRemoteAddressResolver instance = ForwardedRemoteAddressResolver.maxTrustedIndex(5);
         Class<?> instanceClass = instance.getClass();
-        Field field = instanceClass.getDeclaredField("maxTrustedIndex");
+        Field field = ReflectUtils.getField(instanceClass, "maxTrustedIndex");
         field.setAccessible(true);
         int maxTrustedIndex = (int) field.get(instance);
         Assert.assertEquals(maxTrustedIndex, 5);
