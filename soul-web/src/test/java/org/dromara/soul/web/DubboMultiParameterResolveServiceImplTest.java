@@ -33,31 +33,33 @@ import static org.junit.Assert.assertThat;
  * @author candyYu
  */
 @RunWith(MockitoJUnitRunner.class)
-public final class DubboMultiParameterResolveServiceImplTest extends DubboMultiParameterResolveServiceImpl {
+public final class DubboMultiParameterResolveServiceImplTest  {
+
+    private final DubboMultiParameterResolveServiceImpl impl = new DubboMultiParameterResolveServiceImpl();
 
     @Test
     public void testBuildParameter() {
         String body = "{\"student\": {\"id\": 12345,\"name\": \"candyYu\"}}";
         String parameterTypes = "org.dromara.soul.web.DubboMultiParameterResolveServiceImplTest.Student";
-        Pair<String[], Object[]> pair = buildParameter(body, parameterTypes);
+        Pair<String[], Object[]> pair = impl.buildParameter(body, parameterTypes);
         assertThat(pair.getLeft().length, is(1));
         assertThat(pair.getRight().length, is(1));
 
         body = "{\"students\": [{\"id\": 12345,\"name\": \"candyYu\"},{\"id\": 12346,\"name\": \"candyYu2\"}]}";
         parameterTypes = "org.dromara.soul.web.DubboMultiParameterResolveServiceImplTest.Student[]";
-        pair = buildParameter(body, parameterTypes);
+        pair = impl.buildParameter(body, parameterTypes);
         assertThat(pair.getLeft().length, is(1));
         assertThat(pair.getRight().length, is(1));
 
         body = "{\"ids\":[\"123\",\"456\"],\"name\":\"hello world\"}\n";
         parameterTypes = "java.lang.Integer[],java.lang.String";
-        pair = buildParameter(body, parameterTypes);
+        pair = impl.buildParameter(body, parameterTypes);
         assertThat(pair.getLeft().length, is(2));
         assertThat(pair.getRight().length, is(2));
 
         body = "{\"ids\":[\"123\",\"456\"],\"name\":\"hello world\"}\n";
         parameterTypes = "java.lang.Integer[],java.lang.String";
-        pair = buildParameter(body, parameterTypes);
+        pair = impl.buildParameter(body, parameterTypes);
         assertThat(pair.getLeft().length, is(2));
         assertThat(pair.getRight().length, is(2));
     }
