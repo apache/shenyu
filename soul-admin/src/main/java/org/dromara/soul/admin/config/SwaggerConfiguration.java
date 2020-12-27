@@ -17,7 +17,9 @@
 
 package org.dromara.soul.admin.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import springfox.documentation.builders.ApiInfoBuilder;
@@ -30,17 +32,24 @@ import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 /**
- * swagger configuration information.
+ * Configuration class for Swagger API document.
  *
  * @author xiaoshuang Li
+ * @author Jiang Jining
  **/
 @Configuration
 @EnableSwagger2
 public class SwaggerConfiguration {
-
+    
     @Value("${swagger.enable:false}")
     private boolean enable;
-
+    
+    private final BuildProperties buildProperties;
+    
+    public SwaggerConfiguration(@Autowired(required = false) final BuildProperties buildProperties) {
+        this.buildProperties = buildProperties;
+    }
+    
     /**
      * Configure The Docket with Swagger.
      *
@@ -56,12 +65,22 @@ public class SwaggerConfiguration {
                 .paths(PathSelectors.any())
                 .build();
     }
-
+    
+    /**
+     * Fetch version information from pom.xml and set title, version, description,
+     * contact for Swagger API document.
+     *
+     * @return Api info
+     */
     private ApiInfo apiInfo() {
+        String version = "1.0.0";
+        if (buildProperties != null) {
+            version = buildProperties.getVersion();
+        }
         return new ApiInfoBuilder()
                 .title("Soul Admin API Document")
                 .description("")
-                .version("1.0.0")
+                .version(version)
                 .contact(new Contact("soul", "https://github.com/dromara/soul", ""))
                 .build();
     }

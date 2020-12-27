@@ -190,6 +190,13 @@
                     <mainClass>org.dromara.soul.admin.SoulAdminBootstrap</mainClass>
                     <executable>true</executable>
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build-info</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
             <!--This is to package the frontend, if you don't need to configure frontend.plugin.skip=true locally.-->
