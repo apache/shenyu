@@ -17,6 +17,7 @@
 
 package org.dromara.soul.web.filter;
 
+import org.springframework.lang.NonNull;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
@@ -30,7 +31,8 @@ import reactor.core.publisher.Mono;
 public abstract class AbstractWebFilter implements WebFilter {
 
     @Override
-    public Mono<Void> filter(final ServerWebExchange exchange, final WebFilterChain chain) {
+    @NonNull
+    public Mono<Void> filter(@NonNull final ServerWebExchange exchange, @NonNull final WebFilterChain chain) {
         return doFilter(exchange, chain).switchIfEmpty(Mono.just(false))
                 .flatMap(filterResult -> filterResult ? chain.filter(exchange) : doDenyResponse(exchange));
     }
