@@ -17,78 +17,70 @@
 
 package org.dromara.soul.client.common.utils;
 
-import com.google.gson.Gson;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.dromara.soul.client.common.dto.HttpRegisterDTO;
-import org.junit.After;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-
+import wiremock.com.google.common.net.HttpHeaders;
+import wiremock.org.apache.http.entity.ContentType;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Test case for {@link OkHttpTools}.
  *
  * @author Young Bean
+ * @author dengliming
  */
 public class OkHttpToolsTest {
 
-    private MockWebServer server;
+    @Rule
+    public WireMockRule wireMockRule = new WireMockRule(WireMockConfiguration.wireMockConfig().dynamicPort(), false);
 
     private String url;
 
     private final String json = "{\"appName\":\"soul\"}";
 
     @Before
-    public void before() throws IOException {
-        server = new MockWebServer();
-        server.start();
-        url = server.url("").url().toString();
-    }
-
-    @After
-    public void after() throws IOException {
-        server.shutdown();
+    public final void setUpWiremock() {
+        wireMockRule.stubFor(post(urlPathEqualTo("/"))
+                .willReturn(aResponse()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                        .withBody(json)
+                        .withStatus(200))
+        );
+        url = "http://localhost:" + wireMockRule.port();
     }
 
     @Test
     public void testPostReturnString() throws IOException {
-
-        server.enqueue(new MockResponse().setResponseCode(200).setBody(json));
-
         assertEquals(json, OkHttpTools.getInstance().post(url, json));
-
     }
 
     @Test
     public void testPostReturnClassT() throws IOException {
-
-        server.enqueue(new MockResponse().setResponseCode(200).setBody(json));
-
-        assertEquals(new Gson().fromJson(json, HttpRegisterDTO.class),
+        assertEquals(GsonUtils.getInstance().fromJson(json, HttpRegisterDTO.class),
                 OkHttpTools.getInstance().post(url, json, HttpRegisterDTO.class));
-
     }
 
     @Test
     public void testPostReturnMap() throws IOException {
-
         final Map<String, String> map = new HashMap<>();
         map.put("appName", "soul");
-
-        server.enqueue(new MockResponse().setResponseCode(200).setBody(json));
-
-        assertEquals(new Gson().toJson(map), OkHttpTools.getInstance().post(url, map));
+        assertEquals(json, OkHttpTools.getInstance().post(url, map));
     }
 
     @Test
     public void testGetGson() {
-        assertEquals(new Gson().toJson(json), OkHttpTools.getInstance().getGson().toJson(json));
+        assertNotNull(OkHttpTools.getInstance().getGson());
     }
-
 }
