@@ -88,7 +88,6 @@ public final class RateLimiterPluginTest {
                 Mono.just(new RateLimiterResponse(true, 1)));
         Mono<Void> result = rateLimiterPlugin.doExecute(exchange, chain, selectorData, ruleData);
         StepVerifier.create(result).expectSubscription().verifyComplete();
-        System.out.println(exchange.getResponse().getStatusCode());
     }
 
     /**
