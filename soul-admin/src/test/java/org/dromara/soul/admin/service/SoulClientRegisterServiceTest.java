@@ -355,6 +355,42 @@ public final class SoulClientRegisterServiceTest {
         assertEquals("success", soulClientRegisterService.registerSofa(dto));
     }
 
+    @Test
+    public void testRegisterTarsAlreadyExist() {
+        final MetaDataDTO dto = buildMetaDataD();
+        MetaDataDO metaDataDO = buildMetaDataDO();
+        metaDataDO.setServiceName("serviceName33");
+        given(metaDataMapper.findByPath(any())).willReturn(metaDataDO);
+        final PluginDTO pluginDTO = buildPluginDTO();
+        final PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
+        given(pluginMapper.selectByName(any())).willReturn(pluginDO);
+        assertEquals("you path already exist!", soulClientRegisterService.registerTars(dto));
+    }
+
+    @Test
+    public void testRegisterTarsNotExistMetaData() {
+        final MetaDataDTO dto = buildMetaDataD();
+        MetaDataDO metaDataDO = buildMetaDataDO();
+        given(metaDataMapper.findByPath(any())).willReturn(metaDataDO);
+        given(metaDataMapper.findByServiceNameAndMethod(any(), any())).willReturn(null);
+        final PluginDTO pluginDTO = buildPluginDTO();
+        final PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
+        given(pluginMapper.selectByName(any())).willReturn(pluginDO);
+        assertEquals("success", soulClientRegisterService.registerTars(dto));
+    }
+
+    @Test
+    public void testRegisterTarsWithExistMetaData() {
+        final MetaDataDTO dto = buildMetaDataD();
+        final MetaDataDO metaDataDO = buildMetaDataDO();
+        given(metaDataMapper.findByPath(any())).willReturn(metaDataDO);
+        given(metaDataMapper.findByServiceNameAndMethod(any(), any())).willReturn(metaDataDO);
+        final PluginDTO pluginDTO = buildPluginDTO();
+        final PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
+        given(pluginMapper.selectByName(any())).willReturn(pluginDO);
+        assertEquals("success", soulClientRegisterService.registerTars(dto));
+    }
+
     private SpringMvcRegisterDTO buildSpringMvcRegisterDTO() {
         return this.buildSpringMvcRegisterDTO(RpcTypeEnum.HTTP);
     }
