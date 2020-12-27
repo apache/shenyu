@@ -38,6 +38,9 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Objects;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -73,7 +76,7 @@ public class HttpClientPluginConfigurationTest {
     private HttpSyncDataService httpSyncDataService;
 
     @BeforeClass
-    public static void setupWireMock() {
+    public static void setupWireMock() throws Exception {
         WireMockServer wireMockServer = new WireMockServer(options().port(18848));
 
         wireMockServer.stubFor(get(urlPathEqualTo("/configs/fetch"))
@@ -110,17 +113,9 @@ public class HttpClientPluginConfigurationTest {
     }
 
     // mock configs fetch api response
-    private static String mockConfigsFetchResponseJson() {
-        try (FileInputStream fis = new FileInputStream(Objects.requireNonNull(HttpClientPluginConfigurationTest.class.getClassLoader().getResource("mock_configs_fetch_response.json")).getPath());
-             InputStreamReader reader = new InputStreamReader(fis);
-             BufferedReader bufferedReader = new BufferedReader(reader)
-        ) {
-            StringBuilder builder = new StringBuilder();
-            bufferedReader.lines().forEach(builder::append);
-            return builder.toString();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
+    private static String mockConfigsFetchResponseJson() throws Exception {
+        return new String(Files.readAllBytes(
+                Paths.get(Objects.requireNonNull(HttpClientPluginConfigurationTest.class.getClassLoader()
+                        .getResource("mock_configs_fetch_response.json")).toURI())));
     }
 }
