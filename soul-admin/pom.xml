@@ -29,6 +29,7 @@
 
     <properties>
         <nacos-client.version>1.2.0</nacos-client.version>
+        <powermock.version>2.0.2</powermock.version>
     </properties>
 
     <dependencies>
@@ -177,16 +178,18 @@
             <version>${curator-test.version}</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
-            <groupId>io.undertow</groupId>
-            <artifactId>undertow-core</artifactId>
-            <version>${undertow.version}</version>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4</artifactId>
+            <version>${powermock.version}</version>
             <scope>test</scope>
         </dependency>
+
         <dependency>
-            <groupId>org.java-websocket</groupId>
-            <artifactId>Java-WebSocket</artifactId>
-            <version>${java-websocket.version}</version>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito2</artifactId>
+            <version>${powermock.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
