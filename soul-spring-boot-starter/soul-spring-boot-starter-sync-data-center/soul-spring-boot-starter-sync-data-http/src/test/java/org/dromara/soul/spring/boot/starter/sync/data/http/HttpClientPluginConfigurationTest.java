@@ -17,14 +17,10 @@
 
 package org.dromara.soul.spring.boot.starter.sync.data.http;
 
-import okhttp3.mockwebserver.Dispatcher;
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
-import okhttp3.mockwebserver.RecordedRequest;
+import com.github.tomakehurst.wiremock.WireMockServer;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 import org.dromara.soul.sync.data.http.HttpSyncDataService;
 import org.dromara.soul.sync.data.http.config.HttpConfig;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -33,14 +29,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
+import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.test.context.junit4.SpringRunner;
+import wiremock.org.apache.http.HttpHeaders;
+import wiremock.org.apache.http.entity.ContentType;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Objects;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 
 /**
  * Test cases for {@link HttpSyncDataConfiguration}.
@@ -59,10 +63,8 @@ import java.util.Objects;
                 "soul.sync.http.connectionTimeout=5"
         })
 @EnableAutoConfiguration
-@MockBean(PluginDataSubscriber.class)
+@MockBean({PluginDataSubscriber.class, ServletWebServerFactory.class})
 public class HttpClientPluginConfigurationTest {
-
-    private static MockWebServer server;
 
     @Autowired
     private HttpConfig httpConfig;
@@ -71,11 +73,23 @@ public class HttpClientPluginConfigurationTest {
     private HttpSyncDataService httpSyncDataService;
 
     @BeforeClass
-    public static void initMockServer() throws IOException {
-        server = new MockWebServer();
-        final TestDispatcher dispatcher = new TestDispatcher();
-        server.setDispatcher(dispatcher);
-        server.start(18848);
+    public static void setupWireMock() {
+        WireMockServer wireMockServer = new WireMockServer(options().port(18848));
+
+        wireMockServer.stubFor(get(urlPathEqualTo("/configs/fetch"))
+                .willReturn(aResponse()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                        .withBody(mockConfigsFetchResponseJson())
+                        .withStatus(200))
+        );
+        wireMockServer.stubFor(post(urlPathEqualTo("/configs/listener"))
+                .willReturn(aResponse()
+                        .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
+                        .withBody(mockConfigsListenResponseJson())
+                        .withStatus(200))
+        );
+
+        wireMockServer.start();
     }
 
     @Test
@@ -90,44 +104,23 @@ public class HttpClientPluginConfigurationTest {
         Assert.assertEquals(Integer.valueOf(5), httpConfig.getConnectionTimeout());
     }
 
-    @AfterClass
-    public static void closeMockWebServer() throws IOException {
-        server.close();
+    // mock configs listen api response
+    private static String mockConfigsListenResponseJson() {
+        return "{\"code\":200,\"message\":\"success\",\"data\":[\"PLUGIN\"]}";
     }
 
-    private static class TestDispatcher extends Dispatcher {
-        @Override
-        public MockResponse dispatch(final RecordedRequest request) {
-            String requestBodyContent = "";
-            if (request.getPath().contains("/configs/fetch")) {
-                requestBodyContent = Objects.requireNonNull(mockConfigsFetchResponseJson());
-            } else if (request.getPath().contains("/configs/listener")) {
-                requestBodyContent = mockConfigsListenResponseJson();
-            }
-            return new MockResponse()
-                    .addHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                    .setBody(requestBodyContent)
-                    .setResponseCode(200);
-        }
-
-        // mock configs listen api response
-        private String mockConfigsListenResponseJson() {
-            return "{\"code\":200,\"message\":\"success\",\"data\":[\"PLUGIN\"]}";
-        }
-
-        // mock configs fetch api response
-        private String mockConfigsFetchResponseJson() {
-            try (FileInputStream fis = new FileInputStream(Objects.requireNonNull(this.getClass().getClassLoader().getResource("mock_configs_fetch_response.json")).getPath());
-                 InputStreamReader reader = new InputStreamReader(fis);
-                 BufferedReader bufferedReader = new BufferedReader(reader)
-            ) {
-                StringBuilder builder = new StringBuilder();
-                bufferedReader.lines().forEach(builder::append);
-                return builder.toString();
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
-            }
+    // mock configs fetch api response
+    private static String mockConfigsFetchResponseJson() {
+        try (FileInputStream fis = new FileInputStream(Objects.requireNonNull(HttpClientPluginConfigurationTest.class.getClassLoader().getResource("mock_configs_fetch_response.json")).getPath());
+             InputStreamReader reader = new InputStreamReader(fis);
+             BufferedReader bufferedReader = new BufferedReader(reader)
+        ) {
+            StringBuilder builder = new StringBuilder();
+            bufferedReader.lines().forEach(builder::append);
+            return builder.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
         }
     }
 }
