@@ -15,7 +15,28 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.web;
+package org.dromara.soul.springboot.starter.plugin.contextpath;
 
-public final class SoulLogoTest {
+import org.dromara.soul.plugin.api.SoulPlugin;
+import org.dromara.soul.plugin.contextpath.ContextPathMappingPlugin;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * ContextPathMappingPluginConfiguration.
+ *
+ * @author zhanglei
+ */
+@Configuration
+public class ContextPathMappingPluginConfiguration {
+
+    /**
+     * Context path mapping plugin.
+     *
+     * @return the soul plugin
+     */
+    @Bean
+    public SoulPlugin hystrixPlugin() {
+        return new ContextPathMappingPlugin();
+    }
 }
