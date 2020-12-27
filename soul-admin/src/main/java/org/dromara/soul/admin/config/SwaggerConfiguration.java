@@ -18,6 +18,7 @@
 package org.dromara.soul.admin.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import springfox.documentation.builders.ApiInfoBuilder;
@@ -28,6 +29,8 @@ import springfox.documentation.service.Contact;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
+
+import javax.annotation.Resource;
 
 /**
  * swagger configuration information.
@@ -40,6 +43,9 @@ public class SwaggerConfiguration {
 
     @Value("${swagger.enable:false}")
     private boolean enable;
+    
+    @Resource
+    private BuildProperties buildProperties;
 
     /**
      * Configure The Docket with Swagger.
@@ -61,7 +67,7 @@ public class SwaggerConfiguration {
         return new ApiInfoBuilder()
                 .title("Soul Admin API Document")
                 .description("")
-                .version("1.0.0")
+                .version(buildProperties.getVersion())
                 .contact(new Contact("soul", "https://github.com/dromara/soul", ""))
                 .build();
     }
