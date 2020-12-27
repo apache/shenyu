@@ -33,6 +33,8 @@ public final class PageParameterTest {
 
     @Before
     public void setUp() {
+        pageParameterUnderTest = new PageParameter();
+        pageParameterUnderTest = new PageParameter(1, 10);
         pageParameterUnderTest = new PageParameter(1, 10, 100);
     }
 

@@ -32,7 +32,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
@@ -141,5 +145,23 @@ public final class SoulClientControllerTest {
                 .content(GsonUtils.getInstance().toJson(metaDataDTO)))
                 .andExpect(status().isOk())
                 .andReturn();
+    }
+
+    @Test
+    public void testRegisterTarsRpc() {
+        final MetaDataDTO metaDataDTO = new MetaDataDTO();
+        metaDataDTO.setId("id");
+        metaDataDTO.setAppName("appName");
+        metaDataDTO.setContextPath("contextPath");
+        metaDataDTO.setPath("path");
+        metaDataDTO.setRuleName("ruleName");
+        metaDataDTO.setPathDesc("pathDesc");
+        metaDataDTO.setRpcType("rpcType");
+        metaDataDTO.setServiceName("serviceName");
+        metaDataDTO.setMethodName("methodName");
+        metaDataDTO.setParameterTypes("parameterTypes");
+        when(soulClientRegisterService.registerTars(any())).thenReturn("result");
+        final String result = soulClientController.registerTarsRpc(metaDataDTO);
+        assertEquals("result", result);
     }
 }
