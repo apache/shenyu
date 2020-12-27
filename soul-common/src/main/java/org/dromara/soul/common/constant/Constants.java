@@ -377,7 +377,6 @@ public interface Constants {
      */
     int SENTINEL_RESPONSE_RULE_GRADE = 0;
 
-
     /**
      * String q.
      */

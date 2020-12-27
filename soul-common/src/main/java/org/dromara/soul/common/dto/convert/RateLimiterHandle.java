@@ -18,7 +18,6 @@
 package org.dromara.soul.common.dto.convert;
 
 import lombok.Data;
-import org.dromara.soul.common.constant.Constants;
 
 /**
  * this is rateLimiter plugin handle.
