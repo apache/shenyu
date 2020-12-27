@@ -46,7 +46,7 @@ public class SwaggerConfiguration {
     
     private final BuildProperties buildProperties;
     
-    public SwaggerConfiguration(@Autowired(required = false) BuildProperties buildProperties) {
+    public SwaggerConfiguration(@Autowired(required = false) final BuildProperties buildProperties) {
         this.buildProperties = buildProperties;
     }
     
