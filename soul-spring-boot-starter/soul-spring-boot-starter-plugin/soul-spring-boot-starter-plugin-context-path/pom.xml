@@ -26,7 +26,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>soul-spring-boot-starter-plugin-context</artifactId>
+    <artifactId>soul-spring-boot-starter-plugin-context-path</artifactId>
 
     <dependencies>
         <dependency>

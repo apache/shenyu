@@ -15,13 +15,12 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.web;
+package org.dromara.soul.web.filter;
 
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.plugin.api.result.SoulResult;
 import org.dromara.soul.plugin.base.utils.SpringBeanUtils;
-import org.dromara.soul.web.filter.WebSocketParamFilter;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -78,25 +77,6 @@ public final class WebSocketParamFilterTest<T> extends WebSocketParamFilter {
         verifyTrue(getResult(headerParams, queryParams));
     }
 
-    private Mono<Boolean> getResult(final MultiValueMap<String, String> headerParams, final MultiValueMap<String, String> queryParams) {
-        return doFilter(createExchange(headerParams, queryParams), chain);
-    }
-
-    private ServerWebExchange createExchange(final MultiValueMap<String, String> headerParams, final MultiValueMap<String, String> queryParams) {
-        return MockServerWebExchange.from(MockServerHttpRequest.post("localhost")
-                                                                .headers(headerParams)
-                                                                .queryParams(queryParams)
-                                                                .build());
-    }
-
-    private void verifyTrue(final Mono<Boolean> result) {
-        StepVerifier.create(result).expectSubscription().expectNext(Boolean.TRUE).verifyComplete();
-    }
-
-    private void verifyFalse(final Mono<Boolean> result) {
-        StepVerifier.create(result).expectSubscription().expectNext(Boolean.FALSE).verifyComplete();
-    }
-
     @Test
     public void testDoDenyResponse() {
         final ConfigurableApplicationContext cfgContext = mock(ConfigurableApplicationContext.class);
@@ -104,5 +84,24 @@ public final class WebSocketParamFilterTest<T> extends WebSocketParamFilter {
         when(SpringBeanUtils.getInstance().getBean(SoulResult.class)).thenReturn(soulResult);
         final Mono<Void> result = doDenyResponse(createExchange(new LinkedMultiValueMap<>(1), new LinkedMultiValueMap<>(1)));
         StepVerifier.create(result).expectSubscription().verifyComplete();
+    }
+    
+    private Mono<Boolean> getResult(final MultiValueMap<String, String> headerParams, final MultiValueMap<String, String> queryParams) {
+        return doFilter(createExchange(headerParams, queryParams), chain);
+    }
+    
+    private ServerWebExchange createExchange(final MultiValueMap<String, String> headerParams, final MultiValueMap<String, String> queryParams) {
+        return MockServerWebExchange.from(MockServerHttpRequest.post("localhost")
+                .headers(headerParams)
+                .queryParams(queryParams)
+                .build());
+    }
+    
+    private void verifyTrue(final Mono<Boolean> result) {
+        StepVerifier.create(result).expectSubscription().expectNext(Boolean.TRUE).verifyComplete();
+    }
+    
+    private void verifyFalse(final Mono<Boolean> result) {
+        StepVerifier.create(result).expectSubscription().expectNext(Boolean.FALSE).verifyComplete();
     }
 }
