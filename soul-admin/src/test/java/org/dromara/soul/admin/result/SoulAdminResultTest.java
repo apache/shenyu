@@ -49,6 +49,10 @@ public final class SoulAdminResultTest {
 
     @Test
     public void testHashCode() {
+        soulAdminResultUnderTest = new SoulAdminResult();
+        soulAdminResultUnderTest.setCode(0);
+        soulAdminResultUnderTest.setMessage("message");
+        soulAdminResultUnderTest.setData("data");
         final int result = soulAdminResultUnderTest.hashCode();
         assertEquals(509285258, result);
     }
