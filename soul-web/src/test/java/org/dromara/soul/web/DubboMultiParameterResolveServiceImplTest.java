@@ -33,7 +33,7 @@ import static org.junit.Assert.assertThat;
  * @author candyYu
  */
 @RunWith(MockitoJUnitRunner.class)
-public final class DubboMultiParameterResolveServiceImplTest  {
+public final class DubboMultiParameterResolveServiceImplTest {
 
     private final DubboMultiParameterResolveServiceImpl impl = new DubboMultiParameterResolveServiceImpl();
 
