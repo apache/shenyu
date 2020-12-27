@@ -72,7 +72,7 @@ public final class OkHttpTools {
      * @throws IOException the io exception
      */
     public String post(final String url, final String json) throws IOException {
-        RequestBody body = RequestBody.create(JSON, json);
+        RequestBody body = RequestBody.create(json, JSON);
         Request request = new Request.Builder()
                 .url(url)
                 .post(body)
@@ -92,7 +92,7 @@ public final class OkHttpTools {
      * @throws IOException the io exception
      */
     public <T> T post(final String url, final String json, final Class<T> classOfT) throws IOException {
-        RequestBody body = RequestBody.create(JSON, json);
+        RequestBody body = RequestBody.create(json, JSON);
         Request request = new Request.Builder()
                 .url(url)
                 .post(body)
@@ -114,7 +114,7 @@ public final class OkHttpTools {
      */
     public String post(final String url, final Map<String, String> params) throws IOException {
         String json = GSON.toJson(params);
-        RequestBody body = RequestBody.create(JSON, json);
+        RequestBody body = RequestBody.create(json, JSON);
         Request request = new Request.Builder()
                 .url(url)
                 .post(body)
