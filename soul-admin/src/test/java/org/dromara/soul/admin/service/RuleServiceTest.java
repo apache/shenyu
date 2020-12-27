@@ -63,7 +63,7 @@ import static org.mockito.BDDMockito.given;
  * @author kennhua
  * @author nuo-promise
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public final class RuleServiceTest {
 
     @InjectMocks
@@ -146,6 +146,32 @@ public final class RuleServiceTest {
     @Test
     public void testListAll() {
         publishEvent();
+        checkListAll();
+    }
+
+    @Test
+    public void testListAllWithSelectorNull() {
+        mockFindSelectorIsNull();
+        checkListAll();
+    }
+
+    private void mockFindSelectorIsNull() {
+        given(this.selectorMapper.selectById("456")).willReturn(null);
+        given(this.pluginMapper.selectById("789")).willReturn(buildPluginDO());
+    }
+
+    @Test
+    public void testListAllWithPluginNull() {
+        mockFindPluginIsNull();
+        checkListAll();
+    }
+
+    private void mockFindPluginIsNull() {
+        given(this.selectorMapper.selectById("456")).willReturn(buildSelectorDO());
+        given(this.pluginMapper.selectById("789")).willReturn(null);
+    }
+
+    private void checkListAll() {
         RuleConditionQuery ruleConditionQuery = buildRuleConditionQuery();
         RuleConditionDO ruleCondition = buildRuleConditionDO();
         given(this.ruleConditionMapper.selectByQuery(ruleConditionQuery)).willReturn(Collections.singletonList(ruleCondition));
@@ -233,7 +259,8 @@ public final class RuleServiceTest {
         }
         RuleConditionDTO ruleConditionDTO1 = RuleConditionDTO.builder().id("111").build();
         RuleConditionDTO ruleConditionDTO2 = RuleConditionDTO.builder().id("222").build();
-        ruleDTO.setRuleConditions(Arrays.asList(ruleConditionDTO1, ruleConditionDTO2));
+        RuleConditionDTO ruleConditionDTO3 = RuleConditionDTO.builder().ruleId("333").build();
+        ruleDTO.setRuleConditions(Arrays.asList(ruleConditionDTO1, ruleConditionDTO2, ruleConditionDTO3));
         return ruleDTO;
     }
 

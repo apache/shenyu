@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -56,7 +57,7 @@ public class HttpSyncDataServiceTest {
     public WireMockRule wireMockRule = new WireMockRule(WireMockConfiguration.wireMockConfig().dynamicPort(), false);
     
     @Before
-    public final void setUpWiremock() {
+    public final void setUpWireMock() {
         wireMockRule.stubFor(get(urlPathEqualTo("/configs/fetch"))
                 .willReturn(aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
@@ -134,9 +135,9 @@ public class HttpSyncDataServiceTest {
     
     // mock configs fetch api response
     private String mockConfigsFetchResponseJson() {
-        try (FileInputStream fis = new FileInputStream(this.getClass().getClassLoader().getResource("mock_configs_fetch_response.json").getPath());
+        try (FileInputStream fis = new FileInputStream(Objects.requireNonNull(this.getClass().getClassLoader().getResource("mock_configs_fetch_response.json")).getPath());
              InputStreamReader reader = new InputStreamReader(fis);
-             BufferedReader bufferedReader = new BufferedReader(reader);
+             BufferedReader bufferedReader = new BufferedReader(reader)
         ) {
             StringBuilder builder = new StringBuilder();
             bufferedReader.lines().forEach(builder::append);

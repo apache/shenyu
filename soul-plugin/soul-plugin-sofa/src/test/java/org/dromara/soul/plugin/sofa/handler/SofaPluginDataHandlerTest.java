@@ -39,14 +39,12 @@ import org.mockito.junit.MockitoJUnitRunner;
 public final class SofaPluginDataHandlerTest {
     private SofaPluginDataHandler sofaPluginDataHandler;
 
-    private MetaData metaData;
-
-    private String registryConfig = "{\"protocol\":\"zookeeper\",\"register\":\"127.0.0.1:2181\"}";
+    private final String registryConfig = "{\"protocol\":\"zookeeper\",\"register\":\"127.0.0.1:2181\"}";
 
     @Before
     public void setUp() {
         sofaPluginDataHandler = new SofaPluginDataHandler();
-        metaData = new MetaData();
+        MetaData metaData = new MetaData();
         metaData.setId("1332017966661636096");
         metaData.setAppName("sofa");
         metaData.setPath("/sofa/findAll");

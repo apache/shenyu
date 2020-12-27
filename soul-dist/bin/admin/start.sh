@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -14,59 +16,53 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-noJavaHome=false
-if [ -z "$JAVA_HOME" ] ; then
-    noJavaHome=true
-fi
-
-if [ ! -e "$JAVA_HOME/bin/java" ] ; then
-    noJavaHome=true
-fi
-
-if $noJavaHome ; then
-    echo
-    echo "Error: JAVA_HOME environment variable is not set."
-    echo
+if [[ -n "$JAVA_HOME" ]] && [[ -x "$JAVA_HOME/bin/java" ]];  then
+    JAVA="$JAVA_HOME/bin/java"
+elif type -p java; then
+    JAVA=java
+else
+    echo "Error: JAVA_HOME environment variable is not set." 1>&2
     exit 1
 fi
 
-PRGDIR=`dirname "$0"`
-APP=$PRGDIR/../lib/soul-admin.jar
-BASE_DIR=$PRGDIR/..
-APP_DIR=$BASE_DIR
-LOG_DIR=$BASE_DIR/logs
+PRG_DIR=$(dirname "$0")
+
+APP="$PRG_DIR/../lib/soul-admin.jar"
+BASE_DIR="$PRG_DIR/.."
+
+[[ -z "$LOG_DIR" ]] && LOG_DIR="$BASE_DIR/logs"
+[[ -d "$LOG_DIR" ]] || mkdir -p "$LOG_DIR"
+
 PID_FILE=$LOG_DIR/soul-admin.pid
 
-#cd $APP_DIR
-#设置java的CLASSPATH
+JAVA_MEM_OPTS="-Xmx2048m -Xms2048m -Xmn1024m -Xss512k"
 
-#==============================================================================
+JAVA_GC_TUNE_OPTS="
+  -XX:+UseParNewGC \
+  -XX:+UseConcMarkSweepGC \
+  -XX:+CMSParallelRemarkEnabled \
+  -XX:+UseCMSInitiatingOccupancyOnly \
+  -XX:MaxGCPauseMillis=850 \
+  -XX:ParallelGCThreads=20 \
+  -XX:CMSInitiatingOccupancyFraction=75 \
+  -XX:+AggressiveOpts \
+  -XX:+UseBiasedLocking \
+  -XX:+DisableExplicitGC \
+  -XX:+UseFastAccessorMethods \
+  -XX:+HeapDumpOnOutOfMemoryError \
+  "
+#  -XX:+PrintGCDetail
+#  -XX:+UseCMSCompactAtFullCollection
 
-#set JAVA_OPTS
-#JAVA_OPTS="-server -Xmx2048m  -Xms2048g -Xmn1024m  -Xss512k -XX:PermSize=128m"
-JAVA_OPTS="-server -Xmx2048m  -Xms2048m -Xmn1024m  -Xss512k"
-JAVA_OPTS="$JAVA_OPTS -XX:+AggressiveOpts"
-JAVA_OPTS="$JAVA_OPTS -XX:+UseBiasedLocking"
-JAVA_OPTS="$JAVA_OPTS -XX:+UseFastAccessorMethods"
-JAVA_OPTS="$JAVA_OPTS -XX:+DisableExplicitGC"
-JAVA_OPTS="$JAVA_OPTS -XX:+UseParNewGC"
-JAVA_OPTS="$JAVA_OPTS -XX:ParallelGCThreads=20"
-JAVA_OPTS="$JAVA_OPTS -XX:+UseConcMarkSweepGC"
-JAVA_OPTS="$JAVA_OPTS -XX:+HeapDumpOnOutOfMemoryError"
-JAVA_OPTS="$JAVA_OPTS -XX:MaxGCPauseMillis=850"
-#JAVA_OPTS="$JAVA_OPTS -XX:+PrintGCDetail"
-JAVA_OPTS="$JAVA_OPTS -XX:+CMSParallelRemarkEnabled"
-#JAVA_OPTS="$JAVA_OPTS -XX:+UseCMSCompactAtFullCollection"
-JAVA_OPTS="$JAVA_OPTS -XX:+UseCMSInitiatingOccupancyOnly"
-JAVA_OPTS="$JAVA_OPTS -XX:CMSInitiatingOccupancyFraction=75"
-JAVA_OPTS="$JAVA_OPTS -Xloggc:$LOG_DIR/gc.log"
+JAVA_GC_LOG_OPTS="-Xloggc:$LOG_DIR/gc.log"
 
-mkdir -p $LOG_DIR
-run_cmd="java $JAVA_OPTS -jar $APP --spring.config.location=file:$BASE_DIR/conf/"
-$run_cmd >> $LOG_DIR/stdout.log 2>&1 &
-echo $! > "$PID_FILE"
+JAVA_OPTS="$JAVA_OPTS $JAVA_MEM_OPTS $JAVA_GC_TUNE_OPTS $JAVA_GC_LOG_OPTS"
+
+
+$JAVA "-jar $APP --spring.config.location=file:$BASE_DIR/conf/ $JAVA_OPTS" > "${LOG_DIR}"/soul-admin.out
+
 if [ $? -gt 0 ]; then
-  echo "Starting $APP ERROR"
+    echo "Starting $APP ERROR"
 fi
-  echo "Starting $APP OK"
-
+    echo "Starting $APP OK"
+echo $! > "$PID_FILE"

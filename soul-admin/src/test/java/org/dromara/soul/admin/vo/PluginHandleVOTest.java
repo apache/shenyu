@@ -17,38 +17,17 @@
 
 package org.dromara.soul.admin.vo;
 
-import org.dromara.soul.common.utils.DateUtils;
-import org.junit.jupiter.api.Test;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
+import org.dromara.soul.admin.AbstractReflectGetterSetterTest;
 
 /**
  * Test case for PluginHandleVO.
  *
  * @author midnight2104
  */
-public class PluginHandleVOTest {
+public final class PluginHandleVOTest extends AbstractReflectGetterSetterTest {
 
-    /**
-     * test getter and setter method of PluginHandleVO.
-     */
-    @Test
-    public void shouldSuccessGetAndSetMethod() {
-        PluginHandleVO pluginHandleVO = new PluginHandleVO("1", "2", "3", "label",
-                1, 1, 1, null, DateUtils.localDateTimeToString(LocalDateTime.now()),
-                DateUtils.localDateTimeToString(LocalDateTime.now()), new ArrayList<>());
-
-        pluginHandleVO.setId(pluginHandleVO.getId());
-        pluginHandleVO.setPluginId(pluginHandleVO.getPluginId());
-        pluginHandleVO.setField(pluginHandleVO.getField());
-        pluginHandleVO.setLabel(pluginHandleVO.getLabel());
-        pluginHandleVO.setDataType(pluginHandleVO.getDataType());
-        pluginHandleVO.setType(pluginHandleVO.getType());
-        pluginHandleVO.setSort(pluginHandleVO.getSort());
-        pluginHandleVO.setExtObj(pluginHandleVO.getExtObj());
-        pluginHandleVO.setDateCreated(pluginHandleVO.getDateCreated());
-        pluginHandleVO.setDateUpdated(pluginHandleVO.getDateUpdated());
-        pluginHandleVO.setDictOptions(pluginHandleVO.getDictOptions());
+    @Override
+    protected Class<?> getTargetClass() {
+        return PluginHandleVO.class;
     }
 }

@@ -32,6 +32,7 @@
         <module>soul-client-http</module>
         <module>soul-client-dubbo</module>
         <module>soul-client-sofa</module>
+        <module>soul-client-tars</module>
     </modules>
 
     <dependencies>

@@ -57,4 +57,12 @@ public interface SoulClientRegisterService {
      * @return the string
      */
     String registerSofa(MetaDataDTO metaDataDTO);
+
+    /**
+     * Register rpc string.
+     *
+     * @param metaDataDTO the meta data dto
+     * @return the string
+     */
+    String registerTars(MetaDataDTO metaDataDTO);
 }
