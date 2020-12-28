@@ -93,7 +93,6 @@ public final class DividePluginTest {
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         Mono<Void> result = dividePlugin.doExecute(exchange, chain, selectorData, ruleData);
         StepVerifier.create(result).expectSubscription().verifyComplete();
-        System.out.println(exchange.getResponse().getStatusCode());
     }
 
     /**

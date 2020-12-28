@@ -35,6 +35,11 @@
     <module name="UniqueProperties"/>
     <module name="SeverityMatchFilter"/>
 
+    <module name="RegexpSingleline">
+        <property name="format" value="System\.out\.println"/>
+        <property name="message" value="Prohibit invoking System.out.println in source code !"/>
+    </module>
+
     <module name="TreeWalker">
 
         <!-- Naming Conventions -->
