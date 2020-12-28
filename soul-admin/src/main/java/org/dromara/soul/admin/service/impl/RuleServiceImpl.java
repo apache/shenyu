@@ -146,7 +146,7 @@ public class RuleServiceImpl implements RuleService {
             ruleMapper.delete(id);
             ruleConditionMapper.deleteByQuery(new RuleConditionQuery(id));
 
-            //发送删规则事件
+            // send deleted rule event
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.DELETE,
                     Collections.singletonList(RuleDO.transFrom(ruleDO, pluginDO.getName(), null))));
         }
