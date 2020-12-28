@@ -23,11 +23,9 @@ import org.junit.Test;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
-
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-
 import static org.mockito.Mockito.mock;
 
 /**
@@ -38,9 +36,10 @@ import static org.mockito.Mockito.mock;
 public class SoulWebHandlerTest {
 
     private SoulWebHandler soulWebHandler;
-    private SoulPlugin plugins;
-    private List<SoulPlugin> listPlugins=new ArrayList<>();
 
+    private SoulPlugin plugins;
+
+    private List<SoulPlugin> listPlugins = new ArrayList<>();
 
     @Before
     public void setUp() {
@@ -49,11 +48,8 @@ public class SoulWebHandlerTest {
         soulWebHandler = new SoulWebHandler(listPlugins);
     }
 
-
-
     @Test
     public void handle() {
-
         final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost")
                 .remoteAddress(new InetSocketAddress(8090))
                 .build());
