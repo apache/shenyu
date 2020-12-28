@@ -20,11 +20,12 @@ package org.dromara.soul.register.server.http;
 import org.dromara.soul.register.server.api.SoulServerRegisterRepository;
 import org.dromara.soul.register.server.api.listener.DataChangedEventListener;
 
+/**
+ * The type Http server register repository.
+ */
 public class HttpServerRegisterRepository implements SoulServerRegisterRepository {
-    
     
     @Override
     public void watch(final String key, final DataChangedEventListener listener) {
-    
     }
 }
