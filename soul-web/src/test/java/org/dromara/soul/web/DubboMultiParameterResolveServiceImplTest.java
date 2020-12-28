@@ -22,6 +22,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.dromara.soul.web.dubbo.DubboMultiParameterResolveServiceImpl;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -35,7 +36,8 @@ import static org.junit.Assert.assertThat;
 @RunWith(MockitoJUnitRunner.class)
 public final class DubboMultiParameterResolveServiceImplTest {
 
-    private final DubboMultiParameterResolveServiceImpl impl = new DubboMultiParameterResolveServiceImpl();
+    @InjectMocks
+    private DubboMultiParameterResolveServiceImpl impl;
 
     @Test
     public void testBuildParameter() {
