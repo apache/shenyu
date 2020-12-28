@@ -143,7 +143,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         // listen for configuration changed.
         final AsyncContext asyncContext = request.startAsync();
 
-        // Asynccontext.settimeout() does not timeout properly, so you have to control it yourself
+        // AsyncContext.settimeout() does not timeout properly, so you have to control it yourself
         asyncContext.setTimeout(0L);
 
         // block client's thread.
