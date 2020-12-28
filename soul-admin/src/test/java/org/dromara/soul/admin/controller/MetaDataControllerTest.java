@@ -26,6 +26,7 @@ import org.dromara.soul.admin.query.MetaDataQuery;
 import org.dromara.soul.admin.service.MetaDataService;
 import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.admin.vo.MetaDataVO;
+import org.dromara.soul.common.constant.AdminConstants;
 import org.dromara.soul.common.utils.DateUtils;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.junit.Before;
@@ -150,6 +151,22 @@ public final class MetaDataControllerTest {
     }
 
     @Test
+    public void testCreateOrUpdateWithError() throws Exception {
+        final MetaDataDTO metaDataDTO = new MetaDataDTO();
+        metaDataDTO.setId("0001");
+        metaDataDTO.setAppName("aname-01");
+        metaDataDTO.setContextPath("path");
+        metaDataDTO.setEnabled(false);
+        given(this.metaDataService.createOrUpdate(metaDataDTO)).willReturn(AdminConstants.PARAMS_ERROR);
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/meta-data/createOrUpdate")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(GsonUtils.getInstance().toJson(metaDataDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(AdminConstants.PARAMS_ERROR)))
+                .andReturn();
+    }
+
+    @Test
     public void testBatchDeleted() throws Exception {
         final List<String> ids = new ArrayList<>(2);
         ids.add("1");
@@ -175,6 +192,20 @@ public final class MetaDataControllerTest {
                 .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(SoulResultMessage.ENABLE_SUCCESS)))
+                .andReturn();
+    }
+
+    @Test
+    public void testBatchEnabledWithError() throws Exception {
+        final BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
+        batchCommonDTO.setIds(Arrays.asList("1", "2"));
+        batchCommonDTO.setEnabled(true);
+        given(this.metaDataService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled())).willReturn(AdminConstants.ID_NOT_EXIST);
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/meta-data/batchEnabled")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(AdminConstants.ID_NOT_EXIST)))
                 .andReturn();
     }
 

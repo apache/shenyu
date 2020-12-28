@@ -57,7 +57,7 @@ public class HttpSyncDataServiceTest {
     public WireMockRule wireMockRule = new WireMockRule(WireMockConfiguration.wireMockConfig().dynamicPort(), false);
     
     @Before
-    public final void setUpWiremock() {
+    public final void setUpWireMock() {
         wireMockRule.stubFor(get(urlPathEqualTo("/configs/fetch"))
                 .willReturn(aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())

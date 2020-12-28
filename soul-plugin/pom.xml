@@ -47,6 +47,7 @@
         <module>soul-plugin-resilience4j</module>
         <module>soul-plugin-sofa</module>
         <module>soul-plugin-tars</module>
+        <module>soul-plugin-context-path</module>
     </modules>
 
 
