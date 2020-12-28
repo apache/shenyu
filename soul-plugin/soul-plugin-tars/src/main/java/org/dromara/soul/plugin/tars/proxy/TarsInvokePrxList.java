@@ -22,6 +22,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.lang.reflect.Method;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -35,6 +36,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Data
 public class TarsInvokePrxList {
     private CopyOnWriteArrayList<TarsInvokePrx> tarsInvokePrxList;
+
+    private Method method;
 
     private Class[] paramTypes;
 

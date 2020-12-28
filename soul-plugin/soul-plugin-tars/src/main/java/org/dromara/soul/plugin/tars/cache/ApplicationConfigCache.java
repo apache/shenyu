@@ -27,6 +27,7 @@ import com.qq.tars.client.CommunicatorConfig;
 import com.qq.tars.client.CommunicatorFactory;
 import com.qq.tars.protocol.annotation.Servant;
 import javafx.util.Pair;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -43,12 +44,14 @@ import org.dromara.soul.plugin.tars.proxy.TarsInvokePrx;
 import org.dromara.soul.plugin.tars.proxy.TarsInvokePrxList;
 import org.dromara.soul.plugin.tars.util.PrxInfoUtil;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Tars config cache.
@@ -58,6 +61,8 @@ import java.util.concurrent.ExecutionException;
 @Slf4j
 public final class ApplicationConfigCache {
 
+    private static final ReentrantLock LOCK = new ReentrantLock();
+
     private final int maxCount = 50000;
 
     private final LoadingCache<String, TarsInvokePrxList> cache = CacheBuilder.newBuilder()
@@ -66,11 +71,13 @@ public final class ApplicationConfigCache {
             .build(new CacheLoader<String, TarsInvokePrxList>() {
                 @Override
                 public TarsInvokePrxList load(final String key) {
-                    return new TarsInvokePrxList(new CopyOnWriteArrayList<>(), null, null);
+                    return new TarsInvokePrxList(new CopyOnWriteArrayList<>(), null, null, null);
                 }
             });
 
-    private final ConcurrentHashMap<String, Class> prxClassCache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Class<?>> prxClassCache = new ConcurrentHashMap<>();
+
+    private final ConcurrentHashMap<String, TarsParamInfo> prxParamCache = new ConcurrentHashMap<>();
 
     private final Communicator communicator;
 
@@ -100,48 +107,83 @@ public final class ApplicationConfigCache {
      * Init prx.
      *
      * @param metaData metaData
-     * @return the prx
      */
-    public TarsInvokePrx initPrx(final MetaData metaData) {
-        Class prxClass = prxClassCache.get(metaData.getPath());
-        try {
-            if (Objects.isNull(prxClass)) {
-                if (StringUtils.isEmpty(metaData.getRpcExt())) {
-                    throw new SoulException("can't init prx with empty ext stirng");
-                }
-                TarsParamExtInfo tarsParamExtInfo = GsonUtils.getInstance().fromJson(metaData.getRpcExt(), TarsParamExtInfo.class);
-                DynamicType.Builder.MethodDefinition.ParameterDefinition definition = new ByteBuddy()
-                        .makeInterface()
-                        .name(PrxInfoUtil.gerPrxName(metaData))
-                        .defineMethod(PrxInfoUtil.gerMethodName(metaData), new TypeToken<CompletableFuture<String>>() { } .getType(), Visibility.PUBLIC);
-                if (CollectionUtils.isNotEmpty(tarsParamExtInfo.getParams())) {
-                    Class[] paramTypes = new Class[tarsParamExtInfo.getParams().size()];
-                    String[] paramNames = new String[tarsParamExtInfo.getParams().size()];
-                    for (int i = 0; i < tarsParamExtInfo.getParams().size(); i++) {
-                        Pair<String, String> pair = tarsParamExtInfo.getParams().get(i);
-                        paramTypes[i] = PrxInfoUtil.getParamClass(pair.getKey());
-                        paramNames[i] = pair.getValue();
-                        definition = definition.withParameter(paramTypes[i], paramNames[i]);
+    public void initPrx(final MetaData metaData) {
+        for (; ;) {
+            Class<?> prxClass = prxClassCache.get(metaData.getServiceName());
+            try {
+                if (Objects.isNull(prxClass)) {
+                    assert LOCK != null;
+                    if (LOCK.tryLock()) {
+                        try {
+                            if (StringUtils.isEmpty(metaData.getRpcExt())) {
+                                throw new SoulException("can't init prx with empty ext string");
+                            }
+                            String clazzName = PrxInfoUtil.getPrxName(metaData);
+                            TarsParamExtInfo tarsParamExtInfo = GsonUtils.getInstance().fromJson(metaData.getRpcExt(), TarsParamExtInfo.class);
+                            DynamicType.Builder<?> classDefinition = new ByteBuddy()
+                                    .makeInterface()
+                                    .name(clazzName);
+                            for (MethodInfo methodInfo : tarsParamExtInfo.getMethodInfo()) {
+                                DynamicType.Builder.MethodDefinition.ParameterDefinition<?> definition =
+                                        classDefinition.defineMethod(PrxInfoUtil.getMethodName(methodInfo.methodName), new TypeToken<CompletableFuture<String>>() {
+                                        }.getType(), Visibility.PUBLIC);
+                                if (CollectionUtils.isNotEmpty(methodInfo.getParams())) {
+                                    Class<?>[] paramTypes = new Class[methodInfo.getParams().size()];
+                                    String[] paramNames = new String[methodInfo.getParams().size()];
+                                    for (int i = 0; i < methodInfo.getParams().size(); i++) {
+                                        Pair<String, String> pair = methodInfo.getParams().get(i);
+                                        paramTypes[i] = PrxInfoUtil.getParamClass(pair.getKey());
+                                        paramNames[i] = pair.getValue();
+                                        definition = definition.withParameter(paramTypes[i], paramNames[i]);
+                                        prxParamCache.put(getClassMethodKey(clazzName, methodInfo.getMethodName()), new TarsParamInfo(paramTypes, paramNames));
+                                    }
+                                    classDefinition = definition.withoutCode();
+                                }
+                            }
+                            Class<?> prxClazz = classDefinition.annotateType(AnnotationDescription.Builder.ofType(Servant.class).build())
+                                    .make()
+                                    .load(Servant.class.getClassLoader(), ClassLoadingStrategy.Default.INJECTION)
+                                    .getLoaded();
+                            assert communicator != null;
+                            prxClassCache.put(metaData.getServiceName(), prxClazz);
+                        } finally {
+                            LOCK.unlock();
+                        }
                     }
-                    cache.get(metaData.getPath()).setParamTypes(paramTypes);
-                    cache.get(metaData.getPath()).setParamNames(paramNames);
+                } else {
+                    // if object name is same it will return same prx
+                    Object prx = communicator.stringToProxy(prxClass, PrxInfoUtil.getObjectName(metaData));
+                    TarsInvokePrxList tarsInvokePrxList = cache.get(metaData.getPath());
+                    if (tarsInvokePrxList.getMethod() == null) {
+                        TarsParamInfo tarsParamInfo = prxParamCache.get(getClassMethodKey(prxClass.getName(), metaData.getMethodName()));
+                        Method method = prx.getClass().getDeclaredMethod(
+                                PrxInfoUtil.getMethodName(metaData.getMethodName()), tarsParamInfo.getParamTypes());
+                        tarsInvokePrxList.setMethod(method);
+                        tarsInvokePrxList.setParamTypes(tarsParamInfo.getParamTypes());
+                        tarsInvokePrxList.setParamNames(tarsParamInfo.getParamNames());
+                    }
+                    tarsInvokePrxList.getTarsInvokePrxList().add(new TarsInvokePrx(prx, metaData.getAppName()));
+                    break;
                 }
-                prxClass = definition.withoutCode()
-                        .annotateType(AnnotationDescription.Builder.ofType(Servant.class).build())
-                        .make()
-                        .load(Servant.class.getClassLoader(), ClassLoadingStrategy.Default.INJECTION)
-                        .getLoaded();
-                prxClassCache.put(metaData.getPath(), prxClass);
+            } catch (Exception e) {
+                log.error("init tars ref ex:{}", e.getMessage());
+                break;
             }
-            Object prx = communicator.stringToProxy(prxClass, PrxInfoUtil.gerObjectName(metaData));
-            TarsInvokePrx invoker = TarsInvokePrx.builder().host(metaData.getAppName()).invokePrx(prx).build();
-            cache.get(metaData.getPath()).getTarsInvokePrxList().add(new TarsInvokePrx(prx, metaData.getServiceName()));
-            return invoker;
-        } catch (Exception e) {
-            log.error("init tars ref ex:{}", e.getMessage());
         }
-        return null;
     }
+
+    /**
+     * Get param info key.
+     *
+     * @param className className
+     * @param methodName methodName
+     * @return the key
+     */
+    public static String getClassMethodKey(final String className, final String methodName) {
+        return className + "_" + methodName;
+    }
+
 
     /**
      * Gets instance.
@@ -166,9 +208,28 @@ public final class ApplicationConfigCache {
      * The type Tars param ext info.
      */
     @Data
-    static class TarsParamExtInfo {
-        private String returnType;
+    static class MethodInfo {
+        private String methodName;
 
         private List<Pair<String, String>> params;
+    }
+
+    /**
+     * The type Tars param ext info.
+     */
+    @Data
+    static class TarsParamExtInfo {
+        private List<MethodInfo> methodInfo;
+    }
+
+    /**
+     * The type Tars param ext info.
+     */
+    @Data
+    @AllArgsConstructor
+    static class TarsParamInfo {
+        private Class<?>[] paramTypes;
+
+        private String[] paramNames;
     }
 }
