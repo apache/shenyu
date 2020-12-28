@@ -42,9 +42,9 @@ public final class OkHttpTools {
 
     private static final OkHttpTools OK_HTTP_TOOLS = new OkHttpTools();
 
-    private static final Gson GOSN = new Gson();
+    private static final Gson GSON = new Gson();
 
-    private OkHttpClient client;
+    private final OkHttpClient client;
 
     private OkHttpTools() {
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
@@ -100,7 +100,7 @@ public final class OkHttpTools {
         Response response = client.newCall(request).execute();
         assert response.body() != null;
         final String result = response.body().string();
-        return GOSN.fromJson(result, classOfT);
+        return GSON.fromJson(result, classOfT);
 
     }
 
@@ -113,7 +113,7 @@ public final class OkHttpTools {
      * @throws IOException the io exception
      */
     public String post(final String url, final Map<String, String> params) throws IOException {
-        String json = GOSN.toJson(params);
+        String json = GSON.toJson(params);
         RequestBody body = RequestBody.create(JSON, json);
         Request request = new Request.Builder()
                 .url(url)
@@ -123,12 +123,12 @@ public final class OkHttpTools {
     }
 
     /**
-     * Gets gosn.
+     * Gets gson.
      *
-     * @return the gosn
+     * @return the gson
      */
-    public Gson getGosn() {
-        return GOSN;
+    public Gson getGson() {
+        return GSON;
     }
 
 }

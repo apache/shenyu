@@ -1,37 +1,34 @@
 /*
- *
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * Contributor license agreements.See the NOTICE file distributed with
- * This work for additional information regarding copyright ownership.
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * he License.You may obtain a copy of the License at
+ * the License.  You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.dromara.soul.plugin.httpclient;
 
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
+import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
-import org.dromara.soul.plugin.api.result.SoulResultEnum;
-import org.dromara.soul.plugin.base.utils.SoulResultWrap;
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
+import org.dromara.soul.plugin.api.result.SoulResultEnum;
+import org.dromara.soul.plugin.base.utils.SoulResultWrap;
 import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -56,12 +53,8 @@ import java.util.concurrent.TimeoutException;
  *
  * @author xiaoyu
  */
+@Slf4j
 public class NettyHttpClientPlugin implements SoulPlugin {
-
-    /**
-     * logger.
-     */
-    private static final Logger LOGGER = LoggerFactory.getLogger(NettyHttpClientPlugin.class);
 
     private final HttpClient httpClient;
 
@@ -88,7 +81,7 @@ public class NettyHttpClientPlugin implements SoulPlugin {
             Object error = SoulResultWrap.error(SoulResultEnum.CANNOT_FIND_URL.getCode(), SoulResultEnum.CANNOT_FIND_URL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
-        LOGGER.info("you request,The resulting urlPath is :{}", url);
+        log.info("you request, The resulting urlPath is: {}", url);
         Flux<HttpClientResponse> responseFlux = this.httpClient.headers(headers -> headers.add(httpHeaders))
                 .request(method).uri(url).send((req, nettyOutbound) ->
                         nettyOutbound.send(request.getBody().map(dataBuffer -> ((NettyDataBuffer) dataBuffer) .getNativeBuffer())))

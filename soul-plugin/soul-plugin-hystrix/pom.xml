@@ -27,6 +27,12 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>soul-plugin-hystrix</artifactId>
 
+    <properties>
+        <hystrix-core.version>1.5.12</hystrix-core.version>
+        <hystrix-metrics-event-stream.version>1.4.10</hystrix-metrics-event-stream.version>
+        <rxjava-reactive-streams.version>1.2.1</rxjava-reactive-streams.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.dromara</groupId>
@@ -37,17 +43,27 @@
         <dependency>
             <groupId>com.netflix.hystrix</groupId>
             <artifactId>hystrix-core</artifactId>
-            <version>1.5.12</version>
+            <version>${hystrix-core.version}</version>
         </dependency>
         <dependency>
             <groupId>com.netflix.hystrix</groupId>
             <artifactId>hystrix-metrics-event-stream</artifactId>
-            <version>1.4.10</version>
+            <version>${hystrix-metrics-event-stream.version}</version>
         </dependency>
         <dependency>
             <groupId>io.reactivex</groupId>
             <artifactId>rxjava-reactive-streams</artifactId>
-            <version>1.2.1</version>
+            <version>${rxjava-reactive-streams.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-test</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

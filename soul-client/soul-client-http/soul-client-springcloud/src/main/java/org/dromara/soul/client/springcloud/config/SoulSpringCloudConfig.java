@@ -26,8 +26,13 @@ import lombok.Data;
  */
 @Data
 public class SoulSpringCloudConfig {
-    
+
     private String adminUrl;
-    
+
     private String contextPath;
+
+    /**
+     * Set true means providing proxy for your entire service, or only a few controller.
+     */
+    private boolean full;
 }

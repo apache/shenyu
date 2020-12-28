@@ -26,19 +26,19 @@ import lombok.Data;
  */
 @Data
 public class SoulSpringMvcConfig {
-    
+
     private String adminUrl;
-    
+
     private String contextPath;
-    
+
     private String appName;
-    
+
     /**
-     * 如果配置了full为true 代表代理整个服务.
+     * Set true means providing proxy for your entire service, or only a few controller.
      */
     private boolean full;
-    
+
     private String host;
-    
+
     private Integer port;
 }

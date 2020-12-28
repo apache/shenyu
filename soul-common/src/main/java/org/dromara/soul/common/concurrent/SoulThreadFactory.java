@@ -1,19 +1,18 @@
 /*
- *   Licensed to the Apache Software Foundation (ASF) under one or more
- *   contributor license agreements.  See the NOTICE file distributed with
- *   this work for additional information regarding copyright ownership.
- *   The ASF licenses this file to You under the Apache License, Version 2.0
- *   (the "License"); you may not use this file except in compliance with
- *   the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.dromara.soul.common.concurrent;
@@ -35,10 +34,13 @@ public final class SoulThreadFactory implements ThreadFactory {
     private final boolean daemon;
 
     private final String namePrefix;
+    
+    private final int priority;
 
-    private SoulThreadFactory(final String namePrefix, final boolean daemon) {
+    private SoulThreadFactory(final String namePrefix, final boolean daemon, final int priority) {
         this.namePrefix = namePrefix;
         this.daemon = daemon;
+        this.priority = priority;
     }
 
     /**
@@ -49,7 +51,19 @@ public final class SoulThreadFactory implements ThreadFactory {
      * @return {@linkplain ThreadFactory}
      */
     public static ThreadFactory create(final String namePrefix, final boolean daemon) {
-        return new SoulThreadFactory(namePrefix, daemon);
+        return create(namePrefix, daemon, Thread.NORM_PRIORITY);
+    }
+    
+    /**
+     * create custom thread factory.
+     *
+     * @param namePrefix prefix
+     * @param daemon     daemon
+     * @param priority     priority
+     * @return {@linkplain ThreadFactory}
+     */
+    public static ThreadFactory create(final String namePrefix, final boolean daemon, final int priority) {
+        return new SoulThreadFactory(namePrefix, daemon, priority);
     }
 
     @Override
@@ -57,9 +71,8 @@ public final class SoulThreadFactory implements ThreadFactory {
         Thread thread = new Thread(THREAD_GROUP, runnable,
                 THREAD_GROUP.getName() + "-" + namePrefix + "-" + THREAD_NUMBER.getAndIncrement());
         thread.setDaemon(daemon);
-        if (thread.getPriority() != Thread.NORM_PRIORITY) {
-            thread.setPriority(Thread.NORM_PRIORITY);
-        }
+        thread.setPriority(priority);
+        
         return thread;
     }
 }

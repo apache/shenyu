@@ -40,7 +40,7 @@ public class RateLimiterConfig implements Serializable {
     private String mode = RedisModeEnum.STANDALONE.getName();
 
     /**
-     * 如果是集群或者哨兵模式;分隔.
+     * If it is cluster or sentinel mode, separated with `;`.
      */
     private String url;
 
@@ -59,7 +59,7 @@ public class RateLimiterConfig implements Serializable {
      * Target for the minimum number of idle connections to maintain in the pool. This
      * setting only has an effect if it is positive.
      */
-    private int minIdle = '0';
+    private int minIdle;
 
     /**
      * Maximum number of connections that can be allocated by the pool at a given

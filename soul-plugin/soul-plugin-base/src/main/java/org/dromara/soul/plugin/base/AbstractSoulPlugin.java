@@ -1,19 +1,18 @@
 /*
- *   Licensed to the Apache Software Foundation (ASF) under one or more
- *   contributor license agreements.  See the NOTICE file distributed with
- *   this work for additional information regarding copyright ownership.
- *   The ASF licenses this file to You under the Apache License, Version 2.0
- *   (the "License"); you may not use this file except in compliance with
- *   the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.dromara.soul.plugin.base;
@@ -21,12 +20,13 @@ package org.dromara.soul.plugin.base;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.dromara.soul.common.dto.PluginData;
-import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
+import org.dromara.soul.common.dto.RuleData;
+import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.SelectorTypeEnum;
 import org.dromara.soul.plugin.api.SoulPlugin;
@@ -45,7 +45,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 @Slf4j
 public abstract class AbstractSoulPlugin implements SoulPlugin {
-    
+
     /**
      * this is Template Method child has Implement your own logic.
      *
@@ -72,24 +72,16 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
         if (pluginData != null && pluginData.getEnabled()) {
             final Collection<SelectorData> selectors = BaseDataCache.getInstance().obtainSelectorData(pluginName);
             if (CollectionUtils.isEmpty(selectors)) {
-                return CheckUtils.checkSelector(pluginName, exchange, chain);
+                return handleSelectorIsNull(pluginName, exchange, chain);
             }
             final SelectorData selectorData = matchSelector(exchange, selectors);
             if (Objects.isNull(selectorData)) {
-                if (PluginEnum.WAF.getName().equals(pluginName)) {
-                    return doExecute(exchange, chain, null, null);
-                }
-                return CheckUtils.checkSelector(pluginName, exchange, chain);
+                return handleSelectorIsNull(pluginName, exchange, chain);
             }
-            if (selectorData.getLoged()) {
-                log.info("{} selector success match , selector name :{}", pluginName, selectorData.getName());
-            }
+            selectorLog(selectorData, pluginName);
             final List<RuleData> rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
             if (CollectionUtils.isEmpty(rules)) {
-                if (PluginEnum.WAF.getName().equals(pluginName)) {
-                    return doExecute(exchange, chain, null, null);
-                }
-                return CheckUtils.checkRule(pluginName, exchange, chain);
+                return handleRuleIsNull(pluginName, exchange, chain);
             }
             RuleData rule;
             if (selectorData.getType() == SelectorTypeEnum.FULL_FLOW.getCode()) {
@@ -99,11 +91,9 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
                 rule = matchRule(exchange, rules);
             }
             if (Objects.isNull(rule)) {
-                return CheckUtils.checkRule(pluginName, exchange, chain);
+                return handleRuleIsNull(pluginName, exchange, chain);
             }
-            if (rule.getLoged()) {
-                log.info("{} rule success match ,rule name :{}", pluginName, rule.getName());
-            }
+            ruleLog(rule, pluginName);
             return doExecute(exchange, chain, selectorData, rule);
         }
         return chain.execute(exchange);
@@ -135,4 +125,29 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
         return ruleData.getEnabled() && MatchStrategyUtils.match(ruleData.getMatchMode(), ruleData.getConditionDataList(), exchange);
     }
 
+    private Mono<Void> handleSelectorIsNull(final String pluginName, final ServerWebExchange exchange, final SoulPluginChain chain) {
+        if (PluginEnum.WAF.getName().equals(pluginName)) {
+            return doExecute(exchange, chain, null, null);
+        }
+        return CheckUtils.checkSelector(pluginName, exchange, chain);
+    }
+
+    private Mono<Void> handleRuleIsNull(final String pluginName, final ServerWebExchange exchange, final SoulPluginChain chain) {
+        if (PluginEnum.WAF.getName().equals(pluginName)) {
+            return doExecute(exchange, chain, null, null);
+        }
+        return CheckUtils.checkRule(pluginName, exchange, chain);
+    }
+
+    private void selectorLog(final SelectorData selectorData, final String pluginName) {
+        if (selectorData.getLoged()) {
+            log.info("{} selector success match , selector name :{}", pluginName, selectorData.getName());
+        }
+    }
+
+    private void ruleLog(final RuleData ruleData, final String pluginName) {
+        if (ruleData.getLoged()) {
+            log.info("{} selector success match , selector name :{}", pluginName, ruleData.getName());
+        }
+    }
 }

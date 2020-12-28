@@ -28,6 +28,10 @@
 
     <artifactId>soul-spring-boot-starter-plugin-springcloud</artifactId>
 
+    <properties>
+        <spring-cloud-commons.version>2.2.0.RELEASE</spring-cloud-commons.version>
+        <spring-cloud-starter-netflix-ribbon.version>2.2.0.RELEASE</spring-cloud-starter-netflix-ribbon.version>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>org.dromara</groupId>
@@ -37,12 +41,12 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-commons</artifactId>
-            <version>2.2.0.RELEASE</version>
+            <version>${spring-cloud-commons.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
-            <version>2.2.0.RELEASE</version>
+            <version>${spring-cloud-starter-netflix-ribbon.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

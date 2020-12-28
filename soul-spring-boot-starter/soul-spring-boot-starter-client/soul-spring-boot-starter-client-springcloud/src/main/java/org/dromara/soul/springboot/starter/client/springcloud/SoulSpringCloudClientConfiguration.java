@@ -18,6 +18,7 @@
 package org.dromara.soul.springboot.starter.client.springcloud;
 
 import org.dromara.soul.client.springcloud.config.SoulSpringCloudConfig;
+import org.dromara.soul.client.springcloud.init.ContextRegisterListener;
 import org.dromara.soul.client.springcloud.init.SpringCloudClientBeanPostProcessor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -42,6 +43,18 @@ public class SoulSpringCloudClientConfiguration {
     @Bean
     public SpringCloudClientBeanPostProcessor springCloudClientBeanPostProcessor(final SoulSpringCloudConfig soulSpringCloudConfig, final Environment env) {
         return new SpringCloudClientBeanPostProcessor(soulSpringCloudConfig, env);
+    }
+
+    /**
+     * Context register listener context register listener.
+     *
+     * @param soulSpringCloudConfig the soul spring cloud config
+     * @param env                   the env
+     * @return the context register listener
+     */
+    @Bean
+    public ContextRegisterListener contextRegisterListener(final SoulSpringCloudConfig soulSpringCloudConfig, final Environment env) {
+        return new ContextRegisterListener(soulSpringCloudConfig, env);
     }
     
     /**

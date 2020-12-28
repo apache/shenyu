@@ -1,19 +1,18 @@
 /*
- *   Licensed to the Apache Software Foundation (ASF) under one or more
- *   contributor license agreements.  See the NOTICE file distributed with
- *   this work for additional information regarding copyright ownership.
- *   The ASF licenses this file to You under the Apache License, Version 2.0
- *   (the "License"); you may not use this file except in compliance with
- *   the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.dromara.soul.plugin.waf;
@@ -47,18 +46,17 @@ import java.util.Objects;
  */
 @Slf4j
 public class WafPlugin extends AbstractSoulPlugin {
-    
+
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
         WafConfig wafConfig = Singleton.INST.get(WafConfig.class);
         if (Objects.isNull(selector) && Objects.isNull(rule)) {
             if (WafModelEnum.BLACK.getName().equals(wafConfig.getModel())) {
                 return chain.execute(exchange);
-            } else {
-                exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-                Object error = SoulResultWrap.error(403, Constants.REJECT_MSG, null);
-                return WebFluxResultUtils.result(exchange, error);
             }
+            exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+            Object error = SoulResultWrap.error(403, Constants.REJECT_MSG, null);
+            return WebFluxResultUtils.result(exchange, error);
         }
         String handle = rule.getHandle();
         WafHandle wafHandle = GsonUtils.getInstance().fromJson(handle, WafHandle.class);
@@ -73,12 +71,12 @@ public class WafPlugin extends AbstractSoulPlugin {
         }
         return chain.execute(exchange);
     }
-    
+
     @Override
     public String named() {
         return PluginEnum.WAF.getName();
     }
-    
+
     @Override
     public int getOrder() {
         return PluginEnum.WAF.getCode();

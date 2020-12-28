@@ -61,8 +61,9 @@ public final class ApplicationConfigCache {
                         Class<?> cz = config.getClass();
                         Field field = cz.getDeclaredField("ref");
                         field.setAccessible(true);
+                        // After the configuration change, Dubbo destroys the instance, but does not empty it. If it is not handled,
+                        // it will get NULL when reinitializing and cause a NULL pointer problem.
                         field.set(config, null);
-                        //跟改配置之后dubbo 销毁该实例,但是未置空,如果不处理,重新初始化的时候将获取到NULL照成空指针问题.
                     } catch (NoSuchFieldException | IllegalAccessException e) {
                         log.error("modify ref have exception", e);
                     }
@@ -155,11 +156,12 @@ public final class ApplicationConfigCache {
                 final String loadBalance = dubboParamExtInfo.getLoadbalance();
                 reference.setLoadbalance(buildLoadBalanceName(loadBalance));
             }
+            if (StringUtils.isNoneBlank(dubboParamExtInfo.getUrl())) {
+                reference.setUrl(dubboParamExtInfo.getUrl());
+            }
             Optional.ofNullable(dubboParamExtInfo.getTimeout()).ifPresent(reference::setTimeout);
             Optional.ofNullable(dubboParamExtInfo.getRetries()).ifPresent(reference::setRetries);
         }
-        // 这里存在的一个问题：假设只修改了元数据里面的服务接口，其实这里在reference.get()的时候会报错No provider,留存的依然是修改之前的缓存，依然可以调用服务成功，
-        // 但是页面上返回的是成功，页面上显示的是修改后的数据，虽然这个是错的。
         Object obj = reference.get();
         if (obj != null) {
             log.info("init apache dubbo reference success there meteData is :{}", metaData.toString());
@@ -171,11 +173,11 @@ public final class ApplicationConfigCache {
     private String buildLoadBalanceName(final String loadBalance) {
         if (LoadBalanceEnum.HASH.getName().equals(loadBalance) || "consistenthash".equals(loadBalance)) {
             return "consistenthash";
-        } else if (LoadBalanceEnum.ROUND_ROBIN.getName().equals(loadBalance)) {
-            return "roundrobin";
-        } else {
-            return loadBalance;
         }
+        if (LoadBalanceEnum.ROUND_ROBIN.getName().equals(loadBalance)) {
+            return "roundrobin";
+        }
+        return loadBalance;
     }
 
     /**
@@ -234,5 +236,7 @@ public final class ApplicationConfigCache {
         private Integer retries;
 
         private Integer timeout;
+
+        private String url;
     }
 }

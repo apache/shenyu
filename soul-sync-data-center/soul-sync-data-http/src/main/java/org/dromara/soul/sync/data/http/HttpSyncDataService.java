@@ -1,18 +1,18 @@
 /*
- *   Licensed to the Apache Software Foundation (ASF) under one or more
- *   contributor license agreements.  See the NOTICE file distributed with
- *   this work for additional information regarding copyright ownership.
- *   The ASF licenses this file to You under the Apache License, Version 2.0
- *   (the "License"); you may not use this file except in compliance with
- *   the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.dromara.soul.sync.data.http;
@@ -63,43 +63,46 @@ import org.springframework.web.client.RestTemplate;
 @SuppressWarnings("all")
 @Slf4j
 public class HttpSyncDataService implements SyncDataService, AutoCloseable {
-    
+
     private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
-    
+
     private static final Gson GSON = new Gson();
-    
+
     /**
      * default: 10s.
      */
     private Duration connectionTimeout = Duration.ofSeconds(10);
-    
+
     /**
      * only use for http long polling.
      */
     private RestTemplate httpClient;
-    
+
     private ExecutorService executor;
-    
+
     private HttpConfig httpConfig;
-    
+
     private List<String> serverList;
-    
+
     private DataRefreshFactory factory;
-    
+
     public HttpSyncDataService(final HttpConfig httpConfig, final PluginDataSubscriber pluginDataSubscriber,
                                final List<MetaDataSubscriber> metaDataSubscribers, final List<AuthDataSubscriber> authDataSubscribers) {
-        factory = new DataRefreshFactory(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
+        this.factory = new DataRefreshFactory(pluginDataSubscriber, metaDataSubscribers, authDataSubscribers);
         this.httpConfig = httpConfig;
         this.serverList = Lists.newArrayList(Splitter.on(",").split(httpConfig.getUrl()));
-        this.start(httpConfig);
+        this.httpClient = createRestTemplate();
+        this.start();
     }
     
-    private void start(final HttpConfig httpConfig) {
-        // init RestTemplate
+    private RestTemplate createRestTemplate() {
         OkHttp3ClientHttpRequestFactory factory = new OkHttp3ClientHttpRequestFactory();
         factory.setConnectTimeout((int) this.connectionTimeout.toMillis());
         factory.setReadTimeout((int) HttpConstants.CLIENT_POLLING_READ_TIMEOUT);
-        this.httpClient = new RestTemplate(factory);
+        return new RestTemplate(factory);
+    }
+
+    private void start() {
         // It could be initialized multiple times, so you need to control that.
         if (RUNNING.compareAndSet(false, true)) {
             // fetch all group configs.
@@ -114,7 +117,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
             log.info("soul http long polling was started, executor=[{}]", executor);
         }
     }
-    
+
     private void fetchGroupConfig(final ConfigGroupEnum... groups) throws SoulException {
         for (int index = 0; index < this.serverList.size(); index++) {
             String server = serverList.get(index);
@@ -156,7 +159,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
         log.info("The config of the server[{}] has not been updated or is out of date. Wait for 30s to listen for changes again.", server);
         ThreadUtils.sleep(TimeUnit.SECONDS, 30);
     }
-    
+
     /**
      * update local cache.
      * @param json the response from config server.
@@ -168,7 +171,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
         // if the config cache will be updated?
         return factory.executor(data);
     }
-    
+
     @SuppressWarnings("unchecked")
     private void doLongPolling(final String server) {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>(8);
@@ -200,7 +203,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
             }
         }
     }
-    
+
     @Override
     public void close() throws Exception {
         RUNNING.set(false);
@@ -210,7 +213,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
             executor = null;
         }
     }
-    
+
     class HttpLongPollingTask implements Runnable {
 
         private String server;

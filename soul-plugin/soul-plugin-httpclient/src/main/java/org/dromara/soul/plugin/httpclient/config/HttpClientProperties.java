@@ -1,20 +1,18 @@
 /*
- *
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * Contributor license agreements.See the NOTICE file distributed with
- * This work for additional information regarding copyright ownership.
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * he License.You may obtain a copy of the License at
+ * the License.  You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.dromara.soul.plugin.httpclient.config;
@@ -71,7 +69,7 @@ public class HttpClientProperties {
      * Enables wiretap debugging for Netty HttpClient.
      */
     private boolean wiretap;
-    
+
     /**
      * The type Pool.
      */
@@ -98,7 +96,7 @@ public class HttpClientProperties {
          * Only for type FIXED, the maximum time in millis to wait for aquiring.
          */
         private Long acquireTimeout = ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT;
-        
+
         /**
          * The enum Pool type.
          */
@@ -197,11 +195,6 @@ public class HttpClientProperties {
          *
          * @return the x 509 certificate [ ]
          */
-        /**
-         * Get trusted x 509 certificates for trust manager x 509 certificate [ ].
-         *
-         * @return the x 509 certificate [ ]
-         */
         public X509Certificate[] getTrustedX509CertificatesForTrustManager() {
             try {
                 CertificateFactory certificateFactory = CertificateFactory
@@ -218,7 +211,8 @@ public class HttpClientProperties {
                                 "Could not load certificate '" + trustedCert + "'", e);
                     }
                 }
-                return allCerts.toArray(new X509Certificate[allCerts.size()]);
+                X509Certificate[] x509Certificates = new X509Certificate[allCerts.size()];
+                return allCerts.toArray(x509Certificates);
             } catch (CertificateException e) {
                 throw new WebServerException("Could not load CertificateFactory X.509", e);
             }

@@ -1,38 +1,46 @@
 /*
- *
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * Contributor license agreements.See the NOTICE file distributed with
- * This work for additional information regarding copyright ownership.
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * he License.You may obtain a copy of the License at
+ * the License.  You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.dromara.soul.admin.entity;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.AppAuthDTO;
+import org.dromara.soul.admin.dto.AuthApplyDTO;
+import org.dromara.soul.common.utils.SignUtils;
 import org.dromara.soul.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
+import java.util.Optional;
 
 /**
  * AppAuthDO.
  *
  * @author xiaoyu(Myth)
+ * @author nuo-promise
  */
 @Data
-public class AppAuthDO extends BaseDO {
+@SuperBuilder
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = true)
+public final class AppAuthDO extends BaseDO {
 
     /**
      * application key.
@@ -56,28 +64,50 @@ public class AppAuthDO extends BaseDO {
     private String extInfo;
 
     /**
-     * build appAuthDO.
+     * Build AppAuthDO object with given AppAuthDTO object.
      *
      * @param appAuthDTO {@linkplain AppAuthDTO}
      * @return {@linkplain AppAuthDO}
      */
-    public static AppAuthDO buildAppAuthDO(final AppAuthDTO appAuthDTO) {
-        if (appAuthDTO != null) {
-            AppAuthDO appAuthDO = new AppAuthDO();
+    public static AppAuthDO create(final AppAuthDTO appAuthDTO) {
+        return Optional.ofNullable(appAuthDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            if (StringUtils.isEmpty(appAuthDTO.getId())) {
+            AppAuthDO appAuthDO = AppAuthDO.builder()
+                    .appKey(item.getAppKey())
+                    .appSecret(item.getAppSecret())
+                    .enabled(item.getEnabled())
+                    .dateUpdated(currentTime)
+                    .build();
+            if (StringUtils.isEmpty(item.getId())) {
                 appAuthDO.setId(UUIDUtils.getInstance().generateShortUuid());
                 appAuthDO.setDateCreated(currentTime);
             } else {
-                appAuthDO.setId(appAuthDTO.getId());
+                appAuthDO.setId(item.getId());
             }
-
-            appAuthDO.setAppKey(appAuthDTO.getAppKey());
-            appAuthDO.setAppSecret(appAuthDTO.getAppSecret());
-            appAuthDO.setEnabled(appAuthDTO.getEnabled());
-            appAuthDO.setDateUpdated(currentTime);
             return appAuthDO;
-        }
-        return null;
+        }).orElse(null);
+    }
+
+    /**
+     * Build AppAuthDO object with given AuthApplyDTO object.
+     *
+     * @param authApplyDTO {@linkplain AuthApplyDTO}
+     * @return {@linkplain AppAuthDO}
+     */
+    public static AppAuthDO create(final AuthApplyDTO authApplyDTO) {
+        return Optional.ofNullable(authApplyDTO).map(item -> {
+            Timestamp currentTime = new Timestamp(System.currentTimeMillis());
+            return AppAuthDO.builder()
+                    .id(UUIDUtils.getInstance().generateShortUuid())
+                    .userId(item.getUserId())
+                    .phone(item.getPhone())
+                    .extInfo(item.getExtInfo())
+                    .appKey(SignUtils.getInstance().generateKey())
+                    .appSecret(SignUtils.getInstance().generateKey())
+                    .enabled(true)
+                    .dateCreated(currentTime)
+                    .dateUpdated(currentTime)
+                    .build();
+        }).orElse(null);
     }
 }

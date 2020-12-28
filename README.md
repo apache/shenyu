@@ -2,10 +2,14 @@
     <a href="https://dromara.org"><img src="https://yu199195.github.io/images/soul/soul-logo.png" width="45%"></a>
 </p>
 <p align="center">
-  <strong>易扩展，高性能，响应式API网关</strong>
+  <strong>Scalable,High Performance,Responsive API Gateways</strong>
 </p>
 <p align="center">
   <a href="https://dromara.org">https://dromara.org/</a>
+</p>
+
+<p align="center">
+  English | <a href="https://github.com/dromara/soul/blob/master/README_cn.md">简体中文</a>
 </p>
 
 <p align="center">
@@ -61,37 +65,37 @@
   
 # Modules
 
- * soul-admin : Plug-in and other information configuration management background
+ * soul-admin : plugins and other information configuration management background
  
- * soul-bootstrap : With the startup project, users can refer to
+ * soul-bootstrap : with the startup project, users can refer to
  
- * soul-client : User fast access with springMvc,dubbo,springCloud
+ * soul-client : user fast access with Spring MVC, Dubbo, Spring Cloud.
   
- * soul-common : Framework common class
+ * soul-common : framework common class
  
  * soul-dist : build project
 
  * soul-metrics : metrics impl by prometheus.
  
- * soul-plugin : soul provider plugin collection.
+ * soul-plugin : Soul provider plugin collection.
  
- * soul-spi : soul spi define.
+ * soul-spi : Soul spi define.
  
- * soul-spring-boot-starter : Support for the spring boot starter
+ * soul-spring-boot-starter : support for the spring boot starter
  
- * soul-sync-data-center : provider zookeeper, http, websocket, nacos to sync data
+ * soul-sync-data-center : provider ZooKeeper, HTTP, WebSocket, Nacos to sync data
  
- * soul-test : the rpc test project
+ * soul-examples : the RPC examples project
  
- * soul-web : Core processing packages include plug-ins, request routing and forwarding, and so on
+ * soul-web : core processing packages including plugins, request routing and forwarding, and so on
  
 --------------------------------------------------------------------------------   
  
 # Features
 
-   * It provides plugins such as current limiting, fusing, forwarding, routing monitoring and so on.
+   * Soul provides plugins such as current limiting, fusing, forwarding, routing monitoring and so on.
    
-   * Seamless docking with HTTP,Restful,websocket,dubbo and springcloud.
+   * Seamless docking with HTTP, RESTful, WebSocket, Dubbo and Spring Cloud.
    
    * Plug-in hot plug, users can customize the development.
    
@@ -99,19 +103,19 @@
 
    * Support for cluster deployment.
    
-   * Support A/B test and grayscale publishing。
+   * Support A/B test and grayscale publishing.
    
 --------------------------------------------------------------------------------  
  
 # Plugin
 
- Whenever a request comes in ,Soul Execute all open plug-ins through the chain of responsibility.
+ Whenever a request comes in, Soul executes all open plugins through the chain of responsibility.
  
- Plugins are the heart of soul And plug-ins are extensible and hot-pluggable.
+ As the heart of Soul, plugins are extensible and hot-pluggable.
  
- Different plug-ins do different things 
+ Different plugins do different things.
  
- Of course, users can also customize plug-ins to meet their own needs.
+ Of course, users can also customize plugins to meet their own needs.
  
  If you want to customize, see [plugin-extend](https://dromara.org/website/zh-cn/docs/soul/extend.html)
  
@@ -131,15 +135,13 @@
    
 # Data Caching & Data Sync
  
-  All data is cached ConcurrentHashMap in the JVM So it's very fast.
+  All data have been cached using ConcurrentHashMap in the JVM, so it's very fast.
   
-  When the user is managing changes in the background,
+  When the user is managing changes in the background, Soul dynamically updates the cache by listening to the ZooKeeper node, WebSocket push, HTTP longPull.
   
-  Soul dynamically updates the cache by listening to the zookeeper node, websocket push,http longPull.
+  ![](https://yu199195.github.io/images/soul/soul-config-processor.png)
   
-  ![Data Sync](https://bestkobe.gitee.io/images/soul/soul-config-processor.png?_t=201908032316)
-  
-  ![Sync Flow](https://bestkobe.gitee.io/images/soul/config-strage-processor.png?_t=201908032339)
+  ![](https://yu199195.github.io/images/soul/config-strage-processor.png)
 
 --------------------------------------------------------------------------------    
 
@@ -147,21 +149,22 @@
  
    * JDK 1.8+
    
-   * Mysql
+   * MySQL
    
 --------------------------------------------------------------------------------     
    
 # About
   
-   Soul Has been used in our production environment,Its performance and flexibility allow us to use up very cool.
+   Soul has been used in our production environment,its performance and flexibility allow us to use up very cool.
    
    In double 11, we deployed 6 clusters, which supported a large volume of our business.
    
 --------------------------------------------------------------------------------  
     
 # Document & Website
-   If you want to use it, you can see [Website](https://dromara.org/website/zh-cn/docs/soul/soul.html)
-   If you want to use it, you can see [Document](https://github.com/Dromara/soul/blob/master/doc/setup.md)
+
+[![EN doc](https://img.shields.io/badge/document-English-blue.svg)](https://dromara.org/website/en-us/docs/soul/soul.html)
+[![CN doc](https://img.shields.io/badge/document-Chinese-blue.svg)](https://dromara.org/website/zh-cn/docs/soul/soul.html)
   
 --------------------------------------------------------------------------------  
         
@@ -185,15 +188,9 @@
 
 # Known Users
 
-按照登记顺序排序，更多接入公司，欢迎在[https://github.com/Dromara/soul/issues/68](https://github.com/Dromara/soul/issues/68)登记（仅供开源用户参考）
+In order of registration, More access companies are welcome to register at [https://github.com/Dromara/soul/issues/68](https://github.com/Dromara/soul/issues/68) (For open source users only)
 
 <table>
-  <thead>
-    <th>广州思埠集团有限公司</th>
-    <th>上海凯京信达科技集团有限公司</th>
-    <th>上海彩贝壳科技有限公司</th>
-    <th>江苏永钢集团有限公司</th>
-  </thead>
   <tbody>
     <tr>
       <td><img src="https://yu199195.github.io/images/soul/users/sibu.jpg"  width="1800" height="90" alt="思埠集团"/>
@@ -202,12 +199,6 @@
       <td><img src="https://yu199195.github.io/images/soul/users/jiangsuyonggang.jpg"  width="1800" height="90" alt="江苏永钢集团"/>
     </tr>
   </tbody>
-  <thead>
-      <th>上海方付通科技有限公司 </th>
-      <th>上海理想信息产业集团有限公司</th>
-      <th>北京开普云科技有限公司</th>
-      <th>武汉颂大教育科技股份有限公司</th>
-   </thead>
    <tbody>
        <tr>
          <td><img src="https://yu199195.github.io/images/soul/users/fangfutong.png"  width="1800" height="90" alt="上海方付通科技有限公司"/>
@@ -216,12 +207,6 @@
          <td><img src="https://yu199195.github.io/images/soul/users/songda.png"  width="1800" height="90" alt="江苏永钢集团"/>
        </tr>
     </tbody>
-    <thead>
-          <th>浙江翱游科技有限公司 </th>
-          <th>车易拍(北京)汽车技术服务有限公司</th>
-          <th>上海草帽科技</th>
-          <th>深圳竹云科技有限公司</th>
-    </thead>
     <tbody>
            <tr>
              <td><img src="https://yu199195.github.io/images/soul/users/aoyou.jpg"  width="1800" height="90" alt="浙江翱游科技有限公司"/>
@@ -230,12 +215,6 @@
              <td><img src="https://yu199195.github.io/images/soul/users/zuyun.jpg"  width="1800" height="90" alt="深圳竹云科技有限公司"/>
            </tr>
      </tbody>
-     <thead>
-               <th>深圳盒知科技 </th>
-               <th>杭州奇点云科技</th>
-               <th>深圳万威科技</th>
-               <th>武汉物易云通网络科技有限公司</th>
-      </thead>
       <tbody>
                 <tr>
                   <td><img src="https://yu199195.github.io/images/soul/users/hezhi.png"  width="1800" height="90" alt="深圳盒知科技"/>
@@ -244,12 +223,6 @@
                   <td><img src="https://yu199195.github.io/images/soul/users/wuyiyuntong.jpg"  width="1800" height="90" alt="武汉物易云通网络科技有限公司"/>
                 </tr>
       </tbody>
-      <thead>
-               <th>好慷在家</th>
-               <th>闪送科技</th>
-               <th>国家电网</th>
-               <th>凯撒旅游</th>
-      </thead>
       <tbody>
                 <tr>
                   <td><img src="https://yu199195.github.io/images/soul/users/haokangzaijia.jpg"  width="1800" height="90" alt="好慷在家"/>
@@ -265,14 +238,14 @@
 
 <table>
   <thead>
-    <th>微信公众号</th>
-    <th>QQ交流群</th>
-    <th>芋道源码</th>
+    <th>WeChat</th>
+    <th>QQ</th>
+    <th>Taro Source</th>
   </thead>
   <tbody>
     <tr>
       <td><img src="https://yu199195.github.io/images/public.jpg"   alt="微信公众号"/>
-      <td><img src="https://yu199195.github.io/images/soul-qq.png"  alt="QQ交流群"/>
+      <td><img src="https://yu199195.github.io/images/soul-qq.png"  alt="QQ 交流群"/>
       <td><img src="http://www.iocoder.cn/images/common/erweima.jpg"  alt="芋道源码"/>
     </tr>
   </tbody>

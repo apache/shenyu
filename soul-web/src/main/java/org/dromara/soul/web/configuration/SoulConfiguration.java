@@ -1,19 +1,18 @@
 /*
- *   Licensed to the Apache Software Foundation (ASF) under one or more
- *   contributor license agreements.  See the NOTICE file distributed with
- *   this work for additional information regarding copyright ownership.
- *   The ASF licenses this file to You under the Apache License, Version 2.0
- *   (the "License"); you may not use this file except in compliance with
- *   the License.  You may obtain a copy of the License at
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
- *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.dromara.soul.web.configuration;
@@ -36,7 +35,7 @@ import org.dromara.soul.web.filter.CrossFilter;
 import org.dromara.soul.web.filter.FileSizeFilter;
 import org.dromara.soul.web.filter.TimeWebFilter;
 import org.dromara.soul.web.filter.WebSocketParamFilter;
-import org.dromara.soul.web.forwarde.ForwardedRemoteAddressResolver;
+import org.dromara.soul.web.forward.ForwardedRemoteAddressResolver;
 import org.dromara.soul.web.handler.SoulWebHandler;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -63,7 +62,7 @@ import org.springframework.web.server.WebFilter;
 public class SoulConfiguration {
     
     /**
-     * init SoulWebHandler.
+     * Init SoulWebHandler.
      *
      * @param plugins this plugins is All impl SoulPlugin.
      * @return {@linkplain SoulWebHandler}
@@ -73,19 +72,20 @@ public class SoulConfiguration {
         List<SoulPlugin> pluginList = plugins.getIfAvailable(Collections::emptyList);
         final List<SoulPlugin> soulPlugins = pluginList.stream()
                 .sorted(Comparator.comparingInt(SoulPlugin::getOrder)).collect(Collectors.toList());
-        soulPlugins.forEach(soulPlugin -> log.info("loader plugin:[{}] [{}]", soulPlugin.named(), soulPlugin.getClass().getName()));
+        soulPlugins.forEach(soulPlugin -> log.info("load plugin:[{}] [{}]", soulPlugin.named(), soulPlugin.getClass().getName()));
         return new SoulWebHandler(soulPlugins);
     }
-
+    
     /**
      * init dispatch handler.
+     *
      * @return {@link DispatcherHandler}.
      */
     @Bean("dispatcherHandler")
     public DispatcherHandler dispatcherHandler() {
         return new DispatcherHandler();
     }
-
+    
     /**
      * Plugin data subscriber plugin data subscriber.
      *
@@ -149,15 +149,15 @@ public class SoulConfiguration {
     /**
      * Body web filter web filter.
      *
+     * @param soulConfig the soul config
      * @return the web filter
      */
     @Bean
     @Order(-10)
     @ConditionalOnProperty(name = "soul.file.enabled", havingValue = "true")
-    public WebFilter fileSizeFilter() {
-        return new FileSizeFilter();
+    public WebFilter fileSizeFilter(final SoulConfig soulConfig) {
+        return new FileSizeFilter(soulConfig.getFileMaxSize());
     }
-    
     
     /**
      * Soul config soul config.
@@ -171,7 +171,7 @@ public class SoulConfiguration {
     }
     
     /**
-     * init time web filter.
+     * Init time web filter.
      *
      * @param soulConfig the soul config
      * @return {@linkplain TimeWebFilter}

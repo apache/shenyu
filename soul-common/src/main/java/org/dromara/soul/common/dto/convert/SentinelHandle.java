@@ -1,8 +1,26 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.dromara.soul.common.dto.convert;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.dromara.soul.common.constant.Constants;
 
 /**
  * This is SentinelHandle.
@@ -15,42 +33,47 @@ import lombok.Setter;
 public class SentinelHandle {
 
     /**
-     * flow rule enable.
+     * Flow rule enable.
      */
-    private Integer flowRuleEnable = 1;
+    private Integer flowRuleEnable = Constants.SENTINEL_ENABLE_FLOW_RULE;
 
     /**
-     * flow rule grade.
+     * Flow rule grade.
      */
-    private Integer flowRuleGrade = 1;
+    private Integer flowRuleGrade = Constants.SENTINEL_QPS_FLOW_GRADE;
 
     /**
-     * flow rule count.
+     * Flow rule count.
      */
     private Integer flowRuleCount;
 
     /**
-     * flow rule control behavior.
+     * Flow rule control behavior.
      */
-    private Integer flowRuleControlBehavior = 0;
+    private Integer flowRuleControlBehavior = Constants.SENTINEL_FLOW_REJECT;
 
     /**
-     * degrade rule control behavior.
+     * Degrade rule control behavior.
      */
-    private Integer degradeRuleEnable = 1;
+    private Integer degradeRuleEnable = Constants.SENTINEL_ENABLE_DEGRADE_RULE;
 
     /**
-     * degrade rule grade.
+     * Degrade rule grade.
      */
-    private Integer degradeRuleGrade = 1;
+    private Integer degradeRuleGrade = Constants.SENTINEL_RESPONSE_RULE_GRADE;
 
     /**
-     * degrade rule count.
+     * Degrade rule count.
      */
     private Integer degradeRuleCount;
 
     /**
-     * degrade rule time window.
+     * Degrade rule time window.
      */
     private Integer degradeRuleTimeWindow;
+
+    /**
+     * Sentinel fallback uri.
+     */
+    private String fallbackUri;
 }

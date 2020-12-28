@@ -1,30 +1,28 @@
 /*
- *
  * Licensed to the Apache Software Foundation (ASF) under one or more
- * Contributor license agreements.See the NOTICE file distributed with
- * This work for additional information regarding copyright ownership.
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
- * he License.You may obtain a copy of the License at
+ * the License.  You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package org.dromara.soul.web.filter;
 
+import java.util.List;
 import org.dromara.soul.plugin.api.result.SoulResultEnum;
 import org.dromara.soul.plugin.base.utils.SoulResultWrap;
 import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
 import org.dromara.soul.web.filter.support.BodyInserterContext;
 import org.dromara.soul.web.filter.support.CachedBodyOutputMessage;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -45,8 +43,6 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-
 /**
  * The type File size filter.
  *
@@ -55,15 +51,15 @@ import java.util.List;
 public class FileSizeFilter implements WebFilter {
 
     private static final int BYTES_PER_MB = 1024 * 1024;
-
-    @Value("${file.size:10}")
-    private int maxSize;
+    
+    private final int fileMaxSize;
 
     private final List<HttpMessageReader<?>> messageReaders;
 
-    public FileSizeFilter() {
-        HandlerStrategies.builder().codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(maxSize * BYTES_PER_MB));
+    public FileSizeFilter(final int fileMaxSize) {
+        HandlerStrategies.builder().codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(fileMaxSize * BYTES_PER_MB));
         this.messageReaders = HandlerStrategies.withDefaults().messageReaders();
+        this.fileMaxSize = fileMaxSize;
     }
 
     @Override
@@ -74,7 +70,7 @@ public class FileSizeFilter implements WebFilter {
                     messageReaders);
             return serverRequest.bodyToMono(DataBuffer.class)
                     .flatMap(size -> {
-                        if (size.capacity() > BYTES_PER_MB * maxSize) {
+                        if (size.capacity() > BYTES_PER_MB * fileMaxSize) {
                             ServerHttpResponse response = exchange.getResponse();
                             response.setStatusCode(HttpStatus.BAD_REQUEST);
                             Object error = SoulResultWrap.error(SoulResultEnum.PAYLOAD_TOO_LARGE.getCode(), SoulResultEnum.PAYLOAD_TOO_LARGE.getMsg(), null);
