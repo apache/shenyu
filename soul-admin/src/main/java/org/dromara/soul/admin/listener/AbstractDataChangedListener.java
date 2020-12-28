@@ -46,7 +46,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * Abstract class for ConfigEventListener.
  * As we think that the md5 value of the in-memory data is the same as the md5 value of the database,
- * although it may be a little different, but it doesn't matter, we will have thread to periodica
+ * although it may be a little different, but it doesn't matter, we will have thread to periodically
  * pull the data in the database.
  *
  * @author huangxiaofeng
@@ -86,7 +86,7 @@ public abstract class AbstractDataChangedListener implements DataChangedListener
     private MetaDataService metaDataService;
 
     /**
-     * fetch configuration from database.
+     * fetch configuration from cache.
      *
      * @param groupKey the group key
      * @return the configuration data
