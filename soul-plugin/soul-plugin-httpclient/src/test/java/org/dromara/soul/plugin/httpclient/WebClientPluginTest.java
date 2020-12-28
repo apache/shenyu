@@ -19,9 +19,11 @@ package org.dromara.soul.plugin.httpclient;
 
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.PluginEnum;
+import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
-import org.junit.Assert;
+import org.dromara.soul.plugin.api.result.SoulResult;
+import org.dromara.soul.plugin.base.utils.SpringBeanUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,6 +31,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -40,6 +43,8 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
@@ -61,15 +66,13 @@ public final class WebClientPluginTest {
 
     private WebClientPlugin webClientPlugin;
 
-    private ServerWebExchange exchange;
-
     @Before
     public void setup() {
-        exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test").build());
-        exchange.getAttributes().put(Constants.CONTEXT, mock(SoulContext.class));
-        exchange.getAttributes().put(Constants.HTTP_URL, "/test");
-        WebClient webClient = mockWebClientOK();
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        SpringBeanUtils.getInstance().setCfgContext(context);
+        when(context.getBean(SoulResult.class)).thenReturn(mock(SoulResult.class));
 
+        WebClient webClient = mockWebClientOK();
         webClientPlugin = new WebClientPlugin(webClient);
     }
 
@@ -78,16 +81,25 @@ public final class WebClientPluginTest {
      */
     @Test
     public void testExecuted() {
+        final SoulPluginChain chainNoPathTest = mock(SoulPluginChain.class);
+        final WebClient webClientNoPathTest = mockWebClientOK();
+        ServerWebExchange exchangeNoPathTest = MockServerWebExchange
+                .from(MockServerHttpRequest.get("/test").build());
+        exchangeNoPathTest.getAttributes().put(Constants.CONTEXT, mock(SoulContext.class));
+        WebClientPlugin webClientPluginNoPathTest = new WebClientPlugin(webClientNoPathTest);
+        Mono<Void> monoNoPathTest = webClientPluginNoPathTest.execute(exchangeNoPathTest, chainNoPathTest);
+        StepVerifier.create(monoNoPathTest).expectSubscription().verifyComplete();
+
         final SoulPluginChain chainOkTest = mock(SoulPluginChain.class);
         final WebClient webClientOkTest = mockWebClientOK();
         WebClientPlugin webClientPluginOkTest = new WebClientPlugin(webClientOkTest);
-        Mono<Void> monoOkTest = webClientPluginOkTest.execute(exchange, chainOkTest);
+        Mono<Void> monoOkTest = webClientPluginOkTest.execute(generateServerWebExchange(), chainOkTest);
         StepVerifier.create(monoOkTest).expectSubscription().verifyError();
 
         final SoulPluginChain chainErrorTest = mock(SoulPluginChain.class);
         final WebClient webClientErrorTest = mockWebClientError();
         WebClientPlugin webClientPluginErrorTest = new WebClientPlugin(webClientErrorTest);
-        Mono<Void> monoErrorTest = webClientPluginErrorTest.execute(exchange, chainErrorTest);
+        Mono<Void> monoErrorTest = webClientPluginErrorTest.execute(generateServerWebExchange(), chainErrorTest);
         StepVerifier.create(monoErrorTest).expectSubscription().verifyError();
     }
 
@@ -96,17 +108,42 @@ public final class WebClientPluginTest {
      */
     @Test
     public void testSkip() {
-        Assert.assertTrue(webClientPlugin.skip(exchange));
+        ServerWebExchange exchangeNormal = generateServerWebExchange();
+        assertTrue(webClientPlugin.skip(exchangeNormal));
+
+        ServerWebExchange exchangeHttp = generateServerWebExchange();
+        when(((SoulContext) exchangeHttp.getAttributes().get(Constants.CONTEXT)).getRpcType())
+                .thenReturn(RpcTypeEnum.HTTP.getName());
+        assertFalse(webClientPlugin.skip(exchangeHttp));
+
+        ServerWebExchange exchangeSpringCloud = generateServerWebExchange();
+        when(((SoulContext) exchangeSpringCloud.getAttributes().get(Constants.CONTEXT)).getRpcType())
+                .thenReturn(RpcTypeEnum.SPRING_CLOUD.getName());
+        assertFalse(webClientPlugin.skip(exchangeSpringCloud));
     }
 
+    /**
+     * test case for WebClientPlugin {@link WebClientPlugin#getOrder()}.
+     */
     @Test
     public void testGetOrder() {
         assertEquals(PluginEnum.DIVIDE.getCode() + 1, webClientPlugin.getOrder());
     }
 
+    /**
+     * test case for WebClientPlugin {@link WebClientPlugin#named()}.
+     */
     @Test
     public void testNamed() {
         assertEquals("webClient", webClientPlugin.named());
+    }
+
+    private ServerWebExchange generateServerWebExchange() {
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test").build());
+        exchange.getAttributes().put(Constants.CONTEXT, mock(SoulContext.class));
+        exchange.getAttributes().put(Constants.HTTP_URL, "/test");
+
+        return exchange;
     }
 
     private WebClient mockWebClientOK() {

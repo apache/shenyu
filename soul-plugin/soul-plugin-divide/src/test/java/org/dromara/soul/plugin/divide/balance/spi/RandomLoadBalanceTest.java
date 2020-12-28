@@ -33,11 +33,29 @@ import java.util.stream.Stream;
  */
 public class RandomLoadBalanceTest {
 
-    private List<DivideUpstream> randomLoadBalances;
+    private List<DivideUpstream> randomLoadBalancesWeightDisordered;
+
+    private List<DivideUpstream> randomLoadBalancesWeightOrdered;
+
+    private List<DivideUpstream> randomLoadBalancesWeightReversed;
 
     @Before
     public void setUp() {
-        this.randomLoadBalances = Stream.of(10, 40, 50)
+        this.randomLoadBalancesWeightDisordered = Stream.of(10, 50, 40)
+                .map(weight -> DivideUpstream.builder()
+                        .upstreamUrl("divide-upstream-" + weight)
+                        .weight(weight)
+                        .build())
+                .collect(Collectors.toList());
+
+        this.randomLoadBalancesWeightOrdered = Stream.of(10, 40, 50)
+                .map(weight -> DivideUpstream.builder()
+                        .upstreamUrl("divide-upstream-" + weight)
+                        .weight(weight)
+                        .build())
+                .collect(Collectors.toList());
+
+        this.randomLoadBalancesWeightReversed = Stream.of(50, 40, 10)
                 .map(weight -> DivideUpstream.builder()
                         .upstreamUrl("divide-upstream-" + weight)
                         .weight(weight)
@@ -49,9 +67,23 @@ public class RandomLoadBalanceTest {
      * random load balance test.
      */
     @Test
-    public void randomLoadBalanceTest() {
+    public void randomLoadBalanceOrderedWeightTest() {
         final RandomLoadBalance randomLoadBalance = new RandomLoadBalance();
-        DivideUpstream upstream = randomLoadBalance.select(randomLoadBalances, "");
-        Assert.assertNotNull(upstream);
+        final DivideUpstream upstreamOrdered = randomLoadBalance.select(randomLoadBalancesWeightOrdered, "");
+        Assert.assertNotNull(upstreamOrdered);
+    }
+
+    @Test
+    public void randomLoadBalanceDisOrderedWeightTest() {
+        final RandomLoadBalance randomLoadBalance = new RandomLoadBalance();
+        final DivideUpstream upstreamDisordered = randomLoadBalance.select(randomLoadBalancesWeightDisordered, "");
+        Assert.assertNotNull(upstreamDisordered);
+    }
+
+    @Test
+    public void randomLoadBalanceReversedWeightTest() {
+        final RandomLoadBalance randomLoadBalance = new RandomLoadBalance();
+        final DivideUpstream upstreamReversed = randomLoadBalance.select(randomLoadBalancesWeightReversed, "");
+        Assert.assertNotNull(upstreamReversed);
     }
 }

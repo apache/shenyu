@@ -31,6 +31,7 @@ import org.dromara.soul.admin.query.AppAuthQuery;
 import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.admin.vo.AuthPathVO;
+import org.dromara.soul.common.constant.AdminConstants;
 import org.dromara.soul.common.utils.DateUtils;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.exception.CommonErrorCode;
@@ -103,6 +104,28 @@ public final class AppAuthControllerTest {
                 .andReturn();
     }
 
+    @Test
+    public void testApplyWithAppKey() throws Exception {
+        final AuthApplyDTO authApplyDTO = new AuthApplyDTO();
+        List<String> pathList = new ArrayList<>();
+        pathList.add("/test");
+        authApplyDTO.setAppName("testApp");
+        authApplyDTO.setUserId("testUser");
+        authApplyDTO.setPhone("18600000000");
+        authApplyDTO.setAppParam("{\"type\": \"test\"}");
+        authApplyDTO.setAppKey("testAppKey");
+        authApplyDTO.setExtInfo("{\"extInfo\": \"test\"}");
+        authApplyDTO.setPathList(pathList);
+        given(this.appAuthService.applyUpdate(authApplyDTO)).willReturn(
+                SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS));
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/appAuth/apply")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(GsonUtils.getInstance().toJson(authApplyDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(SoulResultMessage.CREATE_SUCCESS)))
+                .andReturn();
+    }
+    
     @Test
     public void testUpdateSk() throws Exception {
         this.mockMvc.perform(MockMvcRequestBuilders.get("/appAuth/updateSk")
@@ -219,6 +242,21 @@ public final class AppAuthControllerTest {
                 .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(SoulResultMessage.ENABLE_SUCCESS)))
+                .andReturn();
+    }
+
+    @Test
+    public void testBatchEnabledWithError() throws Exception {
+        final BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
+        batchCommonDTO.setIds(Arrays.asList("0001", "0002"));
+        batchCommonDTO.setEnabled(true);
+        given(this.appAuthService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled()))
+                .willReturn(AdminConstants.ID_NOT_EXIST);
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/appAuth/batchEnabled")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is(AdminConstants.ID_NOT_EXIST)))
                 .andReturn();
     }
 

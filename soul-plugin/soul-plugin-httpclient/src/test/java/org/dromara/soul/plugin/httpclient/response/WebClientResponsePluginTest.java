@@ -19,11 +19,11 @@ package org.dromara.soul.plugin.httpclient.response;
 
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.PluginEnum;
+import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
 import org.dromara.soul.plugin.api.result.SoulResult;
 import org.dromara.soul.plugin.base.utils.SpringBeanUtils;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,10 +41,13 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.any;
 
 /**
  * The test case for WebClientResponsePlugin.
@@ -74,20 +77,33 @@ public final class WebClientResponsePluginTest {
      */
     @Test
     public void testExecuted() {
-        ServerWebExchange exchangeNormal = generateServerWebExchange();
+        ServerWebExchange exchangeNormal = generateServerWebExchange(true);
         reset(chain);
         when(chain.execute(exchangeNormal)).thenReturn(Mono.empty());
         Mono<Void> monoSuccess = webClientResponsePlugin.execute(exchangeNormal, chain);
-        StepVerifier.create(monoSuccess).expectSubscription().verifyError();
+        StepVerifier.create(monoSuccess).expectSubscription().verifyComplete();
 
-        ServerWebExchange exchangeBadGateway = generateServerWebExchange();
+        ServerWebExchange exchangeNullResponse = generateServerWebExchange(false);
+        reset(chain);
+        when(chain.execute(exchangeNullResponse)).thenReturn(Mono.empty());
+        Mono<Void> monoNullResponse = webClientResponsePlugin.execute(exchangeNullResponse, chain);
+        StepVerifier.create(monoNullResponse).expectSubscription().verifyComplete();
+
+        ServerWebExchange exchangeInternalServerError = generateServerWebExchange(true);
+        exchangeInternalServerError.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+        reset(chain);
+        when(chain.execute(exchangeInternalServerError)).thenReturn(Mono.empty());
+        Mono<Void> monoInternalServerError = webClientResponsePlugin.execute(exchangeInternalServerError, chain);
+        StepVerifier.create(monoInternalServerError).expectSubscription().verifyComplete();
+
+        ServerWebExchange exchangeBadGateway = generateServerWebExchange(true);
         exchangeBadGateway.getResponse().setStatusCode(HttpStatus.BAD_GATEWAY);
         reset(chain);
         when(chain.execute(exchangeBadGateway)).thenReturn(Mono.empty());
         Mono<Void> monoBadGateway = webClientResponsePlugin.execute(exchangeBadGateway, chain);
         StepVerifier.create(monoBadGateway).expectSubscription().verifyComplete();
 
-        ServerWebExchange exchangeGatewayTimeout = generateServerWebExchange();
+        ServerWebExchange exchangeGatewayTimeout = generateServerWebExchange(true);
         exchangeGatewayTimeout.getResponse().setStatusCode(HttpStatus.GATEWAY_TIMEOUT);
         reset(chain);
         when(chain.execute(exchangeGatewayTimeout)).thenReturn(Mono.empty());
@@ -100,8 +116,18 @@ public final class WebClientResponsePluginTest {
      */
     @Test
     public void testSkip() {
-        ServerWebExchange exchange = generateServerWebExchange();
-        Assert.assertTrue(webClientResponsePlugin.skip(exchange));
+        ServerWebExchange exchangeNormal = generateServerWebExchange(true);
+        assertTrue(webClientResponsePlugin.skip(exchangeNormal));
+
+        ServerWebExchange exchangeHttp = generateServerWebExchange(true);
+        when(((SoulContext) exchangeHttp.getAttributes().get(Constants.CONTEXT)).getRpcType())
+                .thenReturn(RpcTypeEnum.HTTP.getName());
+        assertFalse(webClientResponsePlugin.skip(exchangeHttp));
+
+        ServerWebExchange exchangeSpringCloud = generateServerWebExchange(true);
+        when(((SoulContext) exchangeSpringCloud.getAttributes().get(Constants.CONTEXT)).getRpcType())
+                .thenReturn(RpcTypeEnum.SPRING_CLOUD.getName());
+        assertFalse(webClientResponsePlugin.skip(exchangeSpringCloud));
     }
 
     @Test
@@ -114,7 +140,7 @@ public final class WebClientResponsePluginTest {
         assertEquals(PluginEnum.RESPONSE.getName(), webClientResponsePlugin.named());
     }
 
-    private ServerWebExchange generateServerWebExchange() {
+    private ServerWebExchange generateServerWebExchange(final boolean haveResponse) {
         ClientResponse mockResponse = mock(ClientResponse.class);
         MultiValueMap<String, ResponseCookie> cookies = new LinkedMultiValueMap<>();
         cookies.add("id", mock(ResponseCookie.class));
@@ -122,14 +148,16 @@ public final class WebClientResponsePluginTest {
         ClientResponse.Headers headers = mock(ClientResponse.Headers.class);
         when(headers.asHttpHeaders()).thenReturn(mock(HttpHeaders.class));
         when(mockResponse.headers()).thenReturn(headers);
+        when(mockResponse.body(any())).thenReturn(Mono.empty());
 
         ServerWebExchange exchange = MockServerWebExchange
-                .from(MockServerHttpRequest.get("/badGateway").build());
+                .from(MockServerHttpRequest.get("/test").build());
 
         exchange.getAttributes().put(Constants.CONTEXT, mock(SoulContext.class));
         exchange.getAttributes().put(Constants.HTTP_URL, "/test");
-        exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, mockResponse);
-
+        if (haveResponse) {
+            exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, mockResponse);
+        }
         return exchange;
     }
 }
