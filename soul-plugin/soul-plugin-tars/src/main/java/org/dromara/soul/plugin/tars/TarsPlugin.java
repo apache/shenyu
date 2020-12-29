@@ -40,6 +40,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.lang.reflect.Method;
 import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
@@ -75,10 +76,10 @@ public class TarsPlugin extends AbstractSoulPlugin {
         TarsInvokePrxList tarsInvokePrxList = ApplicationConfigCache.getInstance().get(metaData.getPath());
         int index = RANDOM.nextInt(tarsInvokePrxList.getTarsInvokePrxList().size());
         Object prx = tarsInvokePrxList.getTarsInvokePrxList().get(index).getInvokePrx();
+        Method method = tarsInvokePrxList.getMethod();
         CompletableFuture<String> future = null;
         try {
-            future = (CompletableFuture<String>) prx.getClass()
-                    .getDeclaredMethod(PrxInfoUtil.gerMethodName(metaData), tarsInvokePrxList.getParamTypes())
+            future = (CompletableFuture<String>) method
                     .invoke(prx, PrxInfoUtil.getParamArray(tarsInvokePrxList.getParamTypes(), tarsInvokePrxList.getParamNames(), body));
         } catch (Exception e) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);

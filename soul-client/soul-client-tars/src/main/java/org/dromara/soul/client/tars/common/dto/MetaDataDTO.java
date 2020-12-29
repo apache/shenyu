@@ -55,6 +55,14 @@ public class MetaDataDTO {
     
     private boolean enabled;
 
+    /**
+     * The type Rpc ext List.
+     */
+    @Data
+    @Builder
+    public static class RpcExtList {
+        private List<RpcExt> methodInfo;
+    }
 
     /**
      * The type Rpc ext.
@@ -62,7 +70,7 @@ public class MetaDataDTO {
     @Data
     @Builder
     public static class RpcExt {
-        private String returnType;
+        private String methodName;
 
         private List<Pair<String, String>> params;
     }
