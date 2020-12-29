@@ -96,12 +96,12 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
         for (Method method : methods) {
             SoulTarsClient soulSofaClient = method.getAnnotation(SoulTarsClient.class);
             if (Objects.nonNull(soulSofaClient)) {
-                RegisterUtils.doRegister(buildJsonParams(serviceName, soulSofaClient, method), url, RpcTypeEnum.TARS);
+                RegisterUtils.doRegister(buildJsonParams(serviceName, soulSofaClient, method, buildRpcExt(methods)), url, RpcTypeEnum.TARS);
             }
         }
     }
 
-    private String buildJsonParams(final String serviceName, final SoulTarsClient soulTarsClient, final Method method) {
+    private String buildJsonParams(final String serviceName, final SoulTarsClient soulTarsClient, final Method method, final String rpcExt) {
         String ipAndPort = tarsConfig.getIpAndPort();
         String path = tarsConfig.getContextPath() + soulTarsClient.path();
         String desc = soulTarsClient.desc();
@@ -121,24 +121,37 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
                 .pathDesc(desc)
                 .parameterTypes(parameterTypes)
                 .rpcType("tars")
-                .rpcExt(buildRpcExt(method))
+                .rpcExt(rpcExt)
                 .enabled(soulTarsClient.enabled())
                 .build();
         return OkHttpTools.getInstance().getGson().toJson(metaDataDTO);
     }
 
-    private String buildRpcExt(final Method method) {
+    private MetaDataDTO.RpcExt buildRpcExt(final Method method) {
         String[] paramNames = localVariableTableParameterNameDiscoverer.getParameterNames(method);
-        Class[] paramTypes = method.getParameterTypes();
         List<Pair<String, String>> params = new ArrayList<>();
-        for (int i = 0; i < paramNames.length; i++) {
-            params.add(new Pair<>(paramTypes[i].getName(), paramNames[i]));
+        if (paramNames != null && paramNames.length > 0) {
+            Class<?>[] paramTypes = method.getParameterTypes();
+            for (int i = 0; i < paramNames.length; i++) {
+                params.add(new Pair<>(paramTypes[i].getName(), paramNames[i]));
+            }
         }
-        MetaDataDTO.RpcExt build = MetaDataDTO.RpcExt.builder()
-                .returnType(method.getReturnType().getName())
+        return MetaDataDTO.RpcExt.builder().methodName(method.getName())
                 .params(params)
                 .build();
-        return OkHttpTools.getInstance().getGson().toJson(build);
+    }
 
+    private String buildRpcExt(final Method[] methods) {
+        List<MetaDataDTO.RpcExt> list = new ArrayList<>();
+        for (Method method : methods) {
+            SoulTarsClient soulSofaClient = method.getAnnotation(SoulTarsClient.class);
+            if (Objects.nonNull(soulSofaClient)) {
+                list.add(buildRpcExt(method));
+            }
+        }
+        MetaDataDTO.RpcExtList buildList = MetaDataDTO.RpcExtList.builder()
+                .methodInfo(list)
+                .build();
+        return OkHttpTools.getInstance().getGson().toJson(buildList);
     }
 }
