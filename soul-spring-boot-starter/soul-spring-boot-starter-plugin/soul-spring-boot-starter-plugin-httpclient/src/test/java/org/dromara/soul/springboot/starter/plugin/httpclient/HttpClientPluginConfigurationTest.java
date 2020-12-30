@@ -59,8 +59,7 @@ import java.time.Duration;
                 "soul.httpclient.ssl.handshakeTimeout=10000",
                 "soul.httpclient.ssl.closeNotifyFlushTimeout=3000",
                 "soul.httpclient.ssl.closeNotifyReadTimeout=0",
-                "soul.httpclient.ssl.SslProvider.DefaultConfigurationType=1",
-                "soul.httpclient.strategy.webClient="
+                "soul.httpclient.ssl.SslProvider.DefaultConfigurationType=1"
         })
 @EnableAutoConfiguration
 public class HttpClientPluginConfigurationTest {
