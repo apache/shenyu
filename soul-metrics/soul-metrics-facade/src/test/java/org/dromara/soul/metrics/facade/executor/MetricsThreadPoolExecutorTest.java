@@ -31,7 +31,7 @@ import static org.junit.Assert.assertThat;
  * The Test Case For MetricsThreadPollExecutor.
  *
  * @author nuo-promise
- **/
+ */
 public class MetricsThreadPoolExecutorTest {
 
     private MetricsThreadPoolExecutor metricsThreadPoolExecutor;
