@@ -30,7 +30,6 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
-import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import java.util.concurrent.Callable;
@@ -59,23 +58,23 @@ public class MetricsTrackerHandlerTest {
 
     private MetricsTrackerHandler metricsTrackerHandler = MetricsTrackerHandler.getInstance();
 
-    @Mock
     private PrometheusMetricsTrackerFactory prometheusMetricsTrackerFactory;
 
-    @Mock
     private PrometheusMetricsTrackerManager prometheusMetricsTrackerManager;
 
-    @Mock
     private MetricsThreadPoolExecutor metricsThreadPoolExecutor;
 
-    @Mock
     private NoneHistogramMetricsTrackerDelegate noneHistogramMetricsTrackerDelegate;
 
-    @Mock
     private NoneSummaryMetricsTrackerDelegate noneSummaryMetricsTrackerDelegate;
 
     @Before
     public void setUp() {
+        prometheusMetricsTrackerFactory = mock(PrometheusMetricsTrackerFactory.class);
+        prometheusMetricsTrackerManager = mock(PrometheusMetricsTrackerManager.class);
+        metricsThreadPoolExecutor = mock(MetricsThreadPoolExecutor.class);
+        noneHistogramMetricsTrackerDelegate = mock(NoneHistogramMetricsTrackerDelegate.class);
+        noneSummaryMetricsTrackerDelegate = mock(NoneSummaryMetricsTrackerDelegate.class);
         when(prometheusMetricsTrackerManager.getMetricsTrackerFactory()).thenReturn(prometheusMetricsTrackerFactory);
         ReflectionTestUtils.setField(metricsTrackerHandler, "executorService", metricsThreadPoolExecutor);
         ReflectionTestUtils.setField(metricsTrackerHandler, "metricsTrackerManager", prometheusMetricsTrackerManager);
