@@ -34,11 +34,8 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -86,8 +83,15 @@ public class MetricsTrackerHandlerTest {
     }
 
     @Test
+    public void testClose() {
+        ReflectionTestUtils.setField(metricsTrackerHandler, "async", true);
+        metricsTrackerHandler.close();
+        assertFalse((Boolean) ReflectionTestUtils.getField(metricsTrackerHandler, "async"));
+    }
+
+    @Test
     public void testInit() {
-        metricsTrackerHandler.init(true, 1, prometheusMetricsTrackerManager);
+        metricsTrackerHandler.init(false, 1, prometheusMetricsTrackerManager);
         assertEquals(prometheusMetricsTrackerManager, ReflectionTestUtils.getField(metricsTrackerHandler, "metricsTrackerManager"));
     }
 
@@ -125,7 +129,7 @@ public class MetricsTrackerHandlerTest {
     }
 
     @Test
-    public void testHistogramStartTimer() throws InterruptedException, ExecutionException, TimeoutException {
+    public void testHistogramStartTimer() throws Exception {
         metricsTrackerHandler.histogramStartTimer(MetricsLabelEnum.REQUEST_LATENCY.getName());
         verify(prometheusMetricsTrackerFactory, times(1)).create(eq(MetricsTypeEnum.HISTOGRAM.name()), eq(MetricsLabelEnum.REQUEST_LATENCY.getName()));
 
@@ -190,12 +194,5 @@ public class MetricsTrackerHandlerTest {
         ReflectionTestUtils.setField(metricsTrackerHandler, "async", true);
         metricsTrackerHandler.summaryObserveDuration(noneSummaryMetricsTrackerDelegate);
         verify(metricsThreadPoolExecutor, times(1)).execute(any(Runnable.class));
-    }
-
-    @Test
-    public void testClose() {
-        ReflectionTestUtils.setField(metricsTrackerHandler, "async", true);
-        metricsTrackerHandler.close();
-        assertFalse((Boolean) ReflectionTestUtils.getField(metricsTrackerHandler, "async"));
     }
 }
