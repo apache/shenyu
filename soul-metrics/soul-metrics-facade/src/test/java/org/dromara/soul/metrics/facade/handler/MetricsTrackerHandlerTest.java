@@ -37,6 +37,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -94,6 +95,11 @@ public class MetricsTrackerHandlerTest {
     public void testInit() {
         metricsTrackerHandler.init(false, 1, prometheusMetricsTrackerManager);
         assertEquals(prometheusMetricsTrackerManager, ReflectionTestUtils.getField(metricsTrackerHandler, "metricsTrackerManager"));
+    }
+
+    @Test
+    public void testGetInstance() {
+        assertNotNull(MetricsTrackerHandler.getInstance());
     }
 
     @Test
