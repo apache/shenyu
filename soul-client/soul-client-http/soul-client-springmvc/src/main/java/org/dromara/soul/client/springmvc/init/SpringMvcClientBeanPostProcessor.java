@@ -23,6 +23,7 @@ import org.dromara.soul.client.common.utils.RegisterUtils;
 import org.dromara.soul.client.springmvc.annotation.SoulSpringMvcClient;
 import org.dromara.soul.client.springmvc.config.SoulSpringMvcConfig;
 import org.dromara.soul.client.springmvc.dto.SpringMvcRegisterDTO;
+import org.dromara.soul.client.springmvc.utils.ValidateUtils;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.IpUtils;
 import org.springframework.beans.BeansException;
@@ -60,17 +61,9 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
      * @param soulSpringMvcConfig the soul spring mvc config
      */
     public SpringMvcClientBeanPostProcessor(final SoulSpringMvcConfig soulSpringMvcConfig) {
-        String contextPath = soulSpringMvcConfig.getContextPath();
-        String adminUrl = soulSpringMvcConfig.getAdminUrl();
-        Integer port = soulSpringMvcConfig.getPort();
-        if (contextPath == null || "".equals(contextPath)
-                || adminUrl == null || "".equals(adminUrl)
-                || port == null) {
-            log.error("spring mvc param must config contextPath, adminUrl and port");
-            throw new RuntimeException("spring mvc param must config contextPath, adminUrl and port");
-        }
+        ValidateUtils.validate(soulSpringMvcConfig);
         this.soulSpringMvcConfig = soulSpringMvcConfig;
-        url = adminUrl + "/soul-client/springmvc-register";
+        url = soulSpringMvcConfig.getAdminUrl() + "/soul-client/springmvc-register";
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
     }
 
