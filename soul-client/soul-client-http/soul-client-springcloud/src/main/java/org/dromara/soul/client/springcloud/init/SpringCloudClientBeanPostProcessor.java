@@ -80,15 +80,13 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         RestController restController = AnnotationUtils.findAnnotation(bean.getClass(), RestController.class);
         RequestMapping requestMapping = AnnotationUtils.findAnnotation(bean.getClass(), RequestMapping.class);
         if (controller != null || restController != null || requestMapping != null) {
-            String contextPath = config.getContextPath();
-            //首先
             String prePath = "";
             SoulSpringCloudClient clazzAnnotation = AnnotationUtils.findAnnotation(bean.getClass(), SoulSpringCloudClient.class);
             if (Objects.nonNull(clazzAnnotation)) {
                 if (clazzAnnotation.path().indexOf("*") > 1) {
                     String finalPrePath = prePath;
-                    executorService.execute(() -> RegisterUtils.doRegister(buildJsonParams(clazzAnnotation, contextPath, finalPrePath),
-                            url, RpcTypeEnum.SPRING_CLOUD));
+                    executorService.execute(() -> RegisterUtils.doRegister(buildJsonParams(clazzAnnotation, finalPrePath), url,
+                            RpcTypeEnum.SPRING_CLOUD));
                     return bean;
                 }
                 prePath = clazzAnnotation.path();
@@ -98,15 +96,16 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
                 SoulSpringCloudClient soulSpringCloudClient = AnnotationUtils.findAnnotation(method, SoulSpringCloudClient.class);
                 if (Objects.nonNull(soulSpringCloudClient)) {
                     String finalPrePath = prePath;
-                    executorService.execute(() -> RegisterUtils.doRegister(buildJsonParams(soulSpringCloudClient, contextPath,
-                            finalPrePath), url, RpcTypeEnum.SPRING_CLOUD));
+                    executorService.execute(() -> RegisterUtils.doRegister(buildJsonParams(soulSpringCloudClient, finalPrePath), url,
+                            RpcTypeEnum.SPRING_CLOUD));
                 }
             }
         }
         return bean;
     }
 
-    private String buildJsonParams(final SoulSpringCloudClient soulSpringCloudClient, final String contextPath, final String prePath) {
+    private String buildJsonParams(final SoulSpringCloudClient soulSpringCloudClient, final String prePath) {
+        String contextPath = config.getContextPath();
         String appName = env.getProperty("spring.application.name");
         String path = contextPath + prePath + soulSpringCloudClient.path();
         String desc = soulSpringCloudClient.desc();

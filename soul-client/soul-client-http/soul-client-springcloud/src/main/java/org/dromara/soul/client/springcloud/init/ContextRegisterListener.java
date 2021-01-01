@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 public class ContextRegisterListener implements ApplicationListener<ContextRefreshedEvent> {
 
-    private volatile AtomicBoolean registered = new AtomicBoolean(false);
+    private final AtomicBoolean registered = new AtomicBoolean(false);
 
     private final String url;
 
@@ -64,19 +64,19 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
             return;
         }
         if (config.isFull()) {
-            RegisterUtils.doRegister(buildJsonParams(config.getContextPath()), url, RpcTypeEnum.SPRING_CLOUD);
+            RegisterUtils.doRegister(buildJsonParams(), url, RpcTypeEnum.SPRING_CLOUD);
         }
     }
 
-    private String buildJsonParams(final String contextPath) {
-
+    private String buildJsonParams() {
+        String contextPath = config.getContextPath();
         String appName = env.getProperty("spring.application.name");
         String path = contextPath + "/**";
         SpringCloudRegisterDTO registerDTO = SpringCloudRegisterDTO.builder()
                 .context(contextPath)
                 .appName(appName)
                 .path(path)
-                .rpcType("springCloud")
+                .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())
                 .enabled(true)
                 .ruleName(path)
                 .build();
