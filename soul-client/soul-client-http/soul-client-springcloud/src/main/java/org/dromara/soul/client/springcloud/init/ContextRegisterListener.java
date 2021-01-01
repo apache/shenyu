@@ -22,6 +22,7 @@ import org.dromara.soul.client.common.utils.OkHttpTools;
 import org.dromara.soul.client.common.utils.RegisterUtils;
 import org.dromara.soul.client.springcloud.config.SoulSpringCloudConfig;
 import org.dromara.soul.client.springcloud.dto.SpringCloudRegisterDTO;
+import org.dromara.soul.client.springcloud.utils.ValidateUtils;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -51,17 +52,10 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
      * @param env    the env
      */
     public ContextRegisterListener(final SoulSpringCloudConfig config, final Environment env) {
-        String contextPath = config.getContextPath();
-        String adminUrl = config.getAdminUrl();
-        String appName = env.getProperty("spring.application.name");
-        if (contextPath == null || "".equals(contextPath)
-                || adminUrl == null || "".equals(adminUrl)
-                || appName == null || "".equals(appName)) {
-            throw new RuntimeException("spring cloud param must config the contextPath, adminUrl and appName");
-        }
+        ValidateUtils.validate(config, env);
         this.config = config;
         this.env = env;
-        this.url = adminUrl + "/soul-client/springcloud-register";
+        this.url = config.getAdminUrl() + "/soul-client/springcloud-register";
     }
 
     @Override

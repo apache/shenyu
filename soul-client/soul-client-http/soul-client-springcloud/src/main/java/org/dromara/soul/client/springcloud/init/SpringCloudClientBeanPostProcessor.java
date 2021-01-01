@@ -23,6 +23,7 @@ import org.dromara.soul.client.common.utils.RegisterUtils;
 import org.dromara.soul.client.springcloud.annotation.SoulSpringCloudClient;
 import org.dromara.soul.client.springcloud.config.SoulSpringCloudConfig;
 import org.dromara.soul.client.springcloud.dto.SpringCloudRegisterDTO;
+import org.dromara.soul.client.springcloud.utils.ValidateUtils;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -63,17 +64,10 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
      * @param env    the env
      */
     public SpringCloudClientBeanPostProcessor(final SoulSpringCloudConfig config, final Environment env) {
-        String contextPath = config.getContextPath();
-        String adminUrl = config.getAdminUrl();
-        String appName = env.getProperty("spring.application.name");
-        if (contextPath == null || "".equals(contextPath)
-                || adminUrl == null || "".equals(adminUrl)
-                || appName == null || "".equals(appName)) {
-            throw new RuntimeException("spring cloud param must config the contextPath, adminUrl and appName");
-        }
+        ValidateUtils.validate(config, env);
         this.config = config;
         this.env = env;
-        this.url = adminUrl + "/soul-client/springcloud-register";
+        this.url = config.getAdminUrl() + "/soul-client/springcloud-register";
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
     }
 
