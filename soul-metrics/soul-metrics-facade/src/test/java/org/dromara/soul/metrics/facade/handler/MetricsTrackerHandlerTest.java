@@ -43,6 +43,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -56,7 +57,7 @@ import static org.mockito.Mockito.when;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class MetricsTrackerHandlerTest {
 
-    private MetricsTrackerHandler metricsTrackerHandler = MetricsTrackerHandler.getInstance();
+    private MetricsTrackerHandler metricsTrackerHandler;
 
     private PrometheusMetricsTrackerFactory prometheusMetricsTrackerFactory;
 
@@ -70,6 +71,7 @@ public class MetricsTrackerHandlerTest {
 
     @Before
     public void setUp() {
+        metricsTrackerHandler = spy(MetricsTrackerHandler.class);
         prometheusMetricsTrackerFactory = mock(PrometheusMetricsTrackerFactory.class);
         prometheusMetricsTrackerManager = mock(PrometheusMetricsTrackerManager.class);
         metricsThreadPoolExecutor = mock(MetricsThreadPoolExecutor.class);
