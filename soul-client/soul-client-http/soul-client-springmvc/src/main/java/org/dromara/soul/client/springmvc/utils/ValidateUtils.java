@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.dromara.soul.client.springmvc.utils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +31,13 @@ public final class ValidateUtils {
     private ValidateUtils() {
     }
 
-    public static void validate(SoulSpringMvcConfig soulSpringMvcConfig) {
+    /**
+     * validate SoulSpringMvcConfig.
+     *
+     * @param soulSpringMvcConfig the soulSpringMvcConfig
+     * @throws RuntimeException the RuntimeException
+     */
+    public static void validate(final SoulSpringMvcConfig soulSpringMvcConfig) {
         String contextPath = soulSpringMvcConfig.getContextPath();
         String adminUrl = soulSpringMvcConfig.getAdminUrl();
         Integer port = soulSpringMvcConfig.getPort();

@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.dromara.soul.client.springcloud.utils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +32,14 @@ public final class ValidateUtils {
     private ValidateUtils() {
     }
 
-    public static void validate(SoulSpringCloudConfig soulSpringCloudConfig, Environment env) {
+    /**
+     * validate SoulSpringCloudConfig.
+     *
+     * @param soulSpringCloudConfig the soulSpringCloudConfig
+     * @param env                   the env
+     * @throws RuntimeException the RuntimeException
+     */
+    public static void validate(final SoulSpringCloudConfig soulSpringCloudConfig, final Environment env) {
         String contextPath = soulSpringCloudConfig.getContextPath();
         String adminUrl = soulSpringCloudConfig.getAdminUrl();
         String appName = env.getProperty("spring.application.name");
