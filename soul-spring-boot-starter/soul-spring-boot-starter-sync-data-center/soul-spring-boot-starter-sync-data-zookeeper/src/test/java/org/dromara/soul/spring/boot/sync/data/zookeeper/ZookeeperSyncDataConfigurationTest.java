@@ -18,13 +18,11 @@
 package org.dromara.soul.spring.boot.sync.data.zookeeper;
 
 import org.I0Itec.zkclient.ZkClient;
-import org.apache.curator.test.TestingServer;
+import org.I0Itec.zkclient.exception.ZkTimeoutException;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 import org.dromara.soul.sync.data.api.SyncDataService;
 import org.dromara.soul.sync.data.zookeeper.ZookeeperSyncDataService;
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,8 +30,6 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import java.io.IOException;
 
 /**
  * test case for {@link ZookeeperSyncDataConfiguration}.
@@ -49,32 +45,17 @@ import java.io.IOException;
         properties = {
                 "soul.sync.zookeeper.url=localhost:2181",
                 "soul.sync.zookeeper.sessionTimeout=30000",
-                "soul.sync.zookeeper.connectionTimeout=30000"
+                "soul.sync.zookeeper.connectionTimeout=500"
         })
 @EnableAutoConfiguration
-@MockBean(PluginDataSubscriber.class)
+@MockBean({PluginDataSubscriber.class, ZkClient.class})
 public class ZookeeperSyncDataConfigurationTest {
-
-    private static TestingServer mockZkServer;
 
     @Autowired
     private ZookeeperConfig zookeeperConfig;
 
     @Autowired
     private SyncDataService syncDataService;
-
-    @Autowired
-    private ZkClient zkClient;
-
-    @BeforeClass
-    public static void setUp() throws Exception {
-        mockZkServer = new TestingServer(2181, true);
-    }
-
-    @AfterClass
-    public static void tearDown() throws IOException {
-        mockZkServer.stop();
-    }
 
     /**
      * case to test {@link ZookeeperSyncDataConfiguration} to register bean {@link ZookeeperSyncDataService}.
@@ -86,20 +67,20 @@ public class ZookeeperSyncDataConfigurationTest {
     }
 
     /**
-     * case to test {@link ZookeeperSyncDataConfiguration} to register bean {@link ZkClient}.
-     */
-    @Test
-    public void testZookeeperSyncDataConfigurationRegisterBeanZkClient() {
-        Assert.assertNotNull(zkClient);
-    }
-
-    /**
      * case to test {@link ZookeeperSyncDataConfiguration} to register bean {@link ZookeeperConfig}.
      */
     @Test
     public void testZookeeperSyncDataConfigurationRegisterBeanZookeeperConfig() {
         Assert.assertEquals("localhost:2181", zookeeperConfig.getUrl());
         Assert.assertEquals(30000, (int) zookeeperConfig.getSessionTimeout());
-        Assert.assertEquals(30000, (int) zookeeperConfig.getConnectionTimeout());
+        Assert.assertEquals(500, (int) zookeeperConfig.getConnectionTimeout());
+    }
+
+    /**
+     * case to test {@link ZookeeperSyncDataConfiguration} build {@link ZkClient} should throw exception.
+     */
+    @Test(expected = ZkTimeoutException.class)
+    public void testZookeeperSyncDataConfigurationInitializeZkClientConnectionTimeout() {
+        new ZookeeperSyncDataConfiguration().zkClient(zookeeperConfig);
     }
 }
