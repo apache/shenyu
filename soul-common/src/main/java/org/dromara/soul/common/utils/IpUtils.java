@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.client.springmvc.utils;
+package org.dromara.soul.common.utils;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -23,8 +23,10 @@ import java.net.UnknownHostException;
 /**
  * The type Ip utils.
  */
-public class IpUtils {
-    
+public final class IpUtils {
+    private IpUtils() {
+    }
+
     /**
      * Gets host.
      *

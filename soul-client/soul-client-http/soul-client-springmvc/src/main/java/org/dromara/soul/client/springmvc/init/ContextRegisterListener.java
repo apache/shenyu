@@ -22,8 +22,8 @@ import org.dromara.soul.client.common.utils.OkHttpTools;
 import org.dromara.soul.client.common.utils.RegisterUtils;
 import org.dromara.soul.client.springmvc.config.SoulSpringMvcConfig;
 import org.dromara.soul.client.springmvc.dto.SpringMvcRegisterDTO;
-import org.dromara.soul.client.springmvc.utils.IpUtils;
 import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.dromara.soul.common.utils.IpUtils;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
