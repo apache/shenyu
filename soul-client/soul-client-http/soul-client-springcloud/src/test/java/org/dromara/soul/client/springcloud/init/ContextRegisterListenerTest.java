@@ -15,11 +15,10 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.client.springcloud;
+package org.dromara.soul.client.springcloud.init;
 
 import org.dromara.soul.client.common.utils.RegisterUtils;
 import org.dromara.soul.client.springcloud.config.SoulSpringCloudConfig;
-import org.dromara.soul.client.springcloud.init.ContextRegisterListener;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
