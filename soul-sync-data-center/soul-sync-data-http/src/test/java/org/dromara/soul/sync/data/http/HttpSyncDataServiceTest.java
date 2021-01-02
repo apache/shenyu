@@ -29,7 +29,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import wiremock.org.apache.http.HttpHeaders;
@@ -46,6 +45,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -59,13 +59,10 @@ public class HttpSyncDataServiceTest {
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(WireMockConfiguration.wireMockConfig().dynamicPort(), false);
 
-    @Mock
     private PluginDataSubscriber pluginDataSubscriber;
 
-    @Mock
     private MetaDataSubscriber metaDataSubscriber;
 
-    @Mock
     private AuthDataSubscriber authDataSubscriber;
 
     private HttpSyncDataService httpSyncDataService;
@@ -91,6 +88,9 @@ public class HttpSyncDataServiceTest {
         httpConfig.setConnectionTimeout(3);
         // set delay time
         httpConfig.setDelayTime(3);
+        this.pluginDataSubscriber = mock(PluginDataSubscriber.class);
+        this.metaDataSubscriber = mock(MetaDataSubscriber.class);
+        this.authDataSubscriber = mock(AuthDataSubscriber.class);
         this.httpSyncDataService = new HttpSyncDataService(httpConfig, pluginDataSubscriber,
                 Collections.singletonList(metaDataSubscriber), Collections.singletonList(authDataSubscriber));
     }
