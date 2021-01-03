@@ -37,6 +37,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -85,7 +86,7 @@ public class HttpSyncDataServiceTest {
         HttpConfig httpConfig = new HttpConfig();
         httpConfig.setUrl(this.getMockServerUrl());
         // set http connection timeout
-        httpConfig.setConnectionTimeout(3);
+        httpConfig.setConnectionTimeout(3000);
         // set delay time
         httpConfig.setDelayTime(3);
         this.pluginDataSubscriber = mock(PluginDataSubscriber.class);
@@ -114,7 +115,7 @@ public class HttpSyncDataServiceTest {
     }
 
     private String getMockServerUrl() {
-        return "http://localhost:" + wireMockRule.port();
+        return "http://127.0.0.1:" + wireMockRule.port();
     }
 
     // mock configs listen api response
