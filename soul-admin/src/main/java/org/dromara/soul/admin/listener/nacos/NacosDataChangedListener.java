@@ -30,6 +30,7 @@ import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -73,6 +74,8 @@ public class NacosDataChangedListener implements DataChangedListener {
     private static final String AUTH_DATA_ID = "soul.auth.json";
 
     private static final String META_DATA_ID = "soul.meta.json";
+
+    private static final String EMPTY_CONFIG_DEFAULT_VALUE = "{}";
 
     private final ConfigService configService;
 
@@ -136,7 +139,8 @@ public class NacosDataChangedListener implements DataChangedListener {
 
     @SneakyThrows
     private String getConfig(final String dataId) {
-        return configService.getConfig(dataId, GROUP, 6000);
+        String config = configService.getConfig(dataId, GROUP, 6000);
+        return StringUtils.hasLength(config) ? config : EMPTY_CONFIG_DEFAULT_VALUE;
     }
 
     @SneakyThrows
