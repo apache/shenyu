@@ -17,24 +17,27 @@
 
 package org.dromara.soul.client.springmvc.utils;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import org.dromara.soul.client.springmvc.config.SoulSpringMvcConfig;
+import org.junit.Test;
 
 /**
- * The type Ip utils.
+ * Test cases for ValidateUtils.
+ *
+ * @author severez
  */
-public class IpUtils {
-    
-    /**
-     * Gets host.
-     *
-     * @return the host
-     */
-    public static String getHost() {
-        try {
-            return InetAddress.getLocalHost().getHostAddress();
-        } catch (UnknownHostException e) {
-            return "127.0.0.1";
-        }
+public class ValidateUtilsTest {
+
+    @Test
+    public void testValidatePass() {
+        SoulSpringMvcConfig soulSpringMvcConfig = new SoulSpringMvcConfig();
+        soulSpringMvcConfig.setAdminUrl("http://127.0.0.1:8080");
+        soulSpringMvcConfig.setContextPath("/test");
+        soulSpringMvcConfig.setPort(8081);
+        ValidateUtils.validate(soulSpringMvcConfig);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testValidateThrowException() {
+        ValidateUtils.validate(new SoulSpringMvcConfig());
     }
 }

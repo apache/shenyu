@@ -74,7 +74,7 @@ public class WebClientPlugin implements SoulPlugin {
         }
         long timeout = (long) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_TIME_OUT)).orElse(3000L);
         int retryTimes = (int) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_RETRY)).orElse(0);
-        log.info("you request,The resulting urlPath is :{}, retryTimes: {}", urlPath, retryTimes);
+        log.info("The request urlPath is {}, retryTimes is {}", urlPath, retryTimes);
         HttpMethod method = HttpMethod.valueOf(exchange.getRequest().getMethodValue());
         WebClient.RequestBodySpec requestBodySpec = webClient.method(method).uri(urlPath);
         return handleRequestBody(requestBodySpec, exchange, timeout, retryTimes, chain);
