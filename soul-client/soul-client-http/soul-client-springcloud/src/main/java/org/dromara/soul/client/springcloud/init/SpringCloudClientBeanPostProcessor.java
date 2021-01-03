@@ -51,8 +51,6 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
 
     private final ThreadPoolExecutor executorService;
 
-    private final String url;
-
     private final SoulSpringCloudConfig config;
 
     private final Environment env;
@@ -67,7 +65,6 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         ValidateUtils.validate(config, env);
         this.config = config;
         this.env = env;
-        this.url = config.getAdminUrl() + "/soul-client/springcloud-register";
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
     }
 
@@ -85,8 +82,8 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
             if (Objects.nonNull(clazzAnnotation)) {
                 if (clazzAnnotation.path().indexOf("*") > 1) {
                     String finalPrePath = prePath;
-                    executorService.execute(() -> RegisterUtils.doRegister(buildJsonParams(clazzAnnotation, finalPrePath), url,
-                            RpcTypeEnum.SPRING_CLOUD));
+                    executorService.execute(() -> RegisterUtils.doRegister(buildJsonParams(clazzAnnotation, finalPrePath),
+                            config.getAdminUrl(), RpcTypeEnum.SPRING_CLOUD));
                     return bean;
                 }
                 prePath = clazzAnnotation.path();
@@ -96,8 +93,8 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
                 SoulSpringCloudClient soulSpringCloudClient = AnnotationUtils.findAnnotation(method, SoulSpringCloudClient.class);
                 if (Objects.nonNull(soulSpringCloudClient)) {
                     String finalPrePath = prePath;
-                    executorService.execute(() -> RegisterUtils.doRegister(buildJsonParams(soulSpringCloudClient, finalPrePath), url,
-                            RpcTypeEnum.SPRING_CLOUD));
+                    executorService.execute(() -> RegisterUtils.doRegister(buildJsonParams(soulSpringCloudClient, finalPrePath),
+                            config.getAdminUrl(), RpcTypeEnum.SPRING_CLOUD));
                 }
             }
         }

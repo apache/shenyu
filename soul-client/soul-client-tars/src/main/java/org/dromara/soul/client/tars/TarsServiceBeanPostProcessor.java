@@ -55,8 +55,6 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
 
     private final ExecutorService executorService;
 
-    private final String url;
-
     private final LocalVariableTableParameterNameDiscoverer localVariableTableParameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 
     public TarsServiceBeanPostProcessor(final TarsConfig tarsConfig) {
@@ -68,7 +66,6 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
             throw new RuntimeException("tars client must config the contextPath, adminUrl");
         }
         this.tarsConfig = tarsConfig;
-        url = tarsConfig.getAdminUrl() + "/soul-client/tars-register";
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
     }
 
@@ -96,7 +93,8 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
         for (Method method : methods) {
             SoulTarsClient soulSofaClient = method.getAnnotation(SoulTarsClient.class);
             if (Objects.nonNull(soulSofaClient)) {
-                RegisterUtils.doRegister(buildJsonParams(serviceName, soulSofaClient, method, buildRpcExt(methods)), url, RpcTypeEnum.TARS);
+                RegisterUtils.doRegister(buildJsonParams(serviceName, soulSofaClient, method, buildRpcExt(methods)),
+                        tarsConfig.getAdminUrl(), RpcTypeEnum.TARS);
             }
         }
     }

@@ -39,8 +39,6 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
 
     private final AtomicBoolean registered = new AtomicBoolean(false);
 
-    private final String url;
-
     private final SoulSpringMvcConfig soulSpringMvcConfig;
 
     /**
@@ -51,7 +49,6 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
     public ContextRegisterListener(final SoulSpringMvcConfig soulSpringMvcConfig) {
         ValidateUtils.validate(soulSpringMvcConfig);
         this.soulSpringMvcConfig = soulSpringMvcConfig;
-        url = soulSpringMvcConfig.getAdminUrl() + "/soul-client/springmvc-register";
     }
 
     @Override
@@ -60,7 +57,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
             return;
         }
         if (soulSpringMvcConfig.isFull()) {
-            RegisterUtils.doRegister(buildJsonParams(), url, RpcTypeEnum.HTTP);
+            RegisterUtils.doRegister(buildJsonParams(), soulSpringMvcConfig.getAdminUrl(), RpcTypeEnum.HTTP);
         }
     }
 

@@ -39,8 +39,6 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
 
     private final AtomicBoolean registered = new AtomicBoolean(false);
 
-    private final String url;
-
     private final SoulSpringCloudConfig config;
 
     private final Environment env;
@@ -55,7 +53,6 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
         ValidateUtils.validate(config, env);
         this.config = config;
         this.env = env;
-        this.url = config.getAdminUrl() + "/soul-client/springcloud-register";
     }
 
     @Override
@@ -64,7 +61,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
             return;
         }
         if (config.isFull()) {
-            RegisterUtils.doRegister(buildJsonParams(), url, RpcTypeEnum.SPRING_CLOUD);
+            RegisterUtils.doRegister(buildJsonParams(), config.getAdminUrl(), RpcTypeEnum.SPRING_CLOUD);
         }
     }
 

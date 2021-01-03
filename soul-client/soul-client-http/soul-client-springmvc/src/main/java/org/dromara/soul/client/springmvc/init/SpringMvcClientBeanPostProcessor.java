@@ -52,8 +52,6 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
 
     private final ThreadPoolExecutor executorService;
 
-    private final String url;
-
     private final SoulSpringMvcConfig soulSpringMvcConfig;
 
     /**
@@ -64,7 +62,6 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
     public SpringMvcClientBeanPostProcessor(final SoulSpringMvcConfig soulSpringMvcConfig) {
         ValidateUtils.validate(soulSpringMvcConfig);
         this.soulSpringMvcConfig = soulSpringMvcConfig;
-        url = soulSpringMvcConfig.getAdminUrl() + "/soul-client/springmvc-register";
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
     }
 
@@ -82,8 +79,8 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
             if (Objects.nonNull(clazzAnnotation)) {
                 if (clazzAnnotation.path().indexOf("*") > 1) {
                     String finalPrePath = prePath;
-                    executorService.execute(() -> RegisterUtils.doRegister(buildJsonParams(clazzAnnotation, finalPrePath), url,
-                            RpcTypeEnum.HTTP));
+                    executorService.execute(() -> RegisterUtils.doRegister(buildJsonParams(clazzAnnotation, finalPrePath),
+                            soulSpringMvcConfig.getAdminUrl(), RpcTypeEnum.HTTP));
                     return bean;
                 }
                 prePath = clazzAnnotation.path();
@@ -93,8 +90,8 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
                 SoulSpringMvcClient soulSpringMvcClient = AnnotationUtils.findAnnotation(method, SoulSpringMvcClient.class);
                 if (Objects.nonNull(soulSpringMvcClient)) {
                     String finalPrePath = prePath;
-                    executorService.execute(() -> RegisterUtils.doRegister(buildJsonParams(soulSpringMvcClient, finalPrePath), url,
-                            RpcTypeEnum.HTTP));
+                    executorService.execute(() -> RegisterUtils.doRegister(buildJsonParams(soulSpringMvcClient, finalPrePath),
+                            soulSpringMvcConfig.getAdminUrl(), RpcTypeEnum.HTTP));
                 }
             }
         }

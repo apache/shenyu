@@ -19,6 +19,7 @@ package org.dromara.soul.client.common.utils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.common.constant.AdminConstants;
+import org.dromara.soul.common.constant.RegisterConstants;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 
 import java.io.IOException;
@@ -38,10 +39,11 @@ public final class RegisterUtils {
      * call register api.
      *
      * @param json        request body
-     * @param url         url
+     * @param adminUrl    adminUrl
      * @param rpcTypeEnum rcp type
      */
-    public static void doRegister(final String json, final String url, final RpcTypeEnum rpcTypeEnum) {
+    public static void doRegister(final String json, final String adminUrl, final RpcTypeEnum rpcTypeEnum) {
+        String url = adminUrl + RegisterConstants.COMMON_CONTEXT_PATH + rpcTypeEnum.getRegisterPath();
         try {
             String result = OkHttpTools.getInstance().post(url, json);
             if (AdminConstants.SUCCESS.equals(result)) {

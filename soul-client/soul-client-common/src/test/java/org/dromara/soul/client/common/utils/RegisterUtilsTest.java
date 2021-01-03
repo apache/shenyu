@@ -31,10 +31,10 @@ import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mockStatic;
 
 /**
  * Test case for {@link RegisterUtils}.
@@ -48,6 +48,8 @@ public final class RegisterUtilsTest {
     private String json;
 
     private String url;
+
+    private String adminUrl;
 
     @Before
     public void setUp() {
@@ -69,6 +71,7 @@ public final class RegisterUtilsTest {
 
         json = JsonUtils.toJson(jsonMap);
         url = "http://localhost:9095/soul-client/dubbo-register";
+        adminUrl = "http://localhost:9095";
     }
 
     @SneakyThrows
@@ -78,7 +81,7 @@ public final class RegisterUtilsTest {
 
         try (MockedStatic<OkHttpTools> okHttpToolsMockedStatic = mockStatic(OkHttpTools.class)) {
             okHttpToolsMockedStatic.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
-            RegisterUtils.doRegister(json, url, RpcTypeEnum.DUBBO);
+            RegisterUtils.doRegister(json, adminUrl, RpcTypeEnum.DUBBO);
             verify(okHttpTools, times(1)).post(eq(url), eq(json));
         }
     }
@@ -90,7 +93,7 @@ public final class RegisterUtilsTest {
 
         try (MockedStatic<OkHttpTools> okHttpToolsMockedStatic = mockStatic(OkHttpTools.class)) {
             okHttpToolsMockedStatic.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
-            RegisterUtils.doRegister(json, url, RpcTypeEnum.DUBBO);
+            RegisterUtils.doRegister(json, adminUrl, RpcTypeEnum.DUBBO);
             verify(okHttpTools, times(1)).post(eq(url), eq(json));
         }
     }
@@ -102,7 +105,7 @@ public final class RegisterUtilsTest {
 
         try (MockedStatic<OkHttpTools> okHttpToolsMockedStatic = mockStatic(OkHttpTools.class)) {
             okHttpToolsMockedStatic.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
-            RegisterUtils.doRegister(json, url, RpcTypeEnum.DUBBO);
+            RegisterUtils.doRegister(json, adminUrl, RpcTypeEnum.DUBBO);
             verify(okHttpTools, times(1)).post(eq(url), eq(json));
         }
     }

@@ -54,8 +54,6 @@ public class ApacheDubboServiceBeanPostProcessor implements ApplicationListener<
 
     private ExecutorService executorService;
 
-    private final String url;
-
     public ApacheDubboServiceBeanPostProcessor(final DubboConfig dubboConfig) {
         String contextPath = dubboConfig.getContextPath();
         String adminUrl = dubboConfig.getAdminUrl();
@@ -64,7 +62,6 @@ public class ApacheDubboServiceBeanPostProcessor implements ApplicationListener<
             throw new RuntimeException("apache dubbo client must config the contextPath, adminUrl");
         }
         this.dubboConfig = dubboConfig;
-        url = dubboConfig.getAdminUrl() + "/soul-client/dubbo-register";
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
     }
 
@@ -83,7 +80,8 @@ public class ApacheDubboServiceBeanPostProcessor implements ApplicationListener<
         for (Method method : methods) {
             SoulDubboClient soulDubboClient = method.getAnnotation(SoulDubboClient.class);
             if (Objects.nonNull(soulDubboClient)) {
-                RegisterUtils.doRegister(buildJsonParams(serviceBean, soulDubboClient, method), url, RpcTypeEnum.DUBBO);
+                RegisterUtils.doRegister(buildJsonParams(serviceBean, soulDubboClient, method), dubboConfig.getAdminUrl(),
+                        RpcTypeEnum.DUBBO);
             }
         }
     }

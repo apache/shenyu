@@ -53,8 +53,6 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
 
     private final ExecutorService executorService;
 
-    private final String url;
-
     public SofaServiceBeanPostProcessor(final SofaConfig sofaConfig) {
         String contextPath = sofaConfig.getContextPath();
         String adminUrl = sofaConfig.getAdminUrl();
@@ -63,7 +61,6 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
             throw new RuntimeException("sofa client must config the contextPath, adminUrl");
         }
         this.sofaConfig = sofaConfig;
-        url = sofaConfig.getAdminUrl() + "/soul-client/sofa-register";
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
     }
 
@@ -96,7 +93,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
         for (Method method : methods) {
             SoulSofaClient soulSofaClient = method.getAnnotation(SoulSofaClient.class);
             if (Objects.nonNull(soulSofaClient)) {
-                RegisterUtils.doRegister(buildJsonParams(serviceBean, soulSofaClient, method), url, RpcTypeEnum.SOFA);
+                RegisterUtils.doRegister(buildJsonParams(serviceBean, soulSofaClient, method), sofaConfig.getAdminUrl(), RpcTypeEnum.SOFA);
             }
         }
     }

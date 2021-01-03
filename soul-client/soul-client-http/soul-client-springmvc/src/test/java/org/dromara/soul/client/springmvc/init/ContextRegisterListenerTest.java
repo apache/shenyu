@@ -68,7 +68,7 @@ public final class ContextRegisterListenerTest {
             ContextRefreshedEvent contextRefreshedEvent = mock(ContextRefreshedEvent.class);
             contextRegisterListener.onApplicationEvent(contextRefreshedEvent);
 
-            mocked.verify(() -> RegisterUtils.doRegister(anyString(), eq("http://127.0.0.1:8080/soul-client/springmvc-register"), eq(RpcTypeEnum.HTTP)));
+            mocked.verify(() -> RegisterUtils.doRegister(anyString(), eq("http://127.0.0.1:8080"), eq(RpcTypeEnum.HTTP)));
         }
     }
 }
