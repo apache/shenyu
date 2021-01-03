@@ -20,6 +20,10 @@ package org.dromara.soul.sync.data.http;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import lombok.SneakyThrows;
+import org.dromara.soul.common.dto.ConfigData;
+import org.dromara.soul.common.dto.PluginData;
+import org.dromara.soul.common.enums.ConfigGroupEnum;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.sync.data.api.AuthDataSubscriber;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
@@ -33,11 +37,12 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 import wiremock.org.apache.http.HttpHeaders;
 import wiremock.org.apache.http.entity.ContentType;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+
 import java.util.Collections;
-import java.util.Objects;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
@@ -52,6 +57,7 @@ import static org.mockito.Mockito.verify;
  * Test cases for {@link HttpSyncDataService}.
  *
  * @author davidliu
+ * @author dengliming
  */
 @RunWith(MockitoJUnitRunner.class)
 public class HttpSyncDataServiceTest {
@@ -125,8 +131,26 @@ public class HttpSyncDataServiceTest {
     // mock configs fetch api response
     @SneakyThrows
     private String mockConfigsFetchResponseJson() {
-        return new String(Files.readAllBytes(
-                Paths.get(Objects.requireNonNull(this.getClass().getClassLoader()
-                        .getResource("mock_configs_fetch_response.json")).toURI())));
+        ConfigData emptyData = new ConfigData()
+                .setLastModifyTime(System.currentTimeMillis()).setData(Collections.emptyList())
+                .setMd5("d751713988987e9331980363e24189cf");
+        ConfigData pluginData = new ConfigData()
+                .setLastModifyTime(System.currentTimeMillis()).setData(Collections.singletonList(PluginData.builder()
+                        .id("9")
+                        .name("hystrix")
+                        .role(0)
+                        .enabled(false)
+                        .build()))
+                .setMd5("1298d5a533d0f896c60cbeca1ec7b017");
+        Map<String, Object> data = new HashMap<>();
+        data.put(ConfigGroupEnum.PLUGIN.name(), pluginData);
+        data.put(ConfigGroupEnum.META_DATA.name(), emptyData);
+        data.put(ConfigGroupEnum.APP_AUTH.name(), emptyData);
+        data.put(ConfigGroupEnum.SELECTOR.name(), emptyData);
+        data.put(ConfigGroupEnum.RULE.name(), emptyData);
+        Map<String, Object> response = new HashMap<>();
+        response.put("data", data);
+        response.put("code", 200);
+        return GsonUtils.getInstance().toJson(response);
     }
 }
