@@ -19,6 +19,7 @@ package org.dromara.soul.common.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.dromara.soul.common.constant.RegisterConstants;
 import org.dromara.soul.common.exception.SoulException;
 
 import java.util.Arrays;
@@ -37,45 +38,47 @@ public enum RpcTypeEnum {
     /**
      * Http rpc type enum.
      */
-    HTTP("http", true),
+    HTTP("http", RegisterConstants.HTTP_PATH, true),
 
     /**
      * Dubbo rpc type enum.
      */
-    DUBBO("dubbo", true),
+    DUBBO("dubbo", RegisterConstants.DUBBO_PATH, true),
 
     /**
      * Sofa rpc type enum.
      */
-    SOFA("sofa", true),
+    SOFA("sofa", RegisterConstants.SOFA_PATH, true),
 
     /**
      * Tars rpc type enum.
      */
-    TARS("tars", true),
+    TARS("tars", RegisterConstants.TARS_PATH, true),
 
     /**
      * Web socket rpc type enum.
      */
-    WEB_SOCKET("websocket", true),
+    WEB_SOCKET("websocket", "", true),
 
     /**
      * springCloud rpc type enum.
      */
-    SPRING_CLOUD("springCloud", true),
+    SPRING_CLOUD("springCloud", RegisterConstants.SPRING_CLOUD_PATH, true),
 
     /**
      * motan.
      */
-    MOTAN("motan", false),
+    MOTAN("motan", "", false),
 
     /**
      * grpc.
      */
-    GRPC("grpc", false);
+    GRPC("grpc", "", false);
 
 
     private final String name;
+
+    private final String registerPath;
 
     private final Boolean support;
 

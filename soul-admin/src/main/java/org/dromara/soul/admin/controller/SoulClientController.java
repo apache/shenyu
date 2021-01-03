@@ -17,10 +17,11 @@
 
 package org.dromara.soul.admin.controller;
 
+import org.dromara.soul.admin.dto.MetaDataDTO;
 import org.dromara.soul.admin.dto.SpringCloudRegisterDTO;
 import org.dromara.soul.admin.dto.SpringMvcRegisterDTO;
-import org.dromara.soul.admin.dto.MetaDataDTO;
 import org.dromara.soul.admin.service.SoulClientRegisterService;
+import org.dromara.soul.common.constant.RegisterConstants;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author xiaoyu
  */
 @RestController
-@RequestMapping("/soul-client")
+@RequestMapping(RegisterConstants.COMMON_CONTEXT_PATH)
 public class SoulClientController {
 
     private final SoulClientRegisterService soulClientRegisterService;
@@ -52,7 +53,7 @@ public class SoulClientController {
      * @param springMvcRegisterDTO the spring mvc register dto
      * @return the string
      */
-    @PostMapping("/springmvc-register")
+    @PostMapping(RegisterConstants.HTTP_PATH)
     public String registerSpringMvc(@RequestBody final SpringMvcRegisterDTO springMvcRegisterDTO) {
         return soulClientRegisterService.registerSpringMvc(springMvcRegisterDTO);
     }
@@ -63,7 +64,7 @@ public class SoulClientController {
      * @param springCloudRegisterDTO the spring cloud register dto
      * @return the string
      */
-    @PostMapping("/springcloud-register")
+    @PostMapping(RegisterConstants.SPRING_CLOUD_PATH)
     public String registerSpringCloud(@RequestBody final SpringCloudRegisterDTO springCloudRegisterDTO) {
         return soulClientRegisterService.registerSpringCloud(springCloudRegisterDTO);
     }
@@ -75,7 +76,7 @@ public class SoulClientController {
      * @param metaDataDTO the meta data dto
      * @return the string
      */
-    @PostMapping("/dubbo-register")
+    @PostMapping(RegisterConstants.DUBBO_PATH)
     public String registerRpc(@RequestBody final MetaDataDTO metaDataDTO) {
         return soulClientRegisterService.registerDubbo(metaDataDTO);
     }
@@ -86,7 +87,7 @@ public class SoulClientController {
      * @param metaDataDTO the meta data dto
      * @return the string
      */
-    @PostMapping("/sofa-register")
+    @PostMapping(RegisterConstants.SOFA_PATH)
     public String registerSofaRpc(@RequestBody final MetaDataDTO metaDataDTO) {
         return soulClientRegisterService.registerSofa(metaDataDTO);
     }
@@ -97,7 +98,7 @@ public class SoulClientController {
      * @param metaDataDTO the meta data dto
      * @return the string
      */
-    @PostMapping("/tars-register")
+    @PostMapping(RegisterConstants.TARS_PATH)
     public String registerTarsRpc(@RequestBody final MetaDataDTO metaDataDTO) {
         return soulClientRegisterService.registerTars(metaDataDTO);
     }
