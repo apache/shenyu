@@ -30,9 +30,9 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.test.util.ReflectionTestUtils;
 import rx.observers.TestSubscriber;
 
-import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 
 import static org.junit.Assert.assertEquals;
@@ -89,10 +89,7 @@ public final class HystrixCommandTest {
     @Test
     @SneakyThrows
     public void testConstruct() {
-        Class<HystrixCommand> clazz = HystrixCommand.class;
-        Method method = clazz.getDeclaredMethod("construct");
-        method.setAccessible(true);
-        assertNotNull(method.invoke(this.hystrixCommand));
+        assertNotNull(ReflectionTestUtils.invokeMethod(this.hystrixCommand, "construct"));
     }
 
     @Test(expected = NullPointerException.class)

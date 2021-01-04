@@ -59,7 +59,7 @@ public class MetaDataController {
     }
 
     /**
-     * Query list soul result.
+     * Query metadata list.
      *
      * @param appName     the app name
      * @param currentPage the current page
@@ -73,7 +73,7 @@ public class MetaDataController {
     }
 
     /**
-     * Find all soul result.
+     * Find all metadata.
      *
      * @return the soul result
      */
@@ -83,7 +83,7 @@ public class MetaDataController {
     }
 
     /**
-     * Find all group soul result.
+     * Find all group of metadata.
      *
      * @return the soul result
      */
@@ -93,7 +93,7 @@ public class MetaDataController {
     }
 
     /**
-     * Detail app auth soul result.
+     * Get detail of metadata.
      *
      * @param id the id
      * @return the soul result
@@ -105,7 +105,7 @@ public class MetaDataController {
     }
 
     /**
-     * Create or update soul result.
+     * Create or update metadata.
      *
      * @param metaDataDTO the meta data dto
      * @return the soul result
@@ -120,7 +120,7 @@ public class MetaDataController {
     }
 
     /**
-     * Batch deleted soul result.
+     * Batch deleted metadata.
      *
      * @param ids the ids
      * @return the soul result
@@ -132,7 +132,7 @@ public class MetaDataController {
     }
 
     /**
-     * Batch enabled soul result.
+     * Batch enabled metadata.
      *
      * @param batchCommonDTO the batch common dto
      * @return the soul result
@@ -148,7 +148,7 @@ public class MetaDataController {
 
 
     /**
-     * Sync data soul result.
+     * Sync metadata.
      *
      * @return the soul result
      */

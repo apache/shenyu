@@ -71,7 +71,7 @@ public class HttpClientPluginConfigurationTest {
     private HttpSyncDataService httpSyncDataService;
 
     @BeforeClass
-    public static void setupWireMock() throws Exception {
+    public static void setUpWireMock() throws Exception {
         WireMockServer wireMockServer = new WireMockServer(options().port(18848));
 
         wireMockServer.stubFor(get(urlPathEqualTo("/configs/fetch"))
