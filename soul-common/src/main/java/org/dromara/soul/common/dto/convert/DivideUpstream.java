@@ -57,6 +57,7 @@ public class DivideUpstream implements Serializable {
     /**
      * false close/ true open.
      */
+    @Builder.Default
     private boolean status = true;
 
     /**
