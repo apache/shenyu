@@ -18,12 +18,14 @@
 package org.dromara.soul.client.springmvc.init;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.client.common.utils.OkHttpTools;
 import org.dromara.soul.client.common.utils.RegisterUtils;
 import org.dromara.soul.client.springmvc.config.SoulSpringMvcConfig;
 import org.dromara.soul.client.springmvc.dto.SpringMvcRegisterDTO;
-import org.dromara.soul.client.springmvc.utils.IpUtils;
+import org.dromara.soul.client.springmvc.utils.ValidateUtils;
 import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.dromara.soul.common.utils.IpUtils;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
@@ -35,7 +37,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 public class ContextRegisterListener implements ApplicationListener<ContextRefreshedEvent> {
 
-    private volatile AtomicBoolean registered = new AtomicBoolean(false);
+    private final AtomicBoolean registered = new AtomicBoolean(false);
 
     private final String url;
 
@@ -47,17 +49,9 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
      * @param soulSpringMvcConfig the soul spring mvc config
      */
     public ContextRegisterListener(final SoulSpringMvcConfig soulSpringMvcConfig) {
-        String contextPath = soulSpringMvcConfig.getContextPath();
-        String adminUrl = soulSpringMvcConfig.getAdminUrl();
-        Integer port = soulSpringMvcConfig.getPort();
-        if (contextPath == null || "".equals(contextPath)
-                || adminUrl == null || "".equals(adminUrl)
-                || port == null) {
-            log.error("spring mvc param must config contextPath adminUrl and port");
-            throw new RuntimeException("spring mvc param must config contextPath, adminUrl and port");
-        }
+        ValidateUtils.validate(soulSpringMvcConfig);
         this.soulSpringMvcConfig = soulSpringMvcConfig;
-        url = adminUrl + "/soul-client/springmvc-register";
+        url = soulSpringMvcConfig.getAdminUrl() + "/soul-client/springmvc-register";
     }
 
     @Override
@@ -66,23 +60,24 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
             return;
         }
         if (soulSpringMvcConfig.isFull()) {
-            RegisterUtils.doRegister(buildJsonParams(soulSpringMvcConfig.getContextPath()), url, RpcTypeEnum.HTTP);
+            RegisterUtils.doRegister(buildJsonParams(), url, RpcTypeEnum.HTTP);
         }
     }
 
-    private String buildJsonParams(final String contextPath) {
+    private String buildJsonParams() {
+        String contextPath = soulSpringMvcConfig.getContextPath();
         String appName = soulSpringMvcConfig.getAppName();
         Integer port = soulSpringMvcConfig.getPort();
         String path = contextPath + "/**";
         String configHost = soulSpringMvcConfig.getHost();
-        String host = ("".equals(configHost) || null == configHost) ? IpUtils.getHost() : configHost;
+        String host = StringUtils.isBlank(configHost) ? IpUtils.getHost() : configHost;
         SpringMvcRegisterDTO registerDTO = SpringMvcRegisterDTO.builder()
                 .context(contextPath)
                 .host(host)
                 .port(port)
                 .appName(appName)
                 .path(path)
-                .rpcType("http")
+                .rpcType(RpcTypeEnum.HTTP.getName())
                 .enabled(true)
                 .ruleName(path)
                 .build();

@@ -43,7 +43,7 @@ public final class LogUtilsTest {
     private Supplier<Object> supplier;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         logger = spy(Logger.class);
         supplier = mock(Supplier.class);
         when(supplier.get()).thenReturn("Test case for LogUtils");

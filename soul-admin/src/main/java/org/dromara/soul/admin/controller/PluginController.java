@@ -154,7 +154,7 @@ public class PluginController {
     }
 
     /**
-     * Enable mono.
+     * Enable plugins.
      *
      * @param batchCommonDTO the batch common dto
      * @return the mono
