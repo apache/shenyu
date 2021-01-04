@@ -46,7 +46,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 @EnableAutoConfiguration
 public final class SoulAlibabaDubboClientConfigurationTest {
 
-    @Autowired
+    @Autowired 
     private DubboConfig dubboConfig;
 
     @Test
