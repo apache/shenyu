@@ -23,7 +23,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,6 +41,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.ApplicationContext;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * Test cases for {@link DataChangedEventDispatcher}.
@@ -164,10 +164,8 @@ public final class DataChangedEventDispatcherTest {
      */
     @Test
     @SuppressWarnings("unchecked")
-    public void afterPropertiesSetTest() throws NoSuchFieldException, IllegalAccessException {
-        Field listenersField = dataChangedEventDispatcher.getClass().getDeclaredField("listeners");
-        listenersField.setAccessible(true);
-        List<DataChangedListener> listeners = (List<DataChangedListener>) listenersField.get(dataChangedEventDispatcher);
+    public void afterPropertiesSetTest() {
+        List<DataChangedListener> listeners = (List<DataChangedListener>) ReflectionTestUtils.getField(dataChangedEventDispatcher, "listeners");
         Assert.assertTrue(listeners.contains(httpLongPollingDataChangedListener));
         Assert.assertTrue(listeners.contains(nacosDataChangedListener));
         Assert.assertTrue(listeners.contains(websocketDataChangedListener));
