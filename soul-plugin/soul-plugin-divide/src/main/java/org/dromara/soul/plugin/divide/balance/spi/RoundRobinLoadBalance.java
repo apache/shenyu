@@ -56,7 +56,7 @@ public class RoundRobinLoadBalance extends AbstractLoadBalance {
         for (DivideUpstream upstream : upstreamList) {
             String rKey = upstream.getUpstreamUrl();
             WeightedRoundRobin weightedRoundRobin = map.get(rKey);
-            int weight = upstream.getWeight();
+            int weight = getWeight(upstream);
             if (weightedRoundRobin == null) {
                 weightedRoundRobin = new WeightedRoundRobin();
                 weightedRoundRobin.setWeight(weight);
