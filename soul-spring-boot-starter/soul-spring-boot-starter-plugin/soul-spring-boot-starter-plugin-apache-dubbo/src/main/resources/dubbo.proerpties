@@ -1,4 +1,0 @@
-dubbo.application.name=ecourse-consumer
-dubbo.registry.address=zookeeper://zookeeper://hqjlzookeeper:2181
-dubbo.registry.check=false
-dubbo.protocol.name=dubbo
