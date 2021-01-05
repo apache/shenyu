@@ -17,15 +17,21 @@
 
 package org.dromara.soul.web.handler;
 
+import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.plugin.api.SoulPlugin;
+import org.dromara.soul.plugin.api.context.SoulContext;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
+
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+
 import static org.mockito.Mockito.mock;
 
 /**
@@ -53,6 +59,9 @@ public class SoulWebHandlerTest {
         final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost")
                 .remoteAddress(new InetSocketAddress(8090))
                 .build());
-        soulWebHandler.handle(exchange);
+        exchange.getAttributes().put(Constants.CONTEXT, mock(SoulContext.class));
+        exchange.getAttributes().put(Constants.DUBBO_PARAMS, "{key:value}");
+        Mono<Void> handle = soulWebHandler.handle(exchange);
+        Assert.assertNotNull(handle);
     }
 }
