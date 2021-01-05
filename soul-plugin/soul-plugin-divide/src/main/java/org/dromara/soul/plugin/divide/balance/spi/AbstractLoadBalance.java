@@ -18,6 +18,7 @@
 package org.dromara.soul.plugin.divide.balance.spi;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.plugin.divide.balance.LoadBalance;
 
@@ -48,6 +49,36 @@ public abstract class AbstractLoadBalance implements LoadBalance {
             return upstreamList.get(0);
         }
         return doSelect(upstreamList, ip);
+    }
+
+    protected int getWeight(final DivideUpstream upstream) {
+        if (!upstream.isStatus()) {
+            return 0;
+        }
+        int weight = getWeight(upstream.getTimestamp(), getWarmup(upstream.getWarmup(), Constants.DEFAULT_WARMUP), upstream.getWeight());
+        return weight;
+    }
+
+    private int getWeight(final long timestamp, final int warmup, final int weight) {
+        if (weight > 0 && timestamp > 0) {
+            int uptime = (int) (System.currentTimeMillis() - timestamp);
+            if (uptime > 0 && uptime < warmup) {
+                return calculateWarmupWeight(uptime, warmup, weight);
+            }
+        }
+        return weight;
+    }
+
+    private int getWarmup(final int warmup, final int defaultWarmup) {
+        if (warmup > 0) {
+            return warmup;
+        }
+        return defaultWarmup;
+    }
+
+    private int calculateWarmupWeight(final int uptime, final int warmup, final int weight) {
+        int ww = (int) ((float) uptime / ((float) warmup / (float) weight));
+        return ww < 1 ? 1 : (ww > weight ? weight : ww);
     }
 
 }
