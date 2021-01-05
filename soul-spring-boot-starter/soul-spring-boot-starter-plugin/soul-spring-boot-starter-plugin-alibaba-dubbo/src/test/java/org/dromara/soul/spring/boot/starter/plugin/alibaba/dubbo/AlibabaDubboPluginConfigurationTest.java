@@ -18,7 +18,6 @@ import org.springframework.test.context.junit4.SpringRunner;
  * Test case for {@link AlibabaDubboPluginConfiguration}.
  *
  * @author: ZhouBin
- * @date: 2021/1/4 20:19
 */
 @RunWith(SpringRunner.class)
 @SpringBootTest(
