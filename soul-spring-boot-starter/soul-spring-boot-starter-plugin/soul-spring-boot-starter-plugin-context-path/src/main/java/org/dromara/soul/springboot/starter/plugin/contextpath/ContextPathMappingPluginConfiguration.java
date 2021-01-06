@@ -36,7 +36,7 @@ public class ContextPathMappingPluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin hystrixPlugin() {
+    public SoulPlugin contextPathMappingPlugin() {
         return new ContextPathMappingPlugin();
     }
 }
