@@ -18,7 +18,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  * Test case for {@link AlibabaDubboPluginConfiguration}.
  *
  * @author: ZhouBin
-*/
+ */
 @RunWith(SpringRunner.class)
 @SpringBootTest(
         classes = {
@@ -32,12 +32,16 @@ public class AlibabaDubboPluginConfigurationTest {
 
     @Autowired
     private AlibabaDubboPlugin alibabaDubboPlugin;
+
     @Autowired
     private BodyParamPlugin bodyParamPlugin;
+
     @Autowired
     private DubboResponsePlugin dubboResponsePlugin;
+
     @Autowired
     private AlibabaDubboPluginDataHandler alibabaDubboPluginDataHandler;
+
     @Autowired
     private AlibabaDubboMetaDataSubscriber alibabaDubboMetaDataSubscriber;
 
