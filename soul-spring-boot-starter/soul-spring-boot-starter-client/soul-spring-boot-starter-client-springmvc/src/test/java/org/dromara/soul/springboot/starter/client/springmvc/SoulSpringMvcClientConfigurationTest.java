@@ -58,8 +58,8 @@ public final class SoulSpringMvcClientConfigurationTest {
         Assert.assertEquals("http", soulSpringMvcConfig.getAppName());
         Assert.assertEquals("/http", soulSpringMvcConfig.getContextPath());
         Assert.assertEquals("http://localhost:9095", soulSpringMvcConfig.getAdminUrl());
-        Assert.assertEquals(Integer.valueOf(9190),soulSpringMvcConfig.getPort());
-        Assert.assertEquals("10.200.1.112",soulSpringMvcConfig.getHost());
+        Assert.assertEquals(Integer.valueOf(9190), soulSpringMvcConfig.getPort());
+        Assert.assertEquals("10.200.1.112", soulSpringMvcConfig.getHost());
         Assert.assertFalse(soulSpringMvcConfig.isFull());
 
     }
