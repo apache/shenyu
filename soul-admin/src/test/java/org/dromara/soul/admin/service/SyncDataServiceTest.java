@@ -36,7 +36,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
+import java.util.Collections;
 
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThat;
@@ -44,8 +44,8 @@ import static org.mockito.BDDMockito.given;
 
 /**
  * test for SyncDataService.
+ *
  * @author Redick
- * @date 2020/12/12 12:20
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class SyncDataServiceTest {
@@ -88,9 +88,9 @@ public final class SyncDataServiceTest {
         SelectorData selectorData = buildSelectorData();
         RuleData ruleData = buildRuleData();
         given(this.appAuthService.syncData()).willReturn(SoulAdminResult.success());
-        given(this.pluginService.listAll()).willReturn(Arrays.asList(pluginData));
-        given(this.selectorService.listAll()).willReturn(Arrays.asList(selectorData));
-        given(this.ruleService.listAll()).willReturn(Arrays.asList(ruleData));
+        given(this.pluginService.listAll()).willReturn(Collections.singletonList(pluginData));
+        given(this.selectorService.listAll()).willReturn(Collections.singletonList(selectorData));
+        given(this.ruleService.listAll()).willReturn(Collections.singletonList(ruleData));
         assertThat(syncDataService.syncAll(DataEventTypeEnum.CREATE), greaterThan(false));
     }
 
@@ -99,9 +99,9 @@ public final class SyncDataServiceTest {
         PluginVO pluginVO = buildPluginVO();
         given(this.pluginService.findById(pluginVO.getId())).willReturn(pluginVO);
         SelectorData selectorData = buildSelectorData();
-        given(this.selectorService.findByPluginId(pluginVO.getId())).willReturn(Arrays.asList(selectorData));
+        given(this.selectorService.findByPluginId(pluginVO.getId())).willReturn(Collections.singletonList(selectorData));
         RuleData ruleData = buildRuleData();
-        given(this.ruleService.findBySelectorId(pluginVO.getId())).willReturn(Arrays.asList(ruleData));
+        given(this.ruleService.findBySelectorId(pluginVO.getId())).willReturn(Collections.singletonList(ruleData));
 
         assertThat(syncDataService.syncPluginData(pluginVO.getId()), greaterThan(false));
     }
@@ -145,7 +145,7 @@ public final class SyncDataServiceTest {
         conditionData.setOperator(OperatorEnum.EQ.getAlias());
         conditionData.setParamName("post");
         conditionData.setParamValue("POST");
-        selectorData.setConditionList(Arrays.asList(conditionData));
+        selectorData.setConditionList(Collections.singletonList(conditionData));
         return selectorData;
     }
 
@@ -170,7 +170,7 @@ public final class SyncDataServiceTest {
         conditionData.setOperator(OperatorEnum.EQ.getAlias());
         conditionData.setParamName("post");
         conditionData.setParamValue("POST");
-        ruleData.setConditionDataList(Arrays.asList(conditionData));
+        ruleData.setConditionDataList(Collections.singletonList(conditionData));
         return ruleData;
     }
 

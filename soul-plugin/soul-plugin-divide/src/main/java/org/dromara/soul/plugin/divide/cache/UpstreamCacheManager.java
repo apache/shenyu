@@ -44,6 +44,10 @@ public final class UpstreamCacheManager {
 
     private static final Map<String, List<DivideUpstream>> UPSTREAM_MAP_TEMP = Maps.newConcurrentMap();
 
+
+    /**
+     * suggest soul.upstream.scheduledTime set 1 SECONDS.
+     */
     private UpstreamCacheManager() {
         boolean check = Boolean.parseBoolean(System.getProperty("soul.upstream.check", "false"));
         if (check) {
@@ -115,8 +119,14 @@ public final class UpstreamCacheManager {
         for (DivideUpstream divideUpstream : upstreamList) {
             final boolean pass = UpstreamCheckUtils.checkUrl(divideUpstream.getUpstreamUrl());
             if (pass) {
+                if (!divideUpstream.isStatus()) {
+                    divideUpstream.setTimestamp(System.currentTimeMillis());
+                    divideUpstream.setStatus(true);
+                    log.info("UpstreamCacheManager detect success the url: {}, host: {} ", divideUpstream.getUpstreamUrl(), divideUpstream.getUpstreamHost());
+                }
                 resultList.add(divideUpstream);
             } else {
+                divideUpstream.setStatus(false);
                 log.error("check the url={} is fail ", divideUpstream.getUpstreamUrl());
             }
         }
