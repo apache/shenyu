@@ -19,9 +19,12 @@ package org.dromara.soul.admin.shiro.bean;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.web.filter.AccessControlFilter;
+import org.dromara.soul.admin.result.SoulAdminResult;
+import org.dromara.soul.admin.utils.SoulResultMessage;
+import org.dromara.soul.common.exception.CommonErrorCode;
+import org.dromara.soul.common.utils.GsonUtils;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -41,7 +44,7 @@ public class StatelessAuthFilter extends AccessControlFilter {
 
     @Override
     protected boolean isAccessAllowed(final ServletRequest servletRequest, final ServletResponse servletResponse,
-                                      final Object o) throws Exception {
+                                      final Object o) {
         return false;
     }
 
@@ -52,7 +55,8 @@ public class StatelessAuthFilter extends AccessControlFilter {
         String tokenValue = httpServletRequest.getHeader(HEAD_TOKEN);
 
         if (StringUtils.isEmpty(tokenValue)) {
-            onLoginFail(servletResponse);
+            log.error("token is null.");
+            unionFailResponse(servletResponse);
             return false;
         }
 
@@ -60,11 +64,12 @@ public class StatelessAuthFilter extends AccessControlFilter {
         token.setToken(tokenValue);
 
         Subject subject = getSubject(servletRequest, servletResponse);
+
         try {
             subject.login(token);
-        } catch (AuthenticationException e) {
-            log.warn("token is warning, token : {}", token, e);
-            onLoginFail(servletResponse);
+        } catch (Exception e) {
+            log.error("token is warning. token : {}.", tokenValue, e);
+            unionFailResponse(servletResponse);
             return false;
         }
 
@@ -73,17 +78,18 @@ public class StatelessAuthFilter extends AccessControlFilter {
 
     /**
      * union response same result form exception.
-     * todo: will change to global exception intercept.
      *
      * @param response {@link ServletResponse}
      */
-    private void onLoginFail(final ServletResponse response) throws IOException {
+    private void unionFailResponse(final ServletResponse response) throws IOException {
         HttpServletResponse httpResponse = (HttpServletResponse) response;
-        httpResponse.setHeader("Content-type", "text/html;charset=UTF-8");
+        httpResponse.setContentType("application/json;charset=utf-8");
         httpResponse.setCharacterEncoding("utf-8");
         wrapCorsResponse(httpResponse);
         httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        httpResponse.getWriter().write("token失效");
+        SoulAdminResult result = SoulAdminResult.error(CommonErrorCode.TOKEN_ERROR,
+                SoulResultMessage.TOKEN_IS_ERROR);
+        httpResponse.getWriter().println(GsonUtils.getInstance().toJson(result));
     }
 
     /**
