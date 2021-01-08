@@ -28,13 +28,19 @@ public final class SoulResultMessage {
 
     public static final String CREATE_SUCCESS = "create success";
 
+    public static final String CREATE_FAILED = "create failed";
+
     public static final String DELETE_SUCCESS = "delete success";
 
     public static final String UPDATE_SUCCESS = "update success";
 
     public static final String QUERY_SUCCESS = "query success";
 
+    public static final String QUERY_FAILED = "query failed";
+
     public static final String DETAIL_SUCCESS = "detail success";
+
+    public static final String DETAIL_FAILED = "detail failed";
 
     public static final String ENABLE_SUCCESS = "enable success";
 
