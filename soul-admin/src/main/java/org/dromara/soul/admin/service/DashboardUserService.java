@@ -21,6 +21,7 @@ import org.dromara.soul.admin.dto.DashboardUserDTO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.DashboardUserQuery;
 import org.dromara.soul.admin.vo.DashboardUserVO;
+import org.dromara.soul.admin.vo.LoginDashboardUserVO;
 
 import java.util.List;
 
@@ -77,7 +78,7 @@ public interface DashboardUserService {
      *
      * @param userName default username is admin
      * @param password admin password
-     * @return {@linkplain DashboardUserVO}
+     * @return {@linkplain LoginDashboardUserVO}
      */
-    DashboardUserVO login(String userName, String password);
+    LoginDashboardUserVO login(String userName, String password);
 }

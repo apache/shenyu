@@ -29,6 +29,7 @@ import org.dromara.soul.admin.query.DashboardUserQuery;
 import org.dromara.soul.admin.service.DashboardUserService;
 import org.dromara.soul.admin.utils.AesUtils;
 import org.dromara.soul.admin.vo.DashboardUserVO;
+import org.dromara.soul.admin.vo.LoginDashboardUserVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,7 +44,7 @@ import java.util.stream.Collectors;
  */
 @Service("dashboardUserService")
 public class DashboardUserServiceImpl implements DashboardUserService {
-    
+
     @Resource
     private SecretProperties secretProperties;
 
@@ -126,10 +127,10 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      *
      * @param userName default username is admin
      * @param password admin password
-     * @return {@linkplain DashboardUserVO}
+     * @return {@linkplain LoginDashboardUserVO}
      */
     @Override
-    public DashboardUserVO login(final String userName, final String password) {
+    public LoginDashboardUserVO login(final String userName, final String password) {
         String key = secretProperties.getKey();
         DashboardUserVO dashboardUserVO = findByQuery(userName, password);
         if (dashboardUserVO != null) {
@@ -140,9 +141,10 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                     .role(dashboardUserVO.getRole())
                     .enabled(dashboardUserVO.getEnabled()).build();
             createOrUpdate(dashboardUserDTO);
-            return dashboardUserVO;
         } else {
-            return findByQuery(userName, AesUtils.aesEncryption(password, key));
+            dashboardUserVO = findByQuery(userName, AesUtils.aesEncryption(password, key));
         }
+
+        return LoginDashboardUserVO.buildLoginDashboardUserVO(dashboardUserVO);
     }
 }

@@ -62,4 +62,7 @@ public final class SoulResultMessage {
 
     public static final String APPKEY_NOT_EXIST_ERROR = "the appKey passed in does not exist";
 
+    public static final String TOKEN_IS_ERROR = "token is error";
+
+    public static final String TOKEN_HAS_NO_PERMISSION = "toke has no permission";
 }

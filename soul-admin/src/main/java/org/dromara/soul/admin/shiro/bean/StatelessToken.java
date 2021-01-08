@@ -15,33 +15,30 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.exception;
+package org.dromara.soul.admin.shiro.bean;
+
+import lombok.Data;
+import org.apache.shiro.authc.AuthenticationToken;
 
 /**
- * CommonErrorCode.
+ * custom Stateless AuthenticationToken.
  *
- * @author xiaoyu
- */
-public class CommonErrorCode {
+ * @author YuI
+ **/
+@Data
+public class StatelessToken implements AuthenticationToken {
 
-    /**
-     * The constant SUCCESSFUL.
-     */
-    public static final int SUCCESSFUL = 200;
+    private String userName;
 
-    /**
-     * The constant ERROR.
-     */
-    public static final int ERROR = 500;
+    private String token;
 
-    /**
-     * The constant TOKEN_ERROR.
-     */
-    public static final int TOKEN_ERROR = 600;
+    @Override
+    public Object getPrincipal() {
+        return userName;
+    }
 
-    /**
-     * The constant TOKEN_NO_PERMISSION.
-     */
-    public static final int TOKEN_NO_PERMISSION = 601;
-
+    @Override
+    public Object getCredentials() {
+        return token;
+    }
 }
