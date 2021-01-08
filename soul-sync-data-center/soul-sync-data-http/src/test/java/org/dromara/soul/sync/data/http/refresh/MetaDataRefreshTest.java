@@ -32,7 +32,7 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-public class MetaDataRefreshTest {
+public final class MetaDataRefreshTest {
 
     private final MetaDataRefresh mockMetaDataRefresh = this.buildMockMetaDataRefresh();
 

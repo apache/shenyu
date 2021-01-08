@@ -23,7 +23,6 @@ import org.dromara.soul.common.dto.ConfigData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.sync.data.api.AuthDataSubscriber;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -61,7 +60,7 @@ public class AppAuthDataRefreshTest {
         ConfigData<AppAuthData> expect = new ConfigData<>();
         expect.setLastModifyTime(System.currentTimeMillis());
         appAuthDataRefresh.updateCacheIfNeed(expect);
-        Assert.assertThat(appAuthDataRefresh.cacheConfigData(), is(expect));
+        assertThat(appAuthDataRefresh.cacheConfigData(), is(expect));
     }
 
     @Test
