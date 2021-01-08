@@ -53,12 +53,6 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-/**
- * Test cases for {@link HttpSyncDataService}.
- *
- * @author davidliu
- * @author dengliming
- */
 @RunWith(MockitoJUnitRunner.class)
 public class HttpSyncDataServiceTest {
 

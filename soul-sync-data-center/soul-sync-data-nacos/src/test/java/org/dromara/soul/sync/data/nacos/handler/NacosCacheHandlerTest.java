@@ -38,6 +38,7 @@ import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -50,11 +51,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
-/**
- * Test cases for {@link NacosCacheHandler}.
- *
- * @author kminjava
- */
 @Slf4j
 @SuppressWarnings("all")
 public final class NacosCacheHandlerTest {
@@ -89,13 +85,10 @@ public final class NacosCacheHandlerTest {
     private ConfigService configService;
 
     @Before
-    public void setUp() {
+    public void setup() {
         configService = new NacosMockConfigService();
     }
 
-    /**
-     * test case for {@link NacosCacheHandler#updatePluginMap(String)}.
-     */
     @SneakyThrows
     @Test
     public void testUpdatePluginMap() {
@@ -137,9 +130,6 @@ public final class NacosCacheHandlerTest {
 
     }
 
-    /**
-     * test case for {@link NacosCacheHandler#updateSelectorMap(String)}.
-     */
     @SneakyThrows
     @Test
     public void testUpdateSelectorMap() {
@@ -192,9 +182,6 @@ public final class NacosCacheHandlerTest {
                                         ImmutableList.of(selectorData1))));
     }
 
-    /**
-     * test case for {@link NacosCacheHandler#updateRuleMap(String)}.
-     */
     @SneakyThrows
     @Test
     public void testUpdateRuleMap() {
@@ -242,9 +229,6 @@ public final class NacosCacheHandlerTest {
                                         ImmutableList.of(ruleData1))));
     }
 
-    /**
-     * test case for {@link NacosCacheHandler#updateMetaDataMap(String)}.
-     */
     @SneakyThrows
     @Test
     public void testUpdateMetaDataMap() {
@@ -283,9 +267,6 @@ public final class NacosCacheHandlerTest {
                         .toJson(ImmutableMap.of(metadataPath1, metaData1, metadataPath2, metaData2)));
     }
 
-    /**
-     * test case for {@link NacosCacheHandler#updateAuthMap(String)}.
-     */
     @SneakyThrows
     @Test
     public void testUpdateAuthMap() {
@@ -458,5 +439,4 @@ public final class NacosCacheHandlerTest {
     private void publishConfig(final String dataId, final Object data) {
         configService.publishConfig(dataId, GROUP, GsonUtils.getInstance().toJson(data));
     }
-
 }
