@@ -21,17 +21,15 @@ import com.google.gson.Gson;
 import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
 import org.junit.Test;
+
 import java.util.LinkedList;
 import java.util.List;
-import static org.junit.Assert.assertEquals;
+
+import static org.junit.Assert.assertThat;
+import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-/**
- * Test cases for {@link MetaDataHandler}.
- *
- * @author cocoZwwang
- */
 public final class MetaDataHandlerTest {
 
     private final List<MetaDataSubscriber> subscribers;
@@ -46,9 +44,6 @@ public final class MetaDataHandlerTest {
         metaDataHandler = new MetaDataHandler(subscribers);
     }
 
-    /**
-     * test case for {@link MetaDataHandler#convert(String)}.
-     */
     @Test
     public void testConvert() {
         List<MetaData> metaDataList = new LinkedList<>();
@@ -57,14 +52,9 @@ public final class MetaDataHandlerTest {
         Gson gson = new Gson();
         String json = gson.toJson(metaDataList);
         List<MetaData> convertedList = metaDataHandler.convert(json);
-        assertEquals(metaDataList, convertedList);
+        assertThat(convertedList, is(metaDataList));
     }
 
-    /**
-     * test case for {@link MetaDataHandler#doRefresh(List)}.
-     * First,verify that MetaDataSubscriber bean has called the {@link MetaDataSubscriber#refresh()} method.
-     * Then,verify that each MetaDataSubscriber bean has called the {@link MetaDataSubscriber#onSubscribe(MetaData)} method.
-     */
     @Test
     public void testDoRefresh() {
         List<MetaData> metaDataList = createFakeMetaDataObjects(3);
@@ -74,10 +64,6 @@ public final class MetaDataHandlerTest {
                 subscribers.forEach(subscriber -> verify(subscriber).onSubscribe(metaData)));
     }
 
-    /**
-     * test case for {@link MetaDataHandler#doUpdate(List)}.
-     * verify that each MetaDataSubscriber bean has called the {@link MetaDataSubscriber#onSubscribe(MetaData)} method.
-     */
     @Test
     public void testDoUpdate() {
         List<MetaData> metaDataList = createFakeMetaDataObjects(4);
@@ -86,10 +72,6 @@ public final class MetaDataHandlerTest {
                 subscribers.forEach(subscriber -> verify(subscriber).onSubscribe(metaData)));
     }
 
-    /**
-     * test case for {@link MetaDataHandler#doDelete(List)}.
-     * verify that each MetaDataSubscriber bean has called the {@link MetaDataSubscriber#unSubscribe(MetaData)} method.
-     */
     @Test
     public void testDoDelete() {
         List<MetaData> metaDataList = createFakeMetaDataObjects(3);

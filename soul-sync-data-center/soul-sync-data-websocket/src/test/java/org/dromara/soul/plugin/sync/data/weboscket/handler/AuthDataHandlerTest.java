@@ -23,18 +23,17 @@ import org.dromara.soul.common.dto.AuthParamData;
 import org.dromara.soul.common.dto.AuthPathData;
 import org.dromara.soul.sync.data.api.AuthDataSubscriber;
 import org.junit.Test;
+
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import static org.junit.Assert.assertEquals;
+
+import static org.hamcrest.core.Is.is;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.junit.Assert.assertThat;
 
-/**
- * Test cases for {@link AuthDataHandler}.
- *
- * @author cocoZwwang
- */
 public final class AuthDataHandlerTest {
 
     private final List<AuthDataSubscriber> authDataSubscribers;
@@ -49,9 +48,6 @@ public final class AuthDataHandlerTest {
         authDataHandler = new AuthDataHandler(authDataSubscribers);
     }
 
-    /**
-     * test case for {@link AuthDataHandler#convert(String)}.
-     */
     @Test
     public void testConvert() {
         AppAuthData appAuthData = createFakerAppAuthDataObjects(1).get(0);
@@ -60,7 +56,7 @@ public final class AuthDataHandlerTest {
         Gson gson = new Gson();
         String json = gson.toJson(sources);
         List<AppAuthData> appAuthDataResults = authDataHandler.convert(json);
-        assertEquals(appAuthData, appAuthDataResults.get(0));
+        assertThat(appAuthDataResults.get(0), is(appAuthData));
     }
 
     private void setAppAuthDataProperties(final AppAuthData appAuthData) {
@@ -77,11 +73,6 @@ public final class AuthDataHandlerTest {
         appAuthData.setPathDataList(authPathDataList);
     }
 
-    /**
-     * test case for {@link AuthDataHandler#doRefresh(List)}.
-     * First,verify that each AuthDataSubscriber bean has called the {@link AuthDataSubscriber#refresh()} method.
-     * then,verify that each AuthDataSubscriber bean has called the {@link AuthDataSubscriber#onSubscribe(AppAuthData)} method.
-     */
     @Test
     public void testDoRefresh() {
         List<AppAuthData> appAuthDataList = createFakerAppAuthDataObjects(3);
@@ -91,10 +82,6 @@ public final class AuthDataHandlerTest {
                 authDataSubscribers.forEach(authDataSubscriber -> verify(authDataSubscriber).onSubscribe(appAuthData)));
     }
 
-    /**
-     * test case for {@link AuthDataHandler#doUpdate(List)}.
-     * verify that each AuthDataSubscriber bean has called the {@link AuthDataSubscriber#onSubscribe(AppAuthData)} method.
-     */
     @Test
     public void testDoUpdate() {
         List<AppAuthData> appAuthDataList = createFakerAppAuthDataObjects(4);
@@ -103,10 +90,6 @@ public final class AuthDataHandlerTest {
                 authDataSubscribers.forEach(authDataSubscriber -> verify(authDataSubscriber).onSubscribe(appAuthData)));
     }
 
-    /**
-     * test case for {@link AuthDataHandler#doDelete(List)}.
-     * verify that each AuthDataSubscriber bean has called the {@link AuthDataSubscriber#unSubscribe(AppAuthData)} method.
-     */
     @Test
     public void testDoDelete() {
         List<AppAuthData> appAuthDataList = createFakerAppAuthDataObjects(3);
