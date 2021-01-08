@@ -20,18 +20,20 @@ package org.dromara.soul.metrics.api;
 import org.dromara.soul.metrics.enums.MetricsTypeEnum;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 /**
  * Test for CounterMetricsTracker default method.
  *
  * @author dengliming
+ * @author Young Bean
  */
 public final class CounterMetricsTrackerTest {
 
     @Test
     public void metricsType() {
-        assertEquals(MetricsTypeEnum.COUNTER.name(), new CounterMetricsTracker() {
+        assertThat(MetricsTypeEnum.COUNTER.name(), equalTo(new CounterMetricsTracker() {
             @Override
             public String metricsLabel() {
                 return null;
@@ -41,6 +43,6 @@ public final class CounterMetricsTrackerTest {
             public void inc(final double amount, final String... labelValues) {
 
             }
-        }.metricsType());
+        }.metricsType()));
     }
 }

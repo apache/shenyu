@@ -60,7 +60,7 @@ public class MetricsTrackerFacadeTest {
 
     private static MockedStatic<ExtensionLoader> mockedExtensionLoader;
 
-    private MetricsTrackerFacade metricsTrackerFacade = MetricsTrackerFacade.getInstance();
+    private final MetricsTrackerFacade metricsTrackerFacade = MetricsTrackerFacade.getInstance();
 
     @Mock
     private MetricsTrackerHandler metricsTrackerHandler;
