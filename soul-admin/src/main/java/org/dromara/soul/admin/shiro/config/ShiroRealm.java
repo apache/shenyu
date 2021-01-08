@@ -40,6 +40,11 @@ import java.util.Set;
 public class ShiroRealm extends AuthorizingRealm {
 
     @Override
+    public boolean supports(final AuthenticationToken token) {
+        return token instanceof StatelessToken;
+    }
+
+    @Override
     protected AuthorizationInfo doGetAuthorizationInfo(final PrincipalCollection principalCollection) {
         // todo: temporary, will use database to add permission
         Set<String> permissions = new HashSet<>(Collections.singletonList("sys:*:*"));

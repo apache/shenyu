@@ -25,13 +25,23 @@ package org.dromara.soul.common.exception;
 public class CommonErrorCode {
 
     /**
+     * The constant SUCCESSFUL.
+     */
+    public static final int SUCCESSFUL = 200;
+
+    /**
      * The constant ERROR.
      */
     public static final int ERROR = 500;
 
     /**
-     * The constant SUCCESSFUL.
+     * The constant TOKEN_ERROR.
      */
-    public static final int SUCCESSFUL = 200;
+    public static final int TOKEN_ERROR = 600;
+
+    /**
+     * The constant TOKEN_NO_PERMISSION.
+     */
+    public static final int TOKEN_NO_PERMISSION = 601;
 
 }
