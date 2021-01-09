@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.lang.NonNull;
@@ -42,7 +43,7 @@ import java.sql.DriverManager;
 @Component
 public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcessor {
 
-    private static final String SCHEMA_SQL_FILE = "META-INF/schema.sql";
+    private @Value("${soul.database.init_script:META-INF/schema.h2.sql}") String schemaSQLFile;
 
     @Override
     public Object postProcessAfterInitialization(@NonNull final Object bean, final String beanName) throws BeansException {
@@ -68,8 +69,8 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
         // doesn't print logger
         runner.setLogWriter(null);
         Resources.setCharset(StandardCharsets.UTF_8);
-        Reader read = Resources.getResourceAsReader(SCHEMA_SQL_FILE);
-        log.info("execute soul schema sql: {}", SCHEMA_SQL_FILE);
+        Reader read = Resources.getResourceAsReader(schemaSQLFile);
+        log.info("execute soul schema sql: {}", schemaSQLFile);
         runner.runScript(read);
         runner.closeConnection();
         conn.close();
