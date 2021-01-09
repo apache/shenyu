@@ -144,7 +144,15 @@ public class UpstreamCheckService {
         for (DivideUpstream divideUpstream : upstreamList) {
             final boolean pass = UpstreamCheckUtils.checkUrl(divideUpstream.getUpstreamUrl());
             if (pass) {
+                if (!divideUpstream.isStatus()) {
+                    divideUpstream.setTimestamp(System.currentTimeMillis());
+                    divideUpstream.setStatus(true);
+                    log.info("UpstreamCacheManager check success the url: {}, host: {} ", divideUpstream.getUpstreamUrl(), divideUpstream.getUpstreamHost());
+                }
                 successList.add(divideUpstream);
+            } else {
+                divideUpstream.setStatus(false);
+                log.error("check the url={} is fail ", divideUpstream.getUpstreamUrl());
             }
         }
         if (successList.size() == upstreamList.size()) {

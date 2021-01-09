@@ -51,7 +51,7 @@ public class OkHttpToolsTest {
     private final String json = "{\"appName\":\"soul\"}";
 
     @Before
-    public final void setUpWiremock() {
+    public final void setUpWireMock() {
         wireMockRule.stubFor(post(urlPathEqualTo("/"))
                 .willReturn(aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())

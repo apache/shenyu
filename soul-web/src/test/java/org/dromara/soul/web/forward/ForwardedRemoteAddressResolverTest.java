@@ -17,16 +17,14 @@
 
 package org.dromara.soul.web.forward;
 
-import org.dromara.soul.common.utils.ReflectUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ServerWebExchange;
-
-import java.lang.reflect.Field;
 
 /**
  * Test cases for ForwardedRemoteAddressResolver.
@@ -37,7 +35,7 @@ import java.lang.reflect.Field;
 public final class ForwardedRemoteAddressResolverTest {
 
     @Test
-    public void testNewInstance() throws Exception {
+    public void testNewInstance() {
         try {
             ForwardedRemoteAddressResolver.maxTrustedIndex(0);
         } catch (Exception e) {
@@ -45,14 +43,11 @@ public final class ForwardedRemoteAddressResolverTest {
         }
 
         ForwardedRemoteAddressResolver instance = ForwardedRemoteAddressResolver.maxTrustedIndex(5);
-        Class<?> instanceClass = instance.getClass();
-        Field field = ReflectUtils.getField(instanceClass, "maxTrustedIndex");
-        field.setAccessible(true);
-        int maxTrustedIndex = (int) field.get(instance);
+        int maxTrustedIndex = (int) ReflectionTestUtils.getField(instance, "maxTrustedIndex");
         Assert.assertEquals(maxTrustedIndex, 5);
 
         ForwardedRemoteAddressResolver all = ForwardedRemoteAddressResolver.trustAll();
-        maxTrustedIndex = (int) field.get(all);
+        maxTrustedIndex = (int) (int) ReflectionTestUtils.getField(all, "maxTrustedIndex");
         Assert.assertEquals(maxTrustedIndex, Integer.MAX_VALUE);
     }
 

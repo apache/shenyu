@@ -22,18 +22,16 @@ import org.dromara.soul.common.dto.ConditionData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 import org.junit.Test;
+
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import static org.junit.Assert.assertEquals;
+
+import static org.junit.Assert.assertThat;
+import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-/**
- * Test cases for {@link SelectorDataHandler}.
- *
- * @author cocoZwwang
- */
 public final class SelectorDataHandlerTest {
 
     private final PluginDataSubscriber subscriber;
@@ -45,9 +43,6 @@ public final class SelectorDataHandlerTest {
         selectorDataHandler = new SelectorDataHandler(subscriber);
     }
 
-    /**
-     * test case for {@link SelectorDataHandler#convert(String)}.
-     */
     @Test
     public void testConvert() {
         List<SelectorData> selectorDataList = new LinkedList<>();
@@ -59,14 +54,9 @@ public final class SelectorDataHandlerTest {
         Gson gson = new Gson();
         String json = gson.toJson(selectorDataList);
         List<SelectorData> convertedList = selectorDataHandler.convert(json);
-        assertEquals(selectorDataList, convertedList);
+        assertThat(convertedList, is(selectorDataList));
     }
 
-    /**
-     * test case for {@link SelectorDataHandler#doRefresh(List)}.
-     * First,verify the PluginDataSubscriber bean has called the {@link PluginDataSubscriber#refreshSelectorDataSelf(List)} method.
-     * Then,verify the PluginDataSubscriber bean has called the {@link PluginDataSubscriber#onSelectorSubscribe(SelectorData)} method.
-     */
     @Test
     public void testDoRefresh() {
         List<SelectorData> selectorDataList = createFakeSelectorDataObjects(3);
@@ -75,10 +65,6 @@ public final class SelectorDataHandlerTest {
         selectorDataList.forEach(verify(subscriber)::onSelectorSubscribe);
     }
 
-    /**
-     * test case for {@link SelectorDataHandler#doUpdate(List)}.
-     * verify the PluginDataSubscriber bean has called the {@link PluginDataSubscriber#onSelectorSubscribe(SelectorData)} method.
-     */
     @Test
     public void testDoUpdate() {
         List<SelectorData> selectorDataList = createFakeSelectorDataObjects(4);
@@ -86,10 +72,6 @@ public final class SelectorDataHandlerTest {
         selectorDataList.forEach(verify(subscriber)::onSelectorSubscribe);
     }
 
-    /**
-     * test case for {@link SelectorDataHandler#doDelete(List)}.
-     * verify the PluginDataSubscriber bean has called the {@link PluginDataSubscriber#unSelectorSubscribe(SelectorData)} method.
-     */
     @Test
     public void testDoDelete() {
         List<SelectorData> selectorDataList = createFakeSelectorDataObjects(3);

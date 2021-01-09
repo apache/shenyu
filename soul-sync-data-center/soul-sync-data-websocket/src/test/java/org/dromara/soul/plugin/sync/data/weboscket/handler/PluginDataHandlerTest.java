@@ -21,17 +21,15 @@ import com.google.gson.Gson;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 import org.junit.Test;
+
 import java.util.LinkedList;
 import java.util.List;
-import static org.junit.Assert.assertEquals;
+
+import static org.junit.Assert.assertThat;
+import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-/**
- * Test cases for {@link PluginDataHandler}.
- *
- * @author cocoZwwang
- */
 public final class PluginDataHandlerTest {
 
     private final PluginDataSubscriber subscriber;
@@ -43,9 +41,6 @@ public final class PluginDataHandlerTest {
         pluginDataHandler = new PluginDataHandler(subscriber);
     }
 
-    /**
-     * test case for {@link PluginDataHandler#convert(String)}.
-     */
     @Test
     public void testConvert() {
         List<PluginData> pluginDataList = new LinkedList<>();
@@ -54,14 +49,9 @@ public final class PluginDataHandlerTest {
         Gson gson = new Gson();
         String json = gson.toJson(pluginDataList);
         List<PluginData> convertedList = pluginDataHandler.convert(json);
-        assertEquals(pluginDataList, convertedList);
+        assertThat(convertedList, is(pluginDataList));
     }
 
-    /**
-     * test case for {@link PluginDataHandler#doRefresh(List)}.
-     * First,verify the PluginDataSubscriber bean has called the {@link PluginDataSubscriber#refreshPluginDataSelf(List)} method.
-     * Then,verify the PluginDataSubscriber bean has called the {@link PluginDataSubscriber#onSubscribe(PluginData)} method.
-     */
     @Test
     public void testDoRefresh() {
         List<PluginData> pluginDataList = createFakePluginDataObjects(3);
@@ -70,10 +60,6 @@ public final class PluginDataHandlerTest {
         pluginDataList.forEach(verify(subscriber)::onSubscribe);
     }
 
-    /**
-     * test case for {@link PluginDataHandler#doUpdate(List)}.
-     * verify the PluginDataSubscriber bean has called the {@link PluginDataSubscriber#onSubscribe(PluginData)} method.
-     */
     @Test
     public void testDoUpdate() {
         List<PluginData> pluginDataList = createFakePluginDataObjects(4);
@@ -81,10 +67,6 @@ public final class PluginDataHandlerTest {
         pluginDataList.forEach(verify(subscriber)::onSubscribe);
     }
 
-    /**
-     * test case for {@link PluginDataHandler#doDelete(List)}.
-     * verify the PluginDataSubscriber bean has called the {@link PluginDataSubscriber#unSubscribe(PluginData)} method.
-     */
     @Test
     public void testDoDelete() {
         List<PluginData> pluginDataList = createFakePluginDataObjects(3);

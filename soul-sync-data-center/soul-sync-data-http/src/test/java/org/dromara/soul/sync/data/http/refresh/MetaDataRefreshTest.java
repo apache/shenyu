@@ -23,53 +23,36 @@ import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * Test cases for {@link MetaDataRefresh}.
- *
- * @author davidliu
- */
-public class MetaDataRefreshTest {
-    
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+
+public final class MetaDataRefreshTest {
+
     private final MetaDataRefresh mockMetaDataRefresh = this.buildMockMetaDataRefresh();
-    
-    /**
-     * test case for {@link MetaDataRefresh#convert(JsonObject)}.
-     */
+
     @Test
     public void testConvert() {
         JsonObject jsonObject = new JsonObject();
         JsonObject expectJsonObject = new JsonObject();
         jsonObject.add(ConfigGroupEnum.META_DATA.name(), expectJsonObject);
-        Assert.assertEquals(expectJsonObject, mockMetaDataRefresh.convert(jsonObject));
+        assertThat(mockMetaDataRefresh.convert(jsonObject), is(expectJsonObject));
     }
-    
-    /**
-     * test case for {@link MetaDataRefresh#fromJson(JsonObject)}.
-     */
+
     @Test
     public void testFromJson() {
         ConfigData<MetaData> metaDataConfigData = new ConfigData<>();
         MetaData metaData = new MetaData();
         metaDataConfigData.setData(Collections.singletonList(metaData));
         JsonObject jsonObject = GsonUtils.getGson().fromJson(GsonUtils.getGson().toJson(metaDataConfigData), JsonObject.class);
-        Assert.assertEquals(metaDataConfigData, mockMetaDataRefresh.fromJson(jsonObject));
+        assertThat(mockMetaDataRefresh.fromJson(jsonObject), is(metaDataConfigData));
     }
-    
-    /**
-     * This case coverages the following method:
-     * {@link MetaDataRefresh#cacheConfigData()}
-     * {@link MetaDataRefresh#updateCacheIfNeed(ConfigData)}.
-     * For {@link SelectorDataRefresh} inherits from {@link AbstractDataRefresh}, the {@link AbstractDataRefresh#GROUP_CACHE} was initialized when the class of
-     * {@link AbstractDataRefresh} load, in two different test methods in this class, the the {@link AbstractDataRefresh#GROUP_CACHE} class only load once, so
-     * the method which manipulate the {@link AbstractDataRefresh#GROUP_CACHE} invocation has aftereffects to the other methods.
-     */
+
     @Test
     public void testUpdateCacheIfNeed() {
         final MetaDataRefresh metaDataRefresh = mockMetaDataRefresh;
@@ -77,12 +60,9 @@ public class MetaDataRefreshTest {
         ConfigData<MetaData> expect = new ConfigData<>();
         expect.setLastModifyTime(System.currentTimeMillis());
         metaDataRefresh.updateCacheIfNeed(expect);
-        Assert.assertEquals(expect, metaDataRefresh.cacheConfigData());
+        assertThat(metaDataRefresh.cacheConfigData(), is(expect));
     }
-    
-    /**
-     * This case is only for {@link MetaDataRefresh} code coverage.
-     */
+
     @Test
     public void testRefreshCoverage() {
         final MetaDataRefresh metaDataRefresh = mockMetaDataRefresh;
@@ -91,23 +71,21 @@ public class MetaDataRefreshTest {
         metaDataRefresh.refresh(metaDataList);
         metaDataList.add(metaData);
         metaDataRefresh.refresh(metaDataList);
-        
     }
-    
+
     private MetaDataRefresh buildMockMetaDataRefresh() {
         List<MetaDataSubscriber> metaDataSubscribers = new ArrayList<>();
         metaDataSubscribers.add(new MetaDataSubscriber() {
             @Override
             public void onSubscribe(final MetaData metaData) {
-            
+
             }
-            
+
             @Override
             public void unSubscribe(final MetaData metaData) {
-            
+
             }
         });
         return new MetaDataRefresh(metaDataSubscribers);
     }
-    
 }

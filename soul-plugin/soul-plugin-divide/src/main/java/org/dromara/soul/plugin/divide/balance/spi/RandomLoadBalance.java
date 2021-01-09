@@ -48,8 +48,8 @@ public class RandomLoadBalance extends AbstractLoadBalance {
         boolean sameWeight = true;
         int length = upstreamList.size();
         for (int i = 0; i < length; i++) {
-            int weight = upstreamList.get(i).getWeight();
-            if (i > 0 && weight != upstreamList.get(i - 1).getWeight()) {
+            int weight = getWeight(upstreamList.get(i));
+            if (i > 0 && weight != getWeight(upstreamList.get(i - 1))) {
                 // Calculate whether the weight of ownership is the same
                 sameWeight = false;
                 break;
@@ -62,7 +62,7 @@ public class RandomLoadBalance extends AbstractLoadBalance {
         // total weight
         int totalWeight = 0;
         for (DivideUpstream divideUpstream : upstreamList) {
-            int weight = divideUpstream.getWeight();
+            int weight = getWeight(divideUpstream);
             // Cumulative total weight
             totalWeight += weight;
         }
@@ -74,7 +74,7 @@ public class RandomLoadBalance extends AbstractLoadBalance {
         int offset = RANDOM.nextInt(totalWeight);
         // Determine which segment the random value falls on
         for (DivideUpstream divideUpstream : upstreamList) {
-            offset -= divideUpstream.getWeight();
+            offset -= getWeight(divideUpstream);
             if (offset < 0) {
                 return divideUpstream;
             }

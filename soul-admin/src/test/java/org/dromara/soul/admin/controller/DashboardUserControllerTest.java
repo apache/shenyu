@@ -32,13 +32,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.MediaType;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
-import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.List;
-
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -79,12 +77,7 @@ public final class DashboardUserControllerTest {
     public void setUp() throws Exception {
         final SecretProperties secretProperties = new SecretProperties();
         secretProperties.setKey("2095132720951327");
-
-        Class<?> controllerClass = dashboardUserController.getClass();
-        Field secretPropertiesField = controllerClass.getDeclaredField("secretProperties");
-        secretPropertiesField.setAccessible(true);
-        secretPropertiesField.set(dashboardUserController, secretProperties);
-
+        ReflectionTestUtils.setField(dashboardUserController, "secretProperties", secretProperties);
         mockMvc = MockMvcBuilders.standaloneSetup(dashboardUserController).build();
     }
 

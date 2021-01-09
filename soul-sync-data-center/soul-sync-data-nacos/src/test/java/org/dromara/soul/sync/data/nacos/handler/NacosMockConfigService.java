@@ -19,6 +19,7 @@ package org.dromara.soul.sync.data.nacos.handler;
 
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.listener.Listener;
+
 import java.util.HashMap;
 import java.util.Map;
 
