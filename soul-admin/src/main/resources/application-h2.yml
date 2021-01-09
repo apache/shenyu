@@ -13,8 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+soul:
+  database:
+    dialect: h2
+    init_script: "META-INF/schema.h2.sql"
+
 spring:
-   profiles:
-     active: local,h2
-     #active: local,mysql
+  datasource:
+    url: jdbc:h2:mem:~/soul;DB_CLOSE_DELAY=-1
+    username: sa
+    password: sa
+    driver-class-name: org.h2.Driver
 

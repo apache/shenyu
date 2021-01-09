@@ -13,8 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+soul:
+  database:
+    dialect: mysql
+    init_script: "META-INF/schema.sql"
+
 spring:
-   profiles:
-     active: local,h2
-     #active: local,mysql
+  datasource:
+    url: jdbc:mysql://localhost:3306/soul?useUnicode=true&characterEncoding=utf-8
+    username: root
+    password:
+    driver-class-name: com.mysql.jdbc.Driver
 

@@ -24,23 +24,15 @@ spring:
     enabled: true
     prefix: classpath:/static/
     suffix: .html
-  datasource:
-    url: jdbc:h2:mem:~/soul;DB_CLOSE_DELAY=-1
-    username: sa
-    password: sa
-    driver-class-name: org.h2.Driver
 
 mybatis:
   config-location: classpath:/mybatis/mybatis-config.xml
   mapper-locations: classpath:/mappers/*.xml
 
 soul:
-  database:
-    dialect: h2
-    init_script: "META-INF/schema.h2.sql"
   sync:
     websocket:
-        enabled : true
+      enabled: true
 #    zookeeper:
 #        url: localhost:2181
 #        sessionTimeout: 5000
