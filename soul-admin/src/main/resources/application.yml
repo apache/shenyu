@@ -15,6 +15,6 @@
 
 spring:
    profiles:
-     active: local,h2
-     #active: local,mysql
+     active: local,mysql
+     #active: local,h2
 
