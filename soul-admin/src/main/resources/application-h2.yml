@@ -20,8 +20,8 @@ soul:
 
 spring:
   datasource:
-    url: jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;MODE=MySQL
+    url: jdbc:h2:mem:~/soul;DB_CLOSE_DELAY=-1
     username: sa
-    password:
+    password: sa
     driver-class-name: org.h2.Driver
 
