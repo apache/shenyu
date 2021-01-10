@@ -15,7 +15,12 @@
 # limitations under the License.
 
 FROM java:openjdk-8-jre-alpine
-VOLUME /tmp
-ADD target/soul-bootstrap.jar soul-bootstrap.jar
-EXPOSE 8089
-ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/soul-bootstrap.jar"]
+
+ARG APP_NAME
+ENV LOCAL_PATH /opt/soul-bootstrap
+
+ADD target/${APP_NAME}.tar.gz /opt
+RUN mv /opt/${APP_NAME} ${LOCAL_PATH}
+
+EXPOSE 9195
+ENTRYPOINT /bin/sh ${LOCAL_PATH}/bin/start.sh && tail -f ${LOCAL_PATH}/logs/soul-bootstrap.out
