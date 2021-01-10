@@ -181,7 +181,6 @@ public final class MetricsTrackerFacade {
      * Metrics tracker facade holder.
      */
     private static class MetricsTrackerFacadeHolder {
-        
         private static final MetricsTrackerFacade INSTANCE = new MetricsTrackerFacade();
     }
 }

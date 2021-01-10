@@ -32,14 +32,15 @@ import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
@@ -53,6 +54,7 @@ import static org.mockito.Mockito.when;
  * The test cases for MetricsTrackerHandler.
  *
  * @author dengliming
+ * @author Young Bean
  */
 @RunWith(MockitoJUnitRunner.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -88,13 +90,14 @@ public class MetricsTrackerHandlerTest {
     public void testClose() {
         ReflectionTestUtils.setField(metricsTrackerHandler, "async", true);
         metricsTrackerHandler.close();
-        assertFalse((Boolean) ReflectionTestUtils.getField(metricsTrackerHandler, "async"));
+        assertThat(false, equalTo((Boolean) ReflectionTestUtils.getField(metricsTrackerHandler, "async")));
     }
 
     @Test
     public void testInit() {
         metricsTrackerHandler.init(false, 1, prometheusMetricsTrackerManager);
-        assertEquals(prometheusMetricsTrackerManager, ReflectionTestUtils.getField(metricsTrackerHandler, "metricsTrackerManager"));
+        assertThat(prometheusMetricsTrackerManager,
+                equalTo(ReflectionTestUtils.getField(metricsTrackerHandler, "metricsTrackerManager")));
     }
 
     @Test

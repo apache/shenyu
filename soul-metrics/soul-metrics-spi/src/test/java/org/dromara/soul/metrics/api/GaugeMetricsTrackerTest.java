@@ -20,18 +20,20 @@ package org.dromara.soul.metrics.api;
 import org.dromara.soul.metrics.enums.MetricsTypeEnum;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 /**
  * Test for GaugeMetricsTracker default method.
  *
  * @author dengliming
+ * @author Young Bean
  */
 public class GaugeMetricsTrackerTest {
 
     @Test
     public void metricsType() {
-        assertEquals(MetricsTypeEnum.GAUGE.name(), new GaugeMetricsTracker() {
+        assertThat(MetricsTypeEnum.GAUGE.name(), equalTo(new GaugeMetricsTracker() {
             @Override
             public String metricsLabel() {
                 return null;
@@ -46,6 +48,6 @@ public class GaugeMetricsTrackerTest {
             public void dec(final double amount, final String... labelValues) {
 
             }
-        }.metricsType());
+        }.metricsType()));
     }
 }
