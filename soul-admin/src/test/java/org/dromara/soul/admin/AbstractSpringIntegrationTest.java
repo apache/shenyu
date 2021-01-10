@@ -27,7 +27,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  *
  * @author dengliming
  */
-@ActiveProfiles("test")
+@ActiveProfiles("h2")
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = SoulAdminBootstrap.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = "spring.autoconfigure.exclude=org.springframework.boot.actuate.autoconfigure.jdbc.DataSourceHealthContributorAutoConfiguration")
