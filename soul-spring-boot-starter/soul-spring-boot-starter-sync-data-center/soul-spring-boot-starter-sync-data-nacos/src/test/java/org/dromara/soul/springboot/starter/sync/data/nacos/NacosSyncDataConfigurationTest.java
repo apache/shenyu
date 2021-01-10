@@ -44,7 +44,7 @@ import static org.mockito.Answers.CALLS_REAL_METHODS;
         })
 @EnableAutoConfiguration
 @MockBean(name = "nacosConfigService", value = NacosMockConfigService.class, answer = CALLS_REAL_METHODS)
-public class NacosSyncDataConfigurationTest {
+public final class NacosSyncDataConfigurationTest {
 
     @Autowired
     private SyncDataService syncDataService;

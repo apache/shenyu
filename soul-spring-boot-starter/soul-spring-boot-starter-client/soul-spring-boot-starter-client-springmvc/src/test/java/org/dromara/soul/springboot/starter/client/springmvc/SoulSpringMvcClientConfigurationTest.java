@@ -18,13 +18,16 @@
 package org.dromara.soul.springboot.starter.client.springmvc;
 
 import org.dromara.soul.client.springmvc.config.SoulSpringMvcConfig;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 
 /**
  * Test case for {@link SoulSpringMvcClientConfiguration}.
@@ -54,13 +57,11 @@ public final class SoulSpringMvcClientConfigurationTest {
 
     @Test
     public void testSpringMvcConfig() {
-
-        Assert.assertEquals("http", soulSpringMvcConfig.getAppName());
-        Assert.assertEquals("/http", soulSpringMvcConfig.getContextPath());
-        Assert.assertEquals("http://localhost:9095", soulSpringMvcConfig.getAdminUrl());
-        Assert.assertEquals(Integer.valueOf(9190), soulSpringMvcConfig.getPort());
-        Assert.assertEquals("10.200.1.112", soulSpringMvcConfig.getHost());
-        Assert.assertFalse(soulSpringMvcConfig.isFull());
-
+        assertThat(soulSpringMvcConfig.getAppName(), is("http"));
+        assertThat(soulSpringMvcConfig.getContextPath(), is("/http"));
+        assertThat(soulSpringMvcConfig.getAdminUrl(), is("http://localhost:9095"));
+        assertThat(soulSpringMvcConfig.getPort(), is(9190));
+        assertThat(soulSpringMvcConfig.getHost(), is("10.200.1.112"));
+        assertFalse(soulSpringMvcConfig.isFull());
     }
 }

@@ -18,13 +18,16 @@
 package org.dromara.soul.springboot.starter.client.springcloud;
 
 import org.dromara.soul.client.springcloud.config.SoulSpringCloudConfig;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Test case for {@link SoulSpringCloudClientConfiguration}.
@@ -46,14 +49,14 @@ import org.springframework.test.context.junit4.SpringRunner;
         }
 )
 @EnableAutoConfiguration
-public class SoulSpringCloudClientConfigurationTest {
+public final class SoulSpringCloudClientConfigurationTest {
     @Autowired
     private SoulSpringCloudConfig soulSpringCloudConfig;
 
     @Test
     public void testSoulSpringCloudConfig() {
-        Assert.assertEquals("spring-cloud-server", soulSpringCloudConfig.getContextPath());
-        Assert.assertEquals("http://localhost:9095", soulSpringCloudConfig.getAdminUrl());
-        Assert.assertTrue(soulSpringCloudConfig.isFull());
+        assertThat(soulSpringCloudConfig.getContextPath(), is("spring-cloud-server"));
+        assertThat(soulSpringCloudConfig.getAdminUrl(), is("http://localhost:9095"));
+        assertTrue(soulSpringCloudConfig.isFull());
     }
 }

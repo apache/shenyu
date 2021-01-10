@@ -18,13 +18,15 @@
 package org.dromara.soul.springboot.starter.client.apache.dubbo;
 
 import org.dromara.soul.client.dubbo.common.config.DubboConfig;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 /**
  * Test case for {@link SoulApacheDubboClientConfiguration}.
@@ -51,8 +53,8 @@ public final class SoulApacheDubboClientConfigurationTest {
 
     @Test
     public void testDubboConfig() {
-        Assert.assertEquals("dubbo", dubboConfig.getAppName());
-        Assert.assertEquals("/dubbo", dubboConfig.getContextPath());
-        Assert.assertEquals("http://localhost:9095", dubboConfig.getAdminUrl());
+        assertThat(dubboConfig.getAppName(), is("dubbo"));
+        assertThat(dubboConfig.getContextPath(), is("/dubbo"));
+        assertThat(dubboConfig.getAdminUrl(), is("http://localhost:9095"));
     }
 }
