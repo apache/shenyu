@@ -19,56 +19,47 @@
     xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
-    <id>dist</id>
+    <id>soul-admin-bin</id>
     <formats>
         <format>tar.gz</format>
     </formats>
+
     <fileSets>
         <fileSet>
-            <directory>${project.basedir}/../soul-admin/src/main/resources</directory>
-            <outputDirectory>${file.separator}soul-admin${file.separator}conf</outputDirectory>
+            <directory>${project.basedir}/../../soul-admin/src/main/resources</directory>
+            <outputDirectory>conf</outputDirectory>
             <includes>
                 <include>*.yml</include>
             </includes>
         </fileSet>
 
         <fileSet>
-            <directory>${project.basedir}/../soul-dist/bin/admin</directory>
-            <outputDirectory>${file.separator}soul-admin${file.separator}bin</outputDirectory>
+            <directory>src/main/resources/bin</directory>
+            <lineEnding>unix</lineEnding>
             <includes>
                 <include>*.sh</include>
-                <include>*.bat</include>
             </includes>
-        </fileSet>
-
-        <fileSet>
-            <directory>${project.basedir}/../soul-bootstrap/src/main/resources</directory>
-            <outputDirectory>${file.separator}soul-bootstrap${file.separator}conf</outputDirectory>
-            <includes>
-                <include>*.yml</include>
-            </includes>
+            <outputDirectory>bin</outputDirectory>
+            <fileMode>0755</fileMode>
         </fileSet>
         <fileSet>
-            <directory>${project.basedir}/../soul-dist/bin/bootstrap</directory>
-            <outputDirectory>${file.separator}soul-bootstrap${file.separator}bin</outputDirectory>
+            <directory>src/main/resources/bin</directory>
+            <lineEnding>windows</lineEnding>
             <includes>
-                <include>*.sh</include>
                 <include>*.bat</include>
             </includes>
+            <outputDirectory>bin</outputDirectory>
+            <fileMode>0755</fileMode>
         </fileSet>
-
     </fileSets>
-    <files>
-        <file>
-            <source>${project.basedir}/../soul-admin/target/soul-admin.jar</source>
-            <outputDirectory>${file.separator}soul-admin${file.separator}lib</outputDirectory>
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory>lib</outputDirectory>
+            <outputFileNameMapping>${artifact.artifactId}.jar</outputFileNameMapping>
+            <includes>
+                <include>org.dromara:soul-admin</include>
+            </includes>
             <fileMode>0644</fileMode>
-        </file>
-
-        <file>
-            <source>${project.basedir}/../soul-bootstrap/target/soul-bootstrap.jar</source>
-            <outputDirectory>${file.separator}soul-bootstrap${file.separator}lib</outputDirectory>
-            <fileMode>0644</fileMode>
-        </file>
-    </files>
+        </dependencySet>
+    </dependencySets>
 </assembly>

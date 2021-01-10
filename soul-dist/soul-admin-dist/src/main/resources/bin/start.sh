@@ -58,8 +58,7 @@ JAVA_GC_LOG_OPTS="-Xloggc:$LOG_DIR/gc.log"
 
 JAVA_OPTS="$JAVA_OPTS $JAVA_MEM_OPTS $JAVA_GC_TUNE_OPTS $JAVA_GC_LOG_OPTS"
 
-
-$JAVA "-jar $APP --spring.config.location=file:$BASE_DIR/conf/ $JAVA_OPTS" > "${LOG_DIR}"/soul-admin.out
+$JAVA -jar "$APP" --spring.config.location=file:"$BASE_DIR"/conf/ "$JAVA_OPTS" >> "${LOG_DIR}"/soul-admin.out &
 
 if [ $? -gt 0 ]; then
     echo "Starting $APP ERROR"
