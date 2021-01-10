@@ -20,14 +20,16 @@ package org.dromara.soul.metrics.api;
 import org.dromara.soul.metrics.enums.MetricsTypeEnum;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 /**
  * Test for SummaryMetricsTracker default method.
  *
  * @author dengliming
+ * @author Young Bean
  */
 public final class SummaryMetricsTrackerTest {
 
@@ -35,7 +37,7 @@ public final class SummaryMetricsTrackerTest {
 
     @Test
     public void metricsType() {
-        assertEquals(MetricsTypeEnum.SUMMARY.name(), summaryMetricsTracker.metricsType());
+        assertThat(MetricsTypeEnum.SUMMARY.name(), equalTo(summaryMetricsTracker.metricsType()));
     }
 
     @Test

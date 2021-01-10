@@ -231,7 +231,6 @@ public final class MetricsTrackerHandler {
      * Metrics tracker handler holder.
      */
     private static class MetricsTrackerHandlerHolder {
-        
         private static final MetricsTrackerHandler INSTANCE = new MetricsTrackerHandler();
     }
 }
