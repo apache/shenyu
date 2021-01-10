@@ -22,7 +22,6 @@ import org.I0Itec.zkclient.exception.ZkTimeoutException;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 import org.dromara.soul.sync.data.api.SyncDataService;
 import org.dromara.soul.sync.data.zookeeper.ZookeeperSyncDataService;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +29,11 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * test case for {@link ZookeeperSyncDataConfiguration}.
@@ -49,7 +53,7 @@ import org.springframework.test.context.junit4.SpringRunner;
         })
 @EnableAutoConfiguration
 @MockBean({PluginDataSubscriber.class, ZkClient.class})
-public class ZookeeperSyncDataConfigurationTest {
+public final class ZookeeperSyncDataConfigurationTest {
 
     @Autowired
     private ZookeeperConfig zookeeperConfig;
@@ -62,8 +66,8 @@ public class ZookeeperSyncDataConfigurationTest {
      */
     @Test
     public void testZookeeperSyncDataConfigurationRegisterBeanSyncDataService() {
-        Assert.assertNotNull(syncDataService);
-        Assert.assertTrue(syncDataService instanceof ZookeeperSyncDataService);
+        assertNotNull(syncDataService);
+        assertTrue(syncDataService instanceof ZookeeperSyncDataService);
     }
 
     /**
@@ -71,9 +75,9 @@ public class ZookeeperSyncDataConfigurationTest {
      */
     @Test
     public void testZookeeperSyncDataConfigurationRegisterBeanZookeeperConfig() {
-        Assert.assertEquals("localhost:2181", zookeeperConfig.getUrl());
-        Assert.assertEquals(30000, (int) zookeeperConfig.getSessionTimeout());
-        Assert.assertEquals(500, (int) zookeeperConfig.getConnectionTimeout());
+        assertThat(zookeeperConfig.getUrl(), is("localhost:2181"));
+        assertThat(zookeeperConfig.getSessionTimeout(), is(30000));
+        assertThat(zookeeperConfig.getConnectionTimeout(), is(500));
     }
 
     /**

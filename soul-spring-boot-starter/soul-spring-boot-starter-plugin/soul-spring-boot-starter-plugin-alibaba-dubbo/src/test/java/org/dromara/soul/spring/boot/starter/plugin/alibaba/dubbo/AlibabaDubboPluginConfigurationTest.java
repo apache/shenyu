@@ -23,13 +23,16 @@ import org.dromara.soul.plugin.alibaba.dubbo.handler.AlibabaDubboPluginDataHandl
 import org.dromara.soul.plugin.alibaba.dubbo.param.BodyParamPlugin;
 import org.dromara.soul.plugin.alibaba.dubbo.response.DubboResponsePlugin;
 import org.dromara.soul.plugin.alibaba.dubbo.subscriber.AlibabaDubboMetaDataSubscriber;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 /**
  * Test case for {@link AlibabaDubboPluginConfiguration}.
@@ -45,7 +48,7 @@ import org.springframework.test.context.junit4.SpringRunner;
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
 @EnableAutoConfiguration
-public class AlibabaDubboPluginConfigurationTest {
+public final class AlibabaDubboPluginConfigurationTest {
 
     @Autowired
     private AlibabaDubboPlugin alibabaDubboPlugin;
@@ -64,17 +67,13 @@ public class AlibabaDubboPluginConfigurationTest {
 
     @Test
     public void testAlibabaDubboPlugin() {
-        Assert.assertEquals(PluginEnum.DUBBO.getCode(), alibabaDubboPlugin.getOrder());
-        Assert.assertEquals(PluginEnum.DUBBO.getName(), alibabaDubboPlugin.named());
-
-        Assert.assertEquals(PluginEnum.DUBBO.getCode() - 1, bodyParamPlugin.getOrder());
-        Assert.assertEquals("alibaba-dubbo-body-param", bodyParamPlugin.named());
-
-        Assert.assertEquals(PluginEnum.RESPONSE.getCode(), dubboResponsePlugin.getOrder());
-        Assert.assertEquals(PluginEnum.RESPONSE.getName(), dubboResponsePlugin.named());
-
-        Assert.assertEquals(PluginEnum.DUBBO.getName(), alibabaDubboPluginDataHandler.pluginNamed());
-
-        Assert.assertNotNull(alibabaDubboMetaDataSubscriber);
+        assertThat(alibabaDubboPlugin.getOrder(), is(PluginEnum.DUBBO.getCode()));
+        assertThat(alibabaDubboPlugin.named(), is(PluginEnum.DUBBO.getName()));
+        assertThat(bodyParamPlugin.getOrder(), is(PluginEnum.DUBBO.getCode() - 1));
+        assertThat(bodyParamPlugin.named(), is("alibaba-dubbo-body-param"));
+        assertThat(dubboResponsePlugin.getOrder(), is(PluginEnum.RESPONSE.getCode()));
+        assertThat(dubboResponsePlugin.named(), is(PluginEnum.RESPONSE.getName()));
+        assertThat(alibabaDubboPluginDataHandler.pluginNamed(), is(PluginEnum.DUBBO.getName()));
+        assertNotNull(alibabaDubboMetaDataSubscriber);
     }
 }

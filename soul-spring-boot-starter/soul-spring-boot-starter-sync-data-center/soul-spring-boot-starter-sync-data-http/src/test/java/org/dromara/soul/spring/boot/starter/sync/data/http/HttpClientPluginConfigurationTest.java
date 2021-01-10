@@ -21,7 +21,6 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 import org.dromara.soul.sync.data.http.HttpSyncDataService;
 import org.dromara.soul.sync.data.http.config.HttpConfig;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,6 +42,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for {@link HttpSyncDataConfiguration}.
@@ -62,7 +64,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options
         })
 @EnableAutoConfiguration
 @MockBean({PluginDataSubscriber.class, ServletWebServerFactory.class})
-public class HttpClientPluginConfigurationTest {
+public final class HttpClientPluginConfigurationTest {
 
     @Autowired
     private HttpConfig httpConfig;
@@ -92,14 +94,14 @@ public class HttpClientPluginConfigurationTest {
 
     @Test
     public void testHttpSyncDataService() {
-        Assert.assertNotNull(httpSyncDataService);
+        assertNotNull(httpSyncDataService);
     }
 
     @Test
     public void testHttpConfig() {
-        Assert.assertEquals("http://localhost:18848", httpConfig.getUrl());
-        Assert.assertEquals(Integer.valueOf(3), httpConfig.getDelayTime());
-        Assert.assertEquals(Integer.valueOf(5), httpConfig.getConnectionTimeout());
+        assertThat(httpConfig.getUrl(), is("http://localhost:18848"));
+        assertThat(httpConfig.getDelayTime(), is(3));
+        assertThat(httpConfig.getConnectionTimeout(), is(5));
     }
 
     // mock configs listen api response
