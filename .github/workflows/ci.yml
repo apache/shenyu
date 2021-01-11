@@ -39,17 +39,15 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
+      - name: Support longpaths
+        if: ${{ matrix.os == 'windows-latest'}}
+        run: git config --system core.longpaths true
       - uses: actions/checkout@v2
         with:
           submodules: true
       - uses: actions/setup-java@v1
         with:
           java-version: 8
-      - name: Build And Test with Maven
-        run: |
-          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-              ./mvnw -B clean -D"maven.javadoc.skip"=true install
-          else
-              ./mvnw -B clean -Dmaven.javadoc.skip=true install
-          fi
+      - name: Build with Maven
+        run: ./mvnw -B clean install
       - uses: codecov/codecov-action@v1
