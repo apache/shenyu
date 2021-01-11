@@ -17,14 +17,10 @@
 
 package org.dromara.soul.admin.listener;
 
+import org.dromara.soul.admin.AbstractSpringIntegrationTest;
 import org.dromara.soul.common.utils.IpUtils;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -32,10 +28,7 @@ import static org.junit.Assert.assertEquals;
  *
  * @author magicalxiaochen
  */
-@ActiveProfiles("test")
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public final class ApplicationStartListenerTest {
+public final class ApplicationStartListenerTest extends AbstractSpringIntegrationTest {
 
     @LocalServerPort
     private Integer port;

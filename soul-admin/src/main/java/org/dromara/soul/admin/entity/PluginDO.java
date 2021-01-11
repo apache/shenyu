@@ -70,7 +70,6 @@ public final class PluginDO extends BaseDO {
      * @return {@linkplain PluginDO}
      */
     public static PluginDO buildPluginDO(final PluginDTO pluginDTO) {
-
         return Optional.ofNullable(pluginDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             PluginDO pluginDO = PluginDO.builder()
