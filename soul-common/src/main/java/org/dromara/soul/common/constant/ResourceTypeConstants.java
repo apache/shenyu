@@ -25,16 +25,6 @@ package org.dromara.soul.common.constant;
 public final class ResourceTypeConstants {
 
     /**
-     * Main Menu.
-     */
-    public static final Integer MENU_TYPE_0 = 0;
-
-    /**
-     * Sub Menu.
-      */
-    public static final Integer MENU_TYPE_1 = 1;
-
-    /**
      * Permission.
      */
     public static final Integer MENU_TYPE_2 = 2;
