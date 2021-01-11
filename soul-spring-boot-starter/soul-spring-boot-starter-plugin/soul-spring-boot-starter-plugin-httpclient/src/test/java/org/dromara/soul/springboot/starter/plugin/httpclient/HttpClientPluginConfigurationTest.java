@@ -19,7 +19,6 @@ package org.dromara.soul.springboot.starter.plugin.httpclient;
 
 import org.dromara.soul.plugin.httpclient.config.HttpClientProperties;
 import org.dromara.soul.plugin.httpclient.config.HttpClientProperties.Pool.PoolType;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +29,10 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.SslProvider;
 import java.time.Duration;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 /**
  * Test case for {@link HttpClientPluginConfiguration}.
@@ -62,7 +65,7 @@ import java.time.Duration;
                 "soul.httpclient.ssl.SslProvider.DefaultConfigurationType=1"
         })
 @EnableAutoConfiguration
-public class HttpClientPluginConfigurationTest {
+public final class HttpClientPluginConfigurationTest {
     
     @Autowired
     private HttpClient httpClient;
@@ -72,26 +75,26 @@ public class HttpClientPluginConfigurationTest {
     
     @Test
     public void testHttpClientProperties() {
-        Assert.assertSame(Integer.valueOf(3), httpClientProperties.getConnectTimeout());
-        Assert.assertEquals(Duration.ZERO, httpClientProperties.getResponseTimeout());
-        Assert.assertEquals(PoolType.ELASTIC, httpClientProperties.getPool().getType());
-        Assert.assertEquals("proxy", httpClientProperties.getPool().getName());
-        Assert.assertSame(Integer.valueOf(1), httpClientProperties.getPool().getMaxConnections());
-        Assert.assertEquals(ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT, httpClientProperties.getPool().getAcquireTimeout().longValue());
-        Assert.assertEquals("http://localhost", httpClientProperties.getProxy().getHost());
-        Assert.assertEquals(Integer.valueOf(18848), httpClientProperties.getProxy().getPort());
-        Assert.assertEquals("itmiwang", httpClientProperties.getProxy().getUsername());
-        Assert.assertEquals("itmiwang", httpClientProperties.getProxy().getPassword());
-        Assert.assertEquals("itmiwang", httpClientProperties.getProxy().getNonProxyHostsPattern());
-        Assert.assertEquals(Duration.ofMillis(10000), httpClientProperties.getSsl().getHandshakeTimeout());
-        Assert.assertNotNull(httpClientProperties.getSsl().getTrustedX509Certificates());
-        Assert.assertEquals(Duration.ofMillis(3000), httpClientProperties.getSsl().getCloseNotifyFlushTimeout());
-        Assert.assertEquals(Duration.ZERO, httpClientProperties.getSsl().getCloseNotifyReadTimeout());
-        Assert.assertEquals(SslProvider.DefaultConfigurationType.TCP, httpClientProperties.getSsl().getDefaultConfigurationType());
+        assertThat(httpClientProperties.getConnectTimeout(), is(3));
+        assertThat(httpClientProperties.getResponseTimeout(), is(Duration.ZERO));
+        assertThat(httpClientProperties.getPool().getType(), is(PoolType.ELASTIC));
+        assertThat(httpClientProperties.getPool().getName(), is("proxy"));
+        assertThat(httpClientProperties.getPool().getMaxConnections(), is(1));
+        assertThat(httpClientProperties.getPool().getAcquireTimeout(), is(ConnectionProvider.DEFAULT_POOL_ACQUIRE_TIMEOUT));
+        assertThat(httpClientProperties.getProxy().getHost(), is("http://localhost"));
+        assertThat(httpClientProperties.getProxy().getPort(), is(18848));
+        assertThat(httpClientProperties.getProxy().getUsername(), is("itmiwang"));
+        assertThat(httpClientProperties.getProxy().getPassword(), is("itmiwang"));
+        assertThat(httpClientProperties.getProxy().getNonProxyHostsPattern(), is("itmiwang"));
+        assertThat(httpClientProperties.getSsl().getHandshakeTimeout(), is(Duration.ofMillis(10000)));
+        assertNotNull(httpClientProperties.getSsl().getTrustedX509Certificates());
+        assertThat(httpClientProperties.getSsl().getCloseNotifyFlushTimeout(), is(Duration.ofMillis(3000)));
+        assertThat(httpClientProperties.getSsl().getCloseNotifyReadTimeout(), is(Duration.ZERO));
+        assertThat(httpClientProperties.getSsl().getDefaultConfigurationType(), is(SslProvider.DefaultConfigurationType.TCP));
     }
     
     @Test
     public void testHttpClient() {
-        Assert.assertNotNull(httpClient);
+        assertNotNull(httpClient);
     }
 }

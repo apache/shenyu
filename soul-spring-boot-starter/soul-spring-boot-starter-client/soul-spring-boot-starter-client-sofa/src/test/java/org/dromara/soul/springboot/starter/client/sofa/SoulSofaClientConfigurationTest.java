@@ -18,13 +18,15 @@
 package org.dromara.soul.springboot.starter.client.sofa;
 
 import org.dromara.soul.client.sofa.common.config.SofaConfig;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 /**
  * Test case for {@link SoulSofaClientConfiguration}.
@@ -43,19 +45,17 @@ import org.springframework.test.context.junit4.SpringRunner;
                 "soul.sofa.adminUrl=http://localhost:9095",
                 "soul.sofa.contextPath=/sofa",
                 "soul.sofa.appName=sofa"
-        }
-
-)
+        })
 @EnableAutoConfiguration
-public class SoulSofaClientConfigurationTest {
+public final class SoulSofaClientConfigurationTest {
 
     @Autowired
     private SofaConfig sofaConfig;
 
     @Test
     public void testSofaConfig() {
-        Assert.assertEquals("sofa", sofaConfig.getAppName());
-        Assert.assertEquals("/sofa", sofaConfig.getContextPath());
-        Assert.assertEquals("http://localhost:9095", sofaConfig.getAdminUrl());
+        assertThat(sofaConfig.getAppName(), is("sofa"));
+        assertThat(sofaConfig.getContextPath(), is("/sofa"));
+        assertThat(sofaConfig.getAdminUrl(), is("http://localhost:9095"));
     }
 }

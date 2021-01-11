@@ -30,7 +30,8 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertNotNull;
 
 /**
@@ -47,7 +48,7 @@ import static org.junit.Assert.assertNotNull;
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
 @EnableAutoConfiguration
-public class ApacheDubboPluginConfigurationTest {
+public final class ApacheDubboPluginConfigurationTest {
 
     @Autowired
     private ApacheDubboPlugin apacheDubboPlugin;
@@ -67,28 +68,28 @@ public class ApacheDubboPluginConfigurationTest {
     @Test
     public void testApacheDubboPluginConfiguration() {
         assertNotNull(apacheDubboPlugin);
-        assertEquals(PluginEnum.DUBBO.getName(), apacheDubboPlugin.named());
-        assertEquals(PluginEnum.DUBBO.getCode(), apacheDubboPlugin.getOrder());
+        assertThat(apacheDubboPlugin.named(), is(PluginEnum.DUBBO.getName()));
+        assertThat(apacheDubboPlugin.getOrder(), is(PluginEnum.DUBBO.getCode()));
     }
 
     @Test
     public void testBodyParamPluginConfiguration() {
         assertNotNull(bodyParamPlugin);
-        assertEquals("apache-dubbo-body-param", bodyParamPlugin.named());
-        assertEquals(PluginEnum.DUBBO.getCode() - 1, bodyParamPlugin.getOrder());
+        assertThat(bodyParamPlugin.named(), is("apache-dubbo-body-param"));
+        assertThat(bodyParamPlugin.getOrder(), is(PluginEnum.DUBBO.getCode() - 1));
     }
 
     @Test
     public void testDubboResponsePluginConfiguration() {
         assertNotNull(dubboResponsePlugin);
-        assertEquals(PluginEnum.RESPONSE.getCode(), dubboResponsePlugin.getOrder());
-        assertEquals(PluginEnum.RESPONSE.getName(), dubboResponsePlugin.named());
+        assertThat(dubboResponsePlugin.getOrder(), is(PluginEnum.RESPONSE.getCode()));
+        assertThat(dubboResponsePlugin.named(), is(PluginEnum.RESPONSE.getName()));
     }
 
     @Test
     public void testApacheDubboPluginDataHandlerConfiguration() {
         assertNotNull(apacheDubboPluginDataHandler);
-        assertEquals(PluginEnum.DUBBO.getName(), apacheDubboPluginDataHandler.pluginNamed());
+        assertThat(apacheDubboPluginDataHandler.pluginNamed(), is(PluginEnum.DUBBO.getName()));
     }
 
     @Test
