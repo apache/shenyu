@@ -35,8 +35,6 @@ public class PermissionController {
     @GetMapping("/getUserPermissionByToken")
     public SoulAdminResult getUserPermissionByToken(@RequestParam(name = "token", required = true) final String token) {
         PermissionMenuVO permissionMenuVO = permissionService.getPermissionMenu(token);
-        return Optional.ofNullable(permissionMenuVO).map(item -> {
-            return SoulAdminResult.success(SoulResultMessage.MENU_SUCCESS, item);
-        }).orElse(SoulAdminResult.error(SoulResultMessage.MENU_FAILED));
+        return Optional.ofNullable(permissionMenuVO).map(item -> SoulAdminResult.success(SoulResultMessage.MENU_SUCCESS, item)).orElse(SoulAdminResult.error(SoulResultMessage.MENU_FAILED));
     }
 }
