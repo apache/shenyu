@@ -21,7 +21,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.dromara.soul.admin.entity.RoleDO;
 
 import java.io.Serializable;
 import java.util.List;

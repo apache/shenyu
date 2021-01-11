@@ -47,6 +47,7 @@ public interface DashboardUserMapper {
      * @return {@linkplain DashboardUserDO}
      */
     DashboardUserDO selectByUserName(String userName);
+
     /**
      * find dashboard user by query.
      *

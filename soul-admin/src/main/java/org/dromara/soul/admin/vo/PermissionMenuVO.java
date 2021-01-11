@@ -81,7 +81,6 @@ public class PermissionMenuVO implements Serializable {
 
         /**
          * route meta.
-         *
          * web front meta {@linkplain Meta}
          */
         private Meta meta;

@@ -1,7 +1,6 @@
 package org.dromara.soul.admin.query;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

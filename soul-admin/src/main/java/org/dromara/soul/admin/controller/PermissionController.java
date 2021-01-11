@@ -1,6 +1,5 @@
 package org.dromara.soul.admin.controller;
 
-import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.service.PermissionService;
 import org.dromara.soul.admin.utils.SoulResultMessage;

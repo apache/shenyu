@@ -45,6 +45,7 @@ import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -169,7 +170,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     public LoginDashboardUserVO login(final String userName, final String password) {
         String key = secretProperties.getKey();
         DashboardUserVO dashboardUserVO = findByQuery(userName, password);
-        if (dashboardUserVO != null) {
+        if (!ObjectUtils.isEmpty(dashboardUserVO)) {
             DashboardUserDTO dashboardUserDTO = DashboardUserDTO.builder()
                     .id(dashboardUserVO.getId())
                     .userName(dashboardUserVO.getUserName())

@@ -17,7 +17,6 @@
 
 package org.dromara.soul.admin.controller;
 
-import com.sun.xml.internal.xsom.impl.scd.Iterators.Array;
 import org.dromara.soul.admin.config.SecretProperties;
 import org.dromara.soul.admin.dto.DashboardUserDTO;
 import org.dromara.soul.admin.page.CommonPager;
@@ -40,9 +39,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -78,7 +77,7 @@ public final class DashboardUserControllerTest {
             "dateUpdated");
 
     private final DashboardUserDTO dashboardUserDTO = new DashboardUserDTO("2", "userName",
-            "123456", 0, new ArrayList<>(),false);
+            "123456", 0, new ArrayList<>(), false);
 
     @Before
     public void setUp() throws Exception {
