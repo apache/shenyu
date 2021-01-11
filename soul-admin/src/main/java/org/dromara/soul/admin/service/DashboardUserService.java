@@ -20,6 +20,7 @@ package org.dromara.soul.admin.service;
 import org.dromara.soul.admin.dto.DashboardUserDTO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.DashboardUserQuery;
+import org.dromara.soul.admin.vo.DashboardUserEditVO;
 import org.dromara.soul.admin.vo.DashboardUserVO;
 import org.dromara.soul.admin.vo.LoginDashboardUserVO;
 
@@ -54,7 +55,7 @@ public interface DashboardUserService {
      * @param id primary key.
      * @return {@linkplain DashboardUserVO}
      */
-    DashboardUserVO findById(String id);
+    DashboardUserEditVO findById(String id);
 
     /**
      * find dashboard user by query.
@@ -81,4 +82,11 @@ public interface DashboardUserService {
      * @return {@linkplain LoginDashboardUserVO}
      */
     LoginDashboardUserVO login(String userName, String password);
+
+    /**
+     * bind admin role.
+     *
+     * @param userId admin user id
+     */
+    void bindAdminRole(String userId);
 }

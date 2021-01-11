@@ -20,21 +20,36 @@ package org.dromara.soul.admin.service.impl;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.config.SecretProperties;
 import org.dromara.soul.admin.dto.DashboardUserDTO;
+import org.dromara.soul.admin.dto.PermissionDTO;
+import org.dromara.soul.admin.dto.UserRoleDTO;
 import org.dromara.soul.admin.entity.DashboardUserDO;
+import org.dromara.soul.admin.entity.PermissionDO;
+import org.dromara.soul.admin.entity.UserRoleDO;
 import org.dromara.soul.admin.mapper.DashboardUserMapper;
+import org.dromara.soul.admin.mapper.PermissionMapper;
+import org.dromara.soul.admin.mapper.ResourceMapper;
+import org.dromara.soul.admin.mapper.RoleMapper;
+import org.dromara.soul.admin.mapper.UserRoleMapper;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.page.PageResultUtils;
 import org.dromara.soul.admin.query.DashboardUserQuery;
 import org.dromara.soul.admin.service.DashboardUserService;
 import org.dromara.soul.admin.utils.AesUtils;
+import org.dromara.soul.admin.vo.DashboardUserEditVO;
 import org.dromara.soul.admin.vo.DashboardUserVO;
 import org.dromara.soul.admin.vo.LoginDashboardUserVO;
+import org.dromara.soul.admin.vo.ResourceVO;
+import org.dromara.soul.admin.vo.RoleVO;
+import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -50,9 +65,22 @@ public class DashboardUserServiceImpl implements DashboardUserService {
 
     private final DashboardUserMapper dashboardUserMapper;
 
+    private final UserRoleMapper userRoleMapper;
+
+    private final RoleMapper roleMapper;
+
+    private final ResourceMapper resourceMapper;
+
+    private final PermissionMapper permissionMapper;
+
     @Autowired(required = false)
-    public DashboardUserServiceImpl(final DashboardUserMapper dashboardUserMapper) {
+    public DashboardUserServiceImpl(final DashboardUserMapper dashboardUserMapper, final UserRoleMapper userRoleMapper,
+                                    final RoleMapper roleMapper, final ResourceMapper resourceMapper, final PermissionMapper permissionMapper) {
         this.dashboardUserMapper = dashboardUserMapper;
+        this.userRoleMapper = userRoleMapper;
+        this.roleMapper = roleMapper;
+        this.resourceMapper = resourceMapper;
+        this.permissionMapper = permissionMapper;
     }
 
     /**
@@ -62,11 +90,16 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      * @return rows
      */
     @Override
+    @Transactional
     public int createOrUpdate(final DashboardUserDTO dashboardUserDTO) {
         DashboardUserDO dashboardUserDO = DashboardUserDO.buildDashboardUserDO(dashboardUserDTO);
         if (StringUtils.isEmpty(dashboardUserDTO.getId())) {
+            bindUserRole(dashboardUserDO.getId(), dashboardUserDTO.getRoles(), DataEventTypeEnum.CREATE);
             return dashboardUserMapper.insertSelective(dashboardUserDO);
         } else {
+            if (dashboardUserDTO.getRoles() != null && dashboardUserDTO.getRoles().size() > 0) {
+                bindUserRole(dashboardUserDTO.getId(), dashboardUserDTO.getRoles(), DataEventTypeEnum.UPDATE);
+            }
             return dashboardUserMapper.updateSelective(dashboardUserDO);
         }
     }
@@ -93,8 +126,11 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      * @return {@linkplain DashboardUserVO}
      */
     @Override
-    public DashboardUserVO findById(final String id) {
-        return DashboardUserVO.buildDashboardUserVO(dashboardUserMapper.selectById(id));
+    public DashboardUserEditVO findById(final String id) {
+        return DashboardUserEditVO.buildDashboardUserEditVO(DashboardUserVO.buildDashboardUserVO(dashboardUserMapper.selectById(id)),
+                userRoleMapper.findByUserId(id).stream()
+                        .map(item -> RoleVO.buildRoleVO(roleMapper.selectById(item.getRoleId()))).filter(Objects::nonNull).collect(Collectors.toList()),
+                roleMapper.selectAll().stream().map(RoleVO::buildRoleVO).collect(Collectors.toList()));
     }
 
     /**
@@ -144,7 +180,38 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         } else {
             dashboardUserVO = findByQuery(userName, AesUtils.aesEncryption(password, key));
         }
-
         return LoginDashboardUserVO.buildLoginDashboardUserVO(dashboardUserVO);
+    }
+
+    /**
+     * bind admin role and permission.
+     *
+     * @param userId admin user id
+     */
+    @Override
+    @Transactional
+    public void bindAdminRole(final String userId) {
+        RoleVO roleVO = RoleVO.buildRoleVO(roleMapper.findByRoleName("super"));
+        Optional.ofNullable(roleVO).map(item -> {
+            resourceMapper.selectAll().stream().map(ResourceVO::buildResourceVO).collect(Collectors.toList()).stream().map(ResourceVO::getId).collect(Collectors.toList()).forEach(resource -> {
+                permissionMapper.insertSelective(PermissionDO.buildPermissionDO(PermissionDTO.builder().objectId(item.getId()).resourceId(resource).build()));
+            });
+            return userRoleMapper.insertSelective(UserRoleDO.buildUserRoleDO(UserRoleDTO.builder().roleId(item.getId()).userId(userId).build()));
+        });
+    }
+
+    /**
+     * bind user and role id.
+     *
+     * @param userId user id
+     * @param roleIds role ids.
+     */
+    private void bindUserRole(final String userId, final List<String> roleIds, final DataEventTypeEnum type) {
+        if (roleIds != null && roleIds.size() > 0) {
+            if (type.equals(DataEventTypeEnum.UPDATE)) {
+                userRoleMapper.delete(userId);
+            }
+            roleIds.forEach(item -> userRoleMapper.insertSelective(UserRoleDO.buildUserRoleDO(UserRoleDTO.builder().userId(userId).roleId(item).build())));
+        }
     }
 }

@@ -71,4 +71,11 @@ public interface RoleService {
      * @return {@linkplain CommonPager}
      */
     CommonPager<RoleVO> listByPage(RoleQuery roleQuery);
+
+    /**
+     * select all roles not super.
+     *
+     * @return {@linkplain List}
+     */
+    List<RoleVO> selectAll();
 }

@@ -17,6 +17,7 @@
 
 package org.dromara.soul.admin.service.impl;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.PermissionDTO;
 import org.dromara.soul.admin.dto.ResourceDTO;
@@ -40,6 +41,7 @@ import org.dromara.soul.admin.vo.RoleVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -140,6 +142,16 @@ public class RoleServiceImpl implements RoleService {
     }
 
     /**
+     * select all roles.
+     *
+     * @return {@linkplain List}
+     */
+    @Override
+    public List<RoleVO> selectAll() {
+        return roleMapper.selectAll().stream().map(RoleVO::buildRoleVO).collect(Collectors.toList());
+    }
+
+    /**
      * get all permissions.
      *
      * @return {@linkplain PermissionInfo}
@@ -173,12 +185,12 @@ public class RoleServiceImpl implements RoleService {
         for (ResourceVO resourceVO : metaList) {
             String parentId = resourceVO.getParentId();
             ResourceInfo resourceInfoItem = ResourceInfo.buildResourceInfo(resourceVO);
-            if (resourceInfo == null && StringUtils.isEmpty(parentId)) {
+            if (ObjectUtils.isEmpty(resourceInfo) && StringUtils.isEmpty(parentId)) {
                 treeList.add(resourceInfoItem);
                 if (resourceInfoItem.getIsLeaf().equals(Boolean.FALSE)) {
                     getTreeModelList(treeList, metaList, resourceInfoItem);
                 }
-            } else if (resourceInfo != null && parentId != null && parentId.equals(resourceInfo.getId())) {
+            } else if (!ObjectUtils.isEmpty(resourceInfo) && StringUtils.isNotEmpty(parentId) && parentId.equals(resourceInfo.getId())) {
                 resourceInfo.getChildren().add(resourceInfoItem);
                 if (resourceInfoItem.getIsLeaf().equals(Boolean.FALSE)) {
                     getTreeModelList(treeList, metaList, resourceInfoItem);
@@ -196,10 +208,10 @@ public class RoleServiceImpl implements RoleService {
      * @return {@linkplain List}
      */
     private List<String> getListDiff(final List<String> preList, final List<String> lastList) {
-        if (lastList == null || lastList.isEmpty()) {
+        if (CollectionUtils.isEmpty(lastList)) {
             return null;
         }
-        if (preList == null || preList.isEmpty()) {
+        if (CollectionUtils.isEmpty(preList)) {
             return lastList;
         }
         Map<String, Integer> map = preList.stream().distinct()
@@ -235,13 +247,13 @@ public class RoleServiceImpl implements RoleService {
      * @param lastPermissionList {@linkplain List}
      */
     private void manageRolePermission(final String roleId, final List<String> currentPermissionList, final List<String> lastPermissionList) {
-        permissionMapper.deleteByObjectId(roleId);
         List<String> addPermission = getListDiff(lastPermissionList, currentPermissionList);
-        if (addPermission != null && !addPermission.isEmpty()) {
+        if (CollectionUtils.isNotEmpty(addPermission)) {
+            permissionMapper.deleteByObjectId(roleId);
             batchSavePermission(addPermission.stream().map(node -> PermissionDO.buildPermissionDO(PermissionDTO.builder().objectId(roleId).resourceId(node).build())).collect(Collectors.toList()));
         }
         List<String> deletePermission = getListDiff(currentPermissionList, lastPermissionList);
-        if (deletePermission != null && !deletePermission.isEmpty()) {
+        if (CollectionUtils.isNotEmpty(deletePermission)) {
             deletePermission.forEach(node -> deleteByObjectIdAndResourceId(new PermissionQuery(roleId, node)));
         }
     }

@@ -15,55 +15,27 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.dto;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.dromara.soul.admin.entity.RoleDO;
-
-import java.io.Serializable;
-import java.util.List;
+package org.dromara.soul.common.constant;
 
 /**
- * this is dashboard user from by web front.
+ * The Constants for Resource Type.
  *
- * @author jiangxiaofeng(Nicholas)
- */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class DashboardUserDTO implements Serializable {
+ * @author nuo-promise
+ **/
+public final class ResourceTypeConstants {
 
     /**
-     * primary key.
+     * Main Menu.
      */
-    private String id;
+    public static final Integer MENU_TYPE_0 = 0;
 
     /**
-     * user name.
-     */
-    private String userName;
+     * Sub Menu.
+      */
+    public static final Integer MENU_TYPE_1 = 1;
 
     /**
-     * user password.
+     * Permission.
      */
-    private String password;
-
-    /**
-     * dashboard role.
-     */
-    private Integer role;
-
-    /**
-     * current role list.
-     */
-    private List<String> roles;
-
-    /**
-     * whether enabled.
-     */
-    private Boolean enabled;
+    public static final Integer MENU_TYPE_2 = 2;
 }

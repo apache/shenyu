@@ -17,7 +17,6 @@
 
 package org.dromara.soul.admin.controller;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.admin.dto.RoleDTO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
@@ -56,6 +55,16 @@ public class RoleController {
     }
 
     /**
+     * get all roles.
+     *
+     * @return {@linkplain SoulAdminResult}
+     */
+    @GetMapping("/getAllRoles")
+    public SoulAdminResult selectAll() {
+        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, roleService.selectAll());
+    }
+
+    /**
      * query role.
      *
      * @param roleName role name
@@ -66,11 +75,7 @@ public class RoleController {
     @GetMapping("")
     public SoulAdminResult queryRole(final String roleName, final Integer currentPage, final Integer pageSize) {
         CommonPager<RoleVO> commonPager = roleService.listByPage(new RoleQuery(roleName, new PageParameter(currentPage, pageSize)));
-        if (CollectionUtils.isNotEmpty(commonPager.getDataList())) {
-            return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
-        } else {
-            return SoulAdminResult.error(SoulResultMessage.QUERY_FAILED);
-        }
+        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
     }
 
     /**
@@ -93,6 +98,9 @@ public class RoleController {
     @PostMapping("")
     public SoulAdminResult createRole(@RequestBody final RoleDTO roleDTO) {
         return Optional.ofNullable(roleDTO).map(item -> {
+            if (roleDTO.getRoleName().equals("super")) {
+                return SoulAdminResult.error(SoulResultMessage.ROLE_CREATE_ERROR);
+            }
             Integer createCount = roleService.createOrUpdate(item);
             return SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS, createCount);
         }).orElse(SoulAdminResult.error(SoulResultMessage.CREATE_FAILED));

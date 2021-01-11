@@ -25,11 +25,11 @@ import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
+import org.dromara.soul.admin.service.PermissionService;
 import org.dromara.soul.admin.shiro.bean.StatelessToken;
 import org.dromara.soul.admin.utils.JwtUtils;
+import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -37,7 +37,14 @@ import java.util.Set;
  *
  * @author YuI
  **/
+@Service("shiroRealm")
 public class ShiroRealm extends AuthorizingRealm {
+
+    private final PermissionService permissionService;
+
+    public ShiroRealm(final PermissionService permissionService) {
+        this.permissionService = permissionService;
+    }
 
     @Override
     public boolean supports(final AuthenticationToken token) {
@@ -47,7 +54,8 @@ public class ShiroRealm extends AuthorizingRealm {
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(final PrincipalCollection principalCollection) {
         // todo: temporary, will use database to add permission
-        Set<String> permissions = new HashSet<>(Collections.singletonList("sys:*:*"));
+        String userName = (String) principalCollection.getPrimaryPrincipal();
+        Set<String> permissions = permissionService.getAuthPermByUserName(userName);
         if (CollectionUtils.isEmpty(permissions)) {
             return null;
         }

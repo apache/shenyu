@@ -49,17 +49,12 @@ public class ShiroConfiguration {
     static {
         WHITE_LIST = new LinkedList<>();
         WHITE_LIST.add("/index");
+        WHITE_LIST.add("/index.*.css");
+        WHITE_LIST.add("/index.*.js");
+        WHITE_LIST.add("/favicon.png");
+        WHITE_LIST.add("/plugin");
         WHITE_LIST.add("/platform/login");
-    }
-
-    /**
-     * generate AuthorizingRealm bean.
-     *
-     * @return {@link AuthorizingRealm}
-     */
-    @Bean("shiroRealm")
-    public AuthorizingRealm shiroRealm() {
-        return new ShiroRealm();
+        WHITE_LIST.add("/platform/enum");
     }
 
     /**

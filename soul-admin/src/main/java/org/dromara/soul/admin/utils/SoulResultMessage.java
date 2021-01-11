@@ -48,6 +48,8 @@ public final class SoulResultMessage {
 
     public static final String SYNC_FAIL = "sync fail";
 
+    public static final String ROLE_CREATE_ERROR = "can not create super role";
+
     public static final String DASHBOARD_QUERY_ERROR = "users info is empty";
 
     public static final String DASHBOARD_CREATE_USER_ERROR = "user info not empty";
@@ -65,4 +67,8 @@ public final class SoulResultMessage {
     public static final String TOKEN_IS_ERROR = "token is error";
 
     public static final String TOKEN_HAS_NO_PERMISSION = "toke has no permission";
+
+    public static final String MENU_SUCCESS = "get menu and permission success";
+
+    public static final String MENU_FAILED = "get menu and permission failed";
 }
