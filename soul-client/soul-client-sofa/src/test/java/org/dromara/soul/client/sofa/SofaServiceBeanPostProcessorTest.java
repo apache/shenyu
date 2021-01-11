@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import java.lang.reflect.Field;
 
 /**
- * Test case for SofaServiceBeanPostProcessor.
+ * Test case for {@link SofaServiceBeanPostProcessor}.
  *
  * @author HoldDie
  */
