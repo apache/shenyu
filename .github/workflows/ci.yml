@@ -40,7 +40,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
       - name: Support longpaths
-        if: {{ matrix.os == 'windows-latest'}}
+        if: ${{ matrix.os == 'windows-latest'}}
         run: git config --system core.longpaths true
       - uses: actions/checkout@v2
         with:
