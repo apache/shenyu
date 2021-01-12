@@ -58,6 +58,8 @@ soul:
       key: 2095132720951327
   jwt:
     key: 2095132720951327
+  shiro:
+    white-list: /index,/index.*.css,/index.*.js,/favicon.png,/plugin,/platform/**
 
 logging:
   level:
