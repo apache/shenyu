@@ -40,13 +40,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 /**
- * Test for SpringCloudClientBeanPostProcessor.
+ * Test for {@link SpringCloudClientBeanPostProcessor}.
  *
  * @author kaitoShy
  * @author dengliming
@@ -68,14 +69,15 @@ public final class SpringCloudClientBeanPostProcessorTest {
     public void testSoulBeanProcess() {
         // config with full
         SpringCloudClientBeanPostProcessor springCloudClientBeanPostProcessor = buildSpringCloudClientBeanPostProcessor(true);
-        assertEquals(springCloudClientTestBean, springCloudClientBeanPostProcessor.postProcessAfterInitialization(springCloudClientTestBean, "springCloudClientTestBean"));
+        assertThat(springCloudClientTestBean, equalTo(springCloudClientBeanPostProcessor.postProcessAfterInitialization(springCloudClientTestBean, "springCloudClientTestBean")));
     }
 
     @Test
     public void testNormalBeanProcess() {
         SpringCloudClientBeanPostProcessor springCloudClientBeanPostProcessor = buildSpringCloudClientBeanPostProcessor(false);
         Object normalBean = new Object();
-        assertEquals(normalBean, springCloudClientBeanPostProcessor.postProcessAfterInitialization(normalBean, "normalBean"));
+
+        assertThat(normalBean, equalTo(springCloudClientBeanPostProcessor.postProcessAfterInitialization(normalBean, "normalBean")));
     }
 
     @Test
@@ -91,7 +93,7 @@ public final class SpringCloudClientBeanPostProcessorTest {
                     command.run();
                 }
             });
-            assertEquals(springCloudClientTestBean, springCloudClientBeanPostProcessor.postProcessAfterInitialization(springCloudClientTestBean, "normalBean"));
+            assertThat(springCloudClientTestBean, equalTo(springCloudClientBeanPostProcessor.postProcessAfterInitialization(springCloudClientTestBean, "normalBean")));
         }
     }
 

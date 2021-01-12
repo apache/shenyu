@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * SpringMvcClientBeanPostProcessorTest.
+ * Test case for {@link SpringMvcClientBeanPostProcessor}.
  *
  * @author tydhot
  */
