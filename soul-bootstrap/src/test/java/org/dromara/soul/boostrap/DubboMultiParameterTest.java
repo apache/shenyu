@@ -27,20 +27,20 @@ import static org.junit.Assert.assertThat;
 public final class DubboMultiParameterTest {
 
     private final DubboMultiParameterResolveServiceImpl resolveService = new DubboMultiParameterResolveServiceImpl();
-
+    
     @Test
     public void assertTwoStringParam() {
-        String body = "{\"id\": \"123\",\"name\": \"xiaoyu\"}";
-        String parameterTypes = "java.lang.String,java.lang.String";
+        final String body = "{\"id\": \"123\",\"name\": \"xiaoyu\"}";
+        final String parameterTypes = "java.lang.String,java.lang.String";
         Pair<String[], Object[]> pair = resolveService.buildParameter(body, parameterTypes);
         assertThat(pair.getLeft().length, is(2));
         assertThat(pair.getRight().length, is(2));
     }
-
+    
     @Test
     public void assertArrayAndString() {
-        String body = "{\"ids\":[\"123\",\"456\"],\"name\":\"hello world\"}\n";
-        String parameterTypes = "java.lang.Integer[],java.lang.String";
+        final String body = "{\"ids\":[\"123\",\"456\"],\"name\":\"hello world\"}\n";
+        final String parameterTypes = "java.lang.Integer[],java.lang.String";
         Pair<String[], Object[]> pair = resolveService.buildParameter(body, parameterTypes);
         assertThat(pair.getLeft().length, is(2));
         assertThat(pair.getRight().length, is(2));
