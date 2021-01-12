@@ -23,7 +23,6 @@ import com.alibaba.dubbo.config.annotation.Service;
 import com.alibaba.dubbo.config.spring.ServiceBean;
 import org.dromara.soul.client.dubbo.common.annotation.SoulDubboClient;
 import org.dromara.soul.client.dubbo.common.config.DubboConfig;
-import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.aop.framework.ProxyFactoryBean;
 import org.springframework.aop.interceptor.PerformanceMonitorInterceptor;
@@ -35,10 +34,17 @@ import org.springframework.context.event.ContextRefreshedEvent;
 
 import java.util.Collections;
 
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class AlibabaDubboServiceBeanPostProcessorTest {
+/**
+ * Test case for {@link AlibabaDubboServiceBeanPostProcessor}.
+ *
+ * @author HoldDie
+ */
+public final class AlibabaDubboServiceBeanPostProcessorTest {
 
     private static AlibabaDubboServiceBeanPostProcessor alibabaDubboServiceBeanPostProcessor;
 
@@ -51,7 +57,7 @@ public class AlibabaDubboServiceBeanPostProcessorTest {
             mockDubboConfig.setContextPath(null);
             alibabaDubboServiceBeanPostProcessor = new AlibabaDubboServiceBeanPostProcessor(mockDubboConfig);
         } catch (RuntimeException e) {
-            Assert.assertEquals("Alibaba dubbo client must config the contextPath, adminUrl", e.getMessage());
+            assertThat("Alibaba dubbo client must config the contextPath, adminUrl", is(e.getMessage()));
         }
 
         try {
@@ -59,7 +65,7 @@ public class AlibabaDubboServiceBeanPostProcessorTest {
             mockDubboConfig.setContextPath("/dubbo");
             alibabaDubboServiceBeanPostProcessor = new AlibabaDubboServiceBeanPostProcessor(mockDubboConfig);
         } catch (RuntimeException e) {
-            Assert.assertEquals("Alibaba dubbo client must config the contextPath, adminUrl", e.getMessage());
+            assertThat("Alibaba dubbo client must config the contextPath, adminUrl", is(e.getMessage()));
         }
     }
 

@@ -21,7 +21,6 @@ import org.apache.dubbo.common.URL;
 import org.apache.dubbo.validation.Validator;
 import org.dromara.soul.client.apache.dubbo.validation.mock.MockValidationParameter;
 import org.dromara.soul.client.apache.dubbo.validation.service.TestService;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -31,10 +30,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 /**
- * ApacheDubboClientValidatorTest.
+ * Test case for {@link ApacheDubboClientValidator}.
  *
  * @author KevinClair
  */
@@ -65,7 +66,7 @@ public final class ApacheDubboClientValidatorTest {
                     new Class[]{TestService.TestObject.class},
                     new Object[]{TestService.TestObject.builder().age(null).build()});
         } catch (Exception e) {
-            assertEquals("age cannot be null.", e.getMessage());
+            assertThat("age cannot be null.", is(e.getMessage()));
         }
     }
 
@@ -100,7 +101,7 @@ public final class ApacheDubboClientValidatorTest {
                             new Class<?>[]{MockValidationParameter.class},
                             new Object[]{new MockValidationParameter("NotBeNull")});
         } catch (Exception e) {
-            Assert.assertTrue(e instanceof ValidationException);
+            assertThat(e, instanceOf(ValidationException.class));
         }
     }
 

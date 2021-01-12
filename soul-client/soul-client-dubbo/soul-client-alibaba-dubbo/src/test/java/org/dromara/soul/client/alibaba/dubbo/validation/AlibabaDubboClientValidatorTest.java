@@ -19,7 +19,6 @@ package org.dromara.soul.client.alibaba.dubbo.validation;
 
 import com.alibaba.dubbo.common.URL;
 import org.dromara.soul.client.alibaba.dubbo.validation.mock.MockValidationParameter;
-import org.junit.Assert;
 import org.junit.Test;
 
 import javax.validation.ValidationException;
@@ -28,12 +27,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertThat;
+
 /**
- * AlibabaDubboClientValidatorTest.
+ * Test case for {@link AlibabaDubboClientValidation}.
  *
  * @author KevinClair
  */
-public class AlibabaDubboClientValidatorTest {
+public final class AlibabaDubboClientValidatorTest {
 
     private static final String MOCK_SERVICE_URL = "mock://test:28000/org.dromara.soul.client.alibaba.dubbo.validation.mock.MockValidatorTarget";
 
@@ -44,7 +46,7 @@ public class AlibabaDubboClientValidatorTest {
             new AlibabaDubboClientValidation().getValidator(url)
                     .validate("nonExistingMethod", new Class<?>[]{String.class}, new Object[]{"arg1"});
         } catch (Exception e) {
-            Assert.assertTrue(e instanceof NoSuchMethodException);
+            assertThat(e, instanceOf(NoSuchMethodException.class));
         }
     }
 
@@ -62,7 +64,7 @@ public class AlibabaDubboClientValidatorTest {
             new AlibabaDubboClientValidation().getValidator(url)
                     .validate("method2", new Class<?>[]{MockValidationParameter.class}, new Object[]{new MockValidationParameter("NotBeNull")});
         } catch (Exception e) {
-            Assert.assertTrue(e instanceof ValidationException);
+            assertThat(e, instanceOf(ValidationException.class));
         }
     }
 

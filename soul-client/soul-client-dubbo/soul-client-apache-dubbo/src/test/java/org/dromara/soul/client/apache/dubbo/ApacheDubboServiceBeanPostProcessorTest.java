@@ -23,7 +23,6 @@ import org.apache.dubbo.config.annotation.Service;
 import org.apache.dubbo.config.spring.ServiceBean;
 import org.dromara.soul.client.dubbo.common.annotation.SoulDubboClient;
 import org.dromara.soul.client.dubbo.common.config.DubboConfig;
-import org.junit.Assert;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,6 +38,8 @@ import org.springframework.context.event.ContextRefreshedEvent;
 
 import java.util.Collections;
 
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -62,7 +63,7 @@ public final class ApacheDubboServiceBeanPostProcessorTest {
             mockDubboConfig.setContextPath(null);
             apacheDubboServiceBeanPostProcessor = new ApacheDubboServiceBeanPostProcessor(mockDubboConfig);
         } catch (RuntimeException e) {
-            Assert.assertEquals("apache dubbo client must config the contextPath, adminUrl", e.getMessage());
+            assertThat("apache dubbo client must config the contextPath, adminUrl", is(e.getMessage()));
         }
 
         try {
@@ -70,7 +71,7 @@ public final class ApacheDubboServiceBeanPostProcessorTest {
             mockDubboConfig.setContextPath("/dubbo");
             apacheDubboServiceBeanPostProcessor = new ApacheDubboServiceBeanPostProcessor(mockDubboConfig);
         } catch (RuntimeException e) {
-            Assert.assertEquals("apache dubbo client must config the contextPath, adminUrl", e.getMessage());
+            assertThat("apache dubbo client must config the contextPath, adminUrl", is(e.getMessage()));
         }
     }
 
