@@ -108,6 +108,7 @@ public final class ApplicationConfigCache {
      *
      * @param metaData metaData
      */
+    @SuppressWarnings("all")
     public void initPrx(final MetaData metaData) {
         for (; ;) {
             Class<?> prxClass = prxClassCache.get(metaData.getServiceName());
@@ -209,6 +210,7 @@ public final class ApplicationConfigCache {
      */
     @Data
     static class MethodInfo {
+        
         private String methodName;
 
         private List<Pair<String, String>> params;
@@ -219,6 +221,7 @@ public final class ApplicationConfigCache {
      */
     @Data
     static class TarsParamExtInfo {
+        
         private List<MethodInfo> methodInfo;
     }
 
@@ -228,6 +231,7 @@ public final class ApplicationConfigCache {
     @Data
     @AllArgsConstructor
     static class TarsParamInfo {
+        
         private Class<?>[] paramTypes;
 
         private String[] paramNames;

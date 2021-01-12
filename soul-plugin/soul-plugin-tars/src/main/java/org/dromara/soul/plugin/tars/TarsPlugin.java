@@ -56,6 +56,7 @@ public class TarsPlugin extends AbstractSoulPlugin {
     private static final Random RANDOM = new Random();
 
     @Override
+    @SuppressWarnings("unchecked")
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
         String body = exchange.getAttribute(Constants.TARS_PARAMS);
         SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
@@ -77,7 +78,7 @@ public class TarsPlugin extends AbstractSoulPlugin {
         int index = RANDOM.nextInt(tarsInvokePrxList.getTarsInvokePrxList().size());
         Object prx = tarsInvokePrxList.getTarsInvokePrxList().get(index).getInvokePrx();
         Method method = tarsInvokePrxList.getMethod();
-        CompletableFuture<String> future = null;
+        CompletableFuture<String> future;
         try {
             future = (CompletableFuture<String>) method
                     .invoke(prx, PrxInfoUtil.getParamArray(tarsInvokePrxList.getParamTypes(), tarsInvokePrxList.getParamNames(), body));

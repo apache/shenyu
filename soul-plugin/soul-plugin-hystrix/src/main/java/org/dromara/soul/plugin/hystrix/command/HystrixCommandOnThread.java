@@ -54,7 +54,6 @@ public class HystrixCommandOnThread extends HystrixCommand<Mono<Void>> implement
                           final ServerWebExchange exchange,
                           final SoulPluginChain chain,
                           final String callBackUri) {
-
         super(setter);
         this.exchange = exchange;
         this.chain = chain;
@@ -65,7 +64,6 @@ public class HystrixCommandOnThread extends HystrixCommand<Mono<Void>> implement
     protected Mono<Void> run() {
         RxReactiveStreams.toObservable(chain.execute(exchange)).toBlocking().subscribe();
         return Mono.empty();
-
     }
 
     @Override
