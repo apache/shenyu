@@ -56,6 +56,9 @@ public class PlatformController {
     @GetMapping("/login")
     public SoulAdminResult loginDashboardUser(final String userName, final String password) {
         LoginDashboardUserVO loginVO = dashboardUserService.login(userName, password);
+        if (loginVO.getUserName().equals("admin")) {
+            dashboardUserService.checkAndBindAdminRole(loginVO.getId());
+        }
         return SoulAdminResult.success(SoulResultMessage.PLATFORM_LOGIN_SUCCESS, loginVO);
     }
 

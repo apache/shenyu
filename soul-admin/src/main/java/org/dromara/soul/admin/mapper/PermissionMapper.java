@@ -86,7 +86,7 @@ public interface PermissionMapper {
      * @param objectId object id
      * @return rows int
      */
-    int deleteByObjectId(String objectId);
+    int deleteByObjectIds(List<String> objectId);
 
     /**
      * list All.

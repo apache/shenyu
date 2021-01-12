@@ -117,8 +117,7 @@ public class RoleController {
     public SoulAdminResult updateRole(@PathVariable("id") final String id, @RequestBody final RoleDTO roleDTO) {
         Objects.requireNonNull(roleDTO);
         roleDTO.setId(id);
-        Integer updateCount = roleService.createOrUpdate(roleDTO);
-        return SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS, updateCount);
+        return SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS, roleService.createOrUpdate(roleDTO));
     }
 
     /**
@@ -129,7 +128,6 @@ public class RoleController {
      */
     @DeleteMapping("/batch")
     public SoulAdminResult deleteRole(@RequestBody final List<String> ids) {
-        Integer deleteCount = roleService.delete(ids);
-        return SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, deleteCount);
+        return SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, roleService.delete(ids));
     }
 }

@@ -17,6 +17,7 @@
 
 package org.dromara.soul.admin.service.impl;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.config.SecretProperties;
 import org.dromara.soul.admin.dto.DashboardUserDTO;
@@ -191,14 +192,16 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      */
     @Override
     @Transactional
-    public void bindAdminRole(final String userId) {
-        RoleVO roleVO = RoleVO.buildRoleVO(roleMapper.findByRoleName("super"));
-        Optional.ofNullable(roleVO).map(item -> {
-            resourceMapper.selectAll().stream().map(ResourceVO::buildResourceVO).collect(Collectors.toList()).stream().map(ResourceVO::getId).collect(Collectors.toList()).forEach(resource -> {
-                permissionMapper.insertSelective(PermissionDO.buildPermissionDO(PermissionDTO.builder().objectId(item.getId()).resourceId(resource).build()));
+    public void checkAndBindAdminRole(final String userId) {
+        if (CollectionUtils.isEmpty(userRoleMapper.findByUserId(userId))) {
+            RoleVO roleVO = RoleVO.buildRoleVO(roleMapper.findByRoleName("super"));
+            Optional.ofNullable(roleVO).map(item -> {
+                resourceMapper.selectAll().stream().map(ResourceVO::buildResourceVO).collect(Collectors.toList()).stream().map(ResourceVO::getId).collect(Collectors.toList()).forEach(resource -> {
+                    permissionMapper.insertSelective(PermissionDO.buildPermissionDO(PermissionDTO.builder().objectId(item.getId()).resourceId(resource).build()));
+                });
+                return userRoleMapper.insertSelective(UserRoleDO.buildUserRoleDO(UserRoleDTO.builder().roleId(item.getId()).userId(userId).build()));
             });
-            return userRoleMapper.insertSelective(UserRoleDO.buildUserRoleDO(UserRoleDTO.builder().roleId(item.getId()).userId(userId).build()));
-        });
+        }
     }
 
     /**

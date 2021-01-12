@@ -55,9 +55,4 @@ public class RoleDTO implements Serializable {
      * pre permission ids.
      */
     private List<String> currentPermissionIds;
-
-    /**
-     * last permission ids.
-     */
-    private List<String> lastPermissionIds;
 }

@@ -63,8 +63,8 @@ public class ResourceController {
      */
     @GetMapping("/{id}")
     public SoulAdminResult detailResource(@PathVariable("id") final String id) {
-        ResourceVO resourceVO = resourceService.findById(id);
-        return Optional.ofNullable(resourceVO).map(item -> SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, item)).orElse(SoulAdminResult.error(SoulResultMessage.DETAIL_FAILED));
+        return Optional.ofNullable(resourceService.findById(id))
+                .map(item -> SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, item)).orElse(SoulAdminResult.error(SoulResultMessage.DETAIL_FAILED));
     }
 
     /**
@@ -74,11 +74,9 @@ public class ResourceController {
      * @return {@linkplain SoulAdminResult}
      */
     @PostMapping("")
-    public SoulAdminResult createRole(@RequestBody final ResourceDTO resourceDTO) {
-        return Optional.ofNullable(resourceDTO).map(item -> {
-            Integer createCount = resourceService.createOrUpdate(item);
-            return SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS, createCount);
-        }).orElse(SoulAdminResult.error(SoulResultMessage.CREATE_FAILED));
+    public SoulAdminResult createResource(@RequestBody final ResourceDTO resourceDTO) {
+        return Optional.ofNullable(resourceDTO)
+                .map(item -> SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS, resourceService.createOrUpdate(item))).orElse(SoulAdminResult.error(SoulResultMessage.CREATE_FAILED));
     }
 
     /**
@@ -92,8 +90,7 @@ public class ResourceController {
     public SoulAdminResult updateResource(@PathVariable("id") final String id, @RequestBody final ResourceDTO resourceDTO) {
         Objects.requireNonNull(resourceDTO);
         resourceDTO.setId(id);
-        Integer updateCount = resourceService.createOrUpdate(resourceDTO);
-        return SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS, updateCount);
+        return SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS, resourceService.createOrUpdate(resourceDTO));
     }
 
     /**
@@ -103,8 +100,7 @@ public class ResourceController {
      * @return {@linkplain SoulAdminResult}
      */
     @DeleteMapping("/batch")
-    public SoulAdminResult deleteRole(@RequestBody final List<String> ids) {
-        Integer deleteCount = resourceService.delete(ids);
-        return SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, deleteCount);
+    public SoulAdminResult deleteResource(@RequestBody final List<String> ids) {
+        return SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, resourceService.delete(ids));
     }
 }

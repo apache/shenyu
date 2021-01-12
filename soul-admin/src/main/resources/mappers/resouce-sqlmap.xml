@@ -268,8 +268,11 @@
         where id = #{id,jdbcType=VARCHAR}
     </update>
 
-    <delete id="delete" parameterType="java.lang.String">
+    <delete id="delete" parameterType="java.util.List">
         delete from resource
-        where id = #{id,jdbcType=VARCHAR}
+        where id in
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
     </delete>
 </mapper>

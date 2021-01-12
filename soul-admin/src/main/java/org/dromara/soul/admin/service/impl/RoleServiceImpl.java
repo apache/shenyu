@@ -44,6 +44,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -83,7 +85,7 @@ public class RoleServiceImpl implements RoleService {
         if (StringUtils.isEmpty(roleDTO.getId())) {
             return roleMapper.insertSelective(roleDO);
         } else {
-            manageRolePermission(roleDTO.getId(), roleDTO.getCurrentPermissionIds(), roleDTO.getLastPermissionIds());
+            manageRolePermission(roleDTO.getId(), roleDTO.getCurrentPermissionIds());
             return roleMapper.updateSelective(roleDO);
         }
     }
@@ -96,12 +98,8 @@ public class RoleServiceImpl implements RoleService {
      */
     @Override
     public int delete(final List<String> ids) {
-        int roleCount = 0;
-        for (String id : ids) {
-            roleCount += roleMapper.delete(id);
-            permissionMapper.deleteByObjectId(id);
-        }
-        return roleCount;
+        permissionMapper.deleteByObjectIds(ids);
+        return roleMapper.delete(ids);
     }
 
     /**
@@ -225,9 +223,7 @@ public class RoleServiceImpl implements RoleService {
      * @param permissionDOList {@linkplain List}
      */
     private void batchSavePermission(final List<PermissionDO> permissionDOList) {
-        for (PermissionDO permissionDO : permissionDOList) {
-            permissionMapper.insertSelective(permissionDO);
-        }
+        permissionDOList.forEach(permissionMapper::insertSelective);
     }
 
     /**
@@ -243,13 +239,13 @@ public class RoleServiceImpl implements RoleService {
      * manger role permission.
      *
      * @param roleId role id.
-     * @param currentPermissionList {@linkplain List}
-     * @param lastPermissionList {@linkplain List}
+     * @param currentPermissionList {@linkplain List} current role permission ids
      */
-    private void manageRolePermission(final String roleId, final List<String> currentPermissionList, final List<String> lastPermissionList) {
+    private void manageRolePermission(final String roleId, final List<String> currentPermissionList) {
+        List<String> lastPermissionList = permissionMapper.findByObjectId(roleId).stream().map(PermissionDO::getResourceId).collect(Collectors.toList());
         List<String> addPermission = getListDiff(lastPermissionList, currentPermissionList);
         if (CollectionUtils.isNotEmpty(addPermission)) {
-            permissionMapper.deleteByObjectId(roleId);
+            permissionMapper.deleteByObjectIds(Collections.singletonList(roleId));
             batchSavePermission(addPermission.stream().map(node -> PermissionDO.buildPermissionDO(PermissionDTO.builder().objectId(roleId).resourceId(node).build())).collect(Collectors.toList()));
         }
         List<String> deletePermission = getListDiff(currentPermissionList, lastPermissionList);

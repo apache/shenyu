@@ -95,10 +95,6 @@ public class DashboardUserController {
         String key = secretProperties.getKey();
         DashboardUserEditVO dashboardUserEditVO = dashboardUserService.findById(id);
         return Optional.ofNullable(dashboardUserEditVO).map(item -> {
-            if (item.getUserName().equals("admin") && item.getRoles().isEmpty()) {
-                dashboardUserService.bindAdminRole(item.getId());
-                item = dashboardUserService.findById(id);
-            }
             item.setPassword(AesUtils.aesDecryption(item.getPassword(), key));
             return SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, item);
         }).orElse(SoulAdminResult.error(SoulResultMessage.DASHBOARD_QUERY_ERROR));

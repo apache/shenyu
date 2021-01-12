@@ -98,10 +98,10 @@ public interface RoleMapper {
     /**
      * delete role.
      *
-     * @param id primary key
+     * @param ids primary keys
      * @return rows int
      */
-    int delete(String id);
+    int delete(List<String> ids);
 
     /**
      * list All.

@@ -95,8 +95,11 @@
         and resource_id = #{resourceId, jdbcType=VARCHAR}
     </delete>
 
-    <delete id="deleteByObjectId" parameterType="java.lang.String">
+    <delete id="deleteByObjectIds" parameterType="java.util.List">
         delete from permission
-        where object_id = #{objectId, jdbcType=VARCHAR}
+        where object_id in
+        <foreach item="objectId" collection="list" open="(" separator="," close=")">
+            #{objectId, jdbcType=VARCHAR}
+        </foreach>
     </delete>
 </mapper>
