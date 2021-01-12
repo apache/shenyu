@@ -53,7 +53,6 @@ public class ShiroRealm extends AuthorizingRealm {
 
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(final PrincipalCollection principalCollection) {
-        // todo: temporary, will use database to add permission
         String userName = (String) principalCollection.getPrimaryPrincipal();
         Set<String> permissions = permissionService.getAuthPermByUserName(userName);
         if (CollectionUtils.isEmpty(permissions)) {

@@ -17,11 +17,13 @@
 
 package org.dromara.soul.admin.shiro.config;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.spring.LifecycleBeanPostProcessor;
 import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
+import org.dromara.soul.admin.config.ShiroProperties;
 import org.dromara.soul.admin.shiro.bean.StatelessAuthFilter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -29,9 +31,11 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.servlet.Filter;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * shiro configuration.
@@ -42,26 +46,26 @@ import java.util.Map;
 public class ShiroConfiguration {
 
     /**
-     * white list.
+     * generate white list.
+     *
+     * @param shiroProperties shiro's properties
+     * @return white list
      */
-    private static final List<String> WHITE_LIST;
-
-    static {
-        WHITE_LIST = new LinkedList<>();
-        WHITE_LIST.add("/index");
-        WHITE_LIST.add("/index.*.css");
-        WHITE_LIST.add("/index.*.js");
-        WHITE_LIST.add("/favicon.png");
-        WHITE_LIST.add("/plugin");
-        WHITE_LIST.add("/platform/login");
-        WHITE_LIST.add("/platform/enum");
+    @Bean("whiteList")
+    List<String> generateWhiteList(@Qualifier("shiroProperties") final ShiroProperties shiroProperties) {
+        if (StringUtils.isBlank(shiroProperties.getWhiteList())) {
+            return Collections.emptyList();
+        }
+        return Stream
+                .of(StringUtils.split(shiroProperties.getWhiteList(), ","))
+                .collect(Collectors.toList());
     }
 
     /**
      * generate WebSecurityManager.
      *
      * @param shiroRealm shiro's realm
-     * @return {@link DefaultWebSecurityManager}
+     * @return {@linkplain DefaultWebSecurityManager}
      */
     @Bean("shiroSecurityManager")
     public DefaultWebSecurityManager securityManager(@Qualifier("shiroRealm") final AuthorizingRealm shiroRealm) {
@@ -73,12 +77,14 @@ public class ShiroConfiguration {
     /**
      * ShiroFilterFactoryBean.
      *
-     * @param securityManager {@link DefaultWebSecurityManager}
-     * @return {@link ShiroFilterFactoryBean}
+     * @param securityManager {@linkplain DefaultWebSecurityManager}
+     * @param whiteList white list
+     * @return {@linkplain ShiroFilterFactoryBean}
      */
     @Bean
     public ShiroFilterFactoryBean shiroFilterFactoryBean(
-            @Qualifier("shiroSecurityManager") final DefaultWebSecurityManager securityManager) {
+            @Qualifier("shiroSecurityManager") final DefaultWebSecurityManager securityManager,
+            @Qualifier("whiteList") final List<String> whiteList) {
         ShiroFilterFactoryBean factoryBean = new ShiroFilterFactoryBean();
         factoryBean.setSecurityManager(securityManager);
         Map<String, Filter> filterMap = new LinkedHashMap<>();
@@ -87,7 +93,7 @@ public class ShiroConfiguration {
 
         Map<String, String> filterChainDefinitionMap = new LinkedHashMap<>();
 
-        for (String s : WHITE_LIST) {
+        for (String s : whiteList) {
             filterChainDefinitionMap.put(s, "anon");
         }
 
@@ -99,8 +105,8 @@ public class ShiroConfiguration {
     /**
      * AuthorizationAttributeSourceAdvisor.
      *
-     * @param securityManager {@link DefaultWebSecurityManager}
-     * @return {@link AuthorizationAttributeSourceAdvisor}
+     * @param securityManager {@linkplain DefaultWebSecurityManager}
+     * @return {@linkplain AuthorizationAttributeSourceAdvisor}
      */
     @Bean
     public AuthorizationAttributeSourceAdvisor authorizationAttributeSourceAdvisor(
@@ -113,7 +119,7 @@ public class ShiroConfiguration {
     /**
      * shiro's lifecycle in spring.
      *
-     * @return {@link LifecycleBeanPostProcessor}
+     * @return {@linkplain LifecycleBeanPostProcessor}
      */
     @Bean
     public LifecycleBeanPostProcessor lifecycleBeanPostProcessor() {
