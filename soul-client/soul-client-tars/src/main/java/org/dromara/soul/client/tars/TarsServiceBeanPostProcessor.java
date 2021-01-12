@@ -138,6 +138,7 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
         }
         return MetaDataDTO.RpcExt.builder().methodName(method.getName())
                 .params(params)
+                .returnType(method.getReturnType().getName())
                 .build();
     }
 

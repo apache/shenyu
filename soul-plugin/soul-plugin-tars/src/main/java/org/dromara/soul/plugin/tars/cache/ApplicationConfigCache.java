@@ -21,7 +21,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.Weigher;
-import com.google.common.reflect.TypeToken;
 import com.qq.tars.client.Communicator;
 import com.qq.tars.client.CommunicatorConfig;
 import com.qq.tars.client.CommunicatorFactory;
@@ -43,11 +42,11 @@ import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.tars.proxy.TarsInvokePrx;
 import org.dromara.soul.plugin.tars.proxy.TarsInvokePrxList;
 import org.dromara.soul.plugin.tars.util.PrxInfoUtil;
+import org.dromara.soul.plugin.tars.util.ReturnValueResolver;
 
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
@@ -127,8 +126,9 @@ public final class ApplicationConfigCache {
                                     .name(clazzName);
                             for (MethodInfo methodInfo : tarsParamExtInfo.getMethodInfo()) {
                                 DynamicType.Builder.MethodDefinition.ParameterDefinition<?> definition =
-                                        classDefinition.defineMethod(PrxInfoUtil.getMethodName(methodInfo.methodName), new TypeToken<CompletableFuture<String>>() {
-                                        }.getType(), Visibility.PUBLIC);
+                                        classDefinition.defineMethod(PrxInfoUtil.getMethodName(methodInfo.methodName),
+                                                ReturnValueResolver.getCallBackType(Class.forName(methodInfo.getReturnType())),
+                                                Visibility.PUBLIC);
                                 if (CollectionUtils.isNotEmpty(methodInfo.getParams())) {
                                     Class<?>[] paramTypes = new Class[methodInfo.getParams().size()];
                                     String[] paramNames = new String[methodInfo.getParams().size()];
@@ -214,6 +214,8 @@ public final class ApplicationConfigCache {
         private String methodName;
 
         private List<Pair<String, String>> params;
+
+        private String returnType;
     }
 
     /**
