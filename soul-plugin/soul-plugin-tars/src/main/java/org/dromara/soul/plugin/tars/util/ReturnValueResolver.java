@@ -15,28 +15,32 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.examples.tars.servant.testapp.impl;
+package org.dromara.soul.plugin.tars.util;
 
-import com.qq.tars.spring.annotation.TarsServant;
-import org.dromara.soul.client.tars.common.annotation.SoulTarsClient;
-import org.dromara.soul.client.tars.common.annotation.SoulTarsService;
-import org.dromara.soul.examples.tars.servant.testapp.HelloServant;
+import com.google.common.reflect.TypeParameter;
+import com.google.common.reflect.TypeToken;
+
+import java.lang.reflect.Type;
+import java.util.concurrent.CompletableFuture;
 
 /**
+ * The tars return value type resolver.
+ *
  * @author tydhot
  */
-@TarsServant("HelloObj")
-@SoulTarsService(serviceName = "SoulExampleServer.SoulExampleApp.HelloObj")
-public class HelloServantImpl implements HelloServant {
-    @Override
-    @SoulTarsClient(path = "/hello")
-    public String hello(int no, String name) {
-        return String.format("hello no=%s, name=%s, time=%s", no, name, System.currentTimeMillis());
+public class ReturnValueResolver {
+
+    /**
+     * Get return type.
+     *
+     * @param <T>   T
+     * @param clazz clazz
+     * @return the type
+     */
+    public static <T> Type getCallBackType(final Class<T> clazz) {
+        return new TypeToken<CompletableFuture<T>>() { }
+            .where(new TypeParameter<T>() { }, TypeToken.of(clazz))
+            .getType();
     }
 
-    @Override
-    @SoulTarsClient(path = "/helloInt")
-    public Integer helloInt(int no, String name) {
-        return 1;
-    }
 }
