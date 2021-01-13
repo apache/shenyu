@@ -17,7 +17,16 @@
 
 package org.dromara.soul.common.utils;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.TypeAdapter;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
@@ -302,8 +311,8 @@ public class GsonUtils {
                 if (entry.getValue().isJsonNull()) {
                     resultMap.put((T) entry.getKey(), null);
                 } else {
-                  U value = context.deserialize(entry.getValue(), this.getType(entry.getValue()));
-                  resultMap.put((T) entry.getKey(), value);
+                    U value = context.deserialize(entry.getValue(), this.getType(entry.getValue()));
+                    resultMap.put((T) entry.getKey(), value);
                 }
             }
 
