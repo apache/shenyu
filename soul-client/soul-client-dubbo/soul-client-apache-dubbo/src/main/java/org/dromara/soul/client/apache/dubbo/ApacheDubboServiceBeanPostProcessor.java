@@ -40,6 +40,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
@@ -55,6 +56,8 @@ public class ApacheDubboServiceBeanPostProcessor implements ApplicationListener<
     private ExecutorService executorService;
 
     private final String url;
+
+    private AtomicBoolean isInit = new AtomicBoolean(false);
 
     public ApacheDubboServiceBeanPostProcessor(final DubboConfig dubboConfig) {
         String contextPath = dubboConfig.getContextPath();
@@ -134,7 +137,7 @@ public class ApacheDubboServiceBeanPostProcessor implements ApplicationListener<
 
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
-        if (Objects.nonNull(contextRefreshedEvent.getApplicationContext().getParent())) {
+        if (!isInit.compareAndSet(false, true)) {
             return;
         }
         // Fix bug(https://github.com/dromara/soul/issues/415), upload dubbo metadata on ContextRefreshedEvent
