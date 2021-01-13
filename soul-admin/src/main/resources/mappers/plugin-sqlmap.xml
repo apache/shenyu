@@ -55,7 +55,7 @@
             where name = #{name,jdbcType=VARCHAR}
         </if>
 
-        order by role asc
+        order by role,id asc
 
         <if test="pageParameter != null">
             limit #{pageParameter.offset},#{pageParameter.pageSize}
