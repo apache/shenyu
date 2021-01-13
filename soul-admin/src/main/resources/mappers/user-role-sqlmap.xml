@@ -89,4 +89,9 @@
         delete from user_role
         where id = #{id,jdbcType=VARCHAR}
     </delete>
+
+    <delete id="deleteByUserId" parameterType="java.lang.String">
+        delete from user_role
+        where user_id = #{userId,jdbcType=VARCHAR}
+    </delete>
 </mapper>

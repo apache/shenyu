@@ -69,4 +69,12 @@ public interface UserRoleMapper {
      * @return rows int
      */
     int delete(String id);
+
+    /**
+     * delete role by user id.
+     *
+     * @param userId user id
+     * @return row int
+     */
+    int deleteByUserId(String userId);
 }

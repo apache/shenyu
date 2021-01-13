@@ -216,7 +216,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     private void bindUserRole(final String userId, final List<String> roleIds, final DataEventTypeEnum type) {
         if (roleIds != null && roleIds.size() > 0) {
             if (type.equals(DataEventTypeEnum.UPDATE)) {
-                userRoleMapper.delete(userId);
+                userRoleMapper.deleteByUserId(userId);
             }
             roleIds.forEach(item -> userRoleMapper.insertSelective(UserRoleDO.buildUserRoleDO(UserRoleDTO.builder().userId(userId).roleId(item).build())));
         }
