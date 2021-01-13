@@ -13,6 +13,11 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 
+/**
+ * Test cases for DefaultDubboParamResolveService.
+ *
+ * @author hebaceous
+ */
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultDubboParamResolveServiceTest {
 
