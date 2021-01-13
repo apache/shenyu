@@ -25,6 +25,3 @@ RUN mv /opt/${APP_NAME} ${LOCAL_PATH}
 
 EXPOSE 9095
 ENTRYPOINT /bin/sh ${LOCAL_PATH}/bin/start.sh && tail -f ${LOCAL_PATH}/logs/soul-admin.out
-
-
-

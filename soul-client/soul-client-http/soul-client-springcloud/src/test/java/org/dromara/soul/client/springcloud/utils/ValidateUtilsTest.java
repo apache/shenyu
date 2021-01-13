@@ -27,12 +27,12 @@ import org.springframework.core.env.Environment;
 import static org.mockito.Mockito.when;
 
 /**
- * Test cases for ValidateUtils.
+ * Test cases for {@link ValidateUtils}.
  *
  * @author severez
  */
 @RunWith(MockitoJUnitRunner.class)
-public class ValidateUtilsTest {
+public final class ValidateUtilsTest {
     @Mock
     private Environment env;
 
