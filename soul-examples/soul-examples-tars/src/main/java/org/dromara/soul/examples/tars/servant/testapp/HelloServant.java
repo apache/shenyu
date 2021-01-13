@@ -13,4 +13,6 @@ import com.qq.tars.common.support.Holder;
 public interface HelloServant {
 
 	 String hello(@TarsMethodParameter(name="no")int no, @TarsMethodParameter(name="name")String name);
+
+	 Integer helloInt(@TarsMethodParameter(name="no")int no, @TarsMethodParameter(name="name")String name);
 }

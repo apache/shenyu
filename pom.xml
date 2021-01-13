@@ -36,8 +36,8 @@
         <module>soul-sync-data-center</module>
         <module>soul-metrics</module>
         <module>soul-spi</module>
-        <module>soul-dist</module>
         <module>soul-register-center</module>
+        <module>soul-dist</module>
     </modules>
 
     <organization>

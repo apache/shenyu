@@ -194,7 +194,6 @@ public final class JmxScraperTest {
     }
     
     private static class StdoutWriter implements MBeanReceiver {
-        
         public void recordBean(final String domain, final Map<String, String> beanProperties,
                                final LinkedList<String> attrKeys, final String attrName,
                                final String attrType, final String attrDescription, final Object value) {

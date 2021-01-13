@@ -37,7 +37,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 /**
- * ContextRegisterListenerTest.
+ * Test case for {@link ContextRegisterListener}.
  *
  * @author kaitoShy
  * @author dengliming

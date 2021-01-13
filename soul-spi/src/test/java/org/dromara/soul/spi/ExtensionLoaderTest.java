@@ -18,6 +18,7 @@
 package org.dromara.soul.spi;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -37,7 +38,6 @@ import org.dromara.soul.spi.fixture.NoJoinSPI;
 import org.dromara.soul.spi.fixture.NopSPI;
 import org.dromara.soul.spi.fixture.NotMatchSPI;
 import org.dromara.soul.spi.fixture.SubHasDefaultSPI;
-import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 
 public final class ExtensionLoaderTest {
@@ -76,8 +76,7 @@ public final class ExtensionLoaderTest {
             ExtensionLoader.getExtensionLoader(JdbcSPI.class).getJoin("");
             fail();
         } catch (NullPointerException expected) {
-            assertThat(expected.getMessage(),
-                    CoreMatchers.containsString("get join name is null"));
+            assertThat(expected.getMessage(), containsString("get join name is null"));
         }
     }
 
@@ -90,8 +89,7 @@ public final class ExtensionLoaderTest {
             ExtensionLoader.getExtensionLoader(null);
             fail();
         } catch (NullPointerException expected) {
-            assertThat(expected.getMessage(),
-                    CoreMatchers.containsString("extension clazz is null"));
+            assertThat(expected.getMessage(), containsString("extension clazz is null"));
         }
     }
 
@@ -105,7 +103,7 @@ public final class ExtensionLoaderTest {
             fail();
         } catch (IllegalArgumentException expected) {
             assertThat(expected.getMessage(),
-                    CoreMatchers.containsString("extension clazz (class org.dromara.soul.spi.ExtensionLoaderTest) is not interface!"));
+                    containsString("extension clazz (class org.dromara.soul.spi.ExtensionLoaderTest) is not interface!"));
         }
     }
 
@@ -119,7 +117,7 @@ public final class ExtensionLoaderTest {
             fail();
         } catch (IllegalArgumentException expected) {
             assertThat(expected.getMessage(),
-                    CoreMatchers.containsString("extension clazz (interface org.dromara.soul.spi.fixture.NopSPI) without @interface org.dromara.soul.spi.SPI Annotation"));
+                    containsString("extension clazz (interface org.dromara.soul.spi.fixture.NopSPI) without @interface org.dromara.soul.spi.SPI Annotation"));
         }
     }
 
@@ -132,7 +130,7 @@ public final class ExtensionLoaderTest {
             ExtensionLoader.getExtensionLoader(JdbcSPI.class).getJoin("nonentitySPIName");
             fail();
         } catch (IllegalArgumentException expected) {
-            assertThat(expected.getMessage(), CoreMatchers.containsString("name is error"));
+            assertThat(expected.getMessage(), containsString("name is error"));
         }
     }
 
@@ -145,8 +143,8 @@ public final class ExtensionLoaderTest {
             ExtensionLoader.getExtensionLoader(NotMatchSPI.class).getJoin("subNoJoinSPI");
             fail();
         } catch (IllegalStateException expected) {
-            assertThat(expected.getMessage(), CoreMatchers.containsString(
-                    "load extension resources error,class org.dromara.soul.spi.fixture.SubNoJoinSPI subtype is not of interface org.dromara.soul.spi.fixture.NotMatchSPI"));
+            assertThat(expected.getMessage(),
+                    containsString("load extension resources error,class org.dromara.soul.spi.fixture.SubNoJoinSPI subtype is not of interface org.dromara.soul.spi.fixture.NotMatchSPI"));
         }
     }
 
@@ -159,7 +157,7 @@ public final class ExtensionLoaderTest {
             ExtensionLoader.getExtensionLoader(NoClassMatchSPI.class).getJoin("subNoClassMatchSPI");
             fail();
         } catch (IllegalStateException expected) {
-            assertThat(expected.getMessage(), CoreMatchers.containsString("load extension resources error"));
+            assertThat(expected.getMessage(), containsString("load extension resources error"));
         }
     }
 
@@ -172,7 +170,7 @@ public final class ExtensionLoaderTest {
             ExtensionLoader.getExtensionLoader(NoJoinSPI.class).getJoin("subNoJoinSPI");
             fail();
         } catch (IllegalStateException expected) {
-            assertThat(expected.getMessage(), CoreMatchers.containsString("load extension resources error,class org.dromara.soul.spi.fixture.SubNoJoinSPI with Join annotation"));
+            assertThat(expected.getMessage(), containsString("load extension resources error,class org.dromara.soul.spi.fixture.SubNoJoinSPI with Join annotation"));
         }
     }
 
@@ -185,7 +183,7 @@ public final class ExtensionLoaderTest {
             ExtensionLoader.getExtensionLoader(JdbcSPI.class).getJoin("canNotInstantiated");
             fail();
         } catch (IllegalStateException expected) {
-            assertThat(expected.getMessage(), CoreMatchers.containsString(
+            assertThat(expected.getMessage(), containsString(
                     "Extension instance(name: canNotInstantiated, class: class org.dromara.soul.spi.fixture.CanNotInstantiatedSPI)  "
                             + "could not be instantiated: Class org.dromara.soul.spi.ExtensionLoader "
                             + "can not access a member of class org.dromara.soul.spi.fixture.CanNotInstantiatedSPI with modifiers \"private\""));
@@ -205,9 +203,9 @@ public final class ExtensionLoaderTest {
             loadClassMethod.invoke(extensionLoader, classes, "mysql", "org.dromara.soul.spi.fixture.OracleSPI");
             fail();
         } catch (InvocationTargetException expect) {
-            assertThat(expect.getTargetException().getMessage(), CoreMatchers.containsString(
+            assertThat(expect.getTargetException().getMessage(), containsString(
                     "load extension resources error,Duplicate class org.dromara.soul.spi.fixture.JdbcSPI name mysql on "
-                            + "org.dromara.soul.spi.fixture.MysqlSPI ororg.dromara.soul.spi.fixture.OracleSPI"));
+                            + "org.dromara.soul.spi.fixture.MysqlSPI or org.dromara.soul.spi.fixture.OracleSPI"));
         }
     }
 
@@ -224,7 +222,7 @@ public final class ExtensionLoaderTest {
                     new URL("file:/org.dromara.soul.spi.fixture.NoExistSPI"));
             fail();
         } catch (InvocationTargetException expect) {
-            assertThat(expect.getTargetException().getMessage(), CoreMatchers.containsString("load extension resources error"));
+            assertThat(expect.getTargetException().getMessage(), containsString("load extension resources error"));
         }
     }
 

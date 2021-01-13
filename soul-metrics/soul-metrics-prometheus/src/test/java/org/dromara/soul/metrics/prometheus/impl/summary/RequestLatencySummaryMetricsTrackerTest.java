@@ -20,14 +20,17 @@ package org.dromara.soul.metrics.prometheus.impl.summary;
 import org.dromara.soul.metrics.api.SummaryMetricsTrackerDelegate;
 import org.dromara.soul.metrics.enums.MetricsLabelEnum;
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
+
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for RequestLatencySummaryMetricsTracker.
  *
  * @author nuo-promise
  * @author dengliming
+ * @author Young Bean
  */
 public final class RequestLatencySummaryMetricsTrackerTest {
 
@@ -41,6 +44,6 @@ public final class RequestLatencySummaryMetricsTrackerTest {
 
     @Test
     public void metricsLabel() {
-        assertEquals(MetricsLabelEnum.REQUEST_LATENCY.getName(), requestLatencySummaryMetricsTracker.metricsLabel());
+        assertThat(MetricsLabelEnum.REQUEST_LATENCY.getName(), equalTo(requestLatencySummaryMetricsTracker.metricsLabel()));
     }
 }

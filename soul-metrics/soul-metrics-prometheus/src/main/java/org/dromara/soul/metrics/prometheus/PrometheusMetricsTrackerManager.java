@@ -41,13 +41,13 @@ import org.dromara.soul.spi.Join;
 @Slf4j
 @Join
 public final class PrometheusMetricsTrackerManager implements MetricsTrackerManager {
-    
+
     private final MetricsTrackerFactory metricsTrackerFactory = new PrometheusMetricsTrackerFactory();
-    
+
     private HTTPServer server;
-    
+
     private volatile AtomicBoolean registered = new AtomicBoolean(false);
-    
+
     @SneakyThrows(IOException.class)
     @Override
     public void start(final MetricsConfig metricsConfig) {
@@ -61,12 +61,14 @@ public final class PrometheusMetricsTrackerManager implements MetricsTrackerMana
         server = new HTTPServer(inetSocketAddress, CollectorRegistry.defaultRegistry, true);
         log.info("you start prometheus metrics http server  host is :{}, port is :{} ", inetSocketAddress.getHostString(), inetSocketAddress.getPort());
     }
-    
+
     @Override
     public void stop() {
-        server.stop();
+        if (server != null) {
+            server.stop();
+        }
     }
-    
+
     private void register(final String jmxConfig) {
         if (!registered.compareAndSet(false, true)) {
             return;

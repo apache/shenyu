@@ -16,4 +16,4 @@
 #
 
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.dromara.soul.spring.boot.plugin.contextpath.ContextPathMappingPluginConfiguration
+org.dromara.soul.springboot.starter.plugin.contextpath.ContextPathMappingPluginConfiguration

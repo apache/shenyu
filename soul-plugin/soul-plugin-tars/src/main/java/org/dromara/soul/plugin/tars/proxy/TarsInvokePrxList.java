@@ -35,11 +35,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Builder
 @Data
 public class TarsInvokePrxList {
+    
     private CopyOnWriteArrayList<TarsInvokePrx> tarsInvokePrxList;
 
     private Method method;
 
-    private Class[] paramTypes;
+    private Class<?>[] paramTypes;
 
     private String[] paramNames;
 }
