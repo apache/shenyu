@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: Java CI with Maven(Windows)
+name: ci
 
 on:
   pull_request:
@@ -27,7 +27,10 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Cache Maven Repos
         uses: actions/cache@v2
@@ -36,6 +39,9 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
+      - name: Support longpaths
+        if: ${{ matrix.os == 'windows-latest'}}
+        run: git config --system core.longpaths true
       - uses: actions/checkout@v2
         with:
           submodules: true
@@ -43,4 +49,5 @@ jobs:
         with:
           java-version: 8
       - name: Build with Maven
-        run: ./mvnw -B clean -D"maven.javadoc.skip"=true install
+        run: ./mvnw -B clean install
+      - uses: codecov/codecov-action@v1

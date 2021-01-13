@@ -46,10 +46,9 @@ public class HystrixBuilder {
      */
     public static HystrixObservableCommand.Setter build(final HystrixHandle hystrixHandle) {
         initHystrixHandleOnRequire(hystrixHandle);
-
         HystrixCommandGroupKey groupKey = HystrixCommandGroupKey.Factory.asKey(hystrixHandle.getGroupKey());
         HystrixCommandKey commandKey = HystrixCommandKey.Factory.asKey(hystrixHandle.getCommandKey());
-        final HystrixCommandProperties.Setter propertiesSetter =
+        HystrixCommandProperties.Setter propertiesSetter =
                 HystrixCommandProperties.Setter()
                         .withExecutionTimeoutInMilliseconds((int) hystrixHandle.getTimeout())
                         .withCircuitBreakerEnabled(true)
@@ -73,8 +72,7 @@ public class HystrixBuilder {
         initHystrixHandleOnRequire(hystrixHandle);
         HystrixCommandGroupKey groupKey = HystrixCommandGroupKey.Factory.asKey(hystrixHandle.getGroupKey());
         HystrixCommandKey commandKey = HystrixCommandKey.Factory.asKey(hystrixHandle.getCommandKey());
-
-        final HystrixCommandProperties.Setter propertiesSetter =
+        HystrixCommandProperties.Setter propertiesSetter =
                 HystrixCommandProperties.Setter()
                         .withExecutionTimeoutInMilliseconds((int) hystrixHandle.getTimeout())
                         .withCircuitBreakerEnabled(true)
@@ -82,7 +80,7 @@ public class HystrixBuilder {
                         .withCircuitBreakerRequestVolumeThreshold(hystrixHandle.getRequestVolumeThreshold())
                         .withCircuitBreakerSleepWindowInMilliseconds(hystrixHandle.getSleepWindowInMilliseconds());
         HystrixThreadPoolConfig hystrixThreadPoolConfig = hystrixHandle.getHystrixThreadPoolConfig();
-        final HystrixThreadPoolProperties.Setter threadPoolPropertiesSetter =
+        HystrixThreadPoolProperties.Setter threadPoolPropertiesSetter =
                 HystrixThreadPoolProperties.Setter()
                         .withCoreSize(hystrixThreadPoolConfig.getCoreSize())
                         .withMaximumSize(hystrixThreadPoolConfig.getMaximumSize())

@@ -15,26 +15,32 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.boostrap.dubbo;
+package org.dromara.soul.plugin.tars.util;
 
-import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.google.common.reflect.TypeParameter;
+import com.google.common.reflect.TypeToken;
+
+import java.lang.reflect.Type;
+import java.util.concurrent.CompletableFuture;
 
 /**
- * The type Complex bean test.
+ * The tars return value type resolver.
+ *
+ * @author tydhot
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public final class ComplexBeanTest implements Serializable {
+public class ReturnValueResolver {
 
-    private DubboTest dubboTest;
-    
-    private List<String> idLists;
-    
-    private Map<String, String> idMaps;
+    /**
+     * Get return type.
+     *
+     * @param <T>   T
+     * @param clazz clazz
+     * @return the type
+     */
+    public static <T> Type getCallBackType(final Class<T> clazz) {
+        return new TypeToken<CompletableFuture<T>>() { }
+            .where(new TypeParameter<T>() { }, TypeToken.of(clazz))
+            .getType();
+    }
+
 }

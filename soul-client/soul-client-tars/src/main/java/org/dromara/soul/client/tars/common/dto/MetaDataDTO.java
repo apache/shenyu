@@ -73,6 +73,8 @@ public class MetaDataDTO {
         private String methodName;
 
         private List<Pair<String, String>> params;
+
+        private String returnType;
     }
 
 }

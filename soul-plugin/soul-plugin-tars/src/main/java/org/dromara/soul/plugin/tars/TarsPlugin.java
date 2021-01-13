@@ -56,6 +56,7 @@ public class TarsPlugin extends AbstractSoulPlugin {
     private static final Random RANDOM = new Random();
 
     @Override
+    @SuppressWarnings("unchecked")
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
         String body = exchange.getAttribute(Constants.TARS_PARAMS);
         SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
@@ -77,9 +78,9 @@ public class TarsPlugin extends AbstractSoulPlugin {
         int index = RANDOM.nextInt(tarsInvokePrxList.getTarsInvokePrxList().size());
         Object prx = tarsInvokePrxList.getTarsInvokePrxList().get(index).getInvokePrx();
         Method method = tarsInvokePrxList.getMethod();
-        CompletableFuture<String> future = null;
+        CompletableFuture future;
         try {
-            future = (CompletableFuture<String>) method
+            future = (CompletableFuture) method
                     .invoke(prx, PrxInfoUtil.getParamArray(tarsInvokePrxList.getParamTypes(), tarsInvokePrxList.getParamNames(), body));
         } catch (Exception e) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -93,7 +94,7 @@ public class TarsPlugin extends AbstractSoulPlugin {
             exchange.getAttributes().put(Constants.TARS_RPC_RESULT, ret);
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return ret;
-        })).onErrorMap(SoulException::new).then(chain.execute(exchange));
+        })).onErrorMap(m -> new SoulException("failed to invoke tars")).then(chain.execute(exchange));
     }
 
     @Override

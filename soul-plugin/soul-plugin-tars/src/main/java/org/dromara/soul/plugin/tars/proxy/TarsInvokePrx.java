@@ -32,6 +32,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @Data
 public class TarsInvokePrx {
+    
     private Object invokePrx;
 
     private String host;
