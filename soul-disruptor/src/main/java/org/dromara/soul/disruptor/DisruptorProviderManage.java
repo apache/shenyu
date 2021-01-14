@@ -104,33 +104,7 @@ public class DisruptorProviderManage<T> {
         provider = new DisruptorProvider<>(ringBuffer, disruptor);
     }
 
-    /**
-     * start disruptor.
-     *
-     * @param consumerFactoryThen consumerFactoryThen
-     */
-    @SuppressWarnings("unchecked")
-    public void startupThen(final DisruptorConsumerFactory<T> consumerFactoryThen) {
-        Disruptor<DataEvent<T>> disruptor = new Disruptor<>(new DisruptorEventFactory<>(),
-                size,
-                DisruptorThreadFactory.create("disruptor_consumer_" + consumerFactory.fixName(), false),
-                ProducerType.MULTI,
-                new BlockingWaitStrategy());
-        DisruptorConsumer<T>[] consumers = new DisruptorConsumer[consumerSize];
-        for (int i = 0; i < consumerSize; i++) {
-            consumers[i] = new DisruptorConsumer<>(consumerFactory);
-        }
-        DisruptorConsumer<T>[] consumersThen = new DisruptorConsumer[consumerSize];
-        for (int i = 0; i < consumerSize; i++) {
-            consumersThen[i] = new DisruptorConsumer<>(consumerFactoryThen);
-        }
-        disruptor.handleEventsWithWorkerPool(consumers).thenHandleEventsWithWorkerPool(consumersThen);
-        disruptor.setDefaultExceptionHandler(new IgnoreExceptionHandler());
-        disruptor.start();
-        RingBuffer<DataEvent<T>> ringBuffer = disruptor.getRingBuffer();
-        provider = new DisruptorProvider<>(ringBuffer, disruptor);
-    }
-    
+
     /**
      * Gets provider.
      *

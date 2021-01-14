@@ -17,10 +17,29 @@
 
 package org.dromara.soul.register.client.http;
 
+import org.dromara.soul.client.common.dto.MetaDataDTO;
+import org.dromara.soul.client.common.utils.RegisterUtils;
+import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 
+@ConditionalOnMissingBean(SoulClientRegisterRepository.class)
 public class HttpClientRegisterRepository implements SoulClientRegisterRepository {
-    
+
+    private String url;
+
+    @Override
+    public void init(final SoulRegisterCenterConfiguration config) {
+        url = config.getServerLists();
+    }
+
+    @Override
+    public void persistInterface(final MetaDataDTO metadata) {
+        RegisterUtils.doRegister(GsonUtils.getGson().toJson(metadata), url, RpcTypeEnum.DUBBO);
+    }
+
     @Override
     public void persistInterface(final String key, final String value) {
     

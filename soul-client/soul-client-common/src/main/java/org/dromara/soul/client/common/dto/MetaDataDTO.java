@@ -16,24 +16,38 @@
  *
  */
 
-package org.dromara.soul.client.core.processor;
+package org.dromara.soul.client.common.dto;
 
-import org.dromara.soul.client.core.config.SoulClientConfig;
-import org.dromara.soul.spi.SPI;
+import lombok.Builder;
+import lombok.Data;
 
 /**
- * Demo.
+ * The type Meta data dto.
  *
- * @author tydhot
+ * @author xiaoyu
  */
-@SPI
-public interface SoulClientProcessChecker {
-    /**
-     * check process.
-     *
-     * @param bean bean
-     * @param soulClientConfig soulClientConfig
-     * @return checkable
-     */
-    Boolean checkProcess(Object bean, SoulClientConfig soulClientConfig);
+@Data
+@Builder
+public class MetaDataDTO {
+    private String appName;
+    
+    private String contextPath;
+    
+    private String path;
+    
+    private String pathDesc;
+    
+    private String rpcType;
+    
+    private String serviceName;
+    
+    private String methodName;
+    
+    private String ruleName;
+    
+    private String parameterTypes;
+    
+    private String rpcExt;
+    
+    private boolean enabled;
 }

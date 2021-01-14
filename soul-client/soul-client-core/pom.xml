@@ -44,6 +44,11 @@
             <artifactId>soul-disruptor</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-register-client-http</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 </project>

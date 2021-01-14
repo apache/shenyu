@@ -18,11 +18,9 @@
 
 package org.dromara.soul.client.core.disruptor;
 
-import org.dromara.soul.client.core.config.SoulClientConfig;
-import org.dromara.soul.client.core.register.SoulMetaDataRegister;
 import org.dromara.soul.disruptor.AbstractDisruptorConsumerExecutor;
 import org.dromara.soul.disruptor.DisruptorConsumerFactory;
-import org.dromara.soul.spi.ExtensionLoader;
+import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 
 /**
  * Demo.
@@ -30,15 +28,15 @@ import org.dromara.soul.spi.ExtensionLoader;
  * @author tydhot
  */
 public class SoulMetaDataRegisterEventHandler extends AbstractDisruptorConsumerExecutor<SoulClientRegisterEvent> implements DisruptorConsumerFactory<SoulClientRegisterEvent> {
-    private final SoulMetaDataRegister soulMetaDataRegister;
+    private final SoulClientRegisterRepository soulClientRegisterRepository;
 
-    public SoulMetaDataRegisterEventHandler(final SoulClientConfig soulClientConfig) {
-        this.soulMetaDataRegister = ExtensionLoader.getExtensionLoader(SoulMetaDataRegister.class).getJoin(soulClientConfig.getRegisterType());
+    public SoulMetaDataRegisterEventHandler(final SoulClientRegisterRepository soulClientRegisterRepository) {
+        this.soulClientRegisterRepository = soulClientRegisterRepository;
     }
 
     @Override
     public void executor(final SoulClientRegisterEvent data) {
-        soulMetaDataRegister.register(data.getMetaDataList());
+        soulClientRegisterRepository.persistInterface(data.getMetaData());
     }
 
     @Override
