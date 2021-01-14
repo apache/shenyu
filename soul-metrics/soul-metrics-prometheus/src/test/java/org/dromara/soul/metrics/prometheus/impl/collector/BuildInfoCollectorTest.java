@@ -17,16 +17,10 @@
 
 package org.dromara.soul.metrics.prometheus.impl.collector;
 
-import io.prometheus.client.Collector.MetricFamilySamples;
-import io.prometheus.client.GaugeMetricFamily;
+import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * The Test Case For BuildInfoCollector.
@@ -35,20 +29,15 @@ import static org.junit.Assert.assertThat;
  **/
 public final class BuildInfoCollectorTest {
 
+    private BuildInfoCollector buildInfoCollector;
+
+    @Before
+    public void setUp() {
+        buildInfoCollector = new BuildInfoCollector();
+    }
+
     @Test
-    public void collect() {
-        List<MetricFamilySamples> mfs = new ArrayList<>();
-        GaugeMetricFamily artifactInfo = new GaugeMetricFamily(
-                "jmx_exporter_build_info",
-                "A metric with a constant '1' value labeled with the version of the JMX exporter.",
-                Arrays.asList("version", "name"));
-        Package pkg = this.getClass().getPackage();
-        String version = pkg.getImplementationVersion();
-        String name = pkg.getImplementationTitle();
-        artifactInfo.addMetric(Arrays.asList(version != null ? version : "unknown", name != null ? name : "unknown"), 1L);
-        mfs.add(artifactInfo);
-        assertThat(mfs.toString(), is("[Name: jmx_exporter_build_info Type: GAUGE Help: "
-                + "A metric with a constant '1' value labeled with the version of the JMX exporter. Samples: "
-                + "[Name: jmx_exporter_build_info LabelNames: [version, name] labelValues: [unknown, unknown] Value: 1.0 TimestampMs: null]]"));
+    public void testBuildInfoCollector() {
+        assertNotNull(buildInfoCollector.collect());
     }
 }
