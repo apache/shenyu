@@ -35,7 +35,7 @@ import static org.mockito.Mockito.mockStatic;
 import org.springframework.context.event.ContextRefreshedEvent;
 
 /**
- * ContextRegisterListenerTest.
+ * Test case for {@link ContextRegisterListenerTest}.
  *
  * @author tydhot
  * @author dengliming

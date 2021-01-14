@@ -29,6 +29,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>soul-client-common</module>
+        <module>soul-client-core</module>
         <module>soul-client-http</module>
         <module>soul-client-dubbo</module>
         <module>soul-client-sofa</module>

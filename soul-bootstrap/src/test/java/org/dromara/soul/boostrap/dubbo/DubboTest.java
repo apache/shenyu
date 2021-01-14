@@ -32,6 +32,6 @@ import lombok.NoArgsConstructor;
 public final class DubboTest implements Serializable {
 
     private String id;
-
+    
     private String name;
 }

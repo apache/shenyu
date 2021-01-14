@@ -26,14 +26,18 @@ import org.junit.Rule;
 import org.junit.Test;
 import wiremock.com.google.common.net.HttpHeaders;
 import wiremock.org.apache.http.entity.ContentType;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertThat;
 
 /**
  * Test case for {@link OkHttpTools}.
@@ -41,7 +45,7 @@ import static org.junit.Assert.assertNotNull;
  * @author Young Bean
  * @author dengliming
  */
-public class OkHttpToolsTest {
+public final class OkHttpToolsTest {
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(WireMockConfiguration.wireMockConfig().dynamicPort(), false);
@@ -51,7 +55,7 @@ public class OkHttpToolsTest {
     private final String json = "{\"appName\":\"soul\"}";
 
     @Before
-    public final void setUpWireMock() {
+    public void setUpWireMock() {
         wireMockRule.stubFor(post(urlPathEqualTo("/"))
                 .willReturn(aResponse()
                         .withHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString())
@@ -63,24 +67,24 @@ public class OkHttpToolsTest {
 
     @Test
     public void testPostReturnString() throws IOException {
-        assertEquals(json, OkHttpTools.getInstance().post(url, json));
+        assertThat(json, is(OkHttpTools.getInstance().post(url, json)));
     }
 
     @Test
     public void testPostReturnClassT() throws IOException {
-        assertEquals(GsonUtils.getInstance().fromJson(json, HttpRegisterDTO.class),
-                OkHttpTools.getInstance().post(url, json, HttpRegisterDTO.class));
+        assertThat(GsonUtils.getInstance().fromJson(json, HttpRegisterDTO.class),
+                equalTo(OkHttpTools.getInstance().post(url, json, HttpRegisterDTO.class)));
     }
 
     @Test
     public void testPostReturnMap() throws IOException {
         final Map<String, String> map = new HashMap<>();
         map.put("appName", "soul");
-        assertEquals(json, OkHttpTools.getInstance().post(url, map));
+        assertThat(json, is(OkHttpTools.getInstance().post(url, map)));
     }
 
     @Test
     public void testGetGson() {
-        assertNotNull(OkHttpTools.getInstance().getGson());
+        assertThat(OkHttpTools.getInstance().getGson(), notNullValue());
     }
 }

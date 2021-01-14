@@ -45,8 +45,7 @@ public class TarsMetaDataSubscriber implements MetaDataSubscriber {
             MetaData metaExist = META_DATA.get(metaData.getPath());
             List<TarsInvokePrx> prxList = ApplicationConfigCache.getInstance()
                     .get(metaData.getPath()).getTarsInvokePrxList();
-            boolean exist = prxList.stream()
-                    .filter(tarsInvokePrx -> tarsInvokePrx.getHost().equals(metaData.getAppName())).count() > 0;
+            boolean exist = prxList.stream().anyMatch(tarsInvokePrx -> tarsInvokePrx.getHost().equals(metaData.getAppName()));
             if (!exist) {
                 ApplicationConfigCache.getInstance().initPrx(metaData);
             }

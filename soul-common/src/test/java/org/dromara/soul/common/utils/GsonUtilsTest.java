@@ -210,7 +210,7 @@ public class GsonUtilsTest {
         Map<String, Object> map = ImmutableMap.of("id", 123L, "name", "test", "double",
                 1.0D, "boolean", true, "data", generateTestObject());
 
-        String json = "{\"name\":\"test\",\"id\":123,\"double\":1.0,\"boolean\":true,\"null\":null,\"data\":"
+        String json = "{\"name\":\"test\",\"id\":123,\"double\":1.0,\"boolean\":true,\"data\":"
                 + EXPECTED_JSON + "}";
 
         Map<String, Object> parseMap = GsonUtils.getInstance().toTreeMap(json);
