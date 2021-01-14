@@ -245,7 +245,6 @@ public class RoleServiceImpl implements RoleService {
         List<String> lastPermissionList = permissionMapper.findByObjectId(roleId).stream().map(PermissionDO::getResourceId).collect(Collectors.toList());
         List<String> addPermission = getListDiff(lastPermissionList, currentPermissionList);
         if (CollectionUtils.isNotEmpty(addPermission)) {
-            permissionMapper.deleteByObjectIds(Collections.singletonList(roleId));
             batchSavePermission(addPermission.stream().map(node -> PermissionDO.buildPermissionDO(PermissionDTO.builder().objectId(roleId).resourceId(node).build())).collect(Collectors.toList()));
         }
         List<String> deletePermission = getListDiff(currentPermissionList, lastPermissionList);
