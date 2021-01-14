@@ -17,6 +17,7 @@
 
 package org.dromara.soul.register.client.api;
 
+import org.dromara.soul.client.common.dto.MetaDataDTO;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfiguration;
 
 /**
@@ -41,6 +42,13 @@ public interface SoulClientRegisterRepository {
      */
     default void init(SoulRegisterCenterConfiguration config) {
     }
+
+    /**
+     * Persist metadata.
+     *
+     * @param metadata  metadata
+     */
+    void persistInterface(MetaDataDTO metadata);
     
     /**
      * Persist data.

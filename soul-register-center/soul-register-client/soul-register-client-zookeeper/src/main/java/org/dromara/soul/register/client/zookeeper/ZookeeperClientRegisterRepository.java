@@ -17,6 +17,7 @@
 
 package org.dromara.soul.register.client.zookeeper;
 
+import org.dromara.soul.client.common.dto.MetaDataDTO;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfiguration;
 
@@ -26,7 +27,12 @@ public class ZookeeperClientRegisterRepository implements SoulClientRegisterRepo
     public void init(final SoulRegisterCenterConfiguration config) {
     
     }
-    
+
+    @Override
+    public void persistInterface(final MetaDataDTO metadata) {
+
+    }
+
     @Override
     public void persistInterface(final String key, final String value) {
     

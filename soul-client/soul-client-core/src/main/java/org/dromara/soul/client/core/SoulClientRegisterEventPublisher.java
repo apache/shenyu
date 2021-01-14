@@ -18,11 +18,11 @@
 
 package org.dromara.soul.client.core;
 
-import org.dromara.soul.client.core.config.SoulClientConfig;
 import org.dromara.soul.client.core.disruptor.SoulClientRegisterEvent;
-import org.dromara.soul.client.core.disruptor.SoulClientBeanProcessEventHandler;
 import org.dromara.soul.client.core.disruptor.SoulMetaDataRegisterEventHandler;
+import org.dromara.soul.client.common.dto.MetaDataDTO;
 import org.dromara.soul.disruptor.DisruptorProviderManage;
+import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 
 /**
  * Demo.
@@ -43,21 +43,26 @@ public class SoulClientRegisterEventPublisher {
         return INSTANCE;
     }
 
-    protected void start(final SoulClientConfig soulClientConfig) {
+    /**
+     * start.
+     *
+     * @param soulClientRegisterRepository soulClientRegisterRepository
+     */
+    public void start(final SoulClientRegisterRepository soulClientRegisterRepository) {
         disruptorProviderManage =
                 new DisruptorProviderManage<>(
-                        new SoulClientBeanProcessEventHandler(soulClientConfig), 1, 4096 * 2 * 2);
-        disruptorProviderManage.startupThen(new SoulMetaDataRegisterEventHandler(soulClientConfig));
+                        new SoulMetaDataRegisterEventHandler(soulClientRegisterRepository), 1, 4096 * 2 * 2);
+        disruptorProviderManage.startup();
     }
 
     /**
      * publish event.
      *
-     * @param bean bean
+     * @param metaDataDTO metaDataDTO
      */
-    public void publishEvent(final Object bean) {
+    public void publishEvent(final MetaDataDTO metaDataDTO) {
         SoulClientRegisterEvent event = new SoulClientRegisterEvent();
-        event.setBean(bean);
+        event.setMetaData(metaDataDTO);
         push(event);
     }
 

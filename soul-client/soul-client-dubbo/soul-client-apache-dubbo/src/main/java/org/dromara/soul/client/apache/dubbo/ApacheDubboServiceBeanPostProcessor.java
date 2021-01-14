@@ -21,12 +21,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.common.Constants;
 import org.apache.dubbo.common.utils.StringUtils;
 import org.apache.dubbo.config.spring.ServiceBean;
+import org.dromara.soul.client.common.dto.MetaDataDTO;
 import org.dromara.soul.client.common.utils.OkHttpTools;
-import org.dromara.soul.client.common.utils.RegisterUtils;
+import org.dromara.soul.client.core.SoulClientRegisterEventPublisher;
 import org.dromara.soul.client.dubbo.common.annotation.SoulDubboClient;
 import org.dromara.soul.client.dubbo.common.config.DubboConfig;
-import org.dromara.soul.client.dubbo.common.dto.MetaDataDTO;
-import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.dromara.soul.client.dubbo.common.dto.DubboRpcExt;
+import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.util.ClassUtils;
@@ -50,13 +51,15 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ApacheDubboServiceBeanPostProcessor implements ApplicationListener<ContextRefreshedEvent> {
 
+    private SoulClientRegisterEventPublisher soulClientRegisterEventPublisher = SoulClientRegisterEventPublisher.getInstance();
+
     private DubboConfig dubboConfig;
 
     private ExecutorService executorService;
 
     private final String url;
 
-    public ApacheDubboServiceBeanPostProcessor(final DubboConfig dubboConfig) {
+    public ApacheDubboServiceBeanPostProcessor(final DubboConfig dubboConfig, final SoulClientRegisterRepository soulClientRegisterRepository) {
         String contextPath = dubboConfig.getContextPath();
         String adminUrl = dubboConfig.getAdminUrl();
         if (StringUtils.isEmpty(contextPath)
@@ -66,6 +69,7 @@ public class ApacheDubboServiceBeanPostProcessor implements ApplicationListener<
         this.dubboConfig = dubboConfig;
         url = dubboConfig.getAdminUrl() + "/soul-client/dubbo-register";
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        soulClientRegisterEventPublisher.start(soulClientRegisterRepository);
     }
 
     private void handler(final ServiceBean serviceBean) {
@@ -83,12 +87,12 @@ public class ApacheDubboServiceBeanPostProcessor implements ApplicationListener<
         for (Method method : methods) {
             SoulDubboClient soulDubboClient = method.getAnnotation(SoulDubboClient.class);
             if (Objects.nonNull(soulDubboClient)) {
-                RegisterUtils.doRegister(buildJsonParams(serviceBean, soulDubboClient, method), url, RpcTypeEnum.DUBBO);
+                soulClientRegisterEventPublisher.publishEvent(buildJsonParams(serviceBean, soulDubboClient, method));
             }
         }
     }
 
-    private String buildJsonParams(final ServiceBean serviceBean, final SoulDubboClient soulDubboClient, final Method method) {
+    private MetaDataDTO buildJsonParams(final ServiceBean serviceBean, final SoulDubboClient soulDubboClient, final Method method) {
         String appName = dubboConfig.getAppName();
         if (StringUtils.isEmpty(appName)) {
             appName = serviceBean.getApplication().getName();
@@ -102,7 +106,7 @@ public class ApacheDubboServiceBeanPostProcessor implements ApplicationListener<
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
         String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
                 .collect(Collectors.joining(","));
-        MetaDataDTO metaDataDTO = MetaDataDTO.builder()
+        return MetaDataDTO.builder()
                 .appName(appName)
                 .serviceName(serviceName)
                 .methodName(methodName)
@@ -115,12 +119,10 @@ public class ApacheDubboServiceBeanPostProcessor implements ApplicationListener<
                 .rpcType("dubbo")
                 .enabled(soulDubboClient.enabled())
                 .build();
-        return OkHttpTools.getInstance().getGson().toJson(metaDataDTO);
-
     }
 
     private String buildRpcExt(final ServiceBean serviceBean) {
-        MetaDataDTO.RpcExt build = MetaDataDTO.RpcExt.builder()
+        DubboRpcExt build = DubboRpcExt.builder()
                 .group(StringUtils.isNotEmpty(serviceBean.getGroup()) ? serviceBean.getGroup() : "")
                 .version(StringUtils.isNotEmpty(serviceBean.getVersion()) ? serviceBean.getVersion() : "")
                 .loadbalance(StringUtils.isNotEmpty(serviceBean.getLoadbalance()) ? serviceBean.getLoadbalance() : Constants.DEFAULT_LOADBALANCE)
@@ -129,7 +131,6 @@ public class ApacheDubboServiceBeanPostProcessor implements ApplicationListener<
                 .url("")
                 .build();
         return OkHttpTools.getInstance().getGson().toJson(build);
-
     }
 
     @Override

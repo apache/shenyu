@@ -19,9 +19,7 @@
 package org.dromara.soul.client.core.disruptor;
 
 import lombok.Data;
-import org.dromara.soul.client.core.dto.MetaDataDTO;
-
-import java.util.List;
+import org.dromara.soul.client.common.dto.MetaDataDTO;
 
 /**
  * Event.
@@ -30,7 +28,5 @@ import java.util.List;
  */
 @Data
 public class SoulClientRegisterEvent {
-    private Object bean;
-
-    private List<MetaDataDTO> metaDataList;
+    private MetaDataDTO metaData;
 }
