@@ -26,6 +26,8 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.Weigher;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -48,9 +50,11 @@ public final class ApplicationConfigCache {
 
     private ApplicationConfig applicationConfig;
 
-    private RegistryConfig registryConfig;
+    private List<RegistryConfig> registryConfigs;
 
     private final int maxCount = 50000;
+
+    private final static String ZOOKEEPER_PREFIX = "zookeeper://";
 
     private final LoadingCache<String, ReferenceConfig<GenericService>> cache = CacheBuilder.newBuilder()
             .maximumWeight(maxCount)
@@ -102,14 +106,34 @@ public final class ApplicationConfigCache {
         if (applicationConfig == null) {
             applicationConfig = new ApplicationConfig("soul_proxy");
         }
-        if (registryConfig == null) {
-            registryConfig = new RegistryConfig();
-            registryConfig.setProtocol(dubboRegisterConfig.getProtocol());
-            registryConfig.setId("soul_proxy");
-            registryConfig.setRegister(false);
-            registryConfig.setAddress(dubboRegisterConfig.getRegister());
-            Optional.ofNullable(dubboRegisterConfig.getGroup()).ifPresent(registryConfig::setGroup);
+        if (registryConfigs == null) {
+            registryConfigs = buildRegistryConfigs(dubboRegisterConfig);
         }
+    }
+
+    /**
+     * Build registry config list.
+     *
+     * @param dubboRegisterConfig the dubbo register config
+     * @return the registry config list
+     */
+    private List<RegistryConfig> buildRegistryConfigs(final DubboRegisterConfig dubboRegisterConfig) {
+        List<RegistryConfig> registryConfigs = new ArrayList<>();
+        if(StringUtils.isBlank(dubboRegisterConfig.getRegister())){
+            return registryConfigs;
+        }
+        String registerAddress = dubboRegisterConfig.getRegister();
+        String[] addressArray = registerAddress.split(",");
+        for (int i = 0; i < addressArray.length; i++) {
+            RegistryConfig registryConfig = new RegistryConfig();
+            registryConfig.setProtocol(dubboRegisterConfig.getProtocol());
+            registryConfig.setId("soul_proxy_"+i);
+            registryConfig.setRegister(false);
+            registryConfig.setAddress(ZOOKEEPER_PREFIX+addressArray[i].replace(ZOOKEEPER_PREFIX,StringUtils.EMPTY));
+            Optional.ofNullable(dubboRegisterConfig.getGroup()).ifPresent(registryConfig::setGroup);
+            registryConfigs.add(registryConfig);
+        }
+        return registryConfigs;
     }
 
     /**
@@ -141,7 +165,7 @@ public final class ApplicationConfigCache {
         ReferenceConfig<GenericService> reference = new ReferenceConfig<>();
         reference.setGeneric(true);
         reference.setApplication(applicationConfig);
-        reference.setRegistry(registryConfig);
+        reference.setRegistries(registryConfigs);
         reference.setInterface(metaData.getServiceName());
         reference.setProtocol("dubbo");
         String rpcExt = metaData.getRpcExt();
