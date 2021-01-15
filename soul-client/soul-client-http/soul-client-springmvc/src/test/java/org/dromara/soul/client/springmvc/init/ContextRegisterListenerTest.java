@@ -17,25 +17,34 @@
 
 package org.dromara.soul.client.springmvc.init;
 
+import org.dromara.soul.client.common.utils.RegisterUtils;
 import org.dromara.soul.client.springmvc.config.SoulSpringMvcConfig;
+import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
+import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
+
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+
 import org.springframework.context.event.ContextRefreshedEvent;
 
 /**
- * ContextRegisterListenerTest.
+ * Test case for {@link ContextRegisterListenerTest}.
  *
  * @author tydhot
+ * @author dengliming
  */
 @RunWith(MockitoJUnitRunner.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public final class ContextRegisterListenerTest {
     @Test
-    public void testNotFullRegister() throws InterruptedException {
+    public void testNotFullRegister() {
         SoulSpringMvcConfig soulSpringMvcConfig = new SoulSpringMvcConfig();
         soulSpringMvcConfig.setAdminUrl("http://127.0.0.1:8080");
         soulSpringMvcConfig.setAppName("test-mvc");
@@ -47,15 +56,19 @@ public final class ContextRegisterListenerTest {
     }
 
     @Test
-    public void testFullRegister() throws InterruptedException {
-        SoulSpringMvcConfig soulSpringMvcConfig = new SoulSpringMvcConfig();
-        soulSpringMvcConfig.setAdminUrl("http://127.0.0.1:8080");
-        soulSpringMvcConfig.setAppName("test-mvc");
-        soulSpringMvcConfig.setContextPath("test");
-        soulSpringMvcConfig.setFull(true);
-        soulSpringMvcConfig.setPort(58889);
-        ContextRegisterListener contextRegisterListener = new ContextRegisterListener(soulSpringMvcConfig);
-        ContextRefreshedEvent contextRefreshedEvent = mock(ContextRefreshedEvent.class);
-        contextRegisterListener.onApplicationEvent(contextRefreshedEvent);
+    public void testFullRegister() {
+        try (MockedStatic mocked = mockStatic(RegisterUtils.class)) {
+            SoulSpringMvcConfig soulSpringMvcConfig = new SoulSpringMvcConfig();
+            soulSpringMvcConfig.setAdminUrl("http://127.0.0.1:8080");
+            soulSpringMvcConfig.setAppName("test-mvc");
+            soulSpringMvcConfig.setContextPath("test");
+            soulSpringMvcConfig.setFull(true);
+            soulSpringMvcConfig.setPort(58889);
+            ContextRegisterListener contextRegisterListener = new ContextRegisterListener(soulSpringMvcConfig);
+            ContextRefreshedEvent contextRefreshedEvent = mock(ContextRefreshedEvent.class);
+            contextRegisterListener.onApplicationEvent(contextRefreshedEvent);
+
+            mocked.verify(() -> RegisterUtils.doRegister(anyString(), eq("http://127.0.0.1:8080/soul-client/springmvc-register"), eq(RpcTypeEnum.HTTP)));
+        }
     }
 }

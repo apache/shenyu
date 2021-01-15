@@ -20,60 +20,16 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>soul</artifactId>
         <groupId>org.dromara</groupId>
+        <artifactId>soul</artifactId>
         <version>2.2.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
     <artifactId>soul-dist</artifactId>
     <packaging>pom</packaging>
 
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>dist</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <configuration>
-                            <finalName>dromara-soul-bin</finalName>
-                            <descriptors>
-                                <descriptor>${project.basedir}/src/main/assembly/binary.xml</descriptor>
-                            </descriptors>
-                        </configuration>
-                    </execution>
-                </executions>
-                <configuration>
-                    <attach>true</attach>
-                    <tarLongFileMode>posix</tarLongFileMode>
-                    <runOnlyAtExecutionRoot>false</runOnlyAtExecutionRoot>
-                    <appendAssemblyId>false</appendAssemblyId>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>dist</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <copy file="${project.build.directory}/dromara-soul-bin.tar.gz" tofile="${project.basedir}/../dist/dromara-soul-bin.tar.gz" overwrite="true" />
-                            </target>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
-
-
+    <modules>
+        <module>soul-admin-dist</module>
+        <module>soul-bootstrap-dist</module>
+    </modules>
 </project>

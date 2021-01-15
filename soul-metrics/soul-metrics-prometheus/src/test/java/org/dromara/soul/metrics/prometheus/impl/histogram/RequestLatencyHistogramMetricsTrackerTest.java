@@ -21,14 +21,16 @@ import org.dromara.soul.metrics.api.HistogramMetricsTrackerDelegate;
 import org.dromara.soul.metrics.enums.MetricsLabelEnum;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for RequestLatencyHistogramMetricsTracker.
  *
  * @author nuo-promise
  * @author dengliming
+ * @author Young Bean
  */
 public final class RequestLatencyHistogramMetricsTrackerTest {
 
@@ -42,6 +44,6 @@ public final class RequestLatencyHistogramMetricsTrackerTest {
 
     @Test
     public void metricsLabel() {
-        assertEquals(MetricsLabelEnum.REQUEST_LATENCY.getName(), requestLatencyHistogramMetricsTracker.metricsLabel());
+        assertThat(MetricsLabelEnum.REQUEST_LATENCY.getName(), equalTo(requestLatencyHistogramMetricsTracker.metricsLabel()));
     }
 }

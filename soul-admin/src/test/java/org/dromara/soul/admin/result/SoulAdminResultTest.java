@@ -26,7 +26,7 @@ import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.MockitoAnnotations.initMocks;
+import static org.junit.Assert.assertNull;
 
 /**
  * Test case for {@link SoulAdminResult}.
@@ -38,8 +38,7 @@ public final class SoulAdminResultTest {
     private SoulAdminResult soulAdminResultUnderTest;
 
     @Before
-    public void setUp() throws Exception {
-        initMocks(this);
+    public void setUp() {
         soulAdminResultUnderTest = new SoulAdminResult(0, "message", "data");
     }
 
@@ -51,6 +50,10 @@ public final class SoulAdminResultTest {
 
     @Test
     public void testHashCode() {
+        soulAdminResultUnderTest = new SoulAdminResult();
+        soulAdminResultUnderTest.setCode(0);
+        soulAdminResultUnderTest.setMessage("message");
+        soulAdminResultUnderTest.setData("data");
         final int result = soulAdminResultUnderTest.hashCode();
         assertEquals(509285258, result);
     }
@@ -66,7 +69,7 @@ public final class SoulAdminResultTest {
         final SoulAdminResult result = SoulAdminResult.success();
         assertEquals(CommonErrorCode.SUCCESSFUL, result.getCode().intValue());
         assertEquals("", result.getMessage());
-        assertEquals(null, result.getData());
+        assertNull(result.getData());
         assertEquals(901622, result.hashCode());
         assertEquals("SoulAdminResult(code=200, message=, data=null)", result.toString());
     }
@@ -76,7 +79,7 @@ public final class SoulAdminResultTest {
         final SoulAdminResult result = SoulAdminResult.success("msg");
         assertEquals(CommonErrorCode.SUCCESSFUL, result.getCode().intValue());
         assertEquals("msg", result.getMessage());
-        assertEquals(null, result.getData());
+        assertNull(result.getData());
         assertEquals(7298225, result.hashCode());
         assertEquals("SoulAdminResult(code=200, message=msg, data=null)", result.toString());
     }
@@ -85,7 +88,7 @@ public final class SoulAdminResultTest {
     public void testSuccessWithData() {
         final SoulAdminResult result = SoulAdminResult.success(Collections.singletonList("data"));
         assertEquals(CommonErrorCode.SUCCESSFUL, result.getCode().intValue());
-        assertEquals(null, result.getMessage());
+        assertNull(result.getMessage());
         assertNotNull(result.getData());
         assertEquals("SoulAdminResult(code=200, message=null, data=[data])", result.toString());
     }
@@ -105,7 +108,7 @@ public final class SoulAdminResultTest {
         final SoulAdminResult result = SoulAdminResult.error("msg");
         assertEquals(CommonErrorCode.ERROR, result.getCode().intValue());
         assertEquals("msg", result.getMessage());
-        assertEquals(null, result.getData());
+        assertNull(result.getData());
         assertEquals(8342525, result.hashCode());
         assertEquals("SoulAdminResult(code=500, message=msg, data=null)", result.toString());
     }
@@ -115,7 +118,7 @@ public final class SoulAdminResultTest {
         final SoulAdminResult result = SoulAdminResult.error(0, "msg");
         assertEquals(0, result.getCode().intValue());
         assertEquals("msg", result.getMessage());
-        assertEquals(null, result.getData());
+        assertNull(result.getData());
         assertEquals(6602025, result.hashCode());
         assertEquals("SoulAdminResult(code=0, message=msg, data=null)", result.toString());
     }
@@ -125,7 +128,7 @@ public final class SoulAdminResultTest {
         final SoulAdminResult result = SoulAdminResult.timeout("msg");
         assertEquals(HttpStatus.REQUEST_TIMEOUT.value(), result.getCode().intValue());
         assertEquals("msg", result.getMessage());
-        assertEquals(null, result.getData());
+        assertNull(result.getData());
         assertEquals(8022273, result.hashCode());
         assertEquals("SoulAdminResult(code=408, message=msg, data=null)", result.toString());
     }

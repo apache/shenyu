@@ -17,8 +17,6 @@
 
 package org.dromara.soul.plugin.ratelimiter.handler;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.time.Duration;
 import java.util.Collections;
 
@@ -41,6 +39,7 @@ import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 
 import com.google.common.collect.Sets;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * RateLimiterPluginDataHandler test.
@@ -92,22 +91,17 @@ public final class RateLimiterPluginDataHandlerTest {
     /**
      * parts parse result null test case.
      */
-    @Test(expected = Exception.class)
-    public void redisStandaloneConfigurationErrorTest()
-            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        Method method = getRedisStandaloneConfigurationMethod();
-        RateLimiterConfig rateLimiterConfig = new RateLimiterConfig();
-        method.invoke(rateLimiterPluginDataHandler, rateLimiterConfig);
+    @Test(expected = Throwable.class)
+    public void redisStandaloneConfigurationErrorTest() {
+        ReflectionTestUtils.invokeMethod(rateLimiterPluginDataHandler, "redisStandaloneConfiguration", new RateLimiterConfig());
     }
 
     /**
      * redisStandaloneConfiguration property test case.
      */
     @Test
-    public void redisStandaloneConfigurationPropertiesTest()
-            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        Method method = getRedisStandaloneConfigurationMethod();
-        RedisStandaloneConfiguration configuration = (RedisStandaloneConfiguration) method.invoke(rateLimiterPluginDataHandler,
+    public void redisStandaloneConfigurationPropertiesTest() {
+        RedisStandaloneConfiguration configuration = ReflectionTestUtils.invokeMethod(rateLimiterPluginDataHandler, "redisStandaloneConfiguration",
                 generateRateLimiterConfig(generateDefaultUrl()));
         Assert.assertEquals(DATABASE_TEST_VALUE, configuration.getDatabase());
         Assert.assertEquals(LOCALHOST, configuration.getHostName());
@@ -119,13 +113,9 @@ public final class RateLimiterPluginDataHandlerTest {
      * redisStandaloneConfiguration property test case.
      */
     @Test
-    public void redisRedisClusterConfigurationPropertiesTest()
-            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        String url = "localhost:2181;localhost:2182";
-
-        Method method = getRedisClusterConfigurationMethod();
-        RedisClusterConfiguration configuration = (RedisClusterConfiguration) method.invoke(rateLimiterPluginDataHandler,
-                generateRateLimiterConfig(url));
+    public void redisRedisClusterConfigurationPropertiesTest() {
+        RedisClusterConfiguration configuration = ReflectionTestUtils.invokeMethod(rateLimiterPluginDataHandler, "redisClusterConfiguration",
+                generateRateLimiterConfig("localhost:2181;localhost:2182"));
         Assert.assertEquals(RedisPassword.of(PASSWORD_TEST_VALUE), configuration.getPassword());
         Assert.assertEquals(Collections.unmodifiableSet(Sets.newHashSet(generateRedisNode(PORT_TEST_VALUE_1),
                 generateRedisNode(PORT_TEST_VALUE_2))), configuration.getClusterNodes());
@@ -135,13 +125,12 @@ public final class RateLimiterPluginDataHandlerTest {
      * genericObjectPoolConfig property test case.
      */
     @Test
-    public void getPoolConfigPropertyTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    public void getPoolConfigPropertyTest() {
         Duration duration = Duration.ofHours(1);
-        Method method = getGetPoolConfigMethod();
         RateLimiterConfig rateLimiterConfig = new RateLimiterConfig();
         rateLimiterConfig.setMaxWait(duration);
-        GenericObjectPoolConfig poolConfig = (GenericObjectPoolConfig) method.invoke(rateLimiterPluginDataHandler,
-                rateLimiterConfig);
+        GenericObjectPoolConfig poolConfig = ReflectionTestUtils.invokeMethod(rateLimiterPluginDataHandler,
+                "getPoolConfig", rateLimiterConfig);
         Assert.assertEquals(DEFAULT_MAX_IDLE, poolConfig.getMaxIdle());
         Assert.assertEquals(DEFAULT_MAX_ACTIVE, poolConfig.getMaxTotal());
         Assert.assertEquals(DEFAULT_MIN_IDLE, poolConfig.getMinIdle());
@@ -152,12 +141,9 @@ public final class RateLimiterPluginDataHandlerTest {
      * redisSentinelConfiguration property test case.
      */
     @Test
-    public void redisSentinelConfigurationPropertyTest()
-            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        String url = "localhost:2181;localhost:2182";
-        Method method = getRedisSentinelConfigurationMethod();
-        RedisSentinelConfiguration configuration = (RedisSentinelConfiguration) method.invoke(rateLimiterPluginDataHandler,
-                generateRateLimiterConfig(url));
+    public void redisSentinelConfigurationPropertyTest() {
+        RedisSentinelConfiguration configuration = ReflectionTestUtils.invokeMethod(rateLimiterPluginDataHandler, "redisSentinelConfiguration",
+                generateRateLimiterConfig("localhost:2181;localhost:2182"));
         Assert.assertEquals(DATABASE_TEST_VALUE, configuration.getDatabase());
         Assert.assertEquals(RedisPassword.of(PASSWORD_TEST_VALUE), configuration.getPassword());
         Assert.assertEquals(Collections.unmodifiableSet(Sets.newHashSet(generateRedisNode(PORT_TEST_VALUE_1),
@@ -170,46 +156,6 @@ public final class RateLimiterPluginDataHandlerTest {
     @Test
     public void pluginNamedTest() {
         Assert.assertEquals(PluginEnum.RATE_LIMITER.getName(), rateLimiterPluginDataHandler.pluginNamed());
-    }
-
-    /**
-     * protected method redisStandaloneConfiguration  get.
-     */
-    private Method getRedisStandaloneConfigurationMethod() throws NoSuchMethodException {
-        Method method = RateLimiterPluginDataHandler.class.getDeclaredMethod("redisStandaloneConfiguration",
-                RateLimiterConfig.class);
-        method.setAccessible(true);
-        return method;
-    }
-
-    /**
-     * private method redisClusterConfiguration  get.
-     */
-    private Method getRedisClusterConfigurationMethod() throws NoSuchMethodException {
-        Method method = RateLimiterPluginDataHandler.class.getDeclaredMethod("redisClusterConfiguration",
-                RateLimiterConfig.class);
-        method.setAccessible(true);
-        return method;
-    }
-
-    /**
-     * private method getPoolConfig  get.
-     */
-    private Method getGetPoolConfigMethod() throws NoSuchMethodException {
-        Method method = RateLimiterPluginDataHandler.class.getDeclaredMethod("getPoolConfig",
-                RateLimiterConfig.class);
-        method.setAccessible(true);
-        return method;
-    }
-
-    /**
-     * private method redisSentinelConfiguration  get.
-     */
-    private Method getRedisSentinelConfigurationMethod() throws NoSuchMethodException {
-        Method method = RateLimiterPluginDataHandler.class.getDeclaredMethod("redisSentinelConfiguration",
-                RateLimiterConfig.class);
-        method.setAccessible(true);
-        return method;
     }
 
     /**

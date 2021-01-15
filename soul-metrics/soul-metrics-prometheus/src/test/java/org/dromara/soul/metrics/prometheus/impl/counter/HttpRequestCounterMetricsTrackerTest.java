@@ -21,8 +21,9 @@ import io.prometheus.client.Counter;
 import org.dromara.soul.common.utils.ReflectUtils;
 import org.dromara.soul.metrics.enums.MetricsLabelEnum;
 import org.junit.Test;
+
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -30,6 +31,7 @@ import static org.junit.Assert.assertThat;
  *
  * @author nuo-promise
  * @author dengliming
+ * @author Young Bean
  */
 public final class HttpRequestCounterMetricsTrackerTest {
 
@@ -44,6 +46,6 @@ public final class HttpRequestCounterMetricsTrackerTest {
 
     @Test
     public void metricsLabel() {
-        assertEquals(MetricsLabelEnum.HTTP_REQUEST_TOTAL.getName(), httpRequestCounterMetricsTracker.metricsLabel());
+        assertThat(MetricsLabelEnum.HTTP_REQUEST_TOTAL.getName(), equalTo(httpRequestCounterMetricsTracker.metricsLabel()));
     }
 }

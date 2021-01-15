@@ -58,7 +58,7 @@ public final class SpringBeanUtils {
      *
      * @param cfgContext application context
      */
-    void setCfgContext(final ConfigurableApplicationContext cfgContext) {
+    public void setCfgContext(final ConfigurableApplicationContext cfgContext) {
         this.cfgContext = cfgContext;
     }
 }

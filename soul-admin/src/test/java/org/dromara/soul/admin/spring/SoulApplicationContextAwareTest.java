@@ -35,7 +35,7 @@ public final class SoulApplicationContextAwareTest {
     private SoulApplicationContextAware soulApplicationContextAwareUnderTest;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         soulApplicationContextAwareUnderTest = new SoulApplicationContextAware();
     }
 

@@ -36,9 +36,9 @@ public class RoundRobinLoadBalance extends AbstractLoadBalance {
 
     private final int recyclePeriod = 60000;
 
-    private ConcurrentMap<String, ConcurrentMap<String, WeightedRoundRobin>> methodWeightMap = new ConcurrentHashMap<>(16);
+    private final ConcurrentMap<String, ConcurrentMap<String, WeightedRoundRobin>> methodWeightMap = new ConcurrentHashMap<>(16);
 
-    private AtomicBoolean updateLock = new AtomicBoolean();
+    private final AtomicBoolean updateLock = new AtomicBoolean();
 
     @Override
     public DivideUpstream doSelect(final List<DivideUpstream> upstreamList, final String ip) {
@@ -56,7 +56,7 @@ public class RoundRobinLoadBalance extends AbstractLoadBalance {
         for (DivideUpstream upstream : upstreamList) {
             String rKey = upstream.getUpstreamUrl();
             WeightedRoundRobin weightedRoundRobin = map.get(rKey);
-            int weight = upstream.getWeight();
+            int weight = getWeight(upstream);
             if (weightedRoundRobin == null) {
                 weightedRoundRobin = new WeightedRoundRobin();
                 weightedRoundRobin.setWeight(weight);
@@ -100,7 +100,7 @@ public class RoundRobinLoadBalance extends AbstractLoadBalance {
 
         private int weight;
 
-        private AtomicLong current = new AtomicLong(0);
+        private final AtomicLong current = new AtomicLong(0);
 
         private long lastUpdate;
 

@@ -16,7 +16,7 @@
   ~ limitations under the License.
   -->
 
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.dromara.soul.admin.mapper.PluginMapper">
     <resultMap id="BaseResultMap" type="org.dromara.soul.admin.entity.PluginDO">
         <id column="id" jdbcType="VARCHAR" property="id"/>
@@ -55,7 +55,7 @@
             where name = #{name,jdbcType=VARCHAR}
         </if>
 
-        order by role asc
+        order by role,id asc
 
         <if test="pageParameter != null">
             limit #{pageParameter.offset},#{pageParameter.pageSize}

@@ -13,7 +13,63 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-spring:
-   profiles:
-     active: local
+server:
+  port: 9095
+  address: 0.0.0.0
 
+spring:
+  #profiles:
+  #  active: h2
+  thymeleaf:
+    cache: true
+    encoding: utf-8
+    enabled: true
+    prefix: classpath:/static/
+    suffix: .html
+  datasource:
+    url: jdbc:mysql://localhost:3306/soul?useUnicode=true&characterEncoding=utf-8
+    username: root
+    password:
+    driver-class-name: com.mysql.jdbc.Driver
+
+mybatis:
+  config-location: classpath:/mybatis/mybatis-config.xml
+  mapper-locations: classpath:/mappers/*.xml
+
+soul:
+  database:
+    dialect: mysql
+    init_script: "META-INF/schema.sql"
+  sync:
+    websocket:
+      enabled: true
+  #    zookeeper:
+  #        url: localhost:2181
+  #        sessionTimeout: 5000
+  #        connectionTimeout: 2000
+  #    http:
+  #      enabled: true
+  #    nacos:
+  #      url: localhost:8848
+  #      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
+  #      acm:
+  #        enabled: false
+  #        endpoint: acm.aliyun.com
+  #        namespace:
+  #        accessKey:
+  #        secretKey:
+  aes:
+    secret:
+      key: 2095132720951327
+
+logging:
+  level:
+    root: info
+    org.springframework.boot: info
+    org.apache.ibatis: info
+    org.dromara.soul.bonuspoint: info
+    org.dromara.soul.lottery: info
+    org.dromara.soul: info
+
+swagger:
+  enable: true

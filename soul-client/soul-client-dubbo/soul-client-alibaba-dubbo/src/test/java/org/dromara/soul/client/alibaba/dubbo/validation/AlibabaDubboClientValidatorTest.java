@@ -18,38 +18,76 @@
 package org.dromara.soul.client.alibaba.dubbo.validation;
 
 import com.alibaba.dubbo.common.URL;
-import org.dromara.soul.client.alibaba.dubbo.validation.service.TestService;
+import org.dromara.soul.client.alibaba.dubbo.validation.mock.MockValidationParameter;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import javax.validation.ValidationException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertThat;
 
 /**
- * AlibabaDubboClientValidatorTest.
+ * Test case for {@link AlibabaDubboClientValidation}.
  *
  * @author KevinClair
  */
-public class AlibabaDubboClientValidatorTest {
+public final class AlibabaDubboClientValidatorTest {
 
-    /**
-     * test method {@link AlibabaDubboClientValidator#validate(java.lang.String, java.lang.Class[], java.lang.Object[])}.
-     */
+    private static final String MOCK_SERVICE_URL = "mock://test:28000/org.dromara.soul.client.alibaba.dubbo.validation.mock.MockValidatorTarget";
+
     @Test
-    public void validate() {
-        URL url = URL.valueOf("dubbo://127.0.0.1:20880/org.dromara.soul"
-                + ".client.alibaba.dubbo.validation.service.TestService"
-                + "?accepts=500&anyhost=true&application=soul-proxy&bind.ip=127.0.0.1"
-                + "&bind.port=20880&deprecated=false&dubbo=2.0.2&dynamic=true&generic=false"
-                + "&interface=org.dromara.soul.client.alibaba.dubbo.validation.service.TestService"
-                + "&keep.alive=true&methods=test&pid=67352&qos.enable=false&release=2.7.0"
-                + "&side=provider&threadpool=fixed&threads=500&timeout=20000"
-                + "&timestamp=1608119259859&validation=soulValidation");
-        AlibabaDubboClientValidator alibabaDubboClientValidator = new AlibabaDubboClientValidator(url);
+    public void testItWithNonExistMethod() {
         try {
-            alibabaDubboClientValidator.validate("test",
-                    new Class[]{TestService.TestObject.class},
-                    new Object[]{TestService.TestObject.builder().age(null).build()});
+            final URL url = URL.valueOf(MOCK_SERVICE_URL);
+            new AlibabaDubboClientValidation().getValidator(url)
+                    .validate("nonExistingMethod", new Class<?>[]{String.class}, new Object[]{"arg1"});
         } catch (Exception e) {
-            assertEquals("age cannot be null.", e.getMessage());
+            assertThat(e, instanceOf(NoSuchMethodException.class));
         }
     }
+
+    @Test
+    public void testItWithExistMethod() throws Exception {
+        final URL url = URL.valueOf(MOCK_SERVICE_URL + "?soulValidation=org.hibernate.validator.HibernateValidator");
+        new AlibabaDubboClientValidation().getValidator(url)
+                .validate("method1", new Class<?>[]{String.class}, new Object[]{"anything"});
+    }
+
+    @Test
+    public void testValidateWhenMeetsConstraintThenValidationFailed() {
+        try {
+            final URL url = URL.valueOf(MOCK_SERVICE_URL);
+            new AlibabaDubboClientValidation().getValidator(url)
+                    .validate("method2", new Class<?>[]{MockValidationParameter.class}, new Object[]{new MockValidationParameter("NotBeNull")});
+        } catch (Exception e) {
+            assertThat(e, instanceOf(ValidationException.class));
+        }
+    }
+
+    @Test
+    public void testItWithArrayArg() throws Exception {
+        final URL url = URL.valueOf(MOCK_SERVICE_URL);
+        new AlibabaDubboClientValidation().getValidator(url)
+                .validate("method3", new Class<?>[]{MockValidationParameter[].class}, new Object[]{new MockValidationParameter[]{new MockValidationParameter("parameter")}});
+    }
+
+    @Test
+    public void testItWithCollectionArg() throws Exception {
+        URL url = URL.valueOf(MOCK_SERVICE_URL);
+        new AlibabaDubboClientValidation().getValidator(url)
+                .validate("method4", new Class<?>[]{List.class}, new Object[]{Collections.singletonList("parameter")});
+    }
+
+    @Test
+    public void testItWithMapArg() throws Exception {
+        final URL url = URL.valueOf(MOCK_SERVICE_URL);
+        final Map<String, String> map = new HashMap<>();
+        map.put("key", "value");
+        new AlibabaDubboClientValidation().getValidator(url).validate("method5", new Class<?>[]{Map.class}, new Object[]{map});
+    }
+
 }

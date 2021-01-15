@@ -30,6 +30,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>soul-sync-data-nacos</artifactId>
             <version>${project.version}</version>

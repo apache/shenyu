@@ -22,18 +22,16 @@ import org.dromara.soul.common.dto.ConditionData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 import org.junit.Test;
+
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import static org.junit.Assert.assertEquals;
+
+import static org.junit.Assert.assertThat;
+import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-/**
- * Test cases for {@link RuleDataHandler}.
- *
- * @author cocoZwwang
- */
 public final class RuleDataHandlerTest {
 
     private final PluginDataSubscriber subscriber;
@@ -45,9 +43,6 @@ public final class RuleDataHandlerTest {
         ruleDataHandler = new RuleDataHandler(subscriber);
     }
 
-    /**
-     * test case for {@link RuleDataHandler#convert(String)}.
-     */
     @Test
     public void testConvert() {
         List<RuleData> ruleDataList = new LinkedList<>();
@@ -59,14 +54,9 @@ public final class RuleDataHandlerTest {
         Gson gson = new Gson();
         String json = gson.toJson(ruleDataList);
         List<RuleData> convertedList = ruleDataHandler.convert(json);
-        assertEquals(ruleDataList, convertedList);
+        assertThat(convertedList, is(ruleDataList));
     }
 
-    /**
-     * test case for {@link RuleDataHandler#doRefresh(List)}.
-     * First,verify the PluginDataSubscriber bean has called the {@link PluginDataSubscriber#refreshRuleDataSelf(List)} method.
-     * Then,verify the PluginDataSubscriber bean has called the {@link PluginDataSubscriber#onRuleSubscribe(RuleData)} method.
-     */
     @Test
     public void testDoRefresh() {
         List<RuleData> ruleDataList = createFakeRuleDateObjects(3);
@@ -75,10 +65,6 @@ public final class RuleDataHandlerTest {
         ruleDataList.forEach(verify(subscriber)::onRuleSubscribe);
     }
 
-    /**
-     * test case for {@link RuleDataHandler#doUpdate(List)}.
-     * verify the PluginDataSubscriber bean has called the {@link PluginDataSubscriber#onRuleSubscribe(RuleData)} method.
-     */
     @Test
     public void testDoUpdate() {
         List<RuleData> ruleDataList = createFakeRuleDateObjects(4);
@@ -86,10 +72,6 @@ public final class RuleDataHandlerTest {
         ruleDataList.forEach(verify(subscriber)::onRuleSubscribe);
     }
 
-    /**
-     * test case for {@link RuleDataHandler#doDelete(List)}.
-     * verify the PluginDataSubscriber bean has called the {@link PluginDataSubscriber#unRuleSubscribe(RuleData)} method.
-     */
     @Test
     public void testDoDelete() {
         List<RuleData> ruleDataList = createFakeRuleDateObjects(3);

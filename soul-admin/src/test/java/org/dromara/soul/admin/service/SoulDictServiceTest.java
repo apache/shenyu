@@ -17,12 +17,17 @@
 
 package org.dromara.soul.admin.service;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.BatchCommonDTO;
 import org.dromara.soul.admin.dto.SoulDictDTO;
 import org.dromara.soul.admin.entity.SoulDictDO;
 import org.dromara.soul.admin.mapper.SoulDictMapper;
+import org.dromara.soul.admin.page.CommonPager;
+import org.dromara.soul.admin.page.PageParameter;
+import org.dromara.soul.admin.query.SoulDictQuery;
 import org.dromara.soul.admin.service.impl.SoulDictServiceImpl;
 import org.dromara.soul.admin.vo.SoulDictVO;
+import org.dromara.soul.common.utils.UUIDUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -30,9 +35,12 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+
+import static org.hamcrest.Matchers.comparesEqualTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -75,8 +83,12 @@ public final class SoulDictServiceTest {
 
     @Test
     public void testCreateOrUpdate() {
+        SoulDictDTO insertSoulDictDTO = buildSoulDictDTO();
         given(this.soulDictMapper.insertSelective(any())).willReturn(1);
-        assertThat(this.soulDictService.createOrUpdate(buildSoulDictDTO()), greaterThan(0));
+        assertThat(this.soulDictService.createOrUpdate(insertSoulDictDTO), greaterThan(0));
+        SoulDictDTO updateSoulDictDTO = buildSoulDictDTO(UUIDUtils.getInstance().generateShortUuid());
+        given(this.soulDictMapper.updateByPrimaryKeySelective(any())).willReturn(1);
+        assertThat(this.soulDictService.createOrUpdate(updateSoulDictDTO), greaterThan(0));
     }
 
     @Test
@@ -90,13 +102,43 @@ public final class SoulDictServiceTest {
     public void testBatchEnabled() {
         BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
         batchCommonDTO.setEnabled(false);
+        Integer idNullResult = this.soulDictService.enabled(batchCommonDTO.getIds(), false);
+        assertThat(idNullResult, comparesEqualTo(0));
+        batchCommonDTO.setIds(new ArrayList<>());
+        Integer idEmptyResult = this.soulDictService.enabled(batchCommonDTO.getIds(), false);
+        assertThat(idEmptyResult, comparesEqualTo(0));
         batchCommonDTO.setIds(Collections.singletonList("123"));
         given(this.soulDictMapper.enabled(eq(batchCommonDTO.getIds()), eq(batchCommonDTO.getEnabled()))).willReturn(1);
         assertThat(this.soulDictService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled()), greaterThan(0));
     }
 
+    @Test
+    public void testListByPage() {
+        PageParameter pageParameter = new PageParameter();
+        pageParameter.setPageSize(5);
+        pageParameter.setTotalCount(10);
+        pageParameter.setTotalPage(pageParameter.getTotalCount() / pageParameter.getPageSize());
+        SoulDictQuery soulDictQuery = new SoulDictQuery("1", "t", "t_n", pageParameter);
+        given(this.soulDictMapper.countByQuery(soulDictQuery)).willReturn(10);
+        List<SoulDictDO> soulDictDOList = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            SoulDictDO soulDictVO = buildSoulDictDO();
+            soulDictDOList.add(soulDictVO);
+        }
+        given(this.soulDictMapper.selectByQuery(soulDictQuery)).willReturn(soulDictDOList);
+        final CommonPager<SoulDictVO> pluginDOCommonPager = this.soulDictService.listByPage(soulDictQuery);
+        assertEquals(pluginDOCommonPager.getDataList().size(), soulDictDOList.size());
+    }
+
     private SoulDictDTO buildSoulDictDTO() {
+        return buildSoulDictDTO("");
+    }
+
+    private SoulDictDTO buildSoulDictDTO(final String id) {
         SoulDictDTO soulDictDTO = new SoulDictDTO();
+        if (StringUtils.isNotBlank(id)) {
+            soulDictDTO.setId(id);
+        }
         soulDictDTO.setDesc("test");
         soulDictDTO.setSort(1);
         soulDictDTO.setDesc("test");

@@ -54,7 +54,6 @@ public class HystrixCommand extends HystrixObservableCommand<Void> implements Co
                    final ServerWebExchange exchange,
                    final SoulPluginChain chain,
                    final String callBackUri) {
-
         super(setter);
         this.exchange = exchange;
         this.chain = chain;

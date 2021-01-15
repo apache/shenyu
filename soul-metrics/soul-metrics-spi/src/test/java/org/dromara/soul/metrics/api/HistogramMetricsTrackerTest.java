@@ -20,14 +20,16 @@ package org.dromara.soul.metrics.api;
 import org.dromara.soul.metrics.enums.MetricsTypeEnum;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 /**
  * Test for HistogramMetricsTracker default method.
  *
  * @author dengliming
+ * @author Young Bean
  */
 public class HistogramMetricsTrackerTest {
 
@@ -35,7 +37,7 @@ public class HistogramMetricsTrackerTest {
 
     @Test
     public void metricsType() {
-        assertEquals(MetricsTypeEnum.HISTOGRAM.name(), histogramMetricsTracker.metricsType());
+        assertThat(MetricsTypeEnum.HISTOGRAM.name(), equalTo(histogramMetricsTracker.metricsType()));
     }
 
     @Test
