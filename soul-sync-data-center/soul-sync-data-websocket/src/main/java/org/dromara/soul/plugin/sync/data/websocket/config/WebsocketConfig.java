@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.sync.data.weboscket.config;
+package org.dromara.soul.plugin.sync.data.websocket.config;
 
 import lombok.Data;
 

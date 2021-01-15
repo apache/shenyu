@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.sync.data.weboscket.client;
+package org.dromara.soul.plugin.sync.data.websocket.client;
 
 import java.net.URI;
 import java.util.List;
@@ -24,7 +24,7 @@ import org.dromara.soul.common.dto.WebsocketData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
-import org.dromara.soul.plugin.sync.data.weboscket.handler.WebsocketDataHandler;
+import org.dromara.soul.plugin.sync.data.websocket.handler.WebsocketDataHandler;
 import org.dromara.soul.sync.data.api.AuthDataSubscriber;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;

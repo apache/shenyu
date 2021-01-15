@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.sync.data.weboscket;
+package org.dromara.soul.plugin.sync.data.websocket;
 
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.concurrent.SoulThreadFactory;
-import org.dromara.soul.plugin.sync.data.weboscket.client.SoulWebsocketClient;
-import org.dromara.soul.plugin.sync.data.weboscket.config.WebsocketConfig;
+import org.dromara.soul.plugin.sync.data.websocket.client.SoulWebsocketClient;
+import org.dromara.soul.plugin.sync.data.websocket.config.WebsocketConfig;
 import org.dromara.soul.sync.data.api.AuthDataSubscriber;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;

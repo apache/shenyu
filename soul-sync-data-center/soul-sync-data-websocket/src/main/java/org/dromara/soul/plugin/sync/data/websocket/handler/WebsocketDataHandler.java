@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.sync.data.weboscket.handler;
+package org.dromara.soul.plugin.sync.data.websocket.handler;
 
 import java.util.EnumMap;
 import java.util.List;

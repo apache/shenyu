@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.sync.data.weboscket.handler;
+package org.dromara.soul.plugin.sync.data.websocket.handler;
 
 import com.google.gson.Gson;
 import org.dromara.soul.common.dto.ConditionData;

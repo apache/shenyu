@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.sync.data.weboscket.handler;
+package org.dromara.soul.plugin.sync.data.websocket.handler;
 
 /**
  * The interface Data handler.

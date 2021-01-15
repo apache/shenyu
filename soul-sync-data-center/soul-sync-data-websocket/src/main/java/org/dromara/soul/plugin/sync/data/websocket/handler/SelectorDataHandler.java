@@ -15,41 +15,40 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.sync.data.weboscket.handler;
+package org.dromara.soul.plugin.sync.data.websocket.handler;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.dromara.soul.common.dto.PluginData;
+import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 
 /**
- * The type Plugin data handler.
+ * The type Selector data handler.
  */
 @RequiredArgsConstructor
-public class PluginDataHandler extends AbstractDataHandler<PluginData> {
+public class SelectorDataHandler extends AbstractDataHandler<SelectorData> {
 
     private final PluginDataSubscriber pluginDataSubscriber;
 
     @Override
-    public List<PluginData> convert(final String json) {
-        return GsonUtils.getInstance().fromList(json, PluginData.class);
+    public List<SelectorData> convert(final String json) {
+        return GsonUtils.getInstance().fromList(json, SelectorData.class);
     }
 
     @Override
-    protected void doRefresh(final List<PluginData> dataList) {
-        pluginDataSubscriber.refreshPluginDataSelf(dataList);
-        dataList.forEach(pluginDataSubscriber::onSubscribe);
+    protected void doRefresh(final List<SelectorData> dataList) {
+        pluginDataSubscriber.refreshSelectorDataSelf(dataList);
+        dataList.forEach(pluginDataSubscriber::onSelectorSubscribe);
     }
 
     @Override
-    protected void doUpdate(final List<PluginData> dataList) {
-        dataList.forEach(pluginDataSubscriber::onSubscribe);
+    protected void doUpdate(final List<SelectorData> dataList) {
+        dataList.forEach(pluginDataSubscriber::onSelectorSubscribe);
     }
 
     @Override
-    protected void doDelete(final List<PluginData> dataList) {
-        dataList.forEach(pluginDataSubscriber::unSubscribe);
+    protected void doDelete(final List<SelectorData> dataList) {
+        dataList.forEach(pluginDataSubscriber::unSelectorSubscribe);
     }
-
 }
