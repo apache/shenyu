@@ -18,8 +18,10 @@
 package org.dromara.soul.admin.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.shiro.authz.UnauthorizedException;
 import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.utils.SoulResultMessage;
+import org.dromara.soul.common.exception.CommonErrorCode;
 import org.dromara.soul.common.exception.SoulException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -36,8 +38,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @ControllerAdvice
 public class ExceptionHandlers {
 
-    @ExceptionHandler(Exception.class)
     @ResponseBody
+    @ExceptionHandler(Exception.class)
     protected SoulAdminResult serverExceptionHandler(final Exception exception) {
         log.error(exception.getMessage(), exception);
         String message;
@@ -56,4 +58,12 @@ public class ExceptionHandlers {
         log.error(exception.getMessage(), exception);
         return SoulAdminResult.error(SoulResultMessage.UNIQUE_INDEX_CONFLICT_ERROR);
     }
+
+    @ResponseBody
+    @ExceptionHandler(UnauthorizedException.class)
+    private SoulAdminResult shiroExceptionHandler(final UnauthorizedException exception) {
+        log.error(exception.getMessage(), exception);
+        return SoulAdminResult.error(CommonErrorCode.TOKEN_NO_PERMISSION, SoulResultMessage.TOKEN_HAS_NO_PERMISSION);
+    }
+
 }

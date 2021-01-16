@@ -15,33 +15,32 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.exception;
+package org.dromara.soul.admin.service;
+
+import org.dromara.soul.admin.vo.PermissionMenuVO;
+
+import java.util.Set;
 
 /**
- * CommonErrorCode.
+ * this is permission service.
  *
- * @author xiaoyu
- */
-public class CommonErrorCode {
+ * @author nuo-promise
+ **/
+public interface PermissionService {
 
     /**
-     * The constant SUCCESSFUL.
+     * get user permission menu by token.
+     *
+     * @param token logon ack token.
+     * @return {@linkplain PermissionMenuVO}
      */
-    public static final int SUCCESSFUL = 200;
+    PermissionMenuVO getPermissionMenu(String token);
 
     /**
-     * The constant ERROR.
+     * get AuthPerm By UserName.
+     *
+     * @param userName user name.
+     * @return {@linkplain Set}
      */
-    public static final int ERROR = 500;
-
-    /**
-     * The constant TOKEN_ERROR.
-     */
-    public static final int TOKEN_ERROR = 600;
-
-    /**
-     * The constant TOKEN_NO_PERMISSION.
-     */
-    public static final int TOKEN_NO_PERMISSION = 601;
-
+    Set<String> getAuthPermByUserName(String userName);
 }

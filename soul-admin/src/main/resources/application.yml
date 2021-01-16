@@ -18,8 +18,8 @@ server:
   address: 0.0.0.0
 
 spring:
-  #profiles:
-  #  active: h2
+  profiles:
+    active: h2
   thymeleaf:
     cache: true
     encoding: utf-8
@@ -61,6 +61,10 @@ soul:
   aes:
     secret:
       key: 2095132720951327
+  jwt:
+    key: 2095132720951327
+  shiro:
+    white-list: /static/**,/index,/index.*.css,/index.*.js,/favicon.png,/plugin,/platform/**
 
 logging:
   level:

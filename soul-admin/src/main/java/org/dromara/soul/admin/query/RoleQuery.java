@@ -15,33 +15,32 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.exception;
+package org.dromara.soul.admin.query;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.dromara.soul.admin.page.PageParameter;
+
+import java.io.Serializable;
 
 /**
- * CommonErrorCode.
+ * The Role Query.
  *
- * @author xiaoyu
- */
-public class CommonErrorCode {
+ * @author nuo-promise
+ **/
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class RoleQuery implements Serializable {
 
     /**
-     * The constant SUCCESSFUL.
+     * Role name.
      */
-    public static final int SUCCESSFUL = 200;
+    private String roleName;
 
     /**
-     * The constant ERROR.
+     * page parameter.
      */
-    public static final int ERROR = 500;
-
-    /**
-     * The constant TOKEN_ERROR.
-     */
-    public static final int TOKEN_ERROR = 600;
-
-    /**
-     * The constant TOKEN_NO_PERMISSION.
-     */
-    public static final int TOKEN_NO_PERMISSION = 601;
-
+    private PageParameter pageParameter;
 }
