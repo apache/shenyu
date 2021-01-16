@@ -1,8 +1,3 @@
-package org.dromara.soul.admin.utils;
-
-import java.util.HashMap;
-import java.util.Map;
-
 /*
  * Copyright 2007-present the original author or authors.
  *
@@ -18,8 +13,14 @@ import java.util.Map;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package org.dromara.soul.admin.utils;
+
+import java.util.HashMap;
+import java.util.Map;
+
 public class ThreadLocalUtil {
-    private static final ThreadLocal<Map<String, Object>> THREAD_CONTEXT = new ThreadLocal<>();
+    private static final ThreadLocal<Map<String, Object>> THREAD_CONTEXT = ThreadLocal.withInitial(HashMap::new);
 
     /**
      * save thread variable.
@@ -28,12 +29,7 @@ public class ThreadLocalUtil {
      * @param value put value
      */
     public static void put(final String key, final Object value) {
-        Map<String, Object> threadBidMap = THREAD_CONTEXT.get();
-        if (threadBidMap == null) {
-            threadBidMap = new HashMap<>();
-            THREAD_CONTEXT.set(threadBidMap);
-        }
-        threadBidMap.put(key, value);
+        THREAD_CONTEXT.get().put(key, value);
     }
 
     /**
@@ -42,10 +38,7 @@ public class ThreadLocalUtil {
      * @param key remove key
      */
     public static void remove(final String key) {
-        Map<String, Object> threadBidMap = THREAD_CONTEXT.get();
-        if (threadBidMap != null) {
-            threadBidMap.remove(key);
-        }
+        THREAD_CONTEXT.get().remove(key);
     }
 
     /**
@@ -55,8 +48,7 @@ public class ThreadLocalUtil {
      * @return the Object
      */
     public static Object get(final String key) {
-        Map<String, Object> threadBidMap = THREAD_CONTEXT.get();
-        return threadBidMap != null ? threadBidMap.get(key) : null;
+        return THREAD_CONTEXT.get().get(key);
     }
 
     /**
