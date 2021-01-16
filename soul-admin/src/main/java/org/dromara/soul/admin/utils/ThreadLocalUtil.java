@@ -17,7 +17,7 @@ public class ThreadLocalUtil {
      * @param key   put key
      * @param value put value
      */
-    public static void put(String key, Object value) {
+    public static void put(final String key, final Object value) {
         Map<String, Object> threadBidMap = THREAD_CONTEXT.get();
         if (threadBidMap == null) {
             threadBidMap = new HashMap<>();
@@ -31,7 +31,7 @@ public class ThreadLocalUtil {
      *
      * @param key remove key
      */
-    public static void remove(String key) {
+    public static void remove(final String key) {
         Map<String, Object> threadBidMap = THREAD_CONTEXT.get();
         if (threadBidMap != null) {
             threadBidMap.remove(key);
@@ -44,7 +44,7 @@ public class ThreadLocalUtil {
      * @param key get key
      * @return the Object
      */
-    public static Object get(String key) {
+    public static Object get(final String key) {
         Map<String, Object> threadBidMap = THREAD_CONTEXT.get();
         return threadBidMap != null ? threadBidMap.get(key) : null;
     }
