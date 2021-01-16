@@ -96,11 +96,14 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     public int createOrUpdate(final DashboardUserDTO dashboardUserDTO) {
         DashboardUserDO dashboardUserDO = DashboardUserDO.buildDashboardUserDO(dashboardUserDTO);
         if (StringUtils.isEmpty(dashboardUserDTO.getId())) {
-            bindUserRole(dashboardUserDO.getId(), dashboardUserDTO.getRoles(), DataEventTypeEnum.CREATE);
+            bindUserRole(dashboardUserDO.getId(), dashboardUserDTO.getRoles());
             return dashboardUserMapper.insertSelective(dashboardUserDO);
         } else {
-            if (dashboardUserDTO.getRoles() != null && dashboardUserDTO.getRoles().size() > 0) {
-                bindUserRole(dashboardUserDTO.getId(), dashboardUserDTO.getRoles(), DataEventTypeEnum.UPDATE);
+            if (!dashboardUserDTO.getUserName().equals("admin")) {
+                userRoleMapper.deleteByUserId(dashboardUserDTO.getId());
+            }
+            if (CollectionUtils.isNotEmpty(dashboardUserDTO.getRoles())) {
+                bindUserRole(dashboardUserDTO.getId(), dashboardUserDTO.getRoles());
             }
             return dashboardUserMapper.updateSelective(dashboardUserDO);
         }
@@ -213,12 +216,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      * @param userId user id
      * @param roleIds role ids.
      */
-    private void bindUserRole(final String userId, final List<String> roleIds, final DataEventTypeEnum type) {
-        if (roleIds != null && roleIds.size() > 0) {
-            if (type.equals(DataEventTypeEnum.UPDATE)) {
-                userRoleMapper.deleteByUserId(userId);
-            }
-            roleIds.forEach(item -> userRoleMapper.insertSelective(UserRoleDO.buildUserRoleDO(UserRoleDTO.builder().userId(userId).roleId(item).build())));
-        }
+    private void bindUserRole(final String userId, final List<String> roleIds) {
+        roleIds.forEach(item -> userRoleMapper.insertSelective(UserRoleDO.buildUserRoleDO(UserRoleDTO.builder().userId(userId).roleId(item).build())));
     }
 }
