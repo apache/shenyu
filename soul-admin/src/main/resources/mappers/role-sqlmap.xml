@@ -34,14 +34,14 @@
         select
         <include refid="Base_Column_List"/>
         from role
-        where id = #{id,jdbcType=VARCHAR} and role_name != "super"
+        where id = #{id,jdbcType=VARCHAR} and role_name != 'super'
     </select>
 
     <select id="selectByQuery" parameterType="org.dromara.soul.admin.query.RoleQuery" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
         from role
-        where role_name != "super"
+        where role_name != 'super'
         <if test="roleName != null">
             and role_name = #{roleName,jdbcType=VARCHAR}
         </if>
@@ -59,7 +59,7 @@
     <select id="countByQuery" parameterType="org.dromara.soul.admin.query.RoleQuery" resultType="java.lang.Integer">
         select count(1)
         from role
-        where role_name != "super"
+        where role_name != 'super'
         <if test="roleName != null">
             and role_name = #{roleName,jdbcType=VARCHAR}
         </if>
@@ -69,7 +69,7 @@
         select
         <include refid="Base_Column_List"/>
         from role
-        where role_name != "super"
+        where role_name != 'super'
     </select>
 
     <insert id="insert" parameterType="org.dromara.soul.admin.entity.RoleDO">
