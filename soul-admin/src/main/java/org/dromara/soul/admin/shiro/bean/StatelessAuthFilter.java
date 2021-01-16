@@ -25,6 +25,7 @@ import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.common.exception.CommonErrorCode;
 import org.dromara.soul.common.utils.GsonUtils;
+import org.springframework.http.HttpMethod;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -52,9 +53,12 @@ public class StatelessAuthFilter extends AccessControlFilter {
     protected boolean onAccessDenied(final ServletRequest servletRequest, final ServletResponse servletResponse)
             throws Exception {
         HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
-        String tokenValue = httpServletRequest.getHeader(HEAD_TOKEN);
+        if (StringUtils.equals(HttpMethod.OPTIONS.name(), httpServletRequest.getMethod())) {
+            return true;
+        }
 
-        if (StringUtils.isEmpty(tokenValue)) {
+        String tokenValue = httpServletRequest.getHeader(HEAD_TOKEN);
+        if (StringUtils.isBlank(tokenValue)) {
             log.error("token is null.");
             unionFailResponse(servletResponse);
             return false;
