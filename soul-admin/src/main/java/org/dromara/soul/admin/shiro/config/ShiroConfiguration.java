@@ -28,6 +28,7 @@ import org.dromara.soul.admin.shiro.bean.StatelessAuthFilter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 
 import javax.servlet.Filter;
 import java.util.LinkedHashMap;
@@ -68,7 +69,7 @@ public class ShiroConfiguration {
      * @return {@linkplain DefaultWebSecurityManager}
      */
     @Bean("shiroSecurityManager")
-    public DefaultWebSecurityManager securityManager(@Qualifier("shiroRealm") final AuthorizingRealm shiroRealm) {
+    public DefaultWebSecurityManager securityManager(@Lazy @Qualifier("shiroRealm") final AuthorizingRealm shiroRealm) {
         DefaultWebSecurityManager securityManager = new DefaultWebSecurityManager();
         securityManager.setRealm(shiroRealm);
         return securityManager;

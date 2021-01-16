@@ -182,20 +182,20 @@ CREATE TABLE IF NOT EXISTS `soul_dict` (
 -- Table structure for permission role
 -- ----------------------------
 CREATE TABLE IF NOT EXISTS `role` (
-    `id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '主键id',
-    `role_name` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '角色名称',
-    `description` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '角色描述',
+    `id` varchar(128) NOT NULL COMMENT '主键id',
+    `role_name` varchar(32) NOT NULL COMMENT '角色名称',
+    `description` varchar(255) DEFAULT NULL COMMENT '角色描述',
     `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`,`role_name`) USING BTREE
+    PRIMARY KEY (`id`,`role_name`)
     );
 -- ----------------------------
 -- Table structure for user_role
 -- ----------------------------
 CREATE TABLE IF NOT EXISTS `user_role` (
-    `id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '主键id',
-    `user_id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '用户主键',
-    `role_id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '角色主键',
+    `id` varchar(128) NOT NULL COMMENT '主键id',
+    `user_id` varchar(128) NOT NULL COMMENT '用户主键',
+    `role_id` varchar(128) NOT NULL COMMENT '角色主键',
     `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`)
@@ -204,9 +204,9 @@ CREATE TABLE IF NOT EXISTS `user_role` (
 -- Table structure for permission
 -- ----------------------------
 CREATE TABLE IF NOT EXISTS `permission` (
-    `id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '主键id',
-    `object_id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '用户key 或者 角色 key',
-    `resource_id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '资源id',
+    `id` varchar(128) NOT NULL COMMENT '主键id',
+    `object_id` varchar(128) NOT NULL COMMENT '用户key 或者 角色 key',
+    `resource_id` varchar(128) NOT NULL COMMENT '资源id',
     `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`)
@@ -215,18 +215,18 @@ CREATE TABLE IF NOT EXISTS `permission` (
 -- Table structure for resource
 -- ----------------------------
 CREATE TABLE IF NOT EXISTS `resource` (
-    `id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '主键id',
-    `parent_id` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '资源父id',
-    `title` varchar(128) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '资源标题',
-    `name` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '页面使用路由名称',
-    `url` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '路由使用的url',
-    `component` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '页面使用组件名称',
+    `id` varchar(128) NOT NULL COMMENT '主键id',
+    `parent_id` varchar(128) NOT NULL COMMENT '资源父id',
+    `title` varchar(128) NOT NULL COMMENT '资源标题',
+    `name` varchar(32) NOT NULL COMMENT '页面使用路由名称',
+    `url` varchar(32) NOT NULL COMMENT '路由使用的url',
+    `component` varchar(32) NOT NULL COMMENT '页面使用组件名称',
     `resource_type` int(4) NOT NULL COMMENT '资源类型 0:主菜单 1:子菜单 2:功能按钮',
     `sort` int(4) NOT NULL COMMENT '菜单显示排序',
-    `icon` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '菜单显示图标',
+    `icon` varchar(32) NOT NULL COMMENT '菜单显示图标',
     `is_leaf` tinyint(1) NOT NULL COMMENT '是否是叶子节点 0 不是 1 是',
     `is_route` int(4) NOT NULL COMMENT '是否是路由(拓展使用) 1:是 0:不是',
-    `perms` varchar(64) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '页面子控件权限设置 sys:user:add(新增功能)/sys:user:edit(编辑功能)',
+    `perms` varchar(64) NOT NULL COMMENT '页面子控件权限设置 sys:user:add(新增功能)/sys:user:edit(编辑功能)',
     `status` int(4) NOT NULL COMMENT '资源状态 1 有效 0 无效',
     `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
