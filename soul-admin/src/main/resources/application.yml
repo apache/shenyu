@@ -18,8 +18,8 @@ server:
   address: 0.0.0.0
 
 spring:
-  profiles:
-    active: h2
+#  profiles:
+#    active: h2
   thymeleaf:
     cache: true
     encoding: utf-8

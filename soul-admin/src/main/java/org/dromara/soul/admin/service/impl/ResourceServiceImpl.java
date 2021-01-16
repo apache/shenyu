@@ -72,7 +72,7 @@ public class ResourceServiceImpl implements ResourceService {
      */
     @Override
     public int delete(final List<String> ids) {
-       return resourceMapper.delete(ids);
+        return resourceMapper.delete(ids);
     }
 
     /**

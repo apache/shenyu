@@ -122,7 +122,7 @@
         where id = #{id,jdbcType=VARCHAR}
     </update>
 
-    <update id="updateSelective" parameterType="org.dromara.soul.admin.entity.RuleDO">
+    <update id="updateSelective" parameterType="org.dromara.soul.admin.entity.RoleDO">
         update role
         <set>
             <if test="dateCreated != null">

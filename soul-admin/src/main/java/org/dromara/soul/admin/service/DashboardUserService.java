@@ -89,6 +89,4 @@ public interface DashboardUserService {
      * @param userId admin user id
      */
     void checkAndBindAdminRole(String userId);
-
-
 }
