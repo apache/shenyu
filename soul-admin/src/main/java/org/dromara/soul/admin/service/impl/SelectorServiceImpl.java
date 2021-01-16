@@ -44,9 +44,11 @@ import org.dromara.soul.admin.vo.SelectorConditionVO;
 import org.dromara.soul.admin.vo.SelectorVO;
 import org.dromara.soul.common.dto.ConditionData;
 import org.dromara.soul.common.dto.SelectorData;
+import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.enums.PluginEnum;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -79,19 +81,23 @@ public class SelectorServiceImpl implements SelectorService {
 
     private final ApplicationEventPublisher eventPublisher;
 
+    private final UpstreamCheckService upstreamCheckService;
+
     @Autowired(required = false)
     public SelectorServiceImpl(final SelectorMapper selectorMapper,
                                final SelectorConditionMapper selectorConditionMapper,
                                final PluginMapper pluginMapper,
                                final RuleMapper ruleMapper,
                                final RuleConditionMapper ruleConditionMapper,
-                               final ApplicationEventPublisher eventPublisher) {
+                               final ApplicationEventPublisher eventPublisher,
+                               final UpstreamCheckService upstreamCheckService) {
         this.selectorMapper = selectorMapper;
         this.selectorConditionMapper = selectorConditionMapper;
         this.pluginMapper = pluginMapper;
         this.ruleMapper = ruleMapper;
         this.ruleConditionMapper = ruleConditionMapper;
         this.eventPublisher = eventPublisher;
+        this.upstreamCheckService = upstreamCheckService;
     }
 
     @Override
@@ -138,6 +144,7 @@ public class SelectorServiceImpl implements SelectorService {
             });
         }
         publishEvent(selectorDO, selectorConditionDTOs);
+        updateDivideUpstream(selectorDO);
         return selectorCount;
     }
 
@@ -264,4 +271,15 @@ public class SelectorServiceImpl implements SelectorService {
         return SelectorDO.transFrom(selectorDO, pluginDO.getName(), conditionDataList);
     }
 
+    private void updateDivideUpstream(final SelectorDO selectorDO) {
+        PluginDO pluginDO = pluginMapper.selectByName(PluginEnum.DIVIDE.getName());
+        if (Objects.nonNull(pluginDO) && pluginDO.getId().equals(selectorDO.getPluginId())) {
+            String selectorName = selectorDO.getName();
+            String handle = selectorDO.getHandle();
+            if (StringUtils.isNotBlank(handle)) {
+                List<DivideUpstream> existDivideUpstreams = GsonUtils.getInstance().fromList(handle, DivideUpstream.class);
+                upstreamCheckService.replace(selectorName, existDivideUpstreams);
+            }
+        }
+    }
 }
