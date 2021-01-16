@@ -12,7 +12,7 @@ public class ThreadLocalUtil {
     private static final ThreadLocal<Map<String, Object>> THREAD_CONTEXT = new ThreadLocal<>();
 
     /**
-     * save thread variable
+     * save thread variable.
      *
      * @param key   put key
      * @param value put value
@@ -27,7 +27,7 @@ public class ThreadLocalUtil {
     }
 
     /**
-     * remove thread variable
+     * remove thread variable.
      *
      * @param key remove key
      */
@@ -39,7 +39,7 @@ public class ThreadLocalUtil {
     }
 
     /**
-     * get thread variables
+     * get thread variables.
      *
      * @param key get key
      * @return the Object
@@ -50,7 +50,7 @@ public class ThreadLocalUtil {
     }
 
     /**
-     * remove all variables
+     * remove all variables.
      */
     public static void clear() {
         THREAD_CONTEXT.remove();
