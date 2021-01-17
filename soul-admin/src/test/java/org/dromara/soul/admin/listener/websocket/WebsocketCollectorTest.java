@@ -19,6 +19,7 @@ package org.dromara.soul.admin.listener.websocket;
 
 import org.dromara.soul.admin.service.SyncDataService;
 import org.dromara.soul.admin.spring.SpringBeanUtils;
+import org.dromara.soul.admin.utils.ThreadLocalUtil;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.junit.Before;
 import org.junit.Test;
@@ -75,7 +76,7 @@ public final class WebsocketCollectorTest {
         when(syncDataService.syncAll(DataEventTypeEnum.MYSELF)).thenReturn(true);
         websocketCollector.onOpen(session);
         websocketCollector.onMessage(DataEventTypeEnum.MYSELF.name(), session);
-        assertEquals(session, getSession());
+        assertEquals(1L, getSessionSetSize());
         Mockito.verify(syncDataService, Mockito.times(1)).syncAll(DataEventTypeEnum.MYSELF);
         websocketCollector.onClose(session);
     }
@@ -107,7 +108,7 @@ public final class WebsocketCollectorTest {
         assertEquals(1L, getSessionSetSize());
         WebsocketCollector.send(null, DataEventTypeEnum.MYSELF);
         Mockito.verify(basic, Mockito.times(0)).sendText(null);
-        ReflectionTestUtils.setField(WebsocketCollector.class, "session", session);
+        ThreadLocalUtil.put("sessionKey", session);
         WebsocketCollector.send("test_message_1", DataEventTypeEnum.MYSELF);
         Mockito.verify(basic, Mockito.times(1)).sendText("test_message_1");
         WebsocketCollector.send("test_message_2", DataEventTypeEnum.CREATE);
@@ -121,6 +122,6 @@ public final class WebsocketCollectorTest {
     }
 
     private Session getSession() {
-        return (Session) ReflectionTestUtils.getField(WebsocketCollector.class, "session");
+        return (Session) ThreadLocalUtil.get("sessionKey");
     }
 }
