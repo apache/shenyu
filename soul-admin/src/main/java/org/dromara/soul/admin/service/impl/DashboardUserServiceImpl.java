@@ -118,8 +118,11 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     public int delete(final List<String> ids) {
         int dashboardUserCount = 0;
         for (String id : ids) {
-            if (dashboardUserMapper.selectById(id).getUserName().equals("admin")) {
-                continue;
+            DashboardUserDO dashboardUserDO = dashboardUserMapper.selectById(id);
+            if (!ObjectUtils.isEmpty(dashboardUserDO)) {
+                if (dashboardUserDO.getUserName().equals("admin")) {
+                    continue;
+                }
             }
             dashboardUserCount += dashboardUserMapper.delete(id);
         }

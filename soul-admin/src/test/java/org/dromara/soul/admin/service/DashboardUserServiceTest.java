@@ -21,11 +21,14 @@ import org.dromara.soul.admin.config.SecretProperties;
 import org.dromara.soul.admin.dto.DashboardUserDTO;
 import org.dromara.soul.admin.entity.DashboardUserDO;
 import org.dromara.soul.admin.mapper.DashboardUserMapper;
+import org.dromara.soul.admin.mapper.RoleMapper;
+import org.dromara.soul.admin.mapper.UserRoleMapper;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.DashboardUserQuery;
 import org.dromara.soul.admin.service.impl.DashboardUserServiceImpl;
 import org.dromara.soul.admin.vo.DashboardUserVO;
+import org.dromara.soul.admin.vo.LoginDashboardUserVO;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -34,6 +37,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -43,6 +47,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
@@ -70,10 +75,16 @@ public final class DashboardUserServiceTest {
     @Mock
     private SecretProperties secretProperties;
 
+    @Mock
+    private UserRoleMapper userRoleMapper;
+
+    @Mock
+    private RoleMapper roleMapper;
+
     @Test
     public void testCreateOrUpdate() {
         DashboardUserDTO dashboardUserDTO = DashboardUserDTO.builder()
-                .userName(TEST_USER_NAME).password(TEST_PASSWORD).role(1)
+                .userName(TEST_USER_NAME).password(TEST_PASSWORD).role(1).roles(new ArrayList<>())
                 .build();
         given(dashboardUserMapper.insertSelective(any(DashboardUserDO.class))).willReturn(1);
         assertEquals(1, dashboardUserService.createOrUpdate(dashboardUserDTO));
