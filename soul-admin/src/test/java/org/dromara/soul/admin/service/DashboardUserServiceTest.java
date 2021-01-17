@@ -30,7 +30,6 @@ import org.dromara.soul.admin.query.DashboardUserQuery;
 import org.dromara.soul.admin.service.impl.DashboardUserServiceImpl;
 import org.dromara.soul.admin.spring.SpringBeanUtils;
 import org.dromara.soul.admin.vo.DashboardUserVO;
-import org.dromara.soul.admin.vo.LoginDashboardUserVO;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -40,7 +39,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -51,10 +49,10 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * test cases for DashboardUserService.
@@ -84,12 +82,6 @@ public final class DashboardUserServiceTest {
     @Mock
     private SecretProperties secretProperties;
 
-    @Mock
-    private UserRoleMapper userRoleMapper;
-
-    @Mock
-    private RoleMapper roleMapper;
-
     @Test
     public void testCreateOrUpdate() {
         DashboardUserDTO dashboardUserDTO = DashboardUserDTO.builder()
@@ -107,11 +99,9 @@ public final class DashboardUserServiceTest {
 
     @Test
     public void testDelete() {
-        given(dashboardUserMapper.selectById(eq("1"))).willReturn(DashboardUserDO.builder().userName("admin").build());
-        given(dashboardUserMapper.selectById(eq("2"))).willReturn(DashboardUserDO.builder().userName("test").build());
         given(dashboardUserMapper.delete(eq("1"))).willReturn(1);
         given(dashboardUserMapper.delete(eq("2"))).willReturn(1);
-        assertEquals(1, dashboardUserService.delete(Arrays.asList("1", "2")));
+        assertEquals(2, dashboardUserService.delete(Arrays.asList("1", "2")));
     }
 
     @Test
