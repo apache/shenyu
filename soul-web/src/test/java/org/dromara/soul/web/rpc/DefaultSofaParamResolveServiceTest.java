@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.web.dubbo;
+package org.dromara.soul.web.rpc;
 
 import java.util.List;
 import java.util.Map;
@@ -38,21 +38,21 @@ import static org.junit.Assert.assertThat;
  * @author candyYu
  */
 @RunWith(MockitoJUnitRunner.class)
-public final class DubboMultiParameterResolveServiceImplTest {
+public final class DefaultSofaParamResolveServiceTest {
 
     @InjectMocks
-    private DubboMultiParameterResolveServiceImpl impl;
+    private DefaultSofaParamResolveServiceImpl impl;
 
     @Test
     public void testBuildParameter() {
         String body = "{\"id\": \"12345\",\"name\": \"candyYu\"}";
-        String parameterTypes = "org.dromara.soul.web.dubbo.DubboMultiParameterResolveServiceImplTest.Student";
+        String parameterTypes = "org.dromara.soul.web.rpc.DubboMultiParameterResolveServiceImplTest.Student";
         Pair<String[], Object[]> pair = impl.buildParameter(body, parameterTypes);
         assertThat(pair.getLeft().length, is(1));
         assertThat(pair.getRight().length, is(1));
 
         body = "{\"testArray\":[{\"id\":\"123\",\"name\":\"candy\"},{\"id\":\"456\",\"name\":\"myth\"}]}";
-        parameterTypes = "org.dromara.soul.web.dubbo.DubboMultiParameterResolveServiceImplTest.Student[]";
+        parameterTypes = "org.dromara.soul.web.rpc.DubboMultiParameterResolveServiceImplTest.Student[]";
         pair = impl.buildParameter(body, parameterTypes);
         assertThat(pair.getLeft().length, is(1));
         assertThat(pair.getRight().length, is(1));
@@ -70,19 +70,19 @@ public final class DubboMultiParameterResolveServiceImplTest {
         assertThat(pair.getRight().length, is(2));
 
         body = "{\"dubboTest\":{\"id\":\"123\",\"name\":\"xiaoyu\"},\"idLists\":[\"456\",\"789\"],\"idMaps\":{\"id2\":\"2\",\"id1\":\"1\"}}";
-        parameterTypes = "org.dromara.soul.web.dubbo.DubboMultiParameterResolveServiceImplTest.ComplexBean";
+        parameterTypes = "org.dromara.soul.web.rpc.DubboMultiParameterResolveServiceImplTest.ComplexBean";
         pair = impl.buildParameter(body, parameterTypes);
         assertThat(pair.getLeft().length, is(1));
         assertThat(pair.getRight().length, is(1));
 
         body = "{\"complexBeanTest\":{\"dubboTest\":{\"id\":\"123\",\"name\":\"xiaoyu\"},\"idLists\":[\"456\",\"789\"],\"idMaps\":{\"id2\":\"2\",\"id1\":\"1\"}},\"name\":\"xiaoyu\"}";
-        parameterTypes = "org.dromara.soul.web.dubbo.DubboMultiParameterResolveServiceImplTest.ComplexBean, java.lang.String";
+        parameterTypes = "org.dromara.soul.web.rpc.DubboMultiParameterResolveServiceImplTest.ComplexBean, java.lang.String";
         pair = impl.buildParameter(body, parameterTypes);
         assertThat(pair.getLeft().length, is(2));
         assertThat(pair.getRight().length, is(2));
 
         body = "{\"ids\":[\"123\",\"456\"],\"id\":123,\"name\":\"hello world\",\"testArray\":[{\"id\":\"123\",\"name\":\"candy\"},{\"id\":\"456\",\"name\":\"myth\"}]}\n";
-        parameterTypes = "java.lang.Integer[],java.lang.Integer,java.lang.String,org.dromara.soul.web.dubbo.DubboMultiParameterResolveServiceImplTest.Student[]";
+        parameterTypes = "java.lang.Integer[],java.lang.Integer,java.lang.String,org.dromara.soul.web.rpc.DubboMultiParameterResolveServiceImplTest.Student[]";
         pair = impl.buildParameter(body, parameterTypes);
         assertThat(pair.getLeft().length, is(4));
         assertThat(pair.getRight().length, is(4));
@@ -92,7 +92,7 @@ public final class DubboMultiParameterResolveServiceImplTest {
     @Test
     public void testBuildParameterWithNull() {
         String body = "{\"student\":{\"id\":null,\"name\":null}}";
-        String parameterTypes = "org.dromara.soul.web.dubbo.DubboMultiParameterResolveServiceImplTest.Student";
+        String parameterTypes = "org.dromara.soul.web.rpc.DubboMultiParameterResolveServiceImplTest.Student";
         Pair<String[], Object[]> pair = impl.buildParameter(body, parameterTypes);
         assertThat(pair.getLeft().length, is(1));
         assertThat(pair.getRight().length, is(1));
@@ -102,7 +102,7 @@ public final class DubboMultiParameterResolveServiceImplTest {
         assertNull(map.get("name"));
 
         body = "{\"students\":[{\"id\":null,\"name\":null}]}";
-        parameterTypes = "org.dromara.soul.web.dubbo.DubboMultiParameterResolveServiceImplTest.Student[]";
+        parameterTypes = "org.dromara.soul.web.rpc.DubboMultiParameterResolveServiceImplTest.Student[]";
         pair = impl.buildParameter(body, parameterTypes);
         assertThat(pair.getLeft().length, is(1));
         assertThat(pair.getRight().length, is(1));
@@ -113,7 +113,7 @@ public final class DubboMultiParameterResolveServiceImplTest {
         assertNull(map.get("name"));
 
         body = "{\"dubboTest\":{\"id\":null,\"name\":null},\"idLists\":[null,null],\"idMaps\":{\"id2\":null,\"id1\":null}}";
-        parameterTypes = "org.dromara.soul.web.dubbo.DubboMultiParameterResolveServiceImplTest.ComplexBean";
+        parameterTypes = "org.dromara.soul.web.rpc.DubboMultiParameterResolveServiceImplTest.ComplexBean";
         pair = impl.buildParameter(body, parameterTypes);
         assertThat(pair.getLeft().length, is(1));
         assertThat(pair.getRight().length, is(1));

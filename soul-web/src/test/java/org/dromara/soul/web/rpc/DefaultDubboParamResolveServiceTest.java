@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.web.dubbo;
+package org.dromara.soul.web.rpc;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
@@ -39,12 +39,12 @@ import static org.junit.Assert.assertThat;
 public class DefaultDubboParamResolveServiceTest {
 
     @InjectMocks
-    private DefaultDubboParamResolveService impl;
+    private DefaultDubboParamResolveServiceImpl impl;
 
     @Test
     public void testBuildParameterWithNull() {
         String body = "{\"id\":null,\"name\":null}";
-        String parameterTypes = "org.dromara.soul.web.dubbo.DubboMultiParameterResolveServiceImplTest.Student";
+        String parameterTypes = "org.dromara.soul.web.rpc.DubboMultiParameterResolveServiceImplTest.Student";
         Pair<String[], Object[]> pair = impl.buildParameter(body, parameterTypes);
         assertThat(pair.getLeft().length, is(1));
         assertThat(pair.getRight().length, is(1));
@@ -53,7 +53,7 @@ public class DefaultDubboParamResolveServiceTest {
         assertNull(map.get("name"));
 
         body = "{\"dubboTest\":{\"id\":null,\"name\":null},\"idLists\":[null,null],\"idMaps\":{\"id2\":null,\"id1\":null}}";
-        parameterTypes = "org.dromara.soul.web.dubbo.DubboMultiParameterResolveServiceImplTest.ComplexBean";
+        parameterTypes = "org.dromara.soul.web.rpc.DubboMultiParameterResolveServiceImplTest.ComplexBean";
         pair = impl.buildParameter(body, parameterTypes);
         assertThat(pair.getLeft().length, is(1));
         assertThat(pair.getRight().length, is(1));

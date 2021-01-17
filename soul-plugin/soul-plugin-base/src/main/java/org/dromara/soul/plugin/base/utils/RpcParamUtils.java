@@ -15,43 +15,60 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.web.dubbo;
+package org.dromara.soul.plugin.base.utils;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dromara.soul.common.utils.GsonUtils;
-import org.dromara.soul.plugin.api.dubbo.DubboParamResolveService;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Dubbo multi parameter resolve service impl.
+ * Common rpc parameter builder utils.
+ *
+ * @author dengliming
  */
-@Slf4j
-public class DubboMultiParameterResolveServiceImpl implements DubboParamResolveService {
+public class RpcParamUtils {
 
-    @Override
-    public Pair<String[], Object[]> buildParameter(final String body, final String parameterTypes) {
-        Map<String, Object> paramMap = GsonUtils.getInstance().toObjectMap(body);
+    /**
+     * build single parameter.
+     *
+     * @param body the parameter body.
+     * @param parameterTypes the parameter types.
+     * @return the parameters.
+     */
+    public static Pair<String[], Object[]> buildSingleParameter(final String body, final String parameterTypes) {
+        final Map<String, Object> paramMap = GsonUtils.getInstance().toObjectMap(body);
+        for (String key : paramMap.keySet()) {
+            Object obj = paramMap.get(key);
+            if (obj instanceof JsonObject) {
+                paramMap.put(key, GsonUtils.getInstance().convertToMap(obj.toString()));
+            } else if (obj instanceof JsonArray) {
+                paramMap.put(key, GsonUtils.getInstance().fromList(obj.toString(), Object.class));
+            } else {
+                paramMap.put(key, obj);
+            }
+        }
+        return new ImmutablePair<>(new String[]{parameterTypes}, new Object[]{paramMap});
+    }
+
+    /**
+     * build multi parameters.
+     *
+     * @param body the parameter body.
+     * @param parameterTypes the parameter types.
+     * @return the parameters.
+     */
+    public static Pair<String[], Object[]> buildParameters(final String body, final String parameterTypes) {
         String[] parameter = StringUtils.split(parameterTypes, ",");
         if (parameter.length == 1 && !isBaseType(parameter[0])) {
-            for (String key : paramMap.keySet()) {
-                Object obj = paramMap.get(key);
-                if (obj instanceof JsonObject) {
-                    paramMap.put(key, GsonUtils.getInstance().convertToMap(obj.toString()));
-                } else if (obj instanceof JsonArray) {
-                    paramMap.put(key, GsonUtils.getInstance().fromList(obj.toString(), Object.class));
-                } else {
-                    paramMap.put(key, obj);
-                }
-            }
-            return new ImmutablePair<>(parameter, new Object[]{paramMap});
+            return buildSingleParameter(body, parameterTypes);
         }
+        Map<String, Object> paramMap = GsonUtils.getInstance().toObjectMap(body);
         List<Object> list = new LinkedList<>();
         for (String key : paramMap.keySet()) {
             Object obj = paramMap.get(key);
@@ -67,7 +84,13 @@ public class DubboMultiParameterResolveServiceImpl implements DubboParamResolveS
         return new ImmutablePair<>(parameter, objects);
     }
 
-    private boolean isBaseType(final String paramType) {
+    /**
+     * isBaseType.
+     *
+     * @param paramType the parameter type.
+     * @return whether the base type is.
+     */
+    private static boolean isBaseType(final String paramType) {
         return paramType.startsWith("java") || paramType.startsWith("[Ljava");
     }
 }

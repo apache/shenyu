@@ -38,7 +38,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnClass(TarsPlugin.class)
 public class TarsPluginConfiguration {
-    
+
     /**
      * Tars plugin soul plugin.
      *
@@ -55,10 +55,10 @@ public class TarsPluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin bodyParamPlugin() {
+    public SoulPlugin tarsBodyParamPlugin() {
         return new BodyParamPlugin();
     }
-    
+
     /**
      * Tars response plugin soul plugin.
      *
@@ -68,7 +68,7 @@ public class TarsPluginConfiguration {
     public SoulPlugin tarsResponsePlugin() {
         return new TarsResponsePlugin();
     }
-    
+
     /**
      * Tars meta data subscriber meta data subscriber.
      *

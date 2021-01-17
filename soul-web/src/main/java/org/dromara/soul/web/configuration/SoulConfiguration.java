@@ -25,12 +25,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.plugin.api.RemoteAddressResolver;
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.api.dubbo.DubboParamResolveService;
+import org.dromara.soul.plugin.api.sofa.SofaParamResolveService;
 import org.dromara.soul.plugin.base.cache.CommonPluginDataSubscriber;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 import org.dromara.soul.web.config.SoulConfig;
-import org.dromara.soul.web.dubbo.DefaultDubboParamResolveService;
-import org.dromara.soul.web.dubbo.DubboMultiParameterResolveServiceImpl;
+import org.dromara.soul.web.rpc.DefaultDubboParamResolveServiceImpl;
+import org.dromara.soul.web.rpc.DefaultSofaParamResolveServiceImpl;
 import org.dromara.soul.web.filter.CrossFilter;
 import org.dromara.soul.web.filter.FileSizeFilter;
 import org.dromara.soul.web.filter.TimeWebFilter;
@@ -54,13 +55,14 @@ import org.springframework.web.server.WebFilter;
  * SoulConfiguration.
  *
  * @author xiaoyu(Myth)
+ * @author dengliming
  */
 @Configuration
 @ComponentScan("org.dromara.soul")
 @Import(value = {ErrorHandlerConfiguration.class, SoulExtConfiguration.class, SpringExtConfiguration.class})
 @Slf4j
 public class SoulConfiguration {
-    
+
     /**
      * Init SoulWebHandler.
      *
@@ -75,7 +77,7 @@ public class SoulConfiguration {
         soulPlugins.forEach(soulPlugin -> log.info("load plugin:[{}] [{}]", soulPlugin.named(), soulPlugin.getClass().getName()));
         return new SoulWebHandler(soulPlugins);
     }
-    
+
     /**
      * init dispatch handler.
      *
@@ -85,7 +87,7 @@ public class SoulConfiguration {
     public DispatcherHandler dispatcherHandler() {
         return new DispatcherHandler();
     }
-    
+
     /**
      * Plugin data subscriber plugin data subscriber.
      *
@@ -96,18 +98,7 @@ public class SoulConfiguration {
     public PluginDataSubscriber pluginDataSubscriber(final ObjectProvider<List<PluginDataHandler>> pluginDataHandlerList) {
         return new CommonPluginDataSubscriber(pluginDataHandlerList.getIfAvailable(Collections::emptyList));
     }
-    
-    /**
-     * Generic param resolve service generic param resolve service.
-     *
-     * @return the generic param resolve service
-     */
-    @Bean
-    @ConditionalOnProperty(name = "soul.dubbo.parameter", havingValue = "multi")
-    public DubboParamResolveService dubboMultiParameterResolveServiceImpl() {
-        return new DubboMultiParameterResolveServiceImpl();
-    }
-    
+
     /**
      * Generic param resolve service dubbo param resolve service.
      *
@@ -116,9 +107,20 @@ public class SoulConfiguration {
     @Bean
     @ConditionalOnMissingBean(value = DubboParamResolveService.class, search = SearchStrategy.ALL)
     public DubboParamResolveService defaultDubboParamResolveService() {
-        return new DefaultDubboParamResolveService();
+        return new DefaultDubboParamResolveServiceImpl();
     }
-    
+
+    /**
+     * Generic param resolve service sofa param resolve service.
+     *
+     * @return the sofa param resolve service
+     */
+    @Bean
+    @ConditionalOnMissingBean(value = SofaParamResolveService.class, search = SearchStrategy.ALL)
+    public DefaultSofaParamResolveServiceImpl defaultSofaParamResolveService() {
+        return new DefaultSofaParamResolveServiceImpl();
+    }
+
     /**
      * Remote address resolver remote address resolver.
      *
@@ -129,7 +131,7 @@ public class SoulConfiguration {
     public RemoteAddressResolver remoteAddressResolver() {
         return new ForwardedRemoteAddressResolver(1);
     }
-    
+
     /**
      * Cross filter web filter.
      * if you application has cross-domain.
@@ -145,7 +147,7 @@ public class SoulConfiguration {
     public WebFilter crossFilter() {
         return new CrossFilter();
     }
-    
+
     /**
      * Body web filter web filter.
      *
@@ -158,7 +160,7 @@ public class SoulConfiguration {
     public WebFilter fileSizeFilter(final SoulConfig soulConfig) {
         return new FileSizeFilter(soulConfig.getFileMaxSize());
     }
-    
+
     /**
      * Soul config soul config.
      *
@@ -169,7 +171,7 @@ public class SoulConfiguration {
     public SoulConfig soulConfig() {
         return new SoulConfig();
     }
-    
+
     /**
      * Init time web filter.
      *
@@ -182,7 +184,7 @@ public class SoulConfiguration {
     public WebFilter timeWebFilter(final SoulConfig soulConfig) {
         return new TimeWebFilter(soulConfig);
     }
-    
+
     /**
      * Web socket web filter web filter.
      *
