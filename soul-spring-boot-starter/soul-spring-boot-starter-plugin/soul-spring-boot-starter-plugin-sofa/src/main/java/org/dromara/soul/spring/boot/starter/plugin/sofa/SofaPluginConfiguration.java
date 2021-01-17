@@ -41,7 +41,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnClass(SofaPlugin.class)
 public class SofaPluginConfiguration {
-    
+
     /**
      * Sofa plugin soul plugin.
      *
@@ -52,17 +52,17 @@ public class SofaPluginConfiguration {
     public SoulPlugin sofaPlugin(final ObjectProvider<SofaParamResolveService> sofaParamResolveService) {
         return new SofaPlugin(new SofaProxyService(sofaParamResolveService.getIfAvailable()));
     }
-    
+
     /**
      * Body param plugin soul plugin.
      *
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin bodyParamPlugin() {
+    public SoulPlugin sofaBodyParamPlugin() {
         return new BodyParamPlugin();
     }
-    
+
     /**
      * Dubbo response plugin soul plugin.
      *
@@ -72,7 +72,7 @@ public class SofaPluginConfiguration {
     public SoulPlugin sofaResponsePlugin() {
         return new SofaResponsePlugin();
     }
-    
+
     /**
      * Sofa plugin data handler plugin data handler.
      *
@@ -82,7 +82,7 @@ public class SofaPluginConfiguration {
     public PluginDataHandler sofaPluginDataHandler() {
         return new SofaPluginDataHandler();
     }
-    
+
     /**
      * Sofa meta data subscriber meta data subscriber.
      *
