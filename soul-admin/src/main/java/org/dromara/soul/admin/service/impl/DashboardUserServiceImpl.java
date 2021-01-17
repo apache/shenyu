@@ -91,21 +91,22 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      * @return rows
      */
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public int createOrUpdate(final DashboardUserDTO dashboardUserDTO) {
         DashboardUserDO dashboardUserDO = DashboardUserDO.buildDashboardUserDO(dashboardUserDTO);
         if (StringUtils.isEmpty(dashboardUserDTO.getId())) {
             bindUserRole(dashboardUserDO.getId(), dashboardUserDTO.getRoles());
             return dashboardUserMapper.insertSelective(dashboardUserDO);
-        } else {
-            if (!dashboardUserDTO.getUserName().equals("admin")) {
-                userRoleMapper.deleteByUserId(dashboardUserDTO.getId());
-            }
-            if (CollectionUtils.isNotEmpty(dashboardUserDTO.getRoles())) {
-                bindUserRole(dashboardUserDTO.getId(), dashboardUserDTO.getRoles());
-            }
-            return dashboardUserMapper.updateSelective(dashboardUserDO);
         }
+
+        if (!dashboardUserDTO.getUserName().equals("admin")) {
+            userRoleMapper.deleteByUserId(dashboardUserDTO.getId());
+        }
+        if (CollectionUtils.isNotEmpty(dashboardUserDTO.getRoles())) {
+            bindUserRole(dashboardUserDTO.getId(), dashboardUserDTO.getRoles());
+        }
+
+        return dashboardUserMapper.updateSelective(dashboardUserDO);
     }
 
     /**
@@ -176,6 +177,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      * @return {@linkplain LoginDashboardUserVO}
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public LoginDashboardUserVO login(final String userName, final String password) {
         String key = secretProperties.getKey();
         DashboardUserVO dashboardUserVO = findByQuery(userName, password);
@@ -199,7 +201,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      * @param userId admin user id
      */
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void checkAndBindAdminRole(final String userId) {
         if (CollectionUtils.isEmpty(userRoleMapper.findByUserId(userId))) {
             RoleVO roleVO = RoleVO.buildRoleVO(roleMapper.findByRoleName("super"));
