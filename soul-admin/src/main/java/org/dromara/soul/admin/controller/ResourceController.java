@@ -43,7 +43,7 @@ import java.util.Optional;
  * this is resource controller.
  *
  * @author nuo-promise
- **/
+ */
 @RestController
 @RequestMapping("/resource")
 public class ResourceController {

@@ -26,7 +26,7 @@ import lombok.NoArgsConstructor;
  * this User Role Dto.
  *
  * @author nuo-promise
- **/
+ */
 @Data
 @Builder
 @NoArgsConstructor

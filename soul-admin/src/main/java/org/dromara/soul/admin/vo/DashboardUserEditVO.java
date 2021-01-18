@@ -29,7 +29,7 @@ import java.util.Optional;
  * this is dashboard user for role.
  *
  * @author nuo-promise
- **/
+ */
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)

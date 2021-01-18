@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  * this Resource Service Impl.
  *
  * @author nuo-promise
- **/
+ */
 @Service("resourceService")
 public class ResourceServiceImpl implements ResourceService {
 

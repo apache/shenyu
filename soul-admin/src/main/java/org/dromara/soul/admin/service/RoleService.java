@@ -29,7 +29,7 @@ import java.util.List;
  * this is role service.
  *
  * @author nuo-promise
- **/
+ */
 public interface RoleService {
 
     /**

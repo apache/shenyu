@@ -32,7 +32,7 @@ import java.util.Optional;
  * this is permission controller.
  *
  * @author nuo-promise
- **/
+ */
 @RestController
 @RequestMapping("/permission")
 public class PermissionController {
