@@ -32,7 +32,7 @@ import java.util.Optional;
  * The Resource Entity.
  *
  * @author nuo-promise
- **/
+ */
 @Data
 @SuperBuilder
 @NoArgsConstructor

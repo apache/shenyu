@@ -30,7 +30,7 @@ import java.util.Optional;
  * this is role view to web front.
  *
  * @author nuo-promise
- **/
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

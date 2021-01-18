@@ -37,7 +37,7 @@ import java.io.IOException;
  * custom Stateless AccessControlFilter.
  *
  * @author YuI
- **/
+ */
 @Slf4j
 public class StatelessAuthFilter extends AccessControlFilter {
 

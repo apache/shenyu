@@ -32,7 +32,7 @@ import java.util.Optional;
  * The User Role Entity.
  *
  * @author nuo-promise
- **/
+ */
 @Data
 @SuperBuilder
 @NoArgsConstructor
