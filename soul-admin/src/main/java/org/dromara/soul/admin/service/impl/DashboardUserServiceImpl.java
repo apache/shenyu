@@ -21,10 +21,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.config.SecretProperties;
 import org.dromara.soul.admin.dto.DashboardUserDTO;
-import org.dromara.soul.admin.dto.PermissionDTO;
 import org.dromara.soul.admin.dto.UserRoleDTO;
 import org.dromara.soul.admin.entity.DashboardUserDO;
-import org.dromara.soul.admin.entity.PermissionDO;
 import org.dromara.soul.admin.entity.UserRoleDO;
 import org.dromara.soul.admin.mapper.DashboardUserMapper;
 import org.dromara.soul.admin.mapper.PermissionMapper;
@@ -40,7 +38,6 @@ import org.dromara.soul.admin.utils.AesUtils;
 import org.dromara.soul.admin.vo.DashboardUserEditVO;
 import org.dromara.soul.admin.vo.DashboardUserVO;
 import org.dromara.soul.admin.vo.LoginDashboardUserVO;
-import org.dromara.soul.admin.vo.ResourceVO;
 import org.dromara.soul.admin.vo.RoleVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -50,7 +47,6 @@ import org.springframework.util.ObjectUtils;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
