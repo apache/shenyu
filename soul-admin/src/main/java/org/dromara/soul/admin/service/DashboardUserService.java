@@ -82,11 +82,4 @@ public interface DashboardUserService {
      * @return {@linkplain LoginDashboardUserVO}
      */
     LoginDashboardUserVO login(String userName, String password);
-
-    /**
-     * bind admin role.
-     *
-     * @param userId admin user id
-     */
-    void checkAndBindAdminRole(String userId);
 }
