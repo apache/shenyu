@@ -21,8 +21,9 @@ import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.service.DashboardUserService;
 import org.dromara.soul.admin.service.EnumService;
 import org.dromara.soul.admin.utils.SoulResultMessage;
-import org.dromara.soul.admin.vo.DashboardUserVO;
+import org.dromara.soul.admin.vo.LoginDashboardUserVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -55,8 +56,11 @@ public class PlatformController {
      */
     @GetMapping("/login")
     public SoulAdminResult loginDashboardUser(final String userName, final String password) {
-        DashboardUserVO dashboardUserVO = dashboardUserService.login(userName, password);
-        return SoulAdminResult.success(SoulResultMessage.PLATFORM_LOGIN_SUCCESS, dashboardUserVO);
+        LoginDashboardUserVO loginVO = dashboardUserService.login(userName, password);
+        if (!ObjectUtils.isEmpty(loginVO) && loginVO.getUserName().equals("admin")) {
+            dashboardUserService.checkAndBindAdminRole(loginVO.getId());
+        }
+        return SoulAdminResult.success(SoulResultMessage.PLATFORM_LOGIN_SUCCESS, loginVO);
     }
 
     /**

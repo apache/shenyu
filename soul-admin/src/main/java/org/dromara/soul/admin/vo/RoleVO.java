@@ -15,26 +15,26 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.dto;
+package org.dromara.soul.admin.vo;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.dromara.soul.admin.entity.RoleDO;
+import org.dromara.soul.common.utils.DateUtils;
 
 import java.io.Serializable;
-import java.util.List;
+import java.util.Optional;
 
 /**
- * this is dashboard user from by web front.
+ * this is role view to web front.
  *
- * @author jiangxiaofeng(Nicholas)
- */
+ * @author nuo-promise
+ **/
 @Data
-@Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class DashboardUserDTO implements Serializable {
+@NoArgsConstructor
+public class RoleVO implements Serializable {
 
     /**
      * primary key.
@@ -42,27 +42,35 @@ public class DashboardUserDTO implements Serializable {
     private String id;
 
     /**
-     * user name.
+     * role name.
      */
-    private String userName;
+    private String roleName;
 
     /**
-     * user password.
+     * description.
      */
-    private String password;
+    private String description;
 
     /**
-     * dashboard role.
+     * created time.
      */
-    private Integer role;
+    private String dateCreated;
 
     /**
-     * current role list.
+     * updated time.
      */
-    private List<String> roles;
+    private String dateUpdated;
 
     /**
-     * whether enabled.
+     * build roleVO.
+     *
+     * @param roleDO {@linkplain RoleDO}
+     * @return {@linkplain RoleVO}
      */
-    private Boolean enabled;
+    public static RoleVO buildRoleVO(final RoleDO roleDO) {
+        return Optional.ofNullable(roleDO)
+                .map(item -> new RoleVO(item.getId(), item.getRoleName(),
+                        item.getDescription(), DateUtils.localDateTimeToString(item.getDateCreated().toLocalDateTime()),
+                        DateUtils.localDateTimeToString(item.getDateUpdated().toLocalDateTime()))).orElse(null);
+    }
 }

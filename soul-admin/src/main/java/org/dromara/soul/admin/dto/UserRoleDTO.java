@@ -15,33 +15,36 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.exception;
+package org.dromara.soul.admin.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * CommonErrorCode.
+ * this User Role Dto.
  *
- * @author xiaoyu
- */
-public class CommonErrorCode {
+ * @author nuo-promise
+ **/
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserRoleDTO {
 
     /**
-     * The constant SUCCESSFUL.
+     * primary key.
      */
-    public static final int SUCCESSFUL = 200;
+    private String id;
 
     /**
-     * The constant ERROR.
+     * user key.
      */
-    public static final int ERROR = 500;
+    private String userId;
 
     /**
-     * The constant TOKEN_ERROR.
+     * role key.
      */
-    public static final int TOKEN_ERROR = 600;
-
-    /**
-     * The constant TOKEN_NO_PERMISSION.
-     */
-    public static final int TOKEN_NO_PERMISSION = 601;
-
+    private String roleId;
 }

@@ -15,33 +15,17 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.exception;
+package org.dromara.soul.common.constant;
 
 /**
- * CommonErrorCode.
+ * The Constants for Resource Type.
  *
- * @author xiaoyu
- */
-public class CommonErrorCode {
+ * @author nuo-promise
+ **/
+public final class ResourceTypeConstants {
 
     /**
-     * The constant SUCCESSFUL.
+     * Permission.
      */
-    public static final int SUCCESSFUL = 200;
-
-    /**
-     * The constant ERROR.
-     */
-    public static final int ERROR = 500;
-
-    /**
-     * The constant TOKEN_ERROR.
-     */
-    public static final int TOKEN_ERROR = 600;
-
-    /**
-     * The constant TOKEN_NO_PERMISSION.
-     */
-    public static final int TOKEN_NO_PERMISSION = 601;
-
+    public static final Integer MENU_TYPE_2 = 2;
 }

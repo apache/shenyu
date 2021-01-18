@@ -15,33 +15,22 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.exception;
+package org.dromara.soul.admin.config;
+
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 /**
- * CommonErrorCode.
+ * Jwt Properties.
  *
- * @author xiaoyu
- */
-public class CommonErrorCode {
+ * @author YuI
+ **/
+@Data
+@Component
+@ConfigurationProperties(prefix = "soul.jwt")
+public class JwtProperties {
 
-    /**
-     * The constant SUCCESSFUL.
-     */
-    public static final int SUCCESSFUL = 200;
-
-    /**
-     * The constant ERROR.
-     */
-    public static final int ERROR = 500;
-
-    /**
-     * The constant TOKEN_ERROR.
-     */
-    public static final int TOKEN_ERROR = 600;
-
-    /**
-     * The constant TOKEN_NO_PERMISSION.
-     */
-    public static final int TOKEN_NO_PERMISSION = 601;
+    private String key;
 
 }

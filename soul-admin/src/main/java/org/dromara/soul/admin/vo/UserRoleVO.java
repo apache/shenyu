@@ -15,26 +15,25 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.dto;
+package org.dromara.soul.admin.vo;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.dromara.soul.admin.entity.UserRoleDO;
+import org.dromara.soul.common.utils.DateUtils;
 
-import java.io.Serializable;
-import java.util.List;
+import java.util.Optional;
 
 /**
- * this is dashboard user from by web front.
+ * this is user role for web front..
  *
- * @author jiangxiaofeng(Nicholas)
- */
+ * @author nuo-promise
+ **/
 @Data
-@Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class DashboardUserDTO implements Serializable {
+@NoArgsConstructor
+public class UserRoleVO {
 
     /**
      * primary key.
@@ -42,27 +41,34 @@ public class DashboardUserDTO implements Serializable {
     private String id;
 
     /**
-     * user name.
+     * user key.
      */
-    private String userName;
+    private String userId;
 
     /**
-     * user password.
+     * role key.
      */
-    private String password;
+    private String roleId;
 
     /**
-     * dashboard role.
+     * created time.
      */
-    private Integer role;
+    private String dateCreated;
 
     /**
-     * current role list.
+     * updated time.
      */
-    private List<String> roles;
+    private String dateUpdated;
 
     /**
-     * whether enabled.
+     * build roleDO.
+     *
+     * @param userRoleDO {@linkplain UserRoleDO}
+     * @return {@linkplain UserRoleVO}
      */
-    private Boolean enabled;
+    public static UserRoleVO buildUserRoleVO(final UserRoleDO userRoleDO) {
+        return Optional.ofNullable(userRoleDO).map(item -> new UserRoleVO(item.getId(), item.getUserId(), item.getRoleId(),
+                DateUtils.localDateTimeToString(item.getDateCreated().toLocalDateTime()),
+                DateUtils.localDateTimeToString(item.getDateUpdated().toLocalDateTime()))).orElse(null);
+    }
 }

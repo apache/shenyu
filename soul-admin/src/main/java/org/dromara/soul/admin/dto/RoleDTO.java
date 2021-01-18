@@ -15,33 +15,44 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.exception;
+package org.dromara.soul.admin.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
+import java.util.List;
 
 /**
- * CommonErrorCode.
+ * this is role from by web front.
  *
- * @author xiaoyu
- */
-public class CommonErrorCode {
+ * @author nuo-promise
+ **/
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class RoleDTO implements Serializable {
 
     /**
-     * The constant SUCCESSFUL.
+     * primary key.
      */
-    public static final int SUCCESSFUL = 200;
+    private String id;
 
     /**
-     * The constant ERROR.
+     * role name.
      */
-    public static final int ERROR = 500;
+    private String roleName;
 
     /**
-     * The constant TOKEN_ERROR.
+     * description.
      */
-    public static final int TOKEN_ERROR = 600;
+    private String description;
 
     /**
-     * The constant TOKEN_NO_PERMISSION.
+     * pre permission ids.
      */
-    public static final int TOKEN_NO_PERMISSION = 601;
-
+    private List<String> currentPermissionIds;
 }

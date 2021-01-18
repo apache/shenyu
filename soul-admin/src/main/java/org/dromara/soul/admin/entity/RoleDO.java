@@ -21,76 +21,55 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.apache.commons.lang3.StringUtils;
-import org.dromara.soul.admin.dto.DashboardUserDTO;
+import org.dromara.soul.admin.dto.RoleDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
+import reactor.util.StringUtils;
 
 import java.sql.Timestamp;
-import java.util.List;
 import java.util.Optional;
 
 /**
- * DashboardUserDO.
+ * The Role Data Entity.
  *
- * @author jiangxiaofeng(Nicholas)
  * @author nuo-promise
- */
+ **/
 @Data
 @SuperBuilder
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public final class DashboardUserDO extends BaseDO {
+public final class RoleDO extends BaseDO {
 
     /**
-     * user name.
+     * role name.
      */
-    private String userName;
+    private String roleName;
 
     /**
-     * user password.
+     * description.
      */
-    private String password;
+    private String description;
 
     /**
-     * dashboard role.
-     */
-    private Integer role;
-
-    /**
-     * whether enabled.
-     */
-    private Boolean enabled;
-
-    /**
-     * current role list.
-     */
-    private List<String> roles;
-
-    /**
-     * build dashboardUserDO.
+     * build RoleDO.
      *
-     * @param dashboardUserDTO {@linkplain DashboardUserDTO}
-     * @return {@linkplain DashboardUserDO}
+     * @param roleDTO {@linkplain RoleDTO}
+     * @return {@linkplain RoleDO}
      */
-    public static DashboardUserDO buildDashboardUserDO(final DashboardUserDTO dashboardUserDTO) {
-        return Optional.ofNullable(dashboardUserDTO).map(item -> {
+    public static RoleDO buildRoleDO(final RoleDTO roleDTO) {
+        return Optional.ofNullable(roleDTO).map(item -> {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
-            DashboardUserDO dashboardUserDO = DashboardUserDO.builder()
-                    .userName(item.getUserName())
-                    .password(item.getPassword())
-                    .role(item.getRole())
-                    .roles(item.getRoles())
+            RoleDO roleDO = RoleDO.builder()
+                    .roleName(item.getRoleName())
+                    .description(item.getDescription())
                     .dateUpdated(currentTime)
                     .build();
             if (StringUtils.isEmpty(item.getId())) {
-                dashboardUserDO.setId(UUIDUtils.getInstance().generateShortUuid());
-                dashboardUserDO.setEnabled(true);
-                dashboardUserDO.setDateCreated(currentTime);
+                roleDO.setId(UUIDUtils.getInstance().generateShortUuid());
+                roleDO.setDateCreated(currentTime);
             } else {
-                dashboardUserDO.setId(item.getId());
-                dashboardUserDO.setEnabled(item.getEnabled());
+                roleDO.setId(item.getId());
             }
-            return dashboardUserDO;
+            return roleDO;
         }).orElse(null);
     }
 }

@@ -22,19 +22,16 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
-import java.util.List;
-
 /**
- * this is dashboard user from by web front.
+ * this is resource Dto.
  *
- * @author jiangxiaofeng(Nicholas)
- */
+ * @author nuo-promise
+ **/
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class DashboardUserDTO implements Serializable {
+public class ResourceDTO {
 
     /**
      * primary key.
@@ -42,27 +39,62 @@ public class DashboardUserDTO implements Serializable {
     private String id;
 
     /**
-     * user name.
+     * resource parent key.
      */
-    private String userName;
+    private String parentId;
 
     /**
-     * user password.
+     * resource title.
      */
-    private String password;
+    private String title;
 
     /**
-     * dashboard role.
+     * resource name.
      */
-    private Integer role;
+    private String name;
 
     /**
-     * current role list.
+     * resource url.
      */
-    private List<String> roles;
+    private String url;
 
     /**
-     * whether enabled.
+     * resource component.
      */
-    private Boolean enabled;
+    private String component;
+
+    /**
+     * resource type.
+     */
+    private Integer resourceType;
+
+    /**
+     * resource sort.
+     */
+    private Integer sort;
+
+    /**
+     * resource icon.
+     */
+    private String icon;
+
+    /**
+     * resource is leaf.
+     */
+    private Boolean isLeaf;
+
+    /**
+     * resource is route.
+     */
+    private Integer isRoute;
+
+    /**
+     * resource perms.
+     */
+    private String perms;
+
+    /**
+     * resource status.
+     */
+    private Integer status;
 }

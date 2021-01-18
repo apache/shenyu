@@ -15,33 +15,31 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.exception;
+package org.dromara.soul.admin.query;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
 
 /**
- * CommonErrorCode.
+ * this is permission query.
  *
- * @author xiaoyu
- */
-public class CommonErrorCode {
+ * @author nuo-promise
+ **/
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class PermissionQuery implements Serializable {
 
     /**
-     * The constant SUCCESSFUL.
+     * object id : role id or user id.
      */
-    public static final int SUCCESSFUL = 200;
+    private String objectId;
 
     /**
-     * The constant ERROR.
+     * resource id.
      */
-    public static final int ERROR = 500;
-
-    /**
-     * The constant TOKEN_ERROR.
-     */
-    public static final int TOKEN_ERROR = 600;
-
-    /**
-     * The constant TOKEN_NO_PERMISSION.
-     */
-    public static final int TOKEN_NO_PERMISSION = 601;
-
+    private String resourceId;
 }
