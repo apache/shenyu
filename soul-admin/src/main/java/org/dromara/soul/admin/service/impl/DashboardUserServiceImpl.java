@@ -98,14 +98,12 @@ public class DashboardUserServiceImpl implements DashboardUserService {
             bindUserRole(dashboardUserDO.getId(), dashboardUserDTO.getRoles());
             return dashboardUserMapper.insertSelective(dashboardUserDO);
         }
-
         if (!dashboardUserDTO.getUserName().equals("admin")) {
             userRoleMapper.deleteByUserId(dashboardUserDTO.getId());
         }
         if (CollectionUtils.isNotEmpty(dashboardUserDTO.getRoles())) {
             bindUserRole(dashboardUserDTO.getId(), dashboardUserDTO.getRoles());
         }
-
         return dashboardUserMapper.updateSelective(dashboardUserDO);
     }
 
@@ -193,25 +191,6 @@ public class DashboardUserServiceImpl implements DashboardUserService {
             dashboardUserVO = findByQuery(userName, AesUtils.aesEncryption(password, key));
         }
         return LoginDashboardUserVO.buildLoginDashboardUserVO(dashboardUserVO);
-    }
-
-    /**
-     * bind admin role and permission.
-     *
-     * @param userId admin user id
-     */
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public void checkAndBindAdminRole(final String userId) {
-        if (CollectionUtils.isEmpty(userRoleMapper.findByUserId(userId))) {
-            RoleVO roleVO = RoleVO.buildRoleVO(roleMapper.findByRoleName("super"));
-            Optional.ofNullable(roleVO).map(item -> {
-                resourceMapper.selectAll().stream().map(ResourceVO::buildResourceVO).collect(Collectors.toList()).stream().map(ResourceVO::getId).collect(Collectors.toList()).forEach(resource -> {
-                    permissionMapper.insertSelective(PermissionDO.buildPermissionDO(PermissionDTO.builder().objectId(item.getId()).resourceId(resource).build()));
-                });
-                return userRoleMapper.insertSelective(UserRoleDO.buildUserRoleDO(UserRoleDTO.builder().roleId(item.getId()).userId(userId).build()));
-            });
-        }
     }
 
     /**

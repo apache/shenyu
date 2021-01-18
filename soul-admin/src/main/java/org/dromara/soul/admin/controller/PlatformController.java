@@ -28,6 +28,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Optional;
+
 /**
  * this is platform controller.
  *
@@ -57,10 +59,9 @@ public class PlatformController {
     @GetMapping("/login")
     public SoulAdminResult loginDashboardUser(final String userName, final String password) {
         LoginDashboardUserVO loginVO = dashboardUserService.login(userName, password);
-        if (!ObjectUtils.isEmpty(loginVO) && loginVO.getUserName().equals("admin")) {
-            dashboardUserService.checkAndBindAdminRole(loginVO.getId());
-        }
-        return SoulAdminResult.success(SoulResultMessage.PLATFORM_LOGIN_SUCCESS, loginVO);
+        return Optional.ofNullable(loginVO).map(item -> SoulAdminResult.success(SoulResultMessage.PLATFORM_LOGIN_SUCCESS, loginVO))
+                .orElse(SoulAdminResult.error(SoulResultMessage.PLATFORM_LOGIN_ERROR));
+
     }
 
     /**
