@@ -55,7 +55,7 @@ import java.util.Optional;
 @RequestMapping("/dashboardUser")
 @Slf4j
 public class DashboardUserController {
-    
+
     @Resource
     private SecretProperties secretProperties;
 
@@ -114,7 +114,7 @@ public class DashboardUserController {
         return Optional.ofNullable(dashboardUserDTO).map(item -> {
             item.setPassword(AesUtils.aesEncryption(item.getPassword(), key));
             Integer createCount = dashboardUserService.createOrUpdate(item);
-            log.info("dashboard user created, info:[{}]",item);
+            log.info("dashboard user created, info:[{}]", item);
             return SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS, createCount);
         }).orElse(SoulAdminResult.error(SoulResultMessage.DASHBOARD_CREATE_USER_ERROR));
     }
@@ -133,7 +133,7 @@ public class DashboardUserController {
         dashboardUserDTO.setId(id);
         dashboardUserDTO.setPassword(AesUtils.aesEncryption(dashboardUserDTO.getPassword(), key));
         Integer updateCount = dashboardUserService.createOrUpdate(dashboardUserDTO);
-        log.info("dashboard user updated, id:[{}], info:[{}]",id,dashboardUserDTO);
+        log.info("dashboard user updated, id:[{}], info:[{}]", id, dashboardUserDTO);
         return SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS, updateCount);
     }
 
@@ -146,7 +146,7 @@ public class DashboardUserController {
     @DeleteMapping("/batch")
     public SoulAdminResult deleteDashboardUser(@RequestBody final List<String> ids) {
         Integer deleteCount = dashboardUserService.delete(ids);
-        log.info("dashboard users deleted, id:[{}]",ids);
+        log.info("dashboard users deleted, id:[{}]", ids);
         return SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, deleteCount);
     }
 }
