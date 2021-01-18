@@ -23,7 +23,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.dromara.soul.admin.config.DataBaseProperties;
-import org.dromara.soul.common.constant.AdminConstants;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
@@ -51,7 +50,7 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
     @Override
     public Object postProcessAfterInitialization(@NonNull final Object bean, final String beanName) throws BeansException {
         if (bean instanceof DataSourceProperties) {
-            if (dataBaseProperties.getDialect().equals(AdminConstants.DATA_BASE_H2) || dataBaseProperties.getInitEnable()) {
+            if (dataBaseProperties.getInitEnable()) {
                 this.init((DataSourceProperties) bean);
             }
         }

@@ -63,11 +63,4 @@ public final class AdminConstants {
      * The constant PARAMS_ERROR.
      */
     public static final String PARAMS_ERROR = "Error parameter！";
-
-    /**
-     * The constant DATA_BASE_H2.
-     */
-    public static final String DATA_BASE_H2 = "h2";
-
-
 }
