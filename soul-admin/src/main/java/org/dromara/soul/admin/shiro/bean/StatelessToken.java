@@ -24,7 +24,7 @@ import org.apache.shiro.authc.AuthenticationToken;
  * custom Stateless AuthenticationToken.
  *
  * @author YuI
- **/
+ */
 @Data
 public class StatelessToken implements AuthenticationToken {
 

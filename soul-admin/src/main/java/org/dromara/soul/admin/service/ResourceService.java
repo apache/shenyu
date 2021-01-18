@@ -28,7 +28,7 @@ import java.util.List;
  * this is Resource Service.
  *
  * @author nuo-promise
- **/
+ */
 public interface ResourceService {
 
     /**
