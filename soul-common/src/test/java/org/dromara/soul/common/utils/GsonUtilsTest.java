@@ -28,6 +28,7 @@ import com.google.gson.reflect.TypeToken;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -37,6 +38,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Arrays;
 import java.util.stream.Collectors;
+
+import static org.hamcrest.Matchers.comparesEqualTo;
+import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for GsonUtils.
@@ -262,6 +266,22 @@ public class GsonUtilsTest {
         });
 
         Assert.assertNull(GsonUtils.getInstance().convertToMap(null));
+    }
+
+    @Test
+    public void testPairGson() {
+        Pair<String, String> testPair = Pair.of("1", "2");
+
+        String testJson = "{\"left\":\"1\",\"right\":\"2\"}";
+        Pair<String, String> resultPair = GsonUtils.getInstance().fromJson(testJson, Pair.class);
+
+        String testListJson = "[{\"left\":\"int\",\"right\":\"param1\"},{\"left\":\"java.lang.Integer\",\"right\":\"param2\"}]";
+        List<Pair> listPair = GsonUtils.getInstance().fromList(testListJson, Pair.class);
+        String resultListJson = GsonUtils.getInstance().toJson(listPair);
+
+        assertThat(resultListJson, comparesEqualTo(testListJson));
+        assertThat(resultPair.getLeft(), comparesEqualTo(testPair.getLeft()));
+        assertThat(resultPair.getRight(), comparesEqualTo(testPair.getRight()));
     }
 
     private static TestObject generateTestObject() {
