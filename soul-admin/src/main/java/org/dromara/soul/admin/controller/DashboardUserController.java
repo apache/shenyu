@@ -27,16 +27,17 @@ import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.service.DashboardUserService;
 import org.dromara.soul.admin.utils.AesUtils;
 import org.dromara.soul.admin.utils.SoulResultMessage;
+import org.dromara.soul.admin.vo.DashboardUserEditVO;
 import org.dromara.soul.admin.vo.DashboardUserVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -92,8 +93,8 @@ public class DashboardUserController {
     @GetMapping("/{id}")
     public SoulAdminResult detailDashboardUser(@PathVariable("id") final String id) {
         String key = secretProperties.getKey();
-        DashboardUserVO dashboardUserVO = dashboardUserService.findById(id);
-        return Optional.ofNullable(dashboardUserVO).map(item -> {
+        DashboardUserEditVO dashboardUserEditVO = dashboardUserService.findById(id);
+        return Optional.ofNullable(dashboardUserEditVO).map(item -> {
             item.setPassword(AesUtils.aesDecryption(item.getPassword(), key));
             return SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, item);
         }).orElse(SoulAdminResult.error(SoulResultMessage.DASHBOARD_QUERY_ERROR));

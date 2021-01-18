@@ -56,11 +56,7 @@
             <artifactId>soul-spring-boot-starter-plugin-divide</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.dromara</groupId>
-            <artifactId>soul-spring-boot-starter-plugin-httpclient</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+
         <!--if you use http proxy end this-->
 
         <!--soul springCloud plugin start-->
@@ -226,6 +222,14 @@
             <version>${project.version}</version>
         </dependency>
         <!-- soul sign plugin end-->
+
+        <!-- soul httpclient plugin start-->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-httpclient</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- soul httpclient plugin end-->
 
         <dependency>
             <groupId>org.dromara</groupId>

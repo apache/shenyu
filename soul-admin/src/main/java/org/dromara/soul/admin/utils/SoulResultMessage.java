@@ -28,19 +28,27 @@ public final class SoulResultMessage {
 
     public static final String CREATE_SUCCESS = "create success";
 
+    public static final String CREATE_FAILED = "create failed";
+
     public static final String DELETE_SUCCESS = "delete success";
 
     public static final String UPDATE_SUCCESS = "update success";
 
     public static final String QUERY_SUCCESS = "query success";
 
+    public static final String QUERY_FAILED = "query failed";
+
     public static final String DETAIL_SUCCESS = "detail success";
+
+    public static final String DETAIL_FAILED = "detail failed";
 
     public static final String ENABLE_SUCCESS = "enable success";
 
     public static final String SYNC_SUCCESS = "sync success";
 
     public static final String SYNC_FAIL = "sync fail";
+
+    public static final String ROLE_CREATE_ERROR = "can not create super role";
 
     public static final String DASHBOARD_QUERY_ERROR = "users info is empty";
 
@@ -56,4 +64,11 @@ public final class SoulResultMessage {
 
     public static final String APPKEY_NOT_EXIST_ERROR = "the appKey passed in does not exist";
 
+    public static final String TOKEN_IS_ERROR = "token is error";
+
+    public static final String TOKEN_HAS_NO_PERMISSION = "toke has no permission";
+
+    public static final String MENU_SUCCESS = "get menu and permission success";
+
+    public static final String MENU_FAILED = "get menu and permission failed";
 }

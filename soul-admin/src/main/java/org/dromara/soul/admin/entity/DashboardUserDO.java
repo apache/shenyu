@@ -26,6 +26,7 @@ import org.dromara.soul.admin.dto.DashboardUserDTO;
 import org.dromara.soul.common.utils.UUIDUtils;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -61,6 +62,11 @@ public final class DashboardUserDO extends BaseDO {
     private Boolean enabled;
 
     /**
+     * current role list.
+     */
+    private List<String> roles;
+
+    /**
      * build dashboardUserDO.
      *
      * @param dashboardUserDTO {@linkplain DashboardUserDTO}
@@ -73,6 +79,7 @@ public final class DashboardUserDO extends BaseDO {
                     .userName(item.getUserName())
                     .password(item.getPassword())
                     .role(item.getRole())
+                    .roles(item.getRoles())
                     .dateUpdated(currentTime)
                     .build();
             if (StringUtils.isEmpty(item.getId())) {
