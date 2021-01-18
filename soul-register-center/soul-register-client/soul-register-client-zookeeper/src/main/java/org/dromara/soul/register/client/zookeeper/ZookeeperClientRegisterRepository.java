@@ -19,12 +19,14 @@ package org.dromara.soul.register.client.zookeeper;
 
 import org.dromara.soul.client.common.dto.MetaDataDTO;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
-import org.dromara.soul.register.common.config.SoulRegisterCenterConfiguration;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
+import org.dromara.soul.spi.Join;
 
+@Join
 public class ZookeeperClientRegisterRepository implements SoulClientRegisterRepository {
     
     @Override
-    public void init(final SoulRegisterCenterConfiguration config) {
+    public void init(final SoulRegisterCenterConfig config) {
     
     }
 

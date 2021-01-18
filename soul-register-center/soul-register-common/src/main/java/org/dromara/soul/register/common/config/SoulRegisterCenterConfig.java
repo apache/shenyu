@@ -20,19 +20,18 @@ package org.dromara.soul.register.common.config;
 import java.util.Properties;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 /**
  * Governance center configuration.
  */
 @Getter
+@Setter
 @RequiredArgsConstructor
-public final class SoulRegisterCenterConfiguration {
+public final class SoulRegisterCenterConfig {
+    private String registerType;
     
-    private final String registerType;
+    private String serverLists;
     
-    private final String clientType;
-    
-    private final String serverLists;
-    
-    private final Properties props;
+    private Properties props;
 }

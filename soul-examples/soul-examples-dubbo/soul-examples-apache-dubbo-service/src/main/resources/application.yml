@@ -23,6 +23,8 @@ spring:
     allow-bean-definition-overriding: true
 soul:
   dubbo:
-    adminUrl: http://localhost:9095
     contextPath: /dubbo
     appName: dubbo
+  register:
+    registerType: http
+    serverLists: http://localhost:9095

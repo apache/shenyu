@@ -28,6 +28,8 @@ import org.dromara.soul.client.dubbo.common.annotation.SoulDubboClient;
 import org.dromara.soul.client.dubbo.common.config.DubboConfig;
 import org.dromara.soul.client.dubbo.common.dto.DubboRpcExt;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
+import org.dromara.soul.spi.ExtensionLoader;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.util.ClassUtils;
@@ -57,18 +59,15 @@ public class ApacheDubboServiceBeanPostProcessor implements ApplicationListener<
 
     private ExecutorService executorService;
 
-    private final String url;
-
-    public ApacheDubboServiceBeanPostProcessor(final DubboConfig dubboConfig, final SoulClientRegisterRepository soulClientRegisterRepository) {
+    public ApacheDubboServiceBeanPostProcessor(final SoulRegisterCenterConfig soulRegisterCenterConfig, final DubboConfig dubboConfig) {
         String contextPath = dubboConfig.getContextPath();
-        String adminUrl = dubboConfig.getAdminUrl();
-        if (StringUtils.isEmpty(contextPath)
-                || StringUtils.isEmpty(adminUrl)) {
+        if (StringUtils.isEmpty(contextPath)) {
             throw new RuntimeException("apache dubbo client must config the contextPath, adminUrl");
         }
         this.dubboConfig = dubboConfig;
-        url = dubboConfig.getAdminUrl() + "/soul-client/dubbo-register";
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        SoulClientRegisterRepository soulClientRegisterRepository = ExtensionLoader.getExtensionLoader(SoulClientRegisterRepository.class).getJoin(soulRegisterCenterConfig.getRegisterType());
+        soulClientRegisterRepository.init(soulRegisterCenterConfig);
         soulClientRegisterEventPublisher.start(soulClientRegisterRepository);
     }
 

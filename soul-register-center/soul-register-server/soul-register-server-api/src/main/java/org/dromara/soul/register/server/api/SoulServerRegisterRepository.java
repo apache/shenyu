@@ -17,7 +17,7 @@
 
 package org.dromara.soul.register.server.api;
 
-import org.dromara.soul.register.common.config.SoulRegisterCenterConfiguration;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.dromara.soul.register.server.api.listener.DataChangedEventListener;
 
 /**
@@ -40,7 +40,7 @@ public interface SoulServerRegisterRepository {
      *
      * @param config the config
      */
-    default void init(SoulRegisterCenterConfiguration config) {
+    default void init(SoulRegisterCenterConfig config) {
     }
     
     /**

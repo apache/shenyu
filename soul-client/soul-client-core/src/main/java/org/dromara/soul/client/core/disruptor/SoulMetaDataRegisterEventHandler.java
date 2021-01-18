@@ -46,6 +46,6 @@ public class SoulMetaDataRegisterEventHandler extends AbstractDisruptorConsumerE
 
     @Override
     public AbstractDisruptorConsumerExecutor<SoulClientRegisterEvent> create() {
-        return null;
+        return this;
     }
 }

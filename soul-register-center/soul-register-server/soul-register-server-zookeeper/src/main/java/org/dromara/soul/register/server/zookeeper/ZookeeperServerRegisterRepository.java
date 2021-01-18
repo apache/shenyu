@@ -17,14 +17,14 @@
 
 package org.dromara.soul.register.server.zookeeper;
 
-import org.dromara.soul.register.common.config.SoulRegisterCenterConfiguration;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.dromara.soul.register.server.api.SoulServerRegisterRepository;
 import org.dromara.soul.register.server.api.listener.DataChangedEventListener;
 
 public class ZookeeperServerRegisterRepository implements SoulServerRegisterRepository {
     
     @Override
-    public void init(final SoulRegisterCenterConfiguration config) {
+    public void init(final SoulRegisterCenterConfig config) {
     
     }
     

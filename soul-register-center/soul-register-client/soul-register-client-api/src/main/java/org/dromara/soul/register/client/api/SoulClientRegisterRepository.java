@@ -18,11 +18,13 @@
 package org.dromara.soul.register.client.api;
 
 import org.dromara.soul.client.common.dto.MetaDataDTO;
-import org.dromara.soul.register.common.config.SoulRegisterCenterConfiguration;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
+import org.dromara.soul.spi.SPI;
 
 /**
  * Soul client register repository.
  */
+@SPI
 public interface SoulClientRegisterRepository {
     
     /**
@@ -40,7 +42,7 @@ public interface SoulClientRegisterRepository {
      *
      * @param config the config
      */
-    default void init(SoulRegisterCenterConfiguration config) {
+    default void init(SoulRegisterCenterConfig config) {
     }
 
     /**

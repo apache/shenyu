@@ -22,22 +22,29 @@ import org.dromara.soul.client.common.utils.RegisterUtils;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
-import org.dromara.soul.register.common.config.SoulRegisterCenterConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
+import org.dromara.soul.spi.Join;
 
-@ConditionalOnMissingBean(SoulClientRegisterRepository.class)
+@Join
 public class HttpClientRegisterRepository implements SoulClientRegisterRepository {
 
     private String url;
 
     @Override
-    public void init(final SoulRegisterCenterConfiguration config) {
+    public void init(final SoulRegisterCenterConfig config) {
         url = config.getServerLists();
     }
 
     @Override
     public void persistInterface(final MetaDataDTO metadata) {
-        RegisterUtils.doRegister(GsonUtils.getGson().toJson(metadata), url, RpcTypeEnum.DUBBO);
+        try {
+            if (metadata.getRpcType().equals(RpcTypeEnum.DUBBO.getName())) {
+                RegisterUtils.doRegister(GsonUtils.getGson().toJson(metadata), url + "/soul-client/dubbo-register",
+                        RpcTypeEnum.DUBBO);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
