@@ -40,6 +40,7 @@ soul:
   database:
     dialect: mysql
     init_script: "META-INF/schema.sql"
+    init_enable: true
   sync:
     websocket:
       enabled: true
@@ -64,7 +65,7 @@ soul:
   jwt:
     key: 2095132720951327
   shiro:
-    white-list: /,/favicon.*,/static/**,/index**,/plugin,/platform/**,/websocket,/configs/**
+    white-list: /,/favicon.*,/static/**,/index**,/plugin,/platform/**,/websocket,/configs/**,/soul-client/**
 
 logging:
   level:

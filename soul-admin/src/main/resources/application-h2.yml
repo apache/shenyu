@@ -17,6 +17,7 @@ soul:
   database:
     dialect: h2
     init_script: "META-INF/schema.h2.sql"
+    init_enable: true
 
 spring:
   datasource:
