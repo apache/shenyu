@@ -66,7 +66,7 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
      * @return {@code Mono<Void>} to indicate when request processing is complete
      */
     @Override
-    public Mono<Void> execute(final ServerWebExchange exchange, final SoulPluginChain chain) {
+    public final Mono<Void> execute(final ServerWebExchange exchange, final SoulPluginChain chain) {
         String pluginName = named();
         final PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(pluginName);
         if (pluginData != null && pluginData.getEnabled()) {
