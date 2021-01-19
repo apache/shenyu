@@ -30,6 +30,7 @@ import org.dromara.soul.plugin.base.cache.CommonPluginDataSubscriber;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 import org.dromara.soul.web.config.SoulConfig;
+import org.dromara.soul.web.filter.ExcludeFilter;
 import org.dromara.soul.web.rpc.DefaultDubboParamResolveServiceImpl;
 import org.dromara.soul.web.rpc.DefaultSofaParamResolveServiceImpl;
 import org.dromara.soul.web.filter.CrossFilter;
@@ -159,6 +160,17 @@ public class SoulConfiguration {
     @ConditionalOnProperty(name = "soul.file.enabled", havingValue = "true")
     public WebFilter fileSizeFilter(final SoulConfig soulConfig) {
         return new FileSizeFilter(soulConfig.getFileMaxSize());
+    }
+
+    /**
+     * Rule out the url Filter.
+     *
+     * @return the web filter
+     */
+    @Bean
+    @Order(-5)
+    public WebFilter excludeFilter() {
+        return new ExcludeFilter();
     }
 
     /**
