@@ -166,11 +166,11 @@ public final class ApplicationConfigCache {
         try {
             Object obj = reference.get();
             if (obj != null) {
-                log.info("init aliaba dubbo reference success there meteData is :{}", metaData.toString());
+                log.info("init alibaba dubbo reference success there meteData is :{}", metaData.toString());
                 cache.put(metaData.getPath(), reference);
             }
         } catch (Exception e) {
-            log.error("init aliaba dubbo refernce ex:{}", e.getMessage());
+            log.error("init alibaba dubbo refernce ex:{}", e.getMessage());
         }
 
         return reference;
