@@ -17,10 +17,13 @@
 
 package org.dromara.soul.admin.controller;
 
+import org.dromara.soul.admin.disruptor.SoulServerMetaDataRegisterEventPublisher;
 import org.dromara.soul.admin.dto.SpringCloudRegisterDTO;
 import org.dromara.soul.admin.dto.SpringMvcRegisterDTO;
 import org.dromara.soul.admin.dto.MetaDataDTO;
 import org.dromara.soul.admin.service.SoulClientRegisterService;
+import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,9 +36,9 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/soul-client")
+@ConditionalOnProperty(name = "soul.register.registerType", value = "http", matchIfMissing = true)
 public class SoulClientController {
-
-    private final SoulClientRegisterService soulClientRegisterService;
+    private static final SoulServerMetaDataRegisterEventPublisher INSTANCE = SoulServerMetaDataRegisterEventPublisher.getInstance();
 
     /**
      * Instantiates a new Soul client controller.
@@ -43,7 +46,7 @@ public class SoulClientController {
      * @param soulClientRegisterService the soul client register service
      */
     public SoulClientController(final SoulClientRegisterService soulClientRegisterService) {
-        this.soulClientRegisterService = soulClientRegisterService;
+        INSTANCE.start(soulClientRegisterService);
     }
 
     /**
@@ -54,7 +57,8 @@ public class SoulClientController {
      */
     @PostMapping("/springmvc-register")
     public String registerSpringMvc(@RequestBody final SpringMvcRegisterDTO springMvcRegisterDTO) {
-        return soulClientRegisterService.registerSpringMvc(springMvcRegisterDTO);
+        INSTANCE.publishEvent(RpcTypeEnum.HTTP.getName(), springMvcRegisterDTO);
+        return "SUCCESS";
     }
 
     /**
@@ -65,7 +69,8 @@ public class SoulClientController {
      */
     @PostMapping("/springcloud-register")
     public String registerSpringCloud(@RequestBody final SpringCloudRegisterDTO springCloudRegisterDTO) {
-        return soulClientRegisterService.registerSpringCloud(springCloudRegisterDTO);
+        INSTANCE.publishEvent(RpcTypeEnum.SPRING_CLOUD.getName(), springCloudRegisterDTO);
+        return "SUCCESS";
     }
 
 
@@ -77,7 +82,8 @@ public class SoulClientController {
      */
     @PostMapping("/dubbo-register")
     public String registerRpc(@RequestBody final MetaDataDTO metaDataDTO) {
-        return soulClientRegisterService.registerDubbo(metaDataDTO);
+        INSTANCE.publishEvent(RpcTypeEnum.DUBBO.getName(), metaDataDTO);
+        return "SUCCESS";
     }
 
     /**
@@ -88,7 +94,8 @@ public class SoulClientController {
      */
     @PostMapping("/sofa-register")
     public String registerSofaRpc(@RequestBody final MetaDataDTO metaDataDTO) {
-        return soulClientRegisterService.registerSofa(metaDataDTO);
+        INSTANCE.publishEvent(RpcTypeEnum.SOFA.getName(), metaDataDTO);
+        return "SUCCESS";
     }
 
     /**
@@ -99,6 +106,7 @@ public class SoulClientController {
      */
     @PostMapping("/tars-register")
     public String registerTarsRpc(@RequestBody final MetaDataDTO metaDataDTO) {
-        return soulClientRegisterService.registerTars(metaDataDTO);
+        INSTANCE.publishEvent(RpcTypeEnum.TARS.getName(), metaDataDTO);
+        return "SUCCESS";
     }
 }

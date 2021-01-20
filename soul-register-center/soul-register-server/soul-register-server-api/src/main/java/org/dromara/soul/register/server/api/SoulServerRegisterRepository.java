@@ -49,7 +49,8 @@ public interface SoulServerRegisterRepository {
      * @param key key of data
      * @param listener data changed event listener
      */
-    void watch(String key, DataChangedEventListener listener);
+    default void watch(String key, DataChangedEventListener listener) {
+    }
     
     /**
      * Close.

@@ -15,12 +15,18 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.register.server.http;
+package org.dromara.soul.admin.disruptor;
 
-import org.dromara.soul.register.server.api.SoulServerRegisterRepository;
+import lombok.Data;
 
 /**
- * The type Http server register repository.
+ * SoulServerMetaDataRegisterEvent.
+ *
+ * @author tydhot
  */
-public class HttpServerRegisterRepository implements SoulServerRegisterRepository {
+@Data
+public class SoulServerMetaDataRegisterEvent {
+    private String type;
+
+    private Object metadata;
 }

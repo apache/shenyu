@@ -64,6 +64,9 @@ public class UpstreamCheckService {
     @Value("${soul.upstream.scheduledTime:10}")
     private int scheduledTime;
 
+    @Value("soul.register.registerType:http")
+    private String registerType;
+
     private final SelectorService selectorService;
 
     private final SelectorMapper selectorMapper;
@@ -104,7 +107,7 @@ public class UpstreamCheckService {
                 }
             }
         }
-        if (check) {
+        if (check && "http".equals(registerType)) {
             new ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), SoulThreadFactory.create("scheduled-upstream-task", false))
                     .scheduleWithFixedDelay(this::scheduled, 10, scheduledTime, TimeUnit.SECONDS);
         }

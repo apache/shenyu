@@ -29,7 +29,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/soul?useUnicode=true&characterEncoding=utf-8
     username: root
-    password:
+    password: tydhot123
     driver-class-name: com.mysql.jdbc.Driver
 
 mybatis:
@@ -37,6 +37,8 @@ mybatis:
   mapper-locations: classpath:/mappers/*.xml
 
 soul:
+  register:
+    registerType: http
   database:
     dialect: mysql
     init_script: "META-INF/schema.sql"
