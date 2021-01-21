@@ -132,9 +132,9 @@ public class RoleServiceImpl implements RoleService {
      */
     @Override
     public CommonPager<RoleVO> listByPage(final RoleQuery roleQuery) {
-        PageParameter pageParameter = roleQuery.getPageParameter();
-        Integer count = roleMapper.countByQuery(roleQuery);
-        return PageResultUtils.result(pageParameter, count, () -> roleMapper.selectByQuery(roleQuery).stream().map(RoleVO::buildRoleVO).collect(Collectors.toList()));
+        return PageResultUtils.result(roleQuery.getPageParameter(),
+                () -> roleMapper.countByQuery(roleQuery),
+                () -> roleMapper.selectByQuery(roleQuery).stream().map(RoleVO::buildRoleVO).collect(Collectors.toList()));
     }
 
     /**

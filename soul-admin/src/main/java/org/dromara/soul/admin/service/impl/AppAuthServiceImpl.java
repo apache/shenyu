@@ -334,9 +334,12 @@ public class AppAuthServiceImpl implements AppAuthService {
      */
     @Override
     public CommonPager<AppAuthVO> listByPage(final AppAuthQuery appAuthQuery) {
-        PageParameter pageParameter = appAuthQuery.getPageParameter();
-        Integer count = appAuthMapper.countByQuery(appAuthQuery);
-        return PageResultUtils.result(pageParameter, count, () -> appAuthMapper.selectByQuery(appAuthQuery).stream().map(AppAuthTransfer.INSTANCE::mapToVO).collect(Collectors.toList()));
+        return PageResultUtils.result(appAuthQuery.getPageParameter(),
+                () -> appAuthMapper.countByQuery(appAuthQuery),
+                () -> appAuthMapper.selectByQuery(appAuthQuery)
+                        .stream()
+                        .map(AppAuthTransfer.INSTANCE::mapToVO)
+                        .collect(Collectors.toList()));
     }
 
     @Override

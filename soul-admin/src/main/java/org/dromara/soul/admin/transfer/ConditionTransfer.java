@@ -17,6 +17,8 @@
 
 package org.dromara.soul.admin.transfer;
 
+import java.util.List;
+
 import org.dromara.soul.admin.dto.RuleConditionDTO;
 import org.dromara.soul.admin.dto.SelectorConditionDTO;
 import org.dromara.soul.admin.entity.RuleConditionDO;
@@ -45,6 +47,14 @@ public interface ConditionTransfer {
      * @return the condition data
      */
     ConditionData mapToSelectorDO(SelectorConditionDO selectorConditionDO);
+
+    /**
+     * Map to selector data condition datas.
+     *
+     * @param selectorConditionDOS the selector condition dos
+     * @return the condition data
+     */
+    List<ConditionData> mapToSelectorDOS(List<SelectorConditionDO> selectorConditionDOS);
 
     /**
      * Map to selector data dto condition data.

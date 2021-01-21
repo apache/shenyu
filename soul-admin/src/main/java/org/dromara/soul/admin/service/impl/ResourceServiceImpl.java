@@ -94,8 +94,11 @@ public class ResourceServiceImpl implements ResourceService {
      */
     @Override
     public CommonPager<ResourceVO> listByPage(final ResourceQuery resourceQuery) {
-        PageParameter pageParameter = resourceQuery.getPageParameter();
-        Integer count = resourceMapper.countByQuery(resourceQuery);
-        return PageResultUtils.result(pageParameter, count, () -> resourceMapper.selectByQuery(resourceQuery).stream().map(ResourceVO::buildResourceVO).collect(Collectors.toList()));
+        return PageResultUtils.result(resourceQuery.getPageParameter(),
+                () -> resourceMapper.countByQuery(resourceQuery),
+                () -> resourceMapper.selectByQuery(resourceQuery)
+                        .stream()
+                        .map(ResourceVO::buildResourceVO)
+                        .collect(Collectors.toList()));
     }
 }

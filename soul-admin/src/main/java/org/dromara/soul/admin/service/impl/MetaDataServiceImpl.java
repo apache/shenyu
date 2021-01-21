@@ -150,9 +150,12 @@ public class MetaDataServiceImpl implements MetaDataService {
 
     @Override
     public CommonPager<MetaDataVO> listByPage(final MetaDataQuery metaDataQuery) {
-        PageParameter pageParameter = metaDataQuery.getPageParameter();
-        Integer count = metaDataMapper.countByQuery(metaDataQuery);
-        return PageResultUtils.result(pageParameter, count, () -> metaDataMapper.selectByQuery(metaDataQuery).stream().map(MetaDataTransfer.INSTANCE::mapToVO).collect(Collectors.toList()));
+        return PageResultUtils.result(metaDataQuery.getPageParameter(),
+                () -> metaDataMapper.countByQuery(metaDataQuery),
+                () -> metaDataMapper.selectByQuery(metaDataQuery)
+                        .stream()
+                        .map(MetaDataTransfer.INSTANCE::mapToVO)
+                        .collect(Collectors.toList()));
     }
 
     @Override

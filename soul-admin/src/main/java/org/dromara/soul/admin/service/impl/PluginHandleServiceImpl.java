@@ -60,10 +60,12 @@ public class PluginHandleServiceImpl implements PluginHandleService {
 
     @Override
     public CommonPager<PluginHandleVO> listByPage(final PluginHandleQuery pluginHandleQuery) {
-        PageParameter pageParameter = pluginHandleQuery.getPageParameter();
-        Integer count = pluginHandleMapper.countByQuery(pluginHandleQuery);
-        return PageResultUtils.result(pageParameter, count, () -> pluginHandleMapper.selectByQuery(pluginHandleQuery)
-                .stream().map(this::buildPluginHandleVO).collect(Collectors.toList()));
+        return PageResultUtils.result(pluginHandleQuery.getPageParameter(),
+                () -> pluginHandleMapper.countByQuery(pluginHandleQuery),
+                () -> pluginHandleMapper.selectByQuery(pluginHandleQuery)
+                        .stream()
+                        .map(this::buildPluginHandleVO)
+                        .collect(Collectors.toList()));
     }
 
     @Override

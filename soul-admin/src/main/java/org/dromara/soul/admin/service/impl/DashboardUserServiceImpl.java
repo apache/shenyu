@@ -158,9 +158,12 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      */
     @Override
     public CommonPager<DashboardUserVO> listByPage(final DashboardUserQuery dashboardUserQuery) {
-        PageParameter parameter = dashboardUserQuery.getPageParameter();
-        Integer count = dashboardUserMapper.countByQuery(dashboardUserQuery);
-        return PageResultUtils.result(parameter, count, () -> dashboardUserMapper.selectByQuery(dashboardUserQuery).stream().map(DashboardUserVO::buildDashboardUserVO).collect(Collectors.toList()));
+        return PageResultUtils.result(dashboardUserQuery.getPageParameter(),
+                () -> dashboardUserMapper.countByQuery(dashboardUserQuery),
+                () -> dashboardUserMapper.selectByQuery(dashboardUserQuery)
+                        .stream()
+                        .map(DashboardUserVO::buildDashboardUserVO)
+                        .collect(Collectors.toList()));
     }
 
     /**

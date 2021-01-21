@@ -52,10 +52,9 @@ public class SoulDictServiceImpl implements SoulDictService {
 
     @Override
     public CommonPager<SoulDictVO> listByPage(final SoulDictQuery soulDictQuery) {
-        PageParameter pageParameter = soulDictQuery.getPageParameter();
-        Integer count = soulDictMapper.countByQuery(soulDictQuery);
-        return PageResultUtils.result(pageParameter, count, () ->
-                soulDictMapper.selectByQuery(soulDictQuery)
+        return PageResultUtils.result(soulDictQuery.getPageParameter(),
+                () -> soulDictMapper.countByQuery(soulDictQuery),
+                () -> soulDictMapper.selectByQuery(soulDictQuery)
                         .stream()
                         .map(SoulDictVO::buildSoulDictVO)
                         .collect(Collectors.toList()));
