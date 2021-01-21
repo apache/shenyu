@@ -41,7 +41,7 @@ public final class PageResultUtilsTest {
     public void testResult() {
         final PageParameter pageParameter = new PageParameter(1, 10, 1);
         final CommonPager<String> result = PageResultUtils.result(pageParameter, () -> 1,
-                () -> Collections.singletonList("result1"));
+            () -> Collections.singletonList("result1"));
         Assert.assertEquals(result.getDataList().size(), 1);
     }
 }

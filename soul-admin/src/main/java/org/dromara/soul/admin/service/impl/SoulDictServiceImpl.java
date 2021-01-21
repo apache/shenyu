@@ -22,7 +22,6 @@ import org.dromara.soul.admin.dto.SoulDictDTO;
 import org.dromara.soul.admin.entity.SoulDictDO;
 import org.dromara.soul.admin.mapper.SoulDictMapper;
 import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.page.PageResultUtils;
 import org.dromara.soul.admin.query.SoulDictQuery;
 import org.dromara.soul.admin.service.SoulDictService;
@@ -53,8 +52,8 @@ public class SoulDictServiceImpl implements SoulDictService {
     @Override
     public CommonPager<SoulDictVO> listByPage(final SoulDictQuery soulDictQuery) {
         return PageResultUtils.result(soulDictQuery.getPageParameter(),
-                () -> soulDictMapper.countByQuery(soulDictQuery),
-                () -> soulDictMapper.selectByQuery(soulDictQuery)
+            () -> soulDictMapper.countByQuery(soulDictQuery),
+            () -> soulDictMapper.selectByQuery(soulDictQuery)
                         .stream()
                         .map(SoulDictVO::buildSoulDictVO)
                         .collect(Collectors.toList()));
