@@ -30,7 +30,6 @@ import org.dromara.soul.admin.mapper.ResourceMapper;
 import org.dromara.soul.admin.mapper.RoleMapper;
 import org.dromara.soul.admin.mapper.UserRoleMapper;
 import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.page.PageResultUtils;
 import org.dromara.soul.admin.query.DashboardUserQuery;
 import org.dromara.soul.admin.service.DashboardUserService;
@@ -158,9 +157,12 @@ public class DashboardUserServiceImpl implements DashboardUserService {
      */
     @Override
     public CommonPager<DashboardUserVO> listByPage(final DashboardUserQuery dashboardUserQuery) {
-        PageParameter parameter = dashboardUserQuery.getPageParameter();
-        Integer count = dashboardUserMapper.countByQuery(dashboardUserQuery);
-        return PageResultUtils.result(parameter, count, () -> dashboardUserMapper.selectByQuery(dashboardUserQuery).stream().map(DashboardUserVO::buildDashboardUserVO).collect(Collectors.toList()));
+        return PageResultUtils.result(dashboardUserQuery.getPageParameter(),
+            () -> dashboardUserMapper.countByQuery(dashboardUserQuery),
+            () -> dashboardUserMapper.selectByQuery(dashboardUserQuery)
+                        .stream()
+                        .map(DashboardUserVO::buildDashboardUserVO)
+                        .collect(Collectors.toList()));
     }
 
     /**
