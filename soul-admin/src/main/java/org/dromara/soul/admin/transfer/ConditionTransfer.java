@@ -49,10 +49,10 @@ public interface ConditionTransfer {
     ConditionData mapToSelectorDO(SelectorConditionDO selectorConditionDO);
 
     /**
-     * Map to selector data condition datas.
+     * Map to selector data condition data list.
      *
-     * @param selectorConditionDOS the selector condition dos
-     * @return the condition data
+     * @param selectorConditionDOS the selector condition do list
+     * @return the condition data list
      */
     List<ConditionData> mapToSelectorDOS(List<SelectorConditionDO> selectorConditionDOS);
 
