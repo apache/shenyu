@@ -22,10 +22,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ImportResource;
 
 /**
+ * Sofa service starter.
+ *
  * @author tydhot
  */
 @SpringBootApplication
-@ImportResource({ "classpath*:invoke-server-example.xml"})
+@ImportResource(locations = { "classpath*:invoke-server-example.xml"})
 public class TestSofaApplication {
 
     /**

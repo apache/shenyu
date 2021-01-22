@@ -17,6 +17,7 @@
 
 package org.dromara.soul.plugin.sofa.proxy;
 
+import com.alipay.hessian.generic.model.GenericObject;
 import com.alipay.sofa.rpc.api.GenericService;
 import com.alipay.sofa.rpc.config.ConsumerConfig;
 import com.alipay.sofa.rpc.context.RpcInvokeContext;
@@ -97,12 +98,14 @@ public class SofaProxyService {
                 future.completeExceptionally(e);
             }
         });
-        genericService.$invoke(metaData.getMethodName(), pair.getLeft(), pair.getRight());
+        genericService.$genericInvoke(metaData.getMethodName(), pair.getLeft(), pair.getRight());
         return Mono.fromFuture(future.thenApply(ret -> {
             if (Objects.isNull(ret)) {
                 ret = Constants.SOFA_RPC_RESULT_EMPTY;
             }
-            exchange.getAttributes().put(Constants.SOFA_RPC_RESULT, ret);
+
+            GenericObject genericObject = (GenericObject) ret;
+            exchange.getAttributes().put(Constants.SOFA_RPC_RESULT, genericObject.getFields());
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return ret;
         })).onErrorMap(SoulException::new);
