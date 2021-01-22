@@ -66,7 +66,7 @@ public final class ApplicationConfigCacheTest {
         this.applicationConfigCache.init(dubboRegisterConfig);
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void testInitRef() {
         MetaData metaData = new MetaData();
         metaData.setPath("/test");
@@ -78,7 +78,7 @@ public final class ApplicationConfigCacheTest {
         assertNotNull(this.applicationConfigCache.get("/test"));
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void testBuild() {
         DubboParamExtInfo dubboParamExtInfo = new DubboParamExtInfo();
         dubboParamExtInfo.setVersion("2.7.5");

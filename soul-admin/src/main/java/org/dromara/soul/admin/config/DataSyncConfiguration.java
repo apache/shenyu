@@ -45,7 +45,7 @@ import org.springframework.web.socket.server.standard.ServerEndpointExporter;
 public class DataSyncConfiguration {
 
     /**
-     * http long polling(default strategy).
+     * http long polling.
      */
     @Configuration
     @ConditionalOnProperty(name = "soul.sync.http.enabled", havingValue = "true")

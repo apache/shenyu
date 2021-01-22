@@ -32,7 +32,6 @@ import org.dromara.soul.admin.mapper.RuleMapper;
 import org.dromara.soul.admin.mapper.SelectorConditionMapper;
 import org.dromara.soul.admin.mapper.SelectorMapper;
 import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.page.PageResultUtils;
 import org.dromara.soul.admin.query.RuleConditionQuery;
 import org.dromara.soul.admin.query.RuleQuery;
@@ -225,9 +224,12 @@ public class SelectorServiceImpl implements SelectorService {
      */
     @Override
     public CommonPager<SelectorVO> listByPage(final SelectorQuery selectorQuery) {
-        PageParameter pageParameter = selectorQuery.getPageParameter();
-        Integer count = selectorMapper.countByQuery(selectorQuery);
-        return PageResultUtils.result(pageParameter, count, () -> selectorMapper.selectByQuery(selectorQuery).stream().map(SelectorVO::buildSelectorVO).collect(Collectors.toList()));
+        return PageResultUtils.result(selectorQuery.getPageParameter(),
+            () -> selectorMapper.countByQuery(selectorQuery),
+            () -> selectorMapper.selectByQuery(selectorQuery)
+                        .stream()
+                        .map(SelectorVO::buildSelectorVO)
+                        .collect(Collectors.toList()));
     }
 
     @Override
@@ -258,12 +260,8 @@ public class SelectorServiceImpl implements SelectorService {
 
     private SelectorData buildSelectorData(final SelectorDO selectorDO) {
         // find conditions
-        List<ConditionData> conditionDataList = selectorConditionMapper
-                .selectByQuery(new SelectorConditionQuery(selectorDO.getId()))
-                .stream()
-                .filter(Objects::nonNull)
-                .map(ConditionTransfer.INSTANCE::mapToSelectorDO)
-                .collect(Collectors.toList());
+        List<ConditionData> conditionDataList = ConditionTransfer.INSTANCE.mapToSelectorDOS(
+                selectorConditionMapper.selectByQuery(new SelectorConditionQuery(selectorDO.getId())));
         PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
         if (Objects.isNull(pluginDO)) {
             return null;
