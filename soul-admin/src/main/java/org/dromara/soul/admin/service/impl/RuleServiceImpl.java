@@ -34,7 +34,6 @@ import org.dromara.soul.admin.mapper.RuleConditionMapper;
 import org.dromara.soul.admin.mapper.RuleMapper;
 import org.dromara.soul.admin.mapper.SelectorMapper;
 import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.page.PageResultUtils;
 import org.dromara.soul.admin.query.RuleConditionQuery;
 import org.dromara.soul.admin.query.RuleQuery;
@@ -176,9 +175,9 @@ public class RuleServiceImpl implements RuleService {
      */
     @Override
     public CommonPager<RuleVO> listByPage(final RuleQuery ruleQuery) {
-        PageParameter pageParameter = ruleQuery.getPageParameter();
-        Integer count = ruleMapper.countByQuery(ruleQuery);
-        return PageResultUtils.result(pageParameter, count, () -> ruleMapper.selectByQuery(ruleQuery).stream().map(RuleVO::buildRuleVO).collect(Collectors.toList()));
+        return PageResultUtils.result(ruleQuery.getPageParameter(),
+            () -> ruleMapper.countByQuery(ruleQuery),
+            () -> ruleMapper.selectByQuery(ruleQuery).stream().map(RuleVO::buildRuleVO).collect(Collectors.toList()));
     }
 
     @Override

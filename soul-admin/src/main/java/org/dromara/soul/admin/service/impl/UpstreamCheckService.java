@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -184,14 +183,10 @@ public class UpstreamCheckService {
     private void updateSelectorHandler(final String selectorName, final List<DivideUpstream> upstreams) {
         SelectorDO selectorDO = selectorMapper.selectByName(selectorName);
         if (Objects.nonNull(selectorDO)) {
-            String handler = CollectionUtils.isEmpty(upstreams) ? "" : GsonUtils.getInstance().toJson(upstreams);
-            List<ConditionData> conditionDataList = selectorConditionMapper
-                    .selectByQuery(new SelectorConditionQuery(selectorDO.getId()))
-                    .stream()
-                    .filter(Objects::nonNull)
-                    .map(ConditionTransfer.INSTANCE::mapToSelectorDO)
-                    .collect(Collectors.toList());
+            List<ConditionData> conditionDataList = ConditionTransfer.INSTANCE.mapToSelectorDOS(
+                    selectorConditionMapper.selectByQuery(new SelectorConditionQuery(selectorDO.getId())));
             PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
+            String handler = CollectionUtils.isEmpty(upstreams) ? "" : GsonUtils.getInstance().toJson(upstreams);
             selectorDO.setHandle(handler);
             selectorMapper.updateSelective(selectorDO);
             if (Objects.nonNull(pluginDO)) {
