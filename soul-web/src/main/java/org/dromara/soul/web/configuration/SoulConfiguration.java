@@ -165,12 +165,14 @@ public class SoulConfiguration {
     /**
      * Rule out the url Filter.
      *
+     * @param excludePathProperties the exclude path
      * @return the web filter
      */
     @Bean
     @Order(-5)
-    public WebFilter excludeFilter() {
-        return new ExcludeFilter();
+    @ConditionalOnProperty(name = "soul.exclude.enabled", havingValue = "true", matchIfMissing = false)
+    public WebFilter excludeFilter(final ExcludePathProperties excludePathProperties) {
+        return new ExcludeFilter(excludePathProperties);
     }
 
     /**

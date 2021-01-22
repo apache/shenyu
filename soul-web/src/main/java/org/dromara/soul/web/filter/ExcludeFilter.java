@@ -17,6 +17,7 @@
 
 package org.dromara.soul.web.filter;
 
+import org.dromara.soul.web.configuration.ExcludePathProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -26,7 +27,6 @@ import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -40,14 +40,19 @@ public class ExcludeFilter implements WebFilter {
 
     private static final AntPathMatcher MATCHER = new AntPathMatcher();
 
-    private static final Set<String> EXCLUDED_PATHS = Collections.unmodifiableSet(new HashSet<>(
-            Arrays.asList("/favicon.ico")));
+    private ExcludePathProperties excludePathProperties;
+
+    public ExcludeFilter(final ExcludePathProperties excludePathProperties) {
+        this.excludePathProperties = excludePathProperties;
+    }
 
     @Override
     public Mono<Void> filter(final ServerWebExchange exchange, final WebFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
-        boolean match = EXCLUDED_PATHS.stream().anyMatch(url -> reg(url, path));
+        Set<String> excludedPaths = Collections.unmodifiableSet(new HashSet<>(
+                excludePathProperties.getPaths()));
+        boolean match = excludedPaths.stream().anyMatch(url -> reg(url, path));
         if (match) {
             ServerHttpResponse response = exchange.getResponse();
             response.setStatusCode(HttpStatus.OK);
