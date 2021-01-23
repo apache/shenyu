@@ -86,5 +86,7 @@ public final class DateUtilsTest {
         assertEquals(localDateTime1.getHour(), localDateTime2.getHour());
         assertEquals(localDateTime1.getMinute(), localDateTime2.getMinute());
         assertEquals(localDateTime1.getSecond(), localDateTime2.getSecond());
+        LocalDateTime localDateTime = DateUtils.parseLocalDateTime("1991-08-02T08:30:11", "yyyy-MM-dd'T'HH:mm:ss");
+        assertEquals(localDateTime.getYear(), 1991);
     }
 }

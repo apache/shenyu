@@ -34,9 +34,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/soul-client")
 public class SoulClientController {
-    
+
     private final SoulClientRegisterService soulClientRegisterService;
-    
+
     /**
      * Instantiates a new Soul client controller.
      *
@@ -45,7 +45,7 @@ public class SoulClientController {
     public SoulClientController(final SoulClientRegisterService soulClientRegisterService) {
         this.soulClientRegisterService = soulClientRegisterService;
     }
-    
+
     /**
      * Register spring mvc string.
      *
@@ -56,7 +56,7 @@ public class SoulClientController {
     public String registerSpringMvc(@RequestBody final SpringMvcRegisterDTO springMvcRegisterDTO) {
         return soulClientRegisterService.registerSpringMvc(springMvcRegisterDTO);
     }
-    
+
     /**
      * Register spring cloud string.
      *
@@ -67,10 +67,10 @@ public class SoulClientController {
     public String registerSpringCloud(@RequestBody final SpringCloudRegisterDTO springCloudRegisterDTO) {
         return soulClientRegisterService.registerSpringCloud(springCloudRegisterDTO);
     }
-    
-    
+
+
     /**
-     * Register rpc string.
+     * Register dubbo string.
      *
      * @param metaDataDTO the meta data dto
      * @return the string
@@ -81,7 +81,7 @@ public class SoulClientController {
     }
 
     /**
-     * Register rpc string.
+     * Register sofa string.
      *
      * @param metaDataDTO the meta data dto
      * @return the string
@@ -89,5 +89,16 @@ public class SoulClientController {
     @PostMapping("/sofa-register")
     public String registerSofaRpc(@RequestBody final MetaDataDTO metaDataDTO) {
         return soulClientRegisterService.registerSofa(metaDataDTO);
+    }
+
+    /**
+     * Register tars string.
+     *
+     * @param metaDataDTO the meta data dto
+     * @return the string
+     */
+    @PostMapping("/tars-register")
+    public String registerTarsRpc(@RequestBody final MetaDataDTO metaDataDTO) {
+        return soulClientRegisterService.registerTars(metaDataDTO);
     }
 }

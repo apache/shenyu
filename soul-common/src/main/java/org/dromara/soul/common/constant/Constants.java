@@ -70,6 +70,16 @@ public interface Constants {
     String SOFA_RPC_RESULT_EMPTY = "sofa has not return value!";
 
     /**
+     * The constant TARS_RPC_RESULT.
+     */
+    String TARS_RPC_RESULT = "tars_rpc_result";
+
+    /**
+     * The constant TARS_RPC_RESULT_EMPTY.
+     */
+    String TARS_RPC_RESULT_EMPTY = "tars has not return value!";
+
+    /**
      * The constant CLIENT_RESPONSE_RESULT_TYPE.
      */
     String CLIENT_RESPONSE_RESULT_TYPE = "webHandlerClientResponseResultType";
@@ -108,6 +118,11 @@ public interface Constants {
      * The constant SOFA_PARAMS.
      */
     String SOFA_PARAMS = "sofa_params";
+
+    /**
+     * The constant TARS_PARAMS.
+     */
+    String TARS_PARAMS = "tars_params";
 
     /**
      * The constant DECODE.
@@ -376,6 +391,11 @@ public interface Constants {
      * Sentinel response RT degrade rule.
      */
     int SENTINEL_RESPONSE_RULE_GRADE = 0;
+
+    /**
+     * default warmup.
+     */
+    int DEFAULT_WARMUP = 10 * 60 * 1000;
 
     /**
      * String q.

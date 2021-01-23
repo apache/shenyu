@@ -162,10 +162,14 @@ public final class ApplicationConfigCache {
             Optional.ofNullable(dubboParamExtInfo.getTimeout()).ifPresent(reference::setTimeout);
             Optional.ofNullable(dubboParamExtInfo.getRetries()).ifPresent(reference::setRetries);
         }
-        Object obj = reference.get();
-        if (obj != null) {
-            log.info("init apache dubbo reference success there meteData is :{}", metaData.toString());
-            cache.put(metaData.getPath(), reference);
+        try {
+            Object obj = reference.get();
+            if (obj != null) {
+                log.info("init apache dubbo reference success there meteData is :{}", metaData.toString());
+                cache.put(metaData.getPath(), reference);
+            }
+        } catch (Exception e) {
+            log.error("init apache dubbo reference ex:{}", e.getMessage());
         }
         return reference;
     }

@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.SelectorConditionDTO;
 import org.dromara.soul.admin.dto.SelectorDTO;
 import org.dromara.soul.admin.entity.PluginDO;
+import org.dromara.soul.admin.entity.RuleDO;
 import org.dromara.soul.admin.entity.SelectorDO;
 import org.dromara.soul.admin.mapper.RuleConditionMapper;
 import org.dromara.soul.admin.mapper.RuleMapper;
@@ -29,11 +30,15 @@ import org.dromara.soul.admin.mapper.SelectorConditionMapper;
 import org.dromara.soul.admin.mapper.PluginMapper;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
+import org.dromara.soul.admin.query.RuleConditionQuery;
+import org.dromara.soul.admin.query.RuleQuery;
 import org.dromara.soul.admin.query.SelectorQuery;
 import org.dromara.soul.admin.service.impl.SelectorServiceImpl;
+import org.dromara.soul.admin.service.impl.UpstreamCheckService;
 import org.dromara.soul.admin.vo.SelectorConditionVO;
 import org.dromara.soul.admin.vo.SelectorVO;
 import org.dromara.soul.common.dto.SelectorData;
+import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.SelectorTypeEnum;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,6 +51,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Arrays;
 import java.util.Random;
@@ -59,6 +65,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 
 /**
  * Test cases for SelectorService.
@@ -89,10 +97,13 @@ public final class SelectorServiceTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
+    @Mock
+    private UpstreamCheckService upstreamCheckService;
+
     @Before
     public void setUp() {
         selectorService = new SelectorServiceImpl(selectorMapper, selectorConditionMapper, pluginMapper,
-                ruleMapper, ruleConditionMapper, eventPublisher);
+                ruleMapper, ruleConditionMapper, eventPublisher, upstreamCheckService);
     }
 
     @Test
@@ -111,12 +122,33 @@ public final class SelectorServiceTest {
 
     @Test
     public void testDelete() {
-        publishEvent();
-        SelectorDO selectorDO = buildSelectorDO();
-        PluginDO pluginDO = buildPluginDO();
-        given(this.selectorMapper.selectById("456")).willReturn(selectorDO);
-        given(this.pluginMapper.selectById(anyString())).willReturn(pluginDO);
-        final List<String> ids = Collections.singletonList(selectorDO.getId());
+        final String correctId = "456";
+
+        // mock basic objects for delete.
+        SelectorDO mockedSelectorDO = mock(SelectorDO.class);
+        PluginDO mockedPluginDO = mock(PluginDO.class);
+        when(pluginMapper.selectById(mockedSelectorDO.getPluginId())).thenReturn(mockedPluginDO);
+        when(selectorMapper.selectById(correctId)).thenReturn(mockedSelectorDO);
+
+        // mock for test if divide selector delete.
+        when(mockedPluginDO.getName()).thenReturn(PluginEnum.DIVIDE.getName());
+        when(mockedSelectorDO.getName()).thenReturn("anyString");
+
+        // mock objects for test delete rule and ruleCondition.
+        List<RuleDO> mockedRuleDOList = mock(List.class);
+        when(ruleMapper.selectByQuery(new RuleQuery(correctId, null))).thenReturn(mockedRuleDOList);
+
+        // mock for test for-each statement.
+        RuleDO mockedRuleDo = mock(RuleDO.class);
+        Iterator<RuleDO> mockedIterator = mock(Iterator.class);
+        when(mockedRuleDOList.iterator()).thenReturn(mockedIterator);
+        when(mockedIterator.hasNext()).thenReturn(true).thenReturn(false);
+        when(mockedIterator.next()).thenReturn(mockedRuleDo);
+        when(mockedRuleDo.getId()).thenReturn("anyString");
+        when(ruleMapper.delete(mockedRuleDo.getId())).thenReturn(1);
+        when(ruleConditionMapper.deleteByQuery(new RuleConditionQuery(mockedRuleDo.getId()))).thenReturn(1);
+
+        final List<String> ids = Collections.singletonList(correctId);
         assertEquals(this.selectorService.delete(ids), ids.size());
     }
 
@@ -200,8 +232,6 @@ public final class SelectorServiceTest {
 
     private void publishEvent() {
         PluginDO pluginDO = buildPluginDO();
-        SelectorDO selectorDO = buildSelectorDO();
-        given(this.selectorMapper.selectById("456")).willReturn(selectorDO);
         given(this.pluginMapper.selectById(anyString())).willReturn(pluginDO);
     }
 
@@ -251,7 +281,9 @@ public final class SelectorServiceTest {
         selectorConditionDTO1.setId("111");
         SelectorConditionDTO selectorConditionDTO2 = new SelectorConditionDTO();
         selectorConditionDTO2.setId("222");
-        selectorDTO.setSelectorConditions(Arrays.asList(selectorConditionDTO1, selectorConditionDTO2));
+        SelectorConditionDTO selectorConditionDTO3 = new SelectorConditionDTO();
+        selectorConditionDTO3.setId("");
+        selectorDTO.setSelectorConditions(Arrays.asList(selectorConditionDTO1, selectorConditionDTO2, selectorConditionDTO3));
         return selectorDTO;
     }
 

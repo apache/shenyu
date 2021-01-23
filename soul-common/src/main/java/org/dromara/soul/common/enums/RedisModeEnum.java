@@ -44,7 +44,7 @@ public enum RedisModeEnum {
     /**
      * Standalone redis mode enum.
      */
-    STANDALONE("Standalone");
+    STANDALONE("standalone");
 
     /**
      * Redis Mode Name.

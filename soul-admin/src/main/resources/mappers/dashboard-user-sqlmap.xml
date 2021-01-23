@@ -16,7 +16,7 @@
   ~ limitations under the License.
   -->
 
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.dromara.soul.admin.mapper.DashboardUserMapper">
     <resultMap id="BaseResultMap" type="org.dromara.soul.admin.entity.DashboardUserDO">
         <id column="id" jdbcType="VARCHAR" property="id"/>
@@ -37,6 +37,13 @@
         <include refid="Base_Column_List"/>
         from dashboard_user
         where id = #{id,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByUserName" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from dashboard_user
+        where user_name = #{userName,jdbcType=VARCHAR}
     </select>
 
     <select id="findByQuery" resultMap="BaseResultMap">

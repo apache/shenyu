@@ -21,9 +21,8 @@ import com.alibaba.fastjson.JSONObject;
 import org.dromara.soul.admin.AbstractConfigurationTest;
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import java.lang.reflect.Method;
-import java.util.Map;
 
 /**
  * Test cases for WebConfig.
@@ -33,7 +32,7 @@ import java.util.Map;
 public final class WebConfigTest extends AbstractConfigurationTest {
 
     @Test
-    public void testAddCorsMappings() throws Exception {
+    public void testAddCorsMappings() {
         CorsRegistry registry = new CorsRegistry();
         WebConfig webConfig = new WebConfig();
         webConfig.addCorsMappings(registry);
@@ -54,11 +53,7 @@ public final class WebConfigTest extends AbstractConfigurationTest {
         return registry;
     }
 
-    private String getCorsConfigurationsString(final CorsRegistry registry) throws Exception {
-        Class registryClass = registry.getClass();
-        Method getCorsConfigurationsMethod = registryClass.getDeclaredMethod("getCorsConfigurations");
-        getCorsConfigurationsMethod.setAccessible(true);
-        Map invokeResult = (Map) getCorsConfigurationsMethod.invoke(registry);
-        return JSONObject.toJSONString(invokeResult);
+    private String getCorsConfigurationsString(final CorsRegistry registry) {
+        return JSONObject.toJSONString(ReflectionTestUtils.invokeMethod(registry, "getCorsConfigurations"));
     }
 }

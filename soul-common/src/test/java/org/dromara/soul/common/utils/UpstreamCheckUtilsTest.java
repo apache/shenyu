@@ -35,6 +35,8 @@ import lombok.SneakyThrows;
  */
 public final class UpstreamCheckUtilsTest {
 
+    private volatile int port = -1;
+
     @Test
     public void testBlank() {
         assertFalse(UpstreamCheckUtils.checkUrl(""));
@@ -56,7 +58,8 @@ public final class UpstreamCheckUtilsTest {
         Runnable runnable = () -> {
             ServerSocket serverSocket;
             try {
-                serverSocket = new ServerSocket(13098);
+                serverSocket = new ServerSocket(0);
+                port = serverSocket.getLocalPort();
                 Socket socket = serverSocket.accept();
                 socket.close();
             } catch (IOException e) {
@@ -64,9 +67,13 @@ public final class UpstreamCheckUtilsTest {
             }
         };
         new Thread(runnable).start();
-        Thread.sleep(100);
-        assertTrue(UpstreamCheckUtils.checkUrl("127.0.0.1:13098"));
-        assertFalse(UpstreamCheckUtils.checkUrl("http://127.0.0.1:13099"));
-        assertTrue(UpstreamCheckUtils.checkUrl("http://127.0.0.1:13098"));
+
+        while (port == -1) {
+            Thread.yield();
+        }
+
+        assertTrue(UpstreamCheckUtils.checkUrl("127.0.0.1:" + port));
+        assertFalse(UpstreamCheckUtils.checkUrl("http://127.0.0.1:" + (port == 0 ? port + 1 : port - 1)));
+        assertTrue(UpstreamCheckUtils.checkUrl("http://127.0.0.1:" + port));
     }
 }

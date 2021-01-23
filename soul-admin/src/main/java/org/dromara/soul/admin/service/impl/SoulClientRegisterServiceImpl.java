@@ -195,6 +195,32 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         return SoulResultMessage.SUCCESS;
     }
 
+    @Override
+    public String registerTars(final MetaDataDTO dto) {
+        MetaDataDO byPath = metaDataMapper.findByPath(dto.getPath());
+        if (Objects.nonNull(byPath)
+                && (!byPath.getMethodName().equals(dto.getMethodName())
+                || !byPath.getServiceName().equals(dto.getServiceName()))) {
+            return "you path already exist!";
+        }
+        final MetaDataDO exist = metaDataMapper.findByServiceNameAndMethod(dto.getServiceName(), dto.getMethodName());
+        saveOrUpdateMetaData(exist, dto);
+        String selectorId = handlerTarsSelector(dto);
+        handlerTarsRule(selectorId, dto, exist);
+        return SoulResultMessage.SUCCESS;
+    }
+
+    private String handlerTarsSelector(final MetaDataDTO metaDataDTO) {
+        return getString(metaDataDTO);
+    }
+
+    private void handlerTarsRule(final String selectorId, final MetaDataDTO metaDataDTO, final MetaDataDO exist) {
+        RuleDO existRule = ruleMapper.findByName(metaDataDTO.getPath());
+        if (Objects.isNull(exist) || Objects.isNull(existRule)) {
+            registerRule(selectorId, metaDataDTO.getPath(), metaDataDTO.getRpcType(), metaDataDTO.getRuleName());
+        }
+    }
+
     private String handlerSofaSelector(final MetaDataDTO metaDataDTO) {
         return getString(metaDataDTO);
     }
@@ -344,6 +370,9 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
             selectorDTO.setHandle(GsonUtils.getInstance().toJson(buildSpringCloudSelectorHandle(appName)));
         } else if (RpcTypeEnum.SOFA.getName().equals(rpcType)) {
             selectorDTO.setPluginId(getPluginId(PluginEnum.SOFA.getName()));
+            selectorDTO.setHandle(appName);
+        } else if (RpcTypeEnum.TARS.getName().equals(rpcType)) {
+            selectorDTO.setPluginId(getPluginId(PluginEnum.TARS.getName()));
             selectorDTO.setHandle(appName);
         } else {
             //is divide

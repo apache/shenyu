@@ -23,6 +23,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * this is dashboard user from by web front.
@@ -54,6 +55,11 @@ public class DashboardUserDTO implements Serializable {
      * dashboard role.
      */
     private Integer role;
+
+    /**
+     * current role list.
+     */
+    private List<String> roles;
 
     /**
      * whether enabled.

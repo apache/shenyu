@@ -32,7 +32,6 @@ import org.dromara.soul.admin.mapper.RuleMapper;
 import org.dromara.soul.admin.mapper.SelectorConditionMapper;
 import org.dromara.soul.admin.mapper.SelectorMapper;
 import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.page.PageResultUtils;
 import org.dromara.soul.admin.query.RuleConditionQuery;
 import org.dromara.soul.admin.query.RuleQuery;
@@ -44,9 +43,11 @@ import org.dromara.soul.admin.vo.SelectorConditionVO;
 import org.dromara.soul.admin.vo.SelectorVO;
 import org.dromara.soul.common.dto.ConditionData;
 import org.dromara.soul.common.dto.SelectorData;
+import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.enums.PluginEnum;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -79,19 +80,23 @@ public class SelectorServiceImpl implements SelectorService {
 
     private final ApplicationEventPublisher eventPublisher;
 
+    private final UpstreamCheckService upstreamCheckService;
+
     @Autowired(required = false)
     public SelectorServiceImpl(final SelectorMapper selectorMapper,
                                final SelectorConditionMapper selectorConditionMapper,
                                final PluginMapper pluginMapper,
                                final RuleMapper ruleMapper,
                                final RuleConditionMapper ruleConditionMapper,
-                               final ApplicationEventPublisher eventPublisher) {
+                               final ApplicationEventPublisher eventPublisher,
+                               final UpstreamCheckService upstreamCheckService) {
         this.selectorMapper = selectorMapper;
         this.selectorConditionMapper = selectorConditionMapper;
         this.pluginMapper = pluginMapper;
         this.ruleMapper = ruleMapper;
         this.ruleConditionMapper = ruleConditionMapper;
         this.eventPublisher = eventPublisher;
+        this.upstreamCheckService = upstreamCheckService;
     }
 
     @Override
@@ -138,6 +143,7 @@ public class SelectorServiceImpl implements SelectorService {
             });
         }
         publishEvent(selectorDO, selectorConditionDTOs);
+        updateDivideUpstream(selectorDO);
         return selectorCount;
     }
 
@@ -218,9 +224,12 @@ public class SelectorServiceImpl implements SelectorService {
      */
     @Override
     public CommonPager<SelectorVO> listByPage(final SelectorQuery selectorQuery) {
-        PageParameter pageParameter = selectorQuery.getPageParameter();
-        Integer count = selectorMapper.countByQuery(selectorQuery);
-        return PageResultUtils.result(pageParameter, count, () -> selectorMapper.selectByQuery(selectorQuery).stream().map(SelectorVO::buildSelectorVO).collect(Collectors.toList()));
+        return PageResultUtils.result(selectorQuery.getPageParameter(),
+            () -> selectorMapper.countByQuery(selectorQuery),
+            () -> selectorMapper.selectByQuery(selectorQuery)
+                        .stream()
+                        .map(SelectorVO::buildSelectorVO)
+                        .collect(Collectors.toList()));
     }
 
     @Override
@@ -251,12 +260,8 @@ public class SelectorServiceImpl implements SelectorService {
 
     private SelectorData buildSelectorData(final SelectorDO selectorDO) {
         // find conditions
-        List<ConditionData> conditionDataList = selectorConditionMapper
-                .selectByQuery(new SelectorConditionQuery(selectorDO.getId()))
-                .stream()
-                .filter(Objects::nonNull)
-                .map(ConditionTransfer.INSTANCE::mapToSelectorDO)
-                .collect(Collectors.toList());
+        List<ConditionData> conditionDataList = ConditionTransfer.INSTANCE.mapToSelectorDOS(
+                selectorConditionMapper.selectByQuery(new SelectorConditionQuery(selectorDO.getId())));
         PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
         if (Objects.isNull(pluginDO)) {
             return null;
@@ -264,4 +269,15 @@ public class SelectorServiceImpl implements SelectorService {
         return SelectorDO.transFrom(selectorDO, pluginDO.getName(), conditionDataList);
     }
 
+    private void updateDivideUpstream(final SelectorDO selectorDO) {
+        PluginDO pluginDO = pluginMapper.selectByName(PluginEnum.DIVIDE.getName());
+        if (Objects.nonNull(pluginDO) && pluginDO.getId().equals(selectorDO.getPluginId())) {
+            String selectorName = selectorDO.getName();
+            String handle = selectorDO.getHandle();
+            if (StringUtils.isNotBlank(handle)) {
+                List<DivideUpstream> existDivideUpstreams = GsonUtils.getInstance().fromList(handle, DivideUpstream.class);
+                upstreamCheckService.replace(selectorName, existDivideUpstreams);
+            }
+        }
+    }
 }

@@ -147,7 +147,7 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
 
     private void ruleLog(final RuleData ruleData, final String pluginName) {
         if (ruleData.getLoged()) {
-            log.info("{} selector success match , selector name :{}", pluginName, ruleData.getName());
+            log.info("{} rule success match , rule name :{}", pluginName, ruleData.getName());
         }
     }
 }

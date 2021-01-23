@@ -44,6 +44,8 @@
         <module>soul-spring-boot-starter-plugin-sentinel</module>
         <module>soul-spring-boot-starter-plugin-sofa</module>
         <module>soul-spring-boot-starter-plugin-resilience4j</module>
+        <module>soul-spring-boot-starter-plugin-tars</module>
+        <module>soul-spring-boot-starter-plugin-context-path</module>
     </modules>
 
 

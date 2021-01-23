@@ -17,6 +17,8 @@
 
 package org.dromara.soul.common.utils;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonElement;
@@ -26,18 +28,19 @@ import com.google.gson.reflect.TypeToken;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Arrays;
-import java.util.concurrent.ConcurrentNavigableMap;
-import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.stream.Collectors;
+
+import static org.hamcrest.Matchers.comparesEqualTo;
+import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for GsonUtils.
@@ -97,13 +100,7 @@ public class GsonUtilsTest {
      */
     @Test
     public void testFromList() {
-        List<String> testList = new ArrayList<String>() {
-            {
-                add("123");
-                add("test");
-                add("测试");
-            }
-        };
+        List<String> testList = ImmutableList.of("123", "test", "测试");
 
         String testJson = "[\"123\",\"test\",\"测试\"]";
 
@@ -115,13 +112,7 @@ public class GsonUtilsTest {
      */
     @Test
     public void testToGetParam() {
-        Map<String, String> param = new HashMap<String, String>() {
-            {
-                put("id", "123");
-                put("name", "test");
-                put("data", "测试");
-            }
-        };
+        Map<String, String> param = ImmutableMap.of("id", "123", "name", "test", "data", "测试");
 
         String json = GsonUtils.getGson().toJson(param, new TypeToken<Map<String, String>>() {
         }.getType());
@@ -143,30 +134,9 @@ public class GsonUtilsTest {
      */
     @Test
     public void testToListMap() {
-        List<Map<String, Object>> list = Lists.newLinkedList();
-        Map<String, Object> map = new HashMap<String, Object>() {
-            {
-                put("id", "123");
-                put("name", "test");
-                put("data", "测试");
-            }
-        };
-
-        list.add(new HashMap<String, Object>() {
-            {
-                putAll(map);
-            }
-        });
-        list.add(new HashMap<String, Object>() {
-            {
-                putAll(map);
-            }
-        });
-        list.add(new HashMap<String, Object>() {
-            {
-                putAll(map);
-            }
-        });
+        Map<String, Object> map = ImmutableMap.of("id", "123", "name", "test", "data", "测试");
+        List<Map<String, Object>> list = ImmutableList.of(ImmutableMap.copyOf(map), ImmutableMap.copyOf(map),
+                ImmutableMap.copyOf(map));
 
         String json = "[{\"name\":\"test\",\"id\":\"123\",\"data\":\"测试\"},"
                 + "{\"name\":\"test\",\"id\":\"123\",\"data\":\"测试\"},"
@@ -180,18 +150,10 @@ public class GsonUtilsTest {
      */
     @Test
     public void testToObjectMap() {
-        Map<String, Object> map = new HashMap<String, Object>() {
-            {
-                put("id", 123L);
-                put("name", "test");
-                put("double", 1.0D);
-                put("boolean", true);
-                put("null", null);
-                put("data", generateTestObject());
-            }
-        };
-        String json = "{\"name\":\"test\",\"id\":123,\"double\":1.0,\"boolean\":true,\"null\":null,\"data\":"
-                + EXPECTED_JSON + "}";
+        Map<String, Object> map = ImmutableMap.of("id", 123L, "name", "test", "double", 1.0D,
+                "boolean", true, "data", generateTestObject());
+
+        String json = "{\"name\":\"test\",\"id\":123,\"double\":1.0,\"boolean\":true,\"data\":" + EXPECTED_JSON + "}";
 
         Map<String, Object> parseMap = GsonUtils.getInstance().toObjectMap(json);
         map.forEach((key, value) -> {
@@ -212,11 +174,8 @@ public class GsonUtilsTest {
      */
     @Test
     public void testToObjectMapWithClazz() {
-        Map<String, TestObject> map = new HashMap<String, TestObject>() {
-            {
-                put("data", generateTestObject());
-            }
-        };
+        Map<String, TestObject> map = ImmutableMap.of("data", generateTestObject());
+
         String json = "{\"data\":" + EXPECTED_JSON + "}";
 
         Map<String, TestObject> parseMap = GsonUtils.getInstance().toObjectMap(json, TestObject.class);
@@ -233,18 +192,9 @@ public class GsonUtilsTest {
      */
     @Test
     public void testToObjectMapList() {
-        Map<String, List<String>> map = new HashMap<String, List<String>>() {
-            {
-                put("data1", new ArrayList<String>() {{
-                        add("111");
-                        add("222");
-                    }});
-                put("data2", new ArrayList<String>() {{
-                        add("333");
-                        add("555");
-                    }});
-            }
-        };
+        List<String> listFirst = ImmutableList.of("111", "222");
+        List<String> listSecond = ImmutableList.of("333", "555");
+        Map<String, List<String>> map = ImmutableMap.of("data1", listFirst, "data2", listSecond);
 
         String json = "{\"data1\":[\"111\",\"222\"],\"data2\":[\"333\",\"555\"]}";
         Map<String, List<String>> parseMap = GsonUtils.getInstance().toObjectMapList(json, String.class);
@@ -261,18 +211,13 @@ public class GsonUtilsTest {
      */
     @Test
     public void testToTreeMap() {
-        ConcurrentNavigableMap<String, Object> map = new ConcurrentSkipListMap<>();
-        map.put("id", 123L);
-        map.put("name", "test");
-        map.put("double", 1.0D);
-        map.put("boolean", true);
-        map.put("data", generateTestObject());
+        Map<String, Object> map = ImmutableMap.of("id", 123L, "name", "test", "double",
+                1.0D, "boolean", true, "data", generateTestObject());
 
-        String json = "{\"name\":\"test\",\"id\":123,\"double\":1.0,\"boolean\":true,\"null\":null,\"data\":"
+        String json = "{\"name\":\"test\",\"id\":123,\"double\":1.0,\"boolean\":true,\"data\":"
                 + EXPECTED_JSON + "}";
 
         Map<String, Object> parseMap = GsonUtils.getInstance().toTreeMap(json);
-        Assert.assertEquals(map.getClass(), parseMap.getClass());
 
         map.forEach((key, value) -> {
             Assert.assertTrue(parseMap.containsKey(key));
@@ -292,27 +237,10 @@ public class GsonUtilsTest {
      */
     @Test
     public void testConvertToMap() {
-        Map<String, Object> map = new HashMap<String, Object>() {
-            {
-                put("code", 200);
-                put("message", "test");
-            }
-        };
-        Map<String, Object> innerMap = new HashMap<String, Object>() {
-            {
-                put("id", 123);
-                put("name", "soul");
-            }
-        };
-        List<Integer> innerList = new ArrayList<Integer>() {
-            {
-                add(1);
-                add(2);
-                add(3);
-            }
-        };
-        map.put("data", innerMap);
-        map.put("list", innerList);
+        List<Integer> innerList = ImmutableList.of(1, 2, 3);
+        Map<String, Object> innerMap = ImmutableMap.of("id", 123, "name", "soul");
+        Map<String, Object> map = ImmutableMap.of("code", 200, "message", "test",
+                "data", innerMap, "list", innerList);
 
         String testJson = "{\"code\":200,\"message\":\"test\","
                 + "\"data\":{\"id\":123,\"name\":\"soul\"},\"list\":[1,2,3]}";
@@ -338,6 +266,22 @@ public class GsonUtilsTest {
         });
 
         Assert.assertNull(GsonUtils.getInstance().convertToMap(null));
+    }
+
+    @Test
+    public void testPairGson() {
+        Pair<String, String> testPair = Pair.of("1", "2");
+
+        String testJson = "{\"left\":\"1\",\"right\":\"2\"}";
+        Pair<String, String> resultPair = GsonUtils.getInstance().fromJson(testJson, Pair.class);
+
+        String testListJson = "[{\"left\":\"int\",\"right\":\"param1\"},{\"left\":\"java.lang.Integer\",\"right\":\"param2\"}]";
+        List<Pair> listPair = GsonUtils.getInstance().fromList(testListJson, Pair.class);
+        String resultListJson = GsonUtils.getInstance().toJson(listPair);
+
+        assertThat(resultListJson, comparesEqualTo(testListJson));
+        assertThat(resultPair.getLeft(), comparesEqualTo(testPair.getLeft()));
+        assertThat(resultPair.getRight(), comparesEqualTo(testPair.getRight()));
     }
 
     private static TestObject generateTestObject() {

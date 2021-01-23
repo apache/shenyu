@@ -18,15 +18,25 @@
 package org.dromara.soul.examples.tars.servant.testapp.impl;
 
 import com.qq.tars.spring.annotation.TarsServant;
+import org.dromara.soul.client.tars.common.annotation.SoulTarsClient;
+import org.dromara.soul.client.tars.common.annotation.SoulTarsService;
 import org.dromara.soul.examples.tars.servant.testapp.HelloServant;
 
 /**
  * @author tydhot
  */
 @TarsServant("HelloObj")
+@SoulTarsService(serviceName = "SoulExampleServer.SoulExampleApp.HelloObj")
 public class HelloServantImpl implements HelloServant {
     @Override
+    @SoulTarsClient(path = "/hello")
     public String hello(int no, String name) {
         return String.format("hello no=%s, name=%s, time=%s", no, name, System.currentTimeMillis());
+    }
+
+    @Override
+    @SoulTarsClient(path = "/helloInt")
+    public Integer helloInt(int no, String name) {
+        return 1;
     }
 }

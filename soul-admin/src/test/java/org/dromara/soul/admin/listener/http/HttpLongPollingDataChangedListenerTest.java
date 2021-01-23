@@ -89,7 +89,6 @@ public final class HttpLongPollingDataChangedListenerTest {
         this.httpServletResponse.setContentType(MediaType.APPLICATION_JSON_VALUE);
         this.httpServletResponse.setStatus(MockHttpServletResponse.SC_OK);
         this.httpServletResponse.getWriter().println(GsonUtils.getInstance().toJson(SoulAdminResult.success(SoulResultMessage.SUCCESS, changedGroups)));
-        System.out.println(this.httpServletResponse);
     }
 
     /**

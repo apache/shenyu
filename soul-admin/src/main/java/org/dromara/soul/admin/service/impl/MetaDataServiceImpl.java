@@ -26,7 +26,6 @@ import org.dromara.soul.admin.entity.MetaDataDO;
 import org.dromara.soul.admin.listener.DataChangedEvent;
 import org.dromara.soul.admin.mapper.MetaDataMapper;
 import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.page.PageResultUtils;
 import org.dromara.soul.admin.query.MetaDataQuery;
 import org.dromara.soul.admin.service.MetaDataService;
@@ -150,9 +149,12 @@ public class MetaDataServiceImpl implements MetaDataService {
 
     @Override
     public CommonPager<MetaDataVO> listByPage(final MetaDataQuery metaDataQuery) {
-        PageParameter pageParameter = metaDataQuery.getPageParameter();
-        Integer count = metaDataMapper.countByQuery(metaDataQuery);
-        return PageResultUtils.result(pageParameter, count, () -> metaDataMapper.selectByQuery(metaDataQuery).stream().map(MetaDataTransfer.INSTANCE::mapToVO).collect(Collectors.toList()));
+        return PageResultUtils.result(metaDataQuery.getPageParameter(),
+            () -> metaDataMapper.countByQuery(metaDataQuery),
+            () -> metaDataMapper.selectByQuery(metaDataQuery)
+                        .stream()
+                        .map(MetaDataTransfer.INSTANCE::mapToVO)
+                        .collect(Collectors.toList()));
     }
 
     @Override

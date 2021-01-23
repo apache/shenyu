@@ -146,6 +146,7 @@ public final class ApplicationConfigCache {
         reference.setInterfaceId(metaData.getServiceName());
         reference.setProtocol(RpcConstants.PROTOCOL_TYPE_BOLT);
         reference.setInvokeType(RpcConstants.INVOKER_TYPE_CALLBACK);
+        reference.setRepeatedReferLimit(-1);
         String rpcExt = metaData.getRpcExt();
         SofaParamExtInfo sofaParamExtInfo = GsonUtils.getInstance().fromJson(rpcExt, SofaParamExtInfo.class);
         if (Objects.nonNull(sofaParamExtInfo)) {
