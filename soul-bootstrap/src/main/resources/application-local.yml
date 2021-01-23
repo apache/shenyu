@@ -43,7 +43,7 @@ soul:
         websocket :
              urls: ws://localhost:9095/websocket
     exclude:
-      enable: false
+      enabled: false
       paths:
         - /favicon.ico
 #        zookeeper:
