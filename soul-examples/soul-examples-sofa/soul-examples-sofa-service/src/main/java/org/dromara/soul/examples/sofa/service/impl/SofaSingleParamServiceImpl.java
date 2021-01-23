@@ -18,40 +18,44 @@
 package org.dromara.soul.examples.sofa.service.impl;
 
 import org.dromara.soul.client.sofa.common.annotation.SoulSofaClient;
-import org.dromara.soul.examples.dubbo.api.entity.DubboTest;
-import org.dromara.soul.examples.dubbo.api.service.DubboTestService;
+import org.dromara.soul.examples.sofa.api.entity.SofaSimpleTypeBean;
+import org.dromara.soul.examples.sofa.api.service.SofaSingleParamService;
 import org.springframework.stereotype.Service;
 
 import java.util.Random;
 
 /**
+ * Sofa single param service.
+ *
  * @author tydhot
+ * @author wuudongdong
  */
-@Service("sofaTestService")
-public class SofaTestServiceImpl implements DubboTestService {
+@Service("sofaSingleParamService")
+public class SofaSingleParamServiceImpl implements SofaSingleParamService {
 
     @Override
     @SoulSofaClient(path = "/findById", desc = "Find by Id")
-    public DubboTest findById(final String id) {
-        DubboTest dubboTest = new DubboTest();
-        dubboTest.setId(id);
-        dubboTest.setName("hello world Soul Sofa, findById");
-        return dubboTest;
+    public SofaSimpleTypeBean findById(final String id) {
+        SofaSimpleTypeBean sofaSimpleTypeBean = new SofaSimpleTypeBean();
+        sofaSimpleTypeBean.setId(id);
+        sofaSimpleTypeBean.setName("hello world Soul Sofa, findById");
+        return sofaSimpleTypeBean;
     }
 
     @Override
     @SoulSofaClient(path = "/findAll", desc = "Get all data")
-    public DubboTest findAll() {
-        DubboTest dubboTest = new DubboTest();
-        dubboTest.setName("hello world Soul Sofa , findAll");
-        dubboTest.setId(String.valueOf(new Random().nextInt()));
-        return dubboTest;
+    public SofaSimpleTypeBean findAll() {
+        SofaSimpleTypeBean sofaSimpleTypeBean = new SofaSimpleTypeBean();
+        sofaSimpleTypeBean.setName("hello world Soul Sofa , findAll");
+        sofaSimpleTypeBean.setId(String.valueOf(new Random().nextInt()));
+        return sofaSimpleTypeBean;
     }
 
     @Override
     @SoulSofaClient(path = "/insert", desc = "Insert a row of data")
-    public DubboTest insert(final DubboTest dubboTest) {
-        dubboTest.setName("hello world Soul Sofa: " + dubboTest.getName());
-        return dubboTest;
+    public SofaSimpleTypeBean insert(final SofaSimpleTypeBean sofaSimpleTypeBean) {
+        sofaSimpleTypeBean.setName("hello world Soul Sofa: " + sofaSimpleTypeBean.getName());
+        return sofaSimpleTypeBean;
     }
+
 }

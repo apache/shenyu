@@ -20,28 +20,24 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>soul-examples</artifactId>
+        <artifactId>soul-examples-sofa</artifactId>
         <groupId>org.dromara</groupId>
         <version>2.1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>soul-examples-sofa</artifactId>
-    <packaging>pom</packaging>
+    <artifactId>soul-examples-sofa-api</artifactId>
 
-    <modules>
-        <module>soul-examples-sofa-api</module>
-        <module>soul-examples-sofa-service</module>
-    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+    </dependencies>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.dromara</groupId>
-                <artifactId>soul-examples-sofa-api</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
+
+    <build>
+        <finalName>soul-examples-sofa-api</finalName>
+    </build>
 
 </project>
