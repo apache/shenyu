@@ -14,42 +14,44 @@
 # limitations under the License.
 
 server:
-  port: 9195
-  address: 0.0.0.0
+  port: 9095
+#  address: 0.0.0.0
 
 spring:
-   main:
-     allow-bean-definition-overriding: true
-   application:
-    name: soul-bootstrap
-#   cloud:
-#    nacos:
-#       discovery:
-#          server-addr: 127.0.0.1:8848
+  thymeleaf:
+    cache: true
+    encoding: utf-8
+    enabled: true
+    prefix: classpath:/static/application-local.yml
+    suffix: .html
+  datasource:
+    url: jdbc:mysql://172.16.10.204:3306/soul?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=GMT%2b8
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.jdbc.Driver
 
-management:
-  health:
-    defaults:
-      enabled: false
+mybatis:
+  config-location: classpath:/mybatis/mybatis-config.xml
+  mapper-locations: classpath:/mappers/*.xml
 
-soul :
-    file:
-      enabled: true
-    corss:
-      enabled: true
-    dubbo :
-      parameter: multi
-    sync:
-        websocket :
-             urls: ws://localhost:9095/websocket
+soul:
+  sync:
+    websocket:
+        enabled : true
 
+  aes:
+    secret:
+      key: 2095132720951327
 
 logging:
-    level:
-        root: info
-        org.springframework.boot: info
-        org.apache.ibatis: info
-        org.dromara.soul.bonuspoint: info
-        org.dromara.soul.lottery: info
-        org.dromara.soul: info
+  level:
+    root: info
+    org.springframework.boot: info
+    org.apache.ibatis: info
+    org.dromara.soul.bonuspoint: info
+    org.dromara.soul.lottery: info
+    org.dromara.soul: info
+
+swagger:
+  enable: true
 
