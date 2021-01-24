@@ -176,7 +176,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
     }
 
     private List<ConfigGroupEnum> compareChangedGroup(final HttpServletRequest request) {
-        List<ConfigGroupEnum> changedGroup = new ArrayList<>(4);
+        List<ConfigGroupEnum> changedGroup = new ArrayList<>(ConfigGroupEnum.values().length);
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
             // md5,lastModifyTime
             String[] params = StringUtils.split(request.getParameter(group.name()), ',');
