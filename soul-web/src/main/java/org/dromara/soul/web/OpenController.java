@@ -22,9 +22,10 @@ public class OpenController {
      *
      * @return the soul result
      */
+    @SuppressWarnings("checkstyle:RegexpSingleline")
     @GetMapping("/hystrix")
     public String apply() {
-        System.out.println("hystrix: you do not call");
+        log.info("发生熔断");
         return "hystrix: you do not call";
     }
 

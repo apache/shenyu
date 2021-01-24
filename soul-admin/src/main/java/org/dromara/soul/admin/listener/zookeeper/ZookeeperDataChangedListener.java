@@ -94,7 +94,7 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
 
     @Override
     public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
-        if (eventType == DataEventTypeEnum.REFRESH) {
+        if (eventType == DataEventTypeEnum.REFRESH && !changed.isEmpty()) {
             final String selectorParentPath = ZkPathConstants.buildSelectorParentPath(changed.get(0).getPluginName());
             deleteZkPathRecursive(selectorParentPath);
         }
@@ -113,7 +113,7 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
 
     @Override
     public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
-        if (eventType == DataEventTypeEnum.REFRESH) {
+        if (eventType == DataEventTypeEnum.REFRESH && !changed.isEmpty()) {
             final String selectorParentPath = ZkPathConstants.buildRuleParentPath(changed.get(0).getPluginName());
             deleteZkPathRecursive(selectorParentPath);
         }
