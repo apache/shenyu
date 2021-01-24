@@ -285,7 +285,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
             metaDataMapper.update(metaDataDO);
             eventType = DataEventTypeEnum.UPDATE;
         }
-        // publish AppAuthData's event
+        // publish MetaData's event
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, eventType,
                 Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDTO))));
     }

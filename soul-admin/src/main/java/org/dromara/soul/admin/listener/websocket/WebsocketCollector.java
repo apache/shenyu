@@ -111,23 +111,21 @@ public class WebsocketCollector {
     public static void send(final String message, final DataEventTypeEnum type) {
         if (StringUtils.isNotBlank(message)) {
             if (DataEventTypeEnum.MYSELF == type) {
-                try {
-                    Session session = (Session) ThreadLocalUtil.get(SESSION_KEY);
-                    if (session != null) {
-                        session.getBasicRemote().sendText(message);
-                    }
-                } catch (IOException e) {
-                    log.error("websocket send result is exception: ", e);
+                Session session = (Session) ThreadLocalUtil.get(SESSION_KEY);
+                if (session != null) {
+                    sendMessageBySession(session, message);
                 }
-                return;
+            } else {
+                SESSION_SET.forEach(session -> sendMessageBySession(session, message));
             }
-            for (Session session : SESSION_SET) {
-                try {
-                    session.getBasicRemote().sendText(message);
-                } catch (IOException e) {
-                    log.error("websocket send result is exception: ", e);
-                }
-            }
+        }
+    }
+
+    private static void sendMessageBySession(final Session session, final String message) {
+        try {
+            session.getBasicRemote().sendText(message);
+        } catch (IOException e) {
+            log.error("websocket send result is exception: ", e);
         }
     }
 }
