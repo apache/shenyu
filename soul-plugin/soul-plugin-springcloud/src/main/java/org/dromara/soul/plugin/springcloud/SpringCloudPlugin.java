@@ -27,6 +27,7 @@ import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.api.result.SoulResultEnum;
+import org.dromara.soul.plugin.base.utils.FallbackUtils;
 import org.dromara.soul.plugin.base.utils.SoulResultWrap;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
@@ -108,6 +109,16 @@ public class SpringCloudPlugin extends AbstractSoulPlugin {
     public Boolean skip(final ServerWebExchange exchange) {
         final SoulContext body = exchange.getAttribute(Constants.CONTEXT);
         return !Objects.equals(Objects.requireNonNull(body).getRpcType(), RpcTypeEnum.SPRING_CLOUD.getName());
+    }
+
+    @Override
+    protected Mono<Void> handleSelectorIsNull(final String pluginName, final ServerWebExchange exchange, final SoulPluginChain chain) {
+        return FallbackUtils.getNoSelectorResult(pluginName, exchange);
+    }
+
+    @Override
+    protected Mono<Void> handleRuleIsNull(final String pluginName, final ServerWebExchange exchange, final SoulPluginChain chain) {
+        return FallbackUtils.getNoRuleResult(pluginName, exchange);
     }
 
     private String buildRealURL(final String url, final String httpMethod, final String query) {

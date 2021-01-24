@@ -18,7 +18,6 @@
 package org.dromara.soul.plugin.base.utils;
 
 import org.dromara.soul.common.enums.PluginEnum;
-import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.result.DefaultSoulResult;
 import org.dromara.soul.plugin.api.result.SoulResult;
 import org.junit.Before;
@@ -29,7 +28,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
@@ -43,11 +41,9 @@ import static org.mockito.Mockito.when;
  * @author zhanglei
  */
 @RunWith(MockitoJUnitRunner.class)
-public final class CheckUtilsTest {
+public final class FallbackUtilsTest {
 
     private ServerWebExchange exchange;
-
-    private SoulPluginChain soulPluginChain;
 
     @Before
     public void setUp() {
@@ -57,8 +53,6 @@ public final class CheckUtilsTest {
                 .remoteAddress(new InetSocketAddress(8090))
                 .contextPath("/SOUL")
                 .build());
-        this.soulPluginChain = mock(SoulPluginChain.class);
-        when(soulPluginChain.execute(exchange)).thenReturn(Mono.empty());
         when(context.getBean(SoulResult.class)).thenReturn(new DefaultSoulResult());
     }
 
@@ -66,17 +60,15 @@ public final class CheckUtilsTest {
      * The test for check selector.
      */
     @Test
-    public void checkSelector() {
-        StepVerifier.create(CheckUtils.checkSelector(PluginEnum.DIVIDE.getName(), exchange, soulPluginChain)).expectSubscription().verifyComplete();
-        StepVerifier.create(CheckUtils.checkSelector(PluginEnum.RATE_LIMITER.getName(), exchange, soulPluginChain)).expectSubscription().verifyComplete();
+    public void getNoRuleResultTest() {
+        StepVerifier.create(FallbackUtils.getNoRuleResult(PluginEnum.DIVIDE.getName(), exchange)).expectSubscription().verifyComplete();
     }
 
     /**
      * The test for check rule.
      */
     @Test
-    public void checkRule() {
-        StepVerifier.create(CheckUtils.checkRule(PluginEnum.SPRING_CLOUD.getName(), exchange, soulPluginChain)).expectSubscription().verifyComplete();
-        StepVerifier.create(CheckUtils.checkRule(PluginEnum.HYSTRIX.getName(), exchange, soulPluginChain)).expectSubscription().verifyComplete();
+    public void getNoSelectorResultTest() {
+        StepVerifier.create(FallbackUtils.getNoSelectorResult(PluginEnum.SPRING_CLOUD.getName(), exchange)).expectSubscription().verifyComplete();
     }
 }
