@@ -39,6 +39,13 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
 
+    <select id="selectByUserName" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from dashboard_user
+        where user_name = #{userName,jdbcType=VARCHAR}
+    </select>
+
     <select id="findByQuery" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>

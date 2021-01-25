@@ -83,7 +83,7 @@ public final class SofaProxyServiceTest {
         GenericService genericService = mock(GenericService.class);
         when(consumerConfig.refer()).thenReturn(genericService);
         when(consumerConfig.getInterfaceId()).thenReturn(PATH);
-        when(genericService.$invoke(METHOD_NAME, LEFT, RIGHT)).thenReturn(null);
+        when(genericService.$genericInvoke(METHOD_NAME, LEFT, RIGHT)).thenReturn(null);
         ApplicationConfigCache applicationConfigCache = ApplicationConfigCache.getInstance();
         Field field = ApplicationConfigCache.class.getDeclaredField("cache");
         field.setAccessible(true);

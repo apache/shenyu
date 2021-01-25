@@ -58,7 +58,7 @@ public class ApacheDubboPluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin bodyParamPlugin() {
+    public SoulPlugin apacheDubboBodyParamPlugin() {
         return new BodyParamPlugin();
     }
 
@@ -68,7 +68,7 @@ public class ApacheDubboPluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin dubboResponsePlugin() {
+    public SoulPlugin apacheDubboResponsePlugin() {
         return new DubboResponsePlugin();
     }
 

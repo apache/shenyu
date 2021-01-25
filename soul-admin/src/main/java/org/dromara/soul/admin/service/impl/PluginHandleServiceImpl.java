@@ -23,7 +23,6 @@ import org.dromara.soul.admin.entity.PluginHandleDO;
 import org.dromara.soul.admin.mapper.PluginHandleMapper;
 import org.dromara.soul.admin.mapper.SoulDictMapper;
 import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.page.PageResultUtils;
 import org.dromara.soul.admin.query.PluginHandleQuery;
 import org.dromara.soul.admin.service.PluginHandleService;
@@ -60,10 +59,12 @@ public class PluginHandleServiceImpl implements PluginHandleService {
 
     @Override
     public CommonPager<PluginHandleVO> listByPage(final PluginHandleQuery pluginHandleQuery) {
-        PageParameter pageParameter = pluginHandleQuery.getPageParameter();
-        Integer count = pluginHandleMapper.countByQuery(pluginHandleQuery);
-        return PageResultUtils.result(pageParameter, count, () -> pluginHandleMapper.selectByQuery(pluginHandleQuery)
-                .stream().map(this::buildPluginHandleVO).collect(Collectors.toList()));
+        return PageResultUtils.result(pluginHandleQuery.getPageParameter(),
+            () -> pluginHandleMapper.countByQuery(pluginHandleQuery),
+            () -> pluginHandleMapper.selectByQuery(pluginHandleQuery)
+                        .stream()
+                        .map(this::buildPluginHandleVO)
+                        .collect(Collectors.toList()));
     }
 
     @Override

@@ -56,11 +56,7 @@
             <artifactId>soul-spring-boot-starter-plugin-divide</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.dromara</groupId>
-            <artifactId>soul-spring-boot-starter-plugin-httpclient</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+
         <!--if you use http proxy end this-->
 
         <!--soul springCloud plugin start-->
@@ -190,6 +186,19 @@
         </dependency>
         <!-- soul waf plugin end-->
 
+        <!-- soul sofa plugin starter-->
+        <dependency>
+            <groupId>com.alipay.sofa</groupId>
+            <artifactId>sofa-rpc-all</artifactId>
+            <version>${sofa.rpc.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-sofa</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- soul sofa plugin end-->
+
         <!-- soul monitor plugin starter-->
         <dependency>
             <groupId>org.dromara</groupId>
@@ -226,6 +235,14 @@
             <version>${project.version}</version>
         </dependency>
         <!-- soul sign plugin end-->
+
+        <!-- soul httpclient plugin start-->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-httpclient</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- soul httpclient plugin end-->
 
         <dependency>
             <groupId>org.dromara</groupId>

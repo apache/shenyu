@@ -32,7 +32,7 @@ management:
     defaults:
       enabled: false
 
-soul :
+soul:
     file:
       enabled: true
     corss:
@@ -42,7 +42,6 @@ soul :
     sync:
         websocket :
              urls: ws://localhost:9095/websocket
-
 #        zookeeper:
 #             url: localhost:2181
 #             sessionTimeout: 5000
@@ -50,15 +49,18 @@ soul :
 #        http:
 #             url : http://localhost:9095
 #        nacos:
-#              url: localhost:8848
-#              namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
-#              acm:
-#                enabled: false
-#                endpoint: acm.aliyun.com
-#                namespace:
-#                accessKey:
-#                secretKey:
-
+#          url: localhost:8848
+#          namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
+#          acm:
+#            enabled: false
+#            endpoint: acm.aliyun.com
+#            namespace:
+#            accessKey:
+#            secretKey:
+    exclude:
+      enabled: false
+      paths:
+        - /favicon.ico
 
 #eureka:
 #  client:

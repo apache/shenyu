@@ -149,7 +149,11 @@ public class NacosCacheHandler {
 
     @SneakyThrows
     private String getConfigAndSignListener(final String dataId, final Listener listener) {
-        return configService.getConfigAndSignListener(dataId, GROUP, 6000, listener);
+        String config = configService.getConfigAndSignListener(dataId, GROUP, 6000, listener);
+        if (config == null) {
+            config = "{}";
+        }
+        return config;
     }
 
     protected void watcherData(final String dataId, final OnChange oc) {
