@@ -72,7 +72,7 @@ public class NacosDataChangedListener implements DataChangedListener {
 
     @SneakyThrows
     private String getConfig(final String dataId) {
-        String config = configService.getConfig(dataId, NacosPathConstants.GROUP, 6000);
+        String config = configService.getConfig(dataId, NacosPathConstants.GROUP, NacosPathConstants.DEFAULT_TIME_OUT);
         return StringUtils.hasLength(config) ? config : NacosPathConstants.EMPTY_CONFIG_DEFAULT_VALUE;
     }
 

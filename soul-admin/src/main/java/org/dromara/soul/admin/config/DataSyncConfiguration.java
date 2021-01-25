@@ -22,6 +22,7 @@ import org.I0Itec.zkclient.ZkClient;
 import org.dromara.soul.admin.listener.DataChangedListener;
 import org.dromara.soul.admin.listener.http.HttpLongPollingDataChangedListener;
 import org.dromara.soul.admin.listener.nacos.NacosDataChangedListener;
+import org.dromara.soul.admin.listener.nacos.NacosDataInit;
 import org.dromara.soul.admin.listener.websocket.WebsocketCollector;
 import org.dromara.soul.admin.listener.websocket.WebsocketDataChangedListener;
 import org.dromara.soul.admin.listener.zookeeper.ZookeeperDataChangedListener;
@@ -112,6 +113,19 @@ public class DataSyncConfiguration {
         @ConditionalOnMissingBean(NacosDataChangedListener.class)
         public DataChangedListener nacosDataChangedListener(final ConfigService configService) {
             return new NacosDataChangedListener(configService);
+        }
+
+        /**
+         * Nacos data init zookeeper data init.
+         *
+         * @param configService the config service
+         * @param syncDataService the sync data service
+         * @return the nacos data init
+         */
+        @Bean
+        @ConditionalOnMissingBean(NacosDataInit.class)
+        public NacosDataInit nacosDataInit(final ConfigService configService, final SyncDataService syncDataService) {
+            return new NacosDataInit(configService, syncDataService);
         }
     }
 
