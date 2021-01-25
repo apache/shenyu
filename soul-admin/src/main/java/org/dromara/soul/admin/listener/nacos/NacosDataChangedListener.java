@@ -153,6 +153,7 @@ public class NacosDataChangedListener implements DataChangedListener {
                             .stream()
                             .sorted(SELECTOR_DATA_COMPARATOR)
                             .collect(Collectors.toList());
+                    ls.add(selector);
                     SELECTOR_MAP.put(selector.getPluginName(), ls);
                 });
                 SELECTOR_MAP.keySet().removeAll(set);
@@ -229,6 +230,7 @@ public class NacosDataChangedListener implements DataChangedListener {
                             .stream()
                             .sorted(RULE_DATA_COMPARATOR)
                             .collect(Collectors.toList());
+                    ls.add(rule);
                     RULE_MAP.put(rule.getSelectorId(), ls);
                 });
                 RULE_MAP.keySet().removeAll(set);
