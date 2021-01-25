@@ -73,6 +73,16 @@ public class WafPlugin extends AbstractSoulPlugin {
     }
 
     @Override
+    protected Mono<Void> handleSelectorIsNull(final String pluginName, final ServerWebExchange exchange, final SoulPluginChain chain) {
+        return doExecute(exchange, chain, null, null);
+    }
+
+    @Override
+    protected Mono<Void> handleRuleIsNull(final String pluginName, final ServerWebExchange exchange, final SoulPluginChain chain) {
+        return doExecute(exchange, chain, null, null);
+    }
+
+    @Override
     public String named() {
         return PluginEnum.WAF.getName();
     }

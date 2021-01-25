@@ -105,5 +105,4 @@ public final class JwtUtils {
         JwtProperties properties = SpringBeanUtils.getInstance().getBean(JwtProperties.class);
         return Algorithm.HMAC256(properties.getKey());
     }
-
 }

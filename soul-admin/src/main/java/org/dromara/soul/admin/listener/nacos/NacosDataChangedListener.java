@@ -21,6 +21,7 @@ import com.alibaba.nacos.api.config.ConfigService;
 import com.google.common.collect.Maps;
 import lombok.SneakyThrows;
 import org.dromara.soul.admin.listener.DataChangedListener;
+import org.dromara.soul.common.constant.NacosPathConstants;
 import org.dromara.soul.common.dto.AppAuthData;
 import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.dto.PluginData;
@@ -60,18 +61,6 @@ public class NacosDataChangedListener implements DataChangedListener {
 
     private static final Comparator<RuleData> RULE_DATA_COMPARATOR = Comparator.comparing(RuleData::getSort);
 
-    private static final String GROUP = "DEFAULT_GROUP";
-
-    private static final String PLUGIN_DATA_ID = "soul.plugin.json";
-
-    private static final String SELECTOR_DATA_ID = "soul.selector.json";
-
-    private static final String RULE_DATA_ID = "soul.rule.json";
-
-    private static final String AUTH_DATA_ID = "soul.auth.json";
-
-    private static final String META_DATA_ID = "soul.meta.json";
-
     private final ConfigService configService;
 
     public NacosDataChangedListener(final ConfigService configService) {
@@ -103,7 +92,7 @@ public class NacosDataChangedListener implements DataChangedListener {
                 changed.forEach(appAuth -> AUTH_MAP.put(appAuth.getAppKey(), appAuth));
                 break;
         }
-        publishConfig(AUTH_DATA_ID, AUTH_MAP);
+        publishConfig(NacosPathConstants.AUTH_DATA_ID, AUTH_MAP);
     }
 
     @Override
@@ -125,7 +114,7 @@ public class NacosDataChangedListener implements DataChangedListener {
                 changed.forEach(plugin -> PLUGIN_MAP.put(plugin.getName(), plugin));
                 break;
         }
-        publishConfig(PLUGIN_DATA_ID, PLUGIN_MAP);
+        publishConfig(NacosPathConstants.PLUGIN_DATA_ID, PLUGIN_MAP);
     }
 
     @Override
@@ -144,17 +133,16 @@ public class NacosDataChangedListener implements DataChangedListener {
                 break;
             case REFRESH:
             case MYSELF:
-                Set<String> set = new HashSet<>(SELECTOR_MAP.keySet());
+                SELECTOR_MAP.keySet().removeAll(SELECTOR_MAP.keySet());
                 changed.forEach(selector -> {
-                    set.remove(selector.getPluginName());
                     List<SelectorData> ls = SELECTOR_MAP
                             .getOrDefault(selector.getPluginName(), new ArrayList<>())
                             .stream()
                             .sorted(SELECTOR_DATA_COMPARATOR)
                             .collect(Collectors.toList());
+                    ls.add(selector);
                     SELECTOR_MAP.put(selector.getPluginName(), ls);
                 });
-                SELECTOR_MAP.keySet().removeAll(set);
                 break;
             default:
                 changed.forEach(selector -> {
@@ -169,7 +157,7 @@ public class NacosDataChangedListener implements DataChangedListener {
                 });
                 break;
         }
-        publishConfig(SELECTOR_DATA_ID, SELECTOR_MAP);
+        publishConfig(NacosPathConstants.SELECTOR_DATA_ID, SELECTOR_MAP);
     }
 
     @Override
@@ -199,7 +187,7 @@ public class NacosDataChangedListener implements DataChangedListener {
                 });
                 break;
         }
-        publishConfig(META_DATA_ID, META_DATA);
+        publishConfig(NacosPathConstants.META_DATA_ID, META_DATA);
     }
 
     @Override
@@ -218,17 +206,16 @@ public class NacosDataChangedListener implements DataChangedListener {
                 break;
             case REFRESH:
             case MYSELF:
-                Set<String> set = new HashSet<>(RULE_MAP.keySet());
+                RULE_MAP.keySet().removeAll(RULE_MAP.keySet());
                 changed.forEach(rule -> {
-                    set.remove(rule.getSelectorId());
                     List<RuleData> ls = RULE_MAP
                             .getOrDefault(rule.getSelectorId(), new ArrayList<>())
                             .stream()
                             .sorted(RULE_DATA_COMPARATOR)
                             .collect(Collectors.toList());
+                    ls.add(rule);
                     RULE_MAP.put(rule.getSelectorId(), ls);
                 });
-                RULE_MAP.keySet().removeAll(set);
                 break;
             default:
                 changed.forEach(rule -> {

@@ -1,11 +1,12 @@
 /*
- * Copyright 2007-present the original author or authors.
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,9 +20,13 @@ package org.dromara.soul.admin.utils;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * The type Thread local util.
+ */
 public class ThreadLocalUtil {
+    
     private static final ThreadLocal<Map<String, Object>> THREAD_CONTEXT = ThreadLocal.withInitial(HashMap::new);
-
+    
     /**
      * save thread variable.
      *
@@ -31,7 +36,7 @@ public class ThreadLocalUtil {
     public static void put(final String key, final Object value) {
         THREAD_CONTEXT.get().put(key, value);
     }
-
+    
     /**
      * remove thread variable.
      *
@@ -40,7 +45,7 @@ public class ThreadLocalUtil {
     public static void remove(final String key) {
         THREAD_CONTEXT.get().remove(key);
     }
-
+    
     /**
      * get thread variables.
      *
@@ -50,7 +55,7 @@ public class ThreadLocalUtil {
     public static Object get(final String key) {
         return THREAD_CONTEXT.get().get(key);
     }
-
+    
     /**
      * remove all variables.
      */

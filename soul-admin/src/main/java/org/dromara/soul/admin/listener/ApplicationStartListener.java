@@ -40,12 +40,9 @@ public class ApplicationStartListener implements ApplicationListener<WebServerIn
         final String host = IpUtils.getHost();
         final String domain = System.getProperty("soul.httpPath");
         if (StringUtils.isBlank(domain)) {
-            SoulDomain.getInstance()
-                    .setHttpPath("http://" + String.join(":", host, String.valueOf(port)));
+            SoulDomain.getInstance().setHttpPath("http://" + String.join(":", host, String.valueOf(port)));
         } else {
-            SoulDomain.getInstance()
-                    .setHttpPath(domain);
+            SoulDomain.getInstance().setHttpPath(domain);
         }
     }
-
 }
