@@ -145,9 +145,8 @@ public class NacosDataChangedListener implements DataChangedListener {
                 break;
             case REFRESH:
             case MYSELF:
-                Set<String> set = new HashSet<>(SELECTOR_MAP.keySet());
+                SELECTOR_MAP.keySet().removeAll(SELECTOR_MAP.keySet());
                 changed.forEach(selector -> {
-                    set.remove(selector.getPluginName());
                     List<SelectorData> ls = SELECTOR_MAP
                             .getOrDefault(selector.getPluginName(), new ArrayList<>())
                             .stream()
@@ -156,7 +155,6 @@ public class NacosDataChangedListener implements DataChangedListener {
                     ls.add(selector);
                     SELECTOR_MAP.put(selector.getPluginName(), ls);
                 });
-                SELECTOR_MAP.keySet().removeAll(set);
                 break;
             default:
                 changed.forEach(selector -> {
@@ -222,9 +220,8 @@ public class NacosDataChangedListener implements DataChangedListener {
                 break;
             case REFRESH:
             case MYSELF:
-                Set<String> set = new HashSet<>(RULE_MAP.keySet());
+                RULE_MAP.keySet().removeAll(RULE_MAP.keySet());
                 changed.forEach(rule -> {
-                    set.remove(rule.getSelectorId());
                     List<RuleData> ls = RULE_MAP
                             .getOrDefault(rule.getSelectorId(), new ArrayList<>())
                             .stream()
@@ -233,7 +230,6 @@ public class NacosDataChangedListener implements DataChangedListener {
                     ls.add(rule);
                     RULE_MAP.put(rule.getSelectorId(), ls);
                 });
-                RULE_MAP.keySet().removeAll(set);
                 break;
             default:
                 changed.forEach(rule -> {

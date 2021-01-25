@@ -46,7 +46,7 @@ public class NacosDataInit implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) {
+    public void run(final String... args) {
         String pluginDataId = NacosPathConstants.PLUGIN_DATA_ID;
         String authDataId = NacosPathConstants.AUTH_DATA_ID;
         String metaDataId = NacosPathConstants.META_DATA_ID;
@@ -56,7 +56,7 @@ public class NacosDataInit implements CommandLineRunner {
     }
 
     @SneakyThrows
-    private boolean dataIdNotExist(String pluginDataId) {
+    private boolean dataIdNotExist(final String pluginDataId) {
         String group = NacosPathConstants.GROUP;
         long timeout = NacosPathConstants.DEFAULT_TIME_OUT;
         return configService.getConfig(pluginDataId, group, timeout) == null;

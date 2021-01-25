@@ -25,42 +25,42 @@ package org.dromara.soul.common.constant;
 public class NacosPathConstants {
 
     /**
-     * Nacos config default group
+     * Nacos config default group.
      */
     public static final String GROUP = "DEFAULT_GROUP";
 
     /**
-     * plugin data id
+     * plugin data id.
      */
     public static final String PLUGIN_DATA_ID = "soul.plugin.json";
 
     /**
-     * selector data id
+     * selector data id.
      */
     public static final String SELECTOR_DATA_ID = "soul.selector.json";
 
     /**
-     * rule data id
+     * rule data id.
      */
     public static final String RULE_DATA_ID = "soul.rule.json";
 
     /**
-     * auth data id
+     * auth data id.
      */
     public static final String AUTH_DATA_ID = "soul.auth.json";
 
     /**
-     * meta data id
+     * meta data id.
      */
     public static final String META_DATA_ID = "soul.meta.json";
 
     /**
-     * default value of get config
+     * default value of get config.
      */
     public static final String EMPTY_CONFIG_DEFAULT_VALUE = "{}";
 
     /**
-     * default time out of get config
+     * default time out of get config.
      */
     public static final long DEFAULT_TIME_OUT = 6000;
 }
