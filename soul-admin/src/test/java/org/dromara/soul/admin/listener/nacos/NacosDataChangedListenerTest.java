@@ -163,7 +163,7 @@ public final class NacosDataChangedListenerTest {
         Assert.assertEquals(
                 configService.getConfig(SELECTOR_DATA_ID, GROUP, 1),
                 GsonUtils.getInstance()
-                        .toJson(ImmutableMap.of(selectorDataPluginName1, ImmutableList.of())));
+                        .toJson(ImmutableMap.of(selectorDataPluginName1, ImmutableList.of(selectorData1))));
     }
 
     @Test
@@ -222,6 +222,6 @@ public final class NacosDataChangedListenerTest {
         nacosDataChangedListener.onRuleChanged(ImmutableList.of(ruleData1), DataEventTypeEnum.REFRESH);
         Assert.assertEquals(
                 configService.getConfig(RULE_DATA_ID, GROUP, 1),
-                GsonUtils.getInstance().toJson(ImmutableMap.of(selectorId1, ImmutableList.of())));
+                GsonUtils.getInstance().toJson(ImmutableMap.of(selectorId1, ImmutableList.of(ruleData1))));
     }
 }
