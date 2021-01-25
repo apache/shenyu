@@ -69,7 +69,7 @@ public class NacosDataChangedListener implements DataChangedListener {
 
     @SneakyThrows
     private void publishConfig(final String dataId, final Object data) {
-        configService.publishConfig(dataId, GROUP, GsonUtils.getInstance().toJson(data));
+        configService.publishConfig(dataId, NacosPathConstants.GROUP, GsonUtils.getInstance().toJson(data));
     }
 
     @Override
@@ -234,6 +234,6 @@ public class NacosDataChangedListener implements DataChangedListener {
                 break;
         }
 
-        publishConfig(RULE_DATA_ID, RULE_MAP);
+        publishConfig(NacosPathConstants.RULE_DATA_ID, RULE_MAP);
     }
 }
