@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
  *
  * @author nuo-promise
  */
-@Service("PermissionService")
+@Service("permissionService")
 public class PermissionServiceImpl implements PermissionService {
 
     private final UserRoleMapper userRoleMapper;
