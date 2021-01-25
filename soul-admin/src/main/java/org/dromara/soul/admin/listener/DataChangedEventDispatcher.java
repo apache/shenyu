@@ -80,5 +80,4 @@ public class DataChangedEventDispatcher implements ApplicationListener<DataChang
         Collection<DataChangedListener> listenerBeans = applicationContext.getBeansOfType(DataChangedListener.class).values();
         this.listeners = Collections.unmodifiableList(new ArrayList<>(listenerBeans));
     }
-
 }

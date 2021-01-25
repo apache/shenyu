@@ -45,5 +45,4 @@ public final class SoulDomain {
     public static SoulDomain getInstance() {
         return SOUL_DOMAIN;
     }
-
 }
