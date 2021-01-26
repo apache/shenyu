@@ -62,7 +62,12 @@ public enum ParamTypeEnum {
     /**
      * Header param type enum.
      */
-    HEADER("header", true);
+    HEADER("header", true),
+
+    /**
+     * requestMethod param type enum.
+     */
+    REQUEST_METHOD("req_method", true);
 
     private final String name;
 
