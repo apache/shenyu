@@ -63,4 +63,9 @@ public final class AdminConstants {
      * The constant PARAMS_ERROR.
      */
     public static final String PARAMS_ERROR = "Error parameter！";
+
+    /**
+     * The constant Super Role ID.
+     */
+    public static final String ROLE_SUPER_ID = "1346358560427216896";
 }
