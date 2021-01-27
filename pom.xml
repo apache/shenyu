@@ -96,7 +96,6 @@
         <guava.version>[24.1.1,)</guava.version>
         <commons-collections4.version>4.1</commons-collections4.version>
         <reactor-spring.version>1.0.1.RELEASE</reactor-spring.version>
-        <commons-dbcp.version>1.2.1</commons-dbcp.version>
         <disruptor.version>3.4.0</disruptor.version>
         <hessian.version>4.0.38</hessian.version>
         <protostuff.version>1.0.8</protostuff.version>
@@ -262,13 +261,6 @@
                 <groupId>org.projectreactor</groupId>
                 <artifactId>reactor-spring</artifactId>
                 <version>${reactor-spring.version}</version>
-            </dependency>
-
-
-            <dependency>
-                <groupId>commons-dbcp</groupId>
-                <artifactId>commons-dbcp</artifactId>
-                <version>${commons-dbcp.version}</version>
             </dependency>
 
             <dependency>
