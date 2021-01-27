@@ -254,60 +254,55 @@ public class NacosDataChangedListener implements DataChangedListener {
 
     private void updateAuthMap(final String configInfo) {
         JsonObject jo = GsonUtils.getInstance().fromJson(configInfo, JsonObject.class);
-        if (jo.size() == 0) {
-            return;
-        }
-        AUTH_MAP.clear();
+        Set<String> set = new HashSet<>(AUTH_MAP.keySet());
         for (Entry<String, JsonElement> e : jo.entrySet()) {
+            set.remove(e.getKey());
             AUTH_MAP.put(e.getKey(), GsonUtils.getInstance().fromJson(e.getValue(), AppAuthData.class));
         }
+        AUTH_MAP.keySet().removeAll(set);
     }
 
     private void updatePluginMap(final String configInfo) {
         JsonObject jo = GsonUtils.getInstance().fromJson(configInfo, JsonObject.class);
-        if (jo.size() == 0) {
-            return;
-        }
-        PLUGIN_MAP.clear();
+        Set<String> set = new HashSet<>(PLUGIN_MAP.keySet());
         for (Entry<String, JsonElement> e : jo.entrySet()) {
+            set.remove(e.getKey());
             PLUGIN_MAP.put(e.getKey(), GsonUtils.getInstance().fromJson(e.getValue(), PluginData.class));
         }
+        PLUGIN_MAP.keySet().removeAll(set);
     }
 
     private void updateSelectorMap(final String configInfo) {
         JsonObject jo = GsonUtils.getInstance().fromJson(configInfo, JsonObject.class);
-        if (jo.size() == 0) {
-            return;
-        }
-        SELECTOR_MAP.clear();
+        Set<String> set = new HashSet<>(SELECTOR_MAP.keySet());
         for (Entry<String, JsonElement> e : jo.entrySet()) {
+            set.remove(e.getKey());
             List<SelectorData> ls = new ArrayList<>();
             e.getValue().getAsJsonArray().forEach(je -> ls.add(GsonUtils.getInstance().fromJson(je, SelectorData.class)));
             SELECTOR_MAP.put(e.getKey(), ls);
         }
+        SELECTOR_MAP.keySet().removeAll(set);
     }
-
+    
     private void updateMetaDataMap(final String configInfo) {
         JsonObject jo = GsonUtils.getInstance().fromJson(configInfo, JsonObject.class);
-        if (jo.size() == 0) {
-            return;
-        }
-        META_DATA.clear();
+        Set<String> set = new HashSet<>(META_DATA.keySet());
         for (Entry<String, JsonElement> e : jo.entrySet()) {
+            set.remove(e.getKey());
             META_DATA.put(e.getKey(), GsonUtils.getInstance().fromJson(e.getValue(), MetaData.class));
         }
+        META_DATA.keySet().removeAll(set);
     }
 
     private void updateRuleMap(final String configInfo) {
         JsonObject jo = GsonUtils.getInstance().fromJson(configInfo, JsonObject.class);
-        if (jo.size() == 0) {
-            return;
-        }
-        RULE_MAP.clear();
+        Set<String> set = new HashSet<>(RULE_MAP.keySet());
         for (Entry<String, JsonElement> e : jo.entrySet()) {
+            set.remove(e.getKey());
             List<RuleData> ls = new ArrayList<>();
             e.getValue().getAsJsonArray().forEach(je -> ls.add(GsonUtils.getInstance().fromJson(je, RuleData.class)));
             RULE_MAP.put(e.getKey(), ls);
         }
+        RULE_MAP.keySet().removeAll(set);
     }
 }
