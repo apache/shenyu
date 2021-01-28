@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.service.impl;
+package org.dromara.soul.admin.service;
 
 import org.dromara.soul.admin.config.JwtProperties;
 import org.dromara.soul.admin.entity.DashboardUserDO;
@@ -26,6 +26,7 @@ import org.dromara.soul.admin.mapper.DashboardUserMapper;
 import org.dromara.soul.admin.mapper.PermissionMapper;
 import org.dromara.soul.admin.mapper.ResourceMapper;
 import org.dromara.soul.admin.mapper.UserRoleMapper;
+import org.dromara.soul.admin.service.impl.PermissionServiceImpl;
 import org.dromara.soul.admin.spring.SpringBeanUtils;
 import org.dromara.soul.admin.vo.PermissionMenuVO;
 import org.junit.Before;
@@ -53,7 +54,7 @@ import static org.mockito.Mockito.when;
  * @version 1.0
  */
 @RunWith(MockitoJUnitRunner.class)
-public class PermissionServiceImplTest {
+public class PermissionServiceTest {
 
     @Mock
     private DashboardUserMapper mockDashboardUserMapper;
