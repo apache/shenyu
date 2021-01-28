@@ -86,7 +86,7 @@ public class ResourceServiceImpl implements ResourceService {
     }
 
     /**
-     * find page of role by query.
+     * find page of resource by query.
      *
      * @param resourceQuery {@linkplain ResourceQuery}
      * @return {@linkplain CommonPager}
