@@ -51,7 +51,6 @@ import static org.mockito.Mockito.when;
  * add test case for {@link PermissionServiceImpl}.
  *
  * @author HoldDie
- * @version 1.0
  */
 @RunWith(MockitoJUnitRunner.class)
 public class PermissionServiceTest {
