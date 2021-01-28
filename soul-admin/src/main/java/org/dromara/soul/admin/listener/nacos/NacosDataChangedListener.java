@@ -37,7 +37,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
@@ -223,17 +222,14 @@ public class NacosDataChangedListener implements DataChangedListener {
                 break;
             default:
                 changed.forEach(rule -> {
-                    Map<String, RuleData> currentData = RULE_MAP
+                    List<RuleData> ls = RULE_MAP
                             .getOrDefault(rule.getSelectorId(), new ArrayList<>())
-                            .parallelStream()
-                            .collect(Collectors.toMap(RuleData::getId, v -> v));
-                    currentData.put(rule.getId(), rule);
-                    RULE_MAP.put(rule.getSelectorId(),
-                            currentData
-                                    .values()
-                                    .parallelStream()
-                                    .sorted(RULE_DATA_COMPARATOR)
-                                    .collect(Collectors.toList()));
+                            .stream()
+                            .filter(s -> !s.getId().equals(rule.getId()))
+                            .collect(Collectors.toList());
+                    ls.add(rule);
+                    ls.sort(RULE_DATA_COMPARATOR);
+                    RULE_MAP.put(rule.getSelectorId(), ls);
                 });
                 break;
         }
