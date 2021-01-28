@@ -18,35 +18,36 @@ package org.dromara.soul.admin.utils;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertThat;
 
 public class ThreadLocalUtilTest {
 
     @Test
     public void testPutValue() {
         ThreadLocalUtil.put("threadKey", "threadValue");
-        assertEquals("threadValue", ThreadLocalUtil.get("threadKey"));
+        assertThat("threadValue", is(ThreadLocalUtil.get("threadKey")));
     }
 
     @Test
     public void testGetValue() {
         ThreadLocalUtil.put("threadKey", "threadValue");
-        assertEquals("threadValue", ThreadLocalUtil.get("threadKey"));
+        assertThat("threadValue", is(ThreadLocalUtil.get("threadKey")));
     }
 
     @Test
     public void testRemove() {
         ThreadLocalUtil.put("threadKey", "threadValue");
-        assertEquals("threadValue", ThreadLocalUtil.get("threadKey"));
+        assertThat("threadValue", is(ThreadLocalUtil.get("threadKey")));
         ThreadLocalUtil.remove("threadKey");
-        assertNull(ThreadLocalUtil.get("threadKey"));
+        assertThat(ThreadLocalUtil.get("threadKey"), nullValue());
     }
 
     @Test
     public void testClear() {
         ThreadLocalUtil.put("threadValue", "threadValue");
         ThreadLocalUtil.clear();
-        assertNull(ThreadLocalUtil.get("threadLocalKey"));
+        assertThat(ThreadLocalUtil.get("threadLocalKey"), nullValue());
     }
 }
