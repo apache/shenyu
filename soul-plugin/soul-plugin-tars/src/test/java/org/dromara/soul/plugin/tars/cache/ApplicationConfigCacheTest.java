@@ -119,8 +119,8 @@ public final class ApplicationConfigCacheTest {
     public void testInitPrx() {
         final MetaData metaData = new MetaData("id", "127.0.0.1:8080", "contextPath",
                 "path", RpcTypeEnum.TARS.getName(), "serviceName", "method1",
-                "parameterTypes", "{\"methodInfo\":[{\"methodName\":\"method1\",\"params\":[{\"left\":\"int\",\"right\":\"param1\"}," +
-                "{\"left\":\"java.lang.Integer\",\"right\":\"param2\"}],\"returnType\":\"java.lang.String\"}]}", false);
+                "parameterTypes", "{\"methodInfo\":[{\"methodName\":\"method1\",\"params\":[{\"left\":\"int\",\"right\":\"param1\"},"
+                + "{\"left\":\"java.lang.Integer\",\"right\":\"param2\"}],\"returnType\":\"java.lang.String\"}]}", false);
         applicationConfigCacheUnderTest.initPrx(metaData);
         final TarsInvokePrxList result = applicationConfigCacheUnderTest.get("path");
         assertEquals("promise_method1", result.getMethod().getName());
