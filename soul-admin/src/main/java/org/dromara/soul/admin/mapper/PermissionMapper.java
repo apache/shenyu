@@ -78,8 +78,7 @@ public interface PermissionMapper {
      * @return rows int
      */
     int deleteByObjectIdAndResourceId(PermissionQuery permissionQuery);
-
-
+    
     /**
      * delete permission by object id.
      *

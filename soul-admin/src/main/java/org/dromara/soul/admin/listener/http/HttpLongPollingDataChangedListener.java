@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.dromara.soul.admin.config.HttpSyncProperties;
+import org.dromara.soul.admin.config.properties.HttpSyncProperties;
 import org.dromara.soul.admin.listener.AbstractDataChangedListener;
 import org.dromara.soul.admin.listener.ConfigDataCache;
 import org.dromara.soul.admin.result.SoulAdminResult;
@@ -128,24 +128,19 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
      * @param response the response
      */
     public void doLongPolling(final HttpServletRequest request, final HttpServletResponse response) {
-
         // compare group md5
         List<ConfigGroupEnum> changedGroup = compareChangedGroup(request);
         String clientIp = getRemoteIp(request);
-
         // response immediately.
         if (CollectionUtils.isNotEmpty(changedGroup)) {
             this.generateResponse(response, changedGroup);
             log.info("send response with the changed group, ip={}, group={}", clientIp, changedGroup);
             return;
         }
-
         // listen for configuration changed.
         final AsyncContext asyncContext = request.startAsync();
-
         // AsyncContext.settimeout() does not timeout properly, so you have to control it yourself
         asyncContext.setTimeout(0L);
-
         // block client's thread.
         scheduler.execute(new LongPollingClient(asyncContext, clientIp, HttpConstants.SERVER_MAX_HOLD_TIMEOUT));
     }

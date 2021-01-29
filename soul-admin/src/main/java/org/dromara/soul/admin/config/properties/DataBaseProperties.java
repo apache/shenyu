@@ -15,25 +15,27 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.config;
+package org.dromara.soul.admin.config.properties;
 
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 /**
- * the websocket sync strategy properties.
+ * Local DataSource configuration.
  *
- * @author xiaoyu
+ * @author nuo-promise
  */
 @Getter
 @Setter
-@ConfigurationProperties(prefix = "soul.sync.websocket")
-public class WebsocketSyncProperties {
+@Component
+@ConfigurationProperties(prefix = "soul.database")
+public class DataBaseProperties {
 
-    /**
-     * default: true.
-     */
-    private boolean enabled = true;
+    private String dialect;
 
+    private String initScript;
+
+    private Boolean initEnable;
 }

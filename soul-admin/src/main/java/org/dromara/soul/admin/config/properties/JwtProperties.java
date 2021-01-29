@@ -15,23 +15,22 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.config;
+package org.dromara.soul.admin.config.properties;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 /**
- * Aes Secret configuration.
+ * Jwt Properties.
  *
- * @author nuo-promise
- */
-@Getter
-@Setter
+ * @author YuI
+ **/
+@Data
 @Component
-@ConfigurationProperties(prefix = "soul.aes.secret")
-public class SecretProperties {
+@ConfigurationProperties(prefix = "soul.jwt")
+public class JwtProperties {
 
     private String key;
+
 }

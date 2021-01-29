@@ -35,5 +35,4 @@ public class SoulApplicationContextAware implements ApplicationContextAware {
     public void setApplicationContext(final ApplicationContext applicationContext) throws BeansException {
         SpringBeanUtils.getInstance().setCfgContext((ConfigurableApplicationContext) applicationContext);
     }
-
 }

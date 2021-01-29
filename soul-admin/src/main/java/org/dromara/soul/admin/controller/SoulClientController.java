@@ -67,8 +67,7 @@ public class SoulClientController {
     public String registerSpringCloud(@RequestBody final SpringCloudRegisterDTO springCloudRegisterDTO) {
         return soulClientRegisterService.registerSpringCloud(springCloudRegisterDTO);
     }
-
-
+    
     /**
      * Register dubbo string.
      *

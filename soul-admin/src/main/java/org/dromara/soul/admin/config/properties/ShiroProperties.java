@@ -15,22 +15,25 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.config;
+package org.dromara.soul.admin.config.properties;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 /**
- * Jwt Properties.
+ * Shiro properties.
  *
  * @author YuI
  **/
 @Data
-@Component
-@ConfigurationProperties(prefix = "soul.jwt")
-public class JwtProperties {
+@Component("shiroProperties")
+@ConfigurationProperties(prefix = "soul.shiro")
+public class ShiroProperties {
 
-    private String key;
+    /**
+     * shiro's white list.
+     */
+    private String whiteList;
 
 }

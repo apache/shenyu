@@ -378,5 +378,4 @@ public class AppAuthServiceImpl implements AppAuthService {
         }
         return data;
     }
-
 }

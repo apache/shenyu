@@ -17,7 +17,7 @@
 
 package org.dromara.soul.admin.utils;
 
-import org.dromara.soul.admin.config.JwtProperties;
+import org.dromara.soul.admin.config.properties.JwtProperties;
 import org.dromara.soul.admin.spring.SpringBeanUtils;
 import org.junit.Before;
 import org.junit.Test;

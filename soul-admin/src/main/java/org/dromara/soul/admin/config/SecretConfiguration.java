@@ -17,6 +17,7 @@
 
 package org.dromara.soul.admin.config;
 
+import org.dromara.soul.admin.config.properties.SecretProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;

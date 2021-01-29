@@ -15,25 +15,25 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.config;
+package org.dromara.soul.admin.config.properties;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 
 /**
- * Shiro properties.
+ * The type Zookeeper configuration.
  *
- * @author YuI
- **/
+ * @author xiaoyu(Myth)
+ */
 @Data
-@Component("shiroProperties")
-@ConfigurationProperties(prefix = "soul.shiro")
-public class ShiroProperties {
+@ConfigurationProperties(prefix = "soul.sync.zookeeper")
+public class ZookeeperProperties {
 
-    /**
-     * shiro's white list.
-     */
-    private String whiteList;
+    private String url;
 
+    private Integer sessionTimeout;
+
+    private Integer connectionTimeout;
+
+    private String serializer;
 }

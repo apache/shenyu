@@ -29,13 +29,13 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
  *
  * @author Yejiajun
  */
-public final class WebConfigTest extends AbstractConfigurationTest {
+public final class WebConfigurationTest extends AbstractConfigurationTest {
 
     @Test
     public void testAddCorsMappings() {
         CorsRegistry registry = new CorsRegistry();
-        WebConfig webConfig = new WebConfig();
-        webConfig.addCorsMappings(registry);
+        WebConfiguration webConfiguration = new WebConfiguration();
+        webConfiguration.addCorsMappings(registry);
         Assert.assertEquals(getCorsConfigurationsString(registry), getCorsConfigurationsString(corsRegistryJSONStringExtendBuild()));
     }
 

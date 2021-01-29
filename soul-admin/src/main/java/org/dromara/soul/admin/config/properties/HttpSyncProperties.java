@@ -15,34 +15,31 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.listener;
+package org.dromara.soul.admin.config.properties;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.time.Duration;
 
 /**
- * The Soul Domain.
- *
- * @author xiaoyu
+ * the http sync strategy properties.
+ * @author huangxiaofeng
  */
-@Data
-public final class SoulDomain {
-
-    private static final SoulDomain SOUL_DOMAIN = new SoulDomain();
-
-    /**
-     * ip:port.
-     */
-    private String httpPath;
-
-    private SoulDomain() {
-    }
+@Getter
+@Setter
+@ConfigurationProperties(prefix = "soul.sync.http")
+public class HttpSyncProperties {
 
     /**
-     * Gets instance.
-     *
-     * @return the instance
+     * Whether enabled http sync strategy, default: true.
      */
-    public static SoulDomain getInstance() {
-        return SOUL_DOMAIN;
-    }
+    private boolean enabled = true;
+
+    /**
+     * Periodically refresh the config data interval from the database, default: 5 minutes.
+     */
+    private Duration refreshInterval = Duration.ofMinutes(5);
+
 }

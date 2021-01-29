@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.config;
+package org.dromara.soul.admin.config.properties;
 
 import lombok.Data;
 import lombok.Getter;

@@ -15,27 +15,34 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.config;
+package org.dromara.soul.admin.utils;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+import lombok.Data;
 
 /**
- * Local DataSource configuration.
+ * The Soul Domain.
  *
- * @author nuo-promise
+ * @author xiaoyu
  */
-@Getter
-@Setter
-@Component
-@ConfigurationProperties(prefix = "soul.database")
-public class DataBaseProperties {
+@Data
+public final class SoulDomain {
 
-    private String dialect;
+    private static final SoulDomain SOUL_DOMAIN = new SoulDomain();
 
-    private String initScript;
+    /**
+     * ip:port.
+     */
+    private String httpPath;
 
-    private Boolean initEnable;
+    private SoulDomain() {
+    }
+
+    /**
+     * Gets instance.
+     *
+     * @return the instance
+     */
+    public static SoulDomain getInstance() {
+        return SOUL_DOMAIN;
+    }
 }

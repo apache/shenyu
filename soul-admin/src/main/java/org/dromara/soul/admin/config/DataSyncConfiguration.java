@@ -19,6 +19,8 @@ package org.dromara.soul.admin.config;
 
 import com.alibaba.nacos.api.config.ConfigService;
 import org.I0Itec.zkclient.ZkClient;
+import org.dromara.soul.admin.config.properties.HttpSyncProperties;
+import org.dromara.soul.admin.config.properties.WebsocketSyncProperties;
 import org.dromara.soul.admin.listener.DataChangedListener;
 import org.dromara.soul.admin.listener.http.HttpLongPollingDataChangedListener;
 import org.dromara.soul.admin.listener.nacos.NacosDataChangedListener;
@@ -58,7 +60,6 @@ public class DataSyncConfiguration {
         public HttpLongPollingDataChangedListener httpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties) {
             return new HttpLongPollingDataChangedListener(httpSyncProperties);
         }
-
     }
 
     /**

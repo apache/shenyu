@@ -15,25 +15,23 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.config;
+package org.dromara.soul.admin.config.properties;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
 /**
- * The type Zookeeper configuration.
+ * Aes Secret configuration.
  *
- * @author xiaoyu(Myth)
+ * @author nuo-promise
  */
-@Data
-@ConfigurationProperties(prefix = "soul.sync.zookeeper")
-public class ZookeeperProperties {
+@Getter
+@Setter
+@Component
+@ConfigurationProperties(prefix = "soul.aes.secret")
+public class SecretProperties {
 
-    private String url;
-
-    private Integer sessionTimeout;
-
-    private Integer connectionTimeout;
-
-    private String serializer;
+    private String key;
 }

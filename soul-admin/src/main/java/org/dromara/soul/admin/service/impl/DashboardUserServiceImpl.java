@@ -19,7 +19,7 @@ package org.dromara.soul.admin.service.impl;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.dromara.soul.admin.config.SecretProperties;
+import org.dromara.soul.admin.config.properties.SecretProperties;
 import org.dromara.soul.admin.dto.DashboardUserDTO;
 import org.dromara.soul.admin.dto.UserRoleDTO;
 import org.dromara.soul.admin.entity.DashboardUserDO;

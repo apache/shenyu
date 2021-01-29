@@ -20,6 +20,7 @@ package org.dromara.soul.admin.config;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.curator.test.TestingServer;
 import org.dromara.soul.admin.AbstractConfigurationTest;
+import org.dromara.soul.admin.config.properties.ZookeeperProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.junit.AfterClass;

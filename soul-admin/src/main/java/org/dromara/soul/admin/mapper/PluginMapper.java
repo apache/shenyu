@@ -38,8 +38,7 @@ public interface PluginMapper {
      * @return {@linkplain PluginDO}
      */
     PluginDO selectById(String id);
-
-
+    
     /**
      * Select by name plugin do.
      *

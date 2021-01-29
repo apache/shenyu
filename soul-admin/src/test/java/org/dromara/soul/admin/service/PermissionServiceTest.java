@@ -17,7 +17,7 @@
 
 package org.dromara.soul.admin.service;
 
-import org.dromara.soul.admin.config.JwtProperties;
+import org.dromara.soul.admin.config.properties.JwtProperties;
 import org.dromara.soul.admin.entity.DashboardUserDO;
 import org.dromara.soul.admin.entity.PermissionDO;
 import org.dromara.soul.admin.entity.ResourceDO;
