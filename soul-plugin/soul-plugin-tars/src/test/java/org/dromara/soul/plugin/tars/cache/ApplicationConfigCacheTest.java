@@ -61,10 +61,10 @@ public final class ApplicationConfigCacheTest {
                 + "\"right\":\"param2\"}],\"returnType\":\"java.lang.String\"}]}";
 
         final MetaData metaData = new MetaData("id", "127.0.0.1:8080", "contextPath",
-                "path", RpcTypeEnum.TARS.getName(), "serviceName", "method1",
+                "path5", RpcTypeEnum.TARS.getName(), "serviceName5", "method1",
                 "parameterTypes", rpcExt, false);
         applicationConfigCacheUnderTest.initPrx(metaData);
-        final TarsInvokePrxList result = applicationConfigCacheUnderTest.get("path");
+        final TarsInvokePrxList result = applicationConfigCacheUnderTest.get("path5");
         assertNotNull(result);
         assertEquals("promise_method1", result.getMethod().getName());
         assertEquals(2, result.getParamTypes().length);
@@ -118,10 +118,11 @@ public final class ApplicationConfigCacheTest {
     @Test
     public void testInitPrx() {
         final MetaData metaData = new MetaData("id", "127.0.0.1:8080", "contextPath",
-                "path", RpcTypeEnum.TARS.getName(), "serviceName", "method1",
-                "parameterTypes", "{\"methodInfo\":[{\"methodName\":\"method1\",\"params\":[{\"left\":\"int\",\"right\":\"param1\"},{\"left\":\"java.lang.Integer\",\"right\":\"param2\"}]}]}", false);
+                "path6", RpcTypeEnum.TARS.getName(), "serviceName6", "method1",
+                "parameterTypes", "{\"methodInfo\":[{\"methodName\":\"method1\",\"params\":[{\"left\":\"int\",\"right\":\"param1\"},"
+                + "{\"left\":\"java.lang.Integer\",\"right\":\"param2\"}],\"returnType\":\"java.lang.String\"}]}", false);
         applicationConfigCacheUnderTest.initPrx(metaData);
-        final TarsInvokePrxList result = applicationConfigCacheUnderTest.get("path");
+        final TarsInvokePrxList result = applicationConfigCacheUnderTest.get("path6");
         assertEquals("promise_method1", result.getMethod().getName());
     }
 
