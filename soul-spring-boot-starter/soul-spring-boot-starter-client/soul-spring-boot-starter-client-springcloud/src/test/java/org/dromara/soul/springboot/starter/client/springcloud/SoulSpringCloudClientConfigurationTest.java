@@ -17,12 +17,12 @@
 
 package org.dromara.soul.springboot.starter.client.springcloud;
 
-import lombok.SneakyThrows;
 import org.dromara.soul.client.common.utils.RegisterUtils;
 import org.dromara.soul.client.springcloud.config.SoulSpringCloudConfig;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -36,7 +36,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 
 /**
  * Test case for {@link SoulSpringCloudClientConfiguration}.
@@ -65,11 +64,10 @@ public final class SoulSpringCloudClientConfigurationTest {
     @Autowired
     private SoulSpringCloudConfig soulSpringCloudConfig;
 
-    @Before
-    @SneakyThrows
-    public void before() {
+    @BeforeClass
+    public static void before() throws Exception {
         PowerMockito.mockStatic(RegisterUtils.class);
-        PowerMockito.doNothing().when(RegisterUtils.class, "doRegister", any(), any(), any());
+        PowerMockito.doNothing().when(RegisterUtils.class, "doRegister", Mockito.any(), Mockito.any(), Mockito.any());
     }
 
     @Test
