@@ -17,6 +17,7 @@
 
 package org.dromara.soul.springboot.starter.client.springcloud;
 
+import org.assertj.core.api.Assertions;
 import org.dromara.soul.client.common.utils.RegisterUtils;
 import org.dromara.soul.client.springcloud.config.SoulSpringCloudConfig;
 import org.junit.BeforeClass;
@@ -35,7 +36,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Test case for {@link SoulSpringCloudClientConfiguration}.
@@ -74,6 +74,6 @@ public final class SoulSpringCloudClientConfigurationTest {
     public void testSoulSpringCloudConfig() {
         assertThat(soulSpringCloudConfig.getContextPath(), is("spring-cloud-server"));
         assertThat(soulSpringCloudConfig.getAdminUrl(), is("http://localhost:9095"));
-        assertTrue(soulSpringCloudConfig.isFull());
+        Assertions.assertThat(soulSpringCloudConfig.isFull()).isTrue();
     }
 }
