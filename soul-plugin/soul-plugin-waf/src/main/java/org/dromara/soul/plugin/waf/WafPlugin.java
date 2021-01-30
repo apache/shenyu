@@ -55,7 +55,7 @@ public class WafPlugin extends AbstractSoulPlugin {
                 return chain.execute(exchange);
             }
             exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-            Object error = SoulResultWrap.error(403, Constants.REJECT_MSG, null);
+            Object error = SoulResultWrap.error(HttpStatus.FORBIDDEN.value(), Constants.REJECT_MSG, null);
             return WebFluxResultUtils.result(exchange, error);
         }
         String handle = rule.getHandle();
