@@ -17,9 +17,17 @@
 
 package org.dromara.soul.springboot.starter.client.springcloud;
 
+import lombok.SneakyThrows;
+import org.dromara.soul.client.common.utils.RegisterUtils;
 import org.dromara.soul.client.springcloud.config.SoulSpringCloudConfig;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,13 +36,17 @@ import org.springframework.test.context.junit4.SpringRunner;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 
 /**
  * Test case for {@link SoulSpringCloudClientConfiguration}.
  *
  * @author chenxi
  */
-@RunWith(SpringRunner.class)
+@RunWith(PowerMockRunner.class)
+@PowerMockRunnerDelegate(SpringRunner.class)
+@PowerMockIgnore({"javax.management.*", "javax.net.*"})
+@PrepareForTest(RegisterUtils.class)
 @SpringBootTest(
         classes = {
                 SoulSpringCloudClientConfiguration.class,
@@ -52,6 +64,13 @@ import static org.junit.Assert.assertTrue;
 public final class SoulSpringCloudClientConfigurationTest {
     @Autowired
     private SoulSpringCloudConfig soulSpringCloudConfig;
+
+    @Before
+    @SneakyThrows
+    public void before() {
+        PowerMockito.mockStatic(RegisterUtils.class);
+        PowerMockito.doNothing().when(RegisterUtils.class, "doRegister", any(), any(), any());
+    }
 
     @Test
     public void testSoulSpringCloudConfig() {
