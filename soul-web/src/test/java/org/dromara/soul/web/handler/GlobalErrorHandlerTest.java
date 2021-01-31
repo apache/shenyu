@@ -79,18 +79,17 @@ public class GlobalErrorHandlerTest {
 
     @Test
     public void getErrorAttributes() {
-        ServerWebExchange webExchange =
-                MockServerWebExchange.from(MockServerHttpRequest
-                        .get("http://localhost:8080/favicon.ico"));
+        ServerWebExchange webExchange = MockServerWebExchange.from(MockServerHttpRequest.get("http://localhost:8080/favicon.ico"));
+        NullPointerException nullPointerException = new NullPointerException("nullPointerException");
         MockServerRequest serverRequest = MockServerRequest.builder()
                 .exchange(webExchange)
-                .attribute("org.springframework.boot.web.reactive.error.DefaultErrorAttributes.ERROR", new NullPointerException("nullPointerException"))
+                .attribute("org.springframework.boot.web.reactive.error.DefaultErrorAttributes.ERROR", nullPointerException)
                 .build();
         Map<String, Object> response = globalErrorHandler.getErrorAttributes(serverRequest, false);
         assertNotNull(response);
         assertThat(response, hasEntry("code", 500L));
         assertThat(response, hasEntry("message", HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase()));
-        assertThat(response, hasEntry("data", "nullPointerException"));
+        assertThat(response, hasEntry("data", nullPointerException.getMessage()));
     }
 
     @Test
