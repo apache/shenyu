@@ -17,9 +17,14 @@
 
 package org.dromara.soul.springboot.starter.client.springcloud;
 
+import org.assertj.core.api.Assertions;
+import org.dromara.soul.client.common.utils.RegisterUtils;
 import org.dromara.soul.client.springcloud.config.SoulSpringCloudConfig;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.MockedStatic;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,7 +32,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 
 /**
  * Test case for {@link SoulSpringCloudClientConfiguration}.
@@ -53,10 +59,16 @@ public final class SoulSpringCloudClientConfigurationTest {
     @Autowired
     private SoulSpringCloudConfig soulSpringCloudConfig;
 
+    @BeforeClass
+    public static void before() {
+        MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
+        registerUtilsMockedStatic.when(() -> RegisterUtils.doRegister(any(), any(), any())).thenAnswer((Answer<Void>) invocation -> null);
+    }
+
     @Test
     public void testSoulSpringCloudConfig() {
         assertThat(soulSpringCloudConfig.getContextPath(), is("spring-cloud-server"));
         assertThat(soulSpringCloudConfig.getAdminUrl(), is("http://localhost:9095"));
-        assertTrue(soulSpringCloudConfig.isFull());
+        Assertions.assertThat(soulSpringCloudConfig.isFull()).isTrue();
     }
 }
