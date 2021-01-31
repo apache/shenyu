@@ -20,7 +20,6 @@ package org.dromara.soul.web.handler;
 import org.dromara.soul.plugin.api.result.DefaultSoulResult;
 import org.dromara.soul.plugin.api.result.SoulResult;
 import org.dromara.soul.plugin.base.utils.SpringBeanUtils;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,6 +44,10 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -78,30 +81,29 @@ public class GlobalErrorHandlerTest {
     public void getErrorAttributes() {
         ServerWebExchange webExchange =
                 MockServerWebExchange.from(MockServerHttpRequest
-                        .post("http://localhost:8080/favicon.ico"));
+                        .get("http://localhost:8080/favicon.ico"));
         MockServerRequest serverRequest = MockServerRequest.builder()
                 .exchange(webExchange)
-                .attribute("org.springframework.boot.web.reactive.error.DefaultErrorAttributes.ERROR", new NullPointerException("errorMessage"))
+                .attribute("org.springframework.boot.web.reactive.error.DefaultErrorAttributes.ERROR", new NullPointerException("nullPointerException"))
                 .build();
-
         Map<String, Object> response = globalErrorHandler.getErrorAttributes(serverRequest, false);
-        Assert.assertNotNull(response);
-        Assert.assertEquals(response.get("code"), (long) HttpStatus.INTERNAL_SERVER_ERROR.value());
-        Assert.assertEquals(response.get("message"), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
-        Assert.assertEquals(response.get("data"), "errorMessage");
+        assertNotNull(response);
+        assertThat(response, hasEntry("code", 500L));
+        assertThat(response, hasEntry("message", HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase()));
+        assertThat(response, hasEntry("data", "nullPointerException"));
     }
 
     @Test
     public void getRoutingFunction() {
         final ErrorAttributes errorAttributes = mock(DefaultErrorAttributes.class);
         RouterFunction<ServerResponse> routerFunction = globalErrorHandler.getRoutingFunction(errorAttributes);
-        Assert.assertNotNull(routerFunction);
+        assertNotNull(routerFunction);
     }
 
     @Test
     public void getHttpStatus() {
         final Map<String, Object> errorAttributes = new LinkedHashMap<>();
         int status = globalErrorHandler.getHttpStatus(errorAttributes);
-        Assert.assertEquals(status, HttpStatus.INTERNAL_SERVER_ERROR.value());
+        assertThat(status, is(HttpStatus.INTERNAL_SERVER_ERROR.value()));
     }
 }
