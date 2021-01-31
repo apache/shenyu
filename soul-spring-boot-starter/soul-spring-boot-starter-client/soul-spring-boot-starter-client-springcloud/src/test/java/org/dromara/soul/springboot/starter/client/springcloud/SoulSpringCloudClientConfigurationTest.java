@@ -23,12 +23,8 @@ import org.dromara.soul.client.springcloud.config.SoulSpringCloudConfig;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.modules.junit4.PowerMockRunnerDelegate;
+import org.mockito.MockedStatic;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -36,16 +32,15 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mockStatic;
 
 /**
  * Test case for {@link SoulSpringCloudClientConfiguration}.
  *
  * @author chenxi
  */
-@RunWith(PowerMockRunner.class)
-@PowerMockRunnerDelegate(SpringRunner.class)
-@PowerMockIgnore({"javax.management.*", "javax.net.*"})
-@PrepareForTest(RegisterUtils.class)
+@RunWith(SpringRunner.class)
 @SpringBootTest(
         classes = {
                 SoulSpringCloudClientConfiguration.class,
@@ -65,9 +60,9 @@ public final class SoulSpringCloudClientConfigurationTest {
     private SoulSpringCloudConfig soulSpringCloudConfig;
 
     @BeforeClass
-    public static void before() throws Exception {
-        PowerMockito.mockStatic(RegisterUtils.class);
-        PowerMockito.doNothing().when(RegisterUtils.class, "doRegister", Mockito.any(), Mockito.any(), Mockito.any());
+    public static void before() {
+        MockedStatic<RegisterUtils> registerUtilsMockedStatic = mockStatic(RegisterUtils.class);
+        registerUtilsMockedStatic.when(() -> RegisterUtils.doRegister(any(), any(), any())).thenAnswer((Answer<Void>) invocation -> null);
     }
 
     @Test
