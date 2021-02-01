@@ -19,6 +19,7 @@ package org.dromara.soul.admin.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.admin.AbstractConfigurationTest;
+import org.dromara.soul.admin.config.properties.SecretProperties;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

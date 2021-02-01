@@ -29,7 +29,10 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mockStatic;
 
@@ -76,6 +79,7 @@ public final class RegisterUtilsTest {
         try (MockedStatic<OkHttpTools> okHttpToolsMockedStatic = mockStatic(OkHttpTools.class)) {
             okHttpToolsMockedStatic.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
             RegisterUtils.doRegister(json, url, RpcTypeEnum.DUBBO);
+            verify(okHttpTools, times(1)).post(eq(url), eq(json));
         }
     }
 
@@ -87,6 +91,7 @@ public final class RegisterUtilsTest {
         try (MockedStatic<OkHttpTools> okHttpToolsMockedStatic = mockStatic(OkHttpTools.class)) {
             okHttpToolsMockedStatic.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
             RegisterUtils.doRegister(json, url, RpcTypeEnum.DUBBO);
+            verify(okHttpTools, times(1)).post(eq(url), eq(json));
         }
     }
 
@@ -98,6 +103,7 @@ public final class RegisterUtilsTest {
         try (MockedStatic<OkHttpTools> okHttpToolsMockedStatic = mockStatic(OkHttpTools.class)) {
             okHttpToolsMockedStatic.when(OkHttpTools::getInstance).thenReturn(okHttpTools);
             RegisterUtils.doRegister(json, url, RpcTypeEnum.DUBBO);
+            verify(okHttpTools, times(1)).post(eq(url), eq(json));
         }
     }
 }

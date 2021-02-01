@@ -31,11 +31,6 @@
     <dependencies>
         <dependency>
             <groupId>org.dromara</groupId>
-            <artifactId>soul-common</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.dromara</groupId>
             <artifactId>soul-plugin-api</artifactId>
             <version>${project.version}</version>
         </dependency>

@@ -23,6 +23,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.TypeAdapter;
@@ -32,8 +33,10 @@ import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.dromara.soul.common.constant.Constants;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -55,12 +58,10 @@ public class GsonUtils {
 
     private static final GsonUtils INSTANCE = new GsonUtils();
 
-    /**
-     * The constant STRING.
-     */
-    private static final TypeAdapter<String> STRING = new StringTypeAdapter();
-
-    private static final Gson GSON = new GsonBuilder().registerTypeAdapter(String.class, STRING).create();
+    private static final Gson GSON = new GsonBuilder()
+            .registerTypeAdapter(String.class, new StringTypeAdapter())
+            .registerTypeHierarchyAdapter(Pair.class, new PairTypeAdapter())
+            .create();
 
     private static final Gson GSON_MAP = new GsonBuilder().serializeNulls().registerTypeHierarchyAdapter(new TypeToken<Map<String, Object>>() {
     }.getRawType(), new MapDeserializer<String, Object>()).create();
@@ -256,6 +257,8 @@ public class GsonUtils {
             } else if (value instanceof JsonArray) {
                 JsonArray jsonArray = (JsonArray) value;
                 map.put(key, jsonArrayToListInConvertToMap(jsonArray));
+            } else if (value instanceof JsonNull) {
+                map.put(key, null);
             }
         }
 
@@ -305,8 +308,12 @@ public class GsonUtils {
             }
 
             for (Map.Entry<String, JsonElement> entry : jsonEntrySet) {
-                U value = context.deserialize(entry.getValue(), this.getType(entry.getValue()));
-                resultMap.put((T) entry.getKey(), value);
+                if (entry.getValue().isJsonNull()) {
+                    resultMap.put((T) entry.getKey(), null);
+                } else {
+                    U value = context.deserialize(entry.getValue(), this.getType(entry.getValue()));
+                    resultMap.put((T) entry.getKey(), value);
+                }
             }
 
             return resultMap;
@@ -361,6 +368,42 @@ public class GsonUtils {
                 return "";
             }
             return reader.nextString();
+        }
+    }
+
+    private static class PairTypeAdapter extends TypeAdapter<Pair<String, String>> {
+
+        @Override
+        public void write(final JsonWriter out, final Pair<String, String> value) throws IOException {
+            out.beginObject();
+            out.name("left").value(value.getLeft());
+            out.name("right").value(value.getRight());
+            out.endObject();
+        }
+
+        @Override
+        public Pair<String, String> read(final JsonReader in) throws IOException {
+            in.beginObject();
+
+            String left = null;
+            String right = null;
+
+            while (in.hasNext()) {
+                switch (in.nextName()) {
+                    case "left":
+                        left = in.nextString();
+                        break;
+                    case "right":
+                        right = in.nextString();
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            in.endObject();
+
+            return Pair.of(left, right);
         }
     }
 }

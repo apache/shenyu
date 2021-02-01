@@ -54,4 +54,20 @@ public class DivideUpstream implements Serializable {
      */
     private int weight;
 
+    /**
+     * false close/ true open.
+     */
+    @Builder.Default
+    private boolean status = true;
+
+    /**
+     * starup time.
+     */
+    private long timestamp;
+
+    /**
+     * warmup.
+     */
+    private int warmup;
+
 }

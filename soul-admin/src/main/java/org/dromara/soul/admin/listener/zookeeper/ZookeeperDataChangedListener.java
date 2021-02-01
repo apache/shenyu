@@ -48,14 +48,14 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
     @Override
     public void onAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
         for (AppAuthData data : changed) {
-            final String appAuthPath = ZkPathConstants.buildAppAuthPath(data.getAppKey());
+            String appAuthPath = ZkPathConstants.buildAppAuthPath(data.getAppKey());
             // delete
             if (eventType == DataEventTypeEnum.DELETE) {
                 deleteZkPath(appAuthPath);
                 continue;
             }
             // create or update
-            upsertZkNode(appAuthPath, data);
+            insertZkNode(appAuthPath, data);
         }
     }
 
@@ -63,89 +63,82 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
     @Override
     public void onMetaDataChanged(final List<MetaData> changed, final DataEventTypeEnum eventType) {
         for (MetaData data : changed) {
-            final String metaDataPath = ZkPathConstants.buildMetaDataPath(URLEncoder.encode(data.getPath(), "UTF-8"));
+            String metaDataPath = ZkPathConstants.buildMetaDataPath(URLEncoder.encode(data.getPath(), "UTF-8"));
             // delete
             if (eventType == DataEventTypeEnum.DELETE) {
                 deleteZkPath(metaDataPath);
                 continue;
             }
             // create or update
-            upsertZkNode(metaDataPath, data);
+            insertZkNode(metaDataPath, data);
         }
     }
 
     @Override
     public void onPluginChanged(final List<PluginData> changed, final DataEventTypeEnum eventType) {
         for (PluginData data : changed) {
-            final String pluginPath = ZkPathConstants.buildPluginPath(data.getName());
+            String pluginPath = ZkPathConstants.buildPluginPath(data.getName());
             // delete
             if (eventType == DataEventTypeEnum.DELETE) {
                 deleteZkPathRecursive(pluginPath);
-                final String selectorParentPath = ZkPathConstants.buildSelectorParentPath(data.getName());
+                String selectorParentPath = ZkPathConstants.buildSelectorParentPath(data.getName());
                 deleteZkPathRecursive(selectorParentPath);
-                final String ruleParentPath = ZkPathConstants.buildRuleParentPath(data.getName());
+                String ruleParentPath = ZkPathConstants.buildRuleParentPath(data.getName());
                 deleteZkPathRecursive(ruleParentPath);
                 continue;
             }
             //create or update
-            upsertZkNode(pluginPath, data);
+            insertZkNode(pluginPath, data);
         }
     }
 
     @Override
     public void onSelectorChanged(final List<SelectorData> changed, final DataEventTypeEnum eventType) {
-        if (eventType == DataEventTypeEnum.REFRESH) {
-            final String selectorParentPath = ZkPathConstants.buildSelectorParentPath(changed.get(0).getPluginName());
+        if (eventType == DataEventTypeEnum.REFRESH && !changed.isEmpty()) {
+            String selectorParentPath = ZkPathConstants.buildSelectorParentPath(changed.get(0).getPluginName());
             deleteZkPathRecursive(selectorParentPath);
         }
         for (SelectorData data : changed) {
-            final String selectorRealPath = ZkPathConstants.buildSelectorRealPath(data.getPluginName(), data.getId());
+            String selectorRealPath = ZkPathConstants.buildSelectorRealPath(data.getPluginName(), data.getId());
             if (eventType == DataEventTypeEnum.DELETE) {
                 deleteZkPath(selectorRealPath);
                 continue;
             }
-            final String selectorParentPath = ZkPathConstants.buildSelectorParentPath(data.getPluginName());
+            String selectorParentPath = ZkPathConstants.buildSelectorParentPath(data.getPluginName());
             createZkNode(selectorParentPath);
             //create or update
-            upsertZkNode(selectorRealPath, data);
+            insertZkNode(selectorRealPath, data);
         }
     }
 
     @Override
     public void onRuleChanged(final List<RuleData> changed, final DataEventTypeEnum eventType) {
-        if (eventType == DataEventTypeEnum.REFRESH) {
-            final String selectorParentPath = ZkPathConstants.buildRuleParentPath(changed.get(0).getPluginName());
+        if (eventType == DataEventTypeEnum.REFRESH && !changed.isEmpty()) {
+            String selectorParentPath = ZkPathConstants.buildRuleParentPath(changed.get(0).getPluginName());
             deleteZkPathRecursive(selectorParentPath);
         }
         for (RuleData data : changed) {
-            final String ruleRealPath = ZkPathConstants.buildRulePath(data.getPluginName(), data.getSelectorId(), data.getId());
+            String ruleRealPath = ZkPathConstants.buildRulePath(data.getPluginName(), data.getSelectorId(), data.getId());
             if (eventType == DataEventTypeEnum.DELETE) {
                 deleteZkPath(ruleRealPath);
                 continue;
             }
-            final String ruleParentPath = ZkPathConstants.buildRuleParentPath(data.getPluginName());
+            String ruleParentPath = ZkPathConstants.buildRuleParentPath(data.getPluginName());
             createZkNode(ruleParentPath);
             //create or update
-            upsertZkNode(ruleRealPath, data);
+            insertZkNode(ruleRealPath, data);
         }
+    }
+    
+    private void insertZkNode(final String path, final Object data) {
+        createZkNode(path);
+        zkClient.writeData(path, data);
     }
     
     private void createZkNode(final String path) {
         if (!zkClient.exists(path)) {
             zkClient.createPersistent(path, true);
         }
-    }
-    
-    /**
-     * create or update zookeeper node.
-     * @param path node path
-     * @param data node data 
-     */
-    private void upsertZkNode(final String path, final Object data) {
-        if (!zkClient.exists(path)) {
-            zkClient.createPersistent(path, true);
-        }
-        zkClient.writeData(path, data);
     }
     
     private void deleteZkPath(final String path) {

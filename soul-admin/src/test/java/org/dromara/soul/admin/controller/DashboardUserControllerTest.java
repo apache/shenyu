@@ -17,13 +17,15 @@
 
 package org.dromara.soul.admin.controller;
 
-import org.dromara.soul.admin.config.SecretProperties;
+import org.dromara.soul.admin.config.properties.SecretProperties;
 import org.dromara.soul.admin.dto.DashboardUserDTO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.service.DashboardUserService;
 import org.dromara.soul.admin.utils.SoulResultMessage;
+import org.dromara.soul.admin.vo.DashboardUserEditVO;
 import org.dromara.soul.admin.vo.DashboardUserVO;
+import org.dromara.soul.admin.vo.RoleVO;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,16 +34,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.MediaType;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -73,18 +77,13 @@ public final class DashboardUserControllerTest {
             "dateUpdated");
 
     private final DashboardUserDTO dashboardUserDTO = new DashboardUserDTO("2", "userName",
-            "123456", 0, false);
+            "123456", 0, new ArrayList<>(), false);
 
     @Before
     public void setUp() throws Exception {
         final SecretProperties secretProperties = new SecretProperties();
         secretProperties.setKey("2095132720951327");
-
-        Class<?> controllerClass = dashboardUserController.getClass();
-        Field secretPropertiesField = controllerClass.getDeclaredField("secretProperties");
-        secretPropertiesField.setAccessible(true);
-        secretPropertiesField.set(dashboardUserController, secretProperties);
-
+        ReflectionTestUtils.setField(dashboardUserController, "secretProperties", secretProperties);
         mockMvc = MockMvcBuilders.standaloneSetup(dashboardUserController).build();
     }
 
@@ -111,7 +110,12 @@ public final class DashboardUserControllerTest {
 
     @Test
     public void detailDashboardUser() throws Exception {
-        given(dashboardUserService.findById(any())).willReturn(dashboardUserVO);
+        List<RoleVO> roles = new ArrayList<>();
+        roles.add(mock(RoleVO.class));
+        List<RoleVO> allRoles = new ArrayList<>();
+        allRoles.add(mock(RoleVO.class));
+        DashboardUserEditVO dashboardUserEditVO = DashboardUserEditVO.buildDashboardUserEditVO(dashboardUserVO, roles, allRoles);
+        given(dashboardUserService.findById(any())).willReturn(dashboardUserEditVO);
         final String url = "/dashboardUser/1";
         mockMvc.perform(get(url))
                 .andExpect(status().isOk())

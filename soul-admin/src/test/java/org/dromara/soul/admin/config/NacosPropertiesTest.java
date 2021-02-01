@@ -19,6 +19,7 @@ package org.dromara.soul.admin.config;
 
 import org.dromara.soul.admin.AbstractConfigurationTest;
 
+import org.dromara.soul.admin.config.properties.NacosProperties;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;

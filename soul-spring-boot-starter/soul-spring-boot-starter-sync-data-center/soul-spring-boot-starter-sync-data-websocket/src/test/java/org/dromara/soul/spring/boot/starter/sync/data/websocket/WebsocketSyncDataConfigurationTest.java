@@ -17,10 +17,9 @@
 
 package org.dromara.soul.spring.boot.starter.sync.data.websocket;
 
-import org.dromara.soul.plugin.sync.data.weboscket.WebsocketSyncDataService;
-import org.dromara.soul.plugin.sync.data.weboscket.config.WebsocketConfig;
+import org.dromara.soul.plugin.sync.data.websocket.WebsocketSyncDataService;
+import org.dromara.soul.plugin.sync.data.websocket.config.WebsocketConfig;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +27,10 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 /**
  * Test case for {@link WebsocketSyncDataConfiguration}.
@@ -45,7 +48,7 @@ import org.springframework.test.context.junit4.SpringRunner;
         })
 @EnableAutoConfiguration
 @MockBean(PluginDataSubscriber.class)
-public class WebsocketSyncDataConfigurationTest {
+public final class WebsocketSyncDataConfigurationTest {
 
     @Autowired
     private WebsocketConfig websocketConfig;
@@ -55,11 +58,11 @@ public class WebsocketSyncDataConfigurationTest {
 
     @Test
     public void testWebsocketSyncDataService() {
-        Assert.assertNotNull(websocketSyncDataService);
+        assertNotNull(websocketSyncDataService);
     }
 
     @Test
     public void testWebsocketConfig() {
-        Assert.assertEquals("ws://localhost:9095/websocket", websocketConfig.getUrls());
+        assertThat(websocketConfig.getUrls(), is("ws://localhost:9095/websocket"));
     }
 }

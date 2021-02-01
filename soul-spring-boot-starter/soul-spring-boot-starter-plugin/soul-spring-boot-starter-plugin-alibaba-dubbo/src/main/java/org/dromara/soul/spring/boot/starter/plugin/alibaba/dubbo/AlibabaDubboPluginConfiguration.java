@@ -58,7 +58,7 @@ public class AlibabaDubboPluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin bodyParamPlugin() {
+    public SoulPlugin alibabaDubboBodyParamPlugin() {
         return new BodyParamPlugin();
     }
 
@@ -68,7 +68,7 @@ public class AlibabaDubboPluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin dubboResponsePlugin() {
+    public SoulPlugin alibabaDubboResponsePlugin() {
         return new DubboResponsePlugin();
     }
 

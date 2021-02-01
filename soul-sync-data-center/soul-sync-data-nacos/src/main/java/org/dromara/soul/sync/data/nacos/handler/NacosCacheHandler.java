@@ -87,7 +87,7 @@ public class NacosCacheHandler {
     protected void updatePluginMap(final String configInfo) {
         try {
             // Fix bug #656(https://github.com/dromara/soul/issues/656)
-            List<PluginData> pluginDataList = GsonUtils.getInstance().toObjectMap(configInfo, PluginData.class).values().stream().collect(Collectors.toList());
+            List<PluginData> pluginDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configInfo, PluginData.class).values());
             pluginDataList.forEach(pluginData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
                 subscriber.unSubscribe(pluginData);
                 subscriber.onSubscribe(pluginData);
@@ -125,7 +125,7 @@ public class NacosCacheHandler {
 
     protected void updateMetaDataMap(final String configInfo) {
         try {
-            List<MetaData> metaDataList = GsonUtils.getInstance().toObjectMap(configInfo, MetaData.class).values().stream().collect(Collectors.toList());
+            List<MetaData> metaDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configInfo, MetaData.class).values());
             metaDataList.forEach(metaData -> metaDataSubscribers.forEach(subscriber -> {
                 subscriber.unSubscribe(metaData);
                 subscriber.onSubscribe(metaData);
@@ -137,7 +137,7 @@ public class NacosCacheHandler {
 
     protected void updateAuthMap(final String configInfo) {
         try {
-            List<AppAuthData> appAuthDataList = GsonUtils.getInstance().toObjectMap(configInfo, AppAuthData.class).values().stream().collect(Collectors.toList());
+            List<AppAuthData> appAuthDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configInfo, AppAuthData.class).values());
             appAuthDataList.forEach(appAuthData -> authDataSubscribers.forEach(subscriber -> {
                 subscriber.unSubscribe(appAuthData);
                 subscriber.onSubscribe(appAuthData);
@@ -149,7 +149,11 @@ public class NacosCacheHandler {
 
     @SneakyThrows
     private String getConfigAndSignListener(final String dataId, final Listener listener) {
-        return configService.getConfigAndSignListener(dataId, GROUP, 6000, listener);
+        String config = configService.getConfigAndSignListener(dataId, GROUP, 6000, listener);
+        if (config == null) {
+            config = "{}";
+        }
+        return config;
     }
 
     protected void watcherData(final String dataId, final OnChange oc) {
@@ -165,7 +169,7 @@ public class NacosCacheHandler {
             }
         };
         oc.change(getConfigAndSignListener(dataId, listener));
-        LISTENERS.getOrDefault(dataId, new ArrayList<>()).add(listener);
+        LISTENERS.computeIfAbsent(dataId, key -> new ArrayList<>()).add(listener);
     }
 
     protected interface OnChange {

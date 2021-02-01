@@ -45,5 +45,4 @@ public class AppAuthQuery implements Serializable {
      * page parameter.
      */
     private PageParameter pageParameter;
-
 }

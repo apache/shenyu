@@ -27,8 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.lang.reflect.Method;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
@@ -39,7 +38,7 @@ import static org.mockito.Mockito.mock;
  * The Test Case For ApplicationConfigCache.
  *
  * @author nuo-promise
- **/
+ */
 @RunWith(MockitoJUnitRunner.class)
 public final class ApplicationConfigCacheTest {
 
@@ -58,10 +57,7 @@ public final class ApplicationConfigCacheTest {
     @SneakyThrows
     @Test
     public void testGetSize() {
-        Class<ApplicationConfigCache> clazz = ApplicationConfigCache.class;
-        Method method = clazz.getDeclaredMethod("getSize");
-        method.setAccessible(true);
-        assertNotNull(method.invoke(this.applicationConfigCache));
+        assertNotNull(ReflectionTestUtils.invokeMethod(this.applicationConfigCache, "getSize"));
     }
 
     @Test
@@ -70,7 +66,7 @@ public final class ApplicationConfigCacheTest {
         this.applicationConfigCache.init(dubboRegisterConfig);
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void testInitRef() {
         MetaData metaData = new MetaData();
         metaData.setPath("/test");
@@ -82,7 +78,7 @@ public final class ApplicationConfigCacheTest {
         assertNotNull(this.applicationConfigCache.get("/test"));
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void testBuild() {
         DubboParamExtInfo dubboParamExtInfo = new DubboParamExtInfo();
         dubboParamExtInfo.setVersion("2.7.5");
@@ -103,10 +99,7 @@ public final class ApplicationConfigCacheTest {
     @SneakyThrows
     @Test
     public void testBuildLoadBalanceName() {
-        Class<ApplicationConfigCache> clazz = ApplicationConfigCache.class;
-        Method method = clazz.getDeclaredMethod("buildLoadBalanceName", String.class);
-        method.setAccessible(true);
-        assertThat(method.invoke(this.applicationConfigCache, LoadBalanceEnum.HASH.getName()), is("consistenthash"));
-        assertThat(method.invoke(this.applicationConfigCache, LoadBalanceEnum.ROUND_ROBIN.getName()), is("roundrobin"));
+        assertThat(ReflectionTestUtils.invokeMethod(this.applicationConfigCache, "buildLoadBalanceName", LoadBalanceEnum.HASH.getName()), is("consistenthash"));
+        assertThat(ReflectionTestUtils.invokeMethod(this.applicationConfigCache, "buildLoadBalanceName", LoadBalanceEnum.ROUND_ROBIN.getName()), is("roundrobin"));
     }
 }

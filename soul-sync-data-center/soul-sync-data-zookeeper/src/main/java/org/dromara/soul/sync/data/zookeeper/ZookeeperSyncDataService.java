@@ -34,6 +34,7 @@ import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
+import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.sync.data.api.AuthDataSubscriber;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
@@ -75,10 +76,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
 
     private void watcherData() {
         final String pluginParent = ZkPathConstants.PLUGIN_PARENT;
-        if (!zkClient.exists(pluginParent)) {
-            zkClient.createPersistent(pluginParent, true);
-        }
-        List<String> pluginZKs = zkClient.getChildren(ZkPathConstants.buildPluginParentPath());
+        List<String> pluginZKs = zkClientGetChildren(pluginParent);
         for (String pluginName : pluginZKs) {
             watcherAll(pluginName);
         }
@@ -102,8 +100,120 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
         if (!zkClient.exists(pluginPath)) {
             zkClient.createPersistent(pluginPath, true);
         }
-        PluginData pluginData = zkClient.readData(pluginPath);
-        Optional.ofNullable(pluginData).flatMap(data -> Optional.ofNullable(pluginDataSubscriber)).ifPresent(e -> e.onSubscribe(pluginData));
+        cachePluginData(zkClient.readData(pluginPath));
+        subscribePluginDataChanges(pluginPath, pluginName);
+    }
+
+    private void watcherSelector(final String pluginName) {
+        String selectorParentPath = ZkPathConstants.buildSelectorParentPath(pluginName);
+        List<String> childrenList = zkClientGetChildren(selectorParentPath);
+        if (CollectionUtils.isNotEmpty(childrenList)) {
+            childrenList.forEach(children -> {
+                String realPath = buildRealPath(selectorParentPath, children);
+                cacheSelectorData(zkClient.readData(realPath));
+                subscribeSelectorDataChanges(realPath);
+            });
+        }
+        subscribeChildChanges(ConfigGroupEnum.SELECTOR, selectorParentPath, childrenList);
+    }
+
+    private void watcherRule(final String pluginName) {
+        String ruleParent = ZkPathConstants.buildRuleParentPath(pluginName);
+        List<String> childrenList = zkClientGetChildren(ruleParent);
+        if (CollectionUtils.isNotEmpty(childrenList)) {
+            childrenList.forEach(children -> {
+                String realPath = buildRealPath(ruleParent, children);
+                cacheRuleData(zkClient.readData(realPath));
+                subscribeRuleDataChanges(realPath);
+            });
+        }
+        subscribeChildChanges(ConfigGroupEnum.RULE, ruleParent, childrenList);
+    }
+
+    private void watchAppAuth() {
+        final String appAuthParent = ZkPathConstants.APP_AUTH_PARENT;
+        List<String> childrenList = zkClientGetChildren(appAuthParent);
+        if (CollectionUtils.isNotEmpty(childrenList)) {
+            childrenList.forEach(children -> {
+                String realPath = buildRealPath(appAuthParent, children);
+                cacheAuthData(zkClient.readData(realPath));
+                subscribeAppAuthDataChanges(realPath);
+            });
+        }
+        subscribeChildChanges(ConfigGroupEnum.APP_AUTH, appAuthParent, childrenList);
+    }
+
+    private void watchMetaData() {
+        final String metaDataPath = ZkPathConstants.META_DATA;
+        List<String> childrenList = zkClientGetChildren(metaDataPath);
+        if (CollectionUtils.isNotEmpty(childrenList)) {
+            childrenList.forEach(children -> {
+                String realPath = buildRealPath(metaDataPath, children);
+                cacheMetaData(zkClient.readData(realPath));
+                subscribeMetaDataChanges(realPath);
+            });
+        }
+        subscribeChildChanges(ConfigGroupEnum.META_DATA, metaDataPath, childrenList);
+    }
+
+    private void subscribeChildChanges(final ConfigGroupEnum groupKey, final String groupParentPath, final List<String> childrenList) {
+        switch (groupKey) {
+            case SELECTOR:
+                zkClient.subscribeChildChanges(groupParentPath, (parentPath, currentChildren) -> {
+                    if (CollectionUtils.isNotEmpty(currentChildren)) {
+                        List<String> addSubscribePath = addSubscribePath(childrenList, currentChildren);
+                        addSubscribePath.stream().map(addPath -> {
+                            String realPath = buildRealPath(parentPath, addPath);
+                            cacheSelectorData(zkClient.readData(realPath));
+                            return realPath;
+                        }).forEach(this::subscribeSelectorDataChanges);
+
+                    }
+                });
+                break;
+            case RULE:
+                zkClient.subscribeChildChanges(groupParentPath, (parentPath, currentChildren) -> {
+                    if (CollectionUtils.isNotEmpty(currentChildren)) {
+                        List<String> addSubscribePath = addSubscribePath(childrenList, currentChildren);
+                        // Get the newly added node data and subscribe to that node
+                        addSubscribePath.stream().map(addPath -> {
+                            String realPath = buildRealPath(parentPath, addPath);
+                            cacheRuleData(zkClient.readData(realPath));
+                            return realPath;
+                        }).forEach(this::subscribeRuleDataChanges);
+                    }
+                });
+                break;
+            case APP_AUTH:
+                zkClient.subscribeChildChanges(groupParentPath, (parentPath, currentChildren) -> {
+                    if (CollectionUtils.isNotEmpty(currentChildren)) {
+                        final List<String> addSubscribePath = addSubscribePath(childrenList, currentChildren);
+                        addSubscribePath.stream().map(children -> {
+                            final String realPath = buildRealPath(parentPath, children);
+                            cacheAuthData(zkClient.readData(realPath));
+                            return realPath;
+                        }).forEach(this::subscribeAppAuthDataChanges);
+                    }
+                });
+                break;
+            case META_DATA:
+                zkClient.subscribeChildChanges(groupParentPath, (parentPath, currentChildren) -> {
+                    if (CollectionUtils.isNotEmpty(currentChildren)) {
+                        final List<String> addSubscribePath = addSubscribePath(childrenList, currentChildren);
+                        addSubscribePath.stream().map(children -> {
+                            final String realPath = buildRealPath(parentPath, children);
+                            cacheMetaData(zkClient.readData(realPath));
+                            return realPath;
+                        }).forEach(this::subscribeMetaDataChanges);
+                    }
+                });
+                break;
+            default:
+                throw new IllegalStateException("Unexpected groupKey: " + groupKey);
+        }
+    }
+
+    private void subscribePluginDataChanges(final String pluginPath, final String pluginName) {
         zkClient.subscribeDataChanges(pluginPath, new IZkDataListener() {
 
             @Override
@@ -117,112 +227,6 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
                 final PluginData data = new PluginData();
                 data.setName(pluginName);
                 Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.unSubscribe(data));
-            }
-        });
-    }
-
-    private void watcherSelector(final String pluginName) {
-        String selectorParentPath = ZkPathConstants.buildSelectorParentPath(pluginName);
-        if (!zkClient.exists(selectorParentPath)) {
-            zkClient.createPersistent(selectorParentPath, true);
-        }
-        final List<String> childrenList = zkClient.getChildren(selectorParentPath);
-        if (CollectionUtils.isNotEmpty(childrenList)) {
-            childrenList.forEach(children -> {
-                String realPath = buildRealPath(selectorParentPath, children);
-                cacheSelectorData(zkClient.readData(realPath));
-                subscribeSelectorDataChanges(realPath);
-            });
-        }
-
-        zkClient.subscribeChildChanges(selectorParentPath, (parentPath, currentChildren) -> {
-            if (CollectionUtils.isNotEmpty(currentChildren)) {
-                List<String> addSubscribePath = addSubscribePath(childrenList, currentChildren);
-                addSubscribePath.stream().map(addPath -> {
-                    String realPath = buildRealPath(parentPath, addPath);
-                    cacheSelectorData(zkClient.readData(realPath));
-                    return realPath;
-                }).forEach(this::subscribeSelectorDataChanges);
-
-            }
-        });
-    }
-
-    private void watcherRule(final String pluginName) {
-        String ruleParent = ZkPathConstants.buildRuleParentPath(pluginName);
-        if (!zkClient.exists(ruleParent)) {
-            zkClient.createPersistent(ruleParent, true);
-        }
-        List<String> childrenList = zkClient.getChildren(ruleParent);
-        if (CollectionUtils.isNotEmpty(childrenList)) {
-            childrenList.forEach(children -> {
-                String realPath = buildRealPath(ruleParent, children);
-                cacheRuleData(zkClient.readData(realPath));
-                subscribeRuleDataChanges(realPath);
-            });
-        }
-
-        zkClient.subscribeChildChanges(ruleParent, (parentPath, currentChildren) -> {
-            if (CollectionUtils.isNotEmpty(currentChildren)) {
-                List<String> addSubscribePath = addSubscribePath(childrenList, currentChildren);
-                // Get the newly added node data and subscribe to that node
-                addSubscribePath.stream().map(addPath -> {
-                    String realPath = buildRealPath(parentPath, addPath);
-                    cacheRuleData(zkClient.readData(realPath));
-                    return realPath;
-                }).forEach(this::subscribeRuleDataChanges);
-            }
-        });
-    }
-
-    private void watchAppAuth() {
-        final String appAuthParent = ZkPathConstants.APP_AUTH_PARENT;
-        if (!zkClient.exists(appAuthParent)) {
-            zkClient.createPersistent(appAuthParent, true);
-        }
-        final List<String> childrenList = zkClient.getChildren(appAuthParent);
-        if (CollectionUtils.isNotEmpty(childrenList)) {
-            childrenList.forEach(children -> {
-                String realPath = buildRealPath(appAuthParent, children);
-                cacheAuthData(zkClient.readData(realPath));
-                subscribeAppAuthDataChanges(realPath);
-            });
-        }
-
-        zkClient.subscribeChildChanges(appAuthParent, (parentPath, currentChildren) -> {
-            if (CollectionUtils.isNotEmpty(currentChildren)) {
-                final List<String> addSubscribePath = addSubscribePath(childrenList, currentChildren);
-                addSubscribePath.stream().map(children -> {
-                    final String realPath = buildRealPath(parentPath, children);
-                    cacheAuthData(zkClient.readData(realPath));
-                    return realPath;
-                }).forEach(this::subscribeAppAuthDataChanges);
-            }
-        });
-    }
-
-    private void watchMetaData() {
-        final String metaDataPath = ZkPathConstants.META_DATA;
-        if (!zkClient.exists(metaDataPath)) {
-            zkClient.createPersistent(metaDataPath, true);
-        }
-        final List<String> childrenList = zkClient.getChildren(metaDataPath);
-        if (CollectionUtils.isNotEmpty(childrenList)) {
-            childrenList.forEach(children -> {
-                String realPath = buildRealPath(metaDataPath, children);
-                cacheMetaData(zkClient.readData(realPath));
-                subscribeMetaDataChanges(realPath);
-            });
-        }
-
-        zkClient.subscribeChildChanges(metaDataPath, (parentPath, currentChildren) -> {
-            if (CollectionUtils.isNotEmpty(currentChildren)) {
-                final List<String> addSubscribePath = addSubscribePath(childrenList, currentChildren);
-                addSubscribePath.stream().map(children -> {
-                    final String realPath = buildRealPath(parentPath, children);
-                    cacheMetaData(zkClient.readData(realPath));
-                    return realPath;
-                }).forEach(this::subscribeMetaDataChanges);
             }
         });
     }
@@ -287,6 +291,10 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
         });
     }
 
+    private void cachePluginData(final PluginData pluginData) {
+        Optional.ofNullable(pluginData).flatMap(data -> Optional.ofNullable(pluginDataSubscriber)).ifPresent(e -> e.onSubscribe(pluginData));
+    }
+
     private void cacheSelectorData(final SelectorData selectorData) {
         Optional.ofNullable(selectorData)
                 .ifPresent(data -> Optional.ofNullable(pluginDataSubscriber).ifPresent(e -> e.onSelectorSubscribe(data)));
@@ -347,6 +355,13 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
 
     private String buildRealPath(final String parent, final String children) {
         return parent + "/" + children;
+    }
+
+    private List<String> zkClientGetChildren(final String parent) {
+        if (!zkClient.exists(parent)) {
+            zkClient.createPersistent(parent, true);
+        }
+        return zkClient.getChildren(parent);
     }
 
     @Override

@@ -68,9 +68,8 @@ public class SoulClientController {
         return soulClientRegisterService.registerSpringCloud(springCloudRegisterDTO);
     }
 
-
     /**
-     * Register rpc string.
+     * Register dubbo string.
      *
      * @param metaDataDTO the meta data dto
      * @return the string
@@ -81,7 +80,7 @@ public class SoulClientController {
     }
 
     /**
-     * Register rpc string.
+     * Register sofa string.
      *
      * @param metaDataDTO the meta data dto
      * @return the string
@@ -92,7 +91,7 @@ public class SoulClientController {
     }
 
     /**
-     * Register rpc string.
+     * Register tars string.
      *
      * @param metaDataDTO the meta data dto
      * @return the string

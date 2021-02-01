@@ -32,6 +32,7 @@ import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
 import org.dromara.soul.plugin.api.result.SoulResultEnum;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
+import org.dromara.soul.plugin.base.utils.FallbackUtils;
 import org.dromara.soul.plugin.base.utils.SoulResultWrap;
 import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
 import org.dromara.soul.plugin.divide.balance.utils.LoadBalanceUtils;
@@ -92,6 +93,16 @@ public class DividePlugin extends AbstractSoulPlugin {
     @Override
     public int getOrder() {
         return PluginEnum.DIVIDE.getCode();
+    }
+
+    @Override
+    protected Mono<Void> handleSelectorIsNull(final String pluginName, final ServerWebExchange exchange, final SoulPluginChain chain) {
+        return FallbackUtils.getNoSelectorResult(pluginName, exchange);
+    }
+
+    @Override
+    protected Mono<Void> handleRuleIsNull(final String pluginName, final ServerWebExchange exchange, final SoulPluginChain chain) {
+        return FallbackUtils.getNoRuleResult(pluginName, exchange);
     }
 
     private String buildDomain(final DivideUpstream divideUpstream) {

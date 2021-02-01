@@ -18,6 +18,7 @@
 package org.dromara.soul.admin.config;
 
 import org.dromara.soul.admin.AbstractConfigurationTest;
+import org.dromara.soul.admin.config.properties.ZookeeperProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.junit.Test;

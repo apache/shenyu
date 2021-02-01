@@ -17,7 +17,7 @@
 
 package org.dromara.soul.admin.controller;
 
-import org.dromara.soul.admin.listener.SoulDomain;
+import org.dromara.soul.admin.utils.SoulDomain;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -83,7 +83,7 @@ public final class SelectorControllerTest {
     public void querySelectors() throws Exception {
         given(this.selectorService.listByPage(selectorQuery)).willReturn(commonPager);
         String urlTemplate = "/selector?pluginId={pluginId}&currentPage={currentPage}&pageSize={pageSize}";
-        this.mockMvc.perform(MockMvcRequestBuilders.get(urlTemplate, "2", 1, 10))
+        this.mockMvc.perform(MockMvcRequestBuilders.get(urlTemplate, "2", 1, 12))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(SoulResultMessage.QUERY_SUCCESS)))
                 .andExpect(jsonPath("$.data.dataList[0].id", is(selectorVO.getId())))

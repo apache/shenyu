@@ -27,12 +27,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.PluginData;
-import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.SelectorTypeEnum;
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.base.cache.BaseDataCache;
-import org.dromara.soul.plugin.base.utils.CheckUtils;
 import org.dromara.soul.plugin.base.utils.MatchStrategyUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -99,6 +97,14 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
         return chain.execute(exchange);
     }
 
+    protected Mono<Void> handleSelectorIsNull(final String pluginName, final ServerWebExchange exchange, final SoulPluginChain chain) {
+        return chain.execute(exchange);
+    }
+
+    protected Mono<Void> handleRuleIsNull(final String pluginName, final ServerWebExchange exchange, final SoulPluginChain chain) {
+        return chain.execute(exchange);
+    }
+
     private SelectorData matchSelector(final ServerWebExchange exchange, final Collection<SelectorData> selectors) {
         return selectors.stream()
                 .filter(selector -> selector.getEnabled() && filterSelector(selector, exchange))
@@ -125,20 +131,6 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
         return ruleData.getEnabled() && MatchStrategyUtils.match(ruleData.getMatchMode(), ruleData.getConditionDataList(), exchange);
     }
 
-    private Mono<Void> handleSelectorIsNull(final String pluginName, final ServerWebExchange exchange, final SoulPluginChain chain) {
-        if (PluginEnum.WAF.getName().equals(pluginName)) {
-            return doExecute(exchange, chain, null, null);
-        }
-        return CheckUtils.checkSelector(pluginName, exchange, chain);
-    }
-
-    private Mono<Void> handleRuleIsNull(final String pluginName, final ServerWebExchange exchange, final SoulPluginChain chain) {
-        if (PluginEnum.WAF.getName().equals(pluginName)) {
-            return doExecute(exchange, chain, null, null);
-        }
-        return CheckUtils.checkRule(pluginName, exchange, chain);
-    }
-
     private void selectorLog(final SelectorData selectorData, final String pluginName) {
         if (selectorData.getLoged()) {
             log.info("{} selector success match , selector name :{}", pluginName, selectorData.getName());
@@ -147,7 +139,7 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
 
     private void ruleLog(final RuleData ruleData, final String pluginName) {
         if (ruleData.getLoged()) {
-            log.info("{} selector success match , selector name :{}", pluginName, ruleData.getName());
+            log.info("{} rule success match , rule name :{}", pluginName, ruleData.getName());
         }
     }
 }

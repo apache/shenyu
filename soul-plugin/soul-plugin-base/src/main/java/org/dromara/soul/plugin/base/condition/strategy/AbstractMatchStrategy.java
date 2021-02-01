@@ -74,6 +74,9 @@ abstract class AbstractMatchStrategy {
                 final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
                 realData = (String) ReflectUtils.getFieldValue(soulContext, condition.getParamName());
                 break;
+            case REQUEST_METHOD:
+                realData = exchange.getRequest().getMethodValue();
+                break;
             default:
                 break;
         }

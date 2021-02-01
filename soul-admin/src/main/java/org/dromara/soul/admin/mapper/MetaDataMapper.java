@@ -39,16 +39,14 @@ public interface MetaDataMapper {
      * @return the meta data do
      */
     MetaDataDO selectById(String id);
-
-
+    
     /**
      * Find all list.
      *
      * @return the list
      */
     List<MetaDataDO> findAll();
-
-
+    
     /**
      * Find by path meta data do.
      *
@@ -65,8 +63,7 @@ public interface MetaDataMapper {
      * @return the meta data do
      */
     MetaDataDO findByServiceNameAndMethod(@Param("serviceName") String serviceName, @Param("methodName") String methodName);
-
-
+    
     /**
      * Select by query list.
      *
@@ -97,8 +94,7 @@ public interface MetaDataMapper {
      * @return the int
      */
     int insert(MetaDataDO metaDataDO);
-
-
+    
     /**
      * Update int.
      *
@@ -106,8 +102,7 @@ public interface MetaDataMapper {
      * @return the int
      */
     int update(MetaDataDO metaDataDO);
-
-
+    
     /**
      * Update enable int.
      *

@@ -41,11 +41,6 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.dromara</groupId>
-            <artifactId>soul-spi</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>io.prometheus</groupId>
             <artifactId>simpleclient</artifactId>
         </dependency>

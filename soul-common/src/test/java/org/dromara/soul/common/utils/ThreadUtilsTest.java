@@ -17,28 +17,49 @@
 
 package org.dromara.soul.common.utils;
 
+import lombok.SneakyThrows;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.LockSupport;
+
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * Test Cases for ThreadUtils.
  *
  * @author onlyonezhongjinhui
+ * @author dengliming
  */
+@RunWith(MockitoJUnitRunner.class)
 public final class ThreadUtilsTest {
 
+    private TimeUnit timeUnit;
+
+    @Before
+    public void setUp() {
+        timeUnit = mock(TimeUnit.class);
+    }
+
     @Test
+    @SneakyThrows
     public void testSleep() {
-        ThreadUtils.sleep(TimeUnit.MILLISECONDS, 1);
+        ThreadUtils.sleep(timeUnit, 1);
+        verify(timeUnit, times(1)).sleep(eq(1L));
     }
 
     @Test
+    @SneakyThrows
     public void testSleepInterrupt() {
-        Thread thread = new Thread(() -> ThreadUtils.sleep(TimeUnit.MILLISECONDS, 100));
-        thread.start();
-        LockSupport.parkNanos(100);
-        thread.interrupt();
+        doThrow(InterruptedException.class).when(timeUnit).sleep(1);
+        ThreadUtils.sleep(timeUnit, 1);
+        verify(timeUnit, times(1)).sleep(eq(1L));
+        assertTrue(Thread.currentThread().interrupted());
     }
-
 }

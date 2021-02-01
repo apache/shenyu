@@ -403,6 +403,11 @@ public interface Constants {
     int SENTINEL_RESPONSE_RULE_GRADE = 0;
 
     /**
+     * default warmup.
+     */
+    int DEFAULT_WARMUP = 10 * 60 * 1000;
+
+    /**
      * String q.
      */
     default void findConstants() {

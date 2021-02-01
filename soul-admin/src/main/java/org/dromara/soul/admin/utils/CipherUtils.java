@@ -23,7 +23,7 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
@@ -44,7 +44,7 @@ public class CipherUtils {
      * @return the bytes
      */
     private static byte[] addZeroPadding(final byte[] srcBytes, final int blockSize) {
-        byte[] plainText = null;
+        byte[] plainText;
         int length = srcBytes.length;
         if (length % blockSize != 0) {
             length = length + (blockSize - (length % blockSize));
@@ -88,9 +88,9 @@ public class CipherUtils {
      * @return the bytes
      */
     private static byte[] cipherTool(final byte[] content, final int mode, final String aesKey) {
-        byte[] plainText = null;
+        byte[] plainText;
         try {
-            SecretKeySpec keySpec = new SecretKeySpec(aesKey.getBytes("utf-8"), "AES");
+            SecretKeySpec keySpec = new SecretKeySpec(aesKey.getBytes(StandardCharsets.UTF_8), "AES");
             Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
             cipher.init(mode, keySpec);
             if (mode == Cipher.ENCRYPT_MODE) {
@@ -99,7 +99,7 @@ public class CipherUtils {
                 plainText = content;
             }
             return cipher.doFinal(plainText);
-        } catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException | UnsupportedEncodingException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException e) {
             throw new SoulException(e);
         }
     }
@@ -114,7 +114,7 @@ public class CipherUtils {
     public static String encryptHex(final String src, final String aesKey) {
         return Optional.ofNullable(src).map(item -> {
             try {
-                byte[] byteContent = item.getBytes("utf-8");
+                byte[] byteContent = item.getBytes(StandardCharsets.UTF_8);
                 byte[] result = cipherTool(byteContent, Cipher.ENCRYPT_MODE, aesKey);
                 return Base64.getEncoder().encodeToString(result);
             } catch (Exception ex) {

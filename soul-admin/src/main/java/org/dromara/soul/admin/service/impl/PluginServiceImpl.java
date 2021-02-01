@@ -34,7 +34,6 @@ import org.dromara.soul.admin.mapper.RuleMapper;
 import org.dromara.soul.admin.mapper.SelectorConditionMapper;
 import org.dromara.soul.admin.mapper.SelectorMapper;
 import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.page.PageResultUtils;
 import org.dromara.soul.admin.query.PluginQuery;
 import org.dromara.soul.admin.query.RuleConditionQuery;
@@ -206,9 +205,9 @@ public class PluginServiceImpl implements PluginService {
      */
     @Override
     public CommonPager<PluginVO> listByPage(final PluginQuery pluginQuery) {
-        PageParameter pageParameter = pluginQuery.getPageParameter();
-        Integer count = pluginMapper.countByQuery(pluginQuery);
-        return PageResultUtils.result(pageParameter, count, () -> pluginMapper.selectByQuery(pluginQuery).stream().map(PluginVO::buildPluginVO).collect(Collectors.toList()));
+        return PageResultUtils.result(pluginQuery.getPageParameter(),
+            () -> pluginMapper.countByQuery(pluginQuery),
+            () -> pluginMapper.selectByQuery(pluginQuery).stream().map(PluginVO::buildPluginVO).collect(Collectors.toList()));
     }
 
     @Override

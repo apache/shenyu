@@ -21,7 +21,7 @@
         "http://mybatis.org/dtd/mybatis-3-config.dtd">
 <configuration>
     <properties>
-        <property name="dialect" value="mysql"/>
+        <property name="dialect" value="${soul.database.dialect:mysql}"/>
     </properties>
 
     <settings>

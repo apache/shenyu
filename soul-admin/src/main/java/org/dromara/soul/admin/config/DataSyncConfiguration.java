@@ -19,9 +19,12 @@ package org.dromara.soul.admin.config;
 
 import com.alibaba.nacos.api.config.ConfigService;
 import org.I0Itec.zkclient.ZkClient;
+import org.dromara.soul.admin.config.properties.HttpSyncProperties;
+import org.dromara.soul.admin.config.properties.WebsocketSyncProperties;
 import org.dromara.soul.admin.listener.DataChangedListener;
 import org.dromara.soul.admin.listener.http.HttpLongPollingDataChangedListener;
 import org.dromara.soul.admin.listener.nacos.NacosDataChangedListener;
+import org.dromara.soul.admin.listener.nacos.NacosDataInit;
 import org.dromara.soul.admin.listener.websocket.WebsocketCollector;
 import org.dromara.soul.admin.listener.websocket.WebsocketDataChangedListener;
 import org.dromara.soul.admin.listener.zookeeper.ZookeeperDataChangedListener;
@@ -45,7 +48,7 @@ import org.springframework.web.socket.server.standard.ServerEndpointExporter;
 public class DataSyncConfiguration {
 
     /**
-     * http long polling(default strategy).
+     * http long polling.
      */
     @Configuration
     @ConditionalOnProperty(name = "soul.sync.http.enabled", havingValue = "true")
@@ -57,7 +60,6 @@ public class DataSyncConfiguration {
         public HttpLongPollingDataChangedListener httpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties) {
             return new HttpLongPollingDataChangedListener(httpSyncProperties);
         }
-
     }
 
     /**
@@ -112,6 +114,19 @@ public class DataSyncConfiguration {
         @ConditionalOnMissingBean(NacosDataChangedListener.class)
         public DataChangedListener nacosDataChangedListener(final ConfigService configService) {
             return new NacosDataChangedListener(configService);
+        }
+
+        /**
+         * Nacos data init zookeeper data init.
+         *
+         * @param configService the config service
+         * @param syncDataService the sync data service
+         * @return the nacos data init
+         */
+        @Bean
+        @ConditionalOnMissingBean(NacosDataInit.class)
+        public NacosDataInit nacosDataInit(final ConfigService configService, final SyncDataService syncDataService) {
+            return new NacosDataInit(configService, syncDataService);
         }
     }
 

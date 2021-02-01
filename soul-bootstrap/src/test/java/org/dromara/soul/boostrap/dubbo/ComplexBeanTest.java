@@ -33,8 +33,8 @@ import lombok.NoArgsConstructor;
 public final class ComplexBeanTest implements Serializable {
 
     private DubboTest dubboTest;
-
+    
     private List<String> idLists;
-
+    
     private Map<String, String> idMaps;
 }

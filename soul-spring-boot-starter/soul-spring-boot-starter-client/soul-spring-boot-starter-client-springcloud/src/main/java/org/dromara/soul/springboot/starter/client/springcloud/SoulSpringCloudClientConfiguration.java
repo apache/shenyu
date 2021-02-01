@@ -34,7 +34,7 @@ import org.springframework.core.env.Environment;
 public class SoulSpringCloudClientConfiguration {
     
     /**
-     * Spring cloud client bean post processor spring cloud client bean post processor.
+     * Spring cloud client bean post processor.
      *
      * @param soulSpringCloudConfig the soul spring cloud config
      * @param env                   the env
@@ -46,7 +46,7 @@ public class SoulSpringCloudClientConfiguration {
     }
 
     /**
-     * Context register listener context register listener.
+     * Context register listener.
      *
      * @param soulSpringCloudConfig the soul spring cloud config
      * @param env                   the env
@@ -58,7 +58,7 @@ public class SoulSpringCloudClientConfiguration {
     }
     
     /**
-     * Soul spring cloud config soul spring cloud config.
+     * Soul spring cloud config.
      *
      * @return the soul spring cloud config
      */

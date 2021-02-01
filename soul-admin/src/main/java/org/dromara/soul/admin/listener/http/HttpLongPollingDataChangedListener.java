@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.dromara.soul.admin.config.HttpSyncProperties;
+import org.dromara.soul.admin.config.properties.HttpSyncProperties;
 import org.dromara.soul.admin.listener.AbstractDataChangedListener;
 import org.dromara.soul.admin.listener.ConfigDataCache;
 import org.dromara.soul.admin.result.SoulAdminResult;
@@ -128,24 +128,19 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
      * @param response the response
      */
     public void doLongPolling(final HttpServletRequest request, final HttpServletResponse response) {
-
         // compare group md5
         List<ConfigGroupEnum> changedGroup = compareChangedGroup(request);
         String clientIp = getRemoteIp(request);
-
         // response immediately.
         if (CollectionUtils.isNotEmpty(changedGroup)) {
             this.generateResponse(response, changedGroup);
             log.info("send response with the changed group, ip={}, group={}", clientIp, changedGroup);
             return;
         }
-
         // listen for configuration changed.
         final AsyncContext asyncContext = request.startAsync();
-
         // AsyncContext.settimeout() does not timeout properly, so you have to control it yourself
         asyncContext.setTimeout(0L);
-
         // block client's thread.
         scheduler.execute(new LongPollingClient(asyncContext, clientIp, HttpConstants.SERVER_MAX_HOLD_TIMEOUT));
     }
@@ -176,7 +171,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
     }
 
     private List<ConfigGroupEnum> compareChangedGroup(final HttpServletRequest request) {
-        List<ConfigGroupEnum> changedGroup = new ArrayList<>(4);
+        List<ConfigGroupEnum> changedGroup = new ArrayList<>(ConfigGroupEnum.values().length);
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
             // md5,lastModifyTime
             String[] params = StringUtils.split(request.getParameter(group.name()), ',');
@@ -202,19 +197,16 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
      * @return true: the client needs to be updated, false: not need.
      */
     private boolean checkCacheDelayAndUpdate(final ConfigDataCache serverCache, final String clientMd5, final long clientModifyTime) {
-
         // is the same, doesn't need to be updated
         if (StringUtils.equals(clientMd5, serverCache.getMd5())) {
             return false;
         }
-
         // if the md5 value is different, it is necessary to compare lastModifyTime.
         long lastModifyTime = serverCache.getLastModifyTime();
         if (lastModifyTime >= clientModifyTime) {
             // the client's config is out of date.
             return true;
         }
-
         // the lastModifyTime before client, then the local cache needs to be updated.
         // Considering the concurrency problem, admin must lock,
         // otherwise it may cause the request from soul-web to update the cache concurrently, causing excessive db pressure
@@ -240,10 +232,8 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
                 LOCK.unlock();
             }
         }
-
         // not locked, the client need to be updated.
         return true;
-
     }
 
     /**
@@ -379,5 +369,4 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             asyncContext.complete();
         }
     }
-
 }

@@ -74,5 +74,4 @@ public class RateLimiterPlugin extends AbstractSoulPlugin {
                     return chain.execute(exchange);
                 });
     }
-
 }

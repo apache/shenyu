@@ -31,18 +31,17 @@ import static org.junit.Assert.assertThat;
  **/
 public final class MetricsTypeEnumTest {
 
-    private static final String METRICS_TYPE_ENUM_DATA = "[COUNTER, GAUGE, HISTOGRAM, SUMMARY]";
+    private static final String METRICS_TYPE_ENUM_DATA = "[COUNTER, GAUGE, HISTOGRAM]";
 
     @Test
     public void values() {
-        assertThat(Arrays.toString(MetricsTypeEnum.values()), is(METRICS_TYPE_ENUM_DATA));
+        assertThat(Arrays.toString(MetricType.values()), is(METRICS_TYPE_ENUM_DATA));
     }
 
     @Test
     public void valueOf() {
-        assertThat(MetricsTypeEnum.valueOf("COUNTER"), is(MetricsTypeEnum.COUNTER));
-        assertThat(MetricsTypeEnum.valueOf("GAUGE"), is(MetricsTypeEnum.GAUGE));
-        assertThat(MetricsTypeEnum.valueOf("HISTOGRAM"), is(MetricsTypeEnum.HISTOGRAM));
-        assertThat(MetricsTypeEnum.valueOf("SUMMARY"), is(MetricsTypeEnum.SUMMARY));
+        assertThat(MetricType.valueOf("COUNTER"), is(MetricType.COUNTER));
+        assertThat(MetricType.valueOf("GAUGE"), is(MetricType.GAUGE));
+        assertThat(MetricType.valueOf("HISTOGRAM"), is(MetricType.HISTOGRAM));
     }
 }

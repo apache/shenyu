@@ -18,13 +18,15 @@
 package org.dromara.soul.springboot.starter.client.tars;
 
 import org.dromara.soul.client.tars.common.config.TarsConfig;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 /**
  * Test case for {@link SoulTarsClientConfiguration}.
@@ -47,15 +49,15 @@ import org.springframework.test.context.junit4.SpringRunner;
         }
 )
 @EnableAutoConfiguration
-public class SoulTarsClientConfigurationTest {
+public final class SoulTarsClientConfigurationTest {
     @Autowired
     private TarsConfig tarsConfig;
 
     @Test
     public void testSofaConfig() {
-        Assert.assertEquals("tars", tarsConfig.getAppName());
-        Assert.assertEquals("/tars", tarsConfig.getContextPath());
-        Assert.assertEquals("http://localhost:59095", tarsConfig.getAdminUrl());
-        Assert.assertEquals("localhost:59090", tarsConfig.getIpAndPort());
+        assertThat(tarsConfig.getAppName(), is("tars"));
+        assertThat(tarsConfig.getContextPath(), is("/tars"));
+        assertThat(tarsConfig.getAdminUrl(), is("http://localhost:59095"));
+        assertThat(tarsConfig.getIpAndPort(), is("localhost:59090"));
     }
 }

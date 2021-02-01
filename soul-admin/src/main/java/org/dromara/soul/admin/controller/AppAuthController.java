@@ -61,7 +61,7 @@ public class AppAuthController {
     }
 
     /**
-     * Apply soul result.
+     * Apply App auth.
      *
      * @param authApplyDTO the auth apply dto
      * @return the soul result
@@ -75,7 +75,7 @@ public class AppAuthController {
     }
 
     /**
-     * Update sk soul result.
+     * Update sk of App auth.
      *
      * @param appKey    the app key
      * @param appSecret the app secret
@@ -87,7 +87,7 @@ public class AppAuthController {
     }
 
     /**
-     * Find page by query soul result.
+     * Find App auth page by query.
      *
      * @param appKey the app key
      * @param phone  specific phone
@@ -106,7 +106,7 @@ public class AppAuthController {
     }
 
     /**
-     * Detail soul result.
+     * Get detail of App auth.
      *
      * @param id the id
      * @return the soul result
@@ -117,7 +117,7 @@ public class AppAuthController {
     }
 
     /**
-     * Update detail soul result.
+     * Update App auth.
      *
      * @param appAuthDTO the app auth dto
      * @return the soul result
@@ -128,7 +128,7 @@ public class AppAuthController {
     }
 
     /**
-     * Detail path soul result.
+     * Detail path of App auth.
      *
      * @param id the id
      * @return the soul result
@@ -139,7 +139,7 @@ public class AppAuthController {
     }
 
     /**
-     * Update detail path soul result.
+     * Update detail path.
      *
      * @param authPathWarpDTO the auth path warp dto
      * @return the soul result
@@ -162,7 +162,7 @@ public class AppAuthController {
     }
 
     /**
-     * Batch enabled soul result.
+     * Batch enabled App auth.
      *
      * @param batchCommonDTO the batch common dto
      * @return the soul result
@@ -177,7 +177,7 @@ public class AppAuthController {
     }
 
     /**
-     * Sync data soul result.
+     * Sync App auth data.
      *
      * @return the soul result
      */

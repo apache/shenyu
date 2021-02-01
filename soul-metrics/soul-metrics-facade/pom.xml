@@ -31,23 +31,23 @@
     <dependencies>
         <dependency>
             <groupId>org.dromara</groupId>
-            <artifactId>soul-metrics-spi</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.dromara</groupId>
             <artifactId>soul-common</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.dromara</groupId>
-            <artifactId>soul-spi</artifactId>
+            <artifactId>soul-metrics-spi</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>soul-metrics-prometheus</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

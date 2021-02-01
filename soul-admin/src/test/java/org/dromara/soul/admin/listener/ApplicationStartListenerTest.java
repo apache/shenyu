@@ -17,16 +17,11 @@
 
 package org.dromara.soul.admin.listener;
 
+import org.dromara.soul.admin.AbstractSpringIntegrationTest;
+import org.dromara.soul.admin.utils.SoulDomain;
+import org.dromara.soul.common.utils.IpUtils;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -34,22 +29,14 @@ import static org.junit.Assert.assertEquals;
  *
  * @author magicalxiaochen
  */
-@ActiveProfiles("test")
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public final class ApplicationStartListenerTest {
+public final class ApplicationStartListenerTest extends AbstractSpringIntegrationTest {
 
     @LocalServerPort
     private Integer port;
 
     @Test
     public void testOnApplicationEvent() {
-        String host;
-        try {
-            host = InetAddress.getLocalHost().getHostAddress();
-        } catch (UnknownHostException e) {
-            host = "127.0.0.1";
-        }
+        String host = IpUtils.getHost();
         String expectedPath = "http://" + String.join(":", host, String.valueOf(port));
         assertEquals(expectedPath, SoulDomain.getInstance().getHttpPath());
     }
