@@ -64,7 +64,7 @@ public class DataSyncConfiguration {
      * The type Zookeeper listener.
      */
     @Configuration
-    @ConditionalOnProperty(prefix = "soul.sync.zookeeper", name = "url")
+    @ConditionalOnProperty(name = "soul.sync.zookeeper.enabled", havingValue = "true")
     @Import(ZookeeperConfiguration.class)
     static class ZookeeperListener {
 

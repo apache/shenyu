@@ -15,31 +15,25 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.client.springmvc.config;
-
-import lombok.Data;
-import org.dromara.soul.client.common.config.SoulClientConfig;
+package org.dromara.soul.common.constant;
 
 /**
- * The type Soul spring mvc config.
- *
- * @author xiaoyu
+ * @author lw1243925457
  */
-@Data
-public class SoulSpringMvcConfig extends SoulClientConfig {
-
-    private String adminUrl;
-
-    private String contextPath;
-
-    private String appName;
+public class ZkRegisterPathConstants {
 
     /**
-     * Set true means providing proxy for your entire service, or only a few controller.
+     * root path of zookeeper register center
      */
-    private boolean full;
+    public static final String ROOT_PATH = "/soulRegisterCenter";
 
-    private String host;
+    private static final String SEPARATOR = "/";
 
-    private Integer port;
+    public static String buildTypePath(final String child) {
+        return String.join(SEPARATOR, ROOT_PATH, child);
+    }
+
+    public static String buildDataPath(final String parent,final String child) {
+        return String.join(SEPARATOR, parent, child);
+    }
 }

@@ -15,31 +15,19 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.client.springmvc.config;
+package org.dromara.soul.client.common.config;
 
 import lombok.Data;
-import org.dromara.soul.client.common.config.SoulClientConfig;
 
 /**
- * The type Soul spring mvc config.
- *
- * @author xiaoyu
+ * @author lw1243925457
  */
 @Data
-public class SoulSpringMvcConfig extends SoulClientConfig {
+public class SoulClientConfig {
 
-    private String adminUrl;
+    private String zookeeperUrl;
 
-    private String contextPath;
+    private int zookeeperSessionTimeout;
 
-    private String appName;
-
-    /**
-     * Set true means providing proxy for your entire service, or only a few controller.
-     */
-    private boolean full;
-
-    private String host;
-
-    private Integer port;
+    private int zookeeperConnectionTimeout;
 }

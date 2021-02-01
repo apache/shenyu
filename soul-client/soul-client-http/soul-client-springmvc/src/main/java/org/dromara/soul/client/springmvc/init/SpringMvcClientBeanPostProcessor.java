@@ -20,6 +20,7 @@ package org.dromara.soul.client.springmvc.init;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.client.common.utils.OkHttpTools;
+import org.dromara.soul.client.common.utils.RegisterCenter;
 import org.dromara.soul.client.common.utils.RegisterUtils;
 import org.dromara.soul.client.springmvc.annotation.SoulSpringMvcClient;
 import org.dromara.soul.client.springmvc.config.SoulSpringMvcConfig;
@@ -48,7 +49,7 @@ import java.util.concurrent.TimeUnit;
  * @author xiaoyu(Myth)
  */
 @Slf4j
-public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
+public class SpringMvcClientBeanPostProcessor extends RegisterCenter implements BeanPostProcessor {
 
     private final ThreadPoolExecutor executorService;
 
@@ -62,6 +63,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
      * @param soulSpringMvcConfig the soul spring mvc config
      */
     public SpringMvcClientBeanPostProcessor(final SoulSpringMvcConfig soulSpringMvcConfig) {
+        super(soulSpringMvcConfig);
         ValidateUtils.validate(soulSpringMvcConfig);
         this.soulSpringMvcConfig = soulSpringMvcConfig;
         url = soulSpringMvcConfig.getAdminUrl() + "/soul-client/springmvc-register";
@@ -93,7 +95,9 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
                 SoulSpringMvcClient soulSpringMvcClient = AnnotationUtils.findAnnotation(method, SoulSpringMvcClient.class);
                 if (Objects.nonNull(soulSpringMvcClient)) {
                     String finalPrePath = prePath;
-                    executorService.execute(() -> RegisterUtils.doRegister(buildJsonParams(soulSpringMvcClient, finalPrePath), url,
+//                    executorService.execute(() -> RegisterUtils.doRegister(buildJsonParams(soulSpringMvcClient, finalPrePath), url,
+//                            RpcTypeEnum.HTTP));
+                    executorService.execute(() -> doRegister(buildJsonParams(soulSpringMvcClient, finalPrePath), url,
                             RpcTypeEnum.HTTP));
                 }
             }

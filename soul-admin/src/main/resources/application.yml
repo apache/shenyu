@@ -27,10 +27,11 @@ spring:
     prefix: classpath:/static/
     suffix: .html
   datasource:
-    url: jdbc:mysql://localhost:3306/soul?useUnicode=true&characterEncoding=utf-8
+    url: jdbc:mysql://localhost:3306/soul?serverTimezone=UTC&useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true
     username: root
-    password: tydhot123
+    password: root
     driver-class-name: com.mysql.jdbc.Driver
+
 
 mybatis:
   config-location: classpath:/mybatis/mybatis-config.xml
@@ -38,14 +39,21 @@ mybatis:
 
 soul:
   register:
-    registerType: http
+    registerType:
+      http : true
+      zookeeper: true
   database:
     dialect: mysql
     init_script: "META-INF/schema.sql"
+  zookeeper:
+    url: localhost:2181
+    sessionTimeout: 5000
+    connectionTimeout: 2000
   sync:
     websocket:
       enabled: true
   #    zookeeper:
+  #        enabled: false
   #        url: localhost:2181
   #        sessionTimeout: 5000
   #        connectionTimeout: 2000
