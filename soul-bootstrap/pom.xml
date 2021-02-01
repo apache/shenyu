@@ -50,52 +50,58 @@
             <version>${project.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-grpc</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!--if you use http proxy start this-->
-        <dependency>
-            <groupId>org.dromara</groupId>
-            <artifactId>soul-spring-boot-starter-plugin-divide</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.dromara</groupId>
-            <artifactId>soul-spring-boot-starter-plugin-httpclient</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+        <!-- <dependency>
+             <groupId>org.dromara</groupId>
+             <artifactId>soul-spring-boot-starter-plugin-divide</artifactId>
+             <version>${project.version}</version>
+         </dependency>
+         <dependency>
+             <groupId>org.dromara</groupId>
+             <artifactId>soul-spring-boot-starter-plugin-httpclient</artifactId>
+             <version>${project.version}</version>
+         </dependency>-->
         <!--if you use http proxy end this-->
 
         <!--soul springCloud plugin start-->
-<!--       <dependency>-->
-<!--            <groupId>org.dromara</groupId>-->
-<!--            <artifactId>soul-spring-boot-starter-plugin-springcloud</artifactId>-->
-<!--            <version>${project.version}</version>-->
-<!--        </dependency>-->
+        <!--       <dependency>-->
+        <!--            <groupId>org.dromara</groupId>-->
+        <!--            <artifactId>soul-spring-boot-starter-plugin-springcloud</artifactId>-->
+        <!--            <version>${project.version}</version>-->
+        <!--        </dependency>-->
 
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.cloud</groupId>-->
-<!--            <artifactId>spring-cloud-commons</artifactId>-->
-<!--            <version>2.2.0.RELEASE</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.cloud</groupId>-->
-<!--            <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>-->
-<!--            <version>2.2.0.RELEASE</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.springframework.cloud</groupId>-->
+        <!--            <artifactId>spring-cloud-commons</artifactId>-->
+        <!--            <version>2.2.0.RELEASE</version>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.springframework.cloud</groupId>-->
+        <!--            <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>-->
+        <!--            <version>2.2.0.RELEASE</version>-->
+        <!--        </dependency>-->
 
         <!--soul springCloud plugin start end-->
 
         <!-- springCloud if you config register center is nacos please dependency this-->
-<!--        <dependency>-->
-<!--            <groupId>com.alibaba.cloud</groupId>-->
-<!--            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>-->
-<!--            <version>2.1.0.RELEASE</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>com.alibaba.cloud</groupId>-->
+        <!--            <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>-->
+        <!--            <version>2.1.0.RELEASE</version>-->
+        <!--        </dependency>-->
 
         <!-- springCloud if you config register center is eureka please dependency end-->
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.cloud</groupId>-->
-<!--            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>-->
-<!--            <version>2.2.0.RELEASE</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.springframework.cloud</groupId>-->
+        <!--            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>-->
+        <!--            <version>2.2.0.RELEASE</version>-->
+        <!--        </dependency>-->
 
         <!--soul  apache dubbo plugin start-->
         <!-- <dependency>
@@ -109,46 +115,46 @@
             <version>2.7.5</version>
         </dependency>-->
         <!-- Dubbo Nacos registry dependency -->
-      <!--  <dependency>
-            <groupId>org.apache.dubbo</groupId>
-            <artifactId>dubbo-registry-nacos</artifactId>
-            <version>2.7.5</version>
-        </dependency>
-        <dependency>
-            <groupId>com.alibaba.nacos</groupId>
-            <artifactId>nacos-client</artifactId>
-            <version>1.1.4</version>
-        </dependency>-->
+        <!--  <dependency>
+              <groupId>org.apache.dubbo</groupId>
+              <artifactId>dubbo-registry-nacos</artifactId>
+              <version>2.7.5</version>
+          </dependency>
+          <dependency>
+              <groupId>com.alibaba.nacos</groupId>
+              <artifactId>nacos-client</artifactId>
+              <version>1.1.4</version>
+          </dependency>-->
         <!-- Dubbo zookeeper registry dependency start -->
-       <!-- <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-client</artifactId>
-            <version>4.0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-framework</artifactId>
-            <version>4.0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-recipes</artifactId>
-            <version>4.0.1</version>
-        </dependency>-->
+        <!-- <dependency>
+             <groupId>org.apache.curator</groupId>
+             <artifactId>curator-client</artifactId>
+             <version>4.0.1</version>
+         </dependency>
+         <dependency>
+             <groupId>org.apache.curator</groupId>
+             <artifactId>curator-framework</artifactId>
+             <version>4.0.1</version>
+         </dependency>
+         <dependency>
+             <groupId>org.apache.curator</groupId>
+             <artifactId>curator-recipes</artifactId>
+             <version>4.0.1</version>
+         </dependency>-->
         <!-- Dubbo zookeeper registry dependency end -->
         <!-- soul  apache dubbo plugin end-->
 
         <!--soul alibaba dubbo plugin start-->
-        <dependency>
-            <groupId>org.dromara</groupId>
-            <artifactId>soul-spring-boot-starter-plugin-alibaba-dubbo</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>dubbo</artifactId>
-            <version>${alibaba.dubbo.version}</version>
-        </dependency>
+        <!-- <dependency>
+             <groupId>org.dromara</groupId>
+             <artifactId>soul-spring-boot-starter-plugin-alibaba-dubbo</artifactId>
+             <version>${project.version}</version>
+         </dependency>
+         <dependency>
+             <groupId>com.alibaba</groupId>
+             <artifactId>dubbo</artifactId>
+             <version>${alibaba.dubbo.version}</version>
+         </dependency>-->
         <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-client</artifactId>
@@ -167,35 +173,35 @@
         <!-- soul  alibaba dubbo plugin end-->
 
         <!-- soul ratelimiter plugin start-->
-        <dependency>
-            <groupId>org.dromara</groupId>
-            <artifactId>soul-spring-boot-starter-plugin-ratelimiter</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- soul ratelimiter plugin end-->
+        <!-- <dependency>
+             <groupId>org.dromara</groupId>
+             <artifactId>soul-spring-boot-starter-plugin-ratelimiter</artifactId>
+             <version>${project.version}</version>
+         </dependency>
+         &lt;!&ndash; soul ratelimiter plugin end&ndash;&gt;
 
-        <!-- soul hystrix plugin start-->
-        <dependency>
-            <groupId>org.dromara</groupId>
-            <artifactId>soul-spring-boot-starter-plugin-hystrix</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- soul hystrix plugin end-->
+         &lt;!&ndash; soul hystrix plugin start&ndash;&gt;
+         <dependency>
+             <groupId>org.dromara</groupId>
+             <artifactId>soul-spring-boot-starter-plugin-hystrix</artifactId>
+             <version>${project.version}</version>
+         </dependency>
+         &lt;!&ndash; soul hystrix plugin end&ndash;&gt;
 
-        <!-- soul waf plugin starter-->
-        <dependency>
-            <groupId>org.dromara</groupId>
-            <artifactId>soul-spring-boot-starter-plugin-waf</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- soul waf plugin end-->
+         &lt;!&ndash; soul waf plugin starter&ndash;&gt;
+         <dependency>
+             <groupId>org.dromara</groupId>
+             <artifactId>soul-spring-boot-starter-plugin-waf</artifactId>
+             <version>${project.version}</version>
+         </dependency>
+         &lt;!&ndash; soul waf plugin end&ndash;&gt;
 
-        <!-- soul monitor plugin starter-->
-        <dependency>
-            <groupId>org.dromara</groupId>
-            <artifactId>soul-spring-boot-starter-plugin-monitor</artifactId>
-            <version>${project.version}</version>
-        </dependency>
+         &lt;!&ndash; soul monitor plugin starter&ndash;&gt;
+         <dependency>
+             <groupId>org.dromara</groupId>
+             <artifactId>soul-spring-boot-starter-plugin-monitor</artifactId>
+             <version>${project.version}</version>
+         </dependency>-->
         <!-- soul monitor plugin end-->
 
         <!--soul data sync start use zookeeper-->
@@ -219,20 +225,19 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!-- soul sign plugin start-->
-        <dependency>
-            <groupId>org.dromara</groupId>
-            <artifactId>soul-spring-boot-starter-plugin-sign</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- soul sign plugin end-->
+        <!--  &lt;!&ndash; soul sign plugin start&ndash;&gt;
+          <dependency>
+              <groupId>org.dromara</groupId>
+              <artifactId>soul-spring-boot-starter-plugin-sign</artifactId>
+              <version>${project.version}</version>
+          </dependency>
+          &lt;!&ndash; soul sign plugin end&ndash;&gt;
 
-        <dependency>
-            <groupId>org.dromara</groupId>
-            <artifactId>soul-spring-boot-starter-plugin-resilience4j</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
+          <dependency>
+              <groupId>org.dromara</groupId>
+              <artifactId>soul-spring-boot-starter-plugin-resilience4j</artifactId>
+              <version>${project.version}</version>
+          </dependency>-->
     </dependencies>
 
     <build>

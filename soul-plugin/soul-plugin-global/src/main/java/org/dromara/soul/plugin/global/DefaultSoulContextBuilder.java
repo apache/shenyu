@@ -20,6 +20,7 @@ package org.dromara.soul.plugin.global;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
+
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.MetaData;
@@ -36,7 +37,7 @@ import org.springframework.web.server.ServerWebExchange;
  * @author xiaoyu
  */
 public class DefaultSoulContextBuilder implements SoulContextBuilder {
-    
+
     @Override
     public SoulContext build(final ServerWebExchange exchange) {
         final ServerHttpRequest request = exchange.getRequest();
@@ -47,7 +48,7 @@ public class DefaultSoulContextBuilder implements SoulContextBuilder {
         }
         return transform(request, metaData);
     }
-    
+
     /**
      * ServerHttpRequest transform RequestDTO .
      *
@@ -71,6 +72,8 @@ public class DefaultSoulContextBuilder implements SoulContextBuilder {
                 setSoulContextBySofa(soulContext, metaData);
             } else if (RpcTypeEnum.TARS.getName().equals(metaData.getRpcType())) {
                 setSoulContextByTars(soulContext, metaData);
+            } else if (RpcTypeEnum.GRPC.getName().equals(metaData.getRpcType())) {
+                setSoulContextByGrpc(soulContext, metaData);
             } else {
                 setSoulContextByHttp(soulContext, path);
                 soulContext.setRpcType(RpcTypeEnum.HTTP.getName());
@@ -86,7 +89,7 @@ public class DefaultSoulContextBuilder implements SoulContextBuilder {
         Optional.ofNullable(request.getMethod()).ifPresent(httpMethod -> soulContext.setHttpMethod(httpMethod.name()));
         return soulContext;
     }
-    
+
     private void setSoulContextByDubbo(final SoulContext soulContext, final MetaData metaData) {
         soulContext.setModule(metaData.getAppName());
         soulContext.setMethod(metaData.getServiceName());
@@ -107,7 +110,14 @@ public class DefaultSoulContextBuilder implements SoulContextBuilder {
         soulContext.setRpcType(metaData.getRpcType());
         soulContext.setContextPath(metaData.getContextPath());
     }
-    
+
+    private void setSoulContextByGrpc(final SoulContext soulContext, final MetaData metaData) {
+        soulContext.setModule(metaData.getServiceName());
+        soulContext.setMethod(metaData.getMethodName());
+        soulContext.setRpcType(metaData.getRpcType());
+        soulContext.setContextPath(metaData.getContextPath());
+    }
+
     private void setSoulContextByHttp(final SoulContext soulContext, final String path) {
         String contextPath = "/";
         String[] splitList = StringUtils.split(path, "/");
