@@ -18,8 +18,8 @@
 package org.dromara.soul.spring.boot.starter.sync.data.websocket;
 
 import lombok.extern.slf4j.Slf4j;
-import org.dromara.soul.plugin.sync.data.weboscket.WebsocketSyncDataService;
-import org.dromara.soul.plugin.sync.data.weboscket.config.WebsocketConfig;
+import org.dromara.soul.plugin.sync.data.websocket.WebsocketSyncDataService;
+import org.dromara.soul.plugin.sync.data.websocket.config.WebsocketConfig;
 import org.dromara.soul.sync.data.api.AuthDataSubscriber;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;

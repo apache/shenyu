@@ -17,20 +17,25 @@
 
 package org.dromara.soul.admin.service;
 
-import org.dromara.soul.admin.config.SecretProperties;
+import org.dromara.soul.admin.config.properties.JwtProperties;
+import org.dromara.soul.admin.config.properties.SecretProperties;
 import org.dromara.soul.admin.dto.DashboardUserDTO;
 import org.dromara.soul.admin.entity.DashboardUserDO;
 import org.dromara.soul.admin.mapper.DashboardUserMapper;
+import org.dromara.soul.admin.mapper.RoleMapper;
+import org.dromara.soul.admin.mapper.UserRoleMapper;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.DashboardUserQuery;
 import org.dromara.soul.admin.service.impl.DashboardUserServiceImpl;
+import org.dromara.soul.admin.spring.SpringBeanUtils;
 import org.dromara.soul.admin.vo.DashboardUserVO;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.sql.Timestamp;
@@ -43,10 +48,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * test cases for DashboardUserService.
@@ -68,12 +74,18 @@ public final class DashboardUserServiceTest {
     private DashboardUserMapper dashboardUserMapper;
 
     @Mock
+    private UserRoleMapper userRoleMapper;
+
+    @Mock
+    private RoleMapper roleMapper;
+
+    @Mock
     private SecretProperties secretProperties;
 
     @Test
     public void testCreateOrUpdate() {
         DashboardUserDTO dashboardUserDTO = DashboardUserDTO.builder()
-                .userName(TEST_USER_NAME).password(TEST_PASSWORD).role(1)
+                .userName(TEST_USER_NAME).password(TEST_PASSWORD).roles(Collections.singletonList("1"))
                 .build();
         given(dashboardUserMapper.insertSelective(any(DashboardUserDO.class))).willReturn(1);
         assertEquals(1, dashboardUserService.createOrUpdate(dashboardUserDTO));
@@ -90,7 +102,6 @@ public final class DashboardUserServiceTest {
         given(dashboardUserMapper.delete(eq("1"))).willReturn(1);
         given(dashboardUserMapper.delete(eq("2"))).willReturn(1);
         assertEquals(2, dashboardUserService.delete(Arrays.asList("1", "2")));
-        verify(dashboardUserMapper, times(2)).delete(anyString());
     }
 
     @Test
@@ -136,6 +147,12 @@ public final class DashboardUserServiceTest {
 
     @Test
     public void testLogin() {
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        SpringBeanUtils.getInstance().setCfgContext(context);
+        JwtProperties jwtProperties = mock(JwtProperties.class);
+        when(jwtProperties.getKey()).thenReturn("test");
+        when(context.getBean(JwtProperties.class)).thenReturn(jwtProperties);
+
         ReflectionTestUtils.setField(dashboardUserService, "secretProperties", secretProperties);
         DashboardUserDO dashboardUserDO = createDashboardUserDO();
         String key = "key1234561234561";

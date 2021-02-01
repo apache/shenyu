@@ -19,6 +19,7 @@ package org.dromara.soul.admin.listener;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.dromara.soul.admin.utils.SoulDomain;
 import org.dromara.soul.common.utils.IpUtils;
 import org.springframework.boot.web.context.WebServerInitializedEvent;
 import org.springframework.context.ApplicationListener;
@@ -40,12 +41,9 @@ public class ApplicationStartListener implements ApplicationListener<WebServerIn
         final String host = IpUtils.getHost();
         final String domain = System.getProperty("soul.httpPath");
         if (StringUtils.isBlank(domain)) {
-            SoulDomain.getInstance()
-                    .setHttpPath("http://" + String.join(":", host, String.valueOf(port)));
+            SoulDomain.getInstance().setHttpPath("http://" + String.join(":", host, String.valueOf(port)));
         } else {
-            SoulDomain.getInstance()
-                    .setHttpPath(domain);
+            SoulDomain.getInstance().setHttpPath(domain);
         }
     }
-
 }

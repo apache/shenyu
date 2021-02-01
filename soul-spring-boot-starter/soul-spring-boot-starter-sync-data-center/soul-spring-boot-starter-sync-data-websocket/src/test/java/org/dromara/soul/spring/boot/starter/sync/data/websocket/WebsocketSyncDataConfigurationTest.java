@@ -17,8 +17,8 @@
 
 package org.dromara.soul.spring.boot.starter.sync.data.websocket;
 
-import org.dromara.soul.plugin.sync.data.weboscket.WebsocketSyncDataService;
-import org.dromara.soul.plugin.sync.data.weboscket.config.WebsocketConfig;
+import org.dromara.soul.plugin.sync.data.websocket.WebsocketSyncDataService;
+import org.dromara.soul.plugin.sync.data.websocket.config.WebsocketConfig;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 import org.junit.Test;
 import org.junit.runner.RunWith;

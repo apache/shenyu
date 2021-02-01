@@ -72,5 +72,4 @@ public class WebsocketDataChangedListener implements DataChangedListener {
                 new WebsocketData<>(ConfigGroupEnum.META_DATA.name(), eventType.name(), metaDataList);
         WebsocketCollector.send(GsonUtils.getInstance().toJson(configData), eventType);
     }
-
 }

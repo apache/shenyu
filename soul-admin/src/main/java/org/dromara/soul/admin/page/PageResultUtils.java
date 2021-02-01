@@ -31,17 +31,17 @@ public class PageResultUtils {
     /**
      * Result common pager.
      *
-     * @param <T>           the type parameter
-     * @param pageParameter the page parameter
-     * @param count         the count
-     * @param supplier      the supplier
+     * @param <T>              the type parameter
+     * @param pageParameter    the page parameter
+     * @param countSupplier    the count supplier
+     * @param listSupplier     the list supplier
      * @return the common pager
      */
-    public static <T> CommonPager<T> result(final PageParameter pageParameter, final Integer count, final Supplier<List<T>> supplier) {
+    public static <T> CommonPager<T> result(final PageParameter pageParameter, final Supplier<Integer> countSupplier, final Supplier<List<T>> listSupplier) {
+        Integer count = countSupplier.get();
         if (count != null && count > 0) {
-            return new CommonPager<>(new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), count), supplier.get());
+            return new CommonPager<>(new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), count), listSupplier.get());
         }
         return new CommonPager<>(new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), 0), Collections.emptyList());
-
     }
 }

@@ -32,9 +32,12 @@ import org.dromara.soul.admin.entity.PluginDO;
 import org.dromara.soul.admin.entity.SelectorDO;
 import org.dromara.soul.admin.listener.DataChangedEvent;
 import org.dromara.soul.admin.mapper.PluginMapper;
+import org.dromara.soul.admin.mapper.SelectorConditionMapper;
 import org.dromara.soul.admin.mapper.SelectorMapper;
-import org.dromara.soul.admin.service.SelectorService;
+import org.dromara.soul.admin.query.SelectorConditionQuery;
+import org.dromara.soul.admin.transfer.ConditionTransfer;
 import org.dromara.soul.common.concurrent.SoulThreadFactory;
+import org.dromara.soul.common.dto.ConditionData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
@@ -64,29 +67,29 @@ public class UpstreamCheckService {
     @Value("${soul.upstream.scheduledTime:10}")
     private int scheduledTime;
 
-    private final SelectorService selectorService;
-
     private final SelectorMapper selectorMapper;
 
     private final ApplicationEventPublisher eventPublisher;
 
     private final PluginMapper pluginMapper;
+
+    private final SelectorConditionMapper selectorConditionMapper;
     
     /**
      * Instantiates a new Upstream check service.
      *
-     * @param selectorService the selector service
-     * @param selectorMapper  the selector mapper
-     * @param eventPublisher  the event publisher
-     * @param pluginMapper    the plugin mapper
+     * @param selectorMapper            the selector mapper
+     * @param eventPublisher            the event publisher
+     * @param pluginMapper              the plugin mapper
+     * @param selectorConditionMapper   the selectorCondition mapper
      */
     @Autowired(required = false)
-    public UpstreamCheckService(final SelectorService selectorService, final SelectorMapper selectorMapper,
-                                final ApplicationEventPublisher eventPublisher, final PluginMapper pluginMapper) {
-        this.selectorService = selectorService;
+    public UpstreamCheckService(final SelectorMapper selectorMapper, final ApplicationEventPublisher eventPublisher,
+                                final PluginMapper pluginMapper, final SelectorConditionMapper selectorConditionMapper) {
         this.selectorMapper = selectorMapper;
         this.eventPublisher = eventPublisher;
         this.pluginMapper = pluginMapper;
+        this.selectorConditionMapper = selectorConditionMapper;
     }
     
     /**
@@ -133,6 +136,16 @@ public class UpstreamCheckService {
         }
     }
 
+    /**
+     * Replace.
+     *
+     * @param selectorName    the selector name
+     * @param divideUpstreams the divide upstream list
+     */
+    public void replace(final String selectorName, final List<DivideUpstream> divideUpstreams) {
+        UPSTREAM_MAP.put(selectorName, divideUpstreams);
+    }
+
     private void scheduled() {
         if (UPSTREAM_MAP.size() > 0) {
             UPSTREAM_MAP.forEach(this::check);
@@ -168,21 +181,21 @@ public class UpstreamCheckService {
     }
 
     private void updateSelectorHandler(final String selectorName, final List<DivideUpstream> upstreams) {
-        SelectorDO selector = selectorService.findByName(selectorName);
-        if (Objects.nonNull(selector)) {
-            SelectorData selectorData = selectorService.buildByName(selectorName);
-            if (upstreams == null) {
-                selector.setHandle("");
-                selectorData.setHandle("");
-            } else {
-                String handler = GsonUtils.getInstance().toJson(upstreams);
-                selector.setHandle(handler);
+        SelectorDO selectorDO = selectorMapper.selectByName(selectorName);
+        if (Objects.nonNull(selectorDO)) {
+            List<ConditionData> conditionDataList = ConditionTransfer.INSTANCE.mapToSelectorDOS(
+                    selectorConditionMapper.selectByQuery(new SelectorConditionQuery(selectorDO.getId())));
+            PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
+            String handler = CollectionUtils.isEmpty(upstreams) ? "" : GsonUtils.getInstance().toJson(upstreams);
+            selectorDO.setHandle(handler);
+            selectorMapper.updateSelective(selectorDO);
+            if (Objects.nonNull(pluginDO)) {
+                SelectorData selectorData = SelectorDO.transFrom(selectorDO, pluginDO.getName(), conditionDataList);
                 selectorData.setHandle(handler);
+                // publish change event.
+                eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
+                                                                 Collections.singletonList(selectorData)));
             }
-            selectorMapper.updateSelective(selector);
-            // publish change event.
-            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
-                    Collections.singletonList(selectorData)));
         }
     }
 }

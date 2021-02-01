@@ -83,7 +83,7 @@
     </parent>
 
     <properties>
-        <jdk.version>1.8</jdk.version>
+        <java.version>1.8</java.version>
         <hutool.version>4.0.8</hutool.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jasypt.version>1.9.2</jasypt.version>
@@ -96,7 +96,6 @@
         <guava.version>[24.1.1,)</guava.version>
         <commons-collections4.version>4.1</commons-collections4.version>
         <reactor-spring.version>1.0.1.RELEASE</reactor-spring.version>
-        <commons-dbcp.version>1.2.1</commons-dbcp.version>
         <disruptor.version>3.4.0</disruptor.version>
         <hessian.version>4.0.38</hessian.version>
         <protostuff.version>1.0.8</protostuff.version>
@@ -118,6 +117,8 @@
         <wiremock.version>2.18.0</wiremock.version>
         <zookeeper.version>3.5.6</zookeeper.version>
         <zkclient.version>0.10</zkclient.version>
+        <shiro.version>1.7.0</shiro.version>
+        <jwt.version>3.12.0</jwt.version>
         <!--maven plugin version-->
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <apache-rat-plugin.version>0.12</apache-rat-plugin.version>
@@ -260,13 +261,6 @@
                 <groupId>org.projectreactor</groupId>
                 <artifactId>reactor-spring</artifactId>
                 <version>${reactor-spring.version}</version>
-            </dependency>
-
-
-            <dependency>
-                <groupId>commons-dbcp</groupId>
-                <artifactId>commons-dbcp</artifactId>
-                <version>${commons-dbcp.version}</version>
             </dependency>
 
             <dependency>

@@ -149,7 +149,11 @@ public class NacosCacheHandler {
 
     @SneakyThrows
     private String getConfigAndSignListener(final String dataId, final Listener listener) {
-        return configService.getConfigAndSignListener(dataId, GROUP, 6000, listener);
+        String config = configService.getConfigAndSignListener(dataId, GROUP, 6000, listener);
+        if (config == null) {
+            config = "{}";
+        }
+        return config;
     }
 
     protected void watcherData(final String dataId, final OnChange oc) {
@@ -165,7 +169,7 @@ public class NacosCacheHandler {
             }
         };
         oc.change(getConfigAndSignListener(dataId, listener));
-        LISTENERS.getOrDefault(dataId, new ArrayList<>()).add(listener);
+        LISTENERS.computeIfAbsent(dataId, key -> new ArrayList<>()).add(listener);
     }
 
     protected interface OnChange {

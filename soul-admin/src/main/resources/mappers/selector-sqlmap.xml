@@ -30,6 +30,7 @@
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
         <result column="loged" jdbcType="TINYINT" property="loged"/>
         <result column="continued" jdbcType="TINYINT" property="continued"/>
+        <result column="handle" jdbcType="VARCHAR" property="handle"/>
     </resultMap>
 
     <sql id="Base_Column_List">

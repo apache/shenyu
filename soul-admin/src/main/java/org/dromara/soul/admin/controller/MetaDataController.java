@@ -145,8 +145,7 @@ public class MetaDataController {
         }
         return SoulAdminResult.success(SoulResultMessage.ENABLE_SUCCESS);
     }
-
-
+    
     /**
      * Sync metadata.
      *

@@ -36,7 +36,7 @@ public class PrxInfoUtil {
     private static final Map<String, PrimitiveType> PRIMITIVE_TYPE;
 
     static {
-        PRIMITIVE_TYPE = new HashMap<String, PrimitiveType>();
+        PRIMITIVE_TYPE = new HashMap<>();
         PRIMITIVE_TYPE.put("int", new PrimitiveType(int.class, Integer::valueOf));
         PRIMITIVE_TYPE.put("double", new PrimitiveType(double.class, Double::valueOf));
         PRIMITIVE_TYPE.put("long", new PrimitiveType(long.class, Long::valueOf));
@@ -106,7 +106,7 @@ public class PrxInfoUtil {
         Object[] param = new Object[paramNames.length];
         for (int i = 0; i < paramNames.length; i++) {
             String paramName = paramNames[i];
-            Class paramType = paramTypes[i];
+            Class<?> paramType = paramTypes[i];
             if (PRIMITIVE_TYPE.containsKey(paramType.getName())) {
                 param[i] = PRIMITIVE_TYPE.get(paramType.getName()).getFunc().apply((String) bodyMap.get(paramName));
             } else {
@@ -119,6 +119,7 @@ public class PrxInfoUtil {
     @AllArgsConstructor
     @Getter
     static class PrimitiveType {
+        
         private final Class<?> clazz;
 
         private final Function<String, Object> func;

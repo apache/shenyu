@@ -33,12 +33,17 @@ import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -54,6 +59,8 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
     private final ExecutorService executorService;
 
     private final String url;
+
+    private final Pattern pattern = Pattern.compile("(?<=<).*?(?=>)");
 
     public SofaServiceBeanPostProcessor(final SofaConfig sofaConfig) {
         String contextPath = sofaConfig.getContextPath();
@@ -110,8 +117,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
-        String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
-                .collect(Collectors.joining(","));
+        String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName).collect(Collectors.joining(","));
         MetaDataDTO metaDataDTO = MetaDataDTO.builder()
                 .appName(appName)
                 .serviceName(serviceName)
@@ -120,12 +126,29 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
                 .path(path)
                 .ruleName(ruleName)
                 .pathDesc(desc)
-                .parameterTypes(parameterTypes)
+                .parameterTypes(parameterTypes + getGenericParameterTypes(method))
                 .rpcType("sofa")
                 .rpcExt(buildRpcExt(soulSofaClient))
                 .enabled(soulSofaClient.enabled())
                 .build();
         return OkHttpTools.getInstance().getGson().toJson(metaDataDTO);
+    }
+
+    private String getGenericParameterTypes(final Method method) {
+        Type[] types = method.getGenericParameterTypes();
+        String genericParameterTypes = Arrays.stream(types).map(Type::getTypeName).collect(Collectors.joining(","));
+        Matcher matcher = pattern.matcher(genericParameterTypes);
+        List<String> list = new LinkedList<>();
+        while (matcher.find()) {
+            String type = matcher.group();
+            if (!type.startsWith("java")) {
+                list.add(type);
+            }
+        }
+        if (list.isEmpty()) {
+            return "";
+        }
+        return "#" + String.join(",", list);
     }
 
     private String buildRpcExt(final SoulSofaClient soulSofaClient) {
@@ -135,6 +158,5 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
                 .timeout(soulSofaClient.timeout())
                 .build();
         return OkHttpTools.getInstance().getGson().toJson(build);
-
     }
 }

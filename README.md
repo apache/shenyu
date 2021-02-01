@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  English | <a href="https://github.com/dromara/soul/blob/master/README_cn.md">简体中文</a>
+  English | <a href="https://github.com/dromara/soul/blob/master/README_CN.md">简体中文</a>
 </p>
 
 <p align="center">
@@ -23,7 +23,7 @@
         <img src="https://img.shields.io/badge/JDK-8+-green.svg" />
     </a>
     <a target="_blank" href="https://github.com/dromara/soul">
-        <img src="https://github.com/dromara/soul/workflows/build/badge.svg" />
+        <img src="https://github.com/dromara/soul/workflows/ci/badge.svg" />
     </a>
     <a href="https://www.codacy.com/app/yu199195/soul?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Dromara/soul&amp;utm_campaign=Badge_Grade">
         <img src="https://api.codacy.com/project/badge/Grade/4367ffad5b434b7e8078b3a68cc6398d"/>
@@ -57,9 +57,9 @@
  
 -------------------------------------------------------------------------------- 
   
-# Execution Flow
+# Mind maps
  
- ![](https://yu199195.github.io/images/soul/soul-handler.png)
+ ![](https://dromara.org/activities/dromara-cloud-native-meet/soul-xmind.png)
  
 --------------------------------------------------------------------------------  
   
@@ -149,8 +149,6 @@
  
    * JDK 1.8+
    
-   * MySQL
-   
 --------------------------------------------------------------------------------     
    
 # About
@@ -163,26 +161,14 @@
     
 # Document & Website
 
-[![EN doc](https://img.shields.io/badge/document-English-blue.svg)](https://dromara.org/website/en-us/docs/soul/soul.html)
-[![CN doc](https://img.shields.io/badge/document-Chinese-blue.svg)](https://dromara.org/website/zh-cn/docs/soul/soul.html)
+[![EN doc](https://img.shields.io/badge/document-English-blue.svg)](https://dromara.org/projects/soul/overview)
+[![CN doc](https://img.shields.io/badge/document-Chinese-blue.svg)](https://dromara.org/zh/projects/soul/overview)
   
 --------------------------------------------------------------------------------  
         
 # Stargazers over time
 
 [![Stargazers over time](https://starchart.cc/Dromara/soul.svg)](https://starchart.cc/Dromara/soul)
-
---------------------------------------------------------------------------------  
-
-# Videos
-
-* [evn setup 01 ](http://www.iqiyi.com/w_19s6521605.html)
-
-* [evn setup 02 ](http://www.iqiyi.com/w_19s65203ap.html)
-
-* [source code debug](http://www.iqiyi.com/w_19s650tbol.html)
-
-* [plugins](http://www.iqiyi.com/w_19s651zyo9.html)
 
 --------------------------------------------------------------------------------  
 

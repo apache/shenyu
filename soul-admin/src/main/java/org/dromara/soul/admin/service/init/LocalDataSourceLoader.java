@@ -22,13 +22,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.jdbc.ScriptRunner;
+import org.dromara.soul.admin.config.properties.DataBaseProperties;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -43,11 +44,12 @@ import java.sql.DriverManager;
 @Component
 public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcessor {
 
-    private @Value("${soul.database.init_script:META-INF/schema.h2.sql}") String schemaSQLFile;
+    @Resource
+    private DataBaseProperties dataBaseProperties;
 
     @Override
     public Object postProcessAfterInitialization(@NonNull final Object bean, final String beanName) throws BeansException {
-        if (bean instanceof DataSourceProperties) {
+        if ((bean instanceof DataSourceProperties) && dataBaseProperties.getInitEnable()) {
             this.init((DataSourceProperties) bean);
         }
         return bean;
@@ -69,8 +71,8 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
         // doesn't print logger
         runner.setLogWriter(null);
         Resources.setCharset(StandardCharsets.UTF_8);
-        Reader read = Resources.getResourceAsReader(schemaSQLFile);
-        log.info("execute soul schema sql: {}", schemaSQLFile);
+        Reader read = Resources.getResourceAsReader(dataBaseProperties.getInitScript());
+        log.info("execute soul schema sql: {}", dataBaseProperties.getInitScript());
         runner.runScript(read);
         runner.closeConnection();
         conn.close();
