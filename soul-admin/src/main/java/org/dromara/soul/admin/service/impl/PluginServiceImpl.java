@@ -104,6 +104,7 @@ public class PluginServiceImpl implements PluginService {
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         DataEventTypeEnum eventType = DataEventTypeEnum.CREATE;
         if (StringUtils.isBlank(pluginDTO.getId())) {
+
             pluginMapper.insertSelective(pluginDO);
         } else {
             eventType = DataEventTypeEnum.UPDATE;

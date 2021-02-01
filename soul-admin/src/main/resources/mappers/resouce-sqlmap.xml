@@ -60,25 +60,13 @@
         </if>
     </select>
 
-    <select id="findByQuery" parameterType="java.lang.String" resultMap="BaseResultMap">
+    <select id="selectByTitle" parameterType="java.lang.String" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
         from resource
         where status = 1
-        <if test="parentId != null">
-            and parent_id = #{parentId,jdbcType=VARCHAR}
-        </if>
         <if test="title != null">
             and title = #{title,jdbcType=VARCHAR}
-        </if>
-        <if test="url != null">
-            and url = #{url,jdbcType=VARCHAR}
-        </if>
-        <if test="name != null">
-            and name = #{name,jdbcType=VARCHAR}
-        </if>
-        <if test="perms != null">
-            and perms = #{perms,jdbcType=VARCHAR}
         </if>
     </select>
 
