@@ -36,12 +36,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -134,12 +131,12 @@ public class ResourceServiceImpl implements ResourceService {
         resourceIds.forEach(item -> {
             matchResourceIds.clear();
             metaList.forEach(resource -> {
-                if (resource.getId().equals(item)) {
-                    deleteResourceIds.put(resource.getId(), resource.getTitle());
-                }
                 if (resource.getParentId().equals(item)) {
-                    deleteResourceIds.put(resource.getId(), resource.getTitle());
                     matchResourceIds.add(resource.getId());
+                }
+                if (resource.getId().equals(item) || resource.getParentId().equals(item)) {
+                    deleteResourceIds.put(resource.getId(), resource.getTitle());
+                    metaList.removeIf(resourceId -> resourceId.equals(item));
                 }
             });
             if (matchResourceIds.size() > 0) {
