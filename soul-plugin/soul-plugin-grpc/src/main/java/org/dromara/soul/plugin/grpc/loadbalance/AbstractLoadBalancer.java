@@ -119,7 +119,7 @@ public abstract class AbstractLoadBalancer extends LoadBalancer {
         }
         if (stateInfo.getState() == IDLE) {
             subchannel.requestConnection();
-            log.info("AbstractSoaLoadBalancer.handleSubchannelState, current state:IDLE, subchannel.requestConnection().");
+            log.info("AbstractLoadBalancer.handleSubchannelState, current state:IDLE, subchannel.requestConnection().");
         }
         final ConnectivityStateInfo originStateInfo = SubChannels.getStateInfo(subchannel);
         if (originStateInfo.getState().equals(TRANSIENT_FAILURE)) {

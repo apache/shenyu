@@ -42,8 +42,8 @@ public abstract class AbstractReadyPicker extends AbstractPicker implements Pick
     private final List<SubchannelCopy> list;
 
     AbstractReadyPicker(final List<LoadBalancer.Subchannel> list) {
-        this.hasIdleNode = hasIdleNode();
         this.list = list.stream().map(SubchannelCopy::new).collect(Collectors.toList());
+        this.hasIdleNode = hasIdleNode();
     }
 
     private boolean hasIdleNode() {

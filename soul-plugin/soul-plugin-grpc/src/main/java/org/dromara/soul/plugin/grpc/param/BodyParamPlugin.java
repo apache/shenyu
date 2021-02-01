@@ -77,7 +77,7 @@ public class BodyParamPlugin implements SoulPlugin {
 
     @Override
     public String named() {
-        return "apache-dubbo-body-param";
+        return PluginEnum.GRPC.getName();
     }
 
     private Mono<Void> body(final ServerWebExchange exchange, final ServerRequest serverRequest, final SoulPluginChain chain) {
