@@ -27,7 +27,7 @@ public final class AdminConstants {
     /**
      * The constant SUCCESS, equals to SoulResultMessage.SUCCESS.
      */
-    public static final String SUCCESS = "success";
+    public static final String SUCCESS = "SUCCESS";
 
     /**
      * The constant PLUGIN_NAME_IS_EXIST.

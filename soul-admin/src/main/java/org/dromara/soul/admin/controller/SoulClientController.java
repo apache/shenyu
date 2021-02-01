@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("/soul-client")
-@ConditionalOnProperty(name = "soul.register.registerType", value = "http", matchIfMissing = true)
+@ConditionalOnProperty(prefix = "soul.register.registerType", value = "http", matchIfMissing = true)
 public class SoulClientController {
     private static final SoulServerMetaDataRegisterEventPublisher INSTANCE = SoulServerMetaDataRegisterEventPublisher.getInstance();
 

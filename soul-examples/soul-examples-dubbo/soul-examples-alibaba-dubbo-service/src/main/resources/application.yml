@@ -26,3 +26,6 @@ soul:
     adminUrl: http://localhost:9095
     contextPath: /dubbo
     appName: dubbo
+    zookeeperUrl: localhost:2181
+    zookeeperSessionTimeout: 5000
+    zookeeperConnectionTimeout: 2000

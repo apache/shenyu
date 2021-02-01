@@ -18,6 +18,7 @@
 package org.dromara.soul.client.dubbo.common.config;
 
 import lombok.Data;
+import org.dromara.soul.client.common.config.SoulClientConfig;
 
 /**
  * The type Dubbo config.
@@ -25,7 +26,7 @@ import lombok.Data;
  * @author xiaoyu
  */
 @Data
-public class DubboConfig {
+public class DubboConfig extends SoulClientConfig {
 
     private String adminUrl;
 
