@@ -15,28 +15,27 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.ratelimiter.response;
+package org.dromara.soul.metrics.spi;
 
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-
-import java.io.Serializable;
+import org.dromara.soul.metrics.config.MetricsConfig;
+import org.dromara.soul.spi.SPI;
 
 /**
- * rateLimiter response.
- *
- * @author xiaoyu(Myth)
+ * Metrics tracker manager.
  */
-@Data
-@RequiredArgsConstructor
-public class RateLimiterResponse implements Serializable {
-
-    private final boolean allowed;
-
-    private final long tokensRemaining;
-
-    @Override
-    public String toString() {
-        return "Response{" + "allowed=" + allowed  + ", tokensRemaining=" + tokensRemaining + '}';
-    }
+@SPI
+public interface MetricsBootService {
+    
+    /**
+     * Start metrics tracker.
+     *
+     * @param metricsConfig metrics config
+     */
+    void start(MetricsConfig metricsConfig);
+    
+    /**
+     * Stop metrics tracker.
+     */
+    void stop();
 }
+

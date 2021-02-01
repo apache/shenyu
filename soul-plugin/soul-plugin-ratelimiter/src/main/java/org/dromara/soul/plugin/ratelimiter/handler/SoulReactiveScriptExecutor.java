@@ -41,15 +41,13 @@ import reactor.core.publisher.Mono;
  */
 public class SoulReactiveScriptExecutor<K> extends DefaultReactiveScriptExecutor<K> {
 
-    public SoulReactiveScriptExecutor(final ReactiveRedisConnectionFactory connectionFactory,
-                                      final RedisSerializationContext<K, ?> serializationContext) {
+    public SoulReactiveScriptExecutor(final ReactiveRedisConnectionFactory connectionFactory, final RedisSerializationContext<K, ?> serializationContext) {
         super(connectionFactory, serializationContext);
     }
 
     @Override
-    public <T> Flux<T> execute(final RedisScript<T> script, final List<K> keys, final List<?> args, final RedisElementWriter<?> argsWriter,
-                               final RedisElementReader<T> resultReader) {
-
+    public <T> Flux<T> execute(final RedisScript<T> script, final List<K> keys, final List<?> args,
+                               final RedisElementWriter<?> argsWriter, final RedisElementReader<T> resultReader) {
         Assert.notNull(script, "RedisScript must not be null!");
         Assert.notNull(argsWriter, "Argument Writer must not be null!");
         Assert.notNull(resultReader, "Result Reader must not be null!");
@@ -60,14 +58,12 @@ public class SoulReactiveScriptExecutor<K> extends DefaultReactiveScriptExecutor
             ByteBuffer[] keysAndArgs = keysAndArgs(argsWriter, keys, args);
             int keySize = keys.size();
             return super.eval(connection, script, returnType, keySize, keysAndArgs, resultReader);
-
         });
     }
 
     private <T> Flux<T> execute(final ReactiveRedisCallback<T> action) {
         Assert.notNull(action, "Callback object must not be null");
         ReactiveRedisConnectionFactory factory = getConnectionFactory();
-        return Flux.usingWhen(Mono.fromSupplier(factory::getReactiveConnection), action::doInRedis,
-                ReactiveRedisConnection::closeLater);
+        return Flux.usingWhen(Mono.fromSupplier(factory::getReactiveConnection), action::doInRedis, ReactiveRedisConnection::closeLater);
     }
 }

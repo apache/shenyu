@@ -38,9 +38,7 @@ public class SoulReactiveRedisTemplate<K, V> extends ReactiveRedisTemplate<K, V>
 
     private final ReactiveScriptExecutor<K> reactiveScriptExecutor;
 
-    public SoulReactiveRedisTemplate(final ReactiveRedisConnectionFactory connectionFactory,
-                                     final RedisSerializationContext<K, V> serializationContext) {
-
+    public SoulReactiveRedisTemplate(final ReactiveRedisConnectionFactory connectionFactory, final RedisSerializationContext<K, V> serializationContext) {
         super(connectionFactory, serializationContext);
         this.reactiveScriptExecutor = new SoulReactiveScriptExecutor<>(connectionFactory, serializationContext);
     }

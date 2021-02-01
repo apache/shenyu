@@ -15,28 +15,30 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.ratelimiter.response;
+package org.dromara.soul.metrics.enums;
 
-import lombok.Data;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.io.Serializable;
-
 /**
- * rateLimiter response.
- *
- * @author xiaoyu(Myth)
+ * Metric type.
  */
-@Data
+@Getter
 @RequiredArgsConstructor
-public class RateLimiterResponse implements Serializable {
-
-    private final boolean allowed;
-
-    private final long tokensRemaining;
-
-    @Override
-    public String toString() {
-        return "Response{" + "allowed=" + allowed  + ", tokensRemaining=" + tokensRemaining + '}';
-    }
+public enum MetricType {
+    
+    /**
+     * Counter metric type.
+     */
+    COUNTER,
+    
+    /**
+     * Gauge metric type.
+     */
+    GAUGE,
+    
+    /**
+     * Histogram metric type.
+     */
+    HISTOGRAM
 }

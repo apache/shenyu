@@ -15,28 +15,29 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.ratelimiter.response;
+package org.dromara.soul.metrics.prometheus.collector;
 
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import org.junit.Before;
+import org.junit.Test;
 
-import java.io.Serializable;
+import static org.junit.Assert.assertNotNull;
 
 /**
- * rateLimiter response.
+ * The Test Case For BuildInfoCollector.
  *
- * @author xiaoyu(Myth)
- */
-@Data
-@RequiredArgsConstructor
-public class RateLimiterResponse implements Serializable {
+ * @author nuo-promise
+ **/
+public final class BuildInfoCollectorTest {
 
-    private final boolean allowed;
+    private BuildInfoCollector buildInfoCollector;
 
-    private final long tokensRemaining;
+    @Before
+    public void setUp() {
+        buildInfoCollector = new BuildInfoCollector();
+    }
 
-    @Override
-    public String toString() {
-        return "Response{" + "allowed=" + allowed  + ", tokensRemaining=" + tokensRemaining + '}';
+    @Test
+    public void testBuildInfoCollector() {
+        assertNotNull(buildInfoCollector.collect());
     }
 }

@@ -15,28 +15,28 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.ratelimiter.response;
+package org.dromara.soul.metrics.prometheus.collector;
 
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-
-import java.io.Serializable;
+import java.util.LinkedList;
+import java.util.Map;
 
 /**
- * rateLimiter response.
- *
- * @author xiaoyu(Myth)
+ * The interface M bean receiver.
  */
-@Data
-@RequiredArgsConstructor
-public class RateLimiterResponse implements Serializable {
-
-    private final boolean allowed;
-
-    private final long tokensRemaining;
-
-    @Override
-    public String toString() {
-        return "Response{" + "allowed=" + allowed  + ", tokensRemaining=" + tokensRemaining + '}';
-    }
+public interface MBeanReceiver {
+    
+    /**
+     * Record bean.
+     *
+     * @param domain          the domain
+     * @param beanProperties  the bean properties
+     * @param attrKeys        the attr keys
+     * @param attrName        the attr name
+     * @param attrType        the attr type
+     * @param attrDescription the attr description
+     * @param value           the value
+     */
+    void recordBean(String domain, Map<String, String> beanProperties,
+                    LinkedList<String> attrKeys, String attrName, String attrType,
+                    String attrDescription, Object value);
 }
