@@ -22,8 +22,12 @@ import org.dromara.soul.common.dto.convert.rule.impl.DubboRuleHandle;
 import org.dromara.soul.common.dto.convert.rule.impl.SofaRuleHandle;
 import org.dromara.soul.common.dto.convert.rule.impl.SpringCloudRuleHandle;
 import org.dromara.soul.common.enums.RpcTypeEnum;
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for RuleHandleFactory.
@@ -35,74 +39,74 @@ public final class RuleHandleFactoryTest {
     @Test
     public void testRuleHandleCorrectType() {
         RuleHandle handle = RuleHandleFactory.ruleHandle(RpcTypeEnum.DUBBO, "");
-        Assert.assertNotNull(handle);
-        Assert.assertTrue(handle instanceof DubboRuleHandle);
+        assertThat(handle, notNullValue());
+        assertThat(handle instanceof DubboRuleHandle, is(true));
 
         handle = RuleHandleFactory.ruleHandle(RpcTypeEnum.SOFA, "");
-        Assert.assertNotNull(handle);
-        Assert.assertTrue(handle instanceof SofaRuleHandle);
+        assertThat(handle, notNullValue());
+        assertThat(handle instanceof SofaRuleHandle, is(true));
 
         handle = RuleHandleFactory.ruleHandle(RpcTypeEnum.HTTP, "");
-        Assert.assertNotNull(handle);
-        Assert.assertTrue(handle instanceof DivideRuleHandle);
+        assertThat(handle, notNullValue());
+        assertThat(handle instanceof DivideRuleHandle, is(true));
 
         handle = RuleHandleFactory.ruleHandle(RpcTypeEnum.GRPC, "");
-        Assert.assertNotNull(handle);
-        Assert.assertTrue(handle instanceof SpringCloudRuleHandle);
+        assertThat(handle, notNullValue());
+        assertThat(handle instanceof SpringCloudRuleHandle, is(true));
 
         handle = RuleHandleFactory.ruleHandle(RpcTypeEnum.SPRING_CLOUD, "");
-        Assert.assertNotNull(handle);
-        Assert.assertTrue(handle instanceof SpringCloudRuleHandle);
+        assertThat(handle, notNullValue());
+        assertThat(handle instanceof SpringCloudRuleHandle, is(true));
 
         handle = RuleHandleFactory.ruleHandle(RpcTypeEnum.MOTAN, "");
-        Assert.assertNotNull(handle);
-        Assert.assertTrue(handle instanceof SpringCloudRuleHandle);
+        assertThat(handle, notNullValue());
+        assertThat(handle instanceof SpringCloudRuleHandle, is(true));
 
         handle = RuleHandleFactory.ruleHandle(RpcTypeEnum.WEB_SOCKET, "");
-        Assert.assertNotNull(handle);
-        Assert.assertTrue(handle instanceof SpringCloudRuleHandle);
+        assertThat(handle, notNullValue());
+        assertThat(handle instanceof SpringCloudRuleHandle, is(true));
     }
 
     @Test
     public void testRuleHandleCorrectTypeNullPath() {
         RuleHandle handle = RuleHandleFactory.ruleHandle(RpcTypeEnum.DUBBO, null);
-        Assert.assertNotNull(handle);
-        Assert.assertTrue(handle instanceof DubboRuleHandle);
+        assertThat(handle, notNullValue());
+        assertThat(handle instanceof DubboRuleHandle, is(true));
 
         handle = RuleHandleFactory.ruleHandle(RpcTypeEnum.SOFA, null);
-        Assert.assertNotNull(handle);
-        Assert.assertTrue(handle instanceof SofaRuleHandle);
+        assertThat(handle, notNullValue());
+        assertThat(handle instanceof SofaRuleHandle, is(true));
 
         handle = RuleHandleFactory.ruleHandle(RpcTypeEnum.HTTP, null);
-        Assert.assertNotNull(handle);
-        Assert.assertTrue(handle instanceof DivideRuleHandle);
+        assertThat(handle, notNullValue());
+        assertThat(handle instanceof DivideRuleHandle, is(true));
 
         handle = RuleHandleFactory.ruleHandle(RpcTypeEnum.GRPC, null);
-        Assert.assertNotNull(handle);
-        Assert.assertTrue(handle instanceof SpringCloudRuleHandle);
+        assertThat(handle, notNullValue());
+        assertThat(handle instanceof SpringCloudRuleHandle, is(true));
 
         handle = RuleHandleFactory.ruleHandle(RpcTypeEnum.SPRING_CLOUD, null);
-        Assert.assertNotNull(handle);
-        Assert.assertTrue(handle instanceof SpringCloudRuleHandle);
+        assertThat(handle, notNullValue());
+        assertThat(handle instanceof SpringCloudRuleHandle, is(true));
 
         handle = RuleHandleFactory.ruleHandle(RpcTypeEnum.MOTAN, null);
-        Assert.assertNotNull(handle);
-        Assert.assertTrue(handle instanceof SpringCloudRuleHandle);
+        assertThat(handle, notNullValue());
+        assertThat(handle instanceof SpringCloudRuleHandle, is(true));
 
         handle = RuleHandleFactory.ruleHandle(RpcTypeEnum.WEB_SOCKET, null);
-        Assert.assertNotNull(handle);
-        Assert.assertTrue(handle instanceof SpringCloudRuleHandle);
+        assertThat(handle, notNullValue());
+        assertThat(handle instanceof SpringCloudRuleHandle, is(true));
     }
 
     @Test
     public void testRuleHandleNullType() {
         RuleHandle handle = RuleHandleFactory.ruleHandle(null, "");
-        Assert.assertNull(handle);
+        assertThat(handle, nullValue());
     }
 
     @Test
     public void testRuleHandleNullTypeNullPath() {
         RuleHandle handle = RuleHandleFactory.ruleHandle(null, null);
-        Assert.assertNull(handle);
+        assertThat(handle, nullValue());
     }
 }
