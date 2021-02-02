@@ -45,6 +45,7 @@
         <module>soul-examples-eureka</module>
         <module>soul-examples-sofa</module>
         <module>soul-examples-tars</module>
+        <module>soul-examples-grpc</module>
     </modules>
 
     <build>

@@ -261,6 +261,7 @@ INSERT INTO `plugin` (`id`, `name`, `role`, `config`, `enabled`, `date_created`,
 INSERT INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('12','resilience4j', '1','0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('13', 'tars', '1','0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('14', 'context_path', '1','0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
+INSERT INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('15', 'grpc', '1','0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 
 /**default admin user**/
 INSERT INTO `dashboard_user` (`id`, `user_name`, `password`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('1','admin','jHcpKkiDbbQh7W7hh8yQSA==', '1', '1', '2018-06-23 15:12:22', '2018-06-23 15:12:23');

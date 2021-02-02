@@ -46,6 +46,7 @@
         <module>soul-spring-boot-starter-plugin-resilience4j</module>
         <module>soul-spring-boot-starter-plugin-tars</module>
         <module>soul-spring-boot-starter-plugin-context-path</module>
+        <module>soul-spring-boot-starter-plugin-grpc</module>
     </modules>
 
 

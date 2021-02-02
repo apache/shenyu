@@ -25,7 +25,7 @@ import org.dromara.soul.admin.dto.MetaDataDTO;
  * The interface Soul client service.
  */
 public interface SoulClientRegisterService {
-    
+
     /**
      * Register http string.
      *
@@ -33,7 +33,7 @@ public interface SoulClientRegisterService {
      * @return the string
      */
     String registerSpringMvc(SpringMvcRegisterDTO springMvcRegisterDTO);
-    
+
     /**
      * Register spring cloud string.
      *
@@ -41,7 +41,7 @@ public interface SoulClientRegisterService {
      * @return the string
      */
     String registerSpringCloud(SpringCloudRegisterDTO springCloudRegisterDTO);
-    
+
     /**
      * Register rpc string.
      *
@@ -65,4 +65,12 @@ public interface SoulClientRegisterService {
      * @return the string
      */
     String registerTars(MetaDataDTO metaDataDTO);
+
+    /**
+     * Register grpc string.
+     *
+     * @param metaDataDTO the meta data dto
+     * @return the string
+     */
+    String registerGrpc(MetaDataDTO metaDataDTO);
 }
