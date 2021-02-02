@@ -193,11 +193,11 @@ public final class SpringMvcClientBeanPostProcessorTest {
     @Controller
     @RequestMapping("/controller")
     @SoulSpringMvcClient(path = "/controller")
-    static class TestBeanControllerMatching{
+    static class TestBeanControllerMatching {
         @PostMapping("/save")
         @SoulSpringMvcClient(path = "/save")
         public String save(@RequestBody final String body) {
-        return EMPTY_STRING + body;
-    }
+            return EMPTY_STRING + body;
+        }
     }
 }
