@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
  * @author zhanglei
  */
 @Slf4j
-public class SoulNameResolver extends NameResolver implements Consumer {
+public class SoulNameResolver extends NameResolver implements Consumer<Object> {
 
     private boolean resolving;
 
@@ -162,7 +162,7 @@ public class SoulNameResolver extends NameResolver implements Consumer {
             }
             if (!needsToUpdateConnections(newInstanceList)) {
                 log.info("Nothing has changed... skipping update for {}", name);
-                return keep;
+                return null;
             }
             log.info("Ready to update server list for {}", name);
             final List<EquivalentAddressGroup> targets = newInstanceList.stream()

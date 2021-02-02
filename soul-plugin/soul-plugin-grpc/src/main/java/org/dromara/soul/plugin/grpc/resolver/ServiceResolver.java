@@ -90,9 +90,7 @@ public final class ServiceResolver {
         Descriptors.ServiceDescriptor service = findService(packageName, serviceName);
         Descriptors.MethodDescriptor method = service.findMethodByName(metaData.getMethodName());
         if (method == null) {
-            throw new IllegalArgumentException(
-                    "Unable to find method " + packageName
-                            + " in service " + serviceName);
+            throw new IllegalArgumentException("Unable to find method " + packageName + " in service " + serviceName);
         }
         return method;
     }
@@ -102,7 +100,6 @@ public final class ServiceResolver {
             if (!fileDescriptor.getPackage().equals(packageName)) {
                 continue;
             }
-
             Descriptors.ServiceDescriptor serviceDescriptor = fileDescriptor.findServiceByName(serviceName);
             if (serviceDescriptor != null) {
                 return serviceDescriptor;

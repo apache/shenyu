@@ -52,10 +52,7 @@ public class GrpcMetaDataSubscriber implements MetaDataSubscriber {
             if (CollectionUtils.isEmpty(prxList)) {
                 GrpcClientCache.initGrpcClient(metaData.getContextPath());
             }
-            boolean exist = prxList.stream()
-                    .filter(instance -> {
-                        return isEqual(instance, metaData.getAppName());
-                    }).count() > 0;
+            boolean exist = prxList.stream().anyMatch(instance -> isEqual(instance, metaData.getAppName()));
             if (!exist) {
                 ApplicationConfigCache.getInstance().initPrx(metaData);
             }
@@ -71,9 +68,7 @@ public class GrpcMetaDataSubscriber implements MetaDataSubscriber {
             List<SoulServiceInstance> prxList = ApplicationConfigCache.getInstance()
                     .get(metaData.getPath()).getSoulServiceInstances();
             List<SoulServiceInstance> removePrxList = prxList.stream()
-                    .filter(instance -> {
-                        return isEqual(instance, metaData.getAppName());
-                    })
+                    .filter(instance -> isEqual(instance, metaData.getAppName()))
                     .collect(Collectors.toList());
             prxList.removeAll(removePrxList);
             if (CollectionUtils.isEmpty(prxList)) {

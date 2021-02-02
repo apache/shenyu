@@ -17,7 +17,7 @@
 
 package org.dromara.soul.plugin.grpc.loadbalance.picker;
 
-import org.dromara.soul.plugin.grpc.loadbalance.SubchannelCopy;
+import org.dromara.soul.plugin.grpc.loadbalance.SubChannelCopy;
 
 import java.util.List;
 
@@ -33,5 +33,5 @@ public interface Picker {
      *
      * @return List list
      */
-    List<SubchannelCopy> getSubchannels();
+    List<SubChannelCopy> getSubchannels();
 }

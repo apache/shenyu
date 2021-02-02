@@ -38,32 +38,32 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
 /**
- * Test case for {@link BodyParamPlugin}.
+ * Test case for {@link AlibabaDubboBodyParamPlugin}.
  *
  * @author Phoenix Luo
  **/
 
 @RunWith(MockitoJUnitRunner.class)
-public final class BodyParamPluginTest {
+public final class AlibabaDubboBodyParamPluginTest {
     private SoulPluginChain chain;
     
-    private BodyParamPlugin bodyParamPlugin;
+    private AlibabaDubboBodyParamPlugin alibabaDubboBodyParamPlugin;
     
     @Before
     public void setUp() {
-        bodyParamPlugin = new BodyParamPlugin();
+        alibabaDubboBodyParamPlugin = new AlibabaDubboBodyParamPlugin();
         chain = mock(SoulPluginChain.class);
     }
     
     @Test
     public void testGetOrder() {
-        final int result = bodyParamPlugin.getOrder();
+        final int result = alibabaDubboBodyParamPlugin.getOrder();
         assertEquals(PluginEnum.DUBBO.getCode() - 1, result);
     }
     
     @Test
     public void testNamed() {
-        final String result = bodyParamPlugin.named();
+        final String result = alibabaDubboBodyParamPlugin.named();
         assertEquals("alibaba-dubbo-body-param", result);
     }
     
@@ -75,7 +75,7 @@ public final class BodyParamPluginTest {
         SoulContext context = new SoulContext();
         context.setRpcType(RpcTypeEnum.DUBBO.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
-        final Mono<Void> result = bodyParamPlugin.execute(exchange, chain);
+        final Mono<Void> result = alibabaDubboBodyParamPlugin.execute(exchange, chain);
         StepVerifier.create(result).expectSubscription().verifyComplete();
     }
     
@@ -87,7 +87,7 @@ public final class BodyParamPluginTest {
         SoulContext context = new SoulContext();
         context.setRpcType(RpcTypeEnum.DUBBO.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
-        final Mono<Void> result = bodyParamPlugin.execute(exchange, chain);
+        final Mono<Void> result = alibabaDubboBodyParamPlugin.execute(exchange, chain);
         StepVerifier.create(result).expectSubscription().verifyComplete();
     }
     
@@ -99,7 +99,7 @@ public final class BodyParamPluginTest {
         SoulContext context = new SoulContext();
         context.setRpcType(RpcTypeEnum.DUBBO.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
-        final Mono<Void> result = bodyParamPlugin.execute(exchange, chain);
+        final Mono<Void> result = alibabaDubboBodyParamPlugin.execute(exchange, chain);
         StepVerifier.create(result).expectSubscription().verifyComplete();
     }
     
@@ -111,7 +111,7 @@ public final class BodyParamPluginTest {
         SoulContext context = new SoulContext();
         context.setRpcType(RpcTypeEnum.DUBBO.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
-        final Mono<Void> result = bodyParamPlugin.execute(exchange, chain);
+        final Mono<Void> result = alibabaDubboBodyParamPlugin.execute(exchange, chain);
         StepVerifier.create(result).expectSubscription().verifyComplete();
     }
     

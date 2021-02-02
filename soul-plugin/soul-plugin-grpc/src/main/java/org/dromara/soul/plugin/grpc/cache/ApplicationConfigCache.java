@@ -55,7 +55,7 @@ public final class ApplicationConfigCache {
                 }
             });
 
-    private final Map<String, Consumer> listener = new ConcurrentHashMap<>();
+    private final Map<String, Consumer<Object>> listener = new ConcurrentHashMap<>();
 
     private ApplicationConfigCache() {
     }
@@ -88,8 +88,8 @@ public final class ApplicationConfigCache {
             SoulServiceInstanceLists soulServiceInstances = cache.get(metaData.getContextPath());
             List<SoulServiceInstance> instances = soulServiceInstances.getSoulServiceInstances();
             String[] ipAndPort = metaData.getAppName().split(":");
-            instances.add(new SoulServiceInstance(ipAndPort[0], Integer.valueOf(ipAndPort[1])));
-            Consumer consumer = listener.get(metaData.getContextPath());
+            instances.add(new SoulServiceInstance(ipAndPort[0], Integer.parseInt(ipAndPort[1])));
+            Consumer<Object> consumer = listener.get(metaData.getContextPath());
             if (Objects.nonNull(consumer)) {
                 consumer.accept(System.currentTimeMillis());
             }
@@ -115,7 +115,7 @@ public final class ApplicationConfigCache {
      * @param key      contextPath
      * @param consumer consumer
      */
-    public void watch(final String key, final Consumer consumer) {
+    public void watch(final String key, final Consumer<Object> consumer) {
         listener.put(key, consumer);
     }
 

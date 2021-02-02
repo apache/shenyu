@@ -51,9 +51,7 @@ public class GrpcClientCache {
      * @param contextPath contextPath
      */
     public static void initGrpcClient(final String contextPath) {
-        CLIENT_CACHE.computeIfAbsent(contextPath, s -> {
-            return GrpcClientBuilder.buildClient(contextPath);
-        });
+        CLIENT_CACHE.computeIfAbsent(contextPath, s -> GrpcClientBuilder.buildClient(contextPath));
     }
 
     /**

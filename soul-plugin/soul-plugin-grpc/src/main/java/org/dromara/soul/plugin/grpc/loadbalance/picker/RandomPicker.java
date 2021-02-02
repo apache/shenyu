@@ -19,7 +19,7 @@ package org.dromara.soul.plugin.grpc.loadbalance.picker;
 
 import io.grpc.LoadBalancer;
 import org.apache.commons.collections4.CollectionUtils;
-import org.dromara.soul.plugin.grpc.loadbalance.SubchannelCopy;
+import org.dromara.soul.plugin.grpc.loadbalance.SubChannelCopy;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -36,7 +36,7 @@ public class RandomPicker extends AbstractReadyPicker {
     }
 
     @Override
-    protected SubchannelCopy pick(final List<SubchannelCopy> list) {
+    protected SubChannelCopy pick(final List<SubChannelCopy> list) {
         if (CollectionUtils.isEmpty(list)) {
             return null;
         }
@@ -47,8 +47,8 @@ public class RandomPicker extends AbstractReadyPicker {
         return list.get(index);
     }
 
-    private int getRandomIndexByWeight(final List<SubchannelCopy> list) {
-        final int sumWeight = list.stream().mapToInt(SubchannelCopy::getWeight).sum();
+    private int getRandomIndexByWeight(final List<SubChannelCopy> list) {
+        final int sumWeight = list.stream().mapToInt(SubChannelCopy::getWeight).sum();
         if (sumWeight <= 0) {
             return ThreadLocalRandom.current().nextInt(list.size());
         }

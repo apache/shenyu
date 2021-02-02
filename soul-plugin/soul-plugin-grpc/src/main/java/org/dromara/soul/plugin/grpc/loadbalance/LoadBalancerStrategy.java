@@ -25,8 +25,14 @@ import lombok.Getter;
  * @author zhanglei
  */
 public enum LoadBalancerStrategy {
-
+    
+    /**
+     * Random load balancer strategy.
+     */
     Random("random"),
+    /**
+     * Round robin load balancer strategy.
+     */
     RoundRobin("round-robin");
 
     @Getter

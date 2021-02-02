@@ -22,7 +22,7 @@ import io.grpc.LoadBalancer;
 import io.grpc.Status;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.dromara.soul.plugin.grpc.loadbalance.SubchannelCopy;
+import org.dromara.soul.plugin.grpc.loadbalance.SubChannelCopy;
 
 import java.util.HashSet;
 import java.util.List;
@@ -39,10 +39,10 @@ public abstract class AbstractReadyPicker extends AbstractPicker implements Pick
 
     private final boolean hasIdleNode;
 
-    private final List<SubchannelCopy> list;
+    private final List<SubChannelCopy> list;
 
     AbstractReadyPicker(final List<LoadBalancer.Subchannel> list) {
-        this.list = list.stream().map(SubchannelCopy::new).collect(Collectors.toList());
+        this.list = list.stream().map(SubChannelCopy::new).collect(Collectors.toList());
         this.hasIdleNode = hasIdleNode();
     }
 
@@ -55,11 +55,11 @@ public abstract class AbstractReadyPicker extends AbstractPicker implements Pick
 
     @Override
     public LoadBalancer.PickResult pickSubchannel(final LoadBalancer.PickSubchannelArgs args) {
-        final List<SubchannelCopy> list = getSubchannels();
+        final List<SubChannelCopy> list = getSubchannels();
         if (CollectionUtils.isEmpty(list)) {
             return getErrorPickResult();
         }
-        SubchannelCopy channel = pick(getSubchannels());
+        SubChannelCopy channel = pick(getSubchannels());
         return channel == null ? getErrorPickResult() : LoadBalancer.PickResult.withSubchannel(channel.getChannel());
     }
 
@@ -69,10 +69,10 @@ public abstract class AbstractReadyPicker extends AbstractPicker implements Pick
      * @param list subChannel list
      * @return result subChannel
      */
-    protected abstract SubchannelCopy pick(List<SubchannelCopy> list);
+    protected abstract SubChannelCopy pick(List<SubChannelCopy> list);
 
     @Override
-    public List<SubchannelCopy> getSubchannels() {
+    public List<SubChannelCopy> getSubchannels() {
         return list.stream().filter(r -> {
             final ConnectivityState state = r.getState().getState();
             return state == ConnectivityState.READY;

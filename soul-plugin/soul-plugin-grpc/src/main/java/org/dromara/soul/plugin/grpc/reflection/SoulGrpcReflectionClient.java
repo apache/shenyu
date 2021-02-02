@@ -92,10 +92,7 @@ public final class SoulGrpcReflectionClient {
         return fileDescriptorCache.computeIfAbsent(serviceName, k -> {
             try {
                 return this.lookupService(k).get();
-            } catch (InterruptedException e) {
-                log.error("Resolve services get error", e);
-                throw new SoulException(e);
-            } catch (ExecutionException e) {
+            } catch (InterruptedException | ExecutionException e) {
                 log.error("Resolve services get error", e);
                 throw new SoulException(e);
             }

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.apache.dubbo.param;
+package org.dromara.soul.plugin.grpc.param;
 
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.PluginEnum;
@@ -37,18 +37,18 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * The type Body param plugin.
+ * The type Grpc Body param plugin.
  *
- * @author xiaoyu
+ * @author zhanglei
  */
-public class BodyParamPlugin implements SoulPlugin {
+public class GrpcBodyParamPlugin implements SoulPlugin {
 
     private final List<HttpMessageReader<?>> messageReaders;
 
     /**
      * Instantiates a new Body param plugin.
      */
-    public BodyParamPlugin() {
+    public GrpcBodyParamPlugin() {
         this.messageReaders = HandlerStrategies.withDefaults().messageReaders();
     }
 
@@ -56,7 +56,7 @@ public class BodyParamPlugin implements SoulPlugin {
     public Mono<Void> execute(final ServerWebExchange exchange, final SoulPluginChain chain) {
         final ServerHttpRequest request = exchange.getRequest();
         final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-        if (Objects.nonNull(soulContext) && RpcTypeEnum.DUBBO.getName().equals(soulContext.getRpcType())) {
+        if (Objects.nonNull(soulContext) && RpcTypeEnum.GRPC.getName().equals(soulContext.getRpcType())) {
             MediaType mediaType = request.getHeaders().getContentType();
             ServerRequest serverRequest = ServerRequest.create(exchange, messageReaders);
             if (MediaType.APPLICATION_JSON.isCompatibleWith(mediaType)) {
@@ -72,34 +72,34 @@ public class BodyParamPlugin implements SoulPlugin {
 
     @Override
     public int getOrder() {
-        return PluginEnum.DUBBO.getCode() - 1;
+        return PluginEnum.GRPC.getCode() - 1;
     }
 
     @Override
     public String named() {
-        return "apache-dubbo-body-param";
+        return PluginEnum.GRPC.getName();
     }
-    
+
     private Mono<Void> body(final ServerWebExchange exchange, final ServerRequest serverRequest, final SoulPluginChain chain) {
         return serverRequest.bodyToMono(String.class)
                 .switchIfEmpty(Mono.defer(() -> Mono.just("")))
                 .flatMap(body -> {
-                    exchange.getAttributes().put(Constants.DUBBO_PARAMS, body);
+                    exchange.getAttributes().put(Constants.GRPC_PARAMS, body);
                     return chain.execute(exchange);
                 });
     }
-    
+
     private Mono<Void> formData(final ServerWebExchange exchange, final ServerRequest serverRequest, final SoulPluginChain chain) {
         return serverRequest.formData()
                 .switchIfEmpty(Mono.defer(() -> Mono.just(new LinkedMultiValueMap<>())))
                 .flatMap(map -> {
-                    exchange.getAttributes().put(Constants.DUBBO_PARAMS, HttpParamConverter.toMap(() -> map));
+                    exchange.getAttributes().put(Constants.GRPC_PARAMS, HttpParamConverter.toMap(() -> map));
                     return chain.execute(exchange);
                 });
     }
-    
+
     private Mono<Void> query(final ServerWebExchange exchange, final ServerRequest serverRequest, final SoulPluginChain chain) {
-        exchange.getAttributes().put(Constants.DUBBO_PARAMS,
+        exchange.getAttributes().put(Constants.GRPC_PARAMS,
                 HttpParamConverter.ofString(() -> serverRequest.uri().getQuery()));
         return chain.execute(exchange);
     }
