@@ -25,7 +25,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.plugin.grpc.loadbalance.picker.AbstractReadyPicker;
 import org.dromara.soul.plugin.grpc.loadbalance.picker.AbstractPicker;
 import org.dromara.soul.plugin.grpc.loadbalance.picker.EmptyPicker;
-import org.dromara.soul.plugin.grpc.loadbalance.picker.Picker;
 import io.grpc.Attributes;
 import io.grpc.ConnectivityStateInfo;
 
