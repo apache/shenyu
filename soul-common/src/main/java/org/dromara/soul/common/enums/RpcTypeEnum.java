@@ -72,7 +72,7 @@ public enum RpcTypeEnum {
     /**
      * grpc.
      */
-    GRPC("grpc", false);
+    GRPC("grpc", true);
 
 
     private final String name;
