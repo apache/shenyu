@@ -94,13 +94,12 @@ public class RedisRateLimiter {
         String timestampKey = prefix + "}.timestamp";
         return Arrays.asList(tokenKey, timestampKey);
     }
-
-    @SuppressWarnings("unchecked")
+    
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private RedisScript<List<Long>> redisScript() {
         DefaultRedisScript redisScript = new DefaultRedisScript<>();
         redisScript.setScriptSource(new ResourceScriptSource(new ClassPathResource("/META-INF/scripts/request_rate_limiter.lua")));
         redisScript.setResultType(List.class);
         return redisScript;
     }
-
 }

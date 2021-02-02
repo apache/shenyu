@@ -17,7 +17,7 @@
 
 package org.dromara.soul.admin.controller;
 
-import org.dromara.soul.admin.config.SecretProperties;
+import org.dromara.soul.admin.config.properties.SecretProperties;
 import org.dromara.soul.admin.dto.DashboardUserDTO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;

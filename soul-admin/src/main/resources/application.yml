@@ -65,7 +65,7 @@ soul:
   jwt:
     key: 2095132720951327
   shiro:
-    white-list: /,/favicon.*,/static/**,/index**,/plugin,/platform/**,/websocket,/configs/**,/soul-client/**
+    white-list: /,/favicon.*,/static/**,/index**,/plugin,/platform/**,/websocket,/configs/**,/soul-client/**,/error,/actuator/health
 
 logging:
   level:

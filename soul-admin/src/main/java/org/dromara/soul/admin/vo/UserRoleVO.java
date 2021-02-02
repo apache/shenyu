@@ -29,7 +29,7 @@ import java.util.Optional;
  * this is user role for web front..
  *
  * @author nuo-promise
- **/
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

@@ -26,7 +26,7 @@ import lombok.NoArgsConstructor;
  * this is permission Dto.
  *
  * @author nuo-promise
- **/
+ */
 @Data
 @Builder
 @NoArgsConstructor

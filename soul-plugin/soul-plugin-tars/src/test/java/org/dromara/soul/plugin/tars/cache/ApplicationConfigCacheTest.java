@@ -56,11 +56,15 @@ public final class ApplicationConfigCacheTest {
 
     @Test
     public void testGet() throws ClassNotFoundException {
+        final String rpcExt = "{\"methodInfo\":[{\"methodName\":\"method1\",\"params\":"
+                + "[{\"left\":\"int\",\"right\":\"param1\"},{\"left\":\"java.lang.Integer\","
+                + "\"right\":\"param2\"}],\"returnType\":\"java.lang.String\"}]}";
+
         final MetaData metaData = new MetaData("id", "127.0.0.1:8080", "contextPath",
-                "path", RpcTypeEnum.TARS.getName(), "serviceName", "method1",
-                "parameterTypes", "{\"methodInfo\":[{\"methodName\":\"method1\",\"params\":[{\"key\":\"int\",\"value\":\"param1\"},{\"key\":\"java.lang.Integer\",\"value\":\"param2\"}]}]}", false);
+                "path5", RpcTypeEnum.TARS.getName(), "serviceName5", "method1",
+                "parameterTypes", rpcExt, false);
         applicationConfigCacheUnderTest.initPrx(metaData);
-        final TarsInvokePrxList result = applicationConfigCacheUnderTest.get("path");
+        final TarsInvokePrxList result = applicationConfigCacheUnderTest.get("path5");
         assertNotNull(result);
         assertEquals("promise_method1", result.getMethod().getName());
         assertEquals(2, result.getParamTypes().length);
@@ -71,18 +75,31 @@ public final class ApplicationConfigCacheTest {
 
     @Test
     public void testConcurrentInitPrx() throws InterruptedException {
+        final String rpcExt1 = "{\"methodInfo\":[{\"methodName\":\"method1\",\"params\":"
+                + "[{\"left\":\"int\",\"right\":\"param1\"},{\"left\":\"java.lang.Integer\","
+                + "\"right\":\"param2\"}],\"returnType\":\"java.lang.String\"}]}";
+        final String rpcExt2 = "{\"methodInfo\":[{\"methodName\":\"method2\",\"params\":"
+                + "[{\"left\":\"int\",\"right\":\"param1\"},{\"left\":\"java.lang.Integer\","
+                + "\"right\":\"param2\"}],\"returnType\":\"java.lang.String\"}]}";
+        final String rpcExt3 = "{\"methodInfo\":[{\"methodName\":\"method3\",\"params\":"
+                + "[{\"left\":\"int\",\"right\":\"param1\"},{\"left\":\"java.lang.Integer\","
+                + "\"right\":\"param2\"}],\"returnType\":\"java.lang.String\"}]}";
+        final String rpcExt4 = "{\"methodInfo\":[{\"methodName\":\"method4\",\"params\":"
+                + "[{\"left\":\"int\",\"right\":\"param1\"},{\"left\":\"java.lang.Integer\","
+                + "\"right\":\"param2\"}],\"returnType\":\"java.lang.String\"}]}";
+
         final MetaData metaData1 = new MetaData("id", "127.0.0.1:8080", "contextPath",
                 "path1", RpcTypeEnum.TARS.getName(), "serviceName1", "method1",
-                "parameterTypes", "{\"methodInfo\":[{\"methodName\":\"method1\",\"params\":[{\"key\":\"int\",\"value\":\"param1\"},{\"key\":\"java.lang.Integer\",\"value\":\"param2\"}]}]}", false);
+                "parameterTypes", rpcExt1, false);
         final MetaData metaData2 = new MetaData("id", "127.0.0.1:8080", "contextPath",
                 "path2", RpcTypeEnum.TARS.getName(), "serviceName2", "method2",
-                "parameterTypes", "{\"methodInfo\":[{\"methodName\":\"method2\",\"params\":[{\"key\":\"int\",\"value\":\"param1\"},{\"key\":\"java.lang.Integer\",\"value\":\"param2\"}]}]}", false);
+                "parameterTypes", rpcExt2, false);
         final MetaData metaData3 = new MetaData("id", "127.0.0.1:8080", "contextPath",
                 "path3", RpcTypeEnum.TARS.getName(), "serviceName3", "method3",
-                "parameterTypes", "{\"methodInfo\":[{\"methodName\":\"method3\",\"params\":[{\"key\":\"int\",\"value\":\"param1\"},{\"key\":\"java.lang.Integer\",\"value\":\"param2\"}]}]}", false);
+                "parameterTypes", rpcExt3, false);
         final MetaData metaData4 = new MetaData("id", "127.0.0.1:8080", "contextPath",
                 "path4", RpcTypeEnum.TARS.getName(), "serviceName4", "method4",
-                "parameterTypes", "{\"methodInfo\":[{\"methodName\":\"method4\",\"params\":[{\"key\":\"int\",\"value\":\"param1\"},{\"key\":\"java.lang.Integer\",\"value\":\"param2\"}]}]}", false);
+                "parameterTypes", rpcExt4, false);
         List<MetaData> metaDataList = Lists.list(metaData1, metaData2, metaData3, metaData4);
         ExecutorService executorService = Executors.newFixedThreadPool(4,
                 SoulThreadFactory.create("ApplicationConfigCache-tars-initPrx", false));
@@ -101,10 +118,11 @@ public final class ApplicationConfigCacheTest {
     @Test
     public void testInitPrx() {
         final MetaData metaData = new MetaData("id", "127.0.0.1:8080", "contextPath",
-                "path", RpcTypeEnum.TARS.getName(), "serviceName", "method1",
-                "parameterTypes", "{\"methodInfo\":[{\"methodName\":\"method1\",\"params\":[{\"key\":\"int\",\"value\":\"param1\"},{\"key\":\"java.lang.Integer\",\"value\":\"param2\"}]}]}", false);
+                "path6", RpcTypeEnum.TARS.getName(), "serviceName6", "method1",
+                "parameterTypes", "{\"methodInfo\":[{\"methodName\":\"method1\",\"params\":[{\"left\":\"int\",\"right\":\"param1\"},"
+                + "{\"left\":\"java.lang.Integer\",\"right\":\"param2\"}],\"returnType\":\"java.lang.String\"}]}", false);
         applicationConfigCacheUnderTest.initPrx(metaData);
-        final TarsInvokePrxList result = applicationConfigCacheUnderTest.get("path");
+        final TarsInvokePrxList result = applicationConfigCacheUnderTest.get("path6");
         assertEquals("promise_method1", result.getMethod().getName());
     }
 

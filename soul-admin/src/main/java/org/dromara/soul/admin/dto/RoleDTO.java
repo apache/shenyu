@@ -29,7 +29,7 @@ import java.util.List;
  * this is role from by web front.
  *
  * @author nuo-promise
- **/
+ */
 @Data
 @Builder
 @NoArgsConstructor

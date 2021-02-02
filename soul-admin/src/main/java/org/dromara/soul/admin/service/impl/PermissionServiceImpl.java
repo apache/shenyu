@@ -48,8 +48,8 @@ import java.util.stream.Collectors;
  * this is permission service impl.
  *
  * @author nuo-promise
- **/
-@Service("PermissionService")
+ */
+@Service("permissionService")
 public class PermissionServiceImpl implements PermissionService {
 
     private final UserRoleMapper userRoleMapper;

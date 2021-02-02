@@ -18,8 +18,8 @@
 
 package org.dromara.soul.client.tars;
 
-import javafx.util.Pair;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.dromara.soul.client.common.utils.OkHttpTools;
 import org.dromara.soul.client.common.utils.RegisterUtils;
 import org.dromara.soul.client.tars.common.annotation.SoulTarsClient;
@@ -133,7 +133,7 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
         if (paramNames != null && paramNames.length > 0) {
             Class<?>[] paramTypes = method.getParameterTypes();
             for (int i = 0; i < paramNames.length; i++) {
-                params.add(new Pair<>(paramTypes[i].getName(), paramNames[i]));
+                params.add(Pair.of(paramTypes[i].getName(), paramNames[i]));
             }
         }
         return MetaDataDTO.RpcExt.builder().methodName(method.getName())

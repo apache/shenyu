@@ -20,8 +20,8 @@ package org.dromara.soul.plugin.monitor;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginEnum;
-import org.dromara.soul.metrics.enums.MetricsLabelEnum;
-import org.dromara.soul.metrics.facade.MetricsTrackerFacade;
+import org.dromara.soul.metrics.prometheus.register.PrometheusMetricsRegister;
+import org.dromara.soul.metrics.reporter.MetricsReporter;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
 import org.springframework.web.server.ServerWebExchange;
@@ -33,13 +33,24 @@ import reactor.core.publisher.Mono;
  * @author xiaoyu(Myth)
  */
 public class MonitorPlugin extends AbstractSoulPlugin {
-
+    
+    private static final String REQUEST_TOTAL = "request_total";
+    
+    private static final String HTTP_REQUEST_TOTAL = "http_request_total";
+    
+    static {
+        MetricsReporter.register(new PrometheusMetricsRegister());
+        MetricsReporter.registerCounter(REQUEST_TOTAL, "soul request total count");
+        MetricsReporter.registerCounter(HTTP_REQUEST_TOTAL, new String[]{"path", "type"}, "soul http request type total count");
+    }
+    
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
-        MetricsTrackerFacade.getInstance().counterInc(MetricsLabelEnum.HTTP_REQUEST_TOTAL.getName(), exchange.getRequest().getURI().getPath(), exchange.getRequest().getMethodValue());
+        MetricsReporter.counterIncrement(REQUEST_TOTAL);
+        MetricsReporter.counterIncrement(HTTP_REQUEST_TOTAL, new String[]{exchange.getRequest().getURI().getPath(), exchange.getRequest().getMethodValue()});
         return chain.execute(exchange);
     }
-
+    
     @Override
     public int getOrder() {
         return PluginEnum.MONITOR.getCode();
@@ -49,5 +60,4 @@ public class MonitorPlugin extends AbstractSoulPlugin {
     public String named() {
         return PluginEnum.MONITOR.getName();
     }
-
 }

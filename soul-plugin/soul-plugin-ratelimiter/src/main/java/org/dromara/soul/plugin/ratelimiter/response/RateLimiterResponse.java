@@ -37,10 +37,6 @@ public class RateLimiterResponse implements Serializable {
 
     @Override
     public String toString() {
-        return "Response{" + "allowed=" + allowed
-                + ", tokensRemaining=" + tokensRemaining
-                + '}';
-
+        return "Response{" + "allowed=" + allowed + ", tokensRemaining=" + tokensRemaining + '}';
     }
-
 }

@@ -48,6 +48,7 @@
         <module>soul-plugin-sofa</module>
         <module>soul-plugin-tars</module>
         <module>soul-plugin-context-path</module>
+        <module>soul-plugin-grpc</module>
     </modules>
 
 

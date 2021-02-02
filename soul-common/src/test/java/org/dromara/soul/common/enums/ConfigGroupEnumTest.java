@@ -22,8 +22,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertThat;
 
 /**
  * Test Cases for ConfigGroupEnum.
@@ -37,8 +38,8 @@ public final class ConfigGroupEnumTest {
 
     @Test
     public void testAcquireByName() {
-        assertEquals(ConfigGroupEnum.APP_AUTH, ConfigGroupEnum.acquireByName(ConfigGroupEnum.APP_AUTH.name()));
-        assertNotEquals(ConfigGroupEnum.APP_AUTH, ConfigGroupEnum.acquireByName(ConfigGroupEnum.PLUGIN.name()));
+        assertThat(ConfigGroupEnum.APP_AUTH, equalTo(ConfigGroupEnum.acquireByName(ConfigGroupEnum.APP_AUTH.name())));
+        assertThat(ConfigGroupEnum.APP_AUTH, not(ConfigGroupEnum.acquireByName(ConfigGroupEnum.PLUGIN.name())));
 
         expectedEx.expect(SoulException.class);
         expectedEx.expectMessage("this ConfigGroupEnum can not support unknown");

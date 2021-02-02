@@ -28,7 +28,6 @@ import org.dromara.soul.admin.mapper.PermissionMapper;
 import org.dromara.soul.admin.mapper.ResourceMapper;
 import org.dromara.soul.admin.mapper.RoleMapper;
 import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.page.PageResultUtils;
 import org.dromara.soul.admin.query.PermissionQuery;
 import org.dromara.soul.admin.query.RoleQuery;
@@ -53,7 +52,7 @@ import java.util.stream.Collectors;
  * RoleServiceImpl.
  *
  * @author nuo-promise
- **/
+ */
 @Service("roleService")
 public class RoleServiceImpl implements RoleService {
 
@@ -132,9 +131,9 @@ public class RoleServiceImpl implements RoleService {
      */
     @Override
     public CommonPager<RoleVO> listByPage(final RoleQuery roleQuery) {
-        PageParameter pageParameter = roleQuery.getPageParameter();
-        Integer count = roleMapper.countByQuery(roleQuery);
-        return PageResultUtils.result(pageParameter, count, () -> roleMapper.selectByQuery(roleQuery).stream().map(RoleVO::buildRoleVO).collect(Collectors.toList()));
+        return PageResultUtils.result(roleQuery.getPageParameter(),
+            () -> roleMapper.countByQuery(roleQuery),
+            () -> roleMapper.selectByQuery(roleQuery).stream().map(RoleVO::buildRoleVO).collect(Collectors.toList()));
     }
 
     /**

@@ -19,8 +19,11 @@ package org.dromara.soul.common.concurrent;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
+
 import java.util.concurrent.ThreadFactory;
-import static org.junit.Assert.assertNotNull;
+
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for SoulThreadFactory.
@@ -35,15 +38,14 @@ public final class SoulThreadFactoryTest {
     @Test
     public void testCreate() {
         ThreadFactory threadFactory = SoulThreadFactory.create(NAME_PREFIX, true);
-        assertNotNull(threadFactory);
+        assertThat(threadFactory, notNullValue());
     }
 
     @Test
     public void testCustomCreate() {
         ThreadFactory threadFactory = SoulThreadFactory.create(NAME_PREFIX, true, 2);
         Thread thread = threadFactory.newThread(() -> Thread.currentThread().getId());
-        assertNotNull(thread);
-
+        assertThat(thread, notNullValue());
     }
 
     @Test

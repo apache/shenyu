@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -57,6 +58,8 @@ public final class SpringMvcClientBeanPostProcessorTest {
     private final TestBeanWildcardMatching testBeanWildcardMatching = new TestBeanWildcardMatching();
 
     private final TestBeanWithRuleName testBeanWithRuleName = new TestBeanWithRuleName();
+
+    private final TestBeanControllerMatching testBeanControllerMatching = new TestBeanControllerMatching();
 
     @Test(expected = RuntimeException.class)
     public void testCreateWithContextPathIsNull() {
@@ -123,6 +126,12 @@ public final class SpringMvcClientBeanPostProcessorTest {
         createDefaultBeanPostProcessor().postProcessAfterInitialization(new Object(), "normalBean");
     }
 
+    @Test
+    public void testBeanProcessControllerMatching() {
+        SpringMvcClientBeanPostProcessor beanPostProcessor = createBeanPostProcessor(ADMIN_URL, CONTEXT_PATH, !FULL, HOST, PORT);
+        beanPostProcessor.postProcessAfterInitialization(testBeanControllerMatching, "TestBeanControllerMatching");
+    }
+
     private SpringMvcClientBeanPostProcessor createDefaultBeanPostProcessor() {
         return createBeanPostProcessor(ADMIN_URL, CONTEXT_PATH, FULL, HOST, PORT);
     }
@@ -176,6 +185,17 @@ public final class SpringMvcClientBeanPostProcessorTest {
     static class TestBeanWithRuleName {
         @PostMapping("/save")
         @SoulSpringMvcClient(path = "/save", ruleName = "test transaction save rule name")
+        public String save(@RequestBody final String body) {
+            return EMPTY_STRING + body;
+        }
+    }
+
+    @Controller
+    @RequestMapping("/controller")
+    @SoulSpringMvcClient(path = "/controller")
+    static class TestBeanControllerMatching {
+        @PostMapping("/save")
+        @SoulSpringMvcClient(path = "/save")
         public String save(@RequestBody final String body) {
             return EMPTY_STRING + body;
         }

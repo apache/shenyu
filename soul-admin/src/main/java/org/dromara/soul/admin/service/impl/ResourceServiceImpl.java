@@ -21,7 +21,6 @@ import org.dromara.soul.admin.dto.ResourceDTO;
 import org.dromara.soul.admin.entity.ResourceDO;
 import org.dromara.soul.admin.mapper.ResourceMapper;
 import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.page.PageResultUtils;
 import org.dromara.soul.admin.query.ResourceQuery;
 import org.dromara.soul.admin.service.ResourceService;
@@ -37,7 +36,7 @@ import java.util.stream.Collectors;
  * this Resource Service Impl.
  *
  * @author nuo-promise
- **/
+ */
 @Service("resourceService")
 public class ResourceServiceImpl implements ResourceService {
 
@@ -87,15 +86,19 @@ public class ResourceServiceImpl implements ResourceService {
     }
 
     /**
-     * find page of role by query.
+     * find page of resource by query.
      *
      * @param resourceQuery {@linkplain ResourceQuery}
      * @return {@linkplain CommonPager}
      */
     @Override
     public CommonPager<ResourceVO> listByPage(final ResourceQuery resourceQuery) {
-        PageParameter pageParameter = resourceQuery.getPageParameter();
-        Integer count = resourceMapper.countByQuery(resourceQuery);
-        return PageResultUtils.result(pageParameter, count, () -> resourceMapper.selectByQuery(resourceQuery).stream().map(ResourceVO::buildResourceVO).collect(Collectors.toList()));
+        return PageResultUtils.result(resourceQuery.getPageParameter(),
+            () -> resourceMapper.countByQuery(resourceQuery),
+            () -> resourceMapper.selectByQuery(resourceQuery)
+                            .stream()
+                            .map(ResourceVO::buildResourceVO)
+                            .collect(Collectors.toList()));
     }
+
 }

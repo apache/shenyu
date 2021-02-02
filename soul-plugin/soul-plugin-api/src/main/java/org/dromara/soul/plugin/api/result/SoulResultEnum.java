@@ -80,6 +80,16 @@ public enum SoulResultEnum {
     TARS_INVOKE(434, "Tars invoke error!"),
 
     /**
+     * Grpc have body param soul result enum.
+     */
+    GRPC_HAVE_BODY_PARAM(435, "grpc must have body param, please enter the JSON format in the body!"),
+
+    /**
+     * Grpc client resultenum.
+     */
+    GRPC_CLIENT_NULL(436, "grpc client is null, please check the context path!"),
+
+    /**
      * full selector type enum.
      */
     PARAM_ERROR(-100, "Your parameter error, please check the relevant documentation!"),
