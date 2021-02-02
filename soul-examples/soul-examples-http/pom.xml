@@ -27,14 +27,12 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>soul-examples-http</artifactId>
 
-
     <properties>
         <commons-lang3.version>3.3.2</commons-lang3.version>
         <guava.version>21.0</guava.version>
         <commons-collections4.version>4.1</commons-collections4.version>
         <reactor-spring.version>1.0.1.RELEASE</reactor-spring.version>
     </properties>
-
 
     <dependencies>
         <dependency>
@@ -68,7 +66,6 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
-
     </dependencies>
 
     <build>
@@ -84,5 +81,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>
