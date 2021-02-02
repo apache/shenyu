@@ -76,8 +76,8 @@ public class Resilience4JPlugin extends AbstractSoulPlugin {
         Resilience4JConf conf = Resilience4JBuilder.build(rule);
         return combinedExecutor.run(
                 chain.execute(exchange).doOnSuccess(v -> {
-                    if (exchange.getResponse().getStatusCode() != HttpStatus.OK) {
-                        HttpStatus status = exchange.getResponse().getStatusCode();
+                    HttpStatus status = exchange.getResponse().getStatusCode();
+                    if (status == null || !status.is2xxSuccessful()) {
                         exchange.getResponse().setStatusCode(null);
                         throw new CircuitBreakerStatusCodeException(status);
                     }
