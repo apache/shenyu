@@ -192,11 +192,11 @@
         update resource
         set date_created = #{dateCreated,jdbcType=TIMESTAMP},
         date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
-        parent_id = #{roleName,jdbcType=VARCHAR},
-        title = #{description,jdbcType=VARCHAR}
-        name = #{roleName,jdbcType=VARCHAR},
-        url = #{description,jdbcType=VARCHAR}
-        component = #{roleName,jdbcType=VARCHAR},
+        parent_id = #{parentId,jdbcType=VARCHAR},
+        title = #{title,jdbcType=VARCHAR}
+        name = #{name,jdbcType=VARCHAR},
+        url = #{url,jdbcType=VARCHAR}
+        component = #{component,jdbcType=VARCHAR},
         resource_type = #{resourceType,jdbcType=INTEGER}
         sort = #{sort,jdbcType=INTEGER},
         icon = #{icon,jdbcType=VARCHAR}

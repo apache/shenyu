@@ -68,4 +68,14 @@ public final class AdminConstants {
      * The constant Super Role ID.
      */
     public static final String ROLE_SUPER_ID = "1346358560427216896";
+
+    /**
+     * The constant Plugin Menu ID.
+     */
+    public static final String RESOURCE_PLUGIN_ID = "1346775491550474240";
+
+    /**
+     * The constant Plugin Url prefix.
+     */
+    public static final String RESOURCE_PLUGIN_URL_PREFIX = "/plugin/";
 }

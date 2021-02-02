@@ -25,16 +25,16 @@ import org.dromara.soul.admin.entity.RuleDO;
 import org.dromara.soul.admin.entity.SelectorDO;
 import org.dromara.soul.admin.mapper.PluginMapper;
 import org.dromara.soul.admin.mapper.RuleConditionMapper;
+import org.dromara.soul.admin.mapper.RuleMapper;
 import org.dromara.soul.admin.mapper.SelectorConditionMapper;
 import org.dromara.soul.admin.mapper.SelectorMapper;
-import org.dromara.soul.admin.mapper.RuleMapper;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageParameter;
 import org.dromara.soul.admin.query.PluginQuery;
-import org.dromara.soul.admin.query.SelectorQuery;
-import org.dromara.soul.admin.query.SelectorConditionQuery;
-import org.dromara.soul.admin.query.RuleQuery;
 import org.dromara.soul.admin.query.RuleConditionQuery;
+import org.dromara.soul.admin.query.RuleQuery;
+import org.dromara.soul.admin.query.SelectorConditionQuery;
+import org.dromara.soul.admin.query.SelectorQuery;
 import org.dromara.soul.admin.service.impl.PluginServiceImpl;
 import org.dromara.soul.admin.vo.PluginVO;
 import org.dromara.soul.common.constant.AdminConstants;
@@ -52,6 +52,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -91,10 +92,13 @@ public final class PluginServiceTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
+    @Mock
+    private ResourceService resourceService;
+
     @Before
     public void setUp() {
         pluginService = new PluginServiceImpl(pluginMapper, selectorMapper, selectorConditionMapper,
-                ruleMapper, ruleConditionMapper, eventPublisher);
+                ruleMapper, ruleConditionMapper, eventPublisher, resourceService);
     }
 
     @Test

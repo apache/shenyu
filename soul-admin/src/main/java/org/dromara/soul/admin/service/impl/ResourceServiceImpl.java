@@ -59,6 +59,16 @@ public class ResourceServiceImpl implements ResourceService {
     }
 
     /**
+     * create resource and return data.
+     *
+     * @param resourceDO {@linkplain ResourceDO}
+     */
+    @Override
+    public void createResource(final ResourceDO resourceDO) {
+        insertResource(resourceDO);
+    }
+
+    /**
      *  create or update resource.
      *
      * @param resourceDTO {@linkplain ResourceDTO}
@@ -69,10 +79,7 @@ public class ResourceServiceImpl implements ResourceService {
     public int createOrUpdate(final ResourceDTO resourceDTO) {
         ResourceDO resourceDO = ResourceDO.buildResourceDO(resourceDTO);
         if (StringUtils.isEmpty(resourceDTO.getId())) {
-            permissionMapper.insertSelective(PermissionDO.buildPermissionDO(PermissionDTO.builder()
-                    .objectId(AdminConstants.ROLE_SUPER_ID)
-                    .resourceId(resourceDO.getId()).build()));
-            return resourceMapper.insertSelective(resourceDO);
+            return insertResource(resourceDO);
         } else {
             return resourceMapper.updateSelective(resourceDO);
         }
@@ -107,6 +114,17 @@ public class ResourceServiceImpl implements ResourceService {
     }
 
     /**
+     * find resource info by title.
+     *
+     * @param title resource title
+     * @return {@linkplain ResourceVO}
+     */
+    @Override
+    public ResourceVO findByTitle(final String title) {
+        return ResourceVO.buildResourceVO(resourceMapper.selectByTitle(title));
+    }
+
+    /**
      * find page of role by query.
      *
      * @param resourceQuery {@linkplain ResourceQuery}
@@ -138,12 +156,24 @@ public class ResourceServiceImpl implements ResourceService {
                 }
                 if (resource.getId().equals(item) || resource.getParentId().equals(item)) {
                     deleteResourceIds.put(resource.getId(), resource.getTitle());
-                    metaList.removeIf(resourceId -> resourceId.equals(item));
                 }
             });
             if (matchResourceIds.size() > 0) {
                 getDeleteResourceIds(deleteResourceIds, matchResourceIds, metaList);
             }
         });
+    }
+
+    /**
+     * insert Resource.
+     *
+     * @param resourceDO {@linkplain ResourceDO}
+     * @return row int
+     */
+    private int insertResource(final ResourceDO resourceDO) {
+        permissionMapper.insertSelective(PermissionDO.buildPermissionDO(PermissionDTO.builder()
+                .objectId(AdminConstants.ROLE_SUPER_ID)
+                .resourceId(resourceDO.getId()).build()));
+        return resourceMapper.insertSelective(resourceDO);
     }
 }

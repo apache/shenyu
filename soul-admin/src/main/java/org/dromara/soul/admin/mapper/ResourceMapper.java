@@ -18,6 +18,7 @@
 package org.dromara.soul.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.dromara.soul.admin.entity.ResourceDO;
 import org.dromara.soul.admin.query.ResourceQuery;
 
@@ -53,7 +54,7 @@ public interface ResourceMapper {
      * @param title resource title
      * @return {@linkplain List}
      */
-    List<ResourceDO> selectByTitle(String title);
+    ResourceDO selectByTitle(@Param("title") String title);
 
     /**
      * count resource by query.

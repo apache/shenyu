@@ -18,6 +18,7 @@
 package org.dromara.soul.admin.service;
 
 import org.dromara.soul.admin.dto.ResourceDTO;
+import org.dromara.soul.admin.entity.ResourceDO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.ResourceQuery;
 import org.dromara.soul.admin.vo.ResourceVO;
@@ -30,6 +31,13 @@ import java.util.List;
  * @author nuo-promise
  */
 public interface ResourceService {
+
+    /**
+     * create Resource.
+     *
+     * @param resourceDO {@linkplain ResourceDO}
+     */
+    void createResource(ResourceDO resourceDO);
 
     /**
      * create or update resource.
@@ -54,6 +62,14 @@ public interface ResourceService {
      * @return {@linkplain ResourceVO}
      */
     ResourceVO findById(String id);
+
+    /**
+     * find by title.
+     *
+     * @param title resource title
+     * @return {@linkplain ResourceVO}
+     */
+    ResourceVO findByTitle(String title);
 
     /**
      * find page of resource by query.
