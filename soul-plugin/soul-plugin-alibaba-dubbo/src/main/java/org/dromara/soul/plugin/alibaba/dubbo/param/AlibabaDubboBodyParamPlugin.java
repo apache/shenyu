@@ -39,14 +39,14 @@ import java.util.Objects;
 /**
  * The type Body param plugin.
  */
-public class BodyParamPlugin implements SoulPlugin {
+public class AlibabaDubboBodyParamPlugin implements SoulPlugin {
 
     private final List<HttpMessageReader<?>> messageReaders;
 
     /**
      * Instantiates a new Body param plugin.
      */
-    public BodyParamPlugin() {
+    public AlibabaDubboBodyParamPlugin() {
         this.messageReaders = HandlerStrategies.withDefaults().messageReaders();
     }
 

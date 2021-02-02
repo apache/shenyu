@@ -28,5 +28,6 @@ import java.io.Serializable;
  */
 @Data
 public class SoulGrpcResponse implements Serializable {
+    
     private String result;
 }

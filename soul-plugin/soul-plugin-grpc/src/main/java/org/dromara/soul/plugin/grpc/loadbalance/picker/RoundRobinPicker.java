@@ -19,7 +19,7 @@ package org.dromara.soul.plugin.grpc.loadbalance.picker;
 
 import io.grpc.LoadBalancer;
 import org.apache.commons.collections4.CollectionUtils;
-import org.dromara.soul.plugin.grpc.loadbalance.SubchannelCopy;
+import org.dromara.soul.plugin.grpc.loadbalance.SubChannelCopy;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
@@ -44,7 +44,7 @@ public class RoundRobinPicker extends AbstractReadyPicker {
     }
 
     @Override
-    protected SubchannelCopy pick(final List<SubchannelCopy> list) {
+    protected SubChannelCopy pick(final List<SubChannelCopy> list) {
         if (CollectionUtils.isEmpty(list)) {
             return null;
         }

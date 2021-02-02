@@ -53,9 +53,7 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
     private final String url;
 
     private final GrpcConfig grpcConfig;
-
-    private final String serviceName = "SERVICE_NAME";
-
+    
     /**
      * Instantiates a new Soul client bean post processor.
      *
@@ -92,10 +90,11 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
             log.error("failed to get grpc target class");
             return;
         }
-        Class parent = clazz.getSuperclass();
-        Class classes = parent.getDeclaringClass();
-        String packageName = null;
+        Class<?> parent = clazz.getSuperclass();
+        Class<?> classes = parent.getDeclaringClass();
+        String packageName;
         try {
+            String serviceName = "SERVICE_NAME";
             Field field = classes.getField(serviceName);
             field.setAccessible(true);
             packageName = field.get(null).toString();
@@ -146,7 +145,6 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
                 .timeout(soulGrpcClient.timeout())
                 .build();
         return OkHttpTools.getInstance().getGson().toJson(build);
-
     }
 }
 

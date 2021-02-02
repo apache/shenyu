@@ -77,15 +77,11 @@ public class LookupServiceHandler implements StreamObserver<ServerReflectionResp
     @Override
     public void onNext(final ServerReflectionResponse response) {
         ServerReflectionResponse.MessageResponseCase responseCase = response.getMessageResponseCase();
-        switch (responseCase) {
-            case FILE_DESCRIPTOR_RESPONSE:
-                ImmutableSet<DescriptorProtos.FileDescriptorProto> descriptors =
-                        parseDescriptors(response.getFileDescriptorResponse().getFileDescriptorProtoList());
-                descriptors.forEach(d -> resolvedDescriptors.put(d.getName(), d));
-                descriptors.forEach(this::processDependencies);
-                break;
-            default:
-                break;
+        if (responseCase == ServerReflectionResponse.MessageResponseCase.FILE_DESCRIPTOR_RESPONSE) {
+            ImmutableSet<DescriptorProtos.FileDescriptorProto> descriptors =
+                    parseDescriptors(response.getFileDescriptorResponse().getFileDescriptorProtoList());
+            descriptors.forEach(d -> resolvedDescriptors.put(d.getName(), d));
+            descriptors.forEach(this::processDependencies);
         }
     }
 

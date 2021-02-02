@@ -20,7 +20,7 @@ package org.dromara.soul.spring.boot.starter.plugin.grpc;
 
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.grpc.GrpcPlugin;
-import org.dromara.soul.plugin.grpc.param.BodyParamPlugin;
+import org.dromara.soul.plugin.grpc.param.GrpcBodyParamPlugin;
 import org.dromara.soul.plugin.grpc.response.GrpcResponsePlugin;
 import org.dromara.soul.plugin.grpc.subscriber.GrpcMetaDataSubscriber;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
@@ -51,8 +51,8 @@ public class GrpcPluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin bodyParamPlugin() {
-        return new BodyParamPlugin();
+    public SoulPlugin grpcBodyParamPlugin() {
+        return new GrpcBodyParamPlugin();
     }
 
     /**

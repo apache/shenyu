@@ -20,7 +20,7 @@ package org.dromara.soul.spring.boot.starter.plugin.alibaba.dubbo;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.plugin.alibaba.dubbo.AlibabaDubboPlugin;
 import org.dromara.soul.plugin.alibaba.dubbo.handler.AlibabaDubboPluginDataHandler;
-import org.dromara.soul.plugin.alibaba.dubbo.param.BodyParamPlugin;
+import org.dromara.soul.plugin.alibaba.dubbo.param.AlibabaDubboBodyParamPlugin;
 import org.dromara.soul.plugin.alibaba.dubbo.response.DubboResponsePlugin;
 import org.dromara.soul.plugin.alibaba.dubbo.subscriber.AlibabaDubboMetaDataSubscriber;
 import org.junit.Test;
@@ -54,7 +54,7 @@ public final class AlibabaDubboPluginConfigurationTest {
     private AlibabaDubboPlugin alibabaDubboPlugin;
 
     @Autowired
-    private BodyParamPlugin bodyParamPlugin;
+    private AlibabaDubboBodyParamPlugin alibabaDubboBodyParamPlugin;
 
     @Autowired
     private DubboResponsePlugin dubboResponsePlugin;
@@ -69,8 +69,8 @@ public final class AlibabaDubboPluginConfigurationTest {
     public void testAlibabaDubboPlugin() {
         assertThat(alibabaDubboPlugin.getOrder(), is(PluginEnum.DUBBO.getCode()));
         assertThat(alibabaDubboPlugin.named(), is(PluginEnum.DUBBO.getName()));
-        assertThat(bodyParamPlugin.getOrder(), is(PluginEnum.DUBBO.getCode() - 1));
-        assertThat(bodyParamPlugin.named(), is("alibaba-dubbo-body-param"));
+        assertThat(alibabaDubboBodyParamPlugin.getOrder(), is(PluginEnum.DUBBO.getCode() - 1));
+        assertThat(alibabaDubboBodyParamPlugin.named(), is("alibaba-dubbo-body-param"));
         assertThat(dubboResponsePlugin.getOrder(), is(PluginEnum.RESPONSE.getCode()));
         assertThat(dubboResponsePlugin.named(), is(PluginEnum.RESPONSE.getName()));
         assertThat(alibabaDubboPluginDataHandler.pluginNamed(), is(PluginEnum.DUBBO.getName()));

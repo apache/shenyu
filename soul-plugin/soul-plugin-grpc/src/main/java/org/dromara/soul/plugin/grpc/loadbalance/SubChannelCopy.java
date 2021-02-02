@@ -24,13 +24,13 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 /**
- * SubchannelCopy.
+ * SubChannelCopy.
  *
  * @author zhanglei
  */
 @EqualsAndHashCode
 @Getter
-public class SubchannelCopy {
+public class SubChannelCopy {
 
     private final int weight;
 
@@ -40,7 +40,7 @@ public class SubchannelCopy {
 
     private final ConnectivityStateInfo state;
 
-    public SubchannelCopy(final LoadBalancer.Subchannel channel) {
+    public SubChannelCopy(final LoadBalancer.Subchannel channel) {
         this.channel = channel;
         this.addressGroup = channel.getAddresses();
         this.weight = SubChannels.getWeight(channel);

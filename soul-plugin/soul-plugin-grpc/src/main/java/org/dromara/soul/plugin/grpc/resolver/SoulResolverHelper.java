@@ -39,10 +39,7 @@ public class SoulResolverHelper {
      * @return EquivalentAddressGroup
      */
     public static EquivalentAddressGroup convertToEquivalentAddressGroup(final SoulServiceInstance instance) {
-        return new EquivalentAddressGroup(
-                new InetSocketAddress(instance.getHost(), instance.getPort()),
-                createAttributes(instance)
-        );
+        return new EquivalentAddressGroup(new InetSocketAddress(instance.getHost(), instance.getPort()), createAttributes(instance));
     }
 
     /**

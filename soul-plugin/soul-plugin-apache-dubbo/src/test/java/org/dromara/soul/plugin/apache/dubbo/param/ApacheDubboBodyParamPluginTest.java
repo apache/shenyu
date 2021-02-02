@@ -39,13 +39,13 @@ import static org.mockito.Mockito.mock;
  *
  * @author nuo-promise
  **/
-public final class BodyParamPluginTest {
+public final class ApacheDubboBodyParamPluginTest {
 
-    private BodyParamPlugin bodyParamPlugin;
+    private ApacheDubboBodyParamPlugin apacheDubboBodyParamPlugin;
 
     @Before
     public void setUp() {
-        bodyParamPlugin = new BodyParamPlugin();
+        apacheDubboBodyParamPlugin = new ApacheDubboBodyParamPlugin();
     }
 
     @Test(expected = NullPointerException.class)
@@ -83,16 +83,16 @@ public final class BodyParamPluginTest {
             exchange.getAttributes().put(Constants.CONTEXT, soulContext);
         }
 
-        StepVerifier.create(bodyParamPlugin.execute(exchange, chain)).expectError(NullPointerException.class).verifyThenAssertThat();
+        StepVerifier.create(apacheDubboBodyParamPlugin.execute(exchange, chain)).expectError(NullPointerException.class).verifyThenAssertThat();
     }
 
     @Test
     public void getOrder() {
-        assertThat(bodyParamPlugin.getOrder(), is(PluginEnum.DUBBO.getCode() - 1));
+        assertThat(apacheDubboBodyParamPlugin.getOrder(), is(PluginEnum.DUBBO.getCode() - 1));
     }
 
     @Test
     public void named() {
-        assertThat(bodyParamPlugin.named(), is("apache-dubbo-body-param"));
+        assertThat(apacheDubboBodyParamPlugin.named(), is("apache-dubbo-body-param"));
     }
 }

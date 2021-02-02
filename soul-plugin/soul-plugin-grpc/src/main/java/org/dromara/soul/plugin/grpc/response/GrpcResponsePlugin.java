@@ -81,5 +81,4 @@ public class GrpcResponsePlugin implements SoulPlugin {
     public String named() {
         return PluginEnum.RESPONSE.getName();
     }
-
 }
