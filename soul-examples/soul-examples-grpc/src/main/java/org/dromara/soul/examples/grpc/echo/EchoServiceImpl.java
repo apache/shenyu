@@ -21,14 +21,11 @@ import echo.EchoRequest;
 import echo.EchoResponse;
 import echo.EchoServiceGrpc;
 import echo.Trace;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
-import org.dromara.soul.client.grpc.common.annotation.SoulGrpcClient;
-import org.springframework.stereotype.Service;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import org.dromara.soul.client.grpc.common.annotation.SoulGrpcClient;
+import org.springframework.stereotype.Service;
 
 /**
  * @author zhanglei
@@ -40,11 +37,9 @@ public class EchoServiceImpl extends EchoServiceGrpc.EchoServiceImplBase {
     @SoulGrpcClient(path = "/echo")
     public void echo(EchoRequest request, StreamObserver<EchoResponse> responseObserver) {
         System.out.println("Received: " + request.getMessage());
-
         EchoResponse.Builder response = EchoResponse.newBuilder()
                 .setMessage("ReceivedHELLO")
                 .addTraces(Trace.newBuilder().setHost(getHostname()).build());
-
         responseObserver.onNext(response.build());
         responseObserver.onCompleted();
     }

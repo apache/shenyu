@@ -20,19 +20,17 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>soul-examples</artifactId>
         <groupId>org.dromara</groupId>
+        <artifactId>soul-examples</artifactId>
         <version>2.1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
     <artifactId>soul-examples-grpc</artifactId>
 
     <properties>
         <grpc.version>1.33.1</grpc.version>
         <protobuf.version>3.13.0</protobuf.version>
     </properties>
-
 
     <dependencies>
         <dependency>
@@ -56,14 +54,12 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-all</artifactId>
             <version>${grpc.version}</version>
             <scope>provided</scope>
         </dependency>
-
     </dependencies>
 
     <build>
@@ -74,29 +70,25 @@
                 <version>1.6.2</version>
             </extension>
         </extensions>
-
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>11</source>
-                    <target>11</target>
+                    <source>8</source>
+                    <target>8</target>
                 </configuration>
             </plugin>
-
             <plugin>
                 <groupId>org.xolstice.maven.plugins</groupId>
                 <artifactId>protobuf-maven-plugin</artifactId>
                 <version>0.6.1</version>
-
                 <configuration>
                     <protocArtifact>com.google.protobuf:protoc:${protobuf.version}:exe:${os.detected.classifier}</protocArtifact>
                     <pluginId>grpc-java</pluginId>
                     <pluginArtifact>io.grpc:protoc-gen-grpc-java:${grpc.version}:exe:${os.detected.classifier}</pluginArtifact>
                     <protoSourceRoot>src/main/resources/proto</protoSourceRoot>
                 </configuration>
-
                 <executions>
                     <execution>
                         <goals>
@@ -107,7 +99,5 @@
                 </executions>
             </plugin>
         </plugins>
-
     </build>
-
 </project>

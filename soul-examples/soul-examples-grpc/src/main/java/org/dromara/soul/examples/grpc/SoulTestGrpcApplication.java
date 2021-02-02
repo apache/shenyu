@@ -46,5 +46,4 @@ public class SoulTestGrpcApplication {
                 .build();
         server.start();
     }
-
 }
