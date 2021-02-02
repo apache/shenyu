@@ -56,8 +56,6 @@ import static io.grpc.ConnectivityState.READY;
 @Slf4j
 public abstract class AbstractLoadBalancer extends LoadBalancer {
 
-    private static final Map<String, Picker> SOA_PICKER_MAP = new ConcurrentHashMap<>();
-
     private static final Status EMPTY_OK = Status.OK.withDescription("no subchannels ready");
 
     private final Helper helper;
@@ -151,11 +149,6 @@ public abstract class AbstractLoadBalancer extends LoadBalancer {
 
     @Override
     public void shutdown() {
-        final String serviceName = getServiceName();
-        if (serviceName != null) {
-            log.info("LOAD_BALANCER AbstractLoadBalancer.shutdown, serviceName:{}", serviceName);
-            SOA_PICKER_MAP.remove(serviceName);
-        }
         for (Subchannel subchannel : subchannels.values()) {
             shutdownSubchannel(subchannel);
         }
@@ -206,14 +199,6 @@ public abstract class AbstractLoadBalancer extends LoadBalancer {
         helper.updateBalancingState(state, picker);
         currentState = state;
         currentPicker = picker;
-        final String serviceName = getServiceName();
-        if (serviceName != null) {
-            if (picker instanceof AbstractReadyPicker) {
-                SOA_PICKER_MAP.put(serviceName, (AbstractReadyPicker) picker);
-            } else {
-                SOA_PICKER_MAP.remove(serviceName);
-            }
-        }
         log.info("AbstractPicker update, serviceName:{}, all subchannels:{}, state:{}", serviceName, picker.getSubchannelsInfo(), state);
     }
 
