@@ -180,7 +180,8 @@ public class ResourceServiceImpl implements ResourceService {
      * @param metaList {@linkplain List} resource list
      * @param menuInfo {@linkplain MenuInfo}
      */
-    private void getMenuInfo(final List<MenuInfo> menuInfoList, final List<ResourceVO> metaList, final MenuInfo menuInfo) {
+    @Override
+    public void getMenuInfo(final List<MenuInfo> menuInfoList, final List<ResourceVO> metaList, final MenuInfo menuInfo) {
         for (ResourceVO resourceVO : metaList) {
             String parentId = resourceVO.getParentId();
             MenuInfo tempMenuInfo = MenuInfo.buildMenuInfo(resourceVO);
