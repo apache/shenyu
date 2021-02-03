@@ -21,6 +21,7 @@ import org.dromara.soul.admin.dto.ResourceDTO;
 import org.dromara.soul.admin.entity.ResourceDO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.ResourceQuery;
+import org.dromara.soul.admin.vo.PermissionMenuVO.MenuInfo;
 import org.dromara.soul.admin.vo.ResourceVO;
 
 import java.util.List;
@@ -78,4 +79,19 @@ public interface ResourceService {
      * @return {@linkplain CommonPager}
      */
     CommonPager<ResourceVO> listByPage(ResourceQuery resourceQuery);
+
+    /**
+     * get menu tree.
+     *
+     * @return {@linkplain List}
+     */
+    List<MenuInfo> getMenuTree();
+
+    /**
+     * get button by parent id.
+     *
+     * @param id resource id
+     * @return {@linkplain List}
+     */
+    List<ResourceVO> findByParentId(String id);
 }

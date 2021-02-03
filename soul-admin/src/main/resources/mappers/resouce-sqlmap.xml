@@ -47,6 +47,13 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
 
+    <select id="selectByParentId" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from resource
+        where parent_id = #{parentId,jdbcType=VARCHAR}
+    </select>
+
     <select id="selectByQuery" parameterType="org.dromara.soul.admin.query.ResourceQuery" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>

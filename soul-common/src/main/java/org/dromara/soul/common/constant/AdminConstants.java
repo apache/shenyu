@@ -77,5 +77,5 @@ public final class AdminConstants {
     /**
      * The constant Plugin Url prefix.
      */
-    public static final String RESOURCE_PLUGIN_URL_PREFIX = "/plugin/";
+    public static final String RESOURCE_PLUGIN_URL_PREFIX = "/plug/";
 }

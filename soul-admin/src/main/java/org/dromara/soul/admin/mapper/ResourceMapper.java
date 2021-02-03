@@ -41,6 +41,14 @@ public interface ResourceMapper {
     ResourceDO selectById(String id);
 
     /**
+     * select resource by parentId.
+     *
+     * @param parentId resource parent id
+     * @return {@linkplain List}
+     */
+    List<ResourceDO> selectByParentId(@Param("parentId") String parentId);
+
+    /**
      * select resource by query.
      *
      * @param resourceQuery {@linkplain ResourceQuery}

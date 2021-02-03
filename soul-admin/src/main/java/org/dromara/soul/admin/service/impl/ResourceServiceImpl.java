@@ -17,6 +17,7 @@
 
 package org.dromara.soul.admin.service.impl;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.PermissionDTO;
 import org.dromara.soul.admin.dto.ResourceDTO;
@@ -28,11 +29,14 @@ import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.page.PageResultUtils;
 import org.dromara.soul.admin.query.ResourceQuery;
 import org.dromara.soul.admin.service.ResourceService;
+import org.dromara.soul.admin.vo.PermissionMenuVO.MenuInfo;
 import org.dromara.soul.admin.vo.ResourceVO;
 import org.dromara.soul.common.constant.AdminConstants;
+import org.dromara.soul.common.enums.AdminResourceEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -141,12 +145,70 @@ public class ResourceServiceImpl implements ResourceService {
     }
 
     /**
+     * get menu info.
+     *
+     * @return {@linkplain List}
+     */
+    @Override
+    public List<MenuInfo> getMenuTree() {
+        List<ResourceVO> resourceVOList = resourceMapper.selectAll().stream().map(ResourceVO::buildResourceVO).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(resourceVOList)) {
+            List<MenuInfo> menuInfoList = new ArrayList<>();
+            getMenuInfo(menuInfoList, resourceVOList, null);
+            return menuInfoList;
+        }
+        return null;
+    }
+
+    /**
+     * get button by parent id.
+     *
+     * @param id resource id
+     * @return {@linkplain List}
+     */
+    @Override
+    public List<ResourceVO> findByParentId(final String id) {
+        return resourceMapper.selectByParentId(id).stream()
+                .filter(item -> item.getResourceType().equals(AdminResourceEnum.THREE_MENU.getCode()))
+                .map(ResourceVO::buildResourceVO).collect(Collectors.toList());
+    }
+
+    /**
+     * get Menu Info.
+     *
+     * @param menuInfoList {@linkplain List} menu info.
+     * @param metaList {@linkplain List} resource list
+     * @param menuInfo {@linkplain MenuInfo}
+     */
+    private void getMenuInfo(final List<MenuInfo> menuInfoList, final List<ResourceVO> metaList, final MenuInfo menuInfo) {
+        for (ResourceVO resourceVO : metaList) {
+            String parentId = resourceVO.getParentId();
+            MenuInfo tempMenuInfo = MenuInfo.buildMenuInfo(resourceVO);
+            if (ObjectUtils.isEmpty(tempMenuInfo)) {
+                continue;
+            }
+            if (ObjectUtils.isEmpty(menuInfo) && reactor.util.StringUtils.isEmpty(parentId)) {
+                menuInfoList.add(tempMenuInfo);
+                if (resourceVO.getIsLeaf().equals(Boolean.FALSE)) {
+                    getMenuInfo(menuInfoList, metaList, tempMenuInfo);
+                }
+            } else if (!ObjectUtils.isEmpty(menuInfo) && !reactor.util.StringUtils.isEmpty(parentId) && parentId.equals(menuInfo.getId())) {
+                menuInfo.getChildren().add(tempMenuInfo);
+                if (resourceVO.getIsLeaf().equals(Boolean.FALSE)) {
+                    getMenuInfo(menuInfoList, metaList, tempMenuInfo);
+                }
+            }
+        }
+    }
+
+    /**
      * get delete resource ids.
      *
      * @param resourceIds resource ids
      * @param metaList all resource object
      */
-    private void getDeleteResourceIds(final Map<String, String> deleteResourceIds, final List<String> resourceIds, final List<ResourceVO> metaList) {
+    private void getDeleteResourceIds(final Map<String, String> deleteResourceIds, final List<String> resourceIds,
+                                      final List<ResourceVO> metaList) {
         List<String> matchResourceIds = new ArrayList<>();
         resourceIds.forEach(item -> {
             matchResourceIds.clear();
