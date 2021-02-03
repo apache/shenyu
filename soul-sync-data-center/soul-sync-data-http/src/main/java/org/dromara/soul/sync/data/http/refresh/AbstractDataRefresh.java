@@ -106,12 +106,12 @@ public abstract class AbstractDataRefresh<T> implements DataRefresh {
         }
         ResultHolder holder = new ResultHolder(false);
         GROUP_CACHE.merge(groupEnum, newVal, (oldVal, value) -> {
-            if(StringUtils.equals(oldVal.getMd5(), newVal.getMd5())){
+            if (StringUtils.equals(oldVal.getMd5(), newVal.getMd5())) {
                 log.info("Get the same config, the [{}] config cache will not be updated, md5:{}", groupEnum, oldVal.getMd5());
                 return oldVal;
             }
             // must compare the last update time
-            if(oldVal.getLastModifyTime() >= newVal.getLastModifyTime()){
+            if (oldVal.getLastModifyTime() >= newVal.getLastModifyTime()) {
                 log.info("Last update time earlier than the current configuration, the [{}] config cache will not be updated", groupEnum);
                 return oldVal;
             }
