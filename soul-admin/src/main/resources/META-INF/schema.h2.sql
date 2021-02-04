@@ -267,22 +267,22 @@ INSERT INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `date_upd
 INSERT INTO `dashboard_user` (`id`, `user_name`, `password`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('1','admin','jHcpKkiDbbQh7W7hh8yQSA==', '1', '1', '2018-06-23 15:12:22', '2018-06-23 15:12:23');
 
 /*insert plugin_handle data for sentinel*/
-INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('1','10' ,'flowRuleGrade','grade type','3', 2, 8, '2020-11-09 01:19:10', '2020-11-09 01:19:10');
-INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('2','10' ,'flowRuleControlBehavior','control behavior','3', 2, 5, '2020-11-09 01:19:10', '2020-11-09 01:19:10');
-INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('3','10' ,'flowRuleEnable','whether control behavior is enabled (1 or 0)', '1', 2, 7, '2020-11-09 01:19:10', '2020-11-09 01:19:10');
-INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('4','10' ,'flowRuleCount','grade count','1', 2, 6, '2020-11-09 01:19:10', '2020-11-09 01:19:10');
-INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('5','10' ,'degradeRuleEnable','whether to open the degrade (1 or 0)', '1', 2, 2, '2020-11-09 01:19:10', '2020-11-09 01:19:10') ;
-INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('6','10' ,'degradeRuleGrade','degrade type','3', 2, 3, '2020-11-09 01:19:10', '2020-11-09 01:19:10');
-INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('7','10' ,'degradeRuleCount','degrade count','1', 2, 1, '2020-11-09 01:19:10', '2020-11-09 01:19:10');
-INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('8','10' ,'degradeRuleTimeWindow','degrade window size','1', 2, 4, '2020-11-09 01:19:10', '2020-11-09 01:19:10');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('1','10' ,'flowRuleGrade','flowRuleGrade','3', 2, 8, '2020-11-09 01:19:10', '2020-11-09 01:19:10');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('2','10' ,'flowRuleControlBehavior','flowRuleControlBehavior','3', 2, 5, '2020-11-09 01:19:10', '2020-11-09 01:19:10');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('3','10' ,'flowRuleEnable','flowRuleEnable (1 or 0)', '1', 2, 7, '2020-11-09 01:19:10', '2020-11-09 01:19:10');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('4','10' ,'flowRuleCount','flowRuleCount','1', 2, 6, '2020-11-09 01:19:10', '2020-11-09 01:19:10');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('5','10' ,'degradeRuleEnable','degradeRuleEnable (1 or 0)', '1', 2, 2, '2020-11-09 01:19:10', '2020-11-09 01:19:10') ;
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('6','10' ,'degradeRuleGrade','degradeRuleGrade','3', 2, 3, '2020-11-09 01:19:10', '2020-11-09 01:19:10');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('7','10' ,'degradeRuleCount','degradeRuleCount','1', 2, 1, '2020-11-09 01:19:10', '2020-11-09 01:19:10');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('8','10' ,'degradeRuleTimeWindow','degradeRuleTimeWindow','1', 2, 4, '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 
 /*insert plugin_handle data for waf*/
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('9','2' ,'permission','permission','3', 2, 1, '2020-11-22 12:04:10', '2020-11-22 12:04:10');
-INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('10','2' ,'statusCode','status code','2', 2, 2, '2020-11-22 12:04:10', '2020-11-22 12:04:10');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('10','2' ,'statusCode','statusCode','2', 2, 2, '2020-11-22 12:04:10', '2020-11-22 12:04:10');
 
 /*insert plugin_handle data for rate_limiter*/
-INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('11', '4' ,'replenishRate','rate', 2, 2, 2, '2020-11-24 00:17:10', '2020-11-24 00:17:10');
-INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('12', '4' ,'burstCapacity','capacity', 2, 2, 1, '2020-11-24 00:17:10', '2020-11-24 00:17:10');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('11', '4' ,'replenishRate','replenishRate', 2, 2, 2, '2020-11-24 00:17:10', '2020-11-24 00:17:10');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('12', '4' ,'burstCapacity','burstCapacity', 2, 2, 1, '2020-11-24 00:17:10', '2020-11-24 00:17:10');
 
 /*insert plugin_handle data for rewrite*/
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('13', '3' ,'rewriteURI','rewriteURI', 2, 2, 1, '2020-11-29 16:07:10', '2020-11-29 16:07:10');
@@ -290,21 +290,21 @@ INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`
 /*insert plugin_handle data for springCloud*/
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('14', '8' ,'path','path', 2, 2, 1, '2020-11-29 16:07:10', '2020-11-29 16:07:10');
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('15', '8' ,'timeout','timeout (ms)', 1, 2, 2, '2020-11-29 16:07:10', '2020-11-29 16:07:10');
-INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('16', '8' ,'serviceId','application name', 2, 1, 1, '2020-11-29 16:07:10', '2020-11-29 16:07:10');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('16', '8' ,'serviceId','serviceId', 2, 1, 1, '2020-11-29 16:07:10', '2020-11-29 16:07:10');
 
 /*insert plugin_handle data for resilience4j*/
-INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('17', '12' ,'timeoutDurationRate','control behavior timeout (ms)', 1, 2, 1, '2020-11-28 11:08:14', '2020-11-28 11:19:12');
-INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('18', '12' ,'limitRefreshPeriod','token filling period (ms)', 1, 2, 0, '2020-11-28 11:18:54', '2020-11-28 11:22:40');
-INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('19', '12' ,'limitForPeriod','token filling number', 1, 2, 0, '2020-11-28 11:20:11', '2020-11-28 11:20:11');
-INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('20', '12' ,'circuitEnable','circuit enable', 1, 2, 2, '2020-11-28 11:23:09', '2020-11-28 11:24:12');
-INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('21', '12' ,'timeoutDuration','circuit timeout (ms)', 1, 2, 2, '2020-11-28 11:25:56', '2020-11-28 11:25:56');
-INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('22', '12' ,'fallbackUri','fallback uri', 2, 2, 2, '2020-11-28 11:26:44', '2020-11-28 11:26:51');
-INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('23', '12' ,'slidingWindowSize','sliding window size', 1, 2, 2, '2020-11-28 11:27:34', '2020-11-28 11:27:34');
-INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('24', '12' ,'slidingWindowType','sliding window type', 1, 2, 2, '2020-11-28 11:28:05', '2020-11-28 11:28:05');
-INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('25', '12' ,'minimumNumberOfCalls','enabled error minimum calculation threshold', 1, 2, 2, '2020-11-28 11:28:34', '2020-11-28 11:28:34');
-INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('26', '12' ,'waitIntervalFunctionInOpenState','degrade opening duration', 1, 2, 2, '2020-11-28 11:29:01', '2020-11-28 11:29:01');
-INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('27', '12' ,'permittedNumberOfCallsInHalfOpenState','half open threshold', 1, 2, 2, '2020-11-28 11:29:55', '2020-11-28 11:29:55');
-INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('28', '12' ,'failureRateThreshold','degrade failure rate', 1, 2, 2, '2020-11-28 11:30:40', '2020-11-28 11:30:40');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('17', '12' ,'timeoutDurationRate','timeoutDurationRate (ms)', 1, 2, 1, '2020-11-28 11:08:14', '2020-11-28 11:19:12');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('18', '12' ,'limitRefreshPeriod','limitRefreshPeriod (ms)', 1, 2, 0, '2020-11-28 11:18:54', '2020-11-28 11:22:40');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('19', '12' ,'limitForPeriod','limitForPeriod', 1, 2, 0, '2020-11-28 11:20:11', '2020-11-28 11:20:11');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('20', '12' ,'circuitEnable','circuitEnable', 1, 2, 2, '2020-11-28 11:23:09', '2020-11-28 11:24:12');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('21', '12' ,'timeoutDuration','timeoutDuration (ms)', 1, 2, 2, '2020-11-28 11:25:56', '2020-11-28 11:25:56');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('22', '12' ,'fallbackUri','fallbackUri', 2, 2, 2, '2020-11-28 11:26:44', '2020-11-28 11:26:51');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('23', '12' ,'slidingWindowSize','slidingWindowSize', 1, 2, 2, '2020-11-28 11:27:34', '2020-11-28 11:27:34');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('24', '12' ,'slidingWindowType','slidingWindowType', 1, 2, 2, '2020-11-28 11:28:05', '2020-11-28 11:28:05');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('25', '12' ,'minimumNumberOfCalls','minimumNumberOfCalls', 1, 2, 2, '2020-11-28 11:28:34', '2020-11-28 11:28:34');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('26', '12' ,'waitIntervalFunctionInOpenState','waitIntervalInOpen', 1, 2, 2, '2020-11-28 11:29:01', '2020-11-28 11:29:01');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('27', '12' ,'permittedNumberOfCallsInHalfOpenState','bufferSizeInHalfOpen', 1, 2, 2, '2020-11-28 11:29:55', '2020-11-28 11:29:55');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('28', '12' ,'failureRateThreshold','failureRateThreshold', 1, 2, 2, '2020-11-28 11:30:40', '2020-11-28 11:30:40');
 
 /*insert plugin_handle data for plugin*/
 INSERT INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`) VALUES ('30', '4', 'mode', 'mode', 3, 3, 1, NULL, '2020-12-25 00:00:00', '2020-12-25 00:00:00');

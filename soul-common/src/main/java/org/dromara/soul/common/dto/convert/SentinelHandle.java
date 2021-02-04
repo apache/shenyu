@@ -76,4 +76,18 @@ public class SentinelHandle {
      * Sentinel fallback uri.
      */
     private String fallbackUri;
+
+    /**
+     * check filed default value.
+     *
+     * @param sentinelHandle {@linkplain SentinelHandle}
+     * @return {@linkplain SentinelHandle}
+     */
+    public SentinelHandle checkData(final SentinelHandle sentinelHandle) {
+        sentinelHandle.setFlowRuleEnable((sentinelHandle.getFlowRuleEnable() == 1 || sentinelHandle.getFlowRuleEnable() == 0)
+                ? sentinelHandle.getFlowRuleEnable() : Constants.SENTINEL_ENABLE_FLOW_RULE);
+        sentinelHandle.setDegradeRuleEnable((sentinelHandle.getDegradeRuleEnable() == 1 || sentinelHandle.getDegradeRuleEnable() == 0)
+                ? sentinelHandle.getDegradeRuleEnable() : Constants.SENTINEL_ENABLE_DEGRADE_RULE);
+        return sentinelHandle;
+    }
 }

@@ -38,6 +38,7 @@
         <module>soul-spi</module>
         <module>soul-register-center</module>
         <module>soul-dist</module>
+        <module>soul-examples</module>
     </modules>
 
     <organization>
