@@ -15,31 +15,24 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.client.springmvc.config;
+package org.dromara.soul.client.common.utils;
 
-import lombok.Data;
-import org.dromara.soul.client.common.config.SoulClientConfig;
+import org.dromara.soul.common.enums.RpcTypeEnum;
 
 /**
- * The type Soul spring mvc config.
+ * register util interface.
  *
- * @author xiaoyu
+ * @author lw1243925457
  */
-@Data
-public class SoulSpringMvcConfig extends SoulClientConfig {
-
-    private String adminUrl;
-
-    private String contextPath;
-
-    private String appName;
+public interface RegisterUtil {
 
     /**
-     * Set true means providing proxy for your entire service, or only a few controller.
+     * call register api.
+     *
+     * @param json        request body
+     * @param url         url
+     * @param rpcTypeEnum rcp type
      */
-    private boolean full;
+    void doRegister(String json, String url, RpcTypeEnum rpcTypeEnum);
 
-    private String host;
-
-    private Integer port;
 }

@@ -25,6 +25,9 @@ soul:
     contextPath: /http
     appName: http
     full: false
+    zookeeperUrl: localhost:2181
+    zookeeperSessionTimeout: 5000
+    zookeeperConnectionTimeout: 2000
 
 logging:
   level:

@@ -22,7 +22,7 @@ import com.alibaba.dubbo.common.utils.StringUtils;
 import com.alibaba.dubbo.config.spring.ServiceBean;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.client.common.utils.OkHttpTools;
-import org.dromara.soul.client.common.utils.RegisterUtils;
+import org.dromara.soul.client.common.utils.RegisterCenter;
 import org.dromara.soul.client.dubbo.common.annotation.SoulDubboClient;
 import org.dromara.soul.client.dubbo.common.config.DubboConfig;
 import org.dromara.soul.client.dubbo.common.dto.MetaDataDTO;
@@ -56,6 +56,8 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
 
     private final String url;
 
+    private final RegisterCenter registerCenter;
+
     public AlibabaDubboServiceBeanPostProcessor(final DubboConfig dubboConfig) {
         String contextPath = dubboConfig.getContextPath();
         String adminUrl = dubboConfig.getAdminUrl();
@@ -65,6 +67,7 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
         }
         this.dubboConfig = dubboConfig;
         url = dubboConfig.getAdminUrl() + "/soul-client/dubbo-register";
+        registerCenter = new RegisterCenter(dubboConfig);
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
     }
 
@@ -83,7 +86,8 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
         for (Method method : methods) {
             SoulDubboClient soulDubboClient = method.getAnnotation(SoulDubboClient.class);
             if (Objects.nonNull(soulDubboClient)) {
-                RegisterUtils.doRegister(buildJsonParams(serviceBean, soulDubboClient, method), url, RpcTypeEnum.DUBBO);
+                registerCenter.doRegister(buildJsonParams(serviceBean, soulDubboClient, method), url,
+                        RpcTypeEnum.DUBBO);
             }
         }
     }

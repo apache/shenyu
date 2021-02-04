@@ -20,7 +20,7 @@ package org.dromara.soul.client.springmvc.init;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.client.common.utils.OkHttpTools;
-import org.dromara.soul.client.common.utils.RegisterUtils;
+import org.dromara.soul.client.common.utils.RegisterCenter;
 import org.dromara.soul.client.springmvc.annotation.SoulSpringMvcClient;
 import org.dromara.soul.client.springmvc.config.SoulSpringMvcConfig;
 import org.dromara.soul.client.springmvc.dto.SpringMvcRegisterDTO;
@@ -56,6 +56,8 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
 
     private final SoulSpringMvcConfig soulSpringMvcConfig;
 
+    private final RegisterCenter registerCenter;
+
     /**
      * Instantiates a new Soul client bean post processor.
      *
@@ -65,6 +67,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         ValidateUtils.validate(soulSpringMvcConfig);
         this.soulSpringMvcConfig = soulSpringMvcConfig;
         url = soulSpringMvcConfig.getAdminUrl() + "/soul-client/springmvc-register";
+        registerCenter = new RegisterCenter(soulSpringMvcConfig);
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
     }
 
@@ -82,8 +85,8 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
             if (Objects.nonNull(clazzAnnotation)) {
                 if (clazzAnnotation.path().indexOf("*") > 1) {
                     String finalPrePath = prePath;
-                    executorService.execute(() -> RegisterUtils.doRegister(buildJsonParams(clazzAnnotation, finalPrePath), url,
-                            RpcTypeEnum.HTTP));
+                    executorService.execute(() -> registerCenter.doRegister(buildJsonParams(clazzAnnotation,
+                            finalPrePath), url, RpcTypeEnum.HTTP));
                     return bean;
                 }
                 prePath = clazzAnnotation.path();
@@ -93,8 +96,8 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
                 SoulSpringMvcClient soulSpringMvcClient = AnnotationUtils.findAnnotation(method, SoulSpringMvcClient.class);
                 if (Objects.nonNull(soulSpringMvcClient)) {
                     String finalPrePath = prePath;
-                    executorService.execute(() -> RegisterUtils.doRegister(buildJsonParams(soulSpringMvcClient, finalPrePath), url,
-                            RpcTypeEnum.HTTP));
+                    executorService.execute(() -> registerCenter.doRegister(buildJsonParams(soulSpringMvcClient,
+                            finalPrePath), url, RpcTypeEnum.HTTP));
                 }
             }
         }
