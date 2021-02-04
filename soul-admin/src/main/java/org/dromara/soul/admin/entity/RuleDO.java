@@ -94,7 +94,7 @@ public final class RuleDO extends BaseDO {
                     .enabled(item.getEnabled())
                     .loged(item.getLoged())
                     .sort(item.getSort())
-                    .handle(item.getHandle())
+                    .handle(item.getHandle().replaceAll("\"\"", "\"0\""))
                     .dateUpdated(currentTime)
                     .build();
             if (StringUtils.isEmpty(item.getId())) {

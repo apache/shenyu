@@ -235,6 +235,7 @@ public final class RuleServiceTest {
         RuleDTO ruleDTO = RuleDTO.builder()
                 .selectorId("456")
                 .matchMode(0)
+                .handle("{\"test1\":\"\"}")
                 .build();
         if (StringUtils.isNotBlank(id)) {
             ruleDTO.setId(id);
@@ -253,6 +254,7 @@ public final class RuleServiceTest {
         RuleDTO ruleDTO = RuleDTO.builder()
                 .selectorId("456")
                 .matchMode(0)
+                .handle("{\"test1\":\"\"}")
                 .build();
         if (StringUtils.isNotBlank(id)) {
             ruleDTO.setId(id);
