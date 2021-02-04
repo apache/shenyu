@@ -19,13 +19,14 @@ package org.dromara.soul.sync.data.http.refresh;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.dto.ConfigData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
+
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * The type Abstract data refresh.
@@ -105,14 +106,18 @@ public abstract class AbstractDataRefresh<T> implements DataRefresh {
         }
         ResultHolder holder = new ResultHolder(false);
         GROUP_CACHE.merge(groupEnum, newVal, (oldVal, value) -> {
-            // must compare the last update time
-            if (!StringUtils.equals(oldVal.getMd5(), newVal.getMd5()) && oldVal.getLastModifyTime() < newVal.getLastModifyTime()) {
-                log.info("update {} config: {}", groupEnum, newVal);
-                holder.result = true;
-                return newVal;
+            if (StringUtils.equals(oldVal.getMd5(), newVal.getMd5())) {
+                log.info("Get the same config, the [{}] config cache will not be updated, md5:{}", groupEnum, oldVal.getMd5());
+                return oldVal;
             }
-            log.info("Get the same config, the [{}] config cache will not be updated, md5:{}", groupEnum, oldVal.getMd5());
-            return oldVal;
+            // must compare the last update time
+            if (oldVal.getLastModifyTime() >= newVal.getLastModifyTime()) {
+                log.info("Last update time earlier than the current configuration, the [{}] config cache will not be updated", groupEnum);
+                return oldVal;
+            }
+            log.info("update {} config: {}", groupEnum, newVal);
+            holder.result = true;
+            return newVal;
         });
         return holder.result;
     }

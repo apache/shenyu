@@ -37,15 +37,11 @@ public class PageResultUtils {
      * @param listSupplier     the list supplier
      * @return the common pager
      */
-    public static <T> CommonPager<T> result(final PageParameter pageParameter, final Supplier<Integer> countSupplier,
-                                            final Supplier<List<T>> listSupplier) {
+    public static <T> CommonPager<T> result(final PageParameter pageParameter, final Supplier<Integer> countSupplier, final Supplier<List<T>> listSupplier) {
         Integer count = countSupplier.get();
         if (count != null && count > 0) {
-            return new CommonPager<>(new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), count),
-                    listSupplier.get());
+            return new CommonPager<>(new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), count), listSupplier.get());
         }
-        return new CommonPager<>(new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), 0),
-                Collections.emptyList());
-
+        return new CommonPager<>(new PageParameter(pageParameter.getCurrentPage(), pageParameter.getPageSize(), 0), Collections.emptyList());
     }
 }

@@ -18,6 +18,7 @@
 package org.dromara.soul.admin.listener;
 
 import org.dromara.soul.admin.AbstractSpringIntegrationTest;
+import org.dromara.soul.admin.utils.SoulDomain;
 import org.dromara.soul.common.utils.IpUtils;
 import org.junit.Test;
 import org.springframework.boot.web.server.LocalServerPort;

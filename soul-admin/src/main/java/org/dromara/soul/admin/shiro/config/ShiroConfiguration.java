@@ -23,7 +23,7 @@ import org.apache.shiro.spring.LifecycleBeanPostProcessor;
 import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
-import org.dromara.soul.admin.config.ShiroProperties;
+import org.dromara.soul.admin.config.properties.ShiroProperties;
 import org.dromara.soul.admin.shiro.bean.StatelessAuthFilter;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;

@@ -112,6 +112,11 @@ public enum PluginEnum {
     TARS(60, 0, "tars"),
 
     /**
+     * GPRC plugin enum.
+     */
+    GRPC(60, 0, "grpc"),
+
+    /**
      * Monitor plugin enum.
      */
     MONITOR(80, 0, "monitor"),

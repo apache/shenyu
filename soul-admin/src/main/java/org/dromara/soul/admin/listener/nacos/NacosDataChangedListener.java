@@ -70,17 +70,6 @@ public class NacosDataChangedListener implements DataChangedListener {
         this.configService = configService;
     }
 
-    @SneakyThrows
-    private String getConfig(final String dataId) {
-        String config = configService.getConfig(dataId, NacosPathConstants.GROUP, NacosPathConstants.DEFAULT_TIME_OUT);
-        return StringUtils.hasLength(config) ? config : NacosPathConstants.EMPTY_CONFIG_DEFAULT_VALUE;
-    }
-
-    @SneakyThrows
-    private void publishConfig(final String dataId, final Object data) {
-        configService.publishConfig(dataId, NacosPathConstants.GROUP, GsonUtils.getInstance().toJson(data));
-    }
-
     @Override
     @SneakyThrows
     public void onAppAuthChanged(final List<AppAuthData> changed, final DataEventTypeEnum eventType) {
@@ -236,17 +225,29 @@ public class NacosDataChangedListener implements DataChangedListener {
                     List<RuleData> ls = RULE_MAP
                             .getOrDefault(rule.getSelectorId(), new ArrayList<>())
                             .stream()
-                            .filter(s -> !s.getId().equals(rule.getSelectorId()))
-                            .sorted(RULE_DATA_COMPARATOR)
+                            .filter(s -> !s.getId().equals(rule.getId()))
                             .collect(Collectors.toList());
                     ls.add(rule);
+                    ls.sort(RULE_DATA_COMPARATOR);
                     RULE_MAP.put(rule.getSelectorId(), ls);
                 });
                 break;
         }
+
         publishConfig(NacosPathConstants.RULE_DATA_ID, RULE_MAP);
     }
-    
+
+    @SneakyThrows
+    private void publishConfig(final String dataId, final Object data) {
+        configService.publishConfig(dataId, NacosPathConstants.GROUP, GsonUtils.getInstance().toJson(data));
+    }
+
+    @SneakyThrows
+    private String getConfig(final String dataId) {
+        String config = configService.getConfig(dataId, NacosPathConstants.GROUP, NacosPathConstants.DEFAULT_TIME_OUT);
+        return StringUtils.hasLength(config) ? config : NacosPathConstants.EMPTY_CONFIG_DEFAULT_VALUE;
+    }
+
     private void updateAuthMap(final String configInfo) {
         JsonObject jo = GsonUtils.getInstance().fromJson(configInfo, JsonObject.class);
         Set<String> set = new HashSet<>(AUTH_MAP.keySet());
@@ -256,7 +257,7 @@ public class NacosDataChangedListener implements DataChangedListener {
         }
         AUTH_MAP.keySet().removeAll(set);
     }
-    
+
     private void updatePluginMap(final String configInfo) {
         JsonObject jo = GsonUtils.getInstance().fromJson(configInfo, JsonObject.class);
         Set<String> set = new HashSet<>(PLUGIN_MAP.keySet());
@@ -266,7 +267,7 @@ public class NacosDataChangedListener implements DataChangedListener {
         }
         PLUGIN_MAP.keySet().removeAll(set);
     }
-    
+
     private void updateSelectorMap(final String configInfo) {
         JsonObject jo = GsonUtils.getInstance().fromJson(configInfo, JsonObject.class);
         Set<String> set = new HashSet<>(SELECTOR_MAP.keySet());
@@ -288,7 +289,7 @@ public class NacosDataChangedListener implements DataChangedListener {
         }
         META_DATA.keySet().removeAll(set);
     }
-    
+
     private void updateRuleMap(final String configInfo) {
         JsonObject jo = GsonUtils.getInstance().fromJson(configInfo, JsonObject.class);
         Set<String> set = new HashSet<>(RULE_MAP.keySet());

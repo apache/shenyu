@@ -19,9 +19,11 @@ package org.dromara.soul.plugin.ratelimiter.handler;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.dromara.soul.plugin.ratelimiter.config.RateLimiterConfig;
 import org.dromara.soul.common.dto.PluginData;
@@ -51,7 +53,7 @@ import org.springframework.util.StringUtils;
  * @author xiaoyu
  */
 public class RateLimiterPluginDataHandler implements PluginDataHandler {
-    
+
     @Override
     public void handlerPlugin(final PluginData pluginData) {
         if (Objects.nonNull(pluginData) && pluginData.getEnabled()) {
@@ -66,18 +68,18 @@ public class RateLimiterPluginDataHandler implements PluginDataHandler {
                 RedisSerializer<String> serializer = new StringRedisSerializer();
                 RedisSerializationContext<String, String> serializationContext =
                         RedisSerializationContext.<String, String>newSerializationContext().key(serializer).value(serializer).hashKey(serializer).hashValue(serializer).build();
-                ReactiveRedisTemplate<String, String> reactiveRedisTemplate = new ReactiveRedisTemplate<>(lettuceConnectionFactory, serializationContext);
+                ReactiveRedisTemplate<String, String> reactiveRedisTemplate = new SoulReactiveRedisTemplate<>(lettuceConnectionFactory, serializationContext);
                 Singleton.INST.single(ReactiveRedisTemplate.class, reactiveRedisTemplate);
                 Singleton.INST.single(RateLimiterConfig.class, rateLimiterConfig);
             }
         }
     }
-    
+
     @Override
     public String pluginNamed() {
         return PluginEnum.RATE_LIMITER.getName();
     }
-    
+
     private LettuceConnectionFactory createLettuceConnectionFactory(final RateLimiterConfig rateLimiterConfig) {
         LettuceClientConfiguration lettuceClientConfiguration = getLettuceClientConfiguration(rateLimiterConfig);
         if (RedisModeEnum.SENTINEL.getName().equals(rateLimiterConfig.getMode())) {
@@ -88,11 +90,11 @@ public class RateLimiterPluginDataHandler implements PluginDataHandler {
         }
         return new LettuceConnectionFactory(redisStandaloneConfiguration(rateLimiterConfig), lettuceClientConfiguration);
     }
-    
+
     private LettuceClientConfiguration getLettuceClientConfiguration(final RateLimiterConfig rateLimiterConfig) {
         return LettucePoolingClientConfiguration.builder().poolConfig(getPoolConfig(rateLimiterConfig)).build();
     }
-    
+
     private GenericObjectPoolConfig<?> getPoolConfig(final RateLimiterConfig rateLimiterConfig) {
         GenericObjectPoolConfig<?> config = new GenericObjectPoolConfig<>();
         config.setMaxTotal(rateLimiterConfig.getMaxActive());
@@ -103,7 +105,7 @@ public class RateLimiterPluginDataHandler implements PluginDataHandler {
         }
         return config;
     }
-    
+
     /**
      * Redis standalone configuration redis standalone configuration.
      *
@@ -122,7 +124,7 @@ public class RateLimiterPluginDataHandler implements PluginDataHandler {
         config.setDatabase(rateLimiterConfig.getDatabase());
         return config;
     }
-    
+
     private RedisClusterConfiguration redisClusterConfiguration(final RateLimiterConfig rateLimiterConfig) {
         RedisClusterConfiguration config = new RedisClusterConfiguration();
         config.setClusterNodes(createRedisNode(rateLimiterConfig.getUrl()));
@@ -131,7 +133,7 @@ public class RateLimiterPluginDataHandler implements PluginDataHandler {
         }
         return config;
     }
-    
+
     private RedisSentinelConfiguration redisSentinelConfiguration(final RateLimiterConfig rateLimiterConfig) {
         RedisSentinelConfiguration config = new RedisSentinelConfiguration();
         config.master(rateLimiterConfig.getMaster());
@@ -142,7 +144,7 @@ public class RateLimiterPluginDataHandler implements PluginDataHandler {
         config.setDatabase(rateLimiterConfig.getDatabase());
         return config;
     }
-    
+
     private List<RedisNode> createRedisNode(final String url) {
         List<RedisNode> redisNodes = new ArrayList<>();
         List<String> nodes = Lists.newArrayList(Splitter.on(";").split(url));

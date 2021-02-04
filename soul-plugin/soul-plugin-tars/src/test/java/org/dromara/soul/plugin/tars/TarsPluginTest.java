@@ -80,9 +80,9 @@ public class TarsPluginTest {
         springBeanUtils.setCfgContext(applicationContext);
         metaData = new MetaData("id", "127.0.0.1:8080", "contextPath",
                 "path", RpcTypeEnum.TARS.getName(), "serviceName", "method1",
-                "parameterTypes", "{\"methodInfo\":[{\"methodName\":\"method1\",\"params\":" 
-                + "[{\"key\":\"java.lang.String\",\"value\":\"param1\"},{\"key\":\"java.lang.String\"," 
-                + "\"value\":\"param2\"}]}]}", false);
+                "parameterTypes", "{\"methodInfo\":[{\"methodName\":\"method1\",\"params\":"
+                + "[{\"left\":\"java.lang.String\",\"right\":\"param1\"},{\"left\":\"java.lang.String\","
+                + "\"right\":\"param2\"}],\"returnType\":\"java.lang.String\"}]}", false);
         ApplicationConfigCache.getInstance().initPrx(metaData);
         exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
         tarsPluginUnderTest = new TarsPlugin();
@@ -136,9 +136,7 @@ public class TarsPluginTest {
         Method method = mock(Method.class);
         ExecutorService executorService = Executors.newFixedThreadPool(1,
                 SoulThreadFactory.create("long-polling", true));
-        CompletableFuture<String> stringCompletableFuture = CompletableFuture.supplyAsync(() -> {
-            return "";
-        }, executorService);
+        CompletableFuture<String> stringCompletableFuture = CompletableFuture.supplyAsync(() -> "", executorService);
         when(method.invoke(any(), any())).thenReturn(stringCompletableFuture);
         tarsInvokePrxList.setMethod(method);
         StepVerifier.create(tarsPluginUnderTest.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();

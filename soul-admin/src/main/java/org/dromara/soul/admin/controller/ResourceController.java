@@ -102,7 +102,7 @@ public class ResourceController {
     }
 
     /**
-     * detail role and permission info.
+     * detail resource info.
      *
      * @param id role id
      * @return {@linkplain SoulAdminResult}
@@ -140,7 +140,7 @@ public class ResourceController {
     }
 
     /**
-     * delete role info.
+     * delete resource info.
      *
      * @param ids primary keys.
      * @return {@linkplain SoulAdminResult}

@@ -19,7 +19,7 @@ package org.dromara.soul.spring.boot.starter.plugin.alibaba.dubbo;
 
 import org.dromara.soul.plugin.alibaba.dubbo.AlibabaDubboPlugin;
 import org.dromara.soul.plugin.alibaba.dubbo.handler.AlibabaDubboPluginDataHandler;
-import org.dromara.soul.plugin.alibaba.dubbo.param.BodyParamPlugin;
+import org.dromara.soul.plugin.alibaba.dubbo.param.AlibabaDubboBodyParamPlugin;
 import org.dromara.soul.plugin.alibaba.dubbo.proxy.AlibabaDubboProxyService;
 import org.dromara.soul.plugin.alibaba.dubbo.response.DubboResponsePlugin;
 import org.dromara.soul.plugin.alibaba.dubbo.subscriber.AlibabaDubboMetaDataSubscriber;
@@ -59,7 +59,7 @@ public class AlibabaDubboPluginConfiguration {
      */
     @Bean
     public SoulPlugin alibabaDubboBodyParamPlugin() {
-        return new BodyParamPlugin();
+        return new AlibabaDubboBodyParamPlugin();
     }
 
     /**

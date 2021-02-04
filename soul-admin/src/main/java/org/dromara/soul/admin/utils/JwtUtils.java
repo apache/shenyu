@@ -23,10 +23,11 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import java.util.Optional;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.util.StringUtils;
-import org.dromara.soul.admin.config.JwtProperties;
+import org.dromara.soul.admin.config.properties.JwtProperties;
 import org.dromara.soul.admin.spring.SpringBeanUtils;
 
 import java.time.LocalDate;
@@ -50,8 +51,7 @@ public final class JwtUtils {
      */
     public static String getIssuer(final String token) {
         DecodedJWT jwt = verifierToken(token);
-
-        return jwt != null ? jwt.getIssuer() : "";
+        return Optional.ofNullable(jwt).map(DecodedJWT::getIssuer).orElse("");
     }
 
     /**
@@ -66,7 +66,6 @@ public final class JwtUtils {
             Date date = jwt.getIssuedAt();
             return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         }
-
         return null;
     }
 
@@ -78,14 +77,10 @@ public final class JwtUtils {
      */
     public static String generateToken(final String userName) {
         try {
-            return JWT.create()
-                    .withIssuer(userName)
-                    .withIssuedAt(new Date())
-                    .sign(generateAlgorithm());
+            return JWT.create().withIssuer(userName) .withIssuedAt(new Date()).sign(generateAlgorithm());
         } catch (IllegalArgumentException | JWTCreationException e) {
             log.error("JWTToken generate fail ", e);
         }
-
         return StringUtils.EMPTY_STRING;
     }
 
@@ -97,7 +92,6 @@ public final class JwtUtils {
         } catch (JWTVerificationException e) {
             log.info("jwt decode fail, token: {} ", token, e);
         }
-
         return jwt;
     }
 
