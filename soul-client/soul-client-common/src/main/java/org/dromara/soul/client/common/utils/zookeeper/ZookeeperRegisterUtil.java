@@ -115,16 +115,21 @@ public final class ZookeeperRegisterUtil implements RegisterUtil {
      * @param metadata metadata
      */
     private void updateUpstream(final String rpcType, final String contextPath, final String metadata) {
-        String medataNode = metadata.replace("-", ":");
-
         String contextNodePath = String.join(Constants.SLASH, rootPath, rpcType, contextPath);
         if (!zkClient.exists(contextNodePath)) {
             zkClient.createPersistent(contextNodePath, true);
         }
 
-        String metadataNodePath = String.join(Constants.SLASH, contextNodePath, medataNode);
-        if (!zkClient.exists(metadataNodePath)) {
-            zkClient.createEphemeral(metadataNodePath);
+        String metadataUriPath = String.join(Constants.SLASH, contextNodePath, metadata, "uri");
+        if (!zkClient.exists(metadataUriPath)) {
+            zkClient.createPersistent(metadataUriPath, true);
+        }
+
+        String uri = metadata.replace("-", ":");
+        String uriNode = String.join(Constants.SLASH, metadataUriPath, uri);
+        log.info("create temp uri node: {} -- {}", uriNode, uri);
+        if (!zkClient.exists(uriNode)) {
+            zkClient.createEphemeral(uriNode, uri);
         }
     }
 
