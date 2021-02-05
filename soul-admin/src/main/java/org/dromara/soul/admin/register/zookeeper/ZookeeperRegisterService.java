@@ -28,7 +28,7 @@ import org.dromara.soul.admin.mapper.SelectorMapper;
 import org.dromara.soul.admin.service.SelectorService;
 import org.dromara.soul.admin.service.SoulClientRegisterService;
 import org.dromara.soul.common.constant.Constants;
-import org.dromara.soul.common.constant.ZkRegisterPathConstants;
+import org.dromara.soul.register.common.path.ZkRegisterPathConstants;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.enums.ConfigGroupEnum;

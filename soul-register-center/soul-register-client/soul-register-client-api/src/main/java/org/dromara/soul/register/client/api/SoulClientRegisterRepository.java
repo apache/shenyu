@@ -17,8 +17,8 @@
 
 package org.dromara.soul.register.client.api;
 
-import org.dromara.soul.client.common.dto.MetaDataDTO;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
+import org.dromara.soul.register.common.dto.MetaDataDTO;
 import org.dromara.soul.spi.SPI;
 
 /**
@@ -51,23 +51,6 @@ public interface SoulClientRegisterRepository {
      * @param metadata  metadata
      */
     void persistInterface(MetaDataDTO metadata);
-    
-    /**
-     * Persist data.
-     *
-     * @param key   key of data
-     * @param value value of data
-     */
-    void persistInterface(String key, String value);
-    
-    /**
-     * Persist ephemeral data.
-     *
-     * @param key   key of data
-     * @param value value of data
-     */
-    default void persistServer(String key, String value) {
-    }
     
     /**
      * Close.

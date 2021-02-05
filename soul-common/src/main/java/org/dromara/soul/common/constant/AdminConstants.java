@@ -63,6 +63,4 @@ public final class AdminConstants {
      * The constant PARAMS_ERROR.
      */
     public static final String PARAMS_ERROR = "Error parameter！";
-
-
 }

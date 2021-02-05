@@ -23,13 +23,19 @@ import org.dromara.soul.disruptor.DisruptorConsumerFactory;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 
 /**
- * Demo.
+ * The type Soul meta data register event handler.
  *
  * @author tydhot
  */
 public class SoulMetaDataRegisterEventHandler extends AbstractDisruptorConsumerExecutor<SoulClientRegisterEvent> implements DisruptorConsumerFactory<SoulClientRegisterEvent> {
+   
     private final SoulClientRegisterRepository soulClientRegisterRepository;
-
+    
+    /**
+     * Instantiates a new Soul meta data register event handler.
+     *
+     * @param soulClientRegisterRepository the soul client register repository
+     */
     public SoulMetaDataRegisterEventHandler(final SoulClientRegisterRepository soulClientRegisterRepository) {
         this.soulClientRegisterRepository = soulClientRegisterRepository;
     }

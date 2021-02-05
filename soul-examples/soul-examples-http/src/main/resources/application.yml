@@ -19,15 +19,12 @@ server:
 
 
 soul:
-  http:
-    adminUrl: http://localhost:9095
-    port: 8188
-    contextPath: /http
-    appName: http
-    full: false
-    zookeeperUrl: localhost:2181
-    zookeeperSessionTimeout: 5000
-    zookeeperConnectionTimeout: 2000
+  client:
+    registerType: http
+    serverLists: http://localhost:9095
+    props:
+      contextPath: /http
+      appName: http
 
 logging:
   level:

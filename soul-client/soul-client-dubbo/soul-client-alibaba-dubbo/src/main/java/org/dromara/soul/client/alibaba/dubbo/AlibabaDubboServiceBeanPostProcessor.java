@@ -20,13 +20,17 @@ package org.dromara.soul.client.alibaba.dubbo;
 import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.utils.StringUtils;
 import com.alibaba.dubbo.config.spring.ServiceBean;
+import com.google.gson.Gson;
+import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.slf4j.Slf4j;
-import org.dromara.soul.client.common.utils.OkHttpTools;
-import org.dromara.soul.client.common.utils.RegisterCenter;
+import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
+import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
 import org.dromara.soul.client.dubbo.common.annotation.SoulDubboClient;
-import org.dromara.soul.client.dubbo.common.config.DubboConfig;
-import org.dromara.soul.client.dubbo.common.dto.MetaDataDTO;
-import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.dromara.soul.client.dubbo.common.dto.DubboRpcExt;
+import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
+import org.dromara.soul.register.common.dto.MetaDataDTO;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.util.ClassUtils;
@@ -48,27 +52,33 @@ import java.util.stream.Collectors;
  * @author xiaoyu
  */
 @Slf4j
+@SuppressWarnings("all")
 public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener<ContextRefreshedEvent> {
-
-    private final DubboConfig dubboConfig;
-
+    
+    private SoulClientRegisterEventPublisher publisher = SoulClientRegisterEventPublisher.getInstance();
+    
+    private AtomicBoolean registered = new AtomicBoolean(false);
+    
+    private Gson gson = new Gson();
+    
     private final ExecutorService executorService;
+    
+    private final String contextPath;
+    
+    private final String appName;
 
-    private final String url;
-
-    private final RegisterCenter registerCenter;
-
-    public AlibabaDubboServiceBeanPostProcessor(final DubboConfig dubboConfig) {
-        String contextPath = dubboConfig.getContextPath();
-        String adminUrl = dubboConfig.getAdminUrl();
-        if (StringUtils.isEmpty(contextPath)
-                || StringUtils.isEmpty(adminUrl)) {
-            throw new RuntimeException("Alibaba dubbo client must config the contextPath, adminUrl");
+    public AlibabaDubboServiceBeanPostProcessor(final SoulRegisterCenterConfig config) {
+        Properties props = config.getProps();
+        String contextPath = props.getProperty("contextPath");
+        String appName = props.getProperty("appName");
+        if (StringUtils.isEmpty(contextPath)) {
+            throw new RuntimeException("apache dubbo client must config the contextPath");
         }
-        this.dubboConfig = dubboConfig;
-        url = dubboConfig.getAdminUrl() + "/soul-client/dubbo-register";
-        registerCenter = new RegisterCenter(dubboConfig);
+        this.contextPath = contextPath;
+        this.appName = appName;
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        SoulClientRegisterRepository soulClientRegisterRepository = SoulClientRegisterRepositoryFactory.newInstance(config);
+        publisher.start(soulClientRegisterRepository);
     }
 
     private void handler(final ServiceBean<?> serviceBean) {
@@ -86,18 +96,17 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
         for (Method method : methods) {
             SoulDubboClient soulDubboClient = method.getAnnotation(SoulDubboClient.class);
             if (Objects.nonNull(soulDubboClient)) {
-                registerCenter.doRegister(buildJsonParams(serviceBean, soulDubboClient, method), url,
-                        RpcTypeEnum.DUBBO);
+                publisher.publishEvent(buildMetaDataDTO(serviceBean, soulDubboClient, method));
             }
         }
     }
 
-    private String buildJsonParams(final ServiceBean<?> serviceBean, final SoulDubboClient soulDubboClient, final Method method) {
-        String appName = dubboConfig.getAppName();
+    private MetaDataDTO buildMetaDataDTO(final ServiceBean<?> serviceBean, final SoulDubboClient soulDubboClient, final Method method) {
+        String appName = this.appName;
         if (StringUtils.isEmpty(appName)) {
             appName = serviceBean.getApplication().getName();
         }
-        String path = dubboConfig.getContextPath() + soulDubboClient.path();
+        String path = contextPath + soulDubboClient.path();
         String desc = soulDubboClient.desc();
         String serviceName = serviceBean.getInterface();
         String configRuleName = soulDubboClient.ruleName();
@@ -106,11 +115,11 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
         String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
                 .collect(Collectors.joining(","));
-        MetaDataDTO metaDataDTO = MetaDataDTO.builder()
+        return MetaDataDTO.builder()
                 .appName(appName)
                 .serviceName(serviceName)
                 .methodName(methodName)
-                .contextPath(dubboConfig.getContextPath())
+                .contextPath(contextPath)
                 .path(path)
                 .ruleName(ruleName)
                 .pathDesc(desc)
@@ -119,12 +128,10 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
                 .rpcType("dubbo")
                 .enabled(soulDubboClient.enabled())
                 .build();
-        return OkHttpTools.getInstance().getGson().toJson(metaDataDTO);
-
     }
 
     private String buildRpcExt(final ServiceBean<?> serviceBean) {
-        MetaDataDTO.RpcExt build = MetaDataDTO.RpcExt.builder()
+        DubboRpcExt builder = DubboRpcExt.builder()
                 .group(StringUtils.isNotEmpty(serviceBean.getGroup()) ? serviceBean.getGroup() : "")
                 .version(StringUtils.isNotEmpty(serviceBean.getVersion()) ? serviceBean.getVersion() : "")
                 .loadbalance(StringUtils.isNotEmpty(serviceBean.getLoadbalance()) ? serviceBean.getLoadbalance() : Constants.DEFAULT_LOADBALANCE)
@@ -132,13 +139,13 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
                 .timeout(Objects.isNull(serviceBean.getTimeout()) ? Constants.DEFAULT_CONNECT_TIMEOUT : serviceBean.getTimeout())
                 .url("")
                 .build();
-        return OkHttpTools.getInstance().getGson().toJson(build);
+        return gson.toJson(builder);
 
     }
 
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
-        if (Objects.nonNull(contextRefreshedEvent.getApplicationContext().getParent())) {
+        if (!registered.compareAndSet(false, true)) {
             return;
         }
         // Fix bug(https://github.com/dromara/soul/issues/415), upload dubbo metadata on ContextRefreshedEvent

@@ -17,7 +17,7 @@
 
 package org.dromara.soul.springboot.starter.client.alibaba.dubbo;
 
-import org.dromara.soul.client.dubbo.common.config.DubboConfig;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,20 +41,18 @@ import static org.junit.Assert.assertThat;
         },
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
-                "soul.dubbo.adminUrl=http://localhost:9095",
-                "soul.dubbo.contextPath=/dubbo",
-                "soul.dubbo.appName=dubbo"
+                "soul.client.registerType = http",
+                "soul.client.props.contextPath=/dubbo",
+                "soul.client.props.appName=dubbo"
         })
 @EnableAutoConfiguration
 public final class SoulAlibabaDubboClientConfigurationTest {
 
     @Autowired
-    private DubboConfig dubboConfig;
+    private SoulRegisterCenterConfig centerConfig;
 
     @Test
-    public void testDubboConfig() {
-        assertThat(dubboConfig.getAppName(), is("dubbo"));
-        assertThat(dubboConfig.getContextPath(), is("/dubbo"));
-        assertThat(dubboConfig.getAdminUrl(), is("http://localhost:9095"));
+    public void testSoulRegisterCenterConfig() {
+        assertThat(centerConfig.getRegisterType(), is("http"));
     }
 }

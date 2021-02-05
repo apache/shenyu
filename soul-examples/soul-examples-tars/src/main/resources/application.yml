@@ -27,11 +27,12 @@ logging:
   level:
     root: info
     org.dromara.soul: debug
-  path: "./logs"
 
 soul:
-  tars:
-    adminUrl: http://localhost:9095
-    contextPath: /tars
-    appName: tars
-    ipAndPort: 192.168.41.103:21715
+  client:
+    registerType: http
+    serverLists: http://localhost:9095
+    props:
+      contextPath: /tars
+      appName: tars
+      ipAndPort: 192.168.41.103:21715

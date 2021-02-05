@@ -22,10 +22,9 @@ spring:
   main:
     allow-bean-definition-overriding: true
 soul:
-  dubbo:
-    adminUrl: http://localhost:9095
-    contextPath: /dubbo
-    appName: dubbo
-    zookeeperUrl: localhost:2181
-    zookeeperSessionTimeout: 5000
-    zookeeperConnectionTimeout: 2000
+  client:
+    registerType: http
+    serverLists: http://localhost:9095
+    props:
+      contextPath: /dubbo
+      appName: dubbo

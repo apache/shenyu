@@ -17,62 +17,85 @@
 
 package org.dromara.soul.client.springmvc.init;
 
+import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.dromara.soul.client.common.utils.OkHttpTools;
-import org.dromara.soul.client.common.utils.RegisterUtils;
-import org.dromara.soul.client.springmvc.config.SoulSpringMvcConfig;
-import org.dromara.soul.client.springmvc.dto.SpringMvcRegisterDTO;
-import org.dromara.soul.client.springmvc.utils.ValidateUtils;
+import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
+import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.IpUtils;
+import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
+import org.dromara.soul.register.common.dto.MetaDataDTO;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
-
-import java.util.concurrent.atomic.AtomicBoolean;
+import org.springframework.lang.NonNull;
 
 /**
  * The type Context register listener.
  */
 @Slf4j
 public class ContextRegisterListener implements ApplicationListener<ContextRefreshedEvent> {
+    
+    private SoulClientRegisterEventPublisher publisher = SoulClientRegisterEventPublisher.getInstance();
 
     private final AtomicBoolean registered = new AtomicBoolean(false);
-
-    private final String url;
-
-    private final SoulSpringMvcConfig soulSpringMvcConfig;
+    
+    private final String contextPath;
+    
+    private final String appName;
+    
+    private final String host;
+    
+    private final Integer port;
+    
+    private final Boolean isFull;
 
     /**
      * Instantiates a new Context register listener.
      *
-     * @param soulSpringMvcConfig the soul spring mvc config
      */
-    public ContextRegisterListener(final SoulSpringMvcConfig soulSpringMvcConfig) {
-        ValidateUtils.validate(soulSpringMvcConfig);
-        this.soulSpringMvcConfig = soulSpringMvcConfig;
-        url = soulSpringMvcConfig.getAdminUrl() + "/soul-client/springmvc-register";
+    public ContextRegisterListener(final SoulRegisterCenterConfig config) {
+        String registerType = config.getRegisterType();
+        String serverLists = config.getServerLists();
+        Properties props = config.getProps();
+        String contextPath = props.getProperty("contextPath");
+        int port = Integer.parseInt(props.getProperty("port"));
+        if (StringUtils.isBlank(contextPath) || StringUtils.isBlank(registerType)
+                || StringUtils.isBlank(serverLists) || port <= 0 ) {
+            String errorMsg = "spring cloud param must config the contextPath ,registerType , serverLists and port must > 0";
+            log.error(errorMsg);
+            throw new RuntimeException(errorMsg);
+        }
+        this.appName = props.getProperty("appName");
+        this.host = props.getProperty("host");
+        this.port = port;
+        this.contextPath = contextPath;
+        this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
+        SoulClientRegisterRepository soulClientRegisterRepository = SoulClientRegisterRepositoryFactory.newInstance(config);
+        publisher.start(soulClientRegisterRepository);
     }
 
     @Override
-    public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
+    public void onApplicationEvent(@NonNull final ContextRefreshedEvent contextRefreshedEvent) {
         if (!registered.compareAndSet(false, true)) {
             return;
         }
-        if (soulSpringMvcConfig.isFull()) {
-            RegisterUtils.doRegister(buildJsonParams(), url, RpcTypeEnum.HTTP);
+        if (isFull) {
+            publisher.publishEvent(buildMetaDataDTO());
         }
     }
 
-    private String buildJsonParams() {
-        String contextPath = soulSpringMvcConfig.getContextPath();
-        String appName = soulSpringMvcConfig.getAppName();
-        Integer port = soulSpringMvcConfig.getPort();
+    private MetaDataDTO buildMetaDataDTO() {
+        String contextPath = this.contextPath;
+        String appName = this.appName;
+        Integer port = this.port;
         String path = contextPath + "/**";
-        String configHost = soulSpringMvcConfig.getHost();
+        String configHost = this.host;
         String host = StringUtils.isBlank(configHost) ? IpUtils.getHost() : configHost;
-        SpringMvcRegisterDTO registerDTO = SpringMvcRegisterDTO.builder()
-                .context(contextPath)
+        return MetaDataDTO.builder()
+                .contextPath(contextPath)
                 .host(host)
                 .port(port)
                 .appName(appName)
@@ -81,6 +104,5 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
                 .enabled(true)
                 .ruleName(path)
                 .build();
-        return OkHttpTools.getInstance().getGson().toJson(registerDTO);
     }
 }

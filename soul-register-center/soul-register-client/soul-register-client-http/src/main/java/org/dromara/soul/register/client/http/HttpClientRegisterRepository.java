@@ -17,18 +17,25 @@
 
 package org.dromara.soul.register.client.http;
 
-import org.dromara.soul.client.common.dto.MetaDataDTO;
-import org.dromara.soul.client.common.utils.RegisterUtils;
-import org.dromara.soul.common.enums.RpcTypeEnum;
-import org.dromara.soul.common.utils.GsonUtils;
+import com.google.gson.Gson;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
+import org.dromara.soul.register.client.http.utils.RegisterUtils;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
+import org.dromara.soul.register.common.dto.MetaDataDTO;
+import org.dromara.soul.register.common.enums.RegisterTypeEnum;
 import org.dromara.soul.spi.Join;
 
+/**
+ * The type Http client register repository.
+ *
+ * @author xiaoyu
+ */
 @Join
 public class HttpClientRegisterRepository implements SoulClientRegisterRepository {
 
     private String url;
+    
+    private Gson gson = new Gson();
 
     @Override
     public void init(final SoulRegisterCenterConfig config) {
@@ -38,22 +45,11 @@ public class HttpClientRegisterRepository implements SoulClientRegisterRepositor
     @Override
     public void persistInterface(final MetaDataDTO metadata) {
         try {
-            if (metadata.getRpcType().equals(RpcTypeEnum.DUBBO.getName())) {
-                RegisterUtils.doRegister(GsonUtils.getGson().toJson(metadata), url + "/soul-client/dubbo-register",
-                        RpcTypeEnum.DUBBO);
+            if (metadata.getRpcType().equals(RegisterTypeEnum.DUBBO.getName())) {
+                RegisterUtils.doRegister(gson.toJson(metadata), url + "/soul-client/dubbo-register", metadata.getRpcType());
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    @Override
-    public void persistInterface(final String key, final String value) {
-    
-    }
-    
-    @Override
-    public void persistServer(final String key, final String value) {
-    
     }
 }

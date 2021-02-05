@@ -29,9 +29,10 @@ import lombok.Setter;
 @Setter
 @RequiredArgsConstructor
 public final class SoulRegisterCenterConfig {
+    
     private String registerType;
     
     private String serverLists;
     
-    private Properties props;
+    private Properties props = new Properties();
 }

@@ -21,10 +21,11 @@ server:
 spring:
   main:
     allow-bean-definition-overriding: true
+
 soul:
-  dubbo:
-    contextPath: /dubbo
-    appName: dubbo
-  register:
+  client:
     registerType: http
     serverLists: http://localhost:9095
+    props:
+      contextPath: /dubbo
+      appName: dubbo

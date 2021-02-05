@@ -17,9 +17,9 @@
 
 package org.dromara.soul.springboot.starter.client.springcloud;
 
-import org.dromara.soul.client.springcloud.config.SoulSpringCloudConfig;
 import org.dromara.soul.client.springcloud.init.ContextRegisterListener;
 import org.dromara.soul.client.springcloud.init.SpringCloudClientBeanPostProcessor;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,35 +36,35 @@ public class SoulSpringCloudClientConfiguration {
     /**
      * Spring cloud client bean post processor spring cloud client bean post processor.
      *
-     * @param soulSpringCloudConfig the soul spring cloud config
-     * @param env                   the env
+     * @param config the config
+     * @param env    the env
      * @return the spring cloud client bean post processor
      */
     @Bean
-    public SpringCloudClientBeanPostProcessor springCloudClientBeanPostProcessor(final SoulSpringCloudConfig soulSpringCloudConfig, final Environment env) {
-        return new SpringCloudClientBeanPostProcessor(soulSpringCloudConfig, env);
-    }
-
-    /**
-     * Context register listener context register listener.
-     *
-     * @param soulSpringCloudConfig the soul spring cloud config
-     * @param env                   the env
-     * @return the context register listener
-     */
-    @Bean
-    public ContextRegisterListener contextRegisterListener(final SoulSpringCloudConfig soulSpringCloudConfig, final Environment env) {
-        return new ContextRegisterListener(soulSpringCloudConfig, env);
+    public SpringCloudClientBeanPostProcessor springCloudClientBeanPostProcessor(final SoulRegisterCenterConfig config, final Environment env) {
+        return new SpringCloudClientBeanPostProcessor(config, env);
     }
     
     /**
-     * Soul spring cloud config soul spring cloud config.
+     * Context register listener context register listener.
      *
-     * @return the soul spring cloud config
+     * @param config the config
+     * @param env    the env
+     * @return the context register listener
      */
     @Bean
-    @ConfigurationProperties(prefix = "soul.springcloud")
-    public SoulSpringCloudConfig soulSpringCloudConfig() {
-        return new SoulSpringCloudConfig();
+    public ContextRegisterListener contextRegisterListener(final SoulRegisterCenterConfig config, final Environment env) {
+        return new ContextRegisterListener(config, env);
+    }
+    
+    /**
+     * Soul Register Center Config.
+     *
+     * @return the Register Center Config
+     */
+    @Bean
+    @ConfigurationProperties(prefix = "soul.client")
+    public SoulRegisterCenterConfig soulRegisterCenterConfig() {
+        return new SoulRegisterCenterConfig();
     }
 }

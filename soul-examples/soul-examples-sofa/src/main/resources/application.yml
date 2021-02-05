@@ -29,8 +29,11 @@ com:
       rpc:
         registry-address: zookeeper://127.0.0.1:2181
         bolt-port: 8888
+
 soul:
-  sofa:
-    adminUrl: http://localhost:9095
-    contextPath: /sofa
-    appName: sofa
+  client:
+    registerType: http
+    serverLists: http://localhost:9095
+    props:
+      contextPath: /sofa
+      ipAndPort: sofa
