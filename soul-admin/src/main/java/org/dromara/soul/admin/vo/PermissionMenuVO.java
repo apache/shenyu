@@ -138,13 +138,18 @@ public class PermissionMenuVO implements Serializable {
         private String description;
 
         /**
+         * resource icon.
+         */
+        private String icon;
+
+        /**
          * build AuthPerm.
          *
          * @param resourceVO {@linkplain ResourceVO}
          * @return {@linkplain AuthPerm}
          */
         public static AuthPerm buildAuthPerm(final ResourceVO resourceVO) {
-            return Optional.ofNullable(resourceVO).map(item -> new AuthPerm(resourceVO.getPerms(), resourceVO.getTitle())).orElse(null);
+            return Optional.ofNullable(resourceVO).map(item -> new AuthPerm(resourceVO.getPerms(), resourceVO.getTitle(), resourceVO.getIcon())).orElse(null);
         }
     }
 

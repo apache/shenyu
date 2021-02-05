@@ -99,14 +99,8 @@ public class Resilience4JHandle {
      * check filed default value.
      *
      * @param resilience4JHandle {@linkplain Resilience4JHandle}
-<<<<<<< HEAD
-     * @return {@linkplain Resilience4JHandle}
-     */
-    public Resilience4JHandle checkData(final Resilience4JHandle resilience4JHandle) {
-=======
      */
     public void checkData(final Resilience4JHandle resilience4JHandle) {
->>>>>>> 6bc45bbbeeda11c99e76e529594e879e6a04425a
         resilience4JHandle.setTimeoutDurationRate(Math.max(resilience4JHandle.getTimeoutDurationRate(), Constants.TIMEOUT_DURATION_RATE));
         resilience4JHandle.setLimitRefreshPeriod(Math.max(resilience4JHandle.getLimitRefreshPeriod(), Constants.LIMIT_REFRESH_PERIOD));
         resilience4JHandle.setLimitForPeriod(Math.max(resilience4JHandle.getLimitForPeriod(), Constants.LIMIT_FOR_PERIOD));
@@ -119,9 +113,5 @@ public class Resilience4JHandle {
         resilience4JHandle.setWaitIntervalFunctionInOpenState(Math.max(resilience4JHandle.getWaitIntervalFunctionInOpenState(), Constants.WAIT_INTERVAL_FUNCTION_IN_OPEN_STATE));
         resilience4JHandle.setPermittedNumberOfCallsInHalfOpenState(Math.max(resilience4JHandle.getPermittedNumberOfCallsInHalfOpenState(), Constants.PERMITTED_NUMBER_OF_CALLS_IN_HALF_OPEN_STATE));
         resilience4JHandle.setFailureRateThreshold(Math.max(resilience4JHandle.getFailureRateThreshold(), Constants.FAILURE_RATE_THRESHOLD));
-<<<<<<< HEAD
-        return resilience4JHandle;
-=======
->>>>>>> 6bc45bbbeeda11c99e76e529594e879e6a04425a
     }
 }
