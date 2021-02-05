@@ -215,7 +215,7 @@
     </update>
 
     <update id="updateSelective" parameterType="org.dromara.soul.admin.entity.ResourceDO">
-        update role
+        update resource
         <set>
             <if test="dateCreated != null">
                 date_created = #{dateCreated,jdbcType=TIMESTAMP},
