@@ -56,15 +56,14 @@ public class SentinelPlugin extends AbstractSoulPlugin {
         assert soulContext != null;
         String resourceName = SentinelRuleHandle.getResourceName(rule);
         SentinelHandle sentinelHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), SentinelHandle.class);
-        sentinelHandle = sentinelHandle.checkData(sentinelHandle);
-        SentinelHandle finalSentinelHandle = sentinelHandle;
+        sentinelHandle.checkData(sentinelHandle);
         return chain.execute(exchange).transform(new SentinelReactorTransformer<>(resourceName)).doOnSuccess(v -> {
             HttpStatus status = exchange.getResponse().getStatusCode();
             if (status == null || !status.is2xxSuccessful()) {
                 exchange.getResponse().setStatusCode(null);
                 throw new SentinelFallbackException(status == null ? HttpStatus.INTERNAL_SERVER_ERROR : status);
             }
-        }).onErrorResume(throwable -> sentinelFallbackHandler.fallback(exchange, UriUtils.createUri(finalSentinelHandle.getFallbackUri()), throwable));
+        }).onErrorResume(throwable -> sentinelFallbackHandler.fallback(exchange, UriUtils.createUri(sentinelHandle.getFallbackUri()), throwable));
     }
 
     @Override

@@ -15,40 +15,34 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.examples.dubbo.api.service;
+package org.dromara.soul.common.enums;
 
-import org.dromara.soul.examples.dubbo.api.entity.DubboTest;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
- * DubboTestService.
+ * the admin resource type.
  *
- * @author xiaoyu(Myth)
+ * @author nuo-promise
  */
-public interface DubboTestService {
+@RequiredArgsConstructor
+@Getter
+public enum AdminResourceEnum {
 
     /**
-     * find by id.
-     * body：{"id":"1223"}
-     *
-     * @param id id
-     * @return DubboTest dubbo test
+     * Main Menu.
      */
-    DubboTest findById(String id);
+    MAIN_MENU(0),
 
     /**
-     * Find all dubbo test.
-     *
-     * @return the dubbo test
+     * Second Menu.
      */
-    DubboTest findAll();
+    SECOND_MENU(1),
 
     /**
-     * Insert dubbo test.
-     * body :{"id":"122344","name":"xiaoyu"}
-     *
-     * @param dubboTest the dubbo test
-     * @return the dubbo test
+     * Button.
      */
-    DubboTest insert(DubboTest dubboTest);
+    THREE_MENU(2);
 
+    private final int code;
 }

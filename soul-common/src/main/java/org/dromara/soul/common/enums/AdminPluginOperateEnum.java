@@ -15,40 +15,39 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.examples.dubbo.api.service;
+package org.dromara.soul.common.enums;
 
-import org.dromara.soul.examples.dubbo.api.entity.DubboTest;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
- * DubboTestService.
+ * the menu for plugin operate button.
  *
- * @author xiaoyu(Myth)
+ * @author nuo-promise
  */
-public interface DubboTestService {
+@RequiredArgsConstructor
+@Getter
+public enum AdminPluginOperateEnum {
 
     /**
-     * find by id.
-     * body：{"id":"1223"}
-     *
-     * @param id id
-     * @return DubboTest dubbo test
+     * add operate.
      */
-    DubboTest findById(String id);
+    ADD("add"),
 
     /**
-     * Find all dubbo test.
-     *
-     * @return the dubbo test
+     * delete operate.
      */
-    DubboTest findAll();
+    DELETE("delete"),
 
     /**
-     * Insert dubbo test.
-     * body :{"id":"122344","name":"xiaoyu"}
-     *
-     * @param dubboTest the dubbo test
-     * @return the dubbo test
+     * edit operate.
      */
-    DubboTest insert(DubboTest dubboTest);
+    EDIT("edit"),
 
+    /**
+     * modify operate.
+     */
+    SYNCHRONIZE("modify");
+
+    private final String name;
 }
