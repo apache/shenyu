@@ -139,7 +139,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     @Override
     @Transactional
     public synchronized String registerSpringCloud(final SpringCloudRegisterDTO dto) {
-        MetaDataDO metaDataDO = metaDataMapper.findByPath(dto.getContext() + "/**");
+        MetaDataDO metaDataDO = metaDataMapper.findByPath(dto.getContextPath() + "/**");
         if (Objects.isNull(metaDataDO)) {
             saveSpringCloudMetaData(dto);
         }
@@ -254,10 +254,10 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         MetaDataDO metaDataDO = MetaDataDO.builder()
                 .appName(dto.getAppName())
-                .path(dto.getContext() + "/**")
+                .path(dto.getContextPath() + "/**")
                 .pathDesc(dto.getAppName() + "spring cloud meta data info")
                 .serviceName(dto.getAppName())
-                .methodName(dto.getContext())
+                .methodName(dto.getContextPath())
                 .rpcType(dto.getRpcType())
                 .enabled(dto.isEnabled())
                 .id(UUIDUtils.getInstance().generateShortUuid())
@@ -291,7 +291,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     }
 
     private String handlerSpringMvcSelector(final SpringMvcRegisterDTO dto) {
-        String contextPath = dto.getContext();
+        String contextPath = dto.getContextPath();
         SelectorDO selectorDO = selectorService.findByName(contextPath);
         String selectorId;
         String uri = String.join(":", dto.getHost(), String.valueOf(dto.getPort()));
@@ -337,7 +337,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     }
 
     private String handlerSpringCloudSelector(final SpringCloudRegisterDTO dto) {
-        String contextPath = dto.getContext();
+        String contextPath = dto.getContextPath();
         SelectorDO selectorDO = selectorService.findByName(contextPath);
         if (Objects.isNull(selectorDO)) {
             return registerSelector(contextPath, dto.getRpcType(), dto.getAppName(), "");

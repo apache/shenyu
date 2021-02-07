@@ -18,6 +18,7 @@
 package org.dromara.soul.register.client.http;
 
 import com.google.gson.Gson;
+import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.client.http.utils.RegisterUtils;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
@@ -25,11 +26,15 @@ import org.dromara.soul.register.common.dto.MetaDataDTO;
 import org.dromara.soul.register.common.enums.RegisterTypeEnum;
 import org.dromara.soul.spi.Join;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * The type Http client register repository.
  *
  * @author xiaoyu
  */
+@Slf4j
 @Join
 public class HttpClientRegisterRepository implements SoulClientRegisterRepository {
 
@@ -37,17 +42,32 @@ public class HttpClientRegisterRepository implements SoulClientRegisterRepositor
     
     private Gson gson = new Gson();
 
+    private Map<String, String> turn = new HashMap<>();
+
     @Override
     public void init(final SoulRegisterCenterConfig config) {
         url = config.getServerLists();
+        initTurn();
+    }
+
+    private void initTurn() {
+        turn.put(RegisterTypeEnum.DUBBO.getName(), url + "/soul-client/dubbo-register");
+        turn.put(RegisterTypeEnum.GRPC.getName(), url + "/soul-client/grpc-register");
+        turn.put(RegisterTypeEnum.HTTP.getName(), url + "/soul-client/springmvc-register");
+        turn.put(RegisterTypeEnum.SOFA.getName(), url + "/soul-client/sofa-register");
+        turn.put(RegisterTypeEnum.SPRING_CLOUD.getName(), url + "/soul-client/springcloud-register");
+        turn.put(RegisterTypeEnum.TARS.getName(), url + "/soul-client/tars-register");
     }
 
     @Override
     public void persistInterface(final MetaDataDTO metadata) {
         try {
-            if (metadata.getRpcType().equals(RegisterTypeEnum.DUBBO.getName())) {
-                RegisterUtils.doRegister(gson.toJson(metadata), url + "/soul-client/dubbo-register", metadata.getRpcType());
+            String rpcType = metadata.getRpcType();
+            if (!turn.containsKey(rpcType)) {
+                log.error("can't process the register type: {}", metadata.getRpcType());
+                throw new Exception("can't process the register type");
             }
+            RegisterUtils.doRegister(gson.toJson(metadata), turn.get(rpcType), rpcType);
         } catch (Exception e) {
             e.printStackTrace();
         }

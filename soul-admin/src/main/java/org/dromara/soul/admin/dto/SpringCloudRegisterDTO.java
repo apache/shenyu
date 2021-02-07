@@ -30,7 +30,7 @@ public class SpringCloudRegisterDTO implements Serializable {
 
     private String appName;
 
-    private String context;
+    private String contextPath;
 
     private String path;
 

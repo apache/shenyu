@@ -60,4 +60,6 @@ public class MetaDataDTO {
     private Boolean writeMetaData;
     
     private List<String> pluginNames;
+
+    private boolean registerMetaData;
 }

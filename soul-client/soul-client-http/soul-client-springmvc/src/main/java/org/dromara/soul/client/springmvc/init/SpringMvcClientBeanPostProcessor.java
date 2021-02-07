@@ -142,6 +142,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
                 .enabled(soulSpringMvcClient.enabled())
                 .ruleName(ruleName)
                 .writeMetaData(soulSpringMvcClient.registerMetaData())
+                .registerMetaData(true)
                 .build();
     }
 }
