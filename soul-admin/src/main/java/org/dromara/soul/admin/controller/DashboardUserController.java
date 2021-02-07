@@ -110,17 +110,22 @@ public class DashboardUserController {
      */
     @PostMapping("")
     public SoulAdminResult createDashboardUser(@RequestBody final DashboardUserDTO dashboardUserDTO) {
-        String key = secretProperties.getKey();
+        final String key = secretProperties.getKey();
         return Optional.ofNullable(dashboardUserDTO).map(item -> {
             item.setPassword(AesUtils.aesEncryption(item.getPassword(), key));
-            Integer createCount = dashboardUserService.createOrUpdate(item);
+            int createCount = dashboardUserService.createOrUpdate(item);
             log.info("dashboard user created, info:[{}]", item);
-            return SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS, createCount);
+            if (0 < createCount) {
+                return SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS, createCount);
+            } else {
+                return SoulAdminResult.error(SoulResultMessage.DASHBOARD_USER_NAME_EXIST_ERROR);
+            }
         }).orElse(SoulAdminResult.error(SoulResultMessage.DASHBOARD_CREATE_USER_ERROR));
     }
 
     /**
      * update dashboard user.
+     * 
      *
      * @param id               primary key.
      * @param dashboardUserDTO dashboard user.
@@ -132,9 +137,13 @@ public class DashboardUserController {
         String key = secretProperties.getKey();
         dashboardUserDTO.setId(id);
         dashboardUserDTO.setPassword(AesUtils.aesEncryption(dashboardUserDTO.getPassword(), key));
-        Integer updateCount = dashboardUserService.createOrUpdate(dashboardUserDTO);
+        int updateCount = dashboardUserService.createOrUpdate(dashboardUserDTO);
         log.info("dashboard user updated, id:[{}], info:[{}]", id, dashboardUserDTO);
-        return SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS, updateCount);
+        if (0 < updateCount) {
+            return SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS, updateCount);
+        } else {
+            return SoulAdminResult.error(SoulResultMessage.DASHBOARD_USER_NAME_EXIST_ERROR);
+        }
     }
 
     /**

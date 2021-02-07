@@ -53,7 +53,9 @@ public final class SoulResultMessage {
     public static final String DASHBOARD_QUERY_ERROR = "users info is empty";
 
     public static final String DASHBOARD_CREATE_USER_ERROR = "user info not empty";
-
+    
+    public static final String DASHBOARD_USER_NAME_EXIST_ERROR = "username existed";
+    
     public static final String PLATFORM_LOGIN_SUCCESS = "login dashboard user success";
 
     public static final String PLATFORM_LOGIN_ERROR = " username or password error";
