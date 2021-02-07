@@ -40,8 +40,8 @@ mybatis:
 soul:
   register:
     registerType:
-      http : false
-      zookeeper: true
+      http : true
+      zookeeper: false
   database:
     dialect: mysql
     init_script: "META-INF/schema.sql"

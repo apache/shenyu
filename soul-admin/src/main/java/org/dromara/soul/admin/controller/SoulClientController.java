@@ -22,6 +22,7 @@ import org.dromara.soul.admin.dto.SpringCloudRegisterDTO;
 import org.dromara.soul.admin.dto.SpringMvcRegisterDTO;
 import org.dromara.soul.admin.dto.MetaDataDTO;
 import org.dromara.soul.admin.service.SoulClientRegisterService;
+import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -58,7 +59,7 @@ public class SoulClientController {
     @PostMapping("/springmvc-register")
     public String registerSpringMvc(@RequestBody final SpringMvcRegisterDTO springMvcRegisterDTO) {
         INSTANCE.publishEvent(RpcTypeEnum.HTTP.getName(), springMvcRegisterDTO);
-        return "SUCCESS";
+        return SoulResultMessage.SUCCESS;
     }
 
     /**
@@ -70,7 +71,7 @@ public class SoulClientController {
     @PostMapping("/springcloud-register")
     public String registerSpringCloud(@RequestBody final SpringCloudRegisterDTO springCloudRegisterDTO) {
         INSTANCE.publishEvent(RpcTypeEnum.SPRING_CLOUD.getName(), springCloudRegisterDTO);
-        return "SUCCESS";
+        return SoulResultMessage.SUCCESS;
     }
 
 
@@ -83,7 +84,7 @@ public class SoulClientController {
     @PostMapping("/dubbo-register")
     public String registerRpc(@RequestBody final MetaDataDTO metaDataDTO) {
         INSTANCE.publishEvent(RpcTypeEnum.DUBBO.getName(), metaDataDTO);
-        return "SUCCESS";
+        return SoulResultMessage.SUCCESS;
     }
 
     /**
@@ -95,7 +96,7 @@ public class SoulClientController {
     @PostMapping("/sofa-register")
     public String registerSofaRpc(@RequestBody final MetaDataDTO metaDataDTO) {
         INSTANCE.publishEvent(RpcTypeEnum.SOFA.getName(), metaDataDTO);
-        return "SUCCESS";
+        return SoulResultMessage.SUCCESS;
     }
 
     /**
@@ -107,6 +108,6 @@ public class SoulClientController {
     @PostMapping("/tars-register")
     public String registerTarsRpc(@RequestBody final MetaDataDTO metaDataDTO) {
         INSTANCE.publishEvent(RpcTypeEnum.TARS.getName(), metaDataDTO);
-        return "SUCCESS";
+        return SoulResultMessage.SUCCESS;
     }
 }

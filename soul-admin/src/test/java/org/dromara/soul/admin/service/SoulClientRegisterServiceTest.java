@@ -398,7 +398,7 @@ public final class SoulClientRegisterServiceTest {
     private SpringMvcRegisterDTO buildSpringMvcRegisterDTO(final RpcTypeEnum rpcTypeEnum) {
         SpringMvcRegisterDTO springMvcRegisterDTO = new SpringMvcRegisterDTO();
         springMvcRegisterDTO.setAppName("appName1");
-        springMvcRegisterDTO.setContext("content1");
+        springMvcRegisterDTO.setContextPath("content1");
         springMvcRegisterDTO.setPath("path1");
         springMvcRegisterDTO.setPathDesc("pathDesc1");
         if (Objects.isNull(rpcTypeEnum)) {
@@ -466,7 +466,7 @@ public final class SoulClientRegisterServiceTest {
     private SpringCloudRegisterDTO buildCloudRegisterDTO(final RpcTypeEnum rpcTypeEnum) {
         SpringCloudRegisterDTO springCloudRegisterDTO = new SpringCloudRegisterDTO();
         springCloudRegisterDTO.setAppName("appName2");
-        springCloudRegisterDTO.setContext("content2");
+        springCloudRegisterDTO.setContextPath("content2");
         springCloudRegisterDTO.setPath("path2");
         springCloudRegisterDTO.setPathDesc("pathDesc2");
         if (Objects.isNull(rpcTypeEnum)) {

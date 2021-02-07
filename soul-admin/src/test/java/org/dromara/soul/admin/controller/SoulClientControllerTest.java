@@ -73,7 +73,7 @@ public final class SoulClientControllerTest {
     private SpringMvcRegisterDTO buildSpringMvcRegisterDTO() {
         SpringMvcRegisterDTO springMvcRegisterDTO = new SpringMvcRegisterDTO();
         springMvcRegisterDTO.setAppName("appName1");
-        springMvcRegisterDTO.setContext("content1");
+        springMvcRegisterDTO.setContextPath("content1");
         springMvcRegisterDTO.setPath("path1");
         springMvcRegisterDTO.setPathDesc("pathDesc1");
         springMvcRegisterDTO.setRpcType("rpcType1");
@@ -99,7 +99,7 @@ public final class SoulClientControllerTest {
     private SpringCloudRegisterDTO buildCloudRegisterDTO() {
         SpringCloudRegisterDTO springCloudRegisterDTO = new SpringCloudRegisterDTO();
         springCloudRegisterDTO.setAppName("appName2");
-        springCloudRegisterDTO.setContext("content2");
+        springCloudRegisterDTO.setContextPath("content2");
         springCloudRegisterDTO.setPath("path2");
         springCloudRegisterDTO.setPathDesc("pathDesc2");
         springCloudRegisterDTO.setRpcType("rpcType2");

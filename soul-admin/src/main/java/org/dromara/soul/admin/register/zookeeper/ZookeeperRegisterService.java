@@ -127,11 +127,11 @@ public class ZookeeperRegisterService {
         return rpcTypePaths;
     }
 
-    private String buildPath(String prefix, String node) {
+    private String buildPath(final String prefix, final String node) {
         return String.join(Constants.SLASH, prefix, node);
     }
 
-    private List<String> subscribeRpcType(String rpcTypePath) {
+    private List<String> subscribeRpcType(final String rpcTypePath) {
         log.info("watch rpc type child: {}", rpcTypePath);
 
         zkClient.subscribeChildChanges(rpcTypePath, (parent, currentChildren) -> {
@@ -157,7 +157,7 @@ public class ZookeeperRegisterService {
         return contextPaths;
     }
 
-    private void subscribeContext(String contextPath) {
+    private void subscribeContext(final String contextPath) {
         log.info("watch context node and init service : {}", contextPath);
 
         updateMetadata(contextPath);
@@ -168,7 +168,7 @@ public class ZookeeperRegisterService {
         });
     }
 
-    private void updateMetadata(String contextPath) {
+    private void updateMetadata(final String contextPath) {
         List<String> uriList = new ArrayList<>();
 
         zkClientGetChildren(contextPath).forEach(metadata -> {
@@ -185,18 +185,18 @@ public class ZookeeperRegisterService {
         updateSelectorHandler("/" + context, uriList);
     }
 
-    private void subcribeUriChange(String metadataPath, String uri) {
+    private void subcribeUriChange(final String metadataPath, final String uri) {
         String uriNode = String.join(Constants.SLASH, metadataPath, "uri", uri);
         log.info("subscribe uri data: {}", uriNode);
         zkClient.subscribeDataChanges(uriNode, new IZkDataListener() {
 
             @Override
-            public void handleDataChange(String s, Object o) throws Exception {
+            public void handleDataChange(final String s, final Object o) throws Exception {
                 log.info("uri data change: {} {}", s, o);
             }
 
             @Override
-            public void handleDataDeleted(String path) throws Exception {
+            public void handleDataDeleted(final String path) throws Exception {
                 log.info("uri delete: {}", path);
                 zkClient.unsubscribeDataChanges(path, this);
                 zkClient.deleteRecursive(metadataPath);
@@ -204,7 +204,7 @@ public class ZookeeperRegisterService {
         });
     }
 
-    private void updateService(String metadataPath) {
+    private void updateService(final String metadataPath) {
         zkClientGetChildren(metadataPath).forEach(service -> {
             String servicePath = buildPath(metadataPath, service);
             String type = getType(servicePath);

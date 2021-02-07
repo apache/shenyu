@@ -37,3 +37,4 @@ soul:
     props:
       contextPath: /sofa
       ipAndPort: sofa
+      appName: sofa
