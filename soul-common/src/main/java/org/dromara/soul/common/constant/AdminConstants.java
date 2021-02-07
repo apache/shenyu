@@ -78,4 +78,9 @@ public final class AdminConstants {
      * The constant Plugin Url prefix.
      */
     public static final String RESOURCE_PLUGIN_URL_PREFIX = "/plug/";
+
+    /**
+     * The constant Plugin Resource Icon.
+     */
+    public static final String RESOURCE_PLUGIN_DEFAULT_ICON = "block";
 }

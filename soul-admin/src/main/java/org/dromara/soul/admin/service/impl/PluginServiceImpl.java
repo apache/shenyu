@@ -274,7 +274,7 @@ public class PluginServiceImpl implements PluginService {
                 .component(pluginDTO.getName())
                 .resourceType(AdminResourceEnum.SECOND_MENU.getCode())
                 .sort(0)
-                .icon(StringUtils.EMPTY)
+                .icon(AdminConstants.RESOURCE_PLUGIN_DEFAULT_ICON)
                 .isLeaf(Boolean.FALSE).isRoute(0).status(1).perms(StringUtils.EMPTY).build());
         insertPluginMenuResource(resourceDO);
         insertPluginButtonResource(resourceDO.getId(), pluginDTO.getName(), ConfigGroupEnum.SELECTOR, AdminPluginOperateEnum.ADD);
