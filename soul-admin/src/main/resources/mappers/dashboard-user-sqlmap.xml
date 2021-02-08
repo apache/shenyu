@@ -59,9 +59,8 @@
         select
         <include refid="Base_Column_List"/>
         from dashboard_user
-        where enabled = 1
         <if test="userName != null">
-            and user_name = #{userName,jdbcType=VARCHAR}
+            where user_name = #{userName,jdbcType=VARCHAR}
         </if>
         limit #{pageParameter.offset},#{pageParameter.pageSize}
     </select>
@@ -70,9 +69,8 @@
             resultType="java.lang.Integer">
         select count(1)
         from dashboard_user
-        where enabled = 1
         <if test="userName != null">
-            and user_name = #{userName,jdbcType=VARCHAR}
+            where user_name = #{userName,jdbcType=VARCHAR}
         </if>
     </select>
 
