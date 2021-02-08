@@ -63,4 +63,24 @@ public final class AdminConstants {
      * The constant PARAMS_ERROR.
      */
     public static final String PARAMS_ERROR = "Error parameter！";
+
+    /**
+     * The constant Super Role ID.
+     */
+    public static final String ROLE_SUPER_ID = "1346358560427216896";
+
+    /**
+     * The constant Plugin Menu ID.
+     */
+    public static final String RESOURCE_PLUGIN_ID = "1346775491550474240";
+
+    /**
+     * The constant Plugin Url prefix.
+     */
+    public static final String RESOURCE_PLUGIN_URL_PREFIX = "/plug/";
+
+    /**
+     * The constant Plugin Resource Icon.
+     */
+    public static final String RESOURCE_PLUGIN_DEFAULT_ICON = "block";
 }

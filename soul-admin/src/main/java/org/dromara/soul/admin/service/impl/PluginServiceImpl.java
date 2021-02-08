@@ -17,14 +17,11 @@
 
 package org.dromara.soul.admin.service.impl;
 
-import java.sql.Timestamp;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.dto.PluginDTO;
+import org.dromara.soul.admin.dto.ResourceDTO;
 import org.dromara.soul.admin.entity.PluginDO;
+import org.dromara.soul.admin.entity.ResourceDO;
 import org.dromara.soul.admin.entity.RuleDO;
 import org.dromara.soul.admin.entity.SelectorDO;
 import org.dromara.soul.admin.listener.DataChangedEvent;
@@ -41,10 +38,14 @@ import org.dromara.soul.admin.query.RuleQuery;
 import org.dromara.soul.admin.query.SelectorConditionQuery;
 import org.dromara.soul.admin.query.SelectorQuery;
 import org.dromara.soul.admin.service.PluginService;
+import org.dromara.soul.admin.service.ResourceService;
 import org.dromara.soul.admin.transfer.PluginTransfer;
 import org.dromara.soul.admin.vo.PluginVO;
+import org.dromara.soul.admin.vo.ResourceVO;
 import org.dromara.soul.common.constant.AdminConstants;
 import org.dromara.soul.common.dto.PluginData;
+import org.dromara.soul.common.enums.AdminPluginOperateEnum;
+import org.dromara.soul.common.enums.AdminResourceEnum;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.enums.PluginRoleEnum;
@@ -52,11 +53,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
+
+import java.sql.Timestamp;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * PluginServiceImpl.
  *
  * @author jiangxiaofeng(Nicholas)
+ * @author nuo-promise
  */
 @Service("pluginService")
 public class PluginServiceImpl implements PluginService {
@@ -65,7 +74,7 @@ public class PluginServiceImpl implements PluginService {
 
     private final SelectorMapper selectorMapper;
 
-    private SelectorConditionMapper selectorConditionMapper;
+    private final SelectorConditionMapper selectorConditionMapper;
 
     private final RuleMapper ruleMapper;
 
@@ -73,19 +82,23 @@ public class PluginServiceImpl implements PluginService {
 
     private final ApplicationEventPublisher eventPublisher;
 
+    private final ResourceService resourceService;
+
     @Autowired(required = false)
     public PluginServiceImpl(final PluginMapper pluginMapper,
                              final SelectorMapper selectorMapper,
                              final SelectorConditionMapper selectorConditionMapper,
                              final RuleMapper ruleMapper,
                              final RuleConditionMapper ruleConditionMapper,
-                             final ApplicationEventPublisher eventPublisher) {
+                             final ApplicationEventPublisher eventPublisher,
+                             final ResourceService resourceService) {
         this.pluginMapper = pluginMapper;
         this.selectorMapper = selectorMapper;
         this.selectorConditionMapper = selectorConditionMapper;
         this.ruleMapper = ruleMapper;
         this.ruleConditionMapper = ruleConditionMapper;
         this.eventPublisher = eventPublisher;
+        this.resourceService = resourceService;
     }
 
     /**
@@ -104,6 +117,7 @@ public class PluginServiceImpl implements PluginService {
         PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         DataEventTypeEnum eventType = DataEventTypeEnum.CREATE;
         if (StringUtils.isBlank(pluginDTO.getId())) {
+            insertPluginDataToResource(pluginDTO);
             pluginMapper.insertSelective(pluginDO);
         } else {
             eventType = DataEventTypeEnum.UPDATE;
@@ -113,20 +127,6 @@ public class PluginServiceImpl implements PluginService {
         // publish change event.
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.PLUGIN, eventType,
                 Collections.singletonList(PluginTransfer.INSTANCE.mapToData(pluginDO))));
-        return StringUtils.EMPTY;
-    }
-
-    private String checkData(final PluginDTO pluginDTO) {
-        final PluginDO exist = pluginMapper.selectByName(pluginDTO.getName());
-        if (StringUtils.isBlank(pluginDTO.getId())) {
-            if (Objects.nonNull(exist)) {
-                return AdminConstants.PLUGIN_NAME_IS_EXIST;
-            }
-        } else {
-            if (Objects.isNull(exist) || !exist.getId().equals(pluginDTO.getId())) {
-                return AdminConstants.PLUGIN_NAME_NOT_EXIST;
-            }
-        }
         return StringUtils.EMPTY;
     }
 
@@ -149,7 +149,7 @@ public class PluginServiceImpl implements PluginService {
                 return AdminConstants.SYS_PLUGIN_NOT_DELETE;
             }
             pluginMapper.delete(id);
-
+            deletePluginDataFromResourceAndPermission(pluginDO.getName());
             final List<SelectorDO> selectorDOList = selectorMapper.selectByQuery(new SelectorQuery(id, null));
             selectorDOList.forEach(selectorDO -> {
                 final List<RuleDO> ruleDOS = ruleMapper.selectByQuery(new RuleQuery(selectorDO.getId(), null));
@@ -167,6 +167,13 @@ public class PluginServiceImpl implements PluginService {
         return StringUtils.EMPTY;
     }
 
+    /**
+     * plugin enabled.
+     *
+     * @param ids     the ids
+     * @param enabled the enable
+     * @return String
+     */
     @Override
     public String enabled(final List<String> ids, final Boolean enabled) {
         for (String id : ids) {
@@ -184,7 +191,6 @@ public class PluginServiceImpl implements PluginService {
         }
         return StringUtils.EMPTY;
     }
-
 
     /**
      * find plugin by id.
@@ -210,10 +216,117 @@ public class PluginServiceImpl implements PluginService {
             () -> pluginMapper.selectByQuery(pluginQuery).stream().map(PluginVO::buildPluginVO).collect(Collectors.toList()));
     }
 
+    /**
+     * query all plugin.
+     *
+     * @return {@linkplain List}
+     */
     @Override
     public List<PluginData> listAll() {
         return pluginMapper.selectAll().stream()
                 .map(PluginTransfer.INSTANCE::mapToData)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * check plugin Data integrity.
+     *
+     * @param pluginDTO {@linkplain PluginDTO}
+     * @return result description
+     */
+    private String checkData(final PluginDTO pluginDTO) {
+        final PluginDO exist = pluginMapper.selectByName(pluginDTO.getName());
+        if (StringUtils.isBlank(pluginDTO.getId())) {
+            if (Objects.nonNull(exist)) {
+                return AdminConstants.PLUGIN_NAME_IS_EXIST;
+            }
+        } else {
+            if (Objects.isNull(exist) || !exist.getId().equals(pluginDTO.getId())) {
+                return AdminConstants.PLUGIN_NAME_NOT_EXIST;
+            }
+        }
+        return StringUtils.EMPTY;
+    }
+
+    /**
+     * delete plugin resource from resource and permission.
+     *
+     * @param pluginName plugin name
+     */
+    private void deletePluginDataFromResourceAndPermission(final String pluginName) {
+        ResourceVO resourceVO = resourceService.findByTitle(pluginName);
+        if (!ObjectUtils.isEmpty(resourceVO)) {
+            resourceService.delete(Collections.singletonList(resourceVO.getId()));
+        }
+    }
+
+    /**
+     * add plugin and add plugin resource.
+     *
+     * @param pluginDTO {@linkplain PluginDTO}
+     */
+    private void insertPluginDataToResource(final PluginDTO pluginDTO) {
+        ResourceDO resourceDO = ResourceDO.buildResourceDO(ResourceDTO.builder()
+                .parentId(AdminConstants.RESOURCE_PLUGIN_ID)
+                .title(pluginDTO.getName())
+                .name(pluginDTO.getName())
+                .url(AdminConstants.RESOURCE_PLUGIN_URL_PREFIX + pluginDTO.getName())
+                .component(pluginDTO.getName())
+                .resourceType(AdminResourceEnum.SECOND_MENU.getCode())
+                .sort(0)
+                .icon(AdminConstants.RESOURCE_PLUGIN_DEFAULT_ICON)
+                .isLeaf(Boolean.FALSE).isRoute(0).status(1).perms(StringUtils.EMPTY).build());
+        insertPluginMenuResource(resourceDO);
+        insertPluginButtonResource(resourceDO.getId(), pluginDTO.getName(), ConfigGroupEnum.SELECTOR, AdminPluginOperateEnum.ADD);
+        insertPluginButtonResource(resourceDO.getId(), pluginDTO.getName(), ConfigGroupEnum.SELECTOR, AdminPluginOperateEnum.DELETE);
+        insertPluginButtonResource(resourceDO.getId(), pluginDTO.getName(), ConfigGroupEnum.SELECTOR, AdminPluginOperateEnum.EDIT);
+        insertPluginButtonResource(resourceDO.getId(), pluginDTO.getName(), ConfigGroupEnum.RULE, AdminPluginOperateEnum.ADD);
+        insertPluginButtonResource(resourceDO.getId(), pluginDTO.getName(), ConfigGroupEnum.RULE, AdminPluginOperateEnum.DELETE);
+        insertPluginButtonResource(resourceDO.getId(), pluginDTO.getName(), ConfigGroupEnum.RULE, AdminPluginOperateEnum.EDIT);
+        insertPluginButtonResource(resourceDO.getId(), pluginDTO.getName(), ConfigGroupEnum.PLUGIN, AdminPluginOperateEnum.SYNCHRONIZE);
+    }
+
+    /**
+     * insert Resource Data.
+     *
+     * @param resourceDO {@linkplain ResourceDO}
+     */
+    private void insertPluginMenuResource(final ResourceDO resourceDO) {
+        resourceService.createResource(resourceDO);
+    }
+
+    /**
+     * insert Plugin Selector Button Resource.
+     *
+     * @param parentId parent menu id
+     * @param pluginName plugin name
+     * @param configGroupEnum {@linkplain ConfigGroupEnum}
+     * @param adminPluginOperateEnum {@linkplain AdminPluginOperateEnum}
+     */
+    private void insertPluginButtonResource(final String parentId, final String pluginName,
+                                           final ConfigGroupEnum configGroupEnum, final AdminPluginOperateEnum adminPluginOperateEnum) {
+        ResourceDO resourceDO = ResourceDO.buildResourceDO(ResourceDTO.builder()
+                .parentId(parentId)
+                .name(StringUtils.EMPTY).url(StringUtils.EMPTY).component(StringUtils.EMPTY)
+                .resourceType(AdminResourceEnum.THREE_MENU.getCode())
+                .isLeaf(Boolean.TRUE).status(1).sort(0).icon(StringUtils.EMPTY).isRoute(0).build());
+        switch (configGroupEnum) {
+            case SELECTOR:
+                resourceDO.setTitle("SOUL.BUTTON.PLUGIN." + ConfigGroupEnum.SELECTOR.name() + "." + adminPluginOperateEnum.name());
+                resourceDO.setPerms("plugin:" + pluginName + "Selector:" + adminPluginOperateEnum.getName());
+                break;
+            case RULE:
+                resourceDO.setTitle("SOUL.BUTTON.PLUGIN." + ConfigGroupEnum.RULE.name() + "." + adminPluginOperateEnum.name());
+                resourceDO.setPerms("plugin:" + pluginName + "Rule:" + adminPluginOperateEnum.getName());
+                break;
+            case PLUGIN:
+                resourceDO.setTitle("SOUL.BUTTON.PLUGIN." + adminPluginOperateEnum.name());
+                resourceDO.setPerms("plugin:" + pluginName + ":" + adminPluginOperateEnum.getName());
+                break;
+            default:
+                break;
+        }
+
+        insertPluginMenuResource(resourceDO);
     }
 }

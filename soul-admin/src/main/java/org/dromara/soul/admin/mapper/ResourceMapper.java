@@ -18,6 +18,7 @@
 package org.dromara.soul.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.dromara.soul.admin.entity.ResourceDO;
 import org.dromara.soul.admin.query.ResourceQuery;
 
@@ -40,6 +41,14 @@ public interface ResourceMapper {
     ResourceDO selectById(String id);
 
     /**
+     * select resource by parentId.
+     *
+     * @param parentId resource parent id
+     * @return {@linkplain List}
+     */
+    List<ResourceDO> selectByParentId(@Param("parentId") String parentId);
+
+    /**
      * select resource by query.
      *
      * @param resourceQuery {@linkplain ResourceQuery}
@@ -48,12 +57,12 @@ public interface ResourceMapper {
     List<ResourceDO> selectByQuery(ResourceQuery resourceQuery);
 
     /**
-     * select resource by query.
+     * select resource by title.
      *
-     * @param resourceQuery {@linkplain ResourceQuery}
+     * @param title resource title
      * @return {@linkplain List}
      */
-    List<ResourceDO> findByQuery(ResourceQuery resourceQuery);
+    ResourceDO selectByTitle(@Param("title") String title);
 
     /**
      * count resource by query.

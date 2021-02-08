@@ -75,17 +75,22 @@ public interface PermissionMapper {
      * delete permission by object id and resource id.
      *
      * @param permissionQuery permission query info
-     * @return rows int
      */
-    int deleteByObjectIdAndResourceId(PermissionQuery permissionQuery);
-    
+    void deleteByObjectIdAndResourceId(PermissionQuery permissionQuery);
+
+    /**
+     * delete permission by resource id.
+     *
+     * @param resourceId resource id
+     */
+    void deleteByResourceId(List<String> resourceId);
+
     /**
      * delete permission by object id.
      *
      * @param objectId object id
-     * @return rows int
      */
-    int deleteByObjectIds(List<String> objectId);
+    void deleteByObjectIds(List<String> objectId);
 
     /**
      * list All.
