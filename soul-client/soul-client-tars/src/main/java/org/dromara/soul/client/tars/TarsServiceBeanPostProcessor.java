@@ -27,10 +27,10 @@ import org.dromara.soul.client.tars.common.annotation.SoulTarsService;
 import org.dromara.soul.client.tars.common.config.TarsConfig;
 import org.dromara.soul.client.tars.common.dto.MetaDataDTO;
 import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
@@ -82,7 +82,7 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
 
     private void handler(final Object serviceBean) {
         Class<?> clazz = serviceBean.getClass();
-        if (ClassUtils.isCglibProxyClass(clazz)) {
+        if (AopUtils.isCglibProxy(clazz)) {
             String superClassName = clazz.getGenericSuperclass().getTypeName();
             try {
                 clazz = Class.forName(superClassName);
