@@ -38,6 +38,7 @@ import org.dromara.soul.admin.vo.DashboardUserEditVO;
 import org.dromara.soul.admin.vo.DashboardUserVO;
 import org.dromara.soul.admin.vo.LoginDashboardUserVO;
 import org.dromara.soul.admin.vo.RoleVO;
+import org.dromara.soul.common.exception.SoulException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -119,6 +120,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                 }
             }
             dashboardUserCount += dashboardUserMapper.delete(id);
+            userRoleMapper.deleteByUserId(id);
         }
         return dashboardUserCount;
     }
