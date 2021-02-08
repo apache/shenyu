@@ -88,10 +88,6 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int createOrUpdate(final DashboardUserDTO dashboardUserDTO) {
-        DashboardUserDO existedDashboardUserDO = dashboardUserMapper.selectByUserName(dashboardUserDTO.getUserName());
-        if (Objects.nonNull(existedDashboardUserDO) && !existedDashboardUserDO.getId().equals(dashboardUserDTO.getId())) {
-            return 0;
-        }
         DashboardUserDO dashboardUserDO = DashboardUserDO.buildDashboardUserDO(dashboardUserDTO);
         if (StringUtils.isEmpty(dashboardUserDTO.getId())) {
             bindUserRole(dashboardUserDO.getId(), dashboardUserDTO.getRoles());
