@@ -110,22 +110,17 @@ public class DashboardUserController {
      */
     @PostMapping("")
     public SoulAdminResult createDashboardUser(@RequestBody final DashboardUserDTO dashboardUserDTO) {
-        final String key = secretProperties.getKey();
+        String key = secretProperties.getKey();
         return Optional.ofNullable(dashboardUserDTO).map(item -> {
             item.setPassword(AesUtils.aesEncryption(item.getPassword(), key));
-            int createCount = dashboardUserService.createOrUpdate(item);
+            Integer createCount = dashboardUserService.createOrUpdate(item);
             log.info("dashboard user created, info:[{}]", item);
-            if (0 < createCount) {
-                return SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS, createCount);
-            } else {
-                return SoulAdminResult.error(SoulResultMessage.DASHBOARD_USER_NAME_EXIST_ERROR);
-            }
+            return SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS, createCount);
         }).orElse(SoulAdminResult.error(SoulResultMessage.DASHBOARD_CREATE_USER_ERROR));
     }
 
     /**
      * update dashboard user.
-     * 
      *
      * @param id               primary key.
      * @param dashboardUserDTO dashboard user.
@@ -137,13 +132,9 @@ public class DashboardUserController {
         String key = secretProperties.getKey();
         dashboardUserDTO.setId(id);
         dashboardUserDTO.setPassword(AesUtils.aesEncryption(dashboardUserDTO.getPassword(), key));
-        int updateCount = dashboardUserService.createOrUpdate(dashboardUserDTO);
+        Integer updateCount = dashboardUserService.createOrUpdate(dashboardUserDTO);
         log.info("dashboard user updated, id:[{}], info:[{}]", id, dashboardUserDTO);
-        if (0 < updateCount) {
-            return SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS, updateCount);
-        } else {
-            return SoulAdminResult.error(SoulResultMessage.DASHBOARD_USER_NAME_EXIST_ERROR);
-        }
+        return SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS, updateCount);
     }
 
     /**

@@ -90,7 +90,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
     public int createOrUpdate(final DashboardUserDTO dashboardUserDTO) {
         DashboardUserDO existedDashboardUserDO = dashboardUserMapper.selectByUserName(dashboardUserDTO.getUserName());
         if (Objects.nonNull(existedDashboardUserDO) && !existedDashboardUserDO.getId().equals(dashboardUserDTO.getId())) {
-            return -1;
+            return 0;
         }
         DashboardUserDO dashboardUserDO = DashboardUserDO.buildDashboardUserDO(dashboardUserDTO);
         if (StringUtils.isEmpty(dashboardUserDTO.getId())) {
