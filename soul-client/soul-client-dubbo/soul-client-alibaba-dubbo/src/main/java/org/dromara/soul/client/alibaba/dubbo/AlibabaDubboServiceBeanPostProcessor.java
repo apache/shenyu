@@ -27,9 +27,9 @@ import org.dromara.soul.client.dubbo.common.annotation.SoulDubboClient;
 import org.dromara.soul.client.dubbo.common.config.DubboConfig;
 import org.dromara.soul.client.dubbo.common.dto.MetaDataDTO;
 import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
@@ -70,7 +70,7 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
 
     private void handler(final ServiceBean<?> serviceBean) {
         Class<?> clazz = serviceBean.getRef().getClass();
-        if (ClassUtils.isCglibProxyClass(clazz)) {
+        if (AopUtils.isCglibProxy(clazz)) {
             String superClassName = clazz.getGenericSuperclass().getTypeName();
             try {
                 clazz = Class.forName(superClassName);

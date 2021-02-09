@@ -27,9 +27,9 @@ import org.dromara.soul.client.sofa.common.annotation.SoulSofaClient;
 import org.dromara.soul.client.sofa.common.config.SofaConfig;
 import org.dromara.soul.client.sofa.common.dto.MetaDataDTO;
 import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
@@ -90,7 +90,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
             log.error("failed to get sofa target class");
             return;
         }
-        if (ClassUtils.isCglibProxyClass(clazz)) {
+        if (AopUtils.isCglibProxy(clazz)) {
             String superClassName = clazz.getGenericSuperclass().getTypeName();
             try {
                 clazz = Class.forName(superClassName);
