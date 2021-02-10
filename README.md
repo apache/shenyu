@@ -59,7 +59,7 @@
   
 # Mind maps
  
- ![](https://dromara.org/activities/dromara-cloud-native-meet/soul-xmind.png)
+ ![](https://dromara.org/img/soul/activite/soul-xmind.png)
  
 --------------------------------------------------------------------------------  
   
