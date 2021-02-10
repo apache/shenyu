@@ -176,9 +176,14 @@
     <select id="countByQuery" parameterType="org.dromara.soul.admin.query.PluginHandleQuery" resultType="java.lang.Integer">
         select count(1)
         from plugin_handle
-        <if test="pluginId != null">
-            where plugin_id = #{pluginId,jdbcType=VARCHAR}
-        </if>
+        <where>
+            <if test="pluginId != null and pluginId != ''">
+                and plugin_id = #{pluginId,jdbcType=VARCHAR}
+            </if>
+            <if test="type != null">
+                and type = #{type,jdbcType=INTEGER}
+            </if>
+        </where>
     </select>
 
     <select id="selectByQuery" parameterType="org.dromara.soul.admin.query.PluginHandleQuery" resultMap="BaseResultMap">
@@ -186,7 +191,7 @@
         <include refid="Base_Column_List"/>
         from plugin_handle
         <where>
-            <if test="pluginId != null">
+            <if test="pluginId != null and pluginId != ''">
                 and plugin_id = #{pluginId,jdbcType=VARCHAR}
             </if>
             <if test="type != null">
