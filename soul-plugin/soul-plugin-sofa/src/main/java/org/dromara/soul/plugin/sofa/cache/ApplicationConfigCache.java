@@ -193,10 +193,10 @@ public final class ApplicationConfigCache {
     /**
      * Invalidate.
      *
-     * @param serviceName the service name
+     * @param path the path name
      */
-    public void invalidate(final String serviceName) {
-        cache.invalidate(serviceName);
+    public void invalidate(final String path) {
+        cache.invalidate(path);
     }
 
     /**
