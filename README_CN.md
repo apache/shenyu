@@ -59,7 +59,7 @@
 
 # 结构图
 
-![](https://dromara.org/activities/dromara-cloud-native-meet/soul-xmind.png)
+![](https://dromara.org/img/soul/activite/soul-xmind.png)
 
 --------------------------------------------------------------------------------
 
