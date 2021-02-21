@@ -32,7 +32,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 
-import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.boot.ApplicationArguments;
 
 /**
  * Test case for {@link ContextRegisterListenerTest}.
@@ -51,8 +51,8 @@ public final class ContextRegisterListenerTest {
         soulSpringMvcConfig.setContextPath("test");
         soulSpringMvcConfig.setPort(58889);
         ContextRegisterListener contextRegisterListener = new ContextRegisterListener(soulSpringMvcConfig);
-        ContextRefreshedEvent contextRefreshedEvent = mock(ContextRefreshedEvent.class);
-        contextRegisterListener.onApplicationEvent(contextRefreshedEvent);
+        ApplicationArguments applicationArguments = mock(ApplicationArguments.class);
+        contextRegisterListener.run(applicationArguments);
     }
 
     @Test
@@ -65,8 +65,8 @@ public final class ContextRegisterListenerTest {
             soulSpringMvcConfig.setFull(true);
             soulSpringMvcConfig.setPort(58889);
             ContextRegisterListener contextRegisterListener = new ContextRegisterListener(soulSpringMvcConfig);
-            ContextRefreshedEvent contextRefreshedEvent = mock(ContextRefreshedEvent.class);
-            contextRegisterListener.onApplicationEvent(contextRefreshedEvent);
+            ApplicationArguments applicationArguments = mock(ApplicationArguments.class);
+            contextRegisterListener.run(applicationArguments);
 
             mocked.verify(() -> RegisterUtils.doRegister(anyString(), eq("http://127.0.0.1:8080/soul-client/springmvc-register"), eq(RpcTypeEnum.HTTP)));
         }

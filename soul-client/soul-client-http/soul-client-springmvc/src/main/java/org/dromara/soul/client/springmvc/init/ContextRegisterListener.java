@@ -26,8 +26,8 @@ import org.dromara.soul.client.springmvc.dto.SpringMvcRegisterDTO;
 import org.dromara.soul.client.springmvc.utils.ValidateUtils;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.IpUtils;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.boot.ApplicationArguments;
+import org.springframework.boot.ApplicationRunner;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -35,7 +35,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * The type Context register listener.
  */
 @Slf4j
-public class ContextRegisterListener implements ApplicationListener<ContextRefreshedEvent> {
+public class ContextRegisterListener implements ApplicationRunner {
 
     private final AtomicBoolean registered = new AtomicBoolean(false);
 
@@ -55,7 +55,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
     }
 
     @Override
-    public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
+    public void run(final ApplicationArguments args) {
         if (!registered.compareAndSet(false, true)) {
             return;
         }
@@ -83,4 +83,5 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
                 .build();
         return OkHttpTools.getInstance().getGson().toJson(registerDTO);
     }
+
 }
