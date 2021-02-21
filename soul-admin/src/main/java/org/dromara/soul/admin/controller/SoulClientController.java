@@ -21,10 +21,14 @@ import org.dromara.soul.admin.disruptor.SoulServerMetaDataRegisterEventPublisher
 import org.dromara.soul.admin.dto.SpringCloudRegisterDTO;
 import org.dromara.soul.admin.dto.SpringMvcRegisterDTO;
 import org.dromara.soul.admin.dto.MetaDataDTO;
+import org.dromara.soul.admin.mapper.SelectorMapper;
+import org.dromara.soul.admin.service.SelectorService;
 import org.dromara.soul.admin.service.SoulClientRegisterService;
 import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.dromara.soul.register.server.api.listener.DataChangedEvent;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,6 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/soul-client")
 @ConditionalOnProperty(prefix = "soul.register.registerType", value = "http", matchIfMissing = true)
 public class SoulClientController {
+
     private static final SoulServerMetaDataRegisterEventPublisher INSTANCE = SoulServerMetaDataRegisterEventPublisher.getInstance();
 
     /**
@@ -46,8 +51,11 @@ public class SoulClientController {
      *
      * @param soulClientRegisterService the soul client register service
      */
-    public SoulClientController(final SoulClientRegisterService soulClientRegisterService) {
-        INSTANCE.start(soulClientRegisterService);
+    public SoulClientController(final SoulClientRegisterService soulClientRegisterService,
+                                final SelectorService selectorService,
+                                final SelectorMapper selectorMapper,
+                                final ApplicationEventPublisher eventPublisher) {
+        INSTANCE.start(soulClientRegisterService, selectorService, selectorMapper, eventPublisher);
     }
 
     /**
@@ -58,7 +66,7 @@ public class SoulClientController {
      */
     @PostMapping("/springmvc-register")
     public String registerSpringMvc(@RequestBody final SpringMvcRegisterDTO springMvcRegisterDTO) {
-        INSTANCE.publishEvent(RpcTypeEnum.HTTP.getName(), springMvcRegisterDTO);
+        INSTANCE.publishEvent(DataChangedEvent.Type.REGISTER, RpcTypeEnum.HTTP.getName(), springMvcRegisterDTO);
         return SoulResultMessage.SUCCESS;
     }
 
@@ -70,7 +78,7 @@ public class SoulClientController {
      */
     @PostMapping("/springcloud-register")
     public String registerSpringCloud(@RequestBody final SpringCloudRegisterDTO springCloudRegisterDTO) {
-        INSTANCE.publishEvent(RpcTypeEnum.SPRING_CLOUD.getName(), springCloudRegisterDTO);
+        INSTANCE.publishEvent(DataChangedEvent.Type.REGISTER, RpcTypeEnum.SPRING_CLOUD.getName(), springCloudRegisterDTO);
         return SoulResultMessage.SUCCESS;
     }
 
@@ -83,7 +91,7 @@ public class SoulClientController {
      */
     @PostMapping("/dubbo-register")
     public String registerRpc(@RequestBody final MetaDataDTO metaDataDTO) {
-        INSTANCE.publishEvent(RpcTypeEnum.DUBBO.getName(), metaDataDTO);
+        INSTANCE.publishEvent(DataChangedEvent.Type.REGISTER, RpcTypeEnum.DUBBO.getName(), metaDataDTO);
         return SoulResultMessage.SUCCESS;
     }
 
@@ -95,7 +103,7 @@ public class SoulClientController {
      */
     @PostMapping("/sofa-register")
     public String registerSofaRpc(@RequestBody final MetaDataDTO metaDataDTO) {
-        INSTANCE.publishEvent(RpcTypeEnum.SOFA.getName(), metaDataDTO);
+        INSTANCE.publishEvent(DataChangedEvent.Type.REGISTER, RpcTypeEnum.SOFA.getName(), metaDataDTO);
         return SoulResultMessage.SUCCESS;
     }
 
@@ -107,7 +115,7 @@ public class SoulClientController {
      */
     @PostMapping("/tars-register")
     public String registerTarsRpc(@RequestBody final MetaDataDTO metaDataDTO) {
-        INSTANCE.publishEvent(RpcTypeEnum.TARS.getName(), metaDataDTO);
+        INSTANCE.publishEvent(DataChangedEvent.Type.REGISTER, RpcTypeEnum.TARS.getName(), metaDataDTO);
         return SoulResultMessage.SUCCESS;
     }
 }

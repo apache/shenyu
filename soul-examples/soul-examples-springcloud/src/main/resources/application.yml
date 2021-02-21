@@ -36,8 +36,10 @@ eureka:
 
 soul:
   client:
-    registerType: http
-    serverLists: http://localhost:9095
+#    registerType: http
+#    serverLists: http://localhost:9095
+    registerType: zookeeper
+    serverLists: localhost:2181
     props:
       contextPath: /springcloud
 

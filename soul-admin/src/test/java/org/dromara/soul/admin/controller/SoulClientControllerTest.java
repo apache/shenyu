@@ -162,6 +162,6 @@ public final class SoulClientControllerTest {
         metaDataDTO.setParameterTypes("parameterTypes");
         when(soulClientRegisterService.registerTars(any())).thenReturn("result");
         final String result = soulClientController.registerTarsRpc(metaDataDTO);
-        assertEquals("SUCCESS", result);
+        assertEquals("success", result);
     }
 }

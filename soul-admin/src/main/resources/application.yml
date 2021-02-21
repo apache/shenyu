@@ -40,8 +40,12 @@ mybatis:
 soul:
   register:
     registerType:
-      http : true
-      zookeeper: false
+#      http : true
+      zookeeper: true
+    zookeeper:
+      url: localhost:2181
+      sessionTimeout: 5000
+      connectionTimeout: 2000
   database:
     dialect: mysql
     init_script: "META-INF/schema.sql"
