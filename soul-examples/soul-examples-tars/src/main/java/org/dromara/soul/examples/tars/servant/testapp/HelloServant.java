@@ -14,5 +14,6 @@ public interface HelloServant {
 
 	 String hello(@TarsMethodParameter(name="no")int no, @TarsMethodParameter(name="name")String name);
 
-	 Integer helloInt(@TarsMethodParameter(name="no")int no, @TarsMethodParameter(name="name")String name);
+	 int helloInt(@TarsMethodParameter(name="no")int no, @TarsMethodParameter(name="name")String name);
+
 }
