@@ -15,27 +15,21 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.register.zookeeper;
+package org.dromara.soul.register.server.api;
 
-import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+import org.dromara.soul.register.server.api.listener.DataChangedEvent;
 
 /**
- * The type Zookeeper configuration.
- *
- * @author xiaoyu(Myth)
+ * @author lw1243925457
  */
-@Data
-@Component
-@ConfigurationProperties(prefix = "soul.zookeeper")
-public class ZookeeperRegisterProperties {
+public interface SoulSeverRegisterCenterEventPublisher {
 
-    private String url;
-
-    private Integer sessionTimeout;
-
-    private Integer connectionTimeout;
-
-    private String serializer;
+    /**
+     * publish event.
+     *
+     * @param eventType data event type
+     * @param key key
+     * @param value value
+     */
+    void publishEvent(final DataChangedEvent.Type eventType, final String key, final Object value);
 }

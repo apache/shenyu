@@ -15,18 +15,25 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.disruptor;
+package org.dromara.soul.register.server.zookeeper;
 
 import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * SoulServerMetaDataRegisterEvent.
+ * The type Zookeeper configuration.
  *
- * @author tydhot
+ * @author xiaoyu(Myth)
  */
 @Data
-public class SoulServerMetaDataRegisterEvent {
-    private String type;
+@ConfigurationProperties(prefix = "soul.register.zookeeper")
+class ZookeeperProperties {
 
-    private Object metadata;
+    private String url;
+
+    private Integer sessionTimeout;
+
+    private Integer connectionTimeout;
+
+    private String serializer;
 }
