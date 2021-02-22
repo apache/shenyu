@@ -29,9 +29,6 @@
     <packaging>pom</packaging>
     <modules>
         <module>soul-register-server-api</module>
-        <module>soul-register-server-http</module>
         <module>soul-register-server-zookeeper</module>
     </modules>
-
-
 </project>

@@ -39,20 +39,14 @@ mybatis:
 
 soul:
   register:
-    registerType:
-#      http : true
-      zookeeper: true
-    zookeeper:
-      url: localhost:2181
+    registerType: zookeeper  #http
+    serverLists : localhost:2181
+    props:
       sessionTimeout: 5000
       connectionTimeout: 2000
   database:
     dialect: mysql
     init_script: "META-INF/schema.sql"
-  zookeeper:
-    url: localhost:2181
-    sessionTimeout: 5000
-    connectionTimeout: 2000
   sync:
     websocket:
       enabled: true

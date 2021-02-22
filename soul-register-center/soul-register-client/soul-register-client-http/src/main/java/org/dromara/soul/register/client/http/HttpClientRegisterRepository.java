@@ -17,6 +17,8 @@
 
 package org.dromara.soul.register.client.http;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
@@ -27,6 +29,7 @@ import org.dromara.soul.register.common.enums.RegisterTypeEnum;
 import org.dromara.soul.spi.Join;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -38,7 +41,7 @@ import java.util.Map;
 @Join
 public class HttpClientRegisterRepository implements SoulClientRegisterRepository {
 
-    private String url;
+    private List<String> serverList;
     
     private Gson gson = new Gson();
 
@@ -46,30 +49,29 @@ public class HttpClientRegisterRepository implements SoulClientRegisterRepositor
 
     @Override
     public void init(final SoulRegisterCenterConfig config) {
-        url = config.getServerLists();
+        this.serverList = Lists.newArrayList(Splitter.on(",").split(config.getServerLists()));
         initTurn();
     }
 
-    private void initTurn() {
-        turn.put(RegisterTypeEnum.DUBBO.getName(), url + "/soul-client/dubbo-register");
-        turn.put(RegisterTypeEnum.GRPC.getName(), url + "/soul-client/grpc-register");
-        turn.put(RegisterTypeEnum.HTTP.getName(), url + "/soul-client/springmvc-register");
-        turn.put(RegisterTypeEnum.SOFA.getName(), url + "/soul-client/sofa-register");
-        turn.put(RegisterTypeEnum.SPRING_CLOUD.getName(), url + "/soul-client/springcloud-register");
-        turn.put(RegisterTypeEnum.TARS.getName(), url + "/soul-client/tars-register");
+    protected void initTurn() {
+        turn.put(RegisterTypeEnum.DUBBO.getName(), "/soul-client/dubbo-register");
+        turn.put(RegisterTypeEnum.GRPC.getName(), "/soul-client/grpc-register");
+        turn.put(RegisterTypeEnum.HTTP.getName(), "/soul-client/springmvc-register");
+        turn.put(RegisterTypeEnum.SOFA.getName(), "/soul-client/sofa-register");
+        turn.put(RegisterTypeEnum.SPRING_CLOUD.getName(), "/soul-client/springcloud-register");
+        turn.put(RegisterTypeEnum.TARS.getName(), "/soul-client/tars-register");
     }
 
     @Override
     public void persistInterface(final MetaDataDTO metadata) {
-        try {
-            String rpcType = metadata.getRpcType();
-            if (!turn.containsKey(rpcType)) {
-                log.error("can't process the register type: {}", metadata.getRpcType());
-                throw new Exception("can't process the register type");
+        String rpcType = metadata.getRpcType();
+        for(String server : serverList) {
+            try {
+                RegisterUtils.doRegister(gson.toJson(metadata), server + turn.get(rpcType), rpcType);
+                return;
+            } catch (Exception e) {
+               log.error("register admin url :{} is fail, will retry" , server);
             }
-            RegisterUtils.doRegister(gson.toJson(metadata), turn.get(rpcType), rpcType);
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 }

@@ -39,16 +39,12 @@ public final class RegisterUtils {
      * @param url         url
      * @param rpcType rcp type
      */
-    public static void doRegister(final String json, final String url, final String rpcType) {
-        try {
-            String result = OkHttpTools.getInstance().post(url, json);
-            if ("success".equals(result)) {
-                log.info("{} client register success: {} ", rpcType, json);
-            } else {
-                log.error("{} client register error: {} ", rpcType, json);
-            }
-        } catch (IOException e) {
-            log.error("cannot register soul admin param, url: {}, request body: {}", url, json, e);
+    public static void doRegister(final String json, final String url, final String rpcType) throws IOException {
+        String result = OkHttpTools.getInstance().post(url, json);
+        if ("success".equals(result)) {
+            log.info("{} client register success: {} ", rpcType, json);
+        } else {
+            log.error("{} client register error: {} ", rpcType, json);
         }
     }
 }

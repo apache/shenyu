@@ -29,7 +29,10 @@ import org.dromara.soul.register.server.api.SoulSeverRegisterCenterEventPublishe
 import org.dromara.soul.register.server.api.listener.DataChangedEvent;
 import org.dromara.soul.register.server.api.listener.DataChangedEventListener;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * Zookeeper register center.
@@ -40,28 +43,31 @@ import java.util.*;
 public class ZookeeperServerRegisterRepository implements SoulServerRegisterRepository {
 
     private final SoulSeverRegisterCenterEventPublisher publisher;
-
-    private final ZkClient zkClient;
+    
+    private ZkClient zkClient;
 
     private final String rootPath = ZkRegisterPathConstants.ROOT_PATH;
 
     private List<String> rpcTypePathList = new ArrayList<>();
 
     private List<String> contextPathList = new ArrayList<>();
-
-    public ZookeeperServerRegisterRepository(SoulSeverRegisterCenterEventPublisher publisher, ZkClient zkClient) {
-        this.publisher = publisher;
-        this.zkClient = zkClient;
-        init();
+    
+    public ZookeeperServerRegisterRepository(SoulSeverRegisterCenterEventPublisher publisher, final SoulRegisterCenterConfig soulRegisterCenterConfig) {
+        this.publisher = publisher; init(soulRegisterCenterConfig);
     }
     
     @Override
     public void init(final SoulRegisterCenterConfig config) {
+        Properties props = config.getProps();
+        int zookeeperSessionTimeout = Integer.parseInt(props.getProperty("zookeeperSessionTimeout", "3000"));
+        int zookeeperConnectionTimeout = Integer.parseInt(props.getProperty("zookeeperConnectionTimeout", "3000"));
+        this.zkClient = new ZkClient(config.getServerLists(), zookeeperSessionTimeout, zookeeperConnectionTimeout);
+        init();
     }
 
     @Override
     public void close() {
-    
+        zkClient.close();
     }
     
     @Override
@@ -163,7 +169,7 @@ public class ZookeeperServerRegisterRepository implements SoulServerRegisterRepo
         updateSelectorHandler("/" + context, uriList);
     }
 
-    private void subscribeMetadata(String metadataPath) {
+    private void subscribeMetadata(final String metadataPath) {
         zkClient.subscribeChildChanges(metadataPath, (parent, currentChildren) -> {
             currentChildren.forEach(service -> {
                 String servicePath = buildPath(metadataPath, service);
@@ -182,12 +188,12 @@ public class ZookeeperServerRegisterRepository implements SoulServerRegisterRepo
         zkClient.subscribeDataChanges(uriNode, new IZkDataListener() {
 
             @Override
-            public void handleDataChange(final String s, final Object o) throws Exception {
+            public void handleDataChange(final String s, final Object o) {
                 log.info("uri data change: {} {}", s, o);
             }
 
             @Override
-            public void handleDataDeleted(final String path) throws Exception {
+            public void handleDataDeleted(final String path) {
                 log.info("uri delete: {}", path);
                 zkClient.unsubscribeDataChanges(path, this);
                 updateContextNode(contextPath);
