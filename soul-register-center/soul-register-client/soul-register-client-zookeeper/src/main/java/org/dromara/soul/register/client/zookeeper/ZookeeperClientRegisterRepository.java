@@ -57,7 +57,7 @@ public class ZookeeperClientRegisterRepository implements SoulClientRegisterRepo
     }
 
     /**
-     * uri(host+port)用于标识SpringMVC的下线
+     * uri(host+port)用于标识SpringMVC的下线.
      *
      * @param metadata  metadata
      */
@@ -112,7 +112,8 @@ public class ZookeeperClientRegisterRepository implements SoulClientRegisterRepo
         return String.join(DOT_SEPARATOR, serviceName, methodName);
     }
     
-    private void updateZkNode(String rpcType, String contextPath, String nodeName, MetaDataDTO data) {
+    private void updateZkNode(final String rpcType, final String contextPath, final String nodeName,
+                              final MetaDataDTO data) {
         String childPath = String.join(PATH_SEPARATOR, rootPath, rpcType, contextPath, "metadata");
         String nodePath = String.join(PATH_SEPARATOR, childPath, nodeName);
 

@@ -23,7 +23,6 @@ import java.util.Properties;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
@@ -114,7 +113,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
                 SoulSpringMvcClient soulSpringMvcClient = AnnotationUtils.findAnnotation(method, SoulSpringMvcClient.class);
                 if (Objects.nonNull(soulSpringMvcClient)) {
                     String finalPrePath = prePath;
-                    executorService.execute(() -> publisher.publishEvent(buildMetaDataDTO(clazzAnnotation, finalPrePath)));
+                    executorService.execute(() -> publisher.publishEvent(buildMetaDataDTO(soulSpringMvcClient, finalPrePath)));
                 }
             }
         }

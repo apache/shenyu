@@ -63,7 +63,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
         String contextPath = props.getProperty("contextPath");
         int port = Integer.parseInt(props.getProperty("port"));
         if (StringUtils.isBlank(contextPath) || StringUtils.isBlank(registerType)
-                || StringUtils.isBlank(serverLists) || port <= 0 ) {
+                || StringUtils.isBlank(serverLists) || port <= 0) {
             String errorMsg = "spring cloud param must config the contextPath ,registerType , serverLists and port must > 0";
             log.error(errorMsg);
             throw new RuntimeException(errorMsg);

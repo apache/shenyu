@@ -65,12 +65,12 @@ public class HttpClientRegisterRepository implements SoulClientRegisterRepositor
     @Override
     public void persistInterface(final MetaDataDTO metadata) {
         String rpcType = metadata.getRpcType();
-        for(String server : serverList) {
+        for (String server : serverList) {
             try {
                 RegisterUtils.doRegister(gson.toJson(metadata), server + turn.get(rpcType), rpcType);
                 return;
             } catch (Exception e) {
-               log.error("register admin url :{} is fail, will retry" , server);
+                log.error("register admin url :{} is fail, will retry", server);
             }
         }
     }

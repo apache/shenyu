@@ -63,6 +63,34 @@
         </dependency>
         <!--if you use http proxy end this-->
 
+        <!--soul sofa plugin start-->
+<!--        <dependency>-->
+<!--            <groupId>com.alipay.sofa</groupId>-->
+<!--            <artifactId>sofa-rpc-all</artifactId>-->
+<!--            <version>5.7.6</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.apache.curator</groupId>-->
+<!--            <artifactId>curator-client</artifactId>-->
+<!--            <version>4.0.1</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.apache.curator</groupId>-->
+<!--            <artifactId>curator-framework</artifactId>-->
+<!--            <version>4.0.1</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.apache.curator</groupId>-->
+<!--            <artifactId>curator-recipes</artifactId>-->
+<!--            <version>4.0.1</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>org.dromara</groupId>-->
+<!--            <artifactId>soul-spring-boot-starter-plugin-sofa</artifactId>-->
+<!--            <version>${project.version}</version>-->
+<!--        </dependency>-->
+        <!--soul sofa plugin end-->
+
         <!--soul springCloud plugin start-->
 <!--       <dependency>-->
 <!--            <groupId>org.dromara</groupId>-->

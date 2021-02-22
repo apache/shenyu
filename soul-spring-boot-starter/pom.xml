@@ -33,7 +33,6 @@
         <module>soul-spring-boot-starter-plugin</module>
         <module>soul-spring-boot-starter-sync-data-center</module>
         <module>soul-spring-boot-starter-client</module>
-        <module>soul-spring-boot-starter-register-center</module>
     </modules>
 
     <dependencies>

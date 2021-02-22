@@ -52,8 +52,10 @@ public class ZookeeperServerRegisterRepository implements SoulServerRegisterRepo
 
     private List<String> contextPathList = new ArrayList<>();
     
-    public ZookeeperServerRegisterRepository(SoulSeverRegisterCenterEventPublisher publisher, final SoulRegisterCenterConfig soulRegisterCenterConfig) {
-        this.publisher = publisher; init(soulRegisterCenterConfig);
+    public ZookeeperServerRegisterRepository(final SoulSeverRegisterCenterEventPublisher publisher,
+                                             final SoulRegisterCenterConfig soulRegisterCenterConfig) {
+        this.publisher = publisher;
+        init(soulRegisterCenterConfig);
     }
     
     @Override
@@ -62,7 +64,7 @@ public class ZookeeperServerRegisterRepository implements SoulServerRegisterRepo
         int zookeeperSessionTimeout = Integer.parseInt(props.getProperty("zookeeperSessionTimeout", "3000"));
         int zookeeperConnectionTimeout = Integer.parseInt(props.getProperty("zookeeperConnectionTimeout", "3000"));
         this.zkClient = new ZkClient(config.getServerLists(), zookeeperSessionTimeout, zookeeperConnectionTimeout);
-        init();
+        initSubscribe();
     }
 
     @Override
@@ -76,9 +78,9 @@ public class ZookeeperServerRegisterRepository implements SoulServerRegisterRepo
     }
 
     /**
-     * rpc类型、context path、都会变化增加，监听其变化
+     * rpc类型、context path、都会变化增加，监听其变化.
      */
-    private void init() {
+    private void initSubscribe() {
         log.info("zookeeper register watch and data init start");
         subscribeRoot()
                 .forEach(rpcTypePath -> subscribeRpcType(rpcTypePath)
@@ -183,7 +185,7 @@ public class ZookeeperServerRegisterRepository implements SoulServerRegisterRepo
     }
 
     private void subscribeUriChange(final String contextPath, final String uri) {
-        String uriNode = String.join(Constants.SLASH,contextPath, uri);
+        String uriNode = String.join(Constants.SLASH, contextPath, uri);
         log.info("subscribe uri data: {}", uriNode);
         zkClient.subscribeDataChanges(uriNode, new IZkDataListener() {
 

@@ -20,6 +20,8 @@ package org.dromara.soul.register.server.api;
 import org.dromara.soul.register.server.api.listener.DataChangedEvent;
 
 /**
+ * register center interface.
+ *
  * @author lw1243925457
  */
 public interface SoulSeverRegisterCenterEventPublisher {
@@ -31,5 +33,5 @@ public interface SoulSeverRegisterCenterEventPublisher {
      * @param key key
      * @param value value
      */
-    void publishEvent(final DataChangedEvent.Type eventType, final String key, final Object value);
+    void publishEvent(DataChangedEvent.Type eventType, String key, Object value);
 }

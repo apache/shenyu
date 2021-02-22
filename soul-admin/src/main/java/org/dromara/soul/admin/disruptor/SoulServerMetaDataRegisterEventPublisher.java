@@ -54,23 +54,25 @@ public class SoulServerMetaDataRegisterEventPublisher implements SoulSeverRegist
     /**
      * start.
      *
-     * @param soulClientRegisterService soulClientRegisterService
+     * @param soulClientRegisterService the soul client register service
+     * @param selectorService the selector service
+     * @param selectorMapper the selector mapper
+     * @param eventPublisher the event publisher
      */
     public void start(final SoulClientRegisterService soulClientRegisterService,
                       final SelectorService selectorService,
                       final SelectorMapper selectorMapper,
                       final ApplicationEventPublisher eventPublisher) {
-        disruptorProviderManage = new DisruptorProviderManage<>(
-                new SoulServerMetaDataRegisterEventHandler(soulClientRegisterService, selectorService, selectorMapper, eventPublisher),
-                1, 4096 * 2 * 2);
+        disruptorProviderManage =
+                new DisruptorProviderManage<>(new SoulServerMetaDataRegisterEventHandler(soulClientRegisterService,
+                        selectorService, selectorMapper, eventPublisher), 1, 4096 * 2 * 2);
         disruptorProviderManage.startup();
     }
 
     /**
-     * 注册中心应该只放入数据，数据应该在Admin中，那事件应该有多种类型：注册事件、更新事件（服务下线）
-     * 所以这里增加了一个更新事件
-     *
      * publish event.
+     * 注册中心应该只放入数据，数据应该在Admin中，那事件应该有多种类型：注册事件、更新事件（服务下线）
+     * 所以这里增加了一个更新事件.
      *
      * @param eventType data event type
      * @param key if register event, key is eventType; if update event, key is context path
@@ -78,7 +80,8 @@ public class SoulServerMetaDataRegisterEventPublisher implements SoulSeverRegist
      */
     @Override
     public void publishEvent(final DataChangedEvent.Type eventType, final String key, final Object value) {
-        // TODO:两种事件混用，参数和处理之类，给人感觉不够清晰明了
+        // TODO
+        // 两种事件混用，参数和处理之类，给人感觉不够清晰明了
         DataChangedEvent event;
         if (eventType.equals(DataChangedEvent.Type.REGISTER)) {
             // 为了兼容HTTP注册方式：目前HTTP能直接得到Admin中的数据类型
@@ -94,7 +97,7 @@ public class SoulServerMetaDataRegisterEventPublisher implements SoulSeverRegist
         push(event);
     }
 
-    private Object convertToDTO(String type, String data) {
+    private Object convertToDTO(final String type, final String data) {
         if (type.equals(RpcTypeEnum.HTTP.getName())) {
             return GsonUtils.getInstance().fromJson(data, SpringMvcRegisterDTO.class);
         }
