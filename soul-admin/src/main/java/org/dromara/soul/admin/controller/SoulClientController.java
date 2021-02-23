@@ -45,11 +45,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class SoulClientController {
 
     private static final SoulServerMetaDataRegisterEventPublisher INSTANCE = SoulServerMetaDataRegisterEventPublisher.getInstance();
-
+    
     /**
      * Instantiates a new Soul client controller.
      *
      * @param soulClientRegisterService the soul client register service
+     * @param selectorService the selector service
+     * @param selectorMapper the selector mapper
+     * @param eventPublisher the event publisher
      */
     public SoulClientController(final SoulClientRegisterService soulClientRegisterService,
                                 final SelectorService selectorService,
@@ -57,7 +60,7 @@ public class SoulClientController {
                                 final ApplicationEventPublisher eventPublisher) {
         INSTANCE.start(soulClientRegisterService, selectorService, selectorMapper, eventPublisher);
     }
-
+    
     /**
      * Register spring mvc string.
      *
@@ -69,7 +72,7 @@ public class SoulClientController {
         INSTANCE.publishEvent(DataChangedEvent.Type.REGISTER, RpcTypeEnum.HTTP.getName(), springMvcRegisterDTO);
         return SoulResultMessage.SUCCESS;
     }
-
+    
     /**
      * Register spring cloud string.
      *
@@ -81,7 +84,7 @@ public class SoulClientController {
         INSTANCE.publishEvent(DataChangedEvent.Type.REGISTER, RpcTypeEnum.SPRING_CLOUD.getName(), springCloudRegisterDTO);
         return SoulResultMessage.SUCCESS;
     }
-
+    
     /**
      * Register dubbo string.
      *
@@ -93,7 +96,7 @@ public class SoulClientController {
         INSTANCE.publishEvent(DataChangedEvent.Type.REGISTER, RpcTypeEnum.DUBBO.getName(), metaDataDTO);
         return SoulResultMessage.SUCCESS;
     }
-
+    
     /**
      * Register sofa string.
      *
@@ -105,7 +108,7 @@ public class SoulClientController {
         INSTANCE.publishEvent(DataChangedEvent.Type.REGISTER, RpcTypeEnum.SOFA.getName(), metaDataDTO);
         return SoulResultMessage.SUCCESS;
     }
-
+    
     /**
      * Register tars string.
      *
@@ -117,15 +120,16 @@ public class SoulClientController {
         INSTANCE.publishEvent(DataChangedEvent.Type.REGISTER, RpcTypeEnum.TARS.getName(), metaDataDTO);
         return SoulResultMessage.SUCCESS;
     }
-
+    
     /**
-     * Register spring mvc string.
+     * Register grpc string.
      *
-     * @param grpcMetaDataDTO the spring mvc register dto
+     * @param metaDataDTO the meta data dto
      * @return the string
      */
     @PostMapping("/grpc-register")
-    public String registerGrpc(@RequestBody final MetaDataDTO grpcMetaDataDTO) {
-        return soulClientRegisterService.registerGrpc(grpcMetaDataDTO);
+    public String registerGrpc(@RequestBody final MetaDataDTO metaDataDTO) {
+        INSTANCE.publishEvent(DataChangedEvent.Type.REGISTER, RpcTypeEnum.GRPC.getName(), metaDataDTO);
+        return SoulResultMessage.SUCCESS;
     }
 }

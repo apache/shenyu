@@ -19,22 +19,18 @@ package org.dromara.soul.admin.service.impl;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.admin.entity.PluginDO;
 import org.dromara.soul.admin.entity.SelectorDO;
 import org.dromara.soul.admin.listener.DataChangedEvent;
 import org.dromara.soul.admin.mapper.PluginMapper;
+import org.dromara.soul.admin.mapper.SelectorConditionMapper;
 import org.dromara.soul.admin.mapper.SelectorMapper;
-import org.dromara.soul.admin.service.SelectorService;
+import org.dromara.soul.admin.query.SelectorConditionQuery;
+import org.dromara.soul.admin.transfer.ConditionTransfer;
 import org.dromara.soul.common.concurrent.SoulThreadFactory;
+import org.dromara.soul.common.dto.ConditionData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
@@ -46,6 +42,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * this is divide  http url upstream.
@@ -66,9 +70,7 @@ public class UpstreamCheckService {
 
     @Value("soul.register.registerType:http")
     private String registerType;
-
-    private final SelectorService selectorService;
-
+    
     private final SelectorMapper selectorMapper;
 
     private final ApplicationEventPublisher eventPublisher;

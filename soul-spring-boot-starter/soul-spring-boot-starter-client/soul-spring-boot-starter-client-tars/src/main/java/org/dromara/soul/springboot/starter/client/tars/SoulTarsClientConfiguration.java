@@ -19,7 +19,6 @@
 package org.dromara.soul.springboot.starter.client.tars;
 
 import org.dromara.soul.client.tars.TarsServiceBeanPostProcessor;
-import org.dromara.soul.client.tars.common.config.TarsConfig;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;

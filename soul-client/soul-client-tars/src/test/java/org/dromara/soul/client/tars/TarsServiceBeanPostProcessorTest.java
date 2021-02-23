@@ -20,7 +20,6 @@ package org.dromara.soul.client.tars;
 
 import org.dromara.soul.client.tars.common.annotation.SoulTarsClient;
 import org.dromara.soul.client.tars.common.annotation.SoulTarsService;
-import org.dromara.soul.client.tars.common.config.TarsConfig;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
