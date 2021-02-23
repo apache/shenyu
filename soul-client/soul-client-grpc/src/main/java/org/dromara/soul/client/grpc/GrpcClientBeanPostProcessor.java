@@ -21,8 +21,10 @@ import com.google.gson.Gson;
 import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
+import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
 import org.dromara.soul.client.grpc.common.annotation.SoulGrpcClient;
 import org.dromara.soul.client.grpc.common.dto.GrpcExt;
+import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.dromara.soul.register.common.dto.MetaDataDTO;
 import org.springframework.beans.BeansException;
@@ -75,6 +77,8 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
         this.ipAndPort = ipAndPort;
         this.contextPath = contextPath;
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        SoulClientRegisterRepository soulClientRegisterRepository = SoulClientRegisterRepositoryFactory.newInstance(config);
+        publisher.start(soulClientRegisterRepository);
     }
 
     @Override

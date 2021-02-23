@@ -86,6 +86,8 @@ public class SoulServerMetaDataRegisterEventHandler extends AbstractDisruptorCon
             soulClientRegisterService.registerSpringMvc((SpringMvcRegisterDTO) data.getValue());
         } else if (data.getKey().equals(RpcTypeEnum.SPRING_CLOUD.getName())) {
             soulClientRegisterService.registerSpringCloud((SpringCloudRegisterDTO) data.getValue());
+        } else if (data.getKey().equals(RpcTypeEnum.GRPC.getName())) {
+            soulClientRegisterService.registerGrpc((MetaDataDTO) data.getValue());
         }
     }
 
