@@ -19,6 +19,23 @@
 package org.dromara.soul.client.tars;
 
 import com.google.gson.Gson;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
+import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
+import org.dromara.soul.client.tars.common.annotation.SoulTarsClient;
+import org.dromara.soul.client.tars.common.annotation.SoulTarsService;
+import org.dromara.soul.client.tars.common.dto.TarsRpcExt;
+import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
+import org.dromara.soul.register.common.dto.MetaDataDTO;
+import org.springframework.aop.support.AopUtils;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
+import org.springframework.util.ReflectionUtils;
+
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,22 +47,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import javafx.util.Pair;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
-import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
-import org.dromara.soul.client.tars.common.annotation.SoulTarsClient;
-import org.dromara.soul.client.tars.common.annotation.SoulTarsService;
-import org.dromara.soul.client.tars.common.dto.TarsRpcExt;
-import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
-import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
-import org.dromara.soul.register.common.dto.MetaDataDTO;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * The Tars ServiceBean PostProcessor.
@@ -91,7 +92,7 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
 
     private void handler(final Object serviceBean) {
         Class<?> clazz = serviceBean.getClass();
-        if (ClassUtils.isCglibProxy(clazz)) {
+        if (AopUtils.isCglibProxy(clazz)) {
             String superClassName = clazz.getGenericSuperclass().getTypeName();
             try {
                 clazz = Class.forName(superClassName);
@@ -141,7 +142,7 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
         if (paramNames != null && paramNames.length > 0) {
             Class<?>[] paramTypes = method.getParameterTypes();
             for (int i = 0; i < paramNames.length; i++) {
-                params.add(new Pair<>(paramTypes[i].getName(), paramNames[i]));
+                params.add(Pair.of(paramTypes[i].getName(), paramNames[i]));
             }
         }
         return TarsRpcExt.RpcExt.builder().methodName(method.getName())
