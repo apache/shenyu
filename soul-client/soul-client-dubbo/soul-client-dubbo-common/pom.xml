@@ -31,7 +31,7 @@
     <dependencies>
         <dependency>
             <groupId>org.dromara</groupId>
-            <artifactId>soul-client-common</artifactId>
+            <artifactId>soul-client-core</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
