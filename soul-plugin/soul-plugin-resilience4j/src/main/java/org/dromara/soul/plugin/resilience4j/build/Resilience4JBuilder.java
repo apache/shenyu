@@ -44,6 +44,7 @@ public class Resilience4JBuilder {
      */
     public static Resilience4JConf build(final RuleData ruleData) {
         Resilience4JHandle handle = GsonUtils.getGson().fromJson(ruleData.getHandle(), Resilience4JHandle.class);
+        handle.checkData(handle);
         CircuitBreakerConfig circuitBreakerConfig = null;
         if (handle.getCircuitEnable() == 1) {
             circuitBreakerConfig = CircuitBreakerConfig.custom()

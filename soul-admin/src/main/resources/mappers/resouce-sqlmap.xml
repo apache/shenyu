@@ -47,6 +47,13 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
 
+    <select id="selectByParentId" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from resource
+        where parent_id = #{parentId,jdbcType=VARCHAR}
+    </select>
+
     <select id="selectByQuery" parameterType="org.dromara.soul.admin.query.ResourceQuery" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -60,25 +67,13 @@
         </if>
     </select>
 
-    <select id="findByQuery" parameterType="java.lang.String" resultMap="BaseResultMap">
+    <select id="selectByTitle" parameterType="java.lang.String" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
         from resource
         where status = 1
-        <if test="parentId != null">
-            and parent_id = #{parentId,jdbcType=VARCHAR}
-        </if>
         <if test="title != null">
             and title = #{title,jdbcType=VARCHAR}
-        </if>
-        <if test="url != null">
-            and url = #{url,jdbcType=VARCHAR}
-        </if>
-        <if test="name != null">
-            and name = #{name,jdbcType=VARCHAR}
-        </if>
-        <if test="perms != null">
-            and perms = #{perms,jdbcType=VARCHAR}
         </if>
     </select>
 
@@ -204,11 +199,11 @@
         update resource
         set date_created = #{dateCreated,jdbcType=TIMESTAMP},
         date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
-        parent_id = #{roleName,jdbcType=VARCHAR},
-        title = #{description,jdbcType=VARCHAR}
-        name = #{roleName,jdbcType=VARCHAR},
-        url = #{description,jdbcType=VARCHAR}
-        component = #{roleName,jdbcType=VARCHAR},
+        parent_id = #{parentId,jdbcType=VARCHAR},
+        title = #{title,jdbcType=VARCHAR}
+        name = #{name,jdbcType=VARCHAR},
+        url = #{url,jdbcType=VARCHAR}
+        component = #{component,jdbcType=VARCHAR},
         resource_type = #{resourceType,jdbcType=INTEGER}
         sort = #{sort,jdbcType=INTEGER},
         icon = #{icon,jdbcType=VARCHAR}
@@ -220,7 +215,7 @@
     </update>
 
     <update id="updateSelective" parameterType="org.dromara.soul.admin.entity.ResourceDO">
-        update role
+        update resource
         <set>
             <if test="dateCreated != null">
                 date_created = #{dateCreated,jdbcType=TIMESTAMP},

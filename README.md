@@ -59,7 +59,7 @@
   
 # Mind maps
  
- ![](https://dromara.org/activities/dromara-cloud-native-meet/soul-xmind.png)
+ ![](https://dromara.org/img/soul/activite/soul-xmind.png)
  
 --------------------------------------------------------------------------------  
   
@@ -234,12 +234,14 @@ In order of registration, More access companies are welcome to register at [http
     <th>WeChat</th>
     <th>QQ</th>
     <th>Taro Source</th>
+    <th>JetBrains</th>
   </thead>
   <tbody>
     <tr>
-      <td><img src="https://yu199195.github.io/images/public.jpg"   alt="微信公众号"/>
-      <td><img src="https://yu199195.github.io/images/soul-qq.png"  alt="QQ 交流群"/>
-      <td><img src="http://www.iocoder.cn/images/common/erweima.jpg"  alt="芋道源码"/>
+      <td><img src="https://yu199195.github.io/images/public.jpg"   alt="WeChat"/>
+      <td><img src="https://yu199195.github.io/images/soul-qq.png"  alt="QQ group"/>
+      <td><img src="http://www.iocoder.cn/images/common/erweima.jpg"  alt="yuNai"/>
+      <td><img src="https://yu199195.github.io/images/jetbrains.svg"  alt="Jetbrains"/>
     </tr>
   </tbody>
 </table>

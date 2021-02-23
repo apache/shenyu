@@ -59,10 +59,11 @@
         select
         <include refid="Base_Column_List"/>
         from dashboard_user
-        where enabled = 1
-        <if test="userName != null">
-            and user_name = #{userName,jdbcType=VARCHAR}
-        </if>
+        <where>
+            <if test="userName != null">
+                user_name = #{userName,jdbcType=VARCHAR}
+            </if>
+        </where>
         limit #{pageParameter.offset},#{pageParameter.pageSize}
     </select>
 
@@ -70,10 +71,11 @@
             resultType="java.lang.Integer">
         select count(1)
         from dashboard_user
-        where enabled = 1
-        <if test="userName != null">
-            and user_name = #{userName,jdbcType=VARCHAR}
-        </if>
+        <where>
+            <if test="userName != null">
+                user_name = #{userName,jdbcType=VARCHAR}
+            </if>
+        </where>
     </select>
 
     <insert id="insert" parameterType="org.dromara.soul.admin.entity.DashboardUserDO">

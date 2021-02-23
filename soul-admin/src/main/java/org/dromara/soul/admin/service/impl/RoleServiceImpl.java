@@ -76,7 +76,7 @@ public class RoleServiceImpl implements RoleService {
      * @return rows
      */
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public int createOrUpdate(final RoleDTO roleDTO) {
         RoleDO roleDO = RoleDO.buildRoleDO(roleDTO);
         if (StringUtils.isEmpty(roleDTO.getId())) {

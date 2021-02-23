@@ -60,6 +60,7 @@ public class Resilience4JPlugin extends AbstractSoulPlugin {
         final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
         Resilience4JHandle resilience4JHandle = GsonUtils.getGson().fromJson(rule.getHandle(), Resilience4JHandle.class);
+        resilience4JHandle.checkData(resilience4JHandle);
         if (resilience4JHandle.getCircuitEnable() == 1) {
             return combined(exchange, chain, rule);
         }

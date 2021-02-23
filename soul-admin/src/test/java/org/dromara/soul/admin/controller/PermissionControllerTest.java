@@ -57,8 +57,8 @@ public class PermissionControllerTest {
         final PermissionMenuVO permissionMenuVO = new PermissionMenuVO(
                 Arrays.asList(new PermissionMenuVO.MenuInfo("id", "name", "url", "component",
                         new PermissionMenuVO.Meta("icon", "title"), Arrays.asList(), 0)),
-                Arrays.asList(new PermissionMenuVO.AuthPerm("perms1", "description1")),
-                Arrays.asList(new PermissionMenuVO.AuthPerm("perms2", "description2")));
+                Arrays.asList(new PermissionMenuVO.AuthPerm("perms1", "description1", "icon")),
+                Arrays.asList(new PermissionMenuVO.AuthPerm("perms2", "description2", "icon")));
         when(mockPermissionService.getPermissionMenu("token")).thenReturn(permissionMenuVO);
         final SoulAdminResult result = permissionController.getUserPermissionByToken("token");
         assertThat(result.getCode().intValue(), is(CommonErrorCode.SUCCESSFUL));

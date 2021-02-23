@@ -119,6 +119,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
                 }
             }
             dashboardUserCount += dashboardUserMapper.delete(id);
+            userRoleMapper.deleteByUserId(id);
         }
         return dashboardUserCount;
     }

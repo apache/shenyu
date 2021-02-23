@@ -41,7 +41,7 @@ public class SentinelRuleHandle implements PluginDataHandler {
     @Override
     public void handlerRule(final RuleData ruleData) {
         SentinelHandle sentinelHandle = GsonUtils.getInstance().fromJson(ruleData.getHandle(), SentinelHandle.class);
-
+        sentinelHandle.checkData(sentinelHandle);
         List<FlowRule> flowRules = FlowRuleManager.getRules()
                 .stream()
                 .filter(r -> !r.getResource().equals(getResourceName(ruleData)))
