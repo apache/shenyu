@@ -40,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Test cases for SoulClientController.
  * @author bran.chen
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public final class SoulClientControllerTest {
 
     private MockMvc mockMvc;
