@@ -29,10 +29,12 @@
         <result column="type" jdbcType="INTEGER" property="type"/>
         <result column="sort" jdbcType="INTEGER" property="sort"/>
         <result column="ext_obj" jdbcType="VARCHAR" property="extObj"/>
+        <result column="default_value" jdbcType="VARCHAR" property="defaultValue"/>
+        <result column="rule" jdbcType="VARCHAR" property="rule"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,plugin_id, field, label, data_type,type,sort, ext_obj,date_created, date_updated
+        id,plugin_id, field, label, data_type,type,sort, ext_obj, default_value, rule, date_created, date_updated
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -52,11 +54,11 @@
     </delete>
 
     <insert id="insert" parameterType="org.dromara.soul.admin.entity.PluginHandleDO">
-    insert into plugin_handle (id, plugin_id, field, label,data_type,type,sort,ext_obj, date_created, date_updated
+    insert into plugin_handle (id, plugin_id, field, label,data_type,type,sort,ext_obj, default_value, rule, date_created, date_updated
       )
     values (#{id,jdbcType=VARCHAR}, #{pluginId,jdbcType=VARCHAR}, #{field,jdbcType=VARCHAR},
       #{label,jdbcType=VARCHAR},#{dataType,jdbcType=INTEGER},#{type,jdbcType=INTEGER}, #{sort,jdbcType=INTEGER},
-      #{extObj,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP}
+      #{extObj,jdbcType=VARCHAR}, #{defaultValue,jdbcType=VARCHAR}, #{rule,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP}
       )
   </insert>
 
@@ -86,6 +88,12 @@
             </if>
             <if test="extObj != null">
                 ext_obj,
+            </if>
+            <if test="defaultValue != null">
+                default_value,
+            </if>
+            <if test="rule != null">
+                rule,
             </if>
             <if test="dateCreated != null">
                 date_created,
@@ -119,6 +127,12 @@
             <if test="extObj != null">
                 #{extObj,jdbcType=VARCHAR},
             </if>
+            <if test="defaultValue != null">
+                #{defaultValue,jdbcType=VARCHAR},
+            </if>
+            <if test="rule != null">
+                #{rule ,jdbcType=VARCHAR},
+            </if>
             <if test="dateCreated != null">
                 #{dateCreated,jdbcType=TIMESTAMP},
             </if>
@@ -151,6 +165,12 @@
             <if test="extObj != null">
                 ext_obj= #{extObj,jdbcType=VARCHAR},
             </if>
+            <if test="defaultValue != null">
+                default_value= #{defaultValue,jdbcType=VARCHAR},
+            </if>
+            <if test="rule != null">
+                rule= #{rule,jdbcType=VARCHAR},
+            </if>
             <if test="dateCreated != null">
                 date_created = #{dateCreated,jdbcType=TIMESTAMP},
             </if>
@@ -169,6 +189,8 @@
       type = #{type,jdbcType=INTEGER},
       sort = #{sort,jdbcType=INTEGER},
       ext_obj = #{extObj,jdbcType=VARCHAR},
+      default_value = #{defaultValue,jdbcType=VARCHAR},
+      rule = #{rule,jdbcType=VARCHAR},
       date_created = #{dateCreated,jdbcType=TIMESTAMP},
       date_updated = #{dateUpdated,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=VARCHAR}
