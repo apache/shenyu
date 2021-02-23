@@ -17,8 +17,8 @@
 
 package org.dromara.soul.client.springcloud.init;
 
-import org.dromara.soul.client.common.utils.RegisterUtils;
 import org.dromara.soul.client.springcloud.annotation.SoulSpringCloudClient;
+import org.dromara.soul.register.client.http.utils.RegisterUtils;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
