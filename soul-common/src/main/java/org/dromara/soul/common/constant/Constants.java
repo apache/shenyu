@@ -105,6 +105,11 @@ public interface Constants {
     String TARS_RPC_RESULT = "tars_rpc_result";
 
     /**
+     * The constant GRPC_RPC_RESULT.
+     */
+    String GRPC_RPC_RESULT = "grpc_rpc_result";
+
+    /**
      * The constant TARS_RPC_RESULT_EMPTY.
      */
     String TARS_RPC_RESULT_EMPTY = "tars has not return value!";
@@ -153,6 +158,11 @@ public interface Constants {
      * The constant TARS_PARAMS.
      */
     String TARS_PARAMS = "tars_params";
+
+    /**
+     * The constant GRPC_PARAMS.
+     */
+    String GRPC_PARAMS = "grpc_params";
 
     /**
      * The constant DECODE.

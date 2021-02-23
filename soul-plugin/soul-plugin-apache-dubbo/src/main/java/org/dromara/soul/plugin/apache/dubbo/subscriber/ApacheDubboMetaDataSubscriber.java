@@ -18,8 +18,10 @@
 package org.dromara.soul.plugin.apache.dubbo.subscriber;
 
 import com.google.common.collect.Maps;
+
 import java.util.Objects;
 import java.util.concurrent.ConcurrentMap;
+
 import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.plugin.apache.dubbo.cache.ApplicationConfigCache;
@@ -38,16 +40,16 @@ public class ApacheDubboMetaDataSubscriber implements MetaDataSubscriber {
     public void onSubscribe(final MetaData metaData) {
         if (RpcTypeEnum.DUBBO.getName().equals(metaData.getRpcType())) {
             MetaData exist = META_DATA.get(metaData.getPath());
-            if (Objects.isNull(META_DATA.get(metaData.getPath())) || Objects.isNull(ApplicationConfigCache.getInstance().get(metaData.getPath()))) {
+            if (Objects.isNull(exist) || Objects.isNull(ApplicationConfigCache.getInstance().get(metaData.getPath()))) {
                 // The first initialization
                 ApplicationConfigCache.getInstance().initRef(metaData);
             } else {
                 // There are updates, which only support the update of four properties of serviceName rpcExt parameterTypes methodName,
                 // because these four properties will affect the call of Dubbo;
-                if (!metaData.getServiceName().equals(exist.getServiceName())
-                        || !metaData.getRpcExt().equals(exist.getRpcExt())
-                        || !metaData.getParameterTypes().equals(exist.getParameterTypes())
-                        || !metaData.getMethodName().equals(exist.getMethodName())) {
+                if (!Objects.equals(metaData.getServiceName(), exist.getServiceName())
+                        || !Objects.equals(metaData.getRpcExt(), exist.getRpcExt())
+                        || !Objects.equals(metaData.getParameterTypes(), exist.getParameterTypes())
+                        || !Objects.equals(metaData.getMethodName(), exist.getMethodName())) {
                     ApplicationConfigCache.getInstance().build(metaData);
                 }
             }

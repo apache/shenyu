@@ -33,14 +33,15 @@ public final class PageResultUtilsTest {
     @Test
     public void testEmptyResult() {
         final PageParameter pageParameter = new PageParameter(1, 10, 0);
-        final CommonPager<String> result = PageResultUtils.result(pageParameter, 0, ArrayList::new);
+        final CommonPager<String> result = PageResultUtils.result(pageParameter, () -> 0, ArrayList::new);
         Assert.assertEquals(result.getDataList().size(), 0);
     }
 
     @Test
     public void testResult() {
         final PageParameter pageParameter = new PageParameter(1, 10, 1);
-        final CommonPager<String> result = PageResultUtils.result(pageParameter, 1, () -> Collections.singletonList("result1"));
+        final CommonPager<String> result = PageResultUtils.result(pageParameter, () -> 1,
+            () -> Collections.singletonList("result1"));
         Assert.assertEquals(result.getDataList().size(), 1);
     }
 }

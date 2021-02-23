@@ -65,8 +65,7 @@ public enum PluginEnum {
      * Redirect plugin enum.
      */
     REDIRECT(40, 0, "redirect"),
-
-
+    
     /**
      * Hystrix plugin enum.
      */
@@ -111,6 +110,11 @@ public enum PluginEnum {
      * Tars plugin enum.
      */
     TARS(60, 0, "tars"),
+
+    /**
+     * GPRC plugin enum.
+     */
+    GRPC(60, 0, "grpc"),
 
     /**
      * Monitor plugin enum.

@@ -17,8 +17,11 @@
 
 package org.dromara.soul.common.constant;
 
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for RedisKeyConstants.
@@ -35,16 +38,16 @@ public final class RedisKeyConstantsTest {
     public void testPlugInfoKey() {
         String mockPlugin = "MockPlugin";
         String mokPluginInfoKey = RedisKeyConstants.pluginInfoKey(mockPlugin);
-        Assert.assertNotNull(mockPlugin);
-        Assert.assertEquals(String.join("", mockPlugin, PLUGIN_INFO), mokPluginInfoKey);
+        assertThat(mockPlugin, notNullValue());
+        assertThat(String.join("", mockPlugin, PLUGIN_INFO), equalTo(mokPluginInfoKey));
     }
 
     @Test
     public void testPluginSelectorKey() {
         String mockPlugin = "MockPlugin";
         String mockPluginSelectorKey = RedisKeyConstants.pluginSelectorKey(mockPlugin);
-        Assert.assertNotNull(mockPlugin);
-        Assert.assertEquals(String.join("", mockPlugin, PLUGIN_SELECTOR), mockPluginSelectorKey);
+        assertThat(mockPlugin, notNullValue());
+        assertThat(String.join("", mockPlugin, PLUGIN_SELECTOR), equalTo(mockPluginSelectorKey));
     }
 
 }

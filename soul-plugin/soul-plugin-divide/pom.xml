@@ -34,11 +34,6 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.dromara</groupId>
-            <artifactId>soul-spi</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-test</artifactId>
             <scope>test</scope>

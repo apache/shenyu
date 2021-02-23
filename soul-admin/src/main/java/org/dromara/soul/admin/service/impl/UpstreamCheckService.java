@@ -74,22 +74,24 @@ public class UpstreamCheckService {
     private final ApplicationEventPublisher eventPublisher;
 
     private final PluginMapper pluginMapper;
+
+    private final SelectorConditionMapper selectorConditionMapper;
     
     /**
      * Instantiates a new Upstream check service.
      *
-     * @param selectorService the selector service
-     * @param selectorMapper  the selector mapper
-     * @param eventPublisher  the event publisher
-     * @param pluginMapper    the plugin mapper
+     * @param selectorMapper            the selector mapper
+     * @param eventPublisher            the event publisher
+     * @param pluginMapper              the plugin mapper
+     * @param selectorConditionMapper   the selectorCondition mapper
      */
     @Autowired(required = false)
-    public UpstreamCheckService(final SelectorService selectorService, final SelectorMapper selectorMapper,
-                                final ApplicationEventPublisher eventPublisher, final PluginMapper pluginMapper) {
-        this.selectorService = selectorService;
+    public UpstreamCheckService(final SelectorMapper selectorMapper, final ApplicationEventPublisher eventPublisher,
+                                final PluginMapper pluginMapper, final SelectorConditionMapper selectorConditionMapper) {
         this.selectorMapper = selectorMapper;
         this.eventPublisher = eventPublisher;
         this.pluginMapper = pluginMapper;
+        this.selectorConditionMapper = selectorConditionMapper;
     }
     
     /**
@@ -107,7 +109,7 @@ public class UpstreamCheckService {
                 }
             }
         }
-        if (check && "http".equals(registerType)) {
+        if (check) {
             new ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), SoulThreadFactory.create("scheduled-upstream-task", false))
                     .scheduleWithFixedDelay(this::scheduled, 10, scheduledTime, TimeUnit.SECONDS);
         }
@@ -134,6 +136,16 @@ public class UpstreamCheckService {
         } else {
             UPSTREAM_MAP.put(selectorName, Lists.newArrayList(divideUpstream));
         }
+    }
+
+    /**
+     * Replace.
+     *
+     * @param selectorName    the selector name
+     * @param divideUpstreams the divide upstream list
+     */
+    public void replace(final String selectorName, final List<DivideUpstream> divideUpstreams) {
+        UPSTREAM_MAP.put(selectorName, divideUpstreams);
     }
 
     private void scheduled() {
@@ -171,21 +183,21 @@ public class UpstreamCheckService {
     }
 
     private void updateSelectorHandler(final String selectorName, final List<DivideUpstream> upstreams) {
-        SelectorDO selector = selectorService.findByName(selectorName);
-        if (Objects.nonNull(selector)) {
-            SelectorData selectorData = selectorService.buildByName(selectorName);
-            if (upstreams == null) {
-                selector.setHandle("");
-                selectorData.setHandle("");
-            } else {
-                String handler = GsonUtils.getInstance().toJson(upstreams);
-                selector.setHandle(handler);
+        SelectorDO selectorDO = selectorMapper.selectByName(selectorName);
+        if (Objects.nonNull(selectorDO)) {
+            List<ConditionData> conditionDataList = ConditionTransfer.INSTANCE.mapToSelectorDOS(
+                    selectorConditionMapper.selectByQuery(new SelectorConditionQuery(selectorDO.getId())));
+            PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
+            String handler = CollectionUtils.isEmpty(upstreams) ? "" : GsonUtils.getInstance().toJson(upstreams);
+            selectorDO.setHandle(handler);
+            selectorMapper.updateSelective(selectorDO);
+            if (Objects.nonNull(pluginDO)) {
+                SelectorData selectorData = SelectorDO.transFrom(selectorDO, pluginDO.getName(), conditionDataList);
                 selectorData.setHandle(handler);
+                // publish change event.
+                eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
+                                                                 Collections.singletonList(selectorData)));
             }
-            selectorMapper.updateSelective(selector);
-            // publish change event.
-            eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
-                    Collections.singletonList(selectorData)));
         }
     }
 }

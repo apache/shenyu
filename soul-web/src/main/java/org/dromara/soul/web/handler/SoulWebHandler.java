@@ -19,10 +19,6 @@ package org.dromara.soul.web.handler;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-import org.dromara.soul.metrics.api.HistogramMetricsTrackerDelegate;
-import org.dromara.soul.metrics.enums.MetricsLabelEnum;
-import org.dromara.soul.metrics.facade.MetricsTrackerFacade;
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.springframework.lang.NonNull;
@@ -42,7 +38,7 @@ public final class SoulWebHandler implements WebHandler {
     private final List<SoulPlugin> plugins;
 
     private final Scheduler scheduler;
-
+    
     /**
      * Instantiates a new Soul web handler.
      *
@@ -68,10 +64,7 @@ public final class SoulWebHandler implements WebHandler {
      */
     @Override
     public Mono<Void> handle(@NonNull final ServerWebExchange exchange) {
-        MetricsTrackerFacade.getInstance().counterInc(MetricsLabelEnum.REQUEST_TOTAL.getName());
-        Optional<HistogramMetricsTrackerDelegate> startTimer = MetricsTrackerFacade.getInstance().histogramStartTimer(MetricsLabelEnum.REQUEST_LATENCY.getName());
-        return new DefaultSoulPluginChain(plugins).execute(exchange).subscribeOn(scheduler)
-                .doOnSuccess(t -> startTimer.ifPresent(time -> MetricsTrackerFacade.getInstance().histogramObserveDuration(time)));
+        return new DefaultSoulPluginChain(plugins).execute(exchange).subscribeOn(scheduler);
     }
 
     private static class DefaultSoulPluginChain implements SoulPluginChain {

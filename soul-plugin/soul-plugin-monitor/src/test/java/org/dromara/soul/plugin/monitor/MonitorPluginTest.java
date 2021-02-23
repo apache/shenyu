@@ -28,6 +28,7 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -48,7 +49,7 @@ public final class MonitorPluginTest {
 
     @Test
     public void testDoExecute() {
-        final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
+        ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
         SoulPluginChain chain = mock(SoulPluginChain.class);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         SelectorData selectorData = mock(SelectorData.class);

@@ -31,7 +31,7 @@ public class PageParameter implements Serializable {
 
     private static final long serialVersionUID = -8324693985921606090L;
 
-    private static final int DEFAULT_PAGE_SIZE = 10;
+    private static final int DEFAULT_PAGE_SIZE = 12;
 
     private int currentPage;
 

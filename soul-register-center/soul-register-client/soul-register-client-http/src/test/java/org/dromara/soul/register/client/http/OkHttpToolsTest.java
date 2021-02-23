@@ -15,22 +15,28 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.register.client.http;
+package org.dromara.soul.client.common.utils;
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import java.io.IOException;
-import org.dromara.soul.register.client.http.utils.OkHttpTools;
+import org.dromara.soul.client.common.dto.HttpRegisterDTO;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import wiremock.com.google.common.net.HttpHeaders;
 import wiremock.org.apache.http.entity.ContentType;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -62,5 +68,23 @@ public final class OkHttpToolsTest {
     @Test
     public void testPostReturnString() throws IOException {
         assertThat(json, is(OkHttpTools.getInstance().post(url, json)));
+    }
+
+    @Test
+    public void testPostReturnClassT() throws IOException {
+        assertThat(GsonUtils.getInstance().fromJson(json, HttpRegisterDTO.class),
+                equalTo(OkHttpTools.getInstance().post(url, json, HttpRegisterDTO.class)));
+    }
+
+    @Test
+    public void testPostReturnMap() throws IOException {
+        final Map<String, String> map = new HashMap<>();
+        map.put("appName", "soul");
+        assertThat(json, is(OkHttpTools.getInstance().post(url, map)));
+    }
+
+    @Test
+    public void testGetGson() {
+        assertThat(OkHttpTools.getInstance().getGson(), notNullValue());
     }
 }

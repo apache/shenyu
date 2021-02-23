@@ -19,7 +19,7 @@ package org.dromara.soul.spring.boot.starter.plugin.apache.dubbo;
 
 import org.dromara.soul.plugin.apache.dubbo.ApacheDubboPlugin;
 import org.dromara.soul.plugin.apache.dubbo.handler.ApacheDubboPluginDataHandler;
-import org.dromara.soul.plugin.apache.dubbo.param.BodyParamPlugin;
+import org.dromara.soul.plugin.apache.dubbo.param.ApacheDubboBodyParamPlugin;
 import org.dromara.soul.plugin.apache.dubbo.proxy.ApacheDubboProxyService;
 import org.dromara.soul.plugin.apache.dubbo.response.DubboResponsePlugin;
 import org.dromara.soul.plugin.apache.dubbo.subscriber.ApacheDubboMetaDataSubscriber;
@@ -58,8 +58,8 @@ public class ApacheDubboPluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin bodyParamPlugin() {
-        return new BodyParamPlugin();
+    public SoulPlugin apacheDubboBodyParamPlugin() {
+        return new ApacheDubboBodyParamPlugin();
     }
 
     /**
@@ -68,7 +68,7 @@ public class ApacheDubboPluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin dubboResponsePlugin() {
+    public SoulPlugin apacheDubboResponsePlugin() {
         return new DubboResponsePlugin();
     }
 

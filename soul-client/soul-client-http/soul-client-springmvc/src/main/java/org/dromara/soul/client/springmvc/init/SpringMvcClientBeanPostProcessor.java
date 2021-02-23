@@ -39,7 +39,6 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 /**
  * The type Soul spring mvc client bean post processor.
@@ -94,9 +93,8 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
             return bean;
         }
         Controller controller = AnnotationUtils.findAnnotation(bean.getClass(), Controller.class);
-        RestController restController = AnnotationUtils.findAnnotation(bean.getClass(), RestController.class);
         RequestMapping requestMapping = AnnotationUtils.findAnnotation(bean.getClass(), RequestMapping.class);
-        if (controller != null || restController != null || requestMapping != null) {
+        if (controller != null || requestMapping != null) {
             SoulSpringMvcClient clazzAnnotation = AnnotationUtils.findAnnotation(bean.getClass(), SoulSpringMvcClient.class);
             String prePath = "";
             if (Objects.isNull(clazzAnnotation)) {

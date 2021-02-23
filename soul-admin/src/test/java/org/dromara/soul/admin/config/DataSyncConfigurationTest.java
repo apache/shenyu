@@ -22,6 +22,7 @@ import com.alibaba.nacos.api.config.ConfigService;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.curator.test.TestingServer;
 import org.dromara.soul.admin.AbstractConfigurationTest;
+import org.dromara.soul.admin.config.properties.HttpSyncProperties;
 import org.dromara.soul.admin.listener.nacos.NacosMockConfigService;
 import org.dromara.soul.admin.service.MetaDataService;
 import org.dromara.soul.admin.service.PluginService;

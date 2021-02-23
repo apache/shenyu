@@ -82,7 +82,6 @@ public class SoulClientController {
         return SoulResultMessage.SUCCESS;
     }
 
-
     /**
      * Register dubbo string.
      *
@@ -117,5 +116,16 @@ public class SoulClientController {
     public String registerTarsRpc(@RequestBody final MetaDataDTO metaDataDTO) {
         INSTANCE.publishEvent(DataChangedEvent.Type.REGISTER, RpcTypeEnum.TARS.getName(), metaDataDTO);
         return SoulResultMessage.SUCCESS;
+    }
+
+    /**
+     * Register spring mvc string.
+     *
+     * @param grpcMetaDataDTO the spring mvc register dto
+     * @return the string
+     */
+    @PostMapping("/grpc-register")
+    public String registerGrpc(@RequestBody final MetaDataDTO grpcMetaDataDTO) {
+        return soulClientRegisterService.registerGrpc(grpcMetaDataDTO);
     }
 }

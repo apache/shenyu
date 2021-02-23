@@ -89,8 +89,6 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     private final PluginMapper pluginMapper;
 
 
-
-
     /**
      * Instantiates a new Meta data service.
      *
@@ -210,6 +208,15 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         return SoulResultMessage.SUCCESS;
     }
 
+    @Override
+    public String registerGrpc(final MetaDataDTO dto) {
+        MetaDataDO exist = metaDataMapper.findByPath(dto.getPath());
+        saveOrUpdateMetaData(exist, dto);
+        String selectorId = handlerGrpcSelector(dto);
+        handlerGrpcRule(selectorId, dto, exist);
+        return SoulResultMessage.SUCCESS;
+    }
+
     private String handlerTarsSelector(final MetaDataDTO metaDataDTO) {
         return getString(metaDataDTO);
     }
@@ -226,6 +233,17 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     }
 
     private void handlerSofaRule(final String selectorId, final MetaDataDTO metaDataDTO, final MetaDataDO exist) {
+        RuleDO existRule = ruleMapper.findByName(metaDataDTO.getPath());
+        if (Objects.isNull(exist) || Objects.isNull(existRule)) {
+            registerRule(selectorId, metaDataDTO.getPath(), metaDataDTO.getRpcType(), metaDataDTO.getRuleName());
+        }
+    }
+
+    private String handlerGrpcSelector(final MetaDataDTO metaDataDTO) {
+        return getString(metaDataDTO);
+    }
+
+    private void handlerGrpcRule(final String selectorId, final MetaDataDTO metaDataDTO, final MetaDataDO exist) {
         RuleDO existRule = ruleMapper.findByName(metaDataDTO.getPath());
         if (Objects.isNull(exist) || Objects.isNull(existRule)) {
             registerRule(selectorId, metaDataDTO.getPath(), metaDataDTO.getRpcType(), metaDataDTO.getRuleName());
@@ -285,7 +303,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
             metaDataMapper.update(metaDataDO);
             eventType = DataEventTypeEnum.UPDATE;
         }
-        // publish AppAuthData's event
+        // publish MetaData's event
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, eventType,
                 Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDTO))));
     }
@@ -373,6 +391,9 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
             selectorDTO.setHandle(appName);
         } else if (RpcTypeEnum.TARS.getName().equals(rpcType)) {
             selectorDTO.setPluginId(getPluginId(PluginEnum.TARS.getName()));
+            selectorDTO.setHandle(appName);
+        } else if (RpcTypeEnum.GRPC.getName().equals(rpcType)) {
+            selectorDTO.setPluginId(getPluginId(PluginEnum.GRPC.getName()));
             selectorDTO.setHandle(appName);
         } else {
             //is divide
