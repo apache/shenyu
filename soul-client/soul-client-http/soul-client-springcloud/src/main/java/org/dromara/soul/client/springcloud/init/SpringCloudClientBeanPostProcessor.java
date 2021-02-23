@@ -110,7 +110,7 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
                 SoulSpringCloudClient soulSpringCloudClient = AnnotationUtils.findAnnotation(method, SoulSpringCloudClient.class);
                 if (Objects.nonNull(soulSpringCloudClient)) {
                     String finalPrePath = prePath;
-                    executorService.execute(() -> publisher.publishEvent(buildMetaDataDTO(clazzAnnotation, finalPrePath)));
+                    executorService.execute(() -> publisher.publishEvent(buildMetaDataDTO(soulSpringCloudClient, finalPrePath)));
                 }
             }
         }

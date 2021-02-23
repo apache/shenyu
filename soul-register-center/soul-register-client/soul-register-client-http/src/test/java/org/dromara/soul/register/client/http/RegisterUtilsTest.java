@@ -43,7 +43,7 @@ import static org.mockito.Mockito.when;
  */
 public final class RegisterUtilsTest {
     
-    private Gson gson  = new Gson();
+    private Gson gson = new Gson();
     
     private OkHttpTools okHttpTools;
     
@@ -96,7 +96,7 @@ public final class RegisterUtilsTest {
     }
     
     @SneakyThrows
-    @Test
+    @Test(expected = IOException.class)
     public void testDoRegisterWhenThrowException() {
         when(okHttpTools.post(url, json)).thenThrow(IOException.class);
         try (MockedStatic<OkHttpTools> okHttpToolsMockedStatic = mockStatic(OkHttpTools.class)) {

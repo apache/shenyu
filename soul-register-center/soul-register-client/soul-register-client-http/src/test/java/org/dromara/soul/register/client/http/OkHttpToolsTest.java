@@ -20,8 +20,6 @@ package org.dromara.soul.register.client.http;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import org.dromara.soul.register.client.http.utils.OkHttpTools;
 import org.junit.Before;
 import org.junit.Rule;

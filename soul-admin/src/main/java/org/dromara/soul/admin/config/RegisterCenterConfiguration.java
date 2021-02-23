@@ -56,7 +56,7 @@ public class RegisterCenterConfiguration {
          */
         @Bean
         @ConfigurationProperties(prefix = "soul.register")
-        public SoulRegisterCenterConfig SoulRegisterCenterConfig() {
+        public SoulRegisterCenterConfig soulRegisterCenterConfig() {
             return new SoulRegisterCenterConfig();
         }
     

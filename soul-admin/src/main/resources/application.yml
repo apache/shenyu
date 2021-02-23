@@ -39,7 +39,7 @@ mybatis:
 
 soul:
   register:
-    registerType: zookeeper  #http
+    registerType: http #zookeeper
     serverLists : localhost:2181
     props:
       sessionTimeout: 5000

@@ -38,6 +38,7 @@ public final class RegisterUtils {
      * @param json        request body
      * @param url         url
      * @param rpcType rcp type
+     * @throws IOException exception
      */
     public static void doRegister(final String json, final String url, final String rpcType) throws IOException {
         String result = OkHttpTools.getInstance().post(url, json);
