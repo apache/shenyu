@@ -49,13 +49,7 @@
             <artifactId>soul-register-server-api</artifactId>
             <version>${project.version}</version>
         </dependency>
-
-        <dependency>
-            <groupId>org.dromara</groupId>
-            <artifactId>soul-register-server-http</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
+        
         <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>soul-register-server-zookeeper</artifactId>
