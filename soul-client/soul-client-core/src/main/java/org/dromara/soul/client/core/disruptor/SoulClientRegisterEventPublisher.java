@@ -18,7 +18,7 @@
 
 package org.dromara.soul.client.core.disruptor;
 
-import org.dromara.soul.register.common.dto.MetaDataDTO;
+import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
 import org.dromara.soul.disruptor.DisruptorProviderManage;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 
@@ -57,11 +57,11 @@ public class SoulClientRegisterEventPublisher {
     /**
      * publish event.
      *
-     * @param metaDataDTO metaDataDTO
+     * @param metaDataRegisterDTO metaDataDTO
      */
-    public void publishEvent(final MetaDataDTO metaDataDTO) {
+    public void publishEvent(final MetaDataRegisterDTO metaDataRegisterDTO) {
         SoulClientRegisterEvent event = new SoulClientRegisterEvent();
-        event.setMetaData(metaDataDTO);
+        event.setMetaData(metaDataRegisterDTO);
         push(event);
     }
 

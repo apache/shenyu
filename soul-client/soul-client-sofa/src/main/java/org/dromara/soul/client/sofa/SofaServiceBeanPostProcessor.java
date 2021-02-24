@@ -38,7 +38,7 @@ import org.dromara.soul.client.sofa.common.annotation.SoulSofaClient;
 import org.dromara.soul.client.sofa.common.dto.SofaRpcExt;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
-import org.dromara.soul.register.common.dto.MetaDataDTO;
+import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.util.ClassUtils;
@@ -110,7 +110,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
         }
     }
 
-    private MetaDataDTO buildMetaDataDTO(final ServiceFactoryBean serviceBean, final SoulSofaClient soulSofaClient, final Method method) {
+    private MetaDataRegisterDTO buildMetaDataDTO(final ServiceFactoryBean serviceBean, final SoulSofaClient soulSofaClient, final Method method) {
         String appName = this.appName;
         String path = contextPath + soulSofaClient.path();
         String desc = soulSofaClient.desc();
@@ -121,7 +121,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
         String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
                 .collect(Collectors.joining(","));
-        return MetaDataDTO.builder()
+        return MetaDataRegisterDTO.builder()
                 .appName(appName)
                 .serviceName(serviceName)
                 .methodName(methodName)

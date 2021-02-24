@@ -19,15 +19,12 @@ package org.dromara.soul.admin.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.admin.disruptor.SoulServerMetaDataRegisterEventPublisher;
-import org.dromara.soul.admin.mapper.SelectorMapper;
-import org.dromara.soul.admin.service.SelectorService;
 import org.dromara.soul.admin.service.SoulClientRegisterService;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.dromara.soul.register.server.api.SoulServerRegisterRepository;
 import org.dromara.soul.register.server.zookeeper.ZookeeperServerRegisterRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -65,20 +62,15 @@ public class RegisterCenterConfiguration {
          *
          * @param soulRegisterCenterConfig the soul register center config
          * @param soulClientRegisterService the soul client register service
-         * @param selectorService the selector service
-         * @param selectorMapper the selector mapper
-         * @param eventPublisher the event publisher
          * @return the soul server register repository
          */
         @Bean
         public SoulServerRegisterRepository soulServerRegisterRepository(final SoulRegisterCenterConfig soulRegisterCenterConfig,
-                                                                         final SoulClientRegisterService soulClientRegisterService,
-                                                                         final SelectorService selectorService,
-                                                                         final SelectorMapper selectorMapper,
-                                                                         final ApplicationEventPublisher eventPublisher) {
+                                                                         final SoulClientRegisterService soulClientRegisterService) {
+                                                                       
             log.info("you use zookeeper register center");
             SoulServerMetaDataRegisterEventPublisher publisher = SoulServerMetaDataRegisterEventPublisher.getInstance();
-            publisher.start(soulClientRegisterService, selectorService, selectorMapper, eventPublisher);
+            publisher.start(soulClientRegisterService);
             return new ZookeeperServerRegisterRepository(publisher, soulRegisterCenterConfig);
         }
     }
