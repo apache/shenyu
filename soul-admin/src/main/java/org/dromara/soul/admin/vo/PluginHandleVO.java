@@ -84,16 +84,6 @@ public class PluginHandleVO implements Serializable {
     private String extObj;
 
     /**
-     * the attribute default value.
-     */
-    private String defaultValue;
-
-    /**
-     * the attribute default value rule.
-     */
-    private String rule;
-
-    /**
      * created time.
      */
     private String dateCreated;
@@ -117,7 +107,6 @@ public class PluginHandleVO implements Serializable {
                 .map(it -> new PluginHandleVO(pluginHandleDO.getId(), pluginHandleDO.getPluginId(),
                         pluginHandleDO.getField(), pluginHandleDO.getLabel(),
                         pluginHandleDO.getDataType(), pluginHandleDO.getType(), pluginHandleDO.getSort(), pluginHandleDO.getExtObj(),
-                        pluginHandleDO.getDefaultValue(), pluginHandleDO.getRule(),
                         DateUtils.localDateTimeToString(pluginHandleDO.getDateCreated().toLocalDateTime()),
                         DateUtils.localDateTimeToString(pluginHandleDO.getDateUpdated().toLocalDateTime()), dictOptions))
                 .orElse(null);

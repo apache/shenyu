@@ -80,16 +80,6 @@ public final class PluginHandleDO extends BaseDO {
     private String extObj;
 
     /**
-     * the attribute default value.
-     */
-    private String defaultValue;
-
-    /**
-     * the attribute default value rule.
-     */
-    private String rule;
-
-    /**
      * build {@linkplain PluginHandleDO} instance.
      * @param pluginHandleDTO {@linkplain PluginHandleDTO}
      * @return {@linkplain PluginHandleDO}
@@ -105,8 +95,6 @@ public final class PluginHandleDO extends BaseDO {
                     .type(item.getType())
                     .sort(item.getSort())
                     .extObj(item.getExtObj())
-                    .defaultValue(item.getDefaultValue())
-                    .rule(item.getRule())
                     .build();
             if (StringUtils.isEmpty(item.getId())) {
                 pluginHandleDO.setId(UUIDUtils.getInstance().generateShortUuid());
