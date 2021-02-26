@@ -17,6 +17,7 @@
 
 package org.dromara.soul.register.server.api;
 
+import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
 import org.dromara.soul.register.server.api.listener.DataChangedEvent;
 
 /**
@@ -25,13 +26,13 @@ import org.dromara.soul.register.server.api.listener.DataChangedEvent;
  * @author lw1243925457
  */
 public interface SoulSeverRegisterCenterEventPublisher {
-
+    
     /**
      * publish event.
      *
      * @param eventType data event type
      * @param key key
-     * @param value value
+     * @param metaDataRegisterDTO the meta data register dto
      */
-    void publishEvent(DataChangedEvent.Type eventType, String key, Object value);
+    void publishEvent(DataChangedEvent.Type eventType, String key, MetaDataRegisterDTO metaDataRegisterDTO);
 }

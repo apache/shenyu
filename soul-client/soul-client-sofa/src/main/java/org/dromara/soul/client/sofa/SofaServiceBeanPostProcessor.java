@@ -20,7 +20,6 @@ package org.dromara.soul.client.sofa;
 
 import com.alipay.sofa.runtime.service.component.Service;
 import com.alipay.sofa.runtime.spring.factory.ServiceFactoryBean;
-import com.google.gson.Gson;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Objects;
@@ -36,9 +35,10 @@ import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
 import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
 import org.dromara.soul.client.sofa.common.annotation.SoulSofaClient;
 import org.dromara.soul.client.sofa.common.dto.SofaRpcExt;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
-import org.dromara.soul.register.common.dto.MetaDataDTO;
+import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.util.ClassUtils;
@@ -54,8 +54,6 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
     
     private SoulClientRegisterEventPublisher publisher = SoulClientRegisterEventPublisher.getInstance();
     
-    private Gson gson = new Gson();
-
     private final ExecutorService executorService;
     
     private final String contextPath;
@@ -110,7 +108,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
         }
     }
 
-    private MetaDataDTO buildMetaDataDTO(final ServiceFactoryBean serviceBean, final SoulSofaClient soulSofaClient, final Method method) {
+    private MetaDataRegisterDTO buildMetaDataDTO(final ServiceFactoryBean serviceBean, final SoulSofaClient soulSofaClient, final Method method) {
         String appName = this.appName;
         String path = contextPath + soulSofaClient.path();
         String desc = soulSofaClient.desc();
@@ -121,7 +119,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
         String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
                 .collect(Collectors.joining(","));
-        return MetaDataDTO.builder()
+        return MetaDataRegisterDTO.builder()
                 .appName(appName)
                 .serviceName(serviceName)
                 .methodName(methodName)
@@ -142,6 +140,6 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
                 .retries(soulSofaClient.retries())
                 .timeout(soulSofaClient.timeout())
                 .build();
-        return gson.toJson(build);
+        return GsonUtils.getInstance().toJson(build);
     }
 }

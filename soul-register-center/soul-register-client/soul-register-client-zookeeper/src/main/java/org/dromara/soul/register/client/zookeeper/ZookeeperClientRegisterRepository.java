@@ -27,7 +27,7 @@ import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
-import org.dromara.soul.register.common.dto.MetaDataDTO;
+import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
 import org.dromara.soul.register.common.path.ZkRegisterPathConstants;
 import org.dromara.soul.spi.Join;
 
@@ -62,7 +62,7 @@ public class ZookeeperClientRegisterRepository implements SoulClientRegisterRepo
      * @param metadata  metadata
      */
     @Override
-    public void persistInterface(final MetaDataDTO metadata) {
+    public void persistInterface(final MetaDataRegisterDTO metadata) {
         String rpcType = metadata.getRpcType();
         String contextPath = metadata.getContextPath().substring(1);
         String nodeName;
@@ -113,7 +113,7 @@ public class ZookeeperClientRegisterRepository implements SoulClientRegisterRepo
     }
     
     private void updateZkNode(final String rpcType, final String contextPath, final String nodeName,
-                              final MetaDataDTO data) {
+                              final MetaDataRegisterDTO data) {
         String childPath = String.join(PATH_SEPARATOR, rootPath, rpcType, contextPath, "metadata");
         String nodePath = String.join(PATH_SEPARATOR, childPath, nodeName);
 

@@ -18,9 +18,13 @@
 
 package org.dromara.soul.register.common.dto;
 
-import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * The type Meta data dto.
@@ -29,7 +33,9 @@ import lombok.Data;
  */
 @Data
 @Builder
-public class MetaDataDTO {
+@NoArgsConstructor
+@AllArgsConstructor
+public class MetaDataRegisterDTO implements Serializable {
     
     private String appName;
     
