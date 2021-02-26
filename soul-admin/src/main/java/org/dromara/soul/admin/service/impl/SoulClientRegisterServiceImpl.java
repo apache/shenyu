@@ -18,13 +18,10 @@
 package org.dromara.soul.admin.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
-import org.dromara.soul.admin.dto.SpringCloudRegisterDTO;
-import org.dromara.soul.admin.dto.SpringMvcRegisterDTO;
-import org.dromara.soul.admin.dto.MetaDataDTO;
-import org.dromara.soul.admin.dto.SelectorDTO;
-import org.dromara.soul.admin.dto.SelectorConditionDTO;
-import org.dromara.soul.admin.dto.RuleDTO;
 import org.dromara.soul.admin.dto.RuleConditionDTO;
+import org.dromara.soul.admin.dto.RuleDTO;
+import org.dromara.soul.admin.dto.SelectorConditionDTO;
+import org.dromara.soul.admin.dto.SelectorDTO;
 import org.dromara.soul.admin.entity.MetaDataDO;
 import org.dromara.soul.admin.entity.PluginDO;
 import org.dromara.soul.admin.entity.RuleDO;
@@ -46,14 +43,15 @@ import org.dromara.soul.common.dto.convert.rule.RuleHandleFactory;
 import org.dromara.soul.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
-import org.dromara.soul.common.enums.SelectorTypeEnum;
 import org.dromara.soul.common.enums.MatchModeEnum;
-import org.dromara.soul.common.enums.RpcTypeEnum;
-import org.dromara.soul.common.enums.PluginEnum;
-import org.dromara.soul.common.enums.ParamTypeEnum;
 import org.dromara.soul.common.enums.OperatorEnum;
+import org.dromara.soul.common.enums.ParamTypeEnum;
+import org.dromara.soul.common.enums.PluginEnum;
+import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.dromara.soul.common.enums.SelectorTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.UUIDUtils;
+import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -122,7 +120,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
 
     @Override
     @Transactional
-    public String registerSpringMvc(final SpringMvcRegisterDTO dto) {
+    public String registerSpringMvc(final MetaDataRegisterDTO dto) {
         if (dto.isRegisterMetaData()) {
             MetaDataDO exist = metaDataMapper.findByPath(dto.getPath());
             if (Objects.isNull(exist)) {
@@ -136,8 +134,8 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
 
     @Override
     @Transactional
-    public synchronized String registerSpringCloud(final SpringCloudRegisterDTO dto) {
-        MetaDataDO metaDataDO = metaDataMapper.findByPath(dto.getContext() + "/**");
+    public synchronized String registerSpringCloud(final MetaDataRegisterDTO dto) {
+        MetaDataDO metaDataDO = metaDataMapper.findByPath(dto.getContextPath() + "/**");
         if (Objects.isNull(metaDataDO)) {
             saveSpringCloudMetaData(dto);
         }
@@ -148,7 +146,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
 
     @Override
     @Transactional
-    public String registerDubbo(final MetaDataDTO dto) {
+    public String registerDubbo(final MetaDataRegisterDTO dto) {
         MetaDataDO exist = metaDataMapper.findByPath(dto.getPath());
         saveOrUpdateMetaData(exist, dto);
         String selectorId = handlerDubboSelector(dto);
@@ -156,34 +154,12 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         return SoulResultMessage.SUCCESS;
     }
 
-    private String handlerDubboSelector(final MetaDataDTO metaDataDTO) {
-        return getString(metaDataDTO);
-    }
-
-    private String getString(final MetaDataDTO metaDataDTO) {
-        SelectorDO selectorDO = selectorService.findByName(metaDataDTO.getContextPath());
-        String selectorId;
-        if (Objects.isNull(selectorDO)) {
-            selectorId = registerSelector(metaDataDTO.getContextPath(), metaDataDTO.getRpcType(), metaDataDTO.getAppName(), "");
-        } else {
-            selectorId = selectorDO.getId();
-        }
-        return selectorId;
-    }
-
-    private void handlerDubboRule(final String selectorId, final MetaDataDTO metaDataDTO) {
-        RuleDO existRule = ruleMapper.findByName(metaDataDTO.getPath());
-        if (Objects.isNull(existRule)) {
-            registerRule(selectorId, metaDataDTO.getPath(), metaDataDTO.getRpcType(), metaDataDTO.getRuleName());
-        }
-    }
-
     @Override
-    public String registerSofa(final MetaDataDTO dto) {
-        MetaDataDO byPath = metaDataMapper.findByPath(dto.getPath());
-        if (Objects.nonNull(byPath)
-                && (!byPath.getMethodName().equals(dto.getMethodName())
-                || !byPath.getServiceName().equals(dto.getServiceName()))) {
+    public String registerSofa(final MetaDataRegisterDTO dto) {
+        MetaDataDO metaDataDO = metaDataMapper.findByPath(dto.getPath());
+        if (Objects.nonNull(metaDataDO)
+                && (!metaDataDO.getMethodName().equals(dto.getMethodName())
+                || !metaDataDO.getServiceName().equals(dto.getServiceName()))) {
             return "you path already exist!";
         }
         final MetaDataDO exist = metaDataMapper.findByServiceNameAndMethod(dto.getServiceName(), dto.getMethodName());
@@ -194,7 +170,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     }
 
     @Override
-    public String registerTars(final MetaDataDTO dto) {
+    public String registerTars(final MetaDataRegisterDTO dto) {
         MetaDataDO byPath = metaDataMapper.findByPath(dto.getPath());
         if (Objects.nonNull(byPath)
                 && (!byPath.getMethodName().equals(dto.getMethodName())
@@ -209,48 +185,70 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     }
 
     @Override
-    public String registerGrpc(final MetaDataDTO dto) {
+    public String registerGrpc(final MetaDataRegisterDTO dto) {
         MetaDataDO exist = metaDataMapper.findByPath(dto.getPath());
         saveOrUpdateMetaData(exist, dto);
         String selectorId = handlerGrpcSelector(dto);
         handlerGrpcRule(selectorId, dto, exist);
         return SoulResultMessage.SUCCESS;
     }
+    
+    private String handlerDubboSelector(final MetaDataRegisterDTO metaDataDTO) {
+        return getString(metaDataDTO);
+    }
+    
+    private String getString(final MetaDataRegisterDTO metaDataDTO) {
+        SelectorDO selectorDO = selectorService.findByName(metaDataDTO.getContextPath());
+        String selectorId;
+        if (Objects.isNull(selectorDO)) {
+            selectorId = registerSelector(metaDataDTO.getContextPath(), metaDataDTO.getRpcType(), metaDataDTO.getAppName(), "");
+        } else {
+            selectorId = selectorDO.getId();
+        }
+        return selectorId;
+    }
+    
+    private void handlerDubboRule(final String selectorId, final MetaDataRegisterDTO metaDataDTO) {
+        RuleDO existRule = ruleMapper.findByName(metaDataDTO.getPath());
+        if (Objects.isNull(existRule)) {
+            registerRule(selectorId, metaDataDTO.getPath(), metaDataDTO.getRpcType(), metaDataDTO.getRuleName());
+        }
+    }
 
-    private String handlerTarsSelector(final MetaDataDTO metaDataDTO) {
+    private String handlerTarsSelector(final MetaDataRegisterDTO metaDataDTO) {
         return getString(metaDataDTO);
     }
 
-    private void handlerTarsRule(final String selectorId, final MetaDataDTO metaDataDTO, final MetaDataDO exist) {
+    private void handlerTarsRule(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final MetaDataDO exist) {
         RuleDO existRule = ruleMapper.findByName(metaDataDTO.getPath());
         if (Objects.isNull(exist) || Objects.isNull(existRule)) {
             registerRule(selectorId, metaDataDTO.getPath(), metaDataDTO.getRpcType(), metaDataDTO.getRuleName());
         }
     }
 
-    private String handlerSofaSelector(final MetaDataDTO metaDataDTO) {
+    private String handlerSofaSelector(final MetaDataRegisterDTO metaDataDTO) {
         return getString(metaDataDTO);
     }
 
-    private void handlerSofaRule(final String selectorId, final MetaDataDTO metaDataDTO, final MetaDataDO exist) {
+    private void handlerSofaRule(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final MetaDataDO exist) {
         RuleDO existRule = ruleMapper.findByName(metaDataDTO.getPath());
         if (Objects.isNull(exist) || Objects.isNull(existRule)) {
             registerRule(selectorId, metaDataDTO.getPath(), metaDataDTO.getRpcType(), metaDataDTO.getRuleName());
         }
     }
 
-    private String handlerGrpcSelector(final MetaDataDTO metaDataDTO) {
+    private String handlerGrpcSelector(final MetaDataRegisterDTO metaDataDTO) {
         return getString(metaDataDTO);
     }
 
-    private void handlerGrpcRule(final String selectorId, final MetaDataDTO metaDataDTO, final MetaDataDO exist) {
+    private void handlerGrpcRule(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final MetaDataDO exist) {
         RuleDO existRule = ruleMapper.findByName(metaDataDTO.getPath());
         if (Objects.isNull(exist) || Objects.isNull(existRule)) {
             registerRule(selectorId, metaDataDTO.getPath(), metaDataDTO.getRpcType(), metaDataDTO.getRuleName());
         }
     }
 
-    private void saveSpringMvcMetaData(final SpringMvcRegisterDTO dto) {
+    private void saveSpringMvcMetaData(final MetaDataRegisterDTO dto) {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         MetaDataDO metaDataDO = MetaDataDO.builder()
                 .appName(dto.getAppName())
@@ -268,14 +266,14 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
                 Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDO))));
     }
 
-    private void saveSpringCloudMetaData(final SpringCloudRegisterDTO dto) {
+    private void saveSpringCloudMetaData(final MetaDataRegisterDTO dto) {
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
         MetaDataDO metaDataDO = MetaDataDO.builder()
                 .appName(dto.getAppName())
-                .path(dto.getContext() + "/**")
+                .path(dto.getContextPath() + "/**")
                 .pathDesc(dto.getAppName() + "spring cloud meta data info")
                 .serviceName(dto.getAppName())
-                .methodName(dto.getContext())
+                .methodName(dto.getContextPath())
                 .rpcType(dto.getRpcType())
                 .enabled(dto.isEnabled())
                 .id(UUIDUtils.getInstance().generateShortUuid())
@@ -288,9 +286,9 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
                 Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDO))));
     }
 
-    private void saveOrUpdateMetaData(final MetaDataDO exist, final MetaDataDTO metaDataDTO) {
+    private void saveOrUpdateMetaData(final MetaDataDO exist, final MetaDataRegisterDTO metaDataDTO) {
         DataEventTypeEnum eventType;
-        MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataDTO);
+        MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapRegisterDTOToEntity(metaDataDTO);
         if (Objects.isNull(exist)) {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             metaDataDO.setId(UUIDUtils.getInstance().generateShortUuid());
@@ -305,11 +303,11 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         }
         // publish MetaData's event
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, eventType,
-                Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDTO))));
+                Collections.singletonList(MetaDataTransfer.INSTANCE.mapRegisterDTOToEntity(metaDataDTO))));
     }
 
-    private String handlerSpringMvcSelector(final SpringMvcRegisterDTO dto) {
-        String contextPath = dto.getContext();
+    private String handlerSpringMvcSelector(final MetaDataRegisterDTO dto) {
+        String contextPath = dto.getContextPath();
         SelectorDO selectorDO = selectorService.findByName(contextPath);
         String selectorId;
         String uri = String.join(":", dto.getHost(), String.valueOf(dto.getPort()));
@@ -347,15 +345,15 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         return selectorId;
     }
 
-    private void handlerSpringMvcRule(final String selectorId, final SpringMvcRegisterDTO dto) {
+    private void handlerSpringMvcRule(final String selectorId, final MetaDataRegisterDTO dto) {
         RuleDO ruleDO = ruleMapper.findByName(dto.getRuleName());
         if (Objects.isNull(ruleDO)) {
             registerRule(selectorId, dto.getPath(), dto.getRpcType(), dto.getRuleName());
         }
     }
 
-    private String handlerSpringCloudSelector(final SpringCloudRegisterDTO dto) {
-        String contextPath = dto.getContext();
+    private String handlerSpringCloudSelector(final MetaDataRegisterDTO dto) {
+        String contextPath = dto.getContextPath();
         SelectorDO selectorDO = selectorService.findByName(contextPath);
         if (Objects.isNull(selectorDO)) {
             return registerSelector(contextPath, dto.getRpcType(), dto.getAppName(), "");
@@ -364,7 +362,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         }
     }
 
-    private void handlerSpringCloudRule(final String selectorId, final SpringCloudRegisterDTO dto) {
+    private void handlerSpringCloudRule(final String selectorId, final MetaDataRegisterDTO dto) {
         RuleDO ruleDO = ruleMapper.findByName(dto.getRuleName());
         if (Objects.isNull(ruleDO)) {
             registerRule(selectorId, dto.getPath(), dto.getRpcType(), dto.getRuleName());

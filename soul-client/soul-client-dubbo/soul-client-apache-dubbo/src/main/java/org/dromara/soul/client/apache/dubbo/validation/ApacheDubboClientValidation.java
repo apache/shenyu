@@ -27,6 +27,7 @@ import org.apache.dubbo.validation.Validator;
  * @author KevinClair
  */
 public class ApacheDubboClientValidation implements Validation {
+    
     @Override
     public Validator getValidator(final URL url) {
         return new ApacheDubboClientValidator(url);

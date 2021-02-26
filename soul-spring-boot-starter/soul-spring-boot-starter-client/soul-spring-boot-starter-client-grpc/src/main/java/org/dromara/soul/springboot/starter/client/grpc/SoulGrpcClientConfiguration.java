@@ -19,7 +19,7 @@
 package org.dromara.soul.springboot.starter.client.grpc;
 
 import org.dromara.soul.client.grpc.GrpcClientBeanPostProcessor;
-import org.dromara.soul.client.grpc.common.config.GrpcConfig;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,25 +31,26 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class SoulGrpcClientConfiguration {
+    
     /**
-     * Grpc service bean post processor sofa service bean post processor.
+     * Grpc service bean post processor grpc client bean post processor.
      *
-     * @param grpcConfig the sofa config
-     * @return the grpc service bean post processor
+     * @param registerCenterConfig the register center config
+     * @return the grpc client bean post processor
      */
     @Bean
-    public GrpcClientBeanPostProcessor grpcServiceBeanPostProcessor(final GrpcConfig grpcConfig) {
-        return new GrpcClientBeanPostProcessor(grpcConfig);
+    public GrpcClientBeanPostProcessor grpcServiceBeanPostProcessor(final SoulRegisterCenterConfig registerCenterConfig) {
+        return new GrpcClientBeanPostProcessor(registerCenterConfig);
     }
-
+    
     /**
-     * Grpc config sofa config.
+     * Soul Register Center Config.
      *
-     * @return the grpc config
+     * @return the Register Center Config
      */
     @Bean
-    @ConfigurationProperties(prefix = "soul.grpc")
-    public GrpcConfig grpcConfig() {
-        return new GrpcConfig();
+    @ConfigurationProperties(prefix = "soul.client")
+    public SoulRegisterCenterConfig soulRegisterCenterConfig() {
+        return new SoulRegisterCenterConfig();
     }
 }

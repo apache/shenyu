@@ -36,7 +36,7 @@ public class HelloServantImpl implements HelloServant {
 
     @Override
     @SoulTarsClient(path = "/helloInt")
-    public Integer helloInt(int no, String name) {
+    public int helloInt(int no, String name) {
         return 1;
     }
 }

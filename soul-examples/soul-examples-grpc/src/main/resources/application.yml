@@ -23,16 +23,20 @@ spring:
   application:
     name: grpc-test
 
+
+soul:
+  client:
+    registerType: http
+    serverLists: http://localhost:9095
+    #    registerType: zookeeper
+    #    serverLists: localhost:2181
+    props:
+      contextPath: /grpc
+      appName: grpc
+      ipAndPort: 127.0.0.1:8080
+    
 logging:
   level:
     root: info
     org.dromara.soul: debug
-  path: "./logs"
 
-soul:
-  grpc:
-    adminUrl: http://localhost:9095
-    contextPath: /grpc
-    appName: grpc
-    host: 127.0.0.1
-    port: 8080

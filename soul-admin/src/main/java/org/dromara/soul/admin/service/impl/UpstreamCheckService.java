@@ -19,13 +19,6 @@ package org.dromara.soul.admin.service.impl;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.admin.entity.PluginDO;
@@ -50,6 +43,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 /**
  * this is divide  http url upstream.
  *
@@ -67,6 +68,9 @@ public class UpstreamCheckService {
     @Value("${soul.upstream.scheduledTime:10}")
     private int scheduledTime;
 
+    @Value("soul.register.registerType:http")
+    private String registerType;
+    
     private final SelectorMapper selectorMapper;
 
     private final ApplicationEventPublisher eventPublisher;

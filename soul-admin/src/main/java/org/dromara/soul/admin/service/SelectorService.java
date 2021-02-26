@@ -49,6 +49,14 @@ public interface SelectorService {
      * @return rows int
      */
     int createOrUpdate(SelectorDTO selectorDTO);
+    
+    /**
+     * update selective selector.
+     *
+     * @param selectorDO {@linkplain SelectorDO}
+     * @return rows int
+     */
+    int updateSelective(SelectorDO selectorDO);
 
     /**
      * delete selectors.
@@ -89,8 +97,7 @@ public interface SelectorService {
      * @return {@linkplain CommonPager}
      */
     CommonPager<SelectorVO> listByPage(SelectorQuery selectorQuery);
-
-
+    
     /**
      * Find by plugin id list.
      *

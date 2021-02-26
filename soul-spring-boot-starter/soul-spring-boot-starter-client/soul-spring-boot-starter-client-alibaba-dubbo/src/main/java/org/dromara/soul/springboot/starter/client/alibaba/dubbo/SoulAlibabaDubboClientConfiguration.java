@@ -18,7 +18,7 @@
 package org.dromara.soul.springboot.starter.client.alibaba.dubbo;
 
 import org.dromara.soul.client.alibaba.dubbo.AlibabaDubboServiceBeanPostProcessor;
-import org.dromara.soul.client.dubbo.common.config.DubboConfig;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,22 +34,22 @@ public class SoulAlibabaDubboClientConfiguration {
     /**
      * Alibaba dubbo service bean post processor alibaba dubbo service bean post processor.
      *
-     * @param dubboConfig the dubbo config
+     * @param config the config
      * @return the alibaba dubbo service bean post processor
      */
     @Bean
-    public AlibabaDubboServiceBeanPostProcessor alibabaDubboServiceBeanPostProcessor(final DubboConfig dubboConfig) {
-        return new AlibabaDubboServiceBeanPostProcessor(dubboConfig);
+    public AlibabaDubboServiceBeanPostProcessor alibabaDubboServiceBeanPostProcessor(final SoulRegisterCenterConfig config) {
+        return new AlibabaDubboServiceBeanPostProcessor(config);
     }
     
     /**
-     * Dubbo config dubbo config.
+     * Dubbo config soul register center config.
      *
-     * @return the dubbo config
+     * @return the soul register center config
      */
     @Bean
-    @ConfigurationProperties(prefix = "soul.dubbo")
-    public DubboConfig dubboConfig() {
-        return new DubboConfig();
+    @ConfigurationProperties(prefix = "soul.client")
+    public SoulRegisterCenterConfig soulRegisterCenterConfig() {
+        return new SoulRegisterCenterConfig();
     }
 }

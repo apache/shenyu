@@ -17,30 +17,33 @@
 
 package org.dromara.soul.client.apache.dubbo;
 
-import lombok.extern.slf4j.Slf4j;
-import org.apache.dubbo.common.Constants;
-import org.apache.dubbo.common.utils.StringUtils;
-import org.apache.dubbo.config.spring.ServiceBean;
-import org.dromara.soul.client.common.utils.OkHttpTools;
-import org.dromara.soul.client.common.utils.RegisterUtils;
-import org.dromara.soul.client.dubbo.common.annotation.SoulDubboClient;
-import org.dromara.soul.client.dubbo.common.config.DubboConfig;
-import org.dromara.soul.client.dubbo.common.dto.MetaDataDTO;
-import org.dromara.soul.common.enums.RpcTypeEnum;
-import org.springframework.aop.support.AopUtils;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.util.ReflectionUtils;
-
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.dubbo.common.Constants;
+import org.apache.dubbo.common.utils.StringUtils;
+import org.apache.dubbo.config.spring.ServiceBean;
+import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
+import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
+import org.dromara.soul.client.dubbo.common.annotation.SoulDubboClient;
+import org.dromara.soul.client.dubbo.common.dto.DubboRpcExt;
+import org.dromara.soul.common.utils.GsonUtils;
+import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
+import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * The Apache Dubbo ServiceBean PostProcessor.
@@ -48,29 +51,36 @@ import java.util.stream.Collectors;
  * @author xiaoyu
  */
 @Slf4j
+@SuppressWarnings("all")
 public class ApacheDubboServiceBeanPostProcessor implements ApplicationListener<ContextRefreshedEvent> {
-
-    private DubboConfig dubboConfig;
-
+    
+    private SoulClientRegisterEventPublisher soulClientRegisterEventPublisher = SoulClientRegisterEventPublisher.getInstance();
+    
+    private final AtomicBoolean registered = new AtomicBoolean(false);
+    
     private ExecutorService executorService;
-
-    private final String url;
-
-    public ApacheDubboServiceBeanPostProcessor(final DubboConfig dubboConfig) {
-        String contextPath = dubboConfig.getContextPath();
-        String adminUrl = dubboConfig.getAdminUrl();
-        if (StringUtils.isEmpty(contextPath)
-                || StringUtils.isEmpty(adminUrl)) {
-            throw new RuntimeException("apache dubbo client must config the contextPath, adminUrl");
+    
+    private String contextPath;
+    
+    private String appName;
+    
+    public ApacheDubboServiceBeanPostProcessor(final SoulRegisterCenterConfig config) {
+        Properties props = config.getProps();
+        String contextPath = props.getProperty("contextPath");
+        String appName = props.getProperty("appName");
+        if (StringUtils.isEmpty(contextPath)) {
+            throw new RuntimeException("apache dubbo client must config the contextPath");
         }
-        this.dubboConfig = dubboConfig;
-        url = dubboConfig.getAdminUrl() + "/soul-client/dubbo-register";
+        this.contextPath = contextPath;
+        this.appName = appName;
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        SoulClientRegisterRepository soulClientRegisterRepository = SoulClientRegisterRepositoryFactory.newInstance(config);
+        soulClientRegisterEventPublisher.start(soulClientRegisterRepository);
     }
 
     private void handler(final ServiceBean serviceBean) {
         Class<?> clazz = serviceBean.getRef().getClass();
-        if (AopUtils.isCglibProxy(clazz)) {
+        if (ClassUtils.isCglibProxyClass(clazz)) {
             String superClassName = clazz.getGenericSuperclass().getTypeName();
             try {
                 clazz = Class.forName(superClassName);
@@ -83,30 +93,29 @@ public class ApacheDubboServiceBeanPostProcessor implements ApplicationListener<
         for (Method method : methods) {
             SoulDubboClient soulDubboClient = method.getAnnotation(SoulDubboClient.class);
             if (Objects.nonNull(soulDubboClient)) {
-                RegisterUtils.doRegister(buildJsonParams(serviceBean, soulDubboClient, method), url, RpcTypeEnum.DUBBO);
+                soulClientRegisterEventPublisher.publishEvent(buildMetaDataDTO(serviceBean, soulDubboClient, method));
             }
         }
     }
 
-    private String buildJsonParams(final ServiceBean serviceBean, final SoulDubboClient soulDubboClient, final Method method) {
-        String appName = dubboConfig.getAppName();
+    private MetaDataRegisterDTO buildMetaDataDTO(final ServiceBean serviceBean, final SoulDubboClient soulDubboClient, final Method method) {
+        String appName = this.appName;
         if (StringUtils.isEmpty(appName)) {
             appName = serviceBean.getApplication().getName();
         }
-        String path = dubboConfig.getContextPath() + soulDubboClient.path();
+        String path = contextPath + soulDubboClient.path();
         String desc = soulDubboClient.desc();
         String serviceName = serviceBean.getInterface();
         String configRuleName = soulDubboClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
-        String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
-                .collect(Collectors.joining(","));
-        MetaDataDTO metaDataDTO = MetaDataDTO.builder()
+        String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName).collect(Collectors.joining(","));
+        return MetaDataRegisterDTO.builder()
                 .appName(appName)
                 .serviceName(serviceName)
                 .methodName(methodName)
-                .contextPath(dubboConfig.getContextPath())
+                .contextPath(contextPath)
                 .path(path)
                 .ruleName(ruleName)
                 .pathDesc(desc)
@@ -115,12 +124,10 @@ public class ApacheDubboServiceBeanPostProcessor implements ApplicationListener<
                 .rpcType("dubbo")
                 .enabled(soulDubboClient.enabled())
                 .build();
-        return OkHttpTools.getInstance().getGson().toJson(metaDataDTO);
-
     }
 
     private String buildRpcExt(final ServiceBean serviceBean) {
-        MetaDataDTO.RpcExt build = MetaDataDTO.RpcExt.builder()
+        DubboRpcExt build = DubboRpcExt.builder()
                 .group(StringUtils.isNotEmpty(serviceBean.getGroup()) ? serviceBean.getGroup() : "")
                 .version(StringUtils.isNotEmpty(serviceBean.getVersion()) ? serviceBean.getVersion() : "")
                 .loadbalance(StringUtils.isNotEmpty(serviceBean.getLoadbalance()) ? serviceBean.getLoadbalance() : Constants.DEFAULT_LOADBALANCE)
@@ -128,13 +135,12 @@ public class ApacheDubboServiceBeanPostProcessor implements ApplicationListener<
                 .timeout(Objects.isNull(serviceBean.getTimeout()) ? Constants.DEFAULT_CONNECT_TIMEOUT : serviceBean.getTimeout())
                 .url("")
                 .build();
-        return OkHttpTools.getInstance().getGson().toJson(build);
-
+        return GsonUtils.getInstance().toJson(build);
     }
 
     @Override
     public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
-        if (Objects.nonNull(contextRefreshedEvent.getApplicationContext().getParent())) {
+        if (!registered.compareAndSet(false, true)) {
             return;
         }
         // Fix bug(https://github.com/dromara/soul/issues/415), upload dubbo metadata on ContextRefreshedEvent
