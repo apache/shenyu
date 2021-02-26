@@ -8,6 +8,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
+ * this is zombie divide upstream.
  * @author zhangzm
  * @date 2021/2/25 19:08
  */
@@ -19,13 +20,29 @@ import lombok.ToString;
 @Builder
 public class ZombieUpstream {
 
-	private DivideUpstream divideUpstream;
+    /**
+     * divide upstream
+     */
+    private DivideUpstream divideUpstream;
 
-	private int zombieCheckTimes;
+    /**
+     * total check times
+     */
+    private int zombieCheckTimes;
 
-	private String selectorName;
+    /**
+     * origin selector name
+     */
+    private String selectorName;
 
-	public static ZombieUpstream transform(DivideUpstream divideUpstream,int zombieCheckTimes,String selectorName) {
-		return ZombieUpstream.builder().divideUpstream(divideUpstream).zombieCheckTimes(zombieCheckTimes).selectorName(selectorName).build();
-	}
+    /**
+     * create zombie upstream with divide upstream
+     * @param divideUpstream
+     * @param zombieCheckTimes
+     * @param selectorName
+     * @return
+     */
+    public static ZombieUpstream transform(DivideUpstream divideUpstream,int zombieCheckTimes,String selectorName) {
+        return ZombieUpstream.builder().divideUpstream(divideUpstream).zombieCheckTimes(zombieCheckTimes).selectorName(selectorName).build();
+    }
 }
