@@ -149,7 +149,7 @@ public class UpstreamCheckService {
             if (!exists.isPresent()) {
                 UPSTREAM_MAP.get(selectorName).add(divideUpstream);
             } else {
-                log.info("upstream host {} is exists.",divideUpstream.getUpstreamHost());
+                log.info("upstream host {} is exists.", divideUpstream.getUpstreamHost());
             }
         } else {
             UPSTREAM_MAP.put(selectorName, Lists.newArrayList(divideUpstream));
@@ -174,12 +174,12 @@ public class UpstreamCheckService {
             if (UPSTREAM_MAP.size() > 0) {
                 UPSTREAM_MAP.forEach(this::check);
             }
-        } catch (Throwable throwable) {
-            log.error("upstream scheduled check error -------- ",throwable);
+        } catch (Exception e) {
+            log.error("upstream scheduled check error -------- ", e);
         }
     }
 
-    private void checkZombie(ZombieUpstream zombieUpstream) {
+    private void checkZombie(final ZombieUpstream zombieUpstream) {
         ZOMBIE_SET.remove(zombieUpstream);
         String selectorName = zombieUpstream.getSelectorName();
         DivideUpstream divideUpstream = zombieUpstream.getDivideUpstream();
@@ -188,8 +188,8 @@ public class UpstreamCheckService {
             divideUpstream.setTimestamp(System.currentTimeMillis());
             divideUpstream.setStatus(true);
             log.info("UpstreamCacheManager check zombie upstream success the url: {}, host: {} ", divideUpstream.getUpstreamUrl(), divideUpstream.getUpstreamHost());
-            List<DivideUpstream> old = ListUtils.unmodifiableList(UPSTREAM_MAP.getOrDefault(selectorName,Collections.emptyList()));
-            this.submit(selectorName,divideUpstream);
+            List<DivideUpstream> old = ListUtils.unmodifiableList(UPSTREAM_MAP.getOrDefault(selectorName, Collections.emptyList()));
+            this.submit(selectorName, divideUpstream);
             updateHandler(selectorName, old, UPSTREAM_MAP.get(selectorName));
         } else {
             log.error("check zombie upstream the url={} is fail", divideUpstream.getUpstreamUrl());
@@ -220,7 +220,7 @@ public class UpstreamCheckService {
         updateHandler(selectorName, upstreamList, successList);
     }
 
-    private void updateHandler(String selectorName, List<DivideUpstream> upstreamList, List<DivideUpstream> successList) {
+    private void updateHandler(final String selectorName, final List<DivideUpstream> upstreamList, final List<DivideUpstream> successList) {
         //无节点变化，包括僵尸节点复活 及 活节点死亡
         if (successList.size() == upstreamList.size()) {
             return;
