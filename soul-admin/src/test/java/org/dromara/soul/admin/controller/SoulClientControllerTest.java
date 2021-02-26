@@ -17,11 +17,9 @@
 
 package org.dromara.soul.admin.controller;
 
-import org.dromara.soul.admin.dto.MetaDataDTO;
-import org.dromara.soul.admin.dto.SpringCloudRegisterDTO;
-import org.dromara.soul.admin.dto.SpringMvcRegisterDTO;
 import org.dromara.soul.admin.service.SoulClientRegisterService;
 import org.dromara.soul.common.utils.GsonUtils;
+import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,7 +56,7 @@ public final class SoulClientControllerTest {
 
     @Test
     public void testRegisterSpringMvc() throws Exception {
-        final SpringMvcRegisterDTO springMvcRegisterDTO = buildSpringMvcRegisterDTO();
+        final MetaDataRegisterDTO springMvcRegisterDTO = buildSpringMvcRegisterDTO();
         given(this.soulClientRegisterService.registerSpringMvc(springMvcRegisterDTO)).willReturn("success");
         this.mockMvc.perform(MockMvcRequestBuilders.post("/soul-client/springmvc-register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -67,8 +65,8 @@ public final class SoulClientControllerTest {
                 .andReturn();
     }
 
-    private SpringMvcRegisterDTO buildSpringMvcRegisterDTO() {
-        SpringMvcRegisterDTO springMvcRegisterDTO = new SpringMvcRegisterDTO();
+    private MetaDataRegisterDTO buildSpringMvcRegisterDTO() {
+        MetaDataRegisterDTO springMvcRegisterDTO = new MetaDataRegisterDTO();
         springMvcRegisterDTO.setAppName("appName1");
         springMvcRegisterDTO.setContextPath("content1");
         springMvcRegisterDTO.setPath("path1");
@@ -84,7 +82,7 @@ public final class SoulClientControllerTest {
 
     @Test
     public void testRegisterSpringCloud() throws Exception {
-        final SpringCloudRegisterDTO springCloudRegisterDTO = buildCloudRegisterDTO();
+        final MetaDataRegisterDTO springCloudRegisterDTO = buildCloudRegisterDTO();
         given(this.soulClientRegisterService.registerSpringCloud(springCloudRegisterDTO)).willReturn("success");
         this.mockMvc.perform(MockMvcRequestBuilders.post("/soul-client/springcloud-register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -93,8 +91,8 @@ public final class SoulClientControllerTest {
                 .andReturn();
     }
 
-    private SpringCloudRegisterDTO buildCloudRegisterDTO() {
-        SpringCloudRegisterDTO springCloudRegisterDTO = new SpringCloudRegisterDTO();
+    private MetaDataRegisterDTO buildCloudRegisterDTO() {
+        MetaDataRegisterDTO springCloudRegisterDTO = new MetaDataRegisterDTO();
         springCloudRegisterDTO.setAppName("appName2");
         springCloudRegisterDTO.setContextPath("content2");
         springCloudRegisterDTO.setPath("path2");
@@ -107,7 +105,7 @@ public final class SoulClientControllerTest {
 
     @Test
     public void testRegisterRpc() throws Exception {
-        final MetaDataDTO metaDataDTO = buildMetaDataDTO("app_dubbo");
+        final MetaDataRegisterDTO metaDataDTO = buildMetaDataDTO("app_dubbo");
         given(this.soulClientRegisterService.registerDubbo(metaDataDTO)).willReturn("success");
         this.mockMvc.perform(MockMvcRequestBuilders.post("/soul-client/dubbo-register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -116,9 +114,8 @@ public final class SoulClientControllerTest {
                 .andReturn();
     }
 
-    private MetaDataDTO buildMetaDataDTO(final String appName) {
-        MetaDataDTO metaDataDTO = new MetaDataDTO();
-        metaDataDTO.setId("6");
+    private MetaDataRegisterDTO buildMetaDataDTO(final String appName) {
+        MetaDataRegisterDTO metaDataDTO = new MetaDataRegisterDTO();
         metaDataDTO.setAppName(appName);
         metaDataDTO.setContextPath("content3");
         metaDataDTO.setPath("path3");
@@ -135,7 +132,7 @@ public final class SoulClientControllerTest {
 
     @Test
     public void testRegisterSofaRpc() throws Exception {
-        final MetaDataDTO metaDataDTO = buildMetaDataDTO("app_sofa");
+        final MetaDataRegisterDTO metaDataDTO = buildMetaDataDTO("app_sofa");
         given(this.soulClientRegisterService.registerSofa(metaDataDTO)).willReturn("success");
         this.mockMvc.perform(MockMvcRequestBuilders.post("/soul-client/sofa-register")
                 .contentType(MediaType.APPLICATION_JSON)

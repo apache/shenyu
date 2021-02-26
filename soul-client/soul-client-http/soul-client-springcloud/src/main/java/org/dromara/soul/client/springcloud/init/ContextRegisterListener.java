@@ -26,7 +26,7 @@ import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
-import org.dromara.soul.register.common.dto.MetaDataDTO;
+import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.env.Environment;
@@ -85,11 +85,11 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
         }
     }
     
-    private MetaDataDTO buildMetaDataDTO() {
+    private MetaDataRegisterDTO buildMetaDataDTO() {
         String contextPath = this.contextPath;
         String appName = env.getProperty("spring.application.name");
         String path = contextPath + "/**";
-        return MetaDataDTO.builder()
+        return MetaDataRegisterDTO.builder()
                 .contextPath(contextPath)
                 .appName(appName)
                 .path(path)

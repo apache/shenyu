@@ -22,7 +22,9 @@ import org.I0Itec.zkclient.IZkDataListener;
 import org.I0Itec.zkclient.ZkClient;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
+import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
 import org.dromara.soul.register.common.path.ZkRegisterPathConstants;
 import org.dromara.soul.register.server.api.SoulServerRegisterRepository;
 import org.dromara.soul.register.server.api.SoulSeverRegisterCenterEventPublisher;
@@ -231,7 +233,7 @@ public class ZookeeperServerRegisterRepository implements SoulServerRegisterRepo
      * @param data dto data
      */
     private void register(final String type, final String data) {
-        publisher.publishEvent(DataChangedEvent.Type.REGISTER, type, data);
+        publisher.publishEvent(DataChangedEvent.Type.REGISTER, type, GsonUtils.getInstance().fromJson(data, MetaDataRegisterDTO.class));
     }
 
     /**
@@ -290,6 +292,6 @@ public class ZookeeperServerRegisterRepository implements SoulServerRegisterRepo
      */
     private void updateSelectorHandler(final String contextPath, final List<String> uriList) {
         log.info("update selector: {} -- {}", contextPath, uriList);
-        publisher.publishEvent(DataChangedEvent.Type.UPDATED, contextPath, uriList);
+        //publisher.publishEvent(DataChangedEvent.Type.UPDATED, contextPath, uriList);
     }
 }

@@ -30,7 +30,7 @@ import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory
 import org.dromara.soul.client.springcloud.annotation.SoulSpringCloudClient;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
-import org.dromara.soul.register.common.dto.MetaDataDTO;
+import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -117,14 +117,14 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         return bean;
     }
     
-    private MetaDataDTO buildMetaDataDTO(final SoulSpringCloudClient soulSpringCloudClient, final String prePath) {
+    private MetaDataRegisterDTO buildMetaDataDTO(final SoulSpringCloudClient soulSpringCloudClient, final String prePath) {
         String contextPath = this.contextPath;
         String appName = env.getProperty("spring.application.name");
         String path = contextPath + prePath + soulSpringCloudClient.path();
         String desc = soulSpringCloudClient.desc();
         String configRuleName = soulSpringCloudClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
-        return MetaDataDTO.builder()
+        return MetaDataRegisterDTO.builder()
                 .contextPath(contextPath)
                 .appName(appName)
                 .path(path)
