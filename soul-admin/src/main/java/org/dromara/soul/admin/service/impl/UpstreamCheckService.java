@@ -147,7 +147,8 @@ public class UpstreamCheckService {
     public void submit(final String selectorName, final DivideUpstream divideUpstream) {
         if (UPSTREAM_MAP.containsKey(selectorName)) {
             List<DivideUpstream> upstreams = UPSTREAM_MAP.getOrDefault(selectorName, Collections.emptyList());
-            Optional<DivideUpstream> exists = upstreams.stream().filter(item -> StringUtils.isNotBlank(item.getUpstreamUrl()) && item.getUpstreamUrl().equals(divideUpstream.getUpstreamUrl())).findFirst();
+            Optional<DivideUpstream> exists = upstreams.stream().filter(item -> StringUtils.isNotBlank(item.getUpstreamUrl())
+                    && item.getUpstreamUrl().equals(divideUpstream.getUpstreamUrl())).findFirst();
             if (!exists.isPresent()) {
                 UPSTREAM_MAP.get(selectorName).add(divideUpstream);
             } else {
