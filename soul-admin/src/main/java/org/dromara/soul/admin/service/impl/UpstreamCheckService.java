@@ -23,6 +23,7 @@ import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.dromara.soul.admin.entity.PluginDO;
 import org.dromara.soul.admin.entity.SelectorDO;
@@ -145,7 +146,7 @@ public class UpstreamCheckService {
      */
     public void submit(final String selectorName, final DivideUpstream divideUpstream) {
         if (UPSTREAM_MAP.containsKey(selectorName)) {
-            Optional<DivideUpstream> exists = UPSTREAM_MAP.get(selectorName).stream().filter(item -> item.getUpstreamUrl().equals(divideUpstream.getUpstreamUrl())).findFirst();
+            Optional<DivideUpstream> exists = UPSTREAM_MAP.getOrDefault(selectorName,Collections.emptyList()).stream().filter(item -> StringUtils.isNotBlank(item.getUpstreamUrl()) && item.getUpstreamUrl().equals(divideUpstream.getUpstreamUrl())).findFirst();
             if (!exists.isPresent()) {
                 UPSTREAM_MAP.get(selectorName).add(divideUpstream);
             } else {
