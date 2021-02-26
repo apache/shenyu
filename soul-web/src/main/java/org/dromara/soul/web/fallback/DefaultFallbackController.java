@@ -21,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.plugin.api.result.DefaultSoulEntity;
 import org.dromara.soul.plugin.api.result.SoulResultEnum;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -31,18 +30,17 @@ import org.springframework.web.bind.annotation.RestController;
  */
 
 @RestController
-@RequestMapping("/hystrixFallback")
 @Slf4j
-public class HystrixFallbackController {
+public class DefaultFallbackController {
 
     /**
      * default fallback for hystrix.
      *
      * @return the soul result
      */
-    @GetMapping("/fallback")
-    public Object fallback() {
+    @GetMapping("/hystrixfallback/fallback")
+    public Object hystrixPluginFallback() {
         log.error("the default fallback for hystrix");
-        return DefaultSoulEntity.error(SoulResultEnum.TOO_MANY_REQUESTS.getCode(), SoulResultEnum.TOO_MANY_REQUESTS.getMsg(), null);
+        return DefaultSoulEntity.error(SoulResultEnum.TOO_MANY_REQUESTS.getCode(), "hystrixPlugin fallback success, please check your service status", null);
     }
 }

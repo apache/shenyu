@@ -32,18 +32,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * The default fallback for hystrix.
+ * Test case for DefaultFallbackController.
  *
  * @author xiaoshen11
  */
 
 @RunWith(MockitoJUnitRunner.class)
-public class HystrixFallbackControllerTest {
+public final class DefaultFallbackControllerTest {
 
     private MockMvc mockMvc;
 
     @InjectMocks
-    private HystrixFallbackController hystrixFallbackController;
+    private DefaultFallbackController hystrixFallbackController;
 
     @Before
     public void setUp() {
@@ -52,10 +52,10 @@ public class HystrixFallbackControllerTest {
 
     @Test
     public void testFallback() throws Exception {
-        this.mockMvc.perform(MockMvcRequestBuilders.get("/hystrixFallback/fallback"))
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/hystrixfallback/fallback"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code", is(SoulResultEnum.TOO_MANY_REQUESTS.getCode())))
-                .andExpect(jsonPath("$.message", is(SoulResultEnum.TOO_MANY_REQUESTS.getMsg())))
+                .andExpect(jsonPath("$.message", is("hystrixPlugin fallback success, please check your service status")))
                 .andReturn();
     }
 }
