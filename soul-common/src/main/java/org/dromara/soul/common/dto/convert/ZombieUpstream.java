@@ -21,28 +21,28 @@ import lombok.ToString;
 public class ZombieUpstream {
 
     /**
-     * divide upstream
+     * divide upstream.
      */
     private DivideUpstream divideUpstream;
 
     /**
-     * total check times
+     * total check times.
      */
     private int zombieCheckTimes;
 
     /**
-     * origin selector name
+     * origin selector name.
      */
     private String selectorName;
 
     /**
-     * create zombie upstream with divide upstream
-     * @param divideUpstream
-     * @param zombieCheckTimes
-     * @param selectorName
-     * @return
+     * create zombie upstream with divide upstream.
+     * @param divideUpstream {@linkplain DivideUpstream} origin divide upstream.
+     * @param zombieCheckTimes total check times.
+     * @param selectorName origin selector name.
+     * @return new zombie upstream.
      */
-    public static ZombieUpstream transform(DivideUpstream divideUpstream,int zombieCheckTimes,String selectorName) {
+    public static ZombieUpstream transform(final DivideUpstream divideUpstream, final int zombieCheckTimes, final String selectorName) {
         return ZombieUpstream.builder().divideUpstream(divideUpstream).zombieCheckTimes(zombieCheckTimes).selectorName(selectorName).build();
     }
 }
