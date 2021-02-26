@@ -1,5 +1,5 @@
 <p align="center" >
-    <a href="https://dromara.org"><img src="https://yu199195.github.io/images/soul/soul-logo.png" width="45%"></a>
+    <a href="https://dromara.org"><img src="https://dromara.org/img/logo/soul.png" width="45%"></a>
 </p>
 <p align="center">
   <strong>可扩展，高性能，响应式的 API 网关</strong>
