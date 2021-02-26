@@ -20,31 +20,29 @@ package org.dromara.soul.client.sofa;
 
 import com.alipay.sofa.runtime.service.component.Service;
 import com.alipay.sofa.runtime.spring.factory.ServiceFactoryBean;
-import lombok.extern.slf4j.Slf4j;
-import org.dromara.soul.client.common.utils.OkHttpTools;
-import org.dromara.soul.client.common.utils.RegisterUtils;
-import org.dromara.soul.client.sofa.common.annotation.SoulSofaClient;
-import org.dromara.soul.client.sofa.common.config.SofaConfig;
-import org.dromara.soul.client.sofa.common.dto.MetaDataDTO;
-import org.dromara.soul.common.enums.RpcTypeEnum;
-import org.springframework.aop.support.AopUtils;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.util.ReflectionUtils;
-
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
+import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
+import org.dromara.soul.client.sofa.common.annotation.SoulSofaClient;
+import org.dromara.soul.client.sofa.common.dto.SofaRpcExt;
+import org.dromara.soul.common.utils.GsonUtils;
+import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
+import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.ReflectionUtils;
 
 /**
  * The Sofa ServiceBean PostProcessor.
@@ -53,25 +51,27 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
-
-    private final SofaConfig sofaConfig;
-
+    
+    private SoulClientRegisterEventPublisher publisher = SoulClientRegisterEventPublisher.getInstance();
+    
     private final ExecutorService executorService;
+    
+    private final String contextPath;
+    
+    private final String appName;
 
-    private final String url;
-
-    private final Pattern pattern = Pattern.compile("(?<=<).*?(?=>)");
-
-    public SofaServiceBeanPostProcessor(final SofaConfig sofaConfig) {
-        String contextPath = sofaConfig.getContextPath();
-        String adminUrl = sofaConfig.getAdminUrl();
-        if (contextPath == null || "".equals(contextPath)
-                || adminUrl == null || "".equals(adminUrl)) {
-            throw new RuntimeException("sofa client must config the contextPath, adminUrl");
+    public SofaServiceBeanPostProcessor(final SoulRegisterCenterConfig config) {
+        Properties props = config.getProps();
+        String contextPath = props.getProperty("contextPath");
+        String appName = props.getProperty("appName");
+        if (StringUtils.isEmpty(contextPath)) {
+            throw new RuntimeException("sofa client must config the contextPath");
         }
-        this.sofaConfig = sofaConfig;
-        url = sofaConfig.getAdminUrl() + "/soul-client/sofa-register";
+        this.contextPath = contextPath;
+        this.appName = appName;
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        SoulClientRegisterRepository soulClientRegisterRepository = SoulClientRegisterRepositoryFactory.newInstance(config);
+        publisher.start(soulClientRegisterRepository);
     }
 
     @Override
@@ -90,7 +90,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
             log.error("failed to get sofa target class");
             return;
         }
-        if (AopUtils.isCglibProxy(clazz)) {
+        if (ClassUtils.isCglibProxyClass(clazz)) {
             String superClassName = clazz.getGenericSuperclass().getTypeName();
             try {
                 clazz = Class.forName(superClassName);
@@ -103,60 +103,43 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
         for (Method method : methods) {
             SoulSofaClient soulSofaClient = method.getAnnotation(SoulSofaClient.class);
             if (Objects.nonNull(soulSofaClient)) {
-                RegisterUtils.doRegister(buildJsonParams(serviceBean, soulSofaClient, method), url, RpcTypeEnum.SOFA);
+                publisher.publishEvent(buildMetaDataDTO(serviceBean, soulSofaClient, method));
             }
         }
     }
 
-    private String buildJsonParams(final ServiceFactoryBean serviceBean, final SoulSofaClient soulSofaClient, final Method method) {
-        String appName = sofaConfig.getAppName();
-        String path = sofaConfig.getContextPath() + soulSofaClient.path();
+    private MetaDataRegisterDTO buildMetaDataDTO(final ServiceFactoryBean serviceBean, final SoulSofaClient soulSofaClient, final Method method) {
+        String appName = this.appName;
+        String path = contextPath + soulSofaClient.path();
         String desc = soulSofaClient.desc();
         String serviceName = serviceBean.getInterfaceClass().getName();
         String configRuleName = soulSofaClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
-        String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName).collect(Collectors.joining(","));
-        MetaDataDTO metaDataDTO = MetaDataDTO.builder()
+        String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
+                .collect(Collectors.joining(","));
+        return MetaDataRegisterDTO.builder()
                 .appName(appName)
                 .serviceName(serviceName)
                 .methodName(methodName)
-                .contextPath(sofaConfig.getContextPath())
+                .contextPath(contextPath)
                 .path(path)
                 .ruleName(ruleName)
                 .pathDesc(desc)
-                .parameterTypes(parameterTypes + getGenericParameterTypes(method))
+                .parameterTypes(parameterTypes)
                 .rpcType("sofa")
                 .rpcExt(buildRpcExt(soulSofaClient))
                 .enabled(soulSofaClient.enabled())
                 .build();
-        return OkHttpTools.getInstance().getGson().toJson(metaDataDTO);
-    }
-
-    private String getGenericParameterTypes(final Method method) {
-        Type[] types = method.getGenericParameterTypes();
-        String genericParameterTypes = Arrays.stream(types).map(Type::getTypeName).collect(Collectors.joining(","));
-        Matcher matcher = pattern.matcher(genericParameterTypes);
-        List<String> list = new LinkedList<>();
-        while (matcher.find()) {
-            String type = matcher.group();
-            if (!type.startsWith("java")) {
-                list.add(type);
-            }
-        }
-        if (list.isEmpty()) {
-            return "";
-        }
-        return "#" + String.join(",", list);
     }
 
     private String buildRpcExt(final SoulSofaClient soulSofaClient) {
-        MetaDataDTO.RpcExt build = MetaDataDTO.RpcExt.builder()
+        SofaRpcExt build = SofaRpcExt.builder()
                 .loadbalance(soulSofaClient.loadBalance())
                 .retries(soulSofaClient.retries())
                 .timeout(soulSofaClient.timeout())
                 .build();
-        return OkHttpTools.getInstance().getGson().toJson(build);
+        return GsonUtils.getInstance().toJson(build);
     }
 }

@@ -35,13 +35,15 @@ eureka:
       defaultZone:  http://localhost:8761/eureka/
 
 soul:
-  springcloud:
-    admin-url: http://localhost:9095
-    context-path: /springcloud
-
+  client:
+    registerType: http
+    serverLists: http://localhost:9095
+#    registerType: zookeeper
+#    serverLists: localhost:2181
+    props:
+      contextPath: /springcloud
 
 logging:
   level:
     root: info
     org.dromara.soul: debug
-  path: "./logs"

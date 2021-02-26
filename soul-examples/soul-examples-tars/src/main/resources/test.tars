@@ -3,5 +3,6 @@ module TestApp
     interface Hello
     {
         string hello(int no, string name);
+        int helloInt(int no, string name);
     };
 };

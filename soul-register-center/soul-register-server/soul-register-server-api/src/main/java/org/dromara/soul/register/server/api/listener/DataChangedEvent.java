@@ -29,7 +29,7 @@ public final class DataChangedEvent {
     
     private final String key;
     
-    private final String value;
+    private final Object value;
     
     private final Type type;
     

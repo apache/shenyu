@@ -19,12 +19,15 @@ server:
 
 
 soul:
-  http:
-    adminUrl: http://localhost:9095
-    port: 8188
-    contextPath: /http
-    appName: http
-    full: false
+  client:
+    registerType: http
+    serverLists: http://localhost:9095
+#    registerType: zookeeper
+#    serverLists: localhost:2181
+    props:
+      contextPath: /http
+      appName: http
+      port: 8188
 
 logging:
   level:

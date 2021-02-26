@@ -37,6 +37,12 @@ mybatis:
   mapper-locations: classpath:/mappers/*.xml
 
 soul:
+  register:
+    registerType: http #zookeeper
+    serverLists : localhost:2181
+    props:
+      sessionTimeout: 5000
+      connectionTimeout: 2000
   database:
     dialect: mysql
     init_script: "META-INF/schema.sql"

@@ -17,9 +17,9 @@
 
 package org.dromara.soul.springboot.starter.client.springmvc;
 
-import org.dromara.soul.client.springmvc.config.SoulSpringMvcConfig;
 import org.dromara.soul.client.springmvc.init.ContextRegisterListener;
 import org.dromara.soul.client.springmvc.init.SpringMvcClientBeanPostProcessor;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,33 +35,33 @@ public class SoulSpringMvcClientConfiguration {
     /**
      * Spring http client bean post processor spring http client bean post processor.
      *
-     * @param soulSpringMvcConfig the soul http config
+     * @param config the config
      * @return the spring http client bean post processor
      */
     @Bean
-    public SpringMvcClientBeanPostProcessor springHttpClientBeanPostProcessor(final SoulSpringMvcConfig soulSpringMvcConfig) {
-        return new SpringMvcClientBeanPostProcessor(soulSpringMvcConfig);
+    public SpringMvcClientBeanPostProcessor springHttpClientBeanPostProcessor(final SoulRegisterCenterConfig config) {
+        return new SpringMvcClientBeanPostProcessor(config);
     }
     
     /**
      * Context register listener context register listener.
      *
-     * @param soulSpringMvcConfig the soul spring mvc config
+     * @param config the config
      * @return the context register listener
      */
     @Bean
-    public ContextRegisterListener contextRegisterListener(final SoulSpringMvcConfig soulSpringMvcConfig) {
-        return new ContextRegisterListener(soulSpringMvcConfig);
+    public ContextRegisterListener contextRegisterListener(final SoulRegisterCenterConfig config) {
+        return new ContextRegisterListener(config);
     }
     
     /**
-     * Soul http config soul http config.
+     * Soul Register Center Config.
      *
-     * @return the soul http config
+     * @return the Register Center Config
      */
     @Bean
-    @ConfigurationProperties(prefix = "soul.http")
-    public SoulSpringMvcConfig soulHttpConfig() {
-        return new SoulSpringMvcConfig();
+    @ConfigurationProperties(prefix = "soul.client")
+    public SoulRegisterCenterConfig soulRegisterCenterConfig() {
+        return new SoulRegisterCenterConfig();
     }
 }

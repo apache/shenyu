@@ -35,9 +35,39 @@ public interface Constants {
     String CONTEXT = "context";
 
     /**
+     * The constant context path.
+     */
+    String CONTEXT_PATH = "contextPath";
+
+    /**
      * The constant META_DATA.
      */
     String META_DATA = "metaData";
+
+    /**
+     * The constant HOST.
+     */
+    String HOST = "host";
+
+    /**
+     * The constant PORT.
+     */
+    String PORT = "port";
+
+    /**
+     * The constant rule name.
+     */
+    String RULE_NAME = "ruleName";
+
+    /**
+     * The constant service name.
+     */
+    String SERVICE_NAME = "serviceName";
+
+    /**
+     * The constant method name.
+     */
+    String METHOD_NAME = "methodName";
 
     /**
      * The constant CLIENT_RESPONSE_ATTR.
@@ -293,6 +323,21 @@ public interface Constants {
      * The constant COLONS.
      */
     String COLONS = ":";
+
+    /**
+     * The constant HYPHEN.
+     */
+    String HYPHEN = "-";
+
+    /**
+     * The constant SlASH.
+     */
+    String SLASH = "/";
+
+    /**
+     * The constant Period.
+     */
+    String PERIOD = ".";
 
     String REQUEST_LATENCY = "REQUEST_LATENCY";
 

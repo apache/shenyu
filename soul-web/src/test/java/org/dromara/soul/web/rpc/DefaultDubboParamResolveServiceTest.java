@@ -37,10 +37,10 @@ import static org.junit.Assert.assertThat;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class DefaultDubboParamResolveServiceTest {
-
+    
     @InjectMocks
     private DefaultDubboParamResolveServiceImpl impl;
-
+    
     @Test
     public void testBuildParameterWithNull() {
         String body = "{\"id\":null,\"name\":null}";
@@ -51,7 +51,7 @@ public class DefaultDubboParamResolveServiceTest {
         Map map = (Map) pair.getRight()[0];
         assertNull(map.get("id"));
         assertNull(map.get("name"));
-
+        
         body = "{\"dubboTest\":{\"id\":null,\"name\":null},\"idLists\":[null,null],\"idMaps\":{\"id2\":null,\"id1\":null}}";
         parameterTypes = "org.dromara.soul.web.rpc.DubboMultiParameterResolveServiceImplTest.ComplexBean";
         pair = impl.buildParameter(body, parameterTypes);
@@ -66,3 +66,4 @@ public class DefaultDubboParamResolveServiceTest {
         assertNull(idList.get(1));
     }
 }
+

@@ -127,7 +127,7 @@ public final class ApplicationConfigCache {
                             for (MethodInfo methodInfo : tarsParamExtInfo.getMethodInfo()) {
                                 DynamicType.Builder.MethodDefinition.ParameterDefinition<?> definition =
                                         classDefinition.defineMethod(PrxInfoUtil.getMethodName(methodInfo.methodName),
-                                                ReturnValueResolver.getCallBackType(Class.forName(methodInfo.getReturnType())),
+                                                ReturnValueResolver.getCallBackType(PrxInfoUtil.getParamClass(methodInfo.getReturnType())),
                                                 Visibility.PUBLIC);
                                 if (CollectionUtils.isNotEmpty(methodInfo.getParams())) {
                                     Class<?>[] paramTypes = new Class[methodInfo.getParams().size()];
@@ -210,7 +210,7 @@ public final class ApplicationConfigCache {
      */
     @Data
     static class MethodInfo {
-        
+
         private String methodName;
 
         private List<Pair<String, String>> params;
@@ -223,7 +223,7 @@ public final class ApplicationConfigCache {
      */
     @Data
     static class TarsParamExtInfo {
-        
+
         private List<MethodInfo> methodInfo;
     }
 
@@ -233,7 +233,7 @@ public final class ApplicationConfigCache {
     @Data
     @AllArgsConstructor
     static class TarsParamInfo {
-        
+
         private Class<?>[] paramTypes;
 
         private String[] paramNames;
