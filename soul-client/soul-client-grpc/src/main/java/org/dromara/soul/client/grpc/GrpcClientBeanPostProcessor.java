@@ -17,13 +17,13 @@
 
 package org.dromara.soul.client.grpc;
 
-import com.google.gson.Gson;
 import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
 import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
 import org.dromara.soul.client.grpc.common.annotation.SoulGrpcClient;
 import org.dromara.soul.client.grpc.common.dto.GrpcExt;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
@@ -53,8 +53,6 @@ import java.util.stream.Collectors;
 public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
     
     private SoulClientRegisterEventPublisher publisher = SoulClientRegisterEventPublisher.getInstance();
-    
-    private Gson gson = new Gson();
     
     private final ExecutorService executorService;
     
@@ -148,7 +146,7 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
 
     private String buildRpcExt(final SoulGrpcClient soulGrpcClient) {
         GrpcExt build = GrpcExt.builder().timeout(soulGrpcClient.timeout()).build();
-        return gson.toJson(build);
+        return GsonUtils.getInstance().toJson(build);
     }
 }
 
