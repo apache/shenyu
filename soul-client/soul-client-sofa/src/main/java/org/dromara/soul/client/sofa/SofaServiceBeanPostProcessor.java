@@ -20,7 +20,6 @@ package org.dromara.soul.client.sofa;
 
 import com.alipay.sofa.runtime.service.component.Service;
 import com.alipay.sofa.runtime.spring.factory.ServiceFactoryBean;
-import com.google.gson.Gson;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Objects;
@@ -36,6 +35,7 @@ import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
 import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
 import org.dromara.soul.client.sofa.common.annotation.SoulSofaClient;
 import org.dromara.soul.client.sofa.common.dto.SofaRpcExt;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
@@ -54,8 +54,6 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
     
     private SoulClientRegisterEventPublisher publisher = SoulClientRegisterEventPublisher.getInstance();
     
-    private Gson gson = new Gson();
-
     private final ExecutorService executorService;
     
     private final String contextPath;
@@ -142,6 +140,6 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
                 .retries(soulSofaClient.retries())
                 .timeout(soulSofaClient.timeout())
                 .build();
-        return gson.toJson(build);
+        return GsonUtils.getInstance().toJson(build);
     }
 }

@@ -18,7 +18,6 @@
 
 package org.dromara.soul.client.tars;
 
-import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -27,6 +26,7 @@ import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory
 import org.dromara.soul.client.tars.common.annotation.SoulTarsClient;
 import org.dromara.soul.client.tars.common.annotation.SoulTarsService;
 import org.dromara.soul.client.tars.common.dto.TarsRpcExt;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
@@ -59,8 +59,6 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
     private final LocalVariableTableParameterNameDiscoverer localVariableTableParameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
     
     private SoulClientRegisterEventPublisher publisher = SoulClientRegisterEventPublisher.getInstance();
-    
-    private Gson gson = new Gson();
     
     private final ExecutorService executorService;
     
@@ -162,6 +160,6 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
         TarsRpcExt buildList = TarsRpcExt.builder()
                 .methodInfo(list)
                 .build();
-        return gson.toJson(buildList);
+        return GsonUtils.getInstance().toJson(buildList);
     }
 }

@@ -17,7 +17,6 @@
 
 package org.dromara.soul.client.apache.dubbo;
 
-import com.google.gson.Gson;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Map;
@@ -37,6 +36,7 @@ import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
 import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
 import org.dromara.soul.client.dubbo.common.annotation.SoulDubboClient;
 import org.dromara.soul.client.dubbo.common.dto.DubboRpcExt;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
@@ -57,8 +57,6 @@ public class ApacheDubboServiceBeanPostProcessor implements ApplicationListener<
     private SoulClientRegisterEventPublisher soulClientRegisterEventPublisher = SoulClientRegisterEventPublisher.getInstance();
     
     private final AtomicBoolean registered = new AtomicBoolean(false);
-    
-    private Gson gson = new Gson();
     
     private ExecutorService executorService;
     
@@ -137,7 +135,7 @@ public class ApacheDubboServiceBeanPostProcessor implements ApplicationListener<
                 .timeout(Objects.isNull(serviceBean.getTimeout()) ? Constants.DEFAULT_CONNECT_TIMEOUT : serviceBean.getTimeout())
                 .url("")
                 .build();
-        return gson.toJson(build);
+        return GsonUtils.getInstance().toJson(build);
     }
 
     @Override
