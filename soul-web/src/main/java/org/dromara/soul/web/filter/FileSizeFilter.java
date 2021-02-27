@@ -17,7 +17,6 @@
 
 package org.dromara.soul.web.filter;
 
-import java.util.List;
 import org.dromara.soul.plugin.api.result.SoulResultEnum;
 import org.dromara.soul.plugin.base.utils.SoulResultWrap;
 import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
@@ -43,6 +42,8 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 /**
  * The type File size filter.
  *
@@ -57,8 +58,8 @@ public class FileSizeFilter implements WebFilter {
     private final List<HttpMessageReader<?>> messageReaders;
 
     public FileSizeFilter(final int fileMaxSize) {
-        HandlerStrategies.builder().codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(fileMaxSize * BYTES_PER_MB));
-        this.messageReaders = HandlerStrategies.withDefaults().messageReaders();
+        HandlerStrategies handlerStrategies = HandlerStrategies.builder().codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(fileMaxSize * BYTES_PER_MB)).build();
+        this.messageReaders = handlerStrategies.messageReaders();
         this.fileMaxSize = fileMaxSize;
     }
 
