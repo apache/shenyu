@@ -150,7 +150,7 @@ public class UpstreamCheckService {
             Optional<DivideUpstream> exists = upstreams.stream().filter(item -> StringUtils.isNotBlank(item.getUpstreamUrl())
                     && item.getUpstreamUrl().equals(divideUpstream.getUpstreamUrl())).findFirst();
             if (!exists.isPresent()) {
-                UPSTREAM_MAP.get(selectorName).add(divideUpstream);
+                upstreams.add(divideUpstream);
             } else {
                 log.info("upstream host {} is exists.", divideUpstream.getUpstreamHost());
             }
@@ -224,7 +224,7 @@ public class UpstreamCheckService {
     }
 
     private void updateHandler(final String selectorName, final List<DivideUpstream> upstreamList, final List<DivideUpstream> successList) {
-        //无节点变化，包括僵尸节点复活 及 活节点死亡
+        //No node changes, including zombie node resurrection and live node death
         if (successList.size() == upstreamList.size()) {
             return;
         }
