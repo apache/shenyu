@@ -48,12 +48,7 @@ public class ZookeeperClientRegisterRepository implements SoulClientRegisterRepo
         int zookeeperConnectionTimeout = Integer.parseInt(props.getProperty("zookeeperConnectionTimeout", "3000"));
         this.zkClient = new ZkClient(config.getServerLists(), zookeeperSessionTimeout, zookeeperConnectionTimeout);
     }
-
-    /**
-     * uri(host+port)用于标识SpringMVC的下线.
-     *
-     * @param metadata  metadata
-     */
+    
     @Override
     public void persistInterface(final MetaDataRegisterDTO metadata) {
         String rpcType = metadata.getRpcType();

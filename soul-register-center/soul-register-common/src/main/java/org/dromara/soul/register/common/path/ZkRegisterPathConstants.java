@@ -20,7 +20,7 @@ package org.dromara.soul.register.common.path;
 /**
  * zookeeper register center.
  *
- * @author lw1243925457
+ * @author xiaoyu
  */
 public class ZkRegisterPathConstants {
     
@@ -35,26 +35,26 @@ public class ZkRegisterPathConstants {
     private static final String SEPARATOR = "/";
     
     /**
-     * build child path of "/soul/register/{rpcType}/{contextPath}/metadata/".
+     * build child path of "/soul/register/metadata/{rpcType}/{contextPath}/".
      *
      * @param rpcType rpc type
      * @param contextPath context path
      * @return path string
      */
     public static String buildMetaDataPath(final String rpcType, final String contextPath) {
-        return String.join(SEPARATOR, ROOT_PATH, rpcType, contextPath, "metadata");
+        return String.join(SEPARATOR, ROOT_PATH, "metadata", rpcType, contextPath);
     }
     
     /**
      * Build uri path string.
-     * build child path of "/soul/register/{rpcType}/{contextPath}/uri/".
+     * build child path of "/soul/register/uri/{rpcType}/{contextPath}/".
      *
      * @param rpcType the rpc type
      * @param contextPath the context path
      * @return the string
      */
     public static String buildURIPath(final String rpcType, final String contextPath) {
-        return String.join(SEPARATOR, ROOT_PATH, rpcType, contextPath, "uri");
+        return String.join(SEPARATOR, ROOT_PATH, "uri", rpcType, contextPath);
     }
     
     /**

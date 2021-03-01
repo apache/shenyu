@@ -29,7 +29,6 @@ import org.dromara.soul.register.common.path.ZkRegisterPathConstants;
 import org.dromara.soul.register.server.api.SoulServerRegisterRepository;
 import org.dromara.soul.register.server.api.SoulSeverRegisterCenterEventPublisher;
 import org.dromara.soul.register.server.api.listener.DataChangedEvent;
-import org.dromara.soul.register.server.api.listener.DataChangedEventListener;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,14 +73,6 @@ public class ZookeeperServerRegisterRepository implements SoulServerRegisterRepo
         zkClient.close();
     }
     
-    @Override
-    public void watch(final String key, final DataChangedEventListener listener) {
-    
-    }
-
-    /**
-     * rpc类型、context path、都会变化增加，监听其变化.
-     */
     private void initSubscribe() {
         log.info("zookeeper register watch and data init start");
         subscribeRoot()
@@ -90,8 +81,6 @@ public class ZookeeperServerRegisterRepository implements SoulServerRegisterRepo
     }
 
     private List<String> subscribeRoot() {
-        log.info("watch root node");
-
         zkClient.subscribeChildChanges(rootPath, (parent, currentChildren) -> {
             log.info("rpc type node change: {}", currentChildren);
             if (!currentChildren.isEmpty()) {
@@ -103,7 +92,6 @@ public class ZookeeperServerRegisterRepository implements SoulServerRegisterRepo
                 });
             }
         });
-
         rpcTypePathList = zkClientGetChildren(rootPath);
         List<String> rpcTypePaths = new ArrayList<>();
         rpcTypePathList.forEach(rpcType -> {
