@@ -68,7 +68,7 @@ public class FileSizeFilterTest {
         WebFilterChain webFilterChain = mock(WebFilterChain.class);
         when(webFilterChain.filter(any())).thenReturn(Mono.empty());
 
-        FileSizeFilter fileSizeFilter = new FileSizeFilter(0);
+        FileSizeFilter fileSizeFilter = new FileSizeFilter(10);
         Mono<Void> voidMono = fileSizeFilter.filter(webExchange, webFilterChain);
         StepVerifier.create(voidMono).expectSubscription().verifyComplete();
 
