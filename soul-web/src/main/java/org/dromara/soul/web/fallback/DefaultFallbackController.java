@@ -21,14 +21,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.plugin.api.result.DefaultSoulEntity;
 import org.dromara.soul.plugin.api.result.SoulResultEnum;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * The default fallback for hystrix.
+ * The default fallback for hystrix plugin and resilience4j plugin.
  *
  * @author xiaoshen11
  */
 @RestController
+@RequestMapping("/fallback")
 @Slf4j
 public class DefaultFallbackController {
 
@@ -37,9 +39,20 @@ public class DefaultFallbackController {
      *
      * @return the soul result
      */
-    @GetMapping("/hystrix/fallback")
+    @GetMapping("/hystrix")
     public Object hystrixPluginFallback() {
         log.error("the default fallback for hystrix");
-        return DefaultSoulEntity.error(SoulResultEnum.TOO_MANY_REQUESTS.getCode(), "hystrixPlugin fallback success, please check your service status", null);
+        return DefaultSoulEntity.error(SoulResultEnum.HYSTRIX_PLUGIN_FALLBACK.getCode(), SoulResultEnum.HYSTRIX_PLUGIN_FALLBACK.getMsg(), null);
+    }
+
+    /**
+     * default fallback for resilience4j.
+     *
+     * @return the soul result
+     */
+    @GetMapping("/resilience4j")
+    public Object resilience4jFallBack() {
+        log.error("the default fallback for resilience4j");
+        return DefaultSoulEntity.error(SoulResultEnum.RESILIENCE4J_PLUGIN_FALLBACK.getCode(), SoulResultEnum.RESILIENCE4J_PLUGIN_FALLBACK.getMsg(), null);
     }
 }
