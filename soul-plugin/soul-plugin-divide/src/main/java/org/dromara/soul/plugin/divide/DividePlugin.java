@@ -127,7 +127,6 @@ public class DividePlugin extends AbstractSoulPlugin {
         String query = exchange.getRequest().getURI().getRawQuery();
         if (StringUtils.isNoneBlank(query)) {
             return path + "?" + query;
-
         }
         return path;
     }
