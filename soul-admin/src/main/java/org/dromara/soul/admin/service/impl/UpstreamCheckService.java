@@ -19,8 +19,12 @@ package org.dromara.soul.admin.service.impl;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.dromara.soul.admin.entity.PluginDO;
 import org.dromara.soul.admin.entity.SelectorDO;
 import org.dromara.soul.admin.listener.DataChangedEvent;
@@ -33,6 +37,7 @@ import org.dromara.soul.common.concurrent.SoulThreadFactory;
 import org.dromara.soul.common.dto.ConditionData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
+import org.dromara.soul.common.dto.convert.ZombieUpstream;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.enums.PluginEnum;
@@ -48,6 +53,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -62,8 +69,13 @@ public class UpstreamCheckService {
 
     private static final Map<String, List<DivideUpstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
 
+    private static final Set<ZombieUpstream> ZOMBIE_SET = Sets.newConcurrentHashSet();
+
     @Value("${soul.upstream.check:true}")
     private boolean check;
+
+    @Value("${soul.upstream.zombieCheckTimes:5}")
+    private int zombieCheckTimes;
 
     @Value("${soul.upstream.scheduledTime:10}")
     private int scheduledTime;
@@ -134,7 +146,14 @@ public class UpstreamCheckService {
      */
     public void submit(final String selectorName, final DivideUpstream divideUpstream) {
         if (UPSTREAM_MAP.containsKey(selectorName)) {
-            UPSTREAM_MAP.get(selectorName).add(divideUpstream);
+            List<DivideUpstream> upstreams = UPSTREAM_MAP.getOrDefault(selectorName, Collections.emptyList());
+            Optional<DivideUpstream> exists = upstreams.stream().filter(item -> StringUtils.isNotBlank(item.getUpstreamUrl())
+                    && item.getUpstreamUrl().equals(divideUpstream.getUpstreamUrl())).findFirst();
+            if (!exists.isPresent()) {
+                upstreams.add(divideUpstream);
+            } else {
+                log.info("upstream host {} is exists.", divideUpstream.getUpstreamHost());
+            }
         } else {
             UPSTREAM_MAP.put(selectorName, Lists.newArrayList(divideUpstream));
         }
@@ -151,8 +170,36 @@ public class UpstreamCheckService {
     }
 
     private void scheduled() {
-        if (UPSTREAM_MAP.size() > 0) {
-            UPSTREAM_MAP.forEach(this::check);
+        try {
+            if (ZOMBIE_SET.size() > 0) {
+                ZOMBIE_SET.forEach(this::checkZombie);
+            }
+            if (UPSTREAM_MAP.size() > 0) {
+                UPSTREAM_MAP.forEach(this::check);
+            }
+        } catch (Exception e) {
+            log.error("upstream scheduled check error -------- ", e);
+        }
+    }
+
+    private void checkZombie(final ZombieUpstream zombieUpstream) {
+        ZOMBIE_SET.remove(zombieUpstream);
+        String selectorName = zombieUpstream.getSelectorName();
+        DivideUpstream divideUpstream = zombieUpstream.getDivideUpstream();
+        final boolean pass = UpstreamCheckUtils.checkUrl(divideUpstream.getUpstreamUrl());
+        if (pass) {
+            divideUpstream.setTimestamp(System.currentTimeMillis());
+            divideUpstream.setStatus(true);
+            log.info("UpstreamCacheManager check zombie upstream success the url: {}, host: {} ", divideUpstream.getUpstreamUrl(), divideUpstream.getUpstreamHost());
+            List<DivideUpstream> old = ListUtils.unmodifiableList(UPSTREAM_MAP.getOrDefault(selectorName, Collections.emptyList()));
+            this.submit(selectorName, divideUpstream);
+            updateHandler(selectorName, old, UPSTREAM_MAP.get(selectorName));
+        } else {
+            log.error("check zombie upstream the url={} is fail", divideUpstream.getUpstreamUrl());
+            if (zombieUpstream.getZombieCheckTimes() > NumberUtils.INTEGER_ZERO) {
+                zombieUpstream.setZombieCheckTimes(zombieUpstream.getZombieCheckTimes() - NumberUtils.INTEGER_ONE);
+                ZOMBIE_SET.add(zombieUpstream);
+            }
         }
     }
 
@@ -169,9 +216,15 @@ public class UpstreamCheckService {
                 successList.add(divideUpstream);
             } else {
                 divideUpstream.setStatus(false);
+                ZOMBIE_SET.add(ZombieUpstream.transform(divideUpstream, zombieCheckTimes, selectorName));
                 log.error("check the url={} is fail ", divideUpstream.getUpstreamUrl());
             }
         }
+        updateHandler(selectorName, upstreamList, successList);
+    }
+
+    private void updateHandler(final String selectorName, final List<DivideUpstream> upstreamList, final List<DivideUpstream> successList) {
+        //No node changes, including zombie node resurrection and live node death
         if (successList.size() == upstreamList.size()) {
             return;
         }
