@@ -38,7 +38,7 @@ public class DefaultFallbackController {
      *
      * @return the soul result
      */
-    @GetMapping("/hystrixfallback/fallback")
+    @GetMapping("/hystrix/fallback")
     public Object hystrixPluginFallback() {
         log.error("the default fallback for hystrix");
         return DefaultSoulEntity.error(SoulResultEnum.TOO_MANY_REQUESTS.getCode(), "hystrixPlugin fallback success, please check your service status", null);

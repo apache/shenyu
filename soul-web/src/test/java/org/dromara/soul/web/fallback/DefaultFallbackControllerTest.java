@@ -52,7 +52,7 @@ public final class DefaultFallbackControllerTest {
 
     @Test
     public void testFallback() throws Exception {
-        this.mockMvc.perform(MockMvcRequestBuilders.get("/hystrixfallback/fallback"))
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/hystrix/fallback"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code", is(SoulResultEnum.TOO_MANY_REQUESTS.getCode())))
                 .andExpect(jsonPath("$.message", is("hystrixPlugin fallback success, please check your service status")))
