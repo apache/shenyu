@@ -22,7 +22,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * SoulWebResult .
+ * DefaultSoulEntity.
  *
  * @author xiaoyu
  */
@@ -43,20 +43,12 @@ public class DefaultSoulEntity implements Serializable {
 
     /**
      * Instantiates a new Soul result.
-     */
-    public DefaultSoulEntity() {
-
-    }
-
-    /**
-     * Instantiates a new Soul result.
      *
      * @param code    the code
      * @param message the message
      * @param data    the data
      */
     public DefaultSoulEntity(final Integer code, final String message, final Object data) {
-
         this.code = code;
         this.message = message;
         this.data = data;
@@ -160,5 +152,4 @@ public class DefaultSoulEntity implements Serializable {
     private static DefaultSoulEntity get(final int code, final String msg, final Object data) {
         return new DefaultSoulEntity(code, msg, data);
     }
-
 }

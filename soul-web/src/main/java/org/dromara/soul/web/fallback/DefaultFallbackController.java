@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author xiaoshen11
  */
-
 @RestController
 @Slf4j
 public class DefaultFallbackController {
