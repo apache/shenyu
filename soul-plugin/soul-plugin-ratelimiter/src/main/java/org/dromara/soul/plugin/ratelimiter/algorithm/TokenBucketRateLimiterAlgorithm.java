@@ -15,35 +15,27 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.dto.convert;
+package org.dromara.soul.plugin.ratelimiter.algorithm;
 
-import lombok.Data;
+import org.dromara.soul.spi.Join;
 
 /**
- * this is rateLimiter plugin handle.
- *
- * @author xiaoyu(Myth)
+ * The type Token bucket rate limiter algorithm.
+ * See https://stripe.com/blog/rate-limiters and
+ * https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L11-L34
+ * 
+ * @author xiaoyu
  */
-@Data
-public class RateLimiterHandle {
+@Join
+public class TokenBucketRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm {
     
-    /**
-     * algorithm name.
-     */
-    private String algorithmName;
-
-    /**
-     * replenish rate.
-     */
-    private double replenishRate;
-
-    /**
-     * burst capacity.
-     */
-    private double burstCapacity;
-
-    /**
-     * loged.
-     */
-    private boolean loged;
+    @Override
+    protected String getScriptName() {
+        return "request_rate_limiter.lua";
+    }
+    
+    @Override
+    protected String getKeyName() {
+        return "request_rate_limiter";
+    }
 }

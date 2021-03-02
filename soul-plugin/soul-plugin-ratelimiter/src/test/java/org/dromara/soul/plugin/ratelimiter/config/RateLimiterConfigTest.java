@@ -88,5 +88,4 @@ public final class RateLimiterConfigTest {
         RateLimiterConfig defaultConfig = new RateLimiterConfig();
         Assert.assertEquals(defaultConfig, this.rateLimiterConfig);
     }
-
 }

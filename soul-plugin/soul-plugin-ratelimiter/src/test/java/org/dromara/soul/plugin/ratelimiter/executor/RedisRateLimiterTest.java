@@ -17,22 +17,9 @@
 
 package org.dromara.soul.plugin.ratelimiter.executor;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
-
+import org.dromara.soul.common.dto.convert.RateLimiterHandle;
 import org.dromara.soul.plugin.base.utils.Singleton;
 import org.dromara.soul.plugin.ratelimiter.response.RateLimiterResponse;
 import org.junit.Assert;
@@ -42,8 +29,14 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
-import com.google.common.collect.Lists;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * RedisRateLimiter test.
@@ -61,23 +54,16 @@ public final class RedisRateLimiterTest {
     private static final double DEFAULT_TEST_BURST_CAPACITY = 300.0;
 
     private RedisRateLimiter redisRateLimiter;
+    
+    private RateLimiterHandle rateLimiterHandle;
 
     @Before
     public void setUp() {
         this.redisRateLimiter = new RedisRateLimiter();
-    }
-
-    /**
-     *  getKeys result test case.
-     */
-    @Test
-    public void getKeysTest() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        String testId = "testId";
-        String tokenKeyActualResult = "request_rate_limiter.{testId}.tokens";
-        String timestampKeyActualResult = "request_rate_limiter.{testId}.timestamp";
-        List<String> result = redisRateLimiterGetKeys(testId);
-        Assert.assertEquals(tokenKeyActualResult, result.get(0));
-        Assert.assertEquals(timestampKeyActualResult, result.get(1));
+        rateLimiterHandle = new RateLimiterHandle();
+        rateLimiterHandle.setAlgorithmName("tokenBucket");
+        rateLimiterHandle.setReplenishRate(DEFAULT_TEST_REPLENISH_RATE);
+        rateLimiterHandle.setBurstCapacity(DEFAULT_TEST_BURST_CAPACITY);
     }
 
     /**
@@ -86,8 +72,7 @@ public final class RedisRateLimiterTest {
     @Test
     public void allowedTest() {
         isAllowedPreInit(1L, 1L, false);
-        Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(DEFAULT_TEST_ID, DEFAULT_TEST_REPLENISH_RATE,
-                DEFAULT_TEST_BURST_CAPACITY);
+        Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(DEFAULT_TEST_ID, rateLimiterHandle);
         StepVerifier.create(responseMono).assertNext(r -> {
             Assert.assertEquals(1L, r.getTokensRemaining());
             Assert.assertTrue(r.isAllowed());
@@ -100,8 +85,7 @@ public final class RedisRateLimiterTest {
     @Test
     public void notAllowedTest() {
         isAllowedPreInit(0L, 0L, false);
-        Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(DEFAULT_TEST_ID, DEFAULT_TEST_REPLENISH_RATE,
-                DEFAULT_TEST_BURST_CAPACITY);
+        Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(DEFAULT_TEST_ID, rateLimiterHandle);
         StepVerifier.create(responseMono).assertNext(r -> {
             Assert.assertEquals(0, r.getTokensRemaining());
             Assert.assertFalse(r.isAllowed());
@@ -114,25 +98,11 @@ public final class RedisRateLimiterTest {
     @Test
     public void allowedThrowableTest() {
         isAllowedPreInit(0, 0, true);
-        Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(DEFAULT_TEST_ID, DEFAULT_TEST_REPLENISH_RATE,
-                DEFAULT_TEST_BURST_CAPACITY);
+        Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(DEFAULT_TEST_ID, rateLimiterHandle);
         StepVerifier.create(responseMono).assertNext(r -> {
             Assert.assertEquals(-1, r.getTokensRemaining());
             Assert.assertTrue(r.isAllowed());
         }).verifyComplete();
-    }
-
-    /**
-     * initialized error init test.
-     */
-    @Test(expected = IllegalStateException.class)
-    public void initializedErrorTest() throws NoSuchFieldException, IllegalAccessException {
-        Field initializedField = RedisRateLimiter.class.getDeclaredField("initialized");
-        initializedField.setAccessible(true);
-        initializedField.set(redisRateLimiter, new AtomicBoolean(false));
-        redisRateLimiter.isAllowed(DEFAULT_TEST_ID, DEFAULT_TEST_REPLENISH_RATE,
-                DEFAULT_TEST_BURST_CAPACITY);
-
     }
 
     /**
@@ -142,7 +112,7 @@ public final class RedisRateLimiterTest {
      * @param newTokens          mock lua newTokens result
      * @param needThrowException mock lua throw exception
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private void isAllowedPreInit(final long allowedNum, final long newTokens, final boolean needThrowException) {
         ReactiveRedisTemplate reactiveRedisTemplate = mock(ReactiveRedisTemplate.class);
         Singleton.INST.single(ReactiveRedisTemplate.class, reactiveRedisTemplate);
@@ -154,18 +124,4 @@ public final class RedisRateLimiterTest {
                     Flux.just(Lists.newArrayList(allowedNum, newTokens)));
         }
     }
-
-    /**
-     * mock RedisRateLimiter getKeys method invoke.
-     * @param id        id
-     * @return          [tokenKey, timestampKey]
-     */
-    @SuppressWarnings("unchecked")
-    private List<String> redisRateLimiterGetKeys(final String id)
-            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        Method getKeysMethod = RedisRateLimiter.class.getDeclaredMethod("getKeys", String.class);
-        getKeysMethod.setAccessible(true);
-        return (List<String>) getKeysMethod.invoke(redisRateLimiter, id);
-    }
-
 }

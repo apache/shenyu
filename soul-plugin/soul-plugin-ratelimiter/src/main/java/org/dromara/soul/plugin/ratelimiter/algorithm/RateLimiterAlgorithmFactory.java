@@ -15,35 +15,24 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.dto.convert;
+package org.dromara.soul.plugin.ratelimiter.algorithm;
 
-import lombok.Data;
+import org.dromara.soul.spi.ExtensionLoader;
+
+import java.util.Optional;
 
 /**
- * this is rateLimiter plugin handle.
- *
- * @author xiaoyu(Myth)
+ * The type Rate limiter algorithm factory.
  */
-@Data
-public class RateLimiterHandle {
+public class RateLimiterAlgorithmFactory {
     
     /**
-     * algorithm name.
+     * New instance rate limiter algorithm.
+     *
+     * @param name the name
+     * @return the rate limiter algorithm
      */
-    private String algorithmName;
-
-    /**
-     * replenish rate.
-     */
-    private double replenishRate;
-
-    /**
-     * burst capacity.
-     */
-    private double burstCapacity;
-
-    /**
-     * loged.
-     */
-    private boolean loged;
+    public static RateLimiterAlgorithm<?> newInstance(final String name) {
+        return Optional.ofNullable(ExtensionLoader.getExtensionLoader(RateLimiterAlgorithm.class).getJoin(name)).orElse(new TokenBucketRateLimiterAlgorithm());
+    }
 }

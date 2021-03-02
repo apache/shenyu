@@ -62,9 +62,9 @@ public class RateLimiterPlugin extends AbstractSoulPlugin {
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
-        final String handle = rule.getHandle();
-        final RateLimiterHandle limiterHandle = GsonUtils.getInstance().fromJson(handle, RateLimiterHandle.class);
-        return redisRateLimiter.isAllowed(rule.getId(), limiterHandle.getReplenishRate(), limiterHandle.getBurstCapacity())
+        String handle = rule.getHandle();
+        RateLimiterHandle limiterHandle = GsonUtils.getInstance().fromJson(handle, RateLimiterHandle.class);
+        return redisRateLimiter.isAllowed(rule.getId(), limiterHandle)
                 .flatMap(response -> {
                     if (!response.isAllowed()) {
                         exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);

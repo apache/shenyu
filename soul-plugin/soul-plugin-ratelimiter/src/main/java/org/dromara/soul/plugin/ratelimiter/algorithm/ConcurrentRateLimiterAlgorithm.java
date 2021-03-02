@@ -15,35 +15,27 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.dto.convert;
+package org.dromara.soul.plugin.ratelimiter.algorithm;
 
-import lombok.Data;
+import org.dromara.soul.spi.Join;
 
 /**
- * this is rateLimiter plugin handle.
- *
- * @author xiaoyu(Myth)
+ * See https://stripe.com/blog/rate-limiters and
+ * https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L11-L34
+ * The type Concurrent rate limiter algorithm.
+ * 
+ * @author xiaoyu
  */
-@Data
-public class RateLimiterHandle {
+@Join
+public class ConcurrentRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm {
     
-    /**
-     * algorithm name.
-     */
-    private String algorithmName;
-
-    /**
-     * replenish rate.
-     */
-    private double replenishRate;
-
-    /**
-     * burst capacity.
-     */
-    private double burstCapacity;
-
-    /**
-     * loged.
-     */
-    private boolean loged;
+    @Override
+    protected String getScriptName() {
+        return "concurrent_request_rate_limiter.lua";
+    }
+    
+    @Override
+    protected String getKeyName() {
+        return "concurrent_request_rate_limiter";
+    }
 }

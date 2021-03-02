@@ -15,32 +15,32 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.ratelimiter;
+package org.dromara.soul.plugin.ratelimiter.algorithm;
 
-import org.dromara.soul.plugin.ratelimiter.config.RateLimiterConfig;
-import org.dromara.soul.common.dto.PluginData;
-import org.dromara.soul.common.utils.GsonUtils;
-import org.dromara.soul.plugin.ratelimiter.handler.RateLimiterPluginDataHandler;
-import org.junit.Before;
+import org.springframework.data.redis.core.script.RedisScript;
+
+import java.util.List;
 
 /**
- * The type Redis rate limiter tests.
+ * The interface Rate limiter algorithm.
  *
+ * @param <T> the type parameter
  * @author xiaoyu
  */
-public final class RedisRateLimiterTests {
+public interface RateLimiterAlgorithm<T> {
     
     /**
-     * Sets up.
+     * Gets script.
+     *
+     * @return the script
      */
-    @Before
-    public void setUp() {
-        PluginData pluginData = new PluginData();
-        pluginData.setEnabled(true);
-        RateLimiterConfig config = new RateLimiterConfig();
-        config.setUrl("127.0.0.0:6379");
-        pluginData.setConfig(GsonUtils.getInstance().toJson(config));
-        RateLimiterPluginDataHandler subscriber = new RateLimiterPluginDataHandler();
-        subscriber.handlerPlugin(pluginData);
-    }
+    RedisScript<T> getScript();
+    
+    /**
+     * Gets keys.
+     *
+     * @param id the id
+     * @return the keys
+     */
+    List<String> getKeys(final String id);
 }
