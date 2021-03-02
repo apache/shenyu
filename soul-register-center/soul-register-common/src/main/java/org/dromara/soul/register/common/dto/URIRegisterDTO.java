@@ -22,14 +22,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.dromara.soul.register.common.enums.EventType;
 import org.dromara.soul.register.common.type.DataType;
 import org.dromara.soul.register.common.type.DataTypeParent;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
- * The type Meta data dto.
+ * The type URI register dto.
  *
  * @author xiaoyu
  */
@@ -37,42 +37,37 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
+public class URIRegisterDTO implements DataTypeParent, Serializable {
     
     private String appName;
     
     private String contextPath;
     
-    private String path;
-    
-    private String pathDesc;
-    
     private String rpcType;
-    
-    private String serviceName;
-    
-    private String methodName;
-    
-    private String ruleName;
-    
-    private String parameterTypes;
-    
-    private String rpcExt;
-    
-    private boolean enabled;
     
     private String host;
     
     private Integer port;
     
-    private Boolean writeMetaData;
+    private EventType eventType;
     
-    private List<String> pluginNames;
-
-    private boolean registerMetaData;
+    /**
+     * Trans form uri register dto.
+     *
+     * @param metaDataRegisterDTO the meta data register dto
+     * @return the uri register dto
+     */
+    public static URIRegisterDTO transForm(final MetaDataRegisterDTO metaDataRegisterDTO) {
+        return URIRegisterDTO.builder()
+                .appName(metaDataRegisterDTO.getAppName())
+                .contextPath(metaDataRegisterDTO.getContextPath())
+                .rpcType(metaDataRegisterDTO.getRpcType())
+                .host(metaDataRegisterDTO.getHost())
+                .port(metaDataRegisterDTO.getPort()).build();
+    }
     
     @Override
     public DataType getType() {
-        return DataType.META_DATA;
+        return DataType.URI;
     }
 }

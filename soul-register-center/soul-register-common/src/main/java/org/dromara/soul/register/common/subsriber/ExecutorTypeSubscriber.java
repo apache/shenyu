@@ -15,26 +15,23 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.register.server.api;
+package org.dromara.soul.register.common.subsriber;
 
-import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
+import org.dromara.soul.register.common.type.DataType;
+import org.dromara.soul.register.common.type.DataTypeParent;
 
 /**
- * Soul client register repository.
+ * The interface Executor type subscriber.
+ *
+ * @param <T> the type parameter
+ * @author xiaoyu
  */
-public interface SoulServerRegisterRepository {
+public interface ExecutorTypeSubscriber<T extends DataTypeParent> extends ExecutorSubscriber<T> {
     
     /**
-     * Init.
+     * Gets type.
      *
-     * @param config the config
+     * @return the type
      */
-    default void init(SoulRegisterCenterConfig config) {
-    }
-    
-    /**
-     * Close.
-     */
-    default void close() {
-    }
+    DataType getType();
 }

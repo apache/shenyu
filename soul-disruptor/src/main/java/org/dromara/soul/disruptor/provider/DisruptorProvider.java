@@ -15,13 +15,15 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.disruptor;
+package org.dromara.soul.disruptor.provider;
 
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
 import org.dromara.soul.disruptor.event.DataEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.function.Consumer;
 
 /**
  * DisruptorProvider.
@@ -44,26 +46,26 @@ public class DisruptorProvider<T> {
      * Instantiates a new Disruptor provider.
      *
      * @param ringBuffer the ring buffer
-     * @param disruptor  the disruptor
+     * @param disruptor the disruptor
      */
-    DisruptorProvider(final RingBuffer<DataEvent<T>> ringBuffer, final Disruptor<DataEvent<T>> disruptor) {
+    public DisruptorProvider(final RingBuffer<DataEvent<T>> ringBuffer, final Disruptor<DataEvent<T>> disruptor) {
         this.ringBuffer = ringBuffer;
         this.disruptor = disruptor;
     }
     
     /**
-     * push data to disruptor queue.
+     * On data.
      *
-     * @param t the t
+     * @param function the function
      */
-    public void onData(final T t) {
+    public void onData(final Consumer<DataEvent<T>> function) {
         long position = ringBuffer.next();
         try {
-            DataEvent<T> de = ringBuffer.get(position);
-            de.setT(t);
+            DataEvent<T> dataEvent = ringBuffer.get(position);
+            function.accept(dataEvent);
             ringBuffer.publish(position);
         } catch (Exception ex) {
-            logger.error("push data error:", ex);
+            logger.error("ex", ex);
         }
     }
     

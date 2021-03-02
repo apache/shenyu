@@ -15,17 +15,22 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.register.server.api.listener;
+package org.dromara.soul.register.common.type;
 
 /**
- * Listener for data changed.
+ * The enum Data type enum.
+ *
+ * @author xiaoyu
  */
-public interface DataChangedEventListener {
+public enum DataType {
     
     /**
-     * Fire when data changed.
-     * 
-     * @param event data changed event
+     * Meta data data type enum.
      */
-    void onChange(DataChangedEvent event);
+    META_DATA,
+    
+    /**
+     * Uri data type enum.
+     */
+    URI,
 }

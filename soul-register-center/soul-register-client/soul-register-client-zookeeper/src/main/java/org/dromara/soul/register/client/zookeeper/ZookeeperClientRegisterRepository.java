@@ -24,6 +24,7 @@ import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
+import org.dromara.soul.register.common.dto.URIRegisterDTO;
 import org.dromara.soul.register.common.path.ZkRegisterPathConstants;
 import org.dromara.soul.spi.Join;
 
@@ -67,7 +68,7 @@ public class ZookeeperClientRegisterRepository implements SoulClientRegisterRepo
     
     private void registerMetadata(final String rpcType, final String contextPath, final MetaDataRegisterDTO metadata) {
         String metadataNodeName = buildMetadataNodeName(metadata);
-        String metaDataPath = ZkRegisterPathConstants.buildMetaDataPath(rpcType, contextPath);
+        String metaDataPath = ZkRegisterPathConstants.buildMetaDataParentPath(rpcType, contextPath);
         if (!zkClient.exists(metaDataPath)) {
             zkClient.createPersistent(metaDataPath, true);
         }
@@ -80,13 +81,13 @@ public class ZookeeperClientRegisterRepository implements SoulClientRegisterRepo
     
     private void registerURI(final String rpcType, final String contextPath, final MetaDataRegisterDTO metadata) {
         String uriNodeName = buildURINodeName(metadata);
-        String uriPath = ZkRegisterPathConstants.buildURIPath(rpcType, contextPath);
+        String uriPath = ZkRegisterPathConstants.buildURIParentPath(rpcType, contextPath);
         if (!zkClient.exists(uriPath)) {
             zkClient.createPersistent(uriPath, true);
         }
         String realNode = ZkRegisterPathConstants.buildRealNode(uriPath, uriNodeName);
         if (!zkClient.exists(realNode)) {
-            zkClient.createEphemeral(realNode, uriNodeName);
+            zkClient.createEphemeral(realNode, GsonUtils.getInstance().toJson(URIRegisterDTO.transForm(metadata)));
         }
     }
     

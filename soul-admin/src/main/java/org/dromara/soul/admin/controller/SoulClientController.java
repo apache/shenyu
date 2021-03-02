@@ -16,18 +16,16 @@
  */
 
 package org.dromara.soul.admin.controller;
-
-import org.dromara.soul.admin.disruptor.SoulServerMetaDataRegisterEventPublisher;
-import org.dromara.soul.admin.service.SoulClientRegisterService;
-import org.dromara.soul.admin.utils.SoulResultMessage;
-import org.dromara.soul.common.enums.RpcTypeEnum;
-import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
-import org.dromara.soul.register.server.api.listener.DataChangedEvent;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+        
+        import org.dromara.soul.admin.disruptor.RegisterServerDisruptorPublisher;
+        import org.dromara.soul.admin.service.SoulClientRegisterService;
+        import org.dromara.soul.admin.utils.SoulResultMessage;
+        import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
+        import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+        import org.springframework.web.bind.annotation.PostMapping;
+        import org.springframework.web.bind.annotation.RequestBody;
+        import org.springframework.web.bind.annotation.RequestMapping;
+        import org.springframework.web.bind.annotation.RestController;
 
 /**
  * The type Soul client controller.
@@ -38,8 +36,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/soul-client")
 @ConditionalOnProperty(prefix = "soul.register.registerType", value = "http", matchIfMissing = true)
 public class SoulClientController {
-
-    private static final SoulServerMetaDataRegisterEventPublisher PUBLISHER = SoulServerMetaDataRegisterEventPublisher.getInstance();
+    
+    private static final RegisterServerDisruptorPublisher PUBLISHER = RegisterServerDisruptorPublisher.getInstance();
     
     /**
      * Instantiates a new Soul client controller.
@@ -58,7 +56,7 @@ public class SoulClientController {
      */
     @PostMapping("/springmvc-register")
     public String registerSpringMvc(@RequestBody final MetaDataRegisterDTO metaDataRegisterDTO) {
-        publishEvent(RpcTypeEnum.HTTP, metaDataRegisterDTO);
+        publish(metaDataRegisterDTO);
         return SoulResultMessage.SUCCESS;
     }
     
@@ -70,7 +68,7 @@ public class SoulClientController {
      */
     @PostMapping("/springcloud-register")
     public String registerSpringCloud(@RequestBody final MetaDataRegisterDTO metaDataRegisterDTO) {
-        publishEvent(RpcTypeEnum.SPRING_CLOUD, metaDataRegisterDTO);
+        publish(metaDataRegisterDTO);
         return SoulResultMessage.SUCCESS;
     }
     
@@ -82,7 +80,7 @@ public class SoulClientController {
      */
     @PostMapping("/dubbo-register")
     public String registerRpc(@RequestBody final MetaDataRegisterDTO metaDataRegisterDTO) {
-        publishEvent(RpcTypeEnum.DUBBO, metaDataRegisterDTO);
+        publish(metaDataRegisterDTO);
         return SoulResultMessage.SUCCESS;
     }
     
@@ -94,7 +92,7 @@ public class SoulClientController {
      */
     @PostMapping("/sofa-register")
     public String registerSofaRpc(@RequestBody final MetaDataRegisterDTO metaDataRegisterDTO) {
-        publishEvent(RpcTypeEnum.SOFA, metaDataRegisterDTO);
+        publish(metaDataRegisterDTO);
         return SoulResultMessage.SUCCESS;
     }
     
@@ -106,7 +104,7 @@ public class SoulClientController {
      */
     @PostMapping("/tars-register")
     public String registerTarsRpc(@RequestBody final MetaDataRegisterDTO metaDataRegisterDTO) {
-        publishEvent(RpcTypeEnum.TARS, metaDataRegisterDTO);
+        publish(metaDataRegisterDTO);
         return SoulResultMessage.SUCCESS;
     }
     
@@ -118,11 +116,11 @@ public class SoulClientController {
      */
     @PostMapping("/grpc-register")
     public String registerGrpc(@RequestBody final MetaDataRegisterDTO metaDataRegisterDTO) {
-        publishEvent(RpcTypeEnum.GRPC, metaDataRegisterDTO);
+        publish(metaDataRegisterDTO);
         return SoulResultMessage.SUCCESS;
     }
     
-    private void publishEvent(final RpcTypeEnum rpcTypeEnum, final MetaDataRegisterDTO metaDataRegisterDTO) {
-        PUBLISHER.publishEvent(DataChangedEvent.Type.REGISTER, rpcTypeEnum.getName(), metaDataRegisterDTO);
+    private void publish(final MetaDataRegisterDTO metaDataRegisterDTO) {
+        PUBLISHER.publish(metaDataRegisterDTO);
     }
 }

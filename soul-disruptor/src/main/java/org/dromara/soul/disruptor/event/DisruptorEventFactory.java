@@ -15,29 +15,18 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.register.server.api.listener;
+package org.dromara.soul.disruptor.event;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import com.lmax.disruptor.EventFactory;
 
 /**
- * Data changed event.
+ * DisruptorEventFactory.
+ * disruptor Create a factory implementation of the object.
  */
-@RequiredArgsConstructor
-@Getter
-public final class DataChangedEvent {
+public class DisruptorEventFactory<T> implements EventFactory<DataEvent<T>> {
     
-    private final String key;
-    
-    private final Object value;
-    
-    private final Type type;
-    
-    /**
-     * Data changed type.
-     */
-    public enum Type {
-        
-        REGISTER, UPDATED, DELETED, IGNORED
+    @Override
+    public DataEvent<T> newInstance() {
+        return new DataEvent<>();
     }
 }

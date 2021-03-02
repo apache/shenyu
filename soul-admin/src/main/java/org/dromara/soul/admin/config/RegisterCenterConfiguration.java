@@ -18,7 +18,7 @@
 package org.dromara.soul.admin.config;
 
 import lombok.extern.slf4j.Slf4j;
-import org.dromara.soul.admin.disruptor.SoulServerMetaDataRegisterEventPublisher;
+import org.dromara.soul.admin.disruptor.RegisterServerDisruptorPublisher;
 import org.dromara.soul.admin.service.SoulClientRegisterService;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.dromara.soul.register.server.api.SoulServerRegisterRepository;
@@ -69,7 +69,7 @@ public class RegisterCenterConfiguration {
                                                                          final SoulClientRegisterService soulClientRegisterService) {
                                                                        
             log.info("you use zookeeper register center");
-            SoulServerMetaDataRegisterEventPublisher publisher = SoulServerMetaDataRegisterEventPublisher.getInstance();
+            RegisterServerDisruptorPublisher publisher = RegisterServerDisruptorPublisher.getInstance();
             publisher.start(soulClientRegisterService);
             return new ZookeeperServerRegisterRepository(publisher, soulRegisterCenterConfig);
         }

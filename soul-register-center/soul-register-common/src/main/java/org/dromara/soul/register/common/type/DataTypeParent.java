@@ -15,19 +15,19 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.disruptor;
-
-import com.lmax.disruptor.EventFactory;
-import org.dromara.soul.disruptor.event.DataEvent;
+package org.dromara.soul.register.common.type;
 
 /**
- * DisruptorEventFactory.
- * disruptor Create a factory implementation of the object.
+ * The interface Data type parent.
+ *
+ * @author xiaoyu
  */
-public class DisruptorEventFactory<T> implements EventFactory<DataEvent<T>> {
+public interface DataTypeParent {
     
-    @Override
-    public DataEvent<T> newInstance() {
-        return new DataEvent<>();
-    }
+    /**
+     * Gets type.
+     *
+     * @return the type
+     */
+    DataType getType();
 }

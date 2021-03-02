@@ -15,24 +15,27 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.register.server.api;
-
-import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
-import org.dromara.soul.register.server.api.listener.DataChangedEvent;
+package org.dromara.soul.disruptor.consumer;
 
 /**
- * register center interface.
+ * The interface Queue consumer factory.
  *
- * @author lw1243925457
+ * @param <T> the type parameter
+ * @author xiaoyu
  */
-public interface SoulSeverRegisterCenterEventPublisher {
+public interface QueueConsumerFactory<T> {
     
     /**
-     * publish event.
+     * Create queue consumer executor.
      *
-     * @param eventType data event type
-     * @param key key
-     * @param metaDataRegisterDTO the meta data register dto
+     * @return the queue consumer executor
      */
-    void publishEvent(DataChangedEvent.Type eventType, String key, MetaDataRegisterDTO metaDataRegisterDTO);
+    QueueConsumerExecutor<T> create();
+    
+    /**
+     * Fix name string.
+     *
+     * @return the string
+     */
+    String fixName();
 }

@@ -15,27 +15,21 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.disruptor;
+package org.dromara.soul.register.common.subsriber;
 
-import com.lmax.disruptor.WorkHandler;
-import org.dromara.soul.disruptor.event.DataEvent;
+import java.util.Collection;
 
 /**
- * DisruptorConsumer.
- * disruptor consumer work handler.
+ * The interface Executor subscriber.
+ *
+ * @param <T> the type parameter
  */
-public class DisruptorConsumer<T> implements WorkHandler<DataEvent<T>> {
-
-    private DisruptorConsumerFactory<T> factory;
-
-    DisruptorConsumer(final DisruptorConsumerFactory<T> factory) {
-        this.factory = factory;
-    }
-
-    @Override
-    public void onEvent(final DataEvent<T> t) {
-        if (t != null) {
-            factory.create().executor(t.getT());
-        }
-    }
+public interface ExecutorSubscriber<T> {
+    
+    /**
+     * Executor.
+     *
+     * @param dataList the data list
+     */
+    void executor(Collection<T> dataList);
 }

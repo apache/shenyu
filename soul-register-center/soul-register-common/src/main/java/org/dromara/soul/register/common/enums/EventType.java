@@ -16,18 +16,27 @@
  *
  */
 
-package org.dromara.soul.client.core.disruptor;
-
-import lombok.Data;
-import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
+package org.dromara.soul.register.common.enums;
 
 /**
- * Event.
- *
- * @author tydhot
+ * The enum Event type.
  */
-@Data
-public class SoulClientRegisterEvent {
+public enum EventType {
     
-    private MetaDataRegisterDTO metaData;
+    /**
+     * Register event type.
+     */
+    REGISTER,
+    /**
+     * Updated event type.
+     */
+    UPDATED,
+    /**
+     * Deleted event type.
+     */
+    DELETED,
+    /**
+     * Ignored event type.
+     */
+    IGNORED
 }

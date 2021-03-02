@@ -15,25 +15,20 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.disruptor;
+package org.dromara.soul.disruptor.consumer;
+
+import lombok.Getter;
+import lombok.Setter;
 
 /**
- * DisruptorConsumerFactory.
- * Create a subclass implementation object via the {@link #create()} method,
+ * The type Queue consumer executor.
+ *
+ * @param <T> the type parameter
+ * @author xiaoyu
  */
-public interface DisruptorConsumerFactory<T> {
-
-    /**
-     * Fix name string.
-     *
-     * @return the string
-     */
-    String fixName();
-
-    /**
-     * Create disruptor consumer executor.
-     *
-     * @return the disruptor consumer executor
-     */
-    AbstractDisruptorConsumerExecutor<T> create();
+@Getter
+@Setter
+public abstract class QueueConsumerExecutor<T> implements Runnable {
+    
+    private T data;
 }

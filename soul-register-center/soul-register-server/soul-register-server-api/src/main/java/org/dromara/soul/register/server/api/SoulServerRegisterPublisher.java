@@ -15,21 +15,20 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.disruptor;
-
-import java.util.Collection;
+package org.dromara.soul.register.server.api;
 
 /**
- * The interface Executor subscriber.
- *
- * @param <T> the type parameter
+ * The interface Soul server register publisher.
+ * 
+ * @author xiaoyu
  */
-public interface ExecutorSubscriber<T> {
-
+public interface SoulServerRegisterPublisher {
+    
     /**
-     * Executor.
+     * Publish.
      *
-     * @param collections the collections
+     * @param <T> the type parameter
+     * @param t the t
      */
-    void executor(Collection<? extends T> collections);
+    <T> void publish(T t);
 }
