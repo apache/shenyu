@@ -16,16 +16,16 @@
  */
 
 package org.dromara.soul.admin.controller;
-        
-        import org.dromara.soul.admin.disruptor.RegisterServerDisruptorPublisher;
-        import org.dromara.soul.admin.service.SoulClientRegisterService;
-        import org.dromara.soul.admin.utils.SoulResultMessage;
-        import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
-        import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-        import org.springframework.web.bind.annotation.PostMapping;
-        import org.springframework.web.bind.annotation.RequestBody;
-        import org.springframework.web.bind.annotation.RequestMapping;
-        import org.springframework.web.bind.annotation.RestController;
+
+import org.dromara.soul.admin.disruptor.RegisterServerDisruptorPublisher;
+import org.dromara.soul.admin.service.SoulClientRegisterService;
+import org.dromara.soul.admin.utils.SoulResultMessage;
+import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * The type Soul client controller.
