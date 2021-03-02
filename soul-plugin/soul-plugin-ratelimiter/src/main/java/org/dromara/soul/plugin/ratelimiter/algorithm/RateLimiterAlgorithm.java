@@ -17,6 +17,7 @@
 
 package org.dromara.soul.plugin.ratelimiter.algorithm;
 
+import org.dromara.soul.spi.SPI;
 import org.springframework.data.redis.core.script.RedisScript;
 
 import java.util.List;
@@ -27,6 +28,7 @@ import java.util.List;
  * @param <T> the type parameter
  * @author xiaoyu
  */
+@SPI
 public interface RateLimiterAlgorithm<T> {
     
     /**
@@ -42,5 +44,5 @@ public interface RateLimiterAlgorithm<T> {
      * @param id the id
      * @return the keys
      */
-    List<String> getKeys(final String id);
+    List<String> getKeys(String id);
 }
