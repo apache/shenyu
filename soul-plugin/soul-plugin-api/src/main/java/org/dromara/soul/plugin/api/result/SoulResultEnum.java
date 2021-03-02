@@ -55,6 +55,16 @@ public enum SoulResultEnum {
     TOO_MANY_REQUESTS(429, "You have been restricted, please try again later!"),
 
     /**
+     * Hystrix plugin fallback, due to a circuit break.
+     */
+    HYSTRIX_PLUGIN_FALLBACK(429, "HystrixPlugin fallback success, please check your service status!"),
+
+    /**
+     * Resilience4J plugin fallback, due to a circuit break.
+     */
+    RESILIENCE4J_PLUGIN_FALLBACK(429, "Resilience4JPlugin fallback success, please check your service status!"),
+
+    /**
      * Meta data error soul result enum.
      */
     META_DATA_ERROR(430, "Meta data error!"),

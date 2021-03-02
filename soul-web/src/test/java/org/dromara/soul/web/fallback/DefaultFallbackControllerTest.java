@@ -36,26 +36,34 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * @author xiaoshen11
  */
-
 @RunWith(MockitoJUnitRunner.class)
 public final class DefaultFallbackControllerTest {
 
     private MockMvc mockMvc;
 
     @InjectMocks
-    private DefaultFallbackController hystrixFallbackController;
+    private DefaultFallbackController defaultFallbackController;
 
     @Before
     public void setUp() {
-        this.mockMvc = MockMvcBuilders.standaloneSetup(hystrixFallbackController).build();
+        this.mockMvc = MockMvcBuilders.standaloneSetup(defaultFallbackController).build();
     }
 
     @Test
     public void testFallback() throws Exception {
-        this.mockMvc.perform(MockMvcRequestBuilders.get("/hystrix/fallback"))
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/fallback/hystrix"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code", is(SoulResultEnum.TOO_MANY_REQUESTS.getCode())))
-                .andExpect(jsonPath("$.message", is("hystrixPlugin fallback success, please check your service status")))
+                .andExpect(jsonPath("$.code", is(SoulResultEnum.HYSTRIX_PLUGIN_FALLBACK.getCode())))
+                .andExpect(jsonPath("$.message", is(SoulResultEnum.HYSTRIX_PLUGIN_FALLBACK.getMsg())))
+                .andReturn();
+    }
+
+    @Test
+    public void testResilience4jFallback() throws Exception {
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/fallback/resilience4j"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code", is(SoulResultEnum.RESILIENCE4J_PLUGIN_FALLBACK.getCode())))
+                .andExpect(jsonPath("$.message", is(SoulResultEnum.RESILIENCE4J_PLUGIN_FALLBACK.getMsg())))
                 .andReturn();
     }
 }
