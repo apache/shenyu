@@ -21,6 +21,7 @@ import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.redirect.RedirectPlugin;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.reactive.DispatcherHandler;
 
 /**
  * the type redirect plugin Configuration.
@@ -33,10 +34,11 @@ public class RedirectPluginConfiguration {
     /**
      * Redirect plugin.
      *
+     * @param dispatcherHandler {@link DispatcherHandler}
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin redirectPlugin() {
-        return new RedirectPlugin();
+    public SoulPlugin redirectPlugin(final DispatcherHandler dispatcherHandler) {
+        return new RedirectPlugin(dispatcherHandler);
     }
 }

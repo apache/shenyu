@@ -29,11 +29,13 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -52,10 +54,13 @@ public final class RedirectPluginTest {
     @Mock
     private SoulPluginChain chain;
 
+    @Mock
+    private DispatcherHandler dispatcherHandler;
+
     @Before
     public void setUp() {
         exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
-        redirectPlugin = new RedirectPlugin();
+        redirectPlugin = new RedirectPlugin(dispatcherHandler);
     }
 
     @Test
@@ -65,6 +70,9 @@ public final class RedirectPluginTest {
         SelectorData selectorData = mock(SelectorData.class);
         StepVerifier.create(redirectPlugin.doExecute(exchange, chain, selectorData, ruleData)).expectSubscription().verifyComplete();
         ruleData.setHandle("{\"redirectURI\":\"/test\"}");
+        when(dispatcherHandler.handle(any())).thenReturn(Mono.empty());
+        StepVerifier.create(redirectPlugin.doExecute(exchange, chain, selectorData, ruleData)).expectSubscription().verifyComplete();
+        ruleData.setHandle("{\"redirectURI\":\"http://test.com/test\"}");
         StepVerifier.create(redirectPlugin.doExecute(exchange, chain, selectorData, ruleData)).expectSubscription().verifyComplete();
     }
 

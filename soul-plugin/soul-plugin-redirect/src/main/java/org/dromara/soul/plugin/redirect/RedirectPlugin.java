@@ -26,9 +26,12 @@ import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
+import org.dromara.soul.plugin.base.utils.UriUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -41,7 +44,15 @@ import java.util.Objects;
  */
 @Slf4j
 public class RedirectPlugin extends AbstractSoulPlugin {
-    
+
+    public static final String ROOT_PATH_PREFIX = "/";
+
+    private final DispatcherHandler dispatcherHandler;
+
+    public RedirectPlugin(final DispatcherHandler dispatcherHandler) {
+        this.dispatcherHandler = dispatcherHandler;
+    }
+
     @Override
     public int getOrder() {
         return PluginEnum.REDIRECT.getCode();
@@ -53,16 +64,24 @@ public class RedirectPlugin extends AbstractSoulPlugin {
     }
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain,
+                                   final SelectorData selector, final RuleData rule) {
         final String handle = rule.getHandle();
         final RedirectHandle redirectHandle = GsonUtils.getInstance().fromJson(handle, RedirectHandle.class);
         if (Objects.isNull(redirectHandle) || StringUtils.isBlank(redirectHandle.getRedirectURI())) {
             log.error("uri redirect rule can not configuration: {}", handle);
             return chain.execute(exchange);
         }
-        ServerHttpResponse response = exchange.getResponse();
-        response.setStatusCode(HttpStatus.PERMANENT_REDIRECT);
-        response.getHeaders().add(HttpHeaders.LOCATION, redirectHandle.getRedirectURI());
-        return response.setComplete();
+        if (redirectHandle.getRedirectURI().startsWith(ROOT_PATH_PREFIX)) {
+            ServerHttpRequest request = exchange.getRequest().mutate()
+                    .uri(Objects.requireNonNull(UriUtils.createUri(redirectHandle.getRedirectURI()))).build();
+            ServerWebExchange mutated = exchange.mutate().request(request).build();
+            return dispatcherHandler.handle(mutated);
+        } else {
+            ServerHttpResponse response = exchange.getResponse();
+            response.setStatusCode(HttpStatus.PERMANENT_REDIRECT);
+            response.getHeaders().add(HttpHeaders.LOCATION, redirectHandle.getRedirectURI());
+            return response.setComplete();
+        }
     }
 }
