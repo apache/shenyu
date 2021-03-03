@@ -151,6 +151,9 @@ public class ZookeeperServerRegisterRepository implements SoulServerRegisterRepo
             String realPath = ZkRegisterPathConstants.buildRealNode(uriParentPath, addPath);
             registerDTOList.add(GsonUtils.getInstance().fromJson(zkClient.readData(realPath).toString(), URIRegisterDTO.class));
         });
+        if (registerDTOList.isEmpty()) {
+            return;
+        }
         publishRegisterURI(registerDTOList);
     }
     

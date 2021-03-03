@@ -120,7 +120,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
 
     @Override
     @Transactional
-    public String registerSpringMvc(final MetaDataRegisterDTO dto) {
+    public synchronized String registerSpringMvc(final MetaDataRegisterDTO dto) {
         if (dto.isRegisterMetaData()) {
             MetaDataDO exist = metaDataMapper.findByPath(dto.getPath());
             if (Objects.isNull(exist)) {
@@ -146,7 +146,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
 
     @Override
     @Transactional
-    public String registerDubbo(final MetaDataRegisterDTO dto) {
+    public synchronized String registerDubbo(final MetaDataRegisterDTO dto) {
         MetaDataDO exist = metaDataMapper.findByPath(dto.getPath());
         saveOrUpdateMetaData(exist, dto);
         String selectorId = handlerDubboSelector(dto);
@@ -155,7 +155,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     }
 
     @Override
-    public String registerSofa(final MetaDataRegisterDTO dto) {
+    public synchronized String registerSofa(final MetaDataRegisterDTO dto) {
         MetaDataDO metaDataDO = metaDataMapper.findByPath(dto.getPath());
         if (Objects.nonNull(metaDataDO)
                 && (!metaDataDO.getMethodName().equals(dto.getMethodName())
@@ -170,7 +170,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     }
 
     @Override
-    public String registerTars(final MetaDataRegisterDTO dto) {
+    public synchronized String registerTars(final MetaDataRegisterDTO dto) {
         MetaDataDO byPath = metaDataMapper.findByPath(dto.getPath());
         if (Objects.nonNull(byPath)
                 && (!byPath.getMethodName().equals(dto.getMethodName())
@@ -185,7 +185,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     }
 
     @Override
-    public String registerGrpc(final MetaDataRegisterDTO dto) {
+    public synchronized String registerGrpc(final MetaDataRegisterDTO dto) {
         MetaDataDO exist = metaDataMapper.findByPath(dto.getPath());
         saveOrUpdateMetaData(exist, dto);
         String selectorId = handlerGrpcSelector(dto);
