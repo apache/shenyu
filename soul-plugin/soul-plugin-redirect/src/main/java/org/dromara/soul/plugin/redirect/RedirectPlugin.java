@@ -19,15 +19,12 @@ package org.dromara.soul.plugin.redirect;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.RedirectHandle;
 import org.dromara.soul.common.enums.PluginEnum;
-import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.api.SoulPluginChain;
-import org.dromara.soul.plugin.api.context.SoulContext;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -44,6 +41,7 @@ import java.util.Objects;
  */
 @Slf4j
 public class RedirectPlugin extends AbstractSoulPlugin {
+    
     @Override
     public int getOrder() {
         return PluginEnum.REDIRECT.getCode();
@@ -52,12 +50,6 @@ public class RedirectPlugin extends AbstractSoulPlugin {
     @Override
     public String named() {
         return PluginEnum.REDIRECT.getName();
-    }
-
-    @Override
-    public Boolean skip(final ServerWebExchange exchange) {
-        final SoulContext body = exchange.getAttribute(Constants.CONTEXT);
-        return Objects.equals(Objects.requireNonNull(body).getRpcType(), RpcTypeEnum.DUBBO.getName());
     }
 
     @Override

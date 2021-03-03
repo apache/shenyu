@@ -17,13 +17,10 @@
 
 package org.dromara.soul.plugin.redirect;
 
-import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginEnum;
-import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.plugin.api.SoulPluginChain;
-import org.dromara.soul.plugin.api.context.SoulContext;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
@@ -83,12 +80,4 @@ public final class RedirectPluginTest {
         assertThat(PluginEnum.REDIRECT.getName(), Matchers.is(result));
     }
 
-    @Test
-    public void testSkip() {
-        SoulContext context = mock(SoulContext.class);
-        when(context.getRpcType()).thenReturn(RpcTypeEnum.DUBBO.getName());
-        exchange.getAttributes().put(Constants.CONTEXT, context);
-        final Boolean result = redirectPlugin.skip(exchange);
-        assertThat(result, Matchers.is(true));
-    }
 }
