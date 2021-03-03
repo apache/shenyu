@@ -22,6 +22,7 @@ import org.dromara.soul.plugin.api.SoulPlugin;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.web.reactive.DispatcherHandler;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -37,6 +38,7 @@ public class RedirectPluginConfigurationTest {
     public void testRedirectPlugin() {
         new ApplicationContextRunner()
                 .withConfiguration(AutoConfigurations.of(RedirectPluginConfiguration.class))
+                .withBean(DispatcherHandler.class)
                 .withPropertyValues("debug=true")
                 .run(context -> {
                     SoulPlugin soulPlugin = context.getBean("redirectPlugin", SoulPlugin.class);
