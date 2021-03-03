@@ -35,5 +35,6 @@ import java.util.List;
 @Component
 @ConfigurationProperties(prefix = "soul.exclude")
 public class ExcludePathProperties {
-    private List<String> paths = new ArrayList<>();
+    
+    private final List<String> paths = new ArrayList<>();
 }
