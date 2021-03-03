@@ -17,7 +17,6 @@
 
 package org.dromara.soul.plugin.redirect;
 
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
@@ -56,14 +55,14 @@ public class RedirectPlugin extends AbstractSoulPlugin {
     }
 
     @Override
-    public Boolean skip(ServerWebExchange exchange) {
+    public Boolean skip(final ServerWebExchange exchange) {
         final SoulContext body = exchange.getAttribute(Constants.CONTEXT);
         return Objects.equals(Objects.requireNonNull(body).getRpcType(), RpcTypeEnum.DUBBO.getName());
     }
 
     @Override
-    protected Mono<Void> doExecute(ServerWebExchange exchange, SoulPluginChain chain, SelectorData selector, RuleData rule) {
-        String handle = rule.getHandle();
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
+        final String handle = rule.getHandle();
         final RedirectHandle redirectHandle = GsonUtils.getInstance().fromJson(handle, RedirectHandle.class);
         if (Objects.isNull(redirectHandle) || StringUtils.isBlank(redirectHandle.getRedirectURI())) {
             log.error("uri redirect rule can not configuration: {}", handle);
