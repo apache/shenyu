@@ -19,6 +19,8 @@ package org.dromara.soul.admin.service;
 
 import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
 
+import java.util.List;
+
 /**
  * The interface Soul client service.
  */
@@ -71,4 +73,12 @@ public interface SoulClientRegisterService {
      * @return the string
      */
     String registerGrpc(MetaDataRegisterDTO metaDataRegisterDTO);
+
+    /**
+     * mvc uri upstream update.
+     * @param contextPath context paht
+     * @param uriList uri list
+     * @return the string
+     */
+    String registerURI(String contextPath, List<String> uriList);
 }
