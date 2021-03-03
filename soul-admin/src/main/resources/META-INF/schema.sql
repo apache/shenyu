@@ -266,6 +266,7 @@ INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `d
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('13', 'tars', '1','0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('14', 'context_path', '1','0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('15', 'grpc', '1','0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
+INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('16', 'redirect', '1','0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 
 /**default admin user**/
 INSERT IGNORE INTO `dashboard_user` (`id`, `user_name`, `password`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('1','admin','jHcpKkiDbbQh7W7hh8yQSA==', '1', '1', '2018-06-23 15:12:22', '2018-06-23 15:12:23');
@@ -290,6 +291,9 @@ INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`
 
 /*insert plugin_handle data for rewrite*/
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('13', '3' ,'rewriteURI','rewriteURI', 2, 2, 1, '2020-11-29 16:07:10', '2020-11-29 16:07:10');
+
+/*insert plugin_handle data for rewrite*/
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('42', '16' ,'redirectURI','redirectURI', 2, 2, 1, '2020-11-29 16:07:10', '2020-11-29 16:07:10');
 
 /*insert plugin_handle data for springCloud*/
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('14', '8' ,'path','path', 2, 2, 1, '2020-11-29 16:07:10', '2020-11-29 16:07:10');
@@ -513,6 +517,16 @@ INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `compo
 INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1357977912126177280','1355163372527050752','SOUL.SYSTEM.EDITOR','','','','2','5','','1','0','system:resource:editButton','1','2021-02-06 17:02:19','2021-02-06 17:23:57');
 INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1357977971827900416','1355163372527050752','SOUL.SYSTEM.DELETEDATA','','','','2','6','','1','0','system:resource:deleteButton','1','2021-02-06 17:02:33','2021-02-06 17:25:28');
 
+/** insert redirect resource */
+INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1347027413357572097', '1346775491550474240', 'redirect', 'redirect', '/plug/redirect', 'redirect', 1, 16, 'redo', 0, 0, '', 1, '2021-01-06 21:48:57', '2021-01-07 11:48:56');
+INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1347052833968631809', '1347027413357572097', 'SOUL.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:redirectSelector:add', 1, '2021-01-07 13:29:57', '2021-01-17 11:46:18');
+INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1347052836300664833', '1347027413357572097', 'SOUL.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 1, '', 1, 0, 'plugin:redirectSelector:delete', 1, '2021-01-07 13:29:58', '2021-01-17 11:47:02');
+INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1347052839198928897', '1347027413357572097', 'SOUL.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 2, '', 1, 0, 'plugin:redirectRule:add', 1, '2021-01-07 13:29:59', '2021-01-17 11:46:32');
+INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1347052841824563201', '1347027413357572097', 'SOUL.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 3, '', 1, 0, 'plugin:redirectRule:delete', 1, '2021-01-07 13:29:59', '2021-01-17 11:46:59');
+INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1347052843993018369', '1347027413357572097', 'SOUL.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 4, '', 1, 0, 'plugin:redirect:modify', 1, '2021-01-07 13:30:00', '2021-01-17 11:56:30');
+INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1350099831950163969', '1347027413357572097', 'SOUL.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 4, '', 1, 0, 'plugin:redirectSelector:edit', 1, '2021-01-15 23:17:38', '2021-01-17 11:57:34');
+INSERT IGNORE INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1350099836492595201', '1347027413357572097', 'SOUL.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 4, '', 1, 0, 'plugin:redirectRule:edit', 1, '2021-01-15 23:17:39', '2021-01-17 11:57:37');
+
 /** insert admin role */
 INSERT IGNORE INTO `user_role` (`id`, `user_id`, `role_id`, `date_created`, `date_updated`) VALUES ('1351007709096976384', '1', '1346358560427216896', '2021-01-18 11:25:13', '2021-01-18 11:25:13');
 
@@ -692,3 +706,13 @@ INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1357977971827900423', '1346358560427216896', '1350100337363795974', '2021-02-06 17:02:33', '2021-02-06 17:02:33');
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1357977971827900424', '1346358560427216896', '1350100337363795975', '2021-02-06 17:02:33', '2021-02-06 17:02:33');
 INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1357977971827900425', '1346358560427216896', '1347028169120821249', '2021-02-06 17:02:33', '2021-02-06 17:02:33');
+
+/** add redirect permissions for admin user */
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1357977971827900432', '1346358560427216896', '1350099836492595201', '2021-02-06 17:02:33', '2021-02-06 17:02:33');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1357977971827900431', '1346358560427216896', '1350099831950163969', '2021-02-06 17:02:33', '2021-02-06 17:02:33');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1357977971827900430', '1346358560427216896', '1347052843993018369', '2021-02-06 17:02:33', '2021-02-06 17:02:33');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1357977971827900429', '1346358560427216896', '1347052841824563201', '2021-02-06 17:02:33', '2021-02-06 17:02:33');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1357977971827900428', '1346358560427216896', '1347052839198928897', '2021-02-06 17:02:33', '2021-02-06 17:02:33');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1357977971827900427', '1346358560427216896', '1347052836300664833', '2021-02-06 17:02:33', '2021-02-06 17:02:33');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1357977971827900426', '1346358560427216896', '1347052833968631809', '2021-02-06 17:02:33', '2021-02-06 17:02:33');
+INSERT IGNORE INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1357977971827900433', '1346358560427216896', '1347027413357572097', '2021-02-06 17:02:33', '2021-02-06 17:02:33');
