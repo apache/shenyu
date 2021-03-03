@@ -27,7 +27,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 
 /**
  * The type Register center configuration.
@@ -43,7 +42,6 @@ public class RegisterCenterConfiguration {
      */
     @Configuration
     @ConditionalOnProperty(name = "soul.register.registerType", havingValue = "zookeeper")
-    @Import(ZookeeperConfiguration.class)
     static class ZookeeperRegisterCenter {
     
         /**

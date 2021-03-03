@@ -79,7 +79,7 @@ public class ZookeeperClientRegisterRepository implements SoulClientRegisterRepo
         zkClient.createPersistent(realNode, GsonUtils.getInstance().toJson(metadata));
     }
     
-    private void registerURI(final String rpcType, final String contextPath, final MetaDataRegisterDTO metadata) {
+    private synchronized void registerURI(final String rpcType, final String contextPath, final MetaDataRegisterDTO metadata) {
         String uriNodeName = buildURINodeName(metadata);
         String uriPath = ZkRegisterPathConstants.buildURIParentPath(rpcType, contextPath);
         if (!zkClient.exists(uriPath)) {
@@ -105,7 +105,7 @@ public class ZookeeperClientRegisterRepository implements SoulClientRegisterRepo
         } else {
             nodeName = buildNodeName(metadata.getServiceName(), metadata.getMethodName());
         }
-        return nodeName;
+        return nodeName.substring(1);
     }
     
     private String buildNodeName(final String serviceName, final String methodName) {
