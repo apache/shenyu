@@ -112,7 +112,10 @@ public class UpstreamCheckService {
             setup();
         }
     }
-    
+
+    /**
+     * if checked, setup ScheduledThreadPoolExecutor.
+     */
     public void setup() {
         if (checked) {
             PluginDO pluginDO = pluginMapper.selectByName(PluginEnum.DIVIDE.getName());
