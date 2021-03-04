@@ -61,6 +61,7 @@ import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * The type Soul client register service.
@@ -85,7 +86,6 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     private final SelectorMapper selectorMapper;
 
     private final PluginMapper pluginMapper;
-
 
     /**
      * Instantiates a new Meta data service.
@@ -454,5 +454,28 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         }
         ruleDTO.setRuleConditions(Collections.singletonList(ruleConditionDTO));
         ruleService.register(ruleDTO);
+    }
+
+    @Override
+    public String registerURI(final String contextPath, final List<String> uriList) {
+        SelectorDO selector = selectorService.findByName(contextPath);
+        SelectorData selectorData = selectorService.buildByName(contextPath);
+        String handler = GsonUtils.getInstance().toJson(buildDivideUpstreamList(uriList));
+        selector.setHandle(handler);
+        selectorData.setHandle(handler);
+        selectorMapper.updateSelective(selector);
+        // publish change event.
+        eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
+                Collections.singletonList(selectorData)));
+        return SoulResultMessage.SUCCESS;
+    }
+
+    private List<DivideUpstream> buildDivideUpstreamList(final List<String> uriList) {
+        return uriList.stream().map(uri -> DivideUpstream.builder()
+                .upstreamHost("localhost")
+                .protocol("http://")
+                .upstreamUrl(uri)
+                .weight(50)
+                .build()).collect(Collectors.toList());
     }
 }

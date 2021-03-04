@@ -22,6 +22,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.I0Itec.zkclient.IZkDataListener;
 import org.I0Itec.zkclient.ZkClient;
+import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.CollectionUtils;
 import org.dromara.soul.common.utils.GsonUtils;
@@ -139,8 +140,9 @@ public class ZookeeperServerRegisterRepository implements SoulServerRegisterRepo
         }
         zkClient.subscribeChildChanges(uriParentPath, (parentPath, currentChildren) -> {
             if (CollectionUtils.isNotEmpty(currentChildren)) {
-                List<String> addSubscribePath = addSubscribePath(childrenList, currentChildren);
-                registerURIChildrenList(addSubscribePath, parentPath);
+                registerURIChildrenList(currentChildren, parentPath);
+            } else {
+                registerURIChildrenList(new ArrayList<>(), parentPath);
             }
         });
     }
@@ -152,7 +154,9 @@ public class ZookeeperServerRegisterRepository implements SoulServerRegisterRepo
             registerDTOList.add(GsonUtils.getInstance().fromJson(zkClient.readData(realPath).toString(), URIRegisterDTO.class));
         });
         if (registerDTOList.isEmpty()) {
-            return;
+            String contextPath = StringUtils.substringAfterLast(uriParentPath, "/");
+            URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder().contextPath("/" + contextPath).build();
+            registerDTOList.add(uriRegisterDTO);
         }
         publishRegisterURI(registerDTOList);
     }
