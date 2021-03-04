@@ -86,14 +86,15 @@ public class UpstreamCheckService {
     private final PluginMapper pluginMapper;
 
     private final SelectorConditionMapper selectorConditionMapper;
-
+    
     /**
      * Instantiates a new Upstream check service.
      *
-     * @param selectorMapper            the selector mapper
-     * @param eventPublisher            the event publisher
-     * @param pluginMapper              the plugin mapper
-     * @param selectorConditionMapper   the selectorCondition mapper
+     * @param selectorMapper the selector mapper
+     * @param eventPublisher the event publisher
+     * @param pluginMapper the plugin mapper
+     * @param selectorConditionMapper the selectorCondition mapper
+     * @param soulRegisterCenterConfig the soul register center config
      */
     @Autowired(required = false)
     public UpstreamCheckService(final SelectorMapper selectorMapper, final ApplicationEventPublisher eventPublisher,
@@ -112,11 +113,8 @@ public class UpstreamCheckService {
             setup();
         }
     }
-
-    /**
-     * setup.
-     */
-    public void setup() {
+    
+    private void setup() {
         if (checked) {
             PluginDO pluginDO = pluginMapper.selectByName(PluginEnum.DIVIDE.getName());
             if (pluginDO != null) {
@@ -132,7 +130,7 @@ public class UpstreamCheckService {
                     .scheduleWithFixedDelay(this::scheduled, 10, scheduledTime, TimeUnit.SECONDS);
         }
     }
-
+    
     /**
      * Remove by key.
      *
@@ -141,11 +139,11 @@ public class UpstreamCheckService {
     public static void removeByKey(final String selectorName) {
         UPSTREAM_MAP.remove(selectorName);
     }
-
+    
     /**
      * Submit.
      *
-     * @param selectorName   the selector name
+     * @param selectorName the selector name
      * @param divideUpstream the divide upstream
      */
     public void submit(final String selectorName, final DivideUpstream divideUpstream) {
@@ -165,11 +163,11 @@ public class UpstreamCheckService {
             UPSTREAM_MAP.put(selectorName, Lists.newArrayList(divideUpstream));
         }
     }
-
+    
     /**
      * Replace.
      *
-     * @param selectorName    the selector name
+     * @param selectorName the selector name
      * @param divideUpstreams the divide upstream list
      */
     public void replace(final String selectorName, final List<DivideUpstream> divideUpstreams) {
@@ -260,8 +258,7 @@ public class UpstreamCheckService {
                 SelectorData selectorData = SelectorDO.transFrom(selectorDO, pluginDO.getName(), conditionDataList);
                 selectorData.setHandle(handler);
                 // publish change event.
-                eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
-                                                                 Collections.singletonList(selectorData)));
+                eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(selectorData)));
             }
         }
     }

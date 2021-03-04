@@ -70,6 +70,10 @@
  * soul-bootstrap : 用于启动项目，用户可以参考
 
  * soul-client : 用户可以使用 Spring MVC，Dubbo，Spring Cloud 快速访问
+ 
+ * soul-disruptor : 基于disruptor的封装
+  
+ * soul-register-center : 为soul-client提供各种rpc接入注册中心的支持
   
  * soul-common : 框架的通用类
 
@@ -93,8 +97,8 @@
 
 # 功能特点
 
-   * 提供了诸如限流、熔断、转发和路由监控等插件；
-   * 与 HTTP、RESTful、WebSocket、Dubbo 和 Spring Cloud 无缝对接；
+   * 提供了诸如限流、熔断、转发 、重写、重定向、和路由监控等插件；
+   * 支持 HTTP、RESTFul、WebSocket、Dubbo、 GRPC、 Tars、 Spring Cloud 代理；
    * 支持热插拔，用户可以定制化开发；
    * 为了灵活的适配，选择器和规则可以动态的适配；
    * 支持集群部署；
@@ -140,7 +144,7 @@
 
 --------------------------------------------------------------------------------
 
-# 先决条件
+# 必要条件
 
    * JDK 1.8+
 
@@ -148,7 +152,7 @@
 
 # 关于
 
-Soul 已在我们的生产环境中使用，它的性能和灵活性使我们用起来很酷。
+Soul 已在我们的生产环境中使用，它的性能和灵活性使我们用起来非常方便。
 
 在双 11 中，我们部署了 6 个集群，这些集群支持了我们的大量业务。
 
