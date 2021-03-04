@@ -70,15 +70,15 @@ public class UpstreamCheckService {
     private static final Map<String, List<DivideUpstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
 
     private static final Set<ZombieUpstream> ZOMBIE_SET = Sets.newConcurrentHashSet();
-    
+
     private int zombieCheckTimes;
-    
+
     private int scheduledTime;
-    
+
     private String registerType;
-    
+
     private boolean checked;
-    
+
     private final SelectorMapper selectorMapper;
 
     private final ApplicationEventPublisher eventPublisher;
@@ -86,7 +86,7 @@ public class UpstreamCheckService {
     private final PluginMapper pluginMapper;
 
     private final SelectorConditionMapper selectorConditionMapper;
-    
+
     /**
      * Instantiates a new Upstream check service.
      *
@@ -112,7 +112,10 @@ public class UpstreamCheckService {
             setup();
         }
     }
-    
+
+    /**
+     * setup.
+     */
     public void setup() {
         if (checked) {
             PluginDO pluginDO = pluginMapper.selectByName(PluginEnum.DIVIDE.getName());
@@ -129,7 +132,7 @@ public class UpstreamCheckService {
                     .scheduleWithFixedDelay(this::scheduled, 10, scheduledTime, TimeUnit.SECONDS);
         }
     }
-    
+
     /**
      * Remove by key.
      *
@@ -138,7 +141,7 @@ public class UpstreamCheckService {
     public static void removeByKey(final String selectorName) {
         UPSTREAM_MAP.remove(selectorName);
     }
-    
+
     /**
      * Submit.
      *
