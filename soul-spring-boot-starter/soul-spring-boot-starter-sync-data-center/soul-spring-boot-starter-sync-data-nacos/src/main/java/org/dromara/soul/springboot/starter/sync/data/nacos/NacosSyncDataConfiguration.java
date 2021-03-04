@@ -84,6 +84,8 @@ public class NacosSyncDataConfiguration {
         } else {
             properties.put(PropertyKeyConst.SERVER_ADDR, nacosConfig.getUrl());
             properties.put(PropertyKeyConst.NAMESPACE, nacosConfig.getNamespace());
+            properties.put(PropertyKeyConst.USERNAME, nacosConfig.getUsername());
+            properties.put(PropertyKeyConst.PASSWORD, nacosConfig.getPassword());
         }
         return NacosFactory.createConfigService(properties);
     }
