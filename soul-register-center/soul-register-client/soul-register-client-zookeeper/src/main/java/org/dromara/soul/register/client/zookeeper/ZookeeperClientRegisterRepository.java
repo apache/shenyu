@@ -39,7 +39,7 @@ import java.util.Properties;
 @Join
 @Slf4j
 public class ZookeeperClientRegisterRepository implements SoulClientRegisterRepository {
-    
+
     private ZkClient zkClient;
 
     @Override
@@ -49,7 +49,7 @@ public class ZookeeperClientRegisterRepository implements SoulClientRegisterRepo
         int zookeeperConnectionTimeout = Integer.parseInt(props.getProperty("zookeeperConnectionTimeout", "3000"));
         this.zkClient = new ZkClient(config.getServerLists(), zookeeperSessionTimeout, zookeeperConnectionTimeout);
     }
-    
+
     @Override
     public void persistInterface(final MetaDataRegisterDTO metadata) {
         String rpcType = metadata.getRpcType();
@@ -65,7 +65,7 @@ public class ZookeeperClientRegisterRepository implements SoulClientRegisterRepo
     public void close() {
         zkClient.close();
     }
-    
+
     private void registerMetadata(final String rpcType, final String contextPath, final MetaDataRegisterDTO metadata) {
         String metadataNodeName = buildMetadataNodeName(metadata);
         String metaDataPath = ZkRegisterPathConstants.buildMetaDataParentPath(rpcType, contextPath);
@@ -74,12 +74,12 @@ public class ZookeeperClientRegisterRepository implements SoulClientRegisterRepo
         }
         String realNode = ZkRegisterPathConstants.buildRealNode(metaDataPath, metadataNodeName);
         if (zkClient.exists(realNode)) {
-            zkClient.writeData(realNode,  GsonUtils.getInstance().toJson(metadata));
+            zkClient.writeData(realNode, GsonUtils.getInstance().toJson(metadata));
         } else {
             zkClient.createPersistent(realNode, GsonUtils.getInstance().toJson(metadata));
         }
     }
-    
+
     private synchronized void registerURI(final String rpcType, final String contextPath, final MetaDataRegisterDTO metadata) {
         String uriNodeName = buildURINodeName(metadata);
         String uriPath = ZkRegisterPathConstants.buildURIParentPath(rpcType, contextPath);
@@ -91,13 +91,13 @@ public class ZookeeperClientRegisterRepository implements SoulClientRegisterRepo
             zkClient.createEphemeral(realNode, GsonUtils.getInstance().toJson(URIRegisterDTO.transForm(metadata)));
         }
     }
-    
+
     private String buildURINodeName(final MetaDataRegisterDTO metadata) {
         String host = metadata.getHost();
         int port = metadata.getPort();
         return String.join(":", host, Integer.toString(port));
     }
-    
+
     private String buildMetadataNodeName(final MetaDataRegisterDTO metadata) {
         String nodeName;
         String rpcType = metadata.getRpcType();
@@ -108,7 +108,7 @@ public class ZookeeperClientRegisterRepository implements SoulClientRegisterRepo
         }
         return nodeName.substring(1);
     }
-    
+
     private String buildNodeName(final String serviceName, final String methodName) {
         return String.join(DOT_SEPARATOR, serviceName, methodName);
     }
