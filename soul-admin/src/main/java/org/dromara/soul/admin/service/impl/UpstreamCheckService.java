@@ -70,15 +70,15 @@ public class UpstreamCheckService {
     private static final Map<String, List<DivideUpstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
 
     private static final Set<ZombieUpstream> ZOMBIE_SET = Sets.newConcurrentHashSet();
-    
+
     private int zombieCheckTimes;
-    
+
     private int scheduledTime;
-    
+
     private String registerType;
-    
+
     private boolean checked;
-    
+
     private final SelectorMapper selectorMapper;
 
     private final ApplicationEventPublisher eventPublisher;
@@ -90,10 +90,11 @@ public class UpstreamCheckService {
     /**
      * Instantiates a new Upstream check service.
      *
-     * @param selectorMapper            the selector mapper
-     * @param eventPublisher            the event publisher
-     * @param pluginMapper              the plugin mapper
-     * @param selectorConditionMapper   the selectorCondition mapper
+     * @param selectorMapper the selector mapper
+     * @param eventPublisher the event publisher
+     * @param pluginMapper the plugin mapper
+     * @param selectorConditionMapper the selectorCondition mapper
+     * @param soulRegisterCenterConfig the soul register center config
      */
     @Autowired(required = false)
     public UpstreamCheckService(final SelectorMapper selectorMapper, final ApplicationEventPublisher eventPublisher,
@@ -113,6 +114,9 @@ public class UpstreamCheckService {
         }
     }
     
+    /**
+     * Set up.
+     */
     public void setup() {
         if (checked) {
             PluginDO pluginDO = pluginMapper.selectByName(PluginEnum.DIVIDE.getName());
@@ -142,7 +146,7 @@ public class UpstreamCheckService {
     /**
      * Submit.
      *
-     * @param selectorName   the selector name
+     * @param selectorName the selector name
      * @param divideUpstream the divide upstream
      */
     public void submit(final String selectorName, final DivideUpstream divideUpstream) {
@@ -162,11 +166,11 @@ public class UpstreamCheckService {
             UPSTREAM_MAP.put(selectorName, Lists.newArrayList(divideUpstream));
         }
     }
-
+    
     /**
      * Replace.
      *
-     * @param selectorName    the selector name
+     * @param selectorName the selector name
      * @param divideUpstreams the divide upstream list
      */
     public void replace(final String selectorName, final List<DivideUpstream> divideUpstreams) {
@@ -257,8 +261,7 @@ public class UpstreamCheckService {
                 SelectorData selectorData = SelectorDO.transFrom(selectorDO, pluginDO.getName(), conditionDataList);
                 selectorData.setHandle(handler);
                 // publish change event.
-                eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
-                                                                 Collections.singletonList(selectorData)));
+                eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(selectorData)));
             }
         }
     }

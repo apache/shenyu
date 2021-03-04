@@ -73,6 +73,10 @@
   
  * soul-common : framework common class
  
+ * soul-disruptor : based on disruptor Enclosure
+ 
+ * soul-register-center : rpc type register for soul-client
+ 
  * soul-dist : build project
 
  * soul-metrics : metrics impl by prometheus.
@@ -95,7 +99,7 @@
 
    * Soul provides plugins such as current limiting, fusing, forwarding, routing monitoring and so on.
    
-   * Seamless docking with HTTP, RESTful, WebSocket, Dubbo and Spring Cloud.
+   * Support HTTP, RESTFul, WebSocket, Dubbo, GRPC, Tars and Spring Cloud Proxy.
    
    * Plug-in hot plug, users can customize the development.
    
