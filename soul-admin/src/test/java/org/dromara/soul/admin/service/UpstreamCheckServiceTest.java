@@ -88,16 +88,16 @@ public final class UpstreamCheckServiceTest {
         //get static variable reference by reflection
         upstreamMap = (Map<String, List<DivideUpstream>>) ReflectionTestUtils.getField(UpstreamCheckService.class, "UPSTREAM_MAP");
         //mock data
-        final PluginDO pluginDO = PluginDO.builder()
+        PluginDO pluginDO = PluginDO.builder()
                 .name(PluginEnum.DIVIDE.getName())
                 .id(MOCK_PLUGIN_ID)
                 .build();
-        final SelectorDO selectorDOWithUrlError = SelectorDO.builder()
+        SelectorDO selectorDOWithUrlError = SelectorDO.builder()
                 .pluginId(MOCK_PLUGIN_ID)
                 .name(MOCK_SELECTOR_NAME)
                 .handle("[{\"upstreamHost\":\"localhost\",\"protocol\":\"http://\",\"upstreamUrl\":\"divide-upstream-50\",\"weight\":50}]")
                 .build();
-        final SelectorDO selectorDOWithUrlReachable = SelectorDO.builder()
+        SelectorDO selectorDOWithUrlReachable = SelectorDO.builder()
                 .pluginId(MOCK_PLUGIN_ID)
                 .name(MOCK_SELECTOR_NAME_OTHER)
                 .handle("[{\"upstreamHost\":\"localhost\",\"protocol\":\"http://\",\"localhost\":\"divide-upstream-60\",\"weight\":60}]")

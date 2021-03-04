@@ -114,7 +114,10 @@ public class UpstreamCheckService {
         }
     }
     
-    private void setup() {
+    /**
+     * Set up.
+     */
+    public void setup() {
         if (checked) {
             PluginDO pluginDO = pluginMapper.selectByName(PluginEnum.DIVIDE.getName());
             if (pluginDO != null) {
