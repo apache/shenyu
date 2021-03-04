@@ -35,5 +35,4 @@ public class ShiroProperties {
      * shiro's white list.
      */
     private String whiteList;
-
 }

@@ -32,5 +32,4 @@ import org.springframework.stereotype.Component;
 public class JwtProperties {
 
     private String key;
-
 }

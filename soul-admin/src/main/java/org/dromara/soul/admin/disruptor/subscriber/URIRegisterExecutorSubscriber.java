@@ -25,6 +25,8 @@ import org.dromara.soul.register.common.type.DataType;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * The type Uri register executor subscriber.
@@ -51,16 +53,15 @@ public class URIRegisterExecutorSubscriber implements ExecutorTypeSubscriber<URI
     
     @Override
     public void executor(final Collection<URIRegisterDTO> dataList) {
-        final String[] selectName = {null};
-        List<String> uriList = new ArrayList<>();
-        dataList.forEach(uriRegisterDTO -> {
-            if (selectName[0] == null) {
-                selectName[0] = uriRegisterDTO.getContextPath();
-            }
-            if (uriRegisterDTO.getHost() != null && uriRegisterDTO.getPort() != null) {
-                uriList.add(String.join(":", uriRegisterDTO.getHost(), uriRegisterDTO.getPort().toString()));
-            }
+        Map<String, List<URIRegisterDTO>> listMap = dataList.stream().collect(Collectors.groupingBy(URIRegisterDTO::getContextPath));
+        listMap.forEach((contextPath, dtoList) -> {
+            List<String> uriList = new ArrayList<>();
+            dataList.forEach(uriRegisterDTO -> {
+                if (uriRegisterDTO.getHost() != null && uriRegisterDTO.getPort() != null) {
+                    uriList.add(String.join(":", uriRegisterDTO.getHost(), uriRegisterDTO.getPort().toString()));
+                }
+            });
+            soulClientRegisterService.registerURI(contextPath, uriList);
         });
-        soulClientRegisterService.registerURI(selectName[0], uriList);
     }
 }

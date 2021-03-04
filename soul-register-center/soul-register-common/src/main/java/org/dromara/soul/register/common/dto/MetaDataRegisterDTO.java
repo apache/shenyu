@@ -65,8 +65,6 @@ public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     
     private Integer port;
     
-    private Boolean writeMetaData;
-    
     private List<String> pluginNames;
 
     private boolean registerMetaData;

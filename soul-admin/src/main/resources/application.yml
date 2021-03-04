@@ -43,6 +43,9 @@ soul:
     props:
       sessionTimeout: 5000
       connectionTimeout: 2000
+      checked: true
+      zombieCheckTimes: 5
+      scheduledTime: 10
   database:
     dialect: mysql
     init_script: "META-INF/schema.sql"
@@ -72,7 +75,9 @@ soul:
     key: 2095132720951327
   shiro:
     white-list: /,/favicon.*,/static/**,/index**,/plugin,/platform/**,/websocket,/configs/**,/soul-client/**,/error,/actuator/health
-
+  swagger: 
+     enabled: true
+     
 logging:
   level:
     root: info
@@ -81,6 +86,3 @@ logging:
     org.dromara.soul.bonuspoint: info
     org.dromara.soul.lottery: info
     org.dromara.soul: info
-
-swagger:
-  enable: true
