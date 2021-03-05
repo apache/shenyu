@@ -32,6 +32,7 @@ import org.dromara.soul.register.common.dto.URIRegisterDTO;
 import org.dromara.soul.register.common.path.ZkRegisterPathConstants;
 import org.dromara.soul.register.server.api.SoulServerRegisterPublisher;
 import org.dromara.soul.register.server.api.SoulServerRegisterRepository;
+import org.dromara.soul.spi.Join;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -45,23 +46,21 @@ import java.util.stream.Collectors;
  * @author lw1243925457
  */
 @Slf4j
+@Join
 public class ZookeeperServerRegisterRepository implements SoulServerRegisterRepository {
     
     private static final EnumSet<RpcTypeEnum> METADATA_SET = EnumSet.of(RpcTypeEnum.DUBBO, RpcTypeEnum.GRPC, RpcTypeEnum.HTTP, RpcTypeEnum.SPRING_CLOUD, RpcTypeEnum.SOFA, RpcTypeEnum.TARS);
     
     private static final EnumSet<RpcTypeEnum> URI_SET = EnumSet.of(RpcTypeEnum.GRPC, RpcTypeEnum.HTTP, RpcTypeEnum.TARS);
     
-    private final SoulServerRegisterPublisher publisher;
+    private SoulServerRegisterPublisher publisher;
     
     private ZkClient zkClient;
     
-    public ZookeeperServerRegisterRepository(final SoulServerRegisterPublisher publisher, final SoulRegisterCenterConfig soulRegisterCenterConfig) {
-        this.publisher = publisher;
-        init(soulRegisterCenterConfig);
-    }
-    
     @Override
-    public void init(final SoulRegisterCenterConfig config) {
+    public void init(final SoulServerRegisterPublisher publisher, final SoulRegisterCenterConfig config) {
+        this.init(config);
+        this.publisher = publisher;
         Properties props = config.getProps();
         int zookeeperSessionTimeout = Integer.parseInt(props.getProperty("zookeeperSessionTimeout", "3000"));
         int zookeeperConnectionTimeout = Integer.parseInt(props.getProperty("zookeeperConnectionTimeout", "3000"));

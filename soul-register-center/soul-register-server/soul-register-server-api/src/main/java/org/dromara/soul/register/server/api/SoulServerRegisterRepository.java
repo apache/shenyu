@@ -18,10 +18,12 @@
 package org.dromara.soul.register.server.api;
 
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
+import org.dromara.soul.spi.SPI;
 
 /**
  * Soul client register repository.
  */
+@SPI
 public interface SoulServerRegisterRepository {
     
     /**
@@ -30,6 +32,15 @@ public interface SoulServerRegisterRepository {
      * @param config the config
      */
     default void init(SoulRegisterCenterConfig config) {
+    }
+    
+    /**
+     * Init.
+     *
+     * @param publisher the publisher
+     * @param config the config
+     */
+    default void init(SoulServerRegisterPublisher publisher, SoulRegisterCenterConfig config) {
     }
     
     /**

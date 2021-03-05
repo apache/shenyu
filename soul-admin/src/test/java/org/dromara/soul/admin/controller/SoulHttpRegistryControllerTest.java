@@ -17,6 +17,7 @@
 
 package org.dromara.soul.admin.controller;
 
+import org.dromara.soul.admin.disruptor.RegisterServerDisruptorPublisher;
 import org.dromara.soul.admin.service.SoulClientRegisterService;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
@@ -39,12 +40,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author bran.chen
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
-public final class SoulClientControllerTest {
+public final class SoulHttpRegistryControllerTest {
 
     private MockMvc mockMvc;
 
     @InjectMocks
-    private SoulClientController soulClientController;
+    private SoulHttpRegistryController soulClientController;
 
     @Mock
     private SoulClientRegisterService soulClientRegisterService;
@@ -52,6 +53,9 @@ public final class SoulClientControllerTest {
     @Before
     public void setUp() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(soulClientController).build();
+        RegisterServerDisruptorPublisher publisher = RegisterServerDisruptorPublisher.getInstance();
+        publisher.start(soulClientRegisterService);
+        soulClientController.init(RegisterServerDisruptorPublisher.getInstance(), null);
     }
 
     @Test

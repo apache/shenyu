@@ -66,4 +66,9 @@ public class RegisterServerDisruptorPublisher implements SoulServerRegisterPubli
         DisruptorProvider<Object> provider = providerManage.getProvider();
         provider.onData(f -> f.setData(data));
     }
+    
+    @Override
+    public void close() {
+        providerManage.getProvider().shutdown();
+    }
 }

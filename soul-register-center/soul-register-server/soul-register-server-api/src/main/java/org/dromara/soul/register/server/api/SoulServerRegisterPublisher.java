@@ -19,7 +19,7 @@ package org.dromara.soul.register.server.api;
 
 /**
  * The interface Soul server register publisher.
- * 
+ *
  * @author xiaoyu
  */
 public interface SoulServerRegisterPublisher {
@@ -31,4 +31,10 @@ public interface SoulServerRegisterPublisher {
      * @param t the t
      */
     <T> void publish(T t);
+    
+    /**
+     * Close.
+     */
+    default void close() {
+    }
 }
