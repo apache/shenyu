@@ -33,6 +33,10 @@ public class NacosProperties {
 
     private String namespace;
 
+    private String username;
+
+    private String password;
+
     private NacosACMProperties acm;
 
     @Getter
