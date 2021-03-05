@@ -249,7 +249,10 @@ INSERT IGNORE INTO `soul_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_val
 INSERT IGNORE INTO `soul_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('9','flowRuleControlBehavior','CONTROL_BEHAVIOR_WARM_UP_RATE_LIMITER','preheating uniformly queued','3','control behavior-preheating uniformly queued',3,1,'2020-11-20 15:51:25', '2020-11-20 15:51:37');
 INSERT IGNORE INTO `soul_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('10','permission','REJECT','reject','reject','reject',0,1,'2020-11-22 12:04:10','2020-11-22 12:04:10');
 INSERT IGNORE INTO `soul_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('11','permission','ALLOW','allow','allow','allow',1,1,'2020-11-22 12:04:10','2020-11-22 12:04:10');
-
+INSERT IGNORE INTO `soul_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('15','algorithmName','ALGORITHM_SLIDINGWINDOW','slidingWindow','slidingWindow','Sliding window algorithm',0,1,'2020-11-20 15:42:03','2020-11-20 15:42:03');
+INSERT IGNORE INTO `soul_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('16','algorithmName','ALGORITHM_LEAKYBUCKET','leakyBucket','leakyBucket','Leaky bucket algorithm',1,1,'2020-11-20 15:44:44','2020-11-20 15:44:44');
+INSERT IGNORE INTO `soul_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('17','algorithmName','ALGORITHM_CONCURRENT','concurrent','concurrent','Concurrent algorithm',2,1,'2020-11-20 15:42:03','2020-11-20 15:42:03');
+INSERT IGNORE INTO `soul_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('18','algorithmName','ALGORITHM_TOKENBUCKET','tokenBucket','tokenBucket','Token bucket algorithm',3,1,'2020-11-20 15:44:44','2020-11-20 15:44:44');
 /*plugin*/
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('1','sign','1', '0', '2018-06-14 10:17:35', '2018-06-14 10:17:35');
 INSERT IGNORE INTO `plugin` (`id`, `name`,`role`,`config`,`enabled`, `date_created`, `date_updated`) VALUES ('2','waf', '1','{"model":"black"}','0', '2018-06-23 10:26:30', '2018-06-13 15:43:10');
@@ -287,7 +290,7 @@ INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`
 
 /*insert plugin_handle data for rate_limiter*/
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('11', '4' ,'replenishRate','replenishRate', 2, 2, 2, '{"required":"1","defaultValue":"10","rule":""}', '2020-11-24 00:17:10', '2020-11-24 00:17:10');
-INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('12', '4' ,'burstCapacity','burstCapacity', 2, 2, 1, '{"required":"1","defaultValue":"100","rule":""}', '2020-11-24 00:17:10', '2020-11-24 00:17:10');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('12', '4' ,'burstCapacity','burstCapacity', 2, 2, 3, '{"required":"1","defaultValue":"100","rule":""}', '2020-11-24 00:17:10', '2020-11-24 00:17:10');
 
 /*insert plugin_handle data for rewrite*/
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('13', '3' ,'rewriteURI','rewriteURI', 2, 2, 1, '2020-11-29 16:07:10', '2020-11-29 16:07:10');
@@ -327,6 +330,8 @@ INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_typ
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`) VALUES ('39', '7', 'host', 'host', 2, 3, 2, NULL, '2020-12-25 00:00:00', '2020-12-25 00:00:00');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`) VALUES ('40', '7', 'port', 'port', 2, 3, 3, '{"rule":"/^[0-9]*$/"}', '2020-12-25 00:00:00', '2020-12-25 00:00:00');
 INSERT IGNORE INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`) VALUES ('41', '7', 'async', 'async', 2, 3, 4, NULL, '2020-12-25 00:00:00', '2020-12-25 00:00:00');
+/*insert plugin_handle data for plugin rate_limiter*/
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('43','4' ,'algorithmName','algorithmName','3', 2, 1, '{"required":"1","defaultValue":"slidingWindow","rule":""}', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 
 /*insert mode data for rate_limiter plugin*/
 INSERT IGNORE INTO soul_dict (`id`, `type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('12', 'mode', 'MODE', 'cluster', 'cluster', 'cluster', 0, 1, '2020-12-25 00:00:00', '2020-12-25 00:00:00');
