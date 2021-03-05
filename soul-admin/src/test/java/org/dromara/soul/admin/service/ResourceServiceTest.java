@@ -150,11 +150,6 @@ public class ResourceServiceTest {
     @Test
     public void testListByPage() {
         final String queryTitle = "mock query title";
-        final PageParameter pageParameter = new PageParameter();
-        final ResourceQuery query = new ResourceQuery();
-        query.setTitle(queryTitle);
-        query.setPageParameter(pageParameter);
-
         ResourceDO resourceDO = new ResourceDO();
         resourceDO.setId("mock resource id");
         resourceDO.setParentId("mock resource parent id");
@@ -162,13 +157,17 @@ public class ResourceServiceTest {
         resourceDO.setDateCreated(new Timestamp(System.currentTimeMillis()));
         resourceDO.setDateUpdated(new Timestamp(System.currentTimeMillis()));
 
-        final List<ResourceVO> resourceList = newArrayList(ResourceVO.buildResourceVO(resourceDO));
-
-        CommonPager<ResourceVO> expect = PageResultUtils.result(query.getPageParameter(), () -> 1, () -> resourceList);
+        final PageParameter pageParameter = new PageParameter();
+        final ResourceQuery query = new ResourceQuery();
+        query.setTitle(queryTitle);
+        query.setPageParameter(pageParameter);
 
         reset(resourceMapper);
         when(resourceMapper.countByQuery(query)).thenReturn(1);
         when(resourceMapper.selectByQuery(query)).thenReturn(Collections.singletonList(resourceDO));
+
+        final List<ResourceVO> resourceList = newArrayList(ResourceVO.buildResourceVO(resourceDO));
+        CommonPager<ResourceVO> expect = PageResultUtils.result(query.getPageParameter(), () -> 1, () -> resourceList);
 
         assertThat(resourceService.listByPage(query), equalTo(expect));
     }
