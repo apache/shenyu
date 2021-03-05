@@ -22,8 +22,7 @@ import org.dromara.soul.admin.disruptor.RegisterServerDisruptorPublisher;
 import org.dromara.soul.admin.service.SoulClientRegisterService;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.dromara.soul.register.server.api.SoulServerRegisterRepository;
-import org.dromara.soul.register.server.zookeeper.ZookeeperServerRegisterRepository;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.dromara.soul.spi.ExtensionLoader;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,7 +30,7 @@ import org.springframework.context.annotation.Configuration;
 /**
  * The type Register center configuration.
  *
- * @author lw1243925457
+ * @author xiaoyu
  */
 @Slf4j
 @Configuration
@@ -49,26 +48,20 @@ public class RegisterCenterConfiguration {
     }
     
     /**
-     * The type Zookeeper register center.
+     * Soul server register repository soul server register repository.
+     *
+     * @param soulRegisterCenterConfig the soul register center config
+     * @param soulClientRegisterService the soul client register service
+     * @return the soul server register repository
      */
-    @Configuration
-    @ConditionalOnProperty(name = "soul.register.registerType", havingValue = "zookeeper")
-    static class ZookeeperRegisterCenter {
-    
-        /**
-         * Soul server register repository soul server register repository.
-         *
-         * @param soulRegisterCenterConfig the soul register center config
-         * @param soulClientRegisterService the soul client register service
-         * @return the soul server register repository
-         */
-        @Bean
-        public SoulServerRegisterRepository soulServerRegisterRepository(final SoulRegisterCenterConfig soulRegisterCenterConfig,
-                                                                         final SoulClientRegisterService soulClientRegisterService) {
-            log.info("you use zookeeper register center");
-            RegisterServerDisruptorPublisher publisher = RegisterServerDisruptorPublisher.getInstance();
-            publisher.start(soulClientRegisterService);
-            return new ZookeeperServerRegisterRepository(publisher, soulRegisterCenterConfig);
-        }
+    @Bean
+    public SoulServerRegisterRepository soulServerRegisterRepository(final SoulRegisterCenterConfig soulRegisterCenterConfig, 
+                                                                     final SoulClientRegisterService soulClientRegisterService) {
+        String registerType = soulRegisterCenterConfig.getRegisterType();
+        SoulServerRegisterRepository registerRepository = ExtensionLoader.getExtensionLoader(SoulServerRegisterRepository.class).getJoin(registerType);
+        RegisterServerDisruptorPublisher publisher = RegisterServerDisruptorPublisher.getInstance();
+        publisher.start(soulClientRegisterService);
+        registerRepository.init(publisher, soulRegisterCenterConfig);
+        return registerRepository;
     }
 }

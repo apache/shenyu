@@ -17,15 +17,16 @@
 
 package org.dromara.soul.admin.controller;
 
-import org.dromara.soul.admin.disruptor.RegisterServerDisruptorPublisher;
-import org.dromara.soul.admin.service.SoulClientRegisterService;
 import org.dromara.soul.admin.utils.SoulResultMessage;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.dromara.soul.register.server.api.SoulServerRegisterPublisher;
+import org.dromara.soul.register.server.api.SoulServerRegisterRepository;
+import org.dromara.soul.spi.Join;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.Collections;
 
@@ -34,20 +35,16 @@ import java.util.Collections;
  *
  * @author xiaoyu
  */
-@RestController
 @RequestMapping("/soul-client")
-@ConditionalOnProperty(prefix = "soul.register.registerType", value = "http", matchIfMissing = true)
-public class SoulClientController {
+@Join
+public class SoulHttpRegistryController implements SoulServerRegisterRepository {
     
-    private static final RegisterServerDisruptorPublisher PUBLISHER = RegisterServerDisruptorPublisher.getInstance();
+    private SoulServerRegisterPublisher publisher;
     
-    /**
-     * Instantiates a new Soul client controller.
-     *
-     * @param soulClientRegisterService the soul client register service
-     */
-    public SoulClientController(final SoulClientRegisterService soulClientRegisterService) {
-        PUBLISHER.start(soulClientRegisterService);
+    @Override
+    public void init(final SoulServerRegisterPublisher publisher, final SoulRegisterCenterConfig config) {
+        this.init(config);
+        this.publisher = publisher;
     }
     
     /**
@@ -57,6 +54,7 @@ public class SoulClientController {
      * @return the string
      */
     @PostMapping("/springmvc-register")
+    @ResponseBody
     public String registerSpringMvc(@RequestBody final MetaDataRegisterDTO metaDataRegisterDTO) {
         publish(metaDataRegisterDTO);
         return SoulResultMessage.SUCCESS;
@@ -69,6 +67,7 @@ public class SoulClientController {
      * @return the string
      */
     @PostMapping("/springcloud-register")
+    @ResponseBody
     public String registerSpringCloud(@RequestBody final MetaDataRegisterDTO metaDataRegisterDTO) {
         publish(metaDataRegisterDTO);
         return SoulResultMessage.SUCCESS;
@@ -81,6 +80,7 @@ public class SoulClientController {
      * @return the string
      */
     @PostMapping("/dubbo-register")
+    @ResponseBody
     public String registerRpc(@RequestBody final MetaDataRegisterDTO metaDataRegisterDTO) {
         publish(metaDataRegisterDTO);
         return SoulResultMessage.SUCCESS;
@@ -93,6 +93,7 @@ public class SoulClientController {
      * @return the string
      */
     @PostMapping("/sofa-register")
+    @ResponseBody
     public String registerSofaRpc(@RequestBody final MetaDataRegisterDTO metaDataRegisterDTO) {
         publish(metaDataRegisterDTO);
         return SoulResultMessage.SUCCESS;
@@ -105,6 +106,7 @@ public class SoulClientController {
      * @return the string
      */
     @PostMapping("/tars-register")
+    @ResponseBody
     public String registerTarsRpc(@RequestBody final MetaDataRegisterDTO metaDataRegisterDTO) {
         publish(metaDataRegisterDTO);
         return SoulResultMessage.SUCCESS;
@@ -117,12 +119,13 @@ public class SoulClientController {
      * @return the string
      */
     @PostMapping("/grpc-register")
+    @ResponseBody
     public String registerGrpc(@RequestBody final MetaDataRegisterDTO metaDataRegisterDTO) {
         publish(metaDataRegisterDTO);
         return SoulResultMessage.SUCCESS;
     }
     
     private void publish(final MetaDataRegisterDTO metaDataRegisterDTO) {
-        PUBLISHER.publish(Collections.singletonList(metaDataRegisterDTO));
+        publisher.publish(Collections.singletonList(metaDataRegisterDTO));
     }
 }
