@@ -17,24 +17,27 @@
 
 package org.dromara.soul.register.server.zookeeper;
 
+import com.google.common.collect.Lists;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.I0Itec.zkclient.IZkDataListener;
 import org.I0Itec.zkclient.ZkClient;
-import org.dromara.soul.common.constant.Constants;
+import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.dromara.soul.common.utils.CollectionUtils;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
+import org.dromara.soul.register.common.dto.URIRegisterDTO;
 import org.dromara.soul.register.common.path.ZkRegisterPathConstants;
+import org.dromara.soul.register.server.api.SoulServerRegisterPublisher;
 import org.dromara.soul.register.server.api.SoulServerRegisterRepository;
-import org.dromara.soul.register.server.api.SoulSeverRegisterCenterEventPublisher;
-import org.dromara.soul.register.server.api.listener.DataChangedEvent;
-import org.dromara.soul.register.server.api.listener.DataChangedEventListener;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 /**
  * Zookeeper register center.
@@ -43,19 +46,16 @@ import java.util.Properties;
  */
 @Slf4j
 public class ZookeeperServerRegisterRepository implements SoulServerRegisterRepository {
-
-    private final SoulSeverRegisterCenterEventPublisher publisher;
+    
+    private static final EnumSet<RpcTypeEnum> METADATA_SET = EnumSet.of(RpcTypeEnum.DUBBO, RpcTypeEnum.GRPC, RpcTypeEnum.HTTP, RpcTypeEnum.SPRING_CLOUD, RpcTypeEnum.SOFA, RpcTypeEnum.TARS);
+    
+    private static final EnumSet<RpcTypeEnum> URI_SET = EnumSet.of(RpcTypeEnum.GRPC, RpcTypeEnum.HTTP, RpcTypeEnum.TARS);
+    
+    private final SoulServerRegisterPublisher publisher;
     
     private ZkClient zkClient;
-
-    private final String rootPath = ZkRegisterPathConstants.ROOT_PATH;
-
-    private List<String> rpcTypePathList = new ArrayList<>();
-
-    private List<String> contextPathList = new ArrayList<>();
     
-    public ZookeeperServerRegisterRepository(final SoulSeverRegisterCenterEventPublisher publisher,
-                                             final SoulRegisterCenterConfig soulRegisterCenterConfig) {
+    public ZookeeperServerRegisterRepository(final SoulServerRegisterPublisher publisher, final SoulRegisterCenterConfig soulRegisterCenterConfig) {
         this.publisher = publisher;
         init(soulRegisterCenterConfig);
     }
@@ -74,224 +74,127 @@ public class ZookeeperServerRegisterRepository implements SoulServerRegisterRepo
         zkClient.close();
     }
     
-    @Override
-    public void watch(final String key, final DataChangedEventListener listener) {
-    
-    }
-
-    /**
-     * rpc类型、context path、都会变化增加，监听其变化.
-     */
     private void initSubscribe() {
-        log.info("zookeeper register watch and data init start");
-        subscribeRoot()
-                .forEach(rpcTypePath -> subscribeRpcType(rpcTypePath)
-                        .forEach(this::subscribeContext));
+        METADATA_SET.forEach(rpcTypeEnum -> subscribeMetaData(rpcTypeEnum.getName()));
+        URI_SET.forEach(rpcTypeEnum -> subscribeURI(rpcTypeEnum.getName()));
     }
-
-    private List<String> subscribeRoot() {
-        log.info("watch root node");
-
-        zkClient.subscribeChildChanges(rootPath, (parent, currentChildren) -> {
-            log.info("rpc type node change: {}", currentChildren);
-            if (!currentChildren.isEmpty()) {
-                currentChildren.forEach(rpcType -> {
-                    if (!rpcTypePathList.contains(rpcType)) {
-                        subscribeRpcType(buildPath(parent, rpcType)).forEach(this::subscribeContext);
-                        rpcTypePathList.add(rpcType);
-                    }
-                });
-            }
-        });
-
-        rpcTypePathList = zkClientGetChildren(rootPath);
-        List<String> rpcTypePaths = new ArrayList<>();
-        rpcTypePathList.forEach(rpcType -> {
-            rpcTypePaths.add(buildPath(rootPath, rpcType));
-        });
-        return rpcTypePaths;
-    }
-
-    private String buildPath(final String prefix, final String node) {
-        return String.join(Constants.SLASH, prefix, node);
-    }
-
-    private List<String> subscribeRpcType(final String rpcTypePath) {
-        log.info("watch rpc type child: {}", rpcTypePath);
-
-        zkClient.subscribeChildChanges(rpcTypePath, (parent, currentChildren) -> {
-            log.info("context node change: {}", currentChildren);
-            if (!currentChildren.isEmpty()) {
-                currentChildren.forEach(context -> {
-                    if (!contextPathList.contains(context)) {
-                        contextPathList.add(context);
-                        subscribeContext(buildPath(rpcTypePath, context));
-                    }
-                });
-            }
-        });
-
-        List<String> contextPaths = new ArrayList<>();
-        List<String> contexts = zkClientGetChildren(rpcTypePath);
-        contexts.forEach(context -> {
-            if (!contextPathList.contains(context)) {
-                contextPathList.add(context);
-            }
-            contextPaths.add(buildPath(rpcTypePath, context));
-        });
-        return contextPaths;
-    }
-
-    private void subscribeContext(final String contextPath) {
-        log.info("watch context node and init service : {}", contextPath);
-
-        updateMetadata(contextPath);
-
-        zkClient.subscribeChildChanges(contextPath, (parent, currentChildren) -> {
-            log.info("context node change: {}", currentChildren);
-            updateMetadata(contextPath);
-        });
-    }
-
-    private void updateMetadata(final String contextPath) {
-        List<String> uriList = new ArrayList<>();
-
-        zkClientGetChildren(contextPath).forEach(metadata -> {
-            String metadataPath = buildPath(contextPath, metadata);
-            String uri = zkClient.readData(metadataPath);
-            if (uri == null) {
-                subscribeMetadata(metadataPath);
-                updateService(metadataPath);
-            } else {
-                uriList.add(uri);
-                subscribeUriChange(contextPath, uri);
-            }
-        });
-
-        List<String> paths = Arrays.asList(contextPath.split(Constants.SLASH));
-        String context = paths.get(paths.size() - 1);
-        updateSelectorHandler("/" + context, uriList);
-    }
-
-    private void subscribeMetadata(final String metadataPath) {
-        zkClient.subscribeChildChanges(metadataPath, (parent, currentChildren) -> {
-            currentChildren.forEach(service -> {
-                String servicePath = buildPath(metadataPath, service);
-                String type = getType(servicePath);
-                String data = zkClient.readData(servicePath);
-                if (data != null) {
-                    register(type, data);
+    
+    private void subscribeURI(final String rpcType) {
+        String contextPathParent = ZkRegisterPathConstants.buildURIContextPathParent(rpcType);
+        List<String> contextPaths = zkClientGetChildren(contextPathParent);
+        for (String contextPath : contextPaths) {
+            watcherURI(rpcType, contextPath);
+        }
+        zkClient.subscribeChildChanges(contextPathParent, (parentPath, currentChildren) -> {
+            if (CollectionUtils.isNotEmpty(currentChildren)) {
+                for (String contextPath : currentChildren) {
+                    watcherURI(rpcType, contextPath);
                 }
+            }
+        });
+    }
+    
+    private void subscribeMetaData(final String rpcType) {
+        String contextPathParent = ZkRegisterPathConstants.buildMetaDataContextPathParent(rpcType);
+        List<String> contextPaths = zkClientGetChildren(contextPathParent);
+        for (String contextPath : contextPaths) {
+            watcherMetadata(rpcType, contextPath);
+        }
+        zkClient.subscribeChildChanges(contextPathParent, (parentPath, currentChildren) -> {
+            if (CollectionUtils.isNotEmpty(currentChildren)) {
+                for (String contextPath : currentChildren) {
+                    watcherMetadata(rpcType, contextPath);
+                }
+            }
+        });
+    }
+    
+    private void watcherMetadata(final String rpcType, final String contextPath) {
+        String metaDataParentPath = ZkRegisterPathConstants.buildMetaDataParentPath(rpcType, contextPath);
+        List<String> childrenList = zkClientGetChildren(metaDataParentPath);
+        if (CollectionUtils.isNotEmpty(childrenList)) {
+            childrenList.forEach(children -> {
+                String realPath = ZkRegisterPathConstants.buildRealNode(metaDataParentPath, children);
+                publishMetadata(zkClient.readData(realPath).toString());
+                subscribeMetaDataChanges(realPath);
             });
+        }
+        zkClient.subscribeChildChanges(metaDataParentPath, (parentPath, currentChildren) -> {
+            if (CollectionUtils.isNotEmpty(currentChildren)) {
+                List<String> addSubscribePath = addSubscribePath(childrenList, currentChildren);
+                addSubscribePath.stream().map(addPath -> {
+                    String realPath = ZkRegisterPathConstants.buildRealNode(parentPath, addPath);
+                    publishMetadata(zkClient.readData(realPath).toString());
+                    return realPath;
+                }).forEach(this::subscribeMetaDataChanges);
+            
+            }
         });
     }
-
-    private void subscribeUriChange(final String contextPath, final String uri) {
-        String uriNode = String.join(Constants.SLASH, contextPath, uri);
-        log.info("subscribe uri data: {}", uriNode);
-        zkClient.subscribeDataChanges(uriNode, new IZkDataListener() {
-
+    
+    private void watcherURI(final String rpcType, final String contextPath) {
+        String uriParentPath = ZkRegisterPathConstants.buildURIParentPath(rpcType, contextPath);
+        List<String> childrenList = zkClientGetChildren(uriParentPath);
+        if (CollectionUtils.isNotEmpty(childrenList)) {
+            registerURIChildrenList(childrenList, uriParentPath);
+        }
+        zkClient.subscribeChildChanges(uriParentPath, (parentPath, currentChildren) -> {
+            if (CollectionUtils.isNotEmpty(currentChildren)) {
+                registerURIChildrenList(currentChildren, parentPath);
+            } else {
+                registerURIChildrenList(new ArrayList<>(), parentPath);
+            }
+        });
+    }
+    
+    private void registerURIChildrenList(final List<String> childrenList, final String uriParentPath) {
+        List<URIRegisterDTO> registerDTOList = new ArrayList<>();
+        childrenList.forEach(addPath -> {
+            String realPath = ZkRegisterPathConstants.buildRealNode(uriParentPath, addPath);
+            registerDTOList.add(GsonUtils.getInstance().fromJson(zkClient.readData(realPath).toString(), URIRegisterDTO.class));
+        });
+        if (registerDTOList.isEmpty()) {
+            String contextPath = StringUtils.substringAfterLast(uriParentPath, "/");
+            URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder().contextPath("/" + contextPath).build();
+            registerDTOList.add(uriRegisterDTO);
+        }
+        publishRegisterURI(registerDTOList);
+    }
+    
+    private void subscribeMetaDataChanges(final String realPath) {
+        zkClient.subscribeDataChanges(realPath, new IZkDataListener() {
             @Override
-            public void handleDataChange(final String s, final Object o) {
-                log.info("uri data change: {} {}", s, o);
+            public void handleDataChange(final String dataPath, final Object data) {
+                publishMetadata(data.toString());
             }
-
+        
+            @SneakyThrows
             @Override
-            public void handleDataDeleted(final String path) {
-                log.info("uri delete: {}", path);
-                zkClient.unsubscribeDataChanges(path, this);
-                updateContextNode(contextPath);
+            public void handleDataDeleted(final String dataPath) {
+              
             }
         });
     }
-
-    private void updateService(final String metadataPath) {
-        zkClientGetChildren(metadataPath).forEach(service -> {
-            String servicePath = buildPath(metadataPath, service);
-            String type = getType(servicePath);
-            String data = zkClient.readData(servicePath);
-            if (data != null) {
-                register(type, data);
-            }
-        });
+    
+    private void publishMetadata(final String data) {
+        publisher.publish(Lists.newArrayList(GsonUtils.getInstance().fromJson(data, MetaDataRegisterDTO.class)));
     }
-
-    /**
-     * get rpc type.
-     *
-     * @param dataPath path
-     * @return rpc type
-     */
-    private String getType(final String dataPath) {
-        return dataPath.split(Constants.SLASH)[3];
+    
+    private void publishRegisterURI(final List<URIRegisterDTO> registerDTOList) {
+        publisher.publish(registerDTOList);
     }
-
-    /**
-     * register in center.
-     *
-     * @param type rpc type
-     * @param data dto data
-     */
-    private void register(final String type, final String data) {
-        publisher.publishEvent(DataChangedEvent.Type.REGISTER, type, GsonUtils.getInstance().fromJson(data, MetaDataRegisterDTO.class));
-    }
-
-    /**
-     * get zk nodes of path.
-     *
-     * @param parent parent path
-     * @return nodes
-     */
+    
     private List<String> zkClientGetChildren(final String parent) {
         if (!zkClient.exists(parent)) {
             zkClient.createPersistent(parent, true);
         }
         return zkClient.getChildren(parent);
     }
-
-    /**
-     * update divide upstream.
-     *
-     * @param dataPath data path
-     */
-    private void updateContextNode(final String dataPath) {
-        List<String> path = Arrays.asList(dataPath.split("/"));
-        String rpcType = path.get(3);
-        String context = path.get(4);
-        if (!RpcTypeEnum.HTTP.getName().equals(rpcType)) {
-            return;
+    
+    private List<String> addSubscribePath(final List<String> alreadyChildren, final List<String> currentChildren) {
+        if (CollectionUtils.isEmpty(alreadyChildren)) {
+            return currentChildren;
         }
-        List<String> uriList = getNodeData(rpcType, context);
-        updateSelectorHandler("/" + context, uriList);
-    }
-
-    /**
-     * get uri list of context.
-     *
-     * @param type rpc type
-     * @param context context
-     * @return uri list
-     */
-    private List<String> getNodeData(final String type, final String context) {
-        List<String> uriList = new ArrayList<>();
-        String parentPath = String.join(Constants.SLASH, rootPath, type, context);
-        zkClientGetChildren(parentPath).forEach(nodePath -> {
-            String uri = zkClient.readData(String.join(Constants.SLASH, parentPath, nodePath));
-            if (uri != null) {
-                uriList.add(uri);
-            }
-        });
-        return uriList;
-    }
-
-    /**
-     * update selector and publisher event.
-     *
-     * @param contextPath context
-     * @param uriList uri list
-     */
-    private void updateSelectorHandler(final String contextPath, final List<String> uriList) {
-        log.info("update selector: {} -- {}", contextPath, uriList);
-        //publisher.publishEvent(DataChangedEvent.Type.UPDATED, contextPath, uriList);
+        return currentChildren.stream().filter(current -> alreadyChildren.stream().noneMatch(current::equals)).collect(Collectors.toList());
     }
 }

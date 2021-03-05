@@ -22,8 +22,17 @@ import com.lmax.disruptor.IgnoreExceptionHandler;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.dsl.Disruptor;
 import com.lmax.disruptor.dsl.ProducerType;
+import org.dromara.soul.disruptor.consumer.QueueConsumer;
+import org.dromara.soul.disruptor.consumer.QueueConsumerFactory;
 import org.dromara.soul.disruptor.event.DataEvent;
+import org.dromara.soul.disruptor.event.DisruptorEventFactory;
+import org.dromara.soul.disruptor.provider.DisruptorProvider;
 import org.dromara.soul.disruptor.thread.DisruptorThreadFactory;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * DisruptorProviderManage.
@@ -44,7 +53,9 @@ public class DisruptorProviderManage<T> {
 
     private Integer consumerSize;
 
-    private DisruptorConsumerFactory<T> consumerFactory;
+    private QueueConsumerFactory<T> consumerFactory;
+    
+    private ExecutorService executor;
 
     /**
      * Instantiates a new Disruptor provider manage.
@@ -52,7 +63,7 @@ public class DisruptorProviderManage<T> {
      * @param consumerFactory the consumer factory
      * @param ringBufferSize  the size
      */
-    public DisruptorProviderManage(final DisruptorConsumerFactory<T> consumerFactory, final Integer ringBufferSize) {
+    public DisruptorProviderManage(final QueueConsumerFactory<T> consumerFactory, final Integer ringBufferSize) {
         this(consumerFactory,
                 DEFAULT_CONSUMER_SIZE,
                 ringBufferSize);
@@ -63,7 +74,7 @@ public class DisruptorProviderManage<T> {
      *
      * @param consumerFactory the consumer factory
      */
-    public DisruptorProviderManage(final DisruptorConsumerFactory<T> consumerFactory) {
+    public DisruptorProviderManage(final QueueConsumerFactory<T> consumerFactory) {
         this(consumerFactory, DEFAULT_CONSUMER_SIZE, DEFAULT_SIZE);
     }
 
@@ -74,13 +85,15 @@ public class DisruptorProviderManage<T> {
      * @param consumerSize    the consumer size
      * @param ringBufferSize  the ringBuffer size
      */
-    public DisruptorProviderManage(final DisruptorConsumerFactory<T> consumerFactory,
+    public DisruptorProviderManage(final QueueConsumerFactory<T> consumerFactory,
                                    final int consumerSize,
                                    final int ringBufferSize) {
         this.consumerFactory = consumerFactory;
         this.size = ringBufferSize;
         this.consumerSize = consumerSize;
-
+        this.executor = new ThreadPoolExecutor(consumerSize, consumerSize, 0, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<>(),
+                DisruptorThreadFactory.create("soul_disruptor_consumer_", false), new ThreadPoolExecutor.AbortPolicy());
     }
 
     /**
@@ -90,12 +103,12 @@ public class DisruptorProviderManage<T> {
     public void startup() {
         Disruptor<DataEvent<T>> disruptor = new Disruptor<>(new DisruptorEventFactory<>(),
                 size,
-                DisruptorThreadFactory.create("disruptor_consumer_" + consumerFactory.fixName(), false),
+                DisruptorThreadFactory.create("soul_disruptor_provider_" + consumerFactory.fixName(), false),
                 ProducerType.MULTI,
                 new BlockingWaitStrategy());
-        DisruptorConsumer<T>[] consumers = new DisruptorConsumer[consumerSize];
+        QueueConsumer<T>[] consumers = new QueueConsumer[consumerSize];
         for (int i = 0; i < consumerSize; i++) {
-            consumers[i] = new DisruptorConsumer<>(consumerFactory);
+            consumers[i] = new QueueConsumer<>(executor, consumerFactory);
         }
         disruptor.handleEventsWithWorkerPool(consumers);
         disruptor.setDefaultExceptionHandler(new IgnoreExceptionHandler());

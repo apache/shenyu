@@ -20,10 +20,10 @@ package org.dromara.soul.register.common.path;
 /**
  * zookeeper register center.
  *
- * @author lw1243925457
+ * @author xiaoyu
  */
 public class ZkRegisterPathConstants {
-
+    
     /**
      * root path of zookeeper register center.
      */
@@ -33,27 +33,83 @@ public class ZkRegisterPathConstants {
      * constants of separator.
      */
     private static final String SEPARATOR = "/";
-
+    
     /**
-     * build child path of "/soul/register/{rpcType}/{contextpath}/metadata/".
+     * build child path of "/soul/register/metadata/{rpcType}/".
+     *
+     * @param rpcType rpc type
+     * @return path string
+     */
+    public static String buildMetaDataContextPathParent(final String rpcType) {
+        return String.join(SEPARATOR, ROOT_PATH, "metadata", rpcType);
+    }
+    
+    /**
+     * build child path of "/soul/register/metadata/{rpcType}/{contextPath}/".
      *
      * @param rpcType rpc type
      * @param contextPath context path
-     * @param metadata metadata(springmvc is ip-port)
-     * @return path
+     * @return path string
      */
-    public static String buildChildPath(final String rpcType, final String contextPath, final String metadata) {
-        return String.join(SEPARATOR, ROOT_PATH, rpcType, contextPath, metadata);
+    public static String buildMetaDataParentPath(final String rpcType, final String contextPath) {
+        return String.join(SEPARATOR, ROOT_PATH, "metadata", rpcType, contextPath);
     }
-
+    
     /**
-     * build node path.
+     * Build uri path string.
+     * build child path of "/soul/register/uri/{rpcType}/".
      *
-     * @param childPath child path
-     * @param nodeName data node name
-     * @return path
+     * @param rpcType the rpc type
+     * @return the string
      */
-    public static String buildNodePath(final String childPath, final String nodeName) {
-        return String.join(SEPARATOR, childPath, nodeName);
+    public static String buildURIContextPathParent(final String rpcType) {
+        return String.join(SEPARATOR, ROOT_PATH, "uri", rpcType);
+    }
+    
+    /**
+     * Build uri path string.
+     * build child path of "/soul/register/uri/{rpcType}/{contextPath}/".
+     *
+     * @param rpcType the rpc type
+     * @param contextPath the context path
+     * @return the string
+     */
+    public static String buildURIParentPath(final String rpcType, final String contextPath) {
+        return String.join(SEPARATOR, ROOT_PATH, "uri", rpcType, contextPath);
+    }
+    
+    /**
+     * Build uri read node string.
+     *
+     * @param rpcType the rpc type
+     * @param contextPath the context path
+     * @param nodeName the node name
+     * @return the string
+     */
+    public static String buildURIReadNode(final String rpcType, final String contextPath, final String nodeName) {
+        return buildRealNode(buildURIParentPath(rpcType, contextPath), nodeName);
+    }
+    
+    /**
+     * Build meta data child path string.
+     *
+     * @param rpcType the rpc type
+     * @param contextPath the context path
+     * @param nodeName the node name
+     * @return the string
+     */
+    public static String buildMetaDataReadNode(final String rpcType, final String contextPath, final String nodeName) {
+        return buildRealNode(buildMetaDataParentPath(rpcType, contextPath), nodeName);
+    }
+    
+    /**
+     * Build real node string.
+     *
+     * @param nodePath the node path
+     * @param nodeName the node name
+     * @return the string
+     */
+    public static String buildRealNode(final String nodePath, final String nodeName) {
+        return String.join(SEPARATOR, nodePath, nodeName);
     }
 }

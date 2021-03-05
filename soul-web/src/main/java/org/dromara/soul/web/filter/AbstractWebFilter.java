@@ -53,5 +53,4 @@ public abstract class AbstractWebFilter implements WebFilter {
      * @return {@code Mono<Void>} response msg.
      */
     protected abstract Mono<Void> doDenyResponse(ServerWebExchange exchange);
-
 }

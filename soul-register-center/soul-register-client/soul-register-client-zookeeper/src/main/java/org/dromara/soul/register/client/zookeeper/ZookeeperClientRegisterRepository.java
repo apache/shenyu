@@ -17,19 +17,18 @@
 
 package org.dromara.soul.register.client.zookeeper;
 
-import java.util.Properties;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.I0Itec.zkclient.ZkClient;
-import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
+import org.dromara.soul.register.common.dto.URIRegisterDTO;
 import org.dromara.soul.register.common.path.ZkRegisterPathConstants;
 import org.dromara.soul.spi.Join;
+
+import java.util.Properties;
 
 /**
  * The type Zookeeper client register repository.
@@ -40,12 +39,8 @@ import org.dromara.soul.spi.Join;
 @Join
 @Slf4j
 public class ZookeeperClientRegisterRepository implements SoulClientRegisterRepository {
-    
-    private final String rootPath = ZkRegisterPathConstants.ROOT_PATH;
-    
-    private ZkClient zkClient;
 
-    private Gson gson;
+    private ZkClient zkClient;
 
     @Override
     public void init(final SoulRegisterCenterConfig config) {
@@ -53,34 +48,16 @@ public class ZookeeperClientRegisterRepository implements SoulClientRegisterRepo
         int zookeeperSessionTimeout = Integer.parseInt(props.getProperty("zookeeperSessionTimeout", "3000"));
         int zookeeperConnectionTimeout = Integer.parseInt(props.getProperty("zookeeperConnectionTimeout", "3000"));
         this.zkClient = new ZkClient(config.getServerLists(), zookeeperSessionTimeout, zookeeperConnectionTimeout);
-        this.gson = new GsonBuilder().serializeNulls().create();
     }
 
-    /**
-     * uri(host+port)用于标识SpringMVC的下线.
-     *
-     * @param metadata  metadata
-     */
     @Override
     public void persistInterface(final MetaDataRegisterDTO metadata) {
         String rpcType = metadata.getRpcType();
         String contextPath = metadata.getContextPath().substring(1);
-        String nodeName;
-
-        if (RpcTypeEnum.HTTP.getName().equals(rpcType)) {
-            String host = metadata.getHost();
-            int port = metadata.getPort();
-            String address = String.join(Constants.HYPHEN, host, Integer.toString(port));
-            updateUpstream(rpcType, contextPath, address);
+        registerMetadata(rpcType, contextPath, metadata);
+        if (RpcTypeEnum.HTTP.getName().equals(rpcType) || RpcTypeEnum.TARS.getName().equals(rpcType) || RpcTypeEnum.GRPC.getName().equals(rpcType)) {
+            registerURI(rpcType, contextPath, metadata);
         }
-
-        if (RpcTypeEnum.HTTP.getName().equals(rpcType) || RpcTypeEnum.SPRING_CLOUD.getName().equals(rpcType)) {
-            nodeName = String.join("-", contextPath, metadata.getRuleName().replace("/", "-"));
-        } else {
-            nodeName = buildNodeName(metadata.getServiceName(), metadata.getMethodName());
-        }
-
-        updateZkNode(rpcType, contextPath, nodeName, metadata);
         log.info("{} zookeeper client register success: {}", rpcType, metadata.toString());
     }
 
@@ -88,42 +65,51 @@ public class ZookeeperClientRegisterRepository implements SoulClientRegisterRepo
     public void close() {
         zkClient.close();
     }
-    
-    /**
-     * add uri node in http context.
-     *
-     * @param rpcType rpc type
-     * @param contextPath context path
-     * @param metadata server address
-     */
-    private void updateUpstream(final String rpcType, final String contextPath, final String metadata) {
-        String contextNodePath = String.join(PATH_SEPARATOR, rootPath, rpcType, contextPath);
-        if (!zkClient.exists(contextNodePath)) {
-            zkClient.createPersistent(contextNodePath, true);
+
+    private void registerMetadata(final String rpcType, final String contextPath, final MetaDataRegisterDTO metadata) {
+        String metadataNodeName = buildMetadataNodeName(metadata);
+        String metaDataPath = ZkRegisterPathConstants.buildMetaDataParentPath(rpcType, contextPath);
+        if (!zkClient.exists(metaDataPath)) {
+            zkClient.createPersistent(metaDataPath, true);
         }
-        String uri = metadata.replace("-", ":");
-        String uriNode = String.join(PATH_SEPARATOR, contextNodePath, uri);
-        if (!zkClient.exists(uriNode)) {
-            zkClient.createEphemeral(uriNode, uri);
+        String realNode = ZkRegisterPathConstants.buildRealNode(metaDataPath, metadataNodeName);
+        if (zkClient.exists(realNode)) {
+            zkClient.writeData(realNode, GsonUtils.getInstance().toJson(metadata));
+        } else {
+            zkClient.createPersistent(realNode, GsonUtils.getInstance().toJson(metadata));
         }
     }
-    
+
+    private synchronized void registerURI(final String rpcType, final String contextPath, final MetaDataRegisterDTO metadata) {
+        String uriNodeName = buildURINodeName(metadata);
+        String uriPath = ZkRegisterPathConstants.buildURIParentPath(rpcType, contextPath);
+        if (!zkClient.exists(uriPath)) {
+            zkClient.createPersistent(uriPath, true);
+        }
+        String realNode = ZkRegisterPathConstants.buildRealNode(uriPath, uriNodeName);
+        if (!zkClient.exists(realNode)) {
+            zkClient.createEphemeral(realNode, GsonUtils.getInstance().toJson(URIRegisterDTO.transForm(metadata)));
+        }
+    }
+
+    private String buildURINodeName(final MetaDataRegisterDTO metadata) {
+        String host = metadata.getHost();
+        int port = metadata.getPort();
+        return String.join(":", host, Integer.toString(port));
+    }
+
+    private String buildMetadataNodeName(final MetaDataRegisterDTO metadata) {
+        String nodeName;
+        String rpcType = metadata.getRpcType();
+        if (RpcTypeEnum.HTTP.getName().equals(rpcType) || RpcTypeEnum.SPRING_CLOUD.getName().equals(rpcType)) {
+            nodeName = String.join("-", metadata.getContextPath(), metadata.getRuleName().replace("/", "-"));
+        } else {
+            nodeName = buildNodeName(metadata.getServiceName(), metadata.getMethodName());
+        }
+        return nodeName.substring(1);
+    }
+
     private String buildNodeName(final String serviceName, final String methodName) {
         return String.join(DOT_SEPARATOR, serviceName, methodName);
-    }
-    
-    private void updateZkNode(final String rpcType, final String contextPath, final String nodeName,
-                              final MetaDataRegisterDTO data) {
-        String childPath = String.join(PATH_SEPARATOR, rootPath, rpcType, contextPath, "metadata");
-        String nodePath = String.join(PATH_SEPARATOR, childPath, nodeName);
-
-        if (!zkClient.exists(childPath)) {
-            zkClient.createPersistent(childPath, true);
-        }
-
-        if (zkClient.exists(nodePath)) {
-            return;
-        }
-        zkClient.createEphemeral(nodePath, gson.toJson(data));
     }
 }

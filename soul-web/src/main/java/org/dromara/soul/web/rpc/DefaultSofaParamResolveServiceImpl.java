@@ -95,5 +95,4 @@ public class DefaultSofaParamResolveServiceImpl implements SofaParamResolveServi
     private static boolean isSingleCustomizeType(final String[] parameter) {
         return parameter.length == 1 && !parameter[0].startsWith("java") && !parameter[0].startsWith("[Ljava");
     }
-
 }

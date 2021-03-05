@@ -1,5 +1,5 @@
 <p align="center" >
-    <a href="https://dromara.org"><img src="https://yu199195.github.io/images/soul/soul-logo.png" width="45%"></a>
+    <a href="https://dromara.org"><img src="https://dromara.org/img/logo/soul.png" width="45%"></a>
 </p>
 <p align="center">
   <strong>Scalable,High Performance,Responsive API Gateways</strong>
@@ -28,8 +28,8 @@
     <a href="https://www.codacy.com/app/yu199195/soul?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Dromara/soul&amp;utm_campaign=Badge_Grade">
         <img src="https://api.codacy.com/project/badge/Grade/4367ffad5b434b7e8078b3a68cc6398d"/>
     </a>
-    <a target="_blank" href='https://gitee.com/shuaiqiyu/soul/stargazers'>
-        <img src='https://gitee.com/shuaiqiyu/soul/badge/star.svg?theme=gvp' alt='gitee stars'/>
+    <a target="_blank" href='https://gitee.com/dromara/soul/stargazers'>
+        <img src='https://gitee.com/dromara/soul/badge/star.svg?theme=gvp' alt='gitee stars'/>
    </a>
    <a target="_blank" href='https://github.com/dromara/soul'>
         <img src="https://img.shields.io/github/forks/dromara/soul.svg" alt="github forks"/>
@@ -73,6 +73,10 @@
   
  * soul-common : framework common class
  
+ * soul-disruptor : based on disruptor Enclosure
+ 
+ * soul-register-center : rpc type register for soul-client
+ 
  * soul-dist : build project
 
  * soul-metrics : metrics impl by prometheus.
@@ -95,7 +99,7 @@
 
    * Soul provides plugins such as current limiting, fusing, forwarding, routing monitoring and so on.
    
-   * Seamless docking with HTTP, RESTful, WebSocket, Dubbo and Spring Cloud.
+   * Support HTTP, RESTFul, WebSocket, Dubbo, GRPC, Tars and Spring Cloud Proxy.
    
    * Plug-in hot plug, users can customize the development.
    

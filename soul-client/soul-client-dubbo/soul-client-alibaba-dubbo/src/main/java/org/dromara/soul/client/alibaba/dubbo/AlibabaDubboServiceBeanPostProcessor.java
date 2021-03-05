@@ -20,12 +20,12 @@ package org.dromara.soul.client.alibaba.dubbo;
 import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.utils.StringUtils;
 import com.alibaba.dubbo.config.spring.ServiceBean;
-import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
 import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
 import org.dromara.soul.client.dubbo.common.annotation.SoulDubboClient;
 import org.dromara.soul.client.dubbo.common.dto.DubboRpcExt;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
@@ -58,8 +58,6 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
     private SoulClientRegisterEventPublisher publisher = SoulClientRegisterEventPublisher.getInstance();
     
     private AtomicBoolean registered = new AtomicBoolean(false);
-    
-    private Gson gson = new Gson();
     
     private final ExecutorService executorService;
     
@@ -139,7 +137,7 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
                 .timeout(Objects.isNull(serviceBean.getTimeout()) ? Constants.DEFAULT_CONNECT_TIMEOUT : serviceBean.getTimeout())
                 .url("")
                 .build();
-        return gson.toJson(builder);
+        return GsonUtils.getInstance().toJson(builder);
 
     }
 

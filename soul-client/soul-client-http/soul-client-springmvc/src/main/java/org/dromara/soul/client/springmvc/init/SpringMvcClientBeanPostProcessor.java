@@ -17,12 +17,6 @@
 
 package org.dromara.soul.client.springmvc.init;
 
-import java.lang.reflect.Method;
-import java.util.Objects;
-import java.util.Properties;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
@@ -39,6 +33,13 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.lang.reflect.Method;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The type Soul spring mvc client bean post processor.
@@ -138,8 +139,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
                 .rpcType(soulSpringMvcClient.rpcType())
                 .enabled(soulSpringMvcClient.enabled())
                 .ruleName(ruleName)
-                .writeMetaData(soulSpringMvcClient.registerMetaData())
-                .registerMetaData(true)
+                .registerMetaData(soulSpringMvcClient.registerMetaData())
                 .build();
     }
 }

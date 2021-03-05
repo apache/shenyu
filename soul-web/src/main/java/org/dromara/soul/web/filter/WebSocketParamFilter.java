@@ -63,5 +63,4 @@ public class WebSocketParamFilter extends AbstractWebFilter {
                 && !StringUtils.isBlank(queryParams.getFirst(Constants.METHOD))
                 && !StringUtils.isBlank(queryParams.getFirst(Constants.RPC_TYPE));
     }
-
 }
