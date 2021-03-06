@@ -23,7 +23,6 @@ import org.dromara.soul.spi.Join;
  * The type Leaky bucket rate limiter algorithm.
  *
  * @author liupenghui
- * @date 2021/3/2 6:02
  */
 @Join
 public class LeakyBucketRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm {
