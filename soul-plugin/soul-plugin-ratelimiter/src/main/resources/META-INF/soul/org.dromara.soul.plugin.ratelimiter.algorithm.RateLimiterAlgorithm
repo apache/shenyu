@@ -16,3 +16,4 @@
 
 concurrent=org.dromara.soul.plugin.ratelimiter.algorithm.ConcurrentRateLimiterAlgorithm
 tokenBucket=org.dromara.soul.plugin.ratelimiter.algorithm.TokenBucketRateLimiterAlgorithm
+slidingWindow=org.dromara.soul.plugin.ratelimiter.algorithm.SlidingWindowRateLimiterAlgorithm
