@@ -16,4 +16,5 @@
 
 concurrent=org.dromara.soul.plugin.ratelimiter.algorithm.ConcurrentRateLimiterAlgorithm
 tokenBucket=org.dromara.soul.plugin.ratelimiter.algorithm.TokenBucketRateLimiterAlgorithm
+leakyBucket=org.dromara.soul.plugin.ratelimiter.algorithm.LeakyBucketRateLimiterAlgorithm
 slidingWindow=org.dromara.soul.plugin.ratelimiter.algorithm.SlidingWindowRateLimiterAlgorithm
