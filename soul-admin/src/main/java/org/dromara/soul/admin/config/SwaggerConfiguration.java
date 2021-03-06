@@ -41,7 +41,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableSwagger2
 public class SwaggerConfiguration {
     
-    @Value("${swagger.enable:false}")
+    @Value("${soul.swagger.enable:false}")
     private boolean enable;
     
     private final BuildProperties buildProperties;

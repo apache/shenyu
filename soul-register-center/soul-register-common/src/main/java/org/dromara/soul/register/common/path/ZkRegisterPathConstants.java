@@ -35,14 +35,35 @@ public class ZkRegisterPathConstants {
     private static final String SEPARATOR = "/";
     
     /**
+     * build child path of "/soul/register/metadata/{rpcType}/".
+     *
+     * @param rpcType rpc type
+     * @return path string
+     */
+    public static String buildMetaDataContextPathParent(final String rpcType) {
+        return String.join(SEPARATOR, ROOT_PATH, "metadata", rpcType);
+    }
+    
+    /**
      * build child path of "/soul/register/metadata/{rpcType}/{contextPath}/".
      *
      * @param rpcType rpc type
      * @param contextPath context path
      * @return path string
      */
-    public static String buildMetaDataPath(final String rpcType, final String contextPath) {
+    public static String buildMetaDataParentPath(final String rpcType, final String contextPath) {
         return String.join(SEPARATOR, ROOT_PATH, "metadata", rpcType, contextPath);
+    }
+    
+    /**
+     * Build uri path string.
+     * build child path of "/soul/register/uri/{rpcType}/".
+     *
+     * @param rpcType the rpc type
+     * @return the string
+     */
+    public static String buildURIContextPathParent(final String rpcType) {
+        return String.join(SEPARATOR, ROOT_PATH, "uri", rpcType);
     }
     
     /**
@@ -53,7 +74,7 @@ public class ZkRegisterPathConstants {
      * @param contextPath the context path
      * @return the string
      */
-    public static String buildURIPath(final String rpcType, final String contextPath) {
+    public static String buildURIParentPath(final String rpcType, final String contextPath) {
         return String.join(SEPARATOR, ROOT_PATH, "uri", rpcType, contextPath);
     }
     
@@ -66,7 +87,7 @@ public class ZkRegisterPathConstants {
      * @return the string
      */
     public static String buildURIReadNode(final String rpcType, final String contextPath, final String nodeName) {
-        return buildRealNode(buildURIPath(rpcType, contextPath), nodeName);
+        return buildRealNode(buildURIParentPath(rpcType, contextPath), nodeName);
     }
     
     /**
@@ -78,7 +99,7 @@ public class ZkRegisterPathConstants {
      * @return the string
      */
     public static String buildMetaDataReadNode(final String rpcType, final String contextPath, final String nodeName) {
-        return buildRealNode(buildMetaDataPath(rpcType, contextPath), nodeName);
+        return buildRealNode(buildMetaDataParentPath(rpcType, contextPath), nodeName);
     }
     
     /**

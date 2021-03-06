@@ -88,7 +88,6 @@ public class GlobalErrorHandler extends DefaultErrorWebExceptionHandler {
         String reason = ex.getClass().getSimpleName() + ": " + ex.getMessage();
         return "Resolved [" + reason + "] for HTTP " + request.methodName() + " " + request.path();
     }
-
 }
 
 

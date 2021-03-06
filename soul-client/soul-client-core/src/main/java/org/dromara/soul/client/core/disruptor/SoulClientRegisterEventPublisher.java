@@ -18,20 +18,25 @@
 
 package org.dromara.soul.client.core.disruptor;
 
-import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
+import org.dromara.soul.client.core.disruptor.executor.RegisterClientConsumerExecutor.RegisterClientExecutorFactory;
+import org.dromara.soul.client.core.disruptor.subcriber.SoulClientMetadataExecutorSubscriber;
 import org.dromara.soul.disruptor.DisruptorProviderManage;
+import org.dromara.soul.disruptor.provider.DisruptorProvider;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 
 /**
  * The type Soul client register event publisher.
  *
- * @author tydhot
+ * @author xiaoyu
  */
+@SuppressWarnings("all")
 public class SoulClientRegisterEventPublisher {
     
     private static final SoulClientRegisterEventPublisher INSTANCE = new SoulClientRegisterEventPublisher();
-
-    private DisruptorProviderManage<SoulClientRegisterEvent> disruptorProviderManage;
+    
+    private DisruptorProviderManage providerManage;
+    
+    private RegisterClientExecutorFactory factory;
     
     /**
      * get instance.
@@ -48,24 +53,19 @@ public class SoulClientRegisterEventPublisher {
      * @param soulClientRegisterRepository soulClientRegisterRepository
      */
     public void start(final SoulClientRegisterRepository soulClientRegisterRepository) {
-        disruptorProviderManage =
-                new DisruptorProviderManage<>(
-                        new SoulMetaDataRegisterEventHandler(soulClientRegisterRepository), 1, 4096 * 2 * 2);
-        disruptorProviderManage.startup();
+        factory = new RegisterClientExecutorFactory(new SoulClientMetadataExecutorSubscriber(soulClientRegisterRepository));
+        providerManage = new DisruptorProviderManage(factory);
+        providerManage.startup();
     }
     
     /**
-     * publish event.
+     * Publish event.
      *
-     * @param metaDataRegisterDTO metaDataDTO
+     * @param <T> the type parameter
+     * @param data the data
      */
-    public void publishEvent(final MetaDataRegisterDTO metaDataRegisterDTO) {
-        SoulClientRegisterEvent event = new SoulClientRegisterEvent();
-        event.setMetaData(metaDataRegisterDTO);
-        push(event);
-    }
-
-    private void push(final SoulClientRegisterEvent event) {
-        disruptorProviderManage.getProvider().onData(event);
+    public <T> void publishEvent(final T data) {
+        DisruptorProvider<Object> provider = providerManage.getProvider();
+        provider.onData(f -> f.setData(data));
     }
 }

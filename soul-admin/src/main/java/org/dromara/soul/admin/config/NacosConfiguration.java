@@ -56,6 +56,8 @@ public class NacosConfiguration {
         } else {
             properties.put(PropertyKeyConst.SERVER_ADDR, nacosProp.getUrl());
             properties.put(PropertyKeyConst.NAMESPACE, nacosProp.getNamespace());
+            properties.put(PropertyKeyConst.USERNAME, nacosProp.getUsername());
+            properties.put(PropertyKeyConst.PASSWORD, nacosProp.getPassword());
         }
         return NacosFactory.createConfigService(properties);
     }

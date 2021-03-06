@@ -43,17 +43,17 @@ import org.dromara.soul.common.enums.DataEventTypeEnum;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.UpstreamCheckUtils;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -71,18 +71,14 @@ public class UpstreamCheckService {
 
     private static final Set<ZombieUpstream> ZOMBIE_SET = Sets.newConcurrentHashSet();
 
-    @Value("${soul.upstream.check:true}")
-    private boolean check;
-
-    @Value("${soul.upstream.zombieCheckTimes:5}")
     private int zombieCheckTimes;
 
-    @Value("${soul.upstream.scheduledTime:10}")
     private int scheduledTime;
 
-    @Value("soul.register.registerType:http")
     private String registerType;
-    
+
+    private boolean checked;
+
     private final SelectorMapper selectorMapper;
 
     private final ApplicationEventPublisher eventPublisher;
@@ -94,36 +90,45 @@ public class UpstreamCheckService {
     /**
      * Instantiates a new Upstream check service.
      *
-     * @param selectorMapper            the selector mapper
-     * @param eventPublisher            the event publisher
-     * @param pluginMapper              the plugin mapper
-     * @param selectorConditionMapper   the selectorCondition mapper
+     * @param selectorMapper the selector mapper
+     * @param eventPublisher the event publisher
+     * @param pluginMapper the plugin mapper
+     * @param selectorConditionMapper the selectorCondition mapper
+     * @param soulRegisterCenterConfig the soul register center config
      */
     @Autowired(required = false)
     public UpstreamCheckService(final SelectorMapper selectorMapper, final ApplicationEventPublisher eventPublisher,
-                                final PluginMapper pluginMapper, final SelectorConditionMapper selectorConditionMapper) {
+                                final PluginMapper pluginMapper, final SelectorConditionMapper selectorConditionMapper,
+                                final SoulRegisterCenterConfig soulRegisterCenterConfig) {
         this.selectorMapper = selectorMapper;
         this.eventPublisher = eventPublisher;
         this.pluginMapper = pluginMapper;
         this.selectorConditionMapper = selectorConditionMapper;
+        Properties props = soulRegisterCenterConfig.getProps();
+        this.checked = Boolean.parseBoolean(props.getProperty("checked", "true"));
+        this.zombieCheckTimes = Integer.parseInt(props.getProperty("zombieCheckTimes", "5"));
+        this.scheduledTime = Integer.parseInt(props.getProperty("scheduledTime", "10"));
+        this.registerType = soulRegisterCenterConfig.getRegisterType();
+        if ("http".equalsIgnoreCase(registerType)) {
+            setup();
+        }
     }
     
     /**
-     * Setup selectors of divide plugin.
+     * Set up.
      */
-    @PostConstruct
     public void setup() {
-        PluginDO pluginDO = pluginMapper.selectByName(PluginEnum.DIVIDE.getName());
-        if (pluginDO != null) {
-            List<SelectorDO> selectorDOList = selectorMapper.findByPluginId(pluginDO.getId());
-            for (SelectorDO selectorDO : selectorDOList) {
-                List<DivideUpstream> divideUpstreams = GsonUtils.getInstance().fromList(selectorDO.getHandle(), DivideUpstream.class);
-                if (CollectionUtils.isNotEmpty(divideUpstreams)) {
-                    UPSTREAM_MAP.put(selectorDO.getName(), divideUpstreams);
+        if (checked) {
+            PluginDO pluginDO = pluginMapper.selectByName(PluginEnum.DIVIDE.getName());
+            if (pluginDO != null) {
+                List<SelectorDO> selectorDOList = selectorMapper.findByPluginId(pluginDO.getId());
+                for (SelectorDO selectorDO : selectorDOList) {
+                    List<DivideUpstream> divideUpstreams = GsonUtils.getInstance().fromList(selectorDO.getHandle(), DivideUpstream.class);
+                    if (CollectionUtils.isNotEmpty(divideUpstreams)) {
+                        UPSTREAM_MAP.put(selectorDO.getName(), divideUpstreams);
+                    }
                 }
             }
-        }
-        if (check) {
             new ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), SoulThreadFactory.create("scheduled-upstream-task", false))
                     .scheduleWithFixedDelay(this::scheduled, 10, scheduledTime, TimeUnit.SECONDS);
         }
@@ -141,10 +146,13 @@ public class UpstreamCheckService {
     /**
      * Submit.
      *
-     * @param selectorName   the selector name
+     * @param selectorName the selector name
      * @param divideUpstream the divide upstream
      */
     public void submit(final String selectorName, final DivideUpstream divideUpstream) {
+        if (!"http".equalsIgnoreCase(registerType)) {
+            return;
+        }
         if (UPSTREAM_MAP.containsKey(selectorName)) {
             List<DivideUpstream> upstreams = UPSTREAM_MAP.getOrDefault(selectorName, Collections.emptyList());
             Optional<DivideUpstream> exists = upstreams.stream().filter(item -> StringUtils.isNotBlank(item.getUpstreamUrl())
@@ -158,14 +166,17 @@ public class UpstreamCheckService {
             UPSTREAM_MAP.put(selectorName, Lists.newArrayList(divideUpstream));
         }
     }
-
+    
     /**
      * Replace.
      *
-     * @param selectorName    the selector name
+     * @param selectorName the selector name
      * @param divideUpstreams the divide upstream list
      */
     public void replace(final String selectorName, final List<DivideUpstream> divideUpstreams) {
+        if (!"http".equalsIgnoreCase(registerType)) {
+            return;
+        }
         UPSTREAM_MAP.put(selectorName, divideUpstreams);
     }
 
@@ -250,8 +261,7 @@ public class UpstreamCheckService {
                 SelectorData selectorData = SelectorDO.transFrom(selectorDO, pluginDO.getName(), conditionDataList);
                 selectorData.setHandle(handler);
                 // publish change event.
-                eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE,
-                                                                 Collections.singletonList(selectorData)));
+                eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.SELECTOR, DataEventTypeEnum.UPDATE, Collections.singletonList(selectorData)));
             }
         }
     }

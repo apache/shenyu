@@ -31,9 +31,7 @@ import reactor.core.publisher.Mono;
  * this is visit time verify filter.
  *
  * @author xiaoyu(Myth)
- * @deprecated do not use
  */
-@Deprecated
 public class TimeWebFilter extends AbstractWebFilter {
 
     private SoulConfig soulConfig;

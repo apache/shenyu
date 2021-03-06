@@ -107,5 +107,4 @@ public class ForwardedRemoteAddressResolver implements RemoteAddressResolver {
         }
         return values;
     }
-    
 }

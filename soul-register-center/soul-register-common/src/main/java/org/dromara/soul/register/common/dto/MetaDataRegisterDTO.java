@@ -22,6 +22,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.dromara.soul.register.common.type.DataType;
+import org.dromara.soul.register.common.type.DataTypeParent;
 
 import java.io.Serializable;
 import java.util.List;
@@ -35,7 +37,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MetaDataRegisterDTO implements Serializable {
+public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
     
     private String appName;
     
@@ -63,9 +65,12 @@ public class MetaDataRegisterDTO implements Serializable {
     
     private Integer port;
     
-    private Boolean writeMetaData;
-    
     private List<String> pluginNames;
 
     private boolean registerMetaData;
+    
+    @Override
+    public DataType getType() {
+        return DataType.META_DATA;
+    }
 }

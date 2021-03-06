@@ -26,5 +26,5 @@ import lombok.Data;
 @Data
 public class DataEvent<T> {
     
-    private T t;
+    private T data;
 }

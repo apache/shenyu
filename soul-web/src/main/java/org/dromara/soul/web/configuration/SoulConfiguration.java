@@ -17,10 +17,6 @@
 
 package org.dromara.soul.web.configuration;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.plugin.api.RemoteAddressResolver;
 import org.dromara.soul.plugin.api.SoulPlugin;
@@ -30,15 +26,15 @@ import org.dromara.soul.plugin.base.cache.CommonPluginDataSubscriber;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 import org.dromara.soul.web.config.SoulConfig;
-import org.dromara.soul.web.filter.ExcludeFilter;
-import org.dromara.soul.web.rpc.DefaultDubboParamResolveServiceImpl;
-import org.dromara.soul.web.rpc.DefaultSofaParamResolveServiceImpl;
 import org.dromara.soul.web.filter.CrossFilter;
+import org.dromara.soul.web.filter.ExcludeFilter;
 import org.dromara.soul.web.filter.FileSizeFilter;
 import org.dromara.soul.web.filter.TimeWebFilter;
 import org.dromara.soul.web.filter.WebSocketParamFilter;
 import org.dromara.soul.web.forward.ForwardedRemoteAddressResolver;
 import org.dromara.soul.web.handler.SoulWebHandler;
+import org.dromara.soul.web.rpc.DefaultDubboParamResolveServiceImpl;
+import org.dromara.soul.web.rpc.DefaultSofaParamResolveServiceImpl;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -51,6 +47,11 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
 import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.WebFilter;
+
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * SoulConfiguration.
@@ -73,7 +74,7 @@ public class SoulConfiguration {
     @Bean("webHandler")
     public SoulWebHandler soulWebHandler(final ObjectProvider<List<SoulPlugin>> plugins) {
         List<SoulPlugin> pluginList = plugins.getIfAvailable(Collections::emptyList);
-        final List<SoulPlugin> soulPlugins = pluginList.stream()
+        List<SoulPlugin> soulPlugins = pluginList.stream()
                 .sorted(Comparator.comparingInt(SoulPlugin::getOrder)).collect(Collectors.toList());
         soulPlugins.forEach(soulPlugin -> log.info("load plugin:[{}] [{}]", soulPlugin.named(), soulPlugin.getClass().getName()));
         return new SoulWebHandler(soulPlugins);
@@ -170,7 +171,7 @@ public class SoulConfiguration {
      */
     @Bean
     @Order(-5)
-    @ConditionalOnProperty(name = "soul.exclude.enabled", havingValue = "true", matchIfMissing = false)
+    @ConditionalOnProperty(name = "soul.exclude.enabled", havingValue = "true")
     public WebFilter excludeFilter(final ExcludePathProperties excludePathProperties) {
         return new ExcludeFilter(excludePathProperties);
     }
