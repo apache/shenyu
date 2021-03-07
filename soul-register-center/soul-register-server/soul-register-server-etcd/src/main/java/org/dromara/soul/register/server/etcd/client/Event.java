@@ -15,32 +15,27 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.dto;
-
-import lombok.Data;
-
-import java.io.Serializable;
-import java.util.List;
+package org.dromara.soul.register.server.etcd.client;
 
 /**
- * The type Auth apply dto.
+ * etcd event.
  *
- * @author xiaoyu
+ * @author lw1243925457
  */
-@Data
-public class AuthApplyDTO implements Serializable {
+public enum Event {
 
-    private String appKey;
+    /**
+     * update.
+     */
+    UPDATE,
 
-    private String userId;
+    /**
+     * delete.
+     */
+    DELETE,
 
-    private String phone;
-
-    private String appName;
-
-    private String appParam;
-
-    private String extInfo;
-
-    private List<String> pathList;
+    /**
+     * unrecognized.
+     */
+    UNRECOGNIZED
 }

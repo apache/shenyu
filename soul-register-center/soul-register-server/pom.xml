@@ -30,5 +30,6 @@
     <modules>
         <module>soul-register-server-api</module>
         <module>soul-register-server-zookeeper</module>
+        <module>soul-register-server-etcd</module>
     </modules>
 </project>
