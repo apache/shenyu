@@ -113,7 +113,7 @@ public final class AbstractSoulPluginTest {
     public void executeRuleIsNullTest() {
         List<ConditionData> conditionDataList = Collections.singletonList(conditionData);
         this.selectorData.setMatchMode(0);
-        this.selectorData.setLoged(true);
+        this.selectorData.setLogged(true);
         this.selectorData.setConditionList(conditionDataList);
         BaseDataCache.getInstance().cachePluginData(pluginData);
         BaseDataCache.getInstance().cacheSelectData(selectorData);
@@ -129,7 +129,7 @@ public final class AbstractSoulPluginTest {
         this.ruleData.setConditionDataList(conditionDataList);
         this.ruleData.setMatchMode(0);
         this.selectorData.setMatchMode(0);
-        this.selectorData.setLoged(true);
+        this.selectorData.setLogged(true);
         this.selectorData.setConditionList(conditionDataList);
         BaseDataCache.getInstance().cachePluginData(pluginData);
         BaseDataCache.getInstance().cacheSelectData(selectorData);
@@ -147,7 +147,7 @@ public final class AbstractSoulPluginTest {
         this.ruleData.setMatchMode(1);
         this.selectorData.setMatchMode(0);
         this.selectorData.setType(SelectorTypeEnum.FULL_FLOW.getCode());
-        this.selectorData.setLoged(true);
+        this.selectorData.setLogged(true);
         this.selectorData.setConditionList(conditionDataList);
         BaseDataCache.getInstance().cachePluginData(pluginData);
         BaseDataCache.getInstance().cacheSelectData(selectorData);
