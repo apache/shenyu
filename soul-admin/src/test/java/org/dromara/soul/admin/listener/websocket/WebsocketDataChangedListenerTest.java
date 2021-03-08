@@ -90,7 +90,7 @@ public final class WebsocketDataChangedListenerTest {
     public void testOnSelectorChanged() {
         String message = "{\"groupType\":\"SELECTOR\",\"eventType\":\"UPDATE\",\"data\":"
                 + "[{\"id\":\"1336329408516136960\",\"pluginId\":\"5\",\"pluginName\":\"divide\",\"name\":"
-                + "\"/http\",\"matchMode\":0,\"type\":1,\"sort\":1,\"enabled\":true,\"loged\":true,"
+                + "\"/http\",\"matchMode\":0,\"type\":1,\"sort\":1,\"enabled\":true,\"logged\":true,"
                 + "\"continued\":true,\"handle\":\"[{\\\\\\\"upstreamHost\\\\\\\":\\\\\\\"localhost\\\\\\\","
                 + "\\\\\\\"protocol\\\\\\\":\\\\\\\"http://\\\\\\\",\\\\\\\"upstreamUrl\\\\\\\":"
                 + "\\\\\\\"127.0.0.1:8187\\\\\\\",\\\\\\\"weight\\\\\\\":\\\\\\\"51\\\\\\\"},"
