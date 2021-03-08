@@ -42,10 +42,9 @@ public final class AbstractRateLimiterAlgorithmTest {
 
     private static final String KEY_NAME = "request_leaky_rate_limiter";
 
-    private AbstractRateLimiterAlgorithm abstractRateLimiterAlgorithm;
-
     private static final String ID = "1";
 
+    private AbstractRateLimiterAlgorithm abstractRateLimiterAlgorithm;
 
     @Before
     public void startup() {
