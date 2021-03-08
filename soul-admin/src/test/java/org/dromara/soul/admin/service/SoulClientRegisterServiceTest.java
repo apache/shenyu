@@ -439,7 +439,7 @@ public final class SoulClientRegisterServiceTest {
                 .type(1)
                 .sort(1)
                 .enabled(true)
-                .loged(true)
+                .logged(true)
                 .continued(false)
                 .handle("handle")
                 .build();
