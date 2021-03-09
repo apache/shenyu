@@ -90,7 +90,7 @@ public final class WebsocketDataChangedListenerTest {
     public void testOnSelectorChanged() {
         String message = "{\"groupType\":\"SELECTOR\",\"eventType\":\"UPDATE\",\"data\":"
                 + "[{\"id\":\"1336329408516136960\",\"pluginId\":\"5\",\"pluginName\":\"divide\",\"name\":"
-                + "\"/http\",\"matchMode\":0,\"type\":1,\"sort\":1,\"enabled\":true,\"loged\":true,"
+                + "\"/http\",\"matchMode\":0,\"type\":1,\"sort\":1,\"enabled\":true,\"logged\":true,"
                 + "\"continued\":true,\"handle\":\"[{\\\\\\\"upstreamHost\\\\\\\":\\\\\\\"localhost\\\\\\\","
                 + "\\\\\\\"protocol\\\\\\\":\\\\\\\"http://\\\\\\\",\\\\\\\"upstreamUrl\\\\\\\":"
                 + "\\\\\\\"127.0.0.1:8187\\\\\\\",\\\\\\\"weight\\\\\\\":\\\\\\\"51\\\\\\\"},"
@@ -213,7 +213,7 @@ public final class WebsocketDataChangedListenerTest {
         selectorData.setHandle("[{\\\"upstreamHost\\\":\\\"localhost\\\",\\\"protocol\\\":\\\"http://\\\",\\\"upstreamUrl\\\":\\\"127.0.0.1:8187\\\","
                 + "\\\"weight\\\":\\\"51\\\"},{\\\"upstreamHost\\\":\\\"localhost\\\",\\\"protocol\\\":\\\"http://\\\",\\\"upstreamUrl\\\":\\\"127.0.0.1:8188\\\",\\\"weight\\\":\\\"49\\\"}]");
         selectorData.setId("1336329408516136960");
-        selectorData.setLoged(true);
+        selectorData.setLogged(true);
         selectorData.setMatchMode(0);
         selectorData.setName("/http");
         selectorData.setPluginId("5");
