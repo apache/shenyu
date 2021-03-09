@@ -1,9 +1,7 @@
-# Soul example SpringCloud
+# # Soul example Sofa
 ***
 ## Run
-first you should run eureka: soul-example-eureka
-
-Then you can run server with http/zookeeper/etcd register center
+You can run server with http/zookeeper/etcd register center
 
 ### run with etcd register center
 #### Soul-Admin config
@@ -26,16 +24,18 @@ soul:
     serverLists : http://localhost:2379
 ```
 
-#### soul-examples-springcloud config
+#### soul-examples-sofa-service config
 set etcd register config:
 
 ```yaml
 soul:
   client:
-    registerType: etcd
-    serverLists: http://localhost:2379
+    registerType: etcd #http #zookeeper #etcd
+    serverLists: http://localhost:2379 #http://localhost:9095 #localhost:2181 #http://localhost:2379
     props:
-      contextPath: /springcloud
+      contextPath: /sofa
+      appName: sofa
+      port: 8888
 ```
 
-run SoulTestSpringCloudApplication
+run TestSofaApplication

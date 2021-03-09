@@ -24,6 +24,7 @@ import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory
 import org.dromara.soul.client.grpc.common.annotation.SoulGrpcClient;
 import org.dromara.soul.client.grpc.common.dto.GrpcExt;
 import org.dromara.soul.common.utils.GsonUtils;
+import org.dromara.soul.common.utils.IpUtils;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
@@ -59,6 +60,10 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
     private final String contextPath;
     
     private final String ipAndPort;
+
+    private final String host;
+
+    private final int port;
     
     /**
      * Instantiates a new Soul client bean post processor.
@@ -69,11 +74,14 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
         Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
         String ipAndPort = props.getProperty("ipAndPort");
-        if (StringUtils.isEmpty(contextPath) || StringUtils.isEmpty(ipAndPort)) {
+        String port = props.getProperty("port");
+        if (StringUtils.isEmpty(contextPath) || StringUtils.isEmpty(ipAndPort) || StringUtils.isEmpty(port)) {
             throw new RuntimeException("tars client must config the contextPath, ipAndPort");
         }
         this.ipAndPort = ipAndPort;
         this.contextPath = contextPath;
+        this.host = props.getProperty("host");
+        this.port = Integer.parseInt(port);
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
         SoulClientRegisterRepository soulClientRegisterRepository = SoulClientRegisterRepositoryFactory.newInstance(config);
         publisher.start(soulClientRegisterRepository);
@@ -123,6 +131,8 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
     private MetaDataRegisterDTO buildMetaDataDTO(final String packageName, final SoulGrpcClient soulGrpcClient, final Method method) {
         String path = this.contextPath + soulGrpcClient.path();
         String desc = soulGrpcClient.desc();
+        String configHost = this.host;
+        String host = org.apache.commons.lang3.StringUtils.isBlank(configHost) ? IpUtils.getHost() : configHost;
         String configRuleName = soulGrpcClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();
@@ -134,6 +144,8 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
                 .serviceName(packageName)
                 .methodName(methodName)
                 .contextPath(contextPath)
+                .host(host)
+                .port(port)
                 .path(path)
                 .ruleName(ruleName)
                 .pathDesc(desc)

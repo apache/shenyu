@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 public class SofaMultiParamServiceImpl implements SofaMultiParamService {
 
     @Override
-    @SoulSofaClient(path = "/findByIdsAndName")
+    @SoulSofaClient(path = "/findByIdsAndName", desc = "findByIdsAndName")
     public SofaSimpleTypeBean findByIdsAndName(final List<Integer> ids, final String name) {
         SofaSimpleTypeBean simpleTypeBean = new SofaSimpleTypeBean();
         simpleTypeBean.setId(ids.toString());
@@ -46,7 +46,7 @@ public class SofaMultiParamServiceImpl implements SofaMultiParamService {
     }
 
     @Override
-    @SoulSofaClient(path = "/findByArrayIdsAndName")
+    @SoulSofaClient(path = "/findByArrayIdsAndName", desc = "findByIdsAndName")
     public SofaSimpleTypeBean findByArrayIdsAndName(final Integer[] ids, final String name) {
         SofaSimpleTypeBean simpleTypeBean = new SofaSimpleTypeBean();
         simpleTypeBean.setId(Arrays.toString(ids));
@@ -55,7 +55,7 @@ public class SofaMultiParamServiceImpl implements SofaMultiParamService {
     }
 
     @Override
-    @SoulSofaClient(path = "/findByStringArray")
+    @SoulSofaClient(path = "/findByStringArray", desc = "findByStringArray")
     public SofaSimpleTypeBean findByStringArray(final String[] ids) {
         SofaSimpleTypeBean simpleTypeBean = new SofaSimpleTypeBean();
         simpleTypeBean.setId(Arrays.toString(ids));
@@ -64,7 +64,7 @@ public class SofaMultiParamServiceImpl implements SofaMultiParamService {
     }
 
     @Override
-    @SoulSofaClient(path = "/findByListId")
+    @SoulSofaClient(path = "/findByListId", desc = "findByListId")
     public SofaSimpleTypeBean findByListId(final List<String> ids) {
         SofaSimpleTypeBean simpleTypeBean = new SofaSimpleTypeBean();
         simpleTypeBean.setId(ids.toString());
@@ -73,7 +73,7 @@ public class SofaMultiParamServiceImpl implements SofaMultiParamService {
     }
 
     @Override
-    @SoulSofaClient(path = "/batchSave")
+    @SoulSofaClient(path = "/batchSave", desc = "batchSave")
     public SofaSimpleTypeBean batchSave(final List<SofaSimpleTypeBean> sofaTestList) {
         SofaSimpleTypeBean simpleTypeBean = new SofaSimpleTypeBean();
         simpleTypeBean.setId(sofaTestList.stream().map(SofaSimpleTypeBean::getId).collect(Collectors.joining("-")));
@@ -82,7 +82,7 @@ public class SofaMultiParamServiceImpl implements SofaMultiParamService {
     }
 
     @Override
-    @SoulSofaClient(path = "/batchSaveNameAndId")
+    @SoulSofaClient(path = "/batchSaveNameAndId", desc = "batchSaveNameAndId")
     public SofaSimpleTypeBean batchSaveNameAndId(final List<SofaSimpleTypeBean> sofaTestList, final String id, final String name) {
         SofaSimpleTypeBean simpleTypeBean = new SofaSimpleTypeBean();
         simpleTypeBean.setId(id);
@@ -91,7 +91,7 @@ public class SofaMultiParamServiceImpl implements SofaMultiParamService {
     }
 
     @Override
-    @SoulSofaClient(path = "/saveComplexBean")
+    @SoulSofaClient(path = "/saveComplexBean", desc = "saveComplexBean")
     public SofaSimpleTypeBean saveComplexBean(final SofaComplexTypeBean sofaComplexTypeBean) {
         SofaSimpleTypeBean simpleTypeBean = new SofaSimpleTypeBean();
         simpleTypeBean.setId(sofaComplexTypeBean.getIdLists().toString());
@@ -100,7 +100,7 @@ public class SofaMultiParamServiceImpl implements SofaMultiParamService {
     }
 
     @Override
-    @SoulSofaClient(path = "/saveComplexBeanAndName")
+    @SoulSofaClient(path = "/saveComplexBeanAndName", desc = "saveComplexBeanAndName")
     public SofaSimpleTypeBean saveComplexBeanAndName(final SofaComplexTypeBean sofaComplexTypeBean, final String name) {
         SofaSimpleTypeBean simpleTypeBean = new SofaSimpleTypeBean();
         simpleTypeBean.setId(sofaComplexTypeBean.getIdLists().toString());
@@ -109,7 +109,7 @@ public class SofaMultiParamServiceImpl implements SofaMultiParamService {
     }
 
     @Override
-    @SoulSofaClient(path = "/saveTwoList")
+    @SoulSofaClient(path = "/saveTwoList", desc = "saveTwoList")
     public SofaSimpleTypeBean saveTwoList(final List<SofaComplexTypeBean> sofaComplexTypeBeanList, final Map<String, SofaSimpleTypeBean> sofaSimpleTypeBeanMap) {
         SofaSimpleTypeBean simpleTypeBean = new SofaSimpleTypeBean();
         simpleTypeBean.setId(sofaComplexTypeBeanList.get(0).getIdLists().toString());
