@@ -16,3 +16,4 @@
 
 http=org.dromara.soul.register.client.http.HttpClientRegisterRepository
 zookeeper=org.dromara.soul.register.client.zookeeper.ZookeeperClientRegisterRepository
+etcd=org.dromara.soul.register.client.etcd.EtcdClientRegisterRepository

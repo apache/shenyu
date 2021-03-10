@@ -133,7 +133,7 @@ public final class SyncDataServiceTest {
         selectorData.setContinued(true);
         selectorData.setEnabled(true);
         selectorData.setHandle("divide");
-        selectorData.setLoged(true);
+        selectorData.setLogged(true);
         selectorData.setMatchMode(1);
         selectorData.setPluginId("5");
         selectorData.setName("divide");

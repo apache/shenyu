@@ -43,7 +43,4 @@ public class AuthApplyDTO implements Serializable {
     private String extInfo;
 
     private List<String> pathList;
-
-
-
 }

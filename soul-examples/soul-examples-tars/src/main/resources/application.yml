@@ -30,11 +30,10 @@ logging:
 
 soul:
   client:
-    registerType: http
-    serverLists: http://localhost:9095
-#    registerType: zookeeper
-#    serverLists: localhost:2181
+    registerType: http #http #zookeeper #etcd
+    serverLists: http://localhost:9095 #http:localhost:9095 #localhost:2181 # http://localhost:2379
     props:
       contextPath: /tars
       appName: tars
+      port: 21715
       ipAndPort: 192.168.41.103:21715

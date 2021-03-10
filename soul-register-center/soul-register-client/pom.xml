@@ -32,6 +32,7 @@
         <module>soul-register-client-api</module>
         <module>soul-register-client-http</module>
         <module>soul-register-client-zookeeper</module>
+        <module>soul-register-client-etcd</module>
     </modules>
 
 </project>

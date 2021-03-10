@@ -121,7 +121,7 @@
  
  Of course, users can also customize plugins to meet their own needs.
  
- If you want to customize, see [plugin-extend](https://dromara.org/website/zh-cn/docs/soul/extend.html)
+ If you want to customize, see [custom-plugin](https://dromara.org/projects/soul/custom-plugin/)
  
 --------------------------------------------------------------------------------  
  
