@@ -44,6 +44,8 @@ public class AppAuthData implements Serializable {
 
     private Boolean enabled;
 
+    private Boolean open;
+
     private List<AuthParamData> paramDataList;
 
     private List<AuthPathData> pathDataList;

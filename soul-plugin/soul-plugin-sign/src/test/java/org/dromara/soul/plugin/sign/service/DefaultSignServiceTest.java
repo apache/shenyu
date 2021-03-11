@@ -53,25 +53,25 @@ import java.util.Map;
 @RunWith(MockitoJUnitRunner.class)
 @Slf4j
 public final class DefaultSignServiceTest {
-    
+
     private SignService signService;
-    
+
     private ServerWebExchange exchange;
-    
+
     private final String appKey = "D1DFC83F3BC64FABB89DFBD54E5A28C8";
-    
+
     private final String secretKey = "692C479F98C841FCBEB444B7CA775F63";
-    
+
     private SoulContext passed;
-    
+
     @Value("${soul.sign.delay:5}")
     private int delay;
-    
+
     @Before
     public void setup() {
         this.signService = new DefaultSignService();
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
-        
+
         final String path = "/test-api/demo/test";
         PluginData signData = new PluginData();
         signData.setId("1");
@@ -79,18 +79,19 @@ public final class DefaultSignServiceTest {
         signData.setEnabled(true);
         signData.setRole(1);
         BaseDataCache.getInstance().cachePluginData(signData);
-        
+
         AppAuthData authData = new AppAuthData();
         authData.setAppKey(appKey);
         authData.setAppSecret(secretKey);
         authData.setEnabled(true);
+        authData.setOpen(true);
         AuthPathData authPathData = new AuthPathData();
         authPathData.setAppName("test-api");
         authPathData.setPath(path);
         authPathData.setEnabled(true);
         authData.setPathDataList(Lists.newArrayList(authPathData));
         SignAuthDataCache.getInstance().cacheAuthData(authData);
-        
+
         this.passed = new SoulContext();
         this.passed.setModule("/test-api");
         this.passed.setMethod("/demo/test");
@@ -104,92 +105,92 @@ public final class DefaultSignServiceTest {
         this.passed.setContextPath("/test-api");
         this.passed.setRealUrl("/demo/test");
     }
-    
+
     @Test
     public void normalTest() {
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
-        
+
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
         Assert.assertEquals(ret, Pair.of(true, ""));
     }
-    
+
     @Test
     public void nullTimestampTest() {
         this.passed.setTimestamp(null);
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
-        
+
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
         Assert.assertEquals(ret, Pair.of(false, Constants.SIGN_PARAMS_ERROR));
     }
-    
+
     @Test
     public void nullSignTest() {
         this.passed.setSign(null);
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
-        
+
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
         Assert.assertEquals(ret, Pair.of(false, Constants.SIGN_PARAMS_ERROR));
     }
-    
+
     @Test
     public void nullAppKeyTest() {
         this.passed.setAppKey(null);
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
-        
+
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
         Assert.assertEquals(ret, Pair.of(false, Constants.SIGN_PARAMS_ERROR));
     }
-    
+
     @Test
     public void overdueTest() {
         Long errorTimestamp = Long.parseLong(this.passed.getTimestamp()) - (long) ((delay + 1) * 1000 * 60);
         this.passed.setTimestamp(errorTimestamp.toString());
         this.passed.setSign(buildSign(secretKey, this.passed.getTimestamp(), this.passed.getPath()));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
-        
+
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
         Assert.assertEquals(ret, Pair.of(false, String.format(SoulResultEnum.SING_TIME_IS_TIMEOUT.getMsg(), delay)));
     }
-    
+
     @Test
     public void errorAppKeyTest() {
         this.passed.setAppKey("errorKey");
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
-        
+
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
         Assert.assertEquals(ret, Pair.of(false, Constants.SIGN_APP_KEY_IS_NOT_EXIST));
     }
-    
+
     @Test
     public void emptyAuthPath() {
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
         AppAuthData authData = SignAuthDataCache.getInstance().obtainAuthData(appKey);
         authData.setPathDataList(Collections.emptyList());
         SignAuthDataCache.getInstance().cacheAuthData(authData);
-        
+
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
         Assert.assertEquals(ret, Pair.of(false, Constants.SIGN_PATH_NOT_EXIST));
     }
-    
+
     @Test
     public void errorAuthPath() {
         this.passed.setPath("errorPath");
         this.passed.setSign(buildSign(secretKey, this.passed.getTimestamp(), this.passed.getPath()));
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
-        
+
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
         Assert.assertEquals(ret, Pair.of(false, Constants.SIGN_PATH_NOT_EXIST));
     }
-    
+
     @Test
     public void errorSign() {
         this.passed.setSign("errorSign");
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
-        
+
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
         Assert.assertEquals(ret, Pair.of(false, Constants.SIGN_VALUE_IS_ERROR));
     }
-    
+
     private String buildSign(final String signKey, final String timeStamp, final String path) {
         Map<String, String> map = Maps.newHashMapWithExpectedSize(3);
         map.put(Constants.TIMESTAMP, timeStamp);
