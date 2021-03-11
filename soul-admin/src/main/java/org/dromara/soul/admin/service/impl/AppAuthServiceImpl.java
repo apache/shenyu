@@ -100,26 +100,22 @@ public class AppAuthServiceImpl implements AppAuthService {
         // save authParam
         AuthParamDO authParamDO = AuthParamDO.create(appAuthDO.getId(), authApplyDTO.getAppName(), authApplyDTO.getAppParam());
         authParamMapper.save(authParamDO);
-        // save authPath
-        List<AuthPathDO> collect = Lists.newArrayList();
-        if (appAuthDO.getOpen()) {
-            collect = authApplyDTO.getPathList()
-                    .stream()
-                    .map(path -> AuthPathDO.create(path, appAuthDO.getId(), authApplyDTO.getAppName()))
-                    .collect(Collectors.toList());
-            authPathMapper.batchSave(collect);
-        }
 
         AppAuthData data = AppAuthData.builder()
                 .appKey(appAuthDO.getAppKey())
                 .appSecret(appAuthDO.getAppSecret())
                 .open(appAuthDO.getOpen())
                 .enabled(appAuthDO.getEnabled())
+                .paramDataList(Lists.newArrayList(new AuthParamData(authParamDO.getAppName(), authParamDO.getAppParam())))
                 .build();
 
-        data.setParamDataList(Lists.newArrayList(new AuthParamData(authParamDO.getAppName(), authParamDO.getAppParam())));
-
+        // save authPath
         if (appAuthDO.getOpen()) {
+            List<AuthPathDO> collect = authApplyDTO.getPathList()
+                    .stream()
+                    .map(path -> AuthPathDO.create(path, appAuthDO.getId(), authApplyDTO.getAppName()))
+                    .collect(Collectors.toList());
+            authPathMapper.batchSave(collect);
             data.setPathDataList(collect.stream().map(authPathDO ->
                     AuthPathData.builder().appName(authPathDO.getAppName()).path(authPathDO.getPath()).enabled(authPathDO.getEnabled()).build())
                     .collect(Collectors.toList()));
