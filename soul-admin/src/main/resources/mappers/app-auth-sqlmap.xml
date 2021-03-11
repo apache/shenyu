@@ -25,13 +25,14 @@
         <result column="user_id" jdbcType="VARCHAR" property="userId"/>
         <result column="phone" jdbcType="VARCHAR" property="phone"/>
         <result column="ext_info" jdbcType="VARCHAR" property="extInfo"/>
+        <result column="open" jdbcType="TINYINT" property="open"/>
         <result column="enabled" jdbcType="TINYINT" property="enabled"/>
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,  app_key, app_secret,user_id, phone,ext_info,enabled,date_created, date_updated
+        id,  app_key, app_secret,user_id, phone,ext_info,open,enabled,date_created, date_updated
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -95,6 +96,7 @@
         user_id,
         phone,
         ext_info,
+        open,
         enabled,
         date_created,
         date_updated)
@@ -106,6 +108,7 @@
          #{userId,jdbcType=VARCHAR},
          #{phone,jdbcType=VARCHAR},
          #{extInfo,jdbcType=VARCHAR},
+         #{open,jdbcType=TINYINT},
          #{enabled,jdbcType=TINYINT},
          #{dateCreated,jdbcType=TIMESTAMP},
          #{dateUpdated,jdbcType=TIMESTAMP})
@@ -126,6 +129,9 @@
             </if>
             <if test="appSecret != null">
                 app_secret,
+            </if>
+            <if test="open != null">
+                open,
             </if>
             <if test="enabled != null">
                 enabled,
@@ -154,6 +160,9 @@
             <if test="appSecret != null">
                 #{appSecret,jdbcType=VARCHAR},
             </if>
+            <if test="open != null">
+                #{open,jdbcType=TINYINT},
+            </if>
             <if test="enabled != null">
                 #{enabled,jdbcType=TINYINT},
             </if>
@@ -175,6 +184,7 @@
         app_secret = #{appSecret,jdbcType=VARCHAR},
         phone = #{phone,jdbcType=VARCHAR},
         ext_info = #{extInfo,jdbcType=VARCHAR},
+        open = #{open,jdbcType=TINYINT},
         enabled = #{enabled,jdbcType=TINYINT}
         where id = #{id,jdbcType=VARCHAR}
     </update>
@@ -190,6 +200,9 @@
             </if>
             <if test="extInfo != null">
                 ext_info = #{extInfo,jdbcType=VARCHAR},
+            </if>
+            <if test="open != null">
+                open = #{open,jdbcType=TINYINT},
             </if>
             <if test="enabled != null">
                 enabled = #{enabled,jdbcType=TINYINT},
