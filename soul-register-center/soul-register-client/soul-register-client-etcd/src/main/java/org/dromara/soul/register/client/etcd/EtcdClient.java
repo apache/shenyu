@@ -19,19 +19,14 @@ package org.dromara.soul.register.client.etcd;
 
 import io.etcd.jetcd.ByteSequence;
 import io.etcd.jetcd.Client;
-import io.etcd.jetcd.KeyValue;
-import io.etcd.jetcd.kv.GetResponse;
-import io.etcd.jetcd.kv.PutResponse;
+import io.etcd.jetcd.KV;
 import io.etcd.jetcd.lease.LeaseKeepAliveResponse;
-import io.etcd.jetcd.options.GetOption;
 import io.etcd.jetcd.options.PutOption;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -94,79 +89,18 @@ public class EtcdClient {
     }
 
     /**
-     * put data as persistent.
-     * @param key key
-     * @param value value
-     */
-    public void put(final String key, final String value) {
-        log.info("\nput: {} == {}\n", key, value);
-        if (key == null || value == null) {
-            return;
-        }
-        CompletableFuture<PutResponse> putFuture =
-                this.client.getKVClient().put(ByteSequence.from(key, UTF_8), ByteSequence.from(value, UTF_8));
-        try {
-            putFuture.get(timeout, TimeUnit.MILLISECONDS);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
      * put data as ephemeral.
      * @param key key
      * @param value value
      */
     public void putEphemeral(final String key, final String value) {
         try {
-            client.getKVClient()
-                    .put(ByteSequence.from(key, UTF_8),
-                            ByteSequence.from(String.valueOf(value), UTF_8),
-                            PutOption.newBuilder().withLeaseId(globalLeaseId).build())
+            KV kvClient = client.getKVClient();
+            kvClient.put(ByteSequence.from(key, UTF_8), ByteSequence.from(value, UTF_8),
+                    PutOption.newBuilder().withLeaseId(globalLeaseId).build())
                     .get(timeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             e.printStackTrace();
         }
-    }
-
-    /**
-     * read data of path.
-     * @param key key
-     * @return data
-     */
-    public String getKVValue(final String key) {
-        if (null == key) {
-            return null;
-        }
-
-        CompletableFuture<GetResponse> responseFuture = this.client.getKVClient().get(ByteSequence.from(key, UTF_8));
-
-        try {
-            List<KeyValue> result = responseFuture.get(timeout, TimeUnit.MILLISECONDS).getKvs();
-            if (!result.isEmpty()) {
-                return result.get(0).getValue().toString(UTF_8);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
-    /**
-     * check path is exist.
-     * @param path path
-     * @return boolean
-     */
-    public boolean checkExists(final String path) {
-        try {
-            return client.getKVClient()
-                    .get(ByteSequence.from(path, UTF_8), GetOption.newBuilder().withCountOnly(true).build())
-                    .get(timeout, TimeUnit.MILLISECONDS)
-                    .getCount() > 0;
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            e.printStackTrace();
-        }
-        return false;
     }
 }

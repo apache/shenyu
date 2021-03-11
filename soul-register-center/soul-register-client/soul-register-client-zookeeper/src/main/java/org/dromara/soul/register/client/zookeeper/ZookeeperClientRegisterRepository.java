@@ -25,7 +25,7 @@ import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
 import org.dromara.soul.register.common.dto.URIRegisterDTO;
-import org.dromara.soul.register.common.path.ZkRegisterPathConstants;
+import org.dromara.soul.register.common.path.RegisterPathConstants;
 import org.dromara.soul.spi.Join;
 
 import java.util.Properties;
@@ -68,11 +68,11 @@ public class ZookeeperClientRegisterRepository implements SoulClientRegisterRepo
 
     private void registerMetadata(final String rpcType, final String contextPath, final MetaDataRegisterDTO metadata) {
         String metadataNodeName = buildMetadataNodeName(metadata);
-        String metaDataPath = ZkRegisterPathConstants.buildMetaDataParentPath(rpcType, contextPath);
+        String metaDataPath = RegisterPathConstants.buildMetaDataParentPath(rpcType, contextPath);
         if (!zkClient.exists(metaDataPath)) {
             zkClient.createPersistent(metaDataPath, true);
         }
-        String realNode = ZkRegisterPathConstants.buildRealNode(metaDataPath, metadataNodeName);
+        String realNode = RegisterPathConstants.buildRealNode(metaDataPath, metadataNodeName);
         if (zkClient.exists(realNode)) {
             zkClient.writeData(realNode, GsonUtils.getInstance().toJson(metadata));
         } else {
@@ -82,11 +82,11 @@ public class ZookeeperClientRegisterRepository implements SoulClientRegisterRepo
 
     private synchronized void registerURI(final String rpcType, final String contextPath, final MetaDataRegisterDTO metadata) {
         String uriNodeName = buildURINodeName(metadata);
-        String uriPath = ZkRegisterPathConstants.buildURIParentPath(rpcType, contextPath);
+        String uriPath = RegisterPathConstants.buildURIParentPath(rpcType, contextPath);
         if (!zkClient.exists(uriPath)) {
             zkClient.createPersistent(uriPath, true);
         }
-        String realNode = ZkRegisterPathConstants.buildRealNode(uriPath, uriNodeName);
+        String realNode = RegisterPathConstants.buildRealNode(uriPath, uriNodeName);
         if (!zkClient.exists(realNode)) {
             zkClient.createEphemeral(realNode, GsonUtils.getInstance().toJson(URIRegisterDTO.transForm(metadata)));
         }
