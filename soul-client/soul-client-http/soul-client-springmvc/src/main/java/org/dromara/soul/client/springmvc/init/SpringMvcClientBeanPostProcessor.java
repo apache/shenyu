@@ -20,7 +20,6 @@ package org.dromara.soul.client.springmvc.init;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
-import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
 import org.dromara.soul.client.springmvc.annotation.SoulSpringMvcClient;
 import org.dromara.soul.common.utils.IpUtils;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
@@ -66,7 +65,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
     /**
      * Instantiates a new Soul client bean post processor.
      */
-    public SpringMvcClientBeanPostProcessor(final SoulRegisterCenterConfig config) {
+    public SpringMvcClientBeanPostProcessor(final SoulRegisterCenterConfig config, final SoulClientRegisterRepository soulClientRegisterRepository) {
         String registerType = config.getRegisterType();
         String serverLists = config.getServerLists();
         Properties props = config.getProps();
@@ -84,7 +83,6 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         this.contextPath = contextPath;
         this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
-        SoulClientRegisterRepository soulClientRegisterRepository = SoulClientRegisterRepositoryFactory.newInstance(config);
         publisher.start(soulClientRegisterRepository);
     }
 

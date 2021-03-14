@@ -33,6 +33,7 @@
         <module>soul-register-client-http</module>
         <module>soul-register-client-zookeeper</module>
         <module>soul-register-client-etcd</module>
+        <module>soul-register-client-consul</module>
     </modules>
 
 </project>
