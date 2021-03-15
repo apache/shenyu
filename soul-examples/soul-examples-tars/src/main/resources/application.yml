@@ -36,4 +36,4 @@ soul:
       contextPath: /tars
       appName: tars
       port: 21715
-      ipAndPort: 192.168.41.103:21715
+      host: 192.168.41.103
