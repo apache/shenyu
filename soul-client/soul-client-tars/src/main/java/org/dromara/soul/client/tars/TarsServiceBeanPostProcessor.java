@@ -107,7 +107,10 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
                 return;
             }
         }
-        final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
+        if (AopUtils.isJdkDynamicProxy(clazz)) {
+            clazz = AopUtils.getTargetClass(serviceBean);
+        }
+        Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         String serviceName = serviceBean.getClass().getAnnotation(SoulTarsService.class).serviceName();
         for (Method method : methods) {
             SoulTarsClient soulSofaClient = method.getAnnotation(SoulTarsClient.class);
