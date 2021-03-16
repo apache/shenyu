@@ -17,16 +17,9 @@
 
 package org.dromara.soul.client.springcloud.init;
 
-import java.lang.reflect.Method;
-import java.util.Objects;
-import java.util.Properties;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
-import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
 import org.dromara.soul.client.springcloud.annotation.SoulSpringCloudClient;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
@@ -40,6 +33,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.lang.reflect.Method;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The type Soul client bean post processor.
@@ -64,8 +64,9 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
      *
      * @param config the soul spring cloud config
      * @param env    the env
+     * @param soulClientRegisterRepository the soulClientRegisterRepository
      */
-    public SpringCloudClientBeanPostProcessor(final SoulRegisterCenterConfig config, final Environment env) {
+    public SpringCloudClientBeanPostProcessor(final SoulRegisterCenterConfig config, final Environment env, final SoulClientRegisterRepository soulClientRegisterRepository) {
         String registerType = config.getRegisterType();
         String serverLists = config.getServerLists();
         Properties props = config.getProps();
@@ -81,7 +82,6 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         this.env = env;
         this.contextPath = contextPath;
         this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
-        SoulClientRegisterRepository soulClientRegisterRepository = SoulClientRegisterRepositoryFactory.newInstance(config);
         publisher.start(soulClientRegisterRepository);
     }
 

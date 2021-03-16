@@ -59,8 +59,7 @@ public class SoulConsulConfigWatch implements SmartLifecycle {
     public SoulConsulConfigWatch(final SoulRegisterCenterConfig config, final ApplicationEventPublisher publisher) {
         this.watchDelay = Integer.parseInt(config.getProps().getProperty("delay", "1"));
         this.waitTime = Integer.parseInt(config.getProps().getProperty("wait-time", "55"));
-        executor = new ScheduledThreadPoolExecutor(1,
-                SoulThreadFactory.create("consul-config-watch", true));
+        executor = new ScheduledThreadPoolExecutor(1, SoulThreadFactory.create("consul-config-watch", true));
         String metadataPath = config.getProps().getProperty("MetadataPath", "soul/register");
         consulIndexes.put(metadataPath, 0L);
         this.publisher = publisher;
@@ -74,23 +73,18 @@ public class SoulConsulConfigWatch implements SmartLifecycle {
                     if (currentIndex == null) {
                         currentIndex = -1L;
                     }
-                    Response<List<GetValue>> response = this.consul.getKVValues(context,
-                            null,
-                            new QueryParams(waitTime,
-                                    currentIndex));
+                    Response<List<GetValue>> response = this.consul.getKVValues(context, null, new QueryParams(waitTime, currentIndex));
                     if (response.getValue() != null && !response.getValue().isEmpty()) {
                         Long newIndex = response.getConsulIndex();
 
                         if (newIndex != null && !newIndex.equals(currentIndex)) {
                             if (!this.consulIndexes.containsValue(newIndex)
                                     && !currentIndex.equals(-1L)) {
-                                log.trace("Context " + context + " has new index "
-                                        + newIndex);
+                                log.trace("Context " + context + " has new index " + newIndex);
                                 Map<String, GetValue> valueMap = extractGetValue(response);
                                 publisher.publishEvent(new ConsulConfigChangedEvent(this, newIndex, valueMap));
                             } else if (log.isTraceEnabled()) {
-                                log.info("Event for index already published for context "
-                                        + context);
+                                log.info("Event for index already published for context " + context);
                             }
                             this.consulIndexes.put(context, newIndex);
                         } else if (log.isTraceEnabled()) {
@@ -100,8 +94,7 @@ public class SoulConsulConfigWatch implements SmartLifecycle {
                         log.trace("No value for context " + context);
                     }
                 } catch (Exception e) {
-                    log.warn("Error querying consul Key/Values for context '"
-                            + context + "'. Message: " + e.getMessage());
+                    log.warn("Error querying consul Key/Values for context '" + context + "'. Message: " + e.getMessage());
                 }
             }
         }

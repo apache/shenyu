@@ -17,6 +17,22 @@
 
 package org.dromara.soul.client.apache.dubbo;
 
+import lombok.extern.slf4j.Slf4j;
+import org.apache.dubbo.common.Constants;
+import org.apache.dubbo.common.utils.StringUtils;
+import org.apache.dubbo.config.spring.ServiceBean;
+import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
+import org.dromara.soul.client.dubbo.common.annotation.SoulDubboClient;
+import org.dromara.soul.client.dubbo.common.dto.DubboRpcExt;
+import org.dromara.soul.common.utils.GsonUtils;
+import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
+import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.ReflectionUtils;
+
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Map;
@@ -28,22 +44,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.dubbo.common.Constants;
-import org.apache.dubbo.common.utils.StringUtils;
-import org.apache.dubbo.config.spring.ServiceBean;
-import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
-import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
-import org.dromara.soul.client.dubbo.common.annotation.SoulDubboClient;
-import org.dromara.soul.client.dubbo.common.dto.DubboRpcExt;
-import org.dromara.soul.common.utils.GsonUtils;
-import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
-import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
-import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
-import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.ReflectionUtils;
 
 /**
  * The Apache Dubbo ServiceBean PostProcessor.
@@ -64,7 +64,7 @@ public class ApacheDubboServiceBeanPostProcessor implements ApplicationListener<
     
     private String appName;
     
-    public ApacheDubboServiceBeanPostProcessor(final SoulRegisterCenterConfig config) {
+    public ApacheDubboServiceBeanPostProcessor(final SoulRegisterCenterConfig config, final SoulClientRegisterRepository soulClientRegisterRepository) {
         Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
         String appName = props.getProperty("appName");
@@ -74,7 +74,6 @@ public class ApacheDubboServiceBeanPostProcessor implements ApplicationListener<
         this.contextPath = contextPath;
         this.appName = appName;
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
-        SoulClientRegisterRepository soulClientRegisterRepository = SoulClientRegisterRepositoryFactory.newInstance(config);
         soulClientRegisterEventPublisher.start(soulClientRegisterRepository);
     }
 

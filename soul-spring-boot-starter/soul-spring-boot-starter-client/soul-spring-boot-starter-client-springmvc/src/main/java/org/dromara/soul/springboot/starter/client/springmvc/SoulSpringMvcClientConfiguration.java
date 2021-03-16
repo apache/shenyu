@@ -17,12 +17,12 @@
 
 package org.dromara.soul.springboot.starter.client.springmvc;
 
-import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
 import org.dromara.soul.client.springmvc.init.ContextRegisterListener;
 import org.dromara.soul.client.springmvc.init.SpringMvcClientBeanPostProcessor;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.dromara.soul.springboot.starter.client.common.config.SoulClientCommonBeanConfiguration;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -32,18 +32,8 @@ import org.springframework.context.annotation.Configuration;
  * @author xiaoyu
  */
 @Configuration
+@ImportAutoConfiguration(SoulClientCommonBeanConfiguration.class)
 public class SoulSpringMvcClientConfiguration {
-    
-    /**
-     * Register the register repository for http client bean post processor.
-     *
-     * @param config the config
-     * @return the client register repository
-     */
-    @Bean
-    public SoulClientRegisterRepository soulClientRegisterRepository(final SoulRegisterCenterConfig config) {
-        return SoulClientRegisterRepositoryFactory.newInstance(config);
-    }
     
     /**
      * Spring http client bean post processor .
@@ -61,21 +51,12 @@ public class SoulSpringMvcClientConfiguration {
      * Context register listener context register listener.
      *
      * @param config the config
+     * @param soulClientRegisterRepository the client register repository
      * @return the context register listener
      */
     @Bean
-    public ContextRegisterListener contextRegisterListener(final SoulRegisterCenterConfig config) {
-        return new ContextRegisterListener(config);
+    public ContextRegisterListener contextRegisterListener(final SoulRegisterCenterConfig config, final SoulClientRegisterRepository soulClientRegisterRepository) {
+        return new ContextRegisterListener(config, soulClientRegisterRepository);
     }
     
-    /**
-     * Soul Register Center Config.
-     *
-     * @return the Register Center Config
-     */
-    @Bean
-    @ConfigurationProperties(prefix = "soul.client")
-    public SoulRegisterCenterConfig soulRegisterCenterConfig() {
-        return new SoulRegisterCenterConfig();
-    }
 }

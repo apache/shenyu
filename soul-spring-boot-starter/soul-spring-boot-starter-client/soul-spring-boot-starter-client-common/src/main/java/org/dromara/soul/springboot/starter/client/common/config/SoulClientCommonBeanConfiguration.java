@@ -15,35 +15,38 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.springboot.starter.client.apache.dubbo;
+package org.dromara.soul.springboot.starter.client.common.config;
 
-import org.dromara.soul.client.apache.dubbo.ApacheDubboServiceBeanPostProcessor;
+import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
-import org.dromara.soul.springboot.starter.client.common.config.SoulClientCommonBeanConfiguration;
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * The type Soul apache dubbo client configuration.
- *
- * @author xiaoyu
- */
 @Configuration
-@ImportAutoConfiguration(SoulClientCommonBeanConfiguration.class)
-public class SoulApacheDubboClientConfiguration {
+public class SoulClientCommonBeanConfiguration {
     
     /**
-     * Apache dubbo service bean post processor alibaba dubbo service bean post processor.
+     * Register the register repository for http client bean post processor.
      *
-     * @param soulRegisterCenterConfig soulRegisterCenterConfig
-     * @param soulClientRegisterRepository the soulClientRegisterRepository
-     * @return the alibaba dubbo service bean post processor
+     * @param config the config
+     * @return the client register repository
      */
     @Bean
-    public ApacheDubboServiceBeanPostProcessor apacheDubboServiceBeanPostProcessor(final SoulRegisterCenterConfig soulRegisterCenterConfig, final SoulClientRegisterRepository soulClientRegisterRepository) {
-        return new ApacheDubboServiceBeanPostProcessor(soulRegisterCenterConfig, soulClientRegisterRepository);
+    public SoulClientRegisterRepository soulClientRegisterRepository(final SoulRegisterCenterConfig config) {
+        return SoulClientRegisterRepositoryFactory.newInstance(config);
     }
-
+    
+    /**
+     * Soul Register Center Config.
+     *
+     * @return the Register Center Config
+     */
+    @Bean
+    @ConfigurationProperties(prefix = "soul.client")
+    public SoulRegisterCenterConfig soulRegisterCenterConfig() {
+        return new SoulRegisterCenterConfig();
+    }
+    
 }

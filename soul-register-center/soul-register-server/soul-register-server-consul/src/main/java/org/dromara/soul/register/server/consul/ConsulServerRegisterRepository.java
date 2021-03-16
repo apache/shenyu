@@ -96,7 +96,6 @@ public class ConsulServerRegisterRepository implements SoulServerRegisterReposit
     }
     
     private void publishMetadata(final String data) {
-        log.info("publishing metadata: {}", data);
         publisher.publish(Lists.newArrayList(GsonUtils.getInstance().fromJson(data, MetaDataRegisterDTO.class)));
     }
     
@@ -105,7 +104,6 @@ public class ConsulServerRegisterRepository implements SoulServerRegisterReposit
             URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder().contextPath(contextPath).build();
             registerDTOList.add(uriRegisterDTO);
         }
-        log.info("publishing URI list: {}", registerDTOList);
         publisher.publish(registerDTOList);
     }
     
@@ -120,7 +118,7 @@ public class ConsulServerRegisterRepository implements SoulServerRegisterReposit
                 map.putIfAbsent(contextPath, new ArrayList<>());
                 map.get(contextPath).add(uriRegisterDTO);
             } else {
-                log.info("maybe not soul client, ignore service instance: {}", serviceInstance.toString());
+                log.debug("maybe not soul client, ignore service instance: {}", serviceInstance.toString());
             }
         });
         return map;

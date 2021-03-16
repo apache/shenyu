@@ -17,12 +17,9 @@
 
 package org.dromara.soul.client.springcloud.init;
 
-import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
-import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
@@ -31,6 +28,9 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.env.Environment;
 import org.springframework.lang.NonNull;
+
+import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The type Context register listener.
@@ -55,8 +55,9 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
      *
      * @param config the config
      * @param env    the env
+     * @param soulClientRegisterRepository the soulClientRegisterRepository
      */
-    public ContextRegisterListener(final SoulRegisterCenterConfig config, final Environment env) {
+    public ContextRegisterListener(final SoulRegisterCenterConfig config, final Environment env, final SoulClientRegisterRepository soulClientRegisterRepository) {
         String registerType = config.getRegisterType();
         String serverLists = config.getServerLists();
         Properties props = config.getProps();
@@ -71,7 +72,6 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
         this.env = env;
         this.contextPath = contextPath;
         this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
-        SoulClientRegisterRepository soulClientRegisterRepository = SoulClientRegisterRepositoryFactory.newInstance(config);
         publisher.start(soulClientRegisterRepository);
     }
     
