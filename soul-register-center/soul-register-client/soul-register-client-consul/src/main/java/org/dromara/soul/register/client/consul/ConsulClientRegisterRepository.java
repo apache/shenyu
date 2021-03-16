@@ -32,38 +32,38 @@ import org.springframework.cloud.consul.serviceregistry.ConsulRegistration;
 @Join
 @Slf4j
 public class ConsulClientRegisterRepository implements SoulClientRegisterRepository {
-
+    
     @Autowired
     private ConsulRegistration consulRegistration;
-
+    
     @Autowired
     private KeyValueClient keyValueClient;
-
+    
     @Override
-    public void persistInterface(MetaDataRegisterDTO metadata) {
+    public void persistInterface(final MetaDataRegisterDTO metadata) {
         String rpcType = metadata.getRpcType();
         String contextPath = metadata.getContextPath().substring(1);
         registerMetadata(rpcType, contextPath, metadata);
         if (RpcTypeEnum.HTTP.getName().equals(rpcType) || RpcTypeEnum.TARS.getName().equals(rpcType) || RpcTypeEnum.GRPC.getName().equals(rpcType)) {
-            registerURI(rpcType, contextPath, metadata);
+            registerURI(metadata);
         }
         log.info("{} Consul client register success: {}", rpcType, metadata.toString());
     }
-
-    private void registerMetadata(String rpcType, String contextPath, MetaDataRegisterDTO metadata) {
+    
+    private void registerMetadata(final String rpcType, final String contextPath, final MetaDataRegisterDTO metadata) {
         String metadataNodeName = buildMetadataNodeName(metadata);
         String metaDataPath = ZkRegisterPathConstants.buildMetaDataParentPath(rpcType, contextPath);
-
+        
         String realNode = ZkRegisterPathConstants.buildRealNode(metaDataPath, metadataNodeName);
         String metadataJson = GsonUtils.getInstance().toJson(metadata);
         keyValueClient.setKVValue(realNode, metadataJson);
     }
-
-    private void registerURI(String rpcType, String contextPath, MetaDataRegisterDTO metadata) {
+    
+    private void registerURI(final MetaDataRegisterDTO metadata) {
         URIRegisterDTO uriRegisterDTO = URIRegisterDTO.transForm(metadata);
         consulRegistration.getService().getMeta().put("uri", GsonUtils.getInstance().toJson(uriRegisterDTO));
     }
-
+    
     private String buildMetadataNodeName(final MetaDataRegisterDTO metadata) {
         String nodeName;
         String rpcType = metadata.getRpcType();
@@ -74,8 +74,9 @@ public class ConsulClientRegisterRepository implements SoulClientRegisterReposit
         }
         return nodeName.substring(1);
     }
-
+    
     private String buildNodeName(final String serviceName, final String methodName) {
-        return String.join("#", serviceName, methodName);
+        return String.join(DOT_SEPARATOR, serviceName, methodName);
     }
+    
 }

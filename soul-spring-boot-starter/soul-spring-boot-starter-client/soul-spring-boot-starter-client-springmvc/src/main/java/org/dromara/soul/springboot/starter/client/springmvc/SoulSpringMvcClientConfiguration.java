@@ -33,16 +33,23 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class SoulSpringMvcClientConfiguration {
-
+    
+    /**
+     * Register the register repository for http client bean post processor.
+     *
+     * @param config the config
+     * @return the client register repository
+     */
     @Bean
     public SoulClientRegisterRepository soulClientRegisterRepository(final SoulRegisterCenterConfig config) {
         return SoulClientRegisterRepositoryFactory.newInstance(config);
     }
     
     /**
-     * Spring http client bean post processor spring http client bean post processor.
+     * Spring http client bean post processor .
      *
      * @param config the config
+     * @param soulClientRegisterRepository the client register repository
      * @return the spring http client bean post processor
      */
     @Bean
