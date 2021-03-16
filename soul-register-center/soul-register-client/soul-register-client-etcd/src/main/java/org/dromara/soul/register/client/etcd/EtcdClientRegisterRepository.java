@@ -23,7 +23,7 @@ import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
-import org.dromara.soul.register.common.path.ZkRegisterPathConstants;
+import org.dromara.soul.register.common.path.RegisterPathConstants;
 import org.dromara.soul.spi.Join;
 
 import java.util.Properties;
@@ -64,16 +64,16 @@ public class EtcdClientRegisterRepository implements SoulClientRegisterRepositor
 
     private void registerMetadata(final String rpcType, final String contextPath, final MetaDataRegisterDTO metadata) {
         String metadataNodeName = buildMetadataNodeName(metadata);
-        String metaDataPath = ZkRegisterPathConstants.buildMetaDataParentPath(rpcType, contextPath);
-        String realNode = ZkRegisterPathConstants.buildRealNode(metaDataPath, metadataNodeName);
+        String metaDataPath = RegisterPathConstants.buildMetaDataParentPath(rpcType, contextPath);
+        String realNode = RegisterPathConstants.buildRealNode(metaDataPath, metadataNodeName);
         client.putEphemeral(realNode, GsonUtils.getInstance().toJson(metadata));
         log.info("register metadata success: {}", realNode);
     }
 
     private void registerURI(final String rpcType, final String contextPath, final MetaDataRegisterDTO metadata) {
         String uriNodeName = buildURINodeName(metadata);
-        String uriPath = ZkRegisterPathConstants.buildURIParentPath(rpcType, contextPath);
-        String realNode = ZkRegisterPathConstants.buildRealNode(uriPath, uriNodeName);
+        String uriPath = RegisterPathConstants.buildURIParentPath(rpcType, contextPath);
+        String realNode = RegisterPathConstants.buildRealNode(uriPath, uriNodeName);
         client.putEphemeral(realNode, GsonUtils.getInstance().toJson(metadata));
         log.info("register uri data success: {}", realNode);
     }

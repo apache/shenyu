@@ -29,7 +29,7 @@ import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
 import org.dromara.soul.register.common.dto.URIRegisterDTO;
-import org.dromara.soul.register.common.path.ZkRegisterPathConstants;
+import org.dromara.soul.register.common.path.RegisterPathConstants;
 import org.dromara.soul.register.server.api.SoulServerRegisterPublisher;
 import org.dromara.soul.register.server.api.SoulServerRegisterRepository;
 import org.dromara.soul.spi.Join;
@@ -79,7 +79,7 @@ public class ZookeeperServerRegisterRepository implements SoulServerRegisterRepo
     }
     
     private void subscribeURI(final String rpcType) {
-        String contextPathParent = ZkRegisterPathConstants.buildURIContextPathParent(rpcType);
+        String contextPathParent = RegisterPathConstants.buildURIContextPathParent(rpcType);
         List<String> contextPaths = zkClientGetChildren(contextPathParent);
         for (String contextPath : contextPaths) {
             watcherURI(rpcType, contextPath);
@@ -94,7 +94,7 @@ public class ZookeeperServerRegisterRepository implements SoulServerRegisterRepo
     }
     
     private void subscribeMetaData(final String rpcType) {
-        String contextPathParent = ZkRegisterPathConstants.buildMetaDataContextPathParent(rpcType);
+        String contextPathParent = RegisterPathConstants.buildMetaDataContextPathParent(rpcType);
         List<String> contextPaths = zkClientGetChildren(contextPathParent);
         for (String contextPath : contextPaths) {
             watcherMetadata(rpcType, contextPath);
@@ -109,11 +109,11 @@ public class ZookeeperServerRegisterRepository implements SoulServerRegisterRepo
     }
     
     private void watcherMetadata(final String rpcType, final String contextPath) {
-        String metaDataParentPath = ZkRegisterPathConstants.buildMetaDataParentPath(rpcType, contextPath);
+        String metaDataParentPath = RegisterPathConstants.buildMetaDataParentPath(rpcType, contextPath);
         List<String> childrenList = zkClientGetChildren(metaDataParentPath);
         if (CollectionUtils.isNotEmpty(childrenList)) {
             childrenList.forEach(children -> {
-                String realPath = ZkRegisterPathConstants.buildRealNode(metaDataParentPath, children);
+                String realPath = RegisterPathConstants.buildRealNode(metaDataParentPath, children);
                 publishMetadata(zkClient.readData(realPath).toString());
                 subscribeMetaDataChanges(realPath);
             });
@@ -122,7 +122,7 @@ public class ZookeeperServerRegisterRepository implements SoulServerRegisterRepo
             if (CollectionUtils.isNotEmpty(currentChildren)) {
                 List<String> addSubscribePath = addSubscribePath(childrenList, currentChildren);
                 addSubscribePath.stream().map(addPath -> {
-                    String realPath = ZkRegisterPathConstants.buildRealNode(parentPath, addPath);
+                    String realPath = RegisterPathConstants.buildRealNode(parentPath, addPath);
                     publishMetadata(zkClient.readData(realPath).toString());
                     return realPath;
                 }).forEach(this::subscribeMetaDataChanges);
@@ -132,7 +132,7 @@ public class ZookeeperServerRegisterRepository implements SoulServerRegisterRepo
     }
     
     private void watcherURI(final String rpcType, final String contextPath) {
-        String uriParentPath = ZkRegisterPathConstants.buildURIParentPath(rpcType, contextPath);
+        String uriParentPath = RegisterPathConstants.buildURIParentPath(rpcType, contextPath);
         List<String> childrenList = zkClientGetChildren(uriParentPath);
         if (CollectionUtils.isNotEmpty(childrenList)) {
             registerURIChildrenList(childrenList, uriParentPath);
@@ -149,7 +149,7 @@ public class ZookeeperServerRegisterRepository implements SoulServerRegisterRepo
     private void registerURIChildrenList(final List<String> childrenList, final String uriParentPath) {
         List<URIRegisterDTO> registerDTOList = new ArrayList<>();
         childrenList.forEach(addPath -> {
-            String realPath = ZkRegisterPathConstants.buildRealNode(uriParentPath, addPath);
+            String realPath = RegisterPathConstants.buildRealNode(uriParentPath, addPath);
             registerDTOList.add(GsonUtils.getInstance().fromJson(zkClient.readData(realPath).toString(), URIRegisterDTO.class));
         });
         if (registerDTOList.isEmpty()) {
