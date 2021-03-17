@@ -73,13 +73,13 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
     public TarsServiceBeanPostProcessor(final SoulRegisterCenterConfig config, final SoulClientRegisterRepository soulClientRegisterRepository) {
         Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
-        String ipAndPort = props.getProperty("ipAndPort");
+        String ip = props.getProperty("host");
         String port = props.getProperty("port");
-        if (StringUtils.isEmpty(contextPath) || StringUtils.isEmpty(ipAndPort) || StringUtils.isEmpty(port)) {
+        if (StringUtils.isEmpty(contextPath) || StringUtils.isEmpty(ip) || StringUtils.isEmpty(port)) {
             throw new RuntimeException("tars client must config the contextPath, ipAndPort");
         }
         this.contextPath = contextPath;
-        this.ipAndPort = ipAndPort;
+        this.ipAndPort = ip + ":" + port;
         this.host = props.getProperty("host");
         this.port = Integer.parseInt(port);
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
@@ -105,7 +105,10 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
                 return;
             }
         }
-        final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
+        if (AopUtils.isJdkDynamicProxy(clazz)) {
+            clazz = AopUtils.getTargetClass(serviceBean);
+        }
+        Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         String serviceName = serviceBean.getClass().getAnnotation(SoulTarsService.class).serviceName();
         for (Method method : methods) {
             SoulTarsClient soulSofaClient = method.getAnnotation(SoulTarsClient.class);

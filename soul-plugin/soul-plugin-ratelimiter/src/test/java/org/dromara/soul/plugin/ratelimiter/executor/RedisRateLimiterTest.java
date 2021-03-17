@@ -33,6 +33,10 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
@@ -61,9 +65,64 @@ public final class RedisRateLimiterTest {
     public void setUp() {
         this.redisRateLimiter = new RedisRateLimiter();
         rateLimiterHandle = new RateLimiterHandle();
-        rateLimiterHandle.setAlgorithmName("tokenBucket");
         rateLimiterHandle.setReplenishRate(DEFAULT_TEST_REPLENISH_RATE);
         rateLimiterHandle.setBurstCapacity(DEFAULT_TEST_BURST_CAPACITY);
+    }
+
+    /**
+     * redisRateLimier.isAllowed allowed case for leakyBucketAlgorithm.
+     */
+    @Test
+    public void leakyBucketAllowedTest() {
+        leakyBucketPreInit(1L, 10L);
+        rateLimiterHandle.setAlgorithmName("leakyBucket");
+        Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(DEFAULT_TEST_ID, rateLimiterHandle);
+        StepVerifier.create(responseMono).assertNext(r -> {
+            assertThat(r.getTokensRemaining(), is(10L));
+            assertTrue(r.isAllowed());
+        }).verifyComplete();
+    }
+
+    /**
+     * redisRateLimier.isAllowed not allowed case for leakyBucketAlgorithm.
+     */
+    @Test
+    public void leakyBucketNotAllowedTest() {
+        leakyBucketPreInit(0L, 300L);
+        rateLimiterHandle.setAlgorithmName("leakyBucket");
+        Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(DEFAULT_TEST_ID, rateLimiterHandle);
+        StepVerifier.create(responseMono).assertNext(r -> {
+            assertThat(r.getTokensRemaining(), is((long) DEFAULT_TEST_BURST_CAPACITY));
+            assertFalse(r.isAllowed());
+        }).verifyComplete();
+    }
+
+    /**
+     * redisRateLimier.isAllowed allowed case for slidingWindowAlgorithm.
+     */
+    @Test
+    public void slidingWindowAllowedTest() {
+        slidingWindowPreInit(1L, 200L);
+        rateLimiterHandle.setAlgorithmName("slidingWindow");
+        Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(DEFAULT_TEST_ID, rateLimiterHandle);
+        StepVerifier.create(responseMono).assertNext(r -> {
+            assertThat(r.getTokensRemaining(), is((long) DEFAULT_TEST_BURST_CAPACITY - 100L));
+            assertTrue(r.isAllowed());
+        }).verifyComplete();
+    }
+
+    /**
+     * redisRateLimier.isAllowed not allowed case for slidingWindowAlgorithm.
+     */
+    @Test
+    public void slidingWindowNotAllowedTest() {
+        slidingWindowPreInit(0L, 0L);
+        rateLimiterHandle.setAlgorithmName("slidingWindow");
+        Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(DEFAULT_TEST_ID, rateLimiterHandle);
+        StepVerifier.create(responseMono).assertNext(r -> {
+            assertThat(r.getTokensRemaining(), is((long) DEFAULT_TEST_BURST_CAPACITY - 300L));
+            assertFalse(r.isAllowed());
+        }).verifyComplete();
     }
 
     /**
@@ -72,10 +131,11 @@ public final class RedisRateLimiterTest {
     @Test
     public void allowedTest() {
         isAllowedPreInit(1L, 1L, false);
+        rateLimiterHandle.setAlgorithmName("tokenBucket");
         Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(DEFAULT_TEST_ID, rateLimiterHandle);
         StepVerifier.create(responseMono).assertNext(r -> {
             Assert.assertEquals(1L, r.getTokensRemaining());
-            Assert.assertTrue(r.isAllowed());
+            assertTrue(r.isAllowed());
         }).verifyComplete();
     }
 
@@ -85,6 +145,7 @@ public final class RedisRateLimiterTest {
     @Test
     public void notAllowedTest() {
         isAllowedPreInit(0L, 0L, false);
+        rateLimiterHandle.setAlgorithmName("tokenBucket");
         Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(DEFAULT_TEST_ID, rateLimiterHandle);
         StepVerifier.create(responseMono).assertNext(r -> {
             Assert.assertEquals(0, r.getTokensRemaining());
@@ -98,10 +159,11 @@ public final class RedisRateLimiterTest {
     @Test
     public void allowedThrowableTest() {
         isAllowedPreInit(0, 0, true);
+        rateLimiterHandle.setAlgorithmName("tokenBucket");
         Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(DEFAULT_TEST_ID, rateLimiterHandle);
         StepVerifier.create(responseMono).assertNext(r -> {
             Assert.assertEquals(-1, r.getTokensRemaining());
-            Assert.assertTrue(r.isAllowed());
+            assertTrue(r.isAllowed());
         }).verifyComplete();
     }
 
@@ -123,5 +185,33 @@ public final class RedisRateLimiterTest {
             when(reactiveRedisTemplate.execute(any(RedisScript.class), anyList(), anyList())).thenReturn(
                     Flux.just(Lists.newArrayList(allowedNum, newTokens)));
         }
+    }
+
+    /**
+     * leaky bucket redisRateLimiter.isAllowed test pre init.
+     *
+     * @param allowFlag mock lua allow result
+     * @param waters mock the waters in the redis
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void leakyBucketPreInit(final long allowFlag, final long waters) {
+        ReactiveRedisTemplate reactiveRedisTemplate = mock(ReactiveRedisTemplate.class);
+        Singleton.INST.single(ReactiveRedisTemplate.class, reactiveRedisTemplate);
+        when(reactiveRedisTemplate.execute(any(RedisScript.class), anyList(), anyList())).thenReturn(
+                Flux.just(Lists.newArrayList(allowFlag, waters)));
+    }
+
+    /**
+     * sliding window redisRateLimiter.isAllowed test pre init.
+     *
+     * @param allowFlag mock lua allow result
+     * @param remainingNums mock the remain number of the window
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private void slidingWindowPreInit(final long allowFlag, final long remainingNums) {
+        ReactiveRedisTemplate reactiveRedisTemplate = mock(ReactiveRedisTemplate.class);
+        Singleton.INST.single(ReactiveRedisTemplate.class, reactiveRedisTemplate);
+        when(reactiveRedisTemplate.execute(any(RedisScript.class), anyList(), anyList())).thenReturn(
+                Flux.just(Lists.newArrayList(allowFlag, remainingNums)));
     }
 }

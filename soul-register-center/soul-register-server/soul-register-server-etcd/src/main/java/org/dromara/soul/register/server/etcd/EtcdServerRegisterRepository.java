@@ -24,6 +24,7 @@ import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
 import org.dromara.soul.register.common.dto.URIRegisterDTO;
+import org.dromara.soul.register.common.path.RegisterPathConstants;
 import org.dromara.soul.register.server.api.SoulServerRegisterPublisher;
 import org.dromara.soul.register.server.api.SoulServerRegisterRepository;
 import org.dromara.soul.register.server.etcd.client.EtcdClient;
@@ -31,7 +32,6 @@ import org.dromara.soul.register.server.etcd.client.EtcdListenHandler;
 import org.dromara.soul.spi.Join;
 
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.ArrayList;
@@ -56,10 +56,7 @@ public class EtcdServerRegisterRepository implements SoulServerRegisterRepositor
 
     @Override
     public void init(final SoulServerRegisterPublisher publisher, final SoulRegisterCenterConfig config) {
-        Properties props = config.getProps();
-        long timeout = Long.parseLong(props.getProperty("etcdTimeout", "3000"));
-        long ttl = Long.parseLong(props.getProperty("etcdTTL", "5"));
-        this.client = new EtcdClient(config.getServerLists(), ttl, timeout);
+        this.client = new EtcdClient(config.getServerLists());
         this.publisher = publisher;
         initSubscribe();
     }
@@ -75,7 +72,7 @@ public class EtcdServerRegisterRepository implements SoulServerRegisterRepositor
     }
 
     private void subscribeMetaData(final String rpcType) {
-        String rpcPath = String.join("/", METADATA_ROOT, rpcType);
+        String rpcPath = RegisterPathConstants.buildURIContextPathParent(rpcType);
         List<String> metadataPaths = client.getChildren(rpcPath);
         for (String metadataPath: metadataPaths) {
             String data = client.read(metadataPath);
@@ -102,16 +99,14 @@ public class EtcdServerRegisterRepository implements SoulServerRegisterRepositor
     }
 
     private void subscribeURI(final String rpcType) {
-        String rpcPath = String.join("/", URI_ROOT, rpcType);
+        String rpcPath = RegisterPathConstants.buildURIContextPathParent(rpcType);
         Set<String> contextList = new HashSet<>();
         client.getChildren(rpcPath).forEach(dataPath -> {
             String context = dataPath.split("/")[4];
             contextList.add(context);
         });
 
-        contextList.forEach(context -> {
-            registerUriChildrenList(rpcPath, context);
-        });
+        contextList.forEach(context -> registerUriChildrenList(rpcPath, context));
 
         log.info("subscribe uri change: {}", rpcPath);
         client.subscribeChildChanges(rpcPath, new EtcdListenHandler() {
@@ -133,9 +128,7 @@ public class EtcdServerRegisterRepository implements SoulServerRegisterRepositor
     private void registerUriChildrenList(final String rpcPath, final String context) {
         String contextPath = String.join("/", rpcPath, context);
         List<URIRegisterDTO> uriRegisterDTOList = new ArrayList<>();
-        client.getChildren(contextPath).forEach(path -> {
-            uriRegisterDTOList.add(GsonUtils.getInstance().fromJson(client.read(path), URIRegisterDTO.class));
-        });
+        client.getChildren(contextPath).forEach(path -> uriRegisterDTOList.add(GsonUtils.getInstance().fromJson(client.read(path), URIRegisterDTO.class)));
         if (uriRegisterDTOList.isEmpty()) {
             URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder().contextPath("/" + context).build();
             uriRegisterDTOList.add(uriRegisterDTO);

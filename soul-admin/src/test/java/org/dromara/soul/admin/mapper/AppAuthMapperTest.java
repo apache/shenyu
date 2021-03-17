@@ -142,6 +142,7 @@ public final class AppAuthMapperTest extends AbstractSpringIntegrationTest {
                 .appKey(SignUtils.getInstance().generateKey())
                 .appSecret(SignUtils.getInstance().generateKey())
                 .extInfo("{\"extInfo\":\"json\"}")
+                .open(true)
                 .enabled(false)
                 .phone("18800000000")
                 .userId(UUIDUtils.getInstance().generateShortUuid())

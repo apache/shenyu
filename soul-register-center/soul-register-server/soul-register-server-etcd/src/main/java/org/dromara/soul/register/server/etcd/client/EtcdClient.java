@@ -60,24 +60,17 @@ public class EtcdClient {
 
     private final Client client;
 
-    private long leaseId;
-
-    private final long ttl;
-
-    private final long timeout;
-
-    public EtcdClient(final String urls, final long ttl, final long timeout) {
+    public EtcdClient(final String urls) {
         defaultPoolExecutor = new ThreadPoolExecutor(
                 DEFAULT_CORE_POOL_SIZE, DEFAULT_CORE_POOL_SIZE * 2,
                 0L, TimeUnit.NANOSECONDS,
                 new ArrayBlockingQueue<>(DEFAULT_QUEUE_SIZE),
                 new ThreadFactoryBuilder()
                         .setNameFormat("etcd register center watch-%d")
-                        .setDaemon(true).build());
+                        .setDaemon(true)
+                        .build());
 
         this.client = Client.builder().endpoints(urls).build();
-        this.ttl = ttl;
-        this.timeout = timeout;
 
         try {
             initLease();
@@ -89,7 +82,7 @@ public class EtcdClient {
     private void initLease() throws ExecutionException, InterruptedException {
         Lease lease = client.getLeaseClient();
         LeaseGrantResponse response = lease.grant(EPHEMERAL_LEASE).get();
-        leaseId = response.getID();
+        long leaseId = response.getID();
         lease.keepAlive(leaseId);
     }
 
@@ -100,10 +93,7 @@ public class EtcdClient {
      */
     public String read(final String key) {
         KV kv = client.getKVClient();
-        ByteSequence storeKey =
-                Optional.ofNullable(key)
-                        .map(ByteSequence::fromString)
-                        .orElse(null);
+        ByteSequence storeKey = Optional.ofNullable(key).map(ByteSequence::fromString).orElse(null);
         GetResponse response = null;
         try {
             response = kv.get(storeKey).get();
@@ -132,13 +122,8 @@ public class EtcdClient {
 
     private List<String> listKeys(final String prefix) throws ExecutionException, InterruptedException {
         KV kv = client.getKVClient();
-        ByteSequence storePrefix =
-                Optional.ofNullable(prefix)
-                        .map(ByteSequence::fromString)
-                        .orElse(null);
-        GetOption option = GetOption.newBuilder()
-                .withKeysOnly(true)
-                .withPrefix(storePrefix).build();
+        ByteSequence storePrefix = Optional.ofNullable(prefix).map(ByteSequence::fromString).orElse(null);
+        GetOption option = GetOption.newBuilder().withKeysOnly(true).withPrefix(storePrefix).build();
         GetResponse response = kv.get(storePrefix, option).get();
         return response.getKvs().stream()
                 .map(o -> o.getKey().toStringUtf8())
@@ -165,10 +150,7 @@ public class EtcdClient {
 
     private void watchChildren(final String key, final Supplier<Boolean> exitSignSupplier,
                                final BiConsumer<Event, Node> consumer) throws InterruptedException {
-        ByteSequence storeKey =
-                Optional.ofNullable(key)
-                        .map(ByteSequence::fromString)
-                        .orElse(null);
+        ByteSequence storeKey = Optional.ofNullable(key).map(ByteSequence::fromString).orElse(null);
 
         try (Watch watch = client.getWatchClient();
              Watch.Watcher watcher = watch.watch(storeKey,

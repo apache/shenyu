@@ -116,7 +116,7 @@
 
 当然，用户也可以定制化插件去满足他们自己的需求。
 
-如果你有定制化插件的需求，请参看这里：[plugin-extend](https://dromara.org/website/zh-cn/docs/soul/extend.html)
+如果你有定制化插件的需求，请参看这里：[custom-plugin](https://dromara.org/zh/projects/soul/custom-plugin/)
 
 --------------------------------------------------------------------------------
 

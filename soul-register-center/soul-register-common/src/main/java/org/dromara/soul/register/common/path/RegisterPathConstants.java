@@ -22,7 +22,7 @@ package org.dromara.soul.register.common.path;
  *
  * @author xiaoyu
  */
-public class ZkRegisterPathConstants {
+public class RegisterPathConstants {
     
     /**
      * root path of zookeeper register center.

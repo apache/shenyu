@@ -45,8 +45,8 @@ public final class TarsServiceBeanPostProcessorTest {
     public static void init() {
         Properties properties = new Properties();
         properties.setProperty("contextPath", "/tars");
-        properties.setProperty("ipAndPort", "localhost:8080");
-        properties.setProperty("port", "21715");
+        properties.setProperty("port", "8080");
+        properties.setProperty("host", "localhost");
 
         SoulRegisterCenterConfig mockRegisterCenter = new SoulRegisterCenterConfig();
         mockRegisterCenter.setServerLists("http://localhost:58080");
