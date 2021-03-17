@@ -46,10 +46,6 @@ import java.util.ArrayList;
 @Slf4j
 public class EtcdServerRegisterRepository implements SoulServerRegisterRepository {
 
-    private static final String METADATA_ROOT = "/soul/register/metadata";
-
-    private static final String URI_ROOT = "/soul/register/uri";
-
     private SoulServerRegisterPublisher publisher;
 
     private EtcdClient client;
