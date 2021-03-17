@@ -45,7 +45,8 @@ public class SoulSpringCloudClientConfiguration {
      * @return the spring cloud client bean post processor
      */
     @Bean
-    public SpringCloudClientBeanPostProcessor springCloudClientBeanPostProcessor(final SoulRegisterCenterConfig config, final Environment env, final SoulClientRegisterRepository soulClientRegisterRepository) {
+    public SpringCloudClientBeanPostProcessor springCloudClientBeanPostProcessor(final SoulRegisterCenterConfig config, final Environment env,
+                                                                                 final SoulClientRegisterRepository soulClientRegisterRepository) {
         return new SpringCloudClientBeanPostProcessor(config, env, soulClientRegisterRepository);
     }
     
@@ -58,7 +59,8 @@ public class SoulSpringCloudClientConfiguration {
      * @return the context register listener
      */
     @Bean
-    public ContextRegisterListener contextRegisterListener(final SoulRegisterCenterConfig config, final Environment env, final SoulClientRegisterRepository soulClientRegisterRepository) {
+    public ContextRegisterListener contextRegisterListener(final SoulRegisterCenterConfig config, final Environment env,
+                                                           final SoulClientRegisterRepository soulClientRegisterRepository) {
         return new ContextRegisterListener(config, env, soulClientRegisterRepository);
     }
 }

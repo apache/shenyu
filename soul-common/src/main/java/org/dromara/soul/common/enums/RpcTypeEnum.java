@@ -112,6 +112,7 @@ public enum RpcTypeEnum {
      * @param name this is rpc type
      * @return RpcTypeEnum rpc type enum
      */
+    
     public static RpcTypeEnum acquireByName(final String name) {
         return Arrays.stream(RpcTypeEnum.values())
                 .filter(e -> e.support && e.name.equals(name)).findFirst()

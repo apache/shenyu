@@ -17,6 +17,7 @@
 
 package org.dromara.soul.client.springcloud.init;
 
+import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -53,7 +54,7 @@ public final class ContextRegisterListenerTest {
         mockRegisterCenter.setRegisterType("http");
         mockRegisterCenter.setProps(properties);
         when(env.getProperty("spring.application.name")).thenReturn("spring-cloud-test");
-        ContextRegisterListener contextRegisterListener = new ContextRegisterListener(mockRegisterCenter, env);
+        ContextRegisterListener contextRegisterListener = new ContextRegisterListener(mockRegisterCenter, env, SoulClientRegisterRepositoryFactory.newInstance(mockRegisterCenter));
         ContextRefreshedEvent contextRefreshedEvent = mock(ContextRefreshedEvent.class);
         contextRegisterListener.onApplicationEvent(contextRefreshedEvent);
     }

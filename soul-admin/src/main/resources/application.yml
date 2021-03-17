@@ -31,12 +31,7 @@ spring:
     username: root
     password: 1234
     driver-class-name: com.mysql.jdbc.Driver
-  cloud:
-    consul:
-      discovery:
-        instance-id: soul-http1
-        service-name: soul-admin
-        tags-as-metadata: false
+
 
 mybatis:
   config-location: classpath:/mybatis/mybatis-config.xml
@@ -44,8 +39,8 @@ mybatis:
 
 soul:
   register:
-    registerType: consul #http #zookeeper #etcd
-    serverLists : #localhost:2181 #http://localhost:2379
+    registerType: zookeeper #http #zookeeper #etcd
+    serverLists : localhost:2181 #http://localhost:2379
     props:
       sessionTimeout: 5000
       connectionTimeout: 2000
