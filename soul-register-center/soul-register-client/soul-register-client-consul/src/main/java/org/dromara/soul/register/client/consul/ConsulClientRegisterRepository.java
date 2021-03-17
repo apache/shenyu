@@ -24,7 +24,7 @@ import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
 import org.dromara.soul.register.common.dto.URIRegisterDTO;
-import org.dromara.soul.register.common.path.ZkRegisterPathConstants;
+import org.dromara.soul.register.common.path.RegisterPathConstants;
 import org.dromara.soul.spi.Join;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.consul.serviceregistry.ConsulRegistration;
@@ -52,9 +52,9 @@ public class ConsulClientRegisterRepository implements SoulClientRegisterReposit
     
     private void registerMetadata(final String rpcType, final String contextPath, final MetaDataRegisterDTO metadata) {
         String metadataNodeName = buildMetadataNodeName(metadata);
-        String metaDataPath = ZkRegisterPathConstants.buildMetaDataParentPath(rpcType, contextPath);
+        String metaDataPath = RegisterPathConstants.buildMetaDataParentPath(rpcType, contextPath);
         
-        String realNode = ZkRegisterPathConstants.buildRealNode(metaDataPath, metadataNodeName);
+        String realNode = RegisterPathConstants.buildRealNode(metaDataPath, metadataNodeName);
         String metadataJson = GsonUtils.getInstance().toJson(metadata);
         keyValueClient.setKVValue(realNode, metadataJson);
     }

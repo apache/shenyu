@@ -68,11 +68,13 @@
             <version>${project.version}</version>
         </dependency>
 
-     <!--   <dependency>
+        <!--soul consul register start-->
+        <!--<dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-consul-discovery</artifactId>
             <version>2.2.6.RELEASE</version>
         </dependency>-->
+        <!--soul consul register end-->
 
         <dependency>
             <groupId>org.springframework.boot</groupId>

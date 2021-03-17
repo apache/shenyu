@@ -27,11 +27,10 @@ spring:
     prefix: classpath:/static/
     suffix: .html
   datasource:
-    url: jdbc:mysql://localhost:3306/soul?useUnicode=true&characterEncoding=utf-8&useSSL=false
+    url: jdbc:mysql://localhost:3306/soul?useUnicode=true&characterEncoding=utf-8
     username: root
-    password: 1234
+    password:
     driver-class-name: com.mysql.jdbc.Driver
-
 
 mybatis:
   config-location: classpath:/mybatis/mybatis-config.xml
@@ -39,8 +38,8 @@ mybatis:
 
 soul:
   register:
-    registerType: zookeeper #http #zookeeper #etcd
-    serverLists : localhost:2181 #http://localhost:2379
+    registerType: http #http #zookeeper #etcd consul
+    serverLists : http://localhost:9095 #localhost:2181 #http://localhost:2379
     props:
       sessionTimeout: 5000
       connectionTimeout: 2000
