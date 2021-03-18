@@ -22,6 +22,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
 import org.dromara.soul.register.common.enums.EventType;
 import org.dromara.soul.register.common.type.DataType;
 import org.dromara.soul.register.common.type.DataTypeParent;
@@ -37,6 +38,7 @@ import java.io.Serializable;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 public class URIRegisterDTO implements DataTypeParent, Serializable {
     
     private String appName;

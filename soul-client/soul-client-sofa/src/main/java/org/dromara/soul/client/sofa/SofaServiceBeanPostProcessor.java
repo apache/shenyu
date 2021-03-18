@@ -20,11 +20,11 @@ package org.dromara.soul.client.sofa;
 
 import com.alipay.sofa.runtime.service.component.Service;
 import com.alipay.sofa.runtime.spring.factory.ServiceFactoryBean;
+
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
-import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
 import org.dromara.soul.client.sofa.common.annotation.SoulSofaClient;
 import org.dromara.soul.client.sofa.common.dto.SofaRpcExt;
 import org.dromara.soul.common.utils.GsonUtils;
@@ -61,8 +61,8 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
     private final String contextPath;
     
     private final String appName;
-
-    public SofaServiceBeanPostProcessor(final SoulRegisterCenterConfig config) {
+    
+    public SofaServiceBeanPostProcessor(final SoulRegisterCenterConfig config, final SoulClientRegisterRepository soulClientRegisterRepository) {
         Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
         String appName = props.getProperty("appName");
@@ -72,7 +72,6 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
         this.contextPath = contextPath;
         this.appName = appName;
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
-        SoulClientRegisterRepository soulClientRegisterRepository = SoulClientRegisterRepositoryFactory.newInstance(config);
         publisher.start(soulClientRegisterRepository);
     }
 

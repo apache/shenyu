@@ -26,7 +26,7 @@ spring:
 
 soul:
   client:
-    registerType: http #http #zookeeper #etcd
+    registerType: http #http #zookeeper #etcd consul
     serverLists: http://localhost:9095 #http://localhost:9095 #localhost:2181 #http://localhost:2379
     props:
       contextPath: /grpc

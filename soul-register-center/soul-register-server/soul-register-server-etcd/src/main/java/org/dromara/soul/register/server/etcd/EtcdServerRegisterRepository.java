@@ -31,7 +31,6 @@ import org.dromara.soul.register.server.etcd.client.EtcdClient;
 import org.dromara.soul.register.server.etcd.client.EtcdListenHandler;
 import org.dromara.soul.spi.Join;
 
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
@@ -46,10 +45,6 @@ import java.util.ArrayList;
 @Join
 @Slf4j
 public class EtcdServerRegisterRepository implements SoulServerRegisterRepository {
-
-    private static final EnumSet<RpcTypeEnum> METADATA_SET = EnumSet.of(RpcTypeEnum.DUBBO, RpcTypeEnum.GRPC, RpcTypeEnum.HTTP, RpcTypeEnum.SPRING_CLOUD, RpcTypeEnum.SOFA, RpcTypeEnum.TARS);
-
-    private static final EnumSet<RpcTypeEnum> URI_SET = EnumSet.of(RpcTypeEnum.GRPC, RpcTypeEnum.HTTP, RpcTypeEnum.TARS);
 
     private SoulServerRegisterPublisher publisher;
 
@@ -68,8 +63,8 @@ public class EtcdServerRegisterRepository implements SoulServerRegisterRepositor
     }
 
     private void initSubscribe() {
-        METADATA_SET.forEach(rpcTypeEnum -> subscribeMetaData(rpcTypeEnum.getName()));
-        URI_SET.forEach(rpcTypeEnum -> subscribeURI(rpcTypeEnum.getName()));
+        RpcTypeEnum.acquireSupportMetadatas().forEach(rpcTypeEnum -> subscribeMetaData(rpcTypeEnum.getName()));
+        RpcTypeEnum.acquireSupportURIs().forEach(rpcTypeEnum -> subscribeURI(rpcTypeEnum.getName()));
     }
 
     private void subscribeMetaData(final String rpcType) {

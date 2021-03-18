@@ -17,6 +17,7 @@
 
 package org.dromara.soul.client.springcloud.init;
 
+import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
 import org.dromara.soul.client.springcloud.annotation.SoulSpringCloudClient;
 import org.dromara.soul.register.client.http.utils.RegisterUtils;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
@@ -106,7 +107,7 @@ public final class SpringCloudClientBeanPostProcessorTest {
         mockRegisterCenter.setServerLists("http://127.0.0.1:8080");
         mockRegisterCenter.setRegisterType("http");
         mockRegisterCenter.setProps(properties);
-        return new SpringCloudClientBeanPostProcessor(mockRegisterCenter, env);
+        return new SpringCloudClientBeanPostProcessor(mockRegisterCenter, env, SoulClientRegisterRepositoryFactory.newInstance(mockRegisterCenter));
     }
 
     @RestController

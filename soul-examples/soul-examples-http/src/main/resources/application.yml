@@ -20,8 +20,8 @@ server:
 
 soul:
   client:
-    registerType: http #http #zookeeper #etcd
-    serverLists: http://localhost:9095 #http://localhost:9095 #localhost:2181 #http://localhost:2379
+    registerType: zookeeper #http #zookeeper #etcd consul
+    serverLists: localhost:2181 #http://localhost:9095 #localhost:2181 #http://localhost:2379
     props:
       contextPath: /http
       appName: http
@@ -35,3 +35,4 @@ logging:
     org.dromara.soul.test.bonuspoint: info
     org.dromara.soul.test.lottery: debug
     org.dromara.soul.test: debug
+

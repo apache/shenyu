@@ -57,6 +57,28 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!--soul tars plugin end-->
+<!--        <dependency>-->
+<!--            <groupId>org.dromara</groupId>-->
+<!--            <artifactId>soul-spring-boot-starter-plugin-tars</artifactId>-->
+<!--            <version>${project.version}</version>-->
+<!--        </dependency>-->
+
+<!--        <dependency>-->
+<!--            <groupId>com.tencent.tars</groupId>-->
+<!--            <artifactId>tars-client</artifactId>-->
+<!--            <version>1.7.2</version>-->
+<!--        </dependency>-->
+        <!--soul tars plugin end-->
+
+        <!--soul grpc plugin start-->
+<!--        <dependency>-->
+<!--            <groupId>org.dromara</groupId>-->
+<!--            <artifactId>soul-spring-boot-starter-plugin-grpc</artifactId>-->
+<!--            <version>${project.version}</version>-->
+<!--        </dependency>-->
+        <!--soul grpc plugin end-->
+
         <!--if you use http proxy end this-->
 
         <!--soul sofa plugin start-->

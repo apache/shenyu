@@ -22,7 +22,6 @@ import com.alibaba.dubbo.common.utils.StringUtils;
 import com.alibaba.dubbo.config.spring.ServiceBean;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
-import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
 import org.dromara.soul.client.dubbo.common.annotation.SoulDubboClient;
 import org.dromara.soul.client.dubbo.common.dto.DubboRpcExt;
 import org.dromara.soul.common.utils.GsonUtils;
@@ -65,7 +64,7 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
     
     private final String appName;
 
-    public AlibabaDubboServiceBeanPostProcessor(final SoulRegisterCenterConfig config) {
+    public AlibabaDubboServiceBeanPostProcessor(final SoulRegisterCenterConfig config, final SoulClientRegisterRepository soulClientRegisterRepository) {
         Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
         String appName = props.getProperty("appName");
@@ -75,7 +74,6 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
         this.contextPath = contextPath;
         this.appName = appName;
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
-        SoulClientRegisterRepository soulClientRegisterRepository = SoulClientRegisterRepositoryFactory.newInstance(config);
         publisher.start(soulClientRegisterRepository);
     }
 

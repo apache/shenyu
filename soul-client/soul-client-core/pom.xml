@@ -54,5 +54,10 @@
             <artifactId>soul-register-client-etcd</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-register-client-consul</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>
