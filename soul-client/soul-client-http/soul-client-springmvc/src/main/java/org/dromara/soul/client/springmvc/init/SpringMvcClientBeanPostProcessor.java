@@ -69,9 +69,8 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         String registerType = config.getRegisterType();
         String serverLists = config.getServerLists();
         Properties props = config.getProps();
-        String contextPath = props.getProperty("contextPath");
         int port = Integer.parseInt(props.getProperty("port"));
-        if (StringUtils.isBlank(registerType)|| StringUtils.isBlank(serverLists) || port <= 0) {
+        if (StringUtils.isBlank(registerType) || StringUtils.isBlank(serverLists) || port <= 0) {
             String errorMsg = "http register param must config the registerType , serverLists and port must > 0";
             log.error(errorMsg);
             throw new RuntimeException(errorMsg);
@@ -79,7 +78,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         this.appName = props.getProperty("appName");
         this.host = props.getProperty("host");
         this.port = port;
-        this.contextPath = contextPath;
+        this.contextPath = props.getProperty("contextPath");
         this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
         publisher.start(soulClientRegisterRepository);

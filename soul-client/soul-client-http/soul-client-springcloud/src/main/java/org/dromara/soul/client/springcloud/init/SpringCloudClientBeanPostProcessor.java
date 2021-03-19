@@ -69,8 +69,6 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
     public SpringCloudClientBeanPostProcessor(final SoulRegisterCenterConfig config, final Environment env, final SoulClientRegisterRepository soulClientRegisterRepository) {
         String registerType = config.getRegisterType();
         String serverLists = config.getServerLists();
-        Properties props = config.getProps();
-        String contextPath = props.getProperty("contextPath");
         String appName = env.getProperty("spring.application.name");
         if (StringUtils.isBlank(registerType) || StringUtils.isBlank(serverLists) || StringUtils.isBlank(appName)) {
             String errorMsg = "spring cloud param must config the registerType , serverLists  and appName";
@@ -79,7 +77,8 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         }
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
         this.env = env;
-        this.contextPath = contextPath;
+        Properties props = config.getProps();
+        this.contextPath = props.getProperty("contextPath");
         this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
         publisher.start(soulClientRegisterRepository);
     }
