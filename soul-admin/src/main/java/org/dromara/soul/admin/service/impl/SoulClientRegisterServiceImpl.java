@@ -159,7 +159,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     private void registerContextPathPlugin(final String contextPath) {
         String name = CONTEXT_PATH_NAME_PREFIX + contextPath;
         SelectorDO selectorDO = selectorService.findByName(name);
-        if(Objects.isNull(selectorDO)) {
+        if (Objects.isNull(selectorDO)) {
             String contextPathSelectorId = registerContextPathSelector(contextPath, name);
             RuleDO ruleDO = ruleMapper.findByName(name);
             if (Objects.isNull(ruleDO)) {
@@ -333,7 +333,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     private String handlerSpringMvcSelector(final MetaDataRegisterDTO dto) {
         String contextPath = dto.getContextPath();
         if (StringUtils.isEmpty(contextPath)) {
-           contextPath = buildContextPath(dto.getPath());
+            contextPath = buildContextPath(dto.getPath());
         } 
         SelectorDO selectorDO = selectorService.findByName(contextPath);
         String selectorId;
@@ -376,7 +376,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         String split = "/";
         String[] splitList = StringUtils.split(path, split);
         if (splitList.length != 0) {
-           return split.concat(splitList[0]);
+            return split.concat(splitList[0]);
         }
         return split;
     }
@@ -459,7 +459,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         return selectorService.register(selectorDTO);
     }
     
-    private List<SelectorConditionDTO> buildDefaultSelectorConditionDTO(final String contextPath ) {
+    private List<SelectorConditionDTO> buildDefaultSelectorConditionDTO(final String contextPath) {
         SelectorConditionDTO selectorConditionDTO = new SelectorConditionDTO();
         selectorConditionDTO.setParamType(ParamTypeEnum.URI.getName());
         selectorConditionDTO.setParamName("/");
