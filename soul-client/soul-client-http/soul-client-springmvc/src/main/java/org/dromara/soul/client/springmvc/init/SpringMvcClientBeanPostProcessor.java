@@ -71,9 +71,8 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
         int port = Integer.parseInt(props.getProperty("port"));
-        if (StringUtils.isBlank(contextPath) || StringUtils.isBlank(registerType)
-                || StringUtils.isBlank(serverLists) || port <= 0) {
-            String errorMsg = "spring cloud param must config the contextPath ,registerType , serverLists and port must > 0";
+        if (StringUtils.isBlank(registerType)|| StringUtils.isBlank(serverLists) || port <= 0) {
+            String errorMsg = "http register param must config the registerType , serverLists and port must > 0";
             log.error(errorMsg);
             throw new RuntimeException(errorMsg);
         }
@@ -121,7 +120,12 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         String contextPath = this.contextPath;
         String appName = this.appName;
         Integer port = this.port;
-        String path = contextPath + prePath + soulSpringMvcClient.path();
+        String path;
+        if (StringUtils.isEmpty(contextPath)) {
+            path = prePath + soulSpringMvcClient.path();
+        } else {
+            path = contextPath + prePath + soulSpringMvcClient.path();
+        }
         String desc = soulSpringMvcClient.desc();
         String configHost = this.host;
         String host = StringUtils.isBlank(configHost) ? IpUtils.getHost() : configHost;

@@ -22,7 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
-import org.dromara.soul.common.dto.convert.ContextMappingHandle;
+import org.dromara.soul.common.dto.convert.rule.impl.ContextMappingHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
@@ -90,6 +90,7 @@ public class ContextPathMappingPlugin extends AbstractSoulPlugin {
      */
     private void buildContextPath(final SoulContext context, final ContextMappingHandle handle) {
         context.setContextPath(handle.getContextPath());
+        context.setModule(handle.getContextPath());
         if (!StringUtils.isBlank(handle.getRealUrl())) {
             log.info("context path mappingPlugin replaced old :{} , real:{}", context.getRealUrl(), handle.getRealUrl());
             context.setRealUrl(handle.getRealUrl());

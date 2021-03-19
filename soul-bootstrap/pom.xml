@@ -57,56 +57,150 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!--soul tars plugin end-->
-<!--        <dependency>-->
-<!--            <groupId>org.dromara</groupId>-->
-<!--            <artifactId>soul-spring-boot-starter-plugin-tars</artifactId>-->
-<!--            <version>${project.version}</version>-->
-<!--        </dependency>-->
+        <!-- soul httpclient plugin start-->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-httpclient</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- soul httpclient plugin end-->
 
-<!--        <dependency>-->
-<!--            <groupId>com.tencent.tars</groupId>-->
-<!--            <artifactId>tars-client</artifactId>-->
-<!--            <version>1.7.2</version>-->
-<!--        </dependency>-->
+        <!-- soul global plugin start-->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-global</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- soul global plugin end-->
+
+        <!-- soul ratelimiter plugin start-->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-ratelimiter</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- soul ratelimiter plugin end-->
+
+        <!-- soul hystrix plugin start-->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-hystrix</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- soul hystrix plugin end-->
+
+        <!-- soul waf plugin starter-->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-waf</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- soul waf plugin end-->
+
+        <!-- soul monitor plugin starter-->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-monitor</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- soul monitor plugin end-->
+
+        <!-- soul sign plugin start-->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-sign</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- soul sign plugin end-->
+
+        <!-- soul resilience4j plugin start-->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-resilience4j</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- soul resilience4j plugin end-->
+
+        <!-- soul sentinel plugin start-->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-sentinel</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- soul sentinel plugin end-->
+
+        <!-- soul context-path plugin start-->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-context-path</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- soul context-path plugin end-->
+
+        <!-- soul redirect plugin start-->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-redirect</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- soul redirect plugin end-->
+
+        <!-- soul redirect plugin start-->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-rewrite</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- soul redirect plugin end-->
+        
+        <!--soul tars plugin end-->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-tars</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.tencent.tars</groupId>
+            <artifactId>tars-client</artifactId>
+            <version>1.7.2</version>
+        </dependency>
         <!--soul tars plugin end-->
 
         <!--soul grpc plugin start-->
-<!--        <dependency>-->
-<!--            <groupId>org.dromara</groupId>-->
-<!--            <artifactId>soul-spring-boot-starter-plugin-grpc</artifactId>-->
-<!--            <version>${project.version}</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-grpc</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!--soul grpc plugin end-->
-
-        <!--if you use http proxy end this-->
-
+        
         <!--soul sofa plugin start-->
-<!--        <dependency>-->
-<!--            <groupId>com.alipay.sofa</groupId>-->
-<!--            <artifactId>sofa-rpc-all</artifactId>-->
-<!--            <version>5.7.6</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.curator</groupId>-->
-<!--            <artifactId>curator-client</artifactId>-->
-<!--            <version>4.0.1</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.curator</groupId>-->
-<!--            <artifactId>curator-framework</artifactId>-->
-<!--            <version>4.0.1</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.apache.curator</groupId>-->
-<!--            <artifactId>curator-recipes</artifactId>-->
-<!--            <version>4.0.1</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.dromara</groupId>-->
-<!--            <artifactId>soul-spring-boot-starter-plugin-sofa</artifactId>-->
-<!--            <version>${project.version}</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>com.alipay.sofa</groupId>
+            <artifactId>sofa-rpc-all</artifactId>
+            <version>5.7.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-client</artifactId>
+            <version>4.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-framework</artifactId>
+            <version>4.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.curator</groupId>
+            <artifactId>curator-recipes</artifactId>
+            <version>4.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-plugin-sofa</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!--soul sofa plugin end-->
 
         <!--soul springCloud plugin start-->
@@ -126,7 +220,6 @@
 <!--            <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>-->
 <!--            <version>2.2.0.RELEASE</version>-->
 <!--        </dependency>-->
-
         <!--soul springCloud plugin start end-->
 
         <!-- springCloud if you config register center is nacos please dependency this-->
@@ -212,51 +305,6 @@
         </dependency>
         <!-- soul  alibaba dubbo plugin end-->
 
-        <!-- soul ratelimiter plugin start-->
-        <dependency>
-            <groupId>org.dromara</groupId>
-            <artifactId>soul-spring-boot-starter-plugin-ratelimiter</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- soul ratelimiter plugin end-->
-
-        <!-- soul hystrix plugin start-->
-        <dependency>
-            <groupId>org.dromara</groupId>
-            <artifactId>soul-spring-boot-starter-plugin-hystrix</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- soul hystrix plugin end-->
-
-        <!-- soul waf plugin starter-->
-        <dependency>
-            <groupId>org.dromara</groupId>
-            <artifactId>soul-spring-boot-starter-plugin-waf</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- soul waf plugin end-->
-
-        <!-- soul sofa plugin starter-->
-        <dependency>
-            <groupId>com.alipay.sofa</groupId>
-            <artifactId>sofa-rpc-all</artifactId>
-            <version>${sofa.rpc.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.dromara</groupId>
-            <artifactId>soul-spring-boot-starter-plugin-sofa</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- soul sofa plugin end-->
-
-        <!-- soul monitor plugin starter-->
-        <dependency>
-            <groupId>org.dromara</groupId>
-            <artifactId>soul-spring-boot-starter-plugin-monitor</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- soul monitor plugin end-->
-
         <!--soul data sync start use zookeeper-->
         <dependency>
             <groupId>org.dromara</groupId>
@@ -277,29 +325,7 @@
             <artifactId>soul-spring-boot-starter-sync-data-http</artifactId>
             <version>${project.version}</version>
         </dependency>
-
-        <!-- soul sign plugin start-->
-        <dependency>
-            <groupId>org.dromara</groupId>
-            <artifactId>soul-spring-boot-starter-plugin-sign</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- soul sign plugin end-->
-
-        <!-- soul httpclient plugin start-->
-        <dependency>
-            <groupId>org.dromara</groupId>
-            <artifactId>soul-spring-boot-starter-plugin-httpclient</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- soul httpclient plugin end-->
-
-        <dependency>
-            <groupId>org.dromara</groupId>
-            <artifactId>soul-spring-boot-starter-plugin-resilience4j</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
+      
     </dependencies>
 
     <build>

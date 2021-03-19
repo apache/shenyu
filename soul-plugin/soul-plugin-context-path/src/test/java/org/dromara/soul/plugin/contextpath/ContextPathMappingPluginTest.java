@@ -20,7 +20,7 @@ package org.dromara.soul.plugin.contextpath;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
-import org.dromara.soul.common.dto.convert.ContextMappingHandle;
+import org.dromara.soul.common.dto.convert.rule.impl.ContextMappingHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;

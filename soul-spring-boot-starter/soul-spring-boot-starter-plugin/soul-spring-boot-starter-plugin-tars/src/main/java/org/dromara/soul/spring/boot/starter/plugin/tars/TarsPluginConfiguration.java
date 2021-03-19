@@ -19,8 +19,10 @@
 package org.dromara.soul.spring.boot.starter.plugin.tars;
 
 import org.dromara.soul.plugin.api.SoulPlugin;
+import org.dromara.soul.plugin.api.context.SoulContextDecorator;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.plugin.tars.TarsPlugin;
+import org.dromara.soul.plugin.tars.context.TarsSoulContextDecorator;
 import org.dromara.soul.plugin.tars.handler.TarsPluginDataHandler;
 import org.dromara.soul.plugin.tars.param.BodyParamPlugin;
 import org.dromara.soul.plugin.tars.response.TarsResponsePlugin;
@@ -87,5 +89,15 @@ public class TarsPluginConfiguration {
     @Bean
     public PluginDataHandler tarsPluginDataHandler() {
         return new TarsPluginDataHandler();
+    }
+    
+    /**
+     * Tars soul context decorator soul context decorator.
+     *
+     * @return the soul context decorator
+     */
+    @Bean
+    public SoulContextDecorator tarsSoulContextDecorator() {
+        return new TarsSoulContextDecorator();
     }
 }

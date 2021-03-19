@@ -19,9 +19,11 @@
 package org.dromara.soul.spring.boot.starter.plugin.sofa;
 
 import org.dromara.soul.plugin.api.SoulPlugin;
+import org.dromara.soul.plugin.api.context.SoulContextDecorator;
 import org.dromara.soul.plugin.api.sofa.SofaParamResolveService;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.plugin.sofa.SofaPlugin;
+import org.dromara.soul.plugin.sofa.context.SofaSoulContextDecorator;
 import org.dromara.soul.plugin.sofa.handler.SofaPluginDataHandler;
 import org.dromara.soul.plugin.sofa.param.BodyParamPlugin;
 import org.dromara.soul.plugin.sofa.proxy.SofaProxyService;
@@ -91,5 +93,15 @@ public class SofaPluginConfiguration {
     @Bean
     public MetaDataSubscriber sofaMetaDataSubscriber() {
         return new SofaMetaDataSubscriber();
+    }
+    
+    /**
+     * Sofa soul context decorator soul context decorator.
+     *
+     * @return the soul context decorator
+     */
+    @Bean
+    public SoulContextDecorator sofaSoulContextDecorator() {
+        return new SofaSoulContextDecorator();
     }
 }

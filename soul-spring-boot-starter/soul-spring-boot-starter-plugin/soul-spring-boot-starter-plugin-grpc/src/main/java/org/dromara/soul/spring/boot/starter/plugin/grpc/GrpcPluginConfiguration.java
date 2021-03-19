@@ -19,7 +19,9 @@
 package org.dromara.soul.spring.boot.starter.plugin.grpc;
 
 import org.dromara.soul.plugin.api.SoulPlugin;
+import org.dromara.soul.plugin.api.context.SoulContextDecorator;
 import org.dromara.soul.plugin.grpc.GrpcPlugin;
+import org.dromara.soul.plugin.grpc.context.GrpcSoulContextDecorator;
 import org.dromara.soul.plugin.grpc.param.GrpcBodyParamPlugin;
 import org.dromara.soul.plugin.grpc.response.GrpcResponsePlugin;
 import org.dromara.soul.plugin.grpc.subscriber.GrpcMetaDataSubscriber;
@@ -73,5 +75,15 @@ public class GrpcPluginConfiguration {
     @Bean
     public MetaDataSubscriber grpcMetaDataSubscriber() {
         return new GrpcMetaDataSubscriber();
+    }
+    
+    /**
+     * Grpc soul context decorator soul context decorator.
+     *
+     * @return the soul context decorator
+     */
+    @Bean
+    public SoulContextDecorator grpcSoulContextDecorator() {
+        return new GrpcSoulContextDecorator();
     }
 }

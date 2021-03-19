@@ -15,25 +15,26 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.bootstrap;
+package org.dromara.soul.plugin.divide.context;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.dromara.soul.common.dto.MetaData;
+import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.dromara.soul.plugin.api.context.SoulContext;
+import org.dromara.soul.plugin.api.context.SoulContextDecorator;
 
 /**
- * soul start.
- *
+ * The type Divide soul context decorator.
+ * 
  * @author xiaoyu
  */
-@SpringBootApplication
-public class SoulBootstrapApplication {
-
-    /**
-     * Main Entrance.
-     *
-     * @param args startup arguments
-     */
-    public static void main(final String[] args) {
-        SpringApplication.run(SoulBootstrapApplication.class, args);
+public class DivideSoulContextDecorator implements SoulContextDecorator {
+    
+    @Override
+    public SoulContext decorator(final SoulContext soulContext, final MetaData metaData) {
+        String path = soulContext.getPath();
+        soulContext.setMethod(path);
+        soulContext.setRealUrl(path);
+        soulContext.setRpcType(RpcTypeEnum.HTTP.getName());
+        return soulContext;
     }
 }

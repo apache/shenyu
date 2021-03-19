@@ -72,9 +72,8 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
         String appName = env.getProperty("spring.application.name");
-        if (StringUtils.isBlank(contextPath) || StringUtils.isBlank(registerType)
-                || StringUtils.isBlank(serverLists) || StringUtils.isBlank(appName)) {
-            String errorMsg = "spring cloud param must config the contextPath ,registerType , serverLists  and appName";
+        if (StringUtils.isBlank(registerType) || StringUtils.isBlank(serverLists) || StringUtils.isBlank(appName)) {
+            String errorMsg = "spring cloud param must config the registerType , serverLists  and appName";
             log.error(errorMsg);
             throw new RuntimeException(errorMsg);
         }
@@ -120,7 +119,12 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
     private MetaDataRegisterDTO buildMetaDataDTO(final SoulSpringCloudClient soulSpringCloudClient, final String prePath) {
         String contextPath = this.contextPath;
         String appName = env.getProperty("spring.application.name");
-        String path = contextPath + prePath + soulSpringCloudClient.path();
+        String path;
+        if (StringUtils.isEmpty(contextPath)) {
+            path = prePath + soulSpringCloudClient.path();
+        } else {
+            path = contextPath + prePath + soulSpringCloudClient.path();
+        }
         String desc = soulSpringCloudClient.desc();
         String configRuleName = soulSpringCloudClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;

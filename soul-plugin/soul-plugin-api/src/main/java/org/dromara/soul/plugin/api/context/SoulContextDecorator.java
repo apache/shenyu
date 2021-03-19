@@ -15,25 +15,32 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.bootstrap;
+package org.dromara.soul.plugin.api.context;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.dromara.soul.common.dto.MetaData;
 
 /**
- * soul start.
- *
+ * The interface Soul context decorator.
+ * 
  * @author xiaoyu
  */
-@SpringBootApplication
-public class SoulBootstrapApplication {
-
+public interface SoulContextDecorator {
+    
     /**
-     * Main Entrance.
+     * Decorator soul context.
      *
-     * @param args startup arguments
+     * @param soulContext the soul context
+     * @param metaData the meta data
+     * @return the soul context
      */
-    public static void main(final String[] args) {
-        SpringApplication.run(SoulBootstrapApplication.class, args);
+    SoulContext decorator(SoulContext soulContext, MetaData metaData);
+    
+    /**
+     * Rpc type string.
+     *
+     * @return the string
+     */
+    default String rpcType() {
+        return "http";
     }
 }

@@ -42,13 +42,13 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
 
     private final AtomicBoolean registered = new AtomicBoolean(false);
     
-    private final String contextPath;
+    private String contextPath;
     
-    private final String appName;
+    private String appName;
     
-    private final String host;
+    private String host;
     
-    private final Integer port;
+    private Integer port;
     
     private final Boolean isFull;
 
@@ -59,23 +59,26 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
      * @param soulClientRegisterRepository the soulClientRegisterRepository
      */
     public ContextRegisterListener(final SoulRegisterCenterConfig config, final SoulClientRegisterRepository soulClientRegisterRepository) {
-        String registerType = config.getRegisterType();
-        String serverLists = config.getServerLists();
         Properties props = config.getProps();
-        String contextPath = props.getProperty("contextPath");
-        int port = Integer.parseInt(props.getProperty("port"));
-        if (StringUtils.isBlank(contextPath) || StringUtils.isBlank(registerType)
-                || StringUtils.isBlank(serverLists) || port <= 0) {
-            String errorMsg = "spring cloud param must config the contextPath ,registerType , serverLists and port must > 0";
-            log.error(errorMsg);
-            throw new RuntimeException(errorMsg);
-        }
-        this.appName = props.getProperty("appName");
-        this.host = props.getProperty("host");
-        this.port = port;
-        this.contextPath = contextPath;
         this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
-        publisher.start(soulClientRegisterRepository);
+        if (isFull) {
+            String registerType = config.getRegisterType();
+            String serverLists = config.getServerLists();
+            String contextPath = props.getProperty("contextPath");
+            int port = Integer.parseInt(props.getProperty("port"));
+            if (StringUtils.isBlank(contextPath) || StringUtils.isBlank(registerType)
+                    || StringUtils.isBlank(serverLists) || port <= 0) {
+                String errorMsg = "http register param must config the contextPath, registerType , serverLists and port must > 0";
+                log.error(errorMsg);
+                throw new RuntimeException(errorMsg);
+            }
+            this.appName = props.getProperty("appName");
+            this.host = props.getProperty("host");
+            this.port = port;
+            this.contextPath = contextPath;
+            publisher.start(soulClientRegisterRepository);
+        }
+       
     }
 
     @Override

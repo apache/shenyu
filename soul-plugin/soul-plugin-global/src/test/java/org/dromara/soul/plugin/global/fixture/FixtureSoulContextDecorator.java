@@ -15,19 +15,18 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.dto.convert;
+package org.dromara.soul.plugin.global.fixture;
 
-import lombok.Data;
+import org.dromara.soul.common.dto.MetaData;
+import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.dromara.soul.plugin.api.context.SoulContext;
+import org.dromara.soul.plugin.api.context.SoulContextDecorator;
 
-/**
- * Context mapping thread handle.
- *
- * @author zhanglei
- */
-@Data
-public class ContextMappingHandle {
-
-    private String realUrl;
-
-    private String contextPath;
+public final class FixtureSoulContextDecorator implements SoulContextDecorator {
+    
+    @Override
+    public SoulContext decorator(final SoulContext soulContext, final MetaData metaData) {
+        soulContext.setRpcType(RpcTypeEnum.HTTP.getName());
+        return soulContext;
+    }
 }

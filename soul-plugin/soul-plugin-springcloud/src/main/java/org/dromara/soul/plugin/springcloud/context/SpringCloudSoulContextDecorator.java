@@ -15,25 +15,31 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.bootstrap;
+package org.dromara.soul.plugin.springcloud.context;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.dromara.soul.common.dto.MetaData;
+import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.dromara.soul.plugin.api.context.SoulContext;
+import org.dromara.soul.plugin.api.context.SoulContextDecorator;
 
 /**
- * soul start.
- *
+ * The type SpringCloud soul context decorator.
+ * 
  * @author xiaoyu
  */
-@SpringBootApplication
-public class SoulBootstrapApplication {
-
-    /**
-     * Main Entrance.
-     *
-     * @param args startup arguments
-     */
-    public static void main(final String[] args) {
-        SpringApplication.run(SoulBootstrapApplication.class, args);
+public class SpringCloudSoulContextDecorator implements SoulContextDecorator {
+    
+    @Override
+    public SoulContext decorator(final SoulContext soulContext, final MetaData metaData) {
+        String path = soulContext.getPath();
+        soulContext.setMethod(path);
+        soulContext.setRealUrl(path);
+        soulContext.setRpcType(RpcTypeEnum.SPRING_CLOUD.getName());
+        return soulContext;
+    }
+    
+    @Override
+    public String rpcType() {
+        return RpcTypeEnum.SPRING_CLOUD.getName();
     }
 }

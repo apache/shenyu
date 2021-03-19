@@ -44,11 +44,11 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
     
     private final AtomicBoolean registered = new AtomicBoolean(false);
     
-    private final Environment env;
-    
-    private final String contextPath;
-    
     private final Boolean isFull;
+    
+    private Environment env;
+    
+    private String contextPath;
     
     /**
      * Instantiates a new Context register listener.
@@ -58,21 +58,23 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
      * @param soulClientRegisterRepository the soulClientRegisterRepository
      */
     public ContextRegisterListener(final SoulRegisterCenterConfig config, final Environment env, final SoulClientRegisterRepository soulClientRegisterRepository) {
-        String registerType = config.getRegisterType();
-        String serverLists = config.getServerLists();
         Properties props = config.getProps();
-        String contextPath = props.getProperty("contextPath");
-        String appName = env.getProperty("spring.application.name");
-        if (StringUtils.isBlank(contextPath) || StringUtils.isBlank(registerType)
-                || StringUtils.isBlank(serverLists) || StringUtils.isBlank(appName)) {
-            String errorMsg = "spring cloud param must config the contextPath ,registerType , serverLists  and appName";
-            log.error(errorMsg);
-            throw new RuntimeException(errorMsg);
-        }
-        this.env = env;
-        this.contextPath = contextPath;
         this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
-        publisher.start(soulClientRegisterRepository);
+        if (isFull) {
+            String registerType = config.getRegisterType();
+            String serverLists = config.getServerLists();
+            String contextPath = props.getProperty("contextPath");
+            String appName = env.getProperty("spring.application.name");
+            if (StringUtils.isBlank(contextPath) || StringUtils.isBlank(registerType)
+                    || StringUtils.isBlank(serverLists) || StringUtils.isBlank(appName)) {
+                String errorMsg = "spring cloud param must config the contextPath ,registerType , serverLists  and appName";
+                log.error(errorMsg);
+                throw new RuntimeException(errorMsg);
+            }
+            this.env = env;
+            this.contextPath = contextPath;
+            publisher.start(soulClientRegisterRepository);
+        }
     }
     
     @Override

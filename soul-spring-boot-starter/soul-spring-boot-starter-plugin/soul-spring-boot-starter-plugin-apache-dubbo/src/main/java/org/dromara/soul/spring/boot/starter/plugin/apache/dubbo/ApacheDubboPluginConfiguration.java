@@ -18,12 +18,14 @@
 package org.dromara.soul.spring.boot.starter.plugin.apache.dubbo;
 
 import org.dromara.soul.plugin.apache.dubbo.ApacheDubboPlugin;
+import org.dromara.soul.plugin.apache.dubbo.context.ApacheDubboSoulContextDecorator;
 import org.dromara.soul.plugin.apache.dubbo.handler.ApacheDubboPluginDataHandler;
 import org.dromara.soul.plugin.apache.dubbo.param.ApacheDubboBodyParamPlugin;
 import org.dromara.soul.plugin.apache.dubbo.proxy.ApacheDubboProxyService;
 import org.dromara.soul.plugin.apache.dubbo.response.DubboResponsePlugin;
 import org.dromara.soul.plugin.apache.dubbo.subscriber.ApacheDubboMetaDataSubscriber;
 import org.dromara.soul.plugin.api.SoulPlugin;
+import org.dromara.soul.plugin.api.context.SoulContextDecorator;
 import org.dromara.soul.plugin.api.dubbo.DubboParamResolveService;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
@@ -90,5 +92,15 @@ public class ApacheDubboPluginConfiguration {
     @Bean
     public MetaDataSubscriber apacheDubboMetaDataSubscriber() {
         return new ApacheDubboMetaDataSubscriber();
+    }
+    
+    /**
+     * Apache dubbo soul context decorator soul context decorator.
+     *
+     * @return the soul context decorator
+     */
+    @Bean
+    public SoulContextDecorator apacheDubboSoulContextDecorator() {
+        return new ApacheDubboSoulContextDecorator();
     }
 }

@@ -15,25 +15,28 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.bootstrap;
+package org.dromara.soul.common.dto.convert.rule.impl;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.dromara.soul.common.dto.convert.rule.RuleHandle;
 
 /**
- * soul start.
+ * Context mapping thread handle.
  *
- * @author xiaoyu
+ * @author zhanglei
  */
-@SpringBootApplication
-public class SoulBootstrapApplication {
+@Data
+@NoArgsConstructor
+public class ContextMappingHandle implements RuleHandle {
 
-    /**
-     * Main Entrance.
-     *
-     * @param args startup arguments
-     */
-    public static void main(final String[] args) {
-        SpringApplication.run(SoulBootstrapApplication.class, args);
+    private String realUrl;
+
+    private String contextPath;
+    
+    @Override
+    public RuleHandle createDefault(final String path) {
+        this.contextPath = path;
+        return this;
     }
 }
