@@ -224,6 +224,19 @@ Soul 已在我们的生产环境中使用，它的性能和灵活性使我们用
       <td><img src="https://yu199195.github.io/images/soul/users/anka.png"  width="1800" height="90" alt="anka"/>
     </tr>
   </tbody>     
+  <tbody>
+    <tr>
+      <td><img src="https://dromara.org/img/users/jd_logo.png"  width="1800" height="90" alt="jd"/>
+      <td><img src="https://yu199195.github.io/images/soul/users/minglamp.jpeg"  width="1800" height="90" alt="minglamp"/>
+      <td><img src="https://yu199195.github.io/images/soul/users/webuy.jpg"  width="1800" height="90" alt="webuy"/>
+      <td><img src="https://dromara.org/img/users/cass.png"  width="1800" height="90" alt="cass"/>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <td><img src="https://dromara.org/img/users/songguo.png"  width="1800" height="90" alt="jd"/>
+    </tr>
+  </tbody>
 </table>
 
 
