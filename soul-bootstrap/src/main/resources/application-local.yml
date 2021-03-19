@@ -35,7 +35,7 @@ management:
 soul:
     file:
       enabled: true
-    corss:
+    cross:
       enabled: true
     dubbo :
       parameter: multi
