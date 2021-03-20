@@ -14,7 +14,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-http=org.dromara.soul.register.client.http.HttpClientRegisterRepository
-zookeeper=org.dromara.soul.register.client.zookeeper.ZookeeperClientRegisterRepository
-etcd=org.dromara.soul.register.client.etcd.EtcdClientRegisterRepository
 nacos=org.dromara.soul.register.client.nacos.NacosClientRegisterRepository
