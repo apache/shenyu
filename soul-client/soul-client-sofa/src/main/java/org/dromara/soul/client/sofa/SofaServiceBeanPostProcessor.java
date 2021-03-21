@@ -28,6 +28,7 @@ import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
 import org.dromara.soul.client.sofa.common.annotation.SoulSofaClient;
 import org.dromara.soul.client.sofa.common.dto.SofaRpcExt;
 import org.dromara.soul.common.utils.GsonUtils;
+import org.dromara.soul.common.utils.IpUtils;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
@@ -61,6 +62,10 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
     private final String contextPath;
     
     private final String appName;
+
+    private final String host;
+
+    private final String port;
     
     public SofaServiceBeanPostProcessor(final SoulRegisterCenterConfig config, final SoulClientRegisterRepository soulClientRegisterRepository) {
         Properties props = config.getProps();
@@ -71,6 +76,8 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
         }
         this.contextPath = contextPath;
         this.appName = appName;
+        this.host = props.getProperty("host");
+        this.port = props.getProperty("port");
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
         publisher.start(soulClientRegisterRepository);
     }
@@ -118,6 +125,8 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
         String path = contextPath + soulSofaClient.path();
         String desc = soulSofaClient.desc();
         String serviceName = serviceBean.getInterfaceClass().getName();
+        String host = StringUtils.isBlank(this.host) ? IpUtils.getHost() : this.host;
+        int port = StringUtils.isBlank(this.port) ? -1 : Integer.parseInt(this.port);
         String configRuleName = soulSofaClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();
@@ -129,6 +138,8 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
                 .serviceName(serviceName)
                 .methodName(methodName)
                 .contextPath(contextPath)
+                .host(host)
+                .port(port)
                 .path(path)
                 .ruleName(ruleName)
                 .pathDesc(desc)

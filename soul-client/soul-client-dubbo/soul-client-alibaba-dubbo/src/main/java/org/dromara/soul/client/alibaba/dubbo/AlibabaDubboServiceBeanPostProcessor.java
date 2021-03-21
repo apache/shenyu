@@ -25,6 +25,7 @@ import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
 import org.dromara.soul.client.dubbo.common.annotation.SoulDubboClient;
 import org.dromara.soul.client.dubbo.common.dto.DubboRpcExt;
 import org.dromara.soul.common.utils.GsonUtils;
+import org.dromara.soul.common.utils.IpUtils;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
@@ -64,6 +65,10 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
     
     private final String appName;
 
+    private final String host;
+
+    private final String port;
+
     public AlibabaDubboServiceBeanPostProcessor(final SoulRegisterCenterConfig config, final SoulClientRegisterRepository soulClientRegisterRepository) {
         Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
@@ -73,6 +78,8 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
         }
         this.contextPath = contextPath;
         this.appName = appName;
+        this.host = props.getProperty("host");
+        this.port = props.getProperty("port");
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
         publisher.start(soulClientRegisterRepository);
     }
@@ -108,6 +115,8 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
         String path = contextPath + soulDubboClient.path();
         String desc = soulDubboClient.desc();
         String serviceName = serviceBean.getInterface();
+        String host = StringUtils.isBlank(this.host) ? IpUtils.getHost() : this.host;
+        int port = StringUtils.isBlank(this.port) ? -1 : Integer.parseInt(this.port);
         String configRuleName = soulDubboClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();
@@ -119,6 +128,8 @@ public class AlibabaDubboServiceBeanPostProcessor implements ApplicationListener
                 .serviceName(serviceName)
                 .methodName(methodName)
                 .contextPath(contextPath)
+                .host(host)
+                .port(port)
                 .path(path)
                 .ruleName(ruleName)
                 .pathDesc(desc)

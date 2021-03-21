@@ -38,14 +38,15 @@ mybatis:
 
 soul:
   register:
-    registerType: http #http #zookeeper #etcd #consul
-    serverLists : http://localhost:9095 #localhost:2181 #http://localhost:2379
+    registerType: http #http #zookeeper #etcd #nacos #consul
+    serverLists: #localhost:2181 #http://localhost:2379 #localhost:8848
     props:
       sessionTimeout: 5000
       connectionTimeout: 2000
       checked: true
       zombieCheckTimes: 5
       scheduledTime: 10
+      nacosNameSpace: SoulRegisterCenter
   database:
     dialect: mysql
     init_script: "META-INF/schema.sql"

@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
 import org.dromara.soul.client.springcloud.annotation.SoulSpringCloudClient;
+import org.dromara.soul.common.utils.IpUtils;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
@@ -58,6 +59,10 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
     private final Boolean isFull;
     
     private final Environment env;
+
+    private final String host;
+
+    private final String port;
     
     /**
      * Instantiates a new Soul client bean post processor.
@@ -80,6 +85,8 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         Properties props = config.getProps();
         this.contextPath = props.getProperty("contextPath");
         this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
+        this.host = config.getProps().getProperty("host");
+        this.port = config.getProps().getProperty("port");
         publisher.start(soulClientRegisterRepository);
     }
 
@@ -124,12 +131,16 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         } else {
             path = contextPath + prePath + soulSpringCloudClient.path();
         }
+        String host = StringUtils.isBlank(this.host) ? IpUtils.getHost() : this.host;
+        int port = StringUtils.isBlank(this.port) ? -1 : Integer.parseInt(this.port);
         String desc = soulSpringCloudClient.desc();
         String configRuleName = soulSpringCloudClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         return MetaDataRegisterDTO.builder()
                 .contextPath(contextPath)
                 .appName(appName)
+                .host(host)
+                .port(port)
                 .path(path)
                 .pathDesc(desc)
                 .rpcType(soulSpringCloudClient.rpcType())
