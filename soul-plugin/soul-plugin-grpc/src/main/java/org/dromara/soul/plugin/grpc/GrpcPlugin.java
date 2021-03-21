@@ -71,7 +71,7 @@ public class GrpcPlugin extends AbstractSoulPlugin {
             return WebFluxResultUtils.result(exchange, error);
         }
 
-        final SoulGrpcClient client = GrpcClientCache.getGrpcClient(metaData.getContextPath());
+        final SoulGrpcClient client = GrpcClientCache.getGrpcClient(selector.getName());
         if (Objects.isNull(client)) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             Object error = SoulResultWrap.error(SoulResultEnum.GRPC_CLIENT_NULL.getCode(), SoulResultEnum.GRPC_CLIENT_NULL.getMsg(), null);

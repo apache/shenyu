@@ -59,4 +59,13 @@ public class SoulServiceInstance {
         }
         return Integer.parseInt(weightValue);
     }
+
+    /**
+     * Set weight.
+     *
+     * @param weight weight
+     */
+    public void setWeight(final int weight) {
+        this.metadata.put("weight", String.valueOf(weight));
+    }
 }
