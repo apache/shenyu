@@ -18,8 +18,8 @@
 package org.dromara.soul.web.filter;
 
 import org.dromara.soul.plugin.api.result.SoulResultEnum;
-import org.dromara.soul.plugin.base.utils.SoulResultWrap;
-import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
+import org.dromara.soul.plugin.api.result.SoulResultWrap;
+import org.dromara.soul.plugin.api.utils.WebFluxResultUtils;
 import org.dromara.soul.web.filter.support.BodyInserterContext;
 import org.dromara.soul.web.filter.support.CachedBodyOutputMessage;
 import org.springframework.core.io.buffer.DataBuffer;

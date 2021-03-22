@@ -25,7 +25,7 @@ import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.result.DefaultSoulResult;
 import org.dromara.soul.plugin.api.result.SoulResult;
-import org.dromara.soul.plugin.base.utils.SpringBeanUtils;
+import org.dromara.soul.plugin.api.utils.SpringBeanUtils;
 import org.dromara.soul.plugin.ratelimiter.executor.RedisRateLimiter;
 import org.dromara.soul.plugin.ratelimiter.response.RateLimiterResponse;
 import org.junit.Assert;

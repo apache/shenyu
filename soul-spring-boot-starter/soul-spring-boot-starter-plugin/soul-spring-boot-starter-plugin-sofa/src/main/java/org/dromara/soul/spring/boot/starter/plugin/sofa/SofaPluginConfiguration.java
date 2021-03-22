@@ -20,18 +20,21 @@ package org.dromara.soul.spring.boot.starter.plugin.sofa;
 
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.api.context.SoulContextDecorator;
-import org.dromara.soul.plugin.api.sofa.SofaParamResolveService;
+import org.dromara.soul.plugin.api.param.BodyParamResolveService;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.plugin.sofa.SofaPlugin;
 import org.dromara.soul.plugin.sofa.context.SofaSoulContextDecorator;
 import org.dromara.soul.plugin.sofa.handler.SofaPluginDataHandler;
-import org.dromara.soul.plugin.sofa.param.BodyParamPlugin;
+import org.dromara.soul.plugin.sofa.param.SofaBodyParamPlugin;
+import org.dromara.soul.plugin.sofa.param.SofaBodyParamResolveServiceImpl;
 import org.dromara.soul.plugin.sofa.proxy.SofaProxyService;
 import org.dromara.soul.plugin.sofa.response.SofaResponsePlugin;
 import org.dromara.soul.plugin.sofa.subscriber.SofaMetaDataSubscriber;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.SearchStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -47,12 +50,12 @@ public class SofaPluginConfiguration {
     /**
      * Sofa plugin soul plugin.
      *
-     * @param sofaParamResolveService the sofa param resolve service
+     * @param sofaBodyParamResolveServices the sofa body param resolve service
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin sofaPlugin(final ObjectProvider<SofaParamResolveService> sofaParamResolveService) {
-        return new SofaPlugin(new SofaProxyService(sofaParamResolveService.getIfAvailable()));
+    public SoulPlugin sofaPlugin(final ObjectProvider<BodyParamResolveService> sofaBodyParamResolveServices) {
+        return new SofaPlugin(new SofaProxyService(sofaBodyParamResolveServices.getIfAvailable()));
     }
 
     /**
@@ -62,7 +65,7 @@ public class SofaPluginConfiguration {
      */
     @Bean
     public SoulPlugin sofaBodyParamPlugin() {
-        return new BodyParamPlugin();
+        return new SofaBodyParamPlugin();
     }
 
     /**
@@ -103,5 +106,16 @@ public class SofaPluginConfiguration {
     @Bean
     public SoulContextDecorator sofaSoulContextDecorator() {
         return new SofaSoulContextDecorator();
+    }
+    
+    /**
+     * Generic param resolve service sofa body param resolve service.
+     *
+     * @return the sofa body param resolve service
+     */
+    @Bean
+    @ConditionalOnMissingBean(value = SofaBodyParamResolveServiceImpl.class, search = SearchStrategy.ALL)
+    public BodyParamResolveService sofaBodyParamResolveService() {
+        return new SofaBodyParamResolveServiceImpl();
     }
 }

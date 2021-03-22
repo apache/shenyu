@@ -19,7 +19,7 @@ package org.dromara.soul.web.handler;
 
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.common.utils.GsonUtils;
-import org.dromara.soul.plugin.base.utils.SoulResultWrap;
+import org.dromara.soul.plugin.api.result.SoulResultWrap;
 import org.springframework.boot.autoconfigure.web.ErrorProperties;
 import org.springframework.boot.autoconfigure.web.ResourceProperties;
 import org.springframework.boot.autoconfigure.web.reactive.error.DefaultErrorWebExceptionHandler;

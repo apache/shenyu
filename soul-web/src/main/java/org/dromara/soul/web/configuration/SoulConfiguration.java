@@ -20,8 +20,6 @@ package org.dromara.soul.web.configuration;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.plugin.api.RemoteAddressResolver;
 import org.dromara.soul.plugin.api.SoulPlugin;
-import org.dromara.soul.plugin.api.dubbo.DubboParamResolveService;
-import org.dromara.soul.plugin.api.sofa.SofaParamResolveService;
 import org.dromara.soul.plugin.base.cache.CommonPluginDataSubscriber;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
@@ -33,12 +31,9 @@ import org.dromara.soul.web.filter.TimeWebFilter;
 import org.dromara.soul.web.filter.WebSocketParamFilter;
 import org.dromara.soul.web.forward.ForwardedRemoteAddressResolver;
 import org.dromara.soul.web.handler.SoulWebHandler;
-import org.dromara.soul.web.rpc.DefaultDubboParamResolveServiceImpl;
-import org.dromara.soul.web.rpc.DefaultSofaParamResolveServiceImpl;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.condition.SearchStrategy;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -99,28 +94,6 @@ public class SoulConfiguration {
     @Bean
     public PluginDataSubscriber pluginDataSubscriber(final ObjectProvider<List<PluginDataHandler>> pluginDataHandlerList) {
         return new CommonPluginDataSubscriber(pluginDataHandlerList.getIfAvailable(Collections::emptyList));
-    }
-
-    /**
-     * Generic param resolve service dubbo param resolve service.
-     *
-     * @return the dubbo param resolve service
-     */
-    @Bean
-    @ConditionalOnMissingBean(value = DubboParamResolveService.class, search = SearchStrategy.ALL)
-    public DubboParamResolveService defaultDubboParamResolveService() {
-        return new DefaultDubboParamResolveServiceImpl();
-    }
-
-    /**
-     * Generic param resolve service sofa param resolve service.
-     *
-     * @return the sofa param resolve service
-     */
-    @Bean
-    @ConditionalOnMissingBean(value = SofaParamResolveService.class, search = SearchStrategy.ALL)
-    public DefaultSofaParamResolveServiceImpl defaultSofaParamResolveService() {
-        return new DefaultSofaParamResolveServiceImpl();
     }
 
     /**

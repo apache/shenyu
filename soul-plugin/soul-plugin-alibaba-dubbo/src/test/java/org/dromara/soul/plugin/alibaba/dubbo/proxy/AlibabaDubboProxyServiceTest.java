@@ -28,7 +28,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.dromara.soul.plugin.alibaba.dubbo.cache.ApplicationConfigCache;
-import org.dromara.soul.plugin.api.dubbo.DubboParamResolveService;
+import org.dromara.soul.plugin.api.param.BodyParamResolveService;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -82,11 +82,11 @@ public final class AlibabaDubboProxyServiceTest {
         Field field = ApplicationConfigCache.class.getDeclaredField("cache");
         field.setAccessible(true);
         ((LoadingCache) field.get(applicationConfigCache)).put(PATH, referenceConfig);
-        AlibabaDubboProxyService alibabaDubboProxyService = new AlibabaDubboProxyService(new DubboParamResolveServiceImpl());
+        AlibabaDubboProxyService alibabaDubboProxyService = new AlibabaDubboProxyService(new BodyParamResolveServiceImpl());
         Assert.assertNull(alibabaDubboProxyService.genericInvoker("", metaData));
     }
 
-    class DubboParamResolveServiceImpl implements DubboParamResolveService {
+    class BodyParamResolveServiceImpl implements BodyParamResolveService {
 
         @Override
         public Pair<String[], Object[]> buildParameter(final String body, final String parameterTypes) {

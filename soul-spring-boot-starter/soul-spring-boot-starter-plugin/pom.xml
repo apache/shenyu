@@ -32,6 +32,7 @@
         <module>soul-spring-boot-starter-plugin-divide</module>
         <module>soul-spring-boot-starter-plugin-alibaba-dubbo</module>
         <module>soul-spring-boot-starter-plugin-apache-dubbo</module>
+        <module>soul-spring-boot-starter-plugin-dubbo-common</module>
         <module>soul-spring-boot-starter-plugin-global</module>
         <module>soul-spring-boot-starter-plugin-httpclient</module>
         <module>soul-spring-boot-starter-plugin-springcloud</module>

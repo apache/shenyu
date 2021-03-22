@@ -17,7 +17,7 @@
 
 package org.dromara.soul.plugin.base.fallback;
 
-import org.dromara.soul.plugin.base.utils.SpringBeanUtils;
+import org.dromara.soul.plugin.api.utils.SpringBeanUtils;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ServerWebExchange;

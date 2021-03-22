@@ -45,5 +45,4 @@ public class SoulAlibabaDubboClientConfiguration {
     public AlibabaDubboServiceBeanPostProcessor alibabaDubboServiceBeanPostProcessor(final SoulRegisterCenterConfig config, final SoulClientRegisterRepository soulClientRegisterRepository) {
         return new AlibabaDubboServiceBeanPostProcessor(config, soulClientRegisterRepository);
     }
-    
 }
