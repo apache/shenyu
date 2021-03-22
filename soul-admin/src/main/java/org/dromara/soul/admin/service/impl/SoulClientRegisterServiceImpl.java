@@ -409,15 +409,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     }
 
     private String registerSelector(final String contextPath, final String rpcType, final String appName, final String uri) {
-        SelectorDTO selectorDTO = SelectorDTO.builder()
-                .name(contextPath)
-                .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
-                .matchMode(MatchModeEnum.AND.getCode())
-                .enabled(Boolean.TRUE)
-                .loged(Boolean.TRUE)
-                .continued(Boolean.TRUE)
-                .sort(1)
-                .build();
+        SelectorDTO selectorDTO = buildDefaultSelectorDTO(contextPath);
         if (RpcTypeEnum.DUBBO.getName().equals(rpcType)) {
             selectorDTO.setPluginId(getPluginId(PluginEnum.DUBBO.getName()));
         } else if (RpcTypeEnum.SPRING_CLOUD.getName().equals(rpcType)) {
@@ -445,7 +437,14 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     }
     
     private String registerContextPathSelector(final String contextPath, final String name) {
-        SelectorDTO selectorDTO = SelectorDTO.builder()
+        SelectorDTO selectorDTO = buildDefaultSelectorDTO(name);
+        selectorDTO.setPluginId(getPluginId(PluginEnum.CONTEXTPATH_MAPPING.getName()));
+        selectorDTO.setSelectorConditions(buildDefaultSelectorConditionDTO(contextPath));
+        return selectorService.register(selectorDTO);
+    }
+    
+    private SelectorDTO buildDefaultSelectorDTO(final String name) {
+        return SelectorDTO.builder()
                 .name(name)
                 .type(SelectorTypeEnum.CUSTOM_FLOW.getCode())
                 .matchMode(MatchModeEnum.AND.getCode())
@@ -454,9 +453,6 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
                 .continued(Boolean.TRUE)
                 .sort(1)
                 .build();
-        selectorDTO.setPluginId(getPluginId(PluginEnum.CONTEXTPATH_MAPPING.getName()));
-        selectorDTO.setSelectorConditions(buildDefaultSelectorConditionDTO(contextPath));
-        return selectorService.register(selectorDTO);
     }
     
     private List<SelectorConditionDTO> buildDefaultSelectorConditionDTO(final String contextPath) {
@@ -468,19 +464,8 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         return Collections.singletonList(selectorConditionDTO);
     }
 
-    private DivideUpstream buildDivideUpstream(final String uri) {
-        return DivideUpstream.builder()
-                .upstreamHost("localhost")
-                .protocol("http://")
-                .upstreamUrl(uri)
-                .weight(50)
-                .build();
-    }
-
     private SpringCloudSelectorHandle buildSpringCloudSelectorHandle(final String serviceId) {
-        return SpringCloudSelectorHandle.builder()
-                .serviceId(serviceId)
-                .build();
+        return SpringCloudSelectorHandle.builder() .serviceId(serviceId) .build();
     }
 
     private String getPluginId(final String pluginName) {
@@ -534,11 +519,10 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     }
 
     private List<DivideUpstream> buildDivideUpstreamList(final List<String> uriList) {
-        return uriList.stream().map(uri -> DivideUpstream.builder()
-                .upstreamHost("localhost")
-                .protocol("http://")
-                .upstreamUrl(uri)
-                .weight(50)
-                .build()).collect(Collectors.toList());
+        return uriList.stream().map(this::buildDivideUpstream).collect(Collectors.toList());
+    }
+    
+    private DivideUpstream buildDivideUpstream(final String uri) {
+        return DivideUpstream.builder().upstreamHost("localhost").protocol("http://") .upstreamUrl(uri).weight(50).build();
     }
 }
