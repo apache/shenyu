@@ -76,23 +76,21 @@ public class NacosServerRegisterRepository implements SoulServerRegisterReposito
 
     @Override
     public void close() {
+        publisher.close();
     }
 
     @SneakyThrows
     @Override
     public void init(final SoulServerRegisterPublisher publisher, final SoulRegisterCenterConfig config) {
         this.publisher = publisher;
-
         String serverAddr = config.getServerLists();
         Properties properties = config.getProps();
-
         Properties nacosProperties = new Properties();
         nacosProperties.put(PropertyKeyConst.SERVER_ADDR, serverAddr);
         String nameSpace = "nacosNameSpace";
         nacosProperties.put(PropertyKeyConst.NAMESPACE, properties.getProperty(nameSpace));
         this.configService = ConfigFactory.createConfigService(nacosProperties);
         this.namingService = NamingFactory.createNamingService(nacosProperties);
-
         subscribe();
     }
 
@@ -108,11 +106,9 @@ public class NacosServerRegisterRepository implements SoulServerRegisterReposito
         List<Instance> healthyInstances = namingService.selectInstances(serviceName, true);
         healthyInstances.forEach(healthyInstance -> {
             String contextPath = healthyInstance.getMetadata().get("contextPath");
-
             String serviceConfigName = RegisterPathConstants.buildServiceConfigPath(rpcType.getName(), contextPath);
             subscribeMetadata(serviceConfigName);
             metadataConfigCache.add(serviceConfigName);
-
             String metadata = healthyInstance.getMetadata().get("uriMetadata");
             URIRegisterDTO uriRegisterDTO = GsonUtils.getInstance().fromJson(metadata, URIRegisterDTO.class);
             services.computeIfAbsent(contextPath, k -> new ArrayList<>()).add(uriRegisterDTO);
@@ -124,7 +120,6 @@ public class NacosServerRegisterRepository implements SoulServerRegisterReposito
                 publishRegisterURI(uriRegisterDTOList);
             }
         }
-
         log.info("subscribe uri : {}", serviceName);
         namingService.subscribe(serviceName, event -> {
             if (event instanceof NamingEvent) {
@@ -133,7 +128,6 @@ public class NacosServerRegisterRepository implements SoulServerRegisterReposito
                     String contextPath = instance.getMetadata().get("contextPath");
                     uriServiceCache.computeIfAbsent(serviceName, k -> new ConcurrentSkipListSet<>()).add(contextPath);
                 });
-
                 refreshURIService(rpcType.getName(), serviceName);
             }
         });
@@ -192,16 +186,13 @@ public class NacosServerRegisterRepository implements SoulServerRegisterReposito
                 }
             }
         });
-
         if (rpcType.equals(RpcTypeEnum.HTTP.getName()) || rpcType.equals(RpcTypeEnum.TARS.getName()) || rpcType.equals(RpcTypeEnum.GRPC.getName())) {
             return;
         }
-
         if (registerDTOList.isEmpty()) {
             URIRegisterDTO uriRegisterDTO = URIRegisterDTO.builder().contextPath("/" + contextPath).build();
             registerDTOList.add(uriRegisterDTO);
         }
-
         publishRegisterURI(registerDTOList);
     }
 

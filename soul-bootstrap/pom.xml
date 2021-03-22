@@ -220,7 +220,6 @@
 <!--            <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>-->
 <!--            <version>2.2.0.RELEASE</version>-->
 <!--        </dependency>-->
-        <!--soul springCloud plugin start end-->
 
         <!-- springCloud if you config register center is nacos please dependency this-->
 <!--        <dependency>-->
@@ -235,7 +234,7 @@
 <!--            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>-->
 <!--            <version>2.2.0.RELEASE</version>-->
 <!--        </dependency>-->
-
+        <!--soul springCloud plugin start end-->
         <!--soul  apache dubbo plugin start-->
         <!-- <dependency>
             <groupId>org.dromara</groupId>
@@ -348,5 +347,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>
