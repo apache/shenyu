@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.dubbo.common.param;
+package org.dromara.soul.plugin.base;
 
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.PluginEnum;
@@ -38,21 +38,21 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
 /**
- * The type Dubbo param plugin test.
+ * TThe param transform plugin test.
  */
 @RunWith(MockitoJUnitRunner.class)
-public final class DubboParamPluginTest {
+public final class ParamTransformPluginTest {
     
     private SoulPluginChain chain;
     
-    private DubboParamPlugin dubboParamPlugin;
+    private ParamTransformPlugin paramTransformPlugin;
     
     /**
      * Sets up.
      */
     @Before
     public void setUp() {
-        dubboParamPlugin = new DubboParamPlugin();
+        paramTransformPlugin = new ParamTransformPlugin();
         chain = mock(SoulPluginChain.class);
     }
     
@@ -61,8 +61,8 @@ public final class DubboParamPluginTest {
      */
     @Test
     public void testGetOrder() {
-        final int result = dubboParamPlugin.getOrder();
-        assertEquals(PluginEnum.DUBBO.getCode() - 1, result);
+        int result = paramTransformPlugin.getOrder();
+        assertEquals(PluginEnum.PARAM_TRANSFORM.getCode(), result);
     }
     
     /**
@@ -70,8 +70,8 @@ public final class DubboParamPluginTest {
      */
     @Test
     public void testNamed() {
-        final String result = dubboParamPlugin.named();
-        assertEquals("dubbo-body-param", result);
+        String result = paramTransformPlugin.named();
+        assertEquals(PluginEnum.PARAM_TRANSFORM.getName(), result);
     }
     
     /**
@@ -79,13 +79,13 @@ public final class DubboParamPluginTest {
      */
     @Test
     public void testJsonBody() {
-        final ServerWebExchange exchange = MockServerWebExchange.from(
+        ServerWebExchange exchange = MockServerWebExchange.from(
                 MockServerHttpRequest.post("localhost").contentType(MediaType.APPLICATION_JSON).body("{}"));
         Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
         SoulContext context = new SoulContext();
         context.setRpcType(RpcTypeEnum.DUBBO.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
-        final Mono<Void> result = dubboParamPlugin.execute(exchange, chain);
+        Mono<Void> result = paramTransformPlugin.execute(exchange, chain);
         StepVerifier.create(result).expectSubscription().verifyComplete();
     }
     
@@ -100,7 +100,7 @@ public final class DubboParamPluginTest {
         SoulContext context = new SoulContext();
         context.setRpcType(RpcTypeEnum.DUBBO.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
-        final Mono<Void> result = dubboParamPlugin.execute(exchange, chain);
+        Mono<Void> result = paramTransformPlugin.execute(exchange, chain);
         StepVerifier.create(result).expectSubscription().verifyComplete();
     }
     
@@ -109,13 +109,13 @@ public final class DubboParamPluginTest {
      */
     @Test
     public void testNoBody() {
-        final ServerWebExchange exchange = MockServerWebExchange.from(
+        ServerWebExchange exchange = MockServerWebExchange.from(
                 MockServerHttpRequest.post("localhost"));
         Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
         SoulContext context = new SoulContext();
         context.setRpcType(RpcTypeEnum.DUBBO.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
-        final Mono<Void> result = dubboParamPlugin.execute(exchange, chain);
+        Mono<Void> result = paramTransformPlugin.execute(exchange, chain);
         StepVerifier.create(result).expectSubscription().verifyComplete();
     }
     
@@ -124,13 +124,13 @@ public final class DubboParamPluginTest {
      */
     @Test
     public void testSimpleBody() {
-        final ServerWebExchange exchange = MockServerWebExchange.from(
+        ServerWebExchange exchange = MockServerWebExchange.from(
                 MockServerHttpRequest.post("localhost").body("test"));
         Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
         SoulContext context = new SoulContext();
         context.setRpcType(RpcTypeEnum.DUBBO.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
-        final Mono<Void> result = dubboParamPlugin.execute(exchange, chain);
+        Mono<Void> result = paramTransformPlugin.execute(exchange, chain);
         StepVerifier.create(result).expectSubscription().verifyComplete();
     }
 }
