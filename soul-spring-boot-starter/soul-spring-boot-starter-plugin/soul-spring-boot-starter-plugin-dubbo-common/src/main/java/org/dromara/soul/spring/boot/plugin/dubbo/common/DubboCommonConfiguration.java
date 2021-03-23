@@ -22,7 +22,6 @@ import org.dromara.soul.plugin.api.context.SoulContextDecorator;
 import org.dromara.soul.plugin.api.param.BodyParamResolveService;
 import org.dromara.soul.plugin.dubbo.common.context.DubboSoulContextDecorator;
 import org.dromara.soul.plugin.dubbo.common.param.DubboBodyParamResolveServiceImpl;
-import org.dromara.soul.plugin.dubbo.common.param.DubboParamPlugin;
 import org.dromara.soul.plugin.dubbo.common.response.DubboResponsePlugin;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.SearchStrategy;
@@ -45,16 +44,6 @@ public class DubboCommonConfiguration {
     @Bean
     public SoulContextDecorator dubboSoulContextDecorator() {
         return new DubboSoulContextDecorator();
-    }
-    
-    /**
-     * Dubbo param plugin soul plugin.
-     *
-     * @return the soul plugin
-     */
-    @Bean
-    public SoulPlugin dubboParamPlugin() {
-        return new DubboParamPlugin();
     }
     
     /**

@@ -21,7 +21,6 @@ import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.plugin.apache.dubbo.ApacheDubboPlugin;
 import org.dromara.soul.plugin.apache.dubbo.handler.ApacheDubboPluginDataHandler;
 import org.dromara.soul.plugin.apache.dubbo.subscriber.ApacheDubboMetaDataSubscriber;
-import org.dromara.soul.plugin.dubbo.common.param.DubboParamPlugin;
 import org.dromara.soul.plugin.dubbo.common.response.DubboResponsePlugin;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,9 +53,6 @@ public final class ApacheDubboPluginConfigurationTest {
     private ApacheDubboPlugin apacheDubboPlugin;
     
     @Autowired(required = false)
-    private DubboParamPlugin dubboParamPlugin;
-    
-    @Autowired(required = false)
     private DubboResponsePlugin dubboResponsePlugin;
     
     @Autowired(required = false)
@@ -70,13 +66,6 @@ public final class ApacheDubboPluginConfigurationTest {
         assertNotNull(apacheDubboPlugin);
         assertThat(apacheDubboPlugin.named(), is(PluginEnum.DUBBO.getName()));
         assertThat(apacheDubboPlugin.getOrder(), is(PluginEnum.DUBBO.getCode()));
-    }
-
-    @Test
-    public void testBodyParamPluginConfiguration() {
-        assertNotNull(dubboParamPlugin);
-        assertThat(dubboParamPlugin.named(), is("dubbo-body-param"));
-        assertThat(dubboParamPlugin.getOrder(), is(PluginEnum.DUBBO.getCode() - 1));
     }
 
     @Test

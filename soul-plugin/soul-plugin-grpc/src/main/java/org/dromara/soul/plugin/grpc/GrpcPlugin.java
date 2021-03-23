@@ -54,7 +54,7 @@ public class GrpcPlugin extends AbstractSoulPlugin {
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
-        String body = exchange.getAttribute(Constants.GRPC_PARAMS);
+        String param = exchange.getAttribute(Constants.PARAM_TRANSFORM);
         SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
         MetaData metaData = exchange.getAttribute(Constants.META_DATA);
@@ -65,7 +65,7 @@ public class GrpcPlugin extends AbstractSoulPlugin {
             Object error = SoulResultWrap.error(SoulResultEnum.META_DATA_ERROR.getCode(), SoulResultEnum.META_DATA_ERROR.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
-        if (StringUtils.isNoneBlank(metaData.getParameterTypes()) && StringUtils.isBlank(body)) {
+        if (StringUtils.isNoneBlank(metaData.getParameterTypes()) && StringUtils.isBlank(param)) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             Object error = SoulResultWrap.error(SoulResultEnum.GRPC_HAVE_BODY_PARAM.getCode(), SoulResultEnum.GRPC_HAVE_BODY_PARAM.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
@@ -77,7 +77,7 @@ public class GrpcPlugin extends AbstractSoulPlugin {
             Object error = SoulResultWrap.error(SoulResultEnum.GRPC_CLIENT_NULL.getCode(), SoulResultEnum.GRPC_CLIENT_NULL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
-        CompletableFuture<SoulGrpcResponse> result = client.call(metaData, CallOptions.DEFAULT, body);
+        CompletableFuture<SoulGrpcResponse> result = client.call(metaData, CallOptions.DEFAULT, param);
         return Mono.fromFuture(result.thenApply(ret -> {
             exchange.getAttributes().put(Constants.GRPC_RPC_RESULT, ret.getResult());
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());

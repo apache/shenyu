@@ -24,7 +24,6 @@ import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.plugin.grpc.GrpcPlugin;
 import org.dromara.soul.plugin.grpc.context.GrpcSoulContextDecorator;
 import org.dromara.soul.plugin.grpc.handler.GrpcPluginDataHandler;
-import org.dromara.soul.plugin.grpc.param.GrpcBodyParamPlugin;
 import org.dromara.soul.plugin.grpc.response.GrpcResponsePlugin;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,16 +44,6 @@ public class GrpcPluginConfiguration {
     @Bean
     public SoulPlugin grpcPlugin() {
         return new GrpcPlugin();
-    }
-
-    /**
-     * Body param plugin soul plugin.
-     *
-     * @return the soul plugin
-     */
-    @Bean
-    public SoulPlugin grpcBodyParamPlugin() {
-        return new GrpcBodyParamPlugin();
     }
 
     /**

@@ -139,9 +139,7 @@ public final class ApplicationConfigCache {
     private SoulServiceInstance build(final DivideUpstream divideUpstream) {
         String[] ipAndPort = divideUpstream.getUpstreamUrl().split(":");
         SoulServiceInstance instance = new SoulServiceInstance(ipAndPort[0], Integer.parseInt(ipAndPort[1]));
-        if (Objects.nonNull(divideUpstream.getWeight())) {
-            instance.setWeight(divideUpstream.getWeight());
-        }
+        instance.setWeight(divideUpstream.getWeight());
         return instance;
     }
 

@@ -25,7 +25,6 @@ import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.plugin.sofa.SofaPlugin;
 import org.dromara.soul.plugin.sofa.context.SofaSoulContextDecorator;
 import org.dromara.soul.plugin.sofa.handler.SofaPluginDataHandler;
-import org.dromara.soul.plugin.sofa.param.SofaBodyParamPlugin;
 import org.dromara.soul.plugin.sofa.param.SofaBodyParamResolveServiceImpl;
 import org.dromara.soul.plugin.sofa.proxy.SofaProxyService;
 import org.dromara.soul.plugin.sofa.response.SofaResponsePlugin;
@@ -56,16 +55,6 @@ public class SofaPluginConfiguration {
     @Bean
     public SoulPlugin sofaPlugin(final ObjectProvider<BodyParamResolveService> sofaBodyParamResolveServices) {
         return new SofaPlugin(new SofaProxyService(sofaBodyParamResolveServices.getIfAvailable()));
-    }
-
-    /**
-     * Body param plugin soul plugin.
-     *
-     * @return the soul plugin
-     */
-    @Bean
-    public SoulPlugin sofaBodyParamPlugin() {
-        return new SofaBodyParamPlugin();
     }
 
     /**

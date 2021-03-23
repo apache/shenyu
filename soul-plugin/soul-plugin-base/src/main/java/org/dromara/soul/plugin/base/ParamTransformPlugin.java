@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.tars.param;
+package org.dromara.soul.plugin.base;
 
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.PluginEnum;
@@ -37,18 +37,18 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * The type Body param plugin.
+ * The param transform plugin.
  *
- * @author tydhot
+ * @author xiaoyu
  */
-public class BodyParamPlugin implements SoulPlugin {
+public class ParamTransformPlugin implements SoulPlugin {
 
     private final List<HttpMessageReader<?>> messageReaders;
 
     /**
-     * Instantiates a new Body param plugin.
+     * Instantiates a new param transform plugin.
      */
-    public BodyParamPlugin() {
+    public ParamTransformPlugin() {
         this.messageReaders = HandlerStrategies.withDefaults().messageReaders();
     }
 
@@ -56,7 +56,7 @@ public class BodyParamPlugin implements SoulPlugin {
     public Mono<Void> execute(final ServerWebExchange exchange, final SoulPluginChain chain) {
         final ServerHttpRequest request = exchange.getRequest();
         final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-        if (Objects.nonNull(soulContext) && RpcTypeEnum.TARS.getName().equals(soulContext.getRpcType())) {
+        if (Objects.nonNull(soulContext)) {
             MediaType mediaType = request.getHeaders().getContentType();
             ServerRequest serverRequest = ServerRequest.create(exchange, messageReaders);
             if (MediaType.APPLICATION_JSON.isCompatibleWith(mediaType)) {
@@ -72,19 +72,19 @@ public class BodyParamPlugin implements SoulPlugin {
 
     @Override
     public int getOrder() {
-        return PluginEnum.TARS.getCode() - 1;
+        return PluginEnum.PARAM_TRANSFORM.getCode();
     }
 
     @Override
     public String named() {
-        return "tars-body-param";
+        return PluginEnum.PARAM_TRANSFORM.getName();
     }
 
     private Mono<Void> body(final ServerWebExchange exchange, final ServerRequest serverRequest, final SoulPluginChain chain) {
         return serverRequest.bodyToMono(String.class)
                 .switchIfEmpty(Mono.defer(() -> Mono.just("")))
                 .flatMap(body -> {
-                    exchange.getAttributes().put(Constants.TARS_PARAMS, body);
+                    exchange.getAttributes().put(Constants.PARAM_TRANSFORM, body);
                     return chain.execute(exchange);
                 });
     }
@@ -93,14 +93,25 @@ public class BodyParamPlugin implements SoulPlugin {
         return serverRequest.formData()
                 .switchIfEmpty(Mono.defer(() -> Mono.just(new LinkedMultiValueMap<>())))
                 .flatMap(map -> {
-                    exchange.getAttributes().put(Constants.TARS_PARAMS, HttpParamConverter.toMap(() -> map));
+                    exchange.getAttributes().put(Constants.PARAM_TRANSFORM, HttpParamConverter.toMap(() -> map));
                     return chain.execute(exchange);
                 });
     }
     
     private Mono<Void> query(final ServerWebExchange exchange, final ServerRequest serverRequest, final SoulPluginChain chain) {
-        exchange.getAttributes().put(Constants.TARS_PARAMS,
+        exchange.getAttributes().put(Constants.PARAM_TRANSFORM,
                 HttpParamConverter.ofString(() -> serverRequest.uri().getQuery()));
         return chain.execute(exchange);
+    }
+    
+    @Override
+    public Boolean skip(final ServerWebExchange exchange) {
+        SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
+        assert soulContext != null;
+        String rpcType = soulContext.getRpcType();
+        return !Objects.equals(rpcType, RpcTypeEnum.DUBBO.getName()) 
+                && !Objects.equals(rpcType, RpcTypeEnum.GRPC.getName()) 
+                && !Objects.equals(rpcType, RpcTypeEnum.TARS.getName()) 
+                && !Objects.equals(rpcType, RpcTypeEnum.SOFA.getName());
     }
 }

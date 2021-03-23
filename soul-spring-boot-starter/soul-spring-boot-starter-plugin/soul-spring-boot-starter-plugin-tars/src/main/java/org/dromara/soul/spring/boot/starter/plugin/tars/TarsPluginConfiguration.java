@@ -24,7 +24,6 @@ import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.plugin.tars.TarsPlugin;
 import org.dromara.soul.plugin.tars.context.TarsSoulContextDecorator;
 import org.dromara.soul.plugin.tars.handler.TarsPluginDataHandler;
-import org.dromara.soul.plugin.tars.param.BodyParamPlugin;
 import org.dromara.soul.plugin.tars.response.TarsResponsePlugin;
 import org.dromara.soul.plugin.tars.subscriber.TarsMetaDataSubscriber;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
@@ -49,16 +48,6 @@ public class TarsPluginConfiguration {
     @Bean
     public SoulPlugin tarsPlugin() {
         return new TarsPlugin();
-    }
-
-    /**
-     * Body param plugin soul plugin.
-     *
-     * @return the soul plugin
-     */
-    @Bean
-    public SoulPlugin tarsBodyParamPlugin() {
-        return new BodyParamPlugin();
     }
 
     /**
