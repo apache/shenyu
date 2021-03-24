@@ -171,6 +171,12 @@ Soul 已在我们的生产环境中使用，它的性能和灵活性使我们用
 
 --------------------------------------------------------------------------------
 
+# Gitee stars趋势
+
+[![Giteye chart](https://chart.giteye.net/gitee/dromara/soul/UZUPQEPC.png)](https://giteye.net/chart/UZUPQEPC)
+
+--------------------------------------------------------------------------------
+
 # 目前已知用户
 
 为了便于登记，欢迎已经使用了 Soul 的公司在 [https://github.com/Dromara/soul/issues/68](https://github.com/Dromara/soul/issues/68) 注册。（仅适用于开源用户）
@@ -239,6 +245,15 @@ Soul 已在我们的生产环境中使用，它的性能和灵活性使我们用
   </tbody>
 </table>
 
+#贡献者列表
+
+`Soul` 遵循 `Apache-2.0` 开源协议，欢迎大家提交 `PR` 或 `Issue`。
+
+如果要为项目做出贡献，请查看 [贡献指南](https://dromara.org/zh/projects/soul/contributor/e)。
+
+感谢每一位为 `Soul` 贡献代码的朋友。
+
+[![Giteye chart](https://chart.giteye.net/gitee/dromara/soul/2ZKY3P9W.png)](https://giteye.net/chart/2ZKY3P9W)
 
 # 支持
 
