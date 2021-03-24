@@ -22,7 +22,7 @@ import org.apache.dubbo.validation.Validation;
 import org.apache.dubbo.validation.Validator;
 
 /**
- * ApacheDubboClientValidation.
+ * The type Apache dubbo client validation.
  *
  * @author KevinClair
  */

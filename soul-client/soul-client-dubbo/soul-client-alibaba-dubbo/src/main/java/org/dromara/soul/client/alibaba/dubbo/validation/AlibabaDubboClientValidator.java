@@ -66,7 +66,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * AlibabaDubboClientValidator.
+ * The type Alibaba dubbo client validator.
  *
  * @author KevinClair
  */
@@ -76,7 +76,12 @@ public class AlibabaDubboClientValidator implements Validator {
     private final Class<?> clazz;
 
     private final javax.validation.Validator validator;
-
+    
+    /**
+     * Instantiates a new Alibaba dubbo client validator.
+     *
+     * @param url the url
+     */
     @SuppressWarnings({"unchecked", "rawtypes"})
     public AlibabaDubboClientValidator(final URL url) {
         this.clazz = ReflectUtils.forName(url.getServiceInterface());

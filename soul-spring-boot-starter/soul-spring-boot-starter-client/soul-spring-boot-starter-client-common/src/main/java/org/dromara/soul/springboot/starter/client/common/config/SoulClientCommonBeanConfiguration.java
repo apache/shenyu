@@ -24,6 +24,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * The type Soul client common bean configuration.
+ * 
+ * @author xiaoyu
+ */
 @Configuration
 public class SoulClientCommonBeanConfiguration {
     
@@ -48,5 +53,4 @@ public class SoulClientCommonBeanConfiguration {
     public SoulRegisterCenterConfig soulRegisterCenterConfig() {
         return new SoulRegisterCenterConfig();
     }
-    
 }

@@ -29,6 +29,7 @@ import java.util.Map;
  * @author David Liu
  */
 public interface MockValidatorTarget {
+    
     /**
      * mock method: method1.
      *

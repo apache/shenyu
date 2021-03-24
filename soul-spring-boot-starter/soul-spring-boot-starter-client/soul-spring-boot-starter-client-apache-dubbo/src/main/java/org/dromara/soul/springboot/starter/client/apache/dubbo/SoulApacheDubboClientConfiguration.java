@@ -17,7 +17,7 @@
 
 package org.dromara.soul.springboot.starter.client.apache.dubbo;
 
-import org.dromara.soul.client.apache.dubbo.ApacheDubboServiceBeanPostProcessor;
+import org.dromara.soul.client.apache.dubbo.ApacheDubboServiceBeanListener;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.dromara.soul.springboot.starter.client.common.config.SoulClientCommonBeanConfiguration;
@@ -35,16 +35,16 @@ import org.springframework.context.annotation.Configuration;
 public class SoulApacheDubboClientConfiguration {
     
     /**
-     * Apache dubbo service bean post processor alibaba dubbo service bean post processor.
+     * Apache dubbo service bean listener.
      *
      * @param soulRegisterCenterConfig soulRegisterCenterConfig
      * @param soulClientRegisterRepository the soulClientRegisterRepository
      * @return the alibaba dubbo service bean post processor
      */
     @Bean
-    public ApacheDubboServiceBeanPostProcessor apacheDubboServiceBeanPostProcessor(final SoulRegisterCenterConfig soulRegisterCenterConfig,
-                                                                                   final SoulClientRegisterRepository soulClientRegisterRepository) {
-        return new ApacheDubboServiceBeanPostProcessor(soulRegisterCenterConfig, soulClientRegisterRepository);
+    public ApacheDubboServiceBeanListener apacheDubboServiceBeanListener(final SoulRegisterCenterConfig soulRegisterCenterConfig,
+                                                                              final SoulClientRegisterRepository soulClientRegisterRepository) {
+        return new ApacheDubboServiceBeanListener(soulRegisterCenterConfig, soulClientRegisterRepository);
     }
 
 }
