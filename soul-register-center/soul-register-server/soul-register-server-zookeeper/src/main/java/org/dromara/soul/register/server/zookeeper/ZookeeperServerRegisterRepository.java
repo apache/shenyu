@@ -35,7 +35,6 @@ import org.dromara.soul.register.server.api.SoulServerRegisterRepository;
 import org.dromara.soul.spi.Join;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -48,10 +47,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Join
 public class ZookeeperServerRegisterRepository implements SoulServerRegisterRepository {
-    
-    private static final EnumSet<RpcTypeEnum> METADATA_SET = EnumSet.of(RpcTypeEnum.DUBBO, RpcTypeEnum.GRPC, RpcTypeEnum.HTTP, RpcTypeEnum.SPRING_CLOUD, RpcTypeEnum.SOFA, RpcTypeEnum.TARS);
-    
-    private static final EnumSet<RpcTypeEnum> URI_SET = EnumSet.of(RpcTypeEnum.GRPC, RpcTypeEnum.HTTP, RpcTypeEnum.TARS);
     
     private SoulServerRegisterPublisher publisher;
     
@@ -74,8 +69,8 @@ public class ZookeeperServerRegisterRepository implements SoulServerRegisterRepo
     }
     
     private void initSubscribe() {
-        METADATA_SET.forEach(rpcTypeEnum -> subscribeMetaData(rpcTypeEnum.getName()));
-        URI_SET.forEach(rpcTypeEnum -> subscribeURI(rpcTypeEnum.getName()));
+        RpcTypeEnum.acquireSupportMetadatas().forEach(rpcTypeEnum -> subscribeMetaData(rpcTypeEnum.getName()));
+        RpcTypeEnum.acquireSupportURIs().forEach(rpcTypeEnum -> subscribeURI(rpcTypeEnum.getName()));
     }
     
     private void subscribeURI(final String rpcType) {

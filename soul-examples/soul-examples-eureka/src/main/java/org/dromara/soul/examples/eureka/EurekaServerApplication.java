@@ -29,8 +29,7 @@ import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
 @EnableEurekaServer
 @SpringBootApplication
 public class EurekaServerApplication {
-
-
+    
     /**
      * Main.
      *
@@ -39,5 +38,4 @@ public class EurekaServerApplication {
     public static void main(final String[] args) {
         new SpringApplicationBuilder(EurekaServerApplication.class).run(args);
     }
-
 }

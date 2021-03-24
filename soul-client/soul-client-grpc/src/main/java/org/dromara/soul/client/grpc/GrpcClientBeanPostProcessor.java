@@ -20,7 +20,6 @@ package org.dromara.soul.client.grpc;
 import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
-import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
 import org.dromara.soul.client.grpc.common.annotation.SoulGrpcClient;
 import org.dromara.soul.client.grpc.common.dto.GrpcExt;
 import org.dromara.soul.common.utils.GsonUtils;
@@ -69,8 +68,9 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
      * Instantiates a new Soul client bean post processor.
      *
      * @param config the soul grpc config
+     * @param soulClientRegisterRepository the soulClientRegisterRepository
      */
-    public GrpcClientBeanPostProcessor(final SoulRegisterCenterConfig config) {
+    public GrpcClientBeanPostProcessor(final SoulRegisterCenterConfig config, final SoulClientRegisterRepository soulClientRegisterRepository) {
         Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
         String ipAndPort = props.getProperty("ipAndPort");
@@ -83,7 +83,6 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
         this.host = props.getProperty("host");
         this.port = Integer.parseInt(port);
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
-        SoulClientRegisterRepository soulClientRegisterRepository = SoulClientRegisterRepositoryFactory.newInstance(config);
         publisher.start(soulClientRegisterRepository);
     }
 

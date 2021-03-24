@@ -112,4 +112,29 @@ public class RegisterPathConstants {
     public static String buildRealNode(final String nodePath, final String nodeName) {
         return String.join(SEPARATOR, nodePath, nodeName);
     }
+
+    /**
+     * Build nacos instance service path string.
+     * build child path of "soul.register.service.{rpcType}".
+     *
+     * @param rpcType the rpc type
+     * @return the string
+     */
+    public static String buildServiceInstancePath(final String rpcType) {
+        return String.join(SEPARATOR, ROOT_PATH, "service", rpcType)
+                .replace("/", ".").substring(1);
+    }
+
+    /**
+     * Build nacos config service path string.
+     * build child path of "soul.register.service.{rpcType}.{contextPath}".
+     *
+     * @param rpcType the rpc type
+     * @param contextPath the context path
+     * @return the string
+     */
+    public static String buildServiceConfigPath(final String rpcType, final String contextPath) {
+        return String.join(SEPARATOR, ROOT_PATH, "service", rpcType, contextPath)
+                .replace("/", ".").substring(1);
+    }
 }

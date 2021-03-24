@@ -38,6 +38,13 @@
             <version>${rpc-sofa-boot-starter.version}</version>
         </dependency>
 
+        <!--soul consul register center -->
+        <!--<dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-consul-discovery</artifactId>
+            <version>2.2.6.RELEASE</version>
+        </dependency>-->
+
         <dependency>
             <groupId>org.dromara</groupId>
             <artifactId>soul-examples-sofa-api</artifactId>

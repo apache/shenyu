@@ -19,13 +19,12 @@ package org.dromara.soul.plugin.resilience4j.executor;
 
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
-import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.plugin.api.result.SoulResultEnum;
-import org.dromara.soul.plugin.base.utils.SoulResultWrap;
-import org.dromara.soul.plugin.base.utils.SpringBeanUtils;
+import org.dromara.soul.plugin.api.result.SoulResultWrap;
+import org.dromara.soul.plugin.api.utils.SpringBeanUtils;
+import org.dromara.soul.plugin.api.utils.WebFluxResultUtils;
 import org.dromara.soul.plugin.base.utils.UriUtils;
-import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
 import org.dromara.soul.plugin.resilience4j.Resilience4JPlugin;
 import org.dromara.soul.plugin.resilience4j.conf.Resilience4JConf;
 import org.springframework.http.HttpStatus;
@@ -34,6 +33,7 @@ import org.springframework.web.reactive.DispatcherHandler;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 

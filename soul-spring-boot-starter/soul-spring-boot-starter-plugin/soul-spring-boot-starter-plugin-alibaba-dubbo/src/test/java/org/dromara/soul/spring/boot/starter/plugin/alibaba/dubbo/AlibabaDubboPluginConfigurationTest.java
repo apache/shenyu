@@ -20,9 +20,8 @@ package org.dromara.soul.spring.boot.starter.plugin.alibaba.dubbo;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.plugin.alibaba.dubbo.AlibabaDubboPlugin;
 import org.dromara.soul.plugin.alibaba.dubbo.handler.AlibabaDubboPluginDataHandler;
-import org.dromara.soul.plugin.alibaba.dubbo.param.AlibabaDubboBodyParamPlugin;
-import org.dromara.soul.plugin.alibaba.dubbo.response.DubboResponsePlugin;
 import org.dromara.soul.plugin.alibaba.dubbo.subscriber.AlibabaDubboMetaDataSubscriber;
+import org.dromara.soul.plugin.dubbo.common.response.DubboResponsePlugin;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +36,7 @@ import static org.junit.Assert.assertThat;
 /**
  * Test case for {@link AlibabaDubboPluginConfiguration}.
  *
- * @author: ZhouBin
+ * @author ZhouBin
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(
@@ -49,28 +48,23 @@ import static org.junit.Assert.assertThat;
 )
 @EnableAutoConfiguration
 public final class AlibabaDubboPluginConfigurationTest {
-
-    @Autowired
+    
+    @Autowired(required = false)
     private AlibabaDubboPlugin alibabaDubboPlugin;
-
-    @Autowired
-    private AlibabaDubboBodyParamPlugin alibabaDubboBodyParamPlugin;
-
-    @Autowired
+    
+    @Autowired(required = false)
     private DubboResponsePlugin dubboResponsePlugin;
-
-    @Autowired
+    
+    @Autowired(required = false)
     private AlibabaDubboPluginDataHandler alibabaDubboPluginDataHandler;
-
-    @Autowired
+    
+    @Autowired(required = false)
     private AlibabaDubboMetaDataSubscriber alibabaDubboMetaDataSubscriber;
 
     @Test
     public void testAlibabaDubboPlugin() {
         assertThat(alibabaDubboPlugin.getOrder(), is(PluginEnum.DUBBO.getCode()));
         assertThat(alibabaDubboPlugin.named(), is(PluginEnum.DUBBO.getName()));
-        assertThat(alibabaDubboBodyParamPlugin.getOrder(), is(PluginEnum.DUBBO.getCode() - 1));
-        assertThat(alibabaDubboBodyParamPlugin.named(), is("alibaba-dubbo-body-param"));
         assertThat(dubboResponsePlugin.getOrder(), is(PluginEnum.RESPONSE.getCode()));
         assertThat(dubboResponsePlugin.named(), is(PluginEnum.RESPONSE.getName()));
         assertThat(alibabaDubboPluginDataHandler.pluginNamed(), is(PluginEnum.DUBBO.getName()));

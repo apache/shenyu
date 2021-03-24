@@ -17,15 +17,15 @@
 
 package org.dromara.soul.common.dto.convert.rule;
 
+import org.dromara.soul.common.dto.convert.rule.impl.ContextMappingHandle;
 import org.dromara.soul.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.dromara.soul.common.dto.convert.rule.impl.DubboRuleHandle;
 import org.dromara.soul.common.dto.convert.rule.impl.SofaRuleHandle;
 import org.dromara.soul.common.dto.convert.rule.impl.SpringCloudRuleHandle;
-import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.exception.SoulException;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -38,7 +38,7 @@ public final class RuleHandleFactory {
     /**
      * The RpcType to RuleHandle class map.
      */
-    private static final Map<RpcTypeEnum, Class<? extends RuleHandle>> RPC_TYPE_TO_RULE_HANDLE_CLASS = new ConcurrentHashMap<>();
+    private static final Map<String, Class<? extends RuleHandle>> RPC_TYPE_TO_RULE_HANDLE_CLASS = new ConcurrentHashMap<>();
 
     /**
      * The default RuleHandle.
@@ -46,28 +46,27 @@ public final class RuleHandleFactory {
     private static final Class<? extends RuleHandle> DEFAULT_RULE_HANDLE = SpringCloudRuleHandle.class;
 
     static {
-        RPC_TYPE_TO_RULE_HANDLE_CLASS.put(RpcTypeEnum.HTTP, DivideRuleHandle.class);
-        RPC_TYPE_TO_RULE_HANDLE_CLASS.put(RpcTypeEnum.DUBBO, DubboRuleHandle.class);
-        RPC_TYPE_TO_RULE_HANDLE_CLASS.put(RpcTypeEnum.SOFA, SofaRuleHandle.class);
+        RPC_TYPE_TO_RULE_HANDLE_CLASS.put(PluginEnum.DIVIDE.getName(), DivideRuleHandle.class);
+        RPC_TYPE_TO_RULE_HANDLE_CLASS.put(PluginEnum.DUBBO.getName(), DubboRuleHandle.class);
+        RPC_TYPE_TO_RULE_HANDLE_CLASS.put(PluginEnum.SOFA.getName(), SofaRuleHandle.class);
+        RPC_TYPE_TO_RULE_HANDLE_CLASS.put(PluginEnum.SPRING_CLOUD.getName(), SpringCloudRuleHandle.class);
+        RPC_TYPE_TO_RULE_HANDLE_CLASS.put(PluginEnum.CONTEXTPATH_MAPPING.getName(), ContextMappingHandle.class);
     }
 
     /**
      * Get a RuleHandle object with given rpc type and path.
-     * @param rpcType   rpc type.
+     * @param name   name.
      * @param path      path.
      * @return          RuleHandle object.
      */
-    public static RuleHandle ruleHandle(final RpcTypeEnum rpcType, final String path) {
-        if (Objects.isNull(rpcType)) {
-            return null;
-        }
-        Class<? extends RuleHandle> clazz = RPC_TYPE_TO_RULE_HANDLE_CLASS.getOrDefault(rpcType, DEFAULT_RULE_HANDLE);
+    public static RuleHandle ruleHandle(final String name, final String path) {
+        Class<? extends RuleHandle> clazz = RPC_TYPE_TO_RULE_HANDLE_CLASS.getOrDefault(name, DEFAULT_RULE_HANDLE);
         try {
             return clazz.newInstance().createDefault(path);
         } catch (InstantiationException | IllegalAccessException e) {
             throw new SoulException(
-                    String.format("Init RuleHandle failed with rpc type: %s, rule class: %s, exception: %s",
-                            rpcType,
+                    String.format("Init RuleHandle failed with plugin name: %s, rule class: %s, exception: %s",
+                            name,
                             clazz.getSimpleName(),
                             e.getMessage()));
         }

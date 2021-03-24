@@ -20,7 +20,6 @@ package org.dromara.soul.client.springmvc.init;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
-import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
 import org.dromara.soul.client.springmvc.annotation.SoulSpringMvcClient;
 import org.dromara.soul.common.utils.IpUtils;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
@@ -66,25 +65,22 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
     /**
      * Instantiates a new Soul client bean post processor.
      */
-    public SpringMvcClientBeanPostProcessor(final SoulRegisterCenterConfig config) {
+    public SpringMvcClientBeanPostProcessor(final SoulRegisterCenterConfig config, final SoulClientRegisterRepository soulClientRegisterRepository) {
         String registerType = config.getRegisterType();
         String serverLists = config.getServerLists();
         Properties props = config.getProps();
-        String contextPath = props.getProperty("contextPath");
         int port = Integer.parseInt(props.getProperty("port"));
-        if (StringUtils.isBlank(contextPath) || StringUtils.isBlank(registerType)
-                || StringUtils.isBlank(serverLists) || port <= 0) {
-            String errorMsg = "spring cloud param must config the contextPath ,registerType , serverLists and port must > 0";
+        if (StringUtils.isBlank(registerType) || StringUtils.isBlank(serverLists) || port <= 0) {
+            String errorMsg = "http register param must config the registerType , serverLists and port must > 0";
             log.error(errorMsg);
             throw new RuntimeException(errorMsg);
         }
         this.appName = props.getProperty("appName");
         this.host = props.getProperty("host");
         this.port = port;
-        this.contextPath = contextPath;
+        this.contextPath = props.getProperty("contextPath");
         this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
-        SoulClientRegisterRepository soulClientRegisterRepository = SoulClientRegisterRepositoryFactory.newInstance(config);
         publisher.start(soulClientRegisterRepository);
     }
 
@@ -123,7 +119,12 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         String contextPath = this.contextPath;
         String appName = this.appName;
         Integer port = this.port;
-        String path = contextPath + prePath + soulSpringMvcClient.path();
+        String path;
+        if (StringUtils.isEmpty(contextPath)) {
+            path = prePath + soulSpringMvcClient.path();
+        } else {
+            path = contextPath + prePath + soulSpringMvcClient.path();
+        }
         String desc = soulSpringMvcClient.desc();
         String configHost = this.host;
         String host = StringUtils.isBlank(configHost) ? IpUtils.getHost() : configHost;

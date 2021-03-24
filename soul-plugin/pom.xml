@@ -50,7 +50,6 @@
         <module>soul-plugin-context-path</module>
         <module>soul-plugin-grpc</module>
         <module>soul-plugin-redirect</module>
+        <module>soul-plugin-dubbo-common</module>
     </modules>
-
-
 </project>

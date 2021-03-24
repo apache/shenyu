@@ -30,37 +30,37 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 @Getter
 public enum PluginEnum {
-
+    
     /**
      * Global plugin enum.
      */
     GLOBAL(1, 0, "global"),
-
+    
     /**
      * Sign plugin enum.
      */
     SIGN(2, 0, "sign"),
-
+    
     /**
      * Waf plugin enum.
      */
     WAF(10, 0, "waf"),
-
+    
     /**
      * Rate limiter plugin enum.
      */
     RATE_LIMITER(20, 0, "rate_limiter"),
-
+    
     /**
      * Context path mapping plugin enum.
      */
     CONTEXTPATH_MAPPING(25, 0, "context_path"),
-
+    
     /**
      * Rewrite plugin enum.
      */
     REWRITE(30, 0, "rewrite"),
-
+    
     /**
      * Redirect plugin enum.
      */
@@ -70,57 +70,62 @@ public enum PluginEnum {
      * Hystrix plugin enum.
      */
     HYSTRIX(45, 0, "hystrix"),
-
+    
     /**
      * Sentinel plugin enum.
      */
     SENTINEL(45, 0, "sentinel"),
-
+    
     /**
      * Resilence4J plugin enum.
      */
     RESILIENCE4J(45, 0, "resilience4j"),
-
+    
     /**
      * Divide plugin enum.
      */
     DIVIDE(50, 0, "divide"),
-
+    
     /**
      * springCloud plugin enum.
      */
     SPRING_CLOUD(50, 0, "springCloud"),
-
+    
     /**
      * webSocket plugin enum.
      */
     WEB_SOCKET(55, 0, "webSocket"),
-
+    
+    /**
+     * Param transform plugin enum.
+     */
+    PARAM_TRANSFORM(58, 0, "paramTransform"),
+    
     /**
      * Dubbo plugin enum.
      */
     DUBBO(60, 0, "dubbo"),
-
+    
     /**
      * Sofa plugin enum.
      */
     SOFA(60, 0, "sofa"),
-
+    
     /**
      * Tars plugin enum.
      */
     TARS(60, 0, "tars"),
-
+    
     /**
      * GPRC plugin enum.
      */
     GRPC(60, 0, "grpc"),
-
+    
     /**
      * Monitor plugin enum.
      */
     MONITOR(80, 0, "monitor"),
-
+    
     /**
      * Response plugin enum.
      */
@@ -131,7 +136,7 @@ public enum PluginEnum {
     private final int role;
 
     private final String name;
-
+    
     /**
      * get plugin enum by name.
      *

@@ -17,12 +17,9 @@
 
 package org.dromara.soul.client.springcloud.init;
 
-import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
-import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
@@ -31,6 +28,9 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.env.Environment;
 import org.springframework.lang.NonNull;
+
+import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The type Context register listener.
@@ -44,35 +44,37 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
     
     private final AtomicBoolean registered = new AtomicBoolean(false);
     
-    private final Environment env;
-    
-    private final String contextPath;
-    
     private final Boolean isFull;
+    
+    private Environment env;
+    
+    private String contextPath;
     
     /**
      * Instantiates a new Context register listener.
      *
      * @param config the config
      * @param env    the env
+     * @param soulClientRegisterRepository the soulClientRegisterRepository
      */
-    public ContextRegisterListener(final SoulRegisterCenterConfig config, final Environment env) {
-        String registerType = config.getRegisterType();
-        String serverLists = config.getServerLists();
+    public ContextRegisterListener(final SoulRegisterCenterConfig config, final Environment env, final SoulClientRegisterRepository soulClientRegisterRepository) {
         Properties props = config.getProps();
-        String contextPath = props.getProperty("contextPath");
-        String appName = env.getProperty("spring.application.name");
-        if (StringUtils.isBlank(contextPath) || StringUtils.isBlank(registerType)
-                || StringUtils.isBlank(serverLists) || StringUtils.isBlank(appName)) {
-            String errorMsg = "spring cloud param must config the contextPath ,registerType , serverLists  and appName";
-            log.error(errorMsg);
-            throw new RuntimeException(errorMsg);
-        }
-        this.env = env;
-        this.contextPath = contextPath;
         this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
-        SoulClientRegisterRepository soulClientRegisterRepository = SoulClientRegisterRepositoryFactory.newInstance(config);
-        publisher.start(soulClientRegisterRepository);
+        if (isFull) {
+            String registerType = config.getRegisterType();
+            String serverLists = config.getServerLists();
+            String contextPath = props.getProperty("contextPath");
+            String appName = env.getProperty("spring.application.name");
+            if (StringUtils.isBlank(contextPath) || StringUtils.isBlank(registerType)
+                    || StringUtils.isBlank(serverLists) || StringUtils.isBlank(appName)) {
+                String errorMsg = "spring cloud param must config the contextPath ,registerType , serverLists  and appName";
+                log.error(errorMsg);
+                throw new RuntimeException(errorMsg);
+            }
+            this.env = env;
+            this.contextPath = contextPath;
+            publisher.start(soulClientRegisterRepository);
+        }
     }
     
     @Override

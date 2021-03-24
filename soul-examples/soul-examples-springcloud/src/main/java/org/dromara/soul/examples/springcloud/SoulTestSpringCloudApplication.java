@@ -37,5 +37,4 @@ public class SoulTestSpringCloudApplication {
     public static void main(final String[] args) {
         SpringApplication.run(SoulTestSpringCloudApplication.class, args);
     }
-
 }
