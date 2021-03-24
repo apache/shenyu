@@ -17,9 +17,8 @@
 
 package org.dromara.soul.admin.config;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dromara.soul.admin.AbstractConfigurationTest;
+import org.dromara.soul.common.utils.JsonUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -55,10 +54,6 @@ public final class WebConfigurationTest extends AbstractConfigurationTest {
     }
 
     private String getCorsConfigurationsString(final CorsRegistry registry) {
-        try {
-            return new ObjectMapper().writeValueAsString(ReflectionTestUtils.invokeMethod(registry, "getCorsConfigurations"));
-        } catch (JsonProcessingException e) {
-            return null;
-        }
+        return JsonUtils.toJson(ReflectionTestUtils.invokeMethod(registry, "getCorsConfigurations"));
     }
 }
