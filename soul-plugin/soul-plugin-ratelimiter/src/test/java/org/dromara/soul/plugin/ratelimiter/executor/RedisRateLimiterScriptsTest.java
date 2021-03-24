@@ -56,12 +56,12 @@ public class RedisRateLimiterScriptsTest {
     @BeforeClass
     public static void startup() {
         redisServer = RedisServer.builder()
-                .port(6379)
+                .port(63792)
                 .build();
         redisServer.start();
         RateLimiterPluginDataHandler handler = new RateLimiterPluginDataHandler();
         RateLimiterConfig config = new RateLimiterConfig();
-        config.setUrl("127.0.0.1:6379");
+        config.setUrl("127.0.0.1:63792");
         PluginData pluginData = PluginData.builder()
                 .enabled(true)
                 .config(GsonUtils.getInstance().toJson(config))
