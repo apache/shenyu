@@ -25,8 +25,8 @@ import org.dromara.soul.plugin.ratelimiter.algorithm.RateLimiterAlgorithm;
 import org.dromara.soul.plugin.ratelimiter.algorithm.RateLimiterAlgorithmFactory;
 import org.dromara.soul.plugin.ratelimiter.config.RateLimiterConfig;
 import org.dromara.soul.plugin.ratelimiter.handler.RateLimiterPluginDataHandler;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -51,10 +51,10 @@ import java.util.stream.Stream;
 @Slf4j
 public class RedisRateLimiterScriptsTest {
 
-    private RedisServer redisServer;
+    private static RedisServer redisServer;
 
-    @Before
-    public void startup() {
+    @BeforeClass
+    public static void startup() {
         redisServer = RedisServer.builder()
                 .port(6379)
                 .build();
@@ -123,7 +123,7 @@ public class RedisRateLimiterScriptsTest {
     public void slidingWindowLuaTest() {
         RateLimiterAlgorithm<?> rateLimiterAlgorithm = RateLimiterAlgorithmFactory.newInstance("slidingWindow");
         RedisScript<?> script = rateLimiterAlgorithm.getScript();
-        List<String> keys = Stream.of("test-tokenBucket").collect(Collectors.toList());
+        List<String> keys = Stream.of("test-slidingWindow").collect(Collectors.toList());
         List<String> scriptArgs = Arrays.asList(10 + "", 100 + "", Instant.now().getEpochSecond() + "", "1");
         Flux<List<Long>> resultFlux = Singleton.INST.get(ReactiveRedisTemplate.class).execute(script, keys, scriptArgs);
         StepVerifier
@@ -134,8 +134,8 @@ public class RedisRateLimiterScriptsTest {
                 .verify();
     }
 
-    @After
-    public void end() {
+    @AfterClass
+    public static void end() {
         redisServer.stop();
     }
 }
