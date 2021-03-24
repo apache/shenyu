@@ -56,7 +56,7 @@ public class NacosConfiguration {
             properties.put(PropertyKeyConst.SECRET_KEY, nacosProp.getAcm().getSecretKey());
         } else {
             properties.put(PropertyKeyConst.SERVER_ADDR, nacosProp.getUrl());
-            if (StringUtils.isNotBlank(nacosProp.getNamespace())){
+            if (StringUtils.isNotBlank(nacosProp.getNamespace())) {
                 properties.put(PropertyKeyConst.NAMESPACE, nacosProp.getNamespace());
             }
             if (StringUtils.isNotBlank(nacosProp.getUsername())) {

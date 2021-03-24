@@ -84,7 +84,7 @@ public class NacosSyncDataConfiguration {
             properties.put(PropertyKeyConst.SECRET_KEY, nacosConfig.getAcm().getSecretKey());
         } else {
             properties.put(PropertyKeyConst.SERVER_ADDR, nacosConfig.getUrl());
-            if (StringUtils.isNotBlank(nacosConfig.getNamespace())){
+            if (StringUtils.isNotBlank(nacosConfig.getNamespace())) {
                 properties.put(PropertyKeyConst.NAMESPACE, nacosConfig.getNamespace());
             }
             if (nacosConfig.getUsername() != null) {
