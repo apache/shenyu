@@ -57,6 +57,7 @@ public class RedisRateLimiterScriptsTest {
     public static void startup() {
         redisServer = RedisServer.builder()
                 .port(63792)
+                .setting("maxmemory 64m")
                 .build();
         redisServer.start();
         RateLimiterPluginDataHandler handler = new RateLimiterPluginDataHandler();
