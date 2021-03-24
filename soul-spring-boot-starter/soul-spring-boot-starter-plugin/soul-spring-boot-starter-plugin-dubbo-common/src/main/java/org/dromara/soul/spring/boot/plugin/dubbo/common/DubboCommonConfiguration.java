@@ -62,7 +62,7 @@ public class DubboCommonConfiguration {
      * @return the dubbo param resolve service
      */
     @Bean
-    @ConditionalOnMissingBean(value = DubboBodyParamResolveServiceImpl.class, search = SearchStrategy.ALL)
+    @ConditionalOnMissingBean(value = BodyParamResolveService.class, search = SearchStrategy.ALL)
     public BodyParamResolveService dubboBodyParamResolveService() {
         return new DubboBodyParamResolveServiceImpl();
     }
