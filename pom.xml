@@ -69,7 +69,7 @@
         <developer>
             <id>xiaoyu</id>
             <name>xiaoyu(Myth)</name>
-            <email>549477611@qq.com</email>
+            <email>xiaoyu@apache.org</email>
             <organization>org.dromara</organization>
             <roles>
                 <role>author</role>
@@ -137,6 +137,7 @@
         <frontend-maven-plugin.node.version>v12.14.1</frontend-maven-plugin.node.version>
         <java-websocket.version>1.5.0</java-websocket.version>
         <mockito.version>3.5.15</mockito.version>
+        <nacos-client.version>2.0.0</nacos-client.version>
     </properties>
 
     <dependencyManagement>
@@ -322,6 +323,11 @@
                 <version>${tars.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>com.alibaba.nacos</groupId>
+                <artifactId>nacos-client</artifactId>
+                <version>${nacos-client.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

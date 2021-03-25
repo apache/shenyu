@@ -20,12 +20,11 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>soul-spring-boot-starter-client</artifactId>
         <groupId>org.dromara</groupId>
+        <artifactId>soul-spring-boot-starter-client</artifactId>
         <version>2.3.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-
     <artifactId>soul-spring-boot-starter-client-grpc</artifactId>
 
     <dependencies>
@@ -49,5 +48,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
 </project>

@@ -36,5 +36,4 @@
         <module>soul-register-client-consul</module>
         <module>soul-register-client-nacos</module>
     </modules>
-
 </project>
