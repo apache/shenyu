@@ -104,11 +104,8 @@ public class SpringCloudPluginTest {
     @Test(expected = NullPointerException.class)
     public void doExecute() {
         final SoulPluginChain chain = mock(SoulPluginChain.class);
-        final SpringCloudSelectorHandle springCloudSelectorHandle = SpringCloudSelectorHandle.builder()
-                .serviceId("serviceId")
-                .build();
         final SelectorData selectorData = SelectorData.builder()
-                .handle(GsonUtils.getInstance().toJson(springCloudSelectorHandle))
+                .name("/serviceId")
                 .build();
         StepVerifier.create(springCloudPlugin.doExecute(exchange, chain, selectorData, null)).expectSubscription().verifyComplete();
         final SpringCloudRuleHandle springCloudRuleHandle = new SpringCloudRuleHandle();

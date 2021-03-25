@@ -41,6 +41,7 @@ import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * this is springCloud proxy impl.
@@ -68,7 +69,9 @@ public class SpringCloudPlugin extends AbstractSoulPlugin {
         final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
         final SpringCloudRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), SpringCloudRuleHandle.class);
-        final SpringCloudSelectorHandle selectorHandle = GsonUtils.getInstance().fromJson(selector.getHandle(), SpringCloudSelectorHandle.class);
+        final SpringCloudSelectorHandle selectorHandle = SpringCloudSelectorHandle.builder()
+                .serviceId(Optional.ofNullable(selector.getName()).orElse("").replace("/", ""))
+                .build();
         if (StringUtils.isBlank(selectorHandle.getServiceId()) || StringUtils.isBlank(ruleHandle.getPath())) {
             Object error = SoulResultWrap.error(SoulResultEnum.CANNOT_CONFIG_SPRINGCLOUD_SERVICEID.getCode(), SoulResultEnum.CANNOT_CONFIG_SPRINGCLOUD_SERVICEID.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
