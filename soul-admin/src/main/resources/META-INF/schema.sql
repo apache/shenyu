@@ -14,9 +14,7 @@
 -- See the License for the specific language governing permissions and
 -- limitations under the License.
 
-CREATE DATABASE  IF NOT EXISTS  `soul`  DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci ;
 
-USE `soul`;
 
 /*Table structure for table `dashboard_user` */
 CREATE TABLE IF NOT EXISTS `dashboard_user` (
