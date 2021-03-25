@@ -21,6 +21,7 @@ import com.alibaba.nacos.api.NacosFactory;
 import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.config.ConfigService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.sync.data.api.AuthDataSubscriber;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
@@ -83,7 +84,15 @@ public class NacosSyncDataConfiguration {
             properties.put(PropertyKeyConst.SECRET_KEY, nacosConfig.getAcm().getSecretKey());
         } else {
             properties.put(PropertyKeyConst.SERVER_ADDR, nacosConfig.getUrl());
-            properties.put(PropertyKeyConst.NAMESPACE, nacosConfig.getNamespace());
+            if (StringUtils.isNotBlank(nacosConfig.getNamespace())) {
+                properties.put(PropertyKeyConst.NAMESPACE, nacosConfig.getNamespace());
+            }
+            if (nacosConfig.getUsername() != null) {
+                properties.put(PropertyKeyConst.USERNAME, nacosConfig.getUsername());
+            }
+            if (nacosConfig.getPassword() != null) {
+                properties.put(PropertyKeyConst.PASSWORD, nacosConfig.getPassword());
+            }
         }
         return NacosFactory.createConfigService(properties);
     }

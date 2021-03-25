@@ -89,5 +89,4 @@ public final class AlibabaDubboClientValidatorTest {
         map.put("key", "value");
         new AlibabaDubboClientValidation().getValidator(url).validate("method5", new Class<?>[]{Map.class}, new Object[]{map});
     }
-
 }

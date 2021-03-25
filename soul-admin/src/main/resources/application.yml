@@ -37,6 +37,16 @@ mybatis:
   mapper-locations: classpath:/mappers/*.xml
 
 soul:
+  register:
+    registerType: http #http #zookeeper #etcd #nacos #consul
+    serverLists: #localhost:2181 #http://localhost:2379 #localhost:8848
+    props:
+      sessionTimeout: 5000
+      connectionTimeout: 2000
+      checked: true
+      zombieCheckTimes: 5
+      scheduledTime: 10
+      nacosNameSpace: SoulRegisterCenter
   database:
     dialect: mysql
     init_script: "META-INF/schema.sql"
@@ -53,6 +63,8 @@ soul:
   #    nacos:
   #      url: localhost:8848
   #      namespace: 1c10d748-af86-43b9-8265-75f487d20c6c
+  #      username:
+  #      password:
   #      acm:
   #        enabled: false
   #        endpoint: acm.aliyun.com
@@ -66,6 +78,8 @@ soul:
     key: 2095132720951327
   shiro:
     white-list: /,/favicon.*,/static/**,/index**,/plugin,/platform/**,/websocket,/configs/**,/soul-client/**,/error,/actuator/health
+  swagger:
+     enabled: true
 
 logging:
   level:
@@ -75,6 +89,3 @@ logging:
     org.dromara.soul.bonuspoint: info
     org.dromara.soul.lottery: info
     org.dromara.soul: info
-
-swagger:
-  enable: true

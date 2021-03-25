@@ -19,12 +19,14 @@ package org.dromara.soul.client.grpc;
 
 import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
-import org.dromara.soul.client.common.utils.OkHttpTools;
-import org.dromara.soul.client.common.utils.RegisterUtils;
+import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
 import org.dromara.soul.client.grpc.common.annotation.SoulGrpcClient;
-import org.dromara.soul.client.grpc.common.config.GrpcConfig;
-import org.dromara.soul.client.grpc.common.dto.MetaDataDTO;
-import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.dromara.soul.client.grpc.common.dto.GrpcExt;
+import org.dromara.soul.common.utils.GsonUtils;
+import org.dromara.soul.common.utils.IpUtils;
+import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
+import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.lang.NonNull;
@@ -35,6 +37,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Properties;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -47,31 +51,39 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
+    
+    private SoulClientRegisterEventPublisher publisher = SoulClientRegisterEventPublisher.getInstance();
+    
+    private final ExecutorService executorService;
+    
+    private final String contextPath;
+    
+    private final String ipAndPort;
 
-    private final ThreadPoolExecutor executorService;
+    private final String host;
 
-    private final String url;
-
-    private final GrpcConfig grpcConfig;
+    private final int port;
     
     /**
      * Instantiates a new Soul client bean post processor.
      *
      * @param config the soul grpc config
+     * @param soulClientRegisterRepository the soulClientRegisterRepository
      */
-    public GrpcClientBeanPostProcessor(final GrpcConfig config) {
-        String contextPath = config.getContextPath();
-        String adminUrl = config.getAdminUrl();
-        Integer port = config.getPort();
-        if (contextPath == null || "".equals(contextPath)
-                || adminUrl == null || "".equals(adminUrl)
-                || port == null) {
-            log.error("grpc param must config contextPath, adminUrl and port");
-            throw new RuntimeException("grpc param must config contextPath, adminUrl and port");
+    public GrpcClientBeanPostProcessor(final SoulRegisterCenterConfig config, final SoulClientRegisterRepository soulClientRegisterRepository) {
+        Properties props = config.getProps();
+        String contextPath = props.getProperty("contextPath");
+        String ipAndPort = props.getProperty("ipAndPort");
+        String port = props.getProperty("port");
+        if (StringUtils.isEmpty(contextPath) || StringUtils.isEmpty(ipAndPort) || StringUtils.isEmpty(port)) {
+            throw new RuntimeException("tars client must config the contextPath, ipAndPort");
         }
-        this.grpcConfig = config;
-        url = adminUrl + "/soul-client/grpc-register";
+        this.ipAndPort = ipAndPort;
+        this.contextPath = contextPath;
+        this.host = props.getProperty("host");
+        this.port = Integer.parseInt(port);
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        publisher.start(soulClientRegisterRepository);
     }
 
     @Override
@@ -110,25 +122,29 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
         for (Method method : methods) {
             SoulGrpcClient grpcClient = method.getAnnotation(SoulGrpcClient.class);
             if (Objects.nonNull(grpcClient)) {
-                RegisterUtils.doRegister(buildJsonParams(packageName, grpcClient, method), url, RpcTypeEnum.GRPC);
+                publisher.publishEvent(buildMetaDataDTO(packageName, grpcClient, method));
             }
         }
     }
 
-    private String buildJsonParams(final String packageName, final SoulGrpcClient soulGrpcClient, final Method method) {
-        String path = grpcConfig.getContextPath() + soulGrpcClient.path();
+    private MetaDataRegisterDTO buildMetaDataDTO(final String packageName, final SoulGrpcClient soulGrpcClient, final Method method) {
+        String path = this.contextPath + soulGrpcClient.path();
         String desc = soulGrpcClient.desc();
+        String configHost = this.host;
+        String host = org.apache.commons.lang3.StringUtils.isBlank(configHost) ? IpUtils.getHost() : configHost;
         String configRuleName = soulGrpcClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
         String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
                 .collect(Collectors.joining(","));
-        MetaDataDTO grpcMetaDataDTO = MetaDataDTO.builder()
-                .appName(String.join(":", grpcConfig.getHost(), grpcConfig.getPort().toString()))
+        return MetaDataRegisterDTO.builder()
+                .appName(ipAndPort)
                 .serviceName(packageName)
                 .methodName(methodName)
-                .contextPath(grpcConfig.getContextPath())
+                .contextPath(contextPath)
+                .host(host)
+                .port(port)
                 .path(path)
                 .ruleName(ruleName)
                 .pathDesc(desc)
@@ -137,14 +153,11 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
                 .rpcExt(buildRpcExt(soulGrpcClient))
                 .enabled(soulGrpcClient.enabled())
                 .build();
-        return OkHttpTools.getInstance().getGson().toJson(grpcMetaDataDTO);
     }
 
     private String buildRpcExt(final SoulGrpcClient soulGrpcClient) {
-        MetaDataDTO.RpcExt build = MetaDataDTO.RpcExt.builder()
-                .timeout(soulGrpcClient.timeout())
-                .build();
-        return OkHttpTools.getInstance().getGson().toJson(build);
+        GrpcExt build = GrpcExt.builder().timeout(soulGrpcClient.timeout()).build();
+        return GsonUtils.getInstance().toJson(build);
     }
 }
 

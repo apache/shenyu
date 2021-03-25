@@ -19,8 +19,10 @@
 package org.dromara.soul.springboot.starter.client.tars;
 
 import org.dromara.soul.client.tars.TarsServiceBeanPostProcessor;
-import org.dromara.soul.client.tars.common.config.TarsConfig;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
+import org.dromara.soul.springboot.starter.client.common.config.SoulClientCommonBeanConfiguration;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -30,26 +32,18 @@ import org.springframework.context.annotation.Configuration;
  * @author tydhot
  */
 @Configuration
+@ImportAutoConfiguration(SoulClientCommonBeanConfiguration.class)
 public class SoulTarsClientConfiguration {
     /**
      * Tars service bean post processor sofa service bean post processor.
      *
      * @param tarsConfig the tars config
+     * @param soulClientRegisterRepository the soulClientRegisterRepository
      * @return the tars service bean post processor
      */
     @Bean
-    public TarsServiceBeanPostProcessor tarsServiceBeanPostProcessor(final TarsConfig tarsConfig) {
-        return new TarsServiceBeanPostProcessor(tarsConfig);
+    public TarsServiceBeanPostProcessor tarsServiceBeanPostProcessor(final SoulRegisterCenterConfig tarsConfig, final SoulClientRegisterRepository soulClientRegisterRepository) {
+        return new TarsServiceBeanPostProcessor(tarsConfig, soulClientRegisterRepository);
     }
-
-    /**
-     * Tars config.
-     *
-     * @return the tars config
-     */
-    @Bean
-    @ConfigurationProperties(prefix = "soul.tars")
-    public TarsConfig tarsConfig() {
-        return new TarsConfig();
-    }
+    
 }

@@ -17,10 +17,12 @@
 
 package org.dromara.soul.springboot.starter.client.springmvc;
 
-import org.dromara.soul.client.springmvc.config.SoulSpringMvcConfig;
 import org.dromara.soul.client.springmvc.init.ContextRegisterListener;
 import org.dromara.soul.client.springmvc.init.SpringMvcClientBeanPostProcessor;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
+import org.dromara.soul.springboot.starter.client.common.config.SoulClientCommonBeanConfiguration;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -30,38 +32,31 @@ import org.springframework.context.annotation.Configuration;
  * @author xiaoyu
  */
 @Configuration
+@ImportAutoConfiguration(SoulClientCommonBeanConfiguration.class)
 public class SoulSpringMvcClientConfiguration {
     
     /**
-     * Spring http client bean post processor spring http client bean post processor.
+     * Spring http client bean post processor .
      *
-     * @param soulSpringMvcConfig the soul http config
+     * @param config the config
+     * @param soulClientRegisterRepository the client register repository
      * @return the spring http client bean post processor
      */
     @Bean
-    public SpringMvcClientBeanPostProcessor springHttpClientBeanPostProcessor(final SoulSpringMvcConfig soulSpringMvcConfig) {
-        return new SpringMvcClientBeanPostProcessor(soulSpringMvcConfig);
+    public SpringMvcClientBeanPostProcessor springHttpClientBeanPostProcessor(final SoulRegisterCenterConfig config, final SoulClientRegisterRepository soulClientRegisterRepository) {
+        return new SpringMvcClientBeanPostProcessor(config, soulClientRegisterRepository);
     }
     
     /**
      * Context register listener context register listener.
      *
-     * @param soulSpringMvcConfig the soul spring mvc config
+     * @param config the config
+     * @param soulClientRegisterRepository the client register repository
      * @return the context register listener
      */
     @Bean
-    public ContextRegisterListener contextRegisterListener(final SoulSpringMvcConfig soulSpringMvcConfig) {
-        return new ContextRegisterListener(soulSpringMvcConfig);
+    public ContextRegisterListener contextRegisterListener(final SoulRegisterCenterConfig config, final SoulClientRegisterRepository soulClientRegisterRepository) {
+        return new ContextRegisterListener(config, soulClientRegisterRepository);
     }
     
-    /**
-     * Soul http config soul http config.
-     *
-     * @return the soul http config
-     */
-    @Bean
-    @ConfigurationProperties(prefix = "soul.http")
-    public SoulSpringMvcConfig soulHttpConfig() {
-        return new SoulSpringMvcConfig();
-    }
 }

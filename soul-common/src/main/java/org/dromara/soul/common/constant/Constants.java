@@ -35,9 +35,39 @@ public interface Constants {
     String CONTEXT = "context";
 
     /**
+     * The constant context path.
+     */
+    String CONTEXT_PATH = "contextPath";
+
+    /**
      * The constant META_DATA.
      */
     String META_DATA = "metaData";
+
+    /**
+     * The constant HOST.
+     */
+    String HOST = "host";
+
+    /**
+     * The constant PORT.
+     */
+    String PORT = "port";
+
+    /**
+     * The constant rule name.
+     */
+    String RULE_NAME = "ruleName";
+
+    /**
+     * The constant service name.
+     */
+    String SERVICE_NAME = "serviceName";
+
+    /**
+     * The constant method name.
+     */
+    String METHOD_NAME = "methodName";
 
     /**
      * The constant CLIENT_RESPONSE_ATTR.
@@ -115,24 +145,9 @@ public interface Constants {
     String HTTP_URL = "httpUrl";
 
     /**
-     * The constant DUBBO_PARAMS.
+     * The constant PARAM_TRANSFORM.
      */
-    String DUBBO_PARAMS = "dubbo_params";
-
-    /**
-     * The constant SOFA_PARAMS.
-     */
-    String SOFA_PARAMS = "sofa_params";
-
-    /**
-     * The constant TARS_PARAMS.
-     */
-    String TARS_PARAMS = "tars_params";
-
-    /**
-     * The constant GRPC_PARAMS.
-     */
-    String GRPC_PARAMS = "grpc_params";
+    String PARAM_TRANSFORM = "param_transform";
 
     /**
      * The constant DECODE.
@@ -293,6 +308,21 @@ public interface Constants {
      * The constant COLONS.
      */
     String COLONS = ":";
+
+    /**
+     * The constant HYPHEN.
+     */
+    String HYPHEN = "-";
+
+    /**
+     * The constant SlASH.
+     */
+    String SLASH = "/";
+
+    /**
+     * The constant Period.
+     */
+    String PERIOD = ".";
 
     String REQUEST_LATENCY = "REQUEST_LATENCY";
 

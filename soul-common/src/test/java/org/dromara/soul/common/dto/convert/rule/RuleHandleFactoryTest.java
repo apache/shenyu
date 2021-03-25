@@ -21,12 +21,11 @@ import org.dromara.soul.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.dromara.soul.common.dto.convert.rule.impl.DubboRuleHandle;
 import org.dromara.soul.common.dto.convert.rule.impl.SofaRuleHandle;
 import org.dromara.soul.common.dto.convert.rule.impl.SpringCloudRuleHandle;
-import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.dromara.soul.common.enums.PluginEnum;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -38,75 +37,24 @@ public final class RuleHandleFactoryTest {
 
     @Test
     public void testRuleHandleCorrectType() {
-        RuleHandle handle = RuleHandleFactory.ruleHandle(RpcTypeEnum.DUBBO, "");
+        RuleHandle handle = RuleHandleFactory.ruleHandle(PluginEnum.DUBBO.getName(), "");
         assertThat(handle, notNullValue());
         assertThat(handle instanceof DubboRuleHandle, is(true));
 
-        handle = RuleHandleFactory.ruleHandle(RpcTypeEnum.SOFA, "");
+        handle = RuleHandleFactory.ruleHandle(PluginEnum.SOFA.getName(), "");
         assertThat(handle, notNullValue());
         assertThat(handle instanceof SofaRuleHandle, is(true));
 
-        handle = RuleHandleFactory.ruleHandle(RpcTypeEnum.HTTP, "");
+        handle = RuleHandleFactory.ruleHandle(PluginEnum.DIVIDE.getName(), "");
         assertThat(handle, notNullValue());
         assertThat(handle instanceof DivideRuleHandle, is(true));
 
-        handle = RuleHandleFactory.ruleHandle(RpcTypeEnum.GRPC, "");
+        handle = RuleHandleFactory.ruleHandle(PluginEnum.GRPC.getName(), "");
         assertThat(handle, notNullValue());
         assertThat(handle instanceof SpringCloudRuleHandle, is(true));
 
-        handle = RuleHandleFactory.ruleHandle(RpcTypeEnum.SPRING_CLOUD, "");
+        handle = RuleHandleFactory.ruleHandle(PluginEnum.SPRING_CLOUD.getName(), "");
         assertThat(handle, notNullValue());
         assertThat(handle instanceof SpringCloudRuleHandle, is(true));
-
-        handle = RuleHandleFactory.ruleHandle(RpcTypeEnum.MOTAN, "");
-        assertThat(handle, notNullValue());
-        assertThat(handle instanceof SpringCloudRuleHandle, is(true));
-
-        handle = RuleHandleFactory.ruleHandle(RpcTypeEnum.WEB_SOCKET, "");
-        assertThat(handle, notNullValue());
-        assertThat(handle instanceof SpringCloudRuleHandle, is(true));
-    }
-
-    @Test
-    public void testRuleHandleCorrectTypeNullPath() {
-        RuleHandle handle = RuleHandleFactory.ruleHandle(RpcTypeEnum.DUBBO, null);
-        assertThat(handle, notNullValue());
-        assertThat(handle instanceof DubboRuleHandle, is(true));
-
-        handle = RuleHandleFactory.ruleHandle(RpcTypeEnum.SOFA, null);
-        assertThat(handle, notNullValue());
-        assertThat(handle instanceof SofaRuleHandle, is(true));
-
-        handle = RuleHandleFactory.ruleHandle(RpcTypeEnum.HTTP, null);
-        assertThat(handle, notNullValue());
-        assertThat(handle instanceof DivideRuleHandle, is(true));
-
-        handle = RuleHandleFactory.ruleHandle(RpcTypeEnum.GRPC, null);
-        assertThat(handle, notNullValue());
-        assertThat(handle instanceof SpringCloudRuleHandle, is(true));
-
-        handle = RuleHandleFactory.ruleHandle(RpcTypeEnum.SPRING_CLOUD, null);
-        assertThat(handle, notNullValue());
-        assertThat(handle instanceof SpringCloudRuleHandle, is(true));
-
-        handle = RuleHandleFactory.ruleHandle(RpcTypeEnum.MOTAN, null);
-        assertThat(handle, notNullValue());
-        assertThat(handle instanceof SpringCloudRuleHandle, is(true));
-
-        handle = RuleHandleFactory.ruleHandle(RpcTypeEnum.WEB_SOCKET, null);
-        assertThat(handle, notNullValue());
-        assertThat(handle instanceof SpringCloudRuleHandle, is(true));
-    }
-
-    @Test
-    public void testRuleHandleNullType() {
-        RuleHandle handle = RuleHandleFactory.ruleHandle(null, "");
-        assertThat(handle, nullValue());
-    }
-
-    @Test
-    public void testRuleHandleNullTypeNullPath() {
-        RuleHandle handle = RuleHandleFactory.ruleHandle(null, null);
-        assertThat(handle, nullValue());
     }
 }

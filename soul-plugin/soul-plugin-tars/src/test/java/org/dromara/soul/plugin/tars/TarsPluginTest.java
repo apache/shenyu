@@ -28,7 +28,7 @@ import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
 import org.dromara.soul.plugin.api.result.DefaultSoulResult;
 import org.dromara.soul.plugin.api.result.SoulResult;
-import org.dromara.soul.plugin.base.utils.SpringBeanUtils;
+import org.dromara.soul.plugin.api.utils.SpringBeanUtils;
 import org.dromara.soul.plugin.tars.cache.ApplicationConfigCache;
 import org.dromara.soul.plugin.tars.proxy.TarsInvokePrxList;
 import org.junit.Before;
@@ -116,7 +116,7 @@ public class TarsPluginTest {
         SoulContext context = mock(SoulContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, context);
         exchange.getAttributes().put(Constants.META_DATA, metaData);
-        exchange.getAttributes().put(Constants.TARS_PARAMS, "{\"param1\":1,\"param2\":2}");
+        exchange.getAttributes().put(Constants.PARAM_TRANSFORM, "{\"param1\":1,\"param2\":2}");
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         RuleData data = mock(RuleData.class);
         SelectorData selectorData = mock(SelectorData.class);
@@ -128,7 +128,7 @@ public class TarsPluginTest {
         SoulContext context = mock(SoulContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, context);
         exchange.getAttributes().put(Constants.META_DATA, metaData);
-        exchange.getAttributes().put(Constants.TARS_PARAMS, "{\"param1\":\"1\",\"param2\":\"1\"}");
+        exchange.getAttributes().put(Constants.PARAM_TRANSFORM, "{\"param1\":\"1\",\"param2\":\"1\"}");
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         RuleData data = mock(RuleData.class);
         SelectorData selectorData = mock(SelectorData.class);
@@ -144,13 +144,13 @@ public class TarsPluginTest {
 
     @Test
     public void testGetOrder() {
-        final int result = tarsPluginUnderTest.getOrder();
+        int result = tarsPluginUnderTest.getOrder();
         assertEquals(PluginEnum.TARS.getCode(), result);
     }
 
     @Test
     public void testNamed() {
-        final String result = tarsPluginUnderTest.named();
+        String result = tarsPluginUnderTest.named();
         assertEquals(PluginEnum.TARS.getName(), result);
     }
 
@@ -159,7 +159,7 @@ public class TarsPluginTest {
         SoulContext context = mock(SoulContext.class);
         when(context.getRpcType()).thenReturn(RpcTypeEnum.TARS.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
-        final Boolean result = tarsPluginUnderTest.skip(exchange);
+        Boolean result = tarsPluginUnderTest.skip(exchange);
         assertFalse(result);
     }
 }

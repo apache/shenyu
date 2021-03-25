@@ -140,7 +140,7 @@ public final class SelectorDO extends BaseDO {
                 .type(selectorDO.getType())
                 .sort(selectorDO.getSort())
                 .enabled(selectorDO.getEnabled())
-                .loged(selectorDO.getLoged())
+                .logged(selectorDO.getLoged())
                 .continued(selectorDO.getContinued())
                 .handle(selectorDO.getHandle())
                 .conditionList(conditionDataList)

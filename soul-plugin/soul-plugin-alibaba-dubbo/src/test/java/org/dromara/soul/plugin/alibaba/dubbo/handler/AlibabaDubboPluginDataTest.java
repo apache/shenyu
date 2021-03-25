@@ -37,6 +37,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public final class AlibabaDubboPluginDataTest {
+    
     private AlibabaDubboPluginDataHandler alibabaDubboPluginDataHandler;
 
     private final String registryConfig = "{\"protocol\":\"zookeeper\",\"register\":\"127.0.0.1:2181\"}";

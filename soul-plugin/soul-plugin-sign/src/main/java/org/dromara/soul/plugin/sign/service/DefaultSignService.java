@@ -50,10 +50,10 @@ import org.springframework.web.server.ServerWebExchange;
  */
 @Slf4j
 public class DefaultSignService implements SignService {
-    
+
     @Value("${soul.sign.delay:5}")
     private int delay;
-    
+
     @Override
     public Pair<Boolean, String> signVerify(final ServerWebExchange exchange) {
         PluginData signData = BaseDataCache.getInstance().obtainPluginData(PluginEnum.SIGN.getName());
@@ -64,7 +64,7 @@ public class DefaultSignService implements SignService {
         }
         return Pair.of(Boolean.TRUE, "");
     }
-    
+
     private Pair<Boolean, String> verify(final SoulContext soulContext, final ServerWebExchange exchange) {
         if (StringUtils.isBlank(soulContext.getAppKey())
                 || StringUtils.isBlank(soulContext.getSign())
@@ -80,7 +80,7 @@ public class DefaultSignService implements SignService {
         }
         return sign(soulContext, exchange);
     }
-    
+
     /**
      * verify sign .
      *
@@ -93,17 +93,19 @@ public class DefaultSignService implements SignService {
             log.error("sign APP_kEY does not exist or has been disabled,{}", soulContext.getAppKey());
             return Pair.of(Boolean.FALSE, Constants.SIGN_APP_KEY_IS_NOT_EXIST);
         }
-        List<AuthPathData> pathDataList = appAuthData.getPathDataList();
-        if (CollectionUtils.isEmpty(pathDataList)) {
-            log.error("You have not configured the sign path:{}", soulContext.getAppKey());
-            return Pair.of(Boolean.FALSE, Constants.SIGN_PATH_NOT_EXIST);
-        }
-   
-        boolean match = pathDataList.stream().filter(AuthPathData::getEnabled)
-                .anyMatch(e -> PathMatchUtils.match(e.getPath(), soulContext.getPath()));
-        if (!match) {
-            log.error("You have not configured the sign path:{},{}", soulContext.getAppKey(), soulContext.getRealUrl());
-            return Pair.of(Boolean.FALSE, Constants.SIGN_PATH_NOT_EXIST);
+        if (appAuthData.getOpen()) {
+            List<AuthPathData> pathDataList = appAuthData.getPathDataList();
+            if (CollectionUtils.isEmpty(pathDataList)) {
+                log.error("You have not configured the sign path:{}", soulContext.getAppKey());
+                return Pair.of(Boolean.FALSE, Constants.SIGN_PATH_NOT_EXIST);
+            }
+
+            boolean match = pathDataList.stream().filter(AuthPathData::getEnabled)
+                    .anyMatch(e -> PathMatchUtils.match(e.getPath(), soulContext.getPath()));
+            if (!match) {
+                log.error("You have not configured the sign path:{},{}", soulContext.getAppKey(), soulContext.getRealUrl());
+                return Pair.of(Boolean.FALSE, Constants.SIGN_PATH_NOT_EXIST);
+            }
         }
         String sigKey = SignUtils.generateSign(appAuthData.getAppSecret(), buildParamsMap(soulContext));
         boolean result = Objects.equals(sigKey, soulContext.getSign());
@@ -124,7 +126,7 @@ public class DefaultSignService implements SignService {
         }
         return Pair.of(Boolean.TRUE, "");
     }
-    
+
     private Map<String, String> buildParamsMap(final SoulContext dto) {
         Map<String, String> map = Maps.newHashMapWithExpectedSize(3);
         map.put(Constants.TIMESTAMP, dto.getTimestamp());

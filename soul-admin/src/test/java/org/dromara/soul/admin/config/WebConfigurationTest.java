@@ -17,8 +17,8 @@
 
 package org.dromara.soul.admin.config;
 
-import com.alibaba.fastjson.JSONObject;
 import org.dromara.soul.admin.AbstractConfigurationTest;
+import org.dromara.soul.common.utils.JsonUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -54,6 +54,6 @@ public final class WebConfigurationTest extends AbstractConfigurationTest {
     }
 
     private String getCorsConfigurationsString(final CorsRegistry registry) {
-        return JSONObject.toJSONString(ReflectionTestUtils.invokeMethod(registry, "getCorsConfigurations"));
+        return JsonUtils.toJson(ReflectionTestUtils.invokeMethod(registry, "getCorsConfigurations"));
     }
 }

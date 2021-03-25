@@ -27,6 +27,7 @@ import org.dromara.soul.admin.mapper.PermissionMapper;
 import org.dromara.soul.admin.mapper.ResourceMapper;
 import org.dromara.soul.admin.mapper.UserRoleMapper;
 import org.dromara.soul.admin.service.impl.PermissionServiceImpl;
+import org.dromara.soul.admin.service.impl.ResourceServiceImpl;
 import org.dromara.soul.admin.spring.SpringBeanUtils;
 import org.dromara.soul.admin.vo.PermissionMenuVO;
 import org.junit.Before;
@@ -66,6 +67,8 @@ public class PermissionServiceTest {
 
     @Mock
     private ResourceMapper mockResourceMapper;
+
+    private ResourceService resourceService;
 
     private PermissionServiceImpl permissionServiceImplUnderTest;
 
@@ -112,7 +115,8 @@ public class PermissionServiceTest {
         when(mockResourceMapper.selectById("1346777157943259136")).thenReturn(resourceDO3);
         when(mockResourceMapper.selectById("1347053375029653504")).thenReturn(resourceDO4);
         when(mockResourceMapper.selectAll()).thenReturn(Arrays.asList(resourceDO1, resourceDO2, resourceDO3, resourceDO4));
-        permissionServiceImplUnderTest = new PermissionServiceImpl(mockDashboardUserMapper, mockUserRoleMapper, mockPermissionMapper, mockResourceMapper);
+        resourceService = new ResourceServiceImpl(mockResourceMapper, mockPermissionMapper);
+        permissionServiceImplUnderTest = new PermissionServiceImpl(mockDashboardUserMapper, mockUserRoleMapper, mockPermissionMapper, mockResourceMapper, resourceService);
     }
 
     @Test
@@ -126,8 +130,8 @@ public class PermissionServiceTest {
                 new PermissionMenuVO.MenuInfo("1346775491550474240", "plug", "/plug", "PluginList",
                         new PermissionMenuVO.Meta("dashboard", "SOUL.MENU.PLUGIN.LIST"), Arrays.asList(), 0)
         ),
-                Arrays.asList(new PermissionMenuVO.AuthPerm("plugin:sign:modify", "SOUL.BUTTON.PLUGIN.SYNCHRONIZE")),
-                Arrays.asList(new PermissionMenuVO.AuthPerm("plugin:sign:modify", "SOUL.BUTTON.PLUGIN.SYNCHRONIZE")));
+                Arrays.asList(new PermissionMenuVO.AuthPerm("plugin:sign:modify", "SOUL.BUTTON.PLUGIN.SYNCHRONIZE", null)),
+                Arrays.asList(new PermissionMenuVO.AuthPerm("plugin:sign:modify", "SOUL.BUTTON.PLUGIN.SYNCHRONIZE", null)));
         String token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhZG1pbiIsImlhdCI6MTYxMTc5MjEzOX0.eFORUk5kZawKLTsfRYojy-uaaDySo9kWtcfgxISS_3g";
         final PermissionMenuVO result = permissionServiceImplUnderTest.getPermissionMenu(token);
         assertThat(result, is(expectedResult));

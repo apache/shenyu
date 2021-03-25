@@ -19,15 +19,15 @@ package org.dromara.soul.spring.boot.starter.plugin.apache.dubbo;
 
 import org.dromara.soul.plugin.apache.dubbo.ApacheDubboPlugin;
 import org.dromara.soul.plugin.apache.dubbo.handler.ApacheDubboPluginDataHandler;
-import org.dromara.soul.plugin.apache.dubbo.param.ApacheDubboBodyParamPlugin;
 import org.dromara.soul.plugin.apache.dubbo.proxy.ApacheDubboProxyService;
-import org.dromara.soul.plugin.apache.dubbo.response.DubboResponsePlugin;
 import org.dromara.soul.plugin.apache.dubbo.subscriber.ApacheDubboMetaDataSubscriber;
 import org.dromara.soul.plugin.api.SoulPlugin;
-import org.dromara.soul.plugin.api.dubbo.DubboParamResolveService;
+import org.dromara.soul.plugin.api.param.BodyParamResolveService;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
+import org.dromara.soul.spring.boot.plugin.dubbo.common.DubboCommonConfiguration;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,39 +39,20 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ConditionalOnClass(ApacheDubboPlugin.class)
+@ImportAutoConfiguration(DubboCommonConfiguration.class)
 public class ApacheDubboPluginConfiguration {
 
     /**
      * Dubbo plugin soul plugin.
      *
-     * @param dubboParamResolveService the dubbo param resolve service
+     * @param dubboBodyParamResolveService the dubbo param resolve service
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin apacheDubboPlugin(final ObjectProvider<DubboParamResolveService> dubboParamResolveService) {
-        return new ApacheDubboPlugin(new ApacheDubboProxyService(dubboParamResolveService.getIfAvailable()));
+    public SoulPlugin apacheDubboPlugin(final ObjectProvider<BodyParamResolveService> dubboBodyParamResolveService) {
+        return new ApacheDubboPlugin(new ApacheDubboProxyService(dubboBodyParamResolveService.getIfAvailable()));
     }
-
-    /**
-     * Body param plugin soul plugin.
-     *
-     * @return the soul plugin
-     */
-    @Bean
-    public SoulPlugin apacheDubboBodyParamPlugin() {
-        return new ApacheDubboBodyParamPlugin();
-    }
-
-    /**
-     * Dubbo response plugin soul plugin.
-     *
-     * @return the soul plugin
-     */
-    @Bean
-    public SoulPlugin apacheDubboResponsePlugin() {
-        return new DubboResponsePlugin();
-    }
-
+    
     /**
      * Apache dubbo plugin data handler plugin data handler.
      *

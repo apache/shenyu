@@ -18,8 +18,10 @@
 package org.dromara.soul.spring.boot.plugin.divide;
 
 import org.dromara.soul.plugin.api.SoulPlugin;
+import org.dromara.soul.plugin.api.context.SoulContextDecorator;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.plugin.divide.DividePlugin;
+import org.dromara.soul.plugin.divide.context.DivideSoulContextDecorator;
 import org.dromara.soul.plugin.divide.handler.DividePluginDataHandler;
 import org.dromara.soul.plugin.divide.websocket.WebSocketPlugin;
 import org.springframework.context.annotation.Bean;
@@ -89,5 +91,14 @@ public class DividePluginConfiguration {
     public WebSocketService webSocketService() {
         return new HandshakeWebSocketService();
     }
-
+    
+    /**
+     * Divide soul context decorator soul context decorator.
+     *
+     * @return the soul context decorator
+     */
+    @Bean
+    public SoulContextDecorator divideSoulContextDecorator() {
+        return new DivideSoulContextDecorator();
+    }
 }

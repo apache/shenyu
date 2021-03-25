@@ -18,15 +18,18 @@
 
 package org.dromara.soul.client.tars;
 
+import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
 import org.dromara.soul.client.tars.common.annotation.SoulTarsClient;
 import org.dromara.soul.client.tars.common.annotation.SoulTarsService;
-import org.dromara.soul.client.tars.common.config.TarsConfig;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.mockito.junit.MockitoJUnitRunner;
+
+import java.util.Properties;
 
 /**
  * Test case for {@link TarsServiceBeanPostProcessor}.
@@ -40,12 +43,16 @@ public final class TarsServiceBeanPostProcessorTest {
 
     @BeforeClass
     public static void init() {
-        TarsConfig mockTarsConfig = new TarsConfig();
-        mockTarsConfig.setAdminUrl("http://localhost:58080");
-        mockTarsConfig.setAppName("tars");
-        mockTarsConfig.setContextPath("/tars");
-        mockTarsConfig.setIpAndPort("localhost:58080");
-        tarsServiceBeanPostProcessor = new TarsServiceBeanPostProcessor(mockTarsConfig);
+        Properties properties = new Properties();
+        properties.setProperty("contextPath", "/tars");
+        properties.setProperty("port", "8080");
+        properties.setProperty("host", "localhost");
+
+        SoulRegisterCenterConfig mockRegisterCenter = new SoulRegisterCenterConfig();
+        mockRegisterCenter.setServerLists("http://localhost:58080");
+        mockRegisterCenter.setRegisterType("http");
+        mockRegisterCenter.setProps(properties);
+        tarsServiceBeanPostProcessor = new TarsServiceBeanPostProcessor(mockRegisterCenter, SoulClientRegisterRepositoryFactory.newInstance(mockRegisterCenter));
     }
 
     @Test

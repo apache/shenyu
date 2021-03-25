@@ -20,6 +20,8 @@ package org.dromara.soul.client.dubbo.common.dto;
 import lombok.Builder;
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
  * The type Dubbo rpc ext.
  *
@@ -27,7 +29,7 @@ import lombok.Data;
  */
 @Data
 @Builder
-public class DubboRpcExt {
+public class DubboRpcExt implements Serializable {
 
     private String group;
 

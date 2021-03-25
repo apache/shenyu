@@ -20,7 +20,6 @@ package org.dromara.soul.spring.boot.starter.plugin.tars;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
-import org.dromara.soul.plugin.tars.param.BodyParamPlugin;
 import org.dromara.soul.plugin.tars.response.TarsResponsePlugin;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
 import org.junit.Test;
@@ -48,7 +47,6 @@ public class TarsPluginConfigurationTest {
                 context -> {
                     assertThat(context).hasSingleBean(MetaDataSubscriber.class);
                     assertThat(context).hasSingleBean(PluginDataHandler.class);
-                    assertThat(context).hasSingleBean(BodyParamPlugin.class);
                     assertThat(context).hasSingleBean(TarsResponsePlugin.class);
                     SoulPlugin plugin = context.getBean("tarsPlugin", SoulPlugin.class);
                     assertThat(plugin.named()).isEqualTo(PluginEnum.TARS.getName());

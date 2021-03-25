@@ -65,7 +65,7 @@ public class SelectorData implements Serializable {
 
     private Boolean enabled;
 
-    private Boolean loged;
+    private Boolean logged;
 
     private Boolean continued;
 

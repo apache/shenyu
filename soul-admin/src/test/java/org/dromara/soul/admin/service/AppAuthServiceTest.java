@@ -287,6 +287,7 @@ public final class AppAuthServiceTest {
         authApplyDTO.setAppParam("{\"appParam\":\"json\"}");
         authApplyDTO.setUserId("1");
         authApplyDTO.setExtInfo("{\"extInfo\":\"json\"}");
+        authApplyDTO.setOpen(true);
         authApplyDTO.setPhone("18600000000");
         authApplyDTO.setPathList(Collections.singletonList("/testPath"));
         return authApplyDTO;
@@ -304,6 +305,7 @@ public final class AppAuthServiceTest {
         appAuthDTO.setUserId("1");
         appAuthDTO.setPhone("18600000000");
         appAuthDTO.setExtInfo("{\"extInfo\":\"json\"}");
+        appAuthDTO.setOpen(true);
         appAuthDTO.setEnabled(false);
         return appAuthDTO;
     }

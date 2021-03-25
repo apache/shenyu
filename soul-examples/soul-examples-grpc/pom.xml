@@ -30,6 +30,7 @@
     <properties>
         <grpc.version>1.33.1</grpc.version>
         <protobuf.version>3.13.0</protobuf.version>
+        <os-maven-plugin.version>1.6.2</os-maven-plugin.version>
     </properties>
 
     <dependencies>
@@ -54,6 +55,13 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <!--soul consul register center -->
+        <!--<dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-consul-discovery</artifactId>
+            <version>2.2.6.RELEASE</version>
+        </dependency>-->
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-all</artifactId>
@@ -67,18 +75,10 @@
             <extension>
                 <groupId>kr.motd.maven</groupId>
                 <artifactId>os-maven-plugin</artifactId>
-                <version>1.6.2</version>
+                <version>${os-maven-plugin.version}</version>
             </extension>
         </extensions>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>8</source>
-                    <target>8</target>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.xolstice.maven.plugins</groupId>
                 <artifactId>protobuf-maven-plugin</artifactId>

@@ -45,5 +45,4 @@ public final class SwaggerConfigurationTest {
         ReflectionTestUtils.setField(swaggerConfiguration, "enable", true);
         Assert.assertNotNull(swaggerConfiguration.createRestApi());
     }
-
 }

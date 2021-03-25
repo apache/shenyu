@@ -18,7 +18,6 @@
 package org.dromara.soul.spring.boot.sync.data.zookeeper;
 
 import org.I0Itec.zkclient.ZkClient;
-import org.I0Itec.zkclient.exception.ZkTimeoutException;
 import org.dromara.soul.sync.data.api.PluginDataSubscriber;
 import org.dromara.soul.sync.data.api.SyncDataService;
 import org.dromara.soul.sync.data.zookeeper.ZookeeperSyncDataService;
@@ -78,13 +77,5 @@ public final class ZookeeperSyncDataConfigurationTest {
         assertThat(zookeeperConfig.getUrl(), is("localhost:2181"));
         assertThat(zookeeperConfig.getSessionTimeout(), is(30000));
         assertThat(zookeeperConfig.getConnectionTimeout(), is(500));
-    }
-
-    /**
-     * case to test {@link ZookeeperSyncDataConfiguration} build {@link ZkClient} should throw exception.
-     */
-    @Test(expected = ZkTimeoutException.class)
-    public void testZookeeperSyncDataConfigurationInitializeZkClientConnectionTimeout() {
-        new ZookeeperSyncDataConfiguration().zkClient(zookeeperConfig);
     }
 }

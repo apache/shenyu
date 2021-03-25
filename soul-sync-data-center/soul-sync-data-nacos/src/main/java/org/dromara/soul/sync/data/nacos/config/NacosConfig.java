@@ -26,5 +26,9 @@ public class NacosConfig {
 
     private String namespace;
 
+    private String username;
+
+    private String password;
+
     private NacosACMConfig acm;
 }

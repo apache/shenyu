@@ -1,5 +1,5 @@
 <p align="center" >
-    <a href="https://dromara.org"><img src="https://yu199195.github.io/images/soul/soul-logo.png" width="45%"></a>
+    <a href="https://dromara.org"><img src="https://dromara.org/img/logo/soul.png" width="45%"></a>
 </p>
 <p align="center">
   <strong>可扩展，高性能，响应式的 API 网关</strong>
@@ -28,8 +28,8 @@
     <a href="https://www.codacy.com/app/yu199195/soul?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Dromara/soul&amp;utm_campaign=Badge_Grade">
         <img src="https://api.codacy.com/project/badge/Grade/4367ffad5b434b7e8078b3a68cc6398d"/>
     </a>
-    <a target="_blank" href='https://gitee.com/shuaiqiyu/soul/stargazers'>
-        <img src='https://gitee.com/shuaiqiyu/soul/badge/star.svg?theme=gvp' alt='gitee stars'/>
+    <a target="_blank" href='https://gitee.com/dromara/soul/stargazers'>
+        <img src='https://gitee.com/dromara/soul/badge/star.svg?theme=gvp' alt='gitee stars'/>
    </a>
    <a target="_blank" href='https://github.com/dromara/soul'>
         <img src="https://img.shields.io/github/forks/dromara/soul.svg" alt="github forks"/>
@@ -59,7 +59,7 @@
 
 # 结构图
 
-![](https://dromara.org/activities/dromara-cloud-native-meet/soul-xmind.png)
+![](https://dromara.org/img/soul/activite/soul-xmind.png)
 
 --------------------------------------------------------------------------------
 
@@ -70,6 +70,10 @@
  * soul-bootstrap : 用于启动项目，用户可以参考
 
  * soul-client : 用户可以使用 Spring MVC，Dubbo，Spring Cloud 快速访问
+ 
+ * soul-disruptor : 基于disruptor的封装
+  
+ * soul-register-center : 为soul-client提供各种rpc接入注册中心的支持
   
  * soul-common : 框架的通用类
 
@@ -93,8 +97,8 @@
 
 # 功能特点
 
-   * 提供了诸如限流、熔断、转发和路由监控等插件；
-   * 与 HTTP、RESTful、WebSocket、Dubbo 和 Spring Cloud 无缝对接；
+   * 提供了诸如限流、熔断、转发 、重写、重定向、和路由监控等插件；
+   * 支持 HTTP、RESTFul、WebSocket、Dubbo、 GRPC、 Tars、 Spring Cloud 代理；
    * 支持热插拔，用户可以定制化开发；
    * 为了灵活的适配，选择器和规则可以动态的适配；
    * 支持集群部署；
@@ -112,7 +116,7 @@
 
 当然，用户也可以定制化插件去满足他们自己的需求。
 
-如果你有定制化插件的需求，请参看这里：[plugin-extend](https://dromara.org/website/zh-cn/docs/soul/extend.html)
+如果你有定制化插件的需求，请参看这里：[custom-plugin](https://dromara.org/zh/projects/soul/custom-plugin/)
 
 --------------------------------------------------------------------------------
 
@@ -140,7 +144,7 @@
 
 --------------------------------------------------------------------------------
 
-# 先决条件
+# 必要条件
 
    * JDK 1.8+
 
@@ -148,7 +152,7 @@
 
 # 关于
 
-Soul 已在我们的生产环境中使用，它的性能和灵活性使我们用起来很酷。
+Soul 已在我们的生产环境中使用，它的性能和灵活性使我们用起来非常方便。
 
 在双 11 中，我们部署了 6 个集群，这些集群支持了我们的大量业务。
 
@@ -164,6 +168,12 @@ Soul 已在我们的生产环境中使用，它的性能和灵活性使我们用
 # Github stars趋势
 
 [![Stargazers over time](https://starchart.cc/Dromara/soul.svg)](https://starchart.cc/Dromara/soul)
+
+--------------------------------------------------------------------------------
+
+# Gitee stars趋势
+
+[![Giteye chart](https://chart.giteye.net/gitee/dromara/soul/UZUPQEPC.png)](https://giteye.net/chart/UZUPQEPC)
 
 --------------------------------------------------------------------------------
 
@@ -220,8 +230,30 @@ Soul 已在我们的生产环境中使用，它的性能和灵活性使我们用
       <td><img src="https://yu199195.github.io/images/soul/users/anka.png"  width="1800" height="90" alt="anka"/>
     </tr>
   </tbody>     
+  <tbody>
+    <tr>
+      <td><img src="https://dromara.org/img/users/jd_logo.png"  width="1800" height="90" alt="jd"/>
+      <td><img src="https://yu199195.github.io/images/soul/users/minglamp.jpeg"  width="1800" height="90" alt="minglamp"/>
+      <td><img src="https://yu199195.github.io/images/soul/users/webuy.jpg"  width="1800" height="90" alt="webuy"/>
+      <td><img src="https://dromara.org/img/users/cass.png"  width="1800" height="90" alt="cass"/>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <td><img src="https://dromara.org/img/users/songguo.png"  width="1800" height="90" alt="jd"/>
+    </tr>
+  </tbody>
 </table>
 
+#贡献者列表
+
+`Soul` 遵循 `Apache-2.0` 开源协议，欢迎大家提交 `PR` 或 `Issue`。
+
+如果要为项目做出贡献，请查看 [贡献指南](https://dromara.org/zh/projects/soul/contributor/e)。
+
+感谢每一位为 `Soul` 贡献代码的朋友。
+
+[![Giteye chart](https://chart.giteye.net/gitee/dromara/soul/2ZKY3P9W.png)](https://giteye.net/chart/2ZKY3P9W)
 
 # 支持
 
@@ -230,12 +262,14 @@ Soul 已在我们的生产环境中使用，它的性能和灵活性使我们用
     <th>微信公众号</th>
     <th>QQ 交流群</th>
     <th>芋道源码</th>
+    <th>JetBrains</th>
   </thead>
   <tbody>
     <tr>
       <td><img src="https://yu199195.github.io/images/public.jpg"   alt="微信公众号"/>
       <td><img src="https://yu199195.github.io/images/soul-qq.png"  alt="QQ 交流群"/>
       <td><img src="http://www.iocoder.cn/images/common/erweima.jpg"  alt="芋道源码"/>
+      <td><img src="https://yu199195.github.io/images/jetbrains.svg"  alt="JetBrains"/>
     </tr>
   </tbody>
 </table>

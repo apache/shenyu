@@ -34,5 +34,4 @@ public interface SoulPluginChain {
      * @return {@code Mono<Void>} to indicate when request handling is complete
      */
     Mono<Void> execute(ServerWebExchange exchange);
-
 }

@@ -36,5 +36,4 @@ public class SoulBootstrapApplication {
     public static void main(final String[] args) {
         SpringApplication.run(SoulBootstrapApplication.class, args);
     }
-
 }

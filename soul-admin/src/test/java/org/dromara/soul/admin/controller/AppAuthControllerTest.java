@@ -75,7 +75,7 @@ public final class AppAuthControllerTest {
 
     private final AppAuthVO appAuthVO = new AppAuthVO("0001", "testAppKey", "testAppSecret",
             "testUser", "18600000000", "{\"extInfo\": \"test\"}",
-            true, null,
+            true, true, null,
             DateUtils.localDateTimeToString(LocalDateTime.now()));
 
     @Before
@@ -93,6 +93,7 @@ public final class AppAuthControllerTest {
         authApplyDTO.setPhone("18600000000");
         authApplyDTO.setAppParam("{\"type\": \"test\"}");
         authApplyDTO.setExtInfo("{\"extInfo\": \"test\"}");
+        authApplyDTO.setOpen(true);
         authApplyDTO.setPathList(pathList);
         given(this.appAuthService.applyCreate(authApplyDTO)).willReturn(
                 SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS));
@@ -115,6 +116,7 @@ public final class AppAuthControllerTest {
         authApplyDTO.setAppParam("{\"type\": \"test\"}");
         authApplyDTO.setAppKey("testAppKey");
         authApplyDTO.setExtInfo("{\"extInfo\": \"test\"}");
+        authApplyDTO.setOpen(true);
         authApplyDTO.setPathList(pathList);
         given(this.appAuthService.applyUpdate(authApplyDTO)).willReturn(
                 SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS));
@@ -125,7 +127,7 @@ public final class AppAuthControllerTest {
                 .andExpect(jsonPath("$.message", is(SoulResultMessage.CREATE_SUCCESS)))
                 .andReturn();
     }
-    
+
     @Test
     public void testUpdateSk() throws Exception {
         this.mockMvc.perform(MockMvcRequestBuilders.get("/appAuth/updateSk")

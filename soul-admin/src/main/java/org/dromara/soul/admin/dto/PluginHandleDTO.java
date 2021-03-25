@@ -71,5 +71,4 @@ public class PluginHandleDTO implements Serializable {
      * the attribute extObj.
      */
     private String extObj;
-
 }

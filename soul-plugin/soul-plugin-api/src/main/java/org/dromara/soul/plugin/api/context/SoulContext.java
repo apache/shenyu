@@ -89,6 +89,4 @@ public class SoulContext implements Serializable {
      * startDateTime.
      */
     private LocalDateTime startDateTime;
-    
-
 }

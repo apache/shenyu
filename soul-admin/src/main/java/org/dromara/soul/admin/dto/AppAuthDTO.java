@@ -52,6 +52,11 @@ public class AppAuthDTO implements Serializable {
     private String extInfo;
 
     /**
+     * whether open authPath.
+     */
+    private Boolean open;
+
+    /**
      * whether enabled.
      */
     private Boolean enabled;

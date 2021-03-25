@@ -20,6 +20,7 @@ package org.dromara.soul.plugin.ratelimiter.handler;
 import java.nio.ByteBuffer;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.ReactiveRedisConnection;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.ReturnType;
@@ -39,6 +40,7 @@ import reactor.core.publisher.Mono;
  *
  * @author zhanglei
  */
+@Slf4j
 public class SoulReactiveScriptExecutor<K> extends DefaultReactiveScriptExecutor<K> {
 
     public SoulReactiveScriptExecutor(final ReactiveRedisConnectionFactory connectionFactory, final RedisSerializationContext<K, ?> serializationContext) {
@@ -64,6 +66,7 @@ public class SoulReactiveScriptExecutor<K> extends DefaultReactiveScriptExecutor
     private <T> Flux<T> execute(final ReactiveRedisCallback<T> action) {
         Assert.notNull(action, "Callback object must not be null");
         ReactiveRedisConnectionFactory factory = getConnectionFactory();
-        return Flux.usingWhen(Mono.fromSupplier(factory::getReactiveConnection), action::doInRedis, ReactiveRedisConnection::closeLater);
+        return Flux.usingWhen(Mono.fromSupplier(factory::getReactiveConnection), action::doInRedis, ReactiveRedisConnection::closeLater)
+                .doOnError(throwable -> log.error("Redis execute exception: {}", throwable.getMessage()));
     }
 }

@@ -23,6 +23,8 @@ import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
 import org.dromara.soul.plugin.api.context.SoulContextBuilder;
+import org.dromara.soul.plugin.api.context.SoulContextDecorator;
+import org.dromara.soul.plugin.global.fixture.FixtureSoulContextDecorator;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,6 +37,8 @@ import org.springframework.web.server.ServerWebExchange;
 
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -61,7 +65,9 @@ public final class GlobalPluginTest {
                 .remoteAddress(new InetSocketAddress(8091))
                 .header(UPGRADE, "Upgrade")
                 .build());
-        SoulContextBuilder builder = new DefaultSoulContextBuilder();
+        Map<String, SoulContextDecorator> decoratorMap = new HashMap<>();
+        decoratorMap.put("http", new FixtureSoulContextDecorator());
+        SoulContextBuilder builder = new DefaultSoulContextBuilder(decoratorMap);
         this.globalPlugin = new GlobalPlugin(builder);
         this.chain = mock(SoulPluginChain.class);
     }

@@ -17,39 +17,31 @@
 
 package org.dromara.soul.register.server.api;
 
-import org.dromara.soul.register.common.config.SoulRegisterCenterConfiguration;
-import org.dromara.soul.register.server.api.listener.DataChangedEventListener;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
+import org.dromara.soul.spi.SPI;
 
 /**
  * Soul client register repository.
  */
+@SPI
 public interface SoulServerRegisterRepository {
-    
-    /**
-     * Path separator.
-     */
-    String PATH_SEPARATOR = "/";
-    
-    /**
-     * Dot separator.
-     */
-    String DOT_SEPARATOR = ".";
     
     /**
      * Init.
      *
      * @param config the config
      */
-    default void init(SoulRegisterCenterConfiguration config) {
+    default void init(SoulRegisterCenterConfig config) {
     }
     
     /**
-     * Watch key or path of governance server.
+     * Init.
      *
-     * @param key key of data
-     * @param listener data changed event listener
+     * @param publisher the publisher
+     * @param config the config
      */
-    void watch(String key, DataChangedEventListener listener);
+    default void init(SoulServerRegisterPublisher publisher, SoulRegisterCenterConfig config) {
+    }
     
     /**
      * Close.

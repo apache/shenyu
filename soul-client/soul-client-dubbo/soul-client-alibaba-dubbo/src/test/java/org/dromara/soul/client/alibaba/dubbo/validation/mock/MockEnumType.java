@@ -23,5 +23,9 @@ package org.dromara.soul.client.alibaba.dubbo.validation.mock;
  * @author David Liu
  */
 public enum MockEnumType {
-    MEMBER;
+    
+    /**
+     * Member mock enum type.
+     */
+    MEMBER
 }

@@ -20,7 +20,6 @@ package org.dromara.soul.spring.boot.starter.plugin.sofa;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
-import org.dromara.soul.plugin.sofa.param.BodyParamPlugin;
 import org.dromara.soul.plugin.sofa.response.SofaResponsePlugin;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
 import org.junit.Test;
@@ -46,7 +45,6 @@ public class SofaPluginConfigurationTest {
             .withPropertyValues("debug=true")
             .run(
                 context -> {
-                    assertThat(context).hasSingleBean(BodyParamPlugin.class);
                     assertThat(context).hasSingleBean(SofaResponsePlugin.class);
                     assertThat(context).hasSingleBean(PluginDataHandler.class);
                     assertThat(context).hasSingleBean(MetaDataSubscriber.class);

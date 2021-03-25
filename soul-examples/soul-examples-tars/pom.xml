@@ -42,13 +42,20 @@
             <groupId>org.dromara</groupId>
             <artifactId>soul-spring-boot-starter-client-tars</artifactId>
             <version>${soul.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>guava</artifactId>
-                    <groupId>com.google.guava</groupId>
-                </exclusion>
-            </exclusions>
+<!--            <exclusions>-->
+<!--                <exclusion>-->
+<!--                    <artifactId>guava</artifactId>-->
+<!--                    <groupId>com.google.guava</groupId>-->
+<!--                </exclusion>-->
+<!--            </exclusions>-->
         </dependency>
+
+        <!--soul consul register center -->
+        <!--<dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-consul-discovery</artifactId>
+            <version>2.2.6.RELEASE</version>
+        </dependency>-->
 
         <dependency>
             <groupId>com.tencent.tars</groupId>

@@ -57,6 +57,11 @@ public final class AppAuthDO extends BaseDO {
      */
     private Boolean enabled;
 
+    /**
+     * whether open authPath.
+     */
+    private Boolean open;
+
     private String userId;
 
     private String phone;
@@ -75,6 +80,7 @@ public final class AppAuthDO extends BaseDO {
             AppAuthDO appAuthDO = AppAuthDO.builder()
                     .appKey(item.getAppKey())
                     .appSecret(item.getAppSecret())
+                    .open(item.getOpen())
                     .enabled(item.getEnabled())
                     .dateUpdated(currentTime)
                     .build();
@@ -104,6 +110,7 @@ public final class AppAuthDO extends BaseDO {
                     .extInfo(item.getExtInfo())
                     .appKey(SignUtils.getInstance().generateKey())
                     .appSecret(SignUtils.getInstance().generateKey())
+                    .open(item.getOpen())
                     .enabled(true)
                     .dateCreated(currentTime)
                     .dateUpdated(currentTime)

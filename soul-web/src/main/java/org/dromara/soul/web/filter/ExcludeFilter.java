@@ -50,8 +50,7 @@ public class ExcludeFilter implements WebFilter {
     public Mono<Void> filter(final ServerWebExchange exchange, final WebFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
-        Set<String> excludedPaths = Collections.unmodifiableSet(new HashSet<>(
-                excludePathProperties.getPaths()));
+        Set<String> excludedPaths = Collections.unmodifiableSet(new HashSet<>(excludePathProperties.getPaths()));
         boolean match = excludedPaths.stream().anyMatch(url -> reg(url, path));
         if (match) {
             ServerHttpResponse response = exchange.getResponse();

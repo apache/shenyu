@@ -25,8 +25,8 @@ import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
 import org.dromara.soul.plugin.api.result.SoulResultEnum;
-import org.dromara.soul.plugin.base.utils.SoulResultWrap;
-import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
+import org.dromara.soul.plugin.api.result.SoulResultWrap;
+import org.dromara.soul.plugin.api.utils.WebFluxResultUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 

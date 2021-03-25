@@ -31,8 +31,8 @@ import org.dromara.soul.plugin.api.result.SoulResultEnum;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
 import org.dromara.soul.plugin.api.context.SoulContext;
 import org.dromara.soul.plugin.base.utils.FallbackUtils;
-import org.dromara.soul.plugin.base.utils.SoulResultWrap;
-import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
+import org.dromara.soul.plugin.api.result.SoulResultWrap;
+import org.dromara.soul.plugin.api.utils.WebFluxResultUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -60,7 +60,7 @@ public class ApacheDubboPlugin extends AbstractSoulPlugin {
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
-        String body = exchange.getAttribute(Constants.DUBBO_PARAMS);
+        String param = exchange.getAttribute(Constants.PARAM_TRANSFORM);
         SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
         MetaData metaData = exchange.getAttribute(Constants.META_DATA);
@@ -71,12 +71,12 @@ public class ApacheDubboPlugin extends AbstractSoulPlugin {
             Object error = SoulResultWrap.error(SoulResultEnum.META_DATA_ERROR.getCode(), SoulResultEnum.META_DATA_ERROR.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
-        if (StringUtils.isNoneBlank(metaData.getParameterTypes()) && StringUtils.isBlank(body)) {
+        if (StringUtils.isNoneBlank(metaData.getParameterTypes()) && StringUtils.isBlank(param)) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             Object error = SoulResultWrap.error(SoulResultEnum.DUBBO_HAVE_BODY_PARAM.getCode(), SoulResultEnum.DUBBO_HAVE_BODY_PARAM.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
-        final Mono<Object> result = dubboProxyService.genericInvoker(body, metaData, exchange);
+        final Mono<Object> result = dubboProxyService.genericInvoker(param, metaData, exchange);
         return result.then(chain.execute(exchange));
     }
 

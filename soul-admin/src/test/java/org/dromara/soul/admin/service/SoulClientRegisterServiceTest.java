@@ -17,10 +17,7 @@
 
 package org.dromara.soul.admin.service;
 
-import org.dromara.soul.admin.dto.MetaDataDTO;
 import org.dromara.soul.admin.dto.PluginDTO;
-import org.dromara.soul.admin.dto.SpringCloudRegisterDTO;
-import org.dromara.soul.admin.dto.SpringMvcRegisterDTO;
 import org.dromara.soul.admin.entity.MetaDataDO;
 import org.dromara.soul.admin.entity.PluginDO;
 import org.dromara.soul.admin.entity.RuleDO;
@@ -34,6 +31,7 @@ import org.dromara.soul.admin.service.impl.UpstreamCheckService;
 import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
 import org.h2.engine.Role;
 import org.junit.Before;
 import org.junit.Test;
@@ -100,7 +98,7 @@ public final class SoulClientRegisterServiceTest {
         given(selectorMapper.updateSelective(any())).willReturn(1);
         RuleDO ruleDO = buildRuleDO();
         given(ruleMapper.findByName(any())).willReturn(ruleDO);
-        SpringMvcRegisterDTO dto = buildSpringMvcRegisterDTO();
+        MetaDataRegisterDTO dto = buildSpringMvcRegisterDTO();
         assertEquals(SoulResultMessage.SUCCESS, soulClientRegisterService.registerSpringMvc(dto));
     }
 
@@ -114,7 +112,7 @@ public final class SoulClientRegisterServiceTest {
         given(selectorService.buildByName(any())).willReturn(selectorData);
         given(selectorMapper.updateSelective(any())).willReturn(1);
         given(ruleMapper.findByName(any())).willReturn(null);
-        SpringMvcRegisterDTO dto = buildSpringMvcRegisterDTO();
+        MetaDataRegisterDTO dto = buildSpringMvcRegisterDTO();
         assertEquals(SoulResultMessage.SUCCESS, soulClientRegisterService.registerSpringMvc(dto));
     }
 
@@ -128,7 +126,7 @@ public final class SoulClientRegisterServiceTest {
         given(selectorMapper.updateSelective(any())).willReturn(1);
         RuleDO ruleDO = buildRuleDO();
         given(ruleMapper.findByName(any())).willReturn(ruleDO);
-        SpringMvcRegisterDTO dto = buildSpringMvcRegisterDTO();
+        MetaDataRegisterDTO dto = buildSpringMvcRegisterDTO();
         assertEquals(SoulResultMessage.SUCCESS, soulClientRegisterService.registerSpringMvc(dto));
     }
 
@@ -145,7 +143,7 @@ public final class SoulClientRegisterServiceTest {
         final PluginDTO pluginDTO = buildPluginDTO();
         final PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         given(pluginMapper.selectByName(any())).willReturn(pluginDO);
-        SpringMvcRegisterDTO dto = buildSpringMvcRegisterDTO();
+        MetaDataRegisterDTO dto = buildSpringMvcRegisterDTO();
         assertEquals(SoulResultMessage.SUCCESS, soulClientRegisterService.registerSpringMvc(dto));
 
         dto = buildSpringMvcRegisterDTO(RpcTypeEnum.DUBBO);
@@ -174,7 +172,7 @@ public final class SoulClientRegisterServiceTest {
         given(selectorMapper.updateSelective(any())).willReturn(1);
         RuleDO ruleDO = buildRuleDO();
         given(ruleMapper.findByName(any())).willReturn(ruleDO);
-        SpringMvcRegisterDTO dto = buildSpringMvcRegisterDTO();
+        MetaDataRegisterDTO dto = buildSpringMvcRegisterDTO();
         assertEquals(SoulResultMessage.SUCCESS, soulClientRegisterService.registerSpringMvc(dto));
     }
 
@@ -191,7 +189,7 @@ public final class SoulClientRegisterServiceTest {
         given(selectorMapper.updateSelective(any())).willReturn(1);
         RuleDO ruleDO = buildRuleDO();
         given(ruleMapper.findByName(any())).willReturn(ruleDO);
-        SpringMvcRegisterDTO dto = buildSpringMvcRegisterDTO();
+        MetaDataRegisterDTO dto = buildSpringMvcRegisterDTO();
         assertEquals(SoulResultMessage.SUCCESS, soulClientRegisterService.registerSpringMvc(dto));
     }
 
@@ -212,7 +210,7 @@ public final class SoulClientRegisterServiceTest {
         given(selectorService.findByName(any())).willReturn(selectorDO);
         RuleDO ruleDO = buildRuleDO();
         given(ruleMapper.findByName(any())).willReturn(ruleDO);
-        SpringCloudRegisterDTO dto = buildCloudRegisterDTO();
+        MetaDataRegisterDTO dto = buildCloudRegisterDTO();
         assertEquals(SoulResultMessage.SUCCESS, soulClientRegisterService.registerSpringCloud(dto));
     }
 
@@ -223,7 +221,7 @@ public final class SoulClientRegisterServiceTest {
         given(selectorService.findByName(any())).willReturn(selectorDO);
         RuleDO ruleDO = buildRuleDO();
         given(ruleMapper.findByName(any())).willReturn(ruleDO);
-        SpringCloudRegisterDTO dto = buildCloudRegisterDTO();
+        MetaDataRegisterDTO dto = buildCloudRegisterDTO();
         assertEquals(SoulResultMessage.SUCCESS, soulClientRegisterService.registerSpringCloud(dto));
     }
 
@@ -234,7 +232,7 @@ public final class SoulClientRegisterServiceTest {
         SelectorDO selectorDO = buildSelectorDO();
         given(selectorService.findByName(any())).willReturn(selectorDO);
         given(ruleMapper.findByName(any())).willReturn(null);
-        SpringCloudRegisterDTO dto = buildCloudRegisterDTO();
+        MetaDataRegisterDTO dto = buildCloudRegisterDTO();
         assertEquals(SoulResultMessage.SUCCESS, soulClientRegisterService.registerSpringCloud(dto));
     }
 
@@ -248,8 +246,8 @@ public final class SoulClientRegisterServiceTest {
         final PluginDTO pluginDTO = buildPluginDTO();
         final PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         given(pluginMapper.selectByName(any())).willReturn(pluginDO);
-
-        SpringCloudRegisterDTO dto = buildCloudRegisterDTO();
+    
+        MetaDataRegisterDTO dto = buildCloudRegisterDTO();
         assertEquals(SoulResultMessage.SUCCESS, soulClientRegisterService.registerSpringCloud(dto));
 
         dto = buildCloudRegisterDTO(RpcTypeEnum.DUBBO);
@@ -274,7 +272,7 @@ public final class SoulClientRegisterServiceTest {
         given(selectorService.findByName(any())).willReturn(selectorDO);
         RuleDO ruleDO = buildRuleDO();
         given(ruleMapper.findByName(any())).willReturn(ruleDO);
-        MetaDataDTO dto = buildMetaDataD();
+        MetaDataRegisterDTO dto = buildMetaDataDTO();
         assertEquals(SoulResultMessage.SUCCESS, soulClientRegisterService.registerDubbo(dto));
     }
 
@@ -286,7 +284,7 @@ public final class SoulClientRegisterServiceTest {
         given(selectorService.findByName(any())).willReturn(selectorDO);
         RuleDO ruleDO = buildRuleDO();
         given(ruleMapper.findByName(any())).willReturn(ruleDO);
-        MetaDataDTO dto = buildMetaDataD();
+        MetaDataRegisterDTO dto = buildMetaDataDTO();
         assertEquals(SoulResultMessage.SUCCESS, soulClientRegisterService.registerDubbo(dto));
     }
 
@@ -301,7 +299,7 @@ public final class SoulClientRegisterServiceTest {
         final PluginDTO pluginDTO = buildPluginDTO();
         final PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         given(pluginMapper.selectByName(any())).willReturn(pluginDO);
-        MetaDataDTO dto = buildMetaDataD();
+        MetaDataRegisterDTO dto = buildMetaDataDTO();
         assertEquals(SoulResultMessage.SUCCESS, soulClientRegisterService.registerDubbo(dto));
     }
 
@@ -315,90 +313,90 @@ public final class SoulClientRegisterServiceTest {
         final PluginDTO pluginDTO = buildPluginDTO();
         final PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         given(pluginMapper.selectByName(any())).willReturn(pluginDO);
-        MetaDataDTO dto = buildMetaDataD();
+        MetaDataRegisterDTO dto = buildMetaDataDTO();
         assertEquals(SoulResultMessage.SUCCESS, soulClientRegisterService.registerDubbo(dto));
     }
 
     @Test
     public void testRegisterSofaAlreadyExist() {
-        final MetaDataDTO dto = buildMetaDataD();
         MetaDataDO metaDataDO = buildMetaDataDO();
         metaDataDO.setServiceName("serviceName33");
         given(metaDataMapper.findByPath(any())).willReturn(metaDataDO);
-        final PluginDTO pluginDTO = buildPluginDTO();
-        final PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
+        PluginDTO pluginDTO = buildPluginDTO();
+        PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         given(pluginMapper.selectByName(any())).willReturn(pluginDO);
+        MetaDataRegisterDTO dto = buildMetaDataDTO();
         assertEquals("you path already exist!", soulClientRegisterService.registerSofa(dto));
     }
 
     @Test
     public void testRegisterSofaNotExistMetaData() {
-        final MetaDataDTO dto = buildMetaDataD();
         MetaDataDO metaDataDO = buildMetaDataDO();
         given(metaDataMapper.findByPath(any())).willReturn(metaDataDO);
         given(metaDataMapper.findByServiceNameAndMethod(any(), any())).willReturn(null);
-        final PluginDTO pluginDTO = buildPluginDTO();
-        final PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
+        PluginDTO pluginDTO = buildPluginDTO();
+        PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         given(pluginMapper.selectByName(any())).willReturn(pluginDO);
+        MetaDataRegisterDTO dto = buildMetaDataDTO();
         assertEquals("success", soulClientRegisterService.registerSofa(dto));
     }
 
     @Test
     public void testRegisterSofaWithExistMetaData() {
-        final MetaDataDTO dto = buildMetaDataD();
-        final MetaDataDO metaDataDO = buildMetaDataDO();
+        MetaDataDO metaDataDO = buildMetaDataDO();
         given(metaDataMapper.findByPath(any())).willReturn(metaDataDO);
         given(metaDataMapper.findByServiceNameAndMethod(any(), any())).willReturn(metaDataDO);
-        final PluginDTO pluginDTO = buildPluginDTO();
-        final PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
+        PluginDTO pluginDTO = buildPluginDTO();
+        PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         given(pluginMapper.selectByName(any())).willReturn(pluginDO);
+        MetaDataRegisterDTO dto = buildMetaDataDTO();
         assertEquals("success", soulClientRegisterService.registerSofa(dto));
     }
 
     @Test
     public void testRegisterTarsAlreadyExist() {
-        final MetaDataDTO dto = buildMetaDataD();
         MetaDataDO metaDataDO = buildMetaDataDO();
         metaDataDO.setServiceName("serviceName33");
         given(metaDataMapper.findByPath(any())).willReturn(metaDataDO);
-        final PluginDTO pluginDTO = buildPluginDTO();
-        final PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
+        PluginDTO pluginDTO = buildPluginDTO();
+        PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         given(pluginMapper.selectByName(any())).willReturn(pluginDO);
+        MetaDataRegisterDTO dto = buildMetaDataDTO();
         assertEquals("you path already exist!", soulClientRegisterService.registerTars(dto));
     }
 
     @Test
     public void testRegisterTarsNotExistMetaData() {
-        final MetaDataDTO dto = buildMetaDataD();
         MetaDataDO metaDataDO = buildMetaDataDO();
         given(metaDataMapper.findByPath(any())).willReturn(metaDataDO);
         given(metaDataMapper.findByServiceNameAndMethod(any(), any())).willReturn(null);
-        final PluginDTO pluginDTO = buildPluginDTO();
-        final PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
+        PluginDTO pluginDTO = buildPluginDTO();
+        PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         given(pluginMapper.selectByName(any())).willReturn(pluginDO);
+        MetaDataRegisterDTO dto = buildMetaDataDTO();
         assertEquals("success", soulClientRegisterService.registerTars(dto));
     }
 
     @Test
     public void testRegisterTarsWithExistMetaData() {
-        final MetaDataDTO dto = buildMetaDataD();
-        final MetaDataDO metaDataDO = buildMetaDataDO();
+        MetaDataDO metaDataDO = buildMetaDataDO();
         given(metaDataMapper.findByPath(any())).willReturn(metaDataDO);
         given(metaDataMapper.findByServiceNameAndMethod(any(), any())).willReturn(metaDataDO);
-        final PluginDTO pluginDTO = buildPluginDTO();
-        final PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
+        PluginDTO pluginDTO = buildPluginDTO();
+        PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         given(pluginMapper.selectByName(any())).willReturn(pluginDO);
+        MetaDataRegisterDTO dto = buildMetaDataDTO();
         assertEquals("success", soulClientRegisterService.registerTars(dto));
     }
 
-    private SpringMvcRegisterDTO buildSpringMvcRegisterDTO() {
+    private MetaDataRegisterDTO buildSpringMvcRegisterDTO() {
         return this.buildSpringMvcRegisterDTO(RpcTypeEnum.HTTP);
     }
 
-    private SpringMvcRegisterDTO buildSpringMvcRegisterDTO(final RpcTypeEnum rpcTypeEnum) {
-        SpringMvcRegisterDTO springMvcRegisterDTO = new SpringMvcRegisterDTO();
+    private MetaDataRegisterDTO buildSpringMvcRegisterDTO(final RpcTypeEnum rpcTypeEnum) {
+        MetaDataRegisterDTO springMvcRegisterDTO = new MetaDataRegisterDTO();
         springMvcRegisterDTO.setAppName("appName1");
-        springMvcRegisterDTO.setContext("content1");
+        springMvcRegisterDTO.setContextPath("content1");
         springMvcRegisterDTO.setPath("path1");
         springMvcRegisterDTO.setPathDesc("pathDesc1");
         if (Objects.isNull(rpcTypeEnum)) {
@@ -441,7 +439,7 @@ public final class SoulClientRegisterServiceTest {
                 .type(1)
                 .sort(1)
                 .enabled(true)
-                .loged(true)
+                .logged(true)
                 .continued(false)
                 .handle("handle")
                 .build();
@@ -459,14 +457,14 @@ public final class SoulClientRegisterServiceTest {
                 .build();
     }
 
-    private SpringCloudRegisterDTO buildCloudRegisterDTO() {
+    private MetaDataRegisterDTO buildCloudRegisterDTO() {
         return this.buildCloudRegisterDTO(null);
     }
 
-    private SpringCloudRegisterDTO buildCloudRegisterDTO(final RpcTypeEnum rpcTypeEnum) {
-        SpringCloudRegisterDTO springCloudRegisterDTO = new SpringCloudRegisterDTO();
+    private MetaDataRegisterDTO buildCloudRegisterDTO(final RpcTypeEnum rpcTypeEnum) {
+        MetaDataRegisterDTO springCloudRegisterDTO = new MetaDataRegisterDTO();
         springCloudRegisterDTO.setAppName("appName2");
-        springCloudRegisterDTO.setContext("content2");
+        springCloudRegisterDTO.setContextPath("content2");
         springCloudRegisterDTO.setPath("path2");
         springCloudRegisterDTO.setPathDesc("pathDesc2");
         if (Objects.isNull(rpcTypeEnum)) {
@@ -479,9 +477,8 @@ public final class SoulClientRegisterServiceTest {
         return springCloudRegisterDTO;
     }
 
-    private MetaDataDTO buildMetaDataD() {
-        MetaDataDTO metaDataDTO = new MetaDataDTO();
-        metaDataDTO.setId("6");
+    private MetaDataRegisterDTO buildMetaDataDTO() {
+        MetaDataRegisterDTO metaDataDTO = new MetaDataRegisterDTO();
         metaDataDTO.setAppName("appName3");
         metaDataDTO.setContextPath("content3");
         metaDataDTO.setPath("path3/*");

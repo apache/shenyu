@@ -18,7 +18,7 @@
 package org.dromara.soul.web.filter;
 
 import org.dromara.soul.plugin.api.result.SoulResult;
-import org.dromara.soul.plugin.base.utils.SpringBeanUtils;
+import org.dromara.soul.plugin.api.utils.SpringBeanUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.context.support.GenericApplicationContext;
@@ -68,7 +68,7 @@ public class FileSizeFilterTest {
         WebFilterChain webFilterChain = mock(WebFilterChain.class);
         when(webFilterChain.filter(any())).thenReturn(Mono.empty());
 
-        FileSizeFilter fileSizeFilter = new FileSizeFilter(0);
+        FileSizeFilter fileSizeFilter = new FileSizeFilter(10);
         Mono<Void> voidMono = fileSizeFilter.filter(webExchange, webFilterChain);
         StepVerifier.create(voidMono).expectSubscription().verifyComplete();
 
