@@ -32,7 +32,6 @@
             <groupId>com.coreos</groupId>
             <artifactId>jetcd-core</artifactId>
             <version>0.0.2</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.dromara</groupId>
@@ -44,7 +43,6 @@
             <groupId>org.dromara</groupId>
             <artifactId>soul-common</artifactId>
             <version>${project.version}</version>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>

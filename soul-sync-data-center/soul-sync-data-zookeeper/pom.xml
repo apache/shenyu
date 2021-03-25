@@ -42,7 +42,6 @@
                     <groupId>org.slf4j</groupId>
                 </exclusion>
             </exclusions>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>

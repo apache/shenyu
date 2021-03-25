@@ -465,7 +465,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     }
 
     private SpringCloudSelectorHandle buildSpringCloudSelectorHandle(final String serviceId) {
-        return SpringCloudSelectorHandle.builder() .serviceId(serviceId) .build();
+        return SpringCloudSelectorHandle.builder().serviceId(serviceId).build();
     }
 
     private String getPluginId(final String pluginName) {
