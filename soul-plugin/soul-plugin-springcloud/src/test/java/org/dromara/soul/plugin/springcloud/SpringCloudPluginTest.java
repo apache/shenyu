@@ -22,7 +22,6 @@ import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.rule.impl.SpringCloudRuleHandle;
-import org.dromara.soul.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
@@ -36,7 +35,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -54,7 +52,6 @@ import java.net.URISyntaxException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -95,7 +92,6 @@ public class SpringCloudPluginTest {
         when(soulContext.getRpcType()).thenReturn(RpcTypeEnum.SPRING_CLOUD.getName());
         exchange.getAttributes().put(Constants.CONTEXT, soulContext);
         chain = mock(SoulPluginChain.class);
-        when(this.chain.execute(exchange)).thenReturn(Mono.empty());
         selector = mock(SelectorData.class);
         rule = mock(RuleData.class);
         springCloudPlugin = new SpringCloudPlugin(loadBalancerClient);
@@ -150,7 +146,6 @@ public class SpringCloudPluginTest {
 
     @Test
     public void testSpringCloudPluginNotConfigServiceId() {
-        when(selector.getHandle()).thenReturn("{}");
         when(rule.getHandle()).thenReturn("{}");
         Mono<Void> execute = springCloudPlugin.doExecute(exchange, chain, selector, rule);
         StepVerifier.create(execute).expectSubscription().verifyComplete();
@@ -158,23 +153,15 @@ public class SpringCloudPluginTest {
 
     @Test
     public void testSpringCloudPluginErrorServiceId() {
-        when(selector.getHandle()).thenReturn("{\"serviceId\":\"service1\"}");
         when(rule.getHandle()).thenReturn("{\"path\":\"service/\"}");
-        when(loadBalancerClient.choose(any())).thenReturn(null);
         Mono<Void> execute = springCloudPlugin.doExecute(exchange, chain, selector, rule);
         StepVerifier.create(execute).expectSubscription().verifyComplete();
     }
 
     @Test
     public void testSpringCloudPluginNormal() throws URISyntaxException {
-        when(soulContext.getRealUrl()).thenReturn("http://127.0.0.1");
-        when(soulContext.getHttpMethod()).thenReturn(HttpMethod.GET.name());
         exchange.getAttributes().put(Constants.CONTEXT, soulContext);
-        when(selector.getHandle()).thenReturn("{\"serviceId\":\"service1\"}");
         when(rule.getHandle()).thenReturn("{\"path\":\"service1/\"}");
-        when(loadBalancerClient.choose(any()))
-                .thenReturn(new DefaultServiceInstance("instanceId", "service1", "127.0.0.1", 8080, true));
-        when(loadBalancerClient.reconstructURI(any(), any())).thenReturn(new URI("https://localhost:8080/service1/"));
         Mono<Void> execute = springCloudPlugin.doExecute(exchange, chain, selector, rule);
         StepVerifier.create(execute).expectSubscription().verifyComplete();
     }
