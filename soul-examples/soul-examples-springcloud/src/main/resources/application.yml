@@ -34,14 +34,14 @@ eureka:
     serviceUrl:
       defaultZone:  http://localhost:8761/eureka/
   instance:
-    prefer-ip-address: true    
+    prefer-ip-address: true
 
 soul:
   client:
     registerType: http #zookeeper #etcd #nacos #consul
     serverLists: http://localhost:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
     props:
-      contextPath: /springcloud
+      contextPath: /springCloud-test # this value shoule be equal to `spring.application.name`
       port: 8884
       nacosNameSpace: SoulRegisterCenter
 
