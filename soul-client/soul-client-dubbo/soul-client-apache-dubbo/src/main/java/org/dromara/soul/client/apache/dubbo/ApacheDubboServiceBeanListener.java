@@ -18,8 +18,8 @@
 package org.dromara.soul.client.apache.dubbo;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.common.Constants;
-import org.apache.dubbo.common.utils.StringUtils;
 import org.apache.dubbo.config.spring.ServiceBean;
 import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
 import org.dromara.soul.client.dubbo.common.annotation.SoulDubboClient;
