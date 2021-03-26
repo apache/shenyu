@@ -51,6 +51,16 @@ public class HttpClientProperties {
     private Duration responseTimeout;
 
     /**
+     * readTimeout, the default is 3s.
+     */
+    private Integer readTimeout = 3000;
+
+    /**
+     * writeTimeout, the default is 3s.
+     */
+    private Integer writeTimeout = 3000;
+
+    /**
      * Pool configuration for Netty HttpClient.
      */
     private Pool pool = new Pool();
