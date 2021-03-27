@@ -75,7 +75,8 @@ public abstract class AbstractReadyPicker extends AbstractPicker implements Pick
     public List<SubChannelCopy> getSubchannels() {
         return list.stream().filter(r -> {
             final ConnectivityState state = r.getState().getState();
-            return state == ConnectivityState.READY;
+            final boolean status = Boolean.valueOf(r.getStatus());
+            return state == ConnectivityState.READY && status;
         }).collect(Collectors.toList());
     }
 

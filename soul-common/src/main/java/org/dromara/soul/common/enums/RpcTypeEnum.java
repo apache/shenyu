@@ -88,7 +88,7 @@ public enum RpcTypeEnum {
         return Arrays.stream(RpcTypeEnum.values())
                 .filter(e -> e.support).collect(Collectors.toList());
     }
-    
+
     /**
      * acquire operator support URI RPC type.
      *
@@ -97,7 +97,7 @@ public enum RpcTypeEnum {
     public static List<RpcTypeEnum> acquireSupportURIs() {
         return Arrays.asList(RpcTypeEnum.GRPC, RpcTypeEnum.HTTP, RpcTypeEnum.TARS);
     }
-    
+
     /**
      * acquire operator support Metadata RPC type.
      *
@@ -106,13 +106,13 @@ public enum RpcTypeEnum {
     public static List<RpcTypeEnum> acquireSupportMetadatas() {
         return Arrays.asList(RpcTypeEnum.DUBBO, RpcTypeEnum.GRPC, RpcTypeEnum.HTTP, RpcTypeEnum.SPRING_CLOUD, RpcTypeEnum.SOFA, RpcTypeEnum.TARS);
     }
+
     /**
      * acquireByName.
      *
      * @param name this is rpc type
      * @return RpcTypeEnum rpc type enum
      */
-    
     public static RpcTypeEnum acquireByName(final String name) {
         return Arrays.stream(RpcTypeEnum.values())
                 .filter(e -> e.support && e.name.equals(name)).findFirst()

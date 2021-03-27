@@ -53,6 +53,6 @@ public class SoulResolverHelper {
         if (metadata == null) {
             metadata = Collections.emptyMap();
         }
-        return SubChannels.createAttributes(instance.getWeight());
+        return SubChannels.createAttributes(instance.getWeight(), instance.getStatus());
     }
 }

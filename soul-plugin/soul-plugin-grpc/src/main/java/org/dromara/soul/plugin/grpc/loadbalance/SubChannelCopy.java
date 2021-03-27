@@ -34,6 +34,8 @@ public class SubChannelCopy {
 
     private final int weight;
 
+    private final String status;
+
     private final LoadBalancer.Subchannel channel;
 
     private final EquivalentAddressGroup addressGroup;
@@ -45,5 +47,6 @@ public class SubChannelCopy {
         this.addressGroup = channel.getAddresses();
         this.weight = SubChannels.getWeight(channel);
         this.state = SubChannels.getStateInfo(channel);
+        this.status = SubChannels.getStatus(channel);
     }
 }
