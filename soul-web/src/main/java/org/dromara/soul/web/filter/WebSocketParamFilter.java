@@ -21,8 +21,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.plugin.api.result.SoulResultEnum;
-import org.dromara.soul.plugin.base.utils.SoulResultWrap;
-import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
+import org.dromara.soul.plugin.api.result.SoulResultWrap;
+import org.dromara.soul.plugin.api.utils.WebFluxResultUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -63,5 +63,4 @@ public class WebSocketParamFilter extends AbstractWebFilter {
                 && !StringUtils.isBlank(queryParams.getFirst(Constants.METHOD))
                 && !StringUtils.isBlank(queryParams.getFirst(Constants.RPC_TYPE));
     }
-
 }

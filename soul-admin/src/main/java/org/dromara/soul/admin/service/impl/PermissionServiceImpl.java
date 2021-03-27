@@ -26,6 +26,7 @@ import org.dromara.soul.admin.mapper.PermissionMapper;
 import org.dromara.soul.admin.mapper.ResourceMapper;
 import org.dromara.soul.admin.mapper.UserRoleMapper;
 import org.dromara.soul.admin.service.PermissionService;
+import org.dromara.soul.admin.service.ResourceService;
 import org.dromara.soul.admin.utils.JwtUtils;
 import org.dromara.soul.admin.vo.PermissionMenuVO;
 import org.dromara.soul.admin.vo.PermissionMenuVO.AuthPerm;
@@ -33,8 +34,6 @@ import org.dromara.soul.admin.vo.PermissionMenuVO.MenuInfo;
 import org.dromara.soul.admin.vo.ResourceVO;
 import org.dromara.soul.common.constant.ResourceTypeConstants;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
-import reactor.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,12 +59,16 @@ public class PermissionServiceImpl implements PermissionService {
 
     private final ResourceMapper resourceMapper;
 
+    private final ResourceService resourceService;
+
     public PermissionServiceImpl(final DashboardUserMapper dashboardUserMapper, final UserRoleMapper userRoleMapper,
-                                 final PermissionMapper permissionMapper, final ResourceMapper resourceMapper) {
+                                 final PermissionMapper permissionMapper, final ResourceMapper resourceMapper,
+                                 final ResourceService resourceService) {
         this.dashboardUserMapper = dashboardUserMapper;
         this.userRoleMapper = userRoleMapper;
         this.permissionMapper = permissionMapper;
         this.resourceMapper = resourceMapper;
+        this.resourceService = resourceService;
     }
 
     /**
@@ -80,7 +83,7 @@ public class PermissionServiceImpl implements PermissionService {
         List<ResourceVO> resourceVOList = getResourceListByUserName(userName);
         if (CollectionUtils.isNotEmpty(resourceVOList)) {
             List<MenuInfo> menuInfoList = new ArrayList<>();
-            getMenuInfo(menuInfoList, resourceVOList, null);
+            resourceService.getMenuInfo(menuInfoList, resourceVOList, null);
             return new PermissionMenuVO(menuInfoList, getAuthPerm(resourceVOList), getAllAuthPerms());
         }
         return null;
@@ -121,34 +124,6 @@ public class PermissionServiceImpl implements PermissionService {
                     .collect(Collectors.toList());
         }
         return Collections.emptyList();
-    }
-
-    /**
-     * get Menu Info.
-     *
-     * @param menuInfoList {@linkplain List} menu info.
-     * @param metaList {@linkplain List} resource list
-     * @param menuInfo {@linkplain MenuInfo}
-     */
-    private void getMenuInfo(final List<MenuInfo> menuInfoList, final List<ResourceVO> metaList, final MenuInfo menuInfo) {
-        for (ResourceVO resourceVO : metaList) {
-            String parentId = resourceVO.getParentId();
-            MenuInfo tempMenuInfo = MenuInfo.buildMenuInfo(resourceVO);
-            if (ObjectUtils.isEmpty(tempMenuInfo)) {
-                continue;
-            }
-            if (ObjectUtils.isEmpty(menuInfo) && StringUtils.isEmpty(parentId)) {
-                menuInfoList.add(tempMenuInfo);
-                if (resourceVO.getIsLeaf().equals(Boolean.FALSE)) {
-                    getMenuInfo(menuInfoList, metaList, tempMenuInfo);
-                }
-            } else if (!ObjectUtils.isEmpty(menuInfo) && !StringUtils.isEmpty(parentId) && parentId.equals(menuInfo.getId())) {
-                menuInfo.getChildren().add(tempMenuInfo);
-                if (resourceVO.getIsLeaf().equals(Boolean.FALSE)) {
-                    getMenuInfo(menuInfoList, metaList, tempMenuInfo);
-                }
-            }
-        }
     }
 
     /**

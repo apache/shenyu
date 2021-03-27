@@ -20,6 +20,7 @@ package org.dromara.soul.plugin.base.utils;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.plugin.api.result.DefaultSoulResult;
 import org.dromara.soul.plugin.api.result.SoulResult;
+import org.dromara.soul.plugin.api.utils.SpringBeanUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

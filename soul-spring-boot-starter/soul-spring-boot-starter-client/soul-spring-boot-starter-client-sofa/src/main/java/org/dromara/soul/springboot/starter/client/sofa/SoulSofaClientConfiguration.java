@@ -19,8 +19,10 @@
 package org.dromara.soul.springboot.starter.client.sofa;
 
 import org.dromara.soul.client.sofa.SofaServiceBeanPostProcessor;
-import org.dromara.soul.client.sofa.common.config.SofaConfig;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
+import org.dromara.soul.springboot.starter.client.common.config.SoulClientCommonBeanConfiguration;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -30,26 +32,18 @@ import org.springframework.context.annotation.Configuration;
  * @author tydhot
  */
 @Configuration
+@ImportAutoConfiguration(SoulClientCommonBeanConfiguration.class)
 public class SoulSofaClientConfiguration {
     /**
      * Sofa service bean post processor sofa service bean post processor.
      *
-     * @param sofaConfig the sofa config
+     * @param registerCenterConfig the register center config
+     * @param soulClientRegisterRepository the soulClientRegisterRepository
      * @return the sofa service bean post processor
      */
     @Bean
-    public SofaServiceBeanPostProcessor sofaServiceBeanPostProcessor(final SofaConfig sofaConfig) {
-        return new SofaServiceBeanPostProcessor(sofaConfig);
+    public SofaServiceBeanPostProcessor sofaServiceBeanPostProcessor(final SoulRegisterCenterConfig registerCenterConfig, final SoulClientRegisterRepository soulClientRegisterRepository) {
+        return new SofaServiceBeanPostProcessor(registerCenterConfig, soulClientRegisterRepository);
     }
-
-    /**
-     * Sofa config sofa config.
-     *
-     * @return the sofa config
-     */
-    @Bean
-    @ConfigurationProperties(prefix = "soul.sofa")
-    public SofaConfig sofaConfig() {
-        return new SofaConfig();
-    }
+   
 }

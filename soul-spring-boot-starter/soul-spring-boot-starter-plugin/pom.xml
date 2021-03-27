@@ -20,9 +20,9 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>soul-spring-boot-starter</artifactId>
         <groupId>org.dromara</groupId>
-        <version>2.2.1</version>
+        <artifactId>soul-spring-boot-starter</artifactId>
+        <version>2.3.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>soul-spring-boot-starter-plugin</artifactId>
@@ -32,6 +32,7 @@
         <module>soul-spring-boot-starter-plugin-divide</module>
         <module>soul-spring-boot-starter-plugin-alibaba-dubbo</module>
         <module>soul-spring-boot-starter-plugin-apache-dubbo</module>
+        <module>soul-spring-boot-starter-plugin-dubbo-common</module>
         <module>soul-spring-boot-starter-plugin-global</module>
         <module>soul-spring-boot-starter-plugin-httpclient</module>
         <module>soul-spring-boot-starter-plugin-springcloud</module>
@@ -46,7 +47,7 @@
         <module>soul-spring-boot-starter-plugin-resilience4j</module>
         <module>soul-spring-boot-starter-plugin-tars</module>
         <module>soul-spring-boot-starter-plugin-context-path</module>
+        <module>soul-spring-boot-starter-plugin-grpc</module>
+        <module>soul-spring-boot-starter-plugin-redirect</module>
     </modules>
-
-
 </project>

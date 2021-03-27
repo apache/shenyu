@@ -19,6 +19,8 @@ package org.dromara.soul.admin.listener.nacos;
 
 import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.listener.Listener;
+import com.alibaba.nacos.api.exception.NacosException;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -53,6 +55,21 @@ public class NacosMockConfigService implements ConfigService {
     }
 
     @Override
+    public boolean publishConfig(final String s, final String s1, final String s2, final String s3) throws NacosException {
+        return false;
+    }
+
+    @Override
+    public boolean publishConfigCas(final String s, final String s1, final String s2, final String s3) throws NacosException {
+        return false;
+    }
+
+    @Override
+    public boolean publishConfigCas(final String s, final String s1, final String s2, final String s3, final String s4) throws NacosException {
+        return false;
+    }
+
+    @Override
     public boolean removeConfig(final String s, final String s1) {
         return false;
     }
@@ -64,5 +81,10 @@ public class NacosMockConfigService implements ConfigService {
     @Override
     public String getServerStatus() {
         return null;
+    }
+
+    @Override
+    public void shutDown() throws NacosException {
+
     }
 }

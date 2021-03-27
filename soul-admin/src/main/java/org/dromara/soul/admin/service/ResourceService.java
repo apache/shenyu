@@ -18,8 +18,10 @@
 package org.dromara.soul.admin.service;
 
 import org.dromara.soul.admin.dto.ResourceDTO;
+import org.dromara.soul.admin.entity.ResourceDO;
 import org.dromara.soul.admin.page.CommonPager;
 import org.dromara.soul.admin.query.ResourceQuery;
+import org.dromara.soul.admin.vo.PermissionMenuVO.MenuInfo;
 import org.dromara.soul.admin.vo.ResourceVO;
 
 import java.util.List;
@@ -30,6 +32,13 @@ import java.util.List;
  * @author nuo-promise
  */
 public interface ResourceService {
+
+    /**
+     * create Resource.
+     *
+     * @param resourceDO {@linkplain ResourceDO}
+     */
+    void createResource(ResourceDO resourceDO);
 
     /**
      * create or update resource.
@@ -56,10 +65,42 @@ public interface ResourceService {
     ResourceVO findById(String id);
 
     /**
+     * find by title.
+     *
+     * @param title resource title
+     * @return {@linkplain ResourceVO}
+     */
+    ResourceVO findByTitle(String title);
+
+    /**
      * find page of resource by query.
      *
      * @param resourceQuery {@linkplain ResourceQuery}
      * @return {@linkplain CommonPager}
      */
     CommonPager<ResourceVO> listByPage(ResourceQuery resourceQuery);
+
+    /**
+     * get menu tree.
+     *
+     * @return {@linkplain List}
+     */
+    List<MenuInfo> getMenuTree();
+
+    /**
+     * get button by parent id.
+     *
+     * @param id resource id
+     * @return {@linkplain List}
+     */
+    List<ResourceVO> findByParentId(String id);
+
+    /**
+     * get Menu Info.
+     *
+     * @param menuInfoList {@linkplain List} menu info.
+     * @param metaList {@linkplain List} resource list
+     * @param menuInfo {@linkplain MenuInfo}
+     */
+    void getMenuInfo(List<MenuInfo> menuInfoList, List<ResourceVO> metaList, MenuInfo menuInfo);
 }

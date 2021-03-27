@@ -22,7 +22,7 @@ package org.dromara.soul.common.constant;
  *
  * @author lw1243925457
  */
-public class NacosPathConstants {
+public final class NacosPathConstants {
 
     /**
      * Nacos config default group.

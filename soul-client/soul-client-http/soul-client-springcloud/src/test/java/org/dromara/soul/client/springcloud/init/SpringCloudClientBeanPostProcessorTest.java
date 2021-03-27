@@ -17,9 +17,10 @@
 
 package org.dromara.soul.client.springcloud.init;
 
-import org.dromara.soul.client.common.utils.RegisterUtils;
+import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
 import org.dromara.soul.client.springcloud.annotation.SoulSpringCloudClient;
-import org.dromara.soul.client.springcloud.config.SoulSpringCloudConfig;
+import org.dromara.soul.register.client.http.utils.RegisterUtils;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -36,6 +37,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Properties;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -98,11 +100,14 @@ public final class SpringCloudClientBeanPostProcessorTest {
     }
 
     private SpringCloudClientBeanPostProcessor buildSpringCloudClientBeanPostProcessor(final boolean full) {
-        SoulSpringCloudConfig soulSpringCloudConfig = new SoulSpringCloudConfig();
-        soulSpringCloudConfig.setAdminUrl("http://127.0.0.1:8080");
-        soulSpringCloudConfig.setContextPath("test");
-        soulSpringCloudConfig.setFull(full);
-        return new SpringCloudClientBeanPostProcessor(soulSpringCloudConfig, env);
+        Properties properties = new Properties();
+        properties.setProperty("contextPath", "/test");
+        properties.setProperty("isFull", full + "");
+        SoulRegisterCenterConfig mockRegisterCenter = new SoulRegisterCenterConfig();
+        mockRegisterCenter.setServerLists("http://127.0.0.1:8080");
+        mockRegisterCenter.setRegisterType("http");
+        mockRegisterCenter.setProps(properties);
+        return new SpringCloudClientBeanPostProcessor(mockRegisterCenter, env, SoulClientRegisterRepositoryFactory.newInstance(mockRegisterCenter));
     }
 
     @RestController

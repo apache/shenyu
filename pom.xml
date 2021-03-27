@@ -23,7 +23,7 @@
     <groupId>org.dromara</groupId>
     <artifactId>soul</artifactId>
     <packaging>pom</packaging>
-    <version>2.2.1</version>
+    <version>2.3.0-SNAPSHOT</version>
     <name>soul</name>
     <modules>
         <module>soul-admin</module>
@@ -38,6 +38,7 @@
         <module>soul-spi</module>
         <module>soul-register-center</module>
         <module>soul-dist</module>
+        <module>soul-disruptor</module>
     </modules>
 
     <organization>
@@ -68,7 +69,7 @@
         <developer>
             <id>xiaoyu</id>
             <name>xiaoyu(Myth)</name>
-            <email>549477611@qq.com</email>
+            <email>xiaoyu@apache.org</email>
             <organization>org.dromara</organization>
             <roles>
                 <role>author</role>
@@ -93,10 +94,9 @@
         <mysql.version>8.0.11</mysql.version>
         <druid.version>1.0.29</druid.version>
         <commons-lang3.version>3.3.2</commons-lang3.version>
-        <guava.version>[24.1.1,)</guava.version>
+        <guava.version>[30.1-jre,)</guava.version>
         <commons-collections4.version>4.1</commons-collections4.version>
         <reactor-spring.version>1.0.1.RELEASE</reactor-spring.version>
-        <commons-dbcp.version>1.2.1</commons-dbcp.version>
         <disruptor.version>3.4.0</disruptor.version>
         <hessian.version>4.0.38</hessian.version>
         <protostuff.version>1.0.8</protostuff.version>
@@ -137,6 +137,7 @@
         <frontend-maven-plugin.node.version>v12.14.1</frontend-maven-plugin.node.version>
         <java-websocket.version>1.5.0</java-websocket.version>
         <mockito.version>3.5.15</mockito.version>
+        <nacos-client.version>2.0.0</nacos-client.version>
     </properties>
 
     <dependencyManagement>
@@ -264,13 +265,6 @@
                 <version>${reactor-spring.version}</version>
             </dependency>
 
-
-            <dependency>
-                <groupId>commons-dbcp</groupId>
-                <artifactId>commons-dbcp</artifactId>
-                <version>${commons-dbcp.version}</version>
-            </dependency>
-
             <dependency>
                 <groupId>com.caucho</groupId>
                 <artifactId>hessian</artifactId>
@@ -329,6 +323,11 @@
                 <version>${tars.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>com.alibaba.nacos</groupId>
+                <artifactId>nacos-client</artifactId>
+                <version>${nacos-client.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

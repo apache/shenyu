@@ -17,9 +17,11 @@
 
 package org.dromara.soul.springboot.starter.client.alibaba.dubbo;
 
-import org.dromara.soul.client.alibaba.dubbo.AlibabaDubboServiceBeanPostProcessor;
-import org.dromara.soul.client.dubbo.common.config.DubboConfig;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.dromara.soul.client.alibaba.dubbo.AlibabaDubboServiceBeanListener;
+import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
+import org.dromara.soul.springboot.starter.client.common.config.SoulClientCommonBeanConfiguration;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -29,27 +31,18 @@ import org.springframework.context.annotation.Configuration;
  * @author xiaoyu
  */
 @Configuration
+@ImportAutoConfiguration(SoulClientCommonBeanConfiguration.class)
 public class SoulAlibabaDubboClientConfiguration {
     
     /**
-     * Alibaba dubbo service bean post processor alibaba dubbo service bean post processor.
+     * Alibaba dubbo service bean listener.
      *
-     * @param dubboConfig the dubbo config
+     * @param config the config
+     * @param soulClientRegisterRepository the soulClientRegisterRepository
      * @return the alibaba dubbo service bean post processor
      */
     @Bean
-    public AlibabaDubboServiceBeanPostProcessor alibabaDubboServiceBeanPostProcessor(final DubboConfig dubboConfig) {
-        return new AlibabaDubboServiceBeanPostProcessor(dubboConfig);
-    }
-    
-    /**
-     * Dubbo config dubbo config.
-     *
-     * @return the dubbo config
-     */
-    @Bean
-    @ConfigurationProperties(prefix = "soul.dubbo")
-    public DubboConfig dubboConfig() {
-        return new DubboConfig();
+    public AlibabaDubboServiceBeanListener alibabaDubboServiceBeanListener(final SoulRegisterCenterConfig config, final SoulClientRegisterRepository soulClientRegisterRepository) {
+        return new AlibabaDubboServiceBeanListener(config, soulClientRegisterRepository);
     }
 }

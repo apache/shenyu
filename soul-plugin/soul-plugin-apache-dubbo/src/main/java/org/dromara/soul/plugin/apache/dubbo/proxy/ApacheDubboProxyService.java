@@ -17,9 +17,6 @@
 
 package org.dromara.soul.plugin.apache.dubbo.proxy;
 
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -35,9 +32,12 @@ import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.exception.SoulException;
 import org.dromara.soul.common.utils.ParamCheckUtils;
 import org.dromara.soul.plugin.apache.dubbo.cache.ApplicationConfigCache;
-import org.dromara.soul.plugin.api.dubbo.DubboParamResolveService;
+import org.dromara.soul.plugin.api.param.BodyParamResolveService;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * dubbo proxy service is  use GenericService.
@@ -47,15 +47,15 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class ApacheDubboProxyService {
 
-    private final DubboParamResolveService dubboParamResolveService;
+    private final BodyParamResolveService bodyParamResolveService;
 
     /**
      * Instantiates a new Dubbo proxy service.
      *
-     * @param dubboParamResolveService the generic param resolve service
+     * @param bodyParamResolveService the generic param resolve service
      */
-    public ApacheDubboProxyService(final DubboParamResolveService dubboParamResolveService) {
-        this.dubboParamResolveService = dubboParamResolveService;
+    public ApacheDubboProxyService(final BodyParamResolveService bodyParamResolveService) {
+        this.bodyParamResolveService = bodyParamResolveService;
     }
 
     /**
@@ -83,7 +83,7 @@ public class ApacheDubboProxyService {
         if (ParamCheckUtils.dubboBodyIsEmpty(body)) {
             pair = new ImmutablePair<>(new String[]{}, new Object[]{});
         } else {
-            pair = dubboParamResolveService.buildParameter(body, metaData.getParameterTypes());
+            pair = bodyParamResolveService.buildParameter(body, metaData.getParameterTypes());
         }
         CompletableFuture<Object> future = genericService.$invokeAsync(metaData.getMethodName(), pair.getLeft(), pair.getRight());
         return Mono.fromFuture(future.thenApply(ret -> {

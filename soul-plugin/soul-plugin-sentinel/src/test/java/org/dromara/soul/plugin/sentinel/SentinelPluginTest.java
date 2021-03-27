@@ -31,7 +31,7 @@ import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
 import org.dromara.soul.plugin.api.result.DefaultSoulResult;
 import org.dromara.soul.plugin.api.result.SoulResult;
-import org.dromara.soul.plugin.base.utils.SpringBeanUtils;
+import org.dromara.soul.plugin.api.utils.SpringBeanUtils;
 import org.dromara.soul.plugin.sentinel.fallback.SentinelFallbackHandler;
 import org.dromara.soul.plugin.sentinel.handler.SentinelRuleHandle;
 import org.junit.Before;

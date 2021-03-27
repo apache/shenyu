@@ -66,6 +66,5 @@ public interface SoulPlugin {
     default Boolean skip(ServerWebExchange exchange) {
         return false;
     }
-
 }
 

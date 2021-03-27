@@ -18,6 +18,7 @@
 package org.dromara.soul.plugin.base.utils;
 
 import org.dromara.soul.plugin.api.RemoteAddressResolver;
+import org.dromara.soul.plugin.api.utils.SpringBeanUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

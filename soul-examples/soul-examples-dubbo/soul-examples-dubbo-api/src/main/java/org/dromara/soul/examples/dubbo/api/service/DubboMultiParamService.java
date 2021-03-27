@@ -38,7 +38,6 @@ public interface DubboMultiParamService {
 
     /**
      * Find by array ids and name dubbo test.
-     * <p>
      * body :{"ids":[123,4561],"name":"hello world"}
      *
      * @param ids  the ids
@@ -76,7 +75,6 @@ public interface DubboMultiParamService {
 
     /**
      * Batch save and name and id dubbo test.
-     * <p>
      * body: {"dubboTestList":[{"id":"123","name":"xiaoyu"},{"id":"456","name":"myth"}],"id":"789","name":"ttt"}
      *
      * @param dubboTestList the dubbo test list

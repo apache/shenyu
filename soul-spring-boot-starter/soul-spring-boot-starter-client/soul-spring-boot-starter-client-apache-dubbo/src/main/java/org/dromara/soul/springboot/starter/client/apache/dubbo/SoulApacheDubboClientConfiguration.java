@@ -17,9 +17,11 @@
 
 package org.dromara.soul.springboot.starter.client.apache.dubbo;
 
-import org.dromara.soul.client.apache.dubbo.ApacheDubboServiceBeanPostProcessor;
-import org.dromara.soul.client.dubbo.common.config.DubboConfig;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.dromara.soul.client.apache.dubbo.ApacheDubboServiceBeanListener;
+import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
+import org.dromara.soul.springboot.starter.client.common.config.SoulClientCommonBeanConfiguration;
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -29,27 +31,19 @@ import org.springframework.context.annotation.Configuration;
  * @author xiaoyu
  */
 @Configuration
+@ImportAutoConfiguration(SoulClientCommonBeanConfiguration.class)
 public class SoulApacheDubboClientConfiguration {
     
     /**
-     * Apache dubbo service bean post processor alibaba dubbo service bean post processor.
+     * Apache dubbo service bean listener.
      *
-     * @param dubboConfig the dubbo config
-     * @return the alibaba dubbo service bean post processor
+     * @param soulRegisterCenterConfig soulRegisterCenterConfig
+     * @param soulClientRegisterRepository the soulClientRegisterRepository
+     * @return the apache dubbo service bean listener
      */
     @Bean
-    public ApacheDubboServiceBeanPostProcessor apacheDubboServiceBeanPostProcessor(final DubboConfig dubboConfig) {
-        return new ApacheDubboServiceBeanPostProcessor(dubboConfig);
-    }
-    
-    /**
-     * Dubbo config dubbo config.
-     *
-     * @return the dubbo config
-     */
-    @Bean
-    @ConfigurationProperties(prefix = "soul.dubbo")
-    public DubboConfig dubboConfig() {
-        return new DubboConfig();
+    public ApacheDubboServiceBeanListener apacheDubboServiceBeanListener(final SoulRegisterCenterConfig soulRegisterCenterConfig, 
+                                                                         final SoulClientRegisterRepository soulClientRegisterRepository) {
+        return new ApacheDubboServiceBeanListener(soulRegisterCenterConfig, soulClientRegisterRepository);
     }
 }

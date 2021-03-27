@@ -29,14 +29,14 @@ import org.dromara.soul.examples.tars.servant.testapp.HelloServant;
 @SoulTarsService(serviceName = "SoulExampleServer.SoulExampleApp.HelloObj")
 public class HelloServantImpl implements HelloServant {
     @Override
-    @SoulTarsClient(path = "/hello")
+    @SoulTarsClient(path = "/hello", desc = "hello")
     public String hello(int no, String name) {
         return String.format("hello no=%s, name=%s, time=%s", no, name, System.currentTimeMillis());
     }
 
     @Override
-    @SoulTarsClient(path = "/helloInt")
-    public Integer helloInt(int no, String name) {
+    @SoulTarsClient(path = "/helloInt", desc = "helloInt")
+    public int helloInt(int no, String name) {
         return 1;
     }
 }

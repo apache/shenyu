@@ -44,6 +44,5 @@ public final class MetricsConfig implements Serializable {
     private String jmxConfig;
     
     private Properties props;
-    
 }
 

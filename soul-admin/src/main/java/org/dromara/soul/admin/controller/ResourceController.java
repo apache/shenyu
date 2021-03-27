@@ -25,6 +25,7 @@ import org.dromara.soul.admin.query.ResourceQuery;
 import org.dromara.soul.admin.result.SoulAdminResult;
 import org.dromara.soul.admin.service.ResourceService;
 import org.dromara.soul.admin.utils.SoulResultMessage;
+import org.dromara.soul.admin.vo.PermissionMenuVO.MenuInfo;
 import org.dromara.soul.admin.vo.ResourceVO;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -67,13 +68,41 @@ public class ResourceController {
         CommonPager<ResourceVO> commonPager = resourceService.listByPage(new ResourceQuery(title, new PageParameter(currentPage, pageSize)));
         if (CollectionUtils.isNotEmpty(commonPager.getDataList())) {
             return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
-        } else {
-            return SoulAdminResult.error(SoulResultMessage.QUERY_FAILED);
         }
+        return SoulAdminResult.error(SoulResultMessage.QUERY_FAILED);
     }
 
     /**
-     * detail role and permission info.
+     * get menu tree.
+     *
+     * @return {@linkplain SoulAdminResult}
+     */
+    @GetMapping("/menu")
+    public SoulAdminResult getMenuTree() {
+        List<MenuInfo> menuInfoList = resourceService.getMenuTree();
+        if (CollectionUtils.isNotEmpty(menuInfoList)) {
+            return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, menuInfoList);
+        }
+        return SoulAdminResult.error(SoulResultMessage.QUERY_FAILED);
+    }
+
+    /**
+     * get button by parentId.
+     *
+     * @param id resource id
+     * @return {@linkplain SoulAdminResult}
+     */
+    @GetMapping("/button")
+    public SoulAdminResult getButton(final String id) {
+        List<ResourceVO> resourceVOList = resourceService.findByParentId(id);
+        if (CollectionUtils.isNotEmpty(resourceVOList)) {
+            return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, resourceVOList);
+        }
+        return SoulAdminResult.error(SoulResultMessage.QUERY_FAILED);
+    }
+
+    /**
+     * detail resource info.
      *
      * @param id role id
      * @return {@linkplain SoulAdminResult}
@@ -111,7 +140,7 @@ public class ResourceController {
     }
 
     /**
-     * delete role info.
+     * delete resource info.
      *
      * @param ids primary keys.
      * @return {@linkplain SoulAdminResult}

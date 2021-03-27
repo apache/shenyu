@@ -19,18 +19,21 @@
 package org.dromara.soul.client.tars;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.dromara.soul.client.common.utils.OkHttpTools;
-import org.dromara.soul.client.common.utils.RegisterUtils;
+import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
 import org.dromara.soul.client.tars.common.annotation.SoulTarsClient;
 import org.dromara.soul.client.tars.common.annotation.SoulTarsService;
-import org.dromara.soul.client.tars.common.config.TarsConfig;
-import org.dromara.soul.client.tars.common.dto.MetaDataDTO;
-import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.dromara.soul.client.tars.common.dto.TarsRpcExt;
+import org.dromara.soul.common.utils.GsonUtils;
+import org.dromara.soul.common.utils.IpUtils;
+import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
+import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
-import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
@@ -38,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -51,25 +55,35 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
-    private final TarsConfig tarsConfig;
-
-    private final ExecutorService executorService;
-
-    private final String url;
-
+    
     private final LocalVariableTableParameterNameDiscoverer localVariableTableParameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
+    
+    private SoulClientRegisterEventPublisher publisher = SoulClientRegisterEventPublisher.getInstance();
+    
+    private final ExecutorService executorService;
+    
+    private final String contextPath;
+    
+    private final String ipAndPort;
 
-    public TarsServiceBeanPostProcessor(final TarsConfig tarsConfig) {
-        String contextPath = tarsConfig.getContextPath();
-        String adminUrl = tarsConfig.getAdminUrl();
-        String ipAndPort = tarsConfig.getIpAndPort();
-        if (contextPath == null || "".equals(contextPath)
-                || adminUrl == null || "".equals(adminUrl) || "".equals(ipAndPort)) {
-            throw new RuntimeException("tars client must config the contextPath, adminUrl");
+    private final String host;
+
+    private final int port;
+
+    public TarsServiceBeanPostProcessor(final SoulRegisterCenterConfig config, final SoulClientRegisterRepository soulClientRegisterRepository) {
+        Properties props = config.getProps();
+        String contextPath = props.getProperty("contextPath");
+        String ip = props.getProperty("host");
+        String port = props.getProperty("port");
+        if (StringUtils.isEmpty(contextPath) || StringUtils.isEmpty(ip) || StringUtils.isEmpty(port)) {
+            throw new RuntimeException("tars client must config the contextPath, ipAndPort");
         }
-        this.tarsConfig = tarsConfig;
-        url = tarsConfig.getAdminUrl() + "/soul-client/tars-register";
+        this.contextPath = contextPath;
+        this.ipAndPort = ip + ":" + port;
+        this.host = props.getProperty("host");
+        this.port = Integer.parseInt(port);
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        publisher.start(soulClientRegisterRepository);
     }
 
     @Override
@@ -82,7 +96,7 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
 
     private void handler(final Object serviceBean) {
         Class<?> clazz = serviceBean.getClass();
-        if (ClassUtils.isCglibProxyClass(clazz)) {
+        if (AopUtils.isCglibProxy(clazz)) {
             String superClassName = clazz.getGenericSuperclass().getTypeName();
             try {
                 clazz = Class.forName(superClassName);
@@ -91,32 +105,39 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
                 return;
             }
         }
-        final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
+        if (AopUtils.isJdkDynamicProxy(clazz)) {
+            clazz = AopUtils.getTargetClass(serviceBean);
+        }
+        Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         String serviceName = serviceBean.getClass().getAnnotation(SoulTarsService.class).serviceName();
         for (Method method : methods) {
             SoulTarsClient soulSofaClient = method.getAnnotation(SoulTarsClient.class);
             if (Objects.nonNull(soulSofaClient)) {
-                RegisterUtils.doRegister(buildJsonParams(serviceName, soulSofaClient, method, buildRpcExt(methods)), url, RpcTypeEnum.TARS);
+                publisher.publishEvent(buildMetaDataDTO(serviceName, soulSofaClient, method, buildRpcExt(methods)));
             }
         }
     }
 
-    private String buildJsonParams(final String serviceName, final SoulTarsClient soulTarsClient, final Method method, final String rpcExt) {
-        String ipAndPort = tarsConfig.getIpAndPort();
-        String path = tarsConfig.getContextPath() + soulTarsClient.path();
+    private MetaDataRegisterDTO buildMetaDataDTO(final String serviceName, final SoulTarsClient soulTarsClient, final Method method, final String rpcExt) {
+        String ipAndPort = this.ipAndPort;
+        String path = this.contextPath + soulTarsClient.path();
         String desc = soulTarsClient.desc();
+        String configHost = this.host;
+        String host = StringUtils.isBlank(configHost) ? IpUtils.getHost() : configHost;
         String configRuleName = soulTarsClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
         String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
                 .collect(Collectors.joining(","));
-        MetaDataDTO metaDataDTO = MetaDataDTO.builder()
+        return MetaDataRegisterDTO.builder()
                 .appName(ipAndPort)
                 .serviceName(serviceName)
                 .methodName(methodName)
-                .contextPath(tarsConfig.getContextPath())
+                .contextPath(this.contextPath)
                 .path(path)
+                .host(host)
+                .port(port)
                 .ruleName(ruleName)
                 .pathDesc(desc)
                 .parameterTypes(parameterTypes)
@@ -124,10 +145,9 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
                 .rpcExt(rpcExt)
                 .enabled(soulTarsClient.enabled())
                 .build();
-        return OkHttpTools.getInstance().getGson().toJson(metaDataDTO);
     }
 
-    private MetaDataDTO.RpcExt buildRpcExt(final Method method) {
+    private TarsRpcExt.RpcExt buildRpcExt(final Method method) {
         String[] paramNames = localVariableTableParameterNameDiscoverer.getParameterNames(method);
         List<Pair<String, String>> params = new ArrayList<>();
         if (paramNames != null && paramNames.length > 0) {
@@ -136,23 +156,23 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
                 params.add(Pair.of(paramTypes[i].getName(), paramNames[i]));
             }
         }
-        return MetaDataDTO.RpcExt.builder().methodName(method.getName())
+        return TarsRpcExt.RpcExt.builder().methodName(method.getName())
                 .params(params)
                 .returnType(method.getReturnType().getName())
                 .build();
     }
 
     private String buildRpcExt(final Method[] methods) {
-        List<MetaDataDTO.RpcExt> list = new ArrayList<>();
+        List<TarsRpcExt.RpcExt> list = new ArrayList<>();
         for (Method method : methods) {
             SoulTarsClient soulSofaClient = method.getAnnotation(SoulTarsClient.class);
             if (Objects.nonNull(soulSofaClient)) {
                 list.add(buildRpcExt(method));
             }
         }
-        MetaDataDTO.RpcExtList buildList = MetaDataDTO.RpcExtList.builder()
+        TarsRpcExt buildList = TarsRpcExt.builder()
                 .methodInfo(list)
                 .build();
-        return OkHttpTools.getInstance().getGson().toJson(buildList);
+        return GsonUtils.getInstance().toJson(buildList);
     }
 }

@@ -28,7 +28,6 @@ public interface DubboTestService {
 
     /**
      * find by id.
-     * <p>
      * body：{"id":"1223"}
      *
      * @param id id
@@ -45,7 +44,6 @@ public interface DubboTestService {
 
     /**
      * Insert dubbo test.
-     *
      * body :{"id":"122344","name":"xiaoyu"}
      *
      * @param dubboTest the dubbo test

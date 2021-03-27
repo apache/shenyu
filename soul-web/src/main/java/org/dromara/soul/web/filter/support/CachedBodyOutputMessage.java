@@ -55,7 +55,6 @@ public class CachedBodyOutputMessage implements ReactiveHttpOutputMessage {
 
     @Override
     public void beforeCommit(final Supplier<? extends Mono<Void>> action) {
-
     }
 
     @Override
@@ -103,5 +102,4 @@ public class CachedBodyOutputMessage implements ReactiveHttpOutputMessage {
     public Mono<Void> setComplete() {
         return writeWith(Flux.empty());
     }
-
 }

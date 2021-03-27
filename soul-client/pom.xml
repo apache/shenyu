@@ -20,19 +20,21 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>soul</artifactId>
         <groupId>org.dromara</groupId>
-        <version>2.2.1</version>
+        <artifactId>soul</artifactId>
+        <version>2.3.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>soul-client</artifactId>
     <packaging>pom</packaging>
+    
     <modules>
-        <module>soul-client-common</module>
+        <module>soul-client-core</module>
         <module>soul-client-http</module>
         <module>soul-client-dubbo</module>
         <module>soul-client-sofa</module>
         <module>soul-client-tars</module>
+        <module>soul-client-grpc</module>
     </modules>
 
     <dependencies>

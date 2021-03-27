@@ -60,6 +60,7 @@ public class Resilience4JPlugin extends AbstractSoulPlugin {
         final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
         Resilience4JHandle resilience4JHandle = GsonUtils.getGson().fromJson(rule.getHandle(), Resilience4JHandle.class);
+        resilience4JHandle.checkData(resilience4JHandle);
         if (resilience4JHandle.getCircuitEnable() == 1) {
             return combined(exchange, chain, rule);
         }
@@ -76,10 +77,10 @@ public class Resilience4JPlugin extends AbstractSoulPlugin {
         Resilience4JConf conf = Resilience4JBuilder.build(rule);
         return combinedExecutor.run(
                 chain.execute(exchange).doOnSuccess(v -> {
-                    if (exchange.getResponse().getStatusCode() != HttpStatus.OK) {
-                        HttpStatus status = exchange.getResponse().getStatusCode();
+                    HttpStatus status = exchange.getResponse().getStatusCode();
+                    if (status == null || !status.is2xxSuccessful()) {
                         exchange.getResponse().setStatusCode(null);
-                        throw new CircuitBreakerStatusCodeException(status);
+                        throw new CircuitBreakerStatusCodeException(status == null ? HttpStatus.INTERNAL_SERVER_ERROR : status);
                     }
                 }), fallback(combinedExecutor, exchange, conf.getFallBackUri()), conf);
     }

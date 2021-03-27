@@ -146,7 +146,12 @@ public class SelectorServiceImpl implements SelectorService {
         updateDivideUpstream(selectorDO);
         return selectorCount;
     }
-
+    
+    @Override
+    public int updateSelective(final SelectorDO selectorDO) {
+        return selectorMapper.updateSelective(selectorDO);
+    }
+    
     /**
      * delete selectors.
      *

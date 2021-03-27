@@ -17,7 +17,7 @@
 
 package org.dromara.soul.admin.controller;
 
-import org.dromara.soul.admin.config.JwtProperties;
+import org.dromara.soul.admin.config.properties.JwtProperties;
 import org.dromara.soul.admin.service.DashboardUserService;
 import org.dromara.soul.admin.service.EnumService;
 import org.dromara.soul.admin.spring.SpringBeanUtils;

@@ -126,7 +126,7 @@ public final class DividePluginTest {
     private void initMockInfo() {
         SoulContext context = mock(SoulContext.class);
         context.setRpcType(RpcTypeEnum.HTTP.getName());
-        DivideRuleHandle handle = (DivideRuleHandle) RuleHandleFactory.ruleHandle(RpcTypeEnum.HTTP, "");
+        DivideRuleHandle handle = (DivideRuleHandle) RuleHandleFactory.ruleHandle(PluginEnum.DIVIDE.getName(), "");
         when(selectorData.getId()).thenReturn("mock");
         when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(handle));
         when(selectorData.getHandle()).thenReturn(GsonUtils.getGson().toJson(divideUpstreamList));

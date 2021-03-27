@@ -27,14 +27,12 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>soul-examples-http</artifactId>
 
-
     <properties>
         <commons-lang3.version>3.3.2</commons-lang3.version>
         <guava.version>21.0</guava.version>
         <commons-collections4.version>4.1</commons-collections4.version>
         <reactor-spring.version>1.0.1.RELEASE</reactor-spring.version>
     </properties>
-
 
     <dependencies>
         <dependency>
@@ -69,6 +67,13 @@
             <artifactId>lombok</artifactId>
         </dependency>
 
+        <!--soul consul register center -->
+        <!--<dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-consul-discovery</artifactId>
+            <version>2.2.6.RELEASE</version>
+        </dependency>-->
+
     </dependencies>
 
     <build>
@@ -84,5 +89,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

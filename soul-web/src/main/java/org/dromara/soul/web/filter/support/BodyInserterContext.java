@@ -56,5 +56,4 @@ public class BodyInserterContext implements BodyInserter.Context {
     public Map<String, Object> hints() {
         return Collections.emptyMap();
     }
-
 }

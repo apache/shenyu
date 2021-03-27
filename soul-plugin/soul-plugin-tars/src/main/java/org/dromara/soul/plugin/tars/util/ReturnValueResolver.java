@@ -21,6 +21,8 @@ import com.google.common.reflect.TypeParameter;
 import com.google.common.reflect.TypeToken;
 
 import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -29,6 +31,20 @@ import java.util.concurrent.CompletableFuture;
  * @author tydhot
  */
 public class ReturnValueResolver {
+
+    private static final Map<Class, Class> WRAPPER_TYPE_MAP;
+
+    static {
+        WRAPPER_TYPE_MAP = new HashMap<>();
+        WRAPPER_TYPE_MAP.put(int.class, Integer.class);
+        WRAPPER_TYPE_MAP.put(byte.class, Byte.class);
+        WRAPPER_TYPE_MAP.put(char.class, Character.class);
+        WRAPPER_TYPE_MAP.put(boolean.class, Boolean.class);
+        WRAPPER_TYPE_MAP.put(double.class, Double.class);
+        WRAPPER_TYPE_MAP.put(float.class, Float.class);
+        WRAPPER_TYPE_MAP.put(long.class, Long.class);
+        WRAPPER_TYPE_MAP.put(short.class, Short.class);
+    }
 
     /**
      * Get return type.
@@ -39,8 +55,8 @@ public class ReturnValueResolver {
      */
     public static <T> Type getCallBackType(final Class<T> clazz) {
         return new TypeToken<CompletableFuture<T>>() { }
-            .where(new TypeParameter<T>() { }, TypeToken.of(clazz))
-            .getType();
+                .where(new TypeParameter<T>() { }, TypeToken.of(WRAPPER_TYPE_MAP.getOrDefault(clazz, clazz)))
+                .getType();
     }
 
 }

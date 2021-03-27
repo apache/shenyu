@@ -18,68 +18,86 @@
 package org.dromara.soul.client.springcloud.init;
 
 import lombok.extern.slf4j.Slf4j;
-import org.dromara.soul.client.common.utils.OkHttpTools;
-import org.dromara.soul.client.common.utils.RegisterUtils;
-import org.dromara.soul.client.springcloud.config.SoulSpringCloudConfig;
-import org.dromara.soul.client.springcloud.dto.SpringCloudRegisterDTO;
-import org.dromara.soul.client.springcloud.utils.ValidateUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
 import org.dromara.soul.common.enums.RpcTypeEnum;
+import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
+import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
+import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.core.env.Environment;
+import org.springframework.lang.NonNull;
 
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The type Context register listener.
+ *
  * @author tnnn
  */
 @Slf4j
 public class ContextRegisterListener implements ApplicationListener<ContextRefreshedEvent> {
-
+    
+    private SoulClientRegisterEventPublisher publisher = SoulClientRegisterEventPublisher.getInstance();
+    
     private final AtomicBoolean registered = new AtomicBoolean(false);
-
-    private final String url;
-
-    private final SoulSpringCloudConfig config;
-
-    private final Environment env;
-
+    
+    private final Boolean isFull;
+    
+    private Environment env;
+    
+    private String contextPath;
+    
     /**
      * Instantiates a new Context register listener.
      *
-     * @param config the soul spring cloud config
+     * @param config the config
      * @param env    the env
+     * @param soulClientRegisterRepository the soulClientRegisterRepository
      */
-    public ContextRegisterListener(final SoulSpringCloudConfig config, final Environment env) {
-        ValidateUtils.validate(config, env);
-        this.config = config;
-        this.env = env;
-        this.url = config.getAdminUrl() + "/soul-client/springcloud-register";
+    public ContextRegisterListener(final SoulRegisterCenterConfig config, final Environment env, final SoulClientRegisterRepository soulClientRegisterRepository) {
+        Properties props = config.getProps();
+        this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
+        if (isFull) {
+            String registerType = config.getRegisterType();
+            String serverLists = config.getServerLists();
+            String contextPath = props.getProperty("contextPath");
+            String appName = env.getProperty("spring.application.name");
+            if (StringUtils.isBlank(contextPath) || StringUtils.isBlank(registerType)
+                    || StringUtils.isBlank(serverLists) || StringUtils.isBlank(appName)) {
+                String errorMsg = "spring cloud param must config the contextPath ,registerType , serverLists  and appName";
+                log.error(errorMsg);
+                throw new RuntimeException(errorMsg);
+            }
+            this.env = env;
+            this.contextPath = contextPath;
+            publisher.start(soulClientRegisterRepository);
+        }
     }
-
+    
     @Override
-    public void onApplicationEvent(final ContextRefreshedEvent contextRefreshedEvent) {
+    public void onApplicationEvent(@NonNull final ContextRefreshedEvent contextRefreshedEvent) {
         if (!registered.compareAndSet(false, true)) {
             return;
         }
-        if (config.isFull()) {
-            RegisterUtils.doRegister(buildJsonParams(), url, RpcTypeEnum.SPRING_CLOUD);
+        if (isFull) {
+            publisher.publishEvent(buildMetaDataDTO());
         }
     }
-
-    private String buildJsonParams() {
-        String contextPath = config.getContextPath();
+    
+    private MetaDataRegisterDTO buildMetaDataDTO() {
+        String contextPath = this.contextPath;
         String appName = env.getProperty("spring.application.name");
         String path = contextPath + "/**";
-        SpringCloudRegisterDTO registerDTO = SpringCloudRegisterDTO.builder()
-                .context(contextPath)
+        return MetaDataRegisterDTO.builder()
+                .contextPath(contextPath)
                 .appName(appName)
                 .path(path)
                 .rpcType(RpcTypeEnum.SPRING_CLOUD.getName())
                 .enabled(true)
                 .ruleName(path)
                 .build();
-        return OkHttpTools.getInstance().getGson().toJson(registerDTO);
     }
 }

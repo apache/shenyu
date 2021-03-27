@@ -19,16 +19,16 @@
 package org.dromara.soul.spring.boot.starter.plugin.sofa;
 
 import org.dromara.soul.plugin.api.SoulPlugin;
-import org.dromara.soul.plugin.api.sofa.SofaParamResolveService;
+import org.dromara.soul.plugin.api.context.SoulContextDecorator;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.plugin.sofa.SofaPlugin;
+import org.dromara.soul.plugin.sofa.context.SofaSoulContextDecorator;
 import org.dromara.soul.plugin.sofa.handler.SofaPluginDataHandler;
-import org.dromara.soul.plugin.sofa.param.BodyParamPlugin;
+import org.dromara.soul.plugin.sofa.param.SofaBodyParamResolveServiceImpl;
 import org.dromara.soul.plugin.sofa.proxy.SofaProxyService;
 import org.dromara.soul.plugin.sofa.response.SofaResponsePlugin;
 import org.dromara.soul.plugin.sofa.subscriber.SofaMetaDataSubscriber;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -45,22 +45,11 @@ public class SofaPluginConfiguration {
     /**
      * Sofa plugin soul plugin.
      *
-     * @param sofaParamResolveService the sofa param resolve service
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin sofaPlugin(final ObjectProvider<SofaParamResolveService> sofaParamResolveService) {
-        return new SofaPlugin(new SofaProxyService(sofaParamResolveService.getIfAvailable()));
-    }
-
-    /**
-     * Body param plugin soul plugin.
-     *
-     * @return the soul plugin
-     */
-    @Bean
-    public SoulPlugin sofaBodyParamPlugin() {
-        return new BodyParamPlugin();
+    public SoulPlugin sofaPlugin() {
+        return new SofaPlugin(new SofaProxyService(new SofaBodyParamResolveServiceImpl()));
     }
 
     /**
@@ -91,5 +80,15 @@ public class SofaPluginConfiguration {
     @Bean
     public MetaDataSubscriber sofaMetaDataSubscriber() {
         return new SofaMetaDataSubscriber();
+    }
+    
+    /**
+     * Sofa soul context decorator soul context decorator.
+     *
+     * @return the soul context decorator
+     */
+    @Bean
+    public SoulContextDecorator sofaSoulContextDecorator() {
+        return new SofaSoulContextDecorator();
     }
 }

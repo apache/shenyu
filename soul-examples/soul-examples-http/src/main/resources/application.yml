@@ -14,17 +14,18 @@
 # limitations under the License.
 
 server:
-  port: 8188
+  port: 8189
   address: 0.0.0.0
 
-
 soul:
-  http:
-    adminUrl: http://localhost:9095
-    port: 8188
-    contextPath: /http
-    appName: http
-    full: false
+  client:
+    registerType: http #zookeeper #etcd #nacos #consul
+    serverLists: http://localhost:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
+    props:
+      contextPath: /http
+      appName: http
+      port: 8189
+      nacosNameSpace: SoulRegisterCenter
 
 logging:
   level:
@@ -34,3 +35,4 @@ logging:
     org.dromara.soul.test.bonuspoint: info
     org.dromara.soul.test.lottery: debug
     org.dromara.soul.test: debug
+

@@ -21,6 +21,7 @@ import com.alibaba.nacos.api.NacosFactory;
 import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.config.ConfigService;
 import org.dromara.soul.admin.AbstractConfigurationTest;
+import org.dromara.soul.admin.config.properties.NacosProperties;
 import org.junit.Test;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -39,6 +40,8 @@ public final class NacosConfigurationTest extends AbstractConfigurationTest {
     private final String[] inlinedProperties = new String[]{
         "soul.sync.nacos.url=localhost:8848",
         "soul.sync.nacos.namespace=1c10d748-af86-43b9-8265-75f487d20c6c",
+        "soul.sync.nacos.username=nacos",
+        "soul.sync.nacos.password=nacos",
         "soul.sync.nacos.acm.enabled=false",
         "soul.sync.nacos.acm.endpoint=acm.aliyun.com",
     };
@@ -92,6 +95,8 @@ public final class NacosConfigurationTest extends AbstractConfigurationTest {
             } else {
                 properties.put(PropertyKeyConst.SERVER_ADDR, nacosProp.getUrl());
                 properties.put(PropertyKeyConst.NAMESPACE, nacosProp.getNamespace());
+                properties.put(PropertyKeyConst.USERNAME, nacosProp.getUsername());
+                properties.put(PropertyKeyConst.PASSWORD, nacosProp.getPassword());
             }
             return NacosFactory.createConfigService(properties);
         }

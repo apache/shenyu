@@ -19,6 +19,7 @@ package org.dromara.soul.admin.listener;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.dromara.soul.admin.utils.SoulDomain;
 import org.dromara.soul.common.utils.IpUtils;
 import org.springframework.boot.web.context.WebServerInitializedEvent;
 import org.springframework.context.ApplicationListener;

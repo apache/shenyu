@@ -55,6 +55,16 @@ public enum SoulResultEnum {
     TOO_MANY_REQUESTS(429, "You have been restricted, please try again later!"),
 
     /**
+     * Hystrix plugin fallback, due to a circuit break.
+     */
+    HYSTRIX_PLUGIN_FALLBACK(429, "HystrixPlugin fallback success, please check your service status!"),
+
+    /**
+     * Resilience4J plugin fallback, due to a circuit break.
+     */
+    RESILIENCE4J_PLUGIN_FALLBACK(429, "Resilience4JPlugin fallback success, please check your service status!"),
+
+    /**
      * Meta data error soul result enum.
      */
     META_DATA_ERROR(430, "Meta data error!"),
@@ -78,6 +88,16 @@ public enum SoulResultEnum {
      * Tars invoke soul result enum.
      */
     TARS_INVOKE(434, "Tars invoke error!"),
+
+    /**
+     * Grpc have body param soul result enum.
+     */
+    GRPC_HAVE_BODY_PARAM(435, "grpc must have body param, please enter the JSON format in the body!"),
+
+    /**
+     * Grpc client resultenum.
+     */
+    GRPC_CLIENT_NULL(436, "grpc client is null, please check the context path!"),
 
     /**
      * full selector type enum.

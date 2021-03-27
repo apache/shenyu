@@ -17,9 +17,9 @@
 
 package org.dromara.soul.admin.service;
 
-import org.dromara.soul.admin.dto.SpringCloudRegisterDTO;
-import org.dromara.soul.admin.dto.SpringMvcRegisterDTO;
-import org.dromara.soul.admin.dto.MetaDataDTO;
+import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
+
+import java.util.List;
 
 /**
  * The interface Soul client service.
@@ -27,42 +27,58 @@ import org.dromara.soul.admin.dto.MetaDataDTO;
 public interface SoulClientRegisterService {
     
     /**
-     * Register http string.
+     * Register spring mvc string.
      *
-     * @param springMvcRegisterDTO the http register dto
+     * @param metaDataRegisterDTO the meta data register dto
      * @return the string
      */
-    String registerSpringMvc(SpringMvcRegisterDTO springMvcRegisterDTO);
+    String registerSpringMvc(MetaDataRegisterDTO metaDataRegisterDTO);
     
     /**
      * Register spring cloud string.
      *
-     * @param springCloudRegisterDTO the spring cloud register dto
+     * @param metaDataRegisterDTO the meta data register dto
      * @return the string
      */
-    String registerSpringCloud(SpringCloudRegisterDTO springCloudRegisterDTO);
+    String registerSpringCloud(MetaDataRegisterDTO metaDataRegisterDTO);
     
     /**
-     * Register rpc string.
+     * Register dubbo string.
      *
-     * @param metaDataDTO the meta data dto
+     * @param metaDataRegisterDTO the meta data register dto
      * @return the string
      */
-    String registerDubbo(MetaDataDTO metaDataDTO);
+    String registerDubbo(MetaDataRegisterDTO metaDataRegisterDTO);
+    
+    /**
+     * Register sofa string.
+     *
+     * @param metaDataRegisterDTO the meta data register dto
+     * @return the string
+     */
+    String registerSofa(MetaDataRegisterDTO metaDataRegisterDTO);
+    
+    /**
+     * Register tars string.
+     *
+     * @param metaDataRegisterDTO the meta data register dto
+     * @return the string
+     */
+    String registerTars(MetaDataRegisterDTO metaDataRegisterDTO);
+    
+    /**
+     * Register grpc string.
+     *
+     * @param metaDataRegisterDTO the meta data register dto
+     * @return the string
+     */
+    String registerGrpc(MetaDataRegisterDTO metaDataRegisterDTO);
 
     /**
-     * Register rpc string.
-     *
-     * @param metaDataDTO the meta data dto
+     * mvc uri upstream update.
+     * @param contextPath context paht
+     * @param uriList uri list
      * @return the string
      */
-    String registerSofa(MetaDataDTO metaDataDTO);
-
-    /**
-     * Register rpc string.
-     *
-     * @param metaDataDTO the meta data dto
-     * @return the string
-     */
-    String registerTars(MetaDataDTO metaDataDTO);
+    String registerURI(String contextPath, List<String> uriList);
 }

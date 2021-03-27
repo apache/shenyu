@@ -27,11 +27,14 @@ logging:
   level:
     root: info
     org.dromara.soul: debug
-  path: "./logs"
 
 soul:
-  tars:
-    adminUrl: http://localhost:9095
-    contextPath: /tars
-    appName: tars
-    ipAndPort: 192.168.41.103:21715
+  client:
+    registerType: http #zookeeper #etcd #nacos #consul
+    serverLists: http://localhost:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
+    props:
+      contextPath: /tars
+      appName: tars
+      port: 21715
+      host: 192.168.41.103
+      nacosNameSpace: SoulRegisterCenter
