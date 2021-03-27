@@ -70,7 +70,7 @@ import java.util.stream.Collectors;
  */
 @Service("soulClientRegisterService")
 public class SoulClientRegisterServiceImpl implements SoulClientRegisterService {
-    
+
     private static final String CONTEXT_PATH_NAME_PREFIX = "/context-path";
 
     private final MetaDataMapper metaDataMapper;
@@ -129,7 +129,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
                 saveSpringMvcMetaData(dto);
             }
         }
-        String selectorId = handlerSpringMvcSelector(dto);
+        String selectorId = handlerSelector(dto);
         handlerSpringMvcRule(selectorId, dto);
         String contextPath = dto.getContextPath();
         if (StringUtils.isNotEmpty(contextPath)) {
@@ -155,7 +155,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         }
         return SoulResultMessage.SUCCESS;
     }
-    
+
     private void registerContextPathPlugin(final String contextPath) {
         String name = CONTEXT_PATH_NAME_PREFIX + contextPath;
         SelectorDO selectorDO = selectorService.findByName(name);
@@ -212,15 +212,15 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     public synchronized String registerGrpc(final MetaDataRegisterDTO dto) {
         MetaDataDO exist = metaDataMapper.findByPath(dto.getPath());
         saveOrUpdateMetaData(exist, dto);
-        String selectorId = handlerGrpcSelector(dto);
+        String selectorId = handlerSelector(dto);
         handlerGrpcRule(selectorId, dto, exist);
         return SoulResultMessage.SUCCESS;
     }
-    
+
     private String handlerDubboSelector(final MetaDataRegisterDTO metaDataDTO) {
         return getString(metaDataDTO);
     }
-    
+
     private String getString(final MetaDataRegisterDTO metaDataDTO) {
         SelectorDO selectorDO = selectorService.findByName(metaDataDTO.getContextPath());
         String selectorId;
@@ -231,7 +231,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         }
         return selectorId;
     }
-    
+
     private void handlerDubboRule(final String selectorId, final MetaDataRegisterDTO metaDataDTO) {
         RuleDO existRule = ruleMapper.findByName(metaDataDTO.getPath());
         if (Objects.isNull(existRule)) {
@@ -330,11 +330,11 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
                 Collections.singletonList(MetaDataTransfer.INSTANCE.mapRegisterDTOToEntity(metaDataDTO))));
     }
 
-    private String handlerSpringMvcSelector(final MetaDataRegisterDTO dto) {
+    private String handlerSelector(final MetaDataRegisterDTO dto) {
         String contextPath = dto.getContextPath();
         if (StringUtils.isEmpty(contextPath)) {
             contextPath = buildContextPath(dto.getPath());
-        } 
+        }
         SelectorDO selectorDO = selectorService.findByName(contextPath);
         String selectorId;
         String uri = String.join(":", dto.getHost(), String.valueOf(dto.getPort()));
@@ -371,7 +371,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         }
         return selectorId;
     }
-    
+
     private String buildContextPath(final String path) {
         String split = "/";
         String[] splitList = StringUtils.split(path, split);
@@ -418,31 +418,29 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         } else if (RpcTypeEnum.SOFA.getName().equals(rpcType)) {
             selectorDTO.setPluginId(getPluginId(PluginEnum.SOFA.getName()));
             selectorDTO.setHandle(appName);
-        } else if (RpcTypeEnum.TARS.getName().equals(rpcType)) {
-            selectorDTO.setPluginId(getPluginId(PluginEnum.TARS.getName()));
-            selectorDTO.setHandle(appName);
-        } else if (RpcTypeEnum.GRPC.getName().equals(rpcType)) {
-            selectorDTO.setPluginId(getPluginId(PluginEnum.GRPC.getName()));
-            selectorDTO.setHandle(appName);
         } else {
+            if (RpcTypeEnum.TARS.getName().equals(rpcType) || RpcTypeEnum.GRPC.getName().equals(rpcType)) {
+                selectorDTO.setPluginId(getPluginId(rpcType));
+            } else {
+                selectorDTO.setPluginId(getPluginId(PluginEnum.DIVIDE.getName()));
+            }
             //is divide
             DivideUpstream divideUpstream = buildDivideUpstream(uri);
             String handler = GsonUtils.getInstance().toJson(Collections.singletonList(divideUpstream));
             selectorDTO.setHandle(handler);
-            selectorDTO.setPluginId(getPluginId(PluginEnum.DIVIDE.getName()));
             upstreamCheckService.submit(selectorDTO.getName(), divideUpstream);
         }
         selectorDTO.setSelectorConditions(buildDefaultSelectorConditionDTO(contextPath));
         return selectorService.register(selectorDTO);
     }
-    
+
     private String registerContextPathSelector(final String contextPath, final String name) {
         SelectorDTO selectorDTO = buildDefaultSelectorDTO(name);
         selectorDTO.setPluginId(getPluginId(PluginEnum.CONTEXTPATH_MAPPING.getName()));
         selectorDTO.setSelectorConditions(buildDefaultSelectorConditionDTO(contextPath));
         return selectorService.register(selectorDTO);
     }
-    
+
     private SelectorDTO buildDefaultSelectorDTO(final String name) {
         return SelectorDTO.builder()
                 .name(name)
@@ -454,7 +452,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
                 .sort(1)
                 .build();
     }
-    
+
     private List<SelectorConditionDTO> buildDefaultSelectorConditionDTO(final String contextPath) {
         SelectorConditionDTO selectorConditionDTO = new SelectorConditionDTO();
         selectorConditionDTO.setParamType(ParamTypeEnum.URI.getName());
@@ -521,8 +519,8 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
     private List<DivideUpstream> buildDivideUpstreamList(final List<String> uriList) {
         return uriList.stream().map(this::buildDivideUpstream).collect(Collectors.toList());
     }
-    
+
     private DivideUpstream buildDivideUpstream(final String uri) {
-        return DivideUpstream.builder().upstreamHost("localhost").protocol("http://") .upstreamUrl(uri).weight(50).build();
+        return DivideUpstream.builder().upstreamHost("localhost").protocol("http://").upstreamUrl(uri).weight(50).build();
     }
 }

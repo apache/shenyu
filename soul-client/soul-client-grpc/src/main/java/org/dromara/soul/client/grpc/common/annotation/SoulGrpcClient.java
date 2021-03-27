@@ -64,5 +64,5 @@ public @interface SoulGrpcClient {
      *
      * @return the timeout
      */
-    int timeout() default -1;
+    int timeout() default 5000;
 }
