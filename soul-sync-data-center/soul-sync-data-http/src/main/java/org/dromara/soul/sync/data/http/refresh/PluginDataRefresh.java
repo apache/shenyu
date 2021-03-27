@@ -60,12 +60,11 @@ public class PluginDataRefresh extends AbstractDataRefresh<PluginData> {
 
     @Override
     protected void refresh(final List<PluginData> data) {
+        pluginDataSubscriber.refreshPluginDataAll();
         if (CollectionUtils.isEmpty(data)) {
             log.info("clear all plugin data cache");
-            pluginDataSubscriber.refreshPluginDataAll();
-        } else {
-            pluginDataSubscriber.refreshPluginDataAll();
-            data.forEach(pluginDataSubscriber::onSubscribe);
+            return;
         }
+        data.forEach(pluginDataSubscriber::onSubscribe);
     }
 }
