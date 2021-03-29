@@ -37,14 +37,54 @@ public class PrxInfoUtil {
 
     static {
         PRIMITIVE_TYPE = new HashMap<>();
-        PRIMITIVE_TYPE.put("int", new PrimitiveType(int.class, Integer::valueOf));
-        PRIMITIVE_TYPE.put("double", new PrimitiveType(double.class, Double::valueOf));
-        PRIMITIVE_TYPE.put("long", new PrimitiveType(long.class, Long::valueOf));
-        PRIMITIVE_TYPE.put("short", new PrimitiveType(short.class, Short::valueOf));
-        PRIMITIVE_TYPE.put("byte", new PrimitiveType(byte.class, Byte::valueOf));
-        PRIMITIVE_TYPE.put("boolean", new PrimitiveType(boolean.class, Boolean::valueOf));
-        PRIMITIVE_TYPE.put("char", new PrimitiveType(char.class, o -> o.charAt(0)));
-        PRIMITIVE_TYPE.put("float", new PrimitiveType(float.class, Float::valueOf));
+        PRIMITIVE_TYPE.put("int", new PrimitiveType(int.class, o -> {
+            if (o instanceof String) {
+                return Integer.valueOf((String) o);
+            }
+            return ((Long) o).intValue();
+        }));
+        PRIMITIVE_TYPE.put("double", new PrimitiveType(double.class, o -> {
+            if (o instanceof String) {
+                return Double.valueOf((String) o);
+            }
+            return o;
+        }));
+        PRIMITIVE_TYPE.put("long", new PrimitiveType(long.class, o -> {
+            if (o instanceof String) {
+                return Long.valueOf((String) o);
+            }
+            return o;
+        }));
+        PRIMITIVE_TYPE.put("short", new PrimitiveType(short.class, o -> {
+            if (o instanceof String) {
+                return Short.valueOf((String) o);
+            }
+            return ((Long) o).shortValue();
+        }));
+        PRIMITIVE_TYPE.put("byte", new PrimitiveType(byte.class, o -> {
+            if (o instanceof String) {
+                return Byte.valueOf((String) o);
+            }
+            return ((Long) o).byteValue();
+        }));
+        PRIMITIVE_TYPE.put("boolean", new PrimitiveType(boolean.class, o -> {
+            if (o instanceof String) {
+                return Byte.valueOf((String) o);
+            }
+            return o;
+        }));
+        PRIMITIVE_TYPE.put("char", new PrimitiveType(char.class, o -> {
+            if (o instanceof String) {
+                return String.valueOf(o).charAt(0);
+            }
+            return o;
+        }));
+        PRIMITIVE_TYPE.put("float", new PrimitiveType(float.class, o -> {
+            if (o instanceof String) {
+                return Float.valueOf((String) o);
+            }
+            return ((Double) o).floatValue();
+        }));
     }
 
     /**
@@ -108,7 +148,7 @@ public class PrxInfoUtil {
             String paramName = paramNames[i];
             Class<?> paramType = paramTypes[i];
             if (PRIMITIVE_TYPE.containsKey(paramType.getName())) {
-                param[i] = PRIMITIVE_TYPE.get(paramType.getName()).getFunc().apply((String) bodyMap.get(paramName));
+                param[i] = PRIMITIVE_TYPE.get(paramType.getName()).getFunc().apply(bodyMap.get(paramName));
             } else {
                 param[i] = bodyMap.get(paramName);
             }
@@ -122,6 +162,6 @@ public class PrxInfoUtil {
         
         private final Class<?> clazz;
 
-        private final Function<String, Object> func;
+        private final Function<Object, Object> func;
     }
 }
