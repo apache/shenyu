@@ -239,7 +239,10 @@ In order of registration, More access companies are welcome to register at [http
   </tbody> 
   <tbody>
     <tr>
-      <td><img src="https://dromara.org/img/users/songguo.png"  width="1800" height="90" alt="jd"/>
+      <td><img src="https://dromara.org/img/users/songguo.png"  width="1800" height="90" alt="songguo"/>
+      <td><img src="https://dromara.org/img/users/lianlian.png"  width="1800" height="90" alt="lianlian"/>
+      <td><img src="https://dromara.org/img/users/dasouche.png"  width="1800" height="90" alt="dasouche"/>
+      <td><img src="https://dromara.org/img/users/weimai.png"  width="1800" height="90" alt="weimai"/>
     </tr>
   </tbody> 
 </table>
