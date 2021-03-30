@@ -17,7 +17,9 @@
 
 package org.dromara.soul.springboot.starter.plugin.httpclient;
 
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPipeline;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.handler.timeout.ReadTimeoutHandler;
@@ -42,6 +44,7 @@ import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.ProxyProvider;
 
 import java.security.cert.X509Certificate;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -107,12 +110,18 @@ public class HttpClientPluginConfiguration {
                                     .to(builder::nonProxyHosts);
                         });
                     }
-                    tcpClient = tcpClient.doOnConnected(c ->
-                            c.channel()
-                                    .pipeline()
-                                    // The write and read timeouts are serving as generic socket idle state handlers.
-                                    .addFirst("write_timeout", new WriteTimeoutHandler(properties.getWriteTimeout(), TimeUnit.MILLISECONDS))
-                                    .addFirst("read_timeout", new ReadTimeoutHandler(properties.getReadTimeout(), TimeUnit.MILLISECONDS)));
+                    tcpClient = tcpClient.option(ChannelOption.SO_TIMEOUT, 5000);
+                    tcpClient = tcpClient.doOnConnected(c -> {
+                        ChannelPipeline pipeline = c.channel().pipeline();
+                        Map<String, ChannelHandler> nameChannelHandlerMap = pipeline.toMap();
+                        // The write and read timeouts are serving as generic socket idle state handlers.
+                        if (!nameChannelHandlerMap.containsKey("write_timeout")) {
+                            pipeline.addFirst("write_timeout", new WriteTimeoutHandler(properties.getWriteTimeout(), TimeUnit.MILLISECONDS));
+                        }
+                        if (!nameChannelHandlerMap.containsKey("read_timeout")) {
+                            pipeline.addFirst("read_timeout", new ReadTimeoutHandler(properties.getReadTimeout(), TimeUnit.MILLISECONDS));
+                        }
+                    });
                     return tcpClient;
                 });
         HttpClientProperties.Ssl ssl = properties.getSsl();
