@@ -125,12 +125,13 @@ public class PrxInfoUtil {
     /**
      * Get objectName to get tars proxy.
      *
-     * @param metaData metaData
+     * @param upstreamUrl upstream url
+     * @param serviceName service name
      * @return objectName
      */
-    public static String getObjectName(final MetaData metaData) {
-        String[] ipAndPort = metaData.getAppName().split(":");
-        return metaData.getServiceName() + "@tcp -h " + ipAndPort[0] + " -p " + ipAndPort[1];
+    public static String getObjectName(final String upstreamUrl, final String serviceName) {
+        String[] ipAndPort = upstreamUrl.split(":");
+        return serviceName + "@tcp -h " + ipAndPort[0] + " -p " + ipAndPort[1];
     }
 
     /**
