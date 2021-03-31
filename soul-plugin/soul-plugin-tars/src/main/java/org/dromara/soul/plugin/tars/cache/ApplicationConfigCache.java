@@ -166,7 +166,7 @@ public final class ApplicationConfigCache {
                         }
                     }
                 } else {
-                    if (Objects.nonNull(refreshUpstreamCache.get(metaData.getContextPath()))) {
+                    if (Objects.nonNull(metaData.getContextPath()) && Objects.nonNull(refreshUpstreamCache.get(metaData.getContextPath()))) {
                         refreshTarsInvokePrxList(metaData, refreshUpstreamCache.get(metaData.getContextPath()));
                     }
                     break;
@@ -212,7 +212,7 @@ public final class ApplicationConfigCache {
                 return;
             }
             refreshUpstreamCache.put(selectorData.getName(), upstreamList);
-            List<MetaData> metaDataList = ctxPathCache.get(selectorData.getName());
+            List<MetaData> metaDataList = ctxPathCache.getOrDefault(selectorData.getName(), new ArrayList<>());
             for (MetaData metaData : metaDataList) {
                 refreshTarsInvokePrxList(metaData, upstreamList);
             }
