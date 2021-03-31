@@ -54,6 +54,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 /**
  * Tars config cache.
@@ -77,11 +78,13 @@ public final class ApplicationConfigCache {
                 }
             });
 
-    private final ConcurrentHashMap<String, List<MetaData>> cachePaths = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, List<MetaData>> ctxPathCache = new ConcurrentHashMap<>();
 
     private final ConcurrentHashMap<String, Class<?>> prxClassCache = new ConcurrentHashMap<>();
 
     private final ConcurrentHashMap<String, TarsParamInfo> prxParamCache = new ConcurrentHashMap<>();
+
+    private final ConcurrentHashMap<String, List<DivideUpstream>> refreshUpstreamCache = new ConcurrentHashMap<>();
 
     private final Communicator communicator;
 
@@ -153,28 +156,19 @@ public final class ApplicationConfigCache {
                                     .getLoaded();
                             assert communicator != null;
                             prxClassCache.put(metaData.getPath(), prxClazz);
-                            List<MetaData> paths = cachePaths.getOrDefault(metaData.getContextPath(), new ArrayList<>());
+                            List<MetaData> paths = ctxPathCache.getOrDefault(metaData.getContextPath(), new ArrayList<>());
                             if (!paths.contains(metaData.getPath())) {
                                 paths.add(metaData);
                             }
-                            cachePaths.put(metaData.getContextPath(), paths);
+                            ctxPathCache.put(metaData.getContextPath(), paths);
                         } finally {
                             LOCK.unlock();
                         }
                     }
                 } else {
-                    // if object name is same it will return same prx
-                    Object prx = communicator.stringToProxy(prxClass, PrxInfoUtil.getObjectName(metaData.getAppName(), metaData.getServiceName()));
-                    TarsInvokePrxList tarsInvokePrxList = cache.get(metaData.getPath());
-                    if (tarsInvokePrxList.getMethod() == null) {
-                        TarsParamInfo tarsParamInfo = prxParamCache.get(getClassMethodKey(prxClass.getName(), metaData.getMethodName()));
-                        Method method = prx.getClass().getDeclaredMethod(
-                                PrxInfoUtil.getMethodName(metaData.getMethodName()), tarsParamInfo.getParamTypes());
-                        tarsInvokePrxList.setMethod(method);
-                        tarsInvokePrxList.setParamTypes(tarsParamInfo.getParamTypes());
-                        tarsInvokePrxList.setParamNames(tarsParamInfo.getParamNames());
+                    if (Objects.nonNull(refreshUpstreamCache.get(metaData.getContextPath()))) {
+                        refreshTarsInvokePrxList(metaData, refreshUpstreamCache.get(metaData.getContextPath()));
                     }
-                    tarsInvokePrxList.getTarsInvokePrxList().add(new TarsInvokePrx(prx, metaData.getAppName()));
                     break;
                 }
             } catch (Exception e) {
@@ -208,7 +202,7 @@ public final class ApplicationConfigCache {
     /**
      * initPrxClass.
      *
-     * @param selectorData – selectorData
+     * @param selectorData selectorData
      */
     public void initPrxClass(final SelectorData selectorData) {
         try {
@@ -217,30 +211,42 @@ public final class ApplicationConfigCache {
                 invalidate(selectorData.getName());
                 return;
             }
-            List<MetaData> metaDataList = cachePaths.get(selectorData.getName());
-            for (DivideUpstream upstream : upstreamList) {
-                for (MetaData metaData : metaDataList) {
-                    Class<?> prxClass = prxClassCache.get(metaData.getPath());
-                    if (Objects.isNull(prxClass)) {
-                        return;
-                    }
-                    TarsInvokePrxList tarsInvokePrxList = cache.get(metaData.getPath());
-                    tarsInvokePrxList.getTarsInvokePrxList().clear();
-                    Object prx = communicator.stringToProxy(prxClass, PrxInfoUtil.getObjectName(upstream.getUpstreamUrl(), metaData.getServiceName()));
-                    if (tarsInvokePrxList.getMethod() == null) {
-                        TarsParamInfo tarsParamInfo = prxParamCache.get(getClassMethodKey(prxClass.getName(), metaData.getMethodName()));
-                        Method method = prx.getClass().getDeclaredMethod(
-                                PrxInfoUtil.getMethodName(metaData.getMethodName()), tarsParamInfo.getParamTypes());
-                        tarsInvokePrxList.setMethod(method);
-                        tarsInvokePrxList.setParamTypes(tarsParamInfo.getParamTypes());
-                        tarsInvokePrxList.setParamNames(tarsParamInfo.getParamNames());
-                    }
-                    tarsInvokePrxList.getTarsInvokePrxList().add(new TarsInvokePrx(prx, upstream.getUpstreamUrl()));
-                }
+            refreshUpstreamCache.put(selectorData.getName(), upstreamList);
+            List<MetaData> metaDataList = ctxPathCache.get(selectorData.getName());
+            for (MetaData metaData : metaDataList) {
+                refreshTarsInvokePrxList(metaData, upstreamList);
             }
         } catch (ExecutionException | NoSuchMethodException e) {
             throw new SoulException(e.getCause());
         }
+    }
+
+    /**
+     * refresh metaData path upstream url.
+     *
+     * @param metaData     metaData
+     * @param upstreamList upstream list
+     */
+    private void refreshTarsInvokePrxList(final MetaData metaData,final List<DivideUpstream> upstreamList) throws NoSuchMethodException, ExecutionException {
+        Class<?> prxClass = prxClassCache.get(metaData.getPath());
+        if (Objects.isNull(prxClass)) {
+            return;
+        }
+        TarsInvokePrxList tarsInvokePrxList = cache.get(metaData.getPath());
+        tarsInvokePrxList.getTarsInvokePrxList().clear();
+        if (tarsInvokePrxList.getMethod() == null) {
+            TarsParamInfo tarsParamInfo = prxParamCache.get(getClassMethodKey(prxClass.getName(), metaData.getMethodName()));
+            Object prx = communicator.stringToProxy(prxClass, PrxInfoUtil.getObjectName(upstreamList.get(0).getUpstreamUrl(), metaData.getServiceName()));
+            Method method = prx.getClass().getDeclaredMethod(
+                    PrxInfoUtil.getMethodName(metaData.getMethodName()), tarsParamInfo.getParamTypes());
+            tarsInvokePrxList.setMethod(method);
+            tarsInvokePrxList.setParamTypes(tarsParamInfo.getParamTypes());
+            tarsInvokePrxList.setParamNames(tarsParamInfo.getParamNames());
+        }
+        tarsInvokePrxList.getTarsInvokePrxList().addAll(upstreamList.stream().map(upstream -> {
+            Object strProxy = communicator.stringToProxy(prxClass, PrxInfoUtil.getObjectName(upstream.getUpstreamUrl(), metaData.getServiceName()));
+            return new TarsInvokePrx(strProxy, upstream.getUpstreamUrl());
+        }).collect(Collectors.toList()));
     }
 
     /**
@@ -250,7 +256,7 @@ public final class ApplicationConfigCache {
      * @author HoldDie
      */
     public void invalidate(final String contextPath) {
-        List<MetaData> metaDataList = cachePaths.getOrDefault(contextPath, new ArrayList<>());
+        List<MetaData> metaDataList = ctxPathCache.getOrDefault(contextPath, new ArrayList<>());
         for (MetaData metaData : metaDataList) {
             cache.invalidate(metaData.getPath());
         }
