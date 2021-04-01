@@ -99,7 +99,7 @@ public final class ApplicationConfigCache {
     /**
      * Get reference config.
      *
-     * @param path        path
+     * @param path path
      * @return the reference config
      */
     public TarsInvokePrxList get(final String path) {
@@ -181,7 +181,7 @@ public final class ApplicationConfigCache {
     /**
      * Get param info key.
      *
-     * @param className className
+     * @param className  className
      * @param methodName methodName
      * @return the key
      */
@@ -227,7 +227,7 @@ public final class ApplicationConfigCache {
      * @param metaData     metaData
      * @param upstreamList upstream list
      */
-    private void refreshTarsInvokePrxList(final MetaData metaData,final List<DivideUpstream> upstreamList) throws NoSuchMethodException, ExecutionException {
+    private void refreshTarsInvokePrxList(final MetaData metaData, final List<DivideUpstream> upstreamList) throws NoSuchMethodException, ExecutionException {
         Class<?> prxClass = prxClassCache.get(metaData.getPath());
         if (Objects.isNull(prxClass)) {
             return;

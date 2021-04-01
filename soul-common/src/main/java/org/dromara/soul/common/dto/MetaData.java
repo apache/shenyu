@@ -22,6 +22,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
 
@@ -51,4 +52,15 @@ public class MetaData implements Serializable {
     private String rpcExt;
 
     private Boolean enabled;
+
+    /**
+     * update ContextPath.
+     *
+     * @author HoldDie
+     */
+    public void updateContextPath() {
+        if (StringUtils.isNoneBlank(this.path)) {
+            this.contextPath = this.path.substring(0, StringUtils.indexOf(path, "/", 1));
+        }
+    }
 }
