@@ -128,7 +128,7 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
     private MetaDataRegisterDTO buildMetaDataDTO(final SoulSpringCloudClient soulSpringCloudClient, final String prePath) {
         String contextPath = StringUtils.isBlank(this.contextPath) ? this.servletContextPath : this.contextPath;
         String appName = env.getProperty("spring.application.name");
-        String path = contextPath + this.servletContextPath + prePath + soulSpringCloudClient.path();
+        String path = contextPath + prePath + soulSpringCloudClient.path();
         String host = StringUtils.isBlank(this.host) ? IpUtils.getHost() : this.host;
         int port = StringUtils.isBlank(this.port) ? -1 : Integer.parseInt(this.port);
         String desc = soulSpringCloudClient.desc();
