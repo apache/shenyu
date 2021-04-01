@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -14,22 +16,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM java:openjdk-8-jre-alpine
+[[ -d ./conf-ext ]] && cp -f ./conf-ext/* ./conf
 
-ARG APP_NAME
-ENV LOCAL_PATH /opt/soul-bootstrap
-
-ARG SPRING_PROFILES_ACTIVE
-ENV SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-local}
-
-ADD target/${APP_NAME}.tar.gz /opt
-RUN mv /opt/${APP_NAME} ${LOCAL_PATH}
-
-COPY entrypoint.sh ${LOCAL_PATH}/entrypoint.sh
-RUN chmod +x ${LOCAL_PATH}/entrypoint.sh
-
-WORKDIR ${LOCAL_PATH}
-
-EXPOSE 9195
-
-ENTRYPOINT ["/bin/sh", "entrypoint.sh"]
+/bin/sh ${LOCAL_PATH}/bin/start.sh && tail -f ${LOCAL_PATH}/logs/soul-bootstrap.out
