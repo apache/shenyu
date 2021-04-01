@@ -71,7 +71,7 @@ public class WebsocketSyncDataService implements SyncDataService, AutoCloseable 
         }
         try {
             for (WebSocketClient client : clients) {
-                boolean success = client.connectBlocking(3, TimeUnit.SECONDS);
+                boolean success = client.connectBlocking(3000, TimeUnit.MILLISECONDS);
                 if (success) {
                     log.info("websocket connection is successful.....");
                 } else {

@@ -37,7 +37,6 @@ public class WebsocketConfigurator extends ServerEndpointConfig.Configurator {
     @Override
     public void modifyHandshake(final ServerEndpointConfig sec, final HandshakeRequest request, final HandshakeResponse response) {
         HttpSession httpSession = (HttpSession) request.getHttpSession();
-        // 把HttpSession中保存的ClientIP放到ServerEndpointConfig中，关键字可以跟之前不同
         sec.getUserProperties().put(WebsocketListener.CLIENT_IP_NAME, httpSession.getAttribute(WebsocketListener.CLIENT_IP_NAME));
         super.modifyHandshake(sec, request, response);
     }
