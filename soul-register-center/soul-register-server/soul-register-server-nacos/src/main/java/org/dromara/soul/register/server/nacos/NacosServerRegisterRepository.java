@@ -153,7 +153,7 @@ public class NacosServerRegisterRepository implements SoulServerRegisterReposito
     }
 
     private void registerMetadata(final String metadataConfig) {
-        List<String> metadataList = GsonUtils.getInstance().fromJson(metadataConfig, List.class);
+        List<String> metadataList = GsonUtils.getInstance().fromList(metadataConfig, String.class);
         metadataList.forEach(this::publishMetadata);
     }
 
