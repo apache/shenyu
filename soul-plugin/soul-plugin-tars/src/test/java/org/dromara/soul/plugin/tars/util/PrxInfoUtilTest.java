@@ -67,10 +67,7 @@ public class PrxInfoUtilTest {
 
     @Test
     public void testGetObjectName() {
-        final MetaData metaData = new MetaData("id", "127.0.0.1:8080", "contextPath",
-                "path", "rpcType", "serviceName", "methodName",
-                "parameterTypes", "rpcExt", false);
-        final String result = PrxInfoUtil.getObjectName(metaData);
+        final String result = PrxInfoUtil.getObjectName("127.0.0.1:8080", "serviceName");
         assertEquals("serviceName@tcp -h 127.0.0.1 -p 8080", result);
     }
 

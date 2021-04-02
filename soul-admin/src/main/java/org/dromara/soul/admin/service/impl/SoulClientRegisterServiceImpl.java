@@ -203,7 +203,7 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         }
         final MetaDataDO exist = metaDataMapper.findByServiceNameAndMethod(dto.getServiceName(), dto.getMethodName());
         saveOrUpdateMetaData(exist, dto);
-        String selectorId = handlerTarsSelector(dto);
+        String selectorId = handlerSelector(dto);
         handlerTarsRule(selectorId, dto, exist);
         return SoulResultMessage.SUCCESS;
     }
