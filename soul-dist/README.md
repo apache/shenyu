@@ -21,15 +21,15 @@ mvn clean package -Pdist,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
 If build success, run `docker images` and you will see like this.
 ```
 REPOSITORY            TAG                    IMAGE ID            CREATED             SIZE
-soul/soul-bootstrap   2.2.1                  0002944cca64        About an hour ago   200MB
-soul/soul-admin       2.2.1                  1a4b73d6dd6d        About an hour ago   215MB
+dromara/soul-bootstrap   2.2.1                  0002944cca64        About an hour ago   200MB
+dromara/soul-admin       2.2.1                  1a4b73d6dd6d        About an hour ago   215MB
 ```
 
 run docker
 ```
 docker network create soul
-docker run -d -p 9095:9095 --net soul soul/soul-admin:2.2.1
-docker run -d -p 9195:9195 --net soul soul/soul-bootstrap:2.2.1
+docker run -d -p 9095:9095 --net soul dromara/soul-admin:2.2.1
+docker run -d -p 9195:9195 --net soul dromara/soul-bootstrap:2.2.1
 ```
 
 * Finally. Go to http://IP:9095/ and login with `admin/123456`, enjoy it ^_^
