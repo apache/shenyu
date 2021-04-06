@@ -17,9 +17,7 @@
 
 package org.dromara.soul.springboot.starter.plugin.httpclient;
 
-import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.handler.timeout.ReadTimeoutHandler;
@@ -44,7 +42,6 @@ import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.ProxyProvider;
 
 import java.security.cert.X509Certificate;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
