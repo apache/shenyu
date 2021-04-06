@@ -110,17 +110,11 @@ public class HttpClientPluginConfiguration {
                                     .to(builder::nonProxyHosts);
                         });
                     }
-                    tcpClient = tcpClient.option(ChannelOption.SO_TIMEOUT, 5000);
+                    tcpClient = tcpClient.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000);
+//                        // The write and read timeouts are serving as generic socket idle state handlers.
                     tcpClient = tcpClient.doOnConnected(c -> {
-                        ChannelPipeline pipeline = c.channel().pipeline();
-                        Map<String, ChannelHandler> nameChannelHandlerMap = pipeline.toMap();
-                        // The write and read timeouts are serving as generic socket idle state handlers.
-                        if (!nameChannelHandlerMap.containsKey("write_timeout")) {
-                            pipeline.addFirst("write_timeout", new WriteTimeoutHandler(properties.getWriteTimeout(), TimeUnit.MILLISECONDS));
-                        }
-                        if (!nameChannelHandlerMap.containsKey("read_timeout")) {
-                            pipeline.addFirst("read_timeout", new ReadTimeoutHandler(properties.getReadTimeout(), TimeUnit.MILLISECONDS));
-                        }
+                        c.addHandlerLast(new WriteTimeoutHandler(properties.getWriteTimeout(), TimeUnit.MILLISECONDS));
+                        c.addHandlerLast(new ReadTimeoutHandler(properties.getReadTimeout(), TimeUnit.MILLISECONDS));
                     });
                     return tcpClient;
                 });
