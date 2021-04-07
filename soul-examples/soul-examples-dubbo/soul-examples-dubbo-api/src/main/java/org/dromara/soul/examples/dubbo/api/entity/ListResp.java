@@ -15,42 +15,22 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.examples.dubbo.api.service;
+package org.dromara.soul.examples.dubbo.api.entity;
 
-import org.dromara.soul.examples.dubbo.api.entity.DubboTest;
-import org.dromara.soul.examples.dubbo.api.entity.ListResp;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 /**
- * DubboTestService.
- *
- * @author xiaoyu(Myth)
+ * @author dengliming
  */
-public interface DubboTestService {
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class ListResp {
 
-    /**
-     * find by id.
-     * body：{"id":"1223"}
-     *
-     * @param id id
-     * @return DubboTest dubbo test
-     */
-    DubboTest findById(String id);
-
-    /**
-     * Find all dubbo test.
-     *
-     * @return the dubbo test
-     */
-    DubboTest findAll();
-
-    /**
-     * Insert dubbo test.
-     * body :{"id":"122344","name":"xiaoyu"}
-     *
-     * @param dubboTest the dubbo test
-     * @return the dubbo test
-     */
-    DubboTest insert(DubboTest dubboTest);
-
-    ListResp findList();
+    private Integer total;
+    private List<DubboTest> users;
 }
