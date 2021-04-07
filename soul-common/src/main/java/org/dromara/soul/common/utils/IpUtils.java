@@ -18,7 +18,8 @@
 package org.dromara.soul.common.utils;
 
 import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.net.NetworkInterface;
+import java.util.Enumeration;
 
 /**
  * The type Ip utils.
@@ -33,10 +34,27 @@ public final class IpUtils {
      * @return the host
      */
     public static String getHost() {
+        String hostIp = null;
         try {
-            return InetAddress.getLocalHost().getHostAddress();
-        } catch (UnknownHostException e) {
-            return "127.0.0.1";
+            Enumeration<?> networkInterfaces = NetworkInterface.getNetworkInterfaces();
+            while (networkInterfaces.hasMoreElements()) {
+                NetworkInterface network = (NetworkInterface) networkInterfaces.nextElement();
+                Enumeration<?> addresses = network.getInetAddresses();
+                while (addresses.hasMoreElements()) {
+                    InetAddress inetAddress = (InetAddress) addresses.nextElement();
+                    String hostAddress = inetAddress.getHostAddress();
+                    if (hostAddress.contains(".") && !inetAddress.isLoopbackAddress()) {
+                        hostIp = hostAddress;
+                        break;
+                    }
+                }
+            }
+            if (hostIp == null) {
+                hostIp = InetAddress.getLocalHost().getHostAddress();
+            }
+        } catch (Exception ignore) {
+            hostIp = "127.0.0.1";
         }
+        return hostIp;
     }
 }
