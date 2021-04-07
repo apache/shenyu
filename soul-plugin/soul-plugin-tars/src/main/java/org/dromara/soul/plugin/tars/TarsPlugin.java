@@ -83,6 +83,7 @@ public class TarsPlugin extends AbstractSoulPlugin {
             future = (CompletableFuture) method
                     .invoke(prx, PrxInfoUtil.getParamArray(tarsInvokePrxList.getParamTypes(), tarsInvokePrxList.getParamNames(), body));
         } catch (Exception e) {
+            log.error("Invoke tars error", e);
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             Object error = SoulResultWrap.error(SoulResultEnum.TARS_INVOKE.getCode(), SoulResultEnum.TARS_INVOKE.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
