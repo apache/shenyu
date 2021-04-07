@@ -1,7 +1,7 @@
-name-template: 'Version $NEXT_PATCH_VERSION🌈'
-tag-template: 'v$NEXT_PATCH_VERSION'
+name-template: '$NEXT_PATCH_VERSION'
+tag-template: '$NEXT_PATCH_VERSION'
 categories:
-  - title: '🚀Features'
+  - title: 'Features'
     labels:
       - 'type: new feature'
       - 'type: enhancement'
@@ -9,7 +9,7 @@ categories:
     labels:
       - 'type: bug'
       - 'bug'
-  - title: '🧰Maintenance'
+  - title: 'Maintenance'
     label: 'type: refactor'
 change-template: '- $TITLE (#$NUMBER)'
 exclude-labels:
@@ -19,4 +19,8 @@ template: |
 
   $CHANGES
 
+  ## Contributors
+  We'd like to thank all the contributors who worked on this release!
+
   $CONTRIBUTORS
+
