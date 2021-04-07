@@ -33,7 +33,7 @@ import org.dromara.soul.common.constant.Constants;
 public class UpstreamCheckUtils {
 
     private static final Pattern PATTERN = Pattern
-            .compile("(http://|https://)?(?:(?:[0,1]?\\d?\\d|2[0-4]\\d|25[0-5])\\.){3}(?:[0,1]?\\d?\\d|2[0-4]\\d|25[0-5]):\\d{0,5}");
+            .compile("(http://|https://)?(?:(?:[0,1]?\\d?\\d|2[0-4]\\d|25[0-5])\\.){3}(?:[0,1]?\\d?\\d|2[0-4]\\d|25[0-5])(:\\d{0,5})?");
 
     private static final String HTTP = "http";
 
@@ -47,17 +47,18 @@ public class UpstreamCheckUtils {
         if (StringUtils.isBlank(url)) {
             return false;
         }
-        if (checkIP(url)) {
-            String[] hostPort;
-            if (url.startsWith(HTTP)) {
-                final String[] http = StringUtils.split(url, "\\/\\/");
-                hostPort = StringUtils.split(http[1], Constants.COLONS);
-            } else {
-                hostPort = StringUtils.split(url, Constants.COLONS);
-            }
-            return isHostConnector(hostPort[0], Integer.parseInt(hostPort[1]));
+        String[] hostPort;
+        if (url.startsWith(HTTP)) {
+            final String[] http = StringUtils.split(url, "\\/\\/");
+            hostPort = StringUtils.split(http[1], Constants.COLONS);
         } else {
-            return isHostReachable(url);
+            hostPort = StringUtils.split(url, Constants.COLONS);
+        }
+        final int port = hostPort.length > 1 ? Integer.parseInt(hostPort[1]) : 80;
+        if (checkIP(hostPort[0])) {
+            return isHostConnector(hostPort[0], port);
+        } else {
+            return isHostReachable(hostPort[0]);
         }
     }
 
