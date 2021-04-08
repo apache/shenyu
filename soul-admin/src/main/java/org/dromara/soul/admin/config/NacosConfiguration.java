@@ -20,6 +20,7 @@ package org.dromara.soul.admin.config;
 import com.alibaba.nacos.api.NacosFactory;
 import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.config.ConfigService;
+import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.config.properties.NacosProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -55,7 +56,15 @@ public class NacosConfiguration {
             properties.put(PropertyKeyConst.SECRET_KEY, nacosProp.getAcm().getSecretKey());
         } else {
             properties.put(PropertyKeyConst.SERVER_ADDR, nacosProp.getUrl());
-            properties.put(PropertyKeyConst.NAMESPACE, nacosProp.getNamespace());
+            if (StringUtils.isNotBlank(nacosProp.getNamespace())) {
+                properties.put(PropertyKeyConst.NAMESPACE, nacosProp.getNamespace());
+            }
+            if (StringUtils.isNotBlank(nacosProp.getUsername())) {
+                properties.put(PropertyKeyConst.USERNAME, nacosProp.getUsername());
+            }
+            if (StringUtils.isNotBlank(nacosProp.getPassword())) {
+                properties.put(PropertyKeyConst.PASSWORD, nacosProp.getPassword());
+            }
         }
         return NacosFactory.createConfigService(properties);
     }

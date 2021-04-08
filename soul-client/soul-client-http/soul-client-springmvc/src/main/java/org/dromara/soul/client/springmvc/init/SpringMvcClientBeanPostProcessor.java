@@ -17,21 +17,14 @@
 
 package org.dromara.soul.client.springmvc.init;
 
-import java.lang.reflect.Method;
-import java.util.Objects;
-import java.util.Properties;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
-import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
 import org.dromara.soul.client.springmvc.annotation.SoulSpringMvcClient;
 import org.dromara.soul.common.utils.IpUtils;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
-import org.dromara.soul.register.common.dto.MetaDataDTO;
+import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -39,6 +32,13 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.lang.reflect.Method;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The type Soul spring mvc client bean post processor.
@@ -65,25 +65,22 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
     /**
      * Instantiates a new Soul client bean post processor.
      */
-    public SpringMvcClientBeanPostProcessor(final SoulRegisterCenterConfig config) {
+    public SpringMvcClientBeanPostProcessor(final SoulRegisterCenterConfig config, final SoulClientRegisterRepository soulClientRegisterRepository) {
         String registerType = config.getRegisterType();
         String serverLists = config.getServerLists();
         Properties props = config.getProps();
-        String contextPath = props.getProperty("contextPath");
         int port = Integer.parseInt(props.getProperty("port"));
-        if (StringUtils.isBlank(contextPath) || StringUtils.isBlank(registerType)
-                || StringUtils.isBlank(serverLists) || port <= 0) {
-            String errorMsg = "spring cloud param must config the contextPath ,registerType , serverLists and port must > 0";
+        if (StringUtils.isBlank(registerType) || StringUtils.isBlank(serverLists) || port <= 0) {
+            String errorMsg = "http register param must config the registerType , serverLists and port must > 0";
             log.error(errorMsg);
             throw new RuntimeException(errorMsg);
         }
         this.appName = props.getProperty("appName");
         this.host = props.getProperty("host");
         this.port = port;
-        this.contextPath = contextPath;
+        this.contextPath = props.getProperty("contextPath");
         this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
-        SoulClientRegisterRepository soulClientRegisterRepository = SoulClientRegisterRepositoryFactory.newInstance(config);
         publisher.start(soulClientRegisterRepository);
     }
 
@@ -118,17 +115,22 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         return bean;
     }
     
-    private MetaDataDTO buildMetaDataDTO(final SoulSpringMvcClient soulSpringMvcClient, final String prePath) {
+    private MetaDataRegisterDTO buildMetaDataDTO(final SoulSpringMvcClient soulSpringMvcClient, final String prePath) {
         String contextPath = this.contextPath;
         String appName = this.appName;
         Integer port = this.port;
-        String path = contextPath + prePath + soulSpringMvcClient.path();
+        String path;
+        if (StringUtils.isEmpty(contextPath)) {
+            path = prePath + soulSpringMvcClient.path();
+        } else {
+            path = contextPath + prePath + soulSpringMvcClient.path();
+        }
         String desc = soulSpringMvcClient.desc();
         String configHost = this.host;
         String host = StringUtils.isBlank(configHost) ? IpUtils.getHost() : configHost;
         String configRuleName = soulSpringMvcClient.ruleName();
         String ruleName = StringUtils.isBlank(configRuleName) ? path : configRuleName;
-        return MetaDataDTO.builder()
+        return MetaDataRegisterDTO.builder()
                 .contextPath(contextPath)
                 .host(host)
                 .port(port)
@@ -138,8 +140,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
                 .rpcType(soulSpringMvcClient.rpcType())
                 .enabled(soulSpringMvcClient.enabled())
                 .ruleName(ruleName)
-                .writeMetaData(soulSpringMvcClient.registerMetaData())
-                .registerMetaData(true)
+                .registerMetaData(soulSpringMvcClient.registerMetaData())
                 .build();
     }
 }

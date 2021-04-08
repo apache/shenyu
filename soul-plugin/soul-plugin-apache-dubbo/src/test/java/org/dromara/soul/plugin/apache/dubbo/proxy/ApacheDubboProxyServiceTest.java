@@ -25,7 +25,7 @@ import org.apache.dubbo.rpc.service.GenericService;
 import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.plugin.apache.dubbo.cache.ApplicationConfigCache;
-import org.dromara.soul.plugin.api.dubbo.DubboParamResolveService;
+import org.dromara.soul.plugin.api.param.BodyParamResolveService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -89,12 +89,12 @@ public final class ApacheDubboProxyServiceTest {
         Field field = ApplicationConfigCache.class.getDeclaredField("cache");
         field.setAccessible(true);
         ((LoadingCache) field.get(applicationConfigCache)).put(PATH, referenceConfig);
-        ApacheDubboProxyService apacheDubboProxyService = new ApacheDubboProxyService(new DubboParamResolveServiceImpl());
+        ApacheDubboProxyService apacheDubboProxyService = new ApacheDubboProxyService(new BodyParamResolveServiceImpl());
         apacheDubboProxyService.genericInvoker("", metaData, exchange);
         future.complete("success");
     }
 
-    static class DubboParamResolveServiceImpl implements DubboParamResolveService {
+    static class BodyParamResolveServiceImpl implements BodyParamResolveService {
 
         @Override
         public Pair<String[], Object[]> buildParameter(final String body, final String parameterTypes) {

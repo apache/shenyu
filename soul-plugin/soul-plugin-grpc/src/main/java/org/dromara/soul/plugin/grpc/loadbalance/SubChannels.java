@@ -35,6 +35,8 @@ public class SubChannels {
 
     private static final Attributes.Key<Ref<Integer>> WEIGHT_KEY = Attributes.Key.create("weight");
 
+    private static final Attributes.Key<Ref<String>> STATSU_KEY = Attributes.Key.create("status");
+
     /**
      * CreateSubChannel.
      *
@@ -61,11 +63,13 @@ public class SubChannels {
      * Create Attributes.
      *
      * @param weight weight
+     * @param status status
      * @return Attributes attributes
      */
-    public static Attributes createAttributes(final int weight) {
+    public static Attributes createAttributes(final int weight, final String status) {
         return Attributes.newBuilder()
                 .set(WEIGHT_KEY, new Ref<>(weight))
+                .set(STATSU_KEY, new Ref<>(status))
                 .build();
     }
 
@@ -77,6 +81,16 @@ public class SubChannels {
      */
     public static int getWeight(final LoadBalancer.Subchannel subchannel) {
         return getAttributeValue(subchannel, WEIGHT_KEY, 0);
+    }
+
+    /**
+     * Get status.
+     *
+     * @param subchannel subchannel
+     * @return String status
+     */
+    public static String getStatus(final LoadBalancer.Subchannel subchannel) {
+        return getAttributeValue(subchannel, STATSU_KEY, "true");
     }
 
     /**
@@ -134,6 +148,7 @@ public class SubChannels {
      */
     public static void updateAttributes(final LoadBalancer.Subchannel subchannel, final Attributes attributes) {
         setAttributeValue(subchannel, WEIGHT_KEY, attributes);
+        setAttributeValue(subchannel, STATSU_KEY, attributes);
     }
 
     @Data

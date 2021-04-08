@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -190,12 +191,12 @@ public class ResourceServiceImpl implements ResourceService {
             }
             if (ObjectUtils.isEmpty(menuInfo) && reactor.util.StringUtils.isEmpty(parentId)) {
                 menuInfoList.add(tempMenuInfo);
-                if (resourceVO.getIsLeaf().equals(Boolean.FALSE)) {
+                if (Objects.equals(resourceVO.getIsLeaf(), Boolean.FALSE)) {
                     getMenuInfo(menuInfoList, metaList, tempMenuInfo);
                 }
-            } else if (!ObjectUtils.isEmpty(menuInfo) && !reactor.util.StringUtils.isEmpty(parentId) && parentId.equals(menuInfo.getId())) {
+            } else if (!ObjectUtils.isEmpty(menuInfo) && StringUtils.isNotEmpty(parentId) && parentId.equals(menuInfo.getId())) {
                 menuInfo.getChildren().add(tempMenuInfo);
-                if (resourceVO.getIsLeaf().equals(Boolean.FALSE)) {
+                if (Objects.equals(resourceVO.getIsLeaf(), Boolean.FALSE)) {
                     getMenuInfo(menuInfoList, metaList, tempMenuInfo);
                 }
             }
@@ -221,7 +222,7 @@ public class ResourceServiceImpl implements ResourceService {
                     deleteResourceIds.put(resource.getId(), resource.getTitle());
                 }
             });
-            if (matchResourceIds.size() > 0) {
+            if (CollectionUtils.isNotEmpty(matchResourceIds)) {
                 getDeleteResourceIds(deleteResourceIds, matchResourceIds, metaList);
             }
         });

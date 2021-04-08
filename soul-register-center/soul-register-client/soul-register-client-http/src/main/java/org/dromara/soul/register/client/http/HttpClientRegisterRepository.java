@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.client.http.utils.RegisterUtils;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
-import org.dromara.soul.register.common.dto.MetaDataDTO;
+import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
 import org.dromara.soul.register.common.enums.RegisterTypeEnum;
 import org.dromara.soul.spi.Join;
 
@@ -63,7 +63,7 @@ public class HttpClientRegisterRepository implements SoulClientRegisterRepositor
     }
 
     @Override
-    public void persistInterface(final MetaDataDTO metadata) {
+    public void persistInterface(final MetaDataRegisterDTO metadata) {
         String rpcType = metadata.getRpcType();
         for (String server : serverList) {
             try {

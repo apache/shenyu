@@ -18,13 +18,13 @@
 package org.dromara.soul.client.alibaba.dubbo;
 
 /**
- * Test case for {@link AlibabaDubboServiceBeanPostProcessor}.
+ * Test case for {@link AlibabaDubboServiceBeanListener}.
  *
  * @author HoldDie
  */
 public final class AlibabaDubboServiceBeanPostProcessorTest {
 
-    private static AlibabaDubboServiceBeanPostProcessor alibabaDubboServiceBeanPostProcessor;
+    private static AlibabaDubboServiceBeanListener alibabaDubboServiceBeanListener;
 
 //    @Test
 //    public void testOnApplicationEventWithNonDubboConfigContextPath() {
@@ -35,7 +35,7 @@ public final class AlibabaDubboServiceBeanPostProcessorTest {
 //        mockRegisterCenter.setRegisterType("http");
 //        mockRegisterCenter.setProps(properties);
 //        try {
-//            alibabaDubboServiceBeanPostProcessor = new AlibabaDubboServiceBeanPostProcessor(mockRegisterCenter);
+//            alibabaDubboServiceBeanListener = new AlibabaDubboServiceBeanListener(mockRegisterCenter);
 //        } catch (RuntimeException e) {
 //            assertThat("Alibaba dubbo client must config the contextPath, adminUrl", is(e.getMessage()));
 //        }
@@ -43,7 +43,7 @@ public final class AlibabaDubboServiceBeanPostProcessorTest {
 //        try {
 //            mockRegisterCenter.setServerLists(null);
 //            properties.setProperty("/contextPath", "dubbo");
-//            alibabaDubboServiceBeanPostProcessor = new AlibabaDubboServiceBeanPostProcessor(mockRegisterCenter);
+//            alibabaDubboServiceBeanListener = new AlibabaDubboServiceBeanListener(mockRegisterCenter);
 //        } catch (RuntimeException e) {
 //            assertThat("Alibaba dubbo client must config the contextPath, adminUrl", is(e.getMessage()));
 //        }
@@ -58,10 +58,10 @@ public final class AlibabaDubboServiceBeanPostProcessorTest {
 //        mockRegisterCenter.setServerLists("http://127.0.0.1:28080");
 //        mockRegisterCenter.setRegisterType("http");
 //        mockRegisterCenter.setProps(properties);
-//        alibabaDubboServiceBeanPostProcessor = new AlibabaDubboServiceBeanPostProcessor(mockRegisterCenter);
+//        alibabaDubboServiceBeanListener = new AlibabaDubboServiceBeanListener(mockRegisterCenter);
 //        ApplicationContext applicationContext = new AnnotationConfigApplicationContext(MockApplicationConfiguration.class);
 //        ContextRefreshedEvent contextRefreshedEvent = new ContextRefreshedEvent(applicationContext);
-//        alibabaDubboServiceBeanPostProcessor.onApplicationEvent(contextRefreshedEvent);
+//        alibabaDubboServiceBeanListener.onApplicationEvent(contextRefreshedEvent);
 //    }
 //
 //    @Test
@@ -73,12 +73,12 @@ public final class AlibabaDubboServiceBeanPostProcessorTest {
 //        mockRegisterCenter.setServerLists("http://127.0.0.1:28080");
 //        mockRegisterCenter.setRegisterType("http");
 //        mockRegisterCenter.setProps(properties);
-//        alibabaDubboServiceBeanPostProcessor = new AlibabaDubboServiceBeanPostProcessor(mockRegisterCenter);
+//        alibabaDubboServiceBeanListener = new AlibabaDubboServiceBeanListener(mockRegisterCenter);
 //
 //        ApplicationContext mockApplicationContext = mock(ApplicationContext.class);
 //        when(mockApplicationContext.getParent()).thenReturn(new AnnotationConfigApplicationContext());
 //        ContextRefreshedEvent contextRefreshedEvent = new ContextRefreshedEvent(mockApplicationContext);
-//        alibabaDubboServiceBeanPostProcessor.onApplicationEvent(contextRefreshedEvent);
+//        alibabaDubboServiceBeanListener.onApplicationEvent(contextRefreshedEvent);
 //    }
 //
 //    interface MockDubboService {

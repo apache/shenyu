@@ -30,11 +30,11 @@ logging:
 
 soul:
   client:
-    registerType: http
-    serverLists: http://localhost:9095
-#    registerType: zookeeper
-#    serverLists: localhost:2181
+    registerType: http #zookeeper #etcd #nacos #consul
+    serverLists: http://localhost:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
     props:
       contextPath: /tars
       appName: tars
-      ipAndPort: 192.168.41.103:21715
+      port: 21715
+      host: 192.168.41.103
+      nacosNameSpace: SoulRegisterCenter

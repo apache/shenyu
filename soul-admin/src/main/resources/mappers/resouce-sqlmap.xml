@@ -200,17 +200,17 @@
         set date_created = #{dateCreated,jdbcType=TIMESTAMP},
         date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
         parent_id = #{parentId,jdbcType=VARCHAR},
-        title = #{title,jdbcType=VARCHAR}
+        title = #{title,jdbcType=VARCHAR},
         name = #{name,jdbcType=VARCHAR},
-        url = #{url,jdbcType=VARCHAR}
+        url = #{url,jdbcType=VARCHAR},
         component = #{component,jdbcType=VARCHAR},
-        resource_type = #{resourceType,jdbcType=INTEGER}
+        resource_type = #{resourceType,jdbcType=INTEGER},
         sort = #{sort,jdbcType=INTEGER},
-        icon = #{icon,jdbcType=VARCHAR}
+        icon = #{icon,jdbcType=VARCHAR},
         is_leaf = #{isLeaf,jdbcType=BOOLEAN},
         is_route = #{isRoute,jdbcType=INTEGER},
-        perms = #{perms,jdbcType=VARCHAR}
-        status = #{status,jdbcType=INTEGER},
+        perms = #{perms,jdbcType=VARCHAR},
+        status = #{status,jdbcType=INTEGER}
         where id = #{id,jdbcType=VARCHAR}
     </update>
 

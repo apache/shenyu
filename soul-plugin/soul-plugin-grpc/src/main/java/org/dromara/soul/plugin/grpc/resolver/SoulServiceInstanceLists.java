@@ -21,7 +21,10 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.beans.BeanUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -38,4 +41,19 @@ public class SoulServiceInstanceLists {
     private CopyOnWriteArrayList<SoulServiceInstance> soulServiceInstances;
 
     private String appName;
+
+    /**
+     * Get instance copy.
+     *
+     * @return list list
+     */
+    public List<SoulServiceInstance> getCopyInstances() {
+        List<SoulServiceInstance> copy = new ArrayList<>(soulServiceInstances.size());
+        soulServiceInstances.forEach(instance -> {
+            SoulServiceInstance cp = new SoulServiceInstance();
+            BeanUtils.copyProperties(instance, cp);
+            copy.add(cp);
+        });
+        return copy;
+    }
 }

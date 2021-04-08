@@ -77,7 +77,7 @@ public final class ApacheDubboPluginTest {
     public void doExecute() {
         SoulContext context = mock(SoulContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, context);
-        exchange.getAttributes().put(Constants.DUBBO_PARAMS, "{key:value}");
+        exchange.getAttributes().put(Constants.PARAM_TRANSFORM, "{key:value}");
         exchange.getAttributes().put(Constants.META_DATA, metaData);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         SelectorData selectorData = mock(SelectorData.class);
@@ -100,7 +100,7 @@ public final class ApacheDubboPluginTest {
     public void testMethodIsNullExecute() {
         SoulContext context = mock(SoulContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, context);
-        exchange.getAttributes().put(Constants.DUBBO_PARAMS, "{key:value}");
+        exchange.getAttributes().put(Constants.PARAM_TRANSFORM, "{key:value}");
         MetaData metaData = MetaData.builder()
                 .id("1332017966661636096")
                 .appName("dubbo")

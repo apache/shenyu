@@ -67,17 +67,15 @@ public class PrxInfoUtilTest {
 
     @Test
     public void testGetObjectName() {
-        final MetaData metaData = new MetaData("id", "127.0.0.1:8080", "contextPath",
-                "path", "rpcType", "serviceName", "methodName",
-                "parameterTypes", "rpcExt", false);
-        final String result = PrxInfoUtil.getObjectName(metaData);
+        final String result = PrxInfoUtil.getObjectName("127.0.0.1:8080", "serviceName");
         assertEquals("serviceName@tcp -h 127.0.0.1 -p 8080", result);
     }
 
     @Test
     public void testGetParamArray() {
-        assertArrayEquals(new Object[]{Integer.valueOf(1), "1"},
-                PrxInfoUtil.getParamArray(new Class<?>[]{int.class, Integer.class}, new String[]{"param1", "param2"},
-                        "{\"param1\":\"1\",\"param2\":\"1\"}"));
+        assertArrayEquals(new Object[]{11, Double.valueOf("1.321321312"), Long.valueOf("131231312"), Short.valueOf("11"), Byte.valueOf("0"), false, 'a', 1.321321312F},
+                PrxInfoUtil.getParamArray(new Class<?>[]{int.class, double.class, long.class, short.class, byte.class, boolean.class, char.class, float.class},
+                        new String[]{"int", "double", "long", "short", "byte", "boolean", "char", "float"},
+                        "{\"int\":11,\"double\":1.321321312,\"long\":131231312,\"short\":11,\"byte\":0,\"boolean\":false,\"char\":'a',\"float\":1.321321312}"));
     }
 }

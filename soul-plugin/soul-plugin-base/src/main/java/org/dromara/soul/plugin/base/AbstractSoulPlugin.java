@@ -132,7 +132,7 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
     }
 
     private void selectorLog(final SelectorData selectorData, final String pluginName) {
-        if (selectorData.getLoged()) {
+        if (selectorData.getLogged()) {
             log.info("{} selector success match , selector name :{}", pluginName, selectorData.getName());
         }
     }

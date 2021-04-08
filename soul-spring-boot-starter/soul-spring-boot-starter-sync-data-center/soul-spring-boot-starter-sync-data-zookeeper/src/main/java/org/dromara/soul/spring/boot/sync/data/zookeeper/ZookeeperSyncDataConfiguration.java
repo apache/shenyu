@@ -73,5 +73,4 @@ public class ZookeeperSyncDataConfiguration {
     public ZkClient zkClient(final ZookeeperConfig zookeeperConfig) {
         return new ZkClient(zookeeperConfig.getUrl(), zookeeperConfig.getSessionTimeout(), zookeeperConfig.getConnectionTimeout());
     }
-
 }

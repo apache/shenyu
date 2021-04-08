@@ -18,6 +18,7 @@
 package org.dromara.soul.admin.listener.websocket;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.service.SyncDataService;
 import org.dromara.soul.admin.spring.SpringBeanUtils;
@@ -31,6 +32,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -42,7 +44,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * @since 2.0.0
  */
 @Slf4j
-@ServerEndpoint("/websocket")
+@ServerEndpoint(value = "/websocket", configurator = WebsocketConfigurator.class)
 public class WebsocketCollector {
 
     private static final Set<Session> SESSION_SET = new CopyOnWriteArraySet<>();
@@ -56,8 +58,20 @@ public class WebsocketCollector {
      */
     @OnOpen
     public void onOpen(final Session session) {
-        log.info("websocket on open successful....");
+        log.info("websocket on client[{}] open successful....", getClientIp(session));
         SESSION_SET.add(session);
+    }
+
+    private static String getClientIp(final Session session) {
+        Map<String, Object> userProperties = session.getUserProperties();
+        if (MapUtils.isEmpty(userProperties)) {
+            return StringUtils.EMPTY;
+        }
+        Object ipObject = userProperties.get(WebsocketListener.CLIENT_IP_NAME);
+        if (null == ipObject) {
+            return StringUtils.EMPTY;
+        }
+        return ipObject.toString();
     }
 
     /**
@@ -87,6 +101,7 @@ public class WebsocketCollector {
     public void onClose(final Session session) {
         SESSION_SET.remove(session);
         ThreadLocalUtil.clear();
+        log.warn("websocket close on client[{}]", getClientIp(session));
     }
 
     /**
@@ -99,7 +114,7 @@ public class WebsocketCollector {
     public void onError(final Session session, final Throwable error) {
         SESSION_SET.remove(session);
         ThreadLocalUtil.clear();
-        log.error("websocket collection error: ", error);
+        log.error("websocket collection on client[{}] error: ", getClientIp(session), error);
     }
 
     /**

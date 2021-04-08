@@ -19,11 +19,12 @@
 package org.dromara.soul.spring.boot.starter.plugin.grpc;
 
 import org.dromara.soul.plugin.api.SoulPlugin;
+import org.dromara.soul.plugin.api.context.SoulContextDecorator;
+import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.plugin.grpc.GrpcPlugin;
-import org.dromara.soul.plugin.grpc.param.GrpcBodyParamPlugin;
+import org.dromara.soul.plugin.grpc.context.GrpcSoulContextDecorator;
+import org.dromara.soul.plugin.grpc.handler.GrpcPluginDataHandler;
 import org.dromara.soul.plugin.grpc.response.GrpcResponsePlugin;
-import org.dromara.soul.plugin.grpc.subscriber.GrpcMetaDataSubscriber;
-import org.dromara.soul.sync.data.api.MetaDataSubscriber;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -46,16 +47,6 @@ public class GrpcPluginConfiguration {
     }
 
     /**
-     * Body param plugin soul plugin.
-     *
-     * @return the soul plugin
-     */
-    @Bean
-    public SoulPlugin grpcBodyParamPlugin() {
-        return new GrpcBodyParamPlugin();
-    }
-
-    /**
      * Grpc response plugin soul plugin.
      *
      * @return the soul plugin
@@ -66,12 +57,22 @@ public class GrpcPluginConfiguration {
     }
 
     /**
-     * Grpc meta data subscriber meta data subscriber.
+     * Grpc data handler.
      *
-     * @return the meta data subscriber
+     * @return the plugin data handler
      */
     @Bean
-    public MetaDataSubscriber grpcMetaDataSubscriber() {
-        return new GrpcMetaDataSubscriber();
+    public PluginDataHandler grpcPluginDataHandler() {
+        return new GrpcPluginDataHandler();
+    }
+
+    /**
+     * Grpc soul context decorator soul context decorator.
+     *
+     * @return the soul context decorator
+     */
+    @Bean
+    public SoulContextDecorator grpcSoulContextDecorator() {
+        return new GrpcSoulContextDecorator();
     }
 }

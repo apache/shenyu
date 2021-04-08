@@ -60,7 +60,7 @@ public class SoulWebHandlerTest {
                 .remoteAddress(new InetSocketAddress(8090))
                 .build());
         exchange.getAttributes().put(Constants.CONTEXT, mock(SoulContext.class));
-        exchange.getAttributes().put(Constants.DUBBO_PARAMS, "{key:value}");
+        exchange.getAttributes().put(Constants.PARAM_TRANSFORM, "{key:value}");
         Mono<Void> handle = soulWebHandler.handle(exchange);
         Assert.assertNotNull(handle);
     }

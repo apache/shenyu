@@ -22,8 +22,10 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.Weigher;
 import lombok.extern.slf4j.Slf4j;
-import org.dromara.soul.common.dto.MetaData;
+import org.dromara.soul.common.dto.SelectorData;
+import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.exception.SoulException;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.grpc.resolver.SoulServiceInstance;
 import org.dromara.soul.plugin.grpc.resolver.SoulServiceInstanceLists;
 
@@ -34,6 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * Grpc config cache.
@@ -67,12 +70,12 @@ public final class ApplicationConfigCache {
     /**
      * Get soulServiceInstanceList.
      *
-     * @param path path
+     * @param contextPath contextPath
      * @return SoulServiceInstanceLists instances
      */
-    public SoulServiceInstanceLists get(final String path) {
+    public SoulServiceInstanceLists get(final String contextPath) {
         try {
-            return cache.get(path);
+            return cache.get(contextPath);
         } catch (ExecutionException e) {
             throw new SoulException(e.getCause());
         }
@@ -81,15 +84,20 @@ public final class ApplicationConfigCache {
     /**
      * Init prx.
      *
-     * @param metaData metaData
+     * @param selectorData selectorData
      */
-    public void initPrx(final MetaData metaData) {
+    public void initPrx(final SelectorData selectorData) {
         try {
-            SoulServiceInstanceLists soulServiceInstances = cache.get(metaData.getContextPath());
+            final List<DivideUpstream> upstreamList = GsonUtils.getInstance().fromList(selectorData.getHandle(), DivideUpstream.class);
+            if (null == upstreamList || upstreamList.size() == 0) {
+                invalidate(selectorData.getName());
+                return;
+            }
+            SoulServiceInstanceLists soulServiceInstances = cache.get(selectorData.getName());
             List<SoulServiceInstance> instances = soulServiceInstances.getSoulServiceInstances();
-            String[] ipAndPort = metaData.getAppName().split(":");
-            instances.add(new SoulServiceInstance(ipAndPort[0], Integer.parseInt(ipAndPort[1])));
-            Consumer<Object> consumer = listener.get(metaData.getContextPath());
+            instances.clear();
+            instances.addAll(upstreamList.stream().map(this::build).collect(Collectors.toList()));
+            Consumer<Object> consumer = listener.get(selectorData.getName());
             if (Objects.nonNull(consumer)) {
                 consumer.accept(System.currentTimeMillis());
             }
@@ -101,12 +109,12 @@ public final class ApplicationConfigCache {
     /**
      * invalidate client.
      *
-     * @param metaData metaData
+     * @param contextPath contextPath
      */
-    public void invalidate(final MetaData metaData) {
-        cache.invalidate(metaData.getContextPath());
-        listener.remove(metaData.getContextPath());
-        GrpcClientCache.removeClient(metaData.getContextPath());
+    public void invalidate(final String contextPath) {
+        cache.invalidate(contextPath);
+        listener.remove(contextPath);
+        GrpcClientCache.removeClient(contextPath);
     }
 
     /**
@@ -126,6 +134,14 @@ public final class ApplicationConfigCache {
      */
     public static ApplicationConfigCache getInstance() {
         return ApplicationConfigCacheInstance.INSTANCE;
+    }
+
+    private SoulServiceInstance build(final DivideUpstream divideUpstream) {
+        String[] ipAndPort = divideUpstream.getUpstreamUrl().split(":");
+        SoulServiceInstance instance = new SoulServiceInstance(ipAndPort[0], Integer.parseInt(ipAndPort[1]));
+        instance.setWeight(divideUpstream.getWeight());
+        instance.setStatus(divideUpstream.isStatus());
+        return instance;
     }
 
     /**

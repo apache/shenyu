@@ -1,8 +1,8 @@
 <p align="center" >
-    <a href="https://dromara.org"><img src="https://yu199195.github.io/images/soul/soul-logo.png" width="45%"></a>
+    <a href="https://dromara.org"><img src="https://dromara.org/img/logo/soul.png" width="45%"></a>
 </p>
 <p align="center">
-  <strong>Scalable,High Performance,Responsive API Gateways</strong>
+  <strong>Scalable, High Performance, Responsive API Gateway Solution for all MicroSerivces</strong>
 </p>
 <p align="center">
   <a href="https://dromara.org">https://dromara.org/</a>
@@ -28,8 +28,8 @@
     <a href="https://www.codacy.com/app/yu199195/soul?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Dromara/soul&amp;utm_campaign=Badge_Grade">
         <img src="https://api.codacy.com/project/badge/Grade/4367ffad5b434b7e8078b3a68cc6398d"/>
     </a>
-    <a target="_blank" href='https://gitee.com/shuaiqiyu/soul/stargazers'>
-        <img src='https://gitee.com/shuaiqiyu/soul/badge/star.svg?theme=gvp' alt='gitee stars'/>
+    <a target="_blank" href='https://gitee.com/dromara/soul/stargazers'>
+        <img src='https://gitee.com/dromara/soul/badge/star.svg?theme=gvp' alt='gitee stars'/>
    </a>
    <a target="_blank" href='https://github.com/dromara/soul'>
         <img src="https://img.shields.io/github/forks/dromara/soul.svg" alt="github forks"/>
@@ -73,6 +73,10 @@
   
  * soul-common : framework common class
  
+ * soul-disruptor : based on disruptor Enclosure
+ 
+ * soul-register-center : rpc type register for soul-client
+ 
  * soul-dist : build project
 
  * soul-metrics : metrics impl by prometheus.
@@ -95,7 +99,7 @@
 
    * Soul provides plugins such as current limiting, fusing, forwarding, routing monitoring and so on.
    
-   * Seamless docking with HTTP, RESTful, WebSocket, Dubbo and Spring Cloud.
+   * Support HTTP, RESTFul, WebSocket, Dubbo, GRPC, Tars and Spring Cloud Proxy.
    
    * Plug-in hot plug, users can customize the development.
    
@@ -117,7 +121,7 @@
  
  Of course, users can also customize plugins to meet their own needs.
  
- If you want to customize, see [plugin-extend](https://dromara.org/website/zh-cn/docs/soul/extend.html)
+ If you want to customize, see [custom-plugin](https://dromara.org/projects/soul/custom-plugin/)
  
 --------------------------------------------------------------------------------  
  
@@ -153,9 +157,9 @@
    
 # About
   
-   Soul has been used in our production environment,its performance and flexibility allow us to use up very cool.
+   Soul has been used widely in more and more systems by many companies, and it's simple and convenient to integrate Services/APIs with the high performance and flexibility.
    
-   In double 11, we deployed 6 clusters, which supported a large volume of our business.
+   In double eleven online shopping carnival of China, Soul clusters successfully supported a large volume of internet business.
    
 --------------------------------------------------------------------------------  
     
@@ -225,6 +229,22 @@ In order of registration, More access companies are welcome to register at [http
       <td><img src="https://yu199195.github.io/images/soul/users/anka.png"  width="1800" height="90" alt="anka"/>
     </tr>
   </tbody>     
+  <tbody>
+    <tr>
+      <td><img src="https://dromara.org/img/users/jd_logo.png"  width="1800" height="90" alt="jd"/>
+      <td><img src="https://yu199195.github.io/images/soul/users/minglamp.jpeg"  width="1800" height="90" alt="minglamp"/>
+      <td><img src="https://yu199195.github.io/images/soul/users/webuy.jpg"  width="1800" height="90" alt="webuy"/>
+      <td><img src="https://dromara.org/img/users/cass.png"  width="1800" height="90" alt="cass"/>
+    </tr>
+  </tbody> 
+  <tbody>
+    <tr>
+      <td><img src="https://dromara.org/img/users/songguo.png"  width="1800" height="90" alt="songguo"/>
+      <td><img src="https://dromara.org/img/users/lianlian.png"  width="1800" height="90" alt="lianlian"/>
+      <td><img src="https://dromara.org/img/users/dasouche.png"  width="1800" height="90" alt="dasouche"/>
+      <td><img src="https://dromara.org/img/users/weimai.png"  width="1800" height="90" alt="weimai"/>
+    </tr>
+  </tbody> 
 </table>
 
 # Support  

@@ -34,7 +34,7 @@ import org.springframework.stereotype.Service;
 public class EchoServiceImpl extends EchoServiceGrpc.EchoServiceImplBase {
 
     @Override
-    @SoulGrpcClient(path = "/echo")
+    @SoulGrpcClient(path = "/echo", desc = "echo")
     public void echo(EchoRequest request, StreamObserver<EchoResponse> responseObserver) {
         System.out.println("Received: " + request.getMessage());
         EchoResponse.Builder response = EchoResponse.newBuilder()

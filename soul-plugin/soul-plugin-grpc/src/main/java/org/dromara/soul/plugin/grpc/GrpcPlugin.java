@@ -18,6 +18,7 @@
 package org.dromara.soul.plugin.grpc;
 
 import io.grpc.CallOptions;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.constant.Constants;
@@ -28,12 +29,13 @@ import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.exception.SoulException;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
 import org.dromara.soul.plugin.api.result.SoulResultEnum;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
-import org.dromara.soul.plugin.base.utils.SoulResultWrap;
-import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
+import org.dromara.soul.plugin.api.result.SoulResultWrap;
+import org.dromara.soul.plugin.api.utils.WebFluxResultUtils;
 import org.dromara.soul.plugin.grpc.cache.GrpcClientCache;
 import org.dromara.soul.plugin.grpc.client.SoulGrpcClient;
 import org.dromara.soul.plugin.grpc.proto.SoulGrpcResponse;
@@ -43,6 +45,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The type grpc plugin.
@@ -54,7 +57,7 @@ public class GrpcPlugin extends AbstractSoulPlugin {
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
-        String body = exchange.getAttribute(Constants.GRPC_PARAMS);
+        String param = exchange.getAttribute(Constants.PARAM_TRANSFORM);
         SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
         MetaData metaData = exchange.getAttribute(Constants.META_DATA);
@@ -65,19 +68,20 @@ public class GrpcPlugin extends AbstractSoulPlugin {
             Object error = SoulResultWrap.error(SoulResultEnum.META_DATA_ERROR.getCode(), SoulResultEnum.META_DATA_ERROR.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
-        if (StringUtils.isNoneBlank(metaData.getParameterTypes()) && StringUtils.isBlank(body)) {
+        if (StringUtils.isNoneBlank(metaData.getParameterTypes()) && StringUtils.isBlank(param)) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             Object error = SoulResultWrap.error(SoulResultEnum.GRPC_HAVE_BODY_PARAM.getCode(), SoulResultEnum.GRPC_HAVE_BODY_PARAM.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
-
-        final SoulGrpcClient client = GrpcClientCache.getGrpcClient(metaData.getContextPath());
+        final SoulGrpcClient client = GrpcClientCache.getGrpcClient(selector.getName());
         if (Objects.isNull(client)) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             Object error = SoulResultWrap.error(SoulResultEnum.GRPC_CLIENT_NULL.getCode(), SoulResultEnum.GRPC_CLIENT_NULL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
-        CompletableFuture<SoulGrpcResponse> result = client.call(metaData, CallOptions.DEFAULT, body);
+        GrpcExtInfo extInfo = GsonUtils.getGson().fromJson(metaData.getRpcExt(), GrpcExtInfo.class);
+        CallOptions callOptions = CallOptions.DEFAULT.withDeadlineAfter(extInfo.timeout, TimeUnit.MILLISECONDS);
+        CompletableFuture<SoulGrpcResponse> result = client.call(metaData, callOptions, param);
         return Mono.fromFuture(result.thenApply(ret -> {
             exchange.getAttributes().put(Constants.GRPC_RPC_RESULT, ret.getResult());
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
@@ -115,5 +119,14 @@ public class GrpcPlugin extends AbstractSoulPlugin {
 
     private boolean checkMetaData(final MetaData metaData) {
         return null != metaData && !StringUtils.isBlank(metaData.getMethodName()) && !StringUtils.isBlank(metaData.getServiceName());
+    }
+
+    /**
+     * The GrpcExt.
+     */
+    @Data
+    static class GrpcExtInfo {
+
+        private Integer timeout = 5000;
     }
 }

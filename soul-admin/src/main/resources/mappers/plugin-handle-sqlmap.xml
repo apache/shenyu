@@ -32,7 +32,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,plugin_id, field, label, data_type,type,sort, ext_obj,date_created, date_updated
+        id,plugin_id, field, label, data_type,type,sort, ext_obj, date_created, date_updated
     </sql>
 
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
@@ -41,11 +41,13 @@
         from plugin_handle
         where id = #{id,jdbcType=VARCHAR}
     </select>
+
     <select id="findByPluginId" parameterType="java.lang.String" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
         from plugin_handle where plugin_id = #{pluginId,jdbcType=VARCHAR}
     </select>
+
     <delete id="delete" parameterType="java.lang.String">
         delete from plugin_handle
         where id = #{id,jdbcType=VARCHAR}

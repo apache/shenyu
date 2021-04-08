@@ -17,14 +17,16 @@
 
 package org.dromara.soul.client.grpc;
 
-import com.google.gson.Gson;
 import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
 import org.dromara.soul.client.grpc.common.annotation.SoulGrpcClient;
 import org.dromara.soul.client.grpc.common.dto.GrpcExt;
+import org.dromara.soul.common.utils.GsonUtils;
+import org.dromara.soul.common.utils.IpUtils;
+import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
-import org.dromara.soul.register.common.dto.MetaDataDTO;
+import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.lang.NonNull;
@@ -52,29 +54,36 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
     
     private SoulClientRegisterEventPublisher publisher = SoulClientRegisterEventPublisher.getInstance();
     
-    private Gson gson = new Gson();
-    
     private final ExecutorService executorService;
     
     private final String contextPath;
     
     private final String ipAndPort;
+
+    private final String host;
+
+    private final int port;
     
     /**
      * Instantiates a new Soul client bean post processor.
      *
      * @param config the soul grpc config
+     * @param soulClientRegisterRepository the soulClientRegisterRepository
      */
-    public GrpcClientBeanPostProcessor(final SoulRegisterCenterConfig config) {
+    public GrpcClientBeanPostProcessor(final SoulRegisterCenterConfig config, final SoulClientRegisterRepository soulClientRegisterRepository) {
         Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
         String ipAndPort = props.getProperty("ipAndPort");
-        if (StringUtils.isEmpty(contextPath) || StringUtils.isEmpty(ipAndPort)) {
+        String port = props.getProperty("port");
+        if (StringUtils.isEmpty(contextPath) || StringUtils.isEmpty(ipAndPort) || StringUtils.isEmpty(port)) {
             throw new RuntimeException("tars client must config the contextPath, ipAndPort");
         }
         this.ipAndPort = ipAndPort;
         this.contextPath = contextPath;
+        this.host = props.getProperty("host");
+        this.port = Integer.parseInt(port);
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        publisher.start(soulClientRegisterRepository);
     }
 
     @Override
@@ -118,20 +127,24 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
         }
     }
 
-    private MetaDataDTO buildMetaDataDTO(final String packageName, final SoulGrpcClient soulGrpcClient, final Method method) {
+    private MetaDataRegisterDTO buildMetaDataDTO(final String packageName, final SoulGrpcClient soulGrpcClient, final Method method) {
         String path = this.contextPath + soulGrpcClient.path();
         String desc = soulGrpcClient.desc();
+        String configHost = this.host;
+        String host = org.apache.commons.lang3.StringUtils.isBlank(configHost) ? IpUtils.getHost() : configHost;
         String configRuleName = soulGrpcClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
         String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
                 .collect(Collectors.joining(","));
-        return MetaDataDTO.builder()
+        return MetaDataRegisterDTO.builder()
                 .appName(ipAndPort)
                 .serviceName(packageName)
                 .methodName(methodName)
                 .contextPath(contextPath)
+                .host(host)
+                .port(port)
                 .path(path)
                 .ruleName(ruleName)
                 .pathDesc(desc)
@@ -144,7 +157,7 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
 
     private String buildRpcExt(final SoulGrpcClient soulGrpcClient) {
         GrpcExt build = GrpcExt.builder().timeout(soulGrpcClient.timeout()).build();
-        return gson.toJson(build);
+        return GsonUtils.getInstance().toJson(build);
     }
 }
 

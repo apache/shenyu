@@ -38,5 +38,4 @@ public class TestApacheDubboApplication {
     public static void main(final String[] args) {
         SpringApplication.run(TestApacheDubboApplication.class, args);
     }
-
 }

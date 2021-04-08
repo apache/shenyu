@@ -19,8 +19,17 @@ FROM java:openjdk-8-jre-alpine
 ARG APP_NAME
 ENV LOCAL_PATH /opt/soul-bootstrap
 
+ARG SPRING_PROFILES_ACTIVE
+ENV SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-local}
+
 ADD target/${APP_NAME}.tar.gz /opt
 RUN mv /opt/${APP_NAME} ${LOCAL_PATH}
 
+COPY entrypoint.sh ${LOCAL_PATH}/entrypoint.sh
+RUN chmod +x ${LOCAL_PATH}/entrypoint.sh
+
+WORKDIR ${LOCAL_PATH}
+
 EXPOSE 9195
-ENTRYPOINT /bin/sh ${LOCAL_PATH}/bin/start.sh && tail -f ${LOCAL_PATH}/logs/soul-bootstrap.out
+
+ENTRYPOINT ["/bin/sh", "entrypoint.sh"]

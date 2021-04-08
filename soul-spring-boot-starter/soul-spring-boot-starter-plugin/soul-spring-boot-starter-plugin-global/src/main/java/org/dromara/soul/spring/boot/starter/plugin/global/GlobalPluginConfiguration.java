@@ -19,15 +19,22 @@ package org.dromara.soul.spring.boot.starter.plugin.global;
 
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.api.context.SoulContextBuilder;
+import org.dromara.soul.plugin.api.context.SoulContextDecorator;
 import org.dromara.soul.plugin.global.DefaultSoulContextBuilder;
 import org.dromara.soul.plugin.global.GlobalPlugin;
 import org.dromara.soul.plugin.global.subsciber.MetaDataAllSubscriber;
 import org.dromara.soul.sync.data.api.MetaDataSubscriber;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.SearchStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * The type Global plugin configuration.
@@ -37,7 +44,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnClass(GlobalPlugin.class)
 public class GlobalPluginConfiguration {
-
+    
     /**
      * Global plugin soul plugin.
      *
@@ -48,18 +55,21 @@ public class GlobalPluginConfiguration {
     public SoulPlugin globalPlugin(final SoulContextBuilder soulContextBuilder) {
         return new GlobalPlugin(soulContextBuilder);
     }
-
+    
     /**
      * Soul context builder soul context builder.
      *
+     * @param decorators the decorators
      * @return the soul context builder
      */
     @Bean
     @ConditionalOnMissingBean(value = SoulContextBuilder.class, search = SearchStrategy.ALL)
-    public SoulContextBuilder soulContextBuilder() {
-        return new DefaultSoulContextBuilder();
+    public SoulContextBuilder soulContextBuilder(final ObjectProvider<List<SoulContextDecorator>> decorators) {
+        List<SoulContextDecorator> decoratorList = decorators.getIfAvailable(Collections::emptyList);
+        Map<String, SoulContextDecorator> decoratorMap = decoratorList.stream().collect(Collectors.toMap(SoulContextDecorator::rpcType, e -> e));
+        return new DefaultSoulContextBuilder(decoratorMap);
     }
-
+    
     /**
      * Data subscriber meta data subscriber.
      *

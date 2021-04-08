@@ -18,18 +18,18 @@
 
 package org.dromara.soul.client.tars;
 
-import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
-import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
 import org.dromara.soul.client.tars.common.annotation.SoulTarsClient;
 import org.dromara.soul.client.tars.common.annotation.SoulTarsService;
 import org.dromara.soul.client.tars.common.dto.TarsRpcExt;
+import org.dromara.soul.common.utils.GsonUtils;
+import org.dromara.soul.common.utils.IpUtils;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
-import org.dromara.soul.register.common.dto.MetaDataDTO;
+import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -60,25 +60,29 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
     
     private SoulClientRegisterEventPublisher publisher = SoulClientRegisterEventPublisher.getInstance();
     
-    private Gson gson = new Gson();
-    
     private final ExecutorService executorService;
     
     private final String contextPath;
     
     private final String ipAndPort;
-    
-    public TarsServiceBeanPostProcessor(final SoulRegisterCenterConfig config) {
+
+    private final String host;
+
+    private final int port;
+
+    public TarsServiceBeanPostProcessor(final SoulRegisterCenterConfig config, final SoulClientRegisterRepository soulClientRegisterRepository) {
         Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
-        String ipAndPort = props.getProperty("ipAndPort");
-        if (StringUtils.isEmpty(contextPath) || StringUtils.isEmpty(ipAndPort)) {
+        String ip = props.getProperty("host");
+        String port = props.getProperty("port");
+        if (StringUtils.isEmpty(contextPath) || StringUtils.isEmpty(ip) || StringUtils.isEmpty(port)) {
             throw new RuntimeException("tars client must config the contextPath, ipAndPort");
         }
         this.contextPath = contextPath;
-        this.ipAndPort = ipAndPort;
+        this.ipAndPort = ip + ":" + port;
+        this.host = props.getProperty("host");
+        this.port = Integer.parseInt(port);
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
-        SoulClientRegisterRepository soulClientRegisterRepository = SoulClientRegisterRepositoryFactory.newInstance(config);
         publisher.start(soulClientRegisterRepository);
     }
 
@@ -101,7 +105,10 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
                 return;
             }
         }
-        final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
+        if (AopUtils.isJdkDynamicProxy(clazz)) {
+            clazz = AopUtils.getTargetClass(serviceBean);
+        }
+        Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         String serviceName = serviceBean.getClass().getAnnotation(SoulTarsService.class).serviceName();
         for (Method method : methods) {
             SoulTarsClient soulSofaClient = method.getAnnotation(SoulTarsClient.class);
@@ -111,22 +118,26 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
         }
     }
 
-    private MetaDataDTO buildMetaDataDTO(final String serviceName, final SoulTarsClient soulTarsClient, final Method method, final String rpcExt) {
+    private MetaDataRegisterDTO buildMetaDataDTO(final String serviceName, final SoulTarsClient soulTarsClient, final Method method, final String rpcExt) {
         String ipAndPort = this.ipAndPort;
         String path = this.contextPath + soulTarsClient.path();
         String desc = soulTarsClient.desc();
+        String configHost = this.host;
+        String host = StringUtils.isBlank(configHost) ? IpUtils.getHost() : configHost;
         String configRuleName = soulTarsClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
         String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
                 .collect(Collectors.joining(","));
-        return MetaDataDTO.builder()
+        return MetaDataRegisterDTO.builder()
                 .appName(ipAndPort)
                 .serviceName(serviceName)
                 .methodName(methodName)
                 .contextPath(this.contextPath)
                 .path(path)
+                .host(host)
+                .port(port)
                 .ruleName(ruleName)
                 .pathDesc(desc)
                 .parameterTypes(parameterTypes)
@@ -162,6 +173,6 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
         TarsRpcExt buildList = TarsRpcExt.builder()
                 .methodInfo(list)
                 .build();
-        return gson.toJson(buildList);
+        return GsonUtils.getInstance().toJson(buildList);
     }
 }

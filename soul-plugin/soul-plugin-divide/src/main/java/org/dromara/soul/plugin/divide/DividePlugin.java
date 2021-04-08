@@ -33,8 +33,8 @@ import org.dromara.soul.plugin.api.context.SoulContext;
 import org.dromara.soul.plugin.api.result.SoulResultEnum;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
 import org.dromara.soul.plugin.base.utils.FallbackUtils;
-import org.dromara.soul.plugin.base.utils.SoulResultWrap;
-import org.dromara.soul.plugin.base.utils.WebFluxResultUtils;
+import org.dromara.soul.plugin.api.result.SoulResultWrap;
+import org.dromara.soul.plugin.api.utils.WebFluxResultUtils;
 import org.dromara.soul.plugin.divide.balance.utils.LoadBalanceUtils;
 import org.dromara.soul.plugin.divide.cache.UpstreamCacheManager;
 import org.springframework.web.server.ServerWebExchange;
@@ -124,7 +124,7 @@ public class DividePlugin extends AbstractSoulPlugin {
                 path = path + realUrl;
             }
         }
-        String query = exchange.getRequest().getURI().getQuery();
+        String query = exchange.getRequest().getURI().getRawQuery();
         if (StringUtils.isNoneBlank(query)) {
             return path + "?" + query;
         }

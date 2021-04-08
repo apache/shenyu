@@ -59,4 +59,32 @@ public class SoulServiceInstance {
         }
         return Integer.parseInt(weightValue);
     }
+
+    /**
+     * Get status.
+     *
+     * @return String status
+     */
+    public String getStatus() {
+        final String status = metadata.get("status");
+        return status;
+    }
+
+    /**
+     * Set weight.
+     *
+     * @param weight weight
+     */
+    public void setWeight(final int weight) {
+        this.metadata.put("weight", String.valueOf(weight));
+    }
+
+    /**
+     * Set status.
+     *
+     * @param status status
+     */
+    public void setStatus(final boolean status) {
+        this.metadata.put("status", String.valueOf(status));
+    }
 }

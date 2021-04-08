@@ -33,15 +33,17 @@ eureka:
   client:
     serviceUrl:
       defaultZone:  http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true    
 
 soul:
   client:
-    registerType: http
-    serverLists: http://localhost:9095
-#    registerType: zookeeper
-#    serverLists: localhost:2181
+    registerType: http #zookeeper #etcd #nacos #consul
+    serverLists: http://localhost:9095 #localhost:2181 #http://localhost:2379 #localhost:8848
     props:
       contextPath: /springcloud
+      port: 8884
+      nacosNameSpace: SoulRegisterCenter
 
 logging:
   level:

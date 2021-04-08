@@ -90,6 +90,24 @@ public enum RpcTypeEnum {
     }
 
     /**
+     * acquire operator support URI RPC type.
+     *
+     * @return operator support.
+     */
+    public static List<RpcTypeEnum> acquireSupportURIs() {
+        return Arrays.asList(RpcTypeEnum.GRPC, RpcTypeEnum.HTTP, RpcTypeEnum.TARS);
+    }
+
+    /**
+     * acquire operator support Metadata RPC type.
+     *
+     * @return operator support.
+     */
+    public static List<RpcTypeEnum> acquireSupportMetadatas() {
+        return Arrays.asList(RpcTypeEnum.DUBBO, RpcTypeEnum.GRPC, RpcTypeEnum.HTTP, RpcTypeEnum.SPRING_CLOUD, RpcTypeEnum.SOFA, RpcTypeEnum.TARS);
+    }
+
+    /**
      * acquireByName.
      *
      * @param name this is rpc type

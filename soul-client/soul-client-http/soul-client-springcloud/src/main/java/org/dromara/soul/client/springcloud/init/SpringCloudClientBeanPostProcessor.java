@@ -17,20 +17,14 @@
 
 package org.dromara.soul.client.springcloud.init;
 
-import java.lang.reflect.Method;
-import java.util.Objects;
-import java.util.Properties;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.client.core.disruptor.SoulClientRegisterEventPublisher;
-import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
 import org.dromara.soul.client.springcloud.annotation.SoulSpringCloudClient;
+import org.dromara.soul.common.utils.IpUtils;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
-import org.dromara.soul.register.common.dto.MetaDataDTO;
+import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -40,6 +34,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.lang.reflect.Method;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The type Soul client bean post processor.
@@ -58,30 +59,37 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
     private final Boolean isFull;
     
     private final Environment env;
+
+    private final String host;
+
+    private final String port;
+
+    private final String servletContextPath;
     
     /**
      * Instantiates a new Soul client bean post processor.
      *
      * @param config the soul spring cloud config
      * @param env    the env
+     * @param soulClientRegisterRepository the soulClientRegisterRepository
      */
-    public SpringCloudClientBeanPostProcessor(final SoulRegisterCenterConfig config, final Environment env) {
+    public SpringCloudClientBeanPostProcessor(final SoulRegisterCenterConfig config, final Environment env, final SoulClientRegisterRepository soulClientRegisterRepository) {
         String registerType = config.getRegisterType();
         String serverLists = config.getServerLists();
-        Properties props = config.getProps();
-        String contextPath = props.getProperty("contextPath");
         String appName = env.getProperty("spring.application.name");
-        if (StringUtils.isBlank(contextPath) || StringUtils.isBlank(registerType)
-                || StringUtils.isBlank(serverLists) || StringUtils.isBlank(appName)) {
-            String errorMsg = "spring cloud param must config the contextPath ,registerType , serverLists  and appName";
+        if (StringUtils.isBlank(registerType) || StringUtils.isBlank(serverLists) || StringUtils.isBlank(appName)) {
+            String errorMsg = "spring cloud param must config the registerType , serverLists  and appName";
             log.error(errorMsg);
             throw new RuntimeException(errorMsg);
         }
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
         this.env = env;
-        this.contextPath = contextPath;
+        Properties props = config.getProps();
+        this.contextPath = props.getProperty("contextPath");
         this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
-        SoulClientRegisterRepository soulClientRegisterRepository = SoulClientRegisterRepositoryFactory.newInstance(config);
+        this.host = config.getProps().getProperty("host");
+        this.port = config.getProps().getProperty("port");
+        this.servletContextPath = env.getProperty("server.servlet.context-path", "");
         publisher.start(soulClientRegisterRepository);
     }
 
@@ -117,16 +125,20 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         return bean;
     }
     
-    private MetaDataDTO buildMetaDataDTO(final SoulSpringCloudClient soulSpringCloudClient, final String prePath) {
-        String contextPath = this.contextPath;
+    private MetaDataRegisterDTO buildMetaDataDTO(final SoulSpringCloudClient soulSpringCloudClient, final String prePath) {
+        String contextPath = StringUtils.isBlank(this.contextPath) ? this.servletContextPath : this.contextPath;
         String appName = env.getProperty("spring.application.name");
         String path = contextPath + prePath + soulSpringCloudClient.path();
+        String host = StringUtils.isBlank(this.host) ? IpUtils.getHost() : this.host;
+        int port = StringUtils.isBlank(this.port) ? -1 : Integer.parseInt(this.port);
         String desc = soulSpringCloudClient.desc();
         String configRuleName = soulSpringCloudClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
-        return MetaDataDTO.builder()
+        return MetaDataRegisterDTO.builder()
                 .contextPath(contextPath)
                 .appName(appName)
+                .host(host)
+                .port(port)
                 .path(path)
                 .pathDesc(desc)
                 .rpcType(soulSpringCloudClient.rpcType())

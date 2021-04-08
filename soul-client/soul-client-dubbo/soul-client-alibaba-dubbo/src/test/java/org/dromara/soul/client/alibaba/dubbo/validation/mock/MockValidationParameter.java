@@ -28,9 +28,7 @@ import javax.validation.constraints.NotNull;
  */
 @Data
 public class MockValidationParameter {
-    /**
-     * String parameter.
-     */
+    
     @NotNull
     private String stringParameter;
 

@@ -18,6 +18,7 @@
 
 package org.dromara.soul.client.tars;
 
+import org.dromara.soul.client.core.register.SoulClientRegisterRepositoryFactory;
 import org.dromara.soul.client.tars.common.annotation.SoulTarsClient;
 import org.dromara.soul.client.tars.common.annotation.SoulTarsService;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
@@ -44,13 +45,14 @@ public final class TarsServiceBeanPostProcessorTest {
     public static void init() {
         Properties properties = new Properties();
         properties.setProperty("contextPath", "/tars");
-        properties.setProperty("ipAndPort", "localhost:8080");
+        properties.setProperty("port", "8080");
+        properties.setProperty("host", "localhost");
 
         SoulRegisterCenterConfig mockRegisterCenter = new SoulRegisterCenterConfig();
         mockRegisterCenter.setServerLists("http://localhost:58080");
         mockRegisterCenter.setRegisterType("http");
         mockRegisterCenter.setProps(properties);
-        tarsServiceBeanPostProcessor = new TarsServiceBeanPostProcessor(mockRegisterCenter);
+        tarsServiceBeanPostProcessor = new TarsServiceBeanPostProcessor(mockRegisterCenter, SoulClientRegisterRepositoryFactory.newInstance(mockRegisterCenter));
     }
 
     @Test

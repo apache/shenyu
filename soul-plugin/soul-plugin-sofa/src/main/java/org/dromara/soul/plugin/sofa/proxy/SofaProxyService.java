@@ -32,7 +32,7 @@ import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.exception.SoulException;
-import org.dromara.soul.plugin.api.sofa.SofaParamResolveService;
+import org.dromara.soul.plugin.api.param.BodyParamResolveService;
 import org.dromara.soul.plugin.sofa.cache.ApplicationConfigCache;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -48,21 +48,21 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 public class SofaProxyService {
 
-    private final SofaParamResolveService sofaParamResolveService;
-
+    private final BodyParamResolveService bodyParamResolveService;
+    
     /**
      * Instantiates a new Sofa proxy service.
      *
-     * @param sofaParamResolveService the generic param resolve service
+     * @param bodyParamResolveService the body param resolve service
      */
-    public SofaProxyService(final SofaParamResolveService sofaParamResolveService) {
-        this.sofaParamResolveService = sofaParamResolveService;
+    public SofaProxyService(final BodyParamResolveService bodyParamResolveService) {
+        this.bodyParamResolveService = bodyParamResolveService;
     }
     
     /**
      * Generic invoker object.
      *
-     * @param body     the body
+     * @param body the body
      * @param metaData the meta data
      * @param exchange the exchange
      * @return the object
@@ -79,7 +79,7 @@ public class SofaProxyService {
         if (null == body || "".equals(body) || "{}".equals(body) || "null".equals(body)) {
             pair = new ImmutablePair<>(new String[]{}, new Object[]{});
         } else {
-            pair = sofaParamResolveService.buildParameter(body, metaData.getParameterTypes());
+            pair = bodyParamResolveService.buildParameter(body, metaData.getParameterTypes());
         }
         CompletableFuture<Object> future = new CompletableFuture<>();
         RpcInvokeContext.getContext().setResponseCallback(new SofaResponseCallback<Object>() {
