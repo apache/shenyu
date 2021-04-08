@@ -37,6 +37,7 @@ public class UpstreamCheckUtils {
             .compile("(http://|https://)?(?:(?:[0,1]?\\d?\\d|2[0-4]\\d|25[0-5])\\.){3}(?:[0,1]?\\d?\\d|2[0-4]\\d|25[0-5])(:\\d{0,5})?");
 
     private static final String HTTP = "http";
+
     private static final String HTTPS = "https";
 
     /**
