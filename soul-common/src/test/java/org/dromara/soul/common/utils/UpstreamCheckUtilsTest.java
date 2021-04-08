@@ -78,5 +78,6 @@ public final class UpstreamCheckUtilsTest {
         assertTrue(UpstreamCheckUtils.checkUrl("http://localhost:80"));
         assertTrue(UpstreamCheckUtils.checkUrl("http://localhost"));
         assertTrue(UpstreamCheckUtils.checkUrl("http://127.0.0.1:3306"));
+        assertTrue(UpstreamCheckUtils.checkUrl("https://dromara.org"));
     }
 }
