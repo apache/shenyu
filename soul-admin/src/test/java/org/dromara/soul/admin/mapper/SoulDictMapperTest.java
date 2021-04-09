@@ -18,8 +18,8 @@
 package org.dromara.soul.admin.mapper;
 
 import org.dromara.soul.admin.AbstractSpringIntegrationTest;
-import org.dromara.soul.admin.entity.SoulDictDO;
-import org.dromara.soul.admin.query.SoulDictQuery;
+import org.dromara.soul.admin.model.entity.SoulDictDO;
+import org.dromara.soul.admin.model.query.SoulDictQuery;
 import org.dromara.soul.common.utils.UUIDUtils;
 import org.junit.Test;
 import javax.annotation.Resource;

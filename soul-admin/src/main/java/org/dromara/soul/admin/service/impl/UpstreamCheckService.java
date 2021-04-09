@@ -25,13 +25,13 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.dromara.soul.admin.entity.PluginDO;
-import org.dromara.soul.admin.entity.SelectorDO;
+import org.dromara.soul.admin.model.entity.PluginDO;
+import org.dromara.soul.admin.model.entity.SelectorDO;
 import org.dromara.soul.admin.listener.DataChangedEvent;
 import org.dromara.soul.admin.mapper.PluginMapper;
 import org.dromara.soul.admin.mapper.SelectorConditionMapper;
 import org.dromara.soul.admin.mapper.SelectorMapper;
-import org.dromara.soul.admin.query.SelectorConditionQuery;
+import org.dromara.soul.admin.model.query.SelectorConditionQuery;
 import org.dromara.soul.admin.transfer.ConditionTransfer;
 import org.dromara.soul.common.concurrent.SoulThreadFactory;
 import org.dromara.soul.common.dto.ConditionData;
@@ -86,7 +86,7 @@ public class UpstreamCheckService {
     private final PluginMapper pluginMapper;
 
     private final SelectorConditionMapper selectorConditionMapper;
-    
+
     /**
      * Instantiates a new Upstream check service.
      *
@@ -113,7 +113,7 @@ public class UpstreamCheckService {
             setup();
         }
     }
-    
+
     /**
      * Set up.
      */
@@ -133,7 +133,7 @@ public class UpstreamCheckService {
                     .scheduleWithFixedDelay(this::scheduled, 10, scheduledTime, TimeUnit.SECONDS);
         }
     }
-    
+
     /**
      * Remove by key.
      *
@@ -142,7 +142,7 @@ public class UpstreamCheckService {
     public static void removeByKey(final String selectorName) {
         UPSTREAM_MAP.remove(selectorName);
     }
-    
+
     /**
      * Submit.
      *
@@ -166,7 +166,7 @@ public class UpstreamCheckService {
             UPSTREAM_MAP.put(selectorName, Lists.newArrayList(divideUpstream));
         }
     }
-    
+
     /**
      * Replace.
      *

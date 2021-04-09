@@ -20,7 +20,7 @@ package org.dromara.soul.admin.listener.zookeeper;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.dromara.soul.admin.entity.SelectorDO;
+import org.dromara.soul.admin.model.entity.SelectorDO;
 import org.dromara.soul.admin.listener.DataChangedEvent;
 import org.dromara.soul.admin.mapper.SelectorMapper;
 import org.dromara.soul.admin.service.SelectorService;

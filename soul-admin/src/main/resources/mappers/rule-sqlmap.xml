@@ -18,7 +18,7 @@
 
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.dromara.soul.admin.mapper.RuleMapper">
-    <resultMap id="BaseResultMap" type="org.dromara.soul.admin.entity.RuleDO">
+    <resultMap id="BaseResultMap" type="org.dromara.soul.admin.model.entity.RuleDO">
         <id column="id" jdbcType="VARCHAR" property="id"/>
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
@@ -50,7 +50,7 @@
         where name = #{name,jdbcType=VARCHAR}
     </select>
 
-    <select id="selectByQuery" parameterType="org.dromara.soul.admin.query.RuleQuery" resultMap="BaseResultMap">
+    <select id="selectByQuery" parameterType="org.dromara.soul.admin.model.query.RuleQuery" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
         from rule
@@ -68,7 +68,7 @@
         from rule where selector_id = #{selectorId,jdbcType=VARCHAR}
     </select>
 
-    <select id="countByQuery" parameterType="org.dromara.soul.admin.query.RuleQuery" resultType="java.lang.Integer">
+    <select id="countByQuery" parameterType="org.dromara.soul.admin.model.query.RuleQuery" resultType="java.lang.Integer">
         select count(1)
         from rule
         <if test="selectorId != null">
@@ -76,13 +76,13 @@
         </if>
     </select>
 
-    <select id="selectAll" resultType="org.dromara.soul.admin.entity.RuleDO" resultMap="BaseResultMap">
+    <select id="selectAll" resultType="org.dromara.soul.admin.model.entity.RuleDO" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
         from rule
     </select>
 
-    <insert id="insert" parameterType="org.dromara.soul.admin.entity.RuleDO">
+    <insert id="insert" parameterType="org.dromara.soul.admin.model.entity.RuleDO">
         insert into rule (id, date_created, date_updated,
         selector_id, name, match_mode, sort, enabled,
         loged, handle)
@@ -92,7 +92,7 @@
         #{handle,jdbcType=VARCHAR})
     </insert>
 
-    <insert id="insertSelective" parameterType="org.dromara.soul.admin.entity.RuleDO">
+    <insert id="insertSelective" parameterType="org.dromara.soul.admin.model.entity.RuleDO">
         insert into rule
         <trim prefix="(" suffix=")" suffixOverrides=",">
             id,
@@ -156,7 +156,7 @@
         </trim>
     </insert>
 
-    <update id="update" parameterType="org.dromara.soul.admin.entity.RuleDO">
+    <update id="update" parameterType="org.dromara.soul.admin.model.entity.RuleDO">
         update rule
         set date_created = #{dateCreated,jdbcType=TIMESTAMP},
         date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
@@ -170,7 +170,7 @@
         where id = #{id,jdbcType=VARCHAR}
     </update>
 
-    <update id="updateSelective" parameterType="org.dromara.soul.admin.entity.RuleDO">
+    <update id="updateSelective" parameterType="org.dromara.soul.admin.model.entity.RuleDO">
         update rule
         <set>
             <if test="dateCreated != null">
