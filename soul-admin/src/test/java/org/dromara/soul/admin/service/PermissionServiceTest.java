@@ -18,10 +18,10 @@
 package org.dromara.soul.admin.service;
 
 import org.dromara.soul.admin.config.properties.JwtProperties;
-import org.dromara.soul.admin.entity.DashboardUserDO;
-import org.dromara.soul.admin.entity.PermissionDO;
-import org.dromara.soul.admin.entity.ResourceDO;
-import org.dromara.soul.admin.entity.UserRoleDO;
+import org.dromara.soul.admin.model.entity.DashboardUserDO;
+import org.dromara.soul.admin.model.entity.PermissionDO;
+import org.dromara.soul.admin.model.entity.ResourceDO;
+import org.dromara.soul.admin.model.entity.UserRoleDO;
 import org.dromara.soul.admin.mapper.DashboardUserMapper;
 import org.dromara.soul.admin.mapper.PermissionMapper;
 import org.dromara.soul.admin.mapper.ResourceMapper;
@@ -29,7 +29,7 @@ import org.dromara.soul.admin.mapper.UserRoleMapper;
 import org.dromara.soul.admin.service.impl.PermissionServiceImpl;
 import org.dromara.soul.admin.service.impl.ResourceServiceImpl;
 import org.dromara.soul.admin.spring.SpringBeanUtils;
-import org.dromara.soul.admin.vo.PermissionMenuVO;
+import org.dromara.soul.admin.model.vo.PermissionMenuVO;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

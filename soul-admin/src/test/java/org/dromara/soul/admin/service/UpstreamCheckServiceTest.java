@@ -18,13 +18,13 @@
 package org.dromara.soul.admin.service;
 
 import com.google.common.collect.Lists;
-import org.dromara.soul.admin.entity.PluginDO;
-import org.dromara.soul.admin.entity.SelectorDO;
+import org.dromara.soul.admin.model.entity.PluginDO;
+import org.dromara.soul.admin.model.entity.SelectorDO;
 import org.dromara.soul.admin.listener.DataChangedEvent;
 import org.dromara.soul.admin.mapper.PluginMapper;
 import org.dromara.soul.admin.mapper.SelectorConditionMapper;
 import org.dromara.soul.admin.mapper.SelectorMapper;
-import org.dromara.soul.admin.query.SelectorConditionQuery;
+import org.dromara.soul.admin.model.query.SelectorConditionQuery;
 import org.dromara.soul.admin.service.impl.UpstreamCheckService;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.enums.PluginEnum;

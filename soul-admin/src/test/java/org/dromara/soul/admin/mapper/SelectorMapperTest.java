@@ -18,9 +18,9 @@
 package org.dromara.soul.admin.mapper;
 
 import org.dromara.soul.admin.AbstractSpringIntegrationTest;
-import org.dromara.soul.admin.entity.SelectorDO;
-import org.dromara.soul.admin.page.PageParameter;
-import org.dromara.soul.admin.query.SelectorQuery;
+import org.dromara.soul.admin.model.entity.SelectorDO;
+import org.dromara.soul.admin.model.page.PageParameter;
+import org.dromara.soul.admin.model.query.SelectorQuery;
 import org.dromara.soul.common.utils.UUIDUtils;
 import org.junit.Test;
 

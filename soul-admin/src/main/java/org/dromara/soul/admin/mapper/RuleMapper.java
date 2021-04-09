@@ -18,8 +18,8 @@
 package org.dromara.soul.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
-import org.dromara.soul.admin.entity.RuleDO;
-import org.dromara.soul.admin.query.RuleQuery;
+import org.dromara.soul.admin.model.entity.RuleDO;
+import org.dromara.soul.admin.model.query.RuleQuery;
 
 import java.util.List;
 

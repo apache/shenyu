@@ -18,14 +18,14 @@
 package org.dromara.soul.admin.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
-import org.dromara.soul.admin.dto.RuleConditionDTO;
-import org.dromara.soul.admin.dto.RuleDTO;
-import org.dromara.soul.admin.dto.SelectorConditionDTO;
-import org.dromara.soul.admin.dto.SelectorDTO;
-import org.dromara.soul.admin.entity.MetaDataDO;
-import org.dromara.soul.admin.entity.PluginDO;
-import org.dromara.soul.admin.entity.RuleDO;
-import org.dromara.soul.admin.entity.SelectorDO;
+import org.dromara.soul.admin.model.dto.RuleConditionDTO;
+import org.dromara.soul.admin.model.dto.RuleDTO;
+import org.dromara.soul.admin.model.dto.SelectorConditionDTO;
+import org.dromara.soul.admin.model.dto.SelectorDTO;
+import org.dromara.soul.admin.model.entity.MetaDataDO;
+import org.dromara.soul.admin.model.entity.PluginDO;
+import org.dromara.soul.admin.model.entity.RuleDO;
+import org.dromara.soul.admin.model.entity.SelectorDO;
 import org.dromara.soul.admin.listener.DataChangedEvent;
 import org.dromara.soul.admin.mapper.MetaDataMapper;
 import org.dromara.soul.admin.mapper.PluginMapper;

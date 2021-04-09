@@ -19,7 +19,7 @@ package org.dromara.soul.admin.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authz.UnauthorizedException;
-import org.dromara.soul.admin.result.SoulAdminResult;
+import org.dromara.soul.admin.model.result.SoulAdminResult;
 import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.common.exception.CommonErrorCode;
 import org.dromara.soul.common.exception.SoulException;

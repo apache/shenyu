@@ -19,7 +19,7 @@ package org.dromara.soul.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.dromara.soul.admin.entity.AuthParamDO;
+import org.dromara.soul.admin.model.entity.AuthParamDO;
 
 import java.util.List;
 

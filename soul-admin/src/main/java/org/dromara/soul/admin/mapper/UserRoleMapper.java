@@ -18,7 +18,7 @@
 package org.dromara.soul.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
-import org.dromara.soul.admin.entity.UserRoleDO;
+import org.dromara.soul.admin.model.entity.UserRoleDO;
 
 import java.util.List;
 

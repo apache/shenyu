@@ -17,19 +17,19 @@
 
 package org.dromara.soul.admin.service;
 
-import org.dromara.soul.admin.dto.PermissionDTO;
-import org.dromara.soul.admin.dto.ResourceDTO;
-import org.dromara.soul.admin.entity.PermissionDO;
-import org.dromara.soul.admin.entity.ResourceDO;
+import org.dromara.soul.admin.model.dto.PermissionDTO;
+import org.dromara.soul.admin.model.dto.ResourceDTO;
+import org.dromara.soul.admin.model.entity.PermissionDO;
+import org.dromara.soul.admin.model.entity.ResourceDO;
 import org.dromara.soul.admin.mapper.PermissionMapper;
 import org.dromara.soul.admin.mapper.ResourceMapper;
-import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.page.PageParameter;
-import org.dromara.soul.admin.page.PageResultUtils;
-import org.dromara.soul.admin.query.ResourceQuery;
+import org.dromara.soul.admin.model.page.CommonPager;
+import org.dromara.soul.admin.model.page.PageParameter;
+import org.dromara.soul.admin.model.page.PageResultUtils;
+import org.dromara.soul.admin.model.query.ResourceQuery;
 import org.dromara.soul.admin.service.impl.ResourceServiceImpl;
-import org.dromara.soul.admin.vo.PermissionMenuVO;
-import org.dromara.soul.admin.vo.ResourceVO;
+import org.dromara.soul.admin.model.vo.PermissionMenuVO;
+import org.dromara.soul.admin.model.vo.ResourceVO;
 import org.dromara.soul.common.constant.AdminConstants;
 import org.dromara.soul.common.constant.ResourceTypeConstants;
 import org.dromara.soul.common.enums.AdminResourceEnum;
