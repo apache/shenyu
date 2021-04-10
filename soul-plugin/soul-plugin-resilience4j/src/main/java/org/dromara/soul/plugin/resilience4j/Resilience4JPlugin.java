@@ -102,8 +102,6 @@ public class Resilience4JPlugin extends AbstractSoulPlugin {
 
     public static class CircuitBreakerStatusCodeException extends HttpStatusCodeException {
 
-        private static final long serialVersionUID = 7494401332277800413L;
-
         public CircuitBreakerStatusCodeException(final HttpStatus statusCode) {
             super(statusCode);
         }
