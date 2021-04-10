@@ -22,8 +22,6 @@ import io.grpc.EquivalentAddressGroup;
 import org.dromara.soul.plugin.grpc.loadbalance.SubChannels;
 
 import java.net.InetSocketAddress;
-import java.util.Collections;
-import java.util.Map;
 
 /**
  * SoulResolverHelper.
