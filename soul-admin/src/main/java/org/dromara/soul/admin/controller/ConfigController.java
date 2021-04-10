@@ -20,7 +20,7 @@ package org.dromara.soul.admin.controller;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.admin.listener.http.HttpLongPollingDataChangedListener;
-import org.dromara.soul.admin.result.SoulAdminResult;
+import org.dromara.soul.admin.model.result.SoulAdminResult;
 import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.common.dto.ConfigData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;

@@ -18,14 +18,14 @@
 package org.dromara.soul.admin.controller;
 
 import org.dromara.soul.admin.config.properties.SecretProperties;
-import org.dromara.soul.admin.dto.DashboardUserDTO;
-import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.page.PageParameter;
+import org.dromara.soul.admin.model.dto.DashboardUserDTO;
+import org.dromara.soul.admin.model.page.CommonPager;
+import org.dromara.soul.admin.model.page.PageParameter;
 import org.dromara.soul.admin.service.DashboardUserService;
 import org.dromara.soul.admin.utils.SoulResultMessage;
-import org.dromara.soul.admin.vo.DashboardUserEditVO;
-import org.dromara.soul.admin.vo.DashboardUserVO;
-import org.dromara.soul.admin.vo.RoleVO;
+import org.dromara.soul.admin.model.vo.DashboardUserEditVO;
+import org.dromara.soul.admin.model.vo.DashboardUserVO;
+import org.dromara.soul.admin.model.vo.RoleVO;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.junit.Before;
 import org.junit.Test;

@@ -17,15 +17,15 @@
 
 package org.dromara.soul.admin.controller;
 
-import org.dromara.soul.admin.dto.RuleConditionDTO;
-import org.dromara.soul.admin.dto.RuleDTO;
-import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.page.PageParameter;
-import org.dromara.soul.admin.query.RuleQuery;
+import org.dromara.soul.admin.model.dto.RuleConditionDTO;
+import org.dromara.soul.admin.model.dto.RuleDTO;
+import org.dromara.soul.admin.model.page.CommonPager;
+import org.dromara.soul.admin.model.page.PageParameter;
+import org.dromara.soul.admin.model.query.RuleQuery;
 import org.dromara.soul.admin.service.RuleService;
 import org.dromara.soul.admin.utils.SoulResultMessage;
-import org.dromara.soul.admin.vo.RuleConditionVO;
-import org.dromara.soul.admin.vo.RuleVO;
+import org.dromara.soul.admin.model.vo.RuleConditionVO;
+import org.dromara.soul.admin.model.vo.RuleVO;
 import org.dromara.soul.common.utils.DateUtils;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.junit.Before;

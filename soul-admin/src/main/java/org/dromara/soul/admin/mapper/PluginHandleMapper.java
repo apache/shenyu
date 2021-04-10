@@ -20,8 +20,8 @@ package org.dromara.soul.admin.mapper;
 import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.dromara.soul.admin.entity.PluginHandleDO;
-import org.dromara.soul.admin.query.PluginHandleQuery;
+import org.dromara.soul.admin.model.entity.PluginHandleDO;
+import org.dromara.soul.admin.model.query.PluginHandleQuery;
 
 /**
  * The interface Plugin handle mapper.

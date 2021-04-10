@@ -19,28 +19,28 @@ package org.dromara.soul.admin.service.impl;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.dromara.soul.admin.dto.SelectorConditionDTO;
-import org.dromara.soul.admin.dto.SelectorDTO;
-import org.dromara.soul.admin.entity.PluginDO;
-import org.dromara.soul.admin.entity.RuleDO;
-import org.dromara.soul.admin.entity.SelectorConditionDO;
-import org.dromara.soul.admin.entity.SelectorDO;
+import org.dromara.soul.admin.model.dto.SelectorConditionDTO;
+import org.dromara.soul.admin.model.dto.SelectorDTO;
+import org.dromara.soul.admin.model.entity.PluginDO;
+import org.dromara.soul.admin.model.entity.RuleDO;
+import org.dromara.soul.admin.model.entity.SelectorConditionDO;
+import org.dromara.soul.admin.model.entity.SelectorDO;
 import org.dromara.soul.admin.listener.DataChangedEvent;
 import org.dromara.soul.admin.mapper.PluginMapper;
 import org.dromara.soul.admin.mapper.RuleConditionMapper;
 import org.dromara.soul.admin.mapper.RuleMapper;
 import org.dromara.soul.admin.mapper.SelectorConditionMapper;
 import org.dromara.soul.admin.mapper.SelectorMapper;
-import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.page.PageResultUtils;
-import org.dromara.soul.admin.query.RuleConditionQuery;
-import org.dromara.soul.admin.query.RuleQuery;
-import org.dromara.soul.admin.query.SelectorConditionQuery;
-import org.dromara.soul.admin.query.SelectorQuery;
+import org.dromara.soul.admin.model.page.CommonPager;
+import org.dromara.soul.admin.model.page.PageResultUtils;
+import org.dromara.soul.admin.model.query.RuleConditionQuery;
+import org.dromara.soul.admin.model.query.RuleQuery;
+import org.dromara.soul.admin.model.query.SelectorConditionQuery;
+import org.dromara.soul.admin.model.query.SelectorQuery;
 import org.dromara.soul.admin.service.SelectorService;
 import org.dromara.soul.admin.transfer.ConditionTransfer;
-import org.dromara.soul.admin.vo.SelectorConditionVO;
-import org.dromara.soul.admin.vo.SelectorVO;
+import org.dromara.soul.admin.model.vo.SelectorConditionVO;
+import org.dromara.soul.admin.model.vo.SelectorVO;
 import org.dromara.soul.common.dto.ConditionData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
@@ -146,12 +146,12 @@ public class SelectorServiceImpl implements SelectorService {
         updateDivideUpstream(selectorDO);
         return selectorCount;
     }
-    
+
     @Override
     public int updateSelective(final SelectorDO selectorDO) {
         return selectorMapper.updateSelective(selectorDO);
     }
-    
+
     /**
      * delete selectors.
      *

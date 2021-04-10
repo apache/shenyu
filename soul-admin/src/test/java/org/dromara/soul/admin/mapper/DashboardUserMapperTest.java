@@ -18,9 +18,9 @@
 package org.dromara.soul.admin.mapper;
 
 import org.dromara.soul.admin.AbstractSpringIntegrationTest;
-import org.dromara.soul.admin.entity.DashboardUserDO;
-import org.dromara.soul.admin.page.PageParameter;
-import org.dromara.soul.admin.query.DashboardUserQuery;
+import org.dromara.soul.admin.model.entity.DashboardUserDO;
+import org.dromara.soul.admin.model.page.PageParameter;
+import org.dromara.soul.admin.model.query.DashboardUserQuery;
 import org.dromara.soul.admin.utils.AesUtils;
 import org.dromara.soul.common.utils.UUIDUtils;
 import org.junit.Test;
@@ -49,7 +49,7 @@ public final class DashboardUserMapperTest extends AbstractSpringIntegrationTest
         DashboardUserDO record = buildDashboardUserDO();
         int count = dashboardUserMapper.insert(record);
         assertThat(count, comparesEqualTo(1));
-    
+
         int delete = dashboardUserMapper.delete(record.getId());
         assertEquals(1, delete);
     }
@@ -59,7 +59,7 @@ public final class DashboardUserMapperTest extends AbstractSpringIntegrationTest
         DashboardUserDO record = buildDashboardUserDO();
         int count = dashboardUserMapper.insertSelective(record);
         assertThat(count, comparesEqualTo(1));
-    
+
         int delete = dashboardUserMapper.delete(record.getId());
         assertEquals(1, delete);
     }
@@ -71,7 +71,7 @@ public final class DashboardUserMapperTest extends AbstractSpringIntegrationTest
         assertThat(count, comparesEqualTo(1));
         DashboardUserDO result = dashboardUserMapper.selectById(record.getId());
         assertNotNull(result);
-    
+
         int delete = dashboardUserMapper.delete(record.getId());
         assertEquals(1, delete);
     }
@@ -82,10 +82,10 @@ public final class DashboardUserMapperTest extends AbstractSpringIntegrationTest
         record.setUserName("adminSoul");
         int count = dashboardUserMapper.insert(record);
         assertThat(count, comparesEqualTo(1));
-        
+
         DashboardUserDO result = dashboardUserMapper.findByQuery(record.getUserName(), record.getPassword());
         assertNotNull(result);
-    
+
         int delete = dashboardUserMapper.delete(record.getId());
         assertEquals(1, delete);
     }
@@ -95,14 +95,14 @@ public final class DashboardUserMapperTest extends AbstractSpringIntegrationTest
         DashboardUserDO record = buildDashboardUserDO();
         int count = dashboardUserMapper.insert(record);
         assertThat(count, comparesEqualTo(1));
-        
+
         DashboardUserQuery query = new DashboardUserQuery();
         PageParameter pageParameter = new PageParameter();
         query.setUserName("adminTest");
         query.setPageParameter(pageParameter);
         List<DashboardUserDO> result = dashboardUserMapper.selectByQuery(query);
         assertThat(result.size(), greaterThan(0));
-    
+
         int delete = dashboardUserMapper.delete(record.getId());
         assertEquals(1, delete);
     }
@@ -112,12 +112,12 @@ public final class DashboardUserMapperTest extends AbstractSpringIntegrationTest
         DashboardUserDO record = buildDashboardUserDO();
         int count = dashboardUserMapper.insert(record);
         assertThat(count, comparesEqualTo(1));
-        
+
         DashboardUserQuery query = new DashboardUserQuery();
         query.setUserName("adminTest");
         int result = dashboardUserMapper.countByQuery(query);
         assertThat(result, greaterThan(0));
-    
+
         int delete = dashboardUserMapper.delete(record.getId());
         assertEquals(1, delete);
     }
@@ -127,11 +127,11 @@ public final class DashboardUserMapperTest extends AbstractSpringIntegrationTest
         DashboardUserDO record = buildDashboardUserDO();
         int count = dashboardUserMapper.insert(record);
         assertThat(count, comparesEqualTo(1));
-        
+
         record.setUserName("adminUpdate");
         int result = dashboardUserMapper.update(record);
         assertThat(result, comparesEqualTo(1));
-        
+
         int delete = dashboardUserMapper.delete(record.getId());
         assertEquals(1, delete);
     }
@@ -141,11 +141,11 @@ public final class DashboardUserMapperTest extends AbstractSpringIntegrationTest
         DashboardUserDO record = buildDashboardUserDO();
         int count = dashboardUserMapper.insert(record);
         assertThat(count, comparesEqualTo(1));
-        
+
         record.setUserName("adminUpdate");
         int result = dashboardUserMapper.updateSelective(record);
         assertThat(result, comparesEqualTo(1));
-    
+
         int delete = dashboardUserMapper.delete(record.getId());
         assertEquals(1, delete);
     }
@@ -155,7 +155,7 @@ public final class DashboardUserMapperTest extends AbstractSpringIntegrationTest
         DashboardUserDO record = buildDashboardUserDO();
         int count = dashboardUserMapper.insert(record);
         assertThat(count, comparesEqualTo(1));
-        
+
         int result = dashboardUserMapper.delete(record.getId());
         assertThat(result, comparesEqualTo(1));
     }

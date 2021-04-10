@@ -36,7 +36,7 @@ import static org.junit.Assert.assertNotNull;
  * @author strawberry-crisis
  */
 public final class JsonUtilsTest {
-    
+
     private static final String EXPECTED_JSON = "{\"id\":123,\"name\":\"test object\",\"deleted\":false,"
              + "\"testList\":[\"test_string_0\",\"test_string_1\",\"test_string_2\",\"test_string_3\",\"test_string_4\",\"test_string_5\","
              + "\"test_string_6\",\"test_string_7\",\"test_string_8\",\"test_string_9\"],\"testMap\""
@@ -71,6 +71,7 @@ public final class JsonUtilsTest {
                         put("map2", new HashMap<>());
                         put("boolean", false);
                         put("testInt", 100);
+                        put("class", "nestedClass");
                     }
                 })
                 .build();
@@ -98,27 +99,27 @@ public final class JsonUtilsTest {
         assertNotNull(testMap.getOrDefault("result", null));
         assertEquals(testMap.get("result").get("not_class"), "ClassNotFoundException.class");
     }
-    
+
     @Data
     @Builder
     static class TestObject {
-        
+
         private int id;
-        
+
         private String name;
-        
+
         private boolean deleted;
-        
+
         private List<String> testList;
-        
+
         private Map<String, String> testMap;
-        
+
         private Object nullObject;
-        
+
         private List<String> emptyList;
-        
+
         private Map<String, String> emptyMap;
-        
+
         private Map<String, Object> nestedMap;
     }
 }

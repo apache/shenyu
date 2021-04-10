@@ -27,7 +27,7 @@ spring:
     prefix: classpath:/static/
     suffix: .html
   datasource:
-    url: jdbc:mysql://localhost:3306/soul?useUnicode=true&characterEncoding=utf-8
+    url: jdbc:mysql://localhost:3306/soul?useUnicode=true&characterEncoding=utf-8&useSSL=false
     username: root
     password:
     driver-class-name: com.mysql.jdbc.Driver

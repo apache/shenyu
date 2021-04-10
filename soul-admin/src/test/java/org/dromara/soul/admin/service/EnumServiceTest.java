@@ -18,7 +18,7 @@
 package org.dromara.soul.admin.service;
 
 import org.dromara.soul.admin.service.impl.EnumServiceImpl;
-import org.dromara.soul.admin.vo.EnumVO;
+import org.dromara.soul.admin.model.vo.EnumVO;
 import org.junit.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;

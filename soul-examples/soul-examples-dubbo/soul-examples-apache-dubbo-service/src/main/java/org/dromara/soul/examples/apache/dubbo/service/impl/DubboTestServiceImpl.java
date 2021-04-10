@@ -16,11 +16,14 @@
 
 package org.dromara.soul.examples.apache.dubbo.service.impl;
 
-import java.util.Random;
 import org.dromara.soul.client.dubbo.common.annotation.SoulDubboClient;
 import org.dromara.soul.examples.dubbo.api.entity.DubboTest;
+import org.dromara.soul.examples.dubbo.api.entity.ListResp;
 import org.dromara.soul.examples.dubbo.api.service.DubboTestService;
 import org.springframework.stereotype.Service;
+
+import java.util.Arrays;
+import java.util.Random;
 
 /**
  * DubboTestServiceImpl.
@@ -53,5 +56,14 @@ public class DubboTestServiceImpl implements DubboTestService {
     public DubboTest insert(final DubboTest dubboTest) {
         dubboTest.setName("hello world Soul Apache Dubbo: " + dubboTest.getName());
         return dubboTest;
+    }
+
+    @Override
+    @SoulDubboClient(path = "/findList", desc = "Find list")
+    public ListResp findList() {
+        ListResp listResp = new ListResp();
+        listResp.setTotal(1);
+        listResp.setUsers(Arrays.asList(new DubboTest("1", "test")));
+        return listResp;
     }
 }

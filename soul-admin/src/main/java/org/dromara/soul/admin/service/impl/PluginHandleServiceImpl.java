@@ -18,16 +18,16 @@
 package org.dromara.soul.admin.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
-import org.dromara.soul.admin.dto.PluginHandleDTO;
-import org.dromara.soul.admin.entity.PluginHandleDO;
+import org.dromara.soul.admin.model.dto.PluginHandleDTO;
+import org.dromara.soul.admin.model.entity.PluginHandleDO;
 import org.dromara.soul.admin.mapper.PluginHandleMapper;
 import org.dromara.soul.admin.mapper.SoulDictMapper;
-import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.page.PageResultUtils;
-import org.dromara.soul.admin.query.PluginHandleQuery;
+import org.dromara.soul.admin.model.page.CommonPager;
+import org.dromara.soul.admin.model.page.PageResultUtils;
+import org.dromara.soul.admin.model.query.PluginHandleQuery;
 import org.dromara.soul.admin.service.PluginHandleService;
-import org.dromara.soul.admin.vo.PluginHandleVO;
-import org.dromara.soul.admin.vo.SoulDictVO;
+import org.dromara.soul.admin.model.vo.PluginHandleVO;
+import org.dromara.soul.admin.model.vo.SoulDictVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

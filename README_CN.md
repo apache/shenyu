@@ -2,7 +2,7 @@
     <a href="https://dromara.org"><img src="https://dromara.org/img/logo/soul.png" width="45%"></a>
 </p>
 <p align="center">
-  <strong>可扩展，高性能，响应式的 API 网关</strong>
+  <strong>应用于所有微服务场景的，可扩展、高性能、响应式的 API 网关解决方案</strong>
 </p>
 <p align="center">
   <a href="https://dromara.org">https://dromara.org/</a>
@@ -152,9 +152,9 @@
 
 # 关于
 
-Soul 已在我们的生产环境中使用，它的性能和灵活性使我们用起来非常方便。
+Soul 已经被很多公司广泛使用在越来越多的业务系统，它能以高性能和灵活性让我们方便快捷的集成自己的服务和 API 。
 
-在双 11 中，我们部署了 6 个集群，这些集群支持了我们的大量业务。
+在中国的双 11 购物狂欢节中，Soul集群集群成功支撑了海量的互联网业务。
 
 --------------------------------------------------------------------------------
 
