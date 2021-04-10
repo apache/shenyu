@@ -30,6 +30,8 @@ import java.util.List;
 @Data
 public class AuthApplyDTO implements Serializable {
 
+    private static final long serialVersionUID = -6769162031997427810L;
+
     private String appKey;
 
     private String userId;

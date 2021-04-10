@@ -36,6 +36,8 @@ import org.dromara.soul.common.dto.convert.rule.RuleHandle;
 @NoArgsConstructor
 public class DubboRuleHandle implements RuleHandle {
 
+    private static final long serialVersionUID = 2687375375638048966L;
+
     /**
      * version.
      */

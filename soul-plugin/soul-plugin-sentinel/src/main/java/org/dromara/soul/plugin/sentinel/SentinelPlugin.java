@@ -78,6 +78,8 @@ public class SentinelPlugin extends AbstractSoulPlugin {
 
     public static class SentinelFallbackException extends HttpStatusCodeException {
 
+        private static final long serialVersionUID = -6715019256585667956L;
+
         public SentinelFallbackException(final HttpStatus statusCode) {
             super(statusCode);
         }

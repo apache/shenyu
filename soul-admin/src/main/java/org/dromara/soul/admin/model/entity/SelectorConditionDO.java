@@ -40,6 +40,8 @@ import java.util.Optional;
 @EqualsAndHashCode(callSuper = true)
 public final class SelectorConditionDO extends BaseDO {
 
+    private static final long serialVersionUID = 756287802698140201L;
+
     /**
      * selector id.
      */

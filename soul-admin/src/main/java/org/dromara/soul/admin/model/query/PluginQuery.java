@@ -34,6 +34,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class PluginQuery implements Serializable {
 
+    private static final long serialVersionUID = 167659024501717438L;
+
     /**
      * plugin name.
      */

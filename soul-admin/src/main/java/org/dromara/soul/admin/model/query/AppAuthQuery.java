@@ -34,6 +34,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class AppAuthQuery implements Serializable {
 
+    private static final long serialVersionUID = -5002345943248288249L;
+
     /**
      * application key.
      */

@@ -40,6 +40,8 @@ import java.util.Optional;
 @EqualsAndHashCode(callSuper = true)
 public final class RuleConditionDO extends BaseDO {
 
+    private static final long serialVersionUID = -5652026882314490873L;
+
     /**
      * rule id.
      */

@@ -33,6 +33,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class SelectorConditionQuery implements Serializable {
 
+    private static final long serialVersionUID = 9107238465094879060L;
+
     /**
      * selector id.
      */

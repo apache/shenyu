@@ -37,6 +37,8 @@ import java.util.List;
 @AllArgsConstructor
 public final class SelectorDTO implements Serializable {
 
+    private static final long serialVersionUID = -4979839188302702999L;
+
     /**
      * primary key.
      */

@@ -31,6 +31,8 @@ import java.io.Serializable;
 @EqualsAndHashCode
 public class DubboRegisterConfig implements Serializable {
 
+    private static final long serialVersionUID = -4156204056244019979L;
+
     private String register;
 
     private String group;

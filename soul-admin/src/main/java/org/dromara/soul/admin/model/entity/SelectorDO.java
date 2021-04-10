@@ -45,6 +45,8 @@ import java.util.Optional;
 @EqualsAndHashCode(callSuper = true)
 public final class SelectorDO extends BaseDO {
 
+    private static final long serialVersionUID = -1627940797162331235L;
+
     /**
      * plugin id.
      */

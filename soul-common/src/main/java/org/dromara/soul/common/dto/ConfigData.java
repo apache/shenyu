@@ -37,6 +37,8 @@ import java.util.List;
 @Accessors(chain = true)
 public class ConfigData<T> implements Serializable {
 
+    private static final long serialVersionUID = 4171533502848375739L;
+
     private String md5;
 
     private long lastModifyTime;
