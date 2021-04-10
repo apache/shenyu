@@ -49,10 +49,6 @@ public class SoulResolverHelper {
      * @return Attributes
      */
     private static Attributes createAttributes(final SoulServiceInstance instance) {
-        Map<String, String> metadata = instance.getMetadata();
-        if (metadata == null) {
-            metadata = Collections.emptyMap();
-        }
         return SubChannels.createAttributes(instance.getWeight(), instance.getStatus());
     }
 }
