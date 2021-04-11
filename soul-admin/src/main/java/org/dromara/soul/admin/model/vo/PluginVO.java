@@ -36,6 +36,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class PluginVO implements Serializable {
 
+    private static final long serialVersionUID = 7537793180460522887L;
+
     /**
      * primary key.
      */

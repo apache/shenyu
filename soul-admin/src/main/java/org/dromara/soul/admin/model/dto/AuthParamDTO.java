@@ -29,6 +29,8 @@ import java.io.Serializable;
 @Data
 public class AuthParamDTO implements Serializable {
 
+    private static final long serialVersionUID = -5758853682062396957L;
+
     private String appName;
 
     private String appParam;

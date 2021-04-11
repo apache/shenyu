@@ -34,6 +34,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class RuleQuery implements Serializable {
 
+    private static final long serialVersionUID = -8048484230783429888L;
+
     /**
      * selector id.
      */

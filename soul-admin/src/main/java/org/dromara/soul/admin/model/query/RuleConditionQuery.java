@@ -33,6 +33,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class RuleConditionQuery implements Serializable {
 
+    private static final long serialVersionUID = 7800172573976046019L;
+
     /**
      * rule id.
      */

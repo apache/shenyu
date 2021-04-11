@@ -39,6 +39,8 @@ import java.util.Optional;
 @EqualsAndHashCode(callSuper = true)
 public final class SoulDictDO extends BaseDO {
 
+    private static final long serialVersionUID = -3968123108441795604L;
+
     /**
      * dict type.
      */

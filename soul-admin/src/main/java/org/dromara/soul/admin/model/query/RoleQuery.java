@@ -34,6 +34,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class RoleQuery implements Serializable {
 
+    private static final long serialVersionUID = -2876510433944603583L;
+
     /**
      * Role name.
      */

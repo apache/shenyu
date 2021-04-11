@@ -43,6 +43,8 @@ import java.util.Optional;
 @EqualsAndHashCode(callSuper = true)
 public final class RuleDO extends BaseDO {
 
+    private static final long serialVersionUID = 8050178277098166539L;
+
     /**
      * selector id.
      */

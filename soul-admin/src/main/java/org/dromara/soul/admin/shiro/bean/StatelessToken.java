@@ -28,6 +28,8 @@ import org.apache.shiro.authc.AuthenticationToken;
 @Data
 public class StatelessToken implements AuthenticationToken {
 
+    private static final long serialVersionUID = -482325250555312708L;
+
     private String userName;
 
     private String token;

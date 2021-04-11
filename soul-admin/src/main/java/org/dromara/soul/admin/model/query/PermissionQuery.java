@@ -33,6 +33,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class PermissionQuery implements Serializable {
 
+    private static final long serialVersionUID = 6937903404332979859L;
+
     /**
      * object id : role id or user id.
      */

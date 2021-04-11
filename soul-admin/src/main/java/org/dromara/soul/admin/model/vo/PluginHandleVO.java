@@ -38,6 +38,8 @@ import java.util.Optional;
 @NoArgsConstructor
 public class PluginHandleVO implements Serializable {
 
+    private static final long serialVersionUID = 940877592520676748L;
+
     /**
      * primary key.
      */

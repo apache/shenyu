@@ -38,6 +38,8 @@ import java.util.List;
 @Accessors(chain = true)
 public class WebsocketData<T> implements Serializable {
 
+    private static final long serialVersionUID = -3068033915566306050L;
+
     /**
      * group type.
      * {@linkplain org.dromara.soul.common.enums.ConfigGroupEnum}

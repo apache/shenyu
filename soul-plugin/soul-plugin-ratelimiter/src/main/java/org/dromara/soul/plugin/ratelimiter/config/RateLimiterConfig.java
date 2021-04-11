@@ -33,6 +33,8 @@ import java.time.Duration;
 @EqualsAndHashCode
 public class RateLimiterConfig implements Serializable {
 
+    private static final long serialVersionUID = -3535286136370323953L;
+
     private Integer database = 0;
 
     private String master;

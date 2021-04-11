@@ -28,6 +28,9 @@ import java.io.Serializable;
  */
 @Data
 public class SoulDictDTO implements Serializable {
+
+    private static final long serialVersionUID = -8639439741130267709L;
+
     /**
      * primary key.
      */

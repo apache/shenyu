@@ -30,6 +30,8 @@ import java.util.List;
 @Data
 public class AuthPathWarpDTO implements Serializable {
 
+    private static final long serialVersionUID = -3167442906221294444L;
+
     private String id;
 
     private List<AuthPathDTO> authPathDTOList;

@@ -37,6 +37,8 @@ import java.sql.Timestamp;
 @EqualsAndHashCode(callSuper = true)
 public final class AuthPathDO extends BaseDO {
 
+    private static final long serialVersionUID = 2265360597468199607L;
+
     private String authId;
 
     private String appName;
