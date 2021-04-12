@@ -17,10 +17,10 @@
 
 package org.dromara.soul.admin.controller;
 
-import org.dromara.soul.admin.result.SoulAdminResult;
+import org.dromara.soul.admin.model.result.SoulAdminResult;
 import org.dromara.soul.admin.service.PermissionService;
 import org.dromara.soul.admin.utils.SoulResultMessage;
-import org.dromara.soul.admin.vo.PermissionMenuVO;
+import org.dromara.soul.admin.model.vo.PermissionMenuVO;
 import org.dromara.soul.common.exception.CommonErrorCode;
 import org.junit.Before;
 import org.junit.Test;

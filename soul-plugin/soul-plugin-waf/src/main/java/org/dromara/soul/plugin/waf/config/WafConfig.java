@@ -25,7 +25,9 @@ import lombok.Data;
  */
 @Data
 public class WafConfig implements Serializable {
-    
+
+    private static final long serialVersionUID = 96834909685183123L;
+
     /**
      * black or mixed.
      * default is black; mixed .

@@ -19,10 +19,10 @@ package org.dromara.soul.admin.mapper;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.admin.AbstractSpringIntegrationTest;
-import org.dromara.soul.admin.dto.ResourceDTO;
-import org.dromara.soul.admin.entity.ResourceDO;
-import org.dromara.soul.admin.page.PageParameter;
-import org.dromara.soul.admin.query.ResourceQuery;
+import org.dromara.soul.admin.model.dto.ResourceDTO;
+import org.dromara.soul.admin.model.entity.ResourceDO;
+import org.dromara.soul.admin.model.page.PageParameter;
+import org.dromara.soul.admin.model.query.ResourceQuery;
 import org.dromara.soul.common.enums.AdminResourceEnum;
 import org.junit.After;
 import org.junit.Before;

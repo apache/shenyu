@@ -17,10 +17,10 @@
 
 package org.dromara.soul.admin.service;
 
-import org.dromara.soul.admin.dto.MetaDataDTO;
-import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.query.MetaDataQuery;
-import org.dromara.soul.admin.vo.MetaDataVO;
+import org.dromara.soul.admin.model.dto.MetaDataDTO;
+import org.dromara.soul.admin.model.page.CommonPager;
+import org.dromara.soul.admin.model.query.MetaDataQuery;
+import org.dromara.soul.admin.model.vo.MetaDataVO;
 import org.dromara.soul.common.dto.MetaData;
 
 import java.util.List;

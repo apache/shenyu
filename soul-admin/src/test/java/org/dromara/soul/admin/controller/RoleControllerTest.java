@@ -17,14 +17,14 @@
 
 package org.dromara.soul.admin.controller;
 
-import org.dromara.soul.admin.dto.RoleDTO;
-import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.page.PageParameter;
-import org.dromara.soul.admin.query.RoleQuery;
+import org.dromara.soul.admin.model.dto.RoleDTO;
+import org.dromara.soul.admin.model.page.CommonPager;
+import org.dromara.soul.admin.model.page.PageParameter;
+import org.dromara.soul.admin.model.query.RoleQuery;
 import org.dromara.soul.admin.service.RoleService;
 import org.dromara.soul.admin.utils.SoulResultMessage;
-import org.dromara.soul.admin.vo.RoleEditVO;
-import org.dromara.soul.admin.vo.RoleVO;
+import org.dromara.soul.admin.model.vo.RoleEditVO;
+import org.dromara.soul.admin.model.vo.RoleVO;
 import org.dromara.soul.common.utils.DateUtils;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.UUIDUtils;

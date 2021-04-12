@@ -63,6 +63,8 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
     private final String host;
 
     private final String port;
+
+    private final String servletContextPath;
     
     /**
      * Instantiates a new Soul client bean post processor.
@@ -87,6 +89,7 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
         this.host = config.getProps().getProperty("host");
         this.port = config.getProps().getProperty("port");
+        this.servletContextPath = env.getProperty("server.servlet.context-path", "");
         publisher.start(soulClientRegisterRepository);
     }
 
@@ -123,14 +126,9 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
     }
     
     private MetaDataRegisterDTO buildMetaDataDTO(final SoulSpringCloudClient soulSpringCloudClient, final String prePath) {
-        String contextPath = this.contextPath;
+        String contextPath = StringUtils.isBlank(this.contextPath) ? this.servletContextPath : this.contextPath;
         String appName = env.getProperty("spring.application.name");
-        String path;
-        if (StringUtils.isEmpty(contextPath)) {
-            path = prePath + soulSpringCloudClient.path();
-        } else {
-            path = contextPath + prePath + soulSpringCloudClient.path();
-        }
+        String path = contextPath + prePath + soulSpringCloudClient.path();
         String host = StringUtils.isBlank(this.host) ? IpUtils.getHost() : this.host;
         int port = StringUtils.isBlank(this.port) ? -1 : Integer.parseInt(this.port);
         String desc = soulSpringCloudClient.desc();

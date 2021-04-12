@@ -32,6 +32,8 @@ import org.dromara.soul.common.dto.convert.rule.RuleHandle;
 @NoArgsConstructor
 public class DivideRuleHandle implements RuleHandle {
 
+    private static final long serialVersionUID = 3975134663460754084L;
+
     /**
      * loadBalance.
      * {@linkplain org.dromara.soul.common.enums.LoadBalanceEnum}

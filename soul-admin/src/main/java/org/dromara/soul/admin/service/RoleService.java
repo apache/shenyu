@@ -17,11 +17,11 @@
 
 package org.dromara.soul.admin.service;
 
-import org.dromara.soul.admin.dto.RoleDTO;
-import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.query.RoleQuery;
-import org.dromara.soul.admin.vo.RoleEditVO;
-import org.dromara.soul.admin.vo.RoleVO;
+import org.dromara.soul.admin.model.dto.RoleDTO;
+import org.dromara.soul.admin.model.page.CommonPager;
+import org.dromara.soul.admin.model.query.RoleQuery;
+import org.dromara.soul.admin.model.vo.RoleEditVO;
+import org.dromara.soul.admin.model.vo.RoleVO;
 
 import java.util.List;
 

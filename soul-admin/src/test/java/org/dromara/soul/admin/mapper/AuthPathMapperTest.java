@@ -18,7 +18,7 @@
 package org.dromara.soul.admin.mapper;
 
 import org.dromara.soul.admin.AbstractSpringIntegrationTest;
-import org.dromara.soul.admin.entity.AuthPathDO;
+import org.dromara.soul.admin.model.entity.AuthPathDO;
 import org.dromara.soul.common.utils.UUIDUtils;
 import org.junit.Test;
 import javax.annotation.Resource;

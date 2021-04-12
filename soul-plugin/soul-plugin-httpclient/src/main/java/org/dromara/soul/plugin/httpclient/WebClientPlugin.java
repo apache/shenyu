@@ -117,7 +117,7 @@ public class WebClientPlugin implements SoulPlugin {
                 .contentType(buildMediaType(exchange))
                 .body(BodyInserters.fromDataBuffers(exchange.getRequest().getBody()))
                 .exchange()
-                .doOnError(e -> log.error(e.getMessage()))
+                .doOnError(e -> log.error(e.getMessage(), e))
                 .timeout(Duration.ofMillis(timeout))
                 .retryWhen(Retry.onlyIf(x -> x.exception() instanceof ConnectTimeoutException)
                     .retryMax(retryTimes)

@@ -18,8 +18,8 @@
 package org.dromara.soul.admin.mapper;
 
 import org.dromara.soul.admin.AbstractSpringIntegrationTest;
-import org.dromara.soul.admin.entity.RuleDO;
-import org.dromara.soul.admin.query.RuleQuery;
+import org.dromara.soul.admin.model.entity.RuleDO;
+import org.dromara.soul.admin.model.query.RuleQuery;
 import org.dromara.soul.common.utils.UUIDUtils;
 import org.junit.Test;
 import javax.annotation.Resource;

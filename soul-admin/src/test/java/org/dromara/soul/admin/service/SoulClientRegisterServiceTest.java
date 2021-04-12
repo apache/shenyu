@@ -17,11 +17,11 @@
 
 package org.dromara.soul.admin.service;
 
-import org.dromara.soul.admin.dto.PluginDTO;
-import org.dromara.soul.admin.entity.MetaDataDO;
-import org.dromara.soul.admin.entity.PluginDO;
-import org.dromara.soul.admin.entity.RuleDO;
-import org.dromara.soul.admin.entity.SelectorDO;
+import org.dromara.soul.admin.model.dto.PluginDTO;
+import org.dromara.soul.admin.model.entity.MetaDataDO;
+import org.dromara.soul.admin.model.entity.PluginDO;
+import org.dromara.soul.admin.model.entity.RuleDO;
+import org.dromara.soul.admin.model.entity.SelectorDO;
 import org.dromara.soul.admin.mapper.MetaDataMapper;
 import org.dromara.soul.admin.mapper.PluginMapper;
 import org.dromara.soul.admin.mapper.RuleMapper;
@@ -246,7 +246,7 @@ public final class SoulClientRegisterServiceTest {
         final PluginDTO pluginDTO = buildPluginDTO();
         final PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
         given(pluginMapper.selectByName(any())).willReturn(pluginDO);
-    
+
         MetaDataRegisterDTO dto = buildCloudRegisterDTO();
         assertEquals(SoulResultMessage.SUCCESS, soulClientRegisterService.registerSpringCloud(dto));
 

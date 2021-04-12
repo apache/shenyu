@@ -23,7 +23,9 @@ import org.junit.Test;
 import org.mockito.MockedStatic;
 
 import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.util.Vector;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -37,30 +39,35 @@ import static org.mockito.Mockito.when;
  */
 public final class IpUtilsTest {
 
-    private MockedStatic<InetAddress> inetAddressMockedStatic;
+    private MockedStatic<NetworkInterface> networkInterfaceMockedStatic;
 
     @Before
     public void setUp() {
-        inetAddressMockedStatic = mockStatic(InetAddress.class);
+        networkInterfaceMockedStatic = mockStatic(NetworkInterface.class);
     }
 
     @After
     public void close() {
-        inetAddressMockedStatic.close();
+        networkInterfaceMockedStatic.close();
     }
 
     @Test
-    public void testGetHost() throws UnknownHostException {
-        InetAddress inetAddress = mock(InetAddress.class);
-        inetAddressMockedStatic.when((MockedStatic.Verification) InetAddress.getLocalHost()).thenReturn(inetAddress);
-        when(inetAddress.getHostAddress()).thenReturn("127.0.0.1");
-        assertEquals("127.0.0.1", IpUtils.getHost());
+    public void testGetHost() throws Exception {
+        Vector<InetAddress> addresses = new Vector<>();
+        addresses.add(InetAddress.getByAddress("local", new byte[]{(byte) 192, (byte) 168, (byte) 1, (byte) 3}));
+        NetworkInterface nic = mock(NetworkInterface.class);
+        when(nic.getInetAddresses()).thenReturn(addresses.elements());
+        Vector<NetworkInterface> nics = new Vector<>();
+        nics.add(nic);
+        networkInterfaceMockedStatic.when((MockedStatic.Verification) NetworkInterface.getNetworkInterfaces()).thenReturn(nics.elements());
+
+        assertEquals("192.168.1.3", IpUtils.getHost());
     }
 
     @Test
-    public void testGetHostWithException() throws UnknownHostException {
-        inetAddressMockedStatic.when((MockedStatic.Verification) InetAddress.getLocalHost())
-                .thenThrow(UnknownHostException.class);
+    public void testGetHostWithException() throws Exception {
+        networkInterfaceMockedStatic.when((MockedStatic.Verification) NetworkInterface.getNetworkInterfaces())
+                .thenThrow(SocketException.class);
         assertEquals("127.0.0.1", IpUtils.getHost());
     }
 }

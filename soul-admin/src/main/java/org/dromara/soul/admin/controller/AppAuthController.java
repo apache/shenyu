@@ -18,17 +18,17 @@
 package org.dromara.soul.admin.controller;
 
 import org.apache.commons.lang3.StringUtils;
-import org.dromara.soul.admin.dto.AppAuthDTO;
-import org.dromara.soul.admin.dto.AuthApplyDTO;
-import org.dromara.soul.admin.dto.AuthPathWarpDTO;
-import org.dromara.soul.admin.dto.BatchCommonDTO;
-import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.page.PageParameter;
-import org.dromara.soul.admin.query.AppAuthQuery;
-import org.dromara.soul.admin.result.SoulAdminResult;
+import org.dromara.soul.admin.model.dto.AppAuthDTO;
+import org.dromara.soul.admin.model.dto.AuthApplyDTO;
+import org.dromara.soul.admin.model.dto.AuthPathWarpDTO;
+import org.dromara.soul.admin.model.dto.BatchCommonDTO;
+import org.dromara.soul.admin.model.page.CommonPager;
+import org.dromara.soul.admin.model.page.PageParameter;
+import org.dromara.soul.admin.model.query.AppAuthQuery;
+import org.dromara.soul.admin.model.result.SoulAdminResult;
 import org.dromara.soul.admin.service.AppAuthService;
 import org.dromara.soul.admin.utils.SoulResultMessage;
-import org.dromara.soul.admin.vo.AppAuthVO;
+import org.dromara.soul.admin.model.vo.AppAuthVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;

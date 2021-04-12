@@ -18,8 +18,8 @@
 package org.dromara.soul.admin.mapper;
 
 import org.dromara.soul.admin.AbstractSpringIntegrationTest;
-import org.dromara.soul.admin.entity.AppAuthDO;
-import org.dromara.soul.admin.query.AppAuthQuery;
+import org.dromara.soul.admin.model.entity.AppAuthDO;
+import org.dromara.soul.admin.model.query.AppAuthQuery;
 import org.dromara.soul.common.utils.SignUtils;
 import org.dromara.soul.common.utils.UUIDUtils;
 import org.junit.Before;

@@ -17,11 +17,11 @@
 
 package org.dromara.soul.admin.service;
 
-import org.dromara.soul.admin.dto.SelectorDTO;
-import org.dromara.soul.admin.entity.SelectorDO;
-import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.query.SelectorQuery;
-import org.dromara.soul.admin.vo.SelectorVO;
+import org.dromara.soul.admin.model.dto.SelectorDTO;
+import org.dromara.soul.admin.model.entity.SelectorDO;
+import org.dromara.soul.admin.model.page.CommonPager;
+import org.dromara.soul.admin.model.query.SelectorQuery;
+import org.dromara.soul.admin.model.vo.SelectorVO;
 import org.dromara.soul.common.dto.SelectorData;
 
 import java.util.List;
@@ -49,7 +49,7 @@ public interface SelectorService {
      * @return rows int
      */
     int createOrUpdate(SelectorDTO selectorDTO);
-    
+
     /**
      * update selective selector.
      *
@@ -97,7 +97,7 @@ public interface SelectorService {
      * @return {@linkplain CommonPager}
      */
     CommonPager<SelectorVO> listByPage(SelectorQuery selectorQuery);
-    
+
     /**
      * Find by plugin id list.
      *

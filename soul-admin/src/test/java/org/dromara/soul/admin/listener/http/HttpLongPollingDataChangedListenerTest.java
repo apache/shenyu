@@ -17,7 +17,7 @@
 
 package org.dromara.soul.admin.listener.http;
 
-import org.dromara.soul.admin.result.SoulAdminResult;
+import org.dromara.soul.admin.model.result.SoulAdminResult;
 import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
 import org.dromara.soul.common.utils.GsonUtils;

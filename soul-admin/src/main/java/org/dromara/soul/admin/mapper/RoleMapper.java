@@ -18,8 +18,8 @@
 package org.dromara.soul.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
-import org.dromara.soul.admin.entity.RoleDO;
-import org.dromara.soul.admin.query.RoleQuery;
+import org.dromara.soul.admin.model.entity.RoleDO;
+import org.dromara.soul.admin.model.query.RoleQuery;
 
 import java.util.List;
 

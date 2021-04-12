@@ -17,9 +17,9 @@
 
 package org.dromara.soul.admin.transfer;
 
-import org.dromara.soul.admin.dto.AppAuthDTO;
-import org.dromara.soul.admin.entity.AppAuthDO;
-import org.dromara.soul.admin.vo.AppAuthVO;
+import org.dromara.soul.admin.model.dto.AppAuthDTO;
+import org.dromara.soul.admin.model.entity.AppAuthDO;
+import org.dromara.soul.admin.model.vo.AppAuthVO;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
