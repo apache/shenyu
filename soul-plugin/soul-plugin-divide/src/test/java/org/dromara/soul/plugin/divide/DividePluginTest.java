@@ -66,6 +66,8 @@ public final class DividePluginTest {
 
     private ServerWebExchange exchange;
 
+    private ServerWebExchange postExchange;
+
     private List<DivideUpstream> divideUpstreamList;
 
     @Before
@@ -81,6 +83,9 @@ public final class DividePluginTest {
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost")
                 .remoteAddress(new InetSocketAddress(8090))
                 .build());
+        this.postExchange = MockServerWebExchange.from(MockServerHttpRequest.post("localhost?param=1")
+                .remoteAddress(new InetSocketAddress(8090))
+                .build());
         this.dividePlugin = new DividePlugin();
     }
 
@@ -92,6 +97,17 @@ public final class DividePluginTest {
         initMockInfo();
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         Mono<Void> result = dividePlugin.doExecute(exchange, chain, selectorData, ruleData);
+        StepVerifier.create(result).expectSubscription().verifyComplete();
+    }
+
+    /**
+     * Divide plugin post doExecute.
+     */
+    @Test
+    public void doPostExecuteTest() {
+        initMockInfo();
+        when(chain.execute(postExchange)).thenReturn(Mono.empty());
+        Mono<Void> result = dividePlugin.doExecute(postExchange, chain, selectorData, ruleData);
         StepVerifier.create(result).expectSubscription().verifyComplete();
     }
 
@@ -134,5 +150,7 @@ public final class DividePluginTest {
         when(context.getRealUrl()).thenReturn("mock-real");
         exchange.getAttributes().put(Constants.CONTEXT, context);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
+        postExchange.getAttributes().put(Constants.CONTEXT, context);
+        when(chain.execute(postExchange)).thenReturn(Mono.empty());
     }
 }
