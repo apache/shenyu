@@ -39,6 +39,8 @@ import java.util.Optional;
 @EqualsAndHashCode(callSuper = true)
 public final class PermissionDO extends BaseDO {
 
+    private static final long serialVersionUID = 8371869040638596986L;
+
     /**
      * user key or role key.
      */

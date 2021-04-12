@@ -33,9 +33,11 @@ import java.io.Serializable;
 @EqualsAndHashCode
 public class SofaRegisterConfig implements Serializable {
 
+    private static final long serialVersionUID = -3770114790533455035L;
+
     private String register;
-    
+
     private String group;
-    
+
     private String protocol;
 }

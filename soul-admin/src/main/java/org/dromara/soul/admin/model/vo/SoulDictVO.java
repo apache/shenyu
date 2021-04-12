@@ -36,6 +36,8 @@ import java.util.Optional;
 @NoArgsConstructor
 public class SoulDictVO implements Serializable {
 
+    private static final long serialVersionUID = 5731120468713362319L;
+
     /**
      * primary key.
      */

@@ -34,6 +34,8 @@ import java.io.Serializable;
 @Builder
 public class DivideUpstream implements Serializable {
 
+    private static final long serialVersionUID = 6252280511262542360L;
+
     /**
      * host.
      */

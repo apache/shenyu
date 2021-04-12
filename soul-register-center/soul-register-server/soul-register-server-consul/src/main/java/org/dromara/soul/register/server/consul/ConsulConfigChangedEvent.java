@@ -23,11 +23,13 @@ import org.springframework.context.ApplicationEvent;
 import java.util.Map;
 
 public class ConsulConfigChangedEvent extends ApplicationEvent {
-    
+
+    private static final long serialVersionUID = 6918871848189317069L;
+
     private final long consulIndex;
-    
+
     private final Map<String, GetValue> metadataMap;
-    
+
     /**
      * Instantiates a new consul config changed event.
      *
@@ -40,12 +42,12 @@ public class ConsulConfigChangedEvent extends ApplicationEvent {
         this.consulIndex = consulIndex;
         this.metadataMap = metadataMap;
     }
-    
+
     @Override
     public Object getSource() {
         return super.getSource();
     }
-    
+
     /**
      * Get Config index.
      * @return the index
@@ -53,7 +55,7 @@ public class ConsulConfigChangedEvent extends ApplicationEvent {
     public long getConsulIndex() {
         return consulIndex;
     }
-    
+
     /**
      * Get Metadata map.
      * @return the metadata map
@@ -61,5 +63,5 @@ public class ConsulConfigChangedEvent extends ApplicationEvent {
     public Map<String, GetValue> getMetadataMap() {
         return metadataMap;
     }
-    
+
 }

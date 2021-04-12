@@ -37,6 +37,8 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class ConditionData implements Serializable {
 
+    private static final long serialVersionUID = -6768497298941824781L;
+
     /**
      * param type (post  query  uri).
      */

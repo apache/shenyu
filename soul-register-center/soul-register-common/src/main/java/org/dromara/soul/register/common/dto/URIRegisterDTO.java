@@ -40,19 +40,21 @@ import java.io.Serializable;
 @AllArgsConstructor
 @EqualsAndHashCode
 public class URIRegisterDTO implements DataTypeParent, Serializable {
-    
+
+    private static final long serialVersionUID = -653255079042814293L;
+
     private String appName;
-    
+
     private String contextPath;
-    
+
     private String rpcType;
-    
+
     private String host;
-    
+
     private Integer port;
-    
+
     private EventType eventType;
-    
+
     /**
      * Trans form uri register dto.
      *
@@ -67,7 +69,7 @@ public class URIRegisterDTO implements DataTypeParent, Serializable {
                 .host(metaDataRegisterDTO.getHost())
                 .port(metaDataRegisterDTO.getPort()).build();
     }
-    
+
     @Override
     public DataType getType() {
         return DataType.URI;

@@ -54,25 +54,25 @@ import javax.rmi.ssl.SslRMIClientSocketFactory;
  * The type Jmx scraper.
  */
 public class JmxScraper {
-    
+
     private static final Logger LOGGER = Logger.getLogger(JmxScraper.class.getName());
-    
+
     private final MBeanReceiver receiver;
-    
+
     private final String jmxUrl;
-    
+
     private final String username;
-    
+
     private final String password;
-    
+
     private final boolean ssl;
-    
+
     private final List<ObjectName> whitelistObjectNames;
-    
+
     private final List<ObjectName> blacklistObjectNames;
-    
+
     private final JmxMBeanPropertyCache jmxMBeanPropertyCache;
-    
+
     /**
      * Instantiates a new Jmx scraper.
      *
@@ -97,19 +97,19 @@ public class JmxScraper {
         this.blacklistObjectNames = blacklistObjectNames;
         this.jmxMBeanPropertyCache = jmxMBeanPropertyCache;
     }
-    
+
     private static void logScrape(final ObjectName mbeanName, final Set<String> names, final String msg) {
         logScrape(mbeanName + "_" + names, msg);
     }
-    
+
     private static void logScrape(final ObjectName mbeanName, final MBeanAttributeInfo attr, final String msg) {
         logScrape(mbeanName + "'_'" + attr.getName(), msg);
     }
-    
+
     private static void logScrape(final String name, final String msg) {
         LOGGER.log(Level.FINE, "scrape: '" + name + "': " + msg);
     }
-    
+
     /**
      * Get a list of mbeans on host_port and scrape their values.
      * Values are passed to the receiver in a single thread.
@@ -124,8 +124,8 @@ public class JmxScraper {
         } else {
             Map<String, Object> environment = new HashMap<>();
             if (username != null && username.length() != 0 && password != null && password.length() != 0) {
-                String[] credent = new String[]{username, password};
-                environment.put(JMXConnector.CREDENTIALS, credent);
+                String[] credentials = new String[]{username, password};
+                environment.put(JMXConnector.CREDENTIALS, credentials);
             }
             if (ssl) {
                 environment.put(Context.SECURITY_PROTOCOL, "ssl");
@@ -133,7 +133,7 @@ public class JmxScraper {
                 environment.put(RMIConnectorServer.RMI_CLIENT_SOCKET_FACTORY_ATTRIBUTE, clientSocketFactory);
                 environment.put("com.sun.jndi.rmi.factory.socket", clientSocketFactory);
             }
-            
+
             jmxc = JMXConnectorFactory.connect(new JMXServiceURL(jmxUrl), environment);
             beanConn = jmxc.getMBeanServerConnection();
         }
@@ -145,16 +145,16 @@ public class JmxScraper {
                     mBeanNames.add(instance.getObjectName());
                 }
             }
-            
+
             for (ObjectName name : blacklistObjectNames) {
                 for (ObjectInstance instance : beanConn.queryMBeans(name, null)) {
                     mBeanNames.remove(instance.getObjectName());
                 }
             }
-            
+
             // Now that we have *only* the whitelisted mBeans, remove any old ones from the cache:
             jmxMBeanPropertyCache.onlyKeepMBeans(mBeanNames);
-            
+
             for (ObjectName objectName : mBeanNames) {
                 long start = System.nanoTime();
                 scrapeBean(beanConn, objectName);
@@ -166,7 +166,7 @@ public class JmxScraper {
             }
         }
     }
-    
+
     private void scrapeBean(final MBeanServerConnection beanConn, final ObjectName mbeanName) {
         MBeanInfo info;
         try {
@@ -176,7 +176,7 @@ public class JmxScraper {
             return;
         }
         MBeanAttributeInfo[] attrInfos = info.getAttributes();
-        
+
         Map<String, MBeanAttributeInfo> name2AttrInfo = new LinkedHashMap<>();
         for (MBeanAttributeInfo attr : attrInfos) {
             if (!attr.isReadable()) {
@@ -201,10 +201,10 @@ public class JmxScraper {
             logScrape(mbeanName, attr, "process");
             processBeanValue(mbeanName.getDomain(), jmxMBeanPropertyCache.getKeyPropertyList(mbeanName),
                     new LinkedList<>(), attr.getName(), attr.getType(), attr.getDescription(), attribute.getValue());
-            
+
         }
     }
-    
+
     /**
      * Recursive function for exporting the values of an mBean.
      * JMX is a very open technology, without any prescribed way of declaring mBeans

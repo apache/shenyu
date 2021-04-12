@@ -34,6 +34,8 @@ import java.util.List;
 @NoArgsConstructor
 public class AppAuthVO implements Serializable {
 
+    private static final long serialVersionUID = -3783316657677071171L;
+
     /**
      * primary key.
      */

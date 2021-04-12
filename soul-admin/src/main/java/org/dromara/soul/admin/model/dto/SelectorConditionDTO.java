@@ -29,6 +29,8 @@ import java.io.Serializable;
 @Data
 public class SelectorConditionDTO implements Serializable {
 
+    private static final long serialVersionUID = -7096949265173497354L;
+
     /**
      * primary key.
      */

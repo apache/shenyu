@@ -26,6 +26,8 @@ import java.io.Serializable;
 @EqualsAndHashCode
 public class MetaDataDTO implements Serializable {
 
+    private static final long serialVersionUID = 7476312364813536366L;
+
     private String id;
 
     private String appName;

@@ -34,6 +34,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class DashboardUserQuery implements Serializable {
 
+    private static final long serialVersionUID = 1141504916164252229L;
+
     /**
      * user name.
      */

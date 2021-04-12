@@ -36,6 +36,8 @@ import java.io.Serializable;
 @AllArgsConstructor
 public final class RuleConditionDTO implements Serializable {
 
+    private static final long serialVersionUID = -1883819174316303659L;
+
     /**
      * primary key.
      */

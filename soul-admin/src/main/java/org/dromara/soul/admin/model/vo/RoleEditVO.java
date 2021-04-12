@@ -37,6 +37,8 @@ import java.util.Optional;
 @NoArgsConstructor
 public class RoleEditVO implements Serializable {
 
+    private static final long serialVersionUID = -292613858092450065L;
+
     /**
      * role have permission list.
      */

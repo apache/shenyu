@@ -27,6 +27,9 @@ import java.io.Serializable;
  */
 @Data
 public class PluginHandleDTO implements Serializable {
+
+    private static final long serialVersionUID = 8010034956423631265L;
+
     /**
      * primary key.
      */

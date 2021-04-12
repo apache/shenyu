@@ -17,20 +17,17 @@
 
 package org.dromara.soul.admin.service;
 
-import org.dromara.soul.admin.model.dto.PermissionDTO;
-import org.dromara.soul.admin.model.dto.ResourceDTO;
-import org.dromara.soul.admin.model.entity.PermissionDO;
-import org.dromara.soul.admin.model.entity.ResourceDO;
 import org.dromara.soul.admin.mapper.PermissionMapper;
 import org.dromara.soul.admin.mapper.ResourceMapper;
+import org.dromara.soul.admin.model.dto.ResourceDTO;
+import org.dromara.soul.admin.model.entity.ResourceDO;
 import org.dromara.soul.admin.model.page.CommonPager;
 import org.dromara.soul.admin.model.page.PageParameter;
 import org.dromara.soul.admin.model.page.PageResultUtils;
 import org.dromara.soul.admin.model.query.ResourceQuery;
-import org.dromara.soul.admin.service.impl.ResourceServiceImpl;
 import org.dromara.soul.admin.model.vo.PermissionMenuVO;
 import org.dromara.soul.admin.model.vo.ResourceVO;
-import org.dromara.soul.common.constant.AdminConstants;
+import org.dromara.soul.admin.service.impl.ResourceServiceImpl;
 import org.dromara.soul.common.constant.ResourceTypeConstants;
 import org.dromara.soul.common.enums.AdminResourceEnum;
 import org.junit.Test;
@@ -73,10 +70,6 @@ public class ResourceServiceTest {
     public void testCreateResource() {
         final ResourceDO resourceDO = new ResourceDO();
         resourceDO.setId("mock resource id");
-
-        final PermissionDO relatedPermission = PermissionDO.buildPermissionDO(PermissionDTO.builder()
-                .objectId(AdminConstants.ROLE_SUPER_ID)
-                .resourceId(resourceDO.getId()).build());
 
         reset(resourceMapper);
         reset(permissionMapper);

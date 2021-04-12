@@ -38,6 +38,8 @@ import java.util.List;
 @NoArgsConstructor
 public class SelectorVO implements Serializable {
 
+    private static final long serialVersionUID = -8025780005899060366L;
+
     /**
      * primary key.
      */

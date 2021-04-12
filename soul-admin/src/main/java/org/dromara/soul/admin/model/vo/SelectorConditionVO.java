@@ -37,6 +37,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class SelectorConditionVO implements Serializable {
 
+    private static final long serialVersionUID = -9194910149899688578L;
+
     /**
      * primary key.
      */

@@ -28,6 +28,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class MetaDataVO implements Serializable {
 
+    private static final long serialVersionUID = -2658925954317878033L;
+
     private String appName;
 
     private String path;

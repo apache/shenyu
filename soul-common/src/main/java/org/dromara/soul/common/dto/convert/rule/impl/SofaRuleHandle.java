@@ -37,6 +37,8 @@ import org.dromara.soul.common.dto.convert.rule.RuleHandle;
 @NoArgsConstructor
 public class SofaRuleHandle implements RuleHandle {
 
+    private static final long serialVersionUID = 1534867207078368915L;
+
     /**
      * retries.
      */

@@ -36,6 +36,8 @@ import java.util.Optional;
 @NoArgsConstructor
 public class DashboardUserVO implements Serializable {
 
+    private static final long serialVersionUID = -6493573459758664389L;
+
     /**
      * primary key.
      */

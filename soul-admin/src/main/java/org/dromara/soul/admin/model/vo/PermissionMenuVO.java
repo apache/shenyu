@@ -38,6 +38,8 @@ import java.util.Optional;
 @NoArgsConstructor
 public class PermissionMenuVO implements Serializable {
 
+    private static final long serialVersionUID = 8260199815923117085L;
+
     /**
      * menu list.
      */

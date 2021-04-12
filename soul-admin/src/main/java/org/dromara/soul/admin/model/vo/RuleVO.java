@@ -37,6 +37,8 @@ import java.util.List;
 @NoArgsConstructor
 public class RuleVO implements Serializable {
 
+    private static final long serialVersionUID = -672321762440577372L;
+
     /**
      * primary key.
      */

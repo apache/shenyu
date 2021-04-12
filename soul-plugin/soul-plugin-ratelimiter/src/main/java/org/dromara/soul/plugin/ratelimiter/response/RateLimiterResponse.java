@@ -31,6 +31,8 @@ import java.io.Serializable;
 @RequiredArgsConstructor
 public class RateLimiterResponse implements Serializable {
 
+    private static final long serialVersionUID = 2896271355629004718L;
+
     private final boolean allowed;
 
     private final long tokensRemaining;

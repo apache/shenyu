@@ -30,6 +30,8 @@ import java.util.List;
 @Data
 public class BatchCommonDTO implements Serializable {
 
+    private static final long serialVersionUID = 7154784370528669046L;
+
     private List<String> ids;
 
     private Boolean enabled;

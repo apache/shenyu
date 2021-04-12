@@ -30,6 +30,8 @@ import java.time.LocalDateTime;
 @Data
 public class SoulContext implements Serializable {
 
+    private static final long serialVersionUID = 8668695964617280718L;
+
     /**
      * is module data.
      */
@@ -69,7 +71,7 @@ public class SoulContext implements Serializable {
      * path.
      */
     private String path;
-    
+
     /**
      * the contextPath.
      */

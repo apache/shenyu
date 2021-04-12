@@ -36,6 +36,8 @@ import java.util.Optional;
 @NoArgsConstructor
 public class RoleVO implements Serializable {
 
+    private static final long serialVersionUID = 2783609252111382305L;
+
     /**
      * primary key.
      */

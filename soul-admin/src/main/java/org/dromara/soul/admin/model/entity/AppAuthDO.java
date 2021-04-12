@@ -42,6 +42,8 @@ import java.util.Optional;
 @EqualsAndHashCode(callSuper = true)
 public final class AppAuthDO extends BaseDO {
 
+    private static final long serialVersionUID = 5683408559456006830L;
+
     /**
      * application key.
      */

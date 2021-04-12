@@ -35,6 +35,8 @@ import java.util.Optional;
 @EqualsAndHashCode(callSuper = true)
 public class DashboardUserEditVO extends DashboardUserVO {
 
+    private static final long serialVersionUID = 7164406413090154990L;
+
     /**
      * user role list.
      */
