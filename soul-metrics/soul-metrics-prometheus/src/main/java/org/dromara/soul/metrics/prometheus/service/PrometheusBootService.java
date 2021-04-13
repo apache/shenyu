@@ -20,19 +20,20 @@ package org.dromara.soul.metrics.prometheus.service;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.exporter.HTTPServer;
 import io.prometheus.client.hotspot.DefaultExports;
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.concurrent.atomic.AtomicBoolean;
-import javax.management.MalformedObjectNameException;
+import io.prometheus.jmx.JmxCollector;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.metrics.config.MetricsConfig;
 import org.dromara.soul.metrics.prometheus.collector.BuildInfoCollector;
-import org.dromara.soul.metrics.prometheus.collector.JmxCollector;
 import org.dromara.soul.metrics.prometheus.register.PrometheusMetricsRegister;
 import org.dromara.soul.metrics.reporter.MetricsReporter;
 import org.dromara.soul.metrics.spi.MetricsBootService;
 import org.dromara.soul.spi.Join;
+
+import javax.management.MalformedObjectNameException;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Prometheus metrics tracker manager.
@@ -88,7 +89,7 @@ public final class PrometheusBootService implements MetricsBootService {
             new JmxCollector(jmxConfig).register();
             DefaultExports.initialize();
         } catch (MalformedObjectNameException e) {
-            log.error("init jxm collector error", e);
+            log.error("init jmx collector error", e);
         }
     }
 }
