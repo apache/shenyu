@@ -41,6 +41,7 @@ public final class WebFluxResultUtils {
     public static Mono<Void> result(final ServerWebExchange exchange, final Object result) {
         exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
         return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
+                // TODO this is a risk for error charset coding with getBytes
                 .bufferFactory().wrap(Objects.requireNonNull(JsonUtils.toJson(result)).getBytes())));
     }
 }
