@@ -23,6 +23,7 @@ import io.prometheus.client.hotspot.DefaultExports;
 import io.prometheus.jmx.JmxCollector;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.metrics.config.MetricsConfig;
 import org.dromara.soul.metrics.prometheus.collector.BuildInfoCollector;
 import org.dromara.soul.metrics.prometheus.register.PrometheusMetricsRegister;
@@ -60,6 +61,7 @@ public final class PrometheusBootService implements MetricsBootService {
         if (server != null) {
             server.stop();
             registered.set(false);
+            CollectorRegistry.defaultRegistry.clear();
         }
     }
     
@@ -86,9 +88,11 @@ public final class PrometheusBootService implements MetricsBootService {
             return;
         }
         new BuildInfoCollector().register();
+        DefaultExports.initialize();
         try {
-            new JmxCollector(jmxConfig).register();
-            DefaultExports.initialize();
+            if (StringUtils.isNotEmpty(jmxConfig)) {
+                new JmxCollector(jmxConfig).register();
+            }
         } catch (MalformedObjectNameException e) {
             log.error("init jmx collector error", e);
         }
