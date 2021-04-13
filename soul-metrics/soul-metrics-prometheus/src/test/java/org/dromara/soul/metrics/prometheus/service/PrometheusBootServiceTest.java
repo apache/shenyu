@@ -44,7 +44,7 @@ public final class PrometheusBootServiceTest {
 
     @Test
     public void startWithNormal() {
-        MetricsConfig metricsConfig = new MetricsConfig("test", "", 10109, false, 1, null, null);
+        MetricsConfig metricsConfig = new MetricsConfig("test", "", 10109, false, 1, "{}", null);
         prometheusMetricsTrackerManager.start(metricsConfig);
         assertTrue(prometheusMetricsTrackerManager.getRegistered().get());
         prometheusMetricsTrackerManager.stop();
