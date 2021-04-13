@@ -59,6 +59,7 @@ public final class PrometheusBootService implements MetricsBootService {
     public void stop() {
         if (server != null) {
             server.stop();
+            registered.set(false);
         }
     }
     
