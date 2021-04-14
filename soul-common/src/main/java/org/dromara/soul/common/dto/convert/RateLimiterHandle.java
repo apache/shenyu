@@ -45,7 +45,7 @@ public class RateLimiterHandle {
     /**
      * request count.
      */
-    private double requestCount;
+    private double requestCount = 1.0;
 
     /**
      * loged.
