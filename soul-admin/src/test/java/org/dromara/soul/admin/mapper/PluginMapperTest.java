@@ -18,9 +18,9 @@
 package org.dromara.soul.admin.mapper;
 
 import org.dromara.soul.admin.AbstractSpringIntegrationTest;
-import org.dromara.soul.admin.dto.PluginDTO;
-import org.dromara.soul.admin.entity.PluginDO;
-import org.dromara.soul.admin.query.PluginQuery;
+import org.dromara.soul.admin.model.dto.PluginDTO;
+import org.dromara.soul.admin.model.entity.PluginDO;
+import org.dromara.soul.admin.model.query.PluginQuery;
 import org.h2.engine.Role;
 import org.junit.Test;
 import javax.annotation.Resource;

@@ -18,8 +18,8 @@
 package org.dromara.soul.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
-import org.dromara.soul.admin.entity.PermissionDO;
-import org.dromara.soul.admin.query.PermissionQuery;
+import org.dromara.soul.admin.model.entity.PermissionDO;
+import org.dromara.soul.admin.model.query.PermissionQuery;
 
 import java.util.List;
 

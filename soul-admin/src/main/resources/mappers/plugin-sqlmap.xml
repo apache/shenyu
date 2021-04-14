@@ -18,7 +18,7 @@
 
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.dromara.soul.admin.mapper.PluginMapper">
-    <resultMap id="BaseResultMap" type="org.dromara.soul.admin.entity.PluginDO">
+    <resultMap id="BaseResultMap" type="org.dromara.soul.admin.model.entity.PluginDO">
         <id column="id" jdbcType="VARCHAR" property="id"/>
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
@@ -47,7 +47,7 @@
         where name = #{name,jdbcType=VARCHAR}
     </select>
 
-    <select id="selectByQuery" parameterType="org.dromara.soul.admin.query.PluginQuery" resultMap="BaseResultMap">
+    <select id="selectByQuery" parameterType="org.dromara.soul.admin.model.query.PluginQuery" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
         from plugin
@@ -63,27 +63,27 @@
 
     </select>
 
-    <select id="countByQuery" parameterType="org.dromara.soul.admin.query.PluginQuery" resultType="java.lang.Integer">
+    <select id="countByQuery" parameterType="org.dromara.soul.admin.model.query.PluginQuery" resultType="java.lang.Integer">
         select count(1)
         from plugin
         <if test="name != null">
             where name = #{name,jdbcType=VARCHAR}
         </if>
     </select>
-    <select id="selectAll" resultType="org.dromara.soul.admin.entity.PluginDO" resultMap="BaseResultMap">
+    <select id="selectAll" resultType="org.dromara.soul.admin.model.entity.PluginDO" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
         from plugin
     </select>
 
-    <insert id="insert" parameterType="org.dromara.soul.admin.entity.PluginDO">
+    <insert id="insert" parameterType="org.dromara.soul.admin.model.entity.PluginDO">
         insert into plugin (id, date_created, date_updated,
         name,config,role, enabled)
         values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
         #{name,jdbcType=VARCHAR},#{config,jdbcType=VARCHAR}, #{role,jdbcType=INTEGER}, #{enabled,jdbcType=TINYINT})
     </insert>
 
-    <insert id="insertSelective" parameterType="org.dromara.soul.admin.entity.PluginDO">
+    <insert id="insertSelective" parameterType="org.dromara.soul.admin.model.entity.PluginDO">
         insert into plugin
         <trim prefix="(" suffix=")" suffixOverrides=",">
             id,
@@ -129,7 +129,7 @@
         </trim>
     </insert>
 
-    <update id="update" parameterType="org.dromara.soul.admin.entity.PluginDO">
+    <update id="update" parameterType="org.dromara.soul.admin.model.entity.PluginDO">
         update plugin
         set  date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
         name = #{name,jdbcType=VARCHAR},
@@ -138,7 +138,7 @@
         where id = #{id,jdbcType=VARCHAR}
     </update>
 
-    <update id="updateEnable" parameterType="org.dromara.soul.admin.entity.PluginDO">
+    <update id="updateEnable" parameterType="org.dromara.soul.admin.model.entity.PluginDO">
         update plugin
         SET  date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
         enabled = #{enabled,jdbcType=TINYINT}
@@ -146,7 +146,7 @@
     </update>
 
 
-    <update id="updateSelective" parameterType="org.dromara.soul.admin.entity.PluginDO">
+    <update id="updateSelective" parameterType="org.dromara.soul.admin.model.entity.PluginDO">
         update plugin
         <set>
             <if test="dateCreated != null">

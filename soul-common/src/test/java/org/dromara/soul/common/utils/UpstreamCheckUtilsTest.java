@@ -75,5 +75,6 @@ public final class UpstreamCheckUtilsTest {
         assertTrue(UpstreamCheckUtils.checkUrl("127.0.0.1:" + port));
         assertFalse(UpstreamCheckUtils.checkUrl("http://127.0.0.1:" + (port == 0 ? port + 1 : port - 1)));
         assertTrue(UpstreamCheckUtils.checkUrl("http://127.0.0.1:" + port));
+        assertTrue(UpstreamCheckUtils.checkUrl("https://dromara.org"));
     }
 }

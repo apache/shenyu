@@ -18,7 +18,7 @@
 
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.dromara.soul.admin.mapper.PermissionMapper">
-    <resultMap id="BaseResultMap" type="org.dromara.soul.admin.entity.PermissionDO">
+    <resultMap id="BaseResultMap" type="org.dromara.soul.admin.model.entity.PermissionDO">
         <id column="id" jdbcType="VARCHAR" property="id"/>
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
@@ -43,14 +43,14 @@
         from permission where object_id = #{objectId,jdbcType=VARCHAR}
     </select>
 
-    <insert id="insert" parameterType="org.dromara.soul.admin.entity.PermissionDO">
+    <insert id="insert" parameterType="org.dromara.soul.admin.model.entity.PermissionDO">
         insert into permission (id, date_created, date_updated,
         object_id, resource_id)
         values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
         #{objectId,jdbcType=VARCHAR}, #{resourceId,jdbcType=VARCHAR})
     </insert>
 
-    <insert id="insertSelective" parameterType="org.dromara.soul.admin.entity.PermissionDO">
+    <insert id="insertSelective" parameterType="org.dromara.soul.admin.model.entity.PermissionDO">
         insert into permission
         <trim prefix="(" suffix=")" suffixOverrides=",">
             id,
@@ -88,8 +88,8 @@
         delete from permission
         where id = #{id,jdbcType=VARCHAR}
     </delete>
-    
-    <delete id="deleteByObjectIdAndResourceId" parameterType="org.dromara.soul.admin.query.PermissionQuery">
+
+    <delete id="deleteByObjectIdAndResourceId" parameterType="org.dromara.soul.admin.model.query.PermissionQuery">
         delete from permission
         where object_id = #{objectId, jdbcType=VARCHAR}
         and resource_id = #{resourceId, jdbcType=VARCHAR}

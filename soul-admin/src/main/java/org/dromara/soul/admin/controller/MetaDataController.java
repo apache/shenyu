@@ -18,15 +18,15 @@
 package org.dromara.soul.admin.controller;
 
 import org.apache.commons.lang3.StringUtils;
-import org.dromara.soul.admin.dto.BatchCommonDTO;
-import org.dromara.soul.admin.dto.MetaDataDTO;
-import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.page.PageParameter;
-import org.dromara.soul.admin.query.MetaDataQuery;
-import org.dromara.soul.admin.result.SoulAdminResult;
+import org.dromara.soul.admin.model.dto.BatchCommonDTO;
+import org.dromara.soul.admin.model.dto.MetaDataDTO;
+import org.dromara.soul.admin.model.page.CommonPager;
+import org.dromara.soul.admin.model.page.PageParameter;
+import org.dromara.soul.admin.model.query.MetaDataQuery;
+import org.dromara.soul.admin.model.result.SoulAdminResult;
 import org.dromara.soul.admin.service.MetaDataService;
 import org.dromara.soul.admin.utils.SoulResultMessage;
-import org.dromara.soul.admin.vo.MetaDataVO;
+import org.dromara.soul.admin.model.vo.MetaDataVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -145,7 +145,7 @@ public class MetaDataController {
         }
         return SoulAdminResult.success(SoulResultMessage.ENABLE_SUCCESS);
     }
-    
+
     /**
      * Sync metadata.
      *

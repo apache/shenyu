@@ -90,6 +90,16 @@ public final class WebClientPluginTest {
         Mono<Void> monoNoPathTest = webClientPluginNoPathTest.execute(exchangeNoPathTest, chainNoPathTest);
         StepVerifier.create(monoNoPathTest).expectSubscription().verifyComplete();
 
+        final SoulPluginChain chainPostTest = mock(SoulPluginChain.class);
+        final WebClient webClientPostTest = mockWebClientOK();
+        ServerWebExchange exchangePostTest = MockServerWebExchange
+                .from(MockServerHttpRequest.post("/test123?param=1").build());
+        exchangePostTest.getAttributes().put(Constants.CONTEXT, mock(SoulContext.class));
+        exchangePostTest.getAttributes().put(Constants.HTTP_URL, "/test123?param=1");
+        WebClientPlugin webClientPluginPostTest = new WebClientPlugin(webClientPostTest);
+        Mono<Void> monoPostTest = webClientPluginPostTest.execute(exchangePostTest, chainPostTest);
+        StepVerifier.create(monoPostTest).expectSubscription().verifyError();
+
         final SoulPluginChain chainOkTest = mock(SoulPluginChain.class);
         final WebClient webClientOkTest = mockWebClientOK();
         WebClientPlugin webClientPluginOkTest = new WebClientPlugin(webClientOkTest);

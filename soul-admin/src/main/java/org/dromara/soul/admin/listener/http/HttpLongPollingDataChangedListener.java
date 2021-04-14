@@ -24,7 +24,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.dromara.soul.admin.config.properties.HttpSyncProperties;
 import org.dromara.soul.admin.listener.AbstractDataChangedListener;
 import org.dromara.soul.admin.listener.ConfigDataCache;
-import org.dromara.soul.admin.result.SoulAdminResult;
+import org.dromara.soul.admin.model.result.SoulAdminResult;
 import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.dromara.soul.common.concurrent.SoulThreadFactory;
 import org.dromara.soul.common.constant.HttpConstants;

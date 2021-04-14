@@ -39,6 +39,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class SelectorData implements Serializable {
+    private static final long serialVersionUID = 760613690421794874L;
 
     private String id;
 

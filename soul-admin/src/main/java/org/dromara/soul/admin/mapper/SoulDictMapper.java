@@ -19,8 +19,8 @@ package org.dromara.soul.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.dromara.soul.admin.entity.SoulDictDO;
-import org.dromara.soul.admin.query.SoulDictQuery;
+import org.dromara.soul.admin.model.entity.SoulDictDO;
+import org.dromara.soul.admin.model.query.SoulDictQuery;
 
 import java.util.List;
 

@@ -30,19 +30,21 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode
 public final class MetricsConfig implements Serializable {
-    
+
+    private static final long serialVersionUID = -9222476229902864771L;
+
     private String metricsName;
-    
+
     private String host;
-    
+
     private Integer port;
-    
+
     private Boolean async;
-    
+
     private Integer threadCount;
-    
+
     private String jmxConfig;
-    
+
     private Properties props;
 }
 

@@ -30,10 +30,12 @@ import org.dromara.soul.common.dto.convert.rule.RuleHandle;
 @NoArgsConstructor
 public class ContextMappingHandle implements RuleHandle {
 
+    private static final long serialVersionUID = 4891655505357494670L;
+
     private String realUrl;
 
     private String contextPath;
-    
+
     @Override
     public RuleHandle createDefault(final String path) {
         this.contextPath = path;

@@ -29,7 +29,7 @@ import org.dromara.soul.admin.service.RuleService;
 import org.dromara.soul.admin.service.SelectorService;
 import org.dromara.soul.admin.service.SyncDataService;
 import org.dromara.soul.admin.transfer.PluginTransfer;
-import org.dromara.soul.admin.vo.PluginVO;
+import org.dromara.soul.admin.model.vo.PluginVO;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;

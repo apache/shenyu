@@ -18,7 +18,7 @@
 
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.dromara.soul.admin.mapper.RuleConditionMapper">
-    <resultMap id="BaseResultMap" type="org.dromara.soul.admin.entity.RuleConditionDO">
+    <resultMap id="BaseResultMap" type="org.dromara.soul.admin.model.entity.RuleConditionDO">
         <id column="id" jdbcType="VARCHAR" property="id"/>
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
@@ -41,7 +41,7 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
 
-    <select id="selectByQuery" parameterType="org.dromara.soul.admin.query.RuleConditionQuery"
+    <select id="selectByQuery" parameterType="org.dromara.soul.admin.model.query.RuleConditionQuery"
             resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -51,7 +51,7 @@
         </if>
     </select>
 
-    <insert id="insert" parameterType="org.dromara.soul.admin.entity.RuleConditionDO">
+    <insert id="insert" parameterType="org.dromara.soul.admin.model.entity.RuleConditionDO">
         insert into rule_condition (id, date_created, date_updated,
         rule_id, param_type, operator, param_name, param_value)
         values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
@@ -59,7 +59,7 @@
         #{paramName,jdbcType=VARCHAR}, #{paramValue,jdbcType=VARCHAR})
     </insert>
 
-    <insert id="insertSelective" parameterType="org.dromara.soul.admin.entity.RuleConditionDO">
+    <insert id="insertSelective" parameterType="org.dromara.soul.admin.model.entity.RuleConditionDO">
         insert into rule_condition
         <trim prefix="(" suffix=")" suffixOverrides=",">
             id,
@@ -111,7 +111,7 @@
         </trim>
     </insert>
 
-    <update id="update" parameterType="org.dromara.soul.admin.entity.RuleConditionDO">
+    <update id="update" parameterType="org.dromara.soul.admin.model.entity.RuleConditionDO">
         update rule_condition
         set date_created = #{dateCreated,jdbcType=TIMESTAMP},
         date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
@@ -123,7 +123,7 @@
         where id = #{id,jdbcType=VARCHAR}
     </update>
 
-    <update id="updateSelective" parameterType="org.dromara.soul.admin.entity.RuleConditionDO">
+    <update id="updateSelective" parameterType="org.dromara.soul.admin.model.entity.RuleConditionDO">
         update rule_condition
         <set>
             <if test="dateCreated != null">
@@ -156,7 +156,7 @@
         where id = #{id,jdbcType=VARCHAR}
     </delete>
 
-    <delete id="deleteByQuery" parameterType="org.dromara.soul.admin.query.RuleConditionQuery">
+    <delete id="deleteByQuery" parameterType="org.dromara.soul.admin.model.query.RuleConditionQuery">
         delete from rule_condition
         where rule_id = #{ruleId,jdbcType=VARCHAR}
     </delete>

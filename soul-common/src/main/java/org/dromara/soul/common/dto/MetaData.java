@@ -33,6 +33,8 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class MetaData implements Serializable {
 
+    private static final long serialVersionUID = 7197733588974164580L;
+
     private String id;
 
     private String appName;

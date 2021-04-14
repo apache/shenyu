@@ -17,7 +17,7 @@
 
 package org.dromara.soul.admin.transfer;
 
-import org.dromara.soul.admin.entity.SelectorDO;
+import org.dromara.soul.admin.model.entity.SelectorDO;
 import org.dromara.soul.common.dto.SelectorData;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;

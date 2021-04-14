@@ -17,15 +17,15 @@
 
 package org.dromara.soul.admin.controller;
 
-import org.dromara.soul.admin.dto.ResourceDTO;
-import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.page.PageParameter;
-import org.dromara.soul.admin.query.ResourceQuery;
-import org.dromara.soul.admin.result.SoulAdminResult;
+import org.dromara.soul.admin.model.dto.ResourceDTO;
+import org.dromara.soul.admin.model.page.CommonPager;
+import org.dromara.soul.admin.model.page.PageParameter;
+import org.dromara.soul.admin.model.query.ResourceQuery;
+import org.dromara.soul.admin.model.result.SoulAdminResult;
 import org.dromara.soul.admin.service.ResourceService;
 import org.dromara.soul.admin.utils.SoulResultMessage;
-import org.dromara.soul.admin.vo.PermissionMenuVO;
-import org.dromara.soul.admin.vo.ResourceVO;
+import org.dromara.soul.admin.model.vo.PermissionMenuVO;
+import org.dromara.soul.admin.model.vo.ResourceVO;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.junit.Before;
 import org.junit.Test;

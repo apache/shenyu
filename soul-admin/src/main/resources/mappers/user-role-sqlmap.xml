@@ -18,7 +18,7 @@
 
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.dromara.soul.admin.mapper.UserRoleMapper">
-    <resultMap id="BaseResultMap" type="org.dromara.soul.admin.entity.UserRoleDO">
+    <resultMap id="BaseResultMap" type="org.dromara.soul.admin.model.entity.UserRoleDO">
         <id column="id" jdbcType="VARCHAR" property="id"/>
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
@@ -44,14 +44,14 @@
         where user_id = #{userId,jdbcType=VARCHAR}
     </select>
 
-    <insert id="insert" parameterType="org.dromara.soul.admin.entity.UserRoleDO">
+    <insert id="insert" parameterType="org.dromara.soul.admin.model.entity.UserRoleDO">
         insert into user_role (id, date_created, date_updated,
         user_id, role_id)
         values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
         #{userId,jdbcType=VARCHAR}, #{roleId,jdbcType=VARCHAR})
     </insert>
 
-    <insert id="insertSelective" parameterType="org.dromara.soul.admin.entity.UserRoleDO">
+    <insert id="insertSelective" parameterType="org.dromara.soul.admin.model.entity.UserRoleDO">
         insert into user_role
         <trim prefix="(" suffix=")" suffixOverrides=",">
             id,

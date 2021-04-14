@@ -18,7 +18,7 @@
 
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.dromara.soul.admin.mapper.SelectorMapper">
-    <resultMap id="BaseResultMap" type="org.dromara.soul.admin.entity.SelectorDO">
+    <resultMap id="BaseResultMap" type="org.dromara.soul.admin.model.entity.SelectorDO">
         <id column="id" jdbcType="VARCHAR" property="id"/>
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
@@ -52,7 +52,7 @@
         where name = #{name,jdbcType=VARCHAR}
     </select>
 
-    <select id="selectByQuery" parameterType="org.dromara.soul.admin.query.SelectorQuery" resultMap="BaseResultMap">
+    <select id="selectByQuery" parameterType="org.dromara.soul.admin.model.query.SelectorQuery" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
         from selector
@@ -73,7 +73,7 @@
     </select>
 
 
-    <select id="countByQuery" parameterType="org.dromara.soul.admin.query.SelectorQuery" resultType="java.lang.Integer">
+    <select id="countByQuery" parameterType="org.dromara.soul.admin.model.query.SelectorQuery" resultType="java.lang.Integer">
         select count(1)
         from selector
         <if test="pluginId != null">
@@ -81,13 +81,13 @@
         </if>
     </select>
 
-    <select id="selectAll" resultType="org.dromara.soul.admin.entity.SelectorDO" resultMap="BaseResultMap">
+    <select id="selectAll" resultType="org.dromara.soul.admin.model.entity.SelectorDO" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
         from selector
     </select>
 
-    <insert id="insert" parameterType="org.dromara.soul.admin.entity.SelectorDO">
+    <insert id="insert" parameterType="org.dromara.soul.admin.model.entity.SelectorDO">
         insert into selector (id, date_created, date_updated,
         plugin_id, name, match_mode, type, sort, enabled,
         loged, continued,handle)
@@ -97,7 +97,7 @@
         #{loged,jdbcType=TINYINT},  #{continued,jdbcType=TINYINT},#{handle,jdbcType=VARCHAR})
     </insert>
 
-    <insert id="insertSelective" parameterType="org.dromara.soul.admin.entity.SelectorDO">
+    <insert id="insertSelective" parameterType="org.dromara.soul.admin.model.entity.SelectorDO">
         insert into selector
         <trim prefix="(" suffix=")" suffixOverrides=",">
             id,
@@ -175,7 +175,7 @@
         </trim>
     </insert>
 
-    <update id="update" parameterType="org.dromara.soul.admin.entity.SelectorDO">
+    <update id="update" parameterType="org.dromara.soul.admin.model.entity.SelectorDO">
         update selector
         set date_created = #{dateCreated,jdbcType=TIMESTAMP},
         date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
@@ -191,7 +191,7 @@
         where id = #{id,jdbcType=VARCHAR}
     </update>
 
-    <update id="updateSelective" parameterType="org.dromara.soul.admin.entity.SelectorDO">
+    <update id="updateSelective" parameterType="org.dromara.soul.admin.model.entity.SelectorDO">
         update selector
         <set>
             <if test="dateCreated != null">
