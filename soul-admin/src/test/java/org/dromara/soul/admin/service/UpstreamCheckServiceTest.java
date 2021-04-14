@@ -44,6 +44,7 @@ import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
@@ -103,7 +104,7 @@ public final class UpstreamCheckServiceTest {
                 .handle("[{\"upstreamHost\":\"localhost\",\"protocol\":\"http://\",\"localhost\":\"divide-upstream-60\",\"weight\":60}]")
                 .build();
         //stubbing
-        when(pluginMapper.selectByName(anyString())).thenReturn(pluginDO);
+        when(pluginMapper.selectByNames(anyList())).thenReturn(Lists.newArrayList(pluginDO));
         when(pluginMapper.selectById(anyString())).thenReturn(pluginDO);
         when(selectorMapper.findByPluginId(anyString())).thenReturn(Lists.newArrayList(selectorDOWithUrlError, selectorDOWithUrlReachable));
         when(selectorMapper.updateSelective(any(SelectorDO.class))).thenReturn(1);

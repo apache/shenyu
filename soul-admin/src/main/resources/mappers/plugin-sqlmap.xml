@@ -39,12 +39,21 @@
         where id = #{id,jdbcType=VARCHAR}
     </select>
 
-
     <select id="selectByName" parameterType="java.lang.String" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
         from plugin
         where name = #{name,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByNames" parameterType="java.util.List" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from plugin
+        where name in
+        <foreach item="name" collection="list" open="(" separator="," close=")">
+        #{name,jdbcType=VARCHAR}
+    </foreach>
     </select>
 
     <select id="selectByQuery" parameterType="org.dromara.soul.admin.model.query.PluginQuery" resultMap="BaseResultMap">
