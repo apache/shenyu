@@ -32,7 +32,7 @@ import java.util.List;
 @Join
 public class ConcurrentRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm {
 
-    public static final String name = "concurrent";
+    public static final String CONCURRENT_RATE_LIMITER_NAME = "concurrent";
 
     @Override
     protected String getScriptName() {
