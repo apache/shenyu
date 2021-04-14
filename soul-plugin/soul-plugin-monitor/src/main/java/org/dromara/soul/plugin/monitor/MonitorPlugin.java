@@ -78,8 +78,7 @@ public class MonitorPlugin extends AbstractSoulPlugin {
         ServerHttpResponse response = exchange.getResponse();
         if (response.isCommitted()) {
             recordTime(startDateTime);
-        }
-        else {
+        } else {
             response.beforeCommit(() -> {
                 recordTime(startDateTime);
                 return Mono.empty();
