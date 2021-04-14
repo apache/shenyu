@@ -27,6 +27,7 @@ local allowed = 0
 if count < capacity then
   redis.call("zadd", key, timestamp, id)
   allowed = 1
+  count = count + 1
 end
 -- redis.call("setex", key, timestamp)
 return { allowed, count }

@@ -98,7 +98,7 @@ public class RedisRateLimiterScriptsTest {
         StepVerifier
                 .create(resultFlux)
                 .expectSubscription()
-                .expectNext(Arrays.asList(1L, 99L))
+                .expectNext(Arrays.asList(1L, 1L))
                 .expectComplete()
                 .verify();
     }
