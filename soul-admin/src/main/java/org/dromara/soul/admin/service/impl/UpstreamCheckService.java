@@ -120,7 +120,7 @@ public class UpstreamCheckService {
      */
     public void setup() {
         if (checked) {
-            List<PluginDO> pluginDOS = pluginMapper.selectByNames(PluginEnum.getPluginNames());
+            List<PluginDO> pluginDOS = pluginMapper.selectByNames(PluginEnum.getUpstreamNames());
             if (null != pluginDOS && !pluginDOS.isEmpty()) {
                 pluginDOS.forEach(pluginDO -> {
                     List<SelectorDO> selectorDOList = selectorMapper.findByPluginId(pluginDO.getId());

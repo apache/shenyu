@@ -151,11 +151,11 @@ public enum PluginEnum {
     }
 
     /**
-     * get plugin names.
+     * get upstream plugin names.
      *
      * @return List string
      */
-    public static List<String> getPluginNames() {
+    public static List<String> getUpstreamNames() {
         return Arrays.asList(DIVIDE.name, GRPC.name, TARS.name);
     }
 }
