@@ -77,7 +77,7 @@ public class RateLimiterPlugin extends AbstractSoulPlugin {
                     }
                     return chain.execute(exchange);
                 }).doFinally(signalType -> {
-                    if (ConcurrentRateLimiterAlgorithm.CONCURRENT_RATE_LIMITER_NAME.equals(limiterHandle.getAlgorithmName())) {
+                    if (ConcurrentRateLimiterAlgorithm.NAME.equals(limiterHandle.getAlgorithmName())) {
                         String tokenKey = "concurrent_request_rate_limiter.{}.tokens";
                         Mono<Long> mono = Singleton.INST.get(ReactiveRedisTemplate.class).opsForZSet().remove(tokenKey, id);
                         mono.subscribe();
@@ -87,7 +87,7 @@ public class RateLimiterPlugin extends AbstractSoulPlugin {
 
     private String getLimiterId(final ServerWebExchange exchange, final RuleData rule, final RateLimiterHandle limiterHandle) {
         String id;
-        if (ConcurrentRateLimiterAlgorithm.CONCURRENT_RATE_LIMITER_NAME.equals(limiterHandle.getAlgorithmName())) {
+        if (ConcurrentRateLimiterAlgorithm.NAME.equals(limiterHandle.getAlgorithmName())) {
             id = exchange.getRequest().getId();
         } else {
             id = rule.getId();
