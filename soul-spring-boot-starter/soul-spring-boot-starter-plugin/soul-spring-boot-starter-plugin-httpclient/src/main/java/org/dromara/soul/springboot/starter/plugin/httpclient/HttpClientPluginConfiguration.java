@@ -135,11 +135,9 @@ public class HttpClientPluginConfiguration {
                         .closeNotifyReadTimeout(ssl.getCloseNotifyReadTimeout());
             });
         }
-
         if (properties.isWiretap()) {
             httpClient = httpClient.wiretap(true);
         }
-
         return httpClient;
     }
 
@@ -203,7 +201,5 @@ public class HttpClientPluginConfiguration {
         public SoulPlugin nettyClientResponsePlugin() {
             return new NettyClientResponsePlugin();
         }
-
     }
-
 }
