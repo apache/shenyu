@@ -18,12 +18,13 @@
 package org.dromara.soul.admin.mapper;
 
 import org.dromara.soul.admin.AbstractSpringIntegrationTest;
-import org.dromara.soul.admin.dto.PluginDTO;
-import org.dromara.soul.admin.entity.PluginDO;
-import org.dromara.soul.admin.query.PluginQuery;
+import org.dromara.soul.admin.model.dto.PluginDTO;
+import org.dromara.soul.admin.model.entity.PluginDO;
+import org.dromara.soul.admin.model.query.PluginQuery;
 import org.h2.engine.Role;
 import org.junit.Test;
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.List;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
@@ -63,6 +64,20 @@ public final class PluginMapperTest extends AbstractSpringIntegrationTest {
 
         final PluginDO resultPluginDO = pluginMapper.selectByName(pluginDO.getName());
         assertThat(pluginDO, equalTo(resultPluginDO));
+
+        final int deleteResult = pluginMapper.delete(pluginDO.getId());
+        assertThat(deleteResult, equalTo(1));
+    }
+
+    @Test
+    public void selectByNames() {
+        final PluginDTO pluginDTO = buildPluginDTO();
+        final PluginDO pluginDO = PluginDO.buildPluginDO(pluginDTO);
+        final int insertResult = pluginMapper.insert(pluginDO);
+        assertThat(insertResult, equalTo(1));
+
+        final List<PluginDO> resultPluginDOS = pluginMapper.selectByNames(Arrays.asList(pluginDO.getName()));
+        assertThat(pluginDO, equalTo(resultPluginDOS.stream().findAny().get()));
 
         final int deleteResult = pluginMapper.delete(pluginDO.getId());
         assertThat(deleteResult, equalTo(1));

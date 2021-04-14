@@ -17,13 +17,13 @@
 
 package org.dromara.soul.admin.controller;
 
-import org.dromara.soul.admin.dto.SelectorDTO;
-import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.page.PageParameter;
-import org.dromara.soul.admin.query.SelectorQuery;
+import org.dromara.soul.admin.model.dto.SelectorDTO;
+import org.dromara.soul.admin.model.page.CommonPager;
+import org.dromara.soul.admin.model.page.PageParameter;
+import org.dromara.soul.admin.model.query.SelectorQuery;
 import org.dromara.soul.admin.service.SelectorService;
 import org.dromara.soul.admin.utils.SoulResultMessage;
-import org.dromara.soul.admin.vo.SelectorVO;
+import org.dromara.soul.admin.model.vo.SelectorVO;
 import org.dromara.soul.common.enums.MatchModeEnum;
 import org.dromara.soul.common.enums.SelectorTypeEnum;
 import org.dromara.soul.common.utils.DateUtils;

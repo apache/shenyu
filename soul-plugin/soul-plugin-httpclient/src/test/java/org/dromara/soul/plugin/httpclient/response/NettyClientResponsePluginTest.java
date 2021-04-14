@@ -140,14 +140,13 @@ public class NettyClientResponsePluginTest {
      */
     @Test
     public void testNamed() {
-        assertEquals("NettyWriteResponse", nettyClientResponsePlugin.named());
+        assertEquals("NettyClientResponse", nettyClientResponsePlugin.named());
     }
 
     private ServerWebExchange generateServerWebExchange() {
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test").build());
         exchange.getAttributes().put(Constants.CONTEXT, mock(SoulContext.class));
         exchange.getAttributes().put(Constants.HTTP_URL, "/test");
-
         return exchange;
     }
 }

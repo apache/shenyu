@@ -42,22 +42,21 @@ import java.util.List;
 public class RedisRateLimiter {
     
     /**
-     * This uses a basic token bucket algorithm and relies on the fact that Redis scripts
-     * execute atomically. No other operations can run between fetching the count and
-     * writing the new count.
+     * Verify using different current limiting algorithm scripts. 
      *
      * @param id is rule id
      * @param limiterHandle the limiter handle
-     * @return {@code Mono<Response>} to indicate when request processing is complete
+     * @return {@code Mono<RateLimiterResponse>} to indicate when request processing is complete
      */
     @SuppressWarnings("unchecked")
     public Mono<RateLimiterResponse> isAllowed(final String id, final RateLimiterHandle limiterHandle) {
         double replenishRate = limiterHandle.getReplenishRate();
         double burstCapacity = limiterHandle.getBurstCapacity();
+        double requestCount = limiterHandle.getRequestCount();
         RateLimiterAlgorithm<?> rateLimiterAlgorithm = RateLimiterAlgorithmFactory.newInstance(limiterHandle.getAlgorithmName());
         RedisScript<?> script = rateLimiterAlgorithm.getScript();
         List<String> keys = rateLimiterAlgorithm.getKeys(id);
-        List<String> scriptArgs = Arrays.asList(replenishRate + "", burstCapacity + "", Instant.now().getEpochSecond() + "", "1");
+        List<String> scriptArgs = Arrays.asList(doubleToString(replenishRate), doubleToString(burstCapacity), doubleToString(Instant.now().getEpochSecond()), doubleToString(requestCount));
         Flux<List<Long>> resultFlux = Singleton.INST.get(ReactiveRedisTemplate.class).execute(script, keys, scriptArgs);
         return resultFlux.onErrorResume(throwable -> Flux.just(Arrays.asList(1L, -1L)))
                 .reduce(new ArrayList<Long>(), (longs, l) -> {
@@ -66,9 +65,11 @@ public class RedisRateLimiter {
                 }).map(results -> {
                     boolean allowed = results.get(0) == 1L;
                     Long tokensLeft = results.get(1);
-                    RateLimiterResponse rateLimiterResponse = new RateLimiterResponse(allowed, tokensLeft);
-                    log.info("RateLimiter response:{}", rateLimiterResponse.toString());
-                    return rateLimiterResponse;
+                    return new RateLimiterResponse(allowed, tokensLeft);
                 }).doOnError(throwable -> log.error("Error determining if user allowed from redis:{}", throwable.getMessage()));
+    }
+    
+    private String doubleToString(final double param) {
+        return String.valueOf(param);
     }
 }

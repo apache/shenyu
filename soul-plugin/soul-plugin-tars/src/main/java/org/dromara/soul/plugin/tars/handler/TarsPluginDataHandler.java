@@ -18,8 +18,12 @@
 package org.dromara.soul.plugin.tars.handler;
 
 import org.dromara.soul.common.dto.PluginData;
+import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
+import org.dromara.soul.plugin.tars.cache.ApplicationConfigCache;
+
+import java.util.Objects;
 
 /**
  * The type tars plugin data handler.
@@ -36,4 +40,21 @@ public class TarsPluginDataHandler implements PluginDataHandler {
     public String pluginNamed() {
         return PluginEnum.TARS.getName();
     }
+    
+    @Override
+    public void handlerSelector(final SelectorData selectorData) {
+        if (Objects.isNull(selectorData.getName())) {
+            return;
+        }
+        ApplicationConfigCache.getInstance().initPrxClass(selectorData);
+    }
+
+    @Override
+    public void removeSelector(final SelectorData selectorData) {
+        if (Objects.isNull(selectorData.getName())) {
+            return;
+        }
+        ApplicationConfigCache.getInstance().invalidate(selectorData.getName());
+    }
+
 }

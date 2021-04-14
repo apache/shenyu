@@ -17,10 +17,10 @@
 
 package org.dromara.soul.admin.service;
 
-import org.dromara.soul.admin.dto.RuleDTO;
-import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.query.RuleQuery;
-import org.dromara.soul.admin.vo.RuleVO;
+import org.dromara.soul.admin.model.dto.RuleDTO;
+import org.dromara.soul.admin.model.page.CommonPager;
+import org.dromara.soul.admin.model.query.RuleQuery;
+import org.dromara.soul.admin.model.vo.RuleVO;
 import org.dromara.soul.common.dto.RuleData;
 
 import java.util.List;

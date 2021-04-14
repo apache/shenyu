@@ -18,9 +18,8 @@
 
 setlocal
 set PRGDIR=%~dp0%
-set APP=%PRGDIR%\..\lib\soul-bootstrap.jar
-set BASE_DIR=%PRGDIR%\..
-set APP_DIR=%BASE_DIR%
+set BASE_DIR=%PRGDIR%..
+set APP=%BASE_DIR%\lib\soul-bootstrap.jar
 set LOG_DIR=%BASE_DIR%\logs
 
 if not defined JAVA_HOME (
@@ -46,6 +45,6 @@ set JAVA_OPTS=-server -Xmx2048m  -Xms2048m -Xmn1024m  -Xss512k
 set JAVA_OPTS=%JAVA_OPTS% -Xloggc:%LOG_DIR%\gc.log
 
 if not exist %LOG_DIR% ( mkdir %LOG_DIR% )
-java %JAVA_OPTS% -jar %APP% -Dspring.config.location=file:%BASE_DIR%\conf\ >> "%LOG_DIR%\stdout.log"
+java %JAVA_OPTS% -jar %APP% --spring.config.location=file:%BASE_DIR%\conf\ >> "%LOG_DIR%\stdout.log"
 
 endlocal

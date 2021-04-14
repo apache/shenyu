@@ -31,6 +31,8 @@ import java.io.Serializable;
 @Builder
 public class DubboRpcExt implements Serializable {
 
+    private static final long serialVersionUID = -1771273152608873279L;
+
     private String group;
 
     private String version;

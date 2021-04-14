@@ -67,8 +67,7 @@ public class EtcdClient {
 
                 @Override
                 public void onError(final Throwable throwable) {
-                    log.info("keep alive error");
-                    throwable.printStackTrace();
+                    log.error("keep alive error", throwable);
                 }
 
                 @Override
@@ -77,7 +76,7 @@ public class EtcdClient {
                 }
             });
         } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
+            log.error("initLease error.", e);
         }
     }
 
@@ -100,7 +99,7 @@ public class EtcdClient {
                     PutOption.newBuilder().withLeaseId(globalLeaseId).build())
                     .get(timeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            e.printStackTrace();
+            log.error("putEphemeral(key:{},value:{}) error.", key, value, e);
         }
     }
 }

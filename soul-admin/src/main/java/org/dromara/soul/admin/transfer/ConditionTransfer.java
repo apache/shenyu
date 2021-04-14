@@ -19,10 +19,10 @@ package org.dromara.soul.admin.transfer;
 
 import java.util.List;
 
-import org.dromara.soul.admin.dto.RuleConditionDTO;
-import org.dromara.soul.admin.dto.SelectorConditionDTO;
-import org.dromara.soul.admin.entity.RuleConditionDO;
-import org.dromara.soul.admin.entity.SelectorConditionDO;
+import org.dromara.soul.admin.model.dto.RuleConditionDTO;
+import org.dromara.soul.admin.model.dto.SelectorConditionDTO;
+import org.dromara.soul.admin.model.entity.RuleConditionDO;
+import org.dromara.soul.admin.model.entity.SelectorConditionDO;
 import org.dromara.soul.common.dto.ConditionData;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;

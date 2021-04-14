@@ -17,7 +17,6 @@
 
 package org.dromara.soul.plugin.sync.data.websocket;
 
-import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.common.concurrent.SoulThreadFactory;
@@ -33,6 +32,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -47,7 +47,7 @@ public class WebsocketSyncDataService implements SyncDataService, AutoCloseable 
     private final List<WebSocketClient> clients = new ArrayList<>();
 
     private final ScheduledThreadPoolExecutor executor;
-    
+
     /**
      * Instantiates a new Websocket sync cache.
      *
@@ -82,15 +82,18 @@ public class WebsocketSyncDataService implements SyncDataService, AutoCloseable 
                         if (client.isClosed()) {
                             boolean reconnectSuccess = client.reconnectBlocking();
                             if (reconnectSuccess) {
-                                log.info("websocket reconnect is successful.....");
+                                log.info("websocket reconnect server[{}] is successful.....", client.getURI().toString());
                             } else {
-                                log.error("websocket reconnection is error.....");
+                                log.error("websocket reconnection server[{}] is error.....", client.getURI().toString());
                             }
+                        } else {
+                            client.sendPing();
+                            log.info("websocket send to [{}] ping message successful", client.getURI().toString());
                         }
                     } catch (InterruptedException e) {
                         log.error("websocket connect is error :{}", e.getMessage());
                     }
-                }, 10, 30, TimeUnit.SECONDS);
+                }, 10, 10, TimeUnit.SECONDS);
             }
             /* client.setProxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress("proxyaddress", 80)));*/
         } catch (InterruptedException e) {
@@ -98,7 +101,7 @@ public class WebsocketSyncDataService implements SyncDataService, AutoCloseable 
         }
 
     }
-    
+
     @Override
     public void close() {
         for (WebSocketClient client : clients) {

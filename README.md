@@ -2,7 +2,7 @@
     <a href="https://dromara.org"><img src="https://dromara.org/img/logo/soul.png" width="45%"></a>
 </p>
 <p align="center">
-  <strong>Scalable,High Performance,Responsive API Gateways</strong>
+  <strong>Scalable, High Performance, Responsive API Gateway Solution for all MicroSerivces</strong>
 </p>
 <p align="center">
   <a href="https://dromara.org">https://dromara.org/</a>
@@ -157,9 +157,9 @@
    
 # About
   
-   Soul has been used in our production environment,its performance and flexibility allow us to use up very cool.
+   Soul has been used widely in more and more systems by many companies, and it's simple and convenient to integrate Services/APIs with the high performance and flexibility.
    
-   In double 11, we deployed 6 clusters, which supported a large volume of our business.
+   In double eleven online shopping carnival of China, Soul clusters successfully supported a large volume of internet business.
    
 --------------------------------------------------------------------------------  
     
@@ -239,7 +239,10 @@ In order of registration, More access companies are welcome to register at [http
   </tbody> 
   <tbody>
     <tr>
-      <td><img src="https://dromara.org/img/users/songguo.png"  width="1800" height="90" alt="jd"/>
+      <td><img src="https://dromara.org/img/users/songguo.png"  width="1800" height="90" alt="songguo"/>
+      <td><img src="https://dromara.org/img/users/lianlian.png"  width="1800" height="90" alt="lianlian"/>
+      <td><img src="https://dromara.org/img/users/dasouche.png"  width="1800" height="90" alt="dasouche"/>
+      <td><img src="https://dromara.org/img/users/weimai.png"  width="1800" height="90" alt="weimai"/>
     </tr>
   </tbody> 
 </table>

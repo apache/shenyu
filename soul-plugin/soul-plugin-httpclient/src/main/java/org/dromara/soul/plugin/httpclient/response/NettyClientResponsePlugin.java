@@ -17,9 +17,6 @@
 
 package org.dromara.soul.plugin.httpclient.response;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.enums.RpcTypeEnum;
@@ -36,6 +33,10 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.netty.Connection;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+
 /**
  * The type Netty client response plugin.
  *
@@ -48,15 +49,10 @@ public class NettyClientResponsePlugin implements SoulPlugin {
 
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final SoulPluginChain chain) {
-        return Mono.defer(() -> {
+        return chain.execute(exchange).doOnError(throwable -> cleanup(exchange)).then(Mono.defer(() -> {
             Connection connection = exchange.getAttribute(Constants.CLIENT_RESPONSE_CONN_ATTR);
             if (connection == null) {
                 return Mono.empty();
-            }
-            if (log.isTraceEnabled()) {
-                log.trace("NettyWriteResponseFilter start inbound: "
-                        + connection.channel().id().asShortText() + ", outbound: "
-                        + exchange.getLogPrefix());
             }
             ServerHttpResponse response = exchange.getResponse();
             NettyDataBufferFactory factory = (NettyDataBufferFactory) response.bufferFactory();
@@ -69,10 +65,7 @@ public class NettyClientResponsePlugin implements SoulPlugin {
             return isStreamingMediaType(contentType)
                     ? response.writeAndFlushWith(body.map(Flux::just))
                     : response.writeWith(body);
-
-        })
-                .then(chain.execute(exchange)
-                        .doOnError(throwable -> cleanup(exchange))).doOnCancel(() -> cleanup(exchange));
+        })).doOnCancel(() -> cleanup(exchange));
     }
 
     @Override
@@ -82,7 +75,7 @@ public class NettyClientResponsePlugin implements SoulPlugin {
 
     @Override
     public String named() {
-        return "NettyWriteResponse";
+        return "NettyClientResponse";
     }
 
     @Override

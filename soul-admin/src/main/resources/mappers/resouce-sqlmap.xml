@@ -18,7 +18,7 @@
 
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.dromara.soul.admin.mapper.ResourceMapper">
-    <resultMap id="BaseResultMap" type="org.dromara.soul.admin.entity.ResourceDO">
+    <resultMap id="BaseResultMap" type="org.dromara.soul.admin.model.entity.ResourceDO">
         <id column="id" jdbcType="VARCHAR" property="id"/>
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
@@ -54,7 +54,7 @@
         where parent_id = #{parentId,jdbcType=VARCHAR}
     </select>
 
-    <select id="selectByQuery" parameterType="org.dromara.soul.admin.query.ResourceQuery" resultMap="BaseResultMap">
+    <select id="selectByQuery" parameterType="org.dromara.soul.admin.model.query.ResourceQuery" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
         from resource
@@ -77,7 +77,7 @@
         </if>
     </select>
 
-    <select id="countByQuery" parameterType="org.dromara.soul.admin.query.ResourceQuery" resultType="java.lang.Integer">
+    <select id="countByQuery" parameterType="org.dromara.soul.admin.model.query.ResourceQuery" resultType="java.lang.Integer">
         select count(1)
         from resource
         where status = 1
@@ -92,7 +92,7 @@
         from resource
     </select>
 
-    <insert id="insert" parameterType="org.dromara.soul.admin.entity.ResourceDO">
+    <insert id="insert" parameterType="org.dromara.soul.admin.model.entity.ResourceDO">
         insert into resource (id, date_created, date_updated,
         parent_id, title, name, url, component, resource_type, sort, icon, is_leaf, is_route, perms, status)
         values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
@@ -101,7 +101,7 @@
         #{isLeaf,jdbcType=BOOLEAN}, #{isRoute,jdbcType=INTEGER}, #{perms,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER})
     </insert>
 
-    <insert id="insertSelective" parameterType="org.dromara.soul.admin.entity.ResourceDO">
+    <insert id="insertSelective" parameterType="org.dromara.soul.admin.model.entity.ResourceDO">
         insert into resource
         <trim prefix="(" suffix=")" suffixOverrides=",">
             id,
@@ -195,7 +195,7 @@
         </trim>
     </insert>
 
-    <update id="update" parameterType="org.dromara.soul.admin.entity.ResourceDO">
+    <update id="update" parameterType="org.dromara.soul.admin.model.entity.ResourceDO">
         update resource
         set date_created = #{dateCreated,jdbcType=TIMESTAMP},
         date_updated = #{dateUpdated,jdbcType=TIMESTAMP},
@@ -214,7 +214,7 @@
         where id = #{id,jdbcType=VARCHAR}
     </update>
 
-    <update id="updateSelective" parameterType="org.dromara.soul.admin.entity.ResourceDO">
+    <update id="updateSelective" parameterType="org.dromara.soul.admin.model.entity.ResourceDO">
         update resource
         <set>
             <if test="dateCreated != null">

@@ -33,6 +33,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class AuthParamData implements Serializable {
 
+    private static final long serialVersionUID = 8565883744358988791L;
+
     private String appName;
 
     private String appParam;

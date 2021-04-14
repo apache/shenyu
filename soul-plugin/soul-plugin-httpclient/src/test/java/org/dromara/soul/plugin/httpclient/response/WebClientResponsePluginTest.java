@@ -66,9 +66,7 @@ public final class WebClientResponsePluginTest {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setCfgContext(context);
         when(context.getBean(SoulResult.class)).thenReturn(mock(SoulResult.class));
-
         chain = mock(SoulPluginChain.class);
-
         webClientResponsePlugin = new WebClientResponsePlugin();
     }
 

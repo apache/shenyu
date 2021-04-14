@@ -107,12 +107,11 @@ public class HttpClientPluginConfiguration {
                                     .to(builder::nonProxyHosts);
                         });
                     }
-                    tcpClient = tcpClient.doOnConnected(c ->
-                            c.channel()
-                                    .pipeline()
-                                    // The write and read timeouts are serving as generic socket idle state handlers.
-                                    .addFirst("write_timeout", new WriteTimeoutHandler(properties.getWriteTimeout(), TimeUnit.MILLISECONDS))
-                                    .addFirst("read_timeout", new ReadTimeoutHandler(properties.getReadTimeout(), TimeUnit.MILLISECONDS)));
+                    // The write and read timeouts are serving as generic socket idle state handlers.
+                    tcpClient = tcpClient.doOnConnected(c -> {
+                        c.addHandlerLast(new WriteTimeoutHandler(properties.getWriteTimeout(), TimeUnit.MILLISECONDS));
+                        c.addHandlerLast(new ReadTimeoutHandler(properties.getReadTimeout(), TimeUnit.MILLISECONDS));
+                    });
                     return tcpClient;
                 });
         HttpClientProperties.Ssl ssl = properties.getSsl();
@@ -136,11 +135,9 @@ public class HttpClientPluginConfiguration {
                         .closeNotifyReadTimeout(ssl.getCloseNotifyReadTimeout());
             });
         }
-
         if (properties.isWiretap()) {
             httpClient = httpClient.wiretap(true);
         }
-
         return httpClient;
     }
 
@@ -204,7 +201,5 @@ public class HttpClientPluginConfiguration {
         public SoulPlugin nettyClientResponsePlugin() {
             return new NettyClientResponsePlugin();
         }
-
     }
-
 }
