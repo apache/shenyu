@@ -19,6 +19,9 @@ package org.dromara.soul.plugin.ratelimiter.algorithm;
 
 import org.dromara.soul.spi.Join;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * See https://stripe.com/blog/rate-limiters and
  * https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L11-L34
@@ -28,7 +31,9 @@ import org.dromara.soul.spi.Join;
  */
 @Join
 public class ConcurrentRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm {
-    
+
+    public static final String NAME = "concurrent";
+
     @Override
     protected String getScriptName() {
         return "concurrent_request_rate_limiter.lua";
@@ -37,5 +42,12 @@ public class ConcurrentRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm
     @Override
     protected String getKeyName() {
         return "concurrent_request_rate_limiter";
+    }
+
+    @Override
+    public List<String> getKeys(final String id) {
+        String prefix = getKeyName() + ".{";
+        String tokenKey = prefix + "}.tokens";
+        return Arrays.asList(tokenKey, id);
     }
 }
