@@ -22,6 +22,7 @@ import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.RateLimiterHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.utils.GsonUtils;
+import org.dromara.soul.common.utils.UUIDUtils;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.result.SoulResultEnum;
 import org.dromara.soul.plugin.api.result.SoulResultWrap;
@@ -34,8 +35,6 @@ import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
-import java.util.UUID;
 
 /**
  * RateLimiter Plugin.
@@ -90,7 +89,7 @@ public class RateLimiterPlugin extends AbstractSoulPlugin {
     private String getLimiterId(final ServerWebExchange exchange, final RuleData rule, final RateLimiterHandle limiterHandle) {
         String id;
         if (ConcurrentRateLimiterAlgorithm.NAME.equals(limiterHandle.getAlgorithmName())) {
-            id = UUID.randomUUID().toString();
+            id = UUIDUtils.getInstance().generateShortUuid();
         } else {
             id = rule.getId();
         }
