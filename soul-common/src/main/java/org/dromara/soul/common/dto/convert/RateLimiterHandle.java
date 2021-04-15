@@ -41,11 +41,6 @@ public class RateLimiterHandle {
      * burst capacity.
      */
     private double burstCapacity;
-    
-    /**
-     * request count.
-     */
-    private double requestCount;
 
     /**
      * loged.
