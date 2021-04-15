@@ -39,6 +39,8 @@ import java.util.Optional;
 @EqualsAndHashCode(callSuper = true)
 public final class ResourceDO extends BaseDO {
 
+    private static final long serialVersionUID = 4663697054300237200L;
+
     /**
      * resource parent key.
      */

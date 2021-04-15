@@ -36,6 +36,8 @@ import java.util.Optional;
 @NoArgsConstructor
 public class ResourceVO implements Serializable {
 
+    private static final long serialVersionUID = -3205569090998147615L;
+
     /**
      * primary key.
      */

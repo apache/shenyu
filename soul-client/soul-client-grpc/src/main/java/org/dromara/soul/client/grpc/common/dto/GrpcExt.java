@@ -31,6 +31,8 @@ import java.io.Serializable;
 @Builder
 public class GrpcExt implements Serializable {
 
+    private static final long serialVersionUID = 346053551613199101L;
+
     private String loadbalance;
 
     private Integer timeout;

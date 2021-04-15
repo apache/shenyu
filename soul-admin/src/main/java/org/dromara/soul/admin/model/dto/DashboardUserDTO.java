@@ -36,6 +36,8 @@ import java.util.List;
 @AllArgsConstructor
 public class DashboardUserDTO implements Serializable {
 
+    private static final long serialVersionUID = -7005615329360835626L;
+
     /**
      * primary key.
      */

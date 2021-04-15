@@ -29,6 +29,8 @@ import java.io.Serializable;
 @Data
 public class AuthPathDTO implements Serializable {
 
+    private static final long serialVersionUID = 2134449504611715463L;
+
     private String appName;
 
     private String path;

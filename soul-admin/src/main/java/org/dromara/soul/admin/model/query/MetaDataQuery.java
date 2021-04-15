@@ -34,6 +34,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class MetaDataQuery implements Serializable {
 
+    private static final long serialVersionUID = -8342574521635216117L;
+
     /**
      * application key.
      */

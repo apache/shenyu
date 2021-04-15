@@ -68,7 +68,7 @@ public class WebClientResponsePlugin implements SoulPlugin {
             response.setStatusCode(clientResponse.statusCode());
             response.getCookies().putAll(clientResponse.cookies());
             response.getHeaders().putAll(clientResponse.headers().asHttpHeaders());
-            return response.writeWith(clientResponse.body(BodyExtractors.toDataBuffers()));
+            return response.writeWith(clientResponse.body(BodyExtractors.toDataBuffers())).doOnCancel(() -> clean(exchange));
         }));
     }
 
@@ -93,5 +93,12 @@ public class WebClientResponsePlugin implements SoulPlugin {
     @Override
     public String named() {
         return PluginEnum.RESPONSE.getName();
+    }
+    
+    private void clean(final ServerWebExchange exchange) {
+        ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
+        if (clientResponse != null) {
+            clientResponse.bodyToMono(Void.class).subscribe();
+        }
     }
 }

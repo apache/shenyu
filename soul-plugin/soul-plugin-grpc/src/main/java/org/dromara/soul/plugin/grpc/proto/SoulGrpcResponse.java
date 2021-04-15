@@ -28,6 +28,8 @@ import java.io.Serializable;
  */
 @Data
 public class SoulGrpcResponse implements Serializable {
-    
+
+    private static final long serialVersionUID = 4182753303732523014L;
+
     private String result;
 }

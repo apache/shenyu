@@ -42,6 +42,8 @@ import java.util.Optional;
 @EqualsAndHashCode(callSuper = true)
 public final class PluginDO extends BaseDO {
 
+    private static final long serialVersionUID = -3414676617520629553L;
+
     /**
      * plugin name.
      */

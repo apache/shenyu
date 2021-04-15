@@ -34,6 +34,7 @@ import org.dromara.soul.admin.mapper.SelectorMapper;
 import org.dromara.soul.admin.model.query.SelectorConditionQuery;
 import org.dromara.soul.admin.transfer.ConditionTransfer;
 import org.dromara.soul.common.concurrent.SoulThreadFactory;
+import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.ConditionData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
@@ -90,10 +91,10 @@ public class UpstreamCheckService {
     /**
      * Instantiates a new Upstream check service.
      *
-     * @param selectorMapper the selector mapper
-     * @param eventPublisher the event publisher
-     * @param pluginMapper the plugin mapper
-     * @param selectorConditionMapper the selectorCondition mapper
+     * @param selectorMapper           the selector mapper
+     * @param eventPublisher           the event publisher
+     * @param pluginMapper             the plugin mapper
+     * @param selectorConditionMapper  the selectorCondition mapper
      * @param soulRegisterCenterConfig the soul register center config
      */
     @Autowired(required = false)
@@ -105,11 +106,11 @@ public class UpstreamCheckService {
         this.pluginMapper = pluginMapper;
         this.selectorConditionMapper = selectorConditionMapper;
         Properties props = soulRegisterCenterConfig.getProps();
-        this.checked = Boolean.parseBoolean(props.getProperty("checked", "true"));
-        this.zombieCheckTimes = Integer.parseInt(props.getProperty("zombieCheckTimes", "5"));
-        this.scheduledTime = Integer.parseInt(props.getProperty("scheduledTime", "10"));
+        this.checked = Boolean.parseBoolean(props.getProperty(Constants.IS_CHECKED, Constants.DEFAULT_CHECK_VALUE));
+        this.zombieCheckTimes = Integer.parseInt(props.getProperty(Constants.ZOMBIE_CHECK_TIMES, Constants.ZOMBIE_CHECK_TIMES_VALUE));
+        this.scheduledTime = Integer.parseInt(props.getProperty(Constants.SCHEDULED_TIME, Constants.SCHEDULED_TIME_VALUE));
         this.registerType = soulRegisterCenterConfig.getRegisterType();
-        if ("http".equalsIgnoreCase(registerType)) {
+        if (Constants.DEFAULT_REGISTER_TYPE.equalsIgnoreCase(registerType)) {
             setup();
         }
     }
@@ -119,15 +120,17 @@ public class UpstreamCheckService {
      */
     public void setup() {
         if (checked) {
-            PluginDO pluginDO = pluginMapper.selectByName(PluginEnum.DIVIDE.getName());
-            if (pluginDO != null) {
-                List<SelectorDO> selectorDOList = selectorMapper.findByPluginId(pluginDO.getId());
-                for (SelectorDO selectorDO : selectorDOList) {
-                    List<DivideUpstream> divideUpstreams = GsonUtils.getInstance().fromList(selectorDO.getHandle(), DivideUpstream.class);
-                    if (CollectionUtils.isNotEmpty(divideUpstreams)) {
-                        UPSTREAM_MAP.put(selectorDO.getName(), divideUpstreams);
+            List<PluginDO> pluginDOS = pluginMapper.selectByNames(PluginEnum.getUpstreamNames());
+            if (null != pluginDOS && !pluginDOS.isEmpty()) {
+                pluginDOS.forEach(pluginDO -> {
+                    List<SelectorDO> selectorDOList = selectorMapper.findByPluginId(pluginDO.getId());
+                    for (SelectorDO selectorDO : selectorDOList) {
+                        List<DivideUpstream> divideUpstreams = GsonUtils.getInstance().fromList(selectorDO.getHandle(), DivideUpstream.class);
+                        if (CollectionUtils.isNotEmpty(divideUpstreams)) {
+                            UPSTREAM_MAP.put(selectorDO.getName(), divideUpstreams);
+                        }
                     }
-                }
+                });
             }
             new ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), SoulThreadFactory.create("scheduled-upstream-task", false))
                     .scheduleWithFixedDelay(this::scheduled, 10, scheduledTime, TimeUnit.SECONDS);
@@ -146,11 +149,11 @@ public class UpstreamCheckService {
     /**
      * Submit.
      *
-     * @param selectorName the selector name
+     * @param selectorName   the selector name
      * @param divideUpstream the divide upstream
      */
     public void submit(final String selectorName, final DivideUpstream divideUpstream) {
-        if (!"http".equalsIgnoreCase(registerType)) {
+        if (!Constants.DEFAULT_REGISTER_TYPE.equalsIgnoreCase(registerType)) {
             return;
         }
         if (UPSTREAM_MAP.containsKey(selectorName)) {
@@ -170,7 +173,7 @@ public class UpstreamCheckService {
     /**
      * Replace.
      *
-     * @param selectorName the selector name
+     * @param selectorName    the selector name
      * @param divideUpstreams the divide upstream list
      */
     public void replace(final String selectorName, final List<DivideUpstream> divideUpstreams) {

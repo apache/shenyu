@@ -39,6 +39,8 @@ import java.util.Optional;
 @EqualsAndHashCode(callSuper = true)
 public final class RoleDO extends BaseDO {
 
+    private static final long serialVersionUID = -7319631396664845158L;
+
     /**
      * role name.
      */

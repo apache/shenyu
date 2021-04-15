@@ -37,6 +37,8 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 public class BaseDO implements Serializable {
 
+    private static final long serialVersionUID = 2174741380632669212L;
+
     /**
      * primary key.
      */

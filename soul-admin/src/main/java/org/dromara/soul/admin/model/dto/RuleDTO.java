@@ -37,6 +37,8 @@ import java.util.List;
 @AllArgsConstructor
 public final class RuleDTO implements Serializable {
 
+    private static final long serialVersionUID = 995629439944393704L;
+
     /**
      * primary key.
      */

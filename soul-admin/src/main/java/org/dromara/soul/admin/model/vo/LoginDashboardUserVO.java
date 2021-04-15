@@ -35,6 +35,8 @@ import java.util.Optional;
 @EqualsAndHashCode(callSuper = true)
 public class LoginDashboardUserVO extends DashboardUserVO {
 
+    private static final long serialVersionUID = -411996250594776944L;
+
     /**
      * token.
      */

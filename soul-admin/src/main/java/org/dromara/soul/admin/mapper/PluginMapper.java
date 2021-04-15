@@ -48,6 +48,14 @@ public interface PluginMapper {
     PluginDO selectByName(String name);
 
     /**
+     * Select by names plugin do.
+     *
+     * @param names the names
+     * @return the plugins do
+     */
+    List<PluginDO> selectByNames(List<String> names);
+
+    /**
      * select plugin by query.
      *
      * @param pluginQuery {@linkplain PluginQuery}

@@ -55,6 +55,7 @@ public class SoulNettyWebServerFactory {
                             .runOn(LoopResources.create("soul-netty", 1, LoopResources.DEFAULT_IO_WORKER_COUNT, true), false)
                             .selectorOption(ChannelOption.SO_REUSEADDR, true)
                             .selectorOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                            // TODO this option will decrease throughout, maybe configured by spring boot is better.
                             .option(ChannelOption.TCP_NODELAY, true)
                             .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT));
         }

@@ -33,6 +33,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class EnumVO implements Serializable {
 
+    private static final long serialVersionUID = 213412846786447233L;
+
     /**
      * enum code.
      */

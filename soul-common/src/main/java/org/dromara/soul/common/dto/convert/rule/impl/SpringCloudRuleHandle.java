@@ -35,6 +35,8 @@ import org.dromara.soul.common.dto.convert.rule.RuleHandle;
 @NoArgsConstructor
 public class SpringCloudRuleHandle implements RuleHandle {
 
+    private static final long serialVersionUID = 269429745060607954L;
+
     /**
      * this remote uri path.
      */

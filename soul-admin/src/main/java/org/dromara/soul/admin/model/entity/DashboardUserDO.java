@@ -41,6 +41,8 @@ import java.util.Optional;
 @EqualsAndHashCode(callSuper = true)
 public final class DashboardUserDO extends BaseDO {
 
+    private static final long serialVersionUID = 3464935043890680423L;
+
     /**
      * user name.
      */

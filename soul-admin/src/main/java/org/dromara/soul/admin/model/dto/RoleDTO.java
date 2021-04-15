@@ -36,6 +36,8 @@ import java.util.List;
 @AllArgsConstructor
 public class RoleDTO implements Serializable {
 
+    private static final long serialVersionUID = -3017693566893175737L;
+
     /**
      * primary key.
      */

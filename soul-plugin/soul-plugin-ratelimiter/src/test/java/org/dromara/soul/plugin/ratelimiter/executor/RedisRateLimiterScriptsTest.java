@@ -92,13 +92,13 @@ public class RedisRateLimiterScriptsTest {
     public void concurrentLuaTest() {
         RateLimiterAlgorithm<?> rateLimiterAlgorithm = RateLimiterAlgorithmFactory.newInstance("concurrent");
         RedisScript<?> script = rateLimiterAlgorithm.getScript();
-        List<String> keys = Stream.of("test-concurrent").collect(Collectors.toList());
+        List<String> keys = Stream.of("test-concurrent", "cd849432").collect(Collectors.toList());
         List<String> scriptArgs = Arrays.asList(10 + "", 100 + "", Instant.now().getEpochSecond() + "", "1");
         Flux<List<Long>> resultFlux = Singleton.INST.get(ReactiveRedisTemplate.class).execute(script, keys, scriptArgs);
         StepVerifier
                 .create(resultFlux)
                 .expectSubscription()
-                .expectNext(Arrays.asList(1L, 99L))
+                .expectNext(Arrays.asList(1L, 1L))
                 .expectComplete()
                 .verify();
     }

@@ -37,6 +37,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class RuleConditionVO implements Serializable {
 
+    private static final long serialVersionUID = -951311268188074239L;
+
     /**
      * primary key.
      */

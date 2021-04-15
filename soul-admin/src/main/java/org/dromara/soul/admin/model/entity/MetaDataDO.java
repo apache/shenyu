@@ -35,6 +35,8 @@ import java.io.Serializable;
 @EqualsAndHashCode(callSuper = true)
 public final class MetaDataDO extends BaseDO implements Serializable {
 
+    private static final long serialVersionUID = 3566656950011853160L;
+
     private String appName;
 
     private String path;

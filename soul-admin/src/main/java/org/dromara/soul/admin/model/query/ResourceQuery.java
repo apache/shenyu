@@ -34,6 +34,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class ResourceQuery implements Serializable {
 
+    private static final long serialVersionUID = 3454409443837608172L;
+
     /**
      * resource title.
      */

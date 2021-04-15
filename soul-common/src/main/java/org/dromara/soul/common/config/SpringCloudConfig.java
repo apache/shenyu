@@ -29,6 +29,8 @@ import java.io.Serializable;
 @Data
 public class SpringCloudConfig implements Serializable {
 
+    private static final long serialVersionUID = -5750232000945431295L;
+
     private String serviceUrl;
 
     private Integer leaseRenewalIntervalInSeconds;

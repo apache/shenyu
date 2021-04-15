@@ -35,6 +35,8 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class AuthPathData implements Serializable {
 
+    private static final long serialVersionUID = 758219804964342621L;
+
     private String appName;
 
     private String path;
