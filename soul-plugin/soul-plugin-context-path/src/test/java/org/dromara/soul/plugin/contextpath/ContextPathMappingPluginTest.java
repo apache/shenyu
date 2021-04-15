@@ -90,19 +90,6 @@ public final class ContextPathMappingPluginTest {
     }
 
     /**
-     * The execute path illegal test.
-     */
-    @Test
-    public void executePathIllegalTest() {
-        soulContext.setPath("/http/context/order/findById");
-        ContextMappingHandle contextMappingHandle = new ContextMappingHandle();
-        contextMappingHandle.setContextPath("/http/zl/context");
-        when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(contextMappingHandle));
-        contextPathMappingPlugin.doExecute(exchange, chain, selectorData, ruleData);
-        Assert.assertNull(soulContext.getRealUrl());
-    }
-
-    /**
      * The execute real path test.
      */
     @Test
