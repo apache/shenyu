@@ -36,8 +36,6 @@ import java.util.List;
 @Join
 public class ConcurrentRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm {
 
-    public static final String NAME = "concurrent";
-
     @Override
     protected String getScriptName() {
         return "concurrent_request_rate_limiter.lua";
