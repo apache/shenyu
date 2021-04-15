@@ -22,16 +22,12 @@ import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.RateLimiterHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.utils.GsonUtils;
-import org.dromara.soul.common.utils.UUIDUtils;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.result.SoulResultEnum;
 import org.dromara.soul.plugin.api.result.SoulResultWrap;
 import org.dromara.soul.plugin.api.utils.WebFluxResultUtils;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
-import org.dromara.soul.plugin.base.utils.Singleton;
-import org.dromara.soul.plugin.ratelimiter.algorithm.ConcurrentRateLimiterAlgorithm;
 import org.dromara.soul.plugin.ratelimiter.executor.RedisRateLimiter;
-import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -68,8 +64,7 @@ public class RateLimiterPlugin extends AbstractSoulPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
         String handle = rule.getHandle();
         RateLimiterHandle limiterHandle = GsonUtils.getInstance().fromJson(handle, RateLimiterHandle.class);
-        String id = getLimiterId(exchange, rule, limiterHandle);
-        return redisRateLimiter.isAllowed(id, limiterHandle)
+        return redisRateLimiter.isAllowed(rule.getId(), limiterHandle)
                 .flatMap(response -> {
                     if (!response.isAllowed()) {
                         exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
@@ -77,22 +72,6 @@ public class RateLimiterPlugin extends AbstractSoulPlugin {
                         return WebFluxResultUtils.result(exchange, error);
                     }
                     return chain.execute(exchange);
-                }).doFinally(signalType -> {
-                    if (ConcurrentRateLimiterAlgorithm.NAME.equals(limiterHandle.getAlgorithmName())) {
-                        String tokenKey = "concurrent_request_rate_limiter.{}.tokens";
-                        Mono<Long> mono = Singleton.INST.get(ReactiveRedisTemplate.class).opsForZSet().remove(tokenKey, id);
-                        mono.subscribe();
-                    }
                 });
-    }
-
-    private String getLimiterId(final ServerWebExchange exchange, final RuleData rule, final RateLimiterHandle limiterHandle) {
-        String id;
-        if (ConcurrentRateLimiterAlgorithm.NAME.equals(limiterHandle.getAlgorithmName())) {
-            id = UUIDUtils.getInstance().generateShortUuid();
-        } else {
-            id = rule.getId();
-        }
-        return id;
     }
 }

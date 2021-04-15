@@ -66,7 +66,9 @@ public class RedisRateLimiter {
                     boolean allowed = results.get(0) == 1L;
                     Long tokensLeft = results.get(1);
                     return new RateLimiterResponse(allowed, tokensLeft);
-                }).doOnError(throwable -> log.error("Error determining if user allowed from redis:{}", throwable.getMessage()));
+                })
+                .doOnError(throwable -> log.error("Error determining if user allowed from redis:{}", throwable.getMessage()))
+                .doFinally(signalType -> rateLimiterAlgorithm.callback(script, keys, scriptArgs));
     }
     
     private String doubleToString(final double param) {

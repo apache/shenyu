@@ -17,7 +17,11 @@
 
 package org.dromara.soul.plugin.ratelimiter.algorithm;
 
+import org.dromara.soul.common.utils.UUIDUtils;
+import org.dromara.soul.plugin.base.utils.Singleton;
 import org.dromara.soul.spi.Join;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
+import org.springframework.data.redis.core.script.RedisScript;
 
 import java.util.Arrays;
 import java.util.List;
@@ -46,8 +50,18 @@ public class ConcurrentRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm
 
     @Override
     public List<String> getKeys(final String id) {
-        String prefix = getKeyName() + ".{";
-        String tokenKey = prefix + "}.tokens";
-        return Arrays.asList(tokenKey, id);
+        String tokenKey = buildTokenKey();
+        String requestKey = UUIDUtils.getInstance().generateShortUuid();
+        return Arrays.asList(tokenKey, requestKey);
+    }
+    
+    @Override
+    @SuppressWarnings("unchecked")
+    public void callback(final RedisScript<?> script, final List<String> keys, final List<String> scriptArgs) {
+        Singleton.INST.get(ReactiveRedisTemplate.class).opsForZSet().remove(buildTokenKey(), keys.get(1)).subscribe();
+    }
+    
+    private String buildTokenKey() {
+        return getKeyName() + ".{}.tokens";
     }
 }
