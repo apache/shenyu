@@ -33,6 +33,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * ContextPathMapping Plugin.
@@ -42,12 +43,18 @@ import java.util.Objects;
 @Slf4j
 public class ContextPathMappingPlugin extends AbstractSoulPlugin {
 
+    private final ConcurrentHashMap<String, ContextMappingHandle> jsonContextMappingHandleMap = new ConcurrentHashMap<>();
+
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
         final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
         final String handle = rule.getHandle();
-        final ContextMappingHandle contextMappingHandle = GsonUtils.getInstance().fromJson(handle, ContextMappingHandle.class);
+        ContextMappingHandle contextMappingHandle = jsonContextMappingHandleMap.get(handle);
+        if (null == contextMappingHandle) {
+            contextMappingHandle = GsonUtils.getInstance().fromJson(handle, ContextMappingHandle.class);
+            jsonContextMappingHandleMap.put(handle, contextMappingHandle);
+        }
         if (Objects.isNull(contextMappingHandle) || StringUtils.isBlank(contextMappingHandle.getContextPath())) {
             log.error("context path mapping rule configuration is null ：{}", rule);
             return chain.execute(exchange);
