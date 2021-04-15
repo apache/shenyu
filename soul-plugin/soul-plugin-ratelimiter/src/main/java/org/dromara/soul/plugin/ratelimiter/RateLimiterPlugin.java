@@ -35,6 +35,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 /**
  * RateLimiter Plugin.
  *
@@ -88,7 +90,7 @@ public class RateLimiterPlugin extends AbstractSoulPlugin {
     private String getLimiterId(final ServerWebExchange exchange, final RuleData rule, final RateLimiterHandle limiterHandle) {
         String id;
         if (ConcurrentRateLimiterAlgorithm.NAME.equals(limiterHandle.getAlgorithmName())) {
-            id = exchange.getRequest().getId();
+            id = UUID.randomUUID().toString();
         } else {
             id = rule.getId();
         }
