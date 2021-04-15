@@ -1,3 +1,0 @@
-# Auto Configure
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.dromara.soul.register.common.config.SoulRegisterClientConfig
