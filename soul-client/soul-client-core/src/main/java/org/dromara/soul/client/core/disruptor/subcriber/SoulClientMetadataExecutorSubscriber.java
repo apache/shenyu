@@ -57,12 +57,11 @@ public class SoulClientMetadataExecutorSubscriber implements ExecutorTypeSubscri
                 try (Socket socket = new Socket(metaDataRegisterDTO.getHost(), metaDataRegisterDTO.getPort())) {
                     break;
                 } catch (IOException e) {
-                    //Waiting for port listening.
-                }
-                try {
-                    TimeUnit.MILLISECONDS.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    try {
+                        TimeUnit.MILLISECONDS.sleep(100);
+                    } catch (InterruptedException ex) {
+                        ex.printStackTrace();
+                    }
                 }
             }
             soulClientRegisterRepository.persistInterface(metaDataRegisterDTO);
