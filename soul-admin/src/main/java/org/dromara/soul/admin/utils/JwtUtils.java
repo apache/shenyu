@@ -44,6 +44,17 @@ import java.util.Date;
 public final class JwtUtils {
 
     /**
+     * according to token to get userid.
+     *
+     * @param token token
+     * @return JwtId {@link String}
+     */
+    public static String getUserId(final String token) {
+        DecodedJWT jwt = verifierToken(token);
+        return Optional.ofNullable(jwt).map(DecodedJWT::getId).orElse("");
+    }
+
+    /**
      * according to token to get issuer.
      *
      * @param token token
@@ -73,11 +84,12 @@ public final class JwtUtils {
      * generate jwt token.
      *
      * @param userName login's userName
+     * @param userId   login's userId
      * @return token
      */
-    public static String generateToken(final String userName) {
+    public static String generateToken(final String userName, final String userId) {
         try {
-            return JWT.create().withIssuer(userName) .withIssuedAt(new Date()).sign(generateAlgorithm());
+            return JWT.create().withJWTId(userId).withIssuer(userName) .withIssuedAt(new Date()).sign(generateAlgorithm());
         } catch (IllegalArgumentException | JWTCreationException e) {
             log.error("JWTToken generate fail ", e);
         }
