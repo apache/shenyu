@@ -20,6 +20,8 @@ package org.dromara.soul.springboot.starter.plugin.httpclient;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.handler.timeout.WriteTimeoutHandler;
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.httpclient.NettyHttpClientPlugin;
 import org.dromara.soul.plugin.httpclient.WebClientPlugin;
@@ -41,6 +43,7 @@ import reactor.netty.tcp.ProxyProvider;
 
 import java.security.cert.X509Certificate;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The type Http client plugin configuration.
@@ -49,7 +52,7 @@ import java.util.Objects;
  */
 @Configuration
 public class HttpClientPluginConfiguration {
-    
+
     /**
      * Http client properties http client properties.
      *
@@ -60,7 +63,7 @@ public class HttpClientPluginConfiguration {
     public HttpClientProperties httpClientProperties() {
         return new HttpClientProperties();
     }
-    
+
     /**
      * Gateway http client http client.
      *
@@ -104,10 +107,13 @@ public class HttpClientPluginConfiguration {
                                     .to(builder::nonProxyHosts);
                         });
                     }
-                    tcpClient = tcpClient.option(ChannelOption.SO_TIMEOUT, 5000);
+                    // The write and read timeouts are serving as generic socket idle state handlers.
+                    tcpClient = tcpClient.doOnConnected(c -> {
+                        c.addHandlerLast(new WriteTimeoutHandler(properties.getWriteTimeout(), TimeUnit.MILLISECONDS));
+                        c.addHandlerLast(new ReadTimeoutHandler(properties.getReadTimeout(), TimeUnit.MILLISECONDS));
+                    });
                     return tcpClient;
                 });
-
         HttpClientProperties.Ssl ssl = properties.getSsl();
         if (ssl.getTrustedX509CertificatesForTrustManager().length > 0
                 || ssl.isUseInsecureTrustManager()) {
@@ -129,21 +135,19 @@ public class HttpClientPluginConfiguration {
                         .closeNotifyReadTimeout(ssl.getCloseNotifyReadTimeout());
             });
         }
-
         if (properties.isWiretap()) {
             httpClient = httpClient.wiretap(true);
         }
-
         return httpClient;
     }
-    
+
     /**
      * The type Web client configuration.
      */
     @Configuration
     @ConditionalOnProperty(name = "soul.httpclient.strategy", havingValue = "webClient", matchIfMissing = true)
     static class WebClientConfiguration {
-    
+
         /**
          * Web client plugin soul plugin.
          *
@@ -157,7 +161,7 @@ public class HttpClientPluginConfiguration {
                     .build();
             return new WebClientPlugin(webClient);
         }
-    
+
         /**
          * Web client response plugin soul plugin.
          *
@@ -169,14 +173,14 @@ public class HttpClientPluginConfiguration {
         }
 
     }
-    
+
     /**
      * The type Netty http client configuration.
      */
     @Configuration
     @ConditionalOnProperty(name = "soul.httpclient.strategy", havingValue = "netty")
     static class NettyHttpClientConfiguration {
-    
+
         /**
          * Netty http client plugin soul plugin.
          *
@@ -187,7 +191,7 @@ public class HttpClientPluginConfiguration {
         public SoulPlugin nettyHttpClientPlugin(final ObjectProvider<HttpClient> httpClient) {
             return new NettyHttpClientPlugin(httpClient.getIfAvailable());
         }
-    
+
         /**
          * Netty client response plugin soul plugin.
          *
@@ -197,7 +201,5 @@ public class HttpClientPluginConfiguration {
         public SoulPlugin nettyClientResponsePlugin() {
             return new NettyClientResponsePlugin();
         }
-
     }
-
 }

@@ -94,7 +94,7 @@ public class SoulGrpcClient implements Closeable {
         try {
             this.invoke(callParams).get();
         } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException("Caught exception while waiting for rpc", e);
+            throw new RuntimeException("Caught exception while waiting for rpc :{ " + e.getMessage() + "}");
         }
         return CompletableFuture.completedFuture(soulGrpcResponse);
     }

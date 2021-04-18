@@ -20,12 +20,12 @@ package org.dromara.soul.plugin.monitor.handler;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.metrics.facade.MetricsTrackerFacade;
-import org.junit.Before;
+import org.junit.AfterClass;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Test case for MonitorPluginHandler.
@@ -34,12 +34,7 @@ import static org.junit.Assert.assertFalse;
  */
 public final class MonitorPluginDataHandlerTest {
 
-    private MonitorPluginDataHandler monitorPluginDataHandler;
-
-    @Before
-    public void setup() {
-        monitorPluginDataHandler = new MonitorPluginDataHandler();
-    }
+    private MonitorPluginDataHandler monitorPluginDataHandler = new MonitorPluginDataHandler();
 
     @Test
     public void testHandlerPlugin() {
@@ -71,5 +66,10 @@ public final class MonitorPluginDataHandlerTest {
     @Test
     public void testPluginNamed() {
         assertEquals(PluginEnum.MONITOR.getName(), monitorPluginDataHandler.pluginNamed());
+    }
+    
+    @AfterClass
+    public static void close() {
+        MetricsTrackerFacade.getInstance().stop();
     }
 }

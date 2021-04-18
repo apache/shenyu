@@ -438,6 +438,41 @@ public interface Constants {
     int DEFAULT_WARMUP = 10 * 60 * 1000;
 
     /**
+     * default register type.
+     */
+    String DEFAULT_REGISTER_TYPE = "http";
+
+    /**
+     * is checked.
+     */
+    String IS_CHECKED = "checked";
+
+    /**
+     * default checked value.
+     */
+    String DEFAULT_CHECK_VALUE = "true";
+
+    /**
+     * zombie check times.
+     */
+    String ZOMBIE_CHECK_TIMES = "zombieCheckTimes";
+
+    /**
+     * default zombie check times value.
+     */
+    String ZOMBIE_CHECK_TIMES_VALUE = "5";
+
+    /**
+     * scheduled time.
+     */
+    String SCHEDULED_TIME = "scheduledTime";
+
+    /**
+     * default scheduled time value.
+     */
+    String SCHEDULED_TIME_VALUE = "10";
+
+    /**
      * String q.
      */
     default void findConstants() {

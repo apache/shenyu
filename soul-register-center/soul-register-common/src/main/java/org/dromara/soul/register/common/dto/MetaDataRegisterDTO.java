@@ -38,37 +38,39 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MetaDataRegisterDTO implements DataTypeParent, Serializable {
-    
+
+    private static final long serialVersionUID = -9179185443399391316L;
+
     private String appName;
-    
+
     private String contextPath;
-    
+
     private String path;
-    
+
     private String pathDesc;
-    
+
     private String rpcType;
-    
+
     private String serviceName;
-    
+
     private String methodName;
-    
+
     private String ruleName;
-    
+
     private String parameterTypes;
-    
+
     private String rpcExt;
-    
+
     private boolean enabled;
-    
+
     private String host;
-    
+
     private Integer port;
-    
+
     private List<String> pluginNames;
 
     private boolean registerMetaData;
-    
+
     @Override
     public DataType getType() {
         return DataType.META_DATA;

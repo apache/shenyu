@@ -17,18 +17,18 @@
 
 package org.dromara.soul.admin.service;
 
-import org.dromara.soul.admin.dto.RoleDTO;
-import org.dromara.soul.admin.entity.PermissionDO;
-import org.dromara.soul.admin.entity.RoleDO;
+import org.dromara.soul.admin.model.dto.RoleDTO;
+import org.dromara.soul.admin.model.entity.PermissionDO;
+import org.dromara.soul.admin.model.entity.RoleDO;
 import org.dromara.soul.admin.mapper.PermissionMapper;
 import org.dromara.soul.admin.mapper.ResourceMapper;
 import org.dromara.soul.admin.mapper.RoleMapper;
-import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.page.PageParameter;
-import org.dromara.soul.admin.query.RoleQuery;
+import org.dromara.soul.admin.model.page.CommonPager;
+import org.dromara.soul.admin.model.page.PageParameter;
+import org.dromara.soul.admin.model.query.RoleQuery;
 import org.dromara.soul.admin.service.impl.RoleServiceImpl;
-import org.dromara.soul.admin.vo.RoleEditVO;
-import org.dromara.soul.admin.vo.RoleVO;
+import org.dromara.soul.admin.model.vo.RoleEditVO;
+import org.dromara.soul.admin.model.vo.RoleVO;
 import org.dromara.soul.common.utils.UUIDUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;

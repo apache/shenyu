@@ -18,13 +18,21 @@
 package org.dromara.soul.metrics.prometheus.service;
 
 import io.prometheus.client.CollectorRegistry;
-import java.util.concurrent.atomic.AtomicBoolean;
+import io.prometheus.client.exporter.HTTPServer;
+import lombok.SneakyThrows;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.ReflectUtils;
 import org.dromara.soul.metrics.config.MetricsConfig;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.lang.reflect.Field;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -34,29 +42,31 @@ import static org.junit.Assert.assertTrue;
  */
 public final class PrometheusBootServiceTest {
 
-    private PrometheusBootService prometheusMetricsTrackerManager;
+    private static PrometheusBootService prometheusBootService = new PrometheusBootService();
 
     @Before
     public void init() {
-        prometheusMetricsTrackerManager = new PrometheusBootService();
         CollectorRegistry.defaultRegistry.clear();
     }
-
-    @Test
-    public void startWithNormal() {
-        MetricsConfig metricsConfig = new MetricsConfig("test", "", 10109, false, 1, null, null);
-        prometheusMetricsTrackerManager.start(metricsConfig);
-        assertTrue(prometheusMetricsTrackerManager.getRegistered().get());
-        prometheusMetricsTrackerManager.stop();
-    }
-
+    
+    @SneakyThrows
     @Test
     public void testRegistered() {
-        AtomicBoolean registered = (AtomicBoolean) ReflectUtils.getFieldValue(prometheusMetricsTrackerManager, "registered");
+        AtomicBoolean registered = (AtomicBoolean) ReflectUtils.getFieldValue(prometheusBootService, "registered");
         registered.set(true);
         String jmxConfig = GsonUtils.getInstance().toJson("whitelistObjectNames:org.apache.cassandra.metrics:type=ColumnFamily");
         MetricsConfig metricsConfig = new MetricsConfig("test", "", 10119, false, 1, jmxConfig, null);
-        prometheusMetricsTrackerManager.start(metricsConfig);
-        assertTrue(prometheusMetricsTrackerManager.getRegistered().get());
+        prometheusBootService.start(metricsConfig);
+        Field field = PrometheusBootService.class.getDeclaredField("server");
+        field.setAccessible(true);
+        HTTPServer httpServer = (HTTPServer) field.get(prometheusBootService);
+        assertNotNull(httpServer);
+        assertThat(httpServer.getPort(), is(10119));
+        assertTrue(prometheusBootService.getRegistered().get());
+    }
+    
+    @AfterClass
+    public static void close() {
+        prometheusBootService.stop();
     }
 }

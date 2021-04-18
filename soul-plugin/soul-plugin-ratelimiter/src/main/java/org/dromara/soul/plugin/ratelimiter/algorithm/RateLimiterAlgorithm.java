@@ -45,4 +45,14 @@ public interface RateLimiterAlgorithm<T> {
      * @return the keys
      */
     List<String> getKeys(String id);
+    
+    /**
+     * Callback string.
+     *
+     * @param script the script
+     * @param keys the keys
+     * @param scriptArgs the script args
+     */
+    default void callback(final RedisScript<?> script, final List<String> keys, final List<String> scriptArgs) {
+    }
 }

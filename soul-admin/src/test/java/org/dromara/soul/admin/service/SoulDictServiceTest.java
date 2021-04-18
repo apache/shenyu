@@ -18,15 +18,15 @@
 package org.dromara.soul.admin.service;
 
 import org.apache.commons.lang3.StringUtils;
-import org.dromara.soul.admin.dto.BatchCommonDTO;
-import org.dromara.soul.admin.dto.SoulDictDTO;
-import org.dromara.soul.admin.entity.SoulDictDO;
+import org.dromara.soul.admin.model.dto.BatchCommonDTO;
+import org.dromara.soul.admin.model.dto.SoulDictDTO;
+import org.dromara.soul.admin.model.entity.SoulDictDO;
 import org.dromara.soul.admin.mapper.SoulDictMapper;
-import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.page.PageParameter;
-import org.dromara.soul.admin.query.SoulDictQuery;
+import org.dromara.soul.admin.model.page.CommonPager;
+import org.dromara.soul.admin.model.page.PageParameter;
+import org.dromara.soul.admin.model.query.SoulDictQuery;
 import org.dromara.soul.admin.service.impl.SoulDictServiceImpl;
-import org.dromara.soul.admin.vo.SoulDictVO;
+import org.dromara.soul.admin.model.vo.SoulDictVO;
 import org.dromara.soul.common.utils.UUIDUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;

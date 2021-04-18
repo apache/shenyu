@@ -153,7 +153,7 @@ public class SoulNameResolver extends NameResolver implements Consumer<Object> {
         private List<SoulServiceInstance> resolveInternal() {
             final String name = SoulNameResolver.this.appName;
             SoulServiceInstanceLists soulServiceInstanceLists = ApplicationConfigCache.getInstance().get(name);
-            List<SoulServiceInstance> newInstanceList = soulServiceInstanceLists.getSoulServiceInstances();
+            List<SoulServiceInstance> newInstanceList = soulServiceInstanceLists.getCopyInstances();
             log.info("Got {} candidate servers for {}", newInstanceList.size(), name);
             if (CollectionUtils.isEmpty(newInstanceList)) {
                 log.info("No servers found for {}", name);
@@ -196,7 +196,7 @@ public class SoulNameResolver extends NameResolver implements Consumer<Object> {
         }
 
         private boolean isMetadataEquals(final Map<String, String> metadata, final Map<String, String> newMetadata) {
-            final String[] keys = {"weight"};
+            final String[] keys = {"weight", "status"};
             for (String key : keys) {
                 final String value = metadata.get(key);
                 final String newValue = newMetadata.get(key);

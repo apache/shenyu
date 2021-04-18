@@ -18,13 +18,13 @@
 package org.dromara.soul.admin.service;
 
 import com.google.common.collect.Lists;
-import org.dromara.soul.admin.entity.PluginDO;
-import org.dromara.soul.admin.entity.SelectorDO;
+import org.dromara.soul.admin.model.entity.PluginDO;
+import org.dromara.soul.admin.model.entity.SelectorDO;
 import org.dromara.soul.admin.listener.DataChangedEvent;
 import org.dromara.soul.admin.mapper.PluginMapper;
 import org.dromara.soul.admin.mapper.SelectorConditionMapper;
 import org.dromara.soul.admin.mapper.SelectorMapper;
-import org.dromara.soul.admin.query.SelectorConditionQuery;
+import org.dromara.soul.admin.model.query.SelectorConditionQuery;
 import org.dromara.soul.admin.service.impl.UpstreamCheckService;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.enums.PluginEnum;
@@ -44,6 +44,7 @@ import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
@@ -103,7 +104,7 @@ public final class UpstreamCheckServiceTest {
                 .handle("[{\"upstreamHost\":\"localhost\",\"protocol\":\"http://\",\"localhost\":\"divide-upstream-60\",\"weight\":60}]")
                 .build();
         //stubbing
-        when(pluginMapper.selectByName(anyString())).thenReturn(pluginDO);
+        when(pluginMapper.selectByNames(anyList())).thenReturn(Lists.newArrayList(pluginDO));
         when(pluginMapper.selectById(anyString())).thenReturn(pluginDO);
         when(selectorMapper.findByPluginId(anyString())).thenReturn(Lists.newArrayList(selectorDOWithUrlError, selectorDOWithUrlReachable));
         when(selectorMapper.updateSelective(any(SelectorDO.class))).thenReturn(1);

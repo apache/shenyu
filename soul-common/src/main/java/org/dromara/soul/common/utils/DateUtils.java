@@ -53,7 +53,7 @@ public class DateUtils {
     /**
      * Parse local date time local date time.
      *
-     * @param dataTime          the data time
+     * @param dataTime the data time
      * @param dateTimeFormatter the date time formatter
      * @return the local date time
      */
@@ -65,11 +65,22 @@ public class DateUtils {
      * acquireMinutesBetween.
      *
      * @param start this is start date.
-     * @param end   this is start date.
+     * @param end this is start date.
      * @return The number of days between start and end, if end is after start, returns a positive number, otherwise returns a negative number
      */
     public static long acquireMinutesBetween(final LocalDateTime start, final LocalDateTime end) {
         return start.until(end, ChronoUnit.MINUTES);
+    }
+    
+    /**
+     * Acquire millis between long.
+     *
+     * @param start the start
+     * @param end the end
+     * @return the long
+     */
+    public static long acquireMillisBetween(final LocalDateTime start, final LocalDateTime end) {
+        return start.until(end, ChronoUnit.MILLIS);
     }
     
     /**
@@ -107,7 +118,7 @@ public class DateUtils {
      * Format local date time to string.
      *
      * @param localDateTime the localDateTime
-     * @param pattern       formatter pattern
+     * @param pattern formatter pattern
      * @return the format string
      */
     public static String localDateTimeToString(final LocalDateTime localDateTime, final String pattern) {

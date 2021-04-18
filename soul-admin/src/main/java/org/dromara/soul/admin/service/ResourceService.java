@@ -17,12 +17,12 @@
 
 package org.dromara.soul.admin.service;
 
-import org.dromara.soul.admin.dto.ResourceDTO;
-import org.dromara.soul.admin.entity.ResourceDO;
-import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.query.ResourceQuery;
-import org.dromara.soul.admin.vo.PermissionMenuVO.MenuInfo;
-import org.dromara.soul.admin.vo.ResourceVO;
+import org.dromara.soul.admin.model.dto.ResourceDTO;
+import org.dromara.soul.admin.model.entity.ResourceDO;
+import org.dromara.soul.admin.model.page.CommonPager;
+import org.dromara.soul.admin.model.query.ResourceQuery;
+import org.dromara.soul.admin.model.vo.PermissionMenuVO.MenuInfo;
+import org.dromara.soul.admin.model.vo.ResourceVO;
 
 import java.util.List;
 

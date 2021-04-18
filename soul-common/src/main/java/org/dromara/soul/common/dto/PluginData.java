@@ -39,6 +39,8 @@ import java.io.Serializable;
 @Builder
 public class PluginData implements Serializable {
 
+    private static final long serialVersionUID = 2144241419448507109L;
+
     private String id;
 
     private String name;

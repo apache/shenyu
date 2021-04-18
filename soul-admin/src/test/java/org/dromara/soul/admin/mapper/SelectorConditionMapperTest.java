@@ -18,8 +18,8 @@
 package org.dromara.soul.admin.mapper;
 
 import org.dromara.soul.admin.AbstractSpringIntegrationTest;
-import org.dromara.soul.admin.entity.SelectorConditionDO;
-import org.dromara.soul.admin.query.SelectorConditionQuery;
+import org.dromara.soul.admin.model.entity.SelectorConditionDO;
+import org.dromara.soul.admin.model.query.SelectorConditionQuery;
 import org.dromara.soul.common.utils.UUIDUtils;
 import org.junit.Before;
 import org.junit.Test;

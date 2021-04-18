@@ -38,6 +38,8 @@ import java.util.List;
 @Builder
 public class AppAuthData implements Serializable {
 
+    private static final long serialVersionUID = -7060944416765128601L;
+
     private String appKey;
 
     private String appSecret;

@@ -17,10 +17,10 @@
 
 package org.dromara.soul.admin.service;
 
-import org.dromara.soul.admin.dto.PluginDTO;
-import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.query.PluginQuery;
-import org.dromara.soul.admin.vo.PluginVO;
+import org.dromara.soul.admin.model.dto.PluginDTO;
+import org.dromara.soul.admin.model.page.CommonPager;
+import org.dromara.soul.admin.model.query.PluginQuery;
+import org.dromara.soul.admin.model.vo.PluginVO;
 import org.dromara.soul.common.dto.PluginData;
 
 import java.util.List;

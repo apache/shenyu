@@ -17,8 +17,8 @@
 
 package org.dromara.soul.admin.transfer;
 
-import org.dromara.soul.admin.entity.PluginDO;
-import org.dromara.soul.admin.vo.PluginVO;
+import org.dromara.soul.admin.model.entity.PluginDO;
+import org.dromara.soul.admin.model.vo.PluginVO;
 import org.dromara.soul.common.dto.PluginData;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;

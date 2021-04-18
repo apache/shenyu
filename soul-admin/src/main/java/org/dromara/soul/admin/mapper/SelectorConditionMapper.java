@@ -18,8 +18,8 @@
 package org.dromara.soul.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
-import org.dromara.soul.admin.entity.SelectorConditionDO;
-import org.dromara.soul.admin.query.SelectorConditionQuery;
+import org.dromara.soul.admin.model.entity.SelectorConditionDO;
+import org.dromara.soul.admin.model.query.SelectorConditionQuery;
 
 import java.util.List;
 

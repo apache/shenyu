@@ -39,12 +39,11 @@ public class SoulApacheDubboClientConfiguration {
      *
      * @param soulRegisterCenterConfig soulRegisterCenterConfig
      * @param soulClientRegisterRepository the soulClientRegisterRepository
-     * @return the alibaba dubbo service bean post processor
+     * @return the apache dubbo service bean listener
      */
     @Bean
-    public ApacheDubboServiceBeanListener apacheDubboServiceBeanListener(final SoulRegisterCenterConfig soulRegisterCenterConfig,
-                                                                              final SoulClientRegisterRepository soulClientRegisterRepository) {
+    public ApacheDubboServiceBeanListener apacheDubboServiceBeanListener(final SoulRegisterCenterConfig soulRegisterCenterConfig, 
+                                                                         final SoulClientRegisterRepository soulClientRegisterRepository) {
         return new ApacheDubboServiceBeanListener(soulRegisterCenterConfig, soulClientRegisterRepository);
     }
-
 }

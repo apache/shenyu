@@ -75,7 +75,7 @@ public class EtcdClient {
         try {
             initLease();
         } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
+            log.error("initLease error.", e);
         }
     }
 
@@ -98,7 +98,10 @@ public class EtcdClient {
         try {
             response = kv.get(storeKey).get();
         } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
+            log.error("read(key:{}) error.", key, e);
+        }
+        if (response == null) {
+            return null;
         }
         log.debug(String.valueOf(response.getHeader()));
         Node info = response.getKvs().stream().map(EtcdClient::kv2NodeInfo).findFirst().orElse(null);
@@ -115,7 +118,7 @@ public class EtcdClient {
         try {
             return listKeys(path);
         } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
+            log.error("getChildren(path:{}) error.", path, e);
         }
         return null;
     }

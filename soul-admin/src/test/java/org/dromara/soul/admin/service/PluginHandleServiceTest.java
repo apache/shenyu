@@ -17,16 +17,16 @@
 
 package org.dromara.soul.admin.service;
 
-import org.dromara.soul.admin.dto.PluginHandleDTO;
-import org.dromara.soul.admin.entity.PluginHandleDO;
-import org.dromara.soul.admin.entity.SoulDictDO;
+import org.dromara.soul.admin.model.dto.PluginHandleDTO;
+import org.dromara.soul.admin.model.entity.PluginHandleDO;
+import org.dromara.soul.admin.model.entity.SoulDictDO;
 import org.dromara.soul.admin.mapper.PluginHandleMapper;
 import org.dromara.soul.admin.mapper.SoulDictMapper;
-import org.dromara.soul.admin.page.CommonPager;
-import org.dromara.soul.admin.page.PageParameter;
-import org.dromara.soul.admin.query.PluginHandleQuery;
+import org.dromara.soul.admin.model.page.CommonPager;
+import org.dromara.soul.admin.model.page.PageParameter;
+import org.dromara.soul.admin.model.query.PluginHandleQuery;
 import org.dromara.soul.admin.service.impl.PluginHandleServiceImpl;
-import org.dromara.soul.admin.vo.PluginHandleVO;
+import org.dromara.soul.admin.model.vo.PluginHandleVO;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

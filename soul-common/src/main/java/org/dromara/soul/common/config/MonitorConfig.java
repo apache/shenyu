@@ -32,6 +32,8 @@ import java.io.Serializable;
 @EqualsAndHashCode
 public class MonitorConfig implements Serializable {
 
+    private static final long serialVersionUID = -9186727374865514837L;
+
     private String metricsName;
 
     private String host;

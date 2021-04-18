@@ -19,8 +19,8 @@ package org.dromara.soul.admin.service.impl;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.dromara.soul.admin.entity.PermissionDO;
-import org.dromara.soul.admin.entity.UserRoleDO;
+import org.dromara.soul.admin.model.entity.PermissionDO;
+import org.dromara.soul.admin.model.entity.UserRoleDO;
 import org.dromara.soul.admin.mapper.DashboardUserMapper;
 import org.dromara.soul.admin.mapper.PermissionMapper;
 import org.dromara.soul.admin.mapper.ResourceMapper;
@@ -28,10 +28,10 @@ import org.dromara.soul.admin.mapper.UserRoleMapper;
 import org.dromara.soul.admin.service.PermissionService;
 import org.dromara.soul.admin.service.ResourceService;
 import org.dromara.soul.admin.utils.JwtUtils;
-import org.dromara.soul.admin.vo.PermissionMenuVO;
-import org.dromara.soul.admin.vo.PermissionMenuVO.AuthPerm;
-import org.dromara.soul.admin.vo.PermissionMenuVO.MenuInfo;
-import org.dromara.soul.admin.vo.ResourceVO;
+import org.dromara.soul.admin.model.vo.PermissionMenuVO;
+import org.dromara.soul.admin.model.vo.PermissionMenuVO.AuthPerm;
+import org.dromara.soul.admin.model.vo.PermissionMenuVO.MenuInfo;
+import org.dromara.soul.admin.model.vo.ResourceVO;
 import org.dromara.soul.common.constant.ResourceTypeConstants;
 import org.springframework.stereotype.Service;
 

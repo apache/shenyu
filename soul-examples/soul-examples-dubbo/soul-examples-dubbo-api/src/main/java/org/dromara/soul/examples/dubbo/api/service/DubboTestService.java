@@ -18,6 +18,7 @@
 package org.dromara.soul.examples.dubbo.api.service;
 
 import org.dromara.soul.examples.dubbo.api.entity.DubboTest;
+import org.dromara.soul.examples.dubbo.api.entity.ListResp;
 
 /**
  * DubboTestService.
@@ -51,4 +52,5 @@ public interface DubboTestService {
      */
     DubboTest insert(DubboTest dubboTest);
 
+    ListResp findList();
 }

@@ -32,6 +32,8 @@ import java.io.Serializable;
 @Builder
 public class SpringCloudSelectorHandle implements Serializable {
 
+    private static final long serialVersionUID = -5325946855733519631L;
+
     /**
      * this is register eureka serviceId.
      */

@@ -42,6 +42,8 @@ import java.util.List;
 @Accessors(chain = true)
 public class RuleData implements Serializable {
 
+    private static final long serialVersionUID = -7997663169659437227L;
+
     private String id;
 
     private String name;

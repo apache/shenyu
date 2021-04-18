@@ -17,7 +17,7 @@
 
 package org.dromara.soul.admin.service;
 
-import org.dromara.soul.admin.vo.PermissionMenuVO;
+import org.dromara.soul.admin.model.vo.PermissionMenuVO;
 
 import java.util.Set;
 
