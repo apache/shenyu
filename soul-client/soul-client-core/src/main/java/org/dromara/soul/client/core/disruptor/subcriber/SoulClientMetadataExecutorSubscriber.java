@@ -17,6 +17,7 @@
 
 package org.dromara.soul.client.core.disruptor.subcriber;
 
+import org.dromara.soul.client.core.shutdown.SoulClientShutdownHook;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
 import org.dromara.soul.register.common.subsriber.ExecutorTypeSubscriber;
@@ -64,6 +65,7 @@ public class SoulClientMetadataExecutorSubscriber implements ExecutorTypeSubscri
                     }
                 }
             }
+            SoulClientShutdownHook.delayOtherHooks();
             soulClientRegisterRepository.persistInterface(metaDataRegisterDTO);
         }
     }
