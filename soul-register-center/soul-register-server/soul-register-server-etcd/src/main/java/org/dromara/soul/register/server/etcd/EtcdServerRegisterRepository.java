@@ -68,7 +68,7 @@ public class EtcdServerRegisterRepository implements SoulServerRegisterRepositor
     }
 
     private void subscribeMetaData(final String rpcType) {
-        String rpcPath = RegisterPathConstants.buildURIContextPathParent(rpcType);
+        String rpcPath = RegisterPathConstants.buildMetaDataContextPathParent(rpcType);
         List<String> metadataPaths = client.getChildren(rpcPath);
         for (String metadataPath: metadataPaths) {
             String data = client.read(metadataPath);
