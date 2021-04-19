@@ -27,7 +27,6 @@ import org.dromara.soul.common.dto.convert.DivideUpstream;
 import org.dromara.soul.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
-import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
 import org.dromara.soul.plugin.api.result.SoulResultEnum;
@@ -37,6 +36,7 @@ import org.dromara.soul.plugin.api.result.SoulResultWrap;
 import org.dromara.soul.plugin.api.utils.WebFluxResultUtils;
 import org.dromara.soul.plugin.divide.balance.utils.LoadBalanceUtils;
 import org.dromara.soul.plugin.divide.cache.UpstreamCacheManager;
+import org.dromara.soul.plugin.divide.handler.DividePluginDataHandler;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -55,7 +55,7 @@ public class DividePlugin extends AbstractSoulPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
         final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
-        final DivideRuleHandle ruleHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), DivideRuleHandle.class);
+        final DivideRuleHandle ruleHandle = UpstreamCacheManager.getInstance().obtainHandle(DividePluginDataHandler.getCacheKeyName(rule));
         final List<DivideUpstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
         if (CollectionUtils.isEmpty(upstreamList)) {
             log.error("divide upstream configuration error： {}", rule.toString());

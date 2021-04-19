@@ -15,45 +15,36 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.divide.handler;
+package org.dromara.soul.plugin.contextpath.handler;
 
 import org.dromara.soul.common.dto.RuleData;
-import org.dromara.soul.common.dto.SelectorData;
-import org.dromara.soul.common.dto.convert.rule.impl.DivideRuleHandle;
+import org.dromara.soul.common.dto.convert.rule.impl.ContextMappingHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
-import org.dromara.soul.plugin.divide.cache.UpstreamCacheManager;
+import org.dromara.soul.plugin.contextpath.cache.ApplicationConfigCache;
 
 import java.util.Optional;
 
 /**
- * The type Divide plugin data handler.
+ * The type context path mapping plugin data subscriber.
+ *
+ * @author zl
  */
-public class DividePluginDataHandler implements PluginDataHandler {
-
-    @Override
-    public void handlerSelector(final SelectorData selectorData) {
-        UpstreamCacheManager.getInstance().submit(selectorData);
-    }
-
-    @Override
-    public void removeSelector(final SelectorData selectorData) {
-        UpstreamCacheManager.getInstance().removeByKey(selectorData.getId());
-    }
+public class ContextPathMappingPluginDataHandler implements PluginDataHandler {
 
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            final DivideRuleHandle divideRuleHandle = GsonUtils.getInstance().fromJson(s, DivideRuleHandle.class);
-            UpstreamCacheManager.getInstance().cachedHandle(getCacheKeyName(ruleData), divideRuleHandle);
+            final ContextMappingHandle contextMappingHandle = GsonUtils.getInstance().fromJson(s, ContextMappingHandle.class);
+            ApplicationConfigCache.getInstance().cachedHandle(getCacheKeyName(ruleData), contextMappingHandle);
         });
     }
 
     @Override
     public void removeRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            UpstreamCacheManager.getInstance().removeHandle(getCacheKeyName(ruleData));
+            ApplicationConfigCache.getInstance().removeHandle(getCacheKeyName(ruleData));
         });
     }
 
@@ -69,6 +60,6 @@ public class DividePluginDataHandler implements PluginDataHandler {
 
     @Override
     public String pluginNamed() {
-        return PluginEnum.DIVIDE.getName();
+        return PluginEnum.CONTEXTPATH_MAPPING.getName();
     }
 }
