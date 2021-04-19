@@ -24,6 +24,9 @@ import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import java.util.Optional;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.util.StringUtils;
@@ -41,17 +44,33 @@ import java.util.Date;
  **/
 @UtilityClass
 @Slf4j
+@Data
 public final class JwtUtils {
 
     /**
-     * according to token to get userid.
+     * user id.
+     */
+    private static String userId;
+
+    /**
+     * get user id.
+     *
+     * @return userId {@link String}
+     */
+    public static String getUserId() {
+        return userId;
+    }
+
+    /**
+     * according to token to set userid.
      *
      * @param token token
-     * @return JwtId {@link String}
      */
-    public static String getUserId(final String token) {
+    public static void setUserId(final String token) {
         DecodedJWT jwt = verifierToken(token);
-        return Optional.ofNullable(jwt).map(DecodedJWT::getId).orElse("");
+        if (Optional.ofNullable(jwt).isPresent()) {
+            userId = jwt.getId();
+        }
     }
 
     /**

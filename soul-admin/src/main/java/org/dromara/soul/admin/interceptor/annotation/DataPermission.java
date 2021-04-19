@@ -15,40 +15,29 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.model.query;
+package org.dromara.soul.admin.interceptor.annotation;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.dromara.soul.admin.model.page.PageParameter;
+import org.dromara.soul.common.constant.Constants;
 
-import java.io.Serializable;
-import java.util.List;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * this is selector query.
+ * data permission annotation type.
  *
- * @author jiangxiaofeng(Nicholas)
+ * @author nuo-promise
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class SelectorQuery implements Serializable {
-
-    private static final long serialVersionUID = -1019736306667647529L;
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface DataPermission {
 
     /**
-     * plugin id.
+     * record plugin name.
+     *
+     * @return plugin name
      */
-    private String pluginId;
+    String dataType() default "";
 
-    /**
-     * selector ids.
-     */
-    private List<String> filterIds;
-
-    /**
-     * page parameter.
-     */
-    private PageParameter pageParameter;
 }

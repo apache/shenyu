@@ -83,4 +83,15 @@ public final class AdminConstants {
      * The constant Plugin Resource Icon.
      */
     public static final String RESOURCE_PLUGIN_DEFAULT_ICON = "block";
+
+    /**
+     * The constant Selector Name.
+     */
+    public static final String DATA_PERMISSION_SELECTOR = "selector";
+
+    /**
+     * The constant Rule Name.
+     */
+    public static final String DATA_PERMISSION_RULE = "rule";
+
 }

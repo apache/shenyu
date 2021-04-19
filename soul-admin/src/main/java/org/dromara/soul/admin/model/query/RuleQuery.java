@@ -23,6 +23,7 @@ import lombok.NoArgsConstructor;
 import org.dromara.soul.admin.model.page.PageParameter;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * this is rule query.
@@ -40,6 +41,11 @@ public class RuleQuery implements Serializable {
      * selector id.
      */
     private String selectorId;
+
+    /**
+     * rule ids.
+     */
+    private List<String> filterIds;
 
     /**
      * page parameter.

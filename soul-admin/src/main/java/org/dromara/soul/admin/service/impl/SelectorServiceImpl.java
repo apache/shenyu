@@ -19,6 +19,7 @@ package org.dromara.soul.admin.service.impl;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.dromara.soul.admin.interceptor.annotation.DataPermission;
 import org.dromara.soul.admin.model.dto.SelectorConditionDTO;
 import org.dromara.soul.admin.model.dto.SelectorDTO;
 import org.dromara.soul.admin.model.entity.PluginDO;
@@ -41,6 +42,7 @@ import org.dromara.soul.admin.service.SelectorService;
 import org.dromara.soul.admin.transfer.ConditionTransfer;
 import org.dromara.soul.admin.model.vo.SelectorConditionVO;
 import org.dromara.soul.admin.model.vo.SelectorVO;
+import org.dromara.soul.common.constant.AdminConstants;
 import org.dromara.soul.common.dto.ConditionData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
@@ -179,7 +181,7 @@ public class SelectorServiceImpl implements SelectorService {
                     Collections.singletonList(SelectorDO.transFrom(selectorDO, pluginDO.getName(), null))));
 
             // delete rule and ruleCondition
-            final List<RuleDO> ruleDOList = ruleMapper.selectByQuery(new RuleQuery(id, null));
+            final List<RuleDO> ruleDOList = ruleMapper.selectByQuery(new RuleQuery(id, null, null));
             if (CollectionUtils.isNotEmpty(ruleDOList)) {
                 for (RuleDO ruleDO : ruleDOList) {
                     ruleMapper.delete(ruleDO.getId());
@@ -228,6 +230,7 @@ public class SelectorServiceImpl implements SelectorService {
      * @return {@linkplain CommonPager}
      */
     @Override
+    @DataPermission(dataType = AdminConstants.DATA_PERMISSION_SELECTOR)
     public CommonPager<SelectorVO> listByPage(final SelectorQuery selectorQuery) {
         return PageResultUtils.result(selectorQuery.getPageParameter(),
             () -> selectorMapper.countByQuery(selectorQuery),

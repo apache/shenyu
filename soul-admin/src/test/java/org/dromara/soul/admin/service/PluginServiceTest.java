@@ -250,7 +250,7 @@ public final class PluginServiceTest {
     private void testSelectorDelete() {
         final List<SelectorDO> selectorDOList = new ArrayList<>();
         selectorDOList.add(SelectorDO.builder().id("101").build());
-        SelectorQuery selectorQuery = new SelectorQuery("123", null);
+        SelectorQuery selectorQuery = new SelectorQuery("123", null, null);
         when(selectorMapper.selectByQuery(selectorQuery)).thenReturn(selectorDOList);
 
         for (int i = 0; i < selectorDOList.size(); i++) {
@@ -258,7 +258,7 @@ public final class PluginServiceTest {
 
             final List<RuleDO> ruleDOList = new ArrayList<>();
             ruleDOList.add(RuleDO.builder().id("202").build());
-            RuleQuery ruleQuery = new RuleQuery(selectorDO.getId(), null);
+            RuleQuery ruleQuery = new RuleQuery(selectorDO.getId(), null, null);
             when(ruleMapper.selectByQuery(ruleQuery)).thenReturn(ruleDOList);
 
             for (int j = 0; j < ruleDOList.size(); j++) {

@@ -74,7 +74,7 @@ public final class RuleControllerTest {
 
     private final PageParameter pageParameter = new PageParameter();
 
-    private final RuleQuery tRuleQuery = new RuleQuery("168", pageParameter);
+    private final RuleQuery tRuleQuery = new RuleQuery("168", null, pageParameter);
 
     private final CommonPager<RuleVO> commonPager = new CommonPager<>(new PageParameter(), Collections.singletonList(ruleVO));
 

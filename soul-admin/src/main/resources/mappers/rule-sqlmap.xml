@@ -54,9 +54,17 @@
         select
         <include refid="Base_Column_List"/>
         from rule
-        <if test="selectorId != null">
-            where selector_id = #{selectorId,jdbcType=VARCHAR}
-        </if>
+        <where>
+            <if test="selectorId != null">
+                selector_id = #{selectorId,jdbcType=VARCHAR}
+            </if>
+            <if test="filterIds != null">
+                and id in
+                <foreach item="filterId" collection="filterIds" open="(" separator="," close=")">
+                    #{filterId, jdbcType=VARCHAR}
+                </foreach>
+            </if>
+        </where>
         <if test="pageParameter != null">
             limit #{pageParameter.offset},#{pageParameter.pageSize}
         </if>
@@ -71,9 +79,18 @@
     <select id="countByQuery" parameterType="org.dromara.soul.admin.model.query.RuleQuery" resultType="java.lang.Integer">
         select count(1)
         from rule
-        <if test="selectorId != null">
-            where selector_id = #{selectorId,jdbcType=VARCHAR}
-        </if>
+        <where>
+            <if test="selectorId != null">
+                selector_id = #{selectorId,jdbcType=VARCHAR}
+            </if>
+            <if test="filterIds != null">
+                and id in
+                <foreach item="filterId" collection="filterIds" open="(" separator="," close=")">
+                    #{filterId, jdbcType=VARCHAR}
+                </foreach>
+            </if>
+        </where>
+
     </select>
 
     <select id="selectAll" resultType="org.dromara.soul.admin.model.entity.RuleDO" resultMap="BaseResultMap">

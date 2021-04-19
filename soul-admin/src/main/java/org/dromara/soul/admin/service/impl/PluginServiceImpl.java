@@ -150,9 +150,9 @@ public class PluginServiceImpl implements PluginService {
             }
             pluginMapper.delete(id);
             deletePluginDataFromResourceAndPermission(pluginDO.getName());
-            final List<SelectorDO> selectorDOList = selectorMapper.selectByQuery(new SelectorQuery(id, null));
+            final List<SelectorDO> selectorDOList = selectorMapper.selectByQuery(new SelectorQuery(id, null, null));
             selectorDOList.forEach(selectorDO -> {
-                final List<RuleDO> ruleDOS = ruleMapper.selectByQuery(new RuleQuery(selectorDO.getId(), null));
+                final List<RuleDO> ruleDOS = ruleMapper.selectByQuery(new RuleQuery(selectorDO.getId(), null, null));
                 ruleDOS.forEach(ruleDO -> {
                     ruleMapper.delete(ruleDO.getId());
                     ruleConditionMapper.deleteByQuery(new RuleConditionQuery(ruleDO.getId()));

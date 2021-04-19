@@ -56,9 +56,18 @@
         select
         <include refid="Base_Column_List"/>
         from selector
-        <if test="pluginId != null">
-            where plugin_id = #{pluginId,jdbcType=VARCHAR}
-        </if>
+        <where>
+            <if test="pluginId != null">
+                plugin_id = #{pluginId,jdbcType=VARCHAR}
+            </if>
+            <if test="filterIds != null">
+                and id in
+                <foreach item="filterId" collection="filterIds" open="(" separator="," close=")">
+                    #{filterId, jdbcType=VARCHAR}
+                </foreach>
+            </if>
+        </where>
+
         <if test="pageParameter != null">
             limit #{pageParameter.offset},#{pageParameter.pageSize}
         </if>
@@ -76,9 +85,18 @@
     <select id="countByQuery" parameterType="org.dromara.soul.admin.model.query.SelectorQuery" resultType="java.lang.Integer">
         select count(1)
         from selector
-        <if test="pluginId != null">
-            where plugin_id = #{pluginId,jdbcType=VARCHAR}
-        </if>
+        <where>
+            <if test="pluginId != null">
+                plugin_id = #{pluginId,jdbcType=VARCHAR}
+            </if>
+            <if test="filterIds != null">
+                and id in
+                <foreach item="filterId" collection="filterIds" open="(" separator="," close=")">
+                    #{filterId, jdbcType=VARCHAR}
+                </foreach>
+            </if>
+        </where>
+
     </select>
 
     <select id="selectAll" resultType="org.dromara.soul.admin.model.entity.SelectorDO" resultMap="BaseResultMap">

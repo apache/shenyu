@@ -18,6 +18,7 @@
 package org.dromara.soul.admin.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
+import org.dromara.soul.admin.interceptor.annotation.DataPermission;
 import org.dromara.soul.admin.model.dto.RuleConditionDTO;
 import org.dromara.soul.admin.model.dto.RuleDTO;
 import org.dromara.soul.admin.model.entity.PluginDO;
@@ -37,6 +38,7 @@ import org.dromara.soul.admin.service.RuleService;
 import org.dromara.soul.admin.transfer.ConditionTransfer;
 import org.dromara.soul.admin.model.vo.RuleConditionVO;
 import org.dromara.soul.admin.model.vo.RuleVO;
+import org.dromara.soul.common.constant.AdminConstants;
 import org.dromara.soul.common.dto.ConditionData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.enums.ConfigGroupEnum;
@@ -175,6 +177,7 @@ public class RuleServiceImpl implements RuleService {
      * @return {@linkplain CommonPager}
      */
     @Override
+    @DataPermission(dataType = AdminConstants.DATA_PERMISSION_RULE)
     public CommonPager<RuleVO> listByPage(final RuleQuery ruleQuery) {
         return PageResultUtils.result(ruleQuery.getPageParameter(),
             () -> ruleMapper.countByQuery(ruleQuery),

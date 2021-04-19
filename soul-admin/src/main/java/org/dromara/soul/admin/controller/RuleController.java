@@ -17,6 +17,7 @@
 
 package org.dromara.soul.admin.controller;
 
+import org.dromara.soul.admin.interceptor.annotation.DataPermission;
 import org.dromara.soul.admin.model.dto.RuleDTO;
 import org.dromara.soul.admin.model.page.CommonPager;
 import org.dromara.soul.admin.model.page.PageParameter;
@@ -64,7 +65,7 @@ public class RuleController {
      */
     @GetMapping("")
     public SoulAdminResult queryRules(final String selectorId, final Integer currentPage, final Integer pageSize) {
-        CommonPager<RuleVO> commonPager = ruleService.listByPage(new RuleQuery(selectorId, new PageParameter(currentPage, pageSize)));
+        CommonPager<RuleVO> commonPager = ruleService.listByPage(new RuleQuery(selectorId, null, new PageParameter(currentPage, pageSize)));
         return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
     }
 
