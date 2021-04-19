@@ -41,7 +41,6 @@ import java.util.List;
  */
 @Aspect
 @Component
-@Slf4j
 public class DataPermissionInterceptor {
 
     /**
