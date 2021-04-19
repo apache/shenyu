@@ -32,7 +32,6 @@ import org.dromara.soul.common.constant.AdminConstants;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -61,8 +60,18 @@ public class DataPermissionInterceptor {
     @SneakyThrows
     @Around("dataPermissionCut()")
     public Object around(final ProceedingJoinPoint point) {
-        List<String> dataPermissionList = getUserDataPermission(JwtUtils.getUserId());
+        return point.proceed(getFilterSQLData(point));
+    }
+
+    /**
+     * Organize SQL parameters with data permissions.
+     *
+     * @param point {@link ProceedingJoinPoint}
+     * @return args {@link List}
+     */
+    private Object[] getFilterSQLData(final ProceedingJoinPoint point) {
         Object[] args = point.getArgs();
+        List<String> dataPermissionList = getUserDataPermission(JwtUtils.getUserId());
         if (dataPermissionList.size() > 0) {
             DataPermission dataPermission = ((MethodSignature) point.getSignature()).getMethod().getAnnotation(DataPermission.class);
             if (dataPermission != null && args != null) {
@@ -77,7 +86,7 @@ public class DataPermissionInterceptor {
                 }
             }
         }
-        return point.proceed(args);
+        return args;
     }
 
     /**

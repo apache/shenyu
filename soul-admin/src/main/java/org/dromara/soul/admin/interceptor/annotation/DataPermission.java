@@ -17,8 +17,6 @@
 
 package org.dromara.soul.admin.interceptor.annotation;
 
-import org.dromara.soul.common.constant.Constants;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
