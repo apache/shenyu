@@ -29,6 +29,8 @@ import org.dromara.soul.plugin.api.context.SoulContext;
 import org.dromara.soul.plugin.api.result.DefaultSoulResult;
 import org.dromara.soul.plugin.api.result.SoulResult;
 import org.dromara.soul.plugin.api.utils.SpringBeanUtils;
+import org.dromara.soul.plugin.contextpath.cache.ApplicationConfigCache;
+import org.dromara.soul.plugin.contextpath.handler.ContextPathMappingPluginDataHandler;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -84,6 +86,7 @@ public final class ContextPathMappingPluginTest {
         soulContext.setPath("/http/context/order/findById");
         ContextMappingHandle contextMappingHandle = new ContextMappingHandle();
         contextMappingHandle.setContextPath("/http/context");
+        ApplicationConfigCache.getInstance().cachedHandle(ContextPathMappingPluginDataHandler.getCacheKeyName(ruleData), contextMappingHandle);
         when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(contextMappingHandle));
         contextPathMappingPlugin.doExecute(exchange, chain, selectorData, ruleData);
         Assert.assertEquals(soulContext.getRealUrl(), "/order/findById");
@@ -98,6 +101,7 @@ public final class ContextPathMappingPluginTest {
         ContextMappingHandle contextMappingHandle = new ContextMappingHandle();
         contextMappingHandle.setContextPath("/http/context");
         contextMappingHandle.setRealUrl("/findById");
+        ApplicationConfigCache.getInstance().cachedHandle(ContextPathMappingPluginDataHandler.getCacheKeyName(ruleData), contextMappingHandle);
         when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(contextMappingHandle));
         contextPathMappingPlugin.doExecute(exchange, chain, selectorData, ruleData);
         Assert.assertEquals(soulContext.getRealUrl(), "/findById");
