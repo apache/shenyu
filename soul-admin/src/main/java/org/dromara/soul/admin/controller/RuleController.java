@@ -17,15 +17,14 @@
 
 package org.dromara.soul.admin.controller;
 
-import org.dromara.soul.admin.interceptor.annotation.DataPermission;
 import org.dromara.soul.admin.model.dto.RuleDTO;
 import org.dromara.soul.admin.model.page.CommonPager;
 import org.dromara.soul.admin.model.page.PageParameter;
 import org.dromara.soul.admin.model.query.RuleQuery;
 import org.dromara.soul.admin.model.result.SoulAdminResult;
+import org.dromara.soul.admin.model.vo.RuleVO;
 import org.dromara.soul.admin.service.RuleService;
 import org.dromara.soul.admin.utils.SoulResultMessage;
-import org.dromara.soul.admin.model.vo.RuleVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
