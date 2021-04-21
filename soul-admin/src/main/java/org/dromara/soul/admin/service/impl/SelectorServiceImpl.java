@@ -20,6 +20,7 @@ package org.dromara.soul.admin.service.impl;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.interceptor.annotation.DataPermission;
+import org.dromara.soul.admin.mapper.DataPermissionMapper;
 import org.dromara.soul.admin.model.dto.SelectorConditionDTO;
 import org.dromara.soul.admin.model.dto.SelectorDTO;
 import org.dromara.soul.admin.model.entity.PluginDO;
@@ -80,6 +81,8 @@ public class SelectorServiceImpl implements SelectorService {
 
     private final PluginMapper pluginMapper;
 
+    private final DataPermissionMapper dataPermissionMapper;
+
     private final ApplicationEventPublisher eventPublisher;
 
     private final UpstreamCheckService upstreamCheckService;
@@ -91,6 +94,7 @@ public class SelectorServiceImpl implements SelectorService {
                                final RuleMapper ruleMapper,
                                final RuleConditionMapper ruleConditionMapper,
                                final ApplicationEventPublisher eventPublisher,
+                               final DataPermissionMapper dataPermissionMapper,
                                final UpstreamCheckService upstreamCheckService) {
         this.selectorMapper = selectorMapper;
         this.selectorConditionMapper = selectorConditionMapper;
@@ -98,6 +102,7 @@ public class SelectorServiceImpl implements SelectorService {
         this.ruleMapper = ruleMapper;
         this.ruleConditionMapper = ruleConditionMapper;
         this.eventPublisher = eventPublisher;
+        this.dataPermissionMapper = dataPermissionMapper;
         this.upstreamCheckService = upstreamCheckService;
     }
 
@@ -165,11 +170,12 @@ public class SelectorServiceImpl implements SelectorService {
     public int delete(final List<String> ids) {
         for (String id : ids) {
 
-            SelectorDO selectorDO = selectorMapper.selectById(id);
-            PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
+            final SelectorDO selectorDO = selectorMapper.selectById(id);
+            final PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
 
             selectorMapper.delete(id);
             selectorConditionMapper.deleteByQuery(new SelectorConditionQuery(id));
+            dataPermissionMapper.deleteByDataIdAndUserId(null, id);
 
             //if divide selector delete
             if (PluginEnum.DIVIDE.getName().equals(pluginDO.getName())) {

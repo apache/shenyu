@@ -19,6 +19,7 @@ package org.dromara.soul.admin.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.interceptor.annotation.DataPermission;
+import org.dromara.soul.admin.mapper.DataPermissionMapper;
 import org.dromara.soul.admin.model.dto.RuleConditionDTO;
 import org.dromara.soul.admin.model.dto.RuleDTO;
 import org.dromara.soul.admin.model.entity.PluginDO;
@@ -70,6 +71,8 @@ public class RuleServiceImpl implements RuleService {
 
     private final PluginMapper pluginMapper;
 
+    private final DataPermissionMapper dataPermissionMapper;
+
     private final ApplicationEventPublisher eventPublisher;
 
     @Autowired(required = false)
@@ -77,11 +80,13 @@ public class RuleServiceImpl implements RuleService {
                            final RuleConditionMapper ruleConditionMapper,
                            final SelectorMapper selectorMapper,
                            final PluginMapper pluginMapper,
+                           final DataPermissionMapper dataPermissionMapper,
                            final ApplicationEventPublisher eventPublisher) {
         this.ruleMapper = ruleMapper;
         this.ruleConditionMapper = ruleConditionMapper;
         this.selectorMapper = selectorMapper;
         this.pluginMapper = pluginMapper;
+        this.dataPermissionMapper = dataPermissionMapper;
         this.eventPublisher = eventPublisher;
     }
 
@@ -142,11 +147,13 @@ public class RuleServiceImpl implements RuleService {
     @Transactional(rollbackFor = Exception.class)
     public int delete(final List<String> ids) {
         for (String id : ids) {
-            RuleDO ruleDO = ruleMapper.selectById(id);
-            SelectorDO selectorDO = selectorMapper.selectById(ruleDO.getSelectorId());
-            PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
+            final RuleDO ruleDO = ruleMapper.selectById(id);
+            final SelectorDO selectorDO = selectorMapper.selectById(ruleDO.getSelectorId());
+            final PluginDO pluginDO = pluginMapper.selectById(selectorDO.getPluginId());
+
             ruleMapper.delete(id);
             ruleConditionMapper.deleteByQuery(new RuleConditionQuery(id));
+            dataPermissionMapper.deleteByDataIdAndUserId(null, id);
 
             // send deleted rule event
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.DELETE,

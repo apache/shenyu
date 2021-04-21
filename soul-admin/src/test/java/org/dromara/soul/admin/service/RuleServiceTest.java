@@ -18,6 +18,7 @@
 package org.dromara.soul.admin.service;
 
 import org.apache.commons.lang3.StringUtils;
+import org.dromara.soul.admin.mapper.DataPermissionMapper;
 import org.dromara.soul.admin.model.dto.RuleConditionDTO;
 import org.dromara.soul.admin.model.dto.RuleDTO;
 import org.dromara.soul.admin.model.entity.PluginDO;
@@ -84,9 +85,12 @@ public final class RuleServiceTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
+    @Mock
+    private DataPermissionMapper dataPermissionMapper;
+
     @Before
     public void setUp() {
-        ruleService = new RuleServiceImpl(ruleMapper, ruleConditionMapper, selectorMapper, pluginMapper, eventPublisher);
+        ruleService = new RuleServiceImpl(ruleMapper, ruleConditionMapper, selectorMapper, pluginMapper, dataPermissionMapper, eventPublisher);
     }
 
     @Test

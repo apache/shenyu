@@ -20,6 +20,7 @@ package org.dromara.soul.admin.service.impl;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.config.properties.SecretProperties;
+import org.dromara.soul.admin.mapper.DataPermissionMapper;
 import org.dromara.soul.admin.model.dto.DashboardUserDTO;
 import org.dromara.soul.admin.model.dto.UserRoleDTO;
 import org.dromara.soul.admin.model.entity.DashboardUserDO;
@@ -65,18 +66,16 @@ public class DashboardUserServiceImpl implements DashboardUserService {
 
     private final RoleMapper roleMapper;
 
-    private final ResourceMapper resourceMapper;
-
-    private final PermissionMapper permissionMapper;
+    private final DataPermissionMapper dataPermissionMapper;
 
     @Autowired(required = false)
     public DashboardUserServiceImpl(final DashboardUserMapper dashboardUserMapper, final UserRoleMapper userRoleMapper,
-                                    final RoleMapper roleMapper, final ResourceMapper resourceMapper, final PermissionMapper permissionMapper) {
+                                    final RoleMapper roleMapper, final ResourceMapper resourceMapper, final PermissionMapper permissionMapper,
+                                    final DataPermissionMapper dataPermissionMapper) {
         this.dashboardUserMapper = dashboardUserMapper;
         this.userRoleMapper = userRoleMapper;
         this.roleMapper = roleMapper;
-        this.resourceMapper = resourceMapper;
-        this.permissionMapper = permissionMapper;
+        this.dataPermissionMapper = dataPermissionMapper;
     }
 
     /**
@@ -120,6 +119,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
             }
             dashboardUserCount += dashboardUserMapper.delete(id);
             userRoleMapper.deleteByUserId(id);
+            dataPermissionMapper.deleteByDataIdAndUserId(id, null);
         }
         return dashboardUserCount;
     }

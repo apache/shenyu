@@ -24,14 +24,16 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.dromara.soul.admin.interceptor.annotation.DataPermission;
+import org.dromara.soul.admin.model.entity.DataPermissionDO;
 import org.dromara.soul.admin.model.query.RuleQuery;
 import org.dromara.soul.admin.model.query.SelectorQuery;
+import org.dromara.soul.admin.service.DataPermissionService;
 import org.dromara.soul.admin.utils.JwtUtils;
 import org.dromara.soul.common.constant.AdminConstants;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * data permission aop interceptor.
@@ -41,6 +43,12 @@ import java.util.List;
 @Aspect
 @Component
 public class DataPermissionInterceptor {
+
+    private final DataPermissionService dataPermissionService;
+
+    public DataPermissionInterceptor(final DataPermissionService dataPermissionService) {
+        this.dataPermissionService = dataPermissionService;
+    }
 
     /**
      * define data permission aop point cut.
@@ -69,7 +77,7 @@ public class DataPermissionInterceptor {
      */
     private Object[] getFilterSQLData(final ProceedingJoinPoint point) {
         Object[] args = point.getArgs();
-        List<String> dataPermissionList = getUserDataPermission(JwtUtils.getUserId());
+        List<String> dataPermissionList = getDataPermission(JwtUtils.getUserId());
         if (dataPermissionList.size() > 0) {
             DataPermission dataPermission = ((MethodSignature) point.getSignature()).getMethod().getAnnotation(DataPermission.class);
             if (dataPermission != null && args != null) {
@@ -93,9 +101,7 @@ public class DataPermissionInterceptor {
      * @param userId user id
      * @return true or false {@link Boolean}
      */
-    private List<String> getUserDataPermission(final String userId) {
-//        return Arrays.asList("1371700260516032512", "1371700260641861632", "1371700280225067008");
-        return new ArrayList<>();
+    private List<String> getDataPermission(final String userId) {
+        return dataPermissionService.getUserDataPermission(userId).stream().map(DataPermissionDO::getDataId).collect(Collectors.toList());
     }
-
 }
