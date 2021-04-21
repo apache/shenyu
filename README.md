@@ -65,7 +65,7 @@
   
 # Modules
 
- * soul-admin : plugins and other information configuration management background
+ * soul-admin : plugins and other configuration information management background
  
  * soul-bootstrap : with the startup project, users can refer to
  
@@ -97,7 +97,7 @@
  
 # Features
 
-   * Soul provides plugins such as current limiting, fusing, forwarding, routing monitoring and so on.
+   * Soul provides ability such as current limiting, fusing, forwarding, routing monitoring and so on by its plugins.
    
    * Support HTTP, RESTFul, WebSocket, Dubbo, GRPC, Tars and Spring Cloud Proxy.
    
@@ -113,7 +113,7 @@
  
 # Plugin
 
- Whenever a request comes in, Soul executes all open plugins through the chain of responsibility.
+ Whenever a request comes in, Soul will execute it by all enabled plugins through the chain of responsibility.
  
  As the heart of Soul, plugins are extensible and hot-pluggable.
  
@@ -131,7 +131,7 @@
   
   Selector is your first route, It is coarser grained, for example, at the module level.
   
-  Rule is your second route and what do you think your request should do,For example a method level in a module.
+  Rule is your second route and what do you think your request should do. For example a method level in a module.
   
   The selector and the rule match only once, and the match is returned. So the coarsest granularity should be sorted last.
  
@@ -139,9 +139,9 @@
    
 # Data Caching & Data Sync
  
-  All data have been cached using ConcurrentHashMap in the JVM, so it's very fast.
+  Since all data have been cached using ConcurrentHashMap in the JVM, it's very fast.
   
-  When the user is managing changes in the background, Soul dynamically updates the cache by listening to the ZooKeeper node, WebSocket push, HTTP longPull.
+  When user have changed the configuration in the background management, Soul wiil dynamically updates its cache by listening to the ZooKeeper node, WebSocket push, HTTP longPull.
   
   ![](https://yu199195.github.io/images/soul/soul-config-processor.png)
   
@@ -157,7 +157,7 @@
    
 # About
   
-   Soul has been used widely in more and more systems by many companies, and it's simple and convenient to integrate Services/APIs with the high performance and flexibility.
+   Soul has been used widely in more and more systems in many companies, and it's simple and convenient to integrate Services/APIs with the high performance and flexibility.
    
    In double eleven online shopping carnival of China, Soul clusters successfully supported a large volume of internet business.
    
