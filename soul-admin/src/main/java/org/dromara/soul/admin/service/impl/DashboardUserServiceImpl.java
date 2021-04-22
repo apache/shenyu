@@ -39,6 +39,7 @@ import org.dromara.soul.admin.model.vo.DashboardUserEditVO;
 import org.dromara.soul.admin.model.vo.DashboardUserVO;
 import org.dromara.soul.admin.model.vo.LoginDashboardUserVO;
 import org.dromara.soul.admin.model.vo.RoleVO;
+import org.dromara.soul.common.constant.AdminConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,8 +57,6 @@ import java.util.stream.Collectors;
  */
 @Service("dashboardUserService")
 public class DashboardUserServiceImpl implements DashboardUserService {
-
-    private static final String ADMIN_NAME = "admin";
 
     @Resource
     private SecretProperties secretProperties;
@@ -94,7 +93,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
             bindUserRole(dashboardUserDO.getId(), dashboardUserDTO.getRoles());
             return dashboardUserMapper.insertSelective(dashboardUserDO);
         }
-        if (!ADMIN_NAME.equals(dashboardUserDTO.getUserName())) {
+        if (!AdminConstants.ADMIN_NAME.equals(dashboardUserDTO.getUserName())) {
             userRoleMapper.deleteByUserId(dashboardUserDTO.getId());
         }
         if (CollectionUtils.isNotEmpty(dashboardUserDTO.getRoles())) {
@@ -114,7 +113,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         int dashboardUserCount = 0;
         for (String id : ids) {
             DashboardUserDO dashboardUserDO = dashboardUserMapper.selectById(id);
-            if (!ObjectUtils.isEmpty(dashboardUserDO) && ADMIN_NAME.equals(dashboardUserDO.getUserName())) {
+            if (!ObjectUtils.isEmpty(dashboardUserDO) && AdminConstants.ADMIN_NAME.equals(dashboardUserDO.getUserName())) {
                 continue;
             }
             dashboardUserCount += dashboardUserMapper.delete(id);

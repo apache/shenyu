@@ -94,4 +94,9 @@ public final class AdminConstants {
      */
     public static final String DATA_PERMISSION_RULE = "rule";
 
+    /**
+     * The constant Admin Name.
+     */
+    public static final String ADMIN_NAME = "admin";
+
 }
