@@ -38,15 +38,29 @@ public interface DataPermissionMapper {
      * @param userId user id
      * @return list of {@link DataPermissionDO}
      */
-    List<DataPermissionDO> listByUserIdAndDataType(String userId);
+    List<DataPermissionDO> listByUserId(String userId);
 
     /**
      * delete data permission by user id and data id.
-     * @param userId user id
      * @param dataId data id
+     * @param userId user id
      * @return effect rows count
      */
-    int deleteByDataIdAndUserId(String userId, String dataId);
+    int deleteByDataIdAndUserId(String dataId, String userId);
+
+    /**
+     * delete data permission by user id.
+     * @param userId user id
+     * @return int
+     */
+    int deleteByUserId(String userId);
+
+    /**
+     * delete data permission by data id.
+     * @param dataId data id
+     * @return int
+     */
+    int deleteByDataId(String dataId);
 
     /**
      * delete by list of data ids and user id.
@@ -54,7 +68,7 @@ public interface DataPermissionMapper {
      * @param userId user id
      * @return int
      */
-    int deleteByDataIds(@Param("list") List<String> dataIdsList, @Param("userId") String userId);
+    int deleteByDataIdsAndUserId(@Param("list") List<String> dataIdsList, @Param("userId") String userId);
 
     /**
      * insert data permission.

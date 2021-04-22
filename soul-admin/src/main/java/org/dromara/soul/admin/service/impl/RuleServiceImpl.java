@@ -153,7 +153,7 @@ public class RuleServiceImpl implements RuleService {
 
             ruleMapper.delete(id);
             ruleConditionMapper.deleteByQuery(new RuleConditionQuery(id));
-            dataPermissionMapper.deleteByDataIdAndUserId(null, id);
+            dataPermissionMapper.deleteByDataId(id);
 
             // send deleted rule event
             eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.DELETE,

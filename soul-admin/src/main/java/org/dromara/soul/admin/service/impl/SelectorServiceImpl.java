@@ -175,7 +175,7 @@ public class SelectorServiceImpl implements SelectorService {
 
             selectorMapper.delete(id);
             selectorConditionMapper.deleteByQuery(new SelectorConditionQuery(id));
-            dataPermissionMapper.deleteByDataIdAndUserId(null, id);
+            dataPermissionMapper.deleteByDataId(id);
 
             //if divide selector delete
             if (PluginEnum.DIVIDE.getName().equals(pluginDO.getName())) {
@@ -192,7 +192,7 @@ public class SelectorServiceImpl implements SelectorService {
                 for (RuleDO ruleDO : ruleDOList) {
                     ruleMapper.delete(ruleDO.getId());
                     ruleConditionMapper.deleteByQuery(new RuleConditionQuery(ruleDO.getId()));
-                    //发送删除选择器事件
+                    // send delete selectors event
                     eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.RULE, DataEventTypeEnum.DELETE,
                             Collections.singletonList(RuleDO.transFrom(ruleDO, pluginDO.getName(), null))));
 

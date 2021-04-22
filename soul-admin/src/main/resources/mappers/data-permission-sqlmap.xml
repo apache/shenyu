@@ -32,30 +32,29 @@
     </sql>
 
     <delete id="deleteByDataIdAndUserId">
-        delete from data_permission
-            <trim prefix="WHERE" prefixOverrides="AND">
-                <if test="dataId != null">
-                    data_id = #{dataId, jdbcType=VARCHAR}
-                </if>
-                <if test="userId != null">
-                    and user_id = #{userId, jdbcType=VARCHAR}
-                </if>
-            </trim>
+        delete from data_permission where data_id = #{dataId, jdbcType=VARCHAR}
+            and user_id = #{userId, jdbcType=VARCHAR}
     </delete>
 
-    <delete id="deleteByDataIds" parameterType="java.util.List">
+    <delete id="deleteByDataIdsAndUserId" parameterType="java.util.List">
         delete from data_permission where data_id in
         <foreach item="id" collection="list" open="(" separator="," close=")">
             #{id, jdbcType=VARCHAR}
         </foreach>
-        and user_id = #{userId, jdbcType=INTEGER}
+        and user_id = #{userId, jdbcType=VARCHAR}
     </delete>
 
+    <delete id="deleteByUserId">
+        delete from data_permission where user_id = #{userId, jdbcType=VARCHAR}
+    </delete>
 
-    <select id="listByUserIdAndDataType" resultMap="BaseResultMap">
+    <delete id="deleteByDataId">
+        delete from data_permission where data_id = #{dataId, jdbcType=VARCHAR}
+    </delete>
+
+    <select id="listByUserId" resultMap="BaseResultMap">
         select id, user_id, data_type, data_id from data_permission where user_id = #{userId, jdbcType=VARCHAR}
     </select>
-
 
     <insert id="insertSelective" parameterType="org.dromara.soul.admin.model.entity.DataPermissionDO">
         insert into data_permission

@@ -57,6 +57,8 @@ import java.util.stream.Collectors;
 @Service("dashboardUserService")
 public class DashboardUserServiceImpl implements DashboardUserService {
 
+    private static final String ADMIN_NAME = "admin";
+
     @Resource
     private SecretProperties secretProperties;
 
@@ -92,7 +94,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
             bindUserRole(dashboardUserDO.getId(), dashboardUserDTO.getRoles());
             return dashboardUserMapper.insertSelective(dashboardUserDO);
         }
-        if (!dashboardUserDTO.getUserName().equals("admin")) {
+        if (!ADMIN_NAME.equals(dashboardUserDTO.getUserName())) {
             userRoleMapper.deleteByUserId(dashboardUserDTO.getId());
         }
         if (CollectionUtils.isNotEmpty(dashboardUserDTO.getRoles())) {
@@ -112,14 +114,12 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         int dashboardUserCount = 0;
         for (String id : ids) {
             DashboardUserDO dashboardUserDO = dashboardUserMapper.selectById(id);
-            if (!ObjectUtils.isEmpty(dashboardUserDO)) {
-                if (dashboardUserDO.getUserName().equals("admin")) {
-                    continue;
-                }
+            if (!ObjectUtils.isEmpty(dashboardUserDO) && ADMIN_NAME.equals(dashboardUserDO.getUserName())) {
+                continue;
             }
             dashboardUserCount += dashboardUserMapper.delete(id);
             userRoleMapper.deleteByUserId(id);
-            dataPermissionMapper.deleteByDataIdAndUserId(id, null);
+            dataPermissionMapper.deleteByUserId(id);
         }
         return dashboardUserCount;
     }

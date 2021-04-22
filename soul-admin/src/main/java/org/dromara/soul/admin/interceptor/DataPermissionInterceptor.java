@@ -102,6 +102,6 @@ public class DataPermissionInterceptor {
      * @return true or false {@link Boolean}
      */
     private List<String> getDataPermission(final String userId) {
-        return dataPermissionService.getUserDataPermission(userId).stream().map(DataPermissionDO::getDataId).collect(Collectors.toList());
+        return dataPermissionService.getUserDataPermissionList(userId).stream().map(DataPermissionDO::getDataId).collect(Collectors.toList());
     }
 }

@@ -59,31 +59,11 @@ public class DataPermissionServiceImpl implements DataPermissionService {
      * @return list of {@linkplain DataPermissionDO}
      */
     @Override
-    public List<DataPermissionDO> getUserDataPermission(final String userId) {
+    public List<DataPermissionDO> getUserDataPermissionList(final String userId) {
         if (StringUtils.isBlank(userId)) {
             return null;
         }
-        return dataPermissionMapper.listByUserIdAndDataType(userId);
-    }
-
-    /**
-     * Delete by user id.
-     * @param userId user_id
-     * @return effect rows
-     */
-    @Override
-    public int deleteByUserId(final String userId) {
-        return dataPermissionMapper.deleteByDataIdAndUserId(null, userId);
-    }
-
-    /**
-     * Delete by data id.
-     * @param dataId rule id or selector id
-     * @return effect rows count
-     */
-    @Override
-    public int deleteByDataId(final String dataId) {
-        return dataPermissionMapper.deleteByDataIdAndUserId(dataId, null);
+        return dataPermissionMapper.listByUserId(userId);
     }
 
 
@@ -131,7 +111,7 @@ public class DataPermissionServiceImpl implements DataPermissionService {
                     .collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(allRuleIds)) {
                 allRuleIds.add(dataPermissionDTO.getDataId());
-                return dataPermissionMapper.deleteByDataIds(allRuleIds, dataPermissionDTO.getUserId());
+                return dataPermissionMapper.deleteByDataIdsAndUserId(allRuleIds, dataPermissionDTO.getUserId());
             }
 
             return 0;

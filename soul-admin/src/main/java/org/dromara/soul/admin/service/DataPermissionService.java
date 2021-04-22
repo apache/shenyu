@@ -36,22 +36,7 @@ public interface DataPermissionService {
      * @param userId user_id
      * @return List of {@link DataPermissionDO}
      */
-    List<DataPermissionDO> getUserDataPermission(String userId);
-
-    /**
-     * Delete rows.
-     * @param userId user_id
-     * @return effect rows int
-     */
-    int deleteByUserId(String userId);
-
-
-    /**
-     * delete rows via data id.
-     * @param dataId rule id or selector id
-     * @return effect rows count
-     */
-    int deleteByDataId(String dataId);
+    List<DataPermissionDO> getUserDataPermissionList(String userId);
 
     /**
      * Create data permission.
