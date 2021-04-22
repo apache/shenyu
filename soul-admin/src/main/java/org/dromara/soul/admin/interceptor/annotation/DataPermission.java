@@ -32,9 +32,9 @@ import java.lang.annotation.Target;
 public @interface DataPermission {
 
     /**
-     * record plugin name.
+     * record data type.
      *
-     * @return plugin name
+     * @return dataType {@link String}
      */
     String dataType() default "";
 
