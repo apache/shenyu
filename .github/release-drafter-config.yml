@@ -5,13 +5,14 @@ categories:
     labels:
       - 'type: new feature'
       - 'type: enhancement'
+      - 'enhancement'
   - title: 'Bug Fixes'
     labels:
       - 'type: bug'
       - 'bug'
   - title: 'Maintenance'
-    label: 'type: refactor'
-change-template: '- $TITLE (#$NUMBER)'
+    label: 'refactor'
+change-template: '- $TITLE #$NUMBER'
 exclude-labels:
   - 'skip-changelog'
 template: |
