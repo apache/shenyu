@@ -27,10 +27,11 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
  */
 public class SpELJudge implements OperatorJudge {
     
+    private static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
+    
     @Override
     public Boolean judge(final ConditionData conditionData, final String realData) {
-        ExpressionParser parser = new SpelExpressionParser();
-        Expression expression = parser.parseExpression(conditionData.getParamValue().replace('#' + conditionData.getParamName(), realData));
+        Expression expression = EXPRESSION_PARSER.parseExpression(conditionData.getParamValue().replace('#' + conditionData.getParamName(), realData));
         return expression.getValue(Boolean.class);
     }
 }
