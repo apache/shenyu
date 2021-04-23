@@ -473,6 +473,11 @@ public interface Constants {
     String SCHEDULED_TIME_VALUE = "10";
 
     /**
+     * default intercept enable value.
+     */
+    String DEFAULT_INTERCEPT_ENABLE_VALUE = "1";
+
+    /**
      * String q.
      */
     default void findConstants() {

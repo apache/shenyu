@@ -20,6 +20,7 @@ package org.dromara.soul.common.dto.convert;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.dto.convert.rule.BaseRuleHandle;
 
 /**
  * this is Resilience4J plugin handle.
@@ -28,7 +29,7 @@ import org.dromara.soul.common.constant.Constants;
  */
 @Data
 @EqualsAndHashCode
-public class Resilience4JHandle {
+public class Resilience4JHandle extends BaseRuleHandle {
 
     /**
      * ratelimiter timeoutDurationRate.

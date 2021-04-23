@@ -20,6 +20,7 @@ package org.dromara.soul.plugin.base;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +28,9 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.PluginData;
+import org.dromara.soul.common.dto.convert.rule.BaseRuleHandle;
 import org.dromara.soul.common.enums.SelectorTypeEnum;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.api.SoulPlugin;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.base.cache.BaseDataCache;
@@ -92,7 +95,12 @@ public abstract class AbstractSoulPlugin implements SoulPlugin {
                 return handleRuleIsNull(pluginName, exchange, chain);
             }
             ruleLog(rule, pluginName);
-            return doExecute(exchange, chain, selectorData, rule);
+            BaseRuleHandle baseRuleHandle = GsonUtils.getInstance().fromJson(Optional.ofNullable(rule.getHandle()).orElse("{}"), BaseRuleHandle.class);
+            if (baseRuleHandle.isIntercepted()) {
+                return doExecute(exchange, chain, selectorData, rule);
+            } else {
+                return chain.execute(exchange);
+            }
         }
         return chain.execute(exchange);
     }

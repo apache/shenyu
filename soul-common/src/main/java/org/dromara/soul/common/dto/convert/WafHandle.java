@@ -18,6 +18,7 @@
 package org.dromara.soul.common.dto.convert;
 
 import lombok.Data;
+import org.dromara.soul.common.dto.convert.rule.BaseRuleHandle;
 
 /**
  * this is waf plugin handle.
@@ -25,7 +26,7 @@ import lombok.Data;
  * @author xiaoyu
  */
 @Data
-public class WafHandle {
+public class WafHandle extends BaseRuleHandle {
 
     /**
      * permission.

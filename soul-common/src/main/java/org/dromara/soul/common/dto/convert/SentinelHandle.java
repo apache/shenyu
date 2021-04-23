@@ -21,6 +21,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.dto.convert.rule.BaseRuleHandle;
 
 /**
  * This is SentinelHandle.
@@ -30,7 +31,7 @@ import org.dromara.soul.common.constant.Constants;
 @Getter
 @Setter
 @EqualsAndHashCode
-public class SentinelHandle {
+public class SentinelHandle extends BaseRuleHandle {
 
     /**
      * Flow rule enable.

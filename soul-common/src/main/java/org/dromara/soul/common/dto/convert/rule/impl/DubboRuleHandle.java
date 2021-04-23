@@ -23,6 +23,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.constant.RuleHandleConstants;
+import org.dromara.soul.common.dto.convert.rule.BaseRuleHandle;
 import org.dromara.soul.common.dto.convert.rule.RuleHandle;
 
 /**
@@ -34,7 +35,7 @@ import org.dromara.soul.common.dto.convert.rule.RuleHandle;
 @Setter
 @ToString
 @NoArgsConstructor
-public class DubboRuleHandle implements RuleHandle {
+public class DubboRuleHandle extends BaseRuleHandle implements RuleHandle {
 
     private static final long serialVersionUID = 2687375375638048966L;
 

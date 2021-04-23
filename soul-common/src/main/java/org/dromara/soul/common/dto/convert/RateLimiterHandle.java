@@ -18,6 +18,7 @@
 package org.dromara.soul.common.dto.convert;
 
 import lombok.Data;
+import org.dromara.soul.common.dto.convert.rule.BaseRuleHandle;
 
 /**
  * this is rateLimiter plugin handle.
@@ -25,8 +26,8 @@ import lombok.Data;
  * @author xiaoyu(Myth)
  */
 @Data
-public class RateLimiterHandle {
-    
+public class RateLimiterHandle extends BaseRuleHandle {
+
     /**
      * algorithm name.
      */
@@ -41,7 +42,7 @@ public class RateLimiterHandle {
      * burst capacity.
      */
     private double burstCapacity;
-    
+
     /**
      * request count.
      */

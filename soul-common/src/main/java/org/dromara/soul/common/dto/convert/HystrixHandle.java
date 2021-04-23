@@ -21,6 +21,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.dromara.soul.common.constant.Constants;
+import org.dromara.soul.common.dto.convert.rule.BaseRuleHandle;
 import org.dromara.soul.common.enums.HystrixIsolationModeEnum;
 
 /**
@@ -31,7 +32,7 @@ import org.dromara.soul.common.enums.HystrixIsolationModeEnum;
 @Getter
 @Setter
 @EqualsAndHashCode
-public class HystrixHandle {
+public class HystrixHandle extends BaseRuleHandle {
 
     /**
      * hystrix group key is required.

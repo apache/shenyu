@@ -21,6 +21,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.constant.RuleHandleConstants;
+import org.dromara.soul.common.dto.convert.rule.BaseRuleHandle;
 import org.dromara.soul.common.dto.convert.rule.RuleHandle;
 
 /**
@@ -30,7 +31,7 @@ import org.dromara.soul.common.dto.convert.rule.RuleHandle;
  */
 @Data
 @NoArgsConstructor
-public class DivideRuleHandle implements RuleHandle {
+public class DivideRuleHandle extends BaseRuleHandle implements RuleHandle {
 
     private static final long serialVersionUID = 3975134663460754084L;
 

@@ -15,42 +15,30 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.common.dto.convert.rule.impl;
+package org.dromara.soul.common.dto.convert.rule;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 import org.dromara.soul.common.constant.Constants;
-import org.dromara.soul.common.dto.convert.rule.BaseRuleHandle;
-import org.dromara.soul.common.dto.convert.rule.RuleHandle;
 
 /**
- * The type Spring cloud rule handle.
+ * this is base handle.
  *
- * @author xiaoyu(Myth)
+ * @author Naah
  */
-@ToString
-@Getter
-@Setter
-@NoArgsConstructor
-public class SpringCloudRuleHandle extends BaseRuleHandle implements RuleHandle {
-
-    private static final long serialVersionUID = 269429745060607954L;
+@Data
+public class BaseRuleHandle {
 
     /**
-     * this remote uri path.
+     * intercept enable.
      */
-    private String path;
+    private String interceptEnable = Constants.DEFAULT_INTERCEPT_ENABLE_VALUE;
 
     /**
-     * timeout is required.
+     * rule intercept status.
+     *
+     * @return boolean of intercept status
      */
-    private long timeout = Constants.TIME_OUT;
-
-    @Override
-    public RuleHandle createDefault(final String path) {
-        this.path = path;
-        return this;
+    public boolean isIntercepted() {
+        return Constants.DEFAULT_INTERCEPT_ENABLE_VALUE.equals(this.interceptEnable);
     }
 }

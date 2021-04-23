@@ -260,6 +260,8 @@ INSERT INTO `soul_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `d
 INSERT INTO `soul_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('25', 'multiRuleHandle', 'MULTI_RULE_HANDLE', 'single rule', '0', 'single rule', 0, 1, '2021-03-08 13:39:30', '2021-03-08 13:39:30');
 INSERT INTO `soul_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('26', 'multiSelectorHandle', 'MULTI_SELECTOR_HANDLE', 'multiple handle', '1', 'multiple handle', 1, 1, '2021-03-08 13:26:48', '2021-03-08 13:39:54');
 INSERT INTO `soul_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('27', 'multiSelectorHandle', 'MULTI_SELECTOR_HANDLE', 'single handle', '0', 'single handle', 0, 1, '2021-03-08 13:26:05', '2021-03-08 13:27:54');
+INSERT INTO `soul_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('28', 'interceptEnable', 'INTERCEPT_ENABLE', 'intercept', '1', 'intercept', 0, 1, '2021-03-26 17:32:22', '2021-03-26 17:37:48');
+INSERT INTO `soul_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('29', 'interceptEnable', 'INTERCEPT_ENABLE', 'pass', '0', 'pass', 1, 1, '2021-03-26 17:32:43', '2021-03-26 17:37:52');
 
 /*plugin*/
 INSERT INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('1','sign','1', '0', '2018-06-14 10:17:35', '2018-06-14 10:17:35');
@@ -291,25 +293,31 @@ INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('6','10' ,'degradeRuleGrade','degradeRuleGrade','3', 2, 3, '{"required":"1","defaultValue":"0","rule":""}', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('7','10' ,'degradeRuleCount','degradeRuleCount','1', 2, 1, '{"required":"1","defaultValue":"0","rule":""}', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('8','10' ,'degradeRuleTimeWindow','degradeRuleTimeWindow','1', 2, 4, '{"required":"1","defaultValue":"0","rule":""}', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('80','10','interceptEnable','interceptEnable', '3', 2, 0, '{"required":"1","defaultValue":"1","rule":""}', '2021-03-26 17:28:18', '2021-03-26 17:35:18');
 
 /*insert plugin_handle data for waf*/
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('9','2' ,'permission','permission','3', 2, 1, '2020-11-22 12:04:10', '2020-11-22 12:04:10');
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('10','2' ,'statusCode','statusCode','2', 2, 2, '2020-11-22 12:04:10', '2020-11-22 12:04:10');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('81','2','interceptEnable','interceptEnable', '3', 2, 0, '{"required":"1","defaultValue":"1","rule":""}', '2021-03-26 17:28:18', '2021-03-26 17:35:18');
 
 /*insert plugin_handle data for rate_limiter*/
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('11', '4' ,'replenishRate','replenishRate', 2, 2, 2, '{"required":"1","defaultValue":"10","rule":""}', '2020-11-24 00:17:10', '2020-11-24 00:17:10');
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('12', '4' ,'burstCapacity','burstCapacity', 2, 2, 3, '{"required":"1","defaultValue":"100","rule":""}', '2020-11-24 00:17:10', '2020-11-24 00:17:10');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('82','4','interceptEnable','interceptEnable', '3', 2, 0, '{"required":"1","defaultValue":"1","rule":""}', '2021-03-26 17:28:18', '2021-03-26 17:35:18');
 
 /*insert plugin_handle data for rewrite*/
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('13', '3' ,'rewriteURI','rewriteURI', 2, 2, 1, '2020-11-29 16:07:10', '2020-11-29 16:07:10');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('83','3','interceptEnable','interceptEnable', '3', 2, 0, '{"required":"1","defaultValue":"1","rule":""}', '2021-03-26 17:28:18', '2021-03-26 17:35:18');
 
 /*insert plugin_handle data for rewrite*/
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('42', '16' ,'redirectURI','redirectURI', 2, 2, 1, '2020-11-29 16:07:10', '2020-11-29 16:07:10');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('84','16','interceptEnable','interceptEnable', '3', 2, 0, '{"required":"1","defaultValue":"1","rule":""}', '2021-03-26 17:28:18', '2021-03-26 17:35:18');
 
 /*insert plugin_handle data for springCloud*/
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('14', '8' ,'path','path', 2, 2, 1, '2020-11-29 16:07:10', '2020-11-29 16:07:10');
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('15', '8' ,'timeout','timeout (ms)', 1, 2, 2, '2020-11-29 16:07:10', '2020-11-29 16:07:10');
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('16', '8' ,'serviceId','serviceId', 2, 1, 1, '2020-11-29 16:07:10', '2020-11-29 16:07:10');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('85','8','interceptEnable','interceptEnable', '3', 2, 0, '{"required":"1","defaultValue":"1","rule":""}', '2021-03-26 17:28:18', '2021-03-26 17:35:18');
 
 /*insert plugin_handle data for resilience4j*/
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('17', '12' ,'timeoutDurationRate','timeoutDurationRate (ms)', 1, 2, 1, '{"required":"1","defaultValue":"5000","rule":""}', '2020-11-28 11:08:14', '2020-11-28 11:19:12');
@@ -324,6 +332,7 @@ INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('26', '12' ,'waitIntervalFunctionInOpenState','waitIntervalInOpen', 1, 2, 2, '{"required":"1","defaultValue":"60000","rule":""}', '2020-11-28 11:29:01', '2020-11-28 11:29:01');
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('27', '12' ,'permittedNumberOfCallsInHalfOpenState','bufferSizeInHalfOpen', 1, 2, 2, '{"required":"1","defaultValue":"10","rule":""}', '2020-11-28 11:29:55', '2020-11-28 11:29:55');
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('28', '12' ,'failureRateThreshold','failureRateThreshold', 1, 2, 2, '{"required":"1","defaultValue":"50","rule":""}', '2020-11-28 11:30:40', '2020-11-28 11:30:40');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('86','12','interceptEnable','interceptEnable', '3', 2, 0, '{"required":"1","defaultValue":"1","rule":""}', '2021-03-26 17:28:18', '2021-03-26 17:35:18');
 
 /*insert plugin_handle data for plugin*/
 INSERT INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`) VALUES ('30', '4', 'mode', 'mode', 3, 3, 1, NULL, '2020-12-25 00:00:00', '2020-12-25 00:00:00');
@@ -338,6 +347,8 @@ INSERT INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `ty
 INSERT INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`) VALUES ('39', '7', 'host', 'host', 2, 3, 2, NULL, '2020-12-25 00:00:00', '2020-12-25 00:00:00');
 INSERT INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`) VALUES ('40', '7', 'port', 'port', 2, 3, 3, '{"rule":"/^[0-9]*$/"}', '2020-12-25 00:00:00', '2020-12-25 00:00:00');
 INSERT INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`) VALUES ('41', '7', 'async', 'async', 2, 3, 4, NULL, '2020-12-25 00:00:00', '2020-12-25 00:00:00');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('87','7','interceptEnable','interceptEnable', '3', 2, 0, '{"required":"1","defaultValue":"1","rule":""}', '2021-03-26 17:28:18', '2021-03-26 17:35:18');
+
 /*insert plugin_handle data for plugin rate_limiter*/
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('43','4' ,'algorithmName','algorithmName','3', 2, 1, '{"required":"1","defaultValue":"slidingWindow","rule":""}', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 
@@ -348,6 +359,7 @@ INSERT INTO soul_dict (`id`, `type`, `dict_code`, `dict_name`, `dict_value`, `de
 
 /*insert plugin_handle data for context path*/
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('29', '14', 'contextPath', 'contextPath', 2, 2, 0, '2020-12-25 16:13:09', '2020-12-25 16:13:09');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('88','14','interceptEnable','interceptEnable', '3', 2, 0, '{"required":"1","defaultValue":"1","rule":""}', '2021-03-26 17:28:18', '2021-03-26 17:35:18');
 
 /*insert plugin_handle data for divide*/
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('44', '5', 'upstreamHost', 'host', 2, 1, 0, null, '2021-03-06 21:23:41', '2021-03-09 10:32:51');
@@ -362,6 +374,7 @@ INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('53', '5', 'timeout', 'timeout', 1, 2, 2, '{"defaultValue":"3000","rule":""}', '2021-03-07 21:13:50', '2021-03-09 10:32:51');
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('54', '5', 'multiSelectorHandle', 'multiSelectorHandle', 3, 3, 0, null, '2021-03-08 13:18:44', '2021-03-09 10:32:51');
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('55', '5', 'multiRuleHandle', 'multiRuleHandle', 3, 3, 1, null, '2021-03-08 13:37:12', '2021-03-09 10:32:51');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('89','5','interceptEnable','interceptEnable', '3', 2, 0, '{"required":"1","defaultValue":"1","rule":""}', '2021-03-26 17:28:18', '2021-03-26 17:35:18');
 
 /*insert plugin_handle data for tars*/
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('56', '13', 'upstreamHost', 'host', 2, 1, 0, null, '2021-03-06 21:23:41', '2021-03-09 10:32:51');
@@ -376,6 +389,7 @@ INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('65', '13', 'timeout', 'timeout', 1, 2, 2, '{"defaultValue":"3000","rule":""}', '2021-03-07 21:13:50', '2021-03-09 10:32:51');
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('66', '13', 'multiSelectorHandle', 'multiSelectorHandle', 3, 3, 0, null, '2021-03-08 13:18:44', '2021-03-09 10:32:51');
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('67', '13', 'multiRuleHandle', 'multiRuleHandle', 3, 3, 1, null, '2021-03-08 13:37:12', '2021-03-09 10:32:51');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('90','13','interceptEnable','interceptEnable', '3', 2, 0, '{"required":"1","defaultValue":"1","rule":""}', '2021-03-26 17:28:18', '2021-03-26 17:35:18');
 
 /*insert plugin_handle data for grpc*/
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('69', '15', 'protocol', 'protocol', 2, 1, 2, '{"defaultValue":"","rule":""}', '2021-03-06 21:25:37', '2021-03-09 10:32:51');
@@ -384,6 +398,12 @@ INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('74', '15', 'status', 'status', 3, 1, 6, '{"defaultValue":"true","rule":""}', '2021-03-06 21:29:16', '2021-03-09 10:32:51');
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('78', '15', 'multiSelectorHandle', 'multiSelectorHandle', 3, 3, 0, null, '2021-03-08 13:18:44', '2021-03-09 10:32:51');
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('79', '15', 'multiRuleHandle', 'multiRuleHandle', 3, 3, 1, null, '2021-03-08 13:37:12', '2021-03-09 10:32:51');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('91','15','interceptEnable','interceptEnable', '3', 2, 0, '{"required":"1","defaultValue":"1","rule":""}', '2021-03-26 17:28:18', '2021-03-26 17:35:18');
+
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('92','1','interceptEnable','interceptEnable', '3', 2, 0, '{"required":"1","defaultValue":"1","rule":""}', '2021-03-26 17:28:18', '2021-03-26 17:35:18');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('93','6','interceptEnable','interceptEnable', '3', 2, 0, '{"required":"1","defaultValue":"1","rule":""}', '2021-03-26 17:28:18', '2021-03-26 17:35:18');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('94','9','interceptEnable','interceptEnable', '3', 2, 0, '{"required":"1","defaultValue":"1","rule":""}', '2021-03-26 17:28:18', '2021-03-26 17:35:18');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('95','11','interceptEnable','interceptEnable', '3', 2, 0, '{"required":"1","defaultValue":"1","rule":""}', '2021-03-26 17:28:18', '2021-03-26 17:35:18');
 
 /** insert permission role for role */
 INSERT INTO `role` (`id`,`role_name`,`description`,`date_created`,`date_updated`) VALUES ('1346358560427216896', 'super', '超级管理员', '2021-01-05 01:31:10', '2021-01-08 17:00:07');

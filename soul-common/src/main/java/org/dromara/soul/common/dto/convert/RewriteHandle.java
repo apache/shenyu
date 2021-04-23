@@ -18,13 +18,14 @@
 package org.dromara.soul.common.dto.convert;
 
 import lombok.Data;
+import org.dromara.soul.common.dto.convert.rule.BaseRuleHandle;
 
 /**
  * this is rewrite plugin handle.
  * @author xiaoyu
  */
 @Data
-public class RewriteHandle {
+public class RewriteHandle extends BaseRuleHandle {
 
     /**
      * rewrite uri.

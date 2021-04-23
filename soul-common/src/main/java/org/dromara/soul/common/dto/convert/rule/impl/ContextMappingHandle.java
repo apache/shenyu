@@ -19,6 +19,7 @@ package org.dromara.soul.common.dto.convert.rule.impl;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.dromara.soul.common.dto.convert.rule.BaseRuleHandle;
 import org.dromara.soul.common.dto.convert.rule.RuleHandle;
 
 /**
@@ -28,7 +29,7 @@ import org.dromara.soul.common.dto.convert.rule.RuleHandle;
  */
 @Data
 @NoArgsConstructor
-public class ContextMappingHandle implements RuleHandle {
+public class ContextMappingHandle extends BaseRuleHandle implements RuleHandle {
 
     private static final long serialVersionUID = 4891655505357494670L;
 

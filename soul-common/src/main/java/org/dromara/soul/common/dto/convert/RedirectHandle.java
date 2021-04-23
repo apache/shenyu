@@ -18,6 +18,7 @@
 package org.dromara.soul.common.dto.convert;
 
 import lombok.Data;
+import org.dromara.soul.common.dto.convert.rule.BaseRuleHandle;
 
 /**
  * This is redirect plugin handle.
@@ -25,7 +26,7 @@ import lombok.Data;
  * @author HoldDie
  */
 @Data
-public class RedirectHandle {
+public class RedirectHandle extends BaseRuleHandle {
     /**
      * redirect url.
      */
