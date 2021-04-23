@@ -24,6 +24,8 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dromara.soul.common.utils.GsonUtils;
 import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -64,13 +66,23 @@ public class BodyParamUtils {
      * @return the parameters.
      */
     public static Pair<String[], Object[]> buildParameters(final String body, final String parameterTypes) {
-        String[] parameter = StringUtils.split(parameterTypes, ",");
-        if (parameter.length == 1 && !isBaseType(parameter[0])) {
+        List<String> paramNameList = new ArrayList<>();
+        List<String> paramTypeList = new ArrayList<>();
+
+        if (isNameMapping(parameterTypes)) {
+            Map<String, String> paramNameMap = GsonUtils.getInstance().toObjectMap(parameterTypes, String.class);
+            paramNameList.addAll(paramNameMap.keySet());
+            paramTypeList.addAll(paramNameMap.values());
+        } else {
+            paramTypeList = Arrays.asList(StringUtils.split(parameterTypes, ","));
+        }
+
+        if (paramTypeList.size() == 1 && !isBaseType(paramTypeList.get(0))) {
             return buildSingleParameter(body, parameterTypes);
         }
         Map<String, Object> paramMap = GsonUtils.getInstance().toObjectMap(body);
         List<Object> list = new LinkedList<>();
-        for (String key : paramMap.keySet()) {
+        for (String key : paramNameList) {
             Object obj = paramMap.get(key);
             if (obj instanceof JsonObject) {
                 list.add(GsonUtils.getInstance().convertToMap(obj.toString()));
@@ -80,8 +92,13 @@ public class BodyParamUtils {
                 list.add(obj);
             }
         }
+        String[] paramTypes = paramTypeList.toArray(new String[0]);
         Object[] objects = list.toArray();
-        return new ImmutablePair<>(parameter, objects);
+        return new ImmutablePair<>(paramTypes, objects);
+    }
+
+    private static boolean isNameMapping(final String parameterTypes) {
+        return parameterTypes.startsWith("{") && parameterTypes.endsWith("}");
     }
 
     /**
