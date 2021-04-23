@@ -15,27 +15,38 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin;
+package org.dromara.soul.admin.config.properties;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.ldap.LdapAutoConfiguration;
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * soul admin start.
+ * Ldap properties.
  *
- * @author xiaoyu(Myth)
- */
-@SpringBootApplication(exclude = {LdapAutoConfiguration.class})
-public class SoulAdminBootstrap {
+ * @author Naah
+ **/
+@Data
+@ConfigurationProperties(prefix = "soul.ldap")
+public class LdapProperties {
 
     /**
-     * Main entrance.
-     *
-     * @param args startup arguments
+     * default: true.
      */
-    public static void main(final String[] args) {
-        SpringApplication.run(SoulAdminBootstrap.class, args);
-    }
-}
+    private boolean enabled = true;
 
+    private String url;
+
+    private String bindDn;
+
+    private String password;
+
+    private String baseDn;
+
+    private String objectClass = "person";
+
+    private String loginField = "cn";
+
+    private Integer connectTimeout = 3000;
+
+    private Integer readTimeout = 3000;
+}

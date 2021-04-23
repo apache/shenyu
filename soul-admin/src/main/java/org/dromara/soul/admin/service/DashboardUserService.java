@@ -58,6 +58,14 @@ public interface DashboardUserService {
     DashboardUserEditVO findById(String id);
 
     /**
+     * find dashboard user by username.
+     *
+     * @param username username.
+     * @return {@linkplain DashboardUserVO}
+     */
+    DashboardUserVO findByUserName(String username);
+
+    /**
      * find dashboard user by query.
      *
      * @param userName user name
