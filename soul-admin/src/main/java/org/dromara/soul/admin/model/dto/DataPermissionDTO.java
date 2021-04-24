@@ -46,10 +46,9 @@ public class DataPermissionDTO implements Serializable {
     private String dataId;
 
     /**
-     * data type:  0:selector, 1: rule.
+     * data type: 0: selector,1 rule.
      */
     private Integer dataType;
-
 
     /**
      * weather checkbox is selected.

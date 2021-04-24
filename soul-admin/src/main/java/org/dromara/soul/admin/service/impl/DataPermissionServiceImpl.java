@@ -21,20 +21,27 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.mapper.DataPermissionMapper;
 import org.dromara.soul.admin.mapper.RuleMapper;
+import org.dromara.soul.admin.mapper.SelectorMapper;
 import org.dromara.soul.admin.model.dto.DataPermissionDTO;
 import org.dromara.soul.admin.model.entity.DataPermissionDO;
 import org.dromara.soul.admin.model.entity.RuleDO;
-import org.dromara.soul.admin.model.page.PageParameter;
-import org.dromara.soul.admin.model.query.DataPermissionQuery;
+import org.dromara.soul.admin.model.entity.SelectorDO;
+import org.dromara.soul.admin.model.page.CommonPager;
+import org.dromara.soul.admin.model.page.PageResultUtils;
 import org.dromara.soul.admin.model.query.RuleQuery;
+import org.dromara.soul.admin.model.query.SelectorQuery;
 import org.dromara.soul.admin.model.vo.DataPermissionPageVO;
 import org.dromara.soul.admin.service.DataPermissionService;
 import org.dromara.soul.common.enums.AdminDataPermissionTypeEnum;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * data permission vo.
@@ -48,13 +55,19 @@ public class DataPermissionServiceImpl implements DataPermissionService {
 
     private final RuleMapper ruleMapper;
 
-    public DataPermissionServiceImpl(final DataPermissionMapper dataPermissionMapper, final RuleMapper ruleMapper) {
+    private final SelectorMapper selectorMapper;
+
+    public DataPermissionServiceImpl(final DataPermissionMapper dataPermissionMapper,
+                                     final RuleMapper ruleMapper,
+                                     final SelectorMapper selectorMapper) {
         this.dataPermissionMapper = dataPermissionMapper;
         this.ruleMapper = ruleMapper;
+        this.selectorMapper = selectorMapper;
     }
 
     /**
      * Get all data permissions by user id.
+     *
      * @param userId user id
      * @return list of {@linkplain DataPermissionDO}
      */
@@ -69,71 +82,150 @@ public class DataPermissionServiceImpl implements DataPermissionService {
 
     /**
      * Create data permissions.
+     *
      * @param dataPermissionDTO {@linkplain DataPermissionDTO}
      * @return int
      */
     @Override
-    public int create(final DataPermissionDTO dataPermissionDTO) {
-        if (dataPermissionDTO.getDataType().equals(AdminDataPermissionTypeEnum.SELECTOR.ordinal())) {
-            List<DataPermissionDO> allRuleDo = ruleMapper.findBySelectorId(dataPermissionDTO.getDataId())
-                    .stream()
-                    .filter(Objects::nonNull)
-                    .map(ruleDO -> DataPermissionDO.buildPermissionDO(ruleDO, dataPermissionDTO.getUserId()))
-                    .collect(Collectors.toList());
+    @Transactional(rollbackFor = RuntimeException.class)
+    public int createSelector(final DataPermissionDTO dataPermissionDTO) {
+        List<DataPermissionDO> allDOList = new LinkedList<>();
 
-            if (CollectionUtils.isNotEmpty(allRuleDo)) {
-                allRuleDo.add(DataPermissionDO.buildPermissionDO(dataPermissionDTO));
+        dataPermissionDTO.setDataType(AdminDataPermissionTypeEnum.SELECTOR.ordinal());
+        allDOList.add(DataPermissionDO.buildPermissionDO(dataPermissionDTO));
 
-                allRuleDo.forEach(dataPermissionMapper::insertSelective);
+        List<DataPermissionDO> allRuleList = ruleMapper.findBySelectorId(dataPermissionDTO.getDataId())
+                .stream()
+                .filter(Objects::nonNull)
+                .map(ruleDO -> DataPermissionDO.buildCreatePermissionDO(ruleDO.getId(),
+                        dataPermissionDTO.getUserId(), AdminDataPermissionTypeEnum.RULE.ordinal()))
+                .collect(Collectors.toList());
 
-                return allRuleDo.size();
-            }
-
-            return 0;
-        } else {
-            return dataPermissionMapper.insertSelective(DataPermissionDO.buildPermissionDO(dataPermissionDTO));
+        if (CollectionUtils.isNotEmpty(allRuleList)) {
+            allDOList.addAll(allRuleList);
         }
+
+        allDOList.iterator().forEachRemaining(dataPermissionMapper::insertSelective);
+
+        return allDOList.size();
     }
 
 
     /**
-     * delete data permission.
+     * deleteSelector data permission.
+     *
      * @param dataPermissionDTO {@linkplain DataPermissionDTO}
      * @return int  effect rows
      */
     @Override
-    public int delete(final DataPermissionDTO dataPermissionDTO) {
-        if (dataPermissionDTO.getDataType().equals(AdminDataPermissionTypeEnum.SELECTOR.ordinal())) {
-            List<String> allRuleIds = ruleMapper.findBySelectorId(dataPermissionDTO.getDataId())
-                    .stream()
-                    .filter(Objects::nonNull)
-                    .map(RuleDO::getId)
-                    .collect(Collectors.toList());
-            if (CollectionUtils.isNotEmpty(allRuleIds)) {
-                allRuleIds.add(dataPermissionDTO.getDataId());
-                return dataPermissionMapper.deleteByDataIdsAndUserId(allRuleIds, dataPermissionDTO.getUserId());
-            }
+    @Transactional(rollbackFor = RuntimeException.class)
+    public int deleteSelector(final DataPermissionDTO dataPermissionDTO) {
+        List<String> allRuleIds = ruleMapper.findBySelectorId(dataPermissionDTO.getDataId())
+                .stream()
+                .filter(Objects::nonNull)
+                .map(RuleDO::getId)
+                .collect(Collectors.toList());
 
-            return 0;
-        } else {
-            return dataPermissionMapper.deleteByDataIdAndUserId(dataPermissionDTO.getDataId(), dataPermissionDTO.getUserId());
+        int count = 0;
+        if (CollectionUtils.isNotEmpty(allRuleIds)) {
+            count = dataPermissionMapper.deleteByDataIdsAndUserId(allRuleIds, dataPermissionDTO.getUserId(),
+                    AdminDataPermissionTypeEnum.RULE.ordinal());
         }
+
+        count += dataPermissionMapper.deleteByUniqueKey(dataPermissionDTO.getDataId(), dataPermissionDTO.getUserId(),
+                AdminDataPermissionTypeEnum.SELECTOR.ordinal());
+
+        return count;
     }
 
+    /**
+     * list of selectors.
+     *
+     * @param selectorQuery {@linkplain SelectorQuery}
+     * @param userId        user id
+     * @return {@linkplain CommonPager}
+     */
     @Override
-    public DataPermissionPageVO listByPage(final DataPermissionQuery dataPermissionQuery) {
-        int count = ruleMapper.countByQuery(new RuleQuery());
+    public CommonPager<DataPermissionPageVO> listSelectorsByPage(final SelectorQuery selectorQuery, final String userId) {
+        int totalCount = selectorMapper.countByQuery(selectorQuery);
 
-        PageParameter pageParameter = dataPermissionQuery.getPageParameter();
+        Supplier<Stream<SelectorDO>> selectorDOStreamSupplier = () -> selectorMapper.selectByQuery(selectorQuery).stream();
+        List<String> selectorIds = selectorDOStreamSupplier.get().map(SelectorDO::getId).collect(Collectors.toList());
 
-        List<RuleDO> ruleVOList = ruleMapper.selectByQuery(new RuleQuery(null, null, pageParameter));
+        List<String> hasDataPermissionSelectorIds = dataPermissionMapper.selectDataIds(selectorIds,
+                userId, AdminDataPermissionTypeEnum.SELECTOR.ordinal());
 
-//
-//        DataPermissionPageVO vo = PageResultUtils.result(pageParameter,
-//                () -> ruleMapper.countByQuery(new RuleQuery()),
-//                ruleMapper.selectByQuery(new RuleQuery(null, null, pageParameter)));
+        List<DataPermissionPageVO> selectorList = selectorDOStreamSupplier.get().map(selectorDO -> {
+            boolean isChecked = hasDataPermissionSelectorIds.contains(selectorDO.getId());
+            return DataPermissionPageVO.buildPageVOBySelector(selectorDO, isChecked);
+        }).collect(Collectors.toList());
 
-        return null;
+        return PageResultUtils.result(selectorQuery.getPageParameter(), () -> totalCount, () -> selectorList);
     }
 
+    /**
+     * list of rules.
+     *
+     * @param ruleQuery {@linkplain RuleQuery}
+     * @param userId    user id
+     * @return {@linkplain CommonPager}
+     */
+    @Override
+    public CommonPager<DataPermissionPageVO> listRulesByPage(final RuleQuery ruleQuery, final String userId) {
+        int totalCount = ruleMapper.countByQuery(ruleQuery);
+
+        Supplier<Stream<RuleDO>> ruleDOStreamSupplier = () -> ruleMapper.selectByQuery(ruleQuery).stream();
+        List<String> ruleIds = ruleDOStreamSupplier.get().map(RuleDO::getId).collect(Collectors.toList());
+
+        List<String> hasDataPermissionRuleIds = dataPermissionMapper.selectDataIds(ruleIds, userId,
+                AdminDataPermissionTypeEnum.RULE.ordinal());
+
+        List<DataPermissionPageVO> selectorList = ruleDOStreamSupplier.get().map(ruleDO -> {
+            boolean isChecked = hasDataPermissionRuleIds.contains(ruleDO.getId());
+            return DataPermissionPageVO.buildPageVOByRule(ruleDO, isChecked);
+        }).collect(Collectors.toList());
+
+        return PageResultUtils.result(ruleQuery.getPageParameter(), () -> totalCount, () -> selectorList);
+    }
+
+    /**
+     * create rule data permission.
+     * @param dataPermissionDTO {@linkplain DataPermissionDTO}
+     * @return int, effect rows count
+     */
+    @Override
+    @Transactional(rollbackFor = RuntimeException.class)
+    public int createRule(final DataPermissionDTO dataPermissionDTO) {
+
+        RuleDO ruleDO = ruleMapper.selectById(dataPermissionDTO.getDataId());
+        if (Objects.isNull(ruleDO)) {
+            return 0;
+        }
+
+        int count = 0;
+        DataPermissionDO selectorDataPermissionDo = dataPermissionMapper.findOneByUniqueKey(dataPermissionDTO.getDataId(),
+                dataPermissionDTO.getUserId(), AdminDataPermissionTypeEnum.SELECTOR.ordinal());
+        if (Objects.isNull(selectorDataPermissionDo)) {
+            DataPermissionDO selectorDataPermissionDO = DataPermissionDO.buildCreatePermissionDO(ruleDO.getSelectorId(),
+                    dataPermissionDTO.getUserId(), AdminDataPermissionTypeEnum.SELECTOR.ordinal());
+            count = dataPermissionMapper.insertSelective(selectorDataPermissionDO);
+        }
+
+        dataPermissionDTO.setDataType(AdminDataPermissionTypeEnum.RULE.ordinal());
+        count += dataPermissionMapper.insertSelective(DataPermissionDO.buildPermissionDO(dataPermissionDTO));
+
+        return count;
+    }
+
+    /**
+     * delete rule data permission.
+     * @param dataPermissionDTO {@linkplain DataPermissionDTO}
+     * @return effect rows count
+     */
+    @Override
+    @Transactional(rollbackFor = RuntimeException.class)
+    public int deleteRule(final DataPermissionDTO dataPermissionDTO) {
+        return dataPermissionMapper.deleteByUniqueKey(dataPermissionDTO.getDataId(), dataPermissionDTO.getUserId(),
+                AdminDataPermissionTypeEnum.RULE.ordinal());
+    }
 }

@@ -41,34 +41,40 @@ public interface DataPermissionMapper {
     List<DataPermissionDO> listByUserId(String userId);
 
     /**
-     * delete data permission by user id and data id.
+     * deleteSelector data permission by user id and data id.
      * @param dataId data id
      * @param userId user id
+     * @param dataType data type
      * @return effect rows count
      */
-    int deleteByDataIdAndUserId(String dataId, String userId);
+    int deleteByUniqueKey(@Param("dataId") String dataId,
+                          @Param("userId") String userId,
+                          @Param("dataType") Integer dataType);
 
     /**
-     * delete data permission by user id.
+     * deleteSelector data permission by user id.
      * @param userId user id
      * @return int
      */
     int deleteByUserId(String userId);
 
     /**
-     * delete data permission by data id.
+     * deleteSelector data permission by data id.
      * @param dataId data id
      * @return int
      */
     int deleteByDataId(String dataId);
 
     /**
-     * delete by list of data ids and user id.
+     * deleteSelector by list of data ids and user id.
      * @param dataIdsList data ids list
      * @param userId user id
+     * @param dataType data type
      * @return int
      */
-    int deleteByDataIdsAndUserId(@Param("list") List<String> dataIdsList, @Param("userId") String userId);
+    int deleteByDataIdsAndUserId(@Param("list") List<String> dataIdsList,
+                                 @Param("userId") String userId,
+                                 @Param("dataType") Integer dataType);
 
     /**
      * insert data permission.
@@ -76,4 +82,26 @@ public interface DataPermissionMapper {
      * @return int
      */
     int insertSelective(DataPermissionDO dataPermissionDO);
+
+    /**
+     * select data ids via list of data id and user id.
+     * @param dataIds selector or rule id
+     * @param userId user id
+     * @param dataType data type
+     * @return {@linkplain List}
+     */
+    List<String> selectDataIds(@Param("list") List<String> dataIds,
+                               @Param("userId") String userId,
+                               @Param("dataType") Integer dataType);
+
+    /**
+     * find one by unique key.
+     * @param dataId data id
+     * @param userId user id
+     * @param dataType data type
+     * @return {@linkplain DataPermissionDO}
+     */
+    DataPermissionDO findOneByUniqueKey(@Param("dataId") String dataId,
+                                        @Param("userId") String userId,
+                                        @Param("dataType") Integer dataType);
 }

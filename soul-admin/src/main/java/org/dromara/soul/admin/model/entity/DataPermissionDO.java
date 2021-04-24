@@ -22,7 +22,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.dromara.soul.admin.model.dto.DataPermissionDTO;
-import org.dromara.soul.common.enums.AdminDataPermissionTypeEnum;
 import org.dromara.soul.common.utils.UUIDUtils;
 import reactor.util.StringUtils;
 
@@ -83,18 +82,19 @@ public class DataPermissionDO extends BaseDO {
 
     /**
      * build permission do by RuleDO and user id.
-     * @param ruleDO {@linkplain RuleDO}
+     * @param dataId rule id
      * @param userId user id
+     * @param dataType data type
      * @return {@linkplain DataPermissionDO}
      */
-    public static DataPermissionDO buildPermissionDO(final RuleDO ruleDO, final String userId) {
+    public static DataPermissionDO buildCreatePermissionDO(final String dataId, final String userId, final Integer dataType) {
 
         Timestamp currentTime = new Timestamp(System.currentTimeMillis());
 
         return DataPermissionDO.builder()
                 .userId(userId)
-                .dataId(ruleDO.getId())
-                .dataType(AdminDataPermissionTypeEnum.RULE.ordinal())
+                .dataId(dataId)
+                .dataType(dataType)
                 .id(UUIDUtils.getInstance().generateShortUuid())
                 .dateCreated(currentTime)
                 .build();

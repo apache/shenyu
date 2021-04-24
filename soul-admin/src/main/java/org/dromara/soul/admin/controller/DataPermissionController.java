@@ -18,8 +18,10 @@
 package org.dromara.soul.admin.controller;
 
 import org.dromara.soul.admin.model.dto.DataPermissionDTO;
+import org.dromara.soul.admin.model.page.CommonPager;
 import org.dromara.soul.admin.model.page.PageParameter;
-import org.dromara.soul.admin.model.query.DataPermissionQuery;
+import org.dromara.soul.admin.model.query.RuleQuery;
+import org.dromara.soul.admin.model.query.SelectorQuery;
 import org.dromara.soul.admin.model.result.SoulAdminResult;
 import org.dromara.soul.admin.model.vo.DataPermissionPageVO;
 import org.dromara.soul.admin.service.DataPermissionService;
@@ -27,7 +29,6 @@ import org.dromara.soul.admin.utils.SoulResultMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -54,43 +55,90 @@ public class DataPermissionController {
     }
 
     /**
-     *  Query selector or rule list.
+     * Query paginated selectors with data permission.
      * @param currentPage current page
      * @param pageSize page size
      * @param userId user id
-     * @return SoulAdminResult
+     * @param pluginId plugin id
+     * @return {@linkplain SoulAdminResult}
      */
-    @GetMapping("")
-    public SoulAdminResult listPageDataPermissions(@RequestParam("currentPage") final Integer currentPage,
-                                                   @RequestParam("pageSize") final Integer pageSize,
-                                                   @PathVariable("userId") final String userId) {
-        DataPermissionPageVO dataPermissionPageVO = dataPermissionService.listByPage(new DataPermissionQuery(userId, new PageParameter(currentPage, pageSize)));
-        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, dataPermissionPageVO);
+    @GetMapping("/selector")
+    public SoulAdminResult listPageSelectorDataPermissions(@RequestParam("currentPage") final Integer currentPage,
+                                                           @RequestParam("pageSize") final Integer pageSize,
+                                                           @RequestParam("userId") final String userId,
+                                                           @RequestParam("pluginId") final String pluginId) {
+        CommonPager<DataPermissionPageVO> selectorList = dataPermissionService.listSelectorsByPage(
+                new SelectorQuery(pluginId, null, new PageParameter(currentPage, pageSize)), userId);
+        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, selectorList);
     }
 
 
     /**
-     * create data permission.
+     * Query paginated rules with data permission.
+     * @param currentPage current page
+     * @param pageSize page size
+     * @param userId  user id
+     * @param selectorId selector id
+     * @return {@linkplain SoulAdminResult}
+     */
+    @GetMapping("/rules")
+    public SoulAdminResult listPagePluginDataPermissions(@RequestParam("currentPage") final Integer currentPage,
+                                                         @RequestParam("pageSize") final Integer pageSize,
+                                                         @RequestParam("userId") final String userId,
+                                                         @RequestParam("selectorId") final String selectorId) {
+        CommonPager<DataPermissionPageVO> selectorList = dataPermissionService.listRulesByPage(
+                new RuleQuery(selectorId, null, new PageParameter(currentPage, pageSize)), userId);
+        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, selectorList);
+    }
+
+
+    /**
+     * create selector data permission.
      * @param dataPermissionDTO {@linkplain DataPermissionDTO}
      * @return effect rows count
      */
-    @PostMapping("")
-    public SoulAdminResult save(@RequestBody final DataPermissionDTO dataPermissionDTO) {
+    @PostMapping("/selector")
+    public SoulAdminResult saveSelector(@RequestBody final DataPermissionDTO dataPermissionDTO) {
         return Optional.ofNullable(dataPermissionDTO)
-                .map(item -> SoulAdminResult.success(SoulResultMessage.SAVE_SUCCESS, dataPermissionService.create(dataPermissionDTO)))
+                .map(item -> SoulAdminResult.success(SoulResultMessage.SAVE_SUCCESS, dataPermissionService.createSelector(dataPermissionDTO)))
                 .orElse(SoulAdminResult.error(SoulResultMessage.SAVE_FAILED));
 
     }
 
     /**
-     * Delete data permission.
+     * Delete selector data permission.
      * @param dataPermissionDTO {@linkplain DataPermissionDTO}
      * @return effect rows count
      */
-    @DeleteMapping("")
-    public SoulAdminResult delete(@RequestBody final DataPermissionDTO dataPermissionDTO) {
+    @DeleteMapping("/selector")
+    public SoulAdminResult deleteSelector(@RequestBody final DataPermissionDTO dataPermissionDTO) {
         return Optional.ofNullable(dataPermissionDTO)
-                .map(item -> SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, dataPermissionService.delete(dataPermissionDTO)))
+                .map(item -> SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, dataPermissionService.deleteSelector(dataPermissionDTO)))
+                .orElse(SoulAdminResult.error(SoulResultMessage.DELETE_SUCCESS));
+
+    }
+
+    /**
+     * Delete rule data permission.
+     * @param dataPermissionDTO {@linkplain DataPermissionDTO}
+     * @return effect rows count
+     */
+    @PostMapping("/rule")
+    public SoulAdminResult saveRule(@RequestBody final DataPermissionDTO dataPermissionDTO) {
+        return Optional.ofNullable(dataPermissionDTO)
+                .map(item -> SoulAdminResult.success(SoulResultMessage.SAVE_SUCCESS, dataPermissionService.createRule(dataPermissionDTO)))
+                .orElse(SoulAdminResult.error(SoulResultMessage.SAVE_FAILED));
+    }
+
+    /**
+     * Delete selector data permission.
+     * @param dataPermissionDTO {@linkplain DataPermissionDTO}
+     * @return effect rows count
+     */
+    @DeleteMapping("/rule")
+    public SoulAdminResult deleteRule(@RequestBody final DataPermissionDTO dataPermissionDTO) {
+        return Optional.ofNullable(dataPermissionDTO)
+                .map(item -> SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, dataPermissionService.deleteRule(dataPermissionDTO)))
                 .orElse(SoulAdminResult.error(SoulResultMessage.DELETE_SUCCESS));
 
     }

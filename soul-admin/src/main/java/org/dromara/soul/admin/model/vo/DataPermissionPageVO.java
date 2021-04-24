@@ -17,18 +17,64 @@
 
 package org.dromara.soul.admin.model.vo;
 
-import org.dromara.soul.admin.model.page.CommonPager;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.dromara.soul.admin.model.entity.RuleDO;
+import org.dromara.soul.admin.model.entity.SelectorDO;
 
-import java.util.List;
+import java.io.Serializable;
+import java.util.Optional;
 
 /**
  * data permission page list vo.
  *
  * @author kaitoshy(plutokaito)
  */
-public class DataPermissionPageVO extends CommonPager<DataPermissionRuleVO> {
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class DataPermissionPageVO implements Serializable {
 
     private static final long serialVersionUID = -7532270386821533624L;
 
-    private List<SelectorVO> selectorVOList;
+    /**
+     * selector id or rule id.
+     */
+    private String dataId;
+
+    /**
+     * selector name or rule name.
+     */
+    private String dataName;
+
+    /**
+     * weather checked.
+     */
+    private Boolean isChecked;
+
+
+    /**
+     * build vo by selector.
+     * @param selectorDO {@linkplain SelectorDO}
+     * @param isChecked weather checked
+     * @return {@linkplain DataPermissionPageVO}
+     */
+    public static DataPermissionPageVO buildPageVOBySelector(final SelectorDO selectorDO, final Boolean isChecked) {
+        return Optional.ofNullable(selectorDO)
+                .map(item -> new DataPermissionPageVO(item.getId(), item.getName(), isChecked))
+                .orElse(null);
+    }
+
+    /**
+     * build data permission page vo by rule do.
+     * @param ruleDO {@linkplain RuleDO}
+     * @param isChecked weather checked
+     * @return  {@linkplain DataPermissionPageVO}
+     */
+    public static DataPermissionPageVO buildPageVOByRule(final RuleDO ruleDO, final Boolean isChecked) {
+        return Optional.of(ruleDO)
+                .map(item -> new DataPermissionPageVO(item.getId(), item.getName(), isChecked))
+                .orElse(null);
+    }
 }

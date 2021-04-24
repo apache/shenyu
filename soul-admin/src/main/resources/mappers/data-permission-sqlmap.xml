@@ -31,29 +31,42 @@
         id, date_created, date_updated, user_id, data_id, data_type
     </sql>
 
-    <delete id="deleteByDataIdAndUserId">
+    <delete id="deleteByUniqueKey">
         delete from data_permission where data_id = #{dataId, jdbcType=VARCHAR}
-            and user_id = #{userId, jdbcType=VARCHAR}
+            and user_id = #{userId,jdbcType=VARCHAR} and data_type = #{dataType,jdbcType=INTEGER}
     </delete>
 
     <delete id="deleteByDataIdsAndUserId" parameterType="java.util.List">
         delete from data_permission where data_id in
         <foreach item="id" collection="list" open="(" separator="," close=")">
-            #{id, jdbcType=VARCHAR}
+            #{id,jdbcType=VARCHAR}
         </foreach>
-        and user_id = #{userId, jdbcType=VARCHAR}
+        and user_id = #{userId, jdbcType=VARCHAR} and data_type = #{dataType,jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByUserId">
-        delete from data_permission where user_id = #{userId, jdbcType=VARCHAR}
+        delete from data_permission where user_id = #{userId,jdbcType=VARCHAR}
     </delete>
 
     <delete id="deleteByDataId">
-        delete from data_permission where data_id = #{dataId, jdbcType=VARCHAR}
+        delete from data_permission where data_id = #{dataId,jdbcType=VARCHAR}
     </delete>
 
     <select id="listByUserId" resultMap="BaseResultMap">
-        select id, user_id, data_type, data_id from data_permission where user_id = #{userId, jdbcType=VARCHAR}
+        select id, user_id, data_type, data_id from data_permission where user_id = #{userId,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectDataIds" resultType="java.lang.String">
+        select data_id from data_permission where user_id = #{userId,jdbcType=VARCHAR} and data_type = #{dataType,jdbcType=INTEGER}
+        and data_id in
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
+    <select id="findOneByUniqueKey" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/> from data_permission where data_id = #{dataId,jdbcType=VARCHAR}
+            and user_id = #{userId,jdbcType=VARCHAR} and data_type = #{dataType,jdbcType=INTEGER}
     </select>
 
     <insert id="insertSelective" parameterType="org.dromara.soul.admin.model.entity.DataPermissionDO">

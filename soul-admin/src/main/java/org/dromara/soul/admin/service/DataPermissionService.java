@@ -19,7 +19,9 @@ package org.dromara.soul.admin.service;
 
 import org.dromara.soul.admin.model.dto.DataPermissionDTO;
 import org.dromara.soul.admin.model.entity.DataPermissionDO;
-import org.dromara.soul.admin.model.query.DataPermissionQuery;
+import org.dromara.soul.admin.model.page.CommonPager;
+import org.dromara.soul.admin.model.query.RuleQuery;
+import org.dromara.soul.admin.model.query.SelectorQuery;
 import org.dromara.soul.admin.model.vo.DataPermissionPageVO;
 
 import java.util.List;
@@ -34,29 +36,53 @@ public interface DataPermissionService {
     /**
      * get user data permissions via  user_id and data_type.
      * @param userId user_id
-     * @return List of {@link DataPermissionDO}
+     * @return List of {@linkplain DataPermissionDO}
      */
     List<DataPermissionDO> getUserDataPermissionList(String userId);
 
     /**
-     * Create data permission.
+     * Create selector data permission.
      * @param dataPermissionDTO {@linkplain DataPermissionDTO}
      * @return int
      */
-    int create(DataPermissionDTO dataPermissionDTO);
+    int createSelector(DataPermissionDTO dataPermissionDTO);
 
 
     /**
-     * Delete data permission.
+     * Delete selector data permission.
      * @param dataPermissionDTO {@linkplain DataPermissionDTO}
      * @return int
      */
-    int delete(DataPermissionDTO dataPermissionDTO);
+    int deleteSelector(DataPermissionDTO dataPermissionDTO);
+
 
     /**
-     * Query data permission.
-     * @param dataPermissionQuery {@linkplain DataPermissionQuery}
-     * @return {@link DataPermissionPageVO}
+     * Query paginated selectors with data permission.
+     * @param selectorQuery {@linkplain SelectorQuery}
+     * @param userId user id
+     * @return {@linkplain CommonPager}
      */
-    DataPermissionPageVO listByPage(DataPermissionQuery dataPermissionQuery);
+    CommonPager<DataPermissionPageVO> listSelectorsByPage(SelectorQuery selectorQuery, String userId);
+
+    /**
+     * Query paginated rules with data permission.
+     * @param ruleQuery {@linkplain RuleQuery}
+     * @param userId user id
+     * @return {@linkplain CommonPager}
+     */
+    CommonPager<DataPermissionPageVO> listRulesByPage(RuleQuery ruleQuery, String userId);
+
+    /**
+     * create rule data permission.
+     * @param dataPermissionDTO {@linkplain DataPermissionDTO}
+     * @return effect rows
+     */
+    int createRule(DataPermissionDTO dataPermissionDTO);
+
+    /**
+     * delete rule data permission.
+     * @param dataPermissionDTO {@linkplain DataPermissionDTO}
+     * @return effect rows
+     */
+    int deleteRule(DataPermissionDTO dataPermissionDTO);
 }
