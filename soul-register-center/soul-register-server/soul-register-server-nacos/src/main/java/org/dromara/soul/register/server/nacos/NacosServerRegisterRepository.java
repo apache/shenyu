@@ -38,7 +38,6 @@ import org.dromara.soul.register.server.api.SoulServerRegisterPublisher;
 import org.dromara.soul.register.server.api.SoulServerRegisterRepository;
 import org.dromara.soul.spi.Join;
 
-import java.util.EnumSet;
 import java.util.Properties;
 import java.util.List;
 import java.util.ArrayList;
@@ -59,8 +58,7 @@ import java.util.concurrent.Executor;
 @Join
 public class NacosServerRegisterRepository implements SoulServerRegisterRepository {
 
-    private static final EnumSet<RpcTypeEnum> RPC_TYPE_SET = EnumSet.of(RpcTypeEnum.DUBBO, RpcTypeEnum.GRPC,
-            RpcTypeEnum.HTTP, RpcTypeEnum.SPRING_CLOUD, RpcTypeEnum.SOFA, RpcTypeEnum.TARS);
+    private static final List<RpcTypeEnum> RPC_URI_TYPE_SET = RpcTypeEnum.acquireSupportURIs();
 
     private String defaultGroup = "default_group";
 
@@ -87,15 +85,14 @@ public class NacosServerRegisterRepository implements SoulServerRegisterReposito
         Properties properties = config.getProps();
         Properties nacosProperties = new Properties();
         nacosProperties.put(PropertyKeyConst.SERVER_ADDR, serverAddr);
-        String nameSpace = "nacosNameSpace";
-        nacosProperties.put(PropertyKeyConst.NAMESPACE, properties.getProperty(nameSpace));
+        nacosProperties.put(PropertyKeyConst.NAMESPACE, properties.getProperty("nacosNameSpace"));
         this.configService = ConfigFactory.createConfigService(nacosProperties);
         this.namingService = NamingFactory.createNamingService(nacosProperties);
         subscribe();
     }
 
     private void subscribe() {
-        RPC_TYPE_SET.forEach(this::subscribeRpcTypeService);
+        RpcTypeEnum.acquireSupportMetadatas().forEach(this::subscribeRpcTypeService);
     }
 
     @SneakyThrows
@@ -115,11 +112,10 @@ public class NacosServerRegisterRepository implements SoulServerRegisterReposito
             uriServiceCache.computeIfAbsent(serviceName, k -> new ConcurrentSkipListSet<>()).add(contextPath);
         });
 
-        for (List<URIRegisterDTO> uriRegisterDTOList: services.values()) {
-            if (rpcType.equals(RpcTypeEnum.HTTP) || rpcType.equals(RpcTypeEnum.TARS) || rpcType.equals(RpcTypeEnum.GRPC)) {
-                publishRegisterURI(uriRegisterDTOList);
-            }
+        if (RPC_URI_TYPE_SET.contains(rpcType)) {
+            services.values().forEach(uriRegisterDTOList -> publishRegisterURI(uriRegisterDTOList));
         }
+
         log.info("subscribe uri : {}", serviceName);
         namingService.subscribe(serviceName, event -> {
             if (event instanceof NamingEvent) {
@@ -128,7 +124,7 @@ public class NacosServerRegisterRepository implements SoulServerRegisterReposito
                     String contextPath = instance.getMetadata().get("contextPath");
                     uriServiceCache.computeIfAbsent(serviceName, k -> new ConcurrentSkipListSet<>()).add(contextPath);
                 });
-                refreshURIService(rpcType.getName(), serviceName);
+                refreshURIService(rpcType, serviceName);
             }
         });
     }
@@ -162,14 +158,14 @@ public class NacosServerRegisterRepository implements SoulServerRegisterReposito
         publisher.publish(Lists.newArrayList(GsonUtils.getInstance().fromJson(data, MetaDataRegisterDTO.class)));
     }
 
-    private void refreshURIService(final String rpcType, final String serviceName) {
+    private void refreshURIService(final RpcTypeEnum rpcType, final String serviceName) {
         for (String contextPath: uriServiceCache.get(serviceName)) {
             registerURI(contextPath, serviceName, rpcType);
         }
     }
 
     @SneakyThrows
-    private void registerURI(final String contextPath, final String serviceName, final String rpcType) {
+    private void registerURI(final String contextPath, final String serviceName, final RpcTypeEnum rpcType) {
         List<Instance> healthyInstances = namingService.selectInstances(serviceName, true);
 
         List<URIRegisterDTO> registerDTOList = new ArrayList<>();
@@ -179,14 +175,14 @@ public class NacosServerRegisterRepository implements SoulServerRegisterReposito
                 URIRegisterDTO uriRegisterDTO = GsonUtils.getInstance().fromJson(metadata, URIRegisterDTO.class);
                 registerDTOList.add(uriRegisterDTO);
 
-                String serviceConfigName = RegisterPathConstants.buildServiceConfigPath(rpcType, contextPath);
+                String serviceConfigName = RegisterPathConstants.buildServiceConfigPath(rpcType.getName(), contextPath);
                 if (!metadataConfigCache.contains(serviceConfigName)) {
                     subscribeMetadata(serviceConfigName);
                     metadataConfigCache.add(serviceConfigName);
                 }
             }
         });
-        if (!RpcTypeEnum.acquireSupportURIs().contains(RpcTypeEnum.acquireByName(rpcType))) {
+        if (!RPC_URI_TYPE_SET.contains(rpcType)) {
             return;
         }
         if (registerDTOList.isEmpty()) {
