@@ -15,20 +15,20 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.contextpath.cache;
+package org.dromara.soul.plugin.redirect.cache;
 
 import lombok.extern.slf4j.Slf4j;
-import org.dromara.soul.common.dto.convert.rule.impl.ContextMappingHandle;
+import org.dromara.soul.common.dto.convert.RedirectHandle;
 import org.dromara.soul.plugin.base.cache.BaseHandleCache;
 
 /**
- * The type Application config cache.
+ * The rule handle cache.
  */
 @SuppressWarnings("all")
 @Slf4j
-public final class ApplicationConfigCache extends BaseHandleCache<String, ContextMappingHandle> {
+public final class RedirectRuleHandleCache extends BaseHandleCache<String, RedirectHandle> {
 
-    private ApplicationConfigCache() {
+    private RedirectRuleHandleCache() {
     }
 
     /**
@@ -36,17 +36,17 @@ public final class ApplicationConfigCache extends BaseHandleCache<String, Contex
      *
      * @return the instance
      */
-    public static ApplicationConfigCache getInstance() {
-        return ApplicationConfigCacheInstance.INSTANCE;
+    public static RedirectRuleHandleCache getInstance() {
+        return RedirectRuleHandleCacheInstance.INSTANCE;
     }
 
     /**
-     * The type Application config cache instance.
+     * The type rule handle cache instance.
      */
-    static class ApplicationConfigCacheInstance {
+    static class RedirectRuleHandleCacheInstance {
         /**
          * The Instance.
          */
-        static final ApplicationConfigCache INSTANCE = new ApplicationConfigCache();
+        static final RedirectRuleHandleCache INSTANCE = new RedirectRuleHandleCache();
     }
 }
