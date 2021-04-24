@@ -60,6 +60,7 @@ public class HttpClientRegisterRepository implements SoulClientRegisterRepositor
         turn.put(RegisterTypeEnum.SOFA.getName(), "/soul-client/sofa-register");
         turn.put(RegisterTypeEnum.SPRING_CLOUD.getName(), "/soul-client/springcloud-register");
         turn.put(RegisterTypeEnum.TARS.getName(), "/soul-client/tars-register");
+        turn.put(RegisterTypeEnum.MOTAN.getName(), "/soul-client/motan-register");
     }
 
     @Override

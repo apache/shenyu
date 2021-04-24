@@ -44,5 +44,11 @@
             <artifactId>soul-examples-motan-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.dromara</groupId>
+            <artifactId>soul-spring-boot-starter-client-motan</artifactId>
+            <version>${soul.version}</version>
+        </dependency>
     </dependencies>
 </project>

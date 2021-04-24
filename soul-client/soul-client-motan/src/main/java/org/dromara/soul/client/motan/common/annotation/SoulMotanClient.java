@@ -15,22 +15,48 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.examples.motan.service.impl;
+package org.dromara.soul.client.motan.common.annotation;
 
-import com.weibo.api.motan.config.springsupport.annotation.MotanService;
-import org.dromara.soul.client.motan.common.annotation.SoulMotanClient;
-import org.dromara.soul.examples.motan.service.MotanDemoService;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Motan demo service.
+ * The interface Soul client.
  *
  * @author tydhot
  */
-@MotanService(export = "demoMotan:8002")
-public class MotanDemoServiceImpl implements MotanDemoService {
-    @Override
-    @SoulMotanClient(path = "/hello")
-    public String hello(String name) {
-        return "hello " + name;
-    }
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Inherited
+public @interface SoulMotanClient {
+    /**
+     * Path string.
+     *
+     * @return the string
+     */
+    String path();
+
+    /**
+     * Rule name string.
+     *
+     * @return the string
+     */
+    String ruleName() default "";
+
+    /**
+     * Desc string.
+     *
+     * @return String string
+     */
+    String desc() default "";
+
+    /**
+     * Enabled boolean.
+     *
+     * @return the boolean
+     */
+    boolean enabled() default true;
 }
