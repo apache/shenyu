@@ -26,6 +26,8 @@ import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
+import org.dromara.soul.plugin.hystrix.cache.HystrixRuleHandleCache;
+import org.dromara.soul.plugin.hystrix.handler.HystrixPluginDataHandler;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -65,6 +67,7 @@ public final class HystrixPluginTest {
         hystrixHandle.setRequestVolumeThreshold(0);
         hystrixHandle.setSleepWindowInMilliseconds(0);
         RuleData rule = new RuleData();
+        HystrixRuleHandleCache.getInstance().cachedHandle(HystrixPluginDataHandler.getCacheKeyName(rule), hystrixHandle);
         rule.setHandle(GsonUtils.getInstance().toJson(hystrixHandle));
         SelectorData selectorData = mock(SelectorData.class);
         Mono<Void> mono = hystrixPlugin.doExecute(exchange, chain, selectorData, rule);
@@ -86,6 +89,7 @@ public final class HystrixPluginTest {
         hystrixHandle.setRequestVolumeThreshold(0);
         hystrixHandle.setSleepWindowInMilliseconds(0);
         RuleData rule = new RuleData();
+        HystrixRuleHandleCache.getInstance().cachedHandle(HystrixPluginDataHandler.getCacheKeyName(rule), hystrixHandle);
         rule.setHandle(GsonUtils.getInstance().toJson(hystrixHandle));
         SelectorData selectorData = mock(SelectorData.class);
         Mono<Void> mono = hystrixPlugin.doExecute(exchange, chain, selectorData, rule);

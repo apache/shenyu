@@ -19,8 +19,13 @@ package org.dromara.soul.plugin.hystrix.handler;
 
 import com.netflix.hystrix.strategy.properties.HystrixPropertiesFactory;
 import org.dromara.soul.common.dto.RuleData;
+import org.dromara.soul.common.dto.convert.HystrixHandle;
 import org.dromara.soul.common.enums.PluginEnum;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
+import org.dromara.soul.plugin.hystrix.cache.HystrixRuleHandleCache;
+
+import java.util.Optional;
 
 /**
  * The type Hystrix plugin data handler.
@@ -28,12 +33,33 @@ import org.dromara.soul.plugin.base.handler.PluginDataHandler;
  * @author xiaoyu
  */
 public class HystrixPluginDataHandler implements PluginDataHandler {
-    
+
     @Override
     public void handlerRule(final RuleData ruleData) {
         HystrixPropertiesFactory.reset();
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
+            final HystrixHandle hystrixHandle = GsonUtils.getInstance().fromJson(s, HystrixHandle.class);
+            HystrixRuleHandleCache.getInstance().cachedHandle(getCacheKeyName(ruleData), hystrixHandle);
+        });
     }
-    
+
+    @Override
+    public void removeRule(final RuleData ruleData) {
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
+            HystrixRuleHandleCache.getInstance().removeHandle(getCacheKeyName(ruleData));
+        });
+    }
+
+    /**
+     * return rule handle cache key name.
+     *
+     * @param ruleData ruleData
+     * @return string string
+     */
+    public static String getCacheKeyName(final RuleData ruleData) {
+        return ruleData.getSelectorId() + "_" + ruleData.getName();
+    }
+
     @Override
     public String pluginNamed() {
         return PluginEnum.HYSTRIX.getName();

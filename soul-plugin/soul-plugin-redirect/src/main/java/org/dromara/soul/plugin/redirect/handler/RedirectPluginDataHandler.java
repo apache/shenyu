@@ -15,54 +15,51 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.resilience4j.handler;
+package org.dromara.soul.plugin.redirect.handler;
 
 import org.dromara.soul.common.dto.RuleData;
-import org.dromara.soul.common.dto.convert.Resilience4JHandle;
+import org.dromara.soul.common.dto.convert.RedirectHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
-import org.dromara.soul.plugin.resilience4j.cache.Resilience4jRuleHandleCache;
-import org.dromara.soul.plugin.resilience4j.factory.Resilience4JRegistryFactory;
+import org.dromara.soul.plugin.redirect.cache.RedirectRuleHandleCache;
 
 import java.util.Optional;
 
 /**
- * Resilience4J rule handle.
+ * The type redirect plugin data subscriber.
  *
- * @author zhanglei
+ * @author zl
  */
-public class Resilience4JHandler implements PluginDataHandler {
+public class RedirectPluginDataHandler implements PluginDataHandler {
 
     @Override
     public void handlerRule(final RuleData ruleData) {
-        Resilience4JRegistryFactory.remove(getResourceName(ruleData));
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            final Resilience4JHandle resilience4JHandle = GsonUtils.getInstance().fromJson(s, Resilience4JHandle.class);
-            Resilience4jRuleHandleCache.getInstance().cachedHandle(getResourceName(ruleData), resilience4JHandle);
+            final RedirectHandle redirectHandle = GsonUtils.getInstance().fromJson(s, RedirectHandle.class);
+            RedirectRuleHandleCache.getInstance().cachedHandle(getCacheKeyName(ruleData), redirectHandle);
         });
     }
 
     @Override
     public void removeRule(final RuleData ruleData) {
-        Resilience4JRegistryFactory.remove(getResourceName(ruleData));
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            Resilience4jRuleHandleCache.getInstance().removeHandle(getResourceName(ruleData));
+            RedirectRuleHandleCache.getInstance().removeHandle(getCacheKeyName(ruleData));
         });
+    }
+
+    /**
+     * return rule handle cache key name.
+     *
+     * @param ruleData ruleData
+     * @return string string
+     */
+    public static String getCacheKeyName(final RuleData ruleData) {
+        return ruleData.getSelectorId() + "_" + ruleData.getName();
     }
 
     @Override
     public String pluginNamed() {
-        return PluginEnum.RESILIENCE4J.getName();
-    }
-
-    /**
-     * Resource name.
-     *
-     * @param ruleData the ruleData
-     * @return String
-     */
-    public static String getResourceName(final RuleData ruleData) {
-        return ruleData.getSelectorId() + "_" + ruleData.getName();
+        return PluginEnum.REDIRECT.getName();
     }
 }

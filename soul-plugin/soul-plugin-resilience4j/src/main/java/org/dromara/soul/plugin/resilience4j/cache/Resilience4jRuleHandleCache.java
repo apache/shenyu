@@ -15,40 +15,38 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.springboot.starter.plugin.rewrite;
+package org.dromara.soul.plugin.resilience4j.cache;
 
-import org.dromara.soul.plugin.api.SoulPlugin;
-import org.dromara.soul.plugin.base.handler.PluginDataHandler;
-import org.dromara.soul.plugin.rewrite.RewritePlugin;
-import org.dromara.soul.plugin.rewrite.handler.RewritePluginDataHandler;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import lombok.extern.slf4j.Slf4j;
+import org.dromara.soul.common.dto.convert.Resilience4JHandle;
+import org.dromara.soul.plugin.base.cache.BaseHandleCache;
 
 /**
- * The type Rewrite plugin configuration.
- *
- * @author xiaoyu
+ * The rule handle cache.
  */
-@Configuration
-public class RewritePluginConfiguration {
+@SuppressWarnings("all")
+@Slf4j
+public final class Resilience4jRuleHandleCache extends BaseHandleCache<String, Resilience4JHandle> {
 
-    /**
-     * Rewrite plugin.
-     *
-     * @return the soul plugin
-     */
-    @Bean
-    public SoulPlugin rewritePlugin() {
-        return new RewritePlugin();
+    private Resilience4jRuleHandleCache() {
     }
 
     /**
-     * Rewrite plugin data handler.
+     * Gets instance.
      *
-     * @return the plugin data handler
+     * @return the instance
      */
-    @Bean
-    public PluginDataHandler redirectPluginDataHandler() {
-        return new RewritePluginDataHandler();
+    public static Resilience4jRuleHandleCache getInstance() {
+        return Resilience4jRuleHandleCacheInstance.INSTANCE;
+    }
+
+    /**
+     * The type rule handle cache instance.
+     */
+    static class Resilience4jRuleHandleCacheInstance {
+        /**
+         * The Instance.
+         */
+        static final Resilience4jRuleHandleCache INSTANCE = new Resilience4jRuleHandleCache();
     }
 }
