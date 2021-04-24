@@ -186,7 +186,7 @@ public class NacosServerRegisterRepository implements SoulServerRegisterReposito
                 }
             }
         });
-        if (rpcType.equals(RpcTypeEnum.HTTP.getName()) || rpcType.equals(RpcTypeEnum.TARS.getName()) || rpcType.equals(RpcTypeEnum.GRPC.getName())) {
+        if (!RpcTypeEnum.acquireSupportURIs().contains(RpcTypeEnum.acquireByName(rpcType))) {
             return;
         }
         if (registerDTOList.isEmpty()) {
