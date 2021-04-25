@@ -20,11 +20,14 @@ package org.dromara.soul.plugin.waf;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
+import org.dromara.soul.common.dto.convert.WafHandle;
 import org.dromara.soul.common.enums.PluginEnum;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.result.DefaultSoulResult;
 import org.dromara.soul.plugin.api.result.SoulResult;
 import org.dromara.soul.plugin.api.utils.SpringBeanUtils;
+import org.dromara.soul.plugin.waf.cache.WafRuleHandleCache;
 import org.dromara.soul.plugin.waf.handler.WafPluginDataHandler;
 import org.junit.Before;
 import org.junit.Test;
@@ -112,14 +115,20 @@ public final class WafPluginTest {
 
     @Test
     public void testWafPluginReject() {
-        when(ruleData.getHandle()).thenReturn("{\"permission\":\"reject\",\"statusCode\":\"0\"}");
+        ruleData.setId("waf");
+        ruleData.setSelectorId("waf");
+        WafHandle handle = GsonUtils.getGson().fromJson("{\"permission\":\"reject\",\"statusCode\":\"0\"}", WafHandle.class);
+        WafRuleHandleCache.getInstance().cachedHandle(WafPluginDataHandler.getCacheKeyName(ruleData), handle);
         Mono<Void> execute = wafPluginUnderTest.doExecute(exchange, chain, selectorData, ruleData);
         StepVerifier.create(execute).expectSubscription().verifyComplete();
     }
 
     @Test
     public void testWafPluginAllow() {
-        when(ruleData.getHandle()).thenReturn("{\"permission\":\"allow\",\"statusCode\":\"0\"}");
+        ruleData.setId("waf");
+        ruleData.setSelectorId("waf");
+        WafHandle handle = GsonUtils.getGson().fromJson("{\"permission\":\"allow\",\"statusCode\":\"0\"}", WafHandle.class);
+        WafRuleHandleCache.getInstance().cachedHandle(WafPluginDataHandler.getCacheKeyName(ruleData), handle);
         Mono<Void> execute = wafPluginUnderTest.doExecute(exchange, chain, selectorData, ruleData);
         StepVerifier.create(execute).expectSubscription().verifyComplete();
     }

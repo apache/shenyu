@@ -18,7 +18,9 @@
 package org.dromara.soul.springboot.starter.plugin.rewrite;
 
 import org.dromara.soul.plugin.api.SoulPlugin;
+import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.plugin.rewrite.RewritePlugin;
+import org.dromara.soul.plugin.rewrite.handler.RewritePluginDataHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -29,7 +31,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class RewritePluginConfiguration {
-    
+
     /**
      * Rewrite plugin.
      *
@@ -38,5 +40,15 @@ public class RewritePluginConfiguration {
     @Bean
     public SoulPlugin rewritePlugin() {
         return new RewritePlugin();
+    }
+
+    /**
+     * Rewrite plugin data handler.
+     *
+     * @return the plugin data handler
+     */
+    @Bean
+    public PluginDataHandler redirectPluginDataHandler() {
+        return new RewritePluginDataHandler();
     }
 }

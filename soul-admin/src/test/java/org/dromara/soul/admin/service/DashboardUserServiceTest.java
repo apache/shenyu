@@ -127,6 +127,18 @@ public final class DashboardUserServiceTest {
     }
 
     @Test
+    public void testFindByUsername() {
+        DashboardUserDO dashboardUserDO = createDashboardUserDO();
+        given(dashboardUserMapper.selectByUserName(eq(TEST_USER_NAME))).willReturn(dashboardUserDO);
+
+        DashboardUserVO dashboardUserVO = dashboardUserService.findByUserName(TEST_USER_NAME);
+        assertEquals(TEST_ID, dashboardUserVO.getId());
+        assertEquals(TEST_USER_NAME, dashboardUserVO.getUserName());
+        assertEquals(TEST_PASSWORD, dashboardUserVO.getPassword());
+        verify(dashboardUserMapper).selectByUserName(eq(TEST_USER_NAME));
+    }
+
+    @Test
     public void testListByPage() {
         DashboardUserQuery dashboardUserQuery = new DashboardUserQuery();
         dashboardUserQuery.setUserName(TEST_USER_NAME);

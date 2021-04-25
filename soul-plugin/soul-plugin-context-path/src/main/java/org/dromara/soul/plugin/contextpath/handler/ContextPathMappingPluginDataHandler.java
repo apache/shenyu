@@ -22,7 +22,7 @@ import org.dromara.soul.common.dto.convert.rule.impl.ContextMappingHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
-import org.dromara.soul.plugin.contextpath.cache.ApplicationConfigCache;
+import org.dromara.soul.plugin.contextpath.cache.ContextPathRuleHandleCache;
 
 import java.util.Optional;
 
@@ -37,14 +37,14 @@ public class ContextPathMappingPluginDataHandler implements PluginDataHandler {
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
             final ContextMappingHandle contextMappingHandle = GsonUtils.getInstance().fromJson(s, ContextMappingHandle.class);
-            ApplicationConfigCache.getInstance().cachedHandle(getCacheKeyName(ruleData), contextMappingHandle);
+            ContextPathRuleHandleCache.getInstance().cachedHandle(getCacheKeyName(ruleData), contextMappingHandle);
         });
     }
 
     @Override
     public void removeRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            ApplicationConfigCache.getInstance().removeHandle(getCacheKeyName(ruleData));
+            ContextPathRuleHandleCache.getInstance().removeHandle(getCacheKeyName(ruleData));
         });
     }
 

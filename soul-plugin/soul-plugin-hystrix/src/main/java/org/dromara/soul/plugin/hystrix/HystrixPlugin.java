@@ -26,14 +26,15 @@ import org.dromara.soul.common.dto.convert.HystrixHandle;
 import org.dromara.soul.common.enums.HystrixIsolationModeEnum;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.ResultEnum;
-import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
 import org.dromara.soul.plugin.hystrix.builder.HystrixBuilder;
+import org.dromara.soul.plugin.hystrix.cache.HystrixRuleHandleCache;
 import org.dromara.soul.plugin.hystrix.command.Command;
 import org.dromara.soul.plugin.hystrix.command.HystrixCommand;
 import org.dromara.soul.plugin.hystrix.command.HystrixCommandOnThread;
+import org.dromara.soul.plugin.hystrix.handler.HystrixPluginDataHandler;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import rx.Subscription;
@@ -52,7 +53,8 @@ public class HystrixPlugin extends AbstractSoulPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
         final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
-        final HystrixHandle hystrixHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), HystrixHandle.class);
+        final HystrixHandle hystrixHandle = HystrixRuleHandleCache.getInstance()
+                .obtainHandle(HystrixPluginDataHandler.getCacheKeyName(rule));
         if (StringUtils.isBlank(hystrixHandle.getGroupKey())) {
             hystrixHandle.setGroupKey(Objects.requireNonNull(soulContext).getModule());
         }
@@ -77,10 +79,10 @@ public class HystrixPlugin extends AbstractSoulPlugin {
     private Command fetchCommand(final HystrixHandle hystrixHandle, final ServerWebExchange exchange, final SoulPluginChain chain) {
         if (hystrixHandle.getExecutionIsolationStrategy() == HystrixIsolationModeEnum.SEMAPHORE.getCode()) {
             return new HystrixCommand(HystrixBuilder.build(hystrixHandle),
-                exchange, chain, hystrixHandle.getCallBackUri());
+                    exchange, chain, hystrixHandle.getCallBackUri());
         }
         return new HystrixCommandOnThread(HystrixBuilder.buildForHystrixCommand(hystrixHandle),
-            exchange, chain, hystrixHandle.getCallBackUri());
+                exchange, chain, hystrixHandle.getCallBackUri());
     }
 
     @Override

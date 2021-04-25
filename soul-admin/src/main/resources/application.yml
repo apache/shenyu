@@ -74,6 +74,14 @@ soul:
   aes:
     secret:
       key: 2095132720951327
+  ldap:
+    enabled: false
+    url: ldap://xxxx:xxx
+    bind-dn: cn=xxx,dc=xxx,dc=xxx
+    password: xxxx
+    base-dn: ou=xxx,dc=xxx,dc=xxx
+    object-class: person
+    login-field: cn
   jwt:
     key: 2095132720951327
   shiro:

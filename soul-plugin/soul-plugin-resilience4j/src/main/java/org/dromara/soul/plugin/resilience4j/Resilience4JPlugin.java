@@ -22,15 +22,16 @@ import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.Resilience4JHandle;
 import org.dromara.soul.common.enums.PluginEnum;
-import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
 import org.dromara.soul.plugin.resilience4j.build.Resilience4JBuilder;
+import org.dromara.soul.plugin.resilience4j.cache.Resilience4jRuleHandleCache;
 import org.dromara.soul.plugin.resilience4j.conf.Resilience4JConf;
 import org.dromara.soul.plugin.resilience4j.executor.CombinedExecutor;
 import org.dromara.soul.plugin.resilience4j.executor.Executor;
 import org.dromara.soul.plugin.resilience4j.executor.RateLimiterExecutor;
+import org.dromara.soul.plugin.resilience4j.handler.Resilience4JHandler;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.server.ServerWebExchange;
@@ -59,7 +60,7 @@ public class Resilience4JPlugin extends AbstractSoulPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
         final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
-        Resilience4JHandle resilience4JHandle = GsonUtils.getGson().fromJson(rule.getHandle(), Resilience4JHandle.class);
+        Resilience4JHandle resilience4JHandle = Resilience4jRuleHandleCache.getInstance().obtainHandle(Resilience4JHandler.getResourceName(rule));
         resilience4JHandle.checkData(resilience4JHandle);
         if (resilience4JHandle.getCircuitEnable() == 1) {
             return combined(exchange, chain, rule);
