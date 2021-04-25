@@ -98,4 +98,14 @@ public final class OperatorJudgeFactoryTest {
         Assert.assertTrue(OperatorJudgeFactory.judge(conditionData, "3"));
         Assert.assertFalse(OperatorJudgeFactory.judge(conditionData, "4"));
     }
+    
+    @Test
+    public void testGroovyJudge() {
+        conditionData.setOperator(OperatorEnum.GROOVY.getAlias());
+        conditionData.setParamType(ParamTypeEnum.HEADER.getName());
+        conditionData.setParamName("userId");
+        conditionData.setParamValue("userId % 3 == 0");
+        Assert.assertTrue(OperatorJudgeFactory.judge(conditionData, "3"));
+        Assert.assertFalse(OperatorJudgeFactory.judge(conditionData, "4"));
+    }
 }
