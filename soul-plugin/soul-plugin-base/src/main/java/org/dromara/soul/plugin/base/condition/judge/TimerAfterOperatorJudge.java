@@ -15,39 +15,27 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.base.cache;
+package org.dromara.soul.plugin.base.condition.judge;
 
-import org.dromara.soul.plugin.api.HandleCache;
+import org.dromara.soul.common.dto.ConditionData;
+import org.dromara.soul.common.utils.DateUtils;
 
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
+import java.time.LocalDateTime;
+import java.util.Objects;
 
 /**
- * The selector or rule handle base cache.
+ * The type Timer after operator judge.
  *
- * @author zl
+ * @author xiaoyu(Myth)
  */
-public abstract class BaseHandleCache<K, V> implements HandleCache<K, V> {
-
-    /**
-     * selectorId.ruleName -> handle.
-     */
-    private final ConcurrentHashMap<K, V> cached = new ConcurrentHashMap<>();
+public class TimerAfterOperatorJudge implements OperatorJudge {
 
     @Override
-    public V obtainHandle(final K key) {
-        return cached.get(key);
-    }
-
-    @Override
-    public void cachedHandle(final K key, final V value) {
-        Optional.ofNullable(key).ifPresent(data -> cached.put(key, value));
-    }
-
-    @Override
-    public void removeHandle(final K key) {
-        Optional.ofNullable(key).ifPresent(cached::remove);
+    public Boolean judge(final ConditionData conditionData, final String realData) {
+        String paramName = conditionData.getParamName();
+        if (Objects.isNull(paramName)) {
+            return LocalDateTime.now().isAfter(DateUtils.parseLocalDateTime(conditionData.getParamValue()));
+        }
+        return DateUtils.parseLocalDateTime(realData).isAfter(DateUtils.parseLocalDateTime(conditionData.getParamValue()));
     }
 }
-
-
