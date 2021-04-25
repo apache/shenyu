@@ -18,21 +18,26 @@
 package org.dromara.soul.plugin.apache.dubbo.cache;
 
 import lombok.SneakyThrows;
+import org.apache.dubbo.config.RegistryConfig;
 import org.dromara.soul.common.config.DubboRegisterConfig;
 import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.enums.LoadBalanceEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.apache.dubbo.cache.ApplicationConfigCache.DubboParamExtInfo;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.lang.reflect.Field;
+
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.mock;
+
 
 /**
  * The Test Case For ApplicationConfigCache.
@@ -62,8 +67,38 @@ public final class ApplicationConfigCacheTest {
 
     @Test
     public void testInit() {
-        DubboRegisterConfig dubboRegisterConfig = mock(DubboRegisterConfig.class);
+        DubboRegisterConfig dubboRegisterConfig = new DubboRegisterConfig();
+        dubboRegisterConfig.setRegister("zookeeper://127.0.0.1:2181");
+        dubboRegisterConfig.setProtocol("dubbo");
         this.applicationConfigCache.init(dubboRegisterConfig);
+
+        RegistryConfig registryConfig = null;
+        try {
+            Field registryConfigField = ApplicationConfigCache.class.getDeclaredField("registryConfig");
+            registryConfigField.setAccessible(true);
+            Object config = registryConfigField.get(this.applicationConfigCache);
+            assertNotNull(config);
+            registryConfig = (RegistryConfig) config;
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            Assert.fail();
+        }
+
+        DubboRegisterConfig dubboRegisterConfig1 = new DubboRegisterConfig();
+        dubboRegisterConfig1.setRegister("zookeeper://127.0.0.2:2181");
+        dubboRegisterConfig1.setProtocol("dubbo");
+        this.applicationConfigCache.init(dubboRegisterConfig1);
+
+        RegistryConfig registryConfig1 = null;
+        try {
+            Field registryConfigField = ApplicationConfigCache.class.getDeclaredField("registryConfig");
+            registryConfigField.setAccessible(true);
+            Object config = registryConfigField.get(this.applicationConfigCache);
+            assertNotNull(config);
+            registryConfig1 = (RegistryConfig) config;
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            Assert.fail();
+        }
+        assertNotSame(registryConfig, registryConfig1);
     }
 
     @Test
