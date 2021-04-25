@@ -82,11 +82,10 @@ public enum OperatorEnum {
     /**
      * Time after operator enum.
      */
-    TIME_AFTER("TimeAfter", true)
-    ;
+    TIME_AFTER("TimeAfter", true);
     
     private final String alias;
-
+    
     private final Boolean support;
     
     /**
@@ -95,8 +94,7 @@ public enum OperatorEnum {
      * @return operator support.
      */
     public static List<OperatorEnum> acquireSupport() {
-        return Arrays.stream(OperatorEnum.values())
-                .filter(e -> e.support).collect(Collectors.toList());
+        return Arrays.stream(OperatorEnum.values()).filter(e -> e.support).collect(Collectors.toList());
     }
     
     /**
