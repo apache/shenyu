@@ -35,6 +35,6 @@ public class MatchOperatorJudge implements OperatorJudge {
         if (Objects.equals(ParamTypeEnum.URI.getName(), conditionData.getParamType())) {
             return PathMatchUtils.match(conditionData.getParamValue().trim(), realData);
         }
-        return realData.contains(conditionData.getParamValue().trim());
+        return realData.matches(conditionData.getParamValue().trim());
     }
 }
