@@ -17,13 +17,9 @@ name: ci
 
 on:
   pull_request:
-    paths-ignore:
-      - "**.md"
   push:
     branches:
       - master
-    paths-ignore:
-      - '**.md'
 
 jobs:
   build:
@@ -32,22 +28,28 @@ jobs:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Cache Maven Repos
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
       - name: Support longpaths
         if: ${{ matrix.os == 'windows-latest'}}
         run: git config --system core.longpaths true
       - uses: actions/checkout@v2
         with:
           submodules: true
+      - name: Set Skip Env Var
+        uses: ./.github/actions/skip-ci
+      - name: Cache Maven Repos
+        if: env.SKIP_CI != 'true'
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
       - uses: actions/setup-java@v1
+        if: env.SKIP_CI != 'true'
         with:
           java-version: 8
       - name: Build with Maven
+        if: env.SKIP_CI != 'true'
         run: ./mvnw -B clean install
       - uses: codecov/codecov-action@v1
+        if: env.SKIP_CI != 'true'

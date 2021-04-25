@@ -62,8 +62,13 @@ public enum OperatorEnum {
     /**
      * Like operator enum.
      */
-    LIKE("like", true);
-
+    LIKE("like", true),
+    
+    /**
+     * SpEL enum.
+     */
+    SPEL("SpEL", true);
+    
     private final String alias;
 
     private final Boolean support;

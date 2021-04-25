@@ -274,6 +274,10 @@ public class GsonUtils {
     private List<Object> jsonArrayToListInConvertToMap(final JsonArray jsonArray) {
         List<Object> list = new ArrayList<>(jsonArray.size());
         for (JsonElement jsonElement : jsonArray) {
+            if (jsonElement.isJsonNull()) {
+                list.add(null);
+                continue;
+            }
             String objStr = jsonElement.getAsString();
             if (objStr.startsWith("{") && objStr.endsWith("}")) {
                 list.add(convertToMap(jsonElement.toString()));

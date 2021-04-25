@@ -21,12 +21,13 @@ import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.RateLimiterHandle;
 import org.dromara.soul.common.enums.PluginEnum;
-import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.result.DefaultSoulResult;
 import org.dromara.soul.plugin.api.result.SoulResult;
 import org.dromara.soul.plugin.api.utils.SpringBeanUtils;
+import org.dromara.soul.plugin.ratelimiter.cache.RatelimiterRuleHandleCache;
 import org.dromara.soul.plugin.ratelimiter.executor.RedisRateLimiter;
+import org.dromara.soul.plugin.ratelimiter.handler.RateLimiterPluginDataHandler;
 import org.dromara.soul.plugin.ratelimiter.response.RateLimiterResponse;
 import org.junit.Assert;
 import org.junit.Before;
@@ -126,8 +127,8 @@ public final class RateLimiterPluginTest {
     private void doExecutePreInit() {
         RateLimiterHandle rateLimiterHandle = mockRateLimiterHandler();
         when(ruleData.getId()).thenReturn("test1");
-        when(ruleData.getHandle()).thenReturn(GsonUtils.getInstance().toJson(rateLimiterHandle));
         when(chain.execute(any())).thenReturn(Mono.empty());
+        RatelimiterRuleHandleCache.getInstance().cachedHandle(RateLimiterPluginDataHandler.getCacheKeyName(ruleData), rateLimiterHandle);
     }
 
     /**

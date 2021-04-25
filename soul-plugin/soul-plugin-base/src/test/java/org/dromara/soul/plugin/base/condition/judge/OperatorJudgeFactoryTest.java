@@ -88,4 +88,14 @@ public final class OperatorJudgeFactoryTest {
         Assert.assertTrue(OperatorJudgeFactory.judge(conditionData, "/http/test"));
         Assert.assertFalse(OperatorJudgeFactory.judge(conditionData, "/http?/test"));
     }
+    
+    @Test
+    public void testSpELJudge() {
+        conditionData.setOperator(OperatorEnum.SPEL.getAlias());
+        conditionData.setParamType(ParamTypeEnum.HEADER.getName());
+        conditionData.setParamName("userId");
+        conditionData.setParamValue("#userId % 3 == 0");
+        Assert.assertTrue(OperatorJudgeFactory.judge(conditionData, "3"));
+        Assert.assertFalse(OperatorJudgeFactory.judge(conditionData, "4"));
+    }
 }

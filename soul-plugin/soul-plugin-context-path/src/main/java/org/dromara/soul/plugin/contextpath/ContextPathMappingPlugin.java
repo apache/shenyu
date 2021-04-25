@@ -28,7 +28,7 @@ import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
-import org.dromara.soul.plugin.contextpath.cache.ApplicationConfigCache;
+import org.dromara.soul.plugin.contextpath.cache.ContextPathRuleHandleCache;
 import org.dromara.soul.plugin.contextpath.handler.ContextPathMappingPluginDataHandler;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -47,7 +47,7 @@ public class ContextPathMappingPlugin extends AbstractSoulPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
         final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
-        final ContextMappingHandle contextMappingHandle = ApplicationConfigCache.getInstance().obtainHandle(ContextPathMappingPluginDataHandler.getCacheKeyName(rule));
+        final ContextMappingHandle contextMappingHandle = ContextPathRuleHandleCache.getInstance().obtainHandle(ContextPathMappingPluginDataHandler.getCacheKeyName(rule));
         if (Objects.isNull(contextMappingHandle) || StringUtils.isBlank(contextMappingHandle.getContextPath())) {
             log.error("context path mapping rule configuration is null ：{}", rule);
             return chain.execute(exchange);

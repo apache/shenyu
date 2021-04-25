@@ -31,13 +31,15 @@ import org.dromara.soul.plugin.api.context.SoulContext;
 import org.dromara.soul.plugin.api.result.DefaultSoulResult;
 import org.dromara.soul.plugin.api.result.SoulResult;
 import org.dromara.soul.plugin.api.utils.SpringBeanUtils;
+import org.dromara.soul.plugin.springcloud.cache.SpringCloudRuleHandleCache;
+import org.dromara.soul.plugin.springcloud.cache.SpringCloudSelectorHandleCache;
+import org.dromara.soul.plugin.springcloud.handler.SpringCloudPluginDataHandler;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.cloud.client.DefaultServiceInstance;
-import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpMethod;
@@ -77,8 +79,6 @@ public class SpringCloudPluginTest {
 
     private SelectorData selector;
 
-    private RuleData rule;
-
     private SoulContext soulContext;
 
     @Before
@@ -97,7 +97,6 @@ public class SpringCloudPluginTest {
         chain = mock(SoulPluginChain.class);
         when(this.chain.execute(exchange)).thenReturn(Mono.empty());
         selector = mock(SelectorData.class);
-        rule = mock(RuleData.class);
         springCloudPlugin = new SpringCloudPlugin(loadBalancerClient);
     }
 
@@ -110,6 +109,7 @@ public class SpringCloudPluginTest {
         final SelectorData selectorData = SelectorData.builder()
                 .handle(GsonUtils.getInstance().toJson(springCloudSelectorHandle))
                 .build();
+        SpringCloudSelectorHandleCache.getInstance().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
         StepVerifier.create(springCloudPlugin.doExecute(exchange, chain, selectorData, null)).expectSubscription().verifyComplete();
         final SpringCloudRuleHandle springCloudRuleHandle = new SpringCloudRuleHandle();
         springCloudRuleHandle.setPath("/springcloud");
@@ -117,13 +117,11 @@ public class SpringCloudPluginTest {
         final RuleData rule = RuleData.builder()
                 .handle(GsonUtils.getInstance().toJson(springCloudRuleHandle))
                 .build();
-        ServiceInstance serviceInstance = mock(ServiceInstance.class);
-        when(loadBalancerClient.choose("serviceId")).thenReturn(serviceInstance);
+        SpringCloudRuleHandleCache.getInstance().cachedHandle(SpringCloudPluginDataHandler.getRuleCacheKey(rule), springCloudRuleHandle);
         SoulContext soulContext = new SoulContext();
         soulContext.setRealUrl("http://localhost/test");
         soulContext.setHttpMethod(HttpMethod.GET.name());
         exchange.getAttributes().put(Constants.CONTEXT, soulContext);
-        when(loadBalancerClient.reconstructURI(serviceInstance, URI.create(soulContext.getRealUrl()))).thenReturn(mock(URI.class));
         StepVerifier.create(springCloudPlugin.doExecute(exchange, chain, selectorData, rule)).expectSubscription().verifyComplete();
     }
 
@@ -153,32 +151,71 @@ public class SpringCloudPluginTest {
 
     @Test
     public void testSpringCloudPluginNotConfigServiceId() {
-        when(selector.getHandle()).thenReturn("{}");
-        when(rule.getHandle()).thenReturn("{}");
-        Mono<Void> execute = springCloudPlugin.doExecute(exchange, chain, selector, rule);
+        final SelectorData selectorData = SelectorData.builder()
+                .id("springcloud")
+                .handle("{}")
+                .build();
+        final RuleData rule = RuleData.builder()
+                .id("springcloud")
+                .selectorId("springcloud")
+                .handle("{}")
+                .build();
+        SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getGson()
+                .fromJson(selectorData.getHandle(), SpringCloudSelectorHandle.class);
+        SpringCloudRuleHandle springCloudRuleHandle = GsonUtils.getGson()
+                .fromJson(rule.getHandle(), SpringCloudRuleHandle.class);
+        SpringCloudSelectorHandleCache.getInstance().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
+        SpringCloudRuleHandleCache.getInstance().cachedHandle(SpringCloudPluginDataHandler.getRuleCacheKey(rule), springCloudRuleHandle);
+        Mono<Void> execute = springCloudPlugin.doExecute(exchange, chain, selectorData, rule);
         StepVerifier.create(execute).expectSubscription().verifyComplete();
     }
 
     @Test
     public void testSpringCloudPluginErrorServiceId() {
-        when(selector.getHandle()).thenReturn("{\"serviceId\":\"service1\"}");
-        when(rule.getHandle()).thenReturn("{\"path\":\"service/\"}");
+        final SelectorData selectorData = SelectorData.builder()
+                .id("springcloud")
+                .handle("{\"serviceId\":\"service1\"}")
+                .build();
+        final RuleData rule = RuleData.builder()
+                .id("springcloud")
+                .selectorId("springcloud")
+                .handle("{\"path\":\"service/\"}")
+                .build();
+        SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getGson()
+                .fromJson(selectorData.getHandle(), SpringCloudSelectorHandle.class);
+        SpringCloudRuleHandle springCloudRuleHandle = GsonUtils.getGson()
+                .fromJson(rule.getHandle(), SpringCloudRuleHandle.class);
+        SpringCloudSelectorHandleCache.getInstance().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
+        SpringCloudRuleHandleCache.getInstance().cachedHandle(SpringCloudPluginDataHandler.getRuleCacheKey(rule), springCloudRuleHandle);
         when(loadBalancerClient.choose(any())).thenReturn(null);
-        Mono<Void> execute = springCloudPlugin.doExecute(exchange, chain, selector, rule);
+        Mono<Void> execute = springCloudPlugin.doExecute(exchange, chain, selectorData, rule);
         StepVerifier.create(execute).expectSubscription().verifyComplete();
     }
 
     @Test
     public void testSpringCloudPluginNormal() throws URISyntaxException {
+        final SelectorData selectorData = SelectorData.builder()
+                .id("springcloud")
+                .handle("{\"serviceId\":\"service1\"}")
+                .build();
+        final RuleData rule = RuleData.builder()
+                .id("springcloud")
+                .selectorId("springcloud")
+                .handle("{\"path\":\"service1/\"}")
+                .build();
+        SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getGson()
+                .fromJson(selectorData.getHandle(), SpringCloudSelectorHandle.class);
+        SpringCloudRuleHandle springCloudRuleHandle = GsonUtils.getGson()
+                .fromJson(rule.getHandle(), SpringCloudRuleHandle.class);
+        SpringCloudSelectorHandleCache.getInstance().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
+        SpringCloudRuleHandleCache.getInstance().cachedHandle(SpringCloudPluginDataHandler.getRuleCacheKey(rule), springCloudRuleHandle);
         when(soulContext.getRealUrl()).thenReturn("http://127.0.0.1");
         when(soulContext.getHttpMethod()).thenReturn(HttpMethod.GET.name());
         exchange.getAttributes().put(Constants.CONTEXT, soulContext);
-        when(selector.getHandle()).thenReturn("{\"serviceId\":\"service1\"}");
-        when(rule.getHandle()).thenReturn("{\"path\":\"service1/\"}");
         when(loadBalancerClient.choose(any()))
                 .thenReturn(new DefaultServiceInstance("instanceId", "service1", "127.0.0.1", 8080, true));
         when(loadBalancerClient.reconstructURI(any(), any())).thenReturn(new URI("https://localhost:8080/service1/"));
-        Mono<Void> execute = springCloudPlugin.doExecute(exchange, chain, selector, rule);
+        Mono<Void> execute = springCloudPlugin.doExecute(exchange, chain, selectorData, rule);
         StepVerifier.create(execute).expectSubscription().verifyComplete();
     }
 }

@@ -19,8 +19,11 @@ package org.dromara.soul.plugin.redirect;
 
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
+import org.dromara.soul.common.dto.convert.RedirectHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.plugin.api.SoulPluginChain;
+import org.dromara.soul.plugin.redirect.cache.RedirectRuleHandleCache;
+import org.dromara.soul.plugin.redirect.handler.RedirectPluginDataHandler;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
@@ -70,8 +73,13 @@ public final class RedirectPluginTest {
         SelectorData selectorData = mock(SelectorData.class);
         StepVerifier.create(redirectPlugin.doExecute(exchange, chain, selectorData, ruleData)).expectSubscription().verifyComplete();
         ruleData.setHandle("{\"redirectURI\":\"/test\"}");
+        RedirectHandle redirectHandle = new RedirectHandle();
+        redirectHandle.setRedirectURI("/test");
+        RedirectRuleHandleCache.getInstance().cachedHandle(RedirectPluginDataHandler.getCacheKeyName(ruleData), redirectHandle);
         when(dispatcherHandler.handle(any())).thenReturn(Mono.empty());
         StepVerifier.create(redirectPlugin.doExecute(exchange, chain, selectorData, ruleData)).expectSubscription().verifyComplete();
+        redirectHandle.setRedirectURI("http://test.com/test");
+        RedirectRuleHandleCache.getInstance().cachedHandle(RedirectPluginDataHandler.getCacheKeyName(ruleData), redirectHandle);
         ruleData.setHandle("{\"redirectURI\":\"http://test.com/test\"}");
         StepVerifier.create(redirectPlugin.doExecute(exchange, chain, selectorData, ruleData)).expectSubscription().verifyComplete();
     }
