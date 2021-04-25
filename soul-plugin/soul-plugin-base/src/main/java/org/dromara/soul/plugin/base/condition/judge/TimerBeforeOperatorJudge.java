@@ -22,7 +22,6 @@ import org.dromara.soul.common.utils.DateUtils;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 /**
  * The type Timer before operator judge.
