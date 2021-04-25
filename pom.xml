@@ -139,6 +139,7 @@
         <java-websocket.version>1.5.0</java-websocket.version>
         <mockito.version>3.5.15</mockito.version>
         <nacos-client.version>2.0.0</nacos-client.version>
+        <groovy.version>2.5.8</groovy.version>
     </properties>
 
     <dependencyManagement>
@@ -335,6 +336,12 @@
                 <groupId>com.alibaba.nacos</groupId>
                 <artifactId>nacos-client</artifactId>
                 <version>${nacos-client.version}</version>
+            </dependency>
+    
+            <dependency>
+                <groupId>org.codehaus.groovy</groupId>
+                <artifactId>groovy</artifactId>
+                <version>${groovy.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

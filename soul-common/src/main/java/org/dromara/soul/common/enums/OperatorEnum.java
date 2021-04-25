@@ -67,7 +67,12 @@ public enum OperatorEnum {
     /**
      * SpEL enum.
      */
-    SPEL("SpEL", true);
+    SPEL("SpEL", true),
+    
+    /**
+     * Groovy enum.
+     */
+    GROOVY("Groovy", true);
     
     private final String alias;
 
