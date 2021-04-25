@@ -30,6 +30,9 @@ import org.junit.Test;
  * @author BetterWp
  */
 public final class OperatorJudgeFactoryTest {
+    private static final String FIRST_TIME = "2018-07-11 17:20:00";
+
+    private static final String MAX_TIME = "2099-07-11 17:20:00";
 
     private ConditionData conditionData;
 
@@ -88,7 +91,7 @@ public final class OperatorJudgeFactoryTest {
         Assert.assertTrue(OperatorJudgeFactory.judge(conditionData, "/http/test"));
         Assert.assertFalse(OperatorJudgeFactory.judge(conditionData, "/http?/test"));
     }
-    
+
     @Test
     public void testSpELJudge() {
         conditionData.setOperator(OperatorEnum.SPEL.getAlias());
@@ -98,7 +101,7 @@ public final class OperatorJudgeFactoryTest {
         Assert.assertTrue(OperatorJudgeFactory.judge(conditionData, "3"));
         Assert.assertFalse(OperatorJudgeFactory.judge(conditionData, "4"));
     }
-    
+
     @Test
     public void testGroovyJudge() {
         conditionData.setOperator(OperatorEnum.GROOVY.getAlias());
@@ -108,4 +111,19 @@ public final class OperatorJudgeFactoryTest {
         Assert.assertTrue(OperatorJudgeFactory.judge(conditionData, "3"));
         Assert.assertFalse(OperatorJudgeFactory.judge(conditionData, "4"));
     }
+
+    @Test
+    public void testTimerBeforeOperatorJudge() {
+        conditionData.setOperator(OperatorEnum.TIME_BEFORE.getAlias());
+        //Because the realData can't be empty, so the realDate must fill in the values
+        conditionData.setParamValue(MAX_TIME);
+        Assert.assertTrue(OperatorJudgeFactory.judge(conditionData, MAX_TIME));
+        conditionData.setParamValue(FIRST_TIME);
+        Assert.assertFalse(OperatorJudgeFactory.judge(conditionData, MAX_TIME));
+        conditionData.setParamName(OperatorEnum.TIME_BEFORE.name());
+        conditionData.setParamValue(MAX_TIME);
+        Assert.assertTrue(OperatorJudgeFactory.judge(conditionData, FIRST_TIME));
+        Assert.assertFalse(OperatorJudgeFactory.judge(conditionData, MAX_TIME));
+    }
+
 }

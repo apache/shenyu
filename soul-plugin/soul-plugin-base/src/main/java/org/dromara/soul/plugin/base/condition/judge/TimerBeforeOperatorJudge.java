@@ -19,9 +19,9 @@ package org.dromara.soul.plugin.base.condition.judge;
 
 import org.dromara.soul.common.dto.ConditionData;
 import org.dromara.soul.common.utils.DateUtils;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 /**
  * The type Timer before operator judge.
@@ -33,7 +33,7 @@ public class TimerBeforeOperatorJudge implements OperatorJudge {
     @Override
     public Boolean judge(final ConditionData conditionData, final String realData) {
         String paramName = conditionData.getParamName();
-        if (Objects.isNull(paramName)) {
+        if (StringUtils.isEmpty(paramName)) {
             return LocalDateTime.now().isBefore(DateUtils.parseLocalDateTime(conditionData.getParamValue()));
         }
         return DateUtils.parseLocalDateTime(realData).isBefore(DateUtils.parseLocalDateTime(conditionData.getParamValue()));
