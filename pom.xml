@@ -139,7 +139,7 @@
         <java-websocket.version>1.5.0</java-websocket.version>
         <mockito.version>3.5.15</mockito.version>
         <nacos-client.version>2.0.0</nacos-client.version>
-        <groovy.version>2.5.8</groovy.version>
+        <groovy.version>2.5.14</groovy.version>
     </properties>
 
     <dependencyManagement>
