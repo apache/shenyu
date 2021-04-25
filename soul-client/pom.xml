@@ -35,6 +35,7 @@
         <module>soul-client-sofa</module>
         <module>soul-client-tars</module>
         <module>soul-client-grpc</module>
+        <module>soul-client-motan</module>
     </modules>
 
     <dependencies>
