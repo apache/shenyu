@@ -25,19 +25,15 @@ import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.rule.impl.ContextMappingHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
-import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
-import org.dromara.soul.plugin.api.result.SoulResultEnum;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
-import org.dromara.soul.plugin.api.result.SoulResultWrap;
-import org.dromara.soul.plugin.api.utils.WebFluxResultUtils;
+import org.dromara.soul.plugin.contextpath.cache.ContextPathRuleHandleCache;
+import org.dromara.soul.plugin.contextpath.handler.ContextPathMappingPluginDataHandler;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.util.Arrays;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * ContextPathMapping Plugin.
@@ -51,16 +47,10 @@ public class ContextPathMappingPlugin extends AbstractSoulPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
         final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
-        final String handle = rule.getHandle();
-        final ContextMappingHandle contextMappingHandle = GsonUtils.getInstance().fromJson(handle, ContextMappingHandle.class);
+        final ContextMappingHandle contextMappingHandle = ContextPathRuleHandleCache.getInstance().obtainHandle(ContextPathMappingPluginDataHandler.getCacheKeyName(rule));
         if (Objects.isNull(contextMappingHandle) || StringUtils.isBlank(contextMappingHandle.getContextPath())) {
             log.error("context path mapping rule configuration is null ：{}", rule);
             return chain.execute(exchange);
-        }
-        //check the context path illegal
-        if (!soulContext.getPath().startsWith(contextMappingHandle.getContextPath())) {
-            Object error = SoulResultWrap.error(SoulResultEnum.CONTEXT_PATH_ERROR.getCode(), SoulResultEnum.CONTEXT_PATH_ERROR.getMsg(), null);
-            return WebFluxResultUtils.result(exchange, error);
         }
         this.buildContextPath(soulContext, contextMappingHandle);
         return chain.execute(exchange);
@@ -96,9 +86,7 @@ public class ContextPathMappingPlugin extends AbstractSoulPlugin {
             context.setRealUrl(handle.getRealUrl());
             return;
         }
-        Optional<String> optional = Arrays.stream(context.getPath()
-                .split(handle.getContextPath()))
-                .reduce((first, last) -> last);
-        optional.ifPresent(context::setRealUrl);
+        String realUrl = context.getPath().substring(handle.getContextPath().length());
+        context.setRealUrl(realUrl);
     }
 }

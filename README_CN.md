@@ -158,7 +158,7 @@ Soul 已经被很多公司广泛使用在越来越多的业务系统，它能以
 
 --------------------------------------------------------------------------------
 
-# 文档& 网站
+# 文档 & 网站
 
 [![EN doc](https://img.shields.io/badge/document-English-blue.svg)](https://dromara.org/projects/soul/overview)
 [![CN doc](https://img.shields.io/badge/document-Chinese-blue.svg)](https://dromara.org/zh/projects/soul/overview)

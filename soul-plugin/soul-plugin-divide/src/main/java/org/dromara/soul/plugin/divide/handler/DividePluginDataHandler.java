@@ -17,26 +17,56 @@
 
 package org.dromara.soul.plugin.divide.handler;
 
+import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
+import org.dromara.soul.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.dromara.soul.common.enums.PluginEnum;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.plugin.divide.cache.UpstreamCacheManager;
+
+import java.util.Optional;
 
 /**
  * The type Divide plugin data handler.
  */
 public class DividePluginDataHandler implements PluginDataHandler {
-    
+
     @Override
     public void handlerSelector(final SelectorData selectorData) {
         UpstreamCacheManager.getInstance().submit(selectorData);
     }
-    
+
     @Override
     public void removeSelector(final SelectorData selectorData) {
         UpstreamCacheManager.getInstance().removeByKey(selectorData.getId());
     }
-    
+
+    @Override
+    public void handlerRule(final RuleData ruleData) {
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
+            final DivideRuleHandle divideRuleHandle = GsonUtils.getInstance().fromJson(s, DivideRuleHandle.class);
+            UpstreamCacheManager.getInstance().cachedHandle(getCacheKeyName(ruleData), divideRuleHandle);
+        });
+    }
+
+    @Override
+    public void removeRule(final RuleData ruleData) {
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
+            UpstreamCacheManager.getInstance().removeHandle(getCacheKeyName(ruleData));
+        });
+    }
+
+    /**
+     * return rule handle cache key name.
+     *
+     * @param ruleData ruleData
+     * @return string string
+     */
+    public static String getCacheKeyName(final RuleData ruleData) {
+        return ruleData.getSelectorId() + "_" + ruleData.getName();
+    }
+
     @Override
     public String pluginNamed() {
         return PluginEnum.DIVIDE.getName();

@@ -26,13 +26,14 @@ import org.dromara.soul.common.dto.convert.WafHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.WafEnum;
 import org.dromara.soul.common.enums.WafModelEnum;
-import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.base.utils.Singleton;
 import org.dromara.soul.plugin.api.result.SoulResultWrap;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
 import org.dromara.soul.plugin.api.utils.WebFluxResultUtils;
+import org.dromara.soul.plugin.waf.cache.WafRuleHandleCache;
 import org.dromara.soul.plugin.waf.config.WafConfig;
+import org.dromara.soul.plugin.waf.handler.WafPluginDataHandler;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -59,7 +60,8 @@ public class WafPlugin extends AbstractSoulPlugin {
             return WebFluxResultUtils.result(exchange, error);
         }
         String handle = rule.getHandle();
-        WafHandle wafHandle = GsonUtils.getInstance().fromJson(handle, WafHandle.class);
+        WafHandle wafHandle = WafRuleHandleCache.getInstance()
+                .obtainHandle(WafPluginDataHandler.getCacheKeyName(rule));
         if (Objects.isNull(wafHandle) || StringUtils.isBlank(wafHandle.getPermission())) {
             log.error("waf handler can not configuration：{}", handle);
             return chain.execute(exchange);

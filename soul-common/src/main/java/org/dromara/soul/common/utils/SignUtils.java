@@ -66,6 +66,7 @@ public final class SignUtils {
                 .map(key -> String.join("", key, params.get(key)))
                 .collect(Collectors.joining()).trim()
                 .concat(signKey);
+        // TODO this is a risk for error charset coding with getBytes
         return DigestUtils.md5DigestAsHex(sign.getBytes()).toUpperCase();
     }
 

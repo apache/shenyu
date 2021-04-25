@@ -20,7 +20,11 @@ package org.dromara.soul.plugin.rewrite;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
+import org.dromara.soul.common.dto.convert.RewriteHandle;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.api.SoulPluginChain;
+import org.dromara.soul.plugin.rewrite.cache.RewriteRuleHandleCache;
+import org.dromara.soul.plugin.rewrite.handler.RewritePluginDataHandler;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,6 +65,8 @@ public final class RewritePluginTest {
     public void testSofaPlugin() {
         RuleData data = new RuleData();
         data.setHandle("{\"rewriteURI\":\"/test\"}");
+        RewriteHandle rewriteHandle = GsonUtils.getGson().fromJson(data.getHandle(), RewriteHandle.class);
+        RewriteRuleHandleCache.getInstance().cachedHandle(RewritePluginDataHandler.getCacheKeyName(data), rewriteHandle);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         SelectorData selectorData = mock(SelectorData.class);
         StepVerifier.create(rewritePlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
