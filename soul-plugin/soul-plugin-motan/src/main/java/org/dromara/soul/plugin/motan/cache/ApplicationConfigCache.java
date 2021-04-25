@@ -25,13 +25,21 @@ import com.weibo.api.motan.config.ProtocolConfig;
 import com.weibo.api.motan.config.RefererConfig;
 import com.weibo.api.motan.config.RegistryConfig;
 import com.weibo.api.motan.proxy.CommonHandler;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.dromara.soul.common.config.MotanRegisterConfig;
 import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.exception.SoulException;
+import org.dromara.soul.common.utils.GsonUtils;
+import org.dromara.soul.plugin.motan.util.PrxInfoUtil;
 
 import java.lang.reflect.Field;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -40,7 +48,9 @@ import java.util.concurrent.ExecutionException;
  * @author tydhot
  */
 @Slf4j
-public class ApplicationConfigCache {
+public final class ApplicationConfigCache {
+
+    public static final ConcurrentHashMap<String, MotanParamInfo> PARAM_MAP = new ConcurrentHashMap<>();
 
     private RegistryConfig registryConfig;
 
@@ -56,7 +66,7 @@ public class ApplicationConfigCache {
                 if (config != null) {
                     try {
                         Class<?> cz = config.getClass();
-                        Field field = cz.getDeclaredField("consumerBootstrap");
+                        Field field = cz.getDeclaredField("ref");
                         field.setAccessible(true);
                         field.set(config, null);
                         // After the configuration change, motan destroys the instance, but does not empty it. If it is not handled,
@@ -105,7 +115,7 @@ public class ApplicationConfigCache {
         if (protocolConfig == null) {
             protocolConfig = new ProtocolConfig();
             protocolConfig.setId("motan2-breeze");
-            protocolConfig.setName("motan2-breeze");
+            protocolConfig.setName("motan2");
         }
     }
 
@@ -154,7 +164,25 @@ public class ApplicationConfigCache {
         reference.setInterface(CommonHandler.class);
         reference.setServiceInterface(metaData.getServiceName());
         // the group of motan rpc call
-        reference.setGroup(metaData.getRpcExt());
+        MotanParamExtInfo motanParamExtInfo =
+                GsonUtils.getInstance().fromJson(metaData.getRpcExt(), MotanParamExtInfo.class);
+        for (MethodInfo methodInfo : motanParamExtInfo.getMethodInfo()) {
+            if (CollectionUtils.isNotEmpty(methodInfo.getParams())) {
+                try {
+                    Class<?>[] paramTypes = new Class[methodInfo.getParams().size()];
+                    String[] paramNames = new String[methodInfo.getParams().size()];
+                    for (int i = 0; i < methodInfo.getParams().size(); i++) {
+                        Pair<String, String> pair = methodInfo.getParams().get(i);
+                        paramTypes[i] = PrxInfoUtil.getParamClass(pair.getKey());
+                        paramNames[i] = pair.getValue();
+                        PARAM_MAP.put(methodInfo.getMethodName(), new MotanParamInfo(paramTypes, paramNames));
+                    }
+                } catch (Exception e) {
+                    log.error("failed to init motan, {}", e.getMessage());
+                }
+            }
+        }
+        reference.setGroup(motanParamExtInfo.getGroup());
         reference.setVersion("1.0");
         reference.setRequestTimeout(1000);
         reference.setRegistry(registryConfig);
@@ -193,4 +221,37 @@ public class ApplicationConfigCache {
         static final ApplicationConfigCache INSTANCE = new ApplicationConfigCache();
     }
 
+    /**
+     * The type Motan param ext info.
+     */
+    @Data
+    static class MethodInfo {
+
+        private String methodName;
+
+        private List<Pair<String, String>> params;
+    }
+
+    /**
+     * The type Motan param ext info.
+     */
+    @Data
+    static class MotanParamExtInfo {
+
+        private List<MethodInfo> methodInfo;
+
+        private String group;
+    }
+
+    /**
+     * The type Motan param ext info.
+     */
+    @Data
+    @AllArgsConstructor
+    public static class MotanParamInfo {
+
+        private Class<?>[] paramTypes;
+
+        private String[] paramNames;
+    }
 }

@@ -53,19 +53,20 @@ public class MotanPlugin extends AbstractSoulPlugin {
      *
      * @param motanProxyService the motan proxy service
      */
-    public MotanPlugin(MotanProxyService motanProxyService) {
+    public MotanPlugin(final MotanProxyService motanProxyService) {
         this.motanProxyService = motanProxyService;
     }
 
     @Override
-    protected Mono<Void> doExecute(ServerWebExchange exchange, SoulPluginChain chain, SelectorData selector, RuleData rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain,
+                                   final SelectorData selector, final RuleData rule) {
         String param = exchange.getAttribute(Constants.PARAM_TRANSFORM);
         SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
         MetaData metaData = exchange.getAttribute(Constants.META_DATA);
         if (!checkMetaData(metaData)) {
             assert metaData != null;
-            log.error(" path is :{}, meta data have error.... {}", soulContext.getPath(), metaData.toString());
+            log.error("path is :{}, meta data have error.... {}", soulContext.getPath(), metaData.toString());
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
             Object error = SoulResultWrap.error(SoulResultEnum.META_DATA_ERROR.getCode(), SoulResultEnum.META_DATA_ERROR.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);

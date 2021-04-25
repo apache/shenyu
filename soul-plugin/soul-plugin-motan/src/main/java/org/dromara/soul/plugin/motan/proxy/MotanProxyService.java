@@ -17,28 +17,21 @@
 
 package org.dromara.soul.plugin.motan.proxy;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.weibo.api.motan.config.ProtocolConfig;
 import com.weibo.api.motan.config.RefererConfig;
-import com.weibo.api.motan.config.RegistryConfig;
 import com.weibo.api.motan.proxy.CommonHandler;
 import com.weibo.api.motan.rpc.ResponseFuture;
-import com.weibo.breeze.message.GenericMessage;
-import com.weibo.breeze.serializer.CommonSerializer;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.exception.SoulException;
 import org.dromara.soul.common.utils.GsonUtils;
-import org.dromara.soul.plugin.api.utils.BodyParamUtils;
 import org.dromara.soul.plugin.motan.cache.ApplicationConfigCache;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -49,6 +42,16 @@ import java.util.concurrent.CompletableFuture;
  */
 public class MotanProxyService {
 
+    /**
+     * Generic invoker object.
+     *
+     * @param body the body
+     * @param metaData the meta data
+     * @param exchange the exchange
+     * @return the object
+     * @throws SoulException the soul exception
+     */
+    @SneakyThrows
     public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws SoulException {
         RefererConfig<CommonHandler> reference = ApplicationConfigCache.getInstance().get(metaData.getPath());
         if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getServiceInterface())) {
@@ -56,24 +59,29 @@ public class MotanProxyService {
             reference = ApplicationConfigCache.getInstance().initRef(metaData);
         }
         CommonHandler commonHandler = reference.getRef();
-        try {
-            Pair<String[], Object[]> param = BodyParamUtils.buildParameters(body, metaData.getParameterTypes());
-            ResponseFuture responseFuture = (ResponseFuture) commonHandler.asyncCall(metaData.getMethodName(),
-                    param.getValue(), metaData.getRpcExt().getClass());
-            CompletableFuture<Object> future = CompletableFuture.supplyAsync(() -> responseFuture.getValue());
-            return Mono.fromFuture(future.thenApply(ret -> {
-                if (Objects.isNull(ret)) {
-                    ret = Constants.MOTAN_RPC_RESULT_EMPTY;
-                }
-
-                GenericMessage genericMessage = (GenericMessage) ret;
-                exchange.getAttributes().put(Constants.MOTAN_RPC_RESULT, genericMessage);
-                exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
-                return ret;
-            })).onErrorMap(SoulException::new);
-        } catch (Throwable t) {
-            throw new SoulException(t.getMessage());
+        ApplicationConfigCache.MotanParamInfo motanParamInfo = ApplicationConfigCache.PARAM_MAP.get(metaData.getMethodName());
+        Object[] params;
+        if (motanParamInfo == null) {
+            params = new Object[0];
+        } else {
+            int num = motanParamInfo.getParamTypes().length;
+            params = new Object[num];
+            for (int i = 0; i < num; i++) {
+                Map<String, Object> bodyMap = GsonUtils.getInstance().convertToMap(body);
+                params[i] = bodyMap.get(motanParamInfo.getParamNames()[i]).toString();
+            }
         }
+        ResponseFuture responseFuture = (ResponseFuture) commonHandler.asyncCall(metaData.getMethodName(),
+                params, Object.class);
+        CompletableFuture<Object> future = CompletableFuture.supplyAsync(() -> responseFuture.getValue());
+        return Mono.fromFuture(future.thenApply(ret -> {
+            if (Objects.isNull(ret)) {
+                ret = Constants.MOTAN_RPC_RESULT_EMPTY;
+            }
+            exchange.getAttributes().put(Constants.MOTAN_RPC_RESULT, ret);
+            exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
+            return ret;
+        })).onErrorMap(SoulException::new);
     }
 
 //    private GenericMessage buildGenericMessage(String name, Map<String, Object> map) {
@@ -85,38 +93,4 @@ public class MotanProxyService {
 //        }
 //        return message;
 //    }
-
-    public static void main(String[] args) throws Throwable {
-        RegistryConfig registryConfig = new RegistryConfig();
-        registryConfig.setId("soul_motan_proxy");
-        registryConfig.setRegister(false);
-        registryConfig.setRegProtocol("zookeeper");
-        registryConfig.setAddress("localhost:2181");
-
-        ProtocolConfig protocolConfig = new ProtocolConfig();
-        protocolConfig.setId("motan2-breeze");
-        protocolConfig.setName("motan2");
-
-        RefererConfig<CommonHandler> reference = new RefererConfig<>();
-        reference.setInterface(CommonHandler.class);
-        reference.setServiceInterface("org.dromara.soul.examples.motan.service.MotanDemoService");
-        reference.setGroup("motan-soul-rpc");
-        reference.setVersion("1.0");
-        reference.setRequestTimeout(1000);
-        reference.setRegistry(registryConfig);
-        reference.setProtocol(protocolConfig);
-        CommonHandler obj = reference.getRef();
-
-        ResponseFuture responseFuture = (ResponseFuture) obj.asyncCall("hello", new Object[]{"a"}, Object.class);
-        CompletableFuture<Object> future = CompletableFuture.supplyAsync(() -> responseFuture.getValue())
-                .thenApply(ret -> {
-                    System.out.println(ret);
-                    return ret;
-                });
-        future.whenComplete((aa,bb) -> {
-            System.out.println(aa);
-        });
-        System.out.println();
-        Thread.sleep(5000L);
-    }
 }
