@@ -40,6 +40,7 @@ public class OperatorJudgeFactory {
         OPERATOR_JUDGE_MAP.put(OperatorEnum.LIKE.getAlias(), new LikeOperatorJudge());
         OPERATOR_JUDGE_MAP.put(OperatorEnum.REGEX.getAlias(), new RegExOperatorJudge());
         OPERATOR_JUDGE_MAP.put(OperatorEnum.SPEL.getAlias(), new SpELJudge());
+        OPERATOR_JUDGE_MAP.put(OperatorEnum.GROOVY.getAlias(), new GroovyJudge());
     }
 
     /**
