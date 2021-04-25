@@ -18,9 +18,14 @@
 package org.dromara.soul.plugin.resilience4j.handler;
 
 import org.dromara.soul.common.dto.RuleData;
+import org.dromara.soul.common.dto.convert.Resilience4JHandle;
 import org.dromara.soul.common.enums.PluginEnum;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
+import org.dromara.soul.plugin.resilience4j.cache.Resilience4jRuleHandleCache;
 import org.dromara.soul.plugin.resilience4j.factory.Resilience4JRegistryFactory;
+
+import java.util.Optional;
 
 /**
  * Resilience4J rule handle.
@@ -32,11 +37,18 @@ public class Resilience4JHandler implements PluginDataHandler {
     @Override
     public void handlerRule(final RuleData ruleData) {
         Resilience4JRegistryFactory.remove(getResourceName(ruleData));
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
+            final Resilience4JHandle resilience4JHandle = GsonUtils.getInstance().fromJson(s, Resilience4JHandle.class);
+            Resilience4jRuleHandleCache.getInstance().cachedHandle(getResourceName(ruleData), resilience4JHandle);
+        });
     }
 
     @Override
     public void removeRule(final RuleData ruleData) {
         Resilience4JRegistryFactory.remove(getResourceName(ruleData));
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
+            Resilience4jRuleHandleCache.getInstance().removeHandle(getResourceName(ruleData));
+        });
     }
 
     @Override
