@@ -82,7 +82,7 @@ public class DataPermissionController {
      * @return {@linkplain SoulAdminResult}
      */
     @GetMapping("/rules")
-    public SoulAdminResult listPagePluginDataPermissions(@RequestParam("currentPage") final Integer currentPage,
+    public SoulAdminResult listPageRuleDataPermissions(@RequestParam("currentPage") final Integer currentPage,
                                                          @RequestParam("pageSize") final Integer pageSize,
                                                          @RequestParam("userId") final String userId,
                                                          @RequestParam("selectorId") final String selectorId) {

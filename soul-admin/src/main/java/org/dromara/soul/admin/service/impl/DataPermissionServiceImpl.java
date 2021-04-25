@@ -36,6 +36,7 @@ import org.dromara.soul.common.enums.AdminDataPermissionTypeEnum;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -149,18 +150,22 @@ public class DataPermissionServiceImpl implements DataPermissionService {
     public CommonPager<DataPermissionPageVO> listSelectorsByPage(final SelectorQuery selectorQuery, final String userId) {
         int totalCount = selectorMapper.countByQuery(selectorQuery);
 
-        Supplier<Stream<SelectorDO>> selectorDOStreamSupplier = () -> selectorMapper.selectByQuery(selectorQuery).stream();
-        List<String> selectorIds = selectorDOStreamSupplier.get().map(SelectorDO::getId).collect(Collectors.toList());
+        List<DataPermissionPageVO> selectorList = Collections.emptyList();
+        if (totalCount > 0) {
+            Supplier<Stream<SelectorDO>> selectorDOStreamSupplier = () -> selectorMapper.selectByQuery(selectorQuery).stream();
+            List<String> selectorIds = selectorDOStreamSupplier.get().map(SelectorDO::getId).collect(Collectors.toList());
 
-        List<String> hasDataPermissionSelectorIds = dataPermissionMapper.selectDataIds(selectorIds,
-                userId, AdminDataPermissionTypeEnum.SELECTOR.ordinal());
+            List<String> hasDataPermissionSelectorIds = dataPermissionMapper.selectDataIds(selectorIds,
+                    userId, AdminDataPermissionTypeEnum.SELECTOR.ordinal());
 
-        List<DataPermissionPageVO> selectorList = selectorDOStreamSupplier.get().map(selectorDO -> {
-            boolean isChecked = hasDataPermissionSelectorIds.contains(selectorDO.getId());
-            return DataPermissionPageVO.buildPageVOBySelector(selectorDO, isChecked);
-        }).collect(Collectors.toList());
+            selectorList = selectorDOStreamSupplier.get().map(selectorDO -> {
+                boolean isChecked = hasDataPermissionSelectorIds.contains(selectorDO.getId());
+                return DataPermissionPageVO.buildPageVOBySelector(selectorDO, isChecked);
+            }).collect(Collectors.toList());
+        }
 
-        return PageResultUtils.result(selectorQuery.getPageParameter(), () -> totalCount, () -> selectorList);
+        List<DataPermissionPageVO> finalSelectorList = selectorList;
+        return PageResultUtils.result(selectorQuery.getPageParameter(), () -> totalCount, () -> finalSelectorList);
     }
 
     /**
@@ -174,18 +179,22 @@ public class DataPermissionServiceImpl implements DataPermissionService {
     public CommonPager<DataPermissionPageVO> listRulesByPage(final RuleQuery ruleQuery, final String userId) {
         int totalCount = ruleMapper.countByQuery(ruleQuery);
 
-        Supplier<Stream<RuleDO>> ruleDOStreamSupplier = () -> ruleMapper.selectByQuery(ruleQuery).stream();
-        List<String> ruleIds = ruleDOStreamSupplier.get().map(RuleDO::getId).collect(Collectors.toList());
+        List<DataPermissionPageVO> selectorList = Collections.emptyList();
+        if (totalCount > 0) {
+            Supplier<Stream<RuleDO>> ruleDOStreamSupplier = () -> ruleMapper.selectByQuery(ruleQuery).stream();
+            List<String> ruleIds = ruleDOStreamSupplier.get().map(RuleDO::getId).collect(Collectors.toList());
 
-        List<String> hasDataPermissionRuleIds = dataPermissionMapper.selectDataIds(ruleIds, userId,
-                AdminDataPermissionTypeEnum.RULE.ordinal());
+            List<String> hasDataPermissionRuleIds = dataPermissionMapper.selectDataIds(ruleIds, userId,
+                    AdminDataPermissionTypeEnum.RULE.ordinal());
 
-        List<DataPermissionPageVO> selectorList = ruleDOStreamSupplier.get().map(ruleDO -> {
-            boolean isChecked = hasDataPermissionRuleIds.contains(ruleDO.getId());
-            return DataPermissionPageVO.buildPageVOByRule(ruleDO, isChecked);
-        }).collect(Collectors.toList());
+            selectorList = ruleDOStreamSupplier.get().map(ruleDO -> {
+                boolean isChecked = hasDataPermissionRuleIds.contains(ruleDO.getId());
+                return DataPermissionPageVO.buildPageVOByRule(ruleDO, isChecked);
+            }).collect(Collectors.toList());
+        }
 
-        return PageResultUtils.result(ruleQuery.getPageParameter(), () -> totalCount, () -> selectorList);
+        List<DataPermissionPageVO> finalSelectorList = selectorList;
+        return PageResultUtils.result(ruleQuery.getPageParameter(), () -> totalCount, () -> finalSelectorList);
     }
 
     /**
@@ -203,7 +212,7 @@ public class DataPermissionServiceImpl implements DataPermissionService {
         }
 
         int count = 0;
-        DataPermissionDO selectorDataPermissionDo = dataPermissionMapper.findOneByUniqueKey(dataPermissionDTO.getDataId(),
+        DataPermissionDO selectorDataPermissionDo = dataPermissionMapper.findOneByUniqueKey(ruleDO.getSelectorId(),
                 dataPermissionDTO.getUserId(), AdminDataPermissionTypeEnum.SELECTOR.ordinal());
         if (Objects.isNull(selectorDataPermissionDo)) {
             DataPermissionDO selectorDataPermissionDO = DataPermissionDO.buildCreatePermissionDO(ruleDO.getSelectorId(),

@@ -51,7 +51,7 @@ public class DataPermissionDTO implements Serializable {
     private Integer dataType;
 
     /**
-     * weather checkbox is selected.
+     * whether checkbox is selected.
      */
     private Boolean isSelected;
 

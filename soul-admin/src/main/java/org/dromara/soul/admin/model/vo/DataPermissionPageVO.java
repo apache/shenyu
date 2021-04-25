@@ -49,7 +49,7 @@ public class DataPermissionPageVO implements Serializable {
     private String dataName;
 
     /**
-     * weather checked.
+     * whether checked.
      */
     private Boolean isChecked;
 
@@ -57,7 +57,7 @@ public class DataPermissionPageVO implements Serializable {
     /**
      * build vo by selector.
      * @param selectorDO {@linkplain SelectorDO}
-     * @param isChecked weather checked
+     * @param isChecked whether checked
      * @return {@linkplain DataPermissionPageVO}
      */
     public static DataPermissionPageVO buildPageVOBySelector(final SelectorDO selectorDO, final Boolean isChecked) {
@@ -69,7 +69,7 @@ public class DataPermissionPageVO implements Serializable {
     /**
      * build data permission page vo by rule do.
      * @param ruleDO {@linkplain RuleDO}
-     * @param isChecked weather checked
+     * @param isChecked whether checked
      * @return  {@linkplain DataPermissionPageVO}
      */
     public static DataPermissionPageVO buildPageVOByRule(final RuleDO ruleDO, final Boolean isChecked) {
