@@ -217,6 +217,15 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         return SoulResultMessage.SUCCESS;
     }
 
+    @Override
+    public String registerMotan(final MetaDataRegisterDTO dto) {
+        MetaDataDO exist = metaDataMapper.findByPath(dto.getPath());
+        saveOrUpdateMetaData(exist, dto);
+        String selectorId = handlerSelector(dto);
+        handlerMotanRule(selectorId, dto, exist);
+        return SoulResultMessage.SUCCESS;
+    }
+
     private String handlerDubboSelector(final MetaDataRegisterDTO metaDataDTO) {
         return getString(metaDataDTO);
     }
@@ -269,6 +278,13 @@ public class SoulClientRegisterServiceImpl implements SoulClientRegisterService 
         RuleDO existRule = ruleMapper.findByName(metaDataDTO.getPath());
         if (Objects.isNull(exist) || Objects.isNull(existRule)) {
             registerRule(selectorId, metaDataDTO.getPath(), PluginEnum.GRPC.getName(), metaDataDTO.getRuleName());
+        }
+    }
+
+    private void handlerMotanRule(final String selectorId, final MetaDataRegisterDTO metaDataDTO, final MetaDataDO exist) {
+        RuleDO existRule = ruleMapper.findByName(metaDataDTO.getPath());
+        if (Objects.isNull(exist) || Objects.isNull(existRule)) {
+            registerRule(selectorId, metaDataDTO.getPath(), PluginEnum.MOTAN.getName(), metaDataDTO.getRuleName());
         }
     }
 

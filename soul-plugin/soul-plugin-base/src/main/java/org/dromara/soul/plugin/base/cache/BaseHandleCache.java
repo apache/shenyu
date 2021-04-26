@@ -46,7 +46,7 @@ public abstract class BaseHandleCache<K, V> implements HandleCache<K, V> {
 
     @Override
     public void removeHandle(final K key) {
-        Optional.ofNullable(key).ifPresent(k -> cached.remove(k));
+        Optional.ofNullable(key).ifPresent(cached::remove);
     }
 }
 
