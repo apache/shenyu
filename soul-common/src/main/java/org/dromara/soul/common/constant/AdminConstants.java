@@ -99,4 +99,14 @@ public final class AdminConstants {
      */
     public static final String ADMIN_NAME = "admin";
 
+    /**
+     * The constant selector data type.
+     */
+    public static final Integer SELECTOR_DATA_TYPE = 0;
+
+    /**
+     * the constant rule data type.
+     */
+    public static final Integer RULE_DATA_TYPE = 1;
+
 }

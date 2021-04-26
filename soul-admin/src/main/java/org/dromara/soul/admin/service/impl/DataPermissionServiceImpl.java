@@ -80,6 +80,16 @@ public class DataPermissionServiceImpl implements DataPermissionService {
         return dataPermissionMapper.listByUserId(userId);
     }
 
+    /**
+     * get data permission by user id.
+     *
+     * @param userId user id
+     * @return List
+     */
+    @Override
+    public List<String> getDataPermission(final String userId) {
+        return getUserDataPermissionList(userId).stream().map(DataPermissionDO::getDataId).collect(Collectors.toList());
+    }
 
     /**
      * Create data permissions.

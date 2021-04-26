@@ -21,8 +21,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.interceptor.annotation.DataPermission;
 import org.dromara.soul.admin.mapper.DataPermissionMapper;
+import org.dromara.soul.admin.model.dto.DataPermissionDTO;
 import org.dromara.soul.admin.model.dto.SelectorConditionDTO;
 import org.dromara.soul.admin.model.dto.SelectorDTO;
+import org.dromara.soul.admin.model.entity.DataPermissionDO;
 import org.dromara.soul.admin.model.entity.PluginDO;
 import org.dromara.soul.admin.model.entity.RuleDO;
 import org.dromara.soul.admin.model.entity.SelectorConditionDO;
@@ -43,6 +45,7 @@ import org.dromara.soul.admin.service.SelectorService;
 import org.dromara.soul.admin.transfer.ConditionTransfer;
 import org.dromara.soul.admin.model.vo.SelectorConditionVO;
 import org.dromara.soul.admin.model.vo.SelectorVO;
+import org.dromara.soul.admin.utils.JwtUtils;
 import org.dromara.soul.common.constant.AdminConstants;
 import org.dromara.soul.common.dto.ConditionData;
 import org.dromara.soul.common.dto.SelectorData;
@@ -139,6 +142,15 @@ public class SelectorServiceImpl implements SelectorService {
                 selectorConditionDTO.setSelectorId(selectorDO.getId());
                 selectorConditionMapper.insertSelective(SelectorConditionDO.buildSelectorConditionDO(selectorConditionDTO));
             });
+            // check selector add
+            if (dataPermissionMapper.listByUserId(JwtUtils.getUserId()).size() > 0) {
+                DataPermissionDTO dataPermissionDTO = new DataPermissionDTO();
+                dataPermissionDTO.setUserId(JwtUtils.getUserId());
+                dataPermissionDTO.setDataId(selectorDO.getId());
+                dataPermissionDTO.setDataType(AdminConstants.SELECTOR_DATA_TYPE);
+                dataPermissionMapper.insertSelective(DataPermissionDO.buildPermissionDO(dataPermissionDTO));
+            }
+
         } else {
             selectorCount = selectorMapper.updateSelective(selectorDO);
             //delete rule condition then add

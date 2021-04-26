@@ -20,8 +20,10 @@ package org.dromara.soul.admin.service.impl;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.interceptor.annotation.DataPermission;
 import org.dromara.soul.admin.mapper.DataPermissionMapper;
+import org.dromara.soul.admin.model.dto.DataPermissionDTO;
 import org.dromara.soul.admin.model.dto.RuleConditionDTO;
 import org.dromara.soul.admin.model.dto.RuleDTO;
+import org.dromara.soul.admin.model.entity.DataPermissionDO;
 import org.dromara.soul.admin.model.entity.PluginDO;
 import org.dromara.soul.admin.model.entity.RuleConditionDO;
 import org.dromara.soul.admin.model.entity.RuleDO;
@@ -39,6 +41,7 @@ import org.dromara.soul.admin.service.RuleService;
 import org.dromara.soul.admin.transfer.ConditionTransfer;
 import org.dromara.soul.admin.model.vo.RuleConditionVO;
 import org.dromara.soul.admin.model.vo.RuleVO;
+import org.dromara.soul.admin.utils.JwtUtils;
 import org.dromara.soul.common.constant.AdminConstants;
 import org.dromara.soul.common.dto.ConditionData;
 import org.dromara.soul.common.dto.RuleData;
@@ -119,6 +122,13 @@ public class RuleServiceImpl implements RuleService {
         List<RuleConditionDTO> ruleConditions = ruleDTO.getRuleConditions();
         if (StringUtils.isEmpty(ruleDTO.getId())) {
             ruleCount = ruleMapper.insertSelective(ruleDO);
+            if (dataPermissionMapper.listByUserId(JwtUtils.getUserId()).size() > 0) {
+                DataPermissionDTO dataPermissionDTO = new DataPermissionDTO();
+                dataPermissionDTO.setUserId(JwtUtils.getUserId());
+                dataPermissionDTO.setDataId(ruleDO.getId());
+                dataPermissionDTO.setDataType(AdminConstants.RULE_DATA_TYPE);
+                dataPermissionMapper.insertSelective(DataPermissionDO.buildPermissionDO(dataPermissionDTO));
+            }
             ruleConditions.forEach(ruleConditionDTO -> {
                 ruleConditionDTO.setRuleId(ruleDO.getId());
                 ruleConditionMapper.insertSelective(RuleConditionDO.buildRuleConditionDO(ruleConditionDTO));

@@ -24,7 +24,6 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.dromara.soul.admin.interceptor.annotation.DataPermission;
-import org.dromara.soul.admin.model.entity.DataPermissionDO;
 import org.dromara.soul.admin.model.query.RuleQuery;
 import org.dromara.soul.admin.model.query.SelectorQuery;
 import org.dromara.soul.admin.service.DataPermissionService;
@@ -33,7 +32,6 @@ import org.dromara.soul.common.constant.AdminConstants;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * data permission aop interceptor.
@@ -77,7 +75,7 @@ public class DataPermissionInterceptor {
      */
     private Object[] getFilterSQLData(final ProceedingJoinPoint point) {
         Object[] args = point.getArgs();
-        List<String> dataPermissionList = getDataPermission(JwtUtils.getUserId());
+        List<String> dataPermissionList = dataPermissionService.getDataPermission(JwtUtils.getUserId());
         if (dataPermissionList.size() > 0) {
             DataPermission dataPermission = ((MethodSignature) point.getSignature()).getMethod().getAnnotation(DataPermission.class);
             if (dataPermission != null && args != null) {
@@ -93,15 +91,5 @@ public class DataPermissionInterceptor {
             }
         }
         return args;
-    }
-
-    /**
-     * Determine whether the user has opened data permissions.
-     *
-     * @param userId user id
-     * @return true or false {@link Boolean}
-     */
-    private List<String> getDataPermission(final String userId) {
-        return dataPermissionService.getUserDataPermissionList(userId).stream().map(DataPermissionDO::getDataId).collect(Collectors.toList());
     }
 }

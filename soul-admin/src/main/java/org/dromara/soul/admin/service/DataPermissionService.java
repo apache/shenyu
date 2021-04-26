@@ -41,6 +41,14 @@ public interface DataPermissionService {
     List<DataPermissionDO> getUserDataPermissionList(String userId);
 
     /**
+     * get user data permission.
+     *
+     * @param userId
+     * @return
+     */
+    List<String> getDataPermission(String userId);
+
+    /**
      * Create selector data permission.
      * @param dataPermissionDTO {@linkplain DataPermissionDTO}
      * @return int
