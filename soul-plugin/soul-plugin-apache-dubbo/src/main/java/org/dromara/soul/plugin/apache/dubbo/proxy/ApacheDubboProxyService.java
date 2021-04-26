@@ -28,16 +28,13 @@ import org.apache.dubbo.rpc.service.GenericException;
 import org.apache.dubbo.rpc.service.GenericService;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.MetaData;
-import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.exception.SoulException;
 import org.dromara.soul.common.utils.ParamCheckUtils;
 import org.dromara.soul.plugin.apache.dubbo.cache.ApplicationConfigCache;
 import org.dromara.soul.plugin.api.param.BodyParamResolveService;
 import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
 
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * dubbo proxy service is  use GenericService.
@@ -67,7 +64,7 @@ public class ApacheDubboProxyService {
      * @return the object
      * @throws SoulException the soul exception
      */
-    public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws SoulException {
+    public Object genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws SoulException {
         // issue(https://github.com/dromara/soul/issues/471), add dubbo tag route
         String dubboTagRouteFromHttpHeaders = exchange.getRequest().getHeaders().getFirst(Constants.DUBBO_TAG_ROUTE);
         if (StringUtils.isNotBlank(dubboTagRouteFromHttpHeaders)) {
@@ -79,20 +76,17 @@ public class ApacheDubboProxyService {
             reference = ApplicationConfigCache.getInstance().initRef(metaData);
         }
         GenericService genericService = reference.get();
-        Pair<String[], Object[]> pair;
-        if (ParamCheckUtils.dubboBodyIsEmpty(body)) {
-            pair = new ImmutablePair<>(new String[]{}, new Object[]{});
-        } else {
-            pair = bodyParamResolveService.buildParameter(body, metaData.getParameterTypes());
-        }
-        CompletableFuture<Object> future = genericService.$invokeAsync(metaData.getMethodName(), pair.getLeft(), pair.getRight());
-        return Mono.fromFuture(future.thenApply(ret -> {
-            if (Objects.isNull(ret)) {
-                ret = Constants.DUBBO_RPC_RESULT_EMPTY;
+        try {
+            Pair<String[], Object[]> pair;
+            if (ParamCheckUtils.dubboBodyIsEmpty(body)) {
+                pair = new ImmutablePair<>(new String[]{}, new Object[]{});
+            } else {
+                pair = bodyParamResolveService.buildParameter(body, metaData.getParameterTypes());
             }
-            exchange.getAttributes().put(Constants.DUBBO_RPC_RESULT, ret);
-            exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
-            return ret;
-        })).onErrorMap(exception -> exception instanceof GenericException ? new SoulException(((GenericException) exception).getExceptionMessage()) : new SoulException(exception));
+            return genericService.$invoke(metaData.getMethodName(), pair.getLeft(), pair.getRight());
+        } catch (GenericException e) {
+            log.error("dubbo invoker have exception", e);
+            throw new SoulException(e.getExceptionMessage());
+        }
     }
 }

@@ -24,6 +24,7 @@ import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.enums.PluginEnum;
+import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.plugin.apache.dubbo.proxy.ApacheDubboProxyService;
 import org.dromara.soul.plugin.api.SoulPluginChain;
@@ -76,8 +77,14 @@ public class ApacheDubboPlugin extends AbstractSoulPlugin {
             Object error = SoulResultWrap.error(SoulResultEnum.DUBBO_HAVE_BODY_PARAM.getCode(), SoulResultEnum.DUBBO_HAVE_BODY_PARAM.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
-        final Mono<Object> result = dubboProxyService.genericInvoker(param, metaData, exchange);
-        return result.then(chain.execute(exchange));
+        final Object result = dubboProxyService.genericInvoker(param, metaData, exchange);
+        if (Objects.nonNull(result)) {
+            exchange.getAttributes().put(Constants.DUBBO_RPC_RESULT, result);
+        } else {
+            exchange.getAttributes().put(Constants.DUBBO_RPC_RESULT, Constants.DUBBO_RPC_RESULT_EMPTY);
+        }
+        exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
+        return chain.execute(exchange);
     }
 
     /**
