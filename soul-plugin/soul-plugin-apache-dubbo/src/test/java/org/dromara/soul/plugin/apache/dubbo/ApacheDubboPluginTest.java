@@ -26,6 +26,7 @@ import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.plugin.apache.dubbo.proxy.ApacheDubboProxyService;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,7 +36,6 @@ import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -73,7 +73,7 @@ public final class ApacheDubboPluginTest {
         apacheDubboPlugin = new ApacheDubboPlugin(apacheDubboProxyService);
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void doExecute() {
         SoulContext context = mock(SoulContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, context);
@@ -82,7 +82,8 @@ public final class ApacheDubboPluginTest {
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         SelectorData selectorData = mock(SelectorData.class);
         RuleData data = mock(RuleData.class);
-        StepVerifier.create(apacheDubboPlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
+        apacheDubboPlugin.doExecute(exchange, chain, selectorData, data);
+        Assert.assertEquals(exchange.getAttributes().get(Constants.DUBBO_RPC_RESULT), Constants.DUBBO_RPC_RESULT_EMPTY);
     }
 
     @Test(expected = NullPointerException.class)
@@ -93,7 +94,7 @@ public final class ApacheDubboPluginTest {
         exchange.getAttributes().put(Constants.META_DATA, metaData);
         SelectorData selectorData = mock(SelectorData.class);
         RuleData data = mock(RuleData.class);
-        StepVerifier.create(apacheDubboPlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
+        apacheDubboPlugin.doExecute(exchange, chain, selectorData, data);
     }
 
     @Test(expected = NullPointerException.class)
@@ -111,7 +112,7 @@ public final class ApacheDubboPluginTest {
         exchange.getAttributes().put(Constants.META_DATA, metaData);
         SelectorData selectorData = mock(SelectorData.class);
         RuleData data = mock(RuleData.class);
-        StepVerifier.create(apacheDubboPlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
+        apacheDubboPlugin.doExecute(exchange, chain, selectorData, data);
     }
 
     @Test

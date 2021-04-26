@@ -27,6 +27,7 @@ import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.plugin.apache.dubbo.cache.ApplicationConfigCache;
 import org.dromara.soul.plugin.api.param.BodyParamResolveService;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,7 +37,6 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.lang.reflect.Field;
-import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -83,15 +83,14 @@ public final class ApacheDubboProxyServiceTest {
         GenericService genericService = mock(GenericService.class);
         when(referenceConfig.get()).thenReturn(genericService);
         when(referenceConfig.getInterface()).thenReturn(PATH);
-        CompletableFuture<Object> future = new CompletableFuture<>();
-        when(genericService.$invokeAsync(METHOD_NAME, LEFT, RIGHT)).thenReturn(future);
+        when(genericService.$invoke(METHOD_NAME, LEFT, RIGHT)).thenReturn("success");
         ApplicationConfigCache applicationConfigCache = ApplicationConfigCache.getInstance();
         Field field = ApplicationConfigCache.class.getDeclaredField("cache");
         field.setAccessible(true);
         ((LoadingCache) field.get(applicationConfigCache)).put(PATH, referenceConfig);
         ApacheDubboProxyService apacheDubboProxyService = new ApacheDubboProxyService(new BodyParamResolveServiceImpl());
-        apacheDubboProxyService.genericInvoker("", metaData, exchange);
-        future.complete("success");
+        Object result = apacheDubboProxyService.genericInvoker("", metaData, exchange);
+        Assert.assertEquals(result, "success");
     }
 
     static class BodyParamResolveServiceImpl implements BodyParamResolveService {
