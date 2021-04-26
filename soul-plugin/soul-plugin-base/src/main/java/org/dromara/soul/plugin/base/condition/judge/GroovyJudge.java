@@ -27,6 +27,6 @@ public class GroovyJudge implements OperatorJudge {
     
     @Override
     public Boolean judge(final ConditionData conditionData, final String realData) {
-        return (Boolean) Eval.me(conditionData.getParamValue().replace(conditionData.getParamName(), realData));
+        return (Boolean) Eval.me(conditionData.getParamName(), realData, conditionData.getParamValue());
     }
 }
