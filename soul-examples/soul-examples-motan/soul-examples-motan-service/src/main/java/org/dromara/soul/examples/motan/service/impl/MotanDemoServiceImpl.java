@@ -18,6 +18,7 @@
 package org.dromara.soul.examples.motan.service.impl;
 
 import com.weibo.api.motan.config.springsupport.annotation.MotanService;
+import org.dromara.soul.client.motan.common.annotation.SoulMotanClient;
 import org.dromara.soul.examples.motan.service.MotanDemoService;
 
 /**
@@ -28,6 +29,7 @@ import org.dromara.soul.examples.motan.service.MotanDemoService;
 @MotanService(export = "demoMotan:8002")
 public class MotanDemoServiceImpl implements MotanDemoService {
     @Override
+    @SoulMotanClient(path = "/hello")
     public String hello(String name) {
         return "hello " + name;
     }

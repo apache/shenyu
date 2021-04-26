@@ -59,7 +59,7 @@ public class TestMotanApplication {
     public ProtocolConfigBean protocolConfig1() {
         ProtocolConfigBean config = new ProtocolConfigBean();
         config.setDefault(true);
-        config.setName("motan");
+        config.setName("motan2");
         config.setMaxContentLength(1048576);
         return config;
     }
@@ -72,11 +72,11 @@ public class TestMotanApplication {
         return config;
     }
 
-    @Bean
+    @Bean(name = "baseServiceConfig")
     public BasicServiceConfigBean baseServiceConfig() {
         BasicServiceConfigBean config = new BasicServiceConfigBean();
         config.setExport("demoMotan:8002");
-        config.setGroup("testgroup");
+        config.setGroup("motan-soul-rpc");
         config.setAccessLog(false);
         config.setShareChannel(true);
         config.setModule("motan-demo-rpc");

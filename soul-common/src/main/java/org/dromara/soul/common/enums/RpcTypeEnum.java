@@ -67,7 +67,7 @@ public enum RpcTypeEnum {
     /**
      * motan.
      */
-    MOTAN("motan", false),
+    MOTAN("motan", true),
 
     /**
      * grpc.
