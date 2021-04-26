@@ -50,6 +50,11 @@ public enum RegisterTypeEnum {
     TARS("tars"),
 
     /**
+     * Motan rpc type enum.
+     */
+    MOTAN("motan"),
+
+    /**
      * springCloud rpc type enum.
      */
     SPRING_CLOUD("springCloud"),
