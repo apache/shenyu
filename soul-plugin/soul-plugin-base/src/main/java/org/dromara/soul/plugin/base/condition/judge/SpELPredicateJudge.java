@@ -23,9 +23,9 @@ import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
- * SpEL Judge.
+ * SpEL predicate judge.
  */
-public class SpELJudge implements OperatorJudge {
+public class SpELPredicateJudge implements PredicateJudge {
     
     private static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
     

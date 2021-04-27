@@ -20,20 +20,14 @@ package org.dromara.soul.plugin.base.condition.judge;
 import org.dromara.soul.common.dto.ConditionData;
 
 /**
- * this is operator Judge.
+ * Contains predicate judge.
  *
  * @author xiaoyu(Myth)
  */
-@FunctionalInterface
-public interface OperatorJudge {
+public class ContainsPredicateJudge implements PredicateJudge {
 
-    /**
-     * judge conditionData and realData is match.
-     *
-     * @param conditionData {@linkplain ConditionData}
-     * @param realData       realData
-     * @return true is pass  false is not pass.
-     */
-    Boolean judge(ConditionData conditionData, String realData);
-
+    @Override
+    public Boolean judge(final ConditionData conditionData, final String realData) {
+        return realData.contains(conditionData.getParamValue().trim());
+    }
 }

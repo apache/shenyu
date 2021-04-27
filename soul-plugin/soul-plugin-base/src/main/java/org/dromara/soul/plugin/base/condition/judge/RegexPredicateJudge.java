@@ -22,11 +22,11 @@ import org.dromara.soul.common.dto.ConditionData;
 import java.util.regex.Pattern;
 
 /**
- * The type Reg ex operator judge.
+ * Regex predicate judge.
  *
  * @author xiaoyu(Myth)
  */
-public class RegExOperatorJudge implements OperatorJudge {
+public class RegexPredicateJudge implements PredicateJudge {
 
     @Override
     public Boolean judge(final ConditionData conditionData, final String realData) {
