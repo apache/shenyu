@@ -19,21 +19,17 @@ package org.dromara.soul.plugin.base.condition.judge;
 
 import org.dromara.soul.common.dto.ConditionData;
 
+import java.util.regex.Pattern;
+
 /**
- * this is operator Judge.
+ * Regex predicate judge.
  *
  * @author xiaoyu(Myth)
  */
-@FunctionalInterface
-public interface OperatorJudge {
+public class RegexPredicateJudge implements PredicateJudge {
 
-    /**
-     * judge conditionData and realData is match.
-     *
-     * @param conditionData {@linkplain ConditionData}
-     * @param realData       realData
-     * @return true is pass  false is not pass.
-     */
-    Boolean judge(ConditionData conditionData, String realData);
-
+    @Override
+    public Boolean judge(final ConditionData conditionData, final String realData) {
+        return Pattern.matches(conditionData.getParamValue(), realData);
+    }
 }
