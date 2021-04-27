@@ -42,7 +42,7 @@ public final class OperatorEnumTest {
         assertTrue(enums.contains(OperatorEnum.MATCH));
         assertTrue(enums.contains(OperatorEnum.EQ));
         assertTrue(enums.contains(OperatorEnum.REGEX));
-        assertTrue(enums.contains(OperatorEnum.LIKE));
+        assertTrue(enums.contains(OperatorEnum.CONTAINS));
         assertFalse(enums.contains(OperatorEnum.GT));
         assertFalse(enums.contains(OperatorEnum.LT));
     }
@@ -55,7 +55,7 @@ public final class OperatorEnumTest {
         assertEquals(OperatorEnum.MATCH, OperatorEnum.getOperatorEnumByAlias("match"));
         assertEquals(OperatorEnum.EQ, OperatorEnum.getOperatorEnumByAlias("="));
         assertEquals(OperatorEnum.REGEX, OperatorEnum.getOperatorEnumByAlias("regEx"));
-        assertEquals(OperatorEnum.LIKE, OperatorEnum.getOperatorEnumByAlias("like"));
+        assertEquals(OperatorEnum.CONTAINS, OperatorEnum.getOperatorEnumByAlias("contains"));
     }
 
     /**

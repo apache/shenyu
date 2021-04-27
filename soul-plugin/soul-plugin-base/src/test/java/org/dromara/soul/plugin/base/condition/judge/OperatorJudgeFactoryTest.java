@@ -77,8 +77,8 @@ public final class OperatorJudgeFactoryTest {
     }
 
     @Test
-    public void testLikeJudge() {
-        conditionData.setOperator(OperatorEnum.LIKE.getAlias());
+    public void testContainsJudge() {
+        conditionData.setOperator(OperatorEnum.CONTAINS.getAlias());
         Assert.assertTrue(OperatorJudgeFactory.judge(conditionData, "/http/**/test"));
         Assert.assertTrue(OperatorJudgeFactory.judge(conditionData, "/test/http/**"));
         Assert.assertFalse(OperatorJudgeFactory.judge(conditionData, "/http1/**"));
