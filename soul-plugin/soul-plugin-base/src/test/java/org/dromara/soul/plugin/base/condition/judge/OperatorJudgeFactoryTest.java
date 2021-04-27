@@ -77,8 +77,8 @@ public final class OperatorJudgeFactoryTest {
     }
 
     @Test
-    public void testLikeJudge() {
-        conditionData.setOperator(OperatorEnum.LIKE.getAlias());
+    public void testContainsJudge() {
+        conditionData.setOperator(OperatorEnum.CONTAINS.getAlias());
         Assert.assertTrue(OperatorJudgeFactory.judge(conditionData, "/http/**/test"));
         Assert.assertTrue(OperatorJudgeFactory.judge(conditionData, "/test/http/**"));
         Assert.assertFalse(OperatorJudgeFactory.judge(conditionData, "/http1/**"));
@@ -127,6 +127,15 @@ public final class OperatorJudgeFactoryTest {
         conditionData.setParamValue(MAX_TIME);
         Assert.assertTrue(OperatorJudgeFactory.judge(conditionData, FIRST_TIME));
         Assert.assertFalse(OperatorJudgeFactory.judge(conditionData, MAX_TIME));
+    }
+
+    @Test
+    public void testTimerAfterOperatorJudge() {
+        conditionData.setOperator(OperatorEnum.TIME_AFTER.getAlias());
+        conditionData.setParamValue(FIRST_TIME);
+        Assert.assertTrue(OperatorJudgeFactory.judge(conditionData, FIRST_TIME));
+        conditionData.setParamValue(MAX_TIME);
+        Assert.assertFalse(OperatorJudgeFactory.judge(conditionData, FIRST_TIME));
     }
 
 }

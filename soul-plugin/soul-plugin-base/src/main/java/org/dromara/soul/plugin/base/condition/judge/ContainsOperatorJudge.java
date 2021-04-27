@@ -20,11 +20,11 @@ package org.dromara.soul.plugin.base.condition.judge;
 import org.dromara.soul.common.dto.ConditionData;
 
 /**
- * this is like impl.
+ * this is contains impl.
  *
  * @author xiaoyu(Myth)
  */
-public class LikeOperatorJudge implements OperatorJudge {
+public class ContainsOperatorJudge implements OperatorJudge {
 
     @Override
     public Boolean judge(final ConditionData conditionData, final String realData) {

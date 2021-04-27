@@ -37,7 +37,7 @@ public class OperatorJudgeFactory {
     static {
         OPERATOR_JUDGE_MAP.put(OperatorEnum.EQ.getAlias(), new EqOperatorJudge());
         OPERATOR_JUDGE_MAP.put(OperatorEnum.MATCH.getAlias(), new MatchOperatorJudge());
-        OPERATOR_JUDGE_MAP.put(OperatorEnum.LIKE.getAlias(), new LikeOperatorJudge());
+        OPERATOR_JUDGE_MAP.put(OperatorEnum.CONTAINS.getAlias(), new ContainsOperatorJudge());
         OPERATOR_JUDGE_MAP.put(OperatorEnum.REGEX.getAlias(), new RegExOperatorJudge());
         OPERATOR_JUDGE_MAP.put(OperatorEnum.SPEL.getAlias(), new SpELJudge());
         OPERATOR_JUDGE_MAP.put(OperatorEnum.GROOVY.getAlias(), new GroovyJudge());
