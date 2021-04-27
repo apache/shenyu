@@ -18,7 +18,6 @@
 package org.dromara.soul.admin.service.impl;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.mapper.DataPermissionMapper;
 import org.dromara.soul.admin.mapper.RuleMapper;
 import org.dromara.soul.admin.mapper.SelectorMapper;
@@ -74,9 +73,6 @@ public class DataPermissionServiceImpl implements DataPermissionService {
      */
     @Override
     public List<DataPermissionDO> getUserDataPermissionList(final String userId) {
-        if (StringUtils.isBlank(userId)) {
-            return null;
-        }
         return dataPermissionMapper.listByUserId(userId);
     }
 

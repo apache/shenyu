@@ -43,8 +43,8 @@ public interface DataPermissionService {
     /**
      * get user data permission.
      *
-     * @param userId
-     * @return
+     * @param userId user id
+     * @return List of {@link String}
      */
     List<String> getDataPermission(String userId);
 
