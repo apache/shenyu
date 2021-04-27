@@ -130,9 +130,8 @@ public final class OperatorJudgeFactoryTest {
     }
 
     @Test
-    public void testTimerAfterOperatorJudge(){
+    public void testTimerAfterOperatorJudge() {
         conditionData.setOperator(OperatorEnum.TIME_AFTER.getAlias());
-        //Because the realData can't be empty, so the realDate must fill in the values
         conditionData.setParamValue(FIRST_TIME);
         Assert.assertTrue(OperatorJudgeFactory.judge(conditionData, FIRST_TIME));
         conditionData.setParamValue(MAX_TIME);
