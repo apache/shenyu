@@ -129,4 +129,13 @@ public final class OperatorJudgeFactoryTest {
         Assert.assertFalse(OperatorJudgeFactory.judge(conditionData, MAX_TIME));
     }
 
+    @Test
+    public void testTimerAfterOperatorJudge() {
+        conditionData.setOperator(OperatorEnum.TIME_AFTER.getAlias());
+        conditionData.setParamValue(FIRST_TIME);
+        Assert.assertTrue(OperatorJudgeFactory.judge(conditionData, FIRST_TIME));
+        conditionData.setParamValue(MAX_TIME);
+        Assert.assertFalse(OperatorJudgeFactory.judge(conditionData, FIRST_TIME));
+    }
+
 }
