@@ -24,7 +24,9 @@ import org.dromara.soul.admin.model.query.SelectorQuery;
 import org.dromara.soul.admin.model.result.SoulAdminResult;
 import org.dromara.soul.admin.model.vo.SelectorVO;
 import org.dromara.soul.admin.service.SelectorService;
+import org.dromara.soul.admin.utils.JwtUtils;
 import org.dromara.soul.admin.utils.SoulResultMessage;
+import org.dromara.soul.common.exception.CommonErrorCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,6 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * this is selector controller.
@@ -64,8 +67,11 @@ public class SelectorController {
      */
     @GetMapping("")
     public SoulAdminResult querySelectors(final String pluginId, final Integer currentPage, final Integer pageSize) {
-        CommonPager<SelectorVO> commonPager = selectorService.listByPage(new SelectorQuery(pluginId, null, new PageParameter(currentPage, pageSize)));
-        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
+        return Optional.ofNullable(JwtUtils.getUserId()).map(item -> {
+            CommonPager<SelectorVO> commonPager = selectorService.listByPage(new SelectorQuery(pluginId, null, new PageParameter(currentPage, pageSize)));
+            return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
+        }).orElse(SoulAdminResult.error(CommonErrorCode.USER_INFO_ERROR, SoulResultMessage.DASHBOARD_QUERY_ERROR));
+
     }
 
     /**
