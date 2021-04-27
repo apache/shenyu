@@ -100,7 +100,7 @@ public class NacosClientRegisterRepository implements SoulClientRegisterReposito
         instance.setIp(host);
         instance.setPort(port);
 
-        Map<String, String> metadataMap = new HashMap<>(1);
+        Map<String, String> metadataMap = new HashMap<>();
         metadataMap.put(Constants.CONTEXT_PATH, contextPath);
         metadataMap.put("uriMetadata", GsonUtils.getInstance().toJson(URIRegisterDTO.transForm(metadata)));
         instance.setMetadata(metadataMap);

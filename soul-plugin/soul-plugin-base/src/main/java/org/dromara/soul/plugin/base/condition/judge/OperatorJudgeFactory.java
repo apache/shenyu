@@ -32,14 +32,17 @@ import java.util.Objects;
  */
 public class OperatorJudgeFactory {
 
-    private static final Map<String, OperatorJudge> OPERATOR_JUDGE_MAP = Maps.newHashMapWithExpectedSize(4);
+    private static final Map<String, OperatorJudge> OPERATOR_JUDGE_MAP = Maps.newHashMapWithExpectedSize(16);
 
     static {
         OPERATOR_JUDGE_MAP.put(OperatorEnum.EQ.getAlias(), new EqOperatorJudge());
         OPERATOR_JUDGE_MAP.put(OperatorEnum.MATCH.getAlias(), new MatchOperatorJudge());
-        OPERATOR_JUDGE_MAP.put(OperatorEnum.LIKE.getAlias(), new LikeOperatorJudge());
-        OPERATOR_JUDGE_MAP.put(OperatorEnum.REGEX.getAlias(), new RegExOperatorJudge());
+        OPERATOR_JUDGE_MAP.put(OperatorEnum.CONTAINS.getAlias(), new ContainsOperatorJudge());
+        OPERATOR_JUDGE_MAP.put(OperatorEnum.REGEX.getAlias(), new RegexOperatorJudge());
         OPERATOR_JUDGE_MAP.put(OperatorEnum.SPEL.getAlias(), new SpELJudge());
+        OPERATOR_JUDGE_MAP.put(OperatorEnum.GROOVY.getAlias(), new GroovyJudge());
+        OPERATOR_JUDGE_MAP.put(OperatorEnum.TIME_BEFORE.getAlias(), new TimerBeforeOperatorJudge());
+        OPERATOR_JUDGE_MAP.put(OperatorEnum.TIME_AFTER.getAlias(), new TimerAfterOperatorJudge());
     }
 
     /**

@@ -18,18 +18,15 @@
 package org.dromara.soul.plugin.base.condition.judge;
 
 import org.dromara.soul.common.dto.ConditionData;
-
-import java.util.regex.Pattern;
+import groovy.util.Eval;
 
 /**
- * The type Reg ex operator judge.
- *
- * @author xiaoyu(Myth)
+ * Groovy Judge.
  */
-public class RegExOperatorJudge implements OperatorJudge {
-
+public class GroovyJudge implements OperatorJudge {
+    
     @Override
     public Boolean judge(final ConditionData conditionData, final String realData) {
-        return Pattern.matches(conditionData.getParamValue(), realData);
+        return (Boolean) Eval.me(conditionData.getParamName(), realData, conditionData.getParamValue());
     }
 }

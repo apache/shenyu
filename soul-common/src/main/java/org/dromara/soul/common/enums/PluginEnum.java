@@ -123,6 +123,11 @@ public enum PluginEnum {
     GRPC(60, 0, "grpc"),
 
     /**
+     * Motan plugin enum.
+     */
+    MOTAN(60, 0, "motan"),
+
+    /**
      * Monitor plugin enum.
      */
     MONITOR(80, 0, "monitor"),

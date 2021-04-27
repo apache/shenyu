@@ -15,19 +15,38 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.base.condition.judge;
+package org.dromara.soul.admin.config.properties;
 
-import org.dromara.soul.common.dto.ConditionData;
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * this is like impl.
+ * Ldap properties.
  *
- * @author xiaoyu(Myth)
- */
-public class LikeOperatorJudge implements OperatorJudge {
+ * @author Naah
+ **/
+@Data
+@ConfigurationProperties(prefix = "soul.ldap")
+public class LdapProperties {
 
-    @Override
-    public Boolean judge(final ConditionData conditionData, final String realData) {
-        return realData.contains(conditionData.getParamValue().trim());
-    }
+    /**
+     * default: true.
+     */
+    private boolean enabled = true;
+
+    private String url;
+
+    private String bindDn;
+
+    private String password;
+
+    private String baseDn;
+
+    private String objectClass = "person";
+
+    private String loginField = "cn";
+
+    private Integer connectTimeout = 3000;
+
+    private Integer readTimeout = 3000;
 }

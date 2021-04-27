@@ -18,11 +18,16 @@
 package org.dromara.soul.plugin.waf.handler;
 
 import org.dromara.soul.common.dto.PluginData;
+import org.dromara.soul.common.dto.RuleData;
+import org.dromara.soul.common.dto.convert.WafHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.plugin.base.utils.Singleton;
+import org.dromara.soul.plugin.waf.cache.WafRuleHandleCache;
 import org.dromara.soul.plugin.waf.config.WafConfig;
+
+import java.util.Optional;
 
 /**
  * The type Waf plugin data handler.
@@ -30,13 +35,38 @@ import org.dromara.soul.plugin.waf.config.WafConfig;
  * @author xiaoyu
  */
 public class WafPluginDataHandler implements PluginDataHandler {
-    
+
     @Override
     public void handlerPlugin(final PluginData pluginData) {
         WafConfig wafConfig = GsonUtils.getInstance().fromJson(pluginData.getConfig(), WafConfig.class);
         Singleton.INST.single(WafConfig.class, wafConfig);
     }
-    
+
+    @Override
+    public void handlerRule(final RuleData ruleData) {
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
+            final WafHandle wafHandle = GsonUtils.getInstance().fromJson(s, WafHandle.class);
+            WafRuleHandleCache.getInstance().cachedHandle(getCacheKeyName(ruleData), wafHandle);
+        });
+    }
+
+    @Override
+    public void removeRule(final RuleData ruleData) {
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
+            WafRuleHandleCache.getInstance().removeHandle(getCacheKeyName(ruleData));
+        });
+    }
+
+    /**
+     * return rule handle cache key name.
+     *
+     * @param ruleData ruleData
+     * @return string string
+     */
+    public static String getCacheKeyName(final RuleData ruleData) {
+        return ruleData.getSelectorId() + "_" + ruleData.getName();
+    }
+
     @Override
     public String pluginNamed() {
         return PluginEnum.WAF.getName();

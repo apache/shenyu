@@ -19,13 +19,14 @@ package org.dromara.soul.admin;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.ldap.LdapAutoConfiguration;
 
 /**
  * soul admin start.
  *
  * @author xiaoyu(Myth)
  */
-@SpringBootApplication
+@SpringBootApplication(exclude = {LdapAutoConfiguration.class})
 public class SoulAdminBootstrap {
 
     /**

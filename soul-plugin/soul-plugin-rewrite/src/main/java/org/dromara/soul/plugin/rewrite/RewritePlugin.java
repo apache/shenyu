@@ -25,10 +25,11 @@ import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.RewriteHandle;
 import org.dromara.soul.common.enums.PluginEnum;
 import org.dromara.soul.common.enums.RpcTypeEnum;
-import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
 import org.dromara.soul.plugin.api.context.SoulContext;
+import org.dromara.soul.plugin.rewrite.cache.RewriteRuleHandleCache;
+import org.dromara.soul.plugin.rewrite.handler.RewritePluginDataHandler;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -45,7 +46,8 @@ public class RewritePlugin extends AbstractSoulPlugin {
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
         String handle = rule.getHandle();
-        final RewriteHandle rewriteHandle = GsonUtils.getInstance().fromJson(handle, RewriteHandle.class);
+        final RewriteHandle rewriteHandle = RewriteRuleHandleCache.getInstance()
+                .obtainHandle(RewritePluginDataHandler.getCacheKeyName(rule));
         if (Objects.isNull(rewriteHandle) || StringUtils.isBlank(rewriteHandle.getRewriteURI())) {
             log.error("uri rewrite rule can not configuration：{}", handle);
             return chain.execute(exchange);
