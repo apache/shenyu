@@ -23,8 +23,12 @@ import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.dromara.soul.common.dto.RuleData;
+import org.dromara.soul.common.dto.convert.RateLimiterHandle;
+import org.dromara.soul.plugin.ratelimiter.cache.RatelimiterRuleHandleCache;
 import org.dromara.soul.plugin.ratelimiter.config.RateLimiterConfig;
 import org.dromara.soul.common.dto.PluginData;
 import org.dromara.soul.common.enums.PluginEnum;
@@ -73,6 +77,31 @@ public class RateLimiterPluginDataHandler implements PluginDataHandler {
                 Singleton.INST.single(RateLimiterConfig.class, rateLimiterConfig);
             }
         }
+    }
+
+    @Override
+    public void handlerRule(final RuleData ruleData) {
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
+            final RateLimiterHandle rateLimiterHandle = GsonUtils.getInstance().fromJson(s, RateLimiterHandle.class);
+            RatelimiterRuleHandleCache.getInstance().cachedHandle(getCacheKeyName(ruleData), rateLimiterHandle);
+        });
+    }
+
+    @Override
+    public void removeRule(final RuleData ruleData) {
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
+            RatelimiterRuleHandleCache.getInstance().removeHandle(getCacheKeyName(ruleData));
+        });
+    }
+
+    /**
+     * return rule handle cache key name.
+     *
+     * @param ruleData ruleData
+     * @return string string
+     */
+    public static String getCacheKeyName(final RuleData ruleData) {
+        return ruleData.getSelectorId() + "_" + ruleData.getName();
     }
 
     @Override

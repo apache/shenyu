@@ -58,6 +58,8 @@ public class MetadataExecutorSubscriber implements ExecutorTypeSubscriber<MetaDa
                 soulClientRegisterService.registerSpringCloud(metaDataRegisterDTO);
             } else if (metaDataRegisterDTO.getRpcType().equals(RpcTypeEnum.GRPC.getName())) {
                 soulClientRegisterService.registerGrpc(metaDataRegisterDTO);
+            } else if (metaDataRegisterDTO.getRpcType().equals(RpcTypeEnum.MOTAN.getName())) {
+                soulClientRegisterService.registerMotan(metaDataRegisterDTO);
             }
         }
     }

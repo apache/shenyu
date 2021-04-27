@@ -24,10 +24,14 @@ import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import org.dromara.soul.common.constant.Constants;
 import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
+import org.dromara.soul.common.dto.convert.Resilience4JHandle;
+import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.api.context.SoulContext;
+import org.dromara.soul.plugin.resilience4j.cache.Resilience4jRuleHandleCache;
 import org.dromara.soul.plugin.resilience4j.executor.CombinedExecutor;
 import org.dromara.soul.plugin.resilience4j.executor.RateLimiterExecutor;
+import org.dromara.soul.plugin.resilience4j.handler.Resilience4JHandler;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -55,7 +59,7 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 @RunWith(MockitoJUnitRunner.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public final class Resilience4JPluginTest {
-    
+
     private static final String HANDLER = "{\"limitForPeriod\":\"1\",\"limitRefreshPeriod\":\"2000\",\"timeoutDurationRate\":\"500\",\"circuitEnable\":\"0\","
             + "\"failureRateThreshold\":\"50\",\"fallbackUri\":\"\",\"minimumNumberOfCalls\":\"50\","
             + "\"permittedNumberOfCallsInHalfOpenState\":\"1\",\"slidingWindowSize\":\"100\",\"slidingWindowType\":\"0\","
@@ -71,7 +75,7 @@ public final class Resilience4JPluginTest {
     private RateLimiter rateLimiter;
 
     private CircuitBreaker circuitBreaker;
-    
+
     @Before
     public void setup() {
         rateLimiter = mock(RateLimiter.class, RETURNS_DEEP_STUBS);
@@ -85,6 +89,10 @@ public final class Resilience4JPluginTest {
     public void normalTest() {
         resilience4JPlugin = new Resilience4JPlugin(new CombinedExecutor(), new RateLimiterExecutor());
         RuleData data = mock(RuleData.class);
+        data.setSelectorId("SOUL");
+        data.setId("SOUL");
+        Resilience4JHandle resilience4JHandle = GsonUtils.getGson().fromJson(HANDLER, Resilience4JHandle.class);
+        Resilience4jRuleHandleCache.getInstance().cachedHandle(Resilience4JHandler.getResourceName(data), resilience4JHandle);
         when(data.getHandle()).thenReturn(HANDLER);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         SelectorData selectorData = mock(SelectorData.class);
@@ -94,6 +102,10 @@ public final class Resilience4JPluginTest {
     @Test
     public void rateLimiterTest() {
         RuleData data = mock(RuleData.class);
+        data.setSelectorId("SOUL");
+        data.setId("SOUL");
+        Resilience4JHandle resilience4JHandle = GsonUtils.getGson().fromJson(HANDLER, Resilience4JHandle.class);
+        Resilience4jRuleHandleCache.getInstance().cachedHandle(Resilience4JHandler.getResourceName(data), resilience4JHandle);
         CombinedExecutor combinedExecutor = mock(CombinedExecutor.class);
         resilience4JPlugin = new Resilience4JPlugin(combinedExecutor, new RateLimiterExecutor());
         Mono mono = Mono.error(RequestNotPermitted.createRequestNotPermitted(rateLimiter)).onErrorResume(Mono::error);
@@ -106,6 +118,10 @@ public final class Resilience4JPluginTest {
     @Test
     public void circuitBreakerTest() {
         RuleData data = mock(RuleData.class);
+        data.setSelectorId("SOUL");
+        data.setId("SOUL");
+        Resilience4JHandle resilience4JHandle = GsonUtils.getGson().fromJson(HANDLER, Resilience4JHandle.class);
+        Resilience4jRuleHandleCache.getInstance().cachedHandle(Resilience4JHandler.getResourceName(data), resilience4JHandle);
         CombinedExecutor combinedExecutor = new CombinedExecutor();
         resilience4JPlugin = new Resilience4JPlugin(combinedExecutor, new RateLimiterExecutor());
         Mono mono = Mono.error(CallNotPermittedException.createCallNotPermittedException(circuitBreaker)).onErrorResume(throwable -> {
@@ -118,6 +134,7 @@ public final class Resilience4JPluginTest {
         when(chain.execute(exchange)).thenReturn(mono);
         when(data.getSelectorId()).thenReturn("circuitBreaker");
         when(data.getName()).thenReturn("ruleData");
+        Resilience4jRuleHandleCache.getInstance().cachedHandle(Resilience4JHandler.getResourceName(data), resilience4JHandle);
         SelectorData selectorData = mock(SelectorData.class);
         StepVerifier.create(resilience4JPlugin.doExecute(exchange, chain, selectorData, data))
                 .expectSubscription()

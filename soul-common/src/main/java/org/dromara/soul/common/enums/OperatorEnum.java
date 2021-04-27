@@ -33,51 +33,70 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Getter
 public enum OperatorEnum {
-
+    
     /**
      * Match operator enum.
      */
     MATCH("match", true),
-
+    
     /**
      * Eq operator enum.
      */
     EQ("=", true),
-
+    
     /**
      * Regex operator enum.
      */
-    REGEX("regEx", true),
-
+    REGEX("regex", true),
+    
     /**
      * Gt operator enum.
      */
     GT(">", false),
-
+    
     /**
      * Lt operator enum.
      */
     LT("<", false),
-
+    
     /**
-     * Like operator enum.
+     * Contains operator enum.
      */
-    LIKE("like", true);
-
+    CONTAINS("contains", true),
+    
+    /**
+     * SpEL enum.
+     */
+    SPEL("SpEL", true),
+    
+    /**
+     * Groovy enum.
+     */
+    GROOVY("Groovy", true),
+    
+    /**
+     * Time before operator enum.
+     */
+    TIME_BEFORE("TimeBefore", true),
+    
+    /**
+     * Time after operator enum.
+     */
+    TIME_AFTER("TimeAfter", true);
+    
     private final String alias;
-
+    
     private final Boolean support;
-
+    
     /**
      * acquire operator supports.
      *
      * @return operator support.
      */
     public static List<OperatorEnum> acquireSupport() {
-        return Arrays.stream(OperatorEnum.values())
-                .filter(e -> e.support).collect(Collectors.toList());
+        return Arrays.stream(OperatorEnum.values()).filter(e -> e.support).collect(Collectors.toList());
     }
-
+    
     /**
      * get operator enum by alias.
      *
@@ -88,6 +107,5 @@ public enum OperatorEnum {
         return Arrays.stream(OperatorEnum.values())
                 .filter(e -> e.getAlias().equals(alias) && e.support).findFirst()
                 .orElseThrow(() -> new SoulException(String.format(" this  operator can not support %s ", alias)));
-
     }
 }

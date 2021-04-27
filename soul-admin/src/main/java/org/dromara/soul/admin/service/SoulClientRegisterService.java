@@ -75,6 +75,14 @@ public interface SoulClientRegisterService {
     String registerGrpc(MetaDataRegisterDTO metaDataRegisterDTO);
 
     /**
+     * Register motan string.
+     *
+     * @param metaDataRegisterDTO the meta data register dto
+     * @return the string
+     */
+    String registerMotan(MetaDataRegisterDTO metaDataRegisterDTO);
+
+    /**
      * mvc uri upstream update.
      * @param contextPath context paht
      * @param uriList uri list

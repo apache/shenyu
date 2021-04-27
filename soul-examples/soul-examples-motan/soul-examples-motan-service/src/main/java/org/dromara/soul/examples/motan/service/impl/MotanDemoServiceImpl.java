@@ -15,21 +15,22 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.base.condition.judge;
+package org.dromara.soul.examples.motan.service.impl;
 
-import org.dromara.soul.common.dto.ConditionData;
-
-import java.util.regex.Pattern;
+import com.weibo.api.motan.config.springsupport.annotation.MotanService;
+import org.dromara.soul.client.motan.common.annotation.SoulMotanClient;
+import org.dromara.soul.examples.motan.service.MotanDemoService;
 
 /**
- * The type Reg ex operator judge.
+ * Motan demo service.
  *
- * @author xiaoyu(Myth)
+ * @author tydhot
  */
-public class RegExOperatorJudge implements OperatorJudge {
-
+@MotanService(export = "demoMotan:8002")
+public class MotanDemoServiceImpl implements MotanDemoService {
     @Override
-    public Boolean judge(final ConditionData conditionData, final String realData) {
-        return Pattern.matches(conditionData.getParamValue(), realData);
+    @SoulMotanClient(path = "/hello")
+    public String hello(String name) {
+        return "hello " + name;
     }
 }

@@ -46,6 +46,7 @@
         <module>soul-examples-sofa</module>
         <module>soul-examples-tars</module>
         <module>soul-examples-grpc</module>
+        <module>soul-examples-motan</module>
     </modules>
 
     <build>
