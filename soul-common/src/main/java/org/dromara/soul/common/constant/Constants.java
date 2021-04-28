@@ -90,6 +90,21 @@ public interface Constants {
     String DUBBO_TAG_ROUTE = "Dubbo_Tag_Route";
 
     /**
+     * The constant DUBBO_REFRENCE_INVOKER.
+     */
+    String DUBBO_REFRENCE_INVOKER = "invoker";
+
+    /**
+     * The constant DUBBO_PROVIDER_VERSION.
+     */
+    String DUBBO_PROVIDER_VERSION = "release";
+
+    /**
+     * The constant DUBBO_PROVIDER_VERSION.
+     */
+    int DUBBO_SUPPORT_ASYNC_VERSION = 2070300;
+
+    /**
      * The constant SOFA_RPC_RESULT.
      */
     String SOFA_RPC_RESULT = "sofa_rpc_result";
