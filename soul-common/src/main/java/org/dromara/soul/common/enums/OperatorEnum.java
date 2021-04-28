@@ -47,7 +47,7 @@ public enum OperatorEnum {
     /**
      * Regex operator enum.
      */
-    REGEX("regEx", true),
+    REGEX("regex", true),
     
     /**
      * Gt operator enum.
@@ -60,9 +60,9 @@ public enum OperatorEnum {
     LT("<", false),
     
     /**
-     * Like operator enum.
+     * Contains operator enum.
      */
-    LIKE("like", true),
+    CONTAINS("contains", true),
     
     /**
      * SpEL enum.

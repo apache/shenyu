@@ -18,16 +18,24 @@
 package org.dromara.soul.plugin.base.condition.judge;
 
 import org.dromara.soul.common.dto.ConditionData;
+import org.dromara.soul.common.utils.DateUtils;
+import org.springframework.util.StringUtils;
+
+import java.time.LocalDateTime;
 
 /**
- * this is like impl.
+ * Timer before predicate judge.
  *
  * @author xiaoyu(Myth)
  */
-public class LikeOperatorJudge implements OperatorJudge {
+public class TimerBeforePredicateJudge implements PredicateJudge {
 
     @Override
     public Boolean judge(final ConditionData conditionData, final String realData) {
-        return realData.contains(conditionData.getParamValue().trim());
+        String paramName = conditionData.getParamName();
+        if (StringUtils.isEmpty(paramName)) {
+            return LocalDateTime.now().isBefore(DateUtils.parseLocalDateTime(conditionData.getParamValue()));
+        }
+        return DateUtils.parseLocalDateTime(realData).isBefore(DateUtils.parseLocalDateTime(conditionData.getParamValue()));
     }
 }

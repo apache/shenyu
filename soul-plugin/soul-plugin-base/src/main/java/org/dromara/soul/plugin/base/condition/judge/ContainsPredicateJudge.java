@@ -19,17 +19,15 @@ package org.dromara.soul.plugin.base.condition.judge;
 
 import org.dromara.soul.common.dto.ConditionData;
 
-import java.util.Objects;
-
 /**
- * this is eq impl.
+ * Contains predicate judge.
  *
  * @author xiaoyu(Myth)
  */
-public class EqOperatorJudge implements OperatorJudge {
+public class ContainsPredicateJudge implements PredicateJudge {
 
     @Override
     public Boolean judge(final ConditionData conditionData, final String realData) {
-        return Objects.equals(realData, conditionData.getParamValue().trim());
+        return realData.contains(conditionData.getParamValue().trim());
     }
 }

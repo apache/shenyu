@@ -17,12 +17,16 @@
 
 package org.dromara.soul.client.core.disruptor.subcriber;
 
+import org.dromara.soul.client.core.shutdown.SoulClientShutdownHook;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.dto.MetaDataRegisterDTO;
 import org.dromara.soul.register.common.subsriber.ExecutorTypeSubscriber;
 import org.dromara.soul.register.common.type.DataType;
 
+import java.io.IOException;
+import java.net.Socket;
 import java.util.Collection;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The type Metadata executor subscriber.
@@ -50,6 +54,18 @@ public class SoulClientMetadataExecutorSubscriber implements ExecutorTypeSubscri
     @Override
     public void executor(final Collection<MetaDataRegisterDTO> metaDataRegisterDTOList) {
         for (MetaDataRegisterDTO metaDataRegisterDTO : metaDataRegisterDTOList) {
+            while (true) {
+                try (Socket socket = new Socket(metaDataRegisterDTO.getHost(), metaDataRegisterDTO.getPort())) {
+                    break;
+                } catch (IOException e) {
+                    try {
+                        TimeUnit.MILLISECONDS.sleep(100);
+                    } catch (InterruptedException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            }
+            SoulClientShutdownHook.delayOtherHooks();
             soulClientRegisterRepository.persistInterface(metaDataRegisterDTO);
         }
     }
