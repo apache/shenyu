@@ -18,7 +18,9 @@
 package org.dromara.soul.register.client.zookeeper;
 
 import lombok.extern.slf4j.Slf4j;
+import org.I0Itec.zkclient.IZkStateListener;
 import org.I0Itec.zkclient.ZkClient;
+import org.apache.zookeeper.Watcher;
 import org.dromara.soul.common.enums.RpcTypeEnum;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
@@ -28,6 +30,8 @@ import org.dromara.soul.register.common.dto.URIRegisterDTO;
 import org.dromara.soul.register.common.path.RegisterPathConstants;
 import org.dromara.soul.spi.Join;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -42,12 +46,15 @@ public class ZookeeperClientRegisterRepository implements SoulClientRegisterRepo
 
     private ZkClient zkClient;
 
+    private Map<String, String> nodeDataMap = new HashMap<>();
+
     @Override
     public void init(final SoulRegisterCenterConfig config) {
         Properties props = config.getProps();
         int zookeeperSessionTimeout = Integer.parseInt(props.getProperty("zookeeperSessionTimeout", "3000"));
         int zookeeperConnectionTimeout = Integer.parseInt(props.getProperty("zookeeperConnectionTimeout", "3000"));
         this.zkClient = new ZkClient(config.getServerLists(), zookeeperSessionTimeout, zookeeperConnectionTimeout);
+        this.zkClient.subscribeStateChanges(new ZkStateListener());
     }
 
     @Override
@@ -88,7 +95,9 @@ public class ZookeeperClientRegisterRepository implements SoulClientRegisterRepo
         }
         String realNode = RegisterPathConstants.buildRealNode(uriPath, uriNodeName);
         if (!zkClient.exists(realNode)) {
-            zkClient.createEphemeral(realNode, GsonUtils.getInstance().toJson(URIRegisterDTO.transForm(metadata)));
+            String nodeData = GsonUtils.getInstance().toJson(URIRegisterDTO.transForm(metadata));
+            nodeDataMap.put(realNode, nodeData);
+            zkClient.createEphemeral(realNode, nodeData);
         }
     }
 
@@ -111,5 +120,27 @@ public class ZookeeperClientRegisterRepository implements SoulClientRegisterRepo
 
     private String buildNodeName(final String serviceName, final String methodName) {
         return String.join(DOT_SEPARATOR, serviceName, methodName);
+    }
+
+    private class ZkStateListener implements IZkStateListener {
+        @Override
+        public void handleStateChanged(final Watcher.Event.KeeperState keeperState) throws Exception {
+            if (Watcher.Event.KeeperState.SyncConnected.equals(keeperState)) {
+                nodeDataMap.forEach((k, v) -> {
+                    if (!zkClient.exists(k)) {
+                        zkClient.createEphemeral(k, v);
+                        log.info("zookeeper client reregister success: {}", v);
+                    }
+                });
+            }
+        }
+
+        @Override
+        public void handleNewSession() throws Exception {
+        }
+
+        @Override
+        public void handleSessionEstablishmentError(final Throwable throwable) throws Exception {
+        }
     }
 }
