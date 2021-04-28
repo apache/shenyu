@@ -44,9 +44,4 @@ public class CommonErrorCode {
      */
     public static final int TOKEN_NO_PERMISSION = 601;
 
-    /**
-     * The constant USER_INFO_ERROR
-     */
-    public static final int USER_INFO_ERROR = 401;
-
 }

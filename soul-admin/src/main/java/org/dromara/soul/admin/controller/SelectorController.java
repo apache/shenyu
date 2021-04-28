@@ -67,10 +67,8 @@ public class SelectorController {
      */
     @GetMapping("")
     public SoulAdminResult querySelectors(final String pluginId, final Integer currentPage, final Integer pageSize) {
-        return Optional.ofNullable(JwtUtils.getUserId()).map(item -> {
-            CommonPager<SelectorVO> commonPager = selectorService.listByPage(new SelectorQuery(pluginId, null, new PageParameter(currentPage, pageSize)));
-            return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
-        }).orElse(SoulAdminResult.error(CommonErrorCode.USER_INFO_ERROR, SoulResultMessage.DASHBOARD_QUERY_ERROR));
+        CommonPager<SelectorVO> commonPager = selectorService.listByPage(new SelectorQuery(pluginId, null, new PageParameter(currentPage, pageSize)));
+        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
 
     }
 
