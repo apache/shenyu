@@ -64,6 +64,19 @@ public class DubboBodyParamResolveServiceTest {
         List idList = (List) map.get("idLists");
         assertNull(idList.get(0));
         assertNull(idList.get(1));
+
+        body = "{\"complexBean\":{\"dubboTest\":{\"id\":null,\"name\":null},\"idLists\":[null,null],\"idMaps\":{\"id2\":null,\"id1\":null}},\"name\":null}";
+        parameterTypes = "{\"complexBean\":\"org.dromara.soul.web.rpc.DubboMultiParameterResolveServiceImplTest.ComplexBean\",\"name\":\"java.lang.String\"}";
+        pair = impl.buildParameter(body, parameterTypes);
+        assertThat(pair.getLeft().length, is(2));
+        assertThat(pair.getRight().length, is(2));
+        map = (Map) pair.getRight()[0];
+        Map dubboTest1 = (Map) map.get("dubboTest");
+        assertNull(dubboTest1.get("id"));
+        assertNull(dubboTest1.get("name"));
+        List idList1 = (List) map.get("idLists");
+        assertNull(idList1.get(0));
+        assertNull(idList1.get(1));
     }
 }
 

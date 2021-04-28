@@ -124,6 +124,19 @@ public class SoulHttpRegistryController implements SoulServerRegisterRepository 
         publish(metaDataRegisterDTO);
         return SoulResultMessage.SUCCESS;
     }
+
+    /**
+     * Register motan string.
+     *
+     * @param metaDataRegisterDTO the meta data register dto
+     * @return the string
+     */
+    @PostMapping("/motan-register")
+    @ResponseBody
+    public String registerMotan(@RequestBody final MetaDataRegisterDTO metaDataRegisterDTO) {
+        publish(metaDataRegisterDTO);
+        return SoulResultMessage.SUCCESS;
+    }
     
     private void publish(final MetaDataRegisterDTO metaDataRegisterDTO) {
         publisher.publish(Collections.singletonList(metaDataRegisterDTO));

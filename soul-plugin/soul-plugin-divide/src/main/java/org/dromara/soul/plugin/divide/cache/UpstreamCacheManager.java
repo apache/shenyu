@@ -19,16 +19,20 @@ package org.dromara.soul.plugin.divide.cache;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.soul.common.concurrent.SoulThreadFactory;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.DivideUpstream;
+import org.dromara.soul.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.common.utils.UpstreamCheckUtils;
+import org.dromara.soul.plugin.base.cache.BaseHandleCache;
 
 /**
  * this is divide  http url upstream.
@@ -36,7 +40,7 @@ import org.dromara.soul.common.utils.UpstreamCheckUtils;
  * @author xiaoyu
  */
 @Slf4j
-public final class UpstreamCacheManager {
+public final class UpstreamCacheManager extends BaseHandleCache<String, DivideRuleHandle> {
 
     private static final UpstreamCacheManager INSTANCE = new UpstreamCacheManager();
 

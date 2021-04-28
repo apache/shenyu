@@ -111,7 +111,8 @@ public class ParamTransformPlugin implements SoulPlugin {
         String rpcType = soulContext.getRpcType();
         return !Objects.equals(rpcType, RpcTypeEnum.DUBBO.getName()) 
                 && !Objects.equals(rpcType, RpcTypeEnum.GRPC.getName()) 
-                && !Objects.equals(rpcType, RpcTypeEnum.TARS.getName()) 
+                && !Objects.equals(rpcType, RpcTypeEnum.TARS.getName())
+                && !Objects.equals(rpcType, RpcTypeEnum.MOTAN.getName())
                 && !Objects.equals(rpcType, RpcTypeEnum.SOFA.getName());
     }
 }

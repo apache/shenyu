@@ -37,5 +37,6 @@
         <module>soul-spring-boot-starter-client-tars</module>
         <module>soul-spring-boot-starter-client-grpc</module>
         <module>soul-spring-boot-starter-client-common</module>
+        <module>soul-spring-boot-starter-client-motan</module>
     </modules>
 </project>
