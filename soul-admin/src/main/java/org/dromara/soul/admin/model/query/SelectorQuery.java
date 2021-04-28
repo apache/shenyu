@@ -23,9 +23,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.dromara.soul.admin.model.page.PageParameter;
 
-import java.io.Serializable;
-import java.util.List;
-
 /**
  * this is selector query.
  *
