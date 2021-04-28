@@ -23,20 +23,18 @@ import org.dromara.soul.common.enums.ParamTypeEnum;
 import org.dromara.soul.common.utils.ReflectUtils;
 import org.dromara.soul.plugin.api.context.SoulContext;
 import org.dromara.soul.plugin.base.utils.HostAddressUtils;
-import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpCookie;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * AbstractMatchStrategy.
  *
  * @author xiaoyu(Myth)
  */
-abstract class AbstractMatchStrategy {
+public abstract class AbstractMatchStrategy {
 
     /**
      * Build real data string.
@@ -45,42 +43,38 @@ abstract class AbstractMatchStrategy {
      * @param exchange  the exchange
      * @return the string
      */
-    String buildRealData(final ConditionData condition, final ServerWebExchange exchange) {
+    public String buildRealData(final ConditionData condition, final ServerWebExchange exchange) {
         String realData = "";
         ParamTypeEnum paramTypeEnum = ParamTypeEnum.getParamTypeEnumByName(condition.getParamType());
         switch (paramTypeEnum) {
             case HEADER:
-                final HttpHeaders headers = exchange.getRequest().getHeaders();
-                final List<String> list = headers.get(condition.getParamName());
-                if (CollectionUtils.isEmpty(list)) {
+                List<String> headers = exchange.getRequest().getHeaders().get(condition.getParamName());
+                if (CollectionUtils.isEmpty(headers)) {
                     return realData;
                 }
-                realData = Objects.requireNonNull(headers.get(condition.getParamName())).stream().findFirst().orElse("");
-                break;
+                return headers.get(0);
             case URI:
-                realData = exchange.getRequest().getURI().getPath();
-                break;
+                return exchange.getRequest().getURI().getPath();
             case QUERY:
-                final MultiValueMap<String, String> queryParams = exchange.getRequest().getQueryParams();
-                realData = queryParams.getFirst(condition.getParamName());
-                break;
+                return exchange.getRequest().getQueryParams().getFirst(condition.getParamName());
             case HOST:
-                realData = HostAddressUtils.acquireHost(exchange);
-                break;
+                return HostAddressUtils.acquireHost(exchange);
             case IP:
-                realData = HostAddressUtils.acquireIp(exchange);
-                break;
+                return HostAddressUtils.acquireIp(exchange);
             case POST:
-                final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-                realData = (String) ReflectUtils.getFieldValue(soulContext, condition.getParamName());
-                break;
+                SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
+                return (String) ReflectUtils.getFieldValue(soulContext, condition.getParamName());
             case REQUEST_METHOD:
-                realData = exchange.getRequest().getMethodValue();
-                break;
+                return exchange.getRequest().getMethodValue();
+            case COOKIE:
+                List<HttpCookie> cookies = exchange.getRequest().getCookies().get(condition.getParamName());
+                if (CollectionUtils.isEmpty(cookies)) {
+                    return realData;
+                }
+                return cookies.get(0).getValue();
             default:
                 break;
         }
         return realData;
     }
-
 }
