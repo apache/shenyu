@@ -58,7 +58,7 @@ public abstract class AbstractMatchStrategy {
             case QUERY:
                 return exchange.getRequest().getQueryParams().getFirst(condition.getParamName());
             case HOST:
-                return HostAddressUtils.acquireHost(exchange);
+                return exchange.getRequest().getHeaders().getFirst("Host");
             case IP:
                 return HostAddressUtils.acquireIp(exchange);
             case POST:
@@ -72,6 +72,8 @@ public abstract class AbstractMatchStrategy {
                     return realData;
                 }
                 return cookies.get(0).getValue();
+            case REMOTE_ADDRESS:
+                return HostAddressUtils.acquireHost(exchange);
             default:
                 break;
         }

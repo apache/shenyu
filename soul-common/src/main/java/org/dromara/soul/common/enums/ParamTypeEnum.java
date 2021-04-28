@@ -57,7 +57,7 @@ public enum ParamTypeEnum {
     /**
      * Ip param type enum.
      */
-    IP("ip", true),
+    IP("ip", false),
     
     /**
      * Header param type enum.
@@ -68,6 +68,11 @@ public enum ParamTypeEnum {
      * Cookie param type enum.
      */
     COOKIE("cookie", true),
+    
+    /**
+     * Remote address param type enum.
+     */
+    REMOTE_ADDRESS("remoteAddress", true),
     
     /**
      * requestMethod param type enum.
