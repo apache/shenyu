@@ -47,7 +47,7 @@ public enum OperatorEnum {
     /**
      * Regex operator enum.
      */
-    REGEX("regEx", true),
+    REGEX("regex", true),
     
     /**
      * Gt operator enum.
