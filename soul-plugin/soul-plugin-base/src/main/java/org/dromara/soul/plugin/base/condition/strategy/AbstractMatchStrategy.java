@@ -52,8 +52,7 @@ public abstract class AbstractMatchStrategy {
                 if (CollectionUtils.isEmpty(headers)) {
                     return realData;
                 }
-                realData = headers.get(0);
-                break;
+                return headers.get(0);
             case URI:
                 return exchange.getRequest().getURI().getPath();
             case QUERY:
@@ -64,8 +63,7 @@ public abstract class AbstractMatchStrategy {
                 return HostAddressUtils.acquireIp(exchange);
             case POST:
                 SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-                realData = (String) ReflectUtils.getFieldValue(soulContext, condition.getParamName());
-                break;
+                return (String) ReflectUtils.getFieldValue(soulContext, condition.getParamName());
             case REQUEST_METHOD:
                 return exchange.getRequest().getMethodValue();
             case COOKIE:
@@ -73,11 +71,10 @@ public abstract class AbstractMatchStrategy {
                 if (CollectionUtils.isEmpty(cookies)) {
                     return realData;
                 }
-                realData = cookies.get(0).getValue();
+                return cookies.get(0).getValue();
             default:
                 break;
         }
         return realData;
     }
-
 }
