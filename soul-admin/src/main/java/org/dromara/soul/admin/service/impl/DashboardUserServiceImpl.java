@@ -23,25 +23,25 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dromara.soul.admin.config.properties.LdapProperties;
 import org.dromara.soul.admin.config.properties.SecretProperties;
+import org.dromara.soul.admin.mapper.DashboardUserMapper;
+import org.dromara.soul.admin.mapper.DataPermissionMapper;
+import org.dromara.soul.admin.mapper.RoleMapper;
+import org.dromara.soul.admin.mapper.UserRoleMapper;
 import org.dromara.soul.admin.model.dto.DashboardUserDTO;
 import org.dromara.soul.admin.model.dto.UserRoleDTO;
 import org.dromara.soul.admin.model.entity.DashboardUserDO;
 import org.dromara.soul.admin.model.entity.RoleDO;
 import org.dromara.soul.admin.model.entity.UserRoleDO;
-import org.dromara.soul.admin.mapper.DashboardUserMapper;
-import org.dromara.soul.admin.mapper.PermissionMapper;
-import org.dromara.soul.admin.mapper.ResourceMapper;
-import org.dromara.soul.admin.mapper.RoleMapper;
-import org.dromara.soul.admin.mapper.UserRoleMapper;
 import org.dromara.soul.admin.model.page.CommonPager;
 import org.dromara.soul.admin.model.page.PageResultUtils;
 import org.dromara.soul.admin.model.query.DashboardUserQuery;
-import org.dromara.soul.admin.service.DashboardUserService;
-import org.dromara.soul.admin.utils.AesUtils;
 import org.dromara.soul.admin.model.vo.DashboardUserEditVO;
 import org.dromara.soul.admin.model.vo.DashboardUserVO;
 import org.dromara.soul.admin.model.vo.LoginDashboardUserVO;
 import org.dromara.soul.admin.model.vo.RoleVO;
+import org.dromara.soul.admin.service.DashboardUserService;
+import org.dromara.soul.admin.utils.AesUtils;
+import org.dromara.soul.common.constant.AdminConstants;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ldap.NameNotFoundException;
@@ -73,9 +73,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
 
     private final RoleMapper roleMapper;
 
-    private final ResourceMapper resourceMapper;
-
-    private final PermissionMapper permissionMapper;
+    private final DataPermissionMapper dataPermissionMapper;
 
     @Autowired(required = false)
     private LdapProperties ldapProperties;
@@ -85,12 +83,11 @@ public class DashboardUserServiceImpl implements DashboardUserService {
 
     @Autowired(required = false)
     public DashboardUserServiceImpl(final DashboardUserMapper dashboardUserMapper, final UserRoleMapper userRoleMapper,
-                                    final RoleMapper roleMapper, final ResourceMapper resourceMapper, final PermissionMapper permissionMapper) {
+                                    final RoleMapper roleMapper, final DataPermissionMapper dataPermissionMapper) {
         this.dashboardUserMapper = dashboardUserMapper;
         this.userRoleMapper = userRoleMapper;
         this.roleMapper = roleMapper;
-        this.resourceMapper = resourceMapper;
-        this.permissionMapper = permissionMapper;
+        this.dataPermissionMapper = dataPermissionMapper;
     }
 
     /**
@@ -107,7 +104,7 @@ public class DashboardUserServiceImpl implements DashboardUserService {
             bindUserRole(dashboardUserDO.getId(), dashboardUserDTO.getRoles());
             return dashboardUserMapper.insertSelective(dashboardUserDO);
         }
-        if (!dashboardUserDTO.getUserName().equals("admin")) {
+        if (!AdminConstants.ADMIN_NAME.equals(dashboardUserDTO.getUserName())) {
             userRoleMapper.deleteByUserId(dashboardUserDTO.getId());
         }
         if (CollectionUtils.isNotEmpty(dashboardUserDTO.getRoles())) {
@@ -127,13 +124,12 @@ public class DashboardUserServiceImpl implements DashboardUserService {
         int dashboardUserCount = 0;
         for (String id : ids) {
             DashboardUserDO dashboardUserDO = dashboardUserMapper.selectById(id);
-            if (!ObjectUtils.isEmpty(dashboardUserDO)) {
-                if (dashboardUserDO.getUserName().equals("admin")) {
-                    continue;
-                }
+            if (!ObjectUtils.isEmpty(dashboardUserDO) && AdminConstants.ADMIN_NAME.equals(dashboardUserDO.getUserName())) {
+                continue;
             }
             dashboardUserCount += dashboardUserMapper.delete(id);
             userRoleMapper.deleteByUserId(id);
+            dataPermissionMapper.deleteByUserId(id);
         }
         return dashboardUserCount;
     }

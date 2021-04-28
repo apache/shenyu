@@ -57,7 +57,7 @@ public class JwtUtilsTest {
 
     @Test
     public void testGenerateToken() {
-        String token = JwtUtils.generateToken("userName");
+        String token = JwtUtils.generateToken("userName", "userId");
         assertThat(token, notNullValue());
         assertThat(JwtUtils.getIssuerDate(token), comparesEqualTo(LocalDate.now()));
         assertThat(JwtUtils.getIssuer(token), is("userName"));

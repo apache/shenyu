@@ -15,34 +15,27 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.model.query;
+package org.dromara.soul.admin.interceptor.annotation;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import org.dromara.soul.admin.model.page.PageParameter;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * this is selector query.
+ * data permission annotation type.
  *
- * @author jiangxiaofeng(Nicholas)
+ * @author nuo-promise
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public class SelectorQuery extends FilterQuery {
-
-    private static final long serialVersionUID = -1019736306667647529L;
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface DataPermission {
 
     /**
-     * plugin id.
+     * record data type.
+     *
+     * @return dataType {@link String}
      */
-    private String pluginId;
+    String dataType() default "";
 
-    /**
-     * page parameter.
-     */
-    private PageParameter pageParameter;
 }

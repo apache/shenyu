@@ -17,32 +17,23 @@
 
 package org.dromara.soul.admin.model.query;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import org.dromara.soul.admin.model.page.PageParameter;
+
+import java.io.Serializable;
+import java.util.List;
 
 /**
- * this is selector query.
+ * data permission filter query.
  *
- * @author jiangxiaofeng(Nicholas)
+ * @author nuo-promise
  */
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public class SelectorQuery extends FilterQuery {
+public class FilterQuery implements Serializable {
 
-    private static final long serialVersionUID = -1019736306667647529L;
+    private static final long serialVersionUID = 9107238465094879060L;
 
     /**
-     * plugin id.
+     * filter ids.
      */
-    private String pluginId;
-
-    /**
-     * page parameter.
-     */
-    private PageParameter pageParameter;
+    private List<String> filterIds;
 }
