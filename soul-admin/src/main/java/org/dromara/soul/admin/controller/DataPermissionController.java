@@ -68,7 +68,7 @@ public class DataPermissionController {
                                                            @RequestParam("userId") final String userId,
                                                            @RequestParam("pluginId") final String pluginId) {
         CommonPager<DataPermissionPageVO> selectorList = dataPermissionService.listSelectorsByPage(
-                new SelectorQuery(pluginId, null, new PageParameter(currentPage, pageSize)), userId);
+                new SelectorQuery(pluginId, new PageParameter(currentPage, pageSize)), userId);
         return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, selectorList);
     }
 
@@ -87,7 +87,7 @@ public class DataPermissionController {
                                                          @RequestParam("userId") final String userId,
                                                          @RequestParam("selectorId") final String selectorId) {
         CommonPager<DataPermissionPageVO> selectorList = dataPermissionService.listRulesByPage(
-                new RuleQuery(selectorId, null, new PageParameter(currentPage, pageSize)), userId);
+                new RuleQuery(selectorId, new PageParameter(currentPage, pageSize)), userId);
         return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, selectorList);
     }
 

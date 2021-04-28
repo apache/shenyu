@@ -100,6 +100,12 @@ public enum SoulResultEnum {
     GRPC_CLIENT_NULL(436, "grpc client is null, please check the context path!"),
 
     /**
+     * Motan have body param soul result enum.
+     */
+    MOTAN_HAVE_BODY_PARAM(437, "motan must have body param, please enter the JSON format in the body!"),
+
+
+    /**
      * full selector type enum.
      */
     PARAM_ERROR(-100, "Your parameter error, please check the relevant documentation!"),

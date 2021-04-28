@@ -103,14 +103,27 @@ public final class ApplicationConfigCache {
         if (applicationConfig == null) {
             applicationConfig = new ApplicationConfig("soul_proxy");
         }
-        if (registryConfig == null) {
-            registryConfig = new RegistryConfig();
-            registryConfig.setProtocol(dubboRegisterConfig.getProtocol());
-            registryConfig.setId("soul_proxy");
-            registryConfig.setRegister(false);
-            registryConfig.setAddress(dubboRegisterConfig.getRegister());
-            Optional.ofNullable(dubboRegisterConfig.getGroup()).ifPresent(registryConfig::setGroup);
+        if (needUpdateRegistryConfig(dubboRegisterConfig)) {
+            RegistryConfig registryConfigTemp = new RegistryConfig();
+            registryConfigTemp.setProtocol(dubboRegisterConfig.getProtocol());
+            registryConfigTemp.setId("soul_proxy");
+            registryConfigTemp.setRegister(false);
+            registryConfigTemp.setAddress(dubboRegisterConfig.getRegister());
+            Optional.ofNullable(dubboRegisterConfig.getGroup()).ifPresent(registryConfigTemp::setGroup);
+            registryConfig = registryConfigTemp;
         }
+    }
+
+    private boolean needUpdateRegistryConfig(final DubboRegisterConfig dubboRegisterConfig) {
+        if (registryConfig == null) {
+            return true;
+        }
+        if (!Objects.equals(dubboRegisterConfig.getProtocol(), registryConfig.getProtocol())
+                || !Objects.equals(dubboRegisterConfig.getRegister(), registryConfig.getAddress())
+                || !Objects.equals(dubboRegisterConfig.getProtocol(), registryConfig.getProtocol())) {
+            return true;
+        }
+        return false;
     }
 
     /**

@@ -64,7 +64,7 @@ public class RuleController {
      */
     @GetMapping("")
     public SoulAdminResult queryRules(final String selectorId, final Integer currentPage, final Integer pageSize) {
-        CommonPager<RuleVO> commonPager = ruleService.listByPage(new RuleQuery(selectorId, null, new PageParameter(currentPage, pageSize)));
+        CommonPager<RuleVO> commonPager = ruleService.listByPage(new RuleQuery(selectorId, new PageParameter(currentPage, pageSize)));
         return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
 
     }

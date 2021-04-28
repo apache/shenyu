@@ -37,7 +37,7 @@ import java.util.Optional;
 @SuperBuilder
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class DataPermissionDO extends BaseDO {
+public final class DataPermissionDO extends BaseDO {
 
     private static final long serialVersionUID = 8732493731708038311L;
 

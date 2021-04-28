@@ -23,10 +23,11 @@ import org.dromara.soul.common.dto.RuleData;
 import org.dromara.soul.common.dto.SelectorData;
 import org.dromara.soul.common.dto.convert.RedirectHandle;
 import org.dromara.soul.common.enums.PluginEnum;
-import org.dromara.soul.common.utils.GsonUtils;
 import org.dromara.soul.plugin.api.SoulPluginChain;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
 import org.dromara.soul.plugin.base.utils.UriUtils;
+import org.dromara.soul.plugin.redirect.cache.RedirectRuleHandleCache;
+import org.dromara.soul.plugin.redirect.handler.RedirectPluginDataHandler;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -67,7 +68,8 @@ public class RedirectPlugin extends AbstractSoulPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain,
                                    final SelectorData selector, final RuleData rule) {
         final String handle = rule.getHandle();
-        final RedirectHandle redirectHandle = GsonUtils.getInstance().fromJson(handle, RedirectHandle.class);
+        final RedirectHandle redirectHandle = RedirectRuleHandleCache.getInstance()
+                .obtainHandle(RedirectPluginDataHandler.getCacheKeyName(rule));
         if (Objects.isNull(redirectHandle) || StringUtils.isBlank(redirectHandle.getRedirectURI())) {
             log.error("uri redirect rule can not configuration: {}", handle);
             return chain.execute(exchange);

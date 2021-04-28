@@ -19,6 +19,7 @@ package org.dromara.soul.admin.model.query;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.dromara.soul.admin.model.page.PageParameter;
 
@@ -33,7 +34,8 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class RuleQuery implements Serializable {
+@EqualsAndHashCode(callSuper = true)
+public class RuleQuery extends FilterQuery {
 
     private static final long serialVersionUID = -8048484230783429888L;
 
@@ -41,11 +43,6 @@ public class RuleQuery implements Serializable {
      * selector id.
      */
     private String selectorId;
-
-    /**
-     * rule ids.
-     */
-    private List<String> filterIds;
 
     /**
      * page parameter.

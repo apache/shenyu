@@ -65,7 +65,7 @@ public final class SelectorControllerTest {
 
     private final PageParameter pageParameter = new PageParameter();
 
-    private final SelectorQuery selectorQuery = new SelectorQuery("2", null, pageParameter);
+    private final SelectorQuery selectorQuery = new SelectorQuery("2", pageParameter);
 
     private final SelectorVO selectorVO = new SelectorVO("1", "2", "selector-1", MatchModeEnum.AND.getCode(),
             MatchModeEnum.AND.getName(), SelectorTypeEnum.FULL_FLOW.getCode(), SelectorTypeEnum.FULL_FLOW.getName(),

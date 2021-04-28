@@ -18,7 +18,9 @@
 package org.dromara.soul.springboot.starter.plugin.contextpath;
 
 import org.dromara.soul.plugin.api.SoulPlugin;
+import org.dromara.soul.plugin.base.handler.PluginDataHandler;
 import org.dromara.soul.plugin.contextpath.ContextPathMappingPlugin;
+import org.dromara.soul.plugin.contextpath.handler.ContextPathMappingPluginDataHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -38,5 +40,15 @@ public class ContextPathMappingPluginConfiguration {
     @Bean
     public SoulPlugin contextPathMappingPlugin() {
         return new ContextPathMappingPlugin();
+    }
+
+    /**
+     * Context path mapping plugin data handler plugin data handler.
+     *
+     * @return the plugin data handler
+     */
+    @Bean
+    public PluginDataHandler contextPathMappingPluginDataHandler() {
+        return new ContextPathMappingPluginDataHandler();
     }
 }

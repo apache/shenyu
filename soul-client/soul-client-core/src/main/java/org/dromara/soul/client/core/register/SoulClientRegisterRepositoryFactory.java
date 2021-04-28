@@ -19,6 +19,8 @@ package org.dromara.soul.client.core.register;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.dromara.soul.client.core.shutdown.SoulClientShutdownHook;
 import org.dromara.soul.register.client.api.SoulClientRegisterRepository;
 import org.dromara.soul.register.common.config.SoulRegisterCenterConfig;
 import org.dromara.soul.spi.ExtensionLoader;
@@ -40,6 +42,7 @@ public final class SoulClientRegisterRepositoryFactory {
         if (!REPOSITORY_MAP.containsKey(soulRegisterCenterConfig.getRegisterType())) {
             SoulClientRegisterRepository result = ExtensionLoader.getExtensionLoader(SoulClientRegisterRepository.class).getJoin(soulRegisterCenterConfig.getRegisterType());
             result.init(soulRegisterCenterConfig);
+            SoulClientShutdownHook.set(result, soulRegisterCenterConfig.getProps());
             REPOSITORY_MAP.put(soulRegisterCenterConfig.getRegisterType(), result);
             return result;
         }
