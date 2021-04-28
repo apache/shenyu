@@ -24,9 +24,7 @@ import org.dromara.soul.admin.model.query.RuleQuery;
 import org.dromara.soul.admin.model.result.SoulAdminResult;
 import org.dromara.soul.admin.model.vo.RuleVO;
 import org.dromara.soul.admin.service.RuleService;
-import org.dromara.soul.admin.utils.JwtUtils;
 import org.dromara.soul.admin.utils.SoulResultMessage;
-import org.dromara.soul.common.exception.CommonErrorCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,7 +37,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * this is rule controller.
