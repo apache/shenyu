@@ -15,34 +15,24 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.model.query;
+package org.dromara.soul.common.enums;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import org.dromara.soul.admin.model.page.PageParameter;
 
 /**
- * this is selector query.
+ * The admin data permission type enum.
  *
- * @author jiangxiaofeng(Nicholas)
+ * @author kaitoshy(plutokaito)
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public class SelectorQuery extends FilterQuery {
-
-    private static final long serialVersionUID = -1019736306667647529L;
+public enum AdminDataPermissionTypeEnum {
 
     /**
-     * plugin id.
+     * selector type.
      */
-    private String pluginId;
+    SELECTOR,
+
 
     /**
-     * page parameter.
+     * rule type.
      */
-    private PageParameter pageParameter;
+    RULE;
 }

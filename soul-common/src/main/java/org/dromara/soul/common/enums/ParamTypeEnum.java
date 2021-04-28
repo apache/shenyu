@@ -33,37 +33,42 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Getter
 public enum ParamTypeEnum {
-
+    
     /**
      * Post param type enum.
      */
     POST("post", true),
-
+    
     /**
      * Uri param type enum.
      */
     URI("uri", true),
-
+    
     /**
      * Query param type enum.
      */
     QUERY("query", true),
-
+    
     /**
      * Host param type enum.
      */
     HOST("host", true),
-
+    
     /**
      * Ip param type enum.
      */
     IP("ip", true),
-
+    
     /**
      * Header param type enum.
      */
     HEADER("header", true),
-
+    
+    /**
+     * Cookie param type enum.
+     */
+    COOKIE("cookie", true),
+    
     /**
      * requestMethod param type enum.
      * note:The front-end page needs to be adjusted because the field length is long
@@ -73,7 +78,7 @@ public enum ParamTypeEnum {
     private final String name;
 
     private final Boolean support;
-
+    
     /**
      * acquire param type supports.
      *
@@ -83,7 +88,7 @@ public enum ParamTypeEnum {
         return Arrays.stream(ParamTypeEnum.values())
                 .filter(e -> e.support).collect(Collectors.toList());
     }
-
+    
     /**
      * get param type enum by name.
      *
