@@ -54,7 +54,7 @@ public final class OperatorEnumTest {
     public void testAcquireByNameInvalid() {
         assertEquals(OperatorEnum.MATCH, OperatorEnum.getOperatorEnumByAlias("match"));
         assertEquals(OperatorEnum.EQ, OperatorEnum.getOperatorEnumByAlias("="));
-        assertEquals(OperatorEnum.REGEX, OperatorEnum.getOperatorEnumByAlias("regEx"));
+        assertEquals(OperatorEnum.REGEX, OperatorEnum.getOperatorEnumByAlias("regex"));
         assertEquals(OperatorEnum.CONTAINS, OperatorEnum.getOperatorEnumByAlias("contains"));
     }
 

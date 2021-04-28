@@ -18,22 +18,23 @@
 package org.dromara.soul.plugin.base.condition.judge;
 
 import org.dromara.soul.common.dto.ConditionData;
+import org.dromara.soul.common.enums.ParamTypeEnum;
+import org.dromara.soul.common.utils.PathMatchUtils;
+
+import java.util.Objects;
 
 /**
- * this is operator Judge.
+ * Match predicate judge.
  *
  * @author xiaoyu(Myth)
  */
-@FunctionalInterface
-public interface OperatorJudge {
+public class MatchPredicateJudge implements PredicateJudge {
 
-    /**
-     * judge conditionData and realData is match.
-     *
-     * @param conditionData {@linkplain ConditionData}
-     * @param realData       realData
-     * @return true is pass  false is not pass.
-     */
-    Boolean judge(ConditionData conditionData, String realData);
-
+    @Override
+    public Boolean judge(final ConditionData conditionData, final String realData) {
+        if (Objects.equals(ParamTypeEnum.URI.getName(), conditionData.getParamType())) {
+            return PathMatchUtils.match(conditionData.getParamValue().trim(), realData);
+        }
+        return realData.contains(conditionData.getParamValue().trim());
+    }
 }

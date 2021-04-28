@@ -15,21 +15,25 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.base.condition.judge;
+package org.dromara.soul.admin.model.query;
 
-import org.dromara.soul.common.dto.ConditionData;
+import lombok.Data;
 
-import java.util.regex.Pattern;
+import java.io.Serializable;
+import java.util.List;
 
 /**
- * The type Reg ex operator judge.
+ * data permission filter query.
  *
- * @author xiaoyu(Myth)
+ * @author nuo-promise
  */
-public class RegExOperatorJudge implements OperatorJudge {
+@Data
+public class FilterQuery implements Serializable {
 
-    @Override
-    public Boolean judge(final ConditionData conditionData, final String realData) {
-        return Pattern.matches(conditionData.getParamValue(), realData);
-    }
+    private static final long serialVersionUID = 9107238465094879060L;
+
+    /**
+     * filter ids.
+     */
+    private List<String> filterIds;
 }

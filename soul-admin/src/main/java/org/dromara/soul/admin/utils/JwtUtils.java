@@ -23,7 +23,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import java.util.Optional;
+import lombok.Data;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.util.StringUtils;
@@ -33,6 +33,7 @@ import org.dromara.soul.admin.spring.SpringBeanUtils;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.Optional;
 
 /**
  * JWT tools.
@@ -41,7 +42,34 @@ import java.util.Date;
  **/
 @UtilityClass
 @Slf4j
+@Data
 public final class JwtUtils {
+
+    /**
+     * user id.
+     */
+    private static String userId;
+
+    /**
+     * get user id.
+     *
+     * @return userId {@link String}
+     */
+    public static String getUserId() {
+        return userId;
+    }
+
+    /**
+     * according to token to set userid.
+     *
+     * @param token token
+     */
+    public static void setUserId(final String token) {
+        DecodedJWT jwt = verifierToken(token);
+        if (Optional.ofNullable(jwt).isPresent()) {
+            userId = jwt.getId();
+        }
+    }
 
     /**
      * according to token to get issuer.
@@ -73,11 +101,12 @@ public final class JwtUtils {
      * generate jwt token.
      *
      * @param userName login's userName
+     * @param userId   login's userId
      * @return token
      */
-    public static String generateToken(final String userName) {
+    public static String generateToken(final String userName, final String userId) {
         try {
-            return JWT.create().withIssuer(userName) .withIssuedAt(new Date()).sign(generateAlgorithm());
+            return JWT.create().withJWTId(userId).withIssuer(userName) .withIssuedAt(new Date()).sign(generateAlgorithm());
         } catch (IllegalArgumentException | JWTCreationException e) {
             log.error("JWTToken generate fail ", e);
         }

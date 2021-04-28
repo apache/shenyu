@@ -24,11 +24,11 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * The type Timer after operator judge.
+ * Timer after predicate judge.
  *
  * @author xiaoyu(Myth)
  */
-public class TimerAfterOperatorJudge implements OperatorJudge {
+public class TimerAfterPredicateJudge implements PredicateJudge {
 
     @Override
     public Boolean judge(final ConditionData conditionData, final String realData) {

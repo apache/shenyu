@@ -20,11 +20,11 @@ package org.dromara.soul.plugin.base.condition.judge;
 import org.dromara.soul.common.dto.ConditionData;
 
 /**
- * this is contains impl.
+ * Contains predicate judge.
  *
  * @author xiaoyu(Myth)
  */
-public class ContainsOperatorJudge implements OperatorJudge {
+public class ContainsPredicateJudge implements PredicateJudge {
 
     @Override
     public Boolean judge(final ConditionData conditionData, final String realData) {

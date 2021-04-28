@@ -15,34 +15,21 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.model.query;
+package org.dromara.soul.plugin.base.condition.judge;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import org.dromara.soul.admin.model.page.PageParameter;
+import org.dromara.soul.common.dto.ConditionData;
+
+import java.util.regex.Pattern;
 
 /**
- * this is selector query.
+ * Regex predicate judge.
  *
- * @author jiangxiaofeng(Nicholas)
+ * @author xiaoyu(Myth)
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public class SelectorQuery extends FilterQuery {
+public class RegexPredicateJudge implements PredicateJudge {
 
-    private static final long serialVersionUID = -1019736306667647529L;
-
-    /**
-     * plugin id.
-     */
-    private String pluginId;
-
-    /**
-     * page parameter.
-     */
-    private PageParameter pageParameter;
+    @Override
+    public Boolean judge(final ConditionData conditionData, final String realData) {
+        return Pattern.matches(conditionData.getParamValue(), realData);
+    }
 }

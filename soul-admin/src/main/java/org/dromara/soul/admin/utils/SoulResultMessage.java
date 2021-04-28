@@ -71,4 +71,8 @@ public final class SoulResultMessage {
     public static final String MENU_SUCCESS = "get menu and permission success";
 
     public static final String MENU_FAILED = "get menu and permission failed";
+
+    public static final String SAVE_SUCCESS = "save success";
+
+    public static final String SAVE_FAILED = "save failed";
 }

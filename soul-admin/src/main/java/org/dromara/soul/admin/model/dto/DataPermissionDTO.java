@@ -15,34 +15,44 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.model.query;
+package org.dromara.soul.admin.model.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import org.dromara.soul.admin.model.page.PageParameter;
+
+import java.io.Serializable;
 
 /**
- * this is selector query.
+ * data permission dto.
  *
- * @author jiangxiaofeng(Nicholas)
+ * @author kaitoshy(plutokaito)
  */
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public class SelectorQuery extends FilterQuery {
-
-    private static final long serialVersionUID = -1019736306667647529L;
+public class DataPermissionDTO implements Serializable {
+    private static final long serialVersionUID = -5977862582790251842L;
 
     /**
-     * plugin id.
+     * primary key.
      */
-    private String pluginId;
+    private String id;
 
     /**
-     * page parameter.
+     * user id.
      */
-    private PageParameter pageParameter;
+    private String userId;
+
+    /**
+     * selector or rule id.
+     */
+    private String dataId;
+
+    /**
+     * data type: 0: selector,1 rule.
+     */
+    private Integer dataType;
+
+    /**
+     * whether checkbox is selected.
+     */
+    private Boolean isSelected;
+
 }

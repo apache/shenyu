@@ -22,9 +22,9 @@ import org.dromara.soul.admin.model.page.CommonPager;
 import org.dromara.soul.admin.model.page.PageParameter;
 import org.dromara.soul.admin.model.query.RuleQuery;
 import org.dromara.soul.admin.model.result.SoulAdminResult;
+import org.dromara.soul.admin.model.vo.RuleVO;
 import org.dromara.soul.admin.service.RuleService;
 import org.dromara.soul.admin.utils.SoulResultMessage;
-import org.dromara.soul.admin.model.vo.RuleVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -66,6 +66,7 @@ public class RuleController {
     public SoulAdminResult queryRules(final String selectorId, final Integer currentPage, final Integer pageSize) {
         CommonPager<RuleVO> commonPager = ruleService.listByPage(new RuleQuery(selectorId, new PageParameter(currentPage, pageSize)));
         return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
+
     }
 
     /**

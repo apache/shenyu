@@ -15,27 +15,24 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.base.condition.judge;
+package org.dromara.soul.common.enums;
 
-import org.dromara.soul.common.dto.ConditionData;
-import org.dromara.soul.common.utils.DateUtils;
-import org.springframework.util.StringUtils;
-
-import java.time.LocalDateTime;
 
 /**
- * The type Timer before operator judge.
+ * The admin data permission type enum.
  *
- * @author xiaoyu(Myth)
+ * @author kaitoshy(plutokaito)
  */
-public class TimerBeforeOperatorJudge implements OperatorJudge {
+public enum AdminDataPermissionTypeEnum {
 
-    @Override
-    public Boolean judge(final ConditionData conditionData, final String realData) {
-        String paramName = conditionData.getParamName();
-        if (StringUtils.isEmpty(paramName)) {
-            return LocalDateTime.now().isBefore(DateUtils.parseLocalDateTime(conditionData.getParamValue()));
-        }
-        return DateUtils.parseLocalDateTime(realData).isBefore(DateUtils.parseLocalDateTime(conditionData.getParamValue()));
-    }
+    /**
+     * selector type.
+     */
+    SELECTOR,
+
+
+    /**
+     * rule type.
+     */
+    RULE;
 }
