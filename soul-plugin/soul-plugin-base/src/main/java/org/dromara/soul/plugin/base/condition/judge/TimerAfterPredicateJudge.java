@@ -18,23 +18,24 @@
 package org.dromara.soul.plugin.base.condition.judge;
 
 import org.dromara.soul.common.dto.ConditionData;
-import org.dromara.soul.common.enums.ParamTypeEnum;
-import org.dromara.soul.common.utils.PathMatchUtils;
+import org.dromara.soul.common.utils.DateUtils;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * this is match impl.
+ * Timer after predicate judge.
  *
  * @author xiaoyu(Myth)
  */
-public class MatchOperatorJudge implements OperatorJudge {
+public class TimerAfterPredicateJudge implements PredicateJudge {
 
     @Override
     public Boolean judge(final ConditionData conditionData, final String realData) {
-        if (Objects.equals(ParamTypeEnum.URI.getName(), conditionData.getParamType())) {
-            return PathMatchUtils.match(conditionData.getParamValue().trim(), realData);
+        String paramName = conditionData.getParamName();
+        if (Objects.isNull(paramName)) {
+            return LocalDateTime.now().isAfter(DateUtils.parseLocalDateTime(conditionData.getParamValue()));
         }
-        return realData.contains(conditionData.getParamValue().trim());
+        return DateUtils.parseLocalDateTime(realData).isAfter(DateUtils.parseLocalDateTime(conditionData.getParamValue()));
     }
 }
