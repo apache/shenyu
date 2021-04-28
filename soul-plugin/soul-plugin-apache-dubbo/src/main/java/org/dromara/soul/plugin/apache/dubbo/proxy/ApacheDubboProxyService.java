@@ -21,8 +21,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.dubbo.common.Version;
 import org.apache.dubbo.common.constants.CommonConstants;
 import org.apache.dubbo.config.ReferenceConfig;
+import org.apache.dubbo.rpc.Invoker;
 import org.apache.dubbo.rpc.RpcContext;
 import org.apache.dubbo.rpc.service.GenericException;
 import org.apache.dubbo.rpc.service.GenericService;
@@ -31,6 +33,7 @@ import org.dromara.soul.common.dto.MetaData;
 import org.dromara.soul.common.enums.ResultEnum;
 import org.dromara.soul.common.exception.SoulException;
 import org.dromara.soul.common.utils.ParamCheckUtils;
+import org.dromara.soul.common.utils.ReflectUtils;
 import org.dromara.soul.plugin.apache.dubbo.cache.ApplicationConfigCache;
 import org.dromara.soul.plugin.api.param.BodyParamResolveService;
 import org.springframework.web.server.ServerWebExchange;
@@ -85,7 +88,17 @@ public class ApacheDubboProxyService {
         } else {
             pair = bodyParamResolveService.buildParameter(body, metaData.getParameterTypes());
         }
-        CompletableFuture<Object> future = genericService.$invokeAsync(metaData.getMethodName(), pair.getLeft(), pair.getRight());
+        CompletableFuture<Object> future;
+        if (isProviderSupportAsync(reference)) {
+            future = genericService.$invokeAsync(metaData.getMethodName(), pair.getLeft(), pair.getRight());
+        } else {
+            Object data = genericService.$invoke(metaData.getMethodName(), pair.getLeft(), pair.getRight());
+            if (data instanceof CompletableFuture) {
+                future = (CompletableFuture<Object>) data;
+            } else {
+                future = CompletableFuture.completedFuture(data);
+            }
+        }
         return Mono.fromFuture(future.thenApply(ret -> {
             if (Objects.isNull(ret)) {
                 ret = Constants.DUBBO_RPC_RESULT_EMPTY;
@@ -94,5 +107,22 @@ public class ApacheDubboProxyService {
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return ret;
         })).onErrorMap(exception -> exception instanceof GenericException ? new SoulException(((GenericException) exception).getExceptionMessage()) : new SoulException(exception));
+    }
+
+    private boolean isProviderSupportAsync(final ReferenceConfig<GenericService> reference) {
+        boolean support = false;
+        try {
+            Invoker invoker = (Invoker) ReflectUtils.getFieldValue(reference, Constants.DUBBO_REFRENCE_INVOKER);
+            int sdkVersion = Version.getIntVersion(invoker.getUrl().getParameter(Constants.DUBBO_PROVIDER_VERSION));
+            //dubbo sdk only supports $invokeAsync after version 2.7.3
+            if (sdkVersion >= Constants.DUBBO_SUPPORT_ASYNC_VERSION) {
+                support = true;
+            }
+        } catch (Exception e) {
+            if (log.isDebugEnabled()) {
+                log.debug("check dubbo provider version ex:{}", e.getMessage());
+            }
+        }
+        return support;
     }
 }
