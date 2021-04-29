@@ -327,7 +327,7 @@
         <!--soul debug plugin start-->
         <dependency>
             <groupId>org.dromara</groupId>
-            <artifactId>soul-spring-boot-starter-plugin-debug</artifactId>
+            <artifactId>soul-spring-boot-starter-plugin-logging</artifactId>
             <version>${project.version}</version>
         </dependency>
         <!--soul debug plugin end-->
