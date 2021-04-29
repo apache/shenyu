@@ -44,7 +44,7 @@ public class LoggingPluginConfigurationTest {
             .run(
                 context -> {
                     SoulPlugin plugin = context.getBean("loggingPlugin", SoulPlugin.class);
-                    assertThat(plugin.named()).isEqualTo(PluginEnum.Logging.getName());
+                    assertThat(plugin.named()).isEqualTo(PluginEnum.LOGGING.getName());
                 }
             );
     }
