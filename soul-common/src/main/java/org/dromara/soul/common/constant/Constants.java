@@ -498,12 +498,12 @@ public interface Constants {
     String SCHEDULED_TIME_VALUE = "10";
 
     /**
-     * default headerMaxSize value
+     * default headerMaxSize value.
      */
     int HEADER_MAX_SIZE = 10240;
 
     /**
-     * default requestMaxSize value
+     * default requestMaxSize value.
      */
     int REQUEST_MAX_SIZE = 102400;
 

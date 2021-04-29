@@ -166,12 +166,12 @@ public enum SoulResultEnum {
     CONTEXT_PATH_ERROR(-111, "The context path illegal, please check the context path mapping plugin!"),
 
     /**
-     * Request Header Fields Too Large
+     * Request Header Fields Too Large.
      */
     REQUEST_HEADER_TOO_LARGE(431, "Request Header Fields Too Large"),
 
     /**
-     * Request Entity Too Large
+     * Request Entity Too Large.
      */
     REQUEST_ENTITY_TOO_LARGE(413, "Request Entity Too Large");
 
