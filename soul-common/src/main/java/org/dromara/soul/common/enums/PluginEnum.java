@@ -85,7 +85,7 @@ public enum PluginEnum {
     /**
      * Logging plugin enum.
      */
-    Logging(45, 0, "logging"),
+    LOGGING(45, 0, "logging"),
 
     /**
      * Divide plugin enum.

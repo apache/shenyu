@@ -63,8 +63,6 @@ public final class LoggingPluginTest {
         this.chain = mock(SoulPluginChain.class);
         this.selectorData = mock(SelectorData.class);
         MockServerHttpRequest request = MockServerHttpRequest
-            .post("/path")
-            .body("request body")
             .get("localhost")
             .remoteAddress(new InetSocketAddress(8090))
             .header("X-source", "mock test")
@@ -89,12 +87,12 @@ public final class LoggingPluginTest {
 
     @Test
     public void testGetOrder() {
-        Assert.assertEquals(loggingPlugin.getOrder(), PluginEnum.Logging.getCode());
+        Assert.assertEquals(loggingPlugin.getOrder(), PluginEnum.LOGGING.getCode());
     }
 
     @Test
     public void testNamed() {
-        Assert.assertEquals(loggingPlugin.named(), PluginEnum.Logging.getName());
+        Assert.assertEquals(loggingPlugin.named(), PluginEnum.LOGGING.getName());
     }
 
     @Test

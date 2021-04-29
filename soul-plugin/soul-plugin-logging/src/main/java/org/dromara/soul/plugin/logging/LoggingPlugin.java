@@ -45,6 +45,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.annotation.NonNull;
 
 /**
  * Soul logging plugin. it can print request info(include request headers, request params, request body ...etc) and
@@ -61,92 +62,69 @@ public class LoggingPlugin extends AbstractSoulPlugin {
         ServerHttpRequest request = exchange.getRequest();
         StringBuilder requestInfo = new StringBuilder("Print Request Info: ").append(System.lineSeparator());
 
-        getRequestUri(request, requestInfo);
-        getRequestMethod(request, requestInfo);
-        requestInfo.append(System.lineSeparator());
+        requestInfo.append(getRequestUri(request)).append(getRequestMethod(request)).append(System.lineSeparator())
+            .append(getRequestHeaders(request)).append(System.lineSeparator())
+            .append(getQueryParams(request)).append(System.lineSeparator());
 
-        getRequestHeaders(request, requestInfo);
-        requestInfo.append(System.lineSeparator());
-
-        getQueryParams(request, requestInfo);
-        requestInfo.append(System.lineSeparator());
-
-        return chain
-            .execute(
-                exchange
-                    .mutate()
-                    .request(new LoggingServerHttpRequest(request, requestInfo))
-                    .response(new LoggingServerHttpResponse(exchange.getResponse(), requestInfo))
-                    .build()
-            );
+        return chain.execute(
+            exchange.mutate()
+                .request(new LoggingServerHttpRequest(request, requestInfo))
+                .response(new LoggingServerHttpResponse(exchange.getResponse(), requestInfo))
+                .build()
+        );
     }
 
-    private void getRequestMethod(final ServerHttpRequest request, final StringBuilder debugInfo) {
-        debugInfo
-            .append("Request Method: ")
-            .append(request.getMethod())
-            .append(System.lineSeparator());
+    private String getRequestMethod(final ServerHttpRequest request) {
+        return "Request Method: " + request.getMethod() + System.lineSeparator();
     }
 
-    private void getRequestUri(final ServerHttpRequest request, final StringBuilder debugInfo) {
-        debugInfo
-            .append("Request Uri: ")
-            .append(request.getURI())
-            .append(System.lineSeparator());
+    private String getRequestUri(final ServerHttpRequest request) {
+        return "Request Uri: " + request.getURI() + System.lineSeparator();
     }
 
-    private void getQueryParams(final ServerHttpRequest request, final StringBuilder debugInfo) {
+    private String getQueryParams(final ServerHttpRequest request) {
         MultiValueMap<String, String> params = request.getQueryParams();
-        if (params == null || params.isEmpty()) {
-            return;
+        StringBuilder logInfo = new StringBuilder();
+        if (!params.isEmpty()) {
+            logInfo.append("[Query Params Start]").append(System.lineSeparator());
+            params.forEach((key, value) -> logInfo.append(key).append(": ").append(StringUtils.join(value, ",")).append(System.lineSeparator()));
+            logInfo.append("[Query Params End]").append(System.lineSeparator());
         }
-        debugInfo.append("[Query Params Start]").append(System.lineSeparator());
-        params
-            .entrySet()
-            .stream()
-            .forEach(entry -> {
-                debugInfo
-                    .append(entry.getKey()).append(": ")
-                    .append(StringUtils.join(entry.getValue(), ","))
-                    .append(System.lineSeparator());
-            });
-        debugInfo.append("[Query Params End]").append(System.lineSeparator());
+        return logInfo.toString();
     }
 
-    private void getRequestHeaders(final ServerHttpRequest request, final StringBuilder debugInfo) {
+    private String getRequestHeaders(final ServerHttpRequest request) {
         HttpHeaders headers = request.getHeaders();
+        final StringBuilder logInfo = new StringBuilder();
         if (!headers.isEmpty()) {
-            debugInfo.append("[Request Headers Start]").append(System.lineSeparator());
-            debugInfo.append(getHeader(headers));
-            debugInfo.append("[Request Headers End]").append(System.lineSeparator());
+            logInfo.append("[Request Headers Start]").append(System.lineSeparator());
+            logInfo.append(getHeaders(headers));
+            logInfo.append("[Request Headers End]").append(System.lineSeparator());
         }
+        return logInfo.toString();
     }
 
     private void print(final String info) {
         log.info(info);
     }
 
-    private String getHeader(final HttpHeaders headers) {
+    private String getHeaders(final HttpHeaders headers) {
         StringBuilder sb = new StringBuilder();
         Set<Map.Entry<String, List<String>>> entrySet = headers.entrySet();
         for (Map.Entry<String, List<String>> entry : entrySet) {
             String key = entry.getKey();
             List<String> value = entry.getValue();
-            sb
-                .append(key)
-                .append(": ")
-                .append(StringUtils.join(value, ","))
-                .append(System.lineSeparator());
+            sb.append(key).append(": ").append(StringUtils.join(value, ",")).append(System.lineSeparator());
         }
         return sb.toString();
     }
 
     @Override public int getOrder() {
-        return PluginEnum.Logging.getCode();
+        return PluginEnum.LOGGING.getCode();
     }
 
     @Override public String named() {
-        return PluginEnum.Logging.getName();
+        return PluginEnum.LOGGING.getName();
     }
 
     @Override
@@ -154,21 +132,20 @@ public class LoggingPlugin extends AbstractSoulPlugin {
         return false;
     }
 
-    class LoggingServerHttpRequest extends ServerHttpRequestDecorator {
+    static class LoggingServerHttpRequest extends ServerHttpRequestDecorator {
 
-        private StringBuilder logInfo;
+        private final StringBuilder logInfo;
 
         LoggingServerHttpRequest(final ServerHttpRequest delegate, final StringBuilder logInfo) {
             super(delegate);
             this.logInfo = logInfo;
         }
 
-        @Override public Flux<DataBuffer> getBody() {
+        @Override
+        @NonNull
+        public Flux<DataBuffer> getBody() {
             BodyWriter writer = new BodyWriter();
-            return super.getBody().doOnNext(dataBuffer -> {
-                ByteBuffer buffer = dataBuffer.asByteBuffer().asReadOnlyBuffer();
-                writer.write(buffer);
-            }).doFinally(signal -> {
+            return super.getBody().doOnNext(dataBuffer -> writer.write(dataBuffer.asByteBuffer().asReadOnlyBuffer())).doFinally(signal -> {
                 if (!writer.isEmpty()) {
                     logInfo.append("[Request Body Start]").append(System.lineSeparator());
                     logInfo.append(writer.output()).append(System.lineSeparator());
@@ -183,9 +160,9 @@ public class LoggingPlugin extends AbstractSoulPlugin {
 
     class LoggingServerHttpResponse extends ServerHttpResponseDecorator {
 
-        private StringBuilder logInfo;
+        private final StringBuilder logInfo;
 
-        private ServerHttpResponse serverHttpResponse;
+        private final ServerHttpResponse serverHttpResponse;
 
         LoggingServerHttpResponse(final ServerHttpResponse delegate, final StringBuilder logInfo) {
             super(delegate);
@@ -194,43 +171,41 @@ public class LoggingPlugin extends AbstractSoulPlugin {
             this.logInfo.append(System.lineSeparator());
         }
 
-        @Override public Mono<Void> writeWith(final Publisher<? extends DataBuffer> body) {
+        @Override
+        @NonNull
+        public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
             return super.writeWith(appendResponse(body));
         }
 
+        @NonNull
         private Flux<? extends DataBuffer> appendResponse(final Publisher<? extends DataBuffer> body) {
             logInfo.append(System.lineSeparator());
             logInfo.append("Response Code: ").append(this.serverHttpResponse.getStatusCode()).append(System.lineSeparator());
             logInfo.append(getResponseHeaders()).append(System.lineSeparator());
             BodyWriter writer = new BodyWriter();
-            Flux<? extends DataBuffer> flux = Flux.from(body).doOnNext(buffer -> {
-                ByteBuffer byteBuffer = buffer.asByteBuffer().asReadOnlyBuffer();
-                writer.write(byteBuffer);
-            }).doFinally(signal -> {
+            return Flux.from(body).doOnNext(buffer -> writer.write(buffer.asByteBuffer().asReadOnlyBuffer())).doFinally(signal -> {
                 logInfo.append("[Response Body Start]").append(System.lineSeparator());
                 logInfo.append(writer.output()).append(System.lineSeparator());
                 logInfo.append("[Response Body End]").append(System.lineSeparator());
+                // when response, print all request info.
                 print(logInfo.toString());
             });
-            return flux;
         }
 
         private String getResponseHeaders() {
-            StringBuilder sb = new StringBuilder(System.lineSeparator());
-            sb.append("[Response Headers Start]").append(System.lineSeparator());
-            sb.append(getHeader(serverHttpResponse.getHeaders()));
-            sb.append("[Response Headers End]").append(System.lineSeparator());
-            return sb.toString();
+            return System.lineSeparator() + "[Response Headers Start]" + System.lineSeparator()
+                + LoggingPlugin.this.getHeaders(serverHttpResponse.getHeaders())
+                + "[Response Headers End]" + System.lineSeparator();
         }
     }
 
-    class BodyWriter {
+    static class BodyWriter {
 
-        private ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        private final ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
-        private WritableByteChannel channel = Channels.newChannel(baos);
+        private final WritableByteChannel channel = Channels.newChannel(stream);
 
-        private AtomicBoolean isClosed = new AtomicBoolean(false);
+        private final AtomicBoolean isClosed = new AtomicBoolean(false);
 
         void write(final ByteBuffer buffer) {
             if (!isClosed.get()) {
@@ -244,22 +219,22 @@ public class LoggingPlugin extends AbstractSoulPlugin {
         }
 
         boolean isEmpty() {
-            return baos.size() == 0;
+            return stream.size() == 0;
         }
 
         String output() {
             try {
                 isClosed.compareAndSet(false, true);
-                return new String(baos.toByteArray(), StandardCharsets.UTF_8);
+                return new String(stream.toByteArray(), StandardCharsets.UTF_8);
             } catch (Exception e) {
                 log.error("Write failed: ", e);
                 return "Write failed: " + e.getMessage();
             } finally {
 
                 try {
-                    baos.close();
+                    stream.close();
                 } catch (IOException e) {
-                    log.error("Close baos error: ", e);
+                    log.error("Close stream error: ", e);
                 }
 
                 try {
