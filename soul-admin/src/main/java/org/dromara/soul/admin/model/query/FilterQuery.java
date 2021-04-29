@@ -15,25 +15,25 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.base.condition.judge;
+package org.dromara.soul.admin.model.query;
 
-import org.dromara.soul.common.dto.ConditionData;
+import lombok.Data;
+
+import java.io.Serializable;
+import java.util.List;
 
 /**
- * this is operator Judge.
+ * data permission filter query.
  *
- * @author xiaoyu(Myth)
+ * @author nuo-promise
  */
-@FunctionalInterface
-public interface OperatorJudge {
+@Data
+public class FilterQuery implements Serializable {
+
+    private static final long serialVersionUID = 9107238465094879060L;
 
     /**
-     * judge conditionData and realData is match.
-     *
-     * @param conditionData {@linkplain ConditionData}
-     * @param realData       realData
-     * @return true is pass  false is not pass.
+     * filter ids.
      */
-    Boolean judge(ConditionData conditionData, String realData);
-
+    private List<String> filterIds;
 }

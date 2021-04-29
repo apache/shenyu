@@ -18,15 +18,22 @@
 package org.dromara.soul.plugin.base.condition.judge;
 
 import org.dromara.soul.common.dto.ConditionData;
-import groovy.util.Eval;
 
 /**
- * Groovy Judge.
+ * Predicate judge.
+ *
+ * @author xiaoyu(Myth)
  */
-public class GroovyJudge implements OperatorJudge {
-    
-    @Override
-    public Boolean judge(final ConditionData conditionData, final String realData) {
-        return (Boolean) Eval.me(conditionData.getParamName(), realData, conditionData.getParamValue());
-    }
+@FunctionalInterface
+public interface PredicateJudge {
+
+    /**
+     * judge conditionData and realData is match.
+     *
+     * @param conditionData {@linkplain ConditionData}
+     * @param realData       realData
+     * @return true is pass  false is not pass.
+     */
+    Boolean judge(ConditionData conditionData, String realData);
+
 }

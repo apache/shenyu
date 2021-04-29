@@ -352,7 +352,7 @@ public class AppAuthServiceImpl implements AppAuthService {
     public List<AppAuthData> listAll() {
         return appAuthMapper.selectAll()
                 .stream()
-                .map(appAuthDO -> new AppAuthData(appAuthDO.getAppKey(), appAuthDO.getAppSecret(), appAuthDO.getEnabled(), appAuthDO.getOpen(), null, null))
+                .map(appAuthDO -> buildByEntity(appAuthDO))
                 .collect(Collectors.toList());
     }
 

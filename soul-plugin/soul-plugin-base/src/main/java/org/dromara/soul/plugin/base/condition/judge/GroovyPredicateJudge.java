@@ -15,34 +15,18 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.admin.model.query;
+package org.dromara.soul.plugin.base.condition.judge;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import org.dromara.soul.admin.model.page.PageParameter;
+import org.dromara.soul.common.dto.ConditionData;
+import groovy.util.Eval;
 
 /**
- * this is selector query.
- *
- * @author jiangxiaofeng(Nicholas)
+ * Groovy predicate judge.
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public class SelectorQuery extends FilterQuery {
-
-    private static final long serialVersionUID = -1019736306667647529L;
-
-    /**
-     * plugin id.
-     */
-    private String pluginId;
-
-    /**
-     * page parameter.
-     */
-    private PageParameter pageParameter;
+public class GroovyPredicateJudge implements PredicateJudge {
+    
+    @Override
+    public Boolean judge(final ConditionData conditionData, final String realData) {
+        return (Boolean) Eval.me(conditionData.getParamName(), realData, conditionData.getParamValue());
+    }
 }

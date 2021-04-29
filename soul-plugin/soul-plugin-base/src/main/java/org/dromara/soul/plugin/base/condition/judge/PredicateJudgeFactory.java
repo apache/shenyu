@@ -26,23 +26,23 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * ConditionJudge.
+ * Predicate judge factory.
  *
  * @author xiaoyu(Myth)
  */
-public class OperatorJudgeFactory {
+public class PredicateJudgeFactory {
 
-    private static final Map<String, OperatorJudge> OPERATOR_JUDGE_MAP = Maps.newHashMapWithExpectedSize(16);
+    private static final Map<String, PredicateJudge> PREDICATE_JUDGE_MAP = Maps.newHashMapWithExpectedSize(16);
 
     static {
-        OPERATOR_JUDGE_MAP.put(OperatorEnum.EQ.getAlias(), new EqOperatorJudge());
-        OPERATOR_JUDGE_MAP.put(OperatorEnum.MATCH.getAlias(), new MatchOperatorJudge());
-        OPERATOR_JUDGE_MAP.put(OperatorEnum.CONTAINS.getAlias(), new ContainsOperatorJudge());
-        OPERATOR_JUDGE_MAP.put(OperatorEnum.REGEX.getAlias(), new RegexOperatorJudge());
-        OPERATOR_JUDGE_MAP.put(OperatorEnum.SPEL.getAlias(), new SpELJudge());
-        OPERATOR_JUDGE_MAP.put(OperatorEnum.GROOVY.getAlias(), new GroovyJudge());
-        OPERATOR_JUDGE_MAP.put(OperatorEnum.TIME_BEFORE.getAlias(), new TimerBeforeOperatorJudge());
-        OPERATOR_JUDGE_MAP.put(OperatorEnum.TIME_AFTER.getAlias(), new TimerAfterOperatorJudge());
+        PREDICATE_JUDGE_MAP.put(OperatorEnum.EQ.getAlias(), new EqualsPredicateJudge());
+        PREDICATE_JUDGE_MAP.put(OperatorEnum.MATCH.getAlias(), new MatchPredicateJudge());
+        PREDICATE_JUDGE_MAP.put(OperatorEnum.CONTAINS.getAlias(), new ContainsPredicateJudge());
+        PREDICATE_JUDGE_MAP.put(OperatorEnum.REGEX.getAlias(), new RegexPredicateJudge());
+        PREDICATE_JUDGE_MAP.put(OperatorEnum.SPEL.getAlias(), new SpELPredicateJudge());
+        PREDICATE_JUDGE_MAP.put(OperatorEnum.GROOVY.getAlias(), new GroovyPredicateJudge());
+        PREDICATE_JUDGE_MAP.put(OperatorEnum.TIME_BEFORE.getAlias(), new TimerBeforePredicateJudge());
+        PREDICATE_JUDGE_MAP.put(OperatorEnum.TIME_AFTER.getAlias(), new TimerAfterPredicateJudge());
     }
 
     /**
@@ -55,6 +55,6 @@ public class OperatorJudgeFactory {
         if (Objects.isNull(conditionData) || StringUtils.isBlank(realData)) {
             return false;
         }
-        return OPERATOR_JUDGE_MAP.get(conditionData.getOperator()).judge(conditionData, realData);
+        return PREDICATE_JUDGE_MAP.get(conditionData.getOperator()).judge(conditionData, realData);
     }
 }

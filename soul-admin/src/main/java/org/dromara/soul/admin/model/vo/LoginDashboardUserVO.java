@@ -53,7 +53,7 @@ public class LoginDashboardUserVO extends DashboardUserVO {
                 .map(item -> {
                     LoginDashboardUserVO vo = new LoginDashboardUserVO();
                     BeanUtils.copyProperties(item, vo);
-                    vo.setToken(JwtUtils.generateToken(vo.getUserName()));
+                    vo.setToken(JwtUtils.generateToken(vo.getUserName(), vo.getId()));
                     return vo;
                 }).orElse(null);
     }

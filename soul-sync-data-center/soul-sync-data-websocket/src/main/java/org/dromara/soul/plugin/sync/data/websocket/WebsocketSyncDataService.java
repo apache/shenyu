@@ -88,7 +88,7 @@ public class WebsocketSyncDataService implements SyncDataService, AutoCloseable 
                             }
                         } else {
                             client.sendPing();
-                            log.info("websocket send to [{}] ping message successful", client.getURI().toString());
+                            log.debug("websocket send to [{}] ping message successful", client.getURI().toString());
                         }
                     } catch (InterruptedException e) {
                         log.error("websocket connect is error :{}", e.getMessage());

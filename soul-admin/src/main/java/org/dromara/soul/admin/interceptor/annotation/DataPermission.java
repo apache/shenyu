@@ -15,23 +15,27 @@
  * limitations under the License.
  */
 
-package org.dromara.soul.plugin.base.condition.judge;
+package org.dromara.soul.admin.interceptor.annotation;
 
-import org.dromara.soul.common.dto.ConditionData;
-import org.springframework.expression.Expression;
-import org.springframework.expression.ExpressionParser;
-import org.springframework.expression.spel.standard.SpelExpressionParser;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * SpEL Judge.
+ * data permission annotation type.
+ *
+ * @author nuo-promise
  */
-public class SpELJudge implements OperatorJudge {
-    
-    private static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
-    
-    @Override
-    public Boolean judge(final ConditionData conditionData, final String realData) {
-        Expression expression = EXPRESSION_PARSER.parseExpression(conditionData.getParamValue().replace('#' + conditionData.getParamName(), realData));
-        return expression.getValue(Boolean.class);
-    }
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface DataPermission {
+
+    /**
+     * record data type.
+     *
+     * @return dataType {@link String}
+     */
+    String dataType() default "";
+
 }

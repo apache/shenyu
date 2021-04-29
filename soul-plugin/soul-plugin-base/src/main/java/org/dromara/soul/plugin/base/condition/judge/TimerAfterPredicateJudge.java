@@ -18,18 +18,24 @@
 package org.dromara.soul.plugin.base.condition.judge;
 
 import org.dromara.soul.common.dto.ConditionData;
+import org.dromara.soul.common.utils.DateUtils;
 
-import java.util.regex.Pattern;
+import java.time.LocalDateTime;
+import java.util.Objects;
 
 /**
- * The type regular expression operator judge.
+ * Timer after predicate judge.
  *
  * @author xiaoyu(Myth)
  */
-public class RegexOperatorJudge implements OperatorJudge {
+public class TimerAfterPredicateJudge implements PredicateJudge {
 
     @Override
     public Boolean judge(final ConditionData conditionData, final String realData) {
-        return Pattern.matches(conditionData.getParamValue(), realData);
+        String paramName = conditionData.getParamName();
+        if (Objects.isNull(paramName)) {
+            return LocalDateTime.now().isAfter(DateUtils.parseLocalDateTime(conditionData.getParamValue()));
+        }
+        return DateUtils.parseLocalDateTime(realData).isAfter(DateUtils.parseLocalDateTime(conditionData.getParamValue()));
     }
 }

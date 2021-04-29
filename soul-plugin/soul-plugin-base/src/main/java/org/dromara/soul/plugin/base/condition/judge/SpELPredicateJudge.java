@@ -18,23 +18,20 @@
 package org.dromara.soul.plugin.base.condition.judge;
 
 import org.dromara.soul.common.dto.ConditionData;
-import org.dromara.soul.common.enums.ParamTypeEnum;
-import org.dromara.soul.common.utils.PathMatchUtils;
-
-import java.util.Objects;
+import org.springframework.expression.Expression;
+import org.springframework.expression.ExpressionParser;
+import org.springframework.expression.spel.standard.SpelExpressionParser;
 
 /**
- * this is match impl.
- *
- * @author xiaoyu(Myth)
+ * SpEL predicate judge.
  */
-public class MatchOperatorJudge implements OperatorJudge {
-
+public class SpELPredicateJudge implements PredicateJudge {
+    
+    private static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
+    
     @Override
     public Boolean judge(final ConditionData conditionData, final String realData) {
-        if (Objects.equals(ParamTypeEnum.URI.getName(), conditionData.getParamType())) {
-            return PathMatchUtils.match(conditionData.getParamValue().trim(), realData);
-        }
-        return realData.contains(conditionData.getParamValue().trim());
+        Expression expression = EXPRESSION_PARSER.parseExpression(conditionData.getParamValue().replace('#' + conditionData.getParamName(), realData));
+        return expression.getValue(Boolean.class);
     }
 }
