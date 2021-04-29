@@ -75,6 +75,10 @@ public class ShiroRealm extends AuthorizingRealm {
 
         token.setUserName(userName);
 
+        if (JwtUtils.getUserId() == null) {
+            JwtUtils.setUserId(token.getToken());
+        }
+
         return new SimpleAuthenticationInfo(userName, token.getToken(), this.getName());
     }
 }

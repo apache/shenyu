@@ -52,5 +52,6 @@
         <module>soul-plugin-redirect</module>
         <module>soul-plugin-dubbo-common</module>
         <module>soul-plugin-motan</module>
+        <module>soul-plugin-logging</module>
     </modules>
 </project>

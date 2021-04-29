@@ -35,6 +35,8 @@ public class ContextMappingHandle implements RuleHandle {
     private String realUrl;
 
     private String contextPath;
+    
+    private String addPrefix;
 
     @Override
     public RuleHandle createDefault(final String path) {

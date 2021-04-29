@@ -45,14 +45,14 @@ public class ContextPathMappingPlugin extends AbstractSoulPlugin {
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
-        final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
+        SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
-        final ContextMappingHandle contextMappingHandle = ContextPathRuleHandleCache.getInstance().obtainHandle(ContextPathMappingPluginDataHandler.getCacheKeyName(rule));
+        ContextMappingHandle contextMappingHandle = ContextPathRuleHandleCache.getInstance().obtainHandle(ContextPathMappingPluginDataHandler.getCacheKeyName(rule));
         if (Objects.isNull(contextMappingHandle) || StringUtils.isBlank(contextMappingHandle.getContextPath())) {
             log.error("context path mapping rule configuration is null ：{}", rule);
             return chain.execute(exchange);
         }
-        this.buildContextPath(soulContext, contextMappingHandle);
+        buildContextPath(soulContext, contextMappingHandle);
         return chain.execute(exchange);
     }
 
@@ -68,7 +68,7 @@ public class ContextPathMappingPlugin extends AbstractSoulPlugin {
 
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
-        final SoulContext body = exchange.getAttribute(Constants.CONTEXT);
+        SoulContext body = exchange.getAttribute(Constants.CONTEXT);
         return Objects.equals(Objects.requireNonNull(body).getRpcType(), RpcTypeEnum.DUBBO.getName());
     }
 
@@ -79,14 +79,20 @@ public class ContextPathMappingPlugin extends AbstractSoulPlugin {
      * @param handle  handle
      */
     private void buildContextPath(final SoulContext context, final ContextMappingHandle handle) {
-        context.setContextPath(handle.getContextPath());
-        context.setModule(handle.getContextPath());
-        if (!StringUtils.isBlank(handle.getRealUrl())) {
+        String realURI = "";
+        if (StringUtils.isNoneBlank(handle.getContextPath())) {
+            context.setContextPath(handle.getContextPath());
+            context.setModule(handle.getContextPath());
+            realURI = context.getPath().substring(handle.getContextPath().length());
+        } else {
+            if (StringUtils.isNoneBlank(handle.getAddPrefix())) {
+                realURI = handle.getAddPrefix() + context.getPath();
+            }
+        }
+        context.setRealUrl(realURI);
+        if (StringUtils.isNoneBlank(handle.getRealUrl())) {
             log.info("context path mappingPlugin replaced old :{} , real:{}", context.getRealUrl(), handle.getRealUrl());
             context.setRealUrl(handle.getRealUrl());
-            return;
         }
-        String realUrl = context.getPath().substring(handle.getContextPath().length());
-        context.setRealUrl(realUrl);
     }
 }

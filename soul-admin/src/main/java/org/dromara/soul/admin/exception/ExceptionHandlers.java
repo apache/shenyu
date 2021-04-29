@@ -66,4 +66,10 @@ public class ExceptionHandlers {
         return SoulAdminResult.error(CommonErrorCode.TOKEN_NO_PERMISSION, SoulResultMessage.TOKEN_HAS_NO_PERMISSION);
     }
 
+    @ResponseBody
+    @ExceptionHandler(NullPointerException.class)
+    private SoulAdminResult nullPointExceptionHandler(final NullPointerException exception) {
+        log.error(exception.getMessage(), exception);
+        return SoulAdminResult.error(CommonErrorCode.NOT_FOUND_EXCEPTION, SoulResultMessage.NOT_FOUND_EXCEPTION);
+    }
 }

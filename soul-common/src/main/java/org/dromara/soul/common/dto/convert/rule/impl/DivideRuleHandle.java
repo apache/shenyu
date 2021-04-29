@@ -50,6 +50,16 @@ public class DivideRuleHandle implements RuleHandle {
      */
     private long timeout = Constants.TIME_OUT;
 
+    /**
+     * headerMaxSize.
+     */
+    private long headerMaxSize = Constants.HEADER_MAX_SIZE;
+
+    /**
+     * requestMaxSize.
+     */
+    private long requestMaxSize = Constants.REQUEST_MAX_SIZE;
+
     @Override
     public RuleHandle createDefault(final String path) {
         this.loadBalance = RuleHandleConstants.DEFAULT_LOAD_BALANCE.getName();

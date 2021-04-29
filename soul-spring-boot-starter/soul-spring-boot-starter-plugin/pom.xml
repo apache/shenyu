@@ -49,5 +49,6 @@
         <module>soul-spring-boot-starter-plugin-context-path</module>
         <module>soul-spring-boot-starter-plugin-grpc</module>
         <module>soul-spring-boot-starter-plugin-redirect</module>
+        <module>soul-spring-boot-starter-plugin-logging</module>
     </modules>
 </project>

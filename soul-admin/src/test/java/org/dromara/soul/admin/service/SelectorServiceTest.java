@@ -18,6 +18,7 @@
 package org.dromara.soul.admin.service;
 
 import org.apache.commons.lang3.StringUtils;
+import org.dromara.soul.admin.mapper.DataPermissionMapper;
 import org.dromara.soul.admin.model.dto.SelectorConditionDTO;
 import org.dromara.soul.admin.model.dto.SelectorDTO;
 import org.dromara.soul.admin.model.entity.PluginDO;
@@ -95,6 +96,9 @@ public final class SelectorServiceTest {
     private RuleConditionMapper ruleConditionMapper;
 
     @Mock
+    private DataPermissionMapper dataPermissionMapper;
+
+    @Mock
     private ApplicationEventPublisher eventPublisher;
 
     @Mock
@@ -103,7 +107,7 @@ public final class SelectorServiceTest {
     @Before
     public void setUp() {
         selectorService = new SelectorServiceImpl(selectorMapper, selectorConditionMapper, pluginMapper,
-                ruleMapper, ruleConditionMapper, eventPublisher, upstreamCheckService);
+                ruleMapper, ruleConditionMapper, eventPublisher, dataPermissionMapper, upstreamCheckService);
     }
 
     @Test

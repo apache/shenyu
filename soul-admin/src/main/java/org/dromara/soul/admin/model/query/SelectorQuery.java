@@ -19,10 +19,9 @@ package org.dromara.soul.admin.model.query;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.dromara.soul.admin.model.page.PageParameter;
-
-import java.io.Serializable;
 
 /**
  * this is selector query.
@@ -32,7 +31,8 @@ import java.io.Serializable;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SelectorQuery implements Serializable {
+@EqualsAndHashCode(callSuper = true)
+public class SelectorQuery extends FilterQuery {
 
     private static final long serialVersionUID = -1019736306667647529L;
 
