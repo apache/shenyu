@@ -17,6 +17,7 @@
 
 package org.dromara.soul.plugin.divide;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -51,11 +52,22 @@ import java.util.Objects;
 @Slf4j
 public class DividePlugin extends AbstractSoulPlugin {
 
+    @SneakyThrows
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
         final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
         final DivideRuleHandle ruleHandle = UpstreamCacheManager.getInstance().obtainHandle(DividePluginDataHandler.getCacheKeyName(rule));
+        if (exchange.getRequest().getHeaders().values().toString().getBytes("utf-8").length > ruleHandle.getHeaderMaxSize()) {
+            log.error("request header is too large");
+            Object error = SoulResultWrap.error(SoulResultEnum.REQUEST_HEADER_TOO_LARGE.getCode(), SoulResultEnum.REQUEST_HEADER_TOO_LARGE.getMsg(), null);
+            return WebFluxResultUtils.result(exchange, error);
+        }
+        if (exchange.getRequest().getHeaders().getContentLength() > ruleHandle.getRequestMaxSize()) {
+            log.error("request entity is too large");
+            Object error = SoulResultWrap.error(SoulResultEnum.REQUEST_ENTITY_TOO_LARGE.getCode(), SoulResultEnum.REQUEST_ENTITY_TOO_LARGE.getMsg(), null);
+            return WebFluxResultUtils.result(exchange, error);
+        }
         final List<DivideUpstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
         if (CollectionUtils.isEmpty(upstreamList)) {
             log.error("divide upstream configuration error： {}", rule.toString());
