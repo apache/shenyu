@@ -500,12 +500,12 @@ public interface Constants {
     /**
      * default headerMaxSize value
      */
-    int headerMaxSize = 10240;
+    int HEADER_MAX_SIZE = 10240;
 
     /**
      * default requestMaxSize value
      */
-    int requestMaxSize = 102400;
+    int REQUEST_MAX_SIZE = 102400;
 
     /**
      * String q.

@@ -53,12 +53,12 @@ public class DivideRuleHandle implements RuleHandle {
     /**
      * headerMaxSize.
      */
-    private long headerMaxSize = Constants.headerMaxSize;
+    private long headerMaxSize = Constants.HEADER_MAX_SIZE;
 
     /**
      * requestMaxSize.
      */
-    private long requestMaxSize = Constants.requestMaxSize;
+    private long requestMaxSize = Constants.REQUEST_MAX_SIZE;
 
     @Override
     public RuleHandle createDefault(final String path) {
