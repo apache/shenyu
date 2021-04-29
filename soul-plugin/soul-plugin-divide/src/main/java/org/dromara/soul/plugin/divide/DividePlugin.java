@@ -41,6 +41,7 @@ import org.dromara.soul.plugin.divide.handler.DividePluginDataHandler;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 
@@ -58,7 +59,13 @@ public class DividePlugin extends AbstractSoulPlugin {
         final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
         final DivideRuleHandle ruleHandle = UpstreamCacheManager.getInstance().obtainHandle(DividePluginDataHandler.getCacheKeyName(rule));
-        if (exchange.getRequest().getHeaders().values().toString().getBytes("utf-8").length > ruleHandle.getHeaderMaxSize()) {
+        long headerSize = 0;
+        for (List<String> multiHeader : exchange.getRequest().getHeaders().values()) {
+            for (String value : multiHeader) {
+                headerSize += value.getBytes(StandardCharsets.UTF_8).length;
+            }
+        }
+        if (headerSize > ruleHandle.getHeaderMaxSize()) {
             log.error("request header is too large");
             Object error = SoulResultWrap.error(SoulResultEnum.REQUEST_HEADER_TOO_LARGE.getCode(), SoulResultEnum.REQUEST_HEADER_TOO_LARGE.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
