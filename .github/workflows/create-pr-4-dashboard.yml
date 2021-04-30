@@ -10,10 +10,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          ref: gen-static-indexjs 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
         with:
           base: master
+          signoff: true
           branch: gen-static-indexjs
           delete-branch: true
           body: |
