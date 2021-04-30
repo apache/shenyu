@@ -1,0 +1,25 @@
+name: create-pr-4-dashboard
+
+on:
+  push:
+    branches:
+      - gen-static-indexjs
+
+jobs:
+  pull-request:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: pull-request
+        id: open-pr
+        uses: repo-sync/pull-request@v2
+        with:
+          source_branch: "gen-static-indexjs"
+          destination_branch: "master"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: output-url
+        run: echo ${{steps.open-pr.outputs.pr_url}}
+      - name: output-number
+        run: echo ${{steps.open-pr.outputs.pr_number}}
+      - name: output-has-changed-files
+        run: echo ${{steps.open-pr.outputs.has_changed_files}}

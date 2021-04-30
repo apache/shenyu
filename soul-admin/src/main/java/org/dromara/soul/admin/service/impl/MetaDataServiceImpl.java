@@ -82,9 +82,11 @@ public class MetaDataServiceImpl implements MetaDataService {
         }
         MetaDataDO metaDataDO = MetaDataTransfer.INSTANCE.mapToEntity(metaDataDTO);
         DataEventTypeEnum eventType;
+        String pathDesc = metaDataDO.getPathDesc() == null ? "" : metaDataDO.getPathDesc();
         if (StringUtils.isEmpty(metaDataDTO.getId())) {
             Timestamp currentTime = new Timestamp(System.currentTimeMillis());
             metaDataDO.setId(UUIDUtils.getInstance().generateShortUuid());
+            metaDataDO.setPathDesc(pathDesc);
             metaDataDO.setDateCreated(currentTime);
             metaDataDO.setDateUpdated(currentTime);
             metaDataMapper.insert(metaDataDO);
@@ -92,6 +94,7 @@ public class MetaDataServiceImpl implements MetaDataService {
         } else {
             MetaDataDO m = metaDataMapper.selectById(metaDataDTO.getId());
             Optional.ofNullable(m).ifPresent(e -> metaDataDTO.setEnabled(e.getEnabled()));
+            metaDataDO.setPathDesc(pathDesc);
             metaDataMapper.update(metaDataDO);
             eventType = DataEventTypeEnum.UPDATE;
         }
