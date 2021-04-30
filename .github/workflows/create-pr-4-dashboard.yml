@@ -13,7 +13,9 @@ jobs:
         with:
           ref: gen-static-indexjs 
       - run: |
-          git checkout master && git pull
+          git fetch --no-tags --depth=1 origin master
+          git checkout -b master
+          git checkout ${{ github.event.pull_request.head.sha }}
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
         with:
