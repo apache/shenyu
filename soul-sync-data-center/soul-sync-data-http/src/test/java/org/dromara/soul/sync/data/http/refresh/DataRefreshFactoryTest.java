@@ -32,14 +32,14 @@ public class DataRefreshFactoryTest extends TestCase {
 
     private class MockDataRefresh implements DataRefresh {
 
-        boolean flag;
+        private boolean flag;
 
-        public MockDataRefresh(boolean flag) {
+        MockDataRefresh(final boolean flag) {
             this.flag = flag;
         }
 
         @Override
-        public Boolean refresh(JsonObject data) {
+        public Boolean refresh(final JsonObject data) {
             return flag;
         }
 
