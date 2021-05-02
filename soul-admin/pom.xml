@@ -254,45 +254,6 @@
                 </executions>
             </plugin>
 
-            <!--This is to package the frontend, if you don't need to configure frontend.plugin.skip=true locally.-->
-            <plugin>
-                <groupId>com.github.eirslett</groupId>
-                <artifactId>frontend-maven-plugin</artifactId>
-                <version>${frontend-maven-plugin.version}</version>
-                <configuration>
-                    <workingDirectory>${project.parent.basedir}/soul-dashboard</workingDirectory>
-                    <nodeVersion>${frontend-maven-plugin.node.version}</nodeVersion>
-                    <skip>${frontend.plugin.skip}</skip>
-                </configuration>
-                <executions>
-                    <!--If you have installed the nodejs environment locally, this step can also be annotated.-->
-                    <execution>
-                        <id>install node and npm</id>
-                        <goals>
-                            <goal>install-node-and-npm</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>npm install</id>
-                        <goals>
-                            <goal>npm</goal>
-                        </goals>
-                        <configuration>
-                            <arguments>install --registry=https://registry.npmjs.org/</arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>npm run build</id>
-                        <goals>
-                            <goal>npm</goal>
-                        </goals>
-                        <configuration>
-                            <arguments>run build</arguments>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
@@ -300,20 +261,6 @@
                 <configuration>
                     <encoding>${project.build.sourceEncoding}</encoding>
                     <useDefaultDelimiters>true</useDefaultDelimiters>
-                    <resources>
-                        <resource>
-                            <targetPath>${basedir}/src/main/resources/static</targetPath>
-                            <directory>${project.parent.basedir}/soul-dashboard/dist</directory>
-                        </resource>
-                        <resource>
-                            <targetPath>${basedir}/target/classes</targetPath>
-                            <directory>src/main/resources</directory>
-                        </resource>
-                        <resource>
-                            <targetPath>${basedir}/target/test-classes</targetPath>
-                            <directory>src/test/resources</directory>
-                        </resource>
-                    </resources>
                 </configuration>
             </plugin>
         </plugins>
