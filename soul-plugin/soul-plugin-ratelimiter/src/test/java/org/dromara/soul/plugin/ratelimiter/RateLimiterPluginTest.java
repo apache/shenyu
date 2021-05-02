@@ -83,7 +83,7 @@ public final class RateLimiterPluginTest {
     @Test
     public void doExecuteAllowedTest() {
         doExecutePreInit();
-        when(redisRateLimiter.isAllowed(anyString(), any(RateLimiterHandle.class))).thenReturn(
+        when(redisRateLimiter.isAllowed(any(ServerWebExchange.class), anyString(), any(RateLimiterHandle.class))).thenReturn(
                 Mono.just(new RateLimiterResponse(true, 1)));
         Mono<Void> result = rateLimiterPlugin.doExecute(exchange, chain, selectorData, ruleData);
         StepVerifier.create(result).expectSubscription().verifyComplete();
@@ -95,7 +95,7 @@ public final class RateLimiterPluginTest {
     @Test
     public void doExecuteNotAllowedTest() {
         doExecutePreInit();
-        when(redisRateLimiter.isAllowed(anyString(), any(RateLimiterHandle.class))).thenReturn(
+        when(redisRateLimiter.isAllowed(any(ServerWebExchange.class), anyString(), any(RateLimiterHandle.class))).thenReturn(
                 Mono.just(new RateLimiterResponse(false, 1)));
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         when(context.getBean(SoulResult.class)).thenReturn(new DefaultSoulResult());

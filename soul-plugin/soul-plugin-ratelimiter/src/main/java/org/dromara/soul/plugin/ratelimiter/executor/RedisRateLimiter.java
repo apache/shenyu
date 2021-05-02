@@ -25,6 +25,7 @@ import org.dromara.soul.plugin.ratelimiter.algorithm.RateLimiterAlgorithmFactory
 import org.dromara.soul.plugin.ratelimiter.response.RateLimiterResponse;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -41,6 +42,12 @@ import java.util.List;
 @Slf4j
 public class RedisRateLimiter {
     
+    public static final String RATE_LIMITER_ALGORITHM = "rateLimiterAlgorithm";
+    
+    public static final String KEYS = "keys";
+
+    public static final String SCRIPT_ARGS = "scriptArgs";
+    
     /**
      * Verify using different current limiting algorithm scripts. 
      *
@@ -49,7 +56,7 @@ public class RedisRateLimiter {
      * @return {@code Mono<RateLimiterResponse>} to indicate when request processing is complete
      */
     @SuppressWarnings("unchecked")
-    public Mono<RateLimiterResponse> isAllowed(final String id, final RateLimiterHandle limiterHandle) {
+    public Mono<RateLimiterResponse> isAllowed(final ServerWebExchange exchange, final String id, final RateLimiterHandle limiterHandle) {
         double replenishRate = limiterHandle.getReplenishRate();
         double burstCapacity = limiterHandle.getBurstCapacity();
         double requestCount = limiterHandle.getRequestCount();
@@ -64,11 +71,15 @@ public class RedisRateLimiter {
                     return longs;
                 }).map(results -> {
                     boolean allowed = results.get(0) == 1L;
+                    if (allowed) {
+                        exchange.getAttributes().put(RATE_LIMITER_ALGORITHM, rateLimiterAlgorithm);
+                        exchange.getAttributes().put(KEYS, keys);
+                        exchange.getAttributes().put(SCRIPT_ARGS, scriptArgs);
+                    }
                     Long tokensLeft = results.get(1);
                     return new RateLimiterResponse(allowed, tokensLeft);
                 })
-                .doOnError(throwable -> log.error("Error determining if user allowed from redis:{}", throwable.getMessage()))
-                .doFinally(signalType -> rateLimiterAlgorithm.callback(script, keys, scriptArgs));
+                .doOnError(throwable -> log.error("Error determining if user allowed from redis:{}", throwable.getMessage()));
     }
     
     private String doubleToString(final double param) {

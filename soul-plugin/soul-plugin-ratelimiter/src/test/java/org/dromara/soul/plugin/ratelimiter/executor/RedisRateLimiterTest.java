@@ -29,6 +29,10 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
+import org.springframework.mock.web.server.MockServerWebExchange;
+import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.adapter.DefaultServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -58,8 +62,10 @@ public final class RedisRateLimiterTest {
     private static final double DEFAULT_TEST_BURST_CAPACITY = 300.0;
 
     private RedisRateLimiter redisRateLimiter;
-    
+
     private RateLimiterHandle rateLimiterHandle;
+
+    private ServerWebExchange exchange;
 
     @Before
     public void setUp() {
@@ -67,6 +73,7 @@ public final class RedisRateLimiterTest {
         rateLimiterHandle = new RateLimiterHandle();
         rateLimiterHandle.setReplenishRate(DEFAULT_TEST_REPLENISH_RATE);
         rateLimiterHandle.setBurstCapacity(DEFAULT_TEST_BURST_CAPACITY);
+        this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
     }
 
     /**
@@ -76,7 +83,7 @@ public final class RedisRateLimiterTest {
     public void leakyBucketAllowedTest() {
         leakyBucketPreInit(1L, 10L);
         rateLimiterHandle.setAlgorithmName("leakyBucket");
-        Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(DEFAULT_TEST_ID, rateLimiterHandle);
+        Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(exchange, DEFAULT_TEST_ID, rateLimiterHandle);
         StepVerifier.create(responseMono).assertNext(r -> {
             assertThat(r.getTokensRemaining(), is(10L));
             assertTrue(r.isAllowed());
@@ -90,7 +97,7 @@ public final class RedisRateLimiterTest {
     public void leakyBucketNotAllowedTest() {
         leakyBucketPreInit(0L, 300L);
         rateLimiterHandle.setAlgorithmName("leakyBucket");
-        Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(DEFAULT_TEST_ID, rateLimiterHandle);
+        Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(exchange, DEFAULT_TEST_ID, rateLimiterHandle);
         StepVerifier.create(responseMono).assertNext(r -> {
             assertThat(r.getTokensRemaining(), is((long) DEFAULT_TEST_BURST_CAPACITY));
             assertFalse(r.isAllowed());
@@ -104,7 +111,7 @@ public final class RedisRateLimiterTest {
     public void slidingWindowAllowedTest() {
         slidingWindowPreInit(1L, 200L);
         rateLimiterHandle.setAlgorithmName("slidingWindow");
-        Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(DEFAULT_TEST_ID, rateLimiterHandle);
+        Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(exchange, DEFAULT_TEST_ID, rateLimiterHandle);
         StepVerifier.create(responseMono).assertNext(r -> {
             assertThat(r.getTokensRemaining(), is((long) DEFAULT_TEST_BURST_CAPACITY - 100L));
             assertTrue(r.isAllowed());
@@ -118,7 +125,7 @@ public final class RedisRateLimiterTest {
     public void slidingWindowNotAllowedTest() {
         slidingWindowPreInit(0L, 0L);
         rateLimiterHandle.setAlgorithmName("slidingWindow");
-        Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(DEFAULT_TEST_ID, rateLimiterHandle);
+        Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(exchange, DEFAULT_TEST_ID, rateLimiterHandle);
         StepVerifier.create(responseMono).assertNext(r -> {
             assertThat(r.getTokensRemaining(), is((long) DEFAULT_TEST_BURST_CAPACITY - 300L));
             assertFalse(r.isAllowed());
@@ -132,7 +139,7 @@ public final class RedisRateLimiterTest {
     public void allowedTest() {
         isAllowedPreInit(1L, 1L, false);
         rateLimiterHandle.setAlgorithmName("tokenBucket");
-        Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(DEFAULT_TEST_ID, rateLimiterHandle);
+        Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(exchange, DEFAULT_TEST_ID, rateLimiterHandle);
         StepVerifier.create(responseMono).assertNext(r -> {
             Assert.assertEquals(1L, r.getTokensRemaining());
             assertTrue(r.isAllowed());
@@ -146,7 +153,7 @@ public final class RedisRateLimiterTest {
     public void notAllowedTest() {
         isAllowedPreInit(0L, 0L, false);
         rateLimiterHandle.setAlgorithmName("tokenBucket");
-        Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(DEFAULT_TEST_ID, rateLimiterHandle);
+        Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(exchange, DEFAULT_TEST_ID, rateLimiterHandle);
         StepVerifier.create(responseMono).assertNext(r -> {
             Assert.assertEquals(0, r.getTokensRemaining());
             Assert.assertFalse(r.isAllowed());
@@ -160,7 +167,7 @@ public final class RedisRateLimiterTest {
     public void allowedThrowableTest() {
         isAllowedPreInit(0, 0, true);
         rateLimiterHandle.setAlgorithmName("tokenBucket");
-        Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(DEFAULT_TEST_ID, rateLimiterHandle);
+        Mono<RateLimiterResponse> responseMono = redisRateLimiter.isAllowed(exchange, DEFAULT_TEST_ID, rateLimiterHandle);
         StepVerifier.create(responseMono).assertNext(r -> {
             Assert.assertEquals(-1, r.getTokensRemaining());
             assertTrue(r.isAllowed());

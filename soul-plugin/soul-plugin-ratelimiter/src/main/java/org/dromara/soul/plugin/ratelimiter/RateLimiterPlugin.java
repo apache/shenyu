@@ -26,12 +26,15 @@ import org.dromara.soul.plugin.api.result.SoulResultEnum;
 import org.dromara.soul.plugin.api.result.SoulResultWrap;
 import org.dromara.soul.plugin.api.utils.WebFluxResultUtils;
 import org.dromara.soul.plugin.base.AbstractSoulPlugin;
+import org.dromara.soul.plugin.ratelimiter.algorithm.RateLimiterAlgorithm;
 import org.dromara.soul.plugin.ratelimiter.cache.RatelimiterRuleHandleCache;
 import org.dromara.soul.plugin.ratelimiter.executor.RedisRateLimiter;
 import org.dromara.soul.plugin.ratelimiter.handler.RateLimiterPluginDataHandler;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 /**
  * RateLimiter Plugin.
@@ -61,11 +64,12 @@ public class RateLimiterPlugin extends AbstractSoulPlugin {
         return PluginEnum.RATE_LIMITER.getCode();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
         RateLimiterHandle limiterHandle = RatelimiterRuleHandleCache.getInstance()
                 .obtainHandle(RateLimiterPluginDataHandler.getCacheKeyName(rule));
-        return redisRateLimiter.isAllowed(rule.getId(), limiterHandle)
+        return redisRateLimiter.isAllowed(exchange, rule.getId(), limiterHandle)
                 .flatMap(response -> {
                     if (!response.isAllowed()) {
                         exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
@@ -73,6 +77,13 @@ public class RateLimiterPlugin extends AbstractSoulPlugin {
                         return WebFluxResultUtils.result(exchange, error);
                     }
                     return chain.execute(exchange);
+                }).doFinally(s -> {
+                    RateLimiterAlgorithm<?> rateLimiterAlgorithm = (RateLimiterAlgorithm<?>) exchange.getAttributes().get(RedisRateLimiter.RATE_LIMITER_ALGORITHM);
+                    if (rateLimiterAlgorithm != null) {
+                        List<String> keys = (List<String>) exchange.getAttributes().get(RedisRateLimiter.KEYS);
+                        List<String> scriptArgs = (List<String>) exchange.getAttributes().get(RedisRateLimiter.SCRIPT_ARGS);
+                        rateLimiterAlgorithm.callback(null, keys, scriptArgs);
+                    }
                 });
     }
 }
