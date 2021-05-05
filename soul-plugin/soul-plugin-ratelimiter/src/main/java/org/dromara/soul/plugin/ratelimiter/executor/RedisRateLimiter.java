@@ -42,11 +42,11 @@ import java.util.List;
 @Slf4j
 public class RedisRateLimiter {
     
-    public static final String RATE_LIMITER_ALGORITHM = "rateLimiterAlgorithm";
+    public static final String RATE_LIMITER_ALGORITHM = "_rate_limiter_algorithm";
     
-    public static final String RATE_LIMITER_KEYS = "keys";
+    public static final String RATE_LIMITER_KEYS = "_rate_limiter_keys";
 
-    public static final String RATE_LIMITER_SCRIPT_ARGS = "scriptArgs";
+    public static final String RATE_LIMITER_SCRIPT_ARGS = "_rate_limiter_script_args";
     
     /**
      * Verify using different current limiting algorithm scripts. 
