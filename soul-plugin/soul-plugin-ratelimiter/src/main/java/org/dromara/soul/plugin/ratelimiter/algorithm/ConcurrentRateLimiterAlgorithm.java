@@ -21,7 +21,6 @@ import org.dromara.soul.common.utils.UUIDUtils;
 import org.dromara.soul.plugin.base.utils.Singleton;
 import org.dromara.soul.spi.Join;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
-import org.springframework.data.redis.core.script.RedisScript;
 
 import java.util.Arrays;
 import java.util.List;
