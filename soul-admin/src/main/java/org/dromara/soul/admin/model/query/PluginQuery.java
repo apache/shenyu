@@ -50,9 +50,4 @@ public class PluginQuery implements Serializable {
      * page parameter.
      */
     private PageParameter pageParameter;
-
-    public PluginQuery(final String name, final PageParameter pageParameter) {
-        this.name = name;
-        this.pageParameter = pageParameter;
-    }
 }
