@@ -55,7 +55,7 @@ public class ConcurrentRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm
     
     @Override
     @SuppressWarnings("unchecked")
-    public void callback(final RedisScript<?> script, final List<String> keys, final List<String> scriptArgs) {
+    public void callback(final List<String> keys, final List<String> scriptArgs) {
         Singleton.INST.get(ReactiveRedisTemplate.class).opsForZSet().remove(keys.get(0), keys.get(1)).subscribe();
     }
 }

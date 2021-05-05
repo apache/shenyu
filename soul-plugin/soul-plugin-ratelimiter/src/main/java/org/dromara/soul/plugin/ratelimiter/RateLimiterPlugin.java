@@ -82,7 +82,7 @@ public class RateLimiterPlugin extends AbstractSoulPlugin {
                     if (rateLimiterAlgorithm != null) {
                         List<String> keys = (List<String>) exchange.getAttributes().get(RedisRateLimiter.RATE_LIMITER_KEYS);
                         List<String> scriptArgs = (List<String>) exchange.getAttributes().get(RedisRateLimiter.RATE_LIMITER_SCRIPT_ARGS);
-                        rateLimiterAlgorithm.callback(null, keys, scriptArgs);
+                        rateLimiterAlgorithm.callback(keys, scriptArgs);
                     }
                 });
     }

@@ -66,17 +66,15 @@ public class RedisRateLimiter {
         List<String> keys = rateLimiterAlgorithm.getKeys(id);
         List<String> scriptArgs = Arrays.asList(doubleToString(replenishRate), doubleToString(burstCapacity), doubleToString(Instant.now().getEpochSecond()), doubleToString(requestCount));
         Flux<List<Long>> resultFlux = Singleton.INST.get(ReactiveRedisTemplate.class).execute(script, keys, scriptArgs);
+        exchange.getAttributes().put(RATE_LIMITER_ALGORITHM, rateLimiterAlgorithm);
+        exchange.getAttributes().put(RATE_LIMITER_KEYS, keys);
+        exchange.getAttributes().put(RATE_LIMITER_SCRIPT_ARGS, scriptArgs);
         return resultFlux.onErrorResume(throwable -> Flux.just(Arrays.asList(1L, -1L)))
                 .reduce(new ArrayList<Long>(), (longs, l) -> {
                     longs.addAll(l);
                     return longs;
                 }).map(results -> {
                     boolean allowed = results.get(0) == 1L;
-                    if (allowed) {
-                        exchange.getAttributes().put(RATE_LIMITER_ALGORITHM, rateLimiterAlgorithm);
-                        exchange.getAttributes().put(RATE_LIMITER_KEYS, keys);
-                        exchange.getAttributes().put(RATE_LIMITER_SCRIPT_ARGS, scriptArgs);
-                    }
                     Long tokensLeft = results.get(1);
                     return new RateLimiterResponse(allowed, tokensLeft);
                 })
