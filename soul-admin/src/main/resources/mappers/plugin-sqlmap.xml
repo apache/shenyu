@@ -64,7 +64,7 @@
             <if test="name != null and name != ''">
                 and name = #{name,jdbcType=VARCHAR}
             </if>
-            <if test="enabled != null and enabled != ''">
+            <if test="enabled != null">
                 and enabled = #{enabled,jdbcType=TINYINT}
             </if>
         </where>
@@ -84,7 +84,7 @@
             <if test="name != null and name != ''">
                 and name = #{name,jdbcType=VARCHAR}
             </if>
-            <if test="enabled != null and enabled != ''">
+            <if test="enabled != null">
                 and enabled = #{enabled,jdbcType=TINYINT}
             </if>
         </where>

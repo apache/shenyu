@@ -27,9 +27,9 @@ spring:
     prefix: classpath:/static/
     suffix: .html
   datasource:
-    url: jdbc:mysql://localhost:6657/soul?useUnicode=true&characterEncoding=utf-8&useSSL=false
+    url: jdbc:mysql://localhost:3306/soul?useUnicode=true&characterEncoding=utf-8&useSSL=false
     username: root
-    password: kIo9u7Oi0eg
+    password:
     driver-class-name: com.mysql.jdbc.Driver
 
 mybatis:
