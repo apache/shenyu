@@ -44,9 +44,9 @@ public class RedisRateLimiter {
     
     public static final String RATE_LIMITER_ALGORITHM = "rateLimiterAlgorithm";
     
-    public static final String KEYS = "keys";
+    public static final String RATE_LIMITER_KEYS = "keys";
 
-    public static final String SCRIPT_ARGS = "scriptArgs";
+    public static final String RATE_LIMITER_SCRIPT_ARGS = "scriptArgs";
     
     /**
      * Verify using different current limiting algorithm scripts. 
@@ -74,8 +74,8 @@ public class RedisRateLimiter {
                     boolean allowed = results.get(0) == 1L;
                     if (allowed) {
                         exchange.getAttributes().put(RATE_LIMITER_ALGORITHM, rateLimiterAlgorithm);
-                        exchange.getAttributes().put(KEYS, keys);
-                        exchange.getAttributes().put(SCRIPT_ARGS, scriptArgs);
+                        exchange.getAttributes().put(RATE_LIMITER_KEYS, keys);
+                        exchange.getAttributes().put(RATE_LIMITER_SCRIPT_ARGS, scriptArgs);
                     }
                     Long tokensLeft = results.get(1);
                     return new RateLimiterResponse(allowed, tokensLeft);
