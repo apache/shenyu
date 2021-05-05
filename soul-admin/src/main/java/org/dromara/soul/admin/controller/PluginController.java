@@ -73,13 +73,14 @@ public class PluginController {
      * query plugins.
      *
      * @param name        plugin name.
+     * @param enabled     plugin enabled.
      * @param currentPage current page.
      * @param pageSize    page size.
      * @return {@linkplain SoulAdminResult}
      */
     @GetMapping("")
-    public SoulAdminResult queryPlugins(final String name, final Integer currentPage, final Integer pageSize) {
-        CommonPager<PluginVO> commonPager = pluginService.listByPage(new PluginQuery(name, new PageParameter(currentPage, pageSize)));
+    public SoulAdminResult queryPlugins(final String name, final Integer enabled, final Integer currentPage, final Integer pageSize) {
+        CommonPager<PluginVO> commonPager = pluginService.listByPage(new PluginQuery(name, enabled, new PageParameter(currentPage, pageSize)));
         return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
     }
 
