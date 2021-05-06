@@ -83,6 +83,11 @@ public enum PluginEnum {
     RESILIENCE4J(45, 0, "resilience4j"),
 
     /**
+     * Logging plugin enum.
+     */
+    LOGGING(45, 0, "logging"),
+
+    /**
      * Divide plugin enum.
      */
     DIVIDE(50, 0, "divide"),

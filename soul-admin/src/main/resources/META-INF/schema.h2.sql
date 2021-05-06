@@ -234,7 +234,18 @@ CREATE TABLE IF NOT EXISTS `resource` (
     `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
     PRIMARY KEY (`id`)
     );
-
+-- ----------------------------
+-- Table structure for data_permission
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS `data_permission` (
+    `id` varchar(128) NOT NULL COMMENT 'primary key id',
+    `user_id` varchar(128) NOT NULL COMMENT 'user primary key id',
+    `data_id` varchar(128) NOT NULL COMMENT 'data(selector,rule) primary key id',
+    `data_type` int(1) NOT NULL COMMENT '0 selector type , 1 rule type',
+    `date_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
+    `date_updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'update time',
+    PRIMARY KEY (`id`)
+    );
 /*soul dict*/
 INSERT INTO `soul_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('1','degradeRuleGrade','DEGRADE_GRADE_RT','slow call ratio','0','degrade type-slow call ratio',1,1,'2020-11-18 14:39:56','2020-11-20 15:43:43');
 INSERT INTO `soul_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('2','degradeRuleGrade','DEGRADE_GRADE_EXCEPTION_RATIO','exception ratio','1','degrade type-abnormal ratio',0,1,'2020-11-18 16:42:34','2020-11-20 15:42:58');
@@ -279,6 +290,7 @@ INSERT INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `date_upd
 INSERT INTO `plugin` (`id`, `name`, `role`,`config`,`enabled`, `date_created`, `date_updated`) VALUES ('15', 'grpc', '1', '{"multiSelectorHandle":"1","multiRuleHandle":"0"}', '0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('16', 'redirect', '1','0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT INTO `plugin` (`id`, `name`, `role`,`config`, `enabled`, `date_created`, `date_updated`) VALUES ('17', 'motan', '1','{"register":"127.0.0.1:2181"}','0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
+INSERT INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('18', 'logging', '1', '0', '2021-04-29 13:37:35', '2021-04-29 13:37:35');
 
 /**default admin user**/
 INSERT INTO `dashboard_user` (`id`, `user_name`, `password`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('1','admin','jHcpKkiDbbQh7W7hh8yQSA==', '1', '1', '2018-06-23 15:12:22', '2018-06-23 15:12:23');
@@ -347,9 +359,6 @@ INSERT INTO soul_dict (`id`, `type`, `dict_code`, `dict_name`, `dict_value`, `de
 INSERT INTO soul_dict (`id`, `type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('13', 'mode', 'MODE', 'sentinel', 'sentinel', 'sentinel', 1, 1, '2020-12-25 00:00:00', '2020-12-25 00:00:00');
 INSERT INTO soul_dict (`id`, `type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('14', 'mode', 'MODE', 'standalone', 'standalone', 'standalone', 2, 1, '2020-12-25 00:00:00', '2020-12-25 00:00:00');
 
-/*insert plugin_handle data for context path*/
-INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('29', '14', 'contextPath', 'contextPath', 2, 2, 0, '2020-12-25 16:13:09', '2020-12-25 16:13:09');
-
 /*insert plugin_handle data for divide*/
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('44', '5', 'upstreamHost', 'host', 2, 1, 0, null, '2021-03-06 21:23:41', '2021-03-09 10:32:51');
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('45', '5', 'protocol', 'protocol', 2, 1, 2, '{"required":"1","defaultValue":"","placeholder":"http://","rule":""}', '2021-03-06 21:25:37', '2021-03-09 10:32:51');
@@ -363,6 +372,8 @@ INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('53', '5', 'timeout', 'timeout', 1, 2, 2, '{"defaultValue":"3000","rule":""}', '2021-03-07 21:13:50', '2021-03-09 10:32:51');
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('54', '5', 'multiSelectorHandle', 'multiSelectorHandle', 3, 3, 0, null, '2021-03-08 13:18:44', '2021-03-09 10:32:51');
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('55', '5', 'multiRuleHandle', 'multiRuleHandle', 3, 3, 1, null, '2021-03-08 13:37:12', '2021-03-09 10:32:51');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('80', '5', 'headerMaxSize', 'headerMaxSize', 1, 2, 3, '{"defaultValue":"10240","rule":""}', '2021-04-29 12:28:45', '2021-04-29 12:28:52');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('81', '5', 'requestMaxSize', 'requestMaxSize', 1, 2, 4, '{"defaultValue":"102400","rule":""}', '2021-04-29 14:24:13', '2021-04-29 14:24:16');
 
 /*insert plugin_handle data for tars*/
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('56', '13', 'upstreamHost', 'host', 2, 1, 0, null, '2021-03-06 21:23:41', '2021-03-09 10:32:51');
@@ -386,11 +397,15 @@ INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('78', '15', 'multiSelectorHandle', 'multiSelectorHandle', 3, 3, 0, null, '2021-03-08 13:18:44', '2021-03-09 10:32:51');
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('79', '15', 'multiRuleHandle', 'multiRuleHandle', 3, 3, 1, null, '2021-03-08 13:37:12', '2021-03-09 10:32:51');
 
+/*insert plugin_handle data for context path*/
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('1001', '14', 'contextPath', 'contextPath', 2, 2, 0, '2020-12-25 16:13:09', '2020-12-25 16:13:09');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('1002', '14', 'addPrefix', 'addPrefix', 2, 2, 0, '2020-12-25 16:13:09', '2020-12-25 16:13:09');
+
 /** insert permission role for role */
 INSERT INTO `role` (`id`,`role_name`,`description`,`date_created`,`date_updated`) VALUES ('1346358560427216896', 'super', '超级管理员', '2021-01-05 01:31:10', '2021-01-08 17:00:07');
 INSERT INTO `role` (`id`,`role_name`,`description`,`date_created`,`date_updated`) VALUES ('1385482862971723776', 'default', '普通用户', '2021-04-23 14:37:10', '2021-04-23 14:38:39');
 
-/** insert resource ror resource */
+/** insert resource for resource */
 INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1346775491550474240','','SOUL.MENU.PLUGIN.LIST','plug','/plug','PluginList','0','0','dashboard','0','0','','1','2021-01-06 05:07:54','2021-01-07 18:34:11');
 INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1357956838021890048','','SOUL.MENU.CONFIG.MANAGMENT','config','/config','config','0','1','api','0','0','','1','2021-02-06 15:38:34','2021-02-06 15:47:25');
 INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1346776175553376256','','SOUL.MENU.SYSTEM.MANAGMENT','system','/system','system','0','2','setting','0','0','','1','2021-01-06 05:10:37','2021-01-07 11:41:02');
@@ -566,7 +581,8 @@ INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, 
 INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1355165608565039104','1355163372527050752','SOUL.BUTTON.RESOURCE.MENU.EDIT','','','','2','3','','1','0','system:resource:editMenu','1','2021-01-29 22:47:13','2021-02-06 16:59:02');
 INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1357977745889132544','1355163372527050752','SOUL.BUTTON.RESOURCE.BUTTON.ADD','','','','2','4','','1','0','system:resource:addButton','1','2021-02-06 17:01:39','2021-02-06 17:04:35');
 INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1357977912126177280','1355163372527050752','SOUL.SYSTEM.EDITOR','','','','2','5','','1','0','system:resource:editButton','1','2021-02-06 17:02:19','2021-02-06 17:23:57');
-INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES  ('1357977971827900416','1355163372527050752','SOUL.SYSTEM.DELETEDATA','','','','2','6','','1','0','system:resource:deleteButton','1','2021-02-06 17:02:33','2021-02-06 17:25:28');
+INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1357977971827900416','1355163372527050752','SOUL.SYSTEM.DELETEDATA','','','','2','6','','1','0','system:resource:deleteButton','1','2021-02-06 17:02:33','2021-02-06 17:25:28');
+INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1386680049203195904','1346777157943259136','SOUL.BUTTON.DATA.PERMISSION.CONFIG', '', '', '', 2, 0, '', 1, 0, 'system:manager:configureDataPermission', 1, '2021-04-26 21:54:22', '2021-04-26 21:59:56');
 
 /** insert redirect resource */
 INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1347027413357572097', '1346775491550474240', 'redirect', 'redirect', '/plug/redirect', 'redirect', 1, 16, 'redo', 0, 0, '', 1, '2021-01-06 21:48:57', '2021-01-07 11:48:56');
@@ -590,6 +606,16 @@ INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, 
 INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1350099836492595207','1350099836492595202','SOUL.BUTTON.PLUGIN.SYNCHRONIZE','','','','2','4','','1','0','plugin:motan:modify','1','2021-01-07 14:14:25','2021-01-17 11:56:30');
 INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1350099836492595208','1350099836492595202','SOUL.BUTTON.PLUGIN.SELECTOR.EDIT','','','','2','5','','1','0','plugin:motanSelector:edit','1','2021-01-15 23:19:38','2021-01-17 11:57:34');
 INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1350099836492595209','1350099836492595202','SOUL.BUTTON.PLUGIN.RULE.EDIT','','','','2','6','','1','0','plugin:motanRule:edit','1','2021-01-15 23:19:39','2021-01-17 11:57:37');
+
+/** insert logging resource */
+INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1387642195797528576', '1346775491550474240', 'logging', 'logging', '/plug/logging', 'logging', 1, 0, 'block', 0, 0, '', 1, '2021-04-29 13:37:35', '2021-04-29 13:37:35');
+INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1387642195982077952', '1387642195797528576', 'SOUL.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingSelector:add', 1, '2021-04-29 13:37:35', '2021-04-29 13:37:35');
+INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1387642196145655808', '1387642195797528576', 'SOUL.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingSelector:delete', 1, '2021-04-29 13:37:35', '2021-04-29 13:37:35');
+INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1387642196409896960', '1387642195797528576', 'SOUL.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingSelector:edit', 1, '2021-04-29 13:37:35', '2021-04-29 13:37:35');
+INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1387642196598640640', '1387642195797528576', 'SOUL.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingRule:add', 1, '2021-04-29 13:37:35', '2021-04-29 13:37:35');
+INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1387642197181648896', '1387642195797528576', 'SOUL.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingRule:delete', 1, '2021-04-29 13:37:35', '2021-04-29 13:37:35');
+INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1387642197538164736', '1387642195797528576', 'SOUL.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:loggingRule:edit', 1, '2021-04-29 13:37:35', '2021-04-29 13:37:35');
+INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1387642197689159680', '1387642195797528576', 'SOUL.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:logging:modify', 1, '2021-04-29 13:37:35', '2021-04-29 13:37:35');
 
 /** insert admin permission */
 INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1351007708572688384', '1346358560427216896', '1346775491550474240', '2021-01-18 11:25:13', '2021-01-18 11:25:12');
@@ -767,6 +793,7 @@ INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `dat
 INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1357977971827900423', '1346358560427216896', '1350100337363795974', '2021-02-06 17:02:33', '2021-02-06 17:02:33');
 INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1357977971827900424', '1346358560427216896', '1350100337363795975', '2021-02-06 17:02:33', '2021-02-06 17:02:33');
 INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1357977971827900425', '1346358560427216896', '1347028169120821249', '2021-02-06 17:02:33', '2021-02-06 17:02:33');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1386680049203195905', '1346358560427216896', '1386680049203195904', '2021-04-26 21:54:22', '2021-04-26 21:54:21');
 
 INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1351007708992118999', '1346358560427216896', '1350099836492595202', '2021-01-18 11:25:13', '2021-01-18 11:25:12');
 INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1351007708992119000', '1346358560427216896', '1350099836492595203', '2021-01-18 11:25:13', '2021-01-18 11:25:12');
@@ -786,3 +813,13 @@ INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `dat
 INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1357977971827900427', '1346358560427216896', '1347052836300664833', '2021-02-06 17:02:33', '2021-02-06 17:02:33');
 INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1357977971827900426', '1346358560427216896', '1347052833968631809', '2021-02-06 17:02:33', '2021-02-06 17:02:33');
 INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1357977971827900433', '1346358560427216896', '1347027413357572097', '2021-02-06 17:02:33', '2021-02-06 17:02:33');
+
+/** add logging permissions */
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1387642195801722880', '1346358560427216896', '1387642195797528576', '2021-04-29 13:37:35', '2021-04-29 13:37:35');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1387642195986272256', '1346358560427216896', '1387642195982077952', '2021-04-29 13:37:35', '2021-04-29 13:37:35');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1387642196145655809', '1346358560427216896', '1387642196145655808', '2021-04-29 13:37:35', '2021-04-29 13:37:35');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1387642196409896961', '1346358560427216896', '1387642196409896960', '2021-04-29 13:37:35', '2021-04-29 13:37:35');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1387642196598640641', '1346358560427216896', '1387642196598640640', '2021-04-29 13:37:35', '2021-04-29 13:37:35');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1387642197181648897', '1346358560427216896', '1387642197181648896', '2021-04-29 13:37:35', '2021-04-29 13:37:35');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1387642197538164737', '1346358560427216896', '1387642197538164736', '2021-04-29 13:37:35', '2021-04-29 13:37:35');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1387642197689159681', '1346358560427216896', '1387642197689159680', '2021-04-29 13:37:35', '2021-04-29 13:37:35');

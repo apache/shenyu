@@ -19,6 +19,7 @@ package org.dromara.soul.admin.service;
 
 import org.dromara.soul.admin.config.properties.JwtProperties;
 import org.dromara.soul.admin.config.properties.SecretProperties;
+import org.dromara.soul.admin.mapper.DataPermissionMapper;
 import org.dromara.soul.admin.model.dto.DashboardUserDTO;
 import org.dromara.soul.admin.model.entity.DashboardUserDO;
 import org.dromara.soul.admin.mapper.DashboardUserMapper;
@@ -78,6 +79,9 @@ public final class DashboardUserServiceTest {
 
     @Mock
     private RoleMapper roleMapper;
+
+    @Mock
+    private DataPermissionMapper dataPermissionMapper;
 
     @Mock
     private SecretProperties secretProperties;

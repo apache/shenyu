@@ -34,7 +34,9 @@ docker run -d -p 9195:9195 --net soul dromara/soul-bootstrap:2.2.1
 
 If you want to override environment variables, you can do like this.
 
-`docker run -e "SPRING_PROFILES_ACTIVE=mysql" -e "spring.datasource.url=jdbc:mysql://192.168.1.9:3306/soul?useUnicode=true&characterEncoding=utf-8&useSSL=false" -e "spring.datasource.password=123456" -d -p 9095:9095 --net soul dromara/soul-admin:2.2.1`
+```
+docker run -e "SPRING_PROFILES_ACTIVE=mysql" -e "spring.datasource.url=jdbc:mysql://192.168.1.9:3306/soul?useUnicode=true&characterEncoding=utf-8&useSSL=false" -e "spring.datasource.password=123456" -d -p 9095:9095 --net soul dromara/soul-admin:2.2.1
+```
 
 Another way, bind volume and mounts
 

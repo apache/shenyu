@@ -36,7 +36,7 @@ public class ContextPathMappingPluginDataHandler implements PluginDataHandler {
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            final ContextMappingHandle contextMappingHandle = GsonUtils.getInstance().fromJson(s, ContextMappingHandle.class);
+            ContextMappingHandle contextMappingHandle = GsonUtils.getInstance().fromJson(s, ContextMappingHandle.class);
             ContextPathRuleHandleCache.getInstance().cachedHandle(getCacheKeyName(ruleData), contextMappingHandle);
         });
     }

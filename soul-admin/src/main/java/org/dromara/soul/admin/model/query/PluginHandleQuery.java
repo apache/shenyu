@@ -38,6 +38,11 @@ public class PluginHandleQuery {
     private String pluginId;
 
     /**
+     * plugin field.
+     */
+    private String field;
+
+    /**
      *  type.
      *  1  selector,
      *  2  rule

@@ -67,7 +67,7 @@ public class RedisRateLimiter {
                     Long tokensLeft = results.get(1);
                     return new RateLimiterResponse(allowed, tokensLeft);
                 })
-                .doOnError(throwable -> log.error("Error determining if user allowed from redis:{}", throwable.getMessage()))
+                .doOnError(throwable -> log.error("Error occurred while judging if user is allowed by RedisRateLimiter:{}", throwable.getMessage()))
                 .doFinally(signalType -> rateLimiterAlgorithm.callback(script, keys, scriptArgs));
     }
     

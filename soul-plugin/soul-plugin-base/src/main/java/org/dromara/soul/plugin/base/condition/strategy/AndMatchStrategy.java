@@ -18,7 +18,7 @@
 package org.dromara.soul.plugin.base.condition.strategy;
 
 import org.dromara.soul.common.dto.ConditionData;
-import org.dromara.soul.plugin.base.condition.judge.OperatorJudgeFactory;
+import org.dromara.soul.plugin.base.condition.judge.PredicateJudgeFactory;
 import org.dromara.soul.spi.Join;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -36,6 +36,6 @@ public class AndMatchStrategy extends AbstractMatchStrategy implements MatchStra
     public Boolean match(final List<ConditionData> conditionDataList, final ServerWebExchange exchange) {
         return conditionDataList
                 .stream()
-                .allMatch(condition -> OperatorJudgeFactory.judge(condition, buildRealData(condition, exchange)));
+                .allMatch(condition -> PredicateJudgeFactory.judge(condition, buildRealData(condition, exchange)));
     }
 }

@@ -44,4 +44,9 @@ public class CommonErrorCode {
      */
     public static final int TOKEN_NO_PERMISSION = 601;
 
+    /**
+     * The constant NOT_FOUND_EXCEPTION.
+     */
+    public static final int NOT_FOUND_EXCEPTION = 404;
+
 }
