@@ -74,7 +74,7 @@ public final class RuleControllerTest {
 
     private final PageParameter pageParameter = new PageParameter();
 
-    private final RuleQuery tRuleQuery = new RuleQuery("168", pageParameter);
+    private final RuleQuery tRuleQuery = new RuleQuery("168", "/http/test/**", pageParameter);
 
     private final CommonPager<RuleVO> commonPager = new CommonPager<>(new PageParameter(), Collections.singletonList(ruleVO));
 
@@ -86,8 +86,8 @@ public final class RuleControllerTest {
     @Test
     public void testQueryRules() throws Exception {
         given(this.ruleService.listByPage(tRuleQuery)).willReturn(commonPager);
-        String urlTemplate = "/rule?selectorId={selectorId}&currentPage={currentPage}&pageSize={pageSize}";
-        this.mockMvc.perform(MockMvcRequestBuilders.get(urlTemplate, "168", 1, 12))
+        String urlTemplate = "/rule?selectorId={selectorId}&name={name}&currentPage={currentPage}&pageSize={pageSize}";
+        this.mockMvc.perform(MockMvcRequestBuilders.get(urlTemplate, "168", "/http/test/**", 1, 12))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(SoulResultMessage.QUERY_SUCCESS)))
                 .andExpect(jsonPath("$.data.dataList[0].id", is(ruleVO.getId())))

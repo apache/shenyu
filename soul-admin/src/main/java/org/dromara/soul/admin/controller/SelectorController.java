@@ -58,15 +58,15 @@ public class SelectorController {
      * query Selectors.
      *
      * @param pluginId    plugin id.
+     * @param name        selector name.
      * @param currentPage current page.
      * @param pageSize    page size.
      * @return {@linkplain SoulAdminResult}
      */
     @GetMapping("")
-    public SoulAdminResult querySelectors(final String pluginId, final Integer currentPage, final Integer pageSize) {
-        CommonPager<SelectorVO> commonPager = selectorService.listByPage(new SelectorQuery(pluginId, new PageParameter(currentPage, pageSize)));
+    public SoulAdminResult querySelectors(final String pluginId, final String name, final Integer currentPage, final Integer pageSize) {
+        CommonPager<SelectorVO> commonPager = selectorService.listByPage(new SelectorQuery(pluginId, name, new PageParameter(currentPage, pageSize)));
         return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
-
     }
 
     /**

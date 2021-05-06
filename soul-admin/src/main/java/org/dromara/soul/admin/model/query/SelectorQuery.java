@@ -42,6 +42,11 @@ public class SelectorQuery extends FilterQuery {
     private String pluginId;
 
     /**
+     * selector name.
+     */
+    private String name;
+
+    /**
      * page parameter.
      */
     private PageParameter pageParameter;

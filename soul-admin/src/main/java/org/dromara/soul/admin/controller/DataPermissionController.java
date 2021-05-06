@@ -60,15 +60,17 @@ public class DataPermissionController {
      * @param pageSize page size
      * @param userId user id
      * @param pluginId plugin id
+     * @param name selector name
      * @return {@linkplain SoulAdminResult}
      */
     @GetMapping("/selector")
     public SoulAdminResult listPageSelectorDataPermissions(@RequestParam("currentPage") final Integer currentPage,
                                                            @RequestParam("pageSize") final Integer pageSize,
                                                            @RequestParam("userId") final String userId,
-                                                           @RequestParam("pluginId") final String pluginId) {
+                                                           @RequestParam("pluginId") final String pluginId,
+                                                           @RequestParam(value = "name", required = false) final String name) {
         CommonPager<DataPermissionPageVO> selectorList = dataPermissionService.listSelectorsByPage(
-                new SelectorQuery(pluginId, new PageParameter(currentPage, pageSize)), userId);
+                new SelectorQuery(pluginId, name, new PageParameter(currentPage, pageSize)), userId);
         return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, selectorList);
     }
 
@@ -79,15 +81,17 @@ public class DataPermissionController {
      * @param pageSize page size
      * @param userId  user id
      * @param selectorId selector id
+     * @param name  rule name
      * @return {@linkplain SoulAdminResult}
      */
     @GetMapping("/rules")
     public SoulAdminResult listPageRuleDataPermissions(@RequestParam("currentPage") final Integer currentPage,
                                                          @RequestParam("pageSize") final Integer pageSize,
                                                          @RequestParam("userId") final String userId,
-                                                         @RequestParam("selectorId") final String selectorId) {
+                                                         @RequestParam("selectorId") final String selectorId,
+                                                         @RequestParam(value = "name", required = false) final String name) {
         CommonPager<DataPermissionPageVO> selectorList = dataPermissionService.listRulesByPage(
-                new RuleQuery(selectorId, new PageParameter(currentPage, pageSize)), userId);
+                new RuleQuery(selectorId, name, new PageParameter(currentPage, pageSize)), userId);
         return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, selectorList);
     }
 

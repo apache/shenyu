@@ -60,6 +60,9 @@
             <if test="pluginId != null">
                 plugin_id = #{pluginId,jdbcType=VARCHAR}
             </if>
+            <if test="name != null and name != ''">
+                and name = #{name,jdbcType=VARCHAR}
+            </if>
             <if test="filterIds != null">
                 and id in
                 <foreach item="filterId" collection="filterIds" open="(" separator="," close=")">
@@ -88,6 +91,9 @@
         <where>
             <if test="pluginId != null">
                 plugin_id = #{pluginId,jdbcType=VARCHAR}
+            </if>
+            <if test="name != null and name != ''">
+                and name = #{name,jdbcType=VARCHAR}
             </if>
             <if test="filterIds != null">
                 and id in

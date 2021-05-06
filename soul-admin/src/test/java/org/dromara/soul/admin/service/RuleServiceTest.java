@@ -135,7 +135,7 @@ public final class RuleServiceTest {
         parameter.setPageSize(5);
         parameter.setTotalCount(10);
         parameter.setTotalPage(parameter.getTotalCount() / parameter.getPageSize());
-        RuleQuery ruleQuery = new RuleQuery("456", parameter);
+        RuleQuery ruleQuery = new RuleQuery("456", null, parameter);
         given(this.ruleMapper.countByQuery(ruleQuery)).willReturn(10);
         List<RuleDO> ruleDOList = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
