@@ -22,8 +22,6 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * load balance enum.
- *
- * @author xiaoyu(Myth)
  */
 @RequiredArgsConstructor
 @Getter

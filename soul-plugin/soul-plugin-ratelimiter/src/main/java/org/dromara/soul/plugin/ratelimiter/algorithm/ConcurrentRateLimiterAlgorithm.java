@@ -32,7 +32,6 @@ import java.util.List;
  * https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L11-L34
  * The type Concurrent rate limiter algorithm.
  * 
- * @author xiaoyu
  */
 @Join
 public class ConcurrentRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm {

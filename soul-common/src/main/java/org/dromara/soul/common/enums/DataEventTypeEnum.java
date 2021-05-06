@@ -24,8 +24,6 @@ import java.util.Objects;
 
 /**
  * The enum Data event type.
- *
- * @author xiaoyu
  */
 public enum DataEventTypeEnum {
 

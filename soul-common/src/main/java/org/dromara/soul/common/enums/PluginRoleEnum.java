@@ -22,8 +22,6 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * Plugin Role.
- *
- * @author xiaoyu(Myth)
  */
 @RequiredArgsConstructor
 @Getter

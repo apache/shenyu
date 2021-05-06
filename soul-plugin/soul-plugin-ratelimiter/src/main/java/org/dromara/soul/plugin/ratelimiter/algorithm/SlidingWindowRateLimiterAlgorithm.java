@@ -26,8 +26,6 @@ import java.util.List;
 
 /**
  * The type Sliding window rate limiter algorithm.
- *
- * @author liugenghua
  **/
 @Join
 public class SlidingWindowRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm {

@@ -22,8 +22,6 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * The enum Waf model enum.
- *
- * @author xiaoyu(Myth)
  */
 @RequiredArgsConstructor
 @Getter

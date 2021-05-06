@@ -23,7 +23,6 @@ import lombok.RequiredArgsConstructor;
 /**
  * the menu for plugin operate button.
  *
- * @author nuo-promise
  */
 @RequiredArgsConstructor
 @Getter

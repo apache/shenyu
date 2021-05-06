@@ -27,8 +27,6 @@ import java.util.stream.Collectors;
 
 /**
  * RpcTypeEnum.
- *
- * @author xiaoyu(549477611 @ qq.com)
  */
 @RequiredArgsConstructor
 @Getter

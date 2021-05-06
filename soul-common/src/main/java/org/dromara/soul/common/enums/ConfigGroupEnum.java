@@ -25,7 +25,6 @@ import java.util.Objects;
 /**
  * configuration group.
  *
- * @author huangxiaofeng
  */
 public enum ConfigGroupEnum {
 

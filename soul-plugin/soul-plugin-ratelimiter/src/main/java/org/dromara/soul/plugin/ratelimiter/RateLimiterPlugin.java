@@ -35,8 +35,6 @@ import reactor.core.publisher.Mono;
 
 /**
  * RateLimiter Plugin.
- *
- * @author xiaoyu(Myth)
  */
 public class RateLimiterPlugin extends AbstractSoulPlugin {
 

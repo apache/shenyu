@@ -19,10 +19,8 @@ package org.dromara.soul.common.enums;
 
 /**
  * rate limit.
- * @author zhoutzzz
- * @since 2.3.1-SNAPSHOT
  */
-public enum RateLimitEnum implements BaseEnum<String, String> {
+public enum RateLimitEnum {
 
     SLIDING_WINDOW("sliding_window_request_rate_limiter", "sliding_window_request_rate_limiter.lua"),
 
@@ -47,7 +45,7 @@ public enum RateLimitEnum implements BaseEnum<String, String> {
      * @return keyName
      */
     public String getKeyName() {
-        return getKey();
+        return this.keyName;
     }
 
     /**
@@ -56,16 +54,6 @@ public enum RateLimitEnum implements BaseEnum<String, String> {
      * @return scriptName
      */
     public String getScriptName() {
-        return getValue();
-    }
-
-    @Override
-    public String getKey() {
-        return keyName;
-    }
-
-    @Override
-    public String getValue() {
-        return scriptName;
+        return this.scriptName;
     }
 }

@@ -26,7 +26,6 @@ import java.util.List;
  * The interface Rate limiter algorithm.
  *
  * @param <T> the type parameter
- * @author xiaoyu
  */
 @SPI
 public interface RateLimiterAlgorithm<T> {

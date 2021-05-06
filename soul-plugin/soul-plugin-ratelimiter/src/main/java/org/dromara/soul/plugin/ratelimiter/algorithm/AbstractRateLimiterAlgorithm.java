@@ -28,8 +28,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The type Abstract rate limiter algorithm.
- * 
- * @author xiaoyu
  */
 public abstract class AbstractRateLimiterAlgorithm implements RateLimiterAlgorithm<List<Long>> {
     

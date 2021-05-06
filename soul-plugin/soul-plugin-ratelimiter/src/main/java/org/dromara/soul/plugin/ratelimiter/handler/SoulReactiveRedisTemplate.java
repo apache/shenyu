@@ -31,8 +31,6 @@ import reactor.core.publisher.Flux;
 
 /**
  * The type reactive redisTemplate.
- *
- * @author zhanglei
  */
 public class SoulReactiveRedisTemplate<K, V> extends ReactiveRedisTemplate<K, V> {
 
