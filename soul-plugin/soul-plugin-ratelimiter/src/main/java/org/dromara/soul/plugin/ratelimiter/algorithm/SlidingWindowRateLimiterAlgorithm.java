@@ -17,6 +17,7 @@
 
 package org.dromara.soul.plugin.ratelimiter.algorithm;
 
+import org.dromara.soul.common.enums.RateLimitEnum;
 import org.dromara.soul.common.utils.UUIDUtils;
 import org.dromara.soul.spi.Join;
 
@@ -33,12 +34,12 @@ public class SlidingWindowRateLimiterAlgorithm extends AbstractRateLimiterAlgori
 
     @Override
     protected String getScriptName() {
-        return "sliding_window_request_rate_limiter.lua";
+        return RateLimitEnum.SLIDING_WINDOW.getScriptName();
     }
 
     @Override
     protected String getKeyName() {
-        return "sliding_window_request_rate_limiter";
+        return RateLimitEnum.SLIDING_WINDOW.getKeyName();
     }
 
     @Override

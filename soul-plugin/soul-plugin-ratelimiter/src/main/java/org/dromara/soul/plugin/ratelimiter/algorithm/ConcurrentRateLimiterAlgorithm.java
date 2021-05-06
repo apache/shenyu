@@ -17,6 +17,7 @@
 
 package org.dromara.soul.plugin.ratelimiter.algorithm;
 
+import org.dromara.soul.common.enums.RateLimitEnum;
 import org.dromara.soul.common.utils.UUIDUtils;
 import org.dromara.soul.plugin.base.utils.Singleton;
 import org.dromara.soul.spi.Join;
@@ -38,12 +39,12 @@ public class ConcurrentRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm
 
     @Override
     protected String getScriptName() {
-        return "concurrent_request_rate_limiter.lua";
+        return RateLimitEnum.CONCURRENT.getScriptName();
     }
     
     @Override
     protected String getKeyName() {
-        return "concurrent_request_rate_limiter";
+        return RateLimitEnum.CONCURRENT.getKeyName();
     }
 
     @Override
