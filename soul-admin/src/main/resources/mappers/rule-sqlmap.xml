@@ -58,6 +58,9 @@
             <if test="selectorId != null">
                 selector_id = #{selectorId,jdbcType=VARCHAR}
             </if>
+            <if test="name != null and name != ''">
+                and name = #{name,jdbcType=VARCHAR}
+            </if>
             <if test="filterIds != null">
                 and id in
                 <foreach item="filterId" collection="filterIds" open="(" separator="," close=")">
@@ -82,6 +85,9 @@
         <where>
             <if test="selectorId != null">
                 selector_id = #{selectorId,jdbcType=VARCHAR}
+            </if>
+            <if test="name != null and name != ''">
+                and name = #{name,jdbcType=VARCHAR}
             </if>
             <if test="filterIds != null">
                 and id in

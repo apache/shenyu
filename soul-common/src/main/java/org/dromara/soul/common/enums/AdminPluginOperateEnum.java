@@ -44,6 +44,11 @@ public enum AdminPluginOperateEnum {
     EDIT("edit"),
 
     /**
+     * query operate.
+     */
+    QUERY("query"),
+
+    /**
      * modify operate.
      */
     SYNCHRONIZE("modify");

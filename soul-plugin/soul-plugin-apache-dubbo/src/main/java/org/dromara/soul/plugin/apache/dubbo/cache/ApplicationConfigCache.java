@@ -27,7 +27,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.ApplicationConfig;
 import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.dubbo.config.RegistryConfig;
-import org.apache.dubbo.rpc.model.ApplicationModel;
 import org.apache.dubbo.rpc.service.GenericService;
 import org.dromara.soul.common.config.DubboRegisterConfig;
 import org.dromara.soul.common.dto.MetaData;
@@ -154,7 +153,7 @@ public final class ApplicationConfigCache {
     public ReferenceConfig<GenericService> build(final MetaData metaData) {
         ReferenceConfig<GenericService> reference = new ReferenceConfig<>();
         reference.setGeneric("true");
-        ApplicationModel.getConfigManager().setApplication(applicationConfig);
+        reference.setApplication(applicationConfig);
         reference.setRegistry(registryConfig);
         reference.setInterface(metaData.getServiceName());
         reference.setProtocol("dubbo");

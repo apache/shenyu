@@ -42,6 +42,11 @@ public class PluginQuery implements Serializable {
     private String name;
 
     /**
+     * plugin enabled.
+     */
+    private Integer enabled;
+
+    /**
      * page parameter.
      */
     private PageParameter pageParameter;

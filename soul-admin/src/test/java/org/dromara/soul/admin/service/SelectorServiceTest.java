@@ -140,7 +140,7 @@ public final class SelectorServiceTest {
 
         // mock objects for test delete rule and ruleCondition.
         List<RuleDO> mockedRuleDOList = mock(List.class);
-        when(ruleMapper.selectByQuery(new RuleQuery(correctId, null))).thenReturn(mockedRuleDOList);
+        when(ruleMapper.selectByQuery(new RuleQuery(correctId, null, null))).thenReturn(mockedRuleDOList);
 
         // mock for test for-each statement.
         RuleDO mockedRuleDo = mock(RuleDO.class);

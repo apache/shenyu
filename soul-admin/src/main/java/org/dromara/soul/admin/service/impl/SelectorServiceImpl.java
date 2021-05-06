@@ -199,7 +199,7 @@ public class SelectorServiceImpl implements SelectorService {
                     Collections.singletonList(SelectorDO.transFrom(selectorDO, pluginDO.getName(), null))));
 
             // delete rule and ruleCondition
-            final List<RuleDO> ruleDOList = ruleMapper.selectByQuery(new RuleQuery(id, null));
+            final List<RuleDO> ruleDOList = ruleMapper.selectByQuery(new RuleQuery(id, null, null));
             if (CollectionUtils.isNotEmpty(ruleDOList)) {
                 for (RuleDO ruleDO : ruleDOList) {
                     ruleMapper.delete(ruleDO.getId());
