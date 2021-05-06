@@ -64,7 +64,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
         int insert = selectorMapper.insert(selectorDO);
         assertEquals(1, insert);
 
-        SelectorQuery query = new SelectorQuery(selectorDO.getPluginId(), new PageParameter());
+        SelectorQuery query = new SelectorQuery(selectorDO.getPluginId(), selectorDO.getName(), new PageParameter());
         List<SelectorDO> list = selectorMapper.selectByQuery(query);
         assertNotNull(list);
         assertEquals(list.size(), 1);
@@ -109,7 +109,7 @@ public final class SelectorMapperTest extends AbstractSpringIntegrationTest {
         int insert = selectorMapper.insert(selectorDO);
         assertEquals(1, insert);
 
-        SelectorQuery query = new SelectorQuery(selectorDO.getPluginId(), new PageParameter());
+        SelectorQuery query = new SelectorQuery(selectorDO.getPluginId(), selectorDO.getName(), new PageParameter());
         Integer count = selectorMapper.countByQuery(query);
         assertNotNull(count);
         assertEquals(new Integer(1), count);

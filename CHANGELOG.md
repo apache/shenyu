@@ -11,7 +11,7 @@ Release Notes.
 * Add  default values and rule checks in plugin handler. #1112
 * Add resource management to allow user to add plugin, adjust menu and button resource and so on  in  soul-dashboard and soul-admin.  #1034
 * Add menu and data permission in soul-admin. #917
-* Add H2 stroe for soul-admin #918
+* Add H2 store for soul-admin #918
 
 ### soul-bootstrap
 

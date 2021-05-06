@@ -42,6 +42,11 @@ public class RuleQuery extends FilterQuery {
     private String selectorId;
 
     /**
+     * rule name.
+     */
+    private String name;
+
+    /**
      * page parameter.
      */
     private PageParameter pageParameter;
