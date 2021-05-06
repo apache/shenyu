@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-    <a target="_blank" href="http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22org.dromara%22%20AND%soul">
+    <a target="_blank" href="https://search.maven.org/search?q=g:org.dromara%20AND%20a:soul">
         <img src="https://img.shields.io/maven-central/v/org.dromara/soul.svg?label=maven%20central" />
     </a>
     <a target="_blank" href="https://github.com/Dromara/soul/blob/master/LICENSE">
@@ -22,7 +22,7 @@
     <a target="_blank" href="https://www.oracle.com/technetwork/java/javase/downloads/index.html">
         <img src="https://img.shields.io/badge/JDK-8+-green.svg" />
     </a>
-    <a target="_blank" href="https://github.com/dromara/soul">
+    <a target="_blank" href="https://github.com/dromara/soul/actions">
         <img src="https://github.com/dromara/soul/workflows/ci/badge.svg" />
     </a>
     <a href="https://www.codacy.com/app/yu199195/soul?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Dromara/soul&amp;utm_campaign=Badge_Grade">

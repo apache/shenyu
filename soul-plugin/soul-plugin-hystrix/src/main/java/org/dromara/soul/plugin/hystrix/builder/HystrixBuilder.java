@@ -65,6 +65,7 @@ public class HystrixBuilder {
 
     /**
      * this is build HystrixCommand.Setter.
+     *
      * @param hystrixHandle {@linkplain HystrixHandle}
      * @return {@linkplain HystrixCommand.Setter}
      */

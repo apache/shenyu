@@ -398,8 +398,8 @@ INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('79', '15', 'multiRuleHandle', 'multiRuleHandle', 3, 3, 1, null, '2021-03-08 13:37:12', '2021-03-09 10:32:51');
 
 /*insert plugin_handle data for context path*/
-INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('1001', '14', 'contextPath', 'contextPath', 2, 2, 0, '2020-12-25 16:13:09', '2020-12-25 16:13:09');
-INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('1002', '14', 'addPrefix', 'addPrefix', 2, 2, 0, '2020-12-25 16:13:09', '2020-12-25 16:13:09');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('1001', '14', 'contextPath', 'contextPath', 2, 2, 0, '2020-12-25 16:13:09', '2020-12-25 16:13:09');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('1002', '14', 'addPrefix', 'addPrefix', 2, 2, 0, '2020-12-25 16:13:09', '2020-12-25 16:13:09');
 
 /** insert permission role for role */
 INSERT INTO `role` (`id`,`role_name`,`description`,`date_created`,`date_updated`) VALUES ('1346358560427216896', 'super', '超级管理员', '2021-01-05 01:31:10', '2021-01-08 17:00:07');

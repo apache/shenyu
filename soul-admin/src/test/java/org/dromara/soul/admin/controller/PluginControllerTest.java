@@ -88,10 +88,11 @@ public final class PluginControllerTest {
         final CommonPager<PluginVO> commonPager = new CommonPager<>();
         commonPager.setPage(pageParameter);
         commonPager.setDataList(pluginVOS);
-        final PluginQuery pluginQuery = new PluginQuery("t_n", pageParameter);
+        final PluginQuery pluginQuery = new PluginQuery("t_n", 1, pageParameter);
         given(this.pluginService.listByPage(pluginQuery)).willReturn(commonPager);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/plugin")
                 .param("name", "t_n")
+                .param("enabled", "1")
                 .param("currentPage", pageParameter.getCurrentPage() + "")
                 .param("pageSize", pageParameter.getPageSize() + ""))
                 .andExpect(status().isOk())
