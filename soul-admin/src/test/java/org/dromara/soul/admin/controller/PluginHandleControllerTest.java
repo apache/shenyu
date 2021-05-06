@@ -71,7 +71,7 @@ public final class PluginHandleControllerTest {
 
     @Test
     public void testQueryPluginHandles() throws Exception {
-        given(this.pluginHandleService.listByPage(new PluginHandleQuery("2", null, new PageParameter(1, 1))))
+        given(this.pluginHandleService.listByPage(new PluginHandleQuery("2", null, null, new PageParameter(1, 1))))
                 .willReturn(new CommonPager<>());
         this.mockMvc.perform(MockMvcRequestBuilders.get("/plugin-handle/", "1", 1, 1))
                 .andExpect(status().isOk())

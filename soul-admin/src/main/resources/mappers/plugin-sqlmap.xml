@@ -60,9 +60,14 @@
         select
         <include refid="Base_Column_List"/>
         from plugin
-        <if test="name != null">
-            where name = #{name,jdbcType=VARCHAR}
-        </if>
+        <where>
+            <if test="name != null and name != ''">
+                and name = #{name,jdbcType=VARCHAR}
+            </if>
+            <if test="enabled != null">
+                and enabled = #{enabled,jdbcType=TINYINT}
+            </if>
+        </where>
 
         order by role,id asc
 
@@ -75,9 +80,14 @@
     <select id="countByQuery" parameterType="org.dromara.soul.admin.model.query.PluginQuery" resultType="java.lang.Integer">
         select count(1)
         from plugin
-        <if test="name != null">
-            where name = #{name,jdbcType=VARCHAR}
-        </if>
+        <where>
+            <if test="name != null and name != ''">
+                and name = #{name,jdbcType=VARCHAR}
+            </if>
+            <if test="enabled != null">
+                and enabled = #{enabled,jdbcType=TINYINT}
+            </if>
+        </where>
     </select>
     <select id="selectAll" resultType="org.dromara.soul.admin.model.entity.PluginDO" resultMap="BaseResultMap">
         select
