@@ -53,8 +53,6 @@ import org.springframework.util.StringUtils;
 
 /**
  * The type Rate limiter plugin data handler.
- *
- * @author xiaoyu
  */
 public class RateLimiterPluginDataHandler implements PluginDataHandler {
 
@@ -89,9 +87,7 @@ public class RateLimiterPluginDataHandler implements PluginDataHandler {
 
     @Override
     public void removeRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            RatelimiterRuleHandleCache.getInstance().removeHandle(getCacheKeyName(ruleData));
-        });
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> RatelimiterRuleHandleCache.getInstance().removeHandle(getCacheKeyName(ruleData)));
     }
 
     /**

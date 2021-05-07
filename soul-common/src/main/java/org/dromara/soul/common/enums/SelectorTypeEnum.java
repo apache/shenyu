@@ -24,8 +24,6 @@ import java.util.Arrays;
 
 /**
  * SelectorTypeEnum.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 @RequiredArgsConstructor
 @Getter

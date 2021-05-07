@@ -25,8 +25,6 @@ import java.util.List;
 
 /**
  * PluginEnum.
- *
- * @author xiaoyu(Myth)
  */
 @RequiredArgsConstructor
 @Getter

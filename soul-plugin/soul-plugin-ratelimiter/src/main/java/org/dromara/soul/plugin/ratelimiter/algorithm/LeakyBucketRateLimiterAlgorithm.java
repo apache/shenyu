@@ -17,23 +17,22 @@
 
 package org.dromara.soul.plugin.ratelimiter.algorithm;
 
+import org.dromara.soul.common.enums.RateLimitEnum;
 import org.dromara.soul.spi.Join;
 
 /**
  * The type Leaky bucket rate limiter algorithm.
- *
- * @author liupenghui
  */
 @Join
 public class LeakyBucketRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm {
 
     @Override
     protected String getScriptName() {
-        return "request_leaky_rate_limiter.lua";
+        return RateLimitEnum.LEAKY_BUCKET.getScriptName();
     }
 
     @Override
     protected String getKeyName() {
-        return "request_leaky_rate_limiter";
+        return RateLimitEnum.LEAKY_BUCKET.getKeyName();
     }
 }

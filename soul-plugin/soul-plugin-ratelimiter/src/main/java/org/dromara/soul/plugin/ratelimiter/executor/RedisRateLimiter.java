@@ -35,8 +35,6 @@ import java.util.List;
 
 /**
  * RedisRateLimiter.
- *
- * @author xiaoyu
  */
 @Slf4j
 public class RedisRateLimiter {

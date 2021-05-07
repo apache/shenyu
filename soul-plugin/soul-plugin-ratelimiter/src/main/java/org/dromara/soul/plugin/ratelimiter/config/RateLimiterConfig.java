@@ -26,8 +26,6 @@ import java.time.Duration;
 
 /**
  * The rateLimiter configuration for redis.
- *
- * @author xiaoyu(Myth)
  */
 @Data
 @EqualsAndHashCode

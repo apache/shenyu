@@ -24,8 +24,6 @@ import java.util.Arrays;
 
 /**
  * The enum Redis mode enum.
- *
- * @author xiaoyu(Myth)
  */
 @RequiredArgsConstructor
 @Getter

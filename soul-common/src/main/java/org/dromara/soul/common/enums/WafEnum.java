@@ -22,8 +22,6 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * WafEnum.
- *
- * @author xiaoyu(Myth)
  */
 @RequiredArgsConstructor
 @Getter

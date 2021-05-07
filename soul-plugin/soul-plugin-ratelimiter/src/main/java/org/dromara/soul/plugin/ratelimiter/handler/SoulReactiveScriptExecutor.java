@@ -37,8 +37,6 @@ import reactor.core.publisher.Mono;
 
 /**
  * The type reactive script executor.
- *
- * @author zhanglei
  */
 @Slf4j
 public class SoulReactiveScriptExecutor<K> extends DefaultReactiveScriptExecutor<K> {

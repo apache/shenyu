@@ -22,8 +22,6 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * hystrix execution isolation strategy.
- *
- * @author liangziqiang
  */
 @RequiredArgsConstructor
 @Getter

@@ -27,8 +27,6 @@ import java.util.stream.Collectors;
 
 /**
  * OperatorEnum.
- *
- * @author xiaoyu(Myth)
  */
 @RequiredArgsConstructor
 @Getter

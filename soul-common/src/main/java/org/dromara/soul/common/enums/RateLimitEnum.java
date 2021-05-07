@@ -17,34 +17,43 @@
 
 package org.dromara.soul.common.enums;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 /**
- * load balance enum.
+ * rate limit.
  */
-@RequiredArgsConstructor
-@Getter
-public enum LoadBalanceEnum {
+public enum RateLimitEnum {
+
+    SLIDING_WINDOW("sliding_window_request_rate_limiter", "sliding_window_request_rate_limiter.lua"),
+
+    LEAKY_BUCKET("request_leaky_rate_limiter", "request_leaky_rate_limiter.lua"),
+
+    CONCURRENT("concurrent_request_rate_limiter", "concurrent_request_rate_limiter.lua"),
+
+    TOKEN_BUCKET("request_rate_limiter", "request_rate_limiter.lua");
+
+    private final String keyName;
+
+    private final String scriptName;
+
+    RateLimitEnum(final String keyName, final String scriptName) {
+        this.keyName = keyName;
+        this.scriptName = scriptName;
+    }
 
     /**
-     * Hash load balance enum.
+     * getKeyName.
+     *
+     * @return keyName
      */
-    HASH(1, "hash", true),
+    public String getKeyName() {
+        return this.keyName;
+    }
 
     /**
-     * Random load balance enum.
+     * getScriptName.
+     *
+     * @return scriptName
      */
-    RANDOM(2, "random", true),
-
-    /**
-     * Round robin load balance enum.
-     */
-    ROUND_ROBIN(3, "roundRobin", true);
-
-    private final int code;
-
-    private final String name;
-
-    private final boolean support;
+    public String getScriptName() {
+        return this.scriptName;
+    }
 }

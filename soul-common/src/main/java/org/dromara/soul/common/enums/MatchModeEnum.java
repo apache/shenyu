@@ -24,8 +24,6 @@ import java.util.Arrays;
 
 /**
  * MatchModeEnum.
- *
- * @author xiaoyu(Myth)
  */
 @RequiredArgsConstructor
 @Getter

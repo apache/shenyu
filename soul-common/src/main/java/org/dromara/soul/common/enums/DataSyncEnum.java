@@ -25,7 +25,6 @@ import java.util.Arrays;
 /**
  * The enum Data sync enum.
  *
- * @author xiaoyu(Myth)
  */
 @RequiredArgsConstructor
 @Getter

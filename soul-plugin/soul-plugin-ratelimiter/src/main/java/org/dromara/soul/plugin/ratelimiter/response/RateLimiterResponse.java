@@ -25,7 +25,6 @@ import java.io.Serializable;
 /**
  * rateLimiter response.
  *
- * @author xiaoyu(Myth)
  */
 @Data
 @RequiredArgsConstructor

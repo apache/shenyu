@@ -22,8 +22,6 @@ import java.util.Objects;
 
 /**
  * SerializeEnum.
- *
- * @author xiaoyu
  */
 public enum SerializeEnum {
 

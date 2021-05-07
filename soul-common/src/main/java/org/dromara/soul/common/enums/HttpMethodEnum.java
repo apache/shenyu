@@ -25,8 +25,6 @@ import java.util.Arrays;
 
 /**
  * this is http method support.
- *
- * @author xiaoyu(Myth)
  */
 @RequiredArgsConstructor
 @Getter

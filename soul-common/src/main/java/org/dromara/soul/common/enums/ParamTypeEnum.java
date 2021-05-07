@@ -27,8 +27,6 @@ import java.util.stream.Collectors;
 
 /**
  * Param Type.
- *
- * @author xiaoyu(Myth)
  */
 @RequiredArgsConstructor
 @Getter

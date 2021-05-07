@@ -46,9 +46,7 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
 
     @Override
     public void removeSelector(final SelectorData selectorData) {
-        Optional.ofNullable(selectorData.getHandle()).ifPresent(s -> {
-            SpringCloudSelectorHandleCache.getInstance().removeHandle(selectorData.getId());
-        });
+        Optional.ofNullable(selectorData.getHandle()).ifPresent(s -> SpringCloudSelectorHandleCache.getInstance().removeHandle(selectorData.getId()));
     }
 
     @Override
@@ -61,9 +59,7 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
 
     @Override
     public void removeRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            SpringCloudRuleHandleCache.getInstance().removeHandle(getRuleCacheKey(ruleData));
-        });
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> SpringCloudRuleHandleCache.getInstance().removeHandle(getRuleCacheKey(ruleData)));
     }
 
     /**

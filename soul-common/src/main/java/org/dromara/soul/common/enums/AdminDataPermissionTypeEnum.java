@@ -21,7 +21,6 @@ package org.dromara.soul.common.enums;
 /**
  * The admin data permission type enum.
  *
- * @author kaitoshy(plutokaito)
  */
 public enum AdminDataPermissionTypeEnum {
 
@@ -34,5 +33,5 @@ public enum AdminDataPermissionTypeEnum {
     /**
      * rule type.
      */
-    RULE;
+    RULE
 }

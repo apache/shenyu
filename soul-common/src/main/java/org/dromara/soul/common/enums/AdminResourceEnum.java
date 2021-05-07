@@ -23,7 +23,6 @@ import lombok.RequiredArgsConstructor;
 /**
  * the admin resource type.
  *
- * @author nuo-promise
  */
 @RequiredArgsConstructor
 @Getter

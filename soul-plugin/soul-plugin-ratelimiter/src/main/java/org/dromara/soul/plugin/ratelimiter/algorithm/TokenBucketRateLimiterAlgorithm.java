@@ -17,6 +17,7 @@
 
 package org.dromara.soul.plugin.ratelimiter.algorithm;
 
+import org.dromara.soul.common.enums.RateLimitEnum;
 import org.dromara.soul.spi.Join;
 
 /**
@@ -24,18 +25,17 @@ import org.dromara.soul.spi.Join;
  * See https://stripe.com/blog/rate-limiters and
  * https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L11-L34
  * 
- * @author xiaoyu
  */
 @Join
 public class TokenBucketRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm {
-    
+
     @Override
     protected String getScriptName() {
-        return "request_rate_limiter.lua";
+        return RateLimitEnum.TOKEN_BUCKET.getScriptName();
     }
     
     @Override
     protected String getKeyName() {
-        return "request_rate_limiter";
+        return RateLimitEnum.TOKEN_BUCKET.getKeyName();
     }
 }
