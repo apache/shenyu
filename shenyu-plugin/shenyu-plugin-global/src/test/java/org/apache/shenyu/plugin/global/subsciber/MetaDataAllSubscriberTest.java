@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.global.subsciber;
 
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.plugin.global.cache.MetaDataCache;
-import org.apache.shenyu.plugin.global.subsciber.MetaDataAllSubscriber;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -32,6 +31,7 @@ import static org.junit.Assert.assertNull;
  * @author nuo-promise
  **/
 public final class MetaDataAllSubscriberTest {
+    
     private MetaDataAllSubscriber metaDataAllSubscriber;
 
     private MetaDataCache metaDataCache;

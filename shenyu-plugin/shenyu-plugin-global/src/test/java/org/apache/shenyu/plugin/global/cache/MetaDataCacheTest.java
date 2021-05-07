@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.global.cache;
 
 import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.plugin.global.cache.MetaDataCache;
 import org.junit.Before;
 import org.junit.Test;
 
