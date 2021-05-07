@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.contextpath;
+package org.apache.shenyu.plugin.context.path;
 
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
@@ -29,7 +29,6 @@ import org.apache.shenyu.plugin.api.context.SoulContext;
 import org.apache.shenyu.plugin.api.result.DefaultSoulResult;
 import org.apache.shenyu.plugin.api.result.SoulResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.apache.shenyu.plugin.context.path.ContextPathMappingPlugin;
 import org.apache.shenyu.plugin.context.path.cache.ContextPathRuleHandleCache;
 import org.apache.shenyu.plugin.context.path.handler.ContextPathMappingPluginDataHandler;
 import org.junit.Assert;
