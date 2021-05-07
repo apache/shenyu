@@ -31,7 +31,6 @@ import org.apache.shenyu.plugin.api.context.SoulContext;
 import org.apache.shenyu.plugin.api.result.DefaultSoulResult;
 import org.apache.shenyu.plugin.api.result.SoulResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.apache.shenyu.plugin.springcloud.SpringCloudPlugin;
 import org.apache.shenyu.plugin.springcloud.cache.SpringCloudRuleHandleCache;
 import org.apache.shenyu.plugin.springcloud.cache.SpringCloudSelectorHandleCache;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;

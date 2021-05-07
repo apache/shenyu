@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.divide.balance.spi;
 
 import org.apache.shenyu.common.dto.convert.DivideUpstream;
-import org.apache.shenyu.plugin.divide.balance.spi.RoundRobinLoadBalance;
 import org.junit.Assert;
 import org.junit.Test;
 

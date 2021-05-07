@@ -19,8 +19,8 @@ package org.apache.shenyu.springboot.starter.plugin.contextpath;
 
 import org.apache.shenyu.plugin.api.SoulPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.apache.shenyu.plugin.contextpath.ContextPathMappingPlugin;
-import org.apache.shenyu.plugin.contextpath.handler.ContextPathMappingPluginDataHandler;
+import org.apache.shenyu.plugin.context.path.ContextPathMappingPlugin;
+import org.apache.shenyu.plugin.context.path.handler.ContextPathMappingPluginDataHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

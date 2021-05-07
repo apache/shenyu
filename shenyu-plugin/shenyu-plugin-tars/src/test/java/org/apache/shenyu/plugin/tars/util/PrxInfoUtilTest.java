@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.tars.util;
 
 import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.plugin.tars.util.PrxInfoUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;

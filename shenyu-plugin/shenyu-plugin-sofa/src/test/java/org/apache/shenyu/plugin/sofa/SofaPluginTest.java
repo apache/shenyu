@@ -25,7 +25,6 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.SoulPluginChain;
 import org.apache.shenyu.plugin.api.context.SoulContext;
-import org.apache.shenyu.plugin.sofa.SofaPlugin;
 import org.apache.shenyu.plugin.sofa.proxy.SofaProxyService;
 import org.junit.Before;
 import org.junit.Test;

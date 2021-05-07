@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.tars.cache;
 
 import com.qq.tars.protocol.annotation.Servant;
-import org.apache.shenyu.plugin.tars.cache.ApplicationConfigCache;
 import org.assertj.core.util.Lists;
 import org.apache.shenyu.common.concurrent.SoulThreadFactory;
 import org.apache.shenyu.common.dto.MetaData;

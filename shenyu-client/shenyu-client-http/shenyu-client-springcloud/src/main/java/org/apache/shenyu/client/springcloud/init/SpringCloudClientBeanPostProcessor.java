@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-package org.apache.dromara.client.springcloud.init;
+package org.apache.shenyu.client.springcloud.init;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.disruptor.SoulClientRegisterEventPublisher;
-import org.apache.dromara.client.springcloud.annotation.SoulSpringCloudClient;
+import org.apache.shenyu.client.springcloud.annotation.SoulSpringCloudClient;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.SoulClientRegisterRepository;
 import org.apache.shenyu.register.common.config.SoulRegisterCenterConfig;

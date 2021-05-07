@@ -22,7 +22,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.plugin.api.SignService;
 import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.sign.SignPlugin;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

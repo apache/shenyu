@@ -30,7 +30,6 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.ReflectUtils;
 import org.apache.shenyu.plugin.apache.dubbo.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.api.param.BodyParamResolveService;
-import org.apache.shenyu.plugin.apache.dubbo.proxy.ApacheDubboProxyService;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

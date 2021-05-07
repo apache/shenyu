@@ -22,7 +22,6 @@ import org.apache.shenyu.common.dto.convert.DivideUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.divide.cache.UpstreamCacheManager;
-import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

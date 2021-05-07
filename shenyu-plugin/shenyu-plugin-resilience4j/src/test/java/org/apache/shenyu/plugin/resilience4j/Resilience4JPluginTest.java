@@ -28,7 +28,6 @@ import org.apache.shenyu.common.dto.convert.Resilience4JHandle;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.SoulPluginChain;
 import org.apache.shenyu.plugin.api.context.SoulContext;
-import org.apache.shenyu.plugin.resilience4j.Resilience4JPlugin;
 import org.apache.shenyu.plugin.resilience4j.cache.Resilience4jRuleHandleCache;
 import org.apache.shenyu.plugin.resilience4j.executor.CombinedExecutor;
 import org.apache.shenyu.plugin.resilience4j.executor.RateLimiterExecutor;

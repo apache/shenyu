@@ -22,7 +22,6 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.RedirectHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.redirect.RedirectPlugin;
 import org.apache.shenyu.plugin.redirect.cache.RedirectRuleHandleCache;
 import org.apache.shenyu.plugin.redirect.handler.RedirectPluginDataHandler;
 import org.hamcrest.Matchers;

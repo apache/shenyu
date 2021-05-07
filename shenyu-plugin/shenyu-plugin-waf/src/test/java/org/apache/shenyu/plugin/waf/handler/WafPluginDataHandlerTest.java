@@ -25,7 +25,6 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.utils.Singleton;
 import org.apache.shenyu.plugin.waf.cache.WafRuleHandleCache;
 import org.apache.shenyu.plugin.waf.config.WafConfig;
-import org.apache.shenyu.plugin.waf.handler.WafPluginDataHandler;
 import org.junit.Before;
 import org.junit.Test;
 

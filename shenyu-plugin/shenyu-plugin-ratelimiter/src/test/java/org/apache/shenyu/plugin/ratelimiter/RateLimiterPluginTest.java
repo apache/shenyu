@@ -25,7 +25,6 @@ import org.apache.shenyu.plugin.api.SoulPluginChain;
 import org.apache.shenyu.plugin.api.result.DefaultSoulResult;
 import org.apache.shenyu.plugin.api.result.SoulResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.apache.shenyu.plugin.ratelimiter.RateLimiterPlugin;
 import org.apache.shenyu.plugin.ratelimiter.cache.RatelimiterRuleHandleCache;
 import org.apache.shenyu.plugin.ratelimiter.executor.RedisRateLimiter;
 import org.apache.shenyu.plugin.ratelimiter.handler.RateLimiterPluginDataHandler;

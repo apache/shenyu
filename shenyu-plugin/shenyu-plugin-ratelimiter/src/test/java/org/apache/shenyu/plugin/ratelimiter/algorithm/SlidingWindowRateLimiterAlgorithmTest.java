@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.plugin.ratelimiter.algorithm;
 
-import org.apache.shenyu.plugin.ratelimiter.algorithm.SlidingWindowRateLimiterAlgorithm;
 import org.junit.Before;
 import org.junit.Test;
 

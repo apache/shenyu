@@ -23,7 +23,6 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.apache.dubbo.ApacheDubboPlugin;
 import org.apache.shenyu.plugin.apache.dubbo.proxy.ApacheDubboProxyService;
 import org.apache.shenyu.plugin.api.SoulPluginChain;
 import org.apache.shenyu.plugin.api.context.SoulContext;

@@ -20,7 +20,7 @@ package org.apache.shenyu.plugin.sofa.response;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.sofa.response.SofaResponsePlugin;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

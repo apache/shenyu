@@ -22,6 +22,7 @@ import org.apache.dubbo.validation.Validator;
 import org.apache.shenyu.client.apache.dubbo.validation.mock.MockValidationParameter;
 import org.apache.shenyu.client.apache.dubbo.validation.service.TestService;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.validation.ValidationException;
@@ -39,6 +40,7 @@ import static org.junit.Assert.assertThat;
  *
  * @author KevinClair
  */
+@Ignore
 public final class ApacheDubboClientValidatorTest {
 
     private static final String MOCK_SERVICE_URL =

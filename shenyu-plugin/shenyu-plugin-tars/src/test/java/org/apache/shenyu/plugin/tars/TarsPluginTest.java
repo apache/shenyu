@@ -29,7 +29,6 @@ import org.apache.shenyu.plugin.api.context.SoulContext;
 import org.apache.shenyu.plugin.api.result.DefaultSoulResult;
 import org.apache.shenyu.plugin.api.result.SoulResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.apache.shenyu.plugin.tars.TarsPlugin;
 import org.apache.shenyu.plugin.tars.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.tars.proxy.TarsInvokePrxList;
 import org.junit.Before;

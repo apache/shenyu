@@ -17,16 +17,13 @@
 
 package org.apache.shenyu.plugin.ratelimiter.handler;
 
-import java.time.Duration;
-import java.util.Collections;
-
+import com.google.common.collect.Sets;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.utils.Singleton;
 import org.apache.shenyu.plugin.ratelimiter.config.RateLimiterConfig;
-import org.apache.shenyu.plugin.ratelimiter.handler.RateLimiterPluginDataHandler;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,9 +35,10 @@ import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisSentinelConfiguration;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
-
-import com.google.common.collect.Sets;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import java.time.Duration;
+import java.util.Collections;
 
 /**
  * RateLimiterPluginDataHandler test.

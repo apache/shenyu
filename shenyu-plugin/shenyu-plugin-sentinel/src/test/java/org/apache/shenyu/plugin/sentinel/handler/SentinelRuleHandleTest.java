@@ -24,20 +24,16 @@ import com.alibaba.csp.sentinel.slots.block.flow.FlowRuleManager;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.SentinelHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
-
-import static org.hamcrest.Matchers.is;
-
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.sentinel.handler.SentinelRuleHandle;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
 
 @RunWith(MockitoJUnitRunner.class)
 public final class SentinelRuleHandleTest {

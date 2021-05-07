@@ -28,7 +28,6 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.SoulPluginChain;
 import org.apache.shenyu.plugin.api.context.SoulContext;
-import org.apache.shenyu.plugin.divide.DividePlugin;
 import org.apache.shenyu.plugin.divide.cache.UpstreamCacheManager;
 import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
 import org.junit.Assert;

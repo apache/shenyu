@@ -22,7 +22,6 @@ import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.pojo.Instance;
 import lombok.SneakyThrows;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.register.client.nacos.NacosClientRegisterRepository;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.junit.Before;

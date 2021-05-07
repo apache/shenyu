@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.resilience4j.executor;
 
 import io.github.resilience4j.ratelimiter.RateLimiterConfig;
 import org.apache.shenyu.plugin.resilience4j.conf.Resilience4JConf;
-import org.apache.shenyu.plugin.resilience4j.executor.RateLimiterExecutor;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

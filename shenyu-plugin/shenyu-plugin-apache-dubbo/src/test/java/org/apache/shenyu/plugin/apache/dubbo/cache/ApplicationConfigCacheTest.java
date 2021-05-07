@@ -23,7 +23,6 @@ import org.apache.shenyu.common.config.DubboRegisterConfig;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.apache.dubbo.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.apache.dubbo.cache.ApplicationConfigCache.DubboParamExtInfo;
 import org.junit.Assert;
 import org.junit.Before;

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.dromara.client.springcloud.annotation;
+package org.apache.shenyu.client.springcloud.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

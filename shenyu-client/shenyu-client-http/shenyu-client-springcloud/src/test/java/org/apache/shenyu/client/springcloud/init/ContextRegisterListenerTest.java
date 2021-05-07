@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.dromara.client.springcloud.init;
+package org.apache.shenyu.client.springcloud.init;
 
 import org.apache.shenyu.client.core.register.SoulClientRegisterRepositoryFactory;
 import org.apache.shenyu.register.common.config.SoulRegisterCenterConfig;

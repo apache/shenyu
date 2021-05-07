@@ -24,7 +24,6 @@ import org.apache.shenyu.plugin.api.SoulPluginChain;
 import org.apache.shenyu.plugin.api.context.SoulContext;
 import org.apache.shenyu.plugin.api.result.SoulResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.apache.shenyu.plugin.httpclient.WebClientPlugin;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

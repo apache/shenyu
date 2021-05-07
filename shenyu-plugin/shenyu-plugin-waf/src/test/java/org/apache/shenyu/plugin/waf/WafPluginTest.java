@@ -27,7 +27,6 @@ import org.apache.shenyu.plugin.api.SoulPluginChain;
 import org.apache.shenyu.plugin.api.result.DefaultSoulResult;
 import org.apache.shenyu.plugin.api.result.SoulResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.apache.shenyu.plugin.waf.WafPlugin;
 import org.apache.shenyu.plugin.waf.cache.WafRuleHandleCache;
 import org.apache.shenyu.plugin.waf.handler.WafPluginDataHandler;
 import org.junit.Before;

@@ -23,7 +23,7 @@ import com.alibaba.csp.sentinel.slots.block.flow.FlowException;
 import org.apache.shenyu.plugin.api.result.DefaultSoulResult;
 import org.apache.shenyu.plugin.api.result.SoulResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.apache.shenyu.plugin.sentinel.fallback.SentinelFallbackHandler;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

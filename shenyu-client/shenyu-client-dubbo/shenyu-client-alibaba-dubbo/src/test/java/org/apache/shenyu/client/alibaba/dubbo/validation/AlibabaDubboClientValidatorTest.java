@@ -19,6 +19,7 @@ package org.apache.shenyu.client.alibaba.dubbo.validation;
 
 import com.alibaba.dubbo.common.URL;
 import org.apache.shenyu.client.alibaba.dubbo.validation.mock.MockValidationParameter;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.validation.ValidationException;
@@ -35,6 +36,7 @@ import static org.junit.Assert.assertThat;
  *
  * @author KevinClair
  */
+@Ignore
 public final class AlibabaDubboClientValidatorTest {
 
     private static final String MOCK_SERVICE_URL = "mock://test:28000/MockValidatorTarget";

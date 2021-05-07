@@ -32,7 +32,7 @@ import org.apache.shenyu.plugin.api.context.SoulContext;
 import org.apache.shenyu.plugin.api.result.SoulResultEnum;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.sign.cache.SignAuthDataCache;
-import org.apache.shenyu.plugin.sign.service.DefaultSignService;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.tars.handler;
 
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.tars.handler.TarsPluginDataHandler;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.plugin.ratelimiter.algorithm;
 
-import org.apache.shenyu.plugin.ratelimiter.algorithm.RateLimiterAlgorithm;
-import org.apache.shenyu.plugin.ratelimiter.algorithm.RateLimiterAlgorithmFactory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;

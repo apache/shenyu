@@ -20,7 +20,6 @@ package org.apache.shenyu.plugin.divide.cache;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.DivideUpstream;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.divide.cache.UpstreamCacheManager;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

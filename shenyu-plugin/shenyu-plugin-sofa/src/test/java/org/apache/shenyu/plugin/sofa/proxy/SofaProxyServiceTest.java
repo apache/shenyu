@@ -27,7 +27,6 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.param.BodyParamResolveService;
 import org.apache.shenyu.plugin.sofa.cache.ApplicationConfigCache;
-import org.apache.shenyu.plugin.sofa.proxy.SofaProxyService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

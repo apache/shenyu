@@ -21,7 +21,6 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.ratelimiter.RateLimiterConfig;
 import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 import org.apache.shenyu.plugin.resilience4j.conf.Resilience4JConf;
-import org.apache.shenyu.plugin.resilience4j.executor.CombinedExecutor;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

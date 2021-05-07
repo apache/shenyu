@@ -20,7 +20,6 @@ package org.apache.shenyu.plugin.ratelimiter.config;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.shenyu.common.enums.RedisModeEnum;
-import org.apache.shenyu.plugin.ratelimiter.config.RateLimiterConfig;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

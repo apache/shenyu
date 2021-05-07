@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.tars.subscriber;
 
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.tars.subscriber.TarsMetaDataSubscriber;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

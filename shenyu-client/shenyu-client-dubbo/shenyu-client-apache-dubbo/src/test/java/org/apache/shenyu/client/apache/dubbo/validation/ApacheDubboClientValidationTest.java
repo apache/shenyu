@@ -19,6 +19,7 @@ package org.apache.shenyu.client.apache.dubbo.validation;
 
 import org.apache.dubbo.common.URL;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -26,6 +27,7 @@ import org.junit.Test;
  *
  * @author HoldDie
  */
+@Ignore
 public final class ApacheDubboClientValidationTest {
 
     private ApacheDubboClientValidation apacheDubboClientValidationUnderTest;

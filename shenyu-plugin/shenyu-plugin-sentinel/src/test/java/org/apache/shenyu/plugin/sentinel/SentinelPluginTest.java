@@ -17,10 +17,6 @@
 
 package org.apache.shenyu.plugin.sentinel;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mock;
-
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -32,7 +28,6 @@ import org.apache.shenyu.plugin.api.context.SoulContext;
 import org.apache.shenyu.plugin.api.result.DefaultSoulResult;
 import org.apache.shenyu.plugin.api.result.SoulResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
-import org.apache.shenyu.plugin.sentinel.SentinelPlugin;
 import org.apache.shenyu.plugin.sentinel.fallback.SentinelFallbackHandler;
 import org.apache.shenyu.plugin.sentinel.handler.SentinelRuleHandle;
 import org.junit.Before;
@@ -50,6 +45,10 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public final class SentinelPluginTest {

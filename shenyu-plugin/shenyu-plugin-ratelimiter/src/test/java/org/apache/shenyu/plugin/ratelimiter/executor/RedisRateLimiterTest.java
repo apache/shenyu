@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.dto.convert.RateLimiterHandle;
 import org.apache.shenyu.plugin.base.utils.Singleton;
-import org.apache.shenyu.plugin.ratelimiter.executor.RedisRateLimiter;
 import org.apache.shenyu.plugin.ratelimiter.response.RateLimiterResponse;
 import org.junit.Assert;
 import org.junit.Before;
