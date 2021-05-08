@@ -613,7 +613,7 @@
                         <exclude>**/*.txt</exclude>
                         <exclude>**/docs/**</exclude>
                         <!-- UI files -->
-                        <exclude>/soul-dashboard/**</exclude>
+                        <exclude>/shenyu-dashboard/**</exclude>
                         <exclude>**/resources/static/</exclude>
                     </excludes>
                 </configuration>
