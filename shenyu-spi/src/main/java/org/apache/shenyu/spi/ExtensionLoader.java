@@ -40,7 +40,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @SuppressWarnings("all")
 public final class ExtensionLoader<T> {
 
-    private static final String SOUL_DIRECTORY = "META-INF/soul/";
+    private static final String SOUL_DIRECTORY = "META-INF/shenyu/";
 
     private static final Map<Class<?>, ExtensionLoader<?>> LOADERS = new ConcurrentHashMap<>();
 
