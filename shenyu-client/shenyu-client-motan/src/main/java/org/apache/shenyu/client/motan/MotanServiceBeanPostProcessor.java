@@ -22,13 +22,13 @@ import com.weibo.api.motan.config.springsupport.annotation.MotanService;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.shenyu.client.core.disruptor.SoulClientRegisterEventPublisher;
-import org.apache.shenyu.client.motan.common.annotation.SoulMotanClient;
+import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
+import org.apache.shenyu.client.motan.common.annotation.ShenyuMotanClient;
 import org.apache.shenyu.client.motan.common.dto.MotanRpcExt;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
-import org.apache.shenyu.register.client.api.SoulClientRegisterRepository;
-import org.apache.shenyu.register.common.config.SoulRegisterCenterConfig;
+import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
+import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
@@ -59,7 +59,7 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
 
     private final LocalVariableTableParameterNameDiscoverer localVariableTableParameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
 
-    private SoulClientRegisterEventPublisher publisher = SoulClientRegisterEventPublisher.getInstance();
+    private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
 
     private ApplicationContext applicationContext;
 
@@ -75,7 +75,7 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
 
     private String group;
 
-    public MotanServiceBeanPostProcessor(final SoulRegisterCenterConfig config, final SoulClientRegisterRepository soulClientRegisterRepository) {
+    public MotanServiceBeanPostProcessor(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
         String appName = props.getProperty("appName");
@@ -87,7 +87,7 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
         this.host = props.getProperty("host");
         this.port = props.getProperty("port");
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
-        publisher.start(soulClientRegisterRepository);
+        publisher.start(shenyuClientRegisterRepository);
     }
 
     @Override
@@ -115,23 +115,23 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         MotanService service = clazz.getAnnotation(MotanService.class);
         for (Method method : methods) {
-            SoulMotanClient soulMotanClient = method.getAnnotation(SoulMotanClient.class);
-            if (Objects.nonNull(soulMotanClient)) {
+            ShenyuMotanClient shenyuMotanClient = method.getAnnotation(ShenyuMotanClient.class);
+            if (Objects.nonNull(shenyuMotanClient)) {
                 publisher.publishEvent(buildMetaDataDTO(clazz, service,
-                        soulMotanClient, method, buildRpcExt(methods)));
+                        shenyuMotanClient, method, buildRpcExt(methods)));
             }
         }
     }
 
     private MetaDataRegisterDTO buildMetaDataDTO(final Class<?> clazz, final MotanService service,
-                                                 final SoulMotanClient soulMotanClient, final Method method, final String rpcExt) {
+                                                 final ShenyuMotanClient shenyuMotanClient, final Method method, final String rpcExt) {
         String appName = this.appName;
-        String path = this.contextPath + soulMotanClient.path();
-        String desc = soulMotanClient.desc();
+        String path = this.contextPath + shenyuMotanClient.path();
+        String desc = shenyuMotanClient.desc();
         String configHost = this.host;
         String host = StringUtils.isBlank(configHost) ? IpUtils.getHost() : configHost;
         int port = StringUtils.isBlank(this.port) ? -1 : Integer.parseInt(this.port);
-        String configRuleName = soulMotanClient.ruleName();
+        String configRuleName = shenyuMotanClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
@@ -161,7 +161,7 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
                 .parameterTypes(parameterTypes)
                 .rpcType("motan")
                 .rpcExt(rpcExt)
-                .enabled(soulMotanClient.enabled())
+                .enabled(shenyuMotanClient.enabled())
                 .build();
     }
 
@@ -182,8 +182,8 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
     private String buildRpcExt(final Method[] methods) {
         List<MotanRpcExt.RpcExt> list = new ArrayList<>();
         for (Method method : methods) {
-            SoulMotanClient soulMotanClient = method.getAnnotation(SoulMotanClient.class);
-            if (Objects.nonNull(soulMotanClient)) {
+            ShenyuMotanClient shenyuMotanClient = method.getAnnotation(ShenyuMotanClient.class);
+            if (Objects.nonNull(shenyuMotanClient)) {
                 list.add(buildRpcExt(method));
             }
         }

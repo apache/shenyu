@@ -16,4 +16,4 @@
 #
 
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.apache.shenyu.springboot.starter.client.tars.SoulTarsClientConfiguration
+org.apache.shenyu.springboot.starter.client.tars.ShenyuTarsClientConfiguration

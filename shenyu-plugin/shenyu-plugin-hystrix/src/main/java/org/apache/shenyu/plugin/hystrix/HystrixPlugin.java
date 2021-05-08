@@ -27,9 +27,9 @@ import org.apache.shenyu.common.dto.convert.HystrixHandle;
 import org.apache.shenyu.common.enums.HystrixIsolationModeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
-import org.apache.shenyu.plugin.base.AbstractSoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.hystrix.cache.HystrixRuleHandleCache;
 import org.apache.shenyu.plugin.hystrix.command.Command;
 import org.apache.shenyu.plugin.hystrix.command.HystrixCommand;
@@ -47,19 +47,19 @@ import java.util.Objects;
  * @author xiaoyu(Myth)
  */
 @Slf4j
-public class HystrixPlugin extends AbstractSoulPlugin {
+public class HystrixPlugin extends AbstractShenyuPlugin {
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
-        final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-        assert soulContext != null;
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
+        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
         final HystrixHandle hystrixHandle = HystrixRuleHandleCache.getInstance()
                 .obtainHandle(HystrixPluginDataHandler.getCacheKeyName(rule));
         if (StringUtils.isBlank(hystrixHandle.getGroupKey())) {
-            hystrixHandle.setGroupKey(Objects.requireNonNull(soulContext).getModule());
+            hystrixHandle.setGroupKey(Objects.requireNonNull(shenyuContext).getModule());
         }
         if (StringUtils.isBlank(hystrixHandle.getCommandKey())) {
-            hystrixHandle.setCommandKey(Objects.requireNonNull(soulContext).getMethod());
+            hystrixHandle.setCommandKey(Objects.requireNonNull(shenyuContext).getMethod());
         }
         Command command = fetchCommand(hystrixHandle, exchange, chain);
         return Mono.create(s -> {
@@ -76,7 +76,7 @@ public class HystrixPlugin extends AbstractSoulPlugin {
         }).then();
     }
 
-    private Command fetchCommand(final HystrixHandle hystrixHandle, final ServerWebExchange exchange, final SoulPluginChain chain) {
+    private Command fetchCommand(final HystrixHandle hystrixHandle, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         if (hystrixHandle.getExecutionIsolationStrategy() == HystrixIsolationModeEnum.SEMAPHORE.getCode()) {
             return new HystrixCommand(HystrixBuilder.build(hystrixHandle),
                     exchange, chain, hystrixHandle.getCallBackUri());

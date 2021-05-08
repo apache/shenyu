@@ -18,7 +18,7 @@
 package org.apache.shenyu.spring.boot.starter.plugin.sofa;
 
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.SoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.sofa.response.SofaResponsePlugin;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -48,7 +48,7 @@ public class SofaPluginConfigurationTest {
                     assertThat(context).hasSingleBean(SofaResponsePlugin.class);
                     assertThat(context).hasSingleBean(PluginDataHandler.class);
                     assertThat(context).hasSingleBean(MetaDataSubscriber.class);
-                    SoulPlugin plugin = context.getBean("sofaPlugin", SoulPlugin.class);
+                    ShenyuPlugin plugin = context.getBean("sofaPlugin", ShenyuPlugin.class);
                     assertThat(plugin.named()).isEqualTo(PluginEnum.SOFA.getName());
                 }
             );

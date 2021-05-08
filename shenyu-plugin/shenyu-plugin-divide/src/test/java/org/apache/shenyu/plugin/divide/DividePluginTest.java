@@ -26,8 +26,8 @@ import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.divide.cache.UpstreamCacheManager;
 import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
 import org.junit.Assert;
@@ -59,7 +59,7 @@ public final class DividePluginTest {
 
     private RuleData ruleData;
 
-    private SoulPluginChain chain;
+    private ShenyuPluginChain chain;
 
     private DividePlugin dividePlugin;
 
@@ -74,7 +74,7 @@ public final class DividePluginTest {
     @Before
     public void setup() {
         this.ruleData = mock(RuleData.class);
-        this.chain = mock(SoulPluginChain.class);
+        this.chain = mock(ShenyuPluginChain.class);
         this.selectorData = mock(SelectorData.class);
         this.divideUpstreamList = Stream.of(3)
                 .map(weight -> DivideUpstream.builder()
@@ -142,7 +142,7 @@ public final class DividePluginTest {
      */
     private void initMockInfo() {
 
-        SoulContext context = mock(SoulContext.class);
+        ShenyuContext context = mock(ShenyuContext.class);
         context.setRpcType(RpcTypeEnum.HTTP.getName());
         DivideRuleHandle handle = (DivideRuleHandle) RuleHandleFactory.ruleHandle(PluginEnum.DIVIDE.getName(), "");
         when(selectorData.getId()).thenReturn("mock");

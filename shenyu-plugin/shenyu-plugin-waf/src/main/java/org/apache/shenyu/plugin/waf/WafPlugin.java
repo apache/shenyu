@@ -27,9 +27,9 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.WafEnum;
 import org.apache.shenyu.common.enums.WafModelEnum;
 import org.apache.shenyu.plugin.base.utils.Singleton;
-import org.apache.shenyu.plugin.api.result.SoulResultWrap;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.base.AbstractSoulPlugin;
+import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.waf.cache.WafRuleHandleCache;
 import org.apache.shenyu.plugin.waf.config.WafConfig;
@@ -46,17 +46,17 @@ import java.util.Objects;
  * @author xiaoyu(Myth)
  */
 @Slf4j
-public class WafPlugin extends AbstractSoulPlugin {
+public class WafPlugin extends AbstractShenyuPlugin {
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         WafConfig wafConfig = Singleton.INST.get(WafConfig.class);
         if (Objects.isNull(selector) && Objects.isNull(rule)) {
             if (WafModelEnum.BLACK.getName().equals(wafConfig.getModel())) {
                 return chain.execute(exchange);
             }
             exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-            Object error = SoulResultWrap.error(HttpStatus.FORBIDDEN.value(), Constants.REJECT_MSG, null);
+            Object error = ShenyuResultWrap.error(HttpStatus.FORBIDDEN.value(), Constants.REJECT_MSG, null);
             return WebFluxResultUtils.result(exchange, error);
         }
         String handle = rule.getHandle();
@@ -68,19 +68,19 @@ public class WafPlugin extends AbstractSoulPlugin {
         }
         if (WafEnum.REJECT.getName().equals(wafHandle.getPermission())) {
             exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-            Object error = SoulResultWrap.error(Integer.parseInt(wafHandle.getStatusCode()), Constants.REJECT_MSG, null);
+            Object error = ShenyuResultWrap.error(Integer.parseInt(wafHandle.getStatusCode()), Constants.REJECT_MSG, null);
             return WebFluxResultUtils.result(exchange, error);
         }
         return chain.execute(exchange);
     }
 
     @Override
-    protected Mono<Void> handleSelectorIsNull(final String pluginName, final ServerWebExchange exchange, final SoulPluginChain chain) {
+    protected Mono<Void> handleSelectorIsNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return doExecute(exchange, chain, null, null);
     }
 
     @Override
-    protected Mono<Void> handleRuleIsNull(final String pluginName, final ServerWebExchange exchange, final SoulPluginChain chain) {
+    protected Mono<Void> handleRuleIsNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return doExecute(exchange, chain, null, null);
     }
 

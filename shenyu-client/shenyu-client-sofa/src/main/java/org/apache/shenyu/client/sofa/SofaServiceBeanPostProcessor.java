@@ -23,13 +23,13 @@ import com.alipay.sofa.runtime.spring.factory.ServiceFactoryBean;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.client.core.disruptor.SoulClientRegisterEventPublisher;
-import org.apache.shenyu.client.sofa.common.annotation.SoulSofaClient;
+import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
+import org.apache.shenyu.client.sofa.common.annotation.ShenyuSofaClient;
 import org.apache.shenyu.client.sofa.common.dto.SofaRpcExt;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
-import org.apache.shenyu.register.client.api.SoulClientRegisterRepository;
-import org.apache.shenyu.register.common.config.SoulRegisterCenterConfig;
+import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
+import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
@@ -54,7 +54,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
     
-    private SoulClientRegisterEventPublisher publisher = SoulClientRegisterEventPublisher.getInstance();
+    private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
     
     private final ExecutorService executorService;
     
@@ -66,7 +66,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
 
     private final String port;
     
-    public SofaServiceBeanPostProcessor(final SoulRegisterCenterConfig config, final SoulClientRegisterRepository soulClientRegisterRepository) {
+    public SofaServiceBeanPostProcessor(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
         String appName = props.getProperty("appName");
@@ -78,7 +78,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
         this.host = props.getProperty("host");
         this.port = props.getProperty("port");
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
-        publisher.start(soulClientRegisterRepository);
+        publisher.start(shenyuClientRegisterRepository);
     }
 
     @Override
@@ -112,21 +112,21 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
         }
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
-            SoulSofaClient soulSofaClient = method.getAnnotation(SoulSofaClient.class);
-            if (Objects.nonNull(soulSofaClient)) {
-                publisher.publishEvent(buildMetaDataDTO(serviceBean, soulSofaClient, method));
+            ShenyuSofaClient shenyuSofaClient = method.getAnnotation(ShenyuSofaClient.class);
+            if (Objects.nonNull(shenyuSofaClient)) {
+                publisher.publishEvent(buildMetaDataDTO(serviceBean, shenyuSofaClient, method));
             }
         }
     }
 
-    private MetaDataRegisterDTO buildMetaDataDTO(final ServiceFactoryBean serviceBean, final SoulSofaClient soulSofaClient, final Method method) {
+    private MetaDataRegisterDTO buildMetaDataDTO(final ServiceFactoryBean serviceBean, final ShenyuSofaClient shenyuSofaClient, final Method method) {
         String appName = this.appName;
-        String path = contextPath + soulSofaClient.path();
-        String desc = soulSofaClient.desc();
+        String path = contextPath + shenyuSofaClient.path();
+        String desc = shenyuSofaClient.desc();
         String serviceName = serviceBean.getInterfaceClass().getName();
         String host = StringUtils.isBlank(this.host) ? IpUtils.getHost() : this.host;
         int port = StringUtils.isBlank(this.port) ? -1 : Integer.parseInt(this.port);
-        String configRuleName = soulSofaClient.ruleName();
+        String configRuleName = shenyuSofaClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
@@ -144,16 +144,16 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
                 .pathDesc(desc)
                 .parameterTypes(parameterTypes)
                 .rpcType("sofa")
-                .rpcExt(buildRpcExt(soulSofaClient))
-                .enabled(soulSofaClient.enabled())
+                .rpcExt(buildRpcExt(shenyuSofaClient))
+                .enabled(shenyuSofaClient.enabled())
                 .build();
     }
 
-    private String buildRpcExt(final SoulSofaClient soulSofaClient) {
+    private String buildRpcExt(final ShenyuSofaClient shenyuSofaClient) {
         SofaRpcExt build = SofaRpcExt.builder()
-                .loadbalance(soulSofaClient.loadBalance())
-                .retries(soulSofaClient.retries())
-                .timeout(soulSofaClient.timeout())
+                .loadbalance(shenyuSofaClient.loadBalance())
+                .retries(shenyuSofaClient.retries())
+                .timeout(shenyuSofaClient.timeout())
                 .build();
         return GsonUtils.getInstance().toJson(build);
     }

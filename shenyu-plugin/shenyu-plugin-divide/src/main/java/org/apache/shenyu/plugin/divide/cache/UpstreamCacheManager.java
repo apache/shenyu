@@ -26,7 +26,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shenyu.common.concurrent.SoulThreadFactory;
+import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
@@ -55,7 +55,7 @@ public final class UpstreamCacheManager extends BaseHandleCache<String, DivideRu
     private UpstreamCacheManager() {
         boolean check = Boolean.parseBoolean(System.getProperty("soul.upstream.check", "false"));
         if (check) {
-            new ScheduledThreadPoolExecutor(1, SoulThreadFactory.create("scheduled-upstream-task", false))
+            new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-upstream-task", false))
                     .scheduleWithFixedDelay(this::scheduled,
                             30, Integer.parseInt(System.getProperty("soul.upstream.scheduledTime", "30")), TimeUnit.SECONDS);
         }

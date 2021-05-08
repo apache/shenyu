@@ -17,10 +17,10 @@
 
 package org.apache.shenyu.admin.exception;
 
-import org.apache.shenyu.admin.model.result.SoulAdminResult;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
+import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.exception.CommonErrorCode;
-import org.apache.shenyu.common.exception.SoulException;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.dao.DuplicateKeyException;
@@ -44,15 +44,15 @@ public final class ExceptionHandlersTest {
     @Test
     public void testServerExceptionHandlerByException() {
         Exception exception = new Exception();
-        SoulAdminResult result = exceptionHandlersUnderTest.serverExceptionHandler(exception);
+        ShenyuAdminResult result = exceptionHandlersUnderTest.serverExceptionHandler(exception);
         assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
         assertEquals(result.getMessage(), "The system is busy, please try again later");
     }
 
     @Test
     public void testServerExceptionHandlerBySoulException() {
-        Exception soulException = new SoulException("Test soulException message!");
-        SoulAdminResult result = exceptionHandlersUnderTest.serverExceptionHandler(soulException);
+        Exception soulException = new ShenyuException("Test soulException message!");
+        ShenyuAdminResult result = exceptionHandlersUnderTest.serverExceptionHandler(soulException);
         assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
         assertEquals(result.getMessage(), soulException.getMessage());
     }
@@ -60,8 +60,8 @@ public final class ExceptionHandlersTest {
     @Test
     public void testServerExceptionHandlerByDuplicateKeyException() {
         DuplicateKeyException duplicateKeyException = new DuplicateKeyException("Test duplicateKeyException message!");
-        SoulAdminResult result = exceptionHandlersUnderTest.serverExceptionHandler(duplicateKeyException);
+        ShenyuAdminResult result = exceptionHandlersUnderTest.serverExceptionHandler(duplicateKeyException);
         assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
-        assertEquals(result.getMessage(), SoulResultMessage.UNIQUE_INDEX_CONFLICT_ERROR);
+        assertEquals(result.getMessage(), ShenyuResultMessage.UNIQUE_INDEX_CONFLICT_ERROR);
     }
 }

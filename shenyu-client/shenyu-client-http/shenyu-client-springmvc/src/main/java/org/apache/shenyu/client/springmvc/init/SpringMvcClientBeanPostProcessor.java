@@ -19,11 +19,11 @@ package org.apache.shenyu.client.springmvc.init;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.client.core.disruptor.SoulClientRegisterEventPublisher;
-import org.apache.shenyu.client.springmvc.annotation.SoulSpringMvcClient;
+import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
+import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.common.utils.IpUtils;
-import org.apache.shenyu.register.client.api.SoulClientRegisterRepository;
-import org.apache.shenyu.register.common.config.SoulRegisterCenterConfig;
+import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
+import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -48,7 +48,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
     
-    private SoulClientRegisterEventPublisher publisher = SoulClientRegisterEventPublisher.getInstance();
+    private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
     
     private final ThreadPoolExecutor executorService;
     
@@ -65,7 +65,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
     /**
      * Instantiates a new Soul client bean post processor.
      */
-    public SpringMvcClientBeanPostProcessor(final SoulRegisterCenterConfig config, final SoulClientRegisterRepository soulClientRegisterRepository) {
+    public SpringMvcClientBeanPostProcessor(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         String registerType = config.getRegisterType();
         String serverLists = config.getServerLists();
         Properties props = config.getProps();
@@ -81,7 +81,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         this.contextPath = props.getProperty("contextPath");
         this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
-        publisher.start(soulClientRegisterRepository);
+        publisher.start(shenyuClientRegisterRepository);
     }
 
     @Override
@@ -92,7 +92,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         Controller controller = AnnotationUtils.findAnnotation(bean.getClass(), Controller.class);
         RequestMapping requestMapping = AnnotationUtils.findAnnotation(bean.getClass(), RequestMapping.class);
         if (controller != null || requestMapping != null) {
-            SoulSpringMvcClient clazzAnnotation = AnnotationUtils.findAnnotation(bean.getClass(), SoulSpringMvcClient.class);
+            ShenyuSpringMvcClient clazzAnnotation = AnnotationUtils.findAnnotation(bean.getClass(), ShenyuSpringMvcClient.class);
             String prePath = "";
             if (Objects.isNull(clazzAnnotation)) {
                 return bean;
@@ -105,30 +105,30 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
             prePath = clazzAnnotation.path();
             final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(bean.getClass());
             for (Method method : methods) {
-                SoulSpringMvcClient soulSpringMvcClient = AnnotationUtils.findAnnotation(method, SoulSpringMvcClient.class);
-                if (Objects.nonNull(soulSpringMvcClient)) {
+                ShenyuSpringMvcClient shenyuSpringMvcClient = AnnotationUtils.findAnnotation(method, ShenyuSpringMvcClient.class);
+                if (Objects.nonNull(shenyuSpringMvcClient)) {
                     String finalPrePath = prePath;
-                    executorService.execute(() -> publisher.publishEvent(buildMetaDataDTO(soulSpringMvcClient, finalPrePath)));
+                    executorService.execute(() -> publisher.publishEvent(buildMetaDataDTO(shenyuSpringMvcClient, finalPrePath)));
                 }
             }
         }
         return bean;
     }
     
-    private MetaDataRegisterDTO buildMetaDataDTO(final SoulSpringMvcClient soulSpringMvcClient, final String prePath) {
+    private MetaDataRegisterDTO buildMetaDataDTO(final ShenyuSpringMvcClient shenyuSpringMvcClient, final String prePath) {
         String contextPath = this.contextPath;
         String appName = this.appName;
         Integer port = this.port;
         String path;
         if (StringUtils.isEmpty(contextPath)) {
-            path = prePath + soulSpringMvcClient.path();
+            path = prePath + shenyuSpringMvcClient.path();
         } else {
-            path = contextPath + prePath + soulSpringMvcClient.path();
+            path = contextPath + prePath + shenyuSpringMvcClient.path();
         }
-        String desc = soulSpringMvcClient.desc();
+        String desc = shenyuSpringMvcClient.desc();
         String configHost = this.host;
         String host = StringUtils.isBlank(configHost) ? IpUtils.getHost() : configHost;
-        String configRuleName = soulSpringMvcClient.ruleName();
+        String configRuleName = shenyuSpringMvcClient.ruleName();
         String ruleName = StringUtils.isBlank(configRuleName) ? path : configRuleName;
         return MetaDataRegisterDTO.builder()
                 .contextPath(contextPath)
@@ -137,10 +137,10 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
                 .appName(appName)
                 .path(path)
                 .pathDesc(desc)
-                .rpcType(soulSpringMvcClient.rpcType())
-                .enabled(soulSpringMvcClient.enabled())
+                .rpcType(shenyuSpringMvcClient.rpcType())
+                .enabled(shenyuSpringMvcClient.enabled())
                 .ruleName(ruleName)
-                .registerMetaData(soulSpringMvcClient.registerMetaData())
+                .registerMetaData(shenyuSpringMvcClient.registerMetaData())
                 .build();
     }
 }

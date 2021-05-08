@@ -19,10 +19,10 @@ package org.apache.shenyu.plugin.global;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.plugin.api.SoulPlugin;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
-import org.apache.shenyu.plugin.api.context.SoulContextBuilder;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.MultiValueMap;
@@ -32,32 +32,32 @@ import reactor.core.publisher.Mono;
 /**
  * The type Global plugin.
  */
-public class GlobalPlugin implements SoulPlugin {
+public class GlobalPlugin implements ShenyuPlugin {
     
-    private final SoulContextBuilder builder;
+    private final ShenyuContextBuilder builder;
     
     /**
      * Instantiates a new Global plugin.
      *
      * @param builder the builder
      */
-    public GlobalPlugin(final SoulContextBuilder builder) {
+    public GlobalPlugin(final ShenyuContextBuilder builder) {
         this.builder = builder;
     }
     
     @Override
-    public Mono<Void> execute(final ServerWebExchange exchange, final SoulPluginChain chain) {
+    public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         final ServerHttpRequest request = exchange.getRequest();
         final HttpHeaders headers = request.getHeaders();
         final String upgrade = headers.getFirst("Upgrade");
-        SoulContext soulContext;
+        ShenyuContext shenyuContext;
         if (StringUtils.isBlank(upgrade) || !"websocket".equals(upgrade)) {
-            soulContext = builder.build(exchange);
+            shenyuContext = builder.build(exchange);
         } else {
             final MultiValueMap<String, String> queryParams = request.getQueryParams();
-            soulContext = transformMap(queryParams);
+            shenyuContext = transformMap(queryParams);
         }
-        exchange.getAttributes().put(Constants.CONTEXT, soulContext);
+        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
         return chain.execute(exchange);
     }
     
@@ -66,12 +66,12 @@ public class GlobalPlugin implements SoulPlugin {
         return 0;
     }
     
-    private SoulContext transformMap(final MultiValueMap<String, String> queryParams) {
-        SoulContext soulContext = new SoulContext();
-        soulContext.setModule(queryParams.getFirst(Constants.MODULE));
-        soulContext.setMethod(queryParams.getFirst(Constants.METHOD));
-        soulContext.setRpcType(queryParams.getFirst(Constants.RPC_TYPE));
-        return soulContext;
+    private ShenyuContext transformMap(final MultiValueMap<String, String> queryParams) {
+        ShenyuContext shenyuContext = new ShenyuContext();
+        shenyuContext.setModule(queryParams.getFirst(Constants.MODULE));
+        shenyuContext.setMethod(queryParams.getFirst(Constants.METHOD));
+        shenyuContext.setRpcType(queryParams.getFirst(Constants.RPC_TYPE));
+        return shenyuContext;
     }
     
     @Override

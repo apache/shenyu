@@ -23,8 +23,8 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.RedirectHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.base.AbstractSoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.UriUtils;
 import org.apache.shenyu.plugin.redirect.cache.RedirectRuleHandleCache;
 import org.apache.shenyu.plugin.redirect.handler.RedirectPluginDataHandler;
@@ -44,7 +44,7 @@ import java.util.Objects;
  * @author HoldDie
  */
 @Slf4j
-public class RedirectPlugin extends AbstractSoulPlugin {
+public class RedirectPlugin extends AbstractShenyuPlugin {
 
     public static final String ROOT_PATH_PREFIX = "/";
 
@@ -65,7 +65,7 @@ public class RedirectPlugin extends AbstractSoulPlugin {
     }
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain,
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                    final SelectorData selector, final RuleData rule) {
         final String handle = rule.getHandle();
         final RedirectHandle redirectHandle = RedirectRuleHandleCache.getInstance()

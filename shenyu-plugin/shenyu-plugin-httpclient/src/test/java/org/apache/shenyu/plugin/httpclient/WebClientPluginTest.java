@@ -20,9 +20,9 @@ package org.apache.shenyu.plugin.httpclient;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
-import org.apache.shenyu.plugin.api.result.SoulResult;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -70,43 +70,43 @@ public final class WebClientPluginTest {
     public void setup() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setCfgContext(context);
-        when(context.getBean(SoulResult.class)).thenReturn(mock(SoulResult.class));
+        when(context.getBean(ShenyuResult.class)).thenReturn(mock(ShenyuResult.class));
 
         WebClient webClient = mockWebClientOK();
         webClientPlugin = new WebClientPlugin(webClient);
     }
 
     /**
-     * test case for WebClientPlugin {@link WebClientPlugin#execute(ServerWebExchange, SoulPluginChain)}.
+     * test case for WebClientPlugin {@link WebClientPlugin#execute(ServerWebExchange, ShenyuPluginChain)}.
      */
     @Test
     public void testExecuted() {
-        final SoulPluginChain chainNoPathTest = mock(SoulPluginChain.class);
+        final ShenyuPluginChain chainNoPathTest = mock(ShenyuPluginChain.class);
         final WebClient webClientNoPathTest = mockWebClientOK();
         ServerWebExchange exchangeNoPathTest = MockServerWebExchange
                 .from(MockServerHttpRequest.get("/test").build());
-        exchangeNoPathTest.getAttributes().put(Constants.CONTEXT, mock(SoulContext.class));
+        exchangeNoPathTest.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
         WebClientPlugin webClientPluginNoPathTest = new WebClientPlugin(webClientNoPathTest);
         Mono<Void> monoNoPathTest = webClientPluginNoPathTest.execute(exchangeNoPathTest, chainNoPathTest);
         StepVerifier.create(monoNoPathTest).expectSubscription().verifyComplete();
 
-        final SoulPluginChain chainPostTest = mock(SoulPluginChain.class);
+        final ShenyuPluginChain chainPostTest = mock(ShenyuPluginChain.class);
         final WebClient webClientPostTest = mockWebClientOK();
         ServerWebExchange exchangePostTest = MockServerWebExchange
                 .from(MockServerHttpRequest.post("/test123?param=1").build());
-        exchangePostTest.getAttributes().put(Constants.CONTEXT, mock(SoulContext.class));
+        exchangePostTest.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
         exchangePostTest.getAttributes().put(Constants.HTTP_URL, "/test123?param=1");
         WebClientPlugin webClientPluginPostTest = new WebClientPlugin(webClientPostTest);
         Mono<Void> monoPostTest = webClientPluginPostTest.execute(exchangePostTest, chainPostTest);
         StepVerifier.create(monoPostTest).expectSubscription().verifyError();
 
-        final SoulPluginChain chainOkTest = mock(SoulPluginChain.class);
+        final ShenyuPluginChain chainOkTest = mock(ShenyuPluginChain.class);
         final WebClient webClientOkTest = mockWebClientOK();
         WebClientPlugin webClientPluginOkTest = new WebClientPlugin(webClientOkTest);
         Mono<Void> monoOkTest = webClientPluginOkTest.execute(generateServerWebExchange(), chainOkTest);
         StepVerifier.create(monoOkTest).expectSubscription().verifyError();
 
-        final SoulPluginChain chainErrorTest = mock(SoulPluginChain.class);
+        final ShenyuPluginChain chainErrorTest = mock(ShenyuPluginChain.class);
         final WebClient webClientErrorTest = mockWebClientError();
         WebClientPlugin webClientPluginErrorTest = new WebClientPlugin(webClientErrorTest);
         Mono<Void> monoErrorTest = webClientPluginErrorTest.execute(generateServerWebExchange(), chainErrorTest);
@@ -122,12 +122,12 @@ public final class WebClientPluginTest {
         assertTrue(webClientPlugin.skip(exchangeNormal));
 
         ServerWebExchange exchangeHttp = generateServerWebExchange();
-        when(((SoulContext) exchangeHttp.getAttributes().get(Constants.CONTEXT)).getRpcType())
+        when(((ShenyuContext) exchangeHttp.getAttributes().get(Constants.CONTEXT)).getRpcType())
                 .thenReturn(RpcTypeEnum.HTTP.getName());
         assertFalse(webClientPlugin.skip(exchangeHttp));
 
         ServerWebExchange exchangeSpringCloud = generateServerWebExchange();
-        when(((SoulContext) exchangeSpringCloud.getAttributes().get(Constants.CONTEXT)).getRpcType())
+        when(((ShenyuContext) exchangeSpringCloud.getAttributes().get(Constants.CONTEXT)).getRpcType())
                 .thenReturn(RpcTypeEnum.SPRING_CLOUD.getName());
         assertFalse(webClientPlugin.skip(exchangeSpringCloud));
     }
@@ -150,7 +150,7 @@ public final class WebClientPluginTest {
 
     private ServerWebExchange generateServerWebExchange() {
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test").build());
-        exchange.getAttributes().put(Constants.CONTEXT, mock(SoulContext.class));
+        exchange.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
         exchange.getAttributes().put(Constants.HTTP_URL, "/test");
 
         return exchange;

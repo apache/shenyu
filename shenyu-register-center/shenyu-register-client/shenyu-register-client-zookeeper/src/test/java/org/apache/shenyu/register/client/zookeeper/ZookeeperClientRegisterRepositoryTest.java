@@ -37,8 +37,6 @@ import static org.mockito.Mockito.mock;
 
 /**
  * Test for Zookeeper client register repository.
- *
- * @author lw1243925457
  */
 public class ZookeeperClientRegisterRepositoryTest {
 

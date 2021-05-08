@@ -26,7 +26,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import io.grpc.reflection.v1alpha.ServerReflectionRequest;
 import io.grpc.reflection.v1alpha.ServerReflectionResponse;
 import io.grpc.stub.StreamObserver;
-import org.apache.shenyu.common.exception.SoulException;
+import org.apache.shenyu.common.exception.ShenyuException;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -103,7 +103,7 @@ public class LookupServiceHandler implements StreamObserver<ServerReflectionResp
             try {
                 resultBuilder.add(DescriptorProtos.FileDescriptorProto.parseFrom(fileDescriptorBytes));
             } catch (InvalidProtocolBufferException e) {
-                throw new SoulException(e);
+                throw new ShenyuException(e);
             }
         }
         return resultBuilder.build();

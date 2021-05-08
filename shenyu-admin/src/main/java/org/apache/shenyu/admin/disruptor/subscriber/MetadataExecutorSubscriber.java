@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.disruptor.subscriber;
 
-import org.apache.shenyu.admin.service.SoulClientRegisterService;
+import org.apache.shenyu.admin.service.ShenyuClientRegisterService;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.subsriber.ExecutorTypeSubscriber;
@@ -32,10 +32,10 @@ import java.util.Collection;
  */
 public class MetadataExecutorSubscriber implements ExecutorTypeSubscriber<MetaDataRegisterDTO> {
     
-    private final SoulClientRegisterService soulClientRegisterService;
+    private final ShenyuClientRegisterService shenyuClientRegisterService;
     
-    public MetadataExecutorSubscriber(final SoulClientRegisterService soulClientRegisterService) {
-        this.soulClientRegisterService = soulClientRegisterService;
+    public MetadataExecutorSubscriber(final ShenyuClientRegisterService shenyuClientRegisterService) {
+        this.shenyuClientRegisterService = shenyuClientRegisterService;
     }
     
     @Override
@@ -47,19 +47,19 @@ public class MetadataExecutorSubscriber implements ExecutorTypeSubscriber<MetaDa
     public void executor(final Collection<MetaDataRegisterDTO> metaDataRegisterDTOList) {
         for (MetaDataRegisterDTO metaDataRegisterDTO : metaDataRegisterDTOList) {
             if (metaDataRegisterDTO.getRpcType().equals(RpcTypeEnum.DUBBO.getName())) {
-                soulClientRegisterService.registerDubbo(metaDataRegisterDTO);
+                shenyuClientRegisterService.registerDubbo(metaDataRegisterDTO);
             } else if (metaDataRegisterDTO.getRpcType().equals(RpcTypeEnum.SOFA.getName())) {
-                soulClientRegisterService.registerSofa(metaDataRegisterDTO);
+                shenyuClientRegisterService.registerSofa(metaDataRegisterDTO);
             } else if (metaDataRegisterDTO.getRpcType().equals(RpcTypeEnum.TARS.getName())) {
-                soulClientRegisterService.registerTars(metaDataRegisterDTO);
+                shenyuClientRegisterService.registerTars(metaDataRegisterDTO);
             } else if (metaDataRegisterDTO.getRpcType().equals(RpcTypeEnum.HTTP.getName())) {
-                soulClientRegisterService.registerSpringMvc(metaDataRegisterDTO);
+                shenyuClientRegisterService.registerSpringMvc(metaDataRegisterDTO);
             } else if (metaDataRegisterDTO.getRpcType().equals(RpcTypeEnum.SPRING_CLOUD.getName())) {
-                soulClientRegisterService.registerSpringCloud(metaDataRegisterDTO);
+                shenyuClientRegisterService.registerSpringCloud(metaDataRegisterDTO);
             } else if (metaDataRegisterDTO.getRpcType().equals(RpcTypeEnum.GRPC.getName())) {
-                soulClientRegisterService.registerGrpc(metaDataRegisterDTO);
+                shenyuClientRegisterService.registerGrpc(metaDataRegisterDTO);
             } else if (metaDataRegisterDTO.getRpcType().equals(RpcTypeEnum.MOTAN.getName())) {
-                soulClientRegisterService.registerMotan(metaDataRegisterDTO);
+                shenyuClientRegisterService.registerMotan(metaDataRegisterDTO);
             }
         }
     }

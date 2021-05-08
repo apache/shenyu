@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.springboot.starter.plugin.monitor;
 
-import org.apache.shenyu.plugin.api.SoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.monitor.MonitorPlugin;
 import org.apache.shenyu.plugin.monitor.handler.MonitorPluginDataHandler;
@@ -38,7 +38,7 @@ public class MonitorPluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin monitorPlugin() {
+    public ShenyuPlugin monitorPlugin() {
         return new MonitorPlugin();
     }
     

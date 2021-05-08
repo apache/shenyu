@@ -21,7 +21,7 @@ import org.apache.shenyu.admin.config.properties.JwtProperties;
 import org.apache.shenyu.admin.service.DashboardUserService;
 import org.apache.shenyu.admin.service.EnumService;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
 import org.apache.shenyu.common.exception.CommonErrorCode;
@@ -101,7 +101,7 @@ public final class PlatformControllerTest {
         this.mockMvc.perform(MockMvcRequestBuilders.request(HttpMethod.GET, loginUri))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code", is(CommonErrorCode.SUCCESSFUL)))
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.PLATFORM_LOGIN_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.PLATFORM_LOGIN_SUCCESS)))
                 .andExpect(jsonPath("$.data.id", is(loginDashboardUserVO.getId())))
                 .andReturn();
     }

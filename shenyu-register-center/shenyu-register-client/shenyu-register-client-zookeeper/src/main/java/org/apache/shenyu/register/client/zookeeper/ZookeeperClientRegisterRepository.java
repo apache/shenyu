@@ -23,8 +23,8 @@ import org.I0Itec.zkclient.ZkClient;
 import org.apache.zookeeper.Watcher;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.register.client.api.SoulClientRegisterRepository;
-import org.apache.shenyu.register.common.config.SoulRegisterCenterConfig;
+import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
+import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.path.RegisterPathConstants;
@@ -36,20 +36,17 @@ import java.util.Properties;
 
 /**
  * The type Zookeeper client register repository.
- *
- * @author xiaoyu
- * @author lw1243925457
  */
 @Join
 @Slf4j
-public class ZookeeperClientRegisterRepository implements SoulClientRegisterRepository {
+public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRepository {
 
     private ZkClient zkClient;
 
     private Map<String, String> nodeDataMap = new HashMap<>();
 
     @Override
-    public void init(final SoulRegisterCenterConfig config) {
+    public void init(final ShenyuRegisterCenterConfig config) {
         Properties props = config.getProps();
         int zookeeperSessionTimeout = Integer.parseInt(props.getProperty("zookeeperSessionTimeout", "3000"));
         int zookeeperConnectionTimeout = Integer.parseInt(props.getProperty("zookeeperConnectionTimeout", "3000"));

@@ -25,12 +25,12 @@ import org.apache.shenyu.common.dto.convert.rule.impl.SpringCloudRuleHandle;
 import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.api.result.SoulResultEnum;
+import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.base.utils.FallbackUtils;
-import org.apache.shenyu.plugin.api.result.SoulResultWrap;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.base.AbstractSoulPlugin;
-import org.apache.shenyu.plugin.api.context.SoulContext;
+import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.springcloud.cache.SpringCloudRuleHandleCache;
 import org.apache.shenyu.plugin.springcloud.cache.SpringCloudSelectorHandleCache;
@@ -49,7 +49,7 @@ import java.util.Objects;
  *
  * @author xiaoyu(myth)
  */
-public class SpringCloudPlugin extends AbstractSoulPlugin {
+public class SpringCloudPlugin extends AbstractShenyuPlugin {
 
     private final LoadBalancerClient loadBalancer;
 
@@ -63,27 +63,27 @@ public class SpringCloudPlugin extends AbstractSoulPlugin {
     }
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         if (Objects.isNull(rule)) {
             return Mono.empty();
         }
-        final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-        assert soulContext != null;
+        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
         final SpringCloudRuleHandle ruleHandle = SpringCloudRuleHandleCache.getInstance().obtainHandle(SpringCloudPluginDataHandler.getRuleCacheKey(rule));
         final SpringCloudSelectorHandle selectorHandle = SpringCloudSelectorHandleCache.getInstance().obtainHandle(selector.getId());
         if (StringUtils.isBlank(selectorHandle.getServiceId()) || StringUtils.isBlank(ruleHandle.getPath())) {
-            Object error = SoulResultWrap.error(SoulResultEnum.CANNOT_CONFIG_SPRINGCLOUD_SERVICEID.getCode(), SoulResultEnum.CANNOT_CONFIG_SPRINGCLOUD_SERVICEID.getMsg(), null);
+            Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_CONFIG_SPRINGCLOUD_SERVICEID.getCode(), ShenyuResultEnum.CANNOT_CONFIG_SPRINGCLOUD_SERVICEID.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
 
         final ServiceInstance serviceInstance = loadBalancer.choose(selectorHandle.getServiceId());
         if (Objects.isNull(serviceInstance)) {
-            Object error = SoulResultWrap.error(SoulResultEnum.SPRINGCLOUD_SERVICEID_IS_ERROR.getCode(), SoulResultEnum.SPRINGCLOUD_SERVICEID_IS_ERROR.getMsg(), null);
+            Object error = ShenyuResultWrap.error(ShenyuResultEnum.SPRINGCLOUD_SERVICEID_IS_ERROR.getCode(), ShenyuResultEnum.SPRINGCLOUD_SERVICEID_IS_ERROR.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
-        final URI uri = loadBalancer.reconstructURI(serviceInstance, URI.create(soulContext.getRealUrl()));
+        final URI uri = loadBalancer.reconstructURI(serviceInstance, URI.create(shenyuContext.getRealUrl()));
 
-        String realURL = buildRealURL(uri.toASCIIString(), soulContext.getHttpMethod(), exchange.getRequest().getURI().getQuery());
+        String realURL = buildRealURL(uri.toASCIIString(), shenyuContext.getHttpMethod(), exchange.getRequest().getURI().getQuery());
 
         exchange.getAttributes().put(Constants.HTTP_URL, realURL);
         //set time out.
@@ -109,17 +109,17 @@ public class SpringCloudPlugin extends AbstractSoulPlugin {
      */
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
-        final SoulContext body = exchange.getAttribute(Constants.CONTEXT);
+        final ShenyuContext body = exchange.getAttribute(Constants.CONTEXT);
         return !Objects.equals(Objects.requireNonNull(body).getRpcType(), RpcTypeEnum.SPRING_CLOUD.getName());
     }
 
     @Override
-    protected Mono<Void> handleSelectorIsNull(final String pluginName, final ServerWebExchange exchange, final SoulPluginChain chain) {
+    protected Mono<Void> handleSelectorIsNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return FallbackUtils.getNoSelectorResult(pluginName, exchange);
     }
 
     @Override
-    protected Mono<Void> handleRuleIsNull(final String pluginName, final ServerWebExchange exchange, final SoulPluginChain chain) {
+    protected Mono<Void> handleRuleIsNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return FallbackUtils.getNoRuleResult(pluginName, exchange);
     }
 

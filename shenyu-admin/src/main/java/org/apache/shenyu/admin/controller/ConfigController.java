@@ -20,8 +20,8 @@ package org.apache.shenyu.admin.controller;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
-import org.apache.shenyu.admin.model.result.SoulAdminResult;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -58,13 +58,13 @@ public class ConfigController {
      * @return the soul result
      */
     @GetMapping("/fetch")
-    public SoulAdminResult fetchConfigs(@NotNull final String[] groupKeys) {
+    public ShenyuAdminResult fetchConfigs(@NotNull final String[] groupKeys) {
         Map<String, ConfigData<?>> result = Maps.newHashMap();
         for (String groupKey : groupKeys) {
             ConfigData<?> data = longPollingListener.fetchConfig(ConfigGroupEnum.valueOf(groupKey));
             result.put(groupKey, data);
         }
-        return SoulAdminResult.success(SoulResultMessage.SUCCESS, result);
+        return ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, result);
     }
 
     /**

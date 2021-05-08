@@ -21,7 +21,7 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.common.utils.ReflectUtils;
-import org.apache.shenyu.plugin.api.context.SoulContext;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.utils.HostAddressUtils;
 import org.springframework.http.HttpCookie;
 import org.springframework.util.CollectionUtils;
@@ -62,8 +62,8 @@ public abstract class AbstractMatchStrategy {
             case IP:
                 return HostAddressUtils.acquireIp(exchange);
             case POST:
-                SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-                return (String) ReflectUtils.getFieldValue(soulContext, condition.getParamName());
+                ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+                return (String) ReflectUtils.getFieldValue(shenyuContext, condition.getParamName());
             case REQUEST_METHOD:
                 return exchange.getRequest().getMethodValue();
             case COOKIE:

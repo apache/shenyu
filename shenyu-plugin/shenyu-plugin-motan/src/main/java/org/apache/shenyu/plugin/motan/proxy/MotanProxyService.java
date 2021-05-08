@@ -25,7 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.ResultEnum;
-import org.apache.shenyu.common.exception.SoulException;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.motan.cache.ApplicationConfigCache;
 import org.springframework.web.server.ServerWebExchange;
@@ -49,10 +49,10 @@ public class MotanProxyService {
      * @param metaData the meta data
      * @param exchange the exchange
      * @return the object
-     * @throws SoulException the soul exception
+     * @throws ShenyuException the soul exception
      */
     @SneakyThrows
-    public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws SoulException {
+    public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws ShenyuException {
         RefererConfig<CommonHandler> reference = ApplicationConfigCache.getInstance().get(metaData.getPath());
         if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getServiceInterface())) {
             ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
@@ -81,7 +81,7 @@ public class MotanProxyService {
             exchange.getAttributes().put(Constants.MOTAN_RPC_RESULT, ret);
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return ret;
-        })).onErrorMap(SoulException::new);
+        })).onErrorMap(ShenyuException::new);
     }
 
 //    private GenericMessage buildGenericMessage(String name, Map<String, Object> map) {

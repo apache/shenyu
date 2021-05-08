@@ -19,9 +19,9 @@ package org.apache.shenyu.admin.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.admin.disruptor.RegisterServerDisruptorPublisher;
-import org.apache.shenyu.admin.service.SoulClientRegisterService;
-import org.apache.shenyu.register.common.config.SoulRegisterCenterConfig;
-import org.apache.shenyu.register.server.api.SoulServerRegisterRepository;
+import org.apache.shenyu.admin.service.ShenyuClientRegisterService;
+import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
+import org.apache.shenyu.register.server.api.ShenyuServerRegisterRepository;
 import org.apache.shenyu.spi.ExtensionLoader;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -29,39 +29,37 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * The type Register center configuration.
- *
- * @author xiaoyu
  */
 @Slf4j
 @Configuration
 public class RegisterCenterConfiguration {
     
     /**
-     * Soul register center config soul register center config.
+     * Shenyu register center config shenyu register center config.
      *
-     * @return the soul register center config
+     * @return the shenyu register center config
      */
     @Bean
     @ConfigurationProperties(prefix = "soul.register")
-    public SoulRegisterCenterConfig soulRegisterCenterConfig() {
-        return new SoulRegisterCenterConfig();
+    public ShenyuRegisterCenterConfig shenyuRegisterCenterConfig() {
+        return new ShenyuRegisterCenterConfig();
     }
     
     /**
-     * Soul server register repository soul server register repository.
+     * Shenyu server register repository server register repository.
      *
-     * @param soulRegisterCenterConfig the soul register center config
-     * @param soulClientRegisterService the soul client register service
-     * @return the soul server register repository
+     * @param shenyuRegisterCenterConfig the shenyu register center config
+     * @param shenyuClientRegisterService the shenyu client register service
+     * @return the shenyu server register repository
      */
     @Bean
-    public SoulServerRegisterRepository soulServerRegisterRepository(final SoulRegisterCenterConfig soulRegisterCenterConfig, 
-                                                                     final SoulClientRegisterService soulClientRegisterService) {
-        String registerType = soulRegisterCenterConfig.getRegisterType();
-        SoulServerRegisterRepository registerRepository = ExtensionLoader.getExtensionLoader(SoulServerRegisterRepository.class).getJoin(registerType);
+    public ShenyuServerRegisterRepository shenyuServerRegisterRepository(final ShenyuRegisterCenterConfig shenyuRegisterCenterConfig,
+                                                                         final ShenyuClientRegisterService shenyuClientRegisterService) {
+        String registerType = shenyuRegisterCenterConfig.getRegisterType();
+        ShenyuServerRegisterRepository registerRepository = ExtensionLoader.getExtensionLoader(ShenyuServerRegisterRepository.class).getJoin(registerType);
         RegisterServerDisruptorPublisher publisher = RegisterServerDisruptorPublisher.getInstance();
-        publisher.start(soulClientRegisterService);
-        registerRepository.init(publisher, soulRegisterCenterConfig);
+        publisher.start(shenyuClientRegisterService);
+        registerRepository.init(publisher, shenyuRegisterCenterConfig);
         return registerRepository;
     }
 }
