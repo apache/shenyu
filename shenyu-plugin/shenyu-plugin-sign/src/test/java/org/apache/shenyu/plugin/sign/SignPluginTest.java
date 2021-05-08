@@ -21,7 +21,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.plugin.api.SignService;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -45,7 +45,7 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public final class SignPluginTest {
     @Mock
-    private SoulPluginChain chain;
+    private ShenyuPluginChain chain;
 
     private ServerWebExchange exchange;
 

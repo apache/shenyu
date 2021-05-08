@@ -21,12 +21,12 @@ import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.register.common.config.SoulRegisterCenterConfig;
+import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.path.RegisterPathConstants;
-import org.apache.shenyu.register.server.api.SoulServerRegisterPublisher;
-import org.apache.shenyu.register.server.api.SoulServerRegisterRepository;
+import org.apache.shenyu.register.server.api.ShenyuServerRegisterPublisher;
+import org.apache.shenyu.register.server.api.ShenyuServerRegisterRepository;
 import org.apache.shenyu.register.server.etcd.client.EtcdClient;
 import org.apache.shenyu.register.server.etcd.client.EtcdListenHandler;
 import org.apache.shenyu.spi.Join;
@@ -44,14 +44,14 @@ import java.util.ArrayList;
  */
 @Join
 @Slf4j
-public class EtcdServerRegisterRepository implements SoulServerRegisterRepository {
+public class EtcdServerRegisterRepository implements ShenyuServerRegisterRepository {
 
-    private SoulServerRegisterPublisher publisher;
+    private ShenyuServerRegisterPublisher publisher;
 
     private EtcdClient client;
 
     @Override
-    public void init(final SoulServerRegisterPublisher publisher, final SoulRegisterCenterConfig config) {
+    public void init(final ShenyuServerRegisterPublisher publisher, final ShenyuRegisterCenterConfig config) {
         this.client = new EtcdClient(config.getServerLists());
         this.publisher = publisher;
         initSubscribe();

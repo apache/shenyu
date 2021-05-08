@@ -25,7 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.exception.SoulException;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.ParamCheckUtils;
 import org.apache.shenyu.plugin.alibaba.dubbo.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.api.param.BodyParamResolveService;
@@ -57,9 +57,9 @@ public class AlibabaDubboProxyService {
      * @param body     the body
      * @param metaData the meta data
      * @return the object
-     * @throws SoulException the soul exception
+     * @throws ShenyuException the soul exception
      */
-    public Object genericInvoker(final String body, final MetaData metaData) throws SoulException {
+    public Object genericInvoker(final String body, final MetaData metaData) throws ShenyuException {
         ReferenceConfig<GenericService> reference = ApplicationConfigCache.getInstance().get(metaData.getPath());
         if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getInterface())) {
             ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
@@ -76,7 +76,7 @@ public class AlibabaDubboProxyService {
             return genericService.$invoke(metaData.getMethodName(), pair.getLeft(), pair.getRight());
         } catch (GenericException e) {
             log.error("dubbo invoker have exception", e);
-            throw new SoulException(e.getExceptionMessage());
+            throw new ShenyuException(e.getExceptionMessage());
         }
     }
 }

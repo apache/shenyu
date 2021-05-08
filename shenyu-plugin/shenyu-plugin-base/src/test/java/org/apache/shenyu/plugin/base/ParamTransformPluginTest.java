@@ -20,8 +20,8 @@ package org.apache.shenyu.plugin.base;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,7 +43,7 @@ import static org.mockito.Mockito.mock;
 @RunWith(MockitoJUnitRunner.class)
 public final class ParamTransformPluginTest {
     
-    private SoulPluginChain chain;
+    private ShenyuPluginChain chain;
     
     private ParamTransformPlugin paramTransformPlugin;
     
@@ -53,7 +53,7 @@ public final class ParamTransformPluginTest {
     @Before
     public void setUp() {
         paramTransformPlugin = new ParamTransformPlugin();
-        chain = mock(SoulPluginChain.class);
+        chain = mock(ShenyuPluginChain.class);
     }
     
     /**
@@ -82,7 +82,7 @@ public final class ParamTransformPluginTest {
         ServerWebExchange exchange = MockServerWebExchange.from(
                 MockServerHttpRequest.post("localhost").contentType(MediaType.APPLICATION_JSON).body("{}"));
         Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
-        SoulContext context = new SoulContext();
+        ShenyuContext context = new ShenyuContext();
         context.setRpcType(RpcTypeEnum.DUBBO.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
         Mono<Void> result = paramTransformPlugin.execute(exchange, chain);
@@ -97,7 +97,7 @@ public final class ParamTransformPluginTest {
         final ServerWebExchange exchange = MockServerWebExchange.from(
                 MockServerHttpRequest.post("localhost").contentType(MediaType.APPLICATION_FORM_URLENCODED).body("test=test"));
         Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
-        SoulContext context = new SoulContext();
+        ShenyuContext context = new ShenyuContext();
         context.setRpcType(RpcTypeEnum.DUBBO.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
         Mono<Void> result = paramTransformPlugin.execute(exchange, chain);
@@ -112,7 +112,7 @@ public final class ParamTransformPluginTest {
         ServerWebExchange exchange = MockServerWebExchange.from(
                 MockServerHttpRequest.post("localhost"));
         Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
-        SoulContext context = new SoulContext();
+        ShenyuContext context = new ShenyuContext();
         context.setRpcType(RpcTypeEnum.DUBBO.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
         Mono<Void> result = paramTransformPlugin.execute(exchange, chain);
@@ -127,7 +127,7 @@ public final class ParamTransformPluginTest {
         ServerWebExchange exchange = MockServerWebExchange.from(
                 MockServerHttpRequest.post("localhost").body("test"));
         Mockito.when(chain.execute(exchange)).thenReturn(Mono.empty());
-        SoulContext context = new SoulContext();
+        ShenyuContext context = new ShenyuContext();
         context.setRpcType(RpcTypeEnum.DUBBO.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
         Mono<Void> result = paramTransformPlugin.execute(exchange, chain);

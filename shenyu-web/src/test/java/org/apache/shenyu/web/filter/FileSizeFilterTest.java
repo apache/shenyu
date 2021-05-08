@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.web.filter;
 
-import org.apache.shenyu.plugin.api.result.SoulResult;
+import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,7 +48,7 @@ public class FileSizeFilterTest {
     public void setup() {
         GenericApplicationContext context = new GenericApplicationContext();
         SpringBeanUtils.getInstance().setCfgContext(context);
-        context.getBeanFactory().registerSingleton("soulResult", mock(SoulResult.class));
+        context.getBeanFactory().registerSingleton("soulResult", mock(ShenyuResult.class));
         context.refresh();
     }
 

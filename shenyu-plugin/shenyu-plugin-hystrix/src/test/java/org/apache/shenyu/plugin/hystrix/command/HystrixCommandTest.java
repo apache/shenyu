@@ -23,7 +23,7 @@ import com.netflix.hystrix.HystrixCommandProperties;
 import com.netflix.hystrix.HystrixObservableCommand;
 import lombok.SneakyThrows;
 import org.apache.shenyu.common.dto.convert.HystrixHandle;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -73,7 +73,7 @@ public final class HystrixCommandTest {
                 .withGroupKey(HystrixCommandGroupKey.Factory.asKey(hystrixHandle.getGroupKey()))
                 .andCommandKey(HystrixCommandKey.Factory.asKey(hystrixHandle.getCommandKey()))
                 .andCommandPropertiesDefaults(propertiesSetter);
-        hystrixCommand = new HystrixCommand(setter, exchange, mock(SoulPluginChain.class), "http://callback:8093/test");
+        hystrixCommand = new HystrixCommand(setter, exchange, mock(ShenyuPluginChain.class), "http://callback:8093/test");
     }
 
     @Test
@@ -114,7 +114,7 @@ public final class HystrixCommandTest {
                 .withGroupKey(HystrixCommandGroupKey.Factory.asKey(hystrixHandle.getGroupKey()))
                 .andCommandKey(HystrixCommandKey.Factory.asKey(hystrixHandle.getCommandKey()))
                 .andCommandPropertiesDefaults(propertiesSetter);
-        HystrixCommand hystrixCommand = new HystrixCommand(setter, exchange, mock(SoulPluginChain.class), null);
+        HystrixCommand hystrixCommand = new HystrixCommand(setter, exchange, mock(ShenyuPluginChain.class), null);
         TestSubscriber<Void> testSubscriberWithNull = new TestSubscriber<>();
         when(hystrixCommand.resumeWithFallback().subscribe(testSubscriberWithNull)).thenThrow(NullPointerException.class);
     }

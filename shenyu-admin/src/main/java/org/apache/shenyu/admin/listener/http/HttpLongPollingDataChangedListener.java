@@ -22,11 +22,11 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.listener.AbstractDataChangedListener;
 import org.apache.shenyu.admin.listener.ConfigDataCache;
-import org.apache.shenyu.admin.model.result.SoulAdminResult;
-import org.apache.shenyu.common.concurrent.SoulThreadFactory;
+import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.HttpConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.MetaData;
@@ -35,7 +35,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.apache.shenyu.common.exception.SoulException;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.springframework.http.MediaType;
 
@@ -92,7 +92,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
     public HttpLongPollingDataChangedListener(final HttpSyncProperties httpSyncProperties) {
         this.clients = new ArrayBlockingQueue<>(1024);
         this.scheduler = new ScheduledThreadPoolExecutor(1,
-                SoulThreadFactory.create("long-polling", true));
+                ShenyuThreadFactory.create("long-polling", true));
         this.httpSyncProperties = httpSyncProperties;
     }
 
@@ -176,7 +176,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             // md5,lastModifyTime
             String[] params = StringUtils.split(request.getParameter(group.name()), ',');
             if (params == null || params.length != 2) {
-                throw new SoulException("group param invalid:" + request.getParameter(group.name()));
+                throw new ShenyuException("group param invalid:" + request.getParameter(group.name()));
             }
             String clientMd5 = params[0];
             long clientModifyTime = NumberUtils.toLong(params[1]);
@@ -249,7 +249,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
             response.setHeader("Cache-Control", "no-cache,no-store");
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setStatus(HttpServletResponse.SC_OK);
-            response.getWriter().println(GsonUtils.getInstance().toJson(SoulAdminResult.success(SoulResultMessage.SUCCESS, changedGroups)));
+            response.getWriter().println(GsonUtils.getInstance().toJson(ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, changedGroups)));
         } catch (IOException ex) {
             log.error("Sending response failed.", ex);
         }

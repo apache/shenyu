@@ -24,7 +24,7 @@ import io.grpc.NameResolverRegistry;
 import org.apache.shenyu.plugin.grpc.loadbalance.LoadBalancerStrategy;
 import org.apache.shenyu.plugin.grpc.loadbalance.RandomLoadBalancerProvider;
 import org.apache.shenyu.plugin.grpc.loadbalance.RoundRobinLoadBalancerProvider;
-import org.apache.shenyu.plugin.grpc.resolver.SoulNameResolverProvider;
+import org.apache.shenyu.plugin.grpc.resolver.ShenyuNameResolverProvider;
 
 /**
  * Grpc client Builder.
@@ -36,7 +36,7 @@ public class GrpcClientBuilder {
     static {
         LoadBalancerRegistry.getDefaultRegistry().register(new RandomLoadBalancerProvider());
         LoadBalancerRegistry.getDefaultRegistry().register(new RoundRobinLoadBalancerProvider());
-        NameResolverRegistry.getDefaultRegistry().register(new SoulNameResolverProvider());
+        NameResolverRegistry.getDefaultRegistry().register(new ShenyuNameResolverProvider());
     }
 
     /**
@@ -45,7 +45,7 @@ public class GrpcClientBuilder {
      * @param contextPath contextPath
      * @return SoulGrpcClient  soulGrpcClient
      */
-    public static SoulGrpcClient buildClient(final String contextPath) {
+    public static ShenyuGrpcClient buildClient(final String contextPath) {
         ManagedChannelBuilder<?> builder = ManagedChannelBuilder.forTarget(contextPath)
                 .defaultLoadBalancingPolicy(LoadBalancerStrategy.Random.getStrategy())
                 .usePlaintext()
@@ -53,6 +53,6 @@ public class GrpcClientBuilder {
                 .disableRetry();
         ManagedChannel channel = builder.build();
         channel.getState(true);
-        return new SoulGrpcClient(channel);
+        return new ShenyuGrpcClient(channel);
     }
 }

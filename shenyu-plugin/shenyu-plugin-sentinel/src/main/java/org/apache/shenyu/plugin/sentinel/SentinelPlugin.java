@@ -25,9 +25,9 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.SentinelHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
-import org.apache.shenyu.plugin.base.AbstractSoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.UriUtils;
 import org.apache.shenyu.plugin.sentinel.fallback.SentinelFallbackHandler;
 import org.apache.shenyu.plugin.sentinel.handler.SentinelRuleHandle;
@@ -42,7 +42,7 @@ import reactor.core.publisher.Mono;
  * @author tydhot
  */
 @Slf4j
-public class SentinelPlugin extends AbstractSoulPlugin {
+public class SentinelPlugin extends AbstractShenyuPlugin {
 
     private final SentinelFallbackHandler sentinelFallbackHandler;
 
@@ -51,9 +51,9 @@ public class SentinelPlugin extends AbstractSoulPlugin {
     }
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
-        final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-        assert soulContext != null;
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
+        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
         String resourceName = SentinelRuleHandle.getResourceName(rule);
         SentinelHandle sentinelHandle = GsonUtils.getInstance().fromJson(rule.getHandle(), SentinelHandle.class);
         sentinelHandle.checkData(sentinelHandle);

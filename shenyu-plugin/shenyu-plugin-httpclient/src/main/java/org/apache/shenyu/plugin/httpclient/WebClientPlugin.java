@@ -24,11 +24,11 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.api.SoulPlugin;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
-import org.apache.shenyu.plugin.api.result.SoulResultEnum;
-import org.apache.shenyu.plugin.api.result.SoulResultWrap;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
+import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -50,7 +50,7 @@ import java.util.Optional;
  * @author xiaoyu
  */
 @Slf4j
-public class WebClientPlugin implements SoulPlugin {
+public class WebClientPlugin implements ShenyuPlugin {
 
     private final WebClient webClient;
 
@@ -64,12 +64,12 @@ public class WebClientPlugin implements SoulPlugin {
     }
 
     @Override
-    public Mono<Void> execute(final ServerWebExchange exchange, final SoulPluginChain chain) {
-        final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-        assert soulContext != null;
+    public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
         String urlPath = exchange.getAttribute(Constants.HTTP_URL);
         if (StringUtils.isEmpty(urlPath)) {
-            Object error = SoulResultWrap.error(SoulResultEnum.CANNOT_FIND_URL.getCode(), SoulResultEnum.CANNOT_FIND_URL.getMsg(), null);
+            Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_URL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         long timeout = (long) Optional.ofNullable(exchange.getAttribute(Constants.HTTP_TIME_OUT)).orElse(3000L);
@@ -92,10 +92,10 @@ public class WebClientPlugin implements SoulPlugin {
 
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
-        final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-        assert soulContext != null;
-        return !Objects.equals(RpcTypeEnum.HTTP.getName(), soulContext.getRpcType())
-                && !Objects.equals(RpcTypeEnum.SPRING_CLOUD.getName(), soulContext.getRpcType());
+        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
+        return !Objects.equals(RpcTypeEnum.HTTP.getName(), shenyuContext.getRpcType())
+                && !Objects.equals(RpcTypeEnum.SPRING_CLOUD.getName(), shenyuContext.getRpcType());
     }
 
     private MediaType buildMediaType(final ServerWebExchange exchange) {
@@ -109,7 +109,7 @@ public class WebClientPlugin implements SoulPlugin {
                                          final ServerWebExchange exchange,
                                          final long timeout,
                                          final int retryTimes,
-                                         final SoulPluginChain chain) {
+                                         final ShenyuPluginChain chain) {
         return requestBodySpec.headers(httpHeaders -> {
             httpHeaders.addAll(exchange.getRequest().getHeaders());
             httpHeaders.remove(HttpHeaders.HOST);
@@ -126,7 +126,7 @@ public class WebClientPlugin implements SoulPlugin {
 
     }
 
-    private Mono<Void> doNext(final ClientResponse res, final ServerWebExchange exchange, final SoulPluginChain chain) {
+    private Mono<Void> doNext(final ClientResponse res, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         if (res.statusCode().is2xxSuccessful()) {
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
         } else {

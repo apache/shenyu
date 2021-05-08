@@ -257,25 +257,3 @@ ShenYu 已经被很多公司广泛使用在越来越多的业务系统，它能�
 感谢每一位为 `ShenYu` 贡献代码的朋友。
 
 [![Giteye chart](https://chart.giteye.net/gitee/dromara/soul/2ZKY3P9W.png)](https://giteye.net/chart/2ZKY3P9W)
-
-# 支持
-
-<table>
-  <thead>
-    <th>微信公众号</th>
-    <th>QQ 交流群</th>
-    <th>芋道源码</th>
-    <th>JetBrains</th>
-  </thead>
-  <tbody>
-    <tr>
-      <td><img src="https://yu199195.github.io/images/public.jpg"   alt="微信公众号"/>
-      <td><img src="https://yu199195.github.io/images/soul-qq.png"  alt="QQ 交流群"/>
-      <td><img src="http://www.iocoder.cn/images/common/erweima.jpg"  alt="芋道源码"/>
-      <td><img src="https://yu199195.github.io/images/jetbrains.svg"  alt="JetBrains"/>
-    </tr>
-  </tbody>
-</table>
-
-
-

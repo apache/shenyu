@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.common.enums;
 
-import org.apache.shenyu.common.exception.SoulException;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -42,7 +42,7 @@ public final class HttpMethodEnumTest {
         );
     }
 
-    @Test(expected = SoulException.class)
+    @Test(expected = ShenyuException.class)
     public void testAcquireByNameInvalid() {
         String httpMethodName = "InvalidName";
         HttpMethodEnum.acquireByName(httpMethodName);

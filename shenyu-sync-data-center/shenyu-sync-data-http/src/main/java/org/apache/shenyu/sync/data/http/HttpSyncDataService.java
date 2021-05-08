@@ -33,11 +33,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.common.concurrent.SoulThreadFactory;
+import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.HttpConstants;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
-import org.apache.shenyu.common.exception.SoulException;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.ThreadUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -110,7 +110,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
             int threadSize = serverList.size();
             this.executor = new ThreadPoolExecutor(threadSize, threadSize, 60L, TimeUnit.SECONDS,
                     new LinkedBlockingQueue<>(),
-                    SoulThreadFactory.create("http-long-polling", true));
+                    ShenyuThreadFactory.create("http-long-polling", true));
             // start long polling, each server creates a thread to listen for changes.
             this.serverList.forEach(server -> this.executor.execute(new HttpLongPollingTask(server)));
         } else {
@@ -118,13 +118,13 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
         }
     }
 
-    private void fetchGroupConfig(final ConfigGroupEnum... groups) throws SoulException {
+    private void fetchGroupConfig(final ConfigGroupEnum... groups) throws ShenyuException {
         for (int index = 0; index < this.serverList.size(); index++) {
             String server = serverList.get(index);
             try {
                 this.doFetchGroupConfig(server, groups);
                 break;
-            } catch (SoulException e) {
+            } catch (ShenyuException e) {
                 // no available server, throw exception.
                 if (index >= serverList.size() - 1) {
                     throw e;
@@ -147,7 +147,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
         } catch (RestClientException e) {
             String message = String.format("fetch config fail from server[%s], %s", url, e.getMessage());
             log.warn(message);
-            throw new SoulException(message, e);
+            throw new ShenyuException(message, e);
         }
         // update local cache
         boolean updated = this.updateCacheWithJson(json);
@@ -192,7 +192,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
             groupJson = GSON.fromJson(json, JsonObject.class).getAsJsonArray("data");
         } catch (RestClientException e) {
             String message = String.format("listener configs fail, server:[%s], %s", server, e.getMessage());
-            throw new SoulException(message, e);
+            throw new ShenyuException(message, e);
         }
         if (groupJson != null) {
             // fetch group configuration async.

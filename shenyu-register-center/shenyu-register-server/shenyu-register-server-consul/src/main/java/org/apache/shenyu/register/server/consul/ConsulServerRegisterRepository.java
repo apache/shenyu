@@ -23,11 +23,11 @@ import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.register.common.config.SoulRegisterCenterConfig;
+import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.apache.shenyu.register.server.api.SoulServerRegisterPublisher;
-import org.apache.shenyu.register.server.api.SoulServerRegisterRepository;
+import org.apache.shenyu.register.server.api.ShenyuServerRegisterPublisher;
+import org.apache.shenyu.register.server.api.ShenyuServerRegisterRepository;
 import org.apache.shenyu.spi.Join;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
@@ -42,7 +42,7 @@ import java.util.Map;
 
 @Join
 @Slf4j
-public class ConsulServerRegisterRepository implements SoulServerRegisterRepository {
+public class ConsulServerRegisterRepository implements ShenyuServerRegisterRepository {
     
     @Autowired
     private ConsulDiscoveryClient discoveryClient;
@@ -51,12 +51,12 @@ public class ConsulServerRegisterRepository implements SoulServerRegisterReposit
     
     private Map<String, List<URIRegisterDTO>> uriRegisterDTOMap = new HashMap<>();
     
-    private SoulServerRegisterPublisher publisher;
+    private ShenyuServerRegisterPublisher publisher;
     
     private final Map<String, Long> indexMap = new HashMap<>();
     
     @Override
-    public void init(final SoulServerRegisterPublisher publisher, final SoulRegisterCenterConfig config) {
+    public void init(final ShenyuServerRegisterPublisher publisher, final ShenyuRegisterCenterConfig config) {
         this.publisher = publisher;
     }
     

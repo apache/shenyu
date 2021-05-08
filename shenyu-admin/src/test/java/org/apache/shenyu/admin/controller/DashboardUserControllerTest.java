@@ -22,7 +22,7 @@ import org.apache.shenyu.admin.model.dto.DashboardUserDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.service.DashboardUserService;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.vo.DashboardUserEditVO;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.apache.shenyu.admin.model.vo.RoleVO;
@@ -95,7 +95,7 @@ public final class DashboardUserControllerTest {
         final String url = "/dashboardUser";
         mockMvc.perform(get(url))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
                 .andExpect(jsonPath("$.data.dataList[0].password", is("123456")))
                 .andReturn();
 
@@ -104,7 +104,7 @@ public final class DashboardUserControllerTest {
         given(dashboardUserService.listByPage(any())).willReturn(commonPagerError);
         mockMvc.perform(get(url))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.DASHBOARD_QUERY_ERROR)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DASHBOARD_QUERY_ERROR)))
                 .andReturn();
     }
 
@@ -119,13 +119,13 @@ public final class DashboardUserControllerTest {
         final String url = "/dashboardUser/1";
         mockMvc.perform(get(url))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.DETAIL_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
                 .andExpect(jsonPath("$.data.password", is("123456")));
 
         given(dashboardUserService.findById(any())).willReturn(null);
         mockMvc.perform(get(url))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.DASHBOARD_QUERY_ERROR)));
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DASHBOARD_QUERY_ERROR)));
     }
 
     @Test
@@ -137,7 +137,7 @@ public final class DashboardUserControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andDo(print())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.CREATE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
                 .andExpect(jsonPath("$.data", is(1)));
     }
 
@@ -150,7 +150,7 @@ public final class DashboardUserControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andDo(print())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.UPDATE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
                 .andExpect(jsonPath("$.data", is(1)));
     }
 
@@ -164,7 +164,7 @@ public final class DashboardUserControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andDo(print())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.DELETE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
                 .andExpect(jsonPath("$.data", is(0)));
     }
 }

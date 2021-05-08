@@ -24,10 +24,10 @@ import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
-import org.apache.shenyu.plugin.api.result.DefaultSoulResult;
-import org.apache.shenyu.plugin.api.result.SoulResult;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
+import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.context.path.cache.ContextPathRuleHandleCache;
 import org.apache.shenyu.plugin.context.path.handler.ContextPathMappingPluginDataHandler;
@@ -52,9 +52,9 @@ public final class ContextPathMappingPluginTest {
 
     private RuleData ruleData;
 
-    private SoulPluginChain chain;
+    private ShenyuPluginChain chain;
 
-    private SoulContext soulContext;
+    private ShenyuContext shenyuContext;
 
     private SelectorData selectorData;
 
@@ -64,17 +64,17 @@ public final class ContextPathMappingPluginTest {
 
     @Before
     public void setup() {
-        this.soulContext = new SoulContext();
+        this.shenyuContext = new ShenyuContext();
         this.ruleData = mock(RuleData.class);
-        this.chain = mock(SoulPluginChain.class);
+        this.chain = mock(ShenyuPluginChain.class);
         this.selectorData = mock(SelectorData.class);
         this.contextPathMappingPlugin = new ContextPathMappingPlugin();
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
-        this.exchange.getAttributes().put(Constants.CONTEXT, soulContext);
+        this.exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        final DefaultSoulResult soulResult = new DefaultSoulResult();
-        when(context.getBean(SoulResult.class)).thenReturn(soulResult);
+        final DefaultShenyuResult soulResult = new DefaultShenyuResult();
+        when(context.getBean(ShenyuResult.class)).thenReturn(soulResult);
         SpringBeanUtils.getInstance().setCfgContext(context);
     }
 
@@ -83,13 +83,13 @@ public final class ContextPathMappingPluginTest {
      */
     @Test
     public void executeTest() {
-        soulContext.setPath("/http/context/order/findById");
+        shenyuContext.setPath("/http/context/order/findById");
         ContextMappingHandle contextMappingHandle = new ContextMappingHandle();
         contextMappingHandle.setContextPath("/http/context");
         ContextPathRuleHandleCache.getInstance().cachedHandle(ContextPathMappingPluginDataHandler.getCacheKeyName(ruleData), contextMappingHandle);
         when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(contextMappingHandle));
         contextPathMappingPlugin.doExecute(exchange, chain, selectorData, ruleData);
-        Assert.assertEquals(soulContext.getRealUrl(), "/order/findById");
+        Assert.assertEquals(shenyuContext.getRealUrl(), "/order/findById");
     }
 
     /**
@@ -97,14 +97,14 @@ public final class ContextPathMappingPluginTest {
      */
     @Test
     public void executeRealPathTest() {
-        soulContext.setPath("/http/context/order/findById");
+        shenyuContext.setPath("/http/context/order/findById");
         ContextMappingHandle contextMappingHandle = new ContextMappingHandle();
         contextMappingHandle.setContextPath("/http/context");
         contextMappingHandle.setRealUrl("/findById");
         ContextPathRuleHandleCache.getInstance().cachedHandle(ContextPathMappingPluginDataHandler.getCacheKeyName(ruleData), contextMappingHandle);
         when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(contextMappingHandle));
         contextPathMappingPlugin.doExecute(exchange, chain, selectorData, ruleData);
-        Assert.assertEquals(soulContext.getRealUrl(), "/findById");
+        Assert.assertEquals(shenyuContext.getRealUrl(), "/findById");
     }
 
     /**
@@ -112,8 +112,8 @@ public final class ContextPathMappingPluginTest {
      */
     @Test
     public void skip() {
-        soulContext.setRpcType(RpcTypeEnum.DUBBO.getName());
-        this.exchange.getAttributes().put(Constants.CONTEXT, soulContext);
+        shenyuContext.setRpcType(RpcTypeEnum.DUBBO.getName());
+        this.exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
         Assert.assertTrue(contextPathMappingPlugin.skip(exchange));
     }
 

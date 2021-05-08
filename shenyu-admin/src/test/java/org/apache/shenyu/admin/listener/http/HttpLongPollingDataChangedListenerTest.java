@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.admin.listener.http;
 
-import org.apache.shenyu.admin.model.result.SoulAdminResult;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
+import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.Before;
@@ -88,7 +88,7 @@ public final class HttpLongPollingDataChangedListenerTest {
         this.httpServletResponse.setHeader("Cache-Control", "no-cache,no-store");
         this.httpServletResponse.setContentType(MediaType.APPLICATION_JSON_VALUE);
         this.httpServletResponse.setStatus(MockHttpServletResponse.SC_OK);
-        this.httpServletResponse.getWriter().println(GsonUtils.getInstance().toJson(SoulAdminResult.success(SoulResultMessage.SUCCESS, changedGroups)));
+        this.httpServletResponse.getWriter().println(GsonUtils.getInstance().toJson(ShenyuAdminResult.success(ShenyuResultMessage.SUCCESS, changedGroups)));
     }
 
     /**

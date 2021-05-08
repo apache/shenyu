@@ -18,11 +18,11 @@
 package org.apache.shenyu.admin.exception;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shiro.authz.UnauthorizedException;
-import org.apache.shenyu.admin.model.result.SoulAdminResult;
+import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.common.exception.CommonErrorCode;
-import org.apache.shenyu.common.exception.SoulException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -40,36 +40,36 @@ public class ExceptionHandlers {
 
     @ResponseBody
     @ExceptionHandler(Exception.class)
-    protected SoulAdminResult serverExceptionHandler(final Exception exception) {
+    protected ShenyuAdminResult serverExceptionHandler(final Exception exception) {
         log.error(exception.getMessage(), exception);
         String message;
-        if (exception instanceof SoulException) {
-            SoulException soulException = (SoulException) exception;
-            message = soulException.getMessage();
+        if (exception instanceof ShenyuException) {
+            ShenyuException shenyuException = (ShenyuException) exception;
+            message = shenyuException.getMessage();
         } else {
             message = "The system is busy, please try again later";
         }
-        return SoulAdminResult.error(message);
+        return ShenyuAdminResult.error(message);
     }
 
     @ResponseBody
     @ExceptionHandler(DuplicateKeyException.class)
-    protected SoulAdminResult serverExceptionHandler(final DuplicateKeyException exception) {
+    protected ShenyuAdminResult serverExceptionHandler(final DuplicateKeyException exception) {
         log.error(exception.getMessage(), exception);
-        return SoulAdminResult.error(SoulResultMessage.UNIQUE_INDEX_CONFLICT_ERROR);
+        return ShenyuAdminResult.error(ShenyuResultMessage.UNIQUE_INDEX_CONFLICT_ERROR);
     }
 
     @ResponseBody
     @ExceptionHandler(UnauthorizedException.class)
-    private SoulAdminResult shiroExceptionHandler(final UnauthorizedException exception) {
+    private ShenyuAdminResult shiroExceptionHandler(final UnauthorizedException exception) {
         log.error(exception.getMessage(), exception);
-        return SoulAdminResult.error(CommonErrorCode.TOKEN_NO_PERMISSION, SoulResultMessage.TOKEN_HAS_NO_PERMISSION);
+        return ShenyuAdminResult.error(CommonErrorCode.TOKEN_NO_PERMISSION, ShenyuResultMessage.TOKEN_HAS_NO_PERMISSION);
     }
 
     @ResponseBody
     @ExceptionHandler(NullPointerException.class)
-    private SoulAdminResult nullPointExceptionHandler(final NullPointerException exception) {
+    private ShenyuAdminResult nullPointExceptionHandler(final NullPointerException exception) {
         log.error(exception.getMessage(), exception);
-        return SoulAdminResult.error(CommonErrorCode.NOT_FOUND_EXCEPTION, SoulResultMessage.NOT_FOUND_EXCEPTION);
+        return ShenyuAdminResult.error(CommonErrorCode.NOT_FOUND_EXCEPTION, ShenyuResultMessage.NOT_FOUND_EXCEPTION);
     }
 }

@@ -23,8 +23,6 @@ import com.alibaba.dubbo.validation.Validator;
 
 /**
  * The type Alibaba dubbo client validation.
- *
- * @author KevinClair
  */
 public class AlibabaDubboClientValidation implements Validation {
     

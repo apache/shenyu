@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.springboot.starter.plugin.contextpath;
 
-import org.apache.shenyu.plugin.api.SoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.context.path.ContextPathMappingPlugin;
 import org.apache.shenyu.plugin.context.path.handler.ContextPathMappingPluginDataHandler;
@@ -38,7 +38,7 @@ public class ContextPathMappingPluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin contextPathMappingPlugin() {
+    public ShenyuPlugin contextPathMappingPlugin() {
         return new ContextPathMappingPlugin();
     }
 

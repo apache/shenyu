@@ -20,13 +20,13 @@ package org.apache.shenyu.admin.controller;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.SyncDataService;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.PluginDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.PluginQuery;
-import org.apache.shenyu.admin.model.result.SoulAdminResult;
+import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
@@ -76,49 +76,49 @@ public class PluginController {
      * @param enabled     plugin enabled.
      * @param currentPage current page.
      * @param pageSize    page size.
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("")
-    public SoulAdminResult queryPlugins(final String name, final Integer enabled, final Integer currentPage, final Integer pageSize) {
+    public ShenyuAdminResult queryPlugins(final String name, final Integer enabled, final Integer currentPage, final Integer pageSize) {
         CommonPager<PluginVO> commonPager = pluginService.listByPage(new PluginQuery(name, enabled, new PageParameter(currentPage, pageSize)));
-        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
 
     /**
      * query All plugins.
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/all")
-    public SoulAdminResult queryAllPlugins() {
+    public ShenyuAdminResult queryAllPlugins() {
         List<PluginData> pluginDataList = pluginService.listAll();
-        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, pluginDataList);
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, pluginDataList);
     }
 
     /**
      * detail plugin.
      *
      * @param id plugin id.
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/{id}")
-    public SoulAdminResult detailPlugin(@PathVariable("id") final String id) {
+    public ShenyuAdminResult detailPlugin(@PathVariable("id") final String id) {
         PluginVO pluginVO = pluginService.findById(id);
-        return SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, pluginVO);
+        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, pluginVO);
     }
 
     /**
      * create plugin.
      *
      * @param pluginDTO plugin.
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @PostMapping("")
-    public SoulAdminResult createPlugin(@RequestBody final PluginDTO pluginDTO) {
+    public ShenyuAdminResult createPlugin(@RequestBody final PluginDTO pluginDTO) {
         String result = pluginService.createOrUpdate(pluginDTO);
         if (StringUtils.isNoneBlank(result)) {
-            return SoulAdminResult.error(result);
+            return ShenyuAdminResult.error(result);
         }
-        return SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS);
+        return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS);
     }
 
     /**
@@ -126,32 +126,32 @@ public class PluginController {
      *
      * @param id        primary key.
      * @param pluginDTO plugin.
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
-    public SoulAdminResult updatePlugin(@PathVariable("id") final String id, @RequestBody final PluginDTO pluginDTO) {
+    public ShenyuAdminResult updatePlugin(@PathVariable("id") final String id, @RequestBody final PluginDTO pluginDTO) {
         Objects.requireNonNull(pluginDTO);
         pluginDTO.setId(id);
         final String result = pluginService.createOrUpdate(pluginDTO);
         if (StringUtils.isNoneBlank(result)) {
-            return SoulAdminResult.error(result);
+            return ShenyuAdminResult.error(result);
         }
-        return SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS);
+        return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS);
     }
 
     /**
      * delete plugins.
      *
      * @param ids primary key.
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/batch")
-    public SoulAdminResult deletePlugins(@RequestBody final List<String> ids) {
+    public ShenyuAdminResult deletePlugins(@RequestBody final List<String> ids) {
         final String result = pluginService.delete(ids);
         if (StringUtils.isNoneBlank(result)) {
-            return SoulAdminResult.error(result);
+            return ShenyuAdminResult.error(result);
         }
-        return SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS);
+        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS);
     }
 
     /**
@@ -161,27 +161,27 @@ public class PluginController {
      * @return the mono
      */
     @PostMapping("/enabled")
-    public SoulAdminResult enabled(@RequestBody final BatchCommonDTO batchCommonDTO) {
+    public ShenyuAdminResult enabled(@RequestBody final BatchCommonDTO batchCommonDTO) {
         final String result = pluginService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled());
         if (StringUtils.isNoneBlank(result)) {
-            return SoulAdminResult.error(result);
+            return ShenyuAdminResult.error(result);
         }
-        return SoulAdminResult.success(SoulResultMessage.ENABLE_SUCCESS);
+        return ShenyuAdminResult.success(ShenyuResultMessage.ENABLE_SUCCESS);
     }
 
 
     /**
      * sync plugins.
      *
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @PostMapping("/syncPluginAll")
-    public SoulAdminResult syncPluginAll() {
+    public ShenyuAdminResult syncPluginAll() {
         boolean success = syncDataService.syncAll(DataEventTypeEnum.REFRESH);
         if (success) {
-            return SoulAdminResult.success(SoulResultMessage.SYNC_SUCCESS);
+            return ShenyuAdminResult.success(ShenyuResultMessage.SYNC_SUCCESS);
         } else {
-            return SoulAdminResult.error(SoulResultMessage.SYNC_FAIL);
+            return ShenyuAdminResult.error(ShenyuResultMessage.SYNC_FAIL);
         }
     }
 
@@ -192,12 +192,12 @@ public class PluginController {
      * @return the mono
      */
     @PutMapping("/syncPluginData/{id}")
-    public SoulAdminResult syncPluginData(@PathVariable("id") final String id) {
+    public ShenyuAdminResult syncPluginData(@PathVariable("id") final String id) {
         boolean success = syncDataService.syncPluginData(id);
         if (success) {
-            return SoulAdminResult.success(SoulResultMessage.SYNC_SUCCESS);
+            return ShenyuAdminResult.success(ShenyuResultMessage.SYNC_SUCCESS);
         } else {
-            return SoulAdminResult.error(SoulResultMessage.SYNC_FAIL);
+            return ShenyuAdminResult.error(ShenyuResultMessage.SYNC_FAIL);
         }
     }
 }

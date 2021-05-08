@@ -33,9 +33,9 @@ public final class MessageWriter<T extends Message> implements StreamObserver<T>
 
     private final JsonFormat.Printer printer;
 
-    private final SoulGrpcResponse results;
+    private final ShenyuGrpcResponse results;
 
-    private MessageWriter(final JsonFormat.Printer printer, final SoulGrpcResponse results) {
+    private MessageWriter(final JsonFormat.Printer printer, final ShenyuGrpcResponse results) {
         this.printer = printer;
         this.results = results;
     }
@@ -48,7 +48,7 @@ public final class MessageWriter<T extends Message> implements StreamObserver<T>
      * @param <T>      t
      * @return message message
      */
-    public static <T extends Message> MessageWriter<T> newInstance(final JsonFormat.TypeRegistry registry, final SoulGrpcResponse results) {
+    public static <T extends Message> MessageWriter<T> newInstance(final JsonFormat.TypeRegistry registry, final ShenyuGrpcResponse results) {
         return new MessageWriter<>(JsonFormat.printer().usingTypeRegistry(registry), results);
     }
 

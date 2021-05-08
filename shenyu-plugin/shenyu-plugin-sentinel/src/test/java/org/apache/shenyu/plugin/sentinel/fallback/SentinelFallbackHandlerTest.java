@@ -20,8 +20,8 @@ package org.apache.shenyu.plugin.sentinel.fallback;
 import com.alibaba.csp.sentinel.slots.block.authority.AuthorityException;
 import com.alibaba.csp.sentinel.slots.block.degrade.DegradeException;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowException;
-import org.apache.shenyu.plugin.api.result.DefaultSoulResult;
-import org.apache.shenyu.plugin.api.result.SoulResult;
+import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
+import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 
 import org.junit.Before;
@@ -55,7 +55,7 @@ public final class SentinelFallbackHandlerTest {
                 .build());
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setCfgContext(context);
-        when(context.getBean(SoulResult.class)).thenReturn(new DefaultSoulResult());
+        when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
     }
 
     /**

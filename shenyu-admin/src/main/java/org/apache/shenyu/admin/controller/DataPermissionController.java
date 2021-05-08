@@ -19,13 +19,13 @@ package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.model.vo.DataPermissionPageVO;
 import org.apache.shenyu.admin.service.DataPermissionService;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.DataPermissionDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
-import org.apache.shenyu.admin.model.result.SoulAdminResult;
+import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -61,17 +61,17 @@ public class DataPermissionController {
      * @param userId user id
      * @param pluginId plugin id
      * @param name selector name
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/selector")
-    public SoulAdminResult listPageSelectorDataPermissions(@RequestParam("currentPage") final Integer currentPage,
-                                                           @RequestParam("pageSize") final Integer pageSize,
-                                                           @RequestParam("userId") final String userId,
-                                                           @RequestParam("pluginId") final String pluginId,
-                                                           @RequestParam(value = "name", required = false) final String name) {
+    public ShenyuAdminResult listPageSelectorDataPermissions(@RequestParam("currentPage") final Integer currentPage,
+                                                             @RequestParam("pageSize") final Integer pageSize,
+                                                             @RequestParam("userId") final String userId,
+                                                             @RequestParam("pluginId") final String pluginId,
+                                                             @RequestParam(value = "name", required = false) final String name) {
         CommonPager<DataPermissionPageVO> selectorList = dataPermissionService.listSelectorsByPage(
                 new SelectorQuery(pluginId, name, new PageParameter(currentPage, pageSize)), userId);
-        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, selectorList);
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, selectorList);
     }
 
 
@@ -82,17 +82,17 @@ public class DataPermissionController {
      * @param userId  user id
      * @param selectorId selector id
      * @param name  rule name
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/rules")
-    public SoulAdminResult listPageRuleDataPermissions(@RequestParam("currentPage") final Integer currentPage,
+    public ShenyuAdminResult listPageRuleDataPermissions(@RequestParam("currentPage") final Integer currentPage,
                                                          @RequestParam("pageSize") final Integer pageSize,
                                                          @RequestParam("userId") final String userId,
                                                          @RequestParam("selectorId") final String selectorId,
                                                          @RequestParam(value = "name", required = false) final String name) {
         CommonPager<DataPermissionPageVO> selectorList = dataPermissionService.listRulesByPage(
                 new RuleQuery(selectorId, name, new PageParameter(currentPage, pageSize)), userId);
-        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, selectorList);
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, selectorList);
     }
 
 
@@ -102,10 +102,10 @@ public class DataPermissionController {
      * @return effect rows count
      */
     @PostMapping("/selector")
-    public SoulAdminResult saveSelector(@RequestBody final DataPermissionDTO dataPermissionDTO) {
+    public ShenyuAdminResult saveSelector(@RequestBody final DataPermissionDTO dataPermissionDTO) {
         return Optional.ofNullable(dataPermissionDTO)
-                .map(item -> SoulAdminResult.success(SoulResultMessage.SAVE_SUCCESS, dataPermissionService.createSelector(dataPermissionDTO)))
-                .orElse(SoulAdminResult.error(SoulResultMessage.SAVE_FAILED));
+                .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.SAVE_SUCCESS, dataPermissionService.createSelector(dataPermissionDTO)))
+                .orElse(ShenyuAdminResult.error(ShenyuResultMessage.SAVE_FAILED));
 
     }
 
@@ -115,10 +115,10 @@ public class DataPermissionController {
      * @return effect rows count
      */
     @DeleteMapping("/selector")
-    public SoulAdminResult deleteSelector(@RequestBody final DataPermissionDTO dataPermissionDTO) {
+    public ShenyuAdminResult deleteSelector(@RequestBody final DataPermissionDTO dataPermissionDTO) {
         return Optional.ofNullable(dataPermissionDTO)
-                .map(item -> SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, dataPermissionService.deleteSelector(dataPermissionDTO)))
-                .orElse(SoulAdminResult.error(SoulResultMessage.DELETE_SUCCESS));
+                .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, dataPermissionService.deleteSelector(dataPermissionDTO)))
+                .orElse(ShenyuAdminResult.error(ShenyuResultMessage.DELETE_SUCCESS));
 
     }
 
@@ -128,10 +128,10 @@ public class DataPermissionController {
      * @return effect rows count
      */
     @PostMapping("/rule")
-    public SoulAdminResult saveRule(@RequestBody final DataPermissionDTO dataPermissionDTO) {
+    public ShenyuAdminResult saveRule(@RequestBody final DataPermissionDTO dataPermissionDTO) {
         return Optional.ofNullable(dataPermissionDTO)
-                .map(item -> SoulAdminResult.success(SoulResultMessage.SAVE_SUCCESS, dataPermissionService.createRule(dataPermissionDTO)))
-                .orElse(SoulAdminResult.error(SoulResultMessage.SAVE_FAILED));
+                .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.SAVE_SUCCESS, dataPermissionService.createRule(dataPermissionDTO)))
+                .orElse(ShenyuAdminResult.error(ShenyuResultMessage.SAVE_FAILED));
     }
 
     /**
@@ -140,10 +140,10 @@ public class DataPermissionController {
      * @return effect rows count
      */
     @DeleteMapping("/rule")
-    public SoulAdminResult deleteRule(@RequestBody final DataPermissionDTO dataPermissionDTO) {
+    public ShenyuAdminResult deleteRule(@RequestBody final DataPermissionDTO dataPermissionDTO) {
         return Optional.ofNullable(dataPermissionDTO)
-                .map(item -> SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, dataPermissionService.deleteRule(dataPermissionDTO)))
-                .orElse(SoulAdminResult.error(SoulResultMessage.DELETE_SUCCESS));
+                .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, dataPermissionService.deleteRule(dataPermissionDTO)))
+                .orElse(ShenyuAdminResult.error(ShenyuResultMessage.DELETE_SUCCESS));
 
     }
 }

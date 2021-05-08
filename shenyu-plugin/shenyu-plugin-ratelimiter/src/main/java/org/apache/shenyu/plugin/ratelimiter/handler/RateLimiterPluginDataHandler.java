@@ -70,7 +70,7 @@ public class RateLimiterPluginDataHandler implements PluginDataHandler {
                 RedisSerializer<String> serializer = new StringRedisSerializer();
                 RedisSerializationContext<String, String> serializationContext =
                         RedisSerializationContext.<String, String>newSerializationContext().key(serializer).value(serializer).hashKey(serializer).hashValue(serializer).build();
-                ReactiveRedisTemplate<String, String> reactiveRedisTemplate = new SoulReactiveRedisTemplate<>(lettuceConnectionFactory, serializationContext);
+                ReactiveRedisTemplate<String, String> reactiveRedisTemplate = new ShenyuReactiveRedisTemplate<>(lettuceConnectionFactory, serializationContext);
                 Singleton.INST.single(ReactiveRedisTemplate.class, reactiveRedisTemplate);
                 Singleton.INST.single(RateLimiterConfig.class, rateLimiterConfig);
             }

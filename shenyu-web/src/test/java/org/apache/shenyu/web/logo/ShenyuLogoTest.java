@@ -24,8 +24,6 @@ import org.junit.Test;
 
 /**
  * The TestCase for ShenyuLogo.
- *
- * @author itmiwang
  */
 @Slf4j
 public final class ShenyuLogoTest {
@@ -46,7 +44,7 @@ public final class ShenyuLogoTest {
                 + Constants.LINE_SEPARATOR
                 + SHENYU_LOGO
                 + Constants.LINE_SEPARATOR
-                + " :: Soul :: (v" + VersionUtils.getVersion(getClass(), "2.0.2") + ")"
+                + " :: Shenyu :: (v" + VersionUtils.getVersion(getClass(), "2.0.2") + ")"
                 + Constants.LINE_SEPARATOR;
         log.info(buildBannerText);
     }

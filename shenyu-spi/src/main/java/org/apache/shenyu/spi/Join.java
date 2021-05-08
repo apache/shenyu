@@ -26,9 +26,7 @@ import java.lang.annotation.Target;
 /**
  * Join
  * Adding this annotation to a class indicates joining the extension mechanism.
- *  CreateDate: 2019/10/9 16:05
  *
- * @author sixh
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

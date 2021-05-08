@@ -18,7 +18,7 @@
 package org.apache.shenyu.springboot.starter.plugin.contextpath;
 
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.SoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -42,7 +42,7 @@ public class ContextPathMappingPluginConfigurationTest {
             .withPropertyValues("debug=true")
             .run(
                 context -> {
-                    SoulPlugin plugin = context.getBean("contextPathMappingPlugin", SoulPlugin.class);
+                    ShenyuPlugin plugin = context.getBean("contextPathMappingPlugin", ShenyuPlugin.class);
                     assertThat(plugin.named()).isEqualTo(PluginEnum.CONTEXTPATH_MAPPING.getName());
                 }
             );

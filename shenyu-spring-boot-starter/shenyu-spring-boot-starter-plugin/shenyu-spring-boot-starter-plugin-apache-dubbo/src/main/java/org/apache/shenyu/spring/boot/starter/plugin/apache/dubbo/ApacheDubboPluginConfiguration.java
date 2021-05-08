@@ -21,7 +21,7 @@ import org.apache.shenyu.plugin.apache.dubbo.ApacheDubboPlugin;
 import org.apache.shenyu.plugin.apache.dubbo.handler.ApacheDubboPluginDataHandler;
 import org.apache.shenyu.plugin.apache.dubbo.proxy.ApacheDubboProxyService;
 import org.apache.shenyu.plugin.apache.dubbo.subscriber.ApacheDubboMetaDataSubscriber;
-import org.apache.shenyu.plugin.api.SoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.param.BodyParamResolveService;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.spring.boot.plugin.dubbo.common.DubboCommonConfiguration;
@@ -49,7 +49,7 @@ public class ApacheDubboPluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin apacheDubboPlugin(final ObjectProvider<BodyParamResolveService> dubboBodyParamResolveService) {
+    public ShenyuPlugin apacheDubboPlugin(final ObjectProvider<BodyParamResolveService> dubboBodyParamResolveService) {
         return new ApacheDubboPlugin(new ApacheDubboProxyService(dubboBodyParamResolveService.getIfAvailable()));
     }
     

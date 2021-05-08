@@ -27,8 +27,8 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.register.client.api.SoulClientRegisterRepository;
-import org.apache.shenyu.register.common.config.SoulRegisterCenterConfig;
+import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
+import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.path.RegisterPathConstants;
@@ -46,7 +46,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 @Join
 @Slf4j
-public class NacosClientRegisterRepository implements SoulClientRegisterRepository {
+public class NacosClientRegisterRepository implements ShenyuClientRegisterRepository {
 
     private String defaultGroup = "default_group";
 
@@ -60,7 +60,7 @@ public class NacosClientRegisterRepository implements SoulClientRegisterReposito
 
     @SneakyThrows
     @Override
-    public void init(final SoulRegisterCenterConfig config) {
+    public void init(final ShenyuRegisterCenterConfig config) {
         String serverAddr = config.getServerLists();
         Properties properties = config.getProps();
 

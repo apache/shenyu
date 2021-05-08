@@ -28,9 +28,7 @@ import org.springframework.core.annotation.Order;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * the Shenyu logo.
- *
- * @author xiaoyu
+ * the shenyu logo.
  */
 @Order(LoggingApplicationListener.DEFAULT_ORDER + 1)
 @Slf4j
@@ -61,7 +59,7 @@ public class ShenyuLogo implements ApplicationListener<ApplicationEnvironmentPre
                 + Constants.LINE_SEPARATOR
                 + SHENYU_LOGO
                 + Constants.LINE_SEPARATOR
-                + " :: Soul :: (v" + VersionUtils.getVersion(getClass(), "2.0.2") + ")"
+                + " :: Shenyu :: (v" + VersionUtils.getVersion(getClass(), "2.0.2") + ")"
                 + Constants.LINE_SEPARATOR;
     }
 }

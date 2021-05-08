@@ -19,12 +19,12 @@ package org.apache.shenyu.admin.controller;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.service.ResourceService;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.ResourceDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.ResourceQuery;
-import org.apache.shenyu.admin.model.result.SoulAdminResult;
+import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.PermissionMenuVO.MenuInfo;
 import org.apache.shenyu.admin.model.vo.ResourceVO;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -61,68 +61,68 @@ public class ResourceController {
      * @param title resource title
      * @param currentPage current Page
      * @param pageSize page size
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("")
-    public SoulAdminResult queryResource(final String title, final Integer currentPage, final Integer pageSize) {
+    public ShenyuAdminResult queryResource(final String title, final Integer currentPage, final Integer pageSize) {
         CommonPager<ResourceVO> commonPager = resourceService.listByPage(new ResourceQuery(title, new PageParameter(currentPage, pageSize)));
         if (CollectionUtils.isNotEmpty(commonPager.getDataList())) {
-            return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
+            return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
         }
-        return SoulAdminResult.error(SoulResultMessage.QUERY_FAILED);
+        return ShenyuAdminResult.error(ShenyuResultMessage.QUERY_FAILED);
     }
 
     /**
      * get menu tree.
      *
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/menu")
-    public SoulAdminResult getMenuTree() {
+    public ShenyuAdminResult getMenuTree() {
         List<MenuInfo> menuInfoList = resourceService.getMenuTree();
         if (CollectionUtils.isNotEmpty(menuInfoList)) {
-            return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, menuInfoList);
+            return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, menuInfoList);
         }
-        return SoulAdminResult.error(SoulResultMessage.QUERY_FAILED);
+        return ShenyuAdminResult.error(ShenyuResultMessage.QUERY_FAILED);
     }
 
     /**
      * get button by parentId.
      *
      * @param id resource id
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/button")
-    public SoulAdminResult getButton(final String id) {
+    public ShenyuAdminResult getButton(final String id) {
         List<ResourceVO> resourceVOList = resourceService.findByParentId(id);
         if (CollectionUtils.isNotEmpty(resourceVOList)) {
-            return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, resourceVOList);
+            return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, resourceVOList);
         }
-        return SoulAdminResult.error(SoulResultMessage.QUERY_FAILED);
+        return ShenyuAdminResult.error(ShenyuResultMessage.QUERY_FAILED);
     }
 
     /**
      * detail resource info.
      *
      * @param id role id
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/{id}")
-    public SoulAdminResult detailResource(@PathVariable("id") final String id) {
+    public ShenyuAdminResult detailResource(@PathVariable("id") final String id) {
         return Optional.ofNullable(resourceService.findById(id))
-                .map(item -> SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, item)).orElse(SoulAdminResult.error(SoulResultMessage.DETAIL_FAILED));
+                .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, item)).orElse(ShenyuAdminResult.error(ShenyuResultMessage.DETAIL_FAILED));
     }
 
     /**
      * create resource.
      *
      * @param resourceDTO resource dto
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @PostMapping("")
-    public SoulAdminResult createResource(@RequestBody final ResourceDTO resourceDTO) {
+    public ShenyuAdminResult createResource(@RequestBody final ResourceDTO resourceDTO) {
         return Optional.ofNullable(resourceDTO)
-                .map(item -> SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS, resourceService.createOrUpdate(item))).orElse(SoulAdminResult.error(SoulResultMessage.CREATE_FAILED));
+                .map(item -> ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, resourceService.createOrUpdate(item))).orElse(ShenyuAdminResult.error(ShenyuResultMessage.CREATE_FAILED));
     }
 
     /**
@@ -130,23 +130,23 @@ public class ResourceController {
      *
      * @param id primary key.
      * @param resourceDTO resource info
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
-    public SoulAdminResult updateResource(@PathVariable("id") final String id, @RequestBody final ResourceDTO resourceDTO) {
+    public ShenyuAdminResult updateResource(@PathVariable("id") final String id, @RequestBody final ResourceDTO resourceDTO) {
         Objects.requireNonNull(resourceDTO);
         resourceDTO.setId(id);
-        return SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS, resourceService.createOrUpdate(resourceDTO));
+        return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, resourceService.createOrUpdate(resourceDTO));
     }
 
     /**
      * delete resource info.
      *
      * @param ids primary keys.
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/batch")
-    public SoulAdminResult deleteResource(@RequestBody final List<String> ids) {
-        return SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, resourceService.delete(ids));
+    public ShenyuAdminResult deleteResource(@RequestBody final List<String> ids) {
+        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, resourceService.delete(ids));
     }
 }

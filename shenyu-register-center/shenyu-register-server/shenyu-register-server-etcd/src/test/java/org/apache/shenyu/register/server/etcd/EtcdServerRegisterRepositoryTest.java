@@ -19,7 +19,7 @@ package org.apache.shenyu.register.server.etcd;
 
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
-import org.apache.shenyu.register.server.api.SoulServerRegisterPublisher;
+import org.apache.shenyu.register.server.api.ShenyuServerRegisterPublisher;
 import org.apache.shenyu.register.server.etcd.client.EtcdClient;
 import org.apache.shenyu.register.server.etcd.client.EtcdListenHandler;
 import org.junit.Before;
@@ -48,7 +48,7 @@ public class EtcdServerRegisterRepositoryTest {
 
     private EtcdServerRegisterRepository repository;
 
-    private SoulServerRegisterPublisher publisher;
+    private ShenyuServerRegisterPublisher publisher;
 
     private EtcdListenHandler watchHandler;
 
@@ -83,8 +83,8 @@ public class EtcdServerRegisterRepositoryTest {
         verify(publisher, times(3)).publish(any());
     }
 
-    private SoulServerRegisterPublisher mockPublish() {
-        SoulServerRegisterPublisher publisher = mock(SoulServerRegisterPublisher.class);
+    private ShenyuServerRegisterPublisher mockPublish() {
+        ShenyuServerRegisterPublisher publisher = mock(ShenyuServerRegisterPublisher.class);
         doNothing().when(publisher).publish(any());
         return publisher;
     }

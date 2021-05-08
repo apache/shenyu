@@ -20,10 +20,10 @@ package org.apache.shenyu.admin.disruptor;
 import org.apache.shenyu.admin.disruptor.executor.RegisterServerConsumerExecutor.RegisterServerExecutorFactory;
 import org.apache.shenyu.admin.disruptor.subscriber.MetadataExecutorSubscriber;
 import org.apache.shenyu.admin.disruptor.subscriber.URIRegisterExecutorSubscriber;
-import org.apache.shenyu.admin.service.SoulClientRegisterService;
+import org.apache.shenyu.admin.service.ShenyuClientRegisterService;
 import org.apache.shenyu.disruptor.DisruptorProviderManage;
 import org.apache.shenyu.disruptor.provider.DisruptorProvider;
-import org.apache.shenyu.register.server.api.SoulServerRegisterPublisher;
+import org.apache.shenyu.register.server.api.ShenyuServerRegisterPublisher;
 
 /**
  * The type Disruptor publisher.
@@ -31,7 +31,7 @@ import org.apache.shenyu.register.server.api.SoulServerRegisterPublisher;
  * @author xiaoyu
  */
 @SuppressWarnings("all")
-public class RegisterServerDisruptorPublisher implements SoulServerRegisterPublisher {
+public class RegisterServerDisruptorPublisher implements ShenyuServerRegisterPublisher {
 
     private static final RegisterServerDisruptorPublisher INSTANCE = new RegisterServerDisruptorPublisher();
 
@@ -51,12 +51,12 @@ public class RegisterServerDisruptorPublisher implements SoulServerRegisterPubli
     /**
      * start.
      *
-     * @param soulClientRegisterService the soul client register service
+     * @param shenyuClientRegisterService the soul client register service
      */
-    public void start(final SoulClientRegisterService soulClientRegisterService) {
+    public void start(final ShenyuClientRegisterService shenyuClientRegisterService) {
         factory = new RegisterServerExecutorFactory();
-        factory.addSubscribers(new URIRegisterExecutorSubscriber(soulClientRegisterService));
-        factory.addSubscribers(new MetadataExecutorSubscriber(soulClientRegisterService));
+        factory.addSubscribers(new URIRegisterExecutorSubscriber(shenyuClientRegisterService));
+        factory.addSubscribers(new MetadataExecutorSubscriber(shenyuClientRegisterService));
         providerManage = new DisruptorProviderManage(factory);
         providerManage.startup();
     }

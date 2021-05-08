@@ -41,11 +41,6 @@
         <module>shenyu-disruptor</module>
     </modules>
 
-    <organization>
-        <name>dromara</name>
-        <url>http://www.dromara.org</url>
-    </organization>
-
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
@@ -54,28 +49,16 @@
         </license>
     </licenses>
     <scm>
-        <url>https://github.com/Dromara/soul.git</url>
-        <connection>scm:git:https://github.com/Dromara/soul</connection>
-        <developerConnection>scm:git:git@github.com:Dromara/soul</developerConnection>
+        <url>https://github.com/dromara/shenyu.git</url>
+        <connection>scm:git:https://github.com/dromara/shenyu</connection>
+        <developerConnection>scm:git:git@github.com:dromara/shenyu</developerConnection>
         <tag>${project.version}</tag>
     </scm>
 
     <issueManagement>
         <system>GitHub Issues</system>
-        <url>https://github.com/Dromara/soul/issues</url>
+        <url>https://github.com/dromara/shenyu/issues</url>
     </issueManagement>
-
-    <developers>
-        <developer>
-            <id>xiaoyu</id>
-            <name>xiaoyu(Myth)</name>
-            <email>xiaoyu@apache.org</email>
-            <organization>org.apache.shenyu</organization>
-            <roles>
-                <role>author</role>
-            </roles>
-        </developer>
-    </developers>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -180,7 +163,6 @@
                 <version>${mapstruct.version}</version>
             </dependency>
 
-            <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
             <dependency>
                 <groupId>com.google.code.gson</groupId>
                 <artifactId>gson</artifactId>
@@ -413,10 +395,6 @@
             <scope>test</scope>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>ch.qos.logback</groupId>-->
-<!--            <artifactId>logback-classic</artifactId>-->
-<!--        </dependency>-->
     </dependencies>
 
     <distributionManagement>
@@ -537,7 +515,7 @@
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>${maven-checkstyle-plugin.version}</version>
                 <configuration>
-                    <configLocation>/script/soul_checkstyle.xml</configLocation>
+                    <configLocation>/script/shenyu_checkstyle.xml</configLocation>
                     <includeTestSourceDirectory>true</includeTestSourceDirectory>
                     <excludes>**/transfer/**/*</excludes>
                 </configuration>
@@ -613,7 +591,7 @@
                         <exclude>**/*.txt</exclude>
                         <exclude>**/docs/**</exclude>
                         <!-- UI files -->
-                        <exclude>/soul-dashboard/**</exclude>
+                        <exclude>/shenyu-dashboard/**</exclude>
                         <exclude>**/resources/static/</exclude>
                     </excludes>
                 </configuration>

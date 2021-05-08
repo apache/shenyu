@@ -21,13 +21,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.common.Constants;
 import org.apache.dubbo.config.spring.ServiceBean;
-import org.apache.shenyu.client.core.disruptor.SoulClientRegisterEventPublisher;
-import org.apache.shenyu.client.dubbo.common.annotation.SoulDubboClient;
+import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
+import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.client.dubbo.common.dto.DubboRpcExt;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
-import org.apache.shenyu.register.client.api.SoulClientRegisterRepository;
-import org.apache.shenyu.register.common.config.SoulRegisterCenterConfig;
+import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
+import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.context.ApplicationListener;
@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
 @SuppressWarnings("all")
 public class ApacheDubboServiceBeanListener implements ApplicationListener<ContextRefreshedEvent> {
     
-    private SoulClientRegisterEventPublisher soulClientRegisterEventPublisher = SoulClientRegisterEventPublisher.getInstance();
+    private ShenyuClientRegisterEventPublisher shenyuClientRegisterEventPublisher = ShenyuClientRegisterEventPublisher.getInstance();
     
     private final AtomicBoolean registered = new AtomicBoolean(false);
     
@@ -69,7 +69,7 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
 
     private final String port;
     
-    public ApacheDubboServiceBeanListener(final SoulRegisterCenterConfig config, final SoulClientRegisterRepository soulClientRegisterRepository) {
+    public ApacheDubboServiceBeanListener(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
         String appName = props.getProperty("appName");
@@ -81,7 +81,7 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
         this.host = props.getProperty("host");
         this.port = props.getProperty("port");
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
-        soulClientRegisterEventPublisher.start(soulClientRegisterRepository);
+        shenyuClientRegisterEventPublisher.start(shenyuClientRegisterRepository);
     }
 
     private void handler(final ServiceBean serviceBean) {
@@ -100,24 +100,24 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
         }
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
-            SoulDubboClient soulDubboClient = method.getAnnotation(SoulDubboClient.class);
-            if (Objects.nonNull(soulDubboClient)) {
-                soulClientRegisterEventPublisher.publishEvent(buildMetaDataDTO(serviceBean, soulDubboClient, method));
+            ShenyuDubboClient shenyuDubboClient = method.getAnnotation(ShenyuDubboClient.class);
+            if (Objects.nonNull(shenyuDubboClient)) {
+                shenyuClientRegisterEventPublisher.publishEvent(buildMetaDataDTO(serviceBean, shenyuDubboClient, method));
             }
         }
     }
 
-    private MetaDataRegisterDTO buildMetaDataDTO(final ServiceBean serviceBean, final SoulDubboClient soulDubboClient, final Method method) {
+    private MetaDataRegisterDTO buildMetaDataDTO(final ServiceBean serviceBean, final ShenyuDubboClient shenyuDubboClient, final Method method) {
         String appName = this.appName;
         if (StringUtils.isEmpty(appName)) {
             appName = serviceBean.getApplication().getName();
         }
-        String path = contextPath + soulDubboClient.path();
-        String desc = soulDubboClient.desc();
+        String path = contextPath + shenyuDubboClient.path();
+        String desc = shenyuDubboClient.desc();
         String serviceName = serviceBean.getInterface();
         String host = StringUtils.isBlank(this.host) ? IpUtils.getHost() : this.host;
         int port = StringUtils.isBlank(this.port) ? -1 : Integer.parseInt(this.port);
-        String configRuleName = soulDubboClient.ruleName();
+        String configRuleName = shenyuDubboClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
@@ -135,7 +135,7 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
                 .parameterTypes(parameterTypes)
                 .rpcExt(buildRpcExt(serviceBean))
                 .rpcType("dubbo")
-                .enabled(soulDubboClient.enabled())
+                .enabled(shenyuDubboClient.enabled())
                 .build();
     }
 

@@ -24,8 +24,6 @@ import java.io.Serializable;
 
 /**
  * The type Dubbo rpc ext.
- *
- * @author xiaoyu
  */
 @Data
 @Builder

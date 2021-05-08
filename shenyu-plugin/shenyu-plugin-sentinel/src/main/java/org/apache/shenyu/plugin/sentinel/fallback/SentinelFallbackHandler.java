@@ -20,9 +20,9 @@ package org.apache.shenyu.plugin.sentinel.fallback;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.alibaba.csp.sentinel.slots.block.degrade.DegradeException;
 import com.alibaba.csp.sentinel.slots.block.flow.FlowException;
-import org.apache.shenyu.plugin.api.result.SoulResultEnum;
+import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.base.fallback.FallbackHandler;
-import org.apache.shenyu.plugin.api.result.SoulResultWrap;
+import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
@@ -40,13 +40,13 @@ public class SentinelFallbackHandler implements FallbackHandler {
         Object error;
         if (throwable instanceof DegradeException) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            error = SoulResultWrap.error(SoulResultEnum.SERVICE_RESULT_ERROR.getCode(), SoulResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
+            error = ShenyuResultWrap.error(ShenyuResultEnum.SERVICE_RESULT_ERROR.getCode(), ShenyuResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
         } else if (throwable instanceof FlowException) {
             exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
-            error = SoulResultWrap.error(SoulResultEnum.TOO_MANY_REQUESTS.getCode(), SoulResultEnum.TOO_MANY_REQUESTS.getMsg(), null);
+            error = ShenyuResultWrap.error(ShenyuResultEnum.TOO_MANY_REQUESTS.getCode(), ShenyuResultEnum.TOO_MANY_REQUESTS.getMsg(), null);
         } else if (throwable instanceof BlockException) {
             exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
-            error = SoulResultWrap.error(SoulResultEnum.SENTINEL_BLOCK_ERROR.getCode(), SoulResultEnum.SENTINEL_BLOCK_ERROR.getMsg(), null);
+            error = ShenyuResultWrap.error(ShenyuResultEnum.SENTINEL_BLOCK_ERROR.getCode(), ShenyuResultEnum.SENTINEL_BLOCK_ERROR.getMsg(), null);
         } else {
             return Mono.error(throwable);
         }

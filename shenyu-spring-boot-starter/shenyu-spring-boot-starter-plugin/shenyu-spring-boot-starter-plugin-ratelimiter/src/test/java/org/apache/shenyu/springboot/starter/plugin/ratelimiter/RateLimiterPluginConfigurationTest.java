@@ -18,7 +18,7 @@
 package org.apache.shenyu.springboot.starter.plugin.ratelimiter;
 
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.SoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -44,7 +44,7 @@ public class RateLimiterPluginConfigurationTest {
             .run(
                 context -> {
                     assertThat(context).hasSingleBean(PluginDataHandler.class);
-                    SoulPlugin plugin = context.getBean("rateLimiterPlugin", SoulPlugin.class);
+                    ShenyuPlugin plugin = context.getBean("rateLimiterPlugin", ShenyuPlugin.class);
                     assertThat(plugin.named()).isEqualTo(PluginEnum.RATE_LIMITER.getName());
                 }
             );

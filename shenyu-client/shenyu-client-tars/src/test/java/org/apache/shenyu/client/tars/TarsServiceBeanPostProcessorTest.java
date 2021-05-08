@@ -18,10 +18,10 @@
 
 package org.apache.shenyu.client.tars;
 
-import org.apache.shenyu.client.core.register.SoulClientRegisterRepositoryFactory;
-import org.apache.shenyu.client.tars.common.annotation.SoulTarsClient;
-import org.apache.shenyu.client.tars.common.annotation.SoulTarsService;
-import org.apache.shenyu.register.common.config.SoulRegisterCenterConfig;
+import org.apache.shenyu.client.core.register.ShenyuClientRegisterRepositoryFactory;
+import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsClient;
+import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsService;
+import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -48,11 +48,11 @@ public final class TarsServiceBeanPostProcessorTest {
         properties.setProperty("port", "8080");
         properties.setProperty("host", "localhost");
 
-        SoulRegisterCenterConfig mockRegisterCenter = new SoulRegisterCenterConfig();
+        ShenyuRegisterCenterConfig mockRegisterCenter = new ShenyuRegisterCenterConfig();
         mockRegisterCenter.setServerLists("http://localhost:58080");
         mockRegisterCenter.setRegisterType("http");
         mockRegisterCenter.setProps(properties);
-        tarsServiceBeanPostProcessor = new TarsServiceBeanPostProcessor(mockRegisterCenter, SoulClientRegisterRepositoryFactory.newInstance(mockRegisterCenter));
+        tarsServiceBeanPostProcessor = new TarsServiceBeanPostProcessor(mockRegisterCenter, ShenyuClientRegisterRepositoryFactory.newInstance(mockRegisterCenter));
     }
 
     @Test
@@ -68,9 +68,9 @@ public final class TarsServiceBeanPostProcessorTest {
                 .postProcessAfterInitialization(new Object(), "normalBean");
     }
 
-    @SoulTarsService(serviceName = "testObj")
+    @ShenyuTarsService(serviceName = "testObj")
     static class TarsDemoService {
-        @SoulTarsClient(path = "hello")
+        @ShenyuTarsClient(path = "hello")
         public String test(final String hello) {
             return hello + "";
         }

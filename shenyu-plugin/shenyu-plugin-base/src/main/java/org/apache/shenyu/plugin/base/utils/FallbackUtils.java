@@ -18,8 +18,8 @@
 package org.apache.shenyu.plugin.base.utils;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shenyu.plugin.api.result.SoulResultEnum;
-import org.apache.shenyu.plugin.api.result.SoulResultWrap;
+import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
+import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -41,7 +41,7 @@ public class FallbackUtils {
      */
     public static Mono<Void> getNoSelectorResult(final String pluginName, final ServerWebExchange exchange) {
         log.error("can not match selector data: {}", pluginName);
-        Object error = SoulResultWrap.error(SoulResultEnum.CANNOT_FIND_SELECTOR.getCode(), SoulResultEnum.CANNOT_FIND_SELECTOR.getMsg(), null);
+        Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_SELECTOR.getCode(), ShenyuResultEnum.CANNOT_FIND_SELECTOR.getMsg(), null);
         return WebFluxResultUtils.result(exchange, error);
     }
 
@@ -54,7 +54,7 @@ public class FallbackUtils {
      */
     public static Mono<Void> getNoRuleResult(final String pluginName, final ServerWebExchange exchange) {
         log.error("can not match rule data: {}", pluginName);
-        Object error = SoulResultWrap.error(SoulResultEnum.RULE_NOT_FIND.getCode(), SoulResultEnum.RULE_NOT_FIND.getMsg(), null);
+        Object error = ShenyuResultWrap.error(ShenyuResultEnum.RULE_NOT_FIND.getCode(), ShenyuResultEnum.RULE_NOT_FIND.getMsg(), null);
         return WebFluxResultUtils.result(exchange, error);
     }
 }

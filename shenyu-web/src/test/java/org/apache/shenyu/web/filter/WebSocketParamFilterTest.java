@@ -19,7 +19,7 @@ package org.apache.shenyu.web.filter;
 
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.api.result.SoulResult;
+import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,7 +50,7 @@ public final class WebSocketParamFilterTest<T> extends WebSocketParamFilter {
     private static final String UPGRADE = "Upgrade";
 
     @Mock
-    private SoulResult<T> soulResult;
+    private ShenyuResult<T> shenyuResult;
 
     @Mock
     private WebFilterChain chain;
@@ -81,7 +81,7 @@ public final class WebSocketParamFilterTest<T> extends WebSocketParamFilter {
     public void testDoDenyResponse() {
         final ConfigurableApplicationContext cfgContext = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setCfgContext(cfgContext);
-        when(SpringBeanUtils.getInstance().getBean(SoulResult.class)).thenReturn(soulResult);
+        when(SpringBeanUtils.getInstance().getBean(ShenyuResult.class)).thenReturn(shenyuResult);
         final Mono<Void> result = doDenyResponse(createExchange(new LinkedMultiValueMap<>(1), new LinkedMultiValueMap<>(1)));
         StepVerifier.create(result).expectSubscription().verifyComplete();
     }

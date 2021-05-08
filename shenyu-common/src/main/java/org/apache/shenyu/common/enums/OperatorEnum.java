@@ -19,7 +19,7 @@ package org.apache.shenyu.common.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.apache.shenyu.common.exception.SoulException;
+import org.apache.shenyu.common.exception.ShenyuException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -104,6 +104,6 @@ public enum OperatorEnum {
     public static OperatorEnum getOperatorEnumByAlias(final String alias) {
         return Arrays.stream(OperatorEnum.values())
                 .filter(e -> e.getAlias().equals(alias) && e.support).findFirst()
-                .orElseThrow(() -> new SoulException(String.format(" this  operator can not support %s ", alias)));
+                .orElseThrow(() -> new ShenyuException(String.format(" this  operator can not support %s ", alias)));
     }
 }

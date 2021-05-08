@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.springboot.starter.plugin.ratelimiter;
 
-import org.apache.shenyu.plugin.api.SoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.ratelimiter.RateLimiterPlugin;
 import org.apache.shenyu.plugin.ratelimiter.executor.RedisRateLimiter;
@@ -39,7 +39,7 @@ public class RateLimiterPluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin rateLimiterPlugin() {
+    public ShenyuPlugin rateLimiterPlugin() {
         return new RateLimiterPlugin(new RedisRateLimiter());
     }
     
