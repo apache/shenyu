@@ -4,7 +4,7 @@ Release Notes.
 
 2.3.0（2021-04-02）
 ------------------
-### soul-admin
+### shenyu-admin
 
 * Add 'open' field  to allow app path authentication or not in sign plugin. #1168
 * Optimize divide plugin to use common plugin template in soul-dashboard. #1163
