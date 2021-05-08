@@ -1,0 +1,5 @@
+# Auto Configure
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+org.apache.shenyu.web.configuration.SoulConfiguration
+org.springframework.context.ApplicationListener=\
+org.apache.shenyu.web.logo.SoulLogo
