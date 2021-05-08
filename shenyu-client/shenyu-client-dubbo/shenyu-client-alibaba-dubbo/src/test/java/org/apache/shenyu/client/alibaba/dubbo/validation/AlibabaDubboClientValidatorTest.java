@@ -39,7 +39,8 @@ import static org.junit.Assert.assertThat;
 @Ignore
 public final class AlibabaDubboClientValidatorTest {
 
-    private static final String MOCK_SERVICE_URL = "mock://test:28000/MockValidatorTarget";
+    private static final String MOCK_SERVICE_URL = 
+            "mock://test:28000/org.apache.shenyu.client.alibaba.dubbo.validation.mock.MockValidatorTarget";
 
     @Test
     public void testItWithNonExistMethod() {
