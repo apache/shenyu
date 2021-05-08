@@ -100,12 +100,12 @@ public final class ApplicationConfigCache {
      */
     public void init(final DubboRegisterConfig dubboRegisterConfig) {
         if (applicationConfig == null) {
-            applicationConfig = new ApplicationConfig("soul_proxy");
+            applicationConfig = new ApplicationConfig("shenyu_proxy");
         }
         if (needUpdateRegistryConfig(dubboRegisterConfig)) {
             RegistryConfig registryConfigTemp = new RegistryConfig();
             registryConfigTemp.setProtocol(dubboRegisterConfig.getProtocol());
-            registryConfigTemp.setId("soul_proxy");
+            registryConfigTemp.setId("shenyu_proxy");
             registryConfigTemp.setRegister(false);
             registryConfigTemp.setAddress(dubboRegisterConfig.getRegister());
             Optional.ofNullable(dubboRegisterConfig.getGroup()).ifPresent(registryConfigTemp::setGroup);
