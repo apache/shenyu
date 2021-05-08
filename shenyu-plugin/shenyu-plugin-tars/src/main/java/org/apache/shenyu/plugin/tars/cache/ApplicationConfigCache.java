@@ -31,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.tars.proxy.TarsInvokePrx;
 import org.apache.shenyu.plugin.tars.proxy.TarsInvokePrxList;
 import org.apache.shenyu.plugin.tars.util.PrxInfoUtil;
@@ -43,7 +44,6 @@ import org.assertj.core.internal.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.DivideUpstream;
-import org.apache.shenyu.common.exception.SoulException;
 import org.apache.shenyu.common.utils.GsonUtils;
 
 import java.lang.reflect.Method;
@@ -106,7 +106,7 @@ public final class ApplicationConfigCache {
         try {
             return cache.get(path);
         } catch (ExecutionException e) {
-            throw new SoulException(e.getCause());
+            throw new ShenyuException(e.getCause());
         }
     }
 
@@ -125,7 +125,7 @@ public final class ApplicationConfigCache {
                     if (LOCK.tryLock()) {
                         try {
                             if (StringUtils.isEmpty(metaData.getRpcExt())) {
-                                throw new SoulException("can't init prx with empty ext string");
+                                throw new ShenyuException("can't init prx with empty ext string");
                             }
                             String clazzName = PrxInfoUtil.getPrxName(metaData);
                             TarsParamExtInfo tarsParamExtInfo = GsonUtils.getInstance().fromJson(metaData.getRpcExt(), TarsParamExtInfo.class);
@@ -217,7 +217,7 @@ public final class ApplicationConfigCache {
                 refreshTarsInvokePrxList(metaData, upstreamList);
             }
         } catch (ExecutionException | NoSuchMethodException e) {
-            throw new SoulException(e.getCause());
+            throw new ShenyuException(e.getCause());
         }
     }
 

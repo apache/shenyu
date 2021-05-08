@@ -18,7 +18,7 @@
 package org.apache.shenyu.springboot.starter.plugin.redirect;
 
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.SoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -41,8 +41,8 @@ public class RedirectPluginConfigurationTest {
                 .withBean(DispatcherHandler.class)
                 .withPropertyValues("debug=true")
                 .run(context -> {
-                    SoulPlugin soulPlugin = context.getBean("redirectPlugin", SoulPlugin.class);
-                    assertThat(soulPlugin.named()).isEqualTo(PluginEnum.REDIRECT.getName());
+                    ShenyuPlugin shenyuPlugin = context.getBean("redirectPlugin", ShenyuPlugin.class);
+                    assertThat(shenyuPlugin.named()).isEqualTo(PluginEnum.REDIRECT.getName());
                 });
     }
 }

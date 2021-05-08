@@ -20,7 +20,7 @@ package org.apache.shenyu.plugin.monitor;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -50,7 +50,7 @@ public final class MonitorPluginTest {
     @Test
     public void testDoExecute() {
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
-        SoulPluginChain chain = mock(SoulPluginChain.class);
+        ShenyuPluginChain chain = mock(ShenyuPluginChain.class);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         SelectorData selectorData = mock(SelectorData.class);
         RuleData data = mock(RuleData.class);

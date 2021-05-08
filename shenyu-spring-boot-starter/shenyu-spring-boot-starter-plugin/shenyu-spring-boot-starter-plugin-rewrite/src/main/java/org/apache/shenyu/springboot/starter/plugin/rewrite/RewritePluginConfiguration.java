@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.springboot.starter.plugin.rewrite;
 
-import org.apache.shenyu.plugin.api.SoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.rewrite.RewritePlugin;
 import org.apache.shenyu.plugin.rewrite.handler.RewritePluginDataHandler;
@@ -38,7 +38,7 @@ public class RewritePluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin rewritePlugin() {
+    public ShenyuPlugin rewritePlugin() {
         return new RewritePlugin();
     }
 

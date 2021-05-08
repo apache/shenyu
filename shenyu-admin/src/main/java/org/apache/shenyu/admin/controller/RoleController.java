@@ -18,12 +18,12 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.service.RoleService;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.RoleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.RoleQuery;
-import org.apache.shenyu.admin.model.result.SoulAdminResult;
+import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.RoleEditVO;
 import org.apache.shenyu.admin.model.vo.RoleVO;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -57,11 +57,11 @@ public class RoleController {
     /**
      * get all roles.
      *
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/getAllRoles")
-    public SoulAdminResult selectAll() {
-        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, roleService.selectAll());
+    public ShenyuAdminResult selectAll() {
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, roleService.selectAll());
     }
 
     /**
@@ -70,40 +70,40 @@ public class RoleController {
      * @param roleName role name
      * @param currentPage current page
      * @param pageSize page size
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("")
-    public SoulAdminResult queryRole(final String roleName, final Integer currentPage, final Integer pageSize) {
+    public ShenyuAdminResult queryRole(final String roleName, final Integer currentPage, final Integer pageSize) {
         CommonPager<RoleVO> commonPager = roleService.listByPage(new RoleQuery(roleName, new PageParameter(currentPage, pageSize)));
-        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
 
     /**
      * detail role and permission info.
      * @param id role id
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/{id}")
-    public SoulAdminResult detailRole(@PathVariable("id") final String id) {
+    public ShenyuAdminResult detailRole(@PathVariable("id") final String id) {
         RoleEditVO roleEditVO = roleService.findById(id);
-        return Optional.ofNullable(roleEditVO).map(item -> SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, item)).orElse(SoulAdminResult.error(SoulResultMessage.DETAIL_FAILED));
+        return Optional.ofNullable(roleEditVO).map(item -> ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, item)).orElse(ShenyuAdminResult.error(ShenyuResultMessage.DETAIL_FAILED));
     }
 
     /**
      * create role.
      *
      * @param roleDTO role
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @PostMapping("")
-    public SoulAdminResult createRole(@RequestBody final RoleDTO roleDTO) {
+    public ShenyuAdminResult createRole(@RequestBody final RoleDTO roleDTO) {
         return Optional.ofNullable(roleDTO).map(item -> {
             if (roleDTO.getRoleName().equals("super")) {
-                return SoulAdminResult.error(SoulResultMessage.ROLE_CREATE_ERROR);
+                return ShenyuAdminResult.error(ShenyuResultMessage.ROLE_CREATE_ERROR);
             }
             Integer createCount = roleService.createOrUpdate(item);
-            return SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS, createCount);
-        }).orElse(SoulAdminResult.error(SoulResultMessage.CREATE_FAILED));
+            return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
+        }).orElse(ShenyuAdminResult.error(ShenyuResultMessage.CREATE_FAILED));
     }
 
     /**
@@ -111,23 +111,23 @@ public class RoleController {
      *
      * @param id primary key.
      * @param roleDTO role and permission info
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
-    public SoulAdminResult updateRole(@PathVariable("id") final String id, @RequestBody final RoleDTO roleDTO) {
+    public ShenyuAdminResult updateRole(@PathVariable("id") final String id, @RequestBody final RoleDTO roleDTO) {
         Objects.requireNonNull(roleDTO);
         roleDTO.setId(id);
-        return SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS, roleService.createOrUpdate(roleDTO));
+        return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, roleService.createOrUpdate(roleDTO));
     }
 
     /**
      * delete role info.
      *
      * @param ids primary keys.
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/batch")
-    public SoulAdminResult deleteRole(@RequestBody final List<String> ids) {
-        return SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, roleService.delete(ids));
+    public ShenyuAdminResult deleteRole(@RequestBody final List<String> ids) {
+        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, roleService.delete(ids));
     }
 }

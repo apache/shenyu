@@ -18,7 +18,7 @@
 package org.apache.shenyu.spring.boot.plugin.divide;
 
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.SoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.divide.websocket.WebSocketPlugin;
 import org.junit.Test;
@@ -52,7 +52,7 @@ public class DividePluginConfigurationTest {
                     assertThat(context).hasSingleBean(WebSocketPlugin.class);
                     assertThat(context).hasSingleBean(ReactorNettyWebSocketClient.class);
                     assertThat(context).hasSingleBean(WebSocketService.class);
-                    SoulPlugin plugin = context.getBean("dividePlugin", SoulPlugin.class);
+                    ShenyuPlugin plugin = context.getBean("dividePlugin", ShenyuPlugin.class);
                     assertThat(plugin.named()).isEqualTo(PluginEnum.DIVIDE.getName());
                 }
             );

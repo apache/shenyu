@@ -18,8 +18,8 @@
 package org.apache.shenyu.web.fallback;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shenyu.plugin.api.result.DefaultSoulEntity;
-import org.apache.shenyu.plugin.api.result.SoulResultEnum;
+import org.apache.shenyu.plugin.api.result.DefaultShenyuEntity;
+import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,7 +42,7 @@ public class DefaultFallbackController {
     @GetMapping("/hystrix")
     public Object hystrixPluginFallback() {
         log.error("the default fallback for hystrix");
-        return DefaultSoulEntity.error(SoulResultEnum.HYSTRIX_PLUGIN_FALLBACK.getCode(), SoulResultEnum.HYSTRIX_PLUGIN_FALLBACK.getMsg(), null);
+        return DefaultShenyuEntity.error(ShenyuResultEnum.HYSTRIX_PLUGIN_FALLBACK.getCode(), ShenyuResultEnum.HYSTRIX_PLUGIN_FALLBACK.getMsg(), null);
     }
 
     /**
@@ -53,6 +53,6 @@ public class DefaultFallbackController {
     @GetMapping("/resilience4j")
     public Object resilience4jFallBack() {
         log.error("the default fallback for resilience4j");
-        return DefaultSoulEntity.error(SoulResultEnum.RESILIENCE4J_PLUGIN_FALLBACK.getCode(), SoulResultEnum.RESILIENCE4J_PLUGIN_FALLBACK.getMsg(), null);
+        return DefaultShenyuEntity.error(ShenyuResultEnum.RESILIENCE4J_PLUGIN_FALLBACK.getCode(), ShenyuResultEnum.RESILIENCE4J_PLUGIN_FALLBACK.getMsg(), null);
     }
 }

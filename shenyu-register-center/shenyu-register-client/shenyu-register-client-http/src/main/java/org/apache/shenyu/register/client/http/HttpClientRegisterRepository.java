@@ -21,9 +21,9 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shenyu.register.client.api.SoulClientRegisterRepository;
+import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.client.http.utils.RegisterUtils;
-import org.apache.shenyu.register.common.config.SoulRegisterCenterConfig;
+import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.enums.RegisterTypeEnum;
 import org.apache.shenyu.spi.Join;
@@ -39,7 +39,7 @@ import java.util.Map;
  */
 @Slf4j
 @Join
-public class HttpClientRegisterRepository implements SoulClientRegisterRepository {
+public class HttpClientRegisterRepository implements ShenyuClientRegisterRepository {
 
     private List<String> serverList;
     
@@ -48,7 +48,7 @@ public class HttpClientRegisterRepository implements SoulClientRegisterRepositor
     private Map<String, String> turn = new HashMap<>();
 
     @Override
-    public void init(final SoulRegisterCenterConfig config) {
+    public void init(final ShenyuRegisterCenterConfig config) {
         this.serverList = Lists.newArrayList(Splitter.on(",").split(config.getServerLists()));
         initTurn();
     }

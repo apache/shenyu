@@ -32,15 +32,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * The type Extension loader.
  * This is done by loading the properties file.
  * https://github.com/apache/dubbo/blob/master/dubbo-common/src/main/java/org/apache/dubbo/common/extension/ExtensionLoader.java
- *
- * @author xiaoyu(Myth)
- * @author sixh.
  */
 @Slf4j
 @SuppressWarnings("all")
 public final class ExtensionLoader<T> {
 
-    private static final String SOUL_DIRECTORY = "META-INF/soul/";
+    private static final String SOUL_DIRECTORY = "META-INF/shenyu/";
 
     private static final Map<Class<?>, ExtensionLoader<?>> LOADERS = new ConcurrentHashMap<>();
 

@@ -23,11 +23,11 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.JsonUtils;
-import org.apache.shenyu.plugin.api.SoulPlugin;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
-import org.apache.shenyu.plugin.api.result.SoulResultEnum;
-import org.apache.shenyu.plugin.api.result.SoulResultWrap;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
+import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -39,34 +39,34 @@ import java.util.Objects;
  *
  * @author tydhot
  */
-public class MotanResponsePlugin implements SoulPlugin {
+public class MotanResponsePlugin implements ShenyuPlugin {
 
     /**
      * Process the Web request and (optionally) delegate to the next
-     * {@code WebFilter} through the given {@link SoulPluginChain}.
+     * {@code WebFilter} through the given {@link ShenyuPluginChain}.
      *
      * @param exchange the current server exchange
      * @param chain    provides a way to delegate to the next filter
      * @return {@code Mono<Void>} to indicate when request processing is complete
      */
     @Override
-    public Mono<Void> execute(final ServerWebExchange exchange, final SoulPluginChain chain) {
+    public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return chain.execute(exchange).then(Mono.defer(() -> {
             final Object result = exchange.getAttribute(Constants.MOTAN_RPC_RESULT);
             if (Objects.isNull(result)) {
-                Object error = SoulResultWrap.error(SoulResultEnum.SERVICE_RESULT_ERROR.getCode(), SoulResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
+                Object error = ShenyuResultWrap.error(ShenyuResultEnum.SERVICE_RESULT_ERROR.getCode(), ShenyuResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
                 return WebFluxResultUtils.result(exchange, error);
             }
-            Object success = SoulResultWrap.success(SoulResultEnum.SUCCESS.getCode(), SoulResultEnum.SUCCESS.getMsg(), JsonUtils.removeClass(result));
+            Object success = ShenyuResultWrap.success(ShenyuResultEnum.SUCCESS.getCode(), ShenyuResultEnum.SUCCESS.getMsg(), JsonUtils.removeClass(result));
             return WebFluxResultUtils.result(exchange, success);
         }));
     }
 
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
-        final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-        assert soulContext != null;
-        return !Objects.equals(soulContext.getRpcType(), RpcTypeEnum.MOTAN.getName());
+        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
+        return !Objects.equals(shenyuContext.getRpcType(), RpcTypeEnum.MOTAN.getName());
     }
 
     @Override

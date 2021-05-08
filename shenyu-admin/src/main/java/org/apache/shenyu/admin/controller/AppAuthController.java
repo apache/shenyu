@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.controller;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.service.AppAuthService;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.AppAuthDTO;
 import org.apache.shenyu.admin.model.dto.AuthApplyDTO;
 import org.apache.shenyu.admin.model.dto.AuthPathWarpDTO;
@@ -27,7 +27,7 @@ import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.AppAuthQuery;
-import org.apache.shenyu.admin.model.result.SoulAdminResult;
+import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -67,7 +67,7 @@ public class AppAuthController {
      * @return the soul result
      */
     @PostMapping("/apply")
-    public SoulAdminResult apply(@RequestBody final AuthApplyDTO authApplyDTO) {
+    public ShenyuAdminResult apply(@RequestBody final AuthApplyDTO authApplyDTO) {
         if (StringUtils.isNoneBlank(authApplyDTO.getAppKey())) {
             return appAuthService.applyUpdate(authApplyDTO);
         }
@@ -82,7 +82,7 @@ public class AppAuthController {
      * @return the soul result
      */
     @GetMapping("/updateSk")
-    public SoulAdminResult updateSk(@RequestParam("appKey") final String appKey, @RequestParam("appSecret") final String appSecret) {
+    public ShenyuAdminResult updateSk(@RequestParam("appKey") final String appKey, @RequestParam("appSecret") final String appSecret) {
         return appAuthService.updateAppSecretByAppKey(appKey, appSecret);
     }
 
@@ -96,13 +96,13 @@ public class AppAuthController {
      * @return the soul result
      */
     @GetMapping("/findPageByQuery")
-    public SoulAdminResult findPageByQuery(final String appKey, final String phone, final Integer currentPage, final Integer pageSize) {
+    public ShenyuAdminResult findPageByQuery(final String appKey, final String phone, final Integer currentPage, final Integer pageSize) {
         AppAuthQuery query = new AppAuthQuery();
         query.setPhone(phone);
         query.setAppKey(appKey);
         query.setPageParameter(new PageParameter(currentPage, pageSize));
         CommonPager<AppAuthVO> commonPager = appAuthService.listByPage(query);
-        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
 
     /**
@@ -112,8 +112,8 @@ public class AppAuthController {
      * @return the soul result
      */
     @GetMapping("/detail")
-    public SoulAdminResult detail(@RequestParam("id") final String id) {
-        return SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, appAuthService.findById(id));
+    public ShenyuAdminResult detail(@RequestParam("id") final String id) {
+        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, appAuthService.findById(id));
     }
 
     /**
@@ -123,7 +123,7 @@ public class AppAuthController {
      * @return the soul result
      */
     @PostMapping("/updateDetail")
-    public SoulAdminResult updateDetail(@RequestBody final AppAuthDTO appAuthDTO) {
+    public ShenyuAdminResult updateDetail(@RequestBody final AppAuthDTO appAuthDTO) {
         return appAuthService.updateDetail(appAuthDTO);
     }
 
@@ -134,8 +134,8 @@ public class AppAuthController {
      * @return the soul result
      */
     @GetMapping("/detailPath")
-    public SoulAdminResult detailPath(@RequestParam("id") final String id) {
-        return SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, appAuthService.detailPath(id));
+    public ShenyuAdminResult detailPath(@RequestParam("id") final String id) {
+        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, appAuthService.detailPath(id));
     }
 
     /**
@@ -145,7 +145,7 @@ public class AppAuthController {
      * @return the soul result
      */
     @PostMapping("/updateDetailPath")
-    public SoulAdminResult updateDetailPath(@RequestBody final AuthPathWarpDTO authPathWarpDTO) {
+    public ShenyuAdminResult updateDetailPath(@RequestBody final AuthPathWarpDTO authPathWarpDTO) {
         return appAuthService.updateDetailPath(authPathWarpDTO);
     }
 
@@ -153,12 +153,12 @@ public class AppAuthController {
      * delete application authorities.
      *
      * @param ids primary key.
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @PostMapping("/batchDelete")
-    public SoulAdminResult batchDelete(@RequestBody final List<String> ids) {
+    public ShenyuAdminResult batchDelete(@RequestBody final List<String> ids) {
         Integer deleteCount = appAuthService.delete(ids);
-        return SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, deleteCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
     }
 
     /**
@@ -168,12 +168,12 @@ public class AppAuthController {
      * @return the soul result
      */
     @PostMapping("/batchEnabled")
-    public SoulAdminResult batchEnabled(@RequestBody final BatchCommonDTO batchCommonDTO) {
+    public ShenyuAdminResult batchEnabled(@RequestBody final BatchCommonDTO batchCommonDTO) {
         final String result = appAuthService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled());
         if (StringUtils.isNoneBlank(result)) {
-            return SoulAdminResult.error(result);
+            return ShenyuAdminResult.error(result);
         }
-        return SoulAdminResult.success(SoulResultMessage.ENABLE_SUCCESS);
+        return ShenyuAdminResult.success(ShenyuResultMessage.ENABLE_SUCCESS);
     }
 
     /**
@@ -182,7 +182,7 @@ public class AppAuthController {
      * @return the soul result
      */
     @PostMapping("/syncData")
-    public SoulAdminResult syncData() {
+    public ShenyuAdminResult syncData() {
         return appAuthService.syncData();
     }
 }

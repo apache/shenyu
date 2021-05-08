@@ -18,7 +18,7 @@
 package org.apache.shenyu.springboot.starter.plugin.resilience4j;
 
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.SoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.resilience4j.handler.Resilience4JHandler;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -46,7 +46,7 @@ public class Resilience4JPluginConfigurationTest {
             .run(
                 context -> {
                     assertThat(context).hasSingleBean(Resilience4JHandler.class);
-                    SoulPlugin plugin = context.getBean("resilience4JPlugin", SoulPlugin.class);
+                    ShenyuPlugin plugin = context.getBean("resilience4JPlugin", ShenyuPlugin.class);
                     assertThat(plugin.named()).isEqualTo(PluginEnum.RESILIENCE4J.getName());
                 }
             );

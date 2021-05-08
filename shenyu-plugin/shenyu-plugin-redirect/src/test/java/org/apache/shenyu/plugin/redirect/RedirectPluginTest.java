@@ -21,7 +21,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.RedirectHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.redirect.cache.RedirectRuleHandleCache;
 import org.apache.shenyu.plugin.redirect.handler.RedirectPluginDataHandler;
 import org.hamcrest.Matchers;
@@ -55,7 +55,7 @@ public final class RedirectPluginTest {
     private ServerWebExchange exchange;
 
     @Mock
-    private SoulPluginChain chain;
+    private ShenyuPluginChain chain;
 
     @Mock
     private DispatcherHandler dispatcherHandler;

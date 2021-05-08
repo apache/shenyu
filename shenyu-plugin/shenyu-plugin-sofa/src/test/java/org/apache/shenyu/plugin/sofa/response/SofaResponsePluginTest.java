@@ -19,7 +19,7 @@ package org.apache.shenyu.plugin.sofa.response;
 
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -43,7 +43,7 @@ import static org.junit.Assert.assertEquals;
 @RunWith(MockitoJUnitRunner.class)
 public final class SofaResponsePluginTest {
     @Mock
-    private SoulPluginChain chain;
+    private ShenyuPluginChain chain;
 
     private ServerWebExchange exchange;
 

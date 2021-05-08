@@ -25,7 +25,7 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.PluginQuery;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.SyncDataService;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
@@ -96,7 +96,7 @@ public final class PluginControllerTest {
                 .param("currentPage", pageParameter.getCurrentPage() + "")
                 .param("pageSize", pageParameter.getPageSize() + ""))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
                 .andExpect(jsonPath("$.data.dataList[0].name", is(pluginVO.getName())))
                 .andReturn();
     }
@@ -115,7 +115,7 @@ public final class PluginControllerTest {
         given(this.pluginService.findById("123")).willReturn(pluginVO);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/plugin/{id}", "123"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.DETAIL_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
                 .andExpect(jsonPath("$.data.id", is(pluginVO.getId())))
                 .andReturn();
     }
@@ -130,7 +130,7 @@ public final class PluginControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(pluginDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.CREATE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
                 .andReturn();
 
         given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(AdminConstants.PLUGIN_NAME_IS_EXIST);
@@ -161,7 +161,7 @@ public final class PluginControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(pluginDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.UPDATE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
                 .andReturn();
 
         given(this.pluginService.createOrUpdate(pluginDTO)).willReturn(AdminConstants.PLUGIN_NAME_IS_EXIST);
@@ -188,7 +188,7 @@ public final class PluginControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("[\"123\"]"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.DELETE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
                 .andReturn();
 
         given(this.pluginService.delete(Collections.singletonList("123"))).willReturn(AdminConstants.SYS_PLUGIN_ID_NOT_EXIST);
@@ -218,7 +218,7 @@ public final class PluginControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.ENABLE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.ENABLE_SUCCESS)))
                 .andReturn();
 
         given(this.pluginService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled())).willReturn(AdminConstants.SYS_PLUGIN_ID_NOT_EXIST);
@@ -235,13 +235,13 @@ public final class PluginControllerTest {
         given(this.syncDataService.syncAll(DataEventTypeEnum.REFRESH)).willReturn(true);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin/syncPluginAll"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.SYNC_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.SYNC_SUCCESS)))
                 .andReturn();
 
         given(this.syncDataService.syncAll(DataEventTypeEnum.REFRESH)).willReturn(false);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/plugin/syncPluginAll"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.SYNC_FAIL)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.SYNC_FAIL)))
                 .andReturn();
     }
 
@@ -250,13 +250,13 @@ public final class PluginControllerTest {
         given(this.syncDataService.syncPluginData("123")).willReturn(true);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin/syncPluginData/{id}", "123"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.SYNC_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.SYNC_SUCCESS)))
                 .andReturn();
 
         given(this.syncDataService.syncPluginData("123")).willReturn(false);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/plugin/syncPluginData/{id}", "123"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.SYNC_FAIL)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.SYNC_FAIL)))
                 .andReturn();
     }
 

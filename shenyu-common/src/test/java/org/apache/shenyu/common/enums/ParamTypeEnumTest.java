@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.common.enums;
 
-import org.apache.shenyu.common.exception.SoulException;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -47,7 +47,7 @@ public final class ParamTypeEnumTest {
                 .forEach(paramTypeEnum -> assertEquals(paramTypeEnum, ParamTypeEnum.getParamTypeEnumByName(paramTypeEnum.getName())));
     }
 
-    @Test(expected = SoulException.class)
+    @Test(expected = ShenyuException.class)
     public void testGetParamTypeEnumByNameInvalid() {
         ParamTypeEnum.getParamTypeEnumByName("InvalidName");
     }

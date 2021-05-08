@@ -18,7 +18,7 @@
 package org.apache.shenyu.springboot.starter.plugin.logging;
 
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.SoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.logging.LoggingPlugin;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -43,7 +43,7 @@ public class LoggingPluginConfigurationTest {
             .withPropertyValues("debug=true")
             .run(
                 context -> {
-                    SoulPlugin plugin = context.getBean("loggingPlugin", SoulPlugin.class);
+                    ShenyuPlugin plugin = context.getBean("loggingPlugin", ShenyuPlugin.class);
                     assertThat(plugin.named()).isEqualTo(PluginEnum.LOGGING.getName());
                 }
             );

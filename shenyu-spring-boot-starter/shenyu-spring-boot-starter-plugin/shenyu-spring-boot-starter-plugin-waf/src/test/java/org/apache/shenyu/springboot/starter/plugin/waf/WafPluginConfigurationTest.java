@@ -18,7 +18,7 @@
 package org.apache.shenyu.springboot.starter.plugin.waf;
 
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.SoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -44,7 +44,7 @@ public class WafPluginConfigurationTest {
                 context -> {
                     PluginDataHandler pluginDataHandler = context.getBean(PluginDataHandler.class);
                     assertThat(pluginDataHandler.pluginNamed()).isEqualTo(PluginEnum.WAF.getName());
-                    SoulPlugin plugin = context.getBean(SoulPlugin.class);
+                    ShenyuPlugin plugin = context.getBean(ShenyuPlugin.class);
                     assertThat(plugin.named()).isEqualTo(PluginEnum.WAF.getName());
                 }
             );

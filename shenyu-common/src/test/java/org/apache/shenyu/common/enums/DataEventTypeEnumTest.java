@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.common.enums;
 
-import org.apache.shenyu.common.exception.SoulException;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 
@@ -38,7 +38,7 @@ public final class DataEventTypeEnumTest {
                 .forEach(e -> assertThat(e, Matchers.equalTo(DataEventTypeEnum.acquireByName(e.name()))));
     }
 
-    @Test(expected = SoulException.class)
+    @Test(expected = ShenyuException.class)
     public void testAcquireByNameInvalid() {
         DataEventTypeEnum.acquireByName("invalidName");
     }

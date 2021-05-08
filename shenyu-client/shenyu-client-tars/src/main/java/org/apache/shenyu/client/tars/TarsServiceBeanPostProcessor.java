@@ -20,14 +20,14 @@ package org.apache.shenyu.client.tars;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.shenyu.client.core.disruptor.SoulClientRegisterEventPublisher;
-import org.apache.shenyu.client.tars.common.annotation.SoulTarsClient;
-import org.apache.shenyu.client.tars.common.annotation.SoulTarsService;
+import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
+import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsClient;
+import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsService;
 import org.apache.shenyu.client.tars.common.dto.TarsRpcExt;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
-import org.apache.shenyu.register.client.api.SoulClientRegisterRepository;
-import org.apache.shenyu.register.common.config.SoulRegisterCenterConfig;
+import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
+import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
@@ -57,7 +57,7 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
     
     private final LocalVariableTableParameterNameDiscoverer localVariableTableParameterNameDiscoverer = new LocalVariableTableParameterNameDiscoverer();
     
-    private SoulClientRegisterEventPublisher publisher = SoulClientRegisterEventPublisher.getInstance();
+    private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
     
     private final ExecutorService executorService;
     
@@ -69,7 +69,7 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
 
     private final int port;
 
-    public TarsServiceBeanPostProcessor(final SoulRegisterCenterConfig config, final SoulClientRegisterRepository soulClientRegisterRepository) {
+    public TarsServiceBeanPostProcessor(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
         String ip = props.getProperty("host");
@@ -82,12 +82,12 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
         this.host = props.getProperty("host");
         this.port = Integer.parseInt(port);
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
-        publisher.start(soulClientRegisterRepository);
+        publisher.start(shenyuClientRegisterRepository);
     }
 
     @Override
     public Object postProcessAfterInitialization(final Object bean, final String beanName) throws BeansException {
-        if (bean.getClass().getAnnotation(SoulTarsService.class) != null) {
+        if (bean.getClass().getAnnotation(ShenyuTarsService.class) != null) {
             executorService.execute(() -> handler(bean));
         }
         return bean;
@@ -108,22 +108,22 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
             clazz = AopUtils.getTargetClass(serviceBean);
         }
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
-        String serviceName = serviceBean.getClass().getAnnotation(SoulTarsService.class).serviceName();
+        String serviceName = serviceBean.getClass().getAnnotation(ShenyuTarsService.class).serviceName();
         for (Method method : methods) {
-            SoulTarsClient soulSofaClient = method.getAnnotation(SoulTarsClient.class);
+            ShenyuTarsClient soulSofaClient = method.getAnnotation(ShenyuTarsClient.class);
             if (Objects.nonNull(soulSofaClient)) {
                 publisher.publishEvent(buildMetaDataDTO(serviceName, soulSofaClient, method, buildRpcExt(methods)));
             }
         }
     }
 
-    private MetaDataRegisterDTO buildMetaDataDTO(final String serviceName, final SoulTarsClient soulTarsClient, final Method method, final String rpcExt) {
+    private MetaDataRegisterDTO buildMetaDataDTO(final String serviceName, final ShenyuTarsClient shenyuTarsClient, final Method method, final String rpcExt) {
         String ipAndPort = this.ipAndPort;
-        String path = this.contextPath + soulTarsClient.path();
-        String desc = soulTarsClient.desc();
+        String path = this.contextPath + shenyuTarsClient.path();
+        String desc = shenyuTarsClient.desc();
         String configHost = this.host;
         String host = StringUtils.isBlank(configHost) ? IpUtils.getHost() : configHost;
-        String configRuleName = soulTarsClient.ruleName();
+        String configRuleName = shenyuTarsClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
@@ -142,7 +142,7 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
                 .parameterTypes(parameterTypes)
                 .rpcType("tars")
                 .rpcExt(rpcExt)
-                .enabled(soulTarsClient.enabled())
+                .enabled(shenyuTarsClient.enabled())
                 .build();
     }
 
@@ -164,7 +164,7 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
     private String buildRpcExt(final Method[] methods) {
         List<TarsRpcExt.RpcExt> list = new ArrayList<>();
         for (Method method : methods) {
-            SoulTarsClient soulSofaClient = method.getAnnotation(SoulTarsClient.class);
+            ShenyuTarsClient soulSofaClient = method.getAnnotation(ShenyuTarsClient.class);
             if (Objects.nonNull(soulSofaClient)) {
                 list.add(buildRpcExt(method));
             }

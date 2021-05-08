@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.springboot.starter.plugin.logging;
 
-import org.apache.shenyu.plugin.api.SoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.logging.LoggingPlugin;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,7 +36,7 @@ public class LoggingPluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin loggingPlugin() {
+    public ShenyuPlugin loggingPlugin() {
         return new LoggingPlugin();
     }
 

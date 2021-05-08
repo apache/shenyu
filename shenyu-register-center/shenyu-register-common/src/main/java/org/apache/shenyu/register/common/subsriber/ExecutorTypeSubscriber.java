@@ -24,7 +24,6 @@ import org.apache.shenyu.register.common.type.DataTypeParent;
  * The interface Executor type subscriber.
  *
  * @param <T> the type parameter
- * @author xiaoyu
  */
 public interface ExecutorTypeSubscriber<T extends DataTypeParent> extends ExecutorSubscriber<T> {
     

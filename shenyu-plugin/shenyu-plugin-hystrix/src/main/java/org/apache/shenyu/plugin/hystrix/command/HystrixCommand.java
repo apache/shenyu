@@ -19,7 +19,7 @@ package org.apache.shenyu.plugin.hystrix.command;
 
 import com.netflix.hystrix.HystrixObservableCommand;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.utils.UriUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -38,7 +38,7 @@ public class HystrixCommand extends HystrixObservableCommand<Void> implements Co
     
     private final ServerWebExchange exchange;
 
-    private final SoulPluginChain chain;
+    private final ShenyuPluginChain chain;
 
     private final URI callBackUri;
     
@@ -52,7 +52,7 @@ public class HystrixCommand extends HystrixObservableCommand<Void> implements Co
      */
     public HystrixCommand(final Setter setter,
                    final ServerWebExchange exchange,
-                   final SoulPluginChain chain,
+                   final ShenyuPluginChain chain,
                    final String callBackUri) {
         super(setter);
         this.exchange = exchange;

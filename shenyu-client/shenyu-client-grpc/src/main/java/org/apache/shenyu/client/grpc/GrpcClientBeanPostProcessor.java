@@ -19,13 +19,13 @@ package org.apache.shenyu.client.grpc;
 
 import io.grpc.BindableService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shenyu.client.core.disruptor.SoulClientRegisterEventPublisher;
-import org.apache.shenyu.client.grpc.common.annotation.SoulGrpcClient;
+import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
+import org.apache.shenyu.client.grpc.common.annotation.ShenyuGrpcClient;
 import org.apache.shenyu.client.grpc.common.dto.GrpcExt;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
-import org.apache.shenyu.register.client.api.SoulClientRegisterRepository;
-import org.apache.shenyu.register.common.config.SoulRegisterCenterConfig;
+import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
+import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
     
-    private SoulClientRegisterEventPublisher publisher = SoulClientRegisterEventPublisher.getInstance();
+    private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
     
     private final ExecutorService executorService;
     
@@ -68,9 +68,9 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
      * Instantiates a new Soul client bean post processor.
      *
      * @param config the soul grpc config
-     * @param soulClientRegisterRepository the soulClientRegisterRepository
+     * @param shenyuClientRegisterRepository the soulClientRegisterRepository
      */
-    public GrpcClientBeanPostProcessor(final SoulRegisterCenterConfig config, final SoulClientRegisterRepository soulClientRegisterRepository) {
+    public GrpcClientBeanPostProcessor(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
         String ipAndPort = props.getProperty("ipAndPort");
@@ -83,7 +83,7 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
         this.host = props.getProperty("host");
         this.port = Integer.parseInt(port);
         executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
-        publisher.start(soulClientRegisterRepository);
+        publisher.start(shenyuClientRegisterRepository);
     }
 
     @Override
@@ -120,19 +120,19 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
         }
         final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
-            SoulGrpcClient grpcClient = method.getAnnotation(SoulGrpcClient.class);
+            ShenyuGrpcClient grpcClient = method.getAnnotation(ShenyuGrpcClient.class);
             if (Objects.nonNull(grpcClient)) {
                 publisher.publishEvent(buildMetaDataDTO(packageName, grpcClient, method));
             }
         }
     }
 
-    private MetaDataRegisterDTO buildMetaDataDTO(final String packageName, final SoulGrpcClient soulGrpcClient, final Method method) {
-        String path = this.contextPath + soulGrpcClient.path();
-        String desc = soulGrpcClient.desc();
+    private MetaDataRegisterDTO buildMetaDataDTO(final String packageName, final ShenyuGrpcClient shenyuGrpcClient, final Method method) {
+        String path = this.contextPath + shenyuGrpcClient.path();
+        String desc = shenyuGrpcClient.desc();
         String configHost = this.host;
         String host = org.apache.commons.lang3.StringUtils.isBlank(configHost) ? IpUtils.getHost() : configHost;
-        String configRuleName = soulGrpcClient.ruleName();
+        String configRuleName = shenyuGrpcClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         String methodName = method.getName();
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
@@ -150,13 +150,13 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
                 .pathDesc(desc)
                 .parameterTypes(parameterTypes)
                 .rpcType("grpc")
-                .rpcExt(buildRpcExt(soulGrpcClient))
-                .enabled(soulGrpcClient.enabled())
+                .rpcExt(buildRpcExt(shenyuGrpcClient))
+                .enabled(shenyuGrpcClient.enabled())
                 .build();
     }
 
-    private String buildRpcExt(final SoulGrpcClient soulGrpcClient) {
-        GrpcExt build = GrpcExt.builder().timeout(soulGrpcClient.timeout()).build();
+    private String buildRpcExt(final ShenyuGrpcClient shenyuGrpcClient) {
+        GrpcExt build = GrpcExt.builder().timeout(shenyuGrpcClient.timeout()).build();
         return GsonUtils.getInstance().toJson(build);
     }
 }

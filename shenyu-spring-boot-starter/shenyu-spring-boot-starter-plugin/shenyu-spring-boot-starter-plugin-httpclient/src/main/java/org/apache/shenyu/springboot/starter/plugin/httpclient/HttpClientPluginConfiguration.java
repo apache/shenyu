@@ -22,7 +22,7 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
-import org.apache.shenyu.plugin.api.SoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.httpclient.NettyHttpClientPlugin;
 import org.apache.shenyu.plugin.httpclient.WebClientPlugin;
 import org.apache.shenyu.plugin.httpclient.config.HttpClientProperties;
@@ -155,7 +155,7 @@ public class HttpClientPluginConfiguration {
          * @return the soul plugin
          */
         @Bean
-        public SoulPlugin webClientPlugin(final ObjectProvider<HttpClient> httpClient) {
+        public ShenyuPlugin webClientPlugin(final ObjectProvider<HttpClient> httpClient) {
             WebClient webClient = WebClient.builder()
                     .clientConnector(new ReactorClientHttpConnector(Objects.requireNonNull(httpClient.getIfAvailable())))
                     .build();
@@ -168,7 +168,7 @@ public class HttpClientPluginConfiguration {
          * @return the soul plugin
          */
         @Bean
-        public SoulPlugin webClientResponsePlugin() {
+        public ShenyuPlugin webClientResponsePlugin() {
             return new WebClientResponsePlugin();
         }
 
@@ -188,7 +188,7 @@ public class HttpClientPluginConfiguration {
          * @return the soul plugin
          */
         @Bean
-        public SoulPlugin nettyHttpClientPlugin(final ObjectProvider<HttpClient> httpClient) {
+        public ShenyuPlugin nettyHttpClientPlugin(final ObjectProvider<HttpClient> httpClient) {
             return new NettyHttpClientPlugin(httpClient.getIfAvailable());
         }
 
@@ -198,7 +198,7 @@ public class HttpClientPluginConfiguration {
          * @return the soul plugin
          */
         @Bean
-        public SoulPlugin nettyClientResponsePlugin() {
+        public ShenyuPlugin nettyClientResponsePlugin() {
             return new NettyClientResponsePlugin();
         }
     }

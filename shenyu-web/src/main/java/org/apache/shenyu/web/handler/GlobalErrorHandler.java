@@ -19,7 +19,7 @@ package org.apache.shenyu.web.handler;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.api.result.SoulResultWrap;
+import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.springframework.boot.autoconfigure.web.ErrorProperties;
 import org.springframework.boot.autoconfigure.web.ResourceProperties;
 import org.springframework.boot.autoconfigure.web.reactive.error.DefaultErrorWebExceptionHandler;
@@ -75,7 +75,7 @@ public class GlobalErrorHandler extends DefaultErrorWebExceptionHandler {
 
     private Map<String, Object> response(final ServerRequest request) {
         Throwable ex = getError(request);
-        Object error = SoulResultWrap.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), ex.getMessage());
+        Object error = ShenyuResultWrap.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(), ex.getMessage());
         return GsonUtils.getInstance().toObjectMap(GsonUtils.getInstance().toJson(error));
     }
 

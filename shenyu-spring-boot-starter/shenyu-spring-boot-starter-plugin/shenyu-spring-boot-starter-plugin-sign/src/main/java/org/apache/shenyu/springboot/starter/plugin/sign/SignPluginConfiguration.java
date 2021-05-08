@@ -18,7 +18,7 @@
 package org.apache.shenyu.springboot.starter.plugin.sign;
 
 import org.apache.shenyu.plugin.api.SignService;
-import org.apache.shenyu.plugin.api.SoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.sign.SignPlugin;
 import org.apache.shenyu.plugin.sign.service.DefaultSignService;
 import org.apache.shenyu.plugin.sign.subscriber.SignAuthDataSubscriber;
@@ -54,7 +54,7 @@ public class SignPluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin signPlugin(final SignService signService) {
+    public ShenyuPlugin signPlugin(final SignService signService) {
         return new SignPlugin(signService);
     }
     

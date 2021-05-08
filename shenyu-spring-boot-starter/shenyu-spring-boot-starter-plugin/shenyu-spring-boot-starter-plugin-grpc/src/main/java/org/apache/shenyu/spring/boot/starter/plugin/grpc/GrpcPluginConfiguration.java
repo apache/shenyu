@@ -18,11 +18,11 @@
 
 package org.apache.shenyu.spring.boot.starter.plugin.grpc;
 
-import org.apache.shenyu.plugin.api.SoulPlugin;
-import org.apache.shenyu.plugin.api.context.SoulContextDecorator;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.grpc.GrpcPlugin;
-import org.apache.shenyu.plugin.grpc.context.GrpcSoulContextDecorator;
+import org.apache.shenyu.plugin.grpc.context.GrpcShenyuContextDecorator;
 import org.apache.shenyu.plugin.grpc.handler.GrpcPluginDataHandler;
 import org.apache.shenyu.plugin.grpc.response.GrpcResponsePlugin;
 import org.springframework.context.annotation.Bean;
@@ -42,7 +42,7 @@ public class GrpcPluginConfiguration {
      * @return the tars plugin
      */
     @Bean
-    public SoulPlugin grpcPlugin() {
+    public ShenyuPlugin grpcPlugin() {
         return new GrpcPlugin();
     }
 
@@ -52,7 +52,7 @@ public class GrpcPluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin grpcResponsePlugin() {
+    public ShenyuPlugin grpcResponsePlugin() {
         return new GrpcResponsePlugin();
     }
 
@@ -72,7 +72,7 @@ public class GrpcPluginConfiguration {
      * @return the soul context decorator
      */
     @Bean
-    public SoulContextDecorator grpcSoulContextDecorator() {
-        return new GrpcSoulContextDecorator();
+    public ShenyuContextDecorator grpcSoulContextDecorator() {
+        return new GrpcShenyuContextDecorator();
     }
 }

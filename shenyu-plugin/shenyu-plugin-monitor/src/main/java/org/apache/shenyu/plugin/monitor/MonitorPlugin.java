@@ -24,9 +24,9 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.metrics.prometheus.register.PrometheusMetricsRegister;
 import org.apache.shenyu.metrics.reporter.MetricsReporter;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
-import org.apache.shenyu.plugin.base.AbstractSoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -39,7 +39,7 @@ import java.util.Optional;
  *
  * @author xiaoyu(Myth)
  */
-public class MonitorPlugin extends AbstractSoulPlugin {
+public class MonitorPlugin extends AbstractShenyuPlugin {
     
     private static final String REQUEST_TOTAL = "soul_request_total";
     
@@ -55,11 +55,11 @@ public class MonitorPlugin extends AbstractSoulPlugin {
     }
     
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         MetricsReporter.counterIncrement(REQUEST_TOTAL);
         MetricsReporter.counterIncrement(HTTP_REQUEST_TOTAL, new String[]{exchange.getRequest().getURI().getPath(), exchange.getRequest().getMethodValue()});
-        SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-        LocalDateTime startDateTime = Optional.ofNullable(soulContext).map(SoulContext::getStartDateTime).orElse(LocalDateTime.now());
+        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        LocalDateTime startDateTime = Optional.ofNullable(shenyuContext).map(ShenyuContext::getStartDateTime).orElse(LocalDateTime.now());
         return chain.execute(exchange).doOnSuccess(e -> responseCommitted(exchange, startDateTime))
                 .doOnError(throwable -> responseCommitted(exchange, startDateTime));
     }

@@ -32,8 +32,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.base.AbstractSoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.reactivestreams.Publisher;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
@@ -54,9 +54,9 @@ import reactor.util.annotation.NonNull;
  * @author xuxd
  **/
 @Slf4j
-public class LoggingPlugin extends AbstractSoulPlugin {
+public class LoggingPlugin extends AbstractShenyuPlugin {
 
-    @Override protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain,
+    @Override protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
         final SelectorData selector, final RuleData rule) {
 
         ServerHttpRequest request = exchange.getRequest();

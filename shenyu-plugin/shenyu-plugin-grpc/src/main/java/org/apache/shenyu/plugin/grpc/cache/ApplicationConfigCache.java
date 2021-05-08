@@ -24,10 +24,10 @@ import com.google.common.cache.Weigher;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.DivideUpstream;
-import org.apache.shenyu.common.exception.SoulException;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.grpc.resolver.SoulServiceInstance;
-import org.apache.shenyu.plugin.grpc.resolver.SoulServiceInstanceLists;
+import org.apache.shenyu.plugin.grpc.resolver.ShenyuServiceInstance;
+import org.apache.shenyu.plugin.grpc.resolver.ShenyuServiceInstanceLists;
 
 import java.util.List;
 import java.util.Map;
@@ -48,13 +48,13 @@ public final class ApplicationConfigCache {
 
     private final int maxCount = 50000;
 
-    private final LoadingCache<String, SoulServiceInstanceLists> cache = CacheBuilder.newBuilder()
+    private final LoadingCache<String, ShenyuServiceInstanceLists> cache = CacheBuilder.newBuilder()
             .maximumWeight(maxCount)
-            .weigher((Weigher<String, SoulServiceInstanceLists>) (string, referenceConfig) -> getSize())
-            .build(new CacheLoader<String, SoulServiceInstanceLists>() {
+            .weigher((Weigher<String, ShenyuServiceInstanceLists>) (string, referenceConfig) -> getSize())
+            .build(new CacheLoader<String, ShenyuServiceInstanceLists>() {
                 @Override
-                public SoulServiceInstanceLists load(final String key) {
-                    return new SoulServiceInstanceLists(new CopyOnWriteArrayList<>(), key);
+                public ShenyuServiceInstanceLists load(final String key) {
+                    return new ShenyuServiceInstanceLists(new CopyOnWriteArrayList<>(), key);
                 }
             });
 
@@ -73,11 +73,11 @@ public final class ApplicationConfigCache {
      * @param contextPath contextPath
      * @return SoulServiceInstanceLists instances
      */
-    public SoulServiceInstanceLists get(final String contextPath) {
+    public ShenyuServiceInstanceLists get(final String contextPath) {
         try {
             return cache.get(contextPath);
         } catch (ExecutionException e) {
-            throw new SoulException(e.getCause());
+            throw new ShenyuException(e.getCause());
         }
     }
 
@@ -93,8 +93,8 @@ public final class ApplicationConfigCache {
                 invalidate(selectorData.getName());
                 return;
             }
-            SoulServiceInstanceLists soulServiceInstances = cache.get(selectorData.getName());
-            List<SoulServiceInstance> instances = soulServiceInstances.getSoulServiceInstances();
+            ShenyuServiceInstanceLists soulServiceInstances = cache.get(selectorData.getName());
+            List<ShenyuServiceInstance> instances = soulServiceInstances.getShenyuServiceInstances();
             instances.clear();
             instances.addAll(upstreamList.stream().map(this::build).collect(Collectors.toList()));
             Consumer<Object> consumer = listener.get(selectorData.getName());
@@ -102,7 +102,7 @@ public final class ApplicationConfigCache {
                 consumer.accept(System.currentTimeMillis());
             }
         } catch (ExecutionException e) {
-            throw new SoulException(e.getCause());
+            throw new ShenyuException(e.getCause());
         }
     }
 
@@ -136,9 +136,9 @@ public final class ApplicationConfigCache {
         return ApplicationConfigCacheInstance.INSTANCE;
     }
 
-    private SoulServiceInstance build(final DivideUpstream divideUpstream) {
+    private ShenyuServiceInstance build(final DivideUpstream divideUpstream) {
         String[] ipAndPort = divideUpstream.getUpstreamUrl().split(":");
-        SoulServiceInstance instance = new SoulServiceInstance(ipAndPort[0], Integer.parseInt(ipAndPort[1]));
+        ShenyuServiceInstance instance = new ShenyuServiceInstance(ipAndPort[0], Integer.parseInt(ipAndPort[1]));
         instance.setWeight(divideUpstream.getWeight());
         instance.setStatus(divideUpstream.isStatus());
         return instance;

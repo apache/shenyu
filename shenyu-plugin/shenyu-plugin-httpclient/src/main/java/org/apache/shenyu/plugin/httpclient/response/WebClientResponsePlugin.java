@@ -20,11 +20,11 @@ package org.apache.shenyu.plugin.httpclient.response;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.api.result.SoulResultEnum;
-import org.apache.shenyu.plugin.api.result.SoulResultWrap;
-import org.apache.shenyu.plugin.api.SoulPlugin;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
+import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
+import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -40,29 +40,29 @@ import java.util.Objects;
  *
  * @author xiaoyu
  */
-public class WebClientResponsePlugin implements SoulPlugin {
+public class WebClientResponsePlugin implements ShenyuPlugin {
 
     /**
      * Process the Web request and (optionally) delegate to the next
-     * {@code WebFilter} through the given {@link SoulPluginChain}.
+     * {@code WebFilter} through the given {@link ShenyuPluginChain}.
      *
      * @param exchange the current server exchange
      * @param chain    provides a way to delegate to the next filter
      * @return {@code Mono<Void>} to indicate when request processing is complete
      */
     @Override
-    public Mono<Void> execute(final ServerWebExchange exchange, final SoulPluginChain chain) {
+    public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return chain.execute(exchange).then(Mono.defer(() -> {
             ServerHttpResponse response = exchange.getResponse();
             ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
             if (Objects.isNull(clientResponse)
                     || response.getStatusCode() == HttpStatus.BAD_GATEWAY
                     || response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
-                Object error = SoulResultWrap.error(SoulResultEnum.SERVICE_RESULT_ERROR.getCode(), SoulResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
+                Object error = ShenyuResultWrap.error(ShenyuResultEnum.SERVICE_RESULT_ERROR.getCode(), ShenyuResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
                 return WebFluxResultUtils.result(exchange, error);
             }
             if (response.getStatusCode() == HttpStatus.GATEWAY_TIMEOUT) {
-                Object error = SoulResultWrap.error(SoulResultEnum.SERVICE_TIMEOUT.getCode(), SoulResultEnum.SERVICE_TIMEOUT.getMsg(), null);
+                Object error = ShenyuResultWrap.error(ShenyuResultEnum.SERVICE_TIMEOUT.getCode(), ShenyuResultEnum.SERVICE_TIMEOUT.getMsg(), null);
                 return WebFluxResultUtils.result(exchange, error);
             }
             response.setStatusCode(clientResponse.statusCode());
@@ -79,10 +79,10 @@ public class WebClientResponsePlugin implements SoulPlugin {
 
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
-        final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-        assert soulContext != null;
-        return !Objects.equals(RpcTypeEnum.HTTP.getName(), soulContext.getRpcType())
-                && !Objects.equals(RpcTypeEnum.SPRING_CLOUD.getName(), soulContext.getRpcType());
+        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
+        return !Objects.equals(RpcTypeEnum.HTTP.getName(), shenyuContext.getRpcType())
+                && !Objects.equals(RpcTypeEnum.SPRING_CLOUD.getName(), shenyuContext.getRpcType());
     }
 
     /**

@@ -18,8 +18,8 @@
 package org.apache.shenyu.plugin.base.utils;
 
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.result.DefaultSoulResult;
-import org.apache.shenyu.plugin.api.result.SoulResult;
+import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
+import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -54,7 +54,7 @@ public final class FallbackUtilsTest {
                 .remoteAddress(new InetSocketAddress(8090))
                 .contextPath("/SOUL")
                 .build());
-        when(context.getBean(SoulResult.class)).thenReturn(new DefaultSoulResult());
+        when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
     }
 
     /**

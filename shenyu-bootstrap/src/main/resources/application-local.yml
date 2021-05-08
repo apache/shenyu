@@ -21,7 +21,7 @@ spring:
    main:
      allow-bean-definition-overriding: true
    application:
-    name: soul-bootstrap
+    name: shenyu-bootstrap
 #   cloud:
 #    nacos:
 #       discovery:

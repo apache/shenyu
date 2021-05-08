@@ -28,7 +28,7 @@ import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
 import org.apache.shenyu.admin.service.impl.UpstreamCheckService;
 import org.apache.shenyu.common.dto.convert.DivideUpstream;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.register.common.config.SoulRegisterCenterConfig;
+import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -78,13 +78,13 @@ public final class UpstreamCheckServiceTest {
     @Mock
     private SelectorConditionMapper selectorConditionMapper;
 
-    private SoulRegisterCenterConfig soulRegisterCenterConfig = new SoulRegisterCenterConfig();
+    private ShenyuRegisterCenterConfig shenyuRegisterCenterConfig = new ShenyuRegisterCenterConfig();
 
     private Map<String, List<DivideUpstream>> upstreamMap;
 
     @Before
     public void setUp() {
-        soulRegisterCenterConfig.setRegisterType("http");
+        shenyuRegisterCenterConfig.setRegisterType("http");
 
         //get static variable reference by reflection
         upstreamMap = (Map<String, List<DivideUpstream>>) ReflectionTestUtils.getField(UpstreamCheckService.class, "UPSTREAM_MAP");
@@ -120,7 +120,7 @@ public final class UpstreamCheckServiceTest {
         when(selectorConditionMapper.selectByQuery(any(SelectorConditionQuery.class))).thenReturn(Collections.emptyList());
         doNothing().when(eventPublisher).publishEvent(any(DataChangedEvent.class));
 
-        upstreamCheckService = new UpstreamCheckService(selectorMapper, eventPublisher, pluginMapper, selectorConditionMapper, soulRegisterCenterConfig);
+        upstreamCheckService = new UpstreamCheckService(selectorMapper, eventPublisher, pluginMapper, selectorConditionMapper, shenyuRegisterCenterConfig);
         //spring bean creation lifecycle phase:post construct.
         upstreamCheckService.setup();
     }

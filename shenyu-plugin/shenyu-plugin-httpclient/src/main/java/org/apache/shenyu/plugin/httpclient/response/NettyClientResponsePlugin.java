@@ -20,9 +20,9 @@ package org.apache.shenyu.plugin.httpclient.response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.api.SoulPlugin;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import org.springframework.http.MediaType;
@@ -43,12 +43,12 @@ import java.util.Objects;
  * @author xiaoyu
  */
 @Slf4j
-public class NettyClientResponsePlugin implements SoulPlugin {
+public class NettyClientResponsePlugin implements ShenyuPlugin {
 
     private final List<MediaType> streamingMediaTypes = Arrays.asList(MediaType.TEXT_EVENT_STREAM, MediaType.APPLICATION_STREAM_JSON);
 
     @Override
-    public Mono<Void> execute(final ServerWebExchange exchange, final SoulPluginChain chain) {
+    public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return chain.execute(exchange).doOnError(throwable -> cleanup(exchange)).then(Mono.defer(() -> {
             Connection connection = exchange.getAttribute(Constants.CLIENT_RESPONSE_CONN_ATTR);
             if (connection == null) {
@@ -80,10 +80,10 @@ public class NettyClientResponsePlugin implements SoulPlugin {
 
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
-        final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-        assert soulContext != null;
-        return !Objects.equals(RpcTypeEnum.HTTP.getName(), soulContext.getRpcType())
-                && !Objects.equals(RpcTypeEnum.SPRING_CLOUD.getName(), soulContext.getRpcType());
+        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
+        return !Objects.equals(RpcTypeEnum.HTTP.getName(), shenyuContext.getRpcType())
+                && !Objects.equals(RpcTypeEnum.SPRING_CLOUD.getName(), shenyuContext.getRpcType());
     }
 
     private void cleanup(final ServerWebExchange exchange) {

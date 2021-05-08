@@ -17,17 +17,17 @@
 
 package org.apache.shenyu.plugin.tars;
 
-import org.apache.shenyu.common.concurrent.SoulThreadFactory;
+import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
-import org.apache.shenyu.plugin.api.result.DefaultSoulResult;
-import org.apache.shenyu.plugin.api.result.SoulResult;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
+import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.tars.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.tars.proxy.TarsInvokePrxList;
@@ -64,7 +64,7 @@ import static org.mockito.Mockito.when;
 public class TarsPluginTest {
 
     @Mock
-    private SoulPluginChain chain;
+    private ShenyuPluginChain chain;
 
     private MetaData metaData;
 
@@ -75,7 +75,7 @@ public class TarsPluginTest {
     @Before
     public void setUp() {
         ConfigurableApplicationContext applicationContext = mock(ConfigurableApplicationContext.class);
-        when(applicationContext.getBean(SoulResult.class)).thenReturn(new DefaultSoulResult());
+        when(applicationContext.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
         SpringBeanUtils springBeanUtils = SpringBeanUtils.getInstance();
         springBeanUtils.setCfgContext(applicationContext);
         metaData = new MetaData("id", "127.0.0.1:8080", "contextPath",
@@ -90,7 +90,7 @@ public class TarsPluginTest {
 
     @Test
     public void testTarsPluginWithEmptyBody() {
-        SoulContext context = mock(SoulContext.class);
+        ShenyuContext context = mock(ShenyuContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, context);
         exchange.getAttributes().put(Constants.META_DATA, metaData);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
@@ -101,7 +101,7 @@ public class TarsPluginTest {
 
     @Test
     public void testTarsPluginWithEmptyMetaData() {
-        SoulContext context = mock(SoulContext.class);
+        ShenyuContext context = mock(ShenyuContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, context);
         metaData.setServiceName("");
         exchange.getAttributes().put(Constants.META_DATA, metaData);
@@ -113,7 +113,7 @@ public class TarsPluginTest {
 
     @Test
     public void testTarsPluginWithArgumentTypeMissMatch() {
-        SoulContext context = mock(SoulContext.class);
+        ShenyuContext context = mock(ShenyuContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, context);
         exchange.getAttributes().put(Constants.META_DATA, metaData);
         exchange.getAttributes().put(Constants.PARAM_TRANSFORM, "{\"param1\":1,\"param2\":2}");
@@ -125,7 +125,7 @@ public class TarsPluginTest {
 
     @Test
     public void testTarsPluginNormal() throws InvocationTargetException, IllegalAccessException {
-        SoulContext context = mock(SoulContext.class);
+        ShenyuContext context = mock(ShenyuContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, context);
         exchange.getAttributes().put(Constants.META_DATA, metaData);
         exchange.getAttributes().put(Constants.PARAM_TRANSFORM, "{\"param1\":\"1\",\"param2\":\"1\"}");
@@ -135,7 +135,7 @@ public class TarsPluginTest {
         TarsInvokePrxList tarsInvokePrxList = ApplicationConfigCache.getInstance().get(metaData.getPath());
         Method method = mock(Method.class);
         ExecutorService executorService = Executors.newFixedThreadPool(1,
-                SoulThreadFactory.create("long-polling", true));
+                ShenyuThreadFactory.create("long-polling", true));
         CompletableFuture<String> stringCompletableFuture = CompletableFuture.supplyAsync(() -> "", executorService);
         when(method.invoke(any(), any())).thenReturn(stringCompletableFuture);
         tarsInvokePrxList.setMethod(method);
@@ -156,7 +156,7 @@ public class TarsPluginTest {
 
     @Test
     public void testSkip() {
-        SoulContext context = mock(SoulContext.class);
+        ShenyuContext context = mock(ShenyuContext.class);
         when(context.getRpcType()).thenReturn(RpcTypeEnum.TARS.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
         Boolean result = tarsPluginUnderTest.skip(exchange);

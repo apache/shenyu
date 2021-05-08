@@ -26,8 +26,8 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.Resilience4JHandle;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.resilience4j.cache.Resilience4jRuleHandleCache;
 import org.apache.shenyu.plugin.resilience4j.executor.CombinedExecutor;
 import org.apache.shenyu.plugin.resilience4j.executor.RateLimiterExecutor;
@@ -66,7 +66,7 @@ public final class Resilience4JPluginTest {
             + "\"timeoutDuration\":\"20000000\",\"waitIntervalFunctionInOpenState\":\"100000\"}";
 
     @Mock
-    private SoulPluginChain chain;
+    private ShenyuPluginChain chain;
 
     private ServerWebExchange exchange;
 
@@ -80,7 +80,7 @@ public final class Resilience4JPluginTest {
     public void setup() {
         rateLimiter = mock(RateLimiter.class, RETURNS_DEEP_STUBS);
         circuitBreaker = mock(CircuitBreaker.class, RETURNS_DEEP_STUBS);
-        SoulContext context = mock(SoulContext.class);
+        ShenyuContext context = mock(ShenyuContext.class);
         exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
         exchange.getAttributes().put(Constants.CONTEXT, context);
     }
