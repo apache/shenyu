@@ -23,30 +23,28 @@ import org.apache.shenyu.common.utils.VersionUtils;
 import org.junit.Test;
 
 /**
- * The TestCase for SoulLogo.
- *
- * @author itmiwang
+ * The TestCase for ShenyuLogo.
  */
 @Slf4j
 public final class ShenyuLogoTest {
-    
-    private static final String SOUL_LOGO = "\n"
-            + "                 _  \n"
-            + "                | | \n"
-            + " ___  ___  _   _| | \n"
-            + "/ __|/ _ \\| | | | |\n"
-            + "\\__ \\ (_) | |_| | |\n"
-            + "|___/\\___/ \\__,_|_|\n"
-            + "                    \n"
-            + "                   \n";
+
+    private static final String SHENYU_LOGO = "\n"
+        + "   _____ _                            \n"
+        + "  / ____| |                           \n"
+        + " | (___ | |__   ___ _ __  _   _ _   _ \n"
+        + "  \\___ \\| '_ \\ / _ \\ '_ \\| | | | | | |\n"
+        + "  ____) | | | |  __/ | | | |_| | |_| |\n"
+        + " |_____/|_| |_|\\___|_| |_|\\__, |\\__,_|\n"
+        + "                           __/ |      \n"
+        + "                          |___/       ";
     
     @Test
     public void buildBannerText() {
         String buildBannerText = Constants.LINE_SEPARATOR
                 + Constants.LINE_SEPARATOR
-                + SOUL_LOGO
+                + SHENYU_LOGO
                 + Constants.LINE_SEPARATOR
-                + " :: Soul :: (v" + VersionUtils.getVersion(getClass(), "2.0.2") + ")"
+                + " :: Shenyu :: (v" + VersionUtils.getVersion(getClass(), "2.0.2") + ")"
                 + Constants.LINE_SEPARATOR;
         log.info(buildBannerText);
     }
