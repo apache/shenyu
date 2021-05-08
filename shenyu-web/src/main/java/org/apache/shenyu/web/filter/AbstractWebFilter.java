@@ -24,9 +24,7 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 /**
- * soul webFilter parent.
- *
- * @author xiaoyu
+ * shenyu webFilter parent.
  */
 public abstract class AbstractWebFilter implements WebFilter {
 

@@ -34,8 +34,6 @@ import reactor.core.publisher.Mono;
 
 /**
  * this is http post param verify filter.
- *
- * @author xiaoyu(Myth)
  */
 public class WebSocketParamFilter extends AbstractWebFilter {
 

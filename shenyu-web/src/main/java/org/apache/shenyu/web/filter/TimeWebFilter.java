@@ -29,8 +29,6 @@ import reactor.core.publisher.Mono;
 
 /**
  * this is visit time verify filter.
- *
- * @author xiaoyu(Myth)
  */
 public class TimeWebFilter extends AbstractWebFilter {
 

@@ -33,8 +33,6 @@ import java.util.Set;
 
 /**
  * exclude url filter.
- *
- * @author HoldDie
  */
 public class ExcludeFilter implements WebFilter {
 

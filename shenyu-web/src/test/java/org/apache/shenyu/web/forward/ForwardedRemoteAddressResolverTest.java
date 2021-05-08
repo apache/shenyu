@@ -29,7 +29,6 @@ import org.springframework.web.server.ServerWebExchange;
 /**
  * Test cases for ForwardedRemoteAddressResolver.
  *
- * @author xiaoshen11
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class ForwardedRemoteAddressResolverTest {

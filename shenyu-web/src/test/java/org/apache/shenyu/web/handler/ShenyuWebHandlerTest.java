@@ -35,9 +35,8 @@ import java.util.List;
 import static org.mockito.Mockito.mock;
 
 /**
- * test for SoulWebHandler.
+ * test for ShenyuWebHandler.
  *
- * @author FocusZhouGD
  */
 public class ShenyuWebHandlerTest {
 
