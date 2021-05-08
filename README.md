@@ -2,7 +2,7 @@
     <a href="https://dromara.org"><img src="https://dromara.org/img/logo/soul.png" width="45%"></a>
 </p>
 <p align="center">
-  <strong>Scalable, High Performance, Responsive API Gateway Solution for all MicroSerivces</strong>
+  <strong>Scalable, High Performance, Responsive API Gateway Solution for all MicroServices</strong>
 </p>
 <p align="center">
   <a href="https://dromara.org">https://dromara.org/</a>
