@@ -25,12 +25,12 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
-import org.apache.shenyu.plugin.api.result.SoulResultEnum;
-import org.apache.shenyu.plugin.api.result.SoulResultWrap;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
+import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
-import org.apache.shenyu.plugin.base.AbstractSoulPlugin;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.motan.proxy.MotanProxyService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
@@ -44,7 +44,7 @@ import java.util.Objects;
  * @author tydhot
  */
 @Slf4j
-public class MotanPlugin extends AbstractSoulPlugin {
+public class MotanPlugin extends AbstractShenyuPlugin {
 
     private final MotanProxyService motanProxyService;
 
@@ -58,22 +58,22 @@ public class MotanPlugin extends AbstractSoulPlugin {
     }
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain,
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
                                    final SelectorData selector, final RuleData rule) {
         String param = exchange.getAttribute(Constants.PARAM_TRANSFORM);
-        SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-        assert soulContext != null;
+        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
         MetaData metaData = exchange.getAttribute(Constants.META_DATA);
         if (!checkMetaData(metaData)) {
             assert metaData != null;
-            log.error("path is :{}, meta data have error.... {}", soulContext.getPath(), metaData.toString());
+            log.error("path is :{}, meta data have error.... {}", shenyuContext.getPath(), metaData.toString());
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            Object error = SoulResultWrap.error(SoulResultEnum.META_DATA_ERROR.getCode(), SoulResultEnum.META_DATA_ERROR.getMsg(), null);
+            Object error = ShenyuResultWrap.error(ShenyuResultEnum.META_DATA_ERROR.getCode(), ShenyuResultEnum.META_DATA_ERROR.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         if (StringUtils.isNoneBlank(metaData.getParameterTypes()) && StringUtils.isBlank(param)) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            Object error = SoulResultWrap.error(SoulResultEnum.MOTAN_HAVE_BODY_PARAM.getCode(), SoulResultEnum.MOTAN_HAVE_BODY_PARAM.getMsg(), null);
+            Object error = ShenyuResultWrap.error(ShenyuResultEnum.MOTAN_HAVE_BODY_PARAM.getCode(), ShenyuResultEnum.MOTAN_HAVE_BODY_PARAM.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         final Mono<Object> result = motanProxyService.genericInvoker(param, metaData, exchange);
@@ -98,9 +98,9 @@ public class MotanPlugin extends AbstractSoulPlugin {
      */
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
-        final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-        assert soulContext != null;
-        return !Objects.equals(soulContext.getRpcType(), RpcTypeEnum.MOTAN.getName());
+        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
+        return !Objects.equals(shenyuContext.getRpcType(), RpcTypeEnum.MOTAN.getName());
     }
 
     @Override

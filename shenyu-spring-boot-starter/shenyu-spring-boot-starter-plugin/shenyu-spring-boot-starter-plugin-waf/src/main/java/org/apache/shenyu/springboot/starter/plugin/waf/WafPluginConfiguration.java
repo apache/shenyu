@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.springboot.starter.plugin.waf;
 
-import org.apache.shenyu.plugin.api.SoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.waf.WafPlugin;
 import org.apache.shenyu.plugin.waf.handler.WafPluginDataHandler;
@@ -38,7 +38,7 @@ public class WafPluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin wafPlugin() {
+    public ShenyuPlugin wafPlugin() {
         return new WafPlugin();
     }
     

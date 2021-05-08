@@ -23,11 +23,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.api.SoulPlugin;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
-import org.apache.shenyu.plugin.api.result.SoulResultEnum;
-import org.apache.shenyu.plugin.api.result.SoulResultWrap;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
+import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.http.HttpHeaders;
@@ -54,7 +54,7 @@ import java.util.concurrent.TimeoutException;
  * @author xiaoyu
  */
 @Slf4j
-public class NettyHttpClientPlugin implements SoulPlugin {
+public class NettyHttpClientPlugin implements ShenyuPlugin {
 
     private final HttpClient httpClient;
 
@@ -68,9 +68,9 @@ public class NettyHttpClientPlugin implements SoulPlugin {
     }
 
     @Override
-    public Mono<Void> execute(final ServerWebExchange exchange, final SoulPluginChain chain) {
-        final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-        assert soulContext != null;
+    public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
         ServerHttpRequest request = exchange.getRequest();
         final HttpMethod method = HttpMethod.valueOf(request.getMethodValue());
         HttpHeaders filtered = request.getHeaders();
@@ -78,7 +78,7 @@ public class NettyHttpClientPlugin implements SoulPlugin {
         filtered.forEach(httpHeaders::set);
         String url = exchange.getAttribute(Constants.HTTP_URL);
         if (StringUtils.isEmpty(url)) {
-            Object error = SoulResultWrap.error(SoulResultEnum.CANNOT_FIND_URL.getCode(), SoulResultEnum.CANNOT_FIND_URL.getMsg(), null);
+            Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_URL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         log.info("you request, The resulting urlPath is: {}", url);
@@ -124,10 +124,10 @@ public class NettyHttpClientPlugin implements SoulPlugin {
 
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
-        final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-        assert soulContext != null;
-        return !Objects.equals(RpcTypeEnum.HTTP.getName(), soulContext.getRpcType())
-                && !Objects.equals(RpcTypeEnum.SPRING_CLOUD.getName(), soulContext.getRpcType());
+        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
+        return !Objects.equals(RpcTypeEnum.HTTP.getName(), shenyuContext.getRpcType())
+                && !Objects.equals(RpcTypeEnum.SPRING_CLOUD.getName(), shenyuContext.getRpcType());
     }
 
     @Override

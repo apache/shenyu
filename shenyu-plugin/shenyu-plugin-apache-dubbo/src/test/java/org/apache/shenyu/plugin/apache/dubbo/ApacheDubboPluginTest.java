@@ -24,8 +24,8 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.apache.dubbo.proxy.ApacheDubboProxyService;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,7 +57,7 @@ public final class ApacheDubboPluginTest {
     private ServerWebExchange exchange;
 
     @Mock
-    private SoulPluginChain chain;
+    private ShenyuPluginChain chain;
 
     @Before
     public void setUp() {
@@ -75,7 +75,7 @@ public final class ApacheDubboPluginTest {
 
     @Test(expected = NullPointerException.class)
     public void doExecute() {
-        SoulContext context = mock(SoulContext.class);
+        ShenyuContext context = mock(ShenyuContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, context);
         exchange.getAttributes().put(Constants.PARAM_TRANSFORM, "{key:value}");
         exchange.getAttributes().put(Constants.META_DATA, metaData);
@@ -87,7 +87,7 @@ public final class ApacheDubboPluginTest {
 
     @Test(expected = NullPointerException.class)
     public void testParameterNotNullExecute() {
-        SoulContext context = mock(SoulContext.class);
+        ShenyuContext context = mock(ShenyuContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, context);
         metaData.setParameterTypes("parameterTypes");
         exchange.getAttributes().put(Constants.META_DATA, metaData);
@@ -98,7 +98,7 @@ public final class ApacheDubboPluginTest {
 
     @Test(expected = NullPointerException.class)
     public void testMethodIsNullExecute() {
-        SoulContext context = mock(SoulContext.class);
+        ShenyuContext context = mock(ShenyuContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, context);
         exchange.getAttributes().put(Constants.PARAM_TRANSFORM, "{key:value}");
         MetaData metaData = MetaData.builder()
@@ -123,7 +123,7 @@ public final class ApacheDubboPluginTest {
     @Test
     public void skip() {
         final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
-        SoulContext context = mock(SoulContext.class);
+        ShenyuContext context = mock(ShenyuContext.class);
         when(context.getRpcType()).thenReturn(RpcTypeEnum.DUBBO.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
         exchange.getAttributes().put(Constants.META_DATA, metaData);

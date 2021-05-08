@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.springboot.starter.plugin.redirect;
 
-import org.apache.shenyu.plugin.api.SoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.redirect.RedirectPlugin;
 import org.apache.shenyu.plugin.redirect.handler.RedirectPluginDataHandler;
@@ -40,7 +40,7 @@ public class RedirectPluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin redirectPlugin(final DispatcherHandler dispatcherHandler) {
+    public ShenyuPlugin redirectPlugin(final DispatcherHandler dispatcherHandler) {
         return new RedirectPlugin(dispatcherHandler);
     }
 

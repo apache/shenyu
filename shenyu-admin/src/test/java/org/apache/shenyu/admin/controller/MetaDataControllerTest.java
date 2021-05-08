@@ -24,7 +24,7 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.MetaDataQuery;
 import org.apache.shenyu.admin.service.MetaDataService;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.vo.MetaDataVO;
 import org.apache.shenyu.common.constant.AdminConstants;
 import org.apache.shenyu.common.utils.DateUtils;
@@ -92,7 +92,7 @@ public final class MetaDataControllerTest {
                 .param("currentPage", pageParameter.getCurrentPage() + "")
                 .param("pageSize", pageParameter.getPageSize() + ""))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
                 .andExpect(jsonPath("$.data.dataList[0].appName", is(metaDataVO.getAppName())))
                 .andReturn();
     }
@@ -104,7 +104,7 @@ public final class MetaDataControllerTest {
         given(this.metaDataService.findAll()).willReturn(metaDataVOS);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/meta-data/findAll"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
                 .andExpect(jsonPath("$.data[0].appName", is(metaDataVO.getAppName())))
                 .andReturn();
     }
@@ -119,7 +119,7 @@ public final class MetaDataControllerTest {
         given(this.metaDataService.findAllGroup()).willReturn(result);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/meta-data/findAllGroup"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
                 .andExpect(jsonPath("$.data." + groupName + "[0].appName", is(metaDataVO.getAppName())))
                 .andReturn();
     }
@@ -129,7 +129,7 @@ public final class MetaDataControllerTest {
         given(this.metaDataService.findById("1")).willReturn(metaDataVO);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/meta-data/{id}", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.DETAIL_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
                 .andExpect(jsonPath("$.data.appName", is(metaDataVO.getAppName())))
                 .andReturn();
     }
@@ -146,7 +146,7 @@ public final class MetaDataControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(metaDataDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.CREATE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
                 .andReturn();
     }
 
@@ -176,7 +176,7 @@ public final class MetaDataControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(ids)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.DELETE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
                 .andExpect(jsonPath("$.data", is(2)))
                 .andReturn();
     }
@@ -191,7 +191,7 @@ public final class MetaDataControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.ENABLE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.ENABLE_SUCCESS)))
                 .andReturn();
     }
 

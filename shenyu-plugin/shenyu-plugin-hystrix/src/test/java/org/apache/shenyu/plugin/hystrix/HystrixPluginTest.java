@@ -24,8 +24,8 @@ import org.apache.shenyu.common.dto.convert.HystrixHandle;
 import org.apache.shenyu.common.enums.HystrixIsolationModeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.hystrix.cache.HystrixRuleHandleCache;
 import org.apache.shenyu.plugin.hystrix.handler.HystrixPluginDataHandler;
 import org.junit.Before;
@@ -57,9 +57,9 @@ public final class HystrixPluginTest {
     @Test(expected = NullPointerException.class)
     public void testDoExecuteNullException() {
         final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
-        SoulContext soulContext = mock(SoulContext.class);
-        exchange.getAttributes().put(Constants.CONTEXT, soulContext);
-        SoulPluginChain chain = mock(SoulPluginChain.class);
+        ShenyuContext shenyuContext = mock(ShenyuContext.class);
+        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
+        ShenyuPluginChain chain = mock(ShenyuPluginChain.class);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         HystrixHandle hystrixHandle = new HystrixHandle();
         hystrixHandle.setMaxConcurrentRequests(0);
@@ -77,9 +77,9 @@ public final class HystrixPluginTest {
     @Test
     public void testDoExecute() {
         final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
-        SoulContext soulContext = mock(SoulContext.class);
-        exchange.getAttributes().put(Constants.CONTEXT, soulContext);
-        SoulPluginChain chain = mock(SoulPluginChain.class);
+        ShenyuContext shenyuContext = mock(ShenyuContext.class);
+        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
+        ShenyuPluginChain chain = mock(ShenyuPluginChain.class);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         HystrixHandle hystrixHandle = new HystrixHandle();
         hystrixHandle.setGroupKey("groupKey");

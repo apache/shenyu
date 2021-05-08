@@ -18,8 +18,6 @@ package org.apache.shenyu.spi;
 
 /**
  * The interface Extension factory.
- *
- * @author xiaoyu(Myth)
  */
 @SPI("spi")
 public interface ExtensionFactory {

@@ -19,7 +19,7 @@ package org.apache.shenyu.common.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.apache.shenyu.common.exception.SoulException;
+import org.apache.shenyu.common.exception.ShenyuException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -96,6 +96,6 @@ public enum ParamTypeEnum {
     public static ParamTypeEnum getParamTypeEnumByName(final String name) {
         return Arrays.stream(ParamTypeEnum.values())
                 .filter(e -> e.getName().equals(name) && e.support).findFirst()
-                .orElseThrow(() -> new SoulException(String.format(" this  param type can not support %s", name)));
+                .orElseThrow(() -> new ShenyuException(String.format(" this  param type can not support %s", name)));
     }
 }

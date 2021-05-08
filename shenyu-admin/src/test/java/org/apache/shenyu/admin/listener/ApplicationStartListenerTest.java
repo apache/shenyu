@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.listener;
 
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
-import org.apache.shenyu.admin.utils.SoulDomain;
+import org.apache.shenyu.admin.utils.ShenyuDomain;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.junit.Test;
 import org.springframework.boot.web.server.LocalServerPort;
@@ -38,6 +38,6 @@ public final class ApplicationStartListenerTest extends AbstractSpringIntegratio
     public void testOnApplicationEvent() {
         String host = IpUtils.getHost();
         String expectedPath = "http://" + String.join(":", host, String.valueOf(port));
-        assertEquals(expectedPath, SoulDomain.getInstance().getHttpPath());
+        assertEquals(expectedPath, ShenyuDomain.getInstance().getHttpPath());
     }
 }

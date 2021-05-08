@@ -19,7 +19,7 @@ package org.apache.shenyu.common.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.apache.shenyu.common.exception.SoulException;
+import org.apache.shenyu.common.exception.ShenyuException;
 
 import java.util.Arrays;
 
@@ -63,7 +63,7 @@ public enum HttpMethodEnum {
     public static HttpMethodEnum acquireByName(final String name) {
         return Arrays.stream(HttpMethodEnum.values())
                 .filter(e -> e.support && e.name.equals(name)).findFirst()
-                .orElseThrow(() -> new SoulException(String.format(" this http method can not support %s", name)));
+                .orElseThrow(() -> new ShenyuException(String.format(" this http method can not support %s", name)));
     }
 
 }

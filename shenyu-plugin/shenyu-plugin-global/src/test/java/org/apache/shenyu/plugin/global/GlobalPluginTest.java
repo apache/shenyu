@@ -18,13 +18,13 @@
 package org.apache.shenyu.plugin.global;
 
 import lombok.SneakyThrows;
-import org.apache.shenyu.plugin.global.fixture.FixtureSoulContextDecorator;
+import org.apache.shenyu.plugin.global.fixture.FixtureShenyuContextDecorator;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
-import org.apache.shenyu.plugin.api.context.SoulContextBuilder;
-import org.apache.shenyu.plugin.api.context.SoulContextDecorator;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
+import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,7 +53,7 @@ import static org.springframework.http.HttpHeaders.UPGRADE;
 @RunWith(MockitoJUnitRunner.class)
 public final class GlobalPluginTest {
 
-    private SoulPluginChain chain;
+    private ShenyuPluginChain chain;
 
     private GlobalPlugin globalPlugin;
 
@@ -65,11 +65,11 @@ public final class GlobalPluginTest {
                 .remoteAddress(new InetSocketAddress(8091))
                 .header(UPGRADE, "Upgrade")
                 .build());
-        Map<String, SoulContextDecorator> decoratorMap = new HashMap<>();
-        decoratorMap.put("http", new FixtureSoulContextDecorator());
-        SoulContextBuilder builder = new DefaultSoulContextBuilder(decoratorMap);
+        Map<String, ShenyuContextDecorator> decoratorMap = new HashMap<>();
+        decoratorMap.put("http", new FixtureShenyuContextDecorator());
+        ShenyuContextBuilder builder = new DefaultShenyuContextBuilder(decoratorMap);
         this.globalPlugin = new GlobalPlugin(builder);
-        this.chain = mock(SoulPluginChain.class);
+        this.chain = mock(ShenyuPluginChain.class);
     }
 
     @Test
@@ -94,10 +94,10 @@ public final class GlobalPluginTest {
         queryParams.add(Constants.MODULE, "module");
         queryParams.add(Constants.METHOD, "method");
         queryParams.add(Constants.RPC_TYPE, "RPC_TYPE");
-        SoulContext soulContext = (SoulContext) method.invoke(this.globalPlugin, queryParams);
-        assertEquals(soulContext.getModule(), "module");
-        assertEquals(soulContext.getMethod(), "method");
-        assertEquals(soulContext.getRpcType(), "RPC_TYPE");
+        ShenyuContext shenyuContext = (ShenyuContext) method.invoke(this.globalPlugin, queryParams);
+        assertEquals(shenyuContext.getModule(), "module");
+        assertEquals(shenyuContext.getMethod(), "method");
+        assertEquals(shenyuContext.getRpcType(), "RPC_TYPE");
     }
 
     @Test

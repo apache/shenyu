@@ -16,4 +16,4 @@
 #
 
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.apache.shenyu.springboot.starter.client.common.config.SoulClientCommonBeanConfiguration
+org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration

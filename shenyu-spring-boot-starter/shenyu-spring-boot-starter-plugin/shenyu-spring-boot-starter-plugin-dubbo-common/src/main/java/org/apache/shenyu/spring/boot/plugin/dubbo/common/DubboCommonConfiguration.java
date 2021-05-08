@@ -17,10 +17,10 @@
 
 package org.apache.shenyu.spring.boot.plugin.dubbo.common;
 
-import org.apache.shenyu.plugin.api.SoulPlugin;
-import org.apache.shenyu.plugin.api.context.SoulContextDecorator;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.api.param.BodyParamResolveService;
-import org.apache.shenyu.plugin.dubbo.common.context.DubboSoulContextDecorator;
+import org.apache.shenyu.plugin.dubbo.common.context.DubboShenyuContextDecorator;
 import org.apache.shenyu.plugin.dubbo.common.param.DubboBodyParamResolveServiceImpl;
 import org.apache.shenyu.plugin.dubbo.common.response.DubboResponsePlugin;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -42,8 +42,8 @@ public class DubboCommonConfiguration {
      * @return the soul context decorator
      */
     @Bean
-    public SoulContextDecorator dubboSoulContextDecorator() {
-        return new DubboSoulContextDecorator();
+    public ShenyuContextDecorator dubboSoulContextDecorator() {
+        return new DubboShenyuContextDecorator();
     }
     
     /**
@@ -52,7 +52,7 @@ public class DubboCommonConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin dubboResponsePlugin() {
+    public ShenyuPlugin dubboResponsePlugin() {
         return new DubboResponsePlugin();
     }
     

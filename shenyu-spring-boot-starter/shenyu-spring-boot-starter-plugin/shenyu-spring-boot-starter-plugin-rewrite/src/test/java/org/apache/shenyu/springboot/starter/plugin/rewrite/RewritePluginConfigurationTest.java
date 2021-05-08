@@ -18,7 +18,7 @@
 package org.apache.shenyu.springboot.starter.plugin.rewrite;
 
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.SoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -44,7 +44,7 @@ public class RewritePluginConfigurationTest {
             .withPropertyValues("debug=true")
             .run(
                 context -> {
-                    SoulPlugin plugin = context.getBean("rewritePlugin", SoulPlugin.class);
+                    ShenyuPlugin plugin = context.getBean("rewritePlugin", ShenyuPlugin.class);
                     assertThat(plugin.named()).isEqualTo(PluginEnum.REWRITE.getName());
                 }
             );

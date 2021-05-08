@@ -29,12 +29,12 @@ import org.apache.shenyu.common.dto.convert.DivideUpstream;
 import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
-import org.apache.shenyu.plugin.api.result.SoulResultEnum;
-import org.apache.shenyu.plugin.base.AbstractSoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.FallbackUtils;
-import org.apache.shenyu.plugin.api.result.SoulResultWrap;
+import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.divide.balance.utils.LoadBalanceUtils;
 import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
@@ -51,13 +51,13 @@ import java.util.Objects;
  * @author xiaoyu(Myth)
  */
 @Slf4j
-public class DividePlugin extends AbstractSoulPlugin {
+public class DividePlugin extends AbstractShenyuPlugin {
 
     @SneakyThrows
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
-        final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-        assert soulContext != null;
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
+        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
         final DivideRuleHandle ruleHandle = UpstreamCacheManager.getInstance().obtainHandle(DividePluginDataHandler.getCacheKeyName(rule));
         long headerSize = 0;
         for (List<String> multiHeader : exchange.getRequest().getHeaders().values()) {
@@ -67,30 +67,30 @@ public class DividePlugin extends AbstractSoulPlugin {
         }
         if (headerSize > ruleHandle.getHeaderMaxSize()) {
             log.error("request header is too large");
-            Object error = SoulResultWrap.error(SoulResultEnum.REQUEST_HEADER_TOO_LARGE.getCode(), SoulResultEnum.REQUEST_HEADER_TOO_LARGE.getMsg(), null);
+            Object error = ShenyuResultWrap.error(ShenyuResultEnum.REQUEST_HEADER_TOO_LARGE.getCode(), ShenyuResultEnum.REQUEST_HEADER_TOO_LARGE.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         if (exchange.getRequest().getHeaders().getContentLength() > ruleHandle.getRequestMaxSize()) {
             log.error("request entity is too large");
-            Object error = SoulResultWrap.error(SoulResultEnum.REQUEST_ENTITY_TOO_LARGE.getCode(), SoulResultEnum.REQUEST_ENTITY_TOO_LARGE.getMsg(), null);
+            Object error = ShenyuResultWrap.error(ShenyuResultEnum.REQUEST_ENTITY_TOO_LARGE.getCode(), ShenyuResultEnum.REQUEST_ENTITY_TOO_LARGE.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         final List<DivideUpstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
         if (CollectionUtils.isEmpty(upstreamList)) {
             log.error("divide upstream configuration error： {}", rule.toString());
-            Object error = SoulResultWrap.error(SoulResultEnum.CANNOT_FIND_URL.getCode(), SoulResultEnum.CANNOT_FIND_URL.getMsg(), null);
+            Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_URL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         final String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
         DivideUpstream divideUpstream = LoadBalanceUtils.selector(upstreamList, ruleHandle.getLoadBalance(), ip);
         if (Objects.isNull(divideUpstream)) {
             log.error("divide has no upstream");
-            Object error = SoulResultWrap.error(SoulResultEnum.CANNOT_FIND_URL.getCode(), SoulResultEnum.CANNOT_FIND_URL.getMsg(), null);
+            Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_URL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         // set the http url
         String domain = buildDomain(divideUpstream);
-        String realURL = buildRealURL(domain, soulContext, exchange);
+        String realURL = buildRealURL(domain, shenyuContext, exchange);
         exchange.getAttributes().put(Constants.HTTP_URL, realURL);
         // set the http timeout
         exchange.getAttributes().put(Constants.HTTP_TIME_OUT, ruleHandle.getTimeout());
@@ -105,8 +105,8 @@ public class DividePlugin extends AbstractSoulPlugin {
 
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
-        final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-        return !Objects.equals(Objects.requireNonNull(soulContext).getRpcType(), RpcTypeEnum.HTTP.getName());
+        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        return !Objects.equals(Objects.requireNonNull(shenyuContext).getRpcType(), RpcTypeEnum.HTTP.getName());
     }
 
     @Override
@@ -115,12 +115,12 @@ public class DividePlugin extends AbstractSoulPlugin {
     }
 
     @Override
-    protected Mono<Void> handleSelectorIsNull(final String pluginName, final ServerWebExchange exchange, final SoulPluginChain chain) {
+    protected Mono<Void> handleSelectorIsNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return FallbackUtils.getNoSelectorResult(pluginName, exchange);
     }
 
     @Override
-    protected Mono<Void> handleRuleIsNull(final String pluginName, final ServerWebExchange exchange, final SoulPluginChain chain) {
+    protected Mono<Void> handleRuleIsNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return FallbackUtils.getNoRuleResult(pluginName, exchange);
     }
 
@@ -132,13 +132,13 @@ public class DividePlugin extends AbstractSoulPlugin {
         return protocol + divideUpstream.getUpstreamUrl().trim();
     }
 
-    private String buildRealURL(final String domain, final SoulContext soulContext, final ServerWebExchange exchange) {
+    private String buildRealURL(final String domain, final ShenyuContext shenyuContext, final ServerWebExchange exchange) {
         String path = domain;
         final String rewriteURI = (String) exchange.getAttributes().get(Constants.REWRITE_URI);
         if (StringUtils.isNoneBlank(rewriteURI)) {
             path = path + rewriteURI;
         } else {
-            final String realUrl = soulContext.getRealUrl();
+            final String realUrl = shenyuContext.getRealUrl();
             if (StringUtils.isNoneBlank(realUrl)) {
                 path = path + realUrl;
             }

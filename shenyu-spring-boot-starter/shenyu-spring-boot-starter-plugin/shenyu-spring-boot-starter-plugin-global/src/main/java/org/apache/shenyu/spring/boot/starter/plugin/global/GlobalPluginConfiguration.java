@@ -17,10 +17,10 @@
 
 package org.apache.shenyu.spring.boot.starter.plugin.global;
 
-import org.apache.shenyu.plugin.api.SoulPlugin;
-import org.apache.shenyu.plugin.api.context.SoulContextBuilder;
-import org.apache.shenyu.plugin.api.context.SoulContextDecorator;
-import org.apache.shenyu.plugin.global.DefaultSoulContextBuilder;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
+import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
+import org.apache.shenyu.plugin.global.DefaultShenyuContextBuilder;
 import org.apache.shenyu.plugin.global.GlobalPlugin;
 import org.apache.shenyu.plugin.global.subsciber.MetaDataAllSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -37,37 +37,35 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * The type Global plugin configuration.
- *
- * @author xiaoyu(Myth)
+ * The type global plugin configuration.
  */
 @Configuration
 @ConditionalOnClass(GlobalPlugin.class)
 public class GlobalPluginConfiguration {
     
     /**
-     * Global plugin soul plugin.
+     * Global plugin shenyu plugin.
      *
-     * @param soulContextBuilder the soul context builder
-     * @return the soul plugin
+     * @param shenyuContextBuilder the shenyu context builder
+     * @return the shenyu plugin
      */
     @Bean
-    public SoulPlugin globalPlugin(final SoulContextBuilder soulContextBuilder) {
-        return new GlobalPlugin(soulContextBuilder);
+    public ShenyuPlugin globalPlugin(final ShenyuContextBuilder shenyuContextBuilder) {
+        return new GlobalPlugin(shenyuContextBuilder);
     }
     
     /**
-     * Soul context builder soul context builder.
+     * Shenyu context builder.
      *
      * @param decorators the decorators
-     * @return the soul context builder
+     * @return the shenyu context builder
      */
     @Bean
-    @ConditionalOnMissingBean(value = SoulContextBuilder.class, search = SearchStrategy.ALL)
-    public SoulContextBuilder soulContextBuilder(final ObjectProvider<List<SoulContextDecorator>> decorators) {
-        List<SoulContextDecorator> decoratorList = decorators.getIfAvailable(Collections::emptyList);
-        Map<String, SoulContextDecorator> decoratorMap = decoratorList.stream().collect(Collectors.toMap(SoulContextDecorator::rpcType, e -> e));
-        return new DefaultSoulContextBuilder(decoratorMap);
+    @ConditionalOnMissingBean(value = ShenyuContextBuilder.class, search = SearchStrategy.ALL)
+    public ShenyuContextBuilder shenyuContextBuilder(final ObjectProvider<List<ShenyuContextDecorator>> decorators) {
+        List<ShenyuContextDecorator> decoratorList = decorators.getIfAvailable(Collections::emptyList);
+        Map<String, ShenyuContextDecorator> decoratorMap = decoratorList.stream().collect(Collectors.toMap(ShenyuContextDecorator::rpcType, e -> e));
+        return new DefaultShenyuContextBuilder(decoratorMap);
     }
     
     /**

@@ -24,8 +24,8 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -79,7 +79,7 @@ public final class AlibabaDubboPluginTest {
     @Test
     public void testSkip() {
         final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
-        SoulContext context = mock(SoulContext.class);
+        ShenyuContext context = mock(ShenyuContext.class);
         when(context.getRpcType()).thenReturn(RpcTypeEnum.DUBBO.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
         exchange.getAttributes().put(Constants.META_DATA, metaData);
@@ -99,11 +99,11 @@ public final class AlibabaDubboPluginTest {
     @Test
     public void testAlibabaDubboPlugin() {
         final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
-        SoulContext context = mock(SoulContext.class);
+        ShenyuContext context = mock(ShenyuContext.class);
         when(context.getRpcType()).thenReturn(RpcTypeEnum.DUBBO.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
         exchange.getAttributes().put(Constants.META_DATA, metaData);
-        SoulPluginChain chain = mock(SoulPluginChain.class);
+        ShenyuPluginChain chain = mock(ShenyuPluginChain.class);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         RuleData data = mock(RuleData.class);
         SelectorData selectorData = mock(SelectorData.class);

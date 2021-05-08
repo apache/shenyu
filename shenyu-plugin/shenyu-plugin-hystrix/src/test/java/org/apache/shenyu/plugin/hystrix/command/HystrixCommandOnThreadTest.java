@@ -24,7 +24,7 @@ import com.netflix.hystrix.HystrixCommandProperties;
 import com.netflix.hystrix.HystrixThreadPoolProperties;
 import org.apache.shenyu.common.dto.convert.HystrixHandle;
 import org.apache.shenyu.common.dto.convert.HystrixThreadPoolConfig;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
@@ -75,7 +75,7 @@ public final class HystrixCommandOnThreadTest {
                 .remoteAddress(new InetSocketAddress(8092))
                 .header("MetaDataCache", "Hello")
                 .build());
-        hystrixCommandOnThread = new HystrixCommandOnThread(setter, exchange, mock(SoulPluginChain.class), "http://callback:8093/test");
+        hystrixCommandOnThread = new HystrixCommandOnThread(setter, exchange, mock(ShenyuPluginChain.class), "http://callback:8093/test");
     }
 
     @Test

@@ -22,9 +22,9 @@ import io.netty.handler.codec.http.HttpHeaderValues;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
-import org.apache.shenyu.plugin.api.result.SoulResult;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,15 +55,15 @@ public final class NettyHttpClientPluginTest {
 
     private NettyHttpClientPlugin nettyHttpClientPlugin;
 
-    private SoulPluginChain chain;
+    private ShenyuPluginChain chain;
 
     @Before
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setCfgContext(context);
-        when(context.getBean(SoulResult.class)).thenReturn(mock(SoulResult.class));
+        when(context.getBean(ShenyuResult.class)).thenReturn(mock(ShenyuResult.class));
 
-        chain = mock(SoulPluginChain.class);
+        chain = mock(ShenyuPluginChain.class);
         when(chain.execute(any())).thenReturn(Mono.empty());
         HttpClient httpClient = HttpClient.create();
 
@@ -71,18 +71,18 @@ public final class NettyHttpClientPluginTest {
     }
 
     /**
-     * test case for NettyHttpClientPlugin {@link NettyHttpClientPlugin#execute(ServerWebExchange, SoulPluginChain)}.
+     * test case for NettyHttpClientPlugin {@link NettyHttpClientPlugin#execute(ServerWebExchange, ShenyuPluginChain)}.
      */
     @Test
     public void testExecute() {
         ServerWebExchange exchangeNoPath = MockServerWebExchange.from(MockServerHttpRequest.get("/test").build());
-        exchangeNoPath.getAttributes().put(Constants.CONTEXT, mock(SoulContext.class));
+        exchangeNoPath.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
         StepVerifier.create(nettyHttpClientPlugin.execute(exchangeNoPath, chain)).expectSubscription().verifyComplete();
 
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.post("/test")
                 .header(HttpHeaderNames.CONNECTION.toString(), HttpHeaderValues.KEEP_ALIVE.toString())
                 .body("test"));
-        exchange.getAttributes().put(Constants.CONTEXT, mock(SoulContext.class));
+        exchange.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
         exchange.getAttributes().put(Constants.HTTP_URL, "/test");
 
         StepVerifier.create(nettyHttpClientPlugin.execute(exchange, chain)).expectSubscription().verifyError();
@@ -97,12 +97,12 @@ public final class NettyHttpClientPluginTest {
         assertTrue(nettyHttpClientPlugin.skip(exchangeNormal));
 
         ServerWebExchange exchangeHttp = generateServerWebExchange();
-        when(((SoulContext) exchangeHttp.getAttributes().get(Constants.CONTEXT)).getRpcType())
+        when(((ShenyuContext) exchangeHttp.getAttributes().get(Constants.CONTEXT)).getRpcType())
                 .thenReturn(RpcTypeEnum.HTTP.getName());
         assertFalse(nettyHttpClientPlugin.skip(exchangeHttp));
 
         ServerWebExchange exchangeSpringCloud = generateServerWebExchange();
-        when(((SoulContext) exchangeSpringCloud.getAttributes().get(Constants.CONTEXT)).getRpcType())
+        when(((ShenyuContext) exchangeSpringCloud.getAttributes().get(Constants.CONTEXT)).getRpcType())
                 .thenReturn(RpcTypeEnum.SPRING_CLOUD.getName());
         assertFalse(nettyHttpClientPlugin.skip(exchangeSpringCloud));
     }
@@ -125,7 +125,7 @@ public final class NettyHttpClientPluginTest {
 
     private ServerWebExchange generateServerWebExchange() {
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test").build());
-        exchange.getAttributes().put(Constants.CONTEXT, mock(SoulContext.class));
+        exchange.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
         exchange.getAttributes().put(Constants.HTTP_URL, "/test");
 
         return exchange;

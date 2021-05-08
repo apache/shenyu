@@ -26,10 +26,10 @@ import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
-import org.apache.shenyu.plugin.api.result.DefaultSoulResult;
-import org.apache.shenyu.plugin.api.result.SoulResult;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
+import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.springcloud.cache.SpringCloudRuleHandleCache;
 import org.apache.shenyu.plugin.springcloud.cache.SpringCloudSelectorHandleCache;
@@ -75,26 +75,26 @@ public class SpringCloudPluginTest {
 
     private ServerWebExchange exchange;
 
-    private SoulPluginChain chain;
+    private ShenyuPluginChain chain;
 
     private SelectorData selector;
 
-    private SoulContext soulContext;
+    private ShenyuContext shenyuContext;
 
     @Before
     public void setUp() {
         ConfigurableApplicationContext applicationContext = mock(ConfigurableApplicationContext.class);
-        when(applicationContext.getBean(SoulResult.class)).thenReturn(new DefaultSoulResult());
+        when(applicationContext.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
         SpringBeanUtils springBeanUtils = SpringBeanUtils.getInstance();
         springBeanUtils.setCfgContext(applicationContext);
         MultiValueMap<String, String> valueMap = new LinkedMultiValueMap<>(1);
         valueMap.put("type", Lists.newArrayList("cloud"));
         exchange = MockServerWebExchange.from(
                 MockServerHttpRequest.get("http://localhost/springcloud").queryParams(valueMap).build());
-        soulContext = mock(SoulContext.class);
-        when(soulContext.getRpcType()).thenReturn(RpcTypeEnum.SPRING_CLOUD.getName());
-        exchange.getAttributes().put(Constants.CONTEXT, soulContext);
-        chain = mock(SoulPluginChain.class);
+        shenyuContext = mock(ShenyuContext.class);
+        when(shenyuContext.getRpcType()).thenReturn(RpcTypeEnum.SPRING_CLOUD.getName());
+        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
+        chain = mock(ShenyuPluginChain.class);
         when(this.chain.execute(exchange)).thenReturn(Mono.empty());
         selector = mock(SelectorData.class);
         springCloudPlugin = new SpringCloudPlugin(loadBalancerClient);
@@ -102,7 +102,7 @@ public class SpringCloudPluginTest {
 
     @Test(expected = NullPointerException.class)
     public void doExecute() {
-        final SoulPluginChain chain = mock(SoulPluginChain.class);
+        final ShenyuPluginChain chain = mock(ShenyuPluginChain.class);
         final SpringCloudSelectorHandle springCloudSelectorHandle = SpringCloudSelectorHandle.builder()
                 .serviceId("serviceId")
                 .build();
@@ -118,10 +118,10 @@ public class SpringCloudPluginTest {
                 .handle(GsonUtils.getInstance().toJson(springCloudRuleHandle))
                 .build();
         SpringCloudRuleHandleCache.getInstance().cachedHandle(SpringCloudPluginDataHandler.getRuleCacheKey(rule), springCloudRuleHandle);
-        SoulContext soulContext = new SoulContext();
-        soulContext.setRealUrl("http://localhost/test");
-        soulContext.setHttpMethod(HttpMethod.GET.name());
-        exchange.getAttributes().put(Constants.CONTEXT, soulContext);
+        ShenyuContext shenyuContext = new ShenyuContext();
+        shenyuContext.setRealUrl("http://localhost/test");
+        shenyuContext.setHttpMethod(HttpMethod.GET.name());
+        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
         StepVerifier.create(springCloudPlugin.doExecute(exchange, chain, selectorData, rule)).expectSubscription().verifyComplete();
     }
 
@@ -209,9 +209,9 @@ public class SpringCloudPluginTest {
                 .fromJson(rule.getHandle(), SpringCloudRuleHandle.class);
         SpringCloudSelectorHandleCache.getInstance().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
         SpringCloudRuleHandleCache.getInstance().cachedHandle(SpringCloudPluginDataHandler.getRuleCacheKey(rule), springCloudRuleHandle);
-        when(soulContext.getRealUrl()).thenReturn("http://127.0.0.1");
-        when(soulContext.getHttpMethod()).thenReturn(HttpMethod.GET.name());
-        exchange.getAttributes().put(Constants.CONTEXT, soulContext);
+        when(shenyuContext.getRealUrl()).thenReturn("http://127.0.0.1");
+        when(shenyuContext.getHttpMethod()).thenReturn(HttpMethod.GET.name());
+        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
         when(loadBalancerClient.choose(any()))
                 .thenReturn(new DefaultServiceInstance("instanceId", "service1", "127.0.0.1", 8080, true));
         when(loadBalancerClient.reconstructURI(any(), any())).thenReturn(new URI("https://localhost:8080/service1/"));

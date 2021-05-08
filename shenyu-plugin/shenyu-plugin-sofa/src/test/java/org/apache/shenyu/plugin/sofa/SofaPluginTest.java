@@ -23,8 +23,8 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.sofa.proxy.SofaProxyService;
 import org.junit.Before;
 import org.junit.Test;
@@ -56,7 +56,7 @@ public final class SofaPluginTest {
     private ServerWebExchange exchange;
 
     @Mock
-    private SoulPluginChain chain;
+    private ShenyuPluginChain chain;
 
     @Before
     public void setUp() {
@@ -76,7 +76,7 @@ public final class SofaPluginTest {
     @Test
     public void testSofaPlugin() {
         RuleData data = mock(RuleData.class);
-        SoulContext context = mock(SoulContext.class);
+        ShenyuContext context = mock(ShenyuContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, context);
         exchange.getAttributes().put(Constants.META_DATA, metaData);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
@@ -93,7 +93,7 @@ public final class SofaPluginTest {
     @Test
     public void testSkip() {
         final ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
-        SoulContext context = mock(SoulContext.class);
+        ShenyuContext context = mock(ShenyuContext.class);
         when(context.getRpcType()).thenReturn(RpcTypeEnum.SOFA.getName());
         exchange.getAttributes().put(Constants.CONTEXT, context);
         exchange.getAttributes().put(Constants.META_DATA, metaData);

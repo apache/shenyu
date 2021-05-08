@@ -18,11 +18,11 @@
 
 package org.apache.shenyu.spring.boot.starter.plugin.motan;
 
-import org.apache.shenyu.plugin.api.SoulPlugin;
-import org.apache.shenyu.plugin.api.context.SoulContextDecorator;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.motan.MotanPlugin;
-import org.apache.shenyu.plugin.motan.context.MotanSoulContextDecorator;
+import org.apache.shenyu.plugin.motan.context.MotanShenyuContextDecorator;
 import org.apache.shenyu.plugin.motan.handler.MotanPluginDataHandler;
 import org.apache.shenyu.plugin.motan.proxy.MotanProxyService;
 import org.apache.shenyu.plugin.motan.response.MotanResponsePlugin;
@@ -57,7 +57,7 @@ public class MotanPluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin motanResponsePlugin() {
+    public ShenyuPlugin motanResponsePlugin() {
         return new MotanResponsePlugin();
     }
 
@@ -87,7 +87,7 @@ public class MotanPluginConfiguration {
      * @return the soul context decorator
      */
     @Bean
-    public SoulContextDecorator motanSoulContextDecorator() {
-        return new MotanSoulContextDecorator();
+    public ShenyuContextDecorator motanSoulContextDecorator() {
+        return new MotanShenyuContextDecorator();
     }
 }

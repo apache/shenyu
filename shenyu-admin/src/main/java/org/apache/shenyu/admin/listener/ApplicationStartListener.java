@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.listener;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.utils.SoulDomain;
+import org.apache.shenyu.admin.utils.ShenyuDomain;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.springframework.boot.web.context.WebServerInitializedEvent;
 import org.springframework.context.ApplicationListener;
@@ -41,9 +41,9 @@ public class ApplicationStartListener implements ApplicationListener<WebServerIn
         final String host = IpUtils.getHost();
         final String domain = System.getProperty("soul.httpPath");
         if (StringUtils.isBlank(domain)) {
-            SoulDomain.getInstance().setHttpPath("http://" + String.join(":", host, String.valueOf(port)));
+            ShenyuDomain.getInstance().setHttpPath("http://" + String.join(":", host, String.valueOf(port)));
         } else {
-            SoulDomain.getInstance().setHttpPath(domain);
+            ShenyuDomain.getInstance().setHttpPath(domain);
         }
     }
 }

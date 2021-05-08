@@ -21,7 +21,7 @@ import com.ecwid.consul.v1.kv.KeyValueClient;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.register.client.api.SoulClientRegisterRepository;
+import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.path.RegisterPathConstants;
@@ -31,7 +31,7 @@ import org.springframework.cloud.consul.serviceregistry.ConsulRegistration;
 
 @Join
 @Slf4j
-public class ConsulClientRegisterRepository implements SoulClientRegisterRepository {
+public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepository {
     
     @Autowired
     private ConsulRegistration consulRegistration;

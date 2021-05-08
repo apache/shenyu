@@ -22,7 +22,7 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.PluginHandleQuery;
 import org.apache.shenyu.admin.service.PluginHandleService;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.vo.PluginHandleVO;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
@@ -83,7 +83,7 @@ public final class PluginHandleControllerTest {
         given(this.pluginHandleService.list("1", 1)).willReturn(Collections.singletonList(pluginHandleVO));
         this.mockMvc.perform(MockMvcRequestBuilders.get("/plugin-handle/all/{pluginId}/{type}", "1", 1))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
                 .andExpect(jsonPath("$.data[0].id", is(pluginHandleVO.getId())))
                 .andReturn();
     }
@@ -93,7 +93,7 @@ public final class PluginHandleControllerTest {
         given(this.pluginHandleService.findById("1")).willReturn(pluginHandleVO);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/plugin-handle/{id}", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.DETAIL_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
                 .andExpect(jsonPath("$.data.id", is(pluginHandleVO.getId())))
                 .andReturn();
     }
@@ -107,7 +107,7 @@ public final class PluginHandleControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(pluginHandleDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.CREATE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
                 .andReturn();
     }
 
@@ -120,7 +120,7 @@ public final class PluginHandleControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(pluginHandleDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.UPDATE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
                 .andReturn();
     }
 
@@ -131,7 +131,7 @@ public final class PluginHandleControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(Collections.singletonList("1"))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.DELETE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
                 .andReturn();
     }
 }

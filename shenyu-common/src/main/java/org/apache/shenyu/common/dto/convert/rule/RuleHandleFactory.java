@@ -23,7 +23,7 @@ import org.apache.shenyu.common.dto.convert.rule.impl.DubboRuleHandle;
 import org.apache.shenyu.common.dto.convert.rule.impl.SofaRuleHandle;
 import org.apache.shenyu.common.dto.convert.rule.impl.SpringCloudRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.exception.SoulException;
+import org.apache.shenyu.common.exception.ShenyuException;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -64,7 +64,7 @@ public final class RuleHandleFactory {
         try {
             return clazz.newInstance().createDefault(path);
         } catch (InstantiationException | IllegalAccessException e) {
-            throw new SoulException(
+            throw new ShenyuException(
                     String.format("Init RuleHandle failed with plugin name: %s, rule class: %s, exception: %s",
                             name,
                             clazz.getSimpleName(),

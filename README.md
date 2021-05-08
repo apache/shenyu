@@ -172,13 +172,13 @@
         
 # Stargazers over time
 
-[![Stargazers over time](https://starchart.cc/Dromara/soul.svg)](https://starchart.cc/Dromara/soul)
+[![Stargazers over time](https://starchart.cc/dromara/soul.svg)](https://starchart.cc/dromara/soul)
 
 --------------------------------------------------------------------------------  
 
 # Known Users
 
-In order of registration, More access companies are welcome to register at [https://github.com/Dromara/soul/issues/68](https://github.com/Dromara/soul/issues/68) (For open source users only)
+In order of registration, More access companies are welcome to register at [https://github.com/dromara/soul/issues/68](https://github.com/dromara/soul/issues/68) (For open source users only)
 
 <table>
   <tbody>
@@ -246,24 +246,3 @@ In order of registration, More access companies are welcome to register at [http
     </tr>
   </tbody> 
 </table>
-
-# Support  
-
-<table>
-  <thead>
-    <th>WeChat</th>
-    <th>QQ</th>
-    <th>Taro Source</th>
-    <th>JetBrains</th>
-  </thead>
-  <tbody>
-    <tr>
-      <td><img src="https://yu199195.github.io/images/public.jpg"   alt="WeChat"/>
-      <td><img src="https://yu199195.github.io/images/soul-qq.png"  alt="QQ group"/>
-      <td><img src="http://www.iocoder.cn/images/common/erweima.jpg"  alt="yuNai"/>
-      <td><img src="https://yu199195.github.io/images/jetbrains.svg"  alt="Jetbrains"/>
-    </tr>
-  </tbody>
-</table>
-  
- 

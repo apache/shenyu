@@ -17,9 +17,9 @@
 
 package org.apache.shenyu.admin.controller;
 
-import org.apache.shenyu.admin.model.result.SoulAdminResult;
+import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.service.PermissionService;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.vo.PermissionMenuVO;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.junit.Before;
@@ -60,17 +60,17 @@ public class PermissionControllerTest {
                 Arrays.asList(new PermissionMenuVO.AuthPerm("perms1", "description1", "icon")),
                 Arrays.asList(new PermissionMenuVO.AuthPerm("perms2", "description2", "icon")));
         when(mockPermissionService.getPermissionMenu("token")).thenReturn(permissionMenuVO);
-        final SoulAdminResult result = permissionController.getUserPermissionByToken("token");
+        final ShenyuAdminResult result = permissionController.getUserPermissionByToken("token");
         assertThat(result.getCode().intValue(), is(CommonErrorCode.SUCCESSFUL));
-        assertThat(result.getMessage(), is(SoulResultMessage.MENU_SUCCESS));
+        assertThat(result.getMessage(), is(ShenyuResultMessage.MENU_SUCCESS));
         assertThat(result.getData(), is(permissionMenuVO));
     }
 
     @Test
     public void testGetUserPermissionByTokenNull() {
         when(mockPermissionService.getPermissionMenu("token")).thenReturn(null);
-        final SoulAdminResult result = permissionController.getUserPermissionByToken("token");
+        final ShenyuAdminResult result = permissionController.getUserPermissionByToken("token");
         assertThat(result.getCode().intValue(), is(CommonErrorCode.ERROR));
-        assertThat(result.getMessage(), is(SoulResultMessage.MENU_FAILED));
+        assertThat(result.getMessage(), is(ShenyuResultMessage.MENU_FAILED));
     }
 }

@@ -23,9 +23,9 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.WafHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.result.DefaultSoulResult;
-import org.apache.shenyu.plugin.api.result.SoulResult;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
+import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.waf.cache.WafRuleHandleCache;
 import org.apache.shenyu.plugin.waf.handler.WafPluginDataHandler;
@@ -53,7 +53,7 @@ public final class WafPluginTest {
 
     private ServerWebExchange exchange;
 
-    private SoulPluginChain chain;
+    private ShenyuPluginChain chain;
 
     private SelectorData selectorData;
 
@@ -62,7 +62,7 @@ public final class WafPluginTest {
     @Before
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        when(context.getBean(SoulResult.class)).thenReturn(new DefaultSoulResult());
+        when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
         SpringBeanUtils springBeanUtils = SpringBeanUtils.getInstance();
         springBeanUtils.setCfgContext(context);
 
@@ -72,7 +72,7 @@ public final class WafPluginTest {
         wafPluginDataHandler.handlerPlugin(pluginData);
 
         exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
-        chain = mock(SoulPluginChain.class);
+        chain = mock(ShenyuPluginChain.class);
         when(this.chain.execute(exchange)).thenReturn(Mono.empty());
         selectorData = mock(SelectorData.class);
         ruleData = mock(RuleData.class);

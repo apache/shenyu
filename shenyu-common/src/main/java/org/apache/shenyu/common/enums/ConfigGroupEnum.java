@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.common.enums;
 
-import org.apache.shenyu.common.exception.SoulException;
+import org.apache.shenyu.common.exception.ShenyuException;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -62,6 +62,6 @@ public enum ConfigGroupEnum {
     public static ConfigGroupEnum acquireByName(final String name) {
         return Arrays.stream(ConfigGroupEnum.values())
                 .filter(e -> Objects.equals(e.name(), name))
-                .findFirst().orElseThrow(() -> new SoulException(String.format(" this ConfigGroupEnum can not support %s", name)));
+                .findFirst().orElseThrow(() -> new ShenyuException(String.format(" this ConfigGroupEnum can not support %s", name)));
     }
 }

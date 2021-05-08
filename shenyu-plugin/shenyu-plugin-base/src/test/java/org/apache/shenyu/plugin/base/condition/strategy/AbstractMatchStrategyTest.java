@@ -21,7 +21,7 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.enums.ParamTypeEnum;
 import org.apache.shenyu.plugin.api.RemoteAddressResolver;
-import org.apache.shenyu.plugin.api.context.SoulContext;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.junit.Assert;
 import org.junit.Before;
@@ -65,9 +65,9 @@ public final class AbstractMatchStrategyTest {
                 .header("soul", "soulHeader")
                 .queryParam("soul", "soulQueryParam")
                 .build());
-        SoulContext soulContext = new SoulContext();
-        soulContext.setMethod("testMethod");
-        exchange.getAttributes().put(Constants.CONTEXT, soulContext);
+        ShenyuContext shenyuContext = new ShenyuContext();
+        shenyuContext.setMethod("testMethod");
+        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
         abstractMatchStrategy = new TestMatchStrategy();
     }
 
