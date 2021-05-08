@@ -28,23 +28,23 @@ import org.springframework.core.annotation.Order;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * the soul logo.
+ * the Shenyu logo.
  *
  * @author xiaoyu
  */
 @Order(LoggingApplicationListener.DEFAULT_ORDER + 1)
 @Slf4j
-public class SoulLogo implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
+public class ShenyuLogo implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
 
-    private static final String SOUL_LOGO = "\n"
-            + "                 _  \n"
-            + "                | | \n"
-            + " ___  ___  _   _| | \n"
-            + "/ __|/ _ \\| | | | |\n"
-            + "\\__ \\ (_) | |_| | |\n"
-            + "|___/\\___/ \\__,_|_|\n"
-            + "                    \n"
-            + "                   \n";
+    private static final String SHENYU_LOGO = "\n"
+        + "   _____ _                            \n"
+        + "  / ____| |                           \n"
+        + " | (___ | |__   ___ _ __  _   _ _   _ \n"
+        + "  \\___ \\| '_ \\ / _ \\ '_ \\| | | | | | |\n"
+        + "  ____) | | | |  __/ | | | |_| | |_| |\n"
+        + " |_____/|_| |_|\\___|_| |_|\\__, |\\__,_|\n"
+        + "                           __/ |      \n"
+        + "                          |___/       ";
 
     private final AtomicBoolean alreadyLog = new AtomicBoolean(false);
 
@@ -59,7 +59,7 @@ public class SoulLogo implements ApplicationListener<ApplicationEnvironmentPrepa
     private String buildBannerText() {
         return Constants.LINE_SEPARATOR
                 + Constants.LINE_SEPARATOR
-                + SOUL_LOGO
+                + SHENYU_LOGO
                 + Constants.LINE_SEPARATOR
                 + " :: Soul :: (v" + VersionUtils.getVersion(getClass(), "2.0.2") + ")"
                 + Constants.LINE_SEPARATOR;
