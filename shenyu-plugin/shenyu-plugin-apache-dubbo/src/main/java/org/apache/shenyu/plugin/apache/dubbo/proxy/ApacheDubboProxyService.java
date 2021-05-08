@@ -83,7 +83,7 @@ public class ApacheDubboProxyService {
         }
         GenericService genericService = reference.get();
         Pair<String[], Object[]> pair;
-        if (ParamCheckUtils.dubboBodyIsEmpty(body)) {
+        if (StringUtils.isBlank(metaData.getParameterTypes()) || ParamCheckUtils.dubboBodyIsEmpty(body)) {
             pair = new ImmutablePair<>(new String[]{}, new Object[]{});
         } else {
             pair = bodyParamResolveService.buildParameter(body, metaData.getParameterTypes());
