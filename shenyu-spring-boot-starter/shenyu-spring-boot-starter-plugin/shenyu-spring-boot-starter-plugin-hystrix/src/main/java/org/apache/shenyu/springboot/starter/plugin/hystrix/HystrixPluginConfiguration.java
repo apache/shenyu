@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.springboot.starter.plugin.hystrix;
 
-import org.apache.shenyu.plugin.api.SoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.hystrix.HystrixPlugin;
 import org.apache.shenyu.plugin.hystrix.handler.HystrixPluginDataHandler;
@@ -38,7 +38,7 @@ public class HystrixPluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin hystrixPlugin() {
+    public ShenyuPlugin hystrixPlugin() {
         return new HystrixPlugin();
     }
     

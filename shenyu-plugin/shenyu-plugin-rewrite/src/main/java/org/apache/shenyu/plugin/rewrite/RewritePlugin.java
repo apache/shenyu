@@ -25,9 +25,9 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.RewriteHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.base.AbstractSoulPlugin;
-import org.apache.shenyu.plugin.api.context.SoulContext;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.rewrite.cache.RewriteRuleHandleCache;
 import org.apache.shenyu.plugin.rewrite.handler.RewritePluginDataHandler;
 import org.springframework.web.server.ServerWebExchange;
@@ -41,10 +41,10 @@ import java.util.Objects;
  * @author xiaoyu(Myth)
  */
 @Slf4j
-public class RewritePlugin extends AbstractSoulPlugin {
+public class RewritePlugin extends AbstractShenyuPlugin {
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         String handle = rule.getHandle();
         final RewriteHandle rewriteHandle = RewriteRuleHandleCache.getInstance()
                 .obtainHandle(RewritePluginDataHandler.getCacheKeyName(rule));
@@ -58,7 +58,7 @@ public class RewritePlugin extends AbstractSoulPlugin {
 
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
-        final SoulContext body = exchange.getAttribute(Constants.CONTEXT);
+        final ShenyuContext body = exchange.getAttribute(Constants.CONTEXT);
         return Objects.equals(Objects.requireNonNull(body).getRpcType(), RpcTypeEnum.DUBBO.getName());
     }
 

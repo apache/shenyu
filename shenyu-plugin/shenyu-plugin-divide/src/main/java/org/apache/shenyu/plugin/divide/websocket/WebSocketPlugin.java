@@ -35,11 +35,11 @@ import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
-import org.apache.shenyu.plugin.api.result.SoulResultEnum;
-import org.apache.shenyu.plugin.base.AbstractSoulPlugin;
-import org.apache.shenyu.plugin.api.result.SoulResultWrap;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.lang.NonNull;
@@ -59,7 +59,7 @@ import reactor.core.publisher.Mono;
  * @author xiaoyu(Myth)
  */
 @Slf4j
-public class WebSocketPlugin extends AbstractSoulPlugin {
+public class WebSocketPlugin extends AbstractShenyuPlugin {
 
     private static final String SEC_WEB_SOCKET_PROTOCOL = "Sec-WebSocket-Protocol";
 
@@ -79,10 +79,10 @@ public class WebSocketPlugin extends AbstractSoulPlugin {
     }
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         final List<DivideUpstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
-        final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-        if (CollectionUtils.isEmpty(upstreamList) || Objects.isNull(soulContext)) {
+        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        if (CollectionUtils.isEmpty(upstreamList) || Objects.isNull(shenyuContext)) {
             log.error("divide upstream configuration error：{}", rule.toString());
             return chain.execute(exchange);
         }
@@ -91,22 +91,22 @@ public class WebSocketPlugin extends AbstractSoulPlugin {
         DivideUpstream divideUpstream = LoadBalanceUtils.selector(upstreamList, ruleHandle.getLoadBalance(), ip);
         if (Objects.isNull(divideUpstream)) {
             log.error("websocket has no upstream");
-            Object error = SoulResultWrap.error(SoulResultEnum.CANNOT_FIND_URL.getCode(), SoulResultEnum.CANNOT_FIND_URL.getMsg(), null);
+            Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_URL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
-        URI wsRequestUrl = UriComponentsBuilder.fromUri(URI.create(buildWsRealPath(divideUpstream, soulContext))).build().toUri();
+        URI wsRequestUrl = UriComponentsBuilder.fromUri(URI.create(buildWsRealPath(divideUpstream, shenyuContext))).build().toUri();
         log.info("you websocket urlPath is :{}", wsRequestUrl.toASCIIString());
         HttpHeaders headers = exchange.getRequest().getHeaders();
-        return this.webSocketService.handleRequest(exchange, new SoulWebSocketHandler(
+        return this.webSocketService.handleRequest(exchange, new ShenyuWebSocketHandler(
                 wsRequestUrl, this.webSocketClient, filterHeaders(headers), buildWsProtocols(headers)));
     }
 
-    private String buildWsRealPath(final DivideUpstream divideUpstream, final SoulContext soulContext) {
+    private String buildWsRealPath(final DivideUpstream divideUpstream, final ShenyuContext shenyuContext) {
         String protocol = divideUpstream.getProtocol();
         if (StringUtils.isEmpty(protocol)) {
             protocol = "ws://";
         }
-        return protocol + divideUpstream.getUpstreamUrl() + soulContext.getMethod();
+        return protocol + divideUpstream.getUpstreamUrl() + shenyuContext.getMethod();
     }
 
     private List<String> buildWsProtocols(final HttpHeaders headers) {
@@ -141,7 +141,7 @@ public class WebSocketPlugin extends AbstractSoulPlugin {
      */
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
-        final SoulContext body = exchange.getAttribute(Constants.CONTEXT);
+        final ShenyuContext body = exchange.getAttribute(Constants.CONTEXT);
         return !Objects.equals(Objects.requireNonNull(body).getRpcType(), RpcTypeEnum.WEB_SOCKET.getName());
     }
 
@@ -150,7 +150,7 @@ public class WebSocketPlugin extends AbstractSoulPlugin {
         return PluginEnum.WEB_SOCKET.getCode();
     }
 
-    private static class SoulWebSocketHandler implements WebSocketHandler {
+    private static class ShenyuWebSocketHandler implements WebSocketHandler {
 
         private final WebSocketClient client;
 
@@ -168,9 +168,9 @@ public class WebSocketPlugin extends AbstractSoulPlugin {
          * @param headers   the headers
          * @param protocols the protocols
          */
-        SoulWebSocketHandler(final URI url, final WebSocketClient client,
-                             final HttpHeaders headers,
-                             final List<String> protocols) {
+        ShenyuWebSocketHandler(final URI url, final WebSocketClient client,
+                               final HttpHeaders headers,
+                               final List<String> protocols) {
             this.client = client;
             this.url = url;
             this.headers = headers;
@@ -207,7 +207,7 @@ public class WebSocketPlugin extends AbstractSoulPlugin {
                 @NonNull
                 @Override
                 public List<String> getSubProtocols() {
-                    return SoulWebSocketHandler.this.subProtocols;
+                    return ShenyuWebSocketHandler.this.subProtocols;
                 }
             });
         }

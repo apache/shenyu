@@ -21,9 +21,9 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.HttpParamConverter;
-import org.apache.shenyu.plugin.api.SoulPlugin;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.HttpMessageReader;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -41,7 +41,7 @@ import java.util.Objects;
  *
  * @author xiaoyu
  */
-public class ParamTransformPlugin implements SoulPlugin {
+public class ParamTransformPlugin implements ShenyuPlugin {
 
     private final List<HttpMessageReader<?>> messageReaders;
 
@@ -53,10 +53,10 @@ public class ParamTransformPlugin implements SoulPlugin {
     }
 
     @Override
-    public Mono<Void> execute(final ServerWebExchange exchange, final SoulPluginChain chain) {
+    public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         final ServerHttpRequest request = exchange.getRequest();
-        final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-        if (Objects.nonNull(soulContext)) {
+        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        if (Objects.nonNull(shenyuContext)) {
             MediaType mediaType = request.getHeaders().getContentType();
             ServerRequest serverRequest = ServerRequest.create(exchange, messageReaders);
             if (MediaType.APPLICATION_JSON.isCompatibleWith(mediaType)) {
@@ -80,7 +80,7 @@ public class ParamTransformPlugin implements SoulPlugin {
         return PluginEnum.PARAM_TRANSFORM.getName();
     }
 
-    private Mono<Void> body(final ServerWebExchange exchange, final ServerRequest serverRequest, final SoulPluginChain chain) {
+    private Mono<Void> body(final ServerWebExchange exchange, final ServerRequest serverRequest, final ShenyuPluginChain chain) {
         return serverRequest.bodyToMono(String.class)
                 .switchIfEmpty(Mono.defer(() -> Mono.just("")))
                 .flatMap(body -> {
@@ -89,7 +89,7 @@ public class ParamTransformPlugin implements SoulPlugin {
                 });
     }
     
-    private Mono<Void> formData(final ServerWebExchange exchange, final ServerRequest serverRequest, final SoulPluginChain chain) {
+    private Mono<Void> formData(final ServerWebExchange exchange, final ServerRequest serverRequest, final ShenyuPluginChain chain) {
         return serverRequest.formData()
                 .switchIfEmpty(Mono.defer(() -> Mono.just(new LinkedMultiValueMap<>())))
                 .flatMap(map -> {
@@ -98,7 +98,7 @@ public class ParamTransformPlugin implements SoulPlugin {
                 });
     }
     
-    private Mono<Void> query(final ServerWebExchange exchange, final ServerRequest serverRequest, final SoulPluginChain chain) {
+    private Mono<Void> query(final ServerWebExchange exchange, final ServerRequest serverRequest, final ShenyuPluginChain chain) {
         exchange.getAttributes().put(Constants.PARAM_TRANSFORM,
                 HttpParamConverter.ofString(() -> serverRequest.uri().getQuery()));
         return chain.execute(exchange);
@@ -106,9 +106,9 @@ public class ParamTransformPlugin implements SoulPlugin {
     
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
-        SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-        assert soulContext != null;
-        String rpcType = soulContext.getRpcType();
+        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
+        String rpcType = shenyuContext.getRpcType();
         return !Objects.equals(rpcType, RpcTypeEnum.DUBBO.getName()) 
                 && !Objects.equals(rpcType, RpcTypeEnum.GRPC.getName()) 
                 && !Objects.equals(rpcType, RpcTypeEnum.TARS.getName())

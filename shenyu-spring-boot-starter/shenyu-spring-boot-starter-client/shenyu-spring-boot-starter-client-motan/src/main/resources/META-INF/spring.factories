@@ -16,4 +16,4 @@
 #
 
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.apache.shenyu.springboot.starter.client.motan.SoulMotanClientConfiguration
+org.apache.shenyu.springboot.starter.client.motan.ShenyuMotanClientConfiguration

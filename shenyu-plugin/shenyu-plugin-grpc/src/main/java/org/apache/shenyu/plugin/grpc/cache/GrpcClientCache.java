@@ -20,7 +20,7 @@ package org.apache.shenyu.plugin.grpc.cache;
 import com.google.common.collect.Maps;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.plugin.grpc.client.GrpcClientBuilder;
-import org.apache.shenyu.plugin.grpc.client.SoulGrpcClient;
+import org.apache.shenyu.plugin.grpc.client.ShenyuGrpcClient;
 
 import java.util.Map;
 import java.util.Objects;
@@ -33,12 +33,12 @@ import java.util.Objects;
 @Slf4j
 public class GrpcClientCache {
 
-    private static final Map<String, SoulGrpcClient> CLIENT_CACHE = Maps.newConcurrentMap();
+    private static final Map<String, ShenyuGrpcClient> CLIENT_CACHE = Maps.newConcurrentMap();
 
     static {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            for (Map.Entry<String, SoulGrpcClient> entry : CLIENT_CACHE.entrySet()) {
-                SoulGrpcClient grpcClient = entry.getValue();
+            for (Map.Entry<String, ShenyuGrpcClient> entry : CLIENT_CACHE.entrySet()) {
+                ShenyuGrpcClient grpcClient = entry.getValue();
                 grpcClient.close();
             }
             CLIENT_CACHE.clear();
@@ -60,7 +60,7 @@ public class GrpcClientCache {
      * @param contextPath contextPath
      * @return SoulGrpcClient  oulGrpcClient
      */
-    public static SoulGrpcClient getGrpcClient(final String contextPath) {
+    public static ShenyuGrpcClient getGrpcClient(final String contextPath) {
         return CLIENT_CACHE.get(contextPath);
     }
 
@@ -70,7 +70,7 @@ public class GrpcClientCache {
      * @param contextPath contextPath
      */
     public static void removeClient(final String contextPath) {
-        SoulGrpcClient grpcClient = CLIENT_CACHE.remove(contextPath);
+        ShenyuGrpcClient grpcClient = CLIENT_CACHE.remove(contextPath);
         if (Objects.nonNull(grpcClient)) {
             grpcClient.close();
         }

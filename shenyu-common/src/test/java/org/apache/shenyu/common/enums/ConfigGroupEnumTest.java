@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.common.enums;
 
-import org.apache.shenyu.common.exception.SoulException;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -41,7 +41,7 @@ public final class ConfigGroupEnumTest {
         assertThat(ConfigGroupEnum.APP_AUTH, equalTo(ConfigGroupEnum.acquireByName(ConfigGroupEnum.APP_AUTH.name())));
         assertThat(ConfigGroupEnum.APP_AUTH, not(ConfigGroupEnum.acquireByName(ConfigGroupEnum.PLUGIN.name())));
 
-        expectedEx.expect(SoulException.class);
+        expectedEx.expect(ShenyuException.class);
         expectedEx.expectMessage("this ConfigGroupEnum can not support unknown");
         ConfigGroupEnum.acquireByName("unknown");
     }

@@ -22,7 +22,7 @@ import org.apache.shenyu.admin.model.dto.AuthApplyDTO;
 import org.apache.shenyu.admin.model.dto.AuthPathWarpDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.AppAuthQuery;
-import org.apache.shenyu.admin.model.result.SoulAdminResult;
+import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
 import org.apache.shenyu.admin.model.vo.AuthPathVO;
 import org.apache.shenyu.common.dto.AppAuthData;
@@ -43,7 +43,7 @@ public interface AppAuthService {
      * @param authApplyDTO the auth apply dto
      * @return the soul result
      */
-    SoulAdminResult applyCreate(AuthApplyDTO authApplyDTO);
+    ShenyuAdminResult applyCreate(AuthApplyDTO authApplyDTO);
 
 
     /**
@@ -52,7 +52,7 @@ public interface AppAuthService {
      * @param authApplyDTO the auth apply dto
      * @return the soul result
      */
-    SoulAdminResult applyUpdate(AuthApplyDTO authApplyDTO);
+    ShenyuAdminResult applyUpdate(AuthApplyDTO authApplyDTO);
 
 
     /**
@@ -61,7 +61,7 @@ public interface AppAuthService {
      * @param appAuthDTO the app auth dto
      * @return the soul result
      */
-    SoulAdminResult updateDetail(AppAuthDTO appAuthDTO);
+    ShenyuAdminResult updateDetail(AppAuthDTO appAuthDTO);
 
     /**
      * Update detail path soul result.
@@ -69,7 +69,7 @@ public interface AppAuthService {
      * @param authPathWarpDTO the auth path warp dto
      * @return the soul result
      */
-    SoulAdminResult updateDetailPath(AuthPathWarpDTO authPathWarpDTO);
+    ShenyuAdminResult updateDetailPath(AuthPathWarpDTO authPathWarpDTO);
 
     /**
      * create or update application authority.
@@ -136,7 +136,7 @@ public interface AppAuthService {
      * @param appSecret the app secret
      * @return the soul result
      */
-    SoulAdminResult updateAppSecretByAppKey(String appKey, String appSecret);
+    ShenyuAdminResult updateAppSecretByAppKey(String appKey, String appSecret);
 
 
     /**
@@ -144,6 +144,6 @@ public interface AppAuthService {
      *
      * @return the soul result
      */
-    SoulAdminResult syncData();
+    ShenyuAdminResult syncData();
 
 }

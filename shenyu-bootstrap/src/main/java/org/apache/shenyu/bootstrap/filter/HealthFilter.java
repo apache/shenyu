@@ -33,10 +33,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * The type Health filter.
- *
- * @author xiaoyu
- * @author kl
+ * The type health filter.
  */
 @Component
 @Order(-99)

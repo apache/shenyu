@@ -19,7 +19,7 @@ package org.apache.shenyu.plugin.tars.cache;
 
 import com.qq.tars.protocol.annotation.Servant;
 import org.assertj.core.util.Lists;
-import org.apache.shenyu.common.concurrent.SoulThreadFactory;
+import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.tars.proxy.TarsInvokePrxList;
@@ -102,7 +102,7 @@ public final class ApplicationConfigCacheTest {
                 "parameterTypes", rpcExt4, false);
         List<MetaData> metaDataList = Lists.list(metaData1, metaData2, metaData3, metaData4);
         ExecutorService executorService = Executors.newFixedThreadPool(4,
-                SoulThreadFactory.create("ApplicationConfigCache-tars-initPrx", false));
+                ShenyuThreadFactory.create("ApplicationConfigCache-tars-initPrx", false));
         CountDownLatch countDownLatch = new CountDownLatch(4);
         metaDataList.forEach(metaData -> executorService.execute(() -> {
             applicationConfigCacheUnderTest.initPrx(metaData);

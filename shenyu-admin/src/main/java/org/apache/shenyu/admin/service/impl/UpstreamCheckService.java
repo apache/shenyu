@@ -33,7 +33,7 @@ import org.apache.shenyu.admin.model.entity.SelectorDO;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.model.query.SelectorConditionQuery;
 import org.apache.shenyu.admin.transfer.ConditionTransfer;
-import org.apache.shenyu.common.concurrent.SoulThreadFactory;
+import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -44,7 +44,7 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
-import org.apache.shenyu.register.common.config.SoulRegisterCenterConfig;
+import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -95,21 +95,21 @@ public class UpstreamCheckService {
      * @param eventPublisher           the event publisher
      * @param pluginMapper             the plugin mapper
      * @param selectorConditionMapper  the selectorCondition mapper
-     * @param soulRegisterCenterConfig the soul register center config
+     * @param shenyuRegisterCenterConfig the soul register center config
      */
     @Autowired(required = false)
     public UpstreamCheckService(final SelectorMapper selectorMapper, final ApplicationEventPublisher eventPublisher,
                                 final PluginMapper pluginMapper, final SelectorConditionMapper selectorConditionMapper,
-                                final SoulRegisterCenterConfig soulRegisterCenterConfig) {
+                                final ShenyuRegisterCenterConfig shenyuRegisterCenterConfig) {
         this.selectorMapper = selectorMapper;
         this.eventPublisher = eventPublisher;
         this.pluginMapper = pluginMapper;
         this.selectorConditionMapper = selectorConditionMapper;
-        Properties props = soulRegisterCenterConfig.getProps();
+        Properties props = shenyuRegisterCenterConfig.getProps();
         this.checked = Boolean.parseBoolean(props.getProperty(Constants.IS_CHECKED, Constants.DEFAULT_CHECK_VALUE));
         this.zombieCheckTimes = Integer.parseInt(props.getProperty(Constants.ZOMBIE_CHECK_TIMES, Constants.ZOMBIE_CHECK_TIMES_VALUE));
         this.scheduledTime = Integer.parseInt(props.getProperty(Constants.SCHEDULED_TIME, Constants.SCHEDULED_TIME_VALUE));
-        this.registerType = soulRegisterCenterConfig.getRegisterType();
+        this.registerType = shenyuRegisterCenterConfig.getRegisterType();
         if (Constants.DEFAULT_REGISTER_TYPE.equalsIgnoreCase(registerType)) {
             setup();
         }
@@ -132,7 +132,7 @@ public class UpstreamCheckService {
                     }
                 });
             }
-            new ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), SoulThreadFactory.create("scheduled-upstream-task", false))
+            new ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), ShenyuThreadFactory.create("scheduled-upstream-task", false))
                     .scheduleWithFixedDelay(this::scheduled, 10, scheduledTime, TimeUnit.SECONDS);
         }
     }

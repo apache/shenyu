@@ -18,12 +18,12 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.service.SelectorService;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.SelectorDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
-import org.apache.shenyu.admin.model.result.SoulAdminResult;
+import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -61,36 +61,36 @@ public class SelectorController {
      * @param name        selector name.
      * @param currentPage current page.
      * @param pageSize    page size.
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("")
-    public SoulAdminResult querySelectors(final String pluginId, final String name, final Integer currentPage, final Integer pageSize) {
+    public ShenyuAdminResult querySelectors(final String pluginId, final String name, final Integer currentPage, final Integer pageSize) {
         CommonPager<SelectorVO> commonPager = selectorService.listByPage(new SelectorQuery(pluginId, name, new PageParameter(currentPage, pageSize)));
-        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
 
     /**
      * detail selector.
      *
      * @param id selector id.
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/{id}")
-    public SoulAdminResult detailSelector(@PathVariable("id") final String id) {
+    public ShenyuAdminResult detailSelector(@PathVariable("id") final String id) {
         SelectorVO selectorVO = selectorService.findById(id);
-        return SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, selectorVO);
+        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, selectorVO);
     }
 
     /**
      * create selector.
      *
      * @param selectorDTO selector.
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @PostMapping("")
-    public SoulAdminResult createSelector(@RequestBody final SelectorDTO selectorDTO) {
+    public ShenyuAdminResult createSelector(@RequestBody final SelectorDTO selectorDTO) {
         Integer createCount = selectorService.createOrUpdate(selectorDTO);
-        return SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS, createCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
     }
 
     /**
@@ -98,25 +98,25 @@ public class SelectorController {
      *
      * @param id          primary key.
      * @param selectorDTO selector.
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
-    public SoulAdminResult updateSelector(@PathVariable("id") final String id, @RequestBody final SelectorDTO selectorDTO) {
+    public ShenyuAdminResult updateSelector(@PathVariable("id") final String id, @RequestBody final SelectorDTO selectorDTO) {
         Objects.requireNonNull(selectorDTO);
         selectorDTO.setId(id);
         Integer updateCount = selectorService.createOrUpdate(selectorDTO);
-        return SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS, updateCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, updateCount);
     }
 
     /**
      * delete Selectors.
      *
      * @param ids primary key.
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/batch")
-    public SoulAdminResult deleteSelector(@RequestBody final List<String> ids) {
+    public ShenyuAdminResult deleteSelector(@RequestBody final List<String> ids) {
         Integer deleteCount = selectorService.delete(ids);
-        return SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, deleteCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
     }
 }

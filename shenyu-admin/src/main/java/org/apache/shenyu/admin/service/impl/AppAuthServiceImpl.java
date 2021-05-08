@@ -23,7 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.AppAuthMapper;
 import org.apache.shenyu.admin.mapper.AuthParamMapper;
 import org.apache.shenyu.admin.mapper.AuthPathMapper;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.AppAuthDTO;
 import org.apache.shenyu.admin.model.dto.AuthApplyDTO;
 import org.apache.shenyu.admin.model.dto.AuthParamDTO;
@@ -36,7 +36,7 @@ import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.AppAuthQuery;
-import org.apache.shenyu.admin.model.result.SoulAdminResult;
+import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.service.AppAuthService;
 import org.apache.shenyu.admin.transfer.AppAuthTransfer;
 import org.apache.shenyu.admin.model.vo.AppAuthVO;
@@ -90,10 +90,10 @@ public class AppAuthServiceImpl implements AppAuthService {
 
     @Override
     @Transactional
-    public SoulAdminResult applyCreate(final AuthApplyDTO authApplyDTO) {
+    public ShenyuAdminResult applyCreate(final AuthApplyDTO authApplyDTO) {
         if (StringUtils.isBlank(authApplyDTO.getAppName())
                 || (authApplyDTO.getOpen() && CollectionUtils.isEmpty(authApplyDTO.getPathList()))) {
-            return SoulAdminResult.error(SoulResultMessage.PARAMETER_ERROR);
+            return ShenyuAdminResult.error(ShenyuResultMessage.PARAMETER_ERROR);
         }
         AppAuthDO appAuthDO = AppAuthDO.create(authApplyDTO);
         appAuthMapper.insert(appAuthDO);
@@ -124,19 +124,19 @@ public class AppAuthServiceImpl implements AppAuthService {
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.CREATE,
                 Collections.singletonList(data)));
 
-        return SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS);
+        return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS);
     }
 
     @Override
-    public SoulAdminResult applyUpdate(final AuthApplyDTO authApplyDTO) {
+    public ShenyuAdminResult applyUpdate(final AuthApplyDTO authApplyDTO) {
         if (StringUtils.isBlank(authApplyDTO.getAppKey())
                 || StringUtils.isBlank(authApplyDTO.getAppName())
                 || (authApplyDTO.getOpen() && CollectionUtils.isEmpty(authApplyDTO.getPathList()))) {
-            return SoulAdminResult.error(SoulResultMessage.PARAMETER_ERROR);
+            return ShenyuAdminResult.error(ShenyuResultMessage.PARAMETER_ERROR);
         }
         AppAuthDO appAuthDO = appAuthMapper.findByAppKey(authApplyDTO.getAppKey());
         if (Objects.isNull(appAuthDO)) {
-            return SoulAdminResult.error(SoulResultMessage.APPKEY_NOT_EXIST_ERROR);
+            return ShenyuAdminResult.error(ShenyuResultMessage.APPKEY_NOT_EXIST_ERROR);
         }
 
         AuthParamDO authParamDO = authParamMapper.findByAuthIdAndAppName(appAuthDO.getId(), authApplyDTO.getAppName());
@@ -161,15 +161,15 @@ public class AppAuthServiceImpl implements AppAuthService {
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH, DataEventTypeEnum.CREATE,
                 Collections.singletonList(buildByEntity(appAuthDO))));
 
-        return SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS);
+        return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS);
     }
 
     @Override
-    public SoulAdminResult updateDetail(final AppAuthDTO appAuthDTO) {
+    public ShenyuAdminResult updateDetail(final AppAuthDTO appAuthDTO) {
         if (StringUtils.isBlank(appAuthDTO.getAppKey())
                 || StringUtils.isBlank(appAuthDTO.getAppSecret())
                 || StringUtils.isBlank(appAuthDTO.getId())) {
-            return SoulAdminResult.error(SoulResultMessage.PARAMETER_ERROR);
+            return ShenyuAdminResult.error(ShenyuResultMessage.PARAMETER_ERROR);
         }
         AppAuthDO appAuthDO = AppAuthTransfer.INSTANCE.mapToEntity(appAuthDTO);
         appAuthMapper.update(appAuthDO);
@@ -185,14 +185,14 @@ public class AppAuthServiceImpl implements AppAuthService {
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH,
                 DataEventTypeEnum.UPDATE,
                 Lists.newArrayList(appAuthData)));
-        return SoulAdminResult.success();
+        return ShenyuAdminResult.success();
     }
 
     @Override
-    public SoulAdminResult updateDetailPath(final AuthPathWarpDTO authPathWarpDTO) {
+    public ShenyuAdminResult updateDetailPath(final AuthPathWarpDTO authPathWarpDTO) {
         AppAuthDO appAuthDO = appAuthMapper.selectById(authPathWarpDTO.getId());
         if (Objects.isNull(appAuthDO)) {
-            return SoulAdminResult.error(AdminConstants.ID_NOT_EXIST);
+            return ShenyuAdminResult.error(AdminConstants.ID_NOT_EXIST);
         }
         List<AuthPathDTO> authPathDTOList = authPathWarpDTO.getAuthPathDTOList();
         if (CollectionUtils.isNotEmpty(authPathDTOList)) {
@@ -205,11 +205,11 @@ public class AppAuthServiceImpl implements AppAuthService {
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.APP_AUTH,
                 DataEventTypeEnum.UPDATE,
                 Lists.newArrayList(buildByEntity(appAuthDO))));
-        return SoulAdminResult.success();
+        return ShenyuAdminResult.success();
     }
 
     @Override
-    public SoulAdminResult syncData() {
+    public ShenyuAdminResult syncData() {
         List<AppAuthDO> appAuthDOList = appAuthMapper.selectAll();
         if (CollectionUtils.isNotEmpty(appAuthDOList)) {
             List<AppAuthData> dataList = appAuthDOList.stream().map(this::buildByEntity).collect(Collectors.toList());
@@ -217,7 +217,7 @@ public class AppAuthServiceImpl implements AppAuthService {
                     DataEventTypeEnum.REFRESH,
                     dataList));
         }
-        return SoulAdminResult.success();
+        return ShenyuAdminResult.success();
     }
 
 
@@ -357,8 +357,8 @@ public class AppAuthServiceImpl implements AppAuthService {
     }
 
     @Override
-    public SoulAdminResult updateAppSecretByAppKey(final String appKey, final String appSecret) {
-        return SoulAdminResult.success(appAuthMapper.updateAppSecretByAppKey(appKey, appSecret));
+    public ShenyuAdminResult updateAppSecretByAppKey(final String appKey, final String appSecret) {
+        return ShenyuAdminResult.success(appAuthMapper.updateAppSecretByAppKey(appKey, appSecret));
     }
 
     private AppAuthData buildByEntity(final AppAuthDO appAuthDO) {

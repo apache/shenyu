@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
-import org.apache.shenyu.admin.utils.SoulDomain;
+import org.apache.shenyu.admin.utils.ShenyuDomain;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -56,7 +56,7 @@ public final class IndexControllerTest {
     public void testIndex() throws Exception {
         this.mockMvc.perform(get("/index"))
                 .andExpect(status().isOk())
-                .andExpect(model().attribute("domain", SoulDomain.getInstance().getHttpPath()))
+                .andExpect(model().attribute("domain", ShenyuDomain.getInstance().getHttpPath()))
                 .andReturn();
     }
 }

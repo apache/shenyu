@@ -18,12 +18,12 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.service.PluginHandleService;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.PluginHandleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.PluginHandleQuery;
-import org.apache.shenyu.admin.model.result.SoulAdminResult;
+import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.PluginHandleVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -58,71 +58,71 @@ public class PluginHandleController {
      * @param field  plugin field.
      * @param currentPage  current page.
      * @param pageSize page size
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("")
-    public SoulAdminResult queryPluginHandles(final String pluginId, final String field, final Integer currentPage, final Integer pageSize) {
+    public ShenyuAdminResult queryPluginHandles(final String pluginId, final String field, final Integer currentPage, final Integer pageSize) {
         CommonPager<PluginHandleVO> commonPager = pluginHandleService.listByPage(new PluginHandleQuery(pluginId, field, null, new PageParameter(currentPage, pageSize)));
-        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
 
     /**
      * query plugin handle by plugin id.
      * @param pluginId  plugin id.
      * @param type type 1:selector,2:rule
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/all/{pluginId}/{type}")
-    public SoulAdminResult queryAllPluginHandlesByPluginId(@PathVariable("pluginId") final String pluginId, @PathVariable("type") final Integer type) {
+    public ShenyuAdminResult queryAllPluginHandlesByPluginId(@PathVariable("pluginId") final String pluginId, @PathVariable("type") final Integer type) {
         List<PluginHandleVO> pluginHandleVOS = pluginHandleService.list(pluginId, type);
-        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, pluginHandleVOS);
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, pluginHandleVOS);
     }
 
     /**
      * get plugin handle detail.
      *
      * @param id plugin handle id.
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/{id}")
-    public SoulAdminResult detailRule(@PathVariable("id") final String id) {
+    public ShenyuAdminResult detailRule(@PathVariable("id") final String id) {
         PluginHandleVO pluginHandleVO = pluginHandleService.findById(id);
-        return SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, pluginHandleVO);
+        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, pluginHandleVO);
     }
 
     /**
      * create plugin handle.
      * @param pluginHandleDTO {@link PluginHandleDTO}
-     * @return {@link SoulAdminResult}
+     * @return {@link ShenyuAdminResult}
      */
     @PostMapping("")
-    public SoulAdminResult createPluginHandle(@RequestBody final PluginHandleDTO pluginHandleDTO) {
+    public ShenyuAdminResult createPluginHandle(@RequestBody final PluginHandleDTO pluginHandleDTO) {
         Integer createCount = pluginHandleService.createOrUpdate(pluginHandleDTO);
-        return SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS, createCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
     }
 
     /**
      * update plugin handle by id.
      * @param id plugin handle id
      * @param pluginHandleDTO {@linkplain PluginHandleDTO}
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
-    public SoulAdminResult updatePluginHandle(@PathVariable("id") final String id, @RequestBody final PluginHandleDTO pluginHandleDTO) {
+    public ShenyuAdminResult updatePluginHandle(@PathVariable("id") final String id, @RequestBody final PluginHandleDTO pluginHandleDTO) {
         Objects.requireNonNull(pluginHandleDTO);
         pluginHandleDTO.setId(id);
         Integer updateCount = pluginHandleService.createOrUpdate(pluginHandleDTO);
-        return SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS, updateCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, updateCount);
     }
 
     /**
      * batch delete some plugin handles by some id list.
      * @param ids plugin handle id list.
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/batch")
-    public SoulAdminResult deletePluginHandles(@RequestBody final List<String> ids) {
+    public ShenyuAdminResult deletePluginHandles(@RequestBody final List<String> ids) {
         Integer deleteCount = pluginHandleService.deletePluginHandles(ids);
-        return SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, deleteCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
     }
 }

@@ -19,11 +19,11 @@ package org.apache.shenyu.client.springcloud.init;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.client.core.disruptor.SoulClientRegisterEventPublisher;
-import org.apache.shenyu.client.springcloud.annotation.SoulSpringCloudClient;
+import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
+import org.apache.shenyu.client.springcloud.annotation.ShenyuSpringCloudClient;
 import org.apache.shenyu.common.utils.IpUtils;
-import org.apache.shenyu.register.client.api.SoulClientRegisterRepository;
-import org.apache.shenyu.register.common.config.SoulRegisterCenterConfig;
+import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
+import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
@@ -50,7 +50,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
     
-    private SoulClientRegisterEventPublisher publisher = SoulClientRegisterEventPublisher.getInstance();
+    private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
     
     private final ThreadPoolExecutor executorService;
     
@@ -71,9 +71,9 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
      *
      * @param config the soul spring cloud config
      * @param env    the env
-     * @param soulClientRegisterRepository the soulClientRegisterRepository
+     * @param shenyuClientRegisterRepository the soulClientRegisterRepository
      */
-    public SpringCloudClientBeanPostProcessor(final SoulRegisterCenterConfig config, final Environment env, final SoulClientRegisterRepository soulClientRegisterRepository) {
+    public SpringCloudClientBeanPostProcessor(final ShenyuRegisterCenterConfig config, final Environment env, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         String registerType = config.getRegisterType();
         String serverLists = config.getServerLists();
         String appName = env.getProperty("spring.application.name");
@@ -90,7 +90,7 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         this.host = config.getProps().getProperty("host");
         this.port = config.getProps().getProperty("port");
         this.servletContextPath = env.getProperty("server.servlet.context-path", "");
-        publisher.start(soulClientRegisterRepository);
+        publisher.start(shenyuClientRegisterRepository);
     }
 
     @Override
@@ -103,7 +103,7 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
         RequestMapping requestMapping = AnnotationUtils.findAnnotation(bean.getClass(), RequestMapping.class);
         if (controller != null || restController != null || requestMapping != null) {
             String prePath = "";
-            SoulSpringCloudClient clazzAnnotation = AnnotationUtils.findAnnotation(bean.getClass(), SoulSpringCloudClient.class);
+            ShenyuSpringCloudClient clazzAnnotation = AnnotationUtils.findAnnotation(bean.getClass(), ShenyuSpringCloudClient.class);
             if (Objects.isNull(clazzAnnotation)) {
                 return bean;
             }
@@ -115,24 +115,24 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
             prePath = clazzAnnotation.path();
             final Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(bean.getClass());
             for (Method method : methods) {
-                SoulSpringCloudClient soulSpringCloudClient = AnnotationUtils.findAnnotation(method, SoulSpringCloudClient.class);
-                if (Objects.nonNull(soulSpringCloudClient)) {
+                ShenyuSpringCloudClient shenyuSpringCloudClient = AnnotationUtils.findAnnotation(method, ShenyuSpringCloudClient.class);
+                if (Objects.nonNull(shenyuSpringCloudClient)) {
                     String finalPrePath = prePath;
-                    executorService.execute(() -> publisher.publishEvent(buildMetaDataDTO(soulSpringCloudClient, finalPrePath)));
+                    executorService.execute(() -> publisher.publishEvent(buildMetaDataDTO(shenyuSpringCloudClient, finalPrePath)));
                 }
             }
         }
         return bean;
     }
     
-    private MetaDataRegisterDTO buildMetaDataDTO(final SoulSpringCloudClient soulSpringCloudClient, final String prePath) {
+    private MetaDataRegisterDTO buildMetaDataDTO(final ShenyuSpringCloudClient shenyuSpringCloudClient, final String prePath) {
         String contextPath = StringUtils.isBlank(this.contextPath) ? this.servletContextPath : this.contextPath;
         String appName = env.getProperty("spring.application.name");
-        String path = contextPath + prePath + soulSpringCloudClient.path();
+        String path = contextPath + prePath + shenyuSpringCloudClient.path();
         String host = StringUtils.isBlank(this.host) ? IpUtils.getHost() : this.host;
         int port = StringUtils.isBlank(this.port) ? -1 : Integer.parseInt(this.port);
-        String desc = soulSpringCloudClient.desc();
-        String configRuleName = soulSpringCloudClient.ruleName();
+        String desc = shenyuSpringCloudClient.desc();
+        String configRuleName = shenyuSpringCloudClient.ruleName();
         String ruleName = ("".equals(configRuleName)) ? path : configRuleName;
         return MetaDataRegisterDTO.builder()
                 .contextPath(contextPath)
@@ -141,8 +141,8 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
                 .port(port)
                 .path(path)
                 .pathDesc(desc)
-                .rpcType(soulSpringCloudClient.rpcType())
-                .enabled(soulSpringCloudClient.enabled())
+                .rpcType(shenyuSpringCloudClient.rpcType())
+                .enabled(shenyuSpringCloudClient.enabled())
                 .ruleName(ruleName)
                 .build();
     }

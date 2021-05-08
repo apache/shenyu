@@ -18,8 +18,8 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.service.PermissionService;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
-import org.apache.shenyu.admin.model.result.SoulAdminResult;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.PermissionMenuVO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -47,11 +47,11 @@ public class PermissionController {
      * get menu by token.
      *
      * @param token login success ack token
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/getUserPermissionByToken")
-    public SoulAdminResult getUserPermissionByToken(@RequestParam(name = "token", required = true) final String token) {
+    public ShenyuAdminResult getUserPermissionByToken(@RequestParam(name = "token", required = true) final String token) {
         PermissionMenuVO permissionMenuVO = permissionService.getPermissionMenu(token);
-        return Optional.ofNullable(permissionMenuVO).map(item -> SoulAdminResult.success(SoulResultMessage.MENU_SUCCESS, item)).orElse(SoulAdminResult.error(SoulResultMessage.MENU_FAILED));
+        return Optional.ofNullable(permissionMenuVO).map(item -> ShenyuAdminResult.success(ShenyuResultMessage.MENU_SUCCESS, item)).orElse(ShenyuAdminResult.error(ShenyuResultMessage.MENU_FAILED));
     }
 }

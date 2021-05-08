@@ -25,9 +25,9 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
-import org.apache.shenyu.plugin.base.AbstractSoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.context.path.cache.ContextPathRuleHandleCache;
 import org.apache.shenyu.plugin.context.path.handler.ContextPathMappingPluginDataHandler;
 import org.springframework.web.server.ServerWebExchange;
@@ -41,18 +41,18 @@ import java.util.Objects;
  * @author zhanglei
  */
 @Slf4j
-public class ContextPathMappingPlugin extends AbstractSoulPlugin {
+public class ContextPathMappingPlugin extends AbstractShenyuPlugin {
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
-        SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-        assert soulContext != null;
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
+        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
         ContextMappingHandle contextMappingHandle = ContextPathRuleHandleCache.getInstance().obtainHandle(ContextPathMappingPluginDataHandler.getCacheKeyName(rule));
         if (Objects.isNull(contextMappingHandle) || StringUtils.isBlank(contextMappingHandle.getContextPath())) {
             log.error("context path mapping rule configuration is null ：{}", rule);
             return chain.execute(exchange);
         }
-        buildContextPath(soulContext, contextMappingHandle);
+        buildContextPath(shenyuContext, contextMappingHandle);
         return chain.execute(exchange);
     }
 
@@ -68,7 +68,7 @@ public class ContextPathMappingPlugin extends AbstractSoulPlugin {
 
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
-        SoulContext body = exchange.getAttribute(Constants.CONTEXT);
+        ShenyuContext body = exchange.getAttribute(Constants.CONTEXT);
         return Objects.equals(Objects.requireNonNull(body).getRpcType(), RpcTypeEnum.DUBBO.getName());
     }
 
@@ -78,7 +78,7 @@ public class ContextPathMappingPlugin extends AbstractSoulPlugin {
      * @param context context
      * @param handle  handle
      */
-    private void buildContextPath(final SoulContext context, final ContextMappingHandle handle) {
+    private void buildContextPath(final ShenyuContext context, final ContextMappingHandle handle) {
         String realURI = "";
         if (StringUtils.isNoneBlank(handle.getContextPath())) {
             context.setContextPath(handle.getContextPath());

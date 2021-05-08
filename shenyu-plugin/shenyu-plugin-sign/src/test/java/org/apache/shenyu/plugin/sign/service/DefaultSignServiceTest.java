@@ -28,8 +28,8 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.SignUtils;
 import org.apache.shenyu.plugin.api.SignService;
-import org.apache.shenyu.plugin.api.context.SoulContext;
-import org.apache.shenyu.plugin.api.result.SoulResultEnum;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.apache.shenyu.plugin.sign.cache.SignAuthDataCache;
 
@@ -63,7 +63,7 @@ public final class DefaultSignServiceTest {
 
     private final String secretKey = "692C479F98C841FCBEB444B7CA775F63";
 
-    private SoulContext passed;
+    private ShenyuContext passed;
 
     @Value("${soul.sign.delay:5}")
     private int delay;
@@ -93,7 +93,7 @@ public final class DefaultSignServiceTest {
         authData.setPathDataList(Lists.newArrayList(authPathData));
         SignAuthDataCache.getInstance().cacheAuthData(authData);
 
-        this.passed = new SoulContext();
+        this.passed = new ShenyuContext();
         this.passed.setModule("/test-api");
         this.passed.setMethod("/demo/test");
         this.passed.setRpcType("springCloud");
@@ -150,7 +150,7 @@ public final class DefaultSignServiceTest {
         this.exchange.getAttributes().put(Constants.CONTEXT, this.passed);
 
         Pair<Boolean, String> ret = this.signService.signVerify(this.exchange);
-        Assert.assertEquals(ret, Pair.of(false, String.format(SoulResultEnum.SING_TIME_IS_TIMEOUT.getMsg(), delay)));
+        Assert.assertEquals(ret, Pair.of(false, String.format(ShenyuResultEnum.SING_TIME_IS_TIMEOUT.getMsg(), delay)));
     }
 
     @Test

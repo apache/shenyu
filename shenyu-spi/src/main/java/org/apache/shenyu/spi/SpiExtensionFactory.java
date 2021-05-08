@@ -19,8 +19,6 @@ package org.apache.shenyu.spi;
 
 /**
  * SpiExtensionFactory.
- *
- * @author sixh
  */
 @Join
 public class SpiExtensionFactory implements ExtensionFactory {

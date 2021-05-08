@@ -19,13 +19,13 @@ package org.apache.shenyu.admin.controller;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.service.MetaDataService;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.MetaDataDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.MetaDataQuery;
-import org.apache.shenyu.admin.model.result.SoulAdminResult;
+import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.MetaDataVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -67,9 +67,9 @@ public class MetaDataController {
      * @return the soul result
      */
     @GetMapping("/queryList")
-    public SoulAdminResult queryList(final String appName, final Integer currentPage, final Integer pageSize) {
+    public ShenyuAdminResult queryList(final String appName, final Integer currentPage, final Integer pageSize) {
         CommonPager<MetaDataVO> commonPager = metaDataService.listByPage(new MetaDataQuery(appName, new PageParameter(currentPage, pageSize)));
-        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
 
     /**
@@ -78,8 +78,8 @@ public class MetaDataController {
      * @return the soul result
      */
     @GetMapping("/findAll")
-    public SoulAdminResult findAll() {
-        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, metaDataService.findAll());
+    public ShenyuAdminResult findAll() {
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, metaDataService.findAll());
     }
 
     /**
@@ -88,8 +88,8 @@ public class MetaDataController {
      * @return the soul result
      */
     @GetMapping("/findAllGroup")
-    public SoulAdminResult findAllGroup() {
-        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, metaDataService.findAllGroup());
+    public ShenyuAdminResult findAllGroup() {
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, metaDataService.findAllGroup());
     }
 
     /**
@@ -99,9 +99,9 @@ public class MetaDataController {
      * @return the soul result
      */
     @GetMapping("/{id}")
-    public SoulAdminResult editor(@PathVariable("id") final String id) {
+    public ShenyuAdminResult editor(@PathVariable("id") final String id) {
         MetaDataVO metaDataVO = metaDataService.findById(id);
-        return SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, metaDataVO);
+        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, metaDataVO);
     }
 
     /**
@@ -111,12 +111,12 @@ public class MetaDataController {
      * @return the soul result
      */
     @PostMapping("/createOrUpdate")
-    public SoulAdminResult createOrUpdate(@RequestBody final MetaDataDTO metaDataDTO) {
+    public ShenyuAdminResult createOrUpdate(@RequestBody final MetaDataDTO metaDataDTO) {
         String result = metaDataService.createOrUpdate(metaDataDTO);
         if (StringUtils.isNoneBlank(result)) {
-            return SoulAdminResult.error(result);
+            return ShenyuAdminResult.error(result);
         }
-        return SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS);
+        return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS);
     }
 
     /**
@@ -126,9 +126,9 @@ public class MetaDataController {
      * @return the soul result
      */
     @PostMapping("/batchDeleted")
-    public SoulAdminResult batchDeleted(@RequestBody final List<String> ids) {
+    public ShenyuAdminResult batchDeleted(@RequestBody final List<String> ids) {
         Integer deleteCount = metaDataService.delete(ids);
-        return SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, deleteCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
     }
 
     /**
@@ -138,12 +138,12 @@ public class MetaDataController {
      * @return the soul result
      */
     @PostMapping("/batchEnabled")
-    public SoulAdminResult batchEnabled(@RequestBody final BatchCommonDTO batchCommonDTO) {
+    public ShenyuAdminResult batchEnabled(@RequestBody final BatchCommonDTO batchCommonDTO) {
         final String result = metaDataService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled());
         if (StringUtils.isNoneBlank(result)) {
-            return SoulAdminResult.error(result);
+            return ShenyuAdminResult.error(result);
         }
-        return SoulAdminResult.success(SoulResultMessage.ENABLE_SUCCESS);
+        return ShenyuAdminResult.success(ShenyuResultMessage.ENABLE_SUCCESS);
     }
 
     /**
@@ -152,8 +152,8 @@ public class MetaDataController {
      * @return the soul result
      */
     @PostMapping("/syncData")
-    public SoulAdminResult syncData() {
+    public ShenyuAdminResult syncData() {
         metaDataService.syncData();
-        return SoulAdminResult.success();
+        return ShenyuAdminResult.success();
     }
 }

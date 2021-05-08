@@ -20,9 +20,9 @@ package org.apache.shenyu.plugin.httpclient.response;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
-import org.apache.shenyu.plugin.api.result.SoulResult;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,7 +57,7 @@ import static org.mockito.Mockito.any;
 @RunWith(MockitoJUnitRunner.class)
 public final class WebClientResponsePluginTest {
 
-    private SoulPluginChain chain;
+    private ShenyuPluginChain chain;
 
     private WebClientResponsePlugin webClientResponsePlugin;
 
@@ -65,13 +65,13 @@ public final class WebClientResponsePluginTest {
     public void setup() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setCfgContext(context);
-        when(context.getBean(SoulResult.class)).thenReturn(mock(SoulResult.class));
-        chain = mock(SoulPluginChain.class);
+        when(context.getBean(ShenyuResult.class)).thenReturn(mock(ShenyuResult.class));
+        chain = mock(ShenyuPluginChain.class);
         webClientResponsePlugin = new WebClientResponsePlugin();
     }
 
     /**
-     * test case for WebClientPlugin {@link WebClientResponsePlugin#execute(ServerWebExchange, SoulPluginChain)}.
+     * test case for WebClientPlugin {@link WebClientResponsePlugin#execute(ServerWebExchange, ShenyuPluginChain)}.
      */
     @Test
     public void testExecuted() {
@@ -118,12 +118,12 @@ public final class WebClientResponsePluginTest {
         assertTrue(webClientResponsePlugin.skip(exchangeNormal));
 
         ServerWebExchange exchangeHttp = generateServerWebExchange(true);
-        when(((SoulContext) exchangeHttp.getAttributes().get(Constants.CONTEXT)).getRpcType())
+        when(((ShenyuContext) exchangeHttp.getAttributes().get(Constants.CONTEXT)).getRpcType())
                 .thenReturn(RpcTypeEnum.HTTP.getName());
         assertFalse(webClientResponsePlugin.skip(exchangeHttp));
 
         ServerWebExchange exchangeSpringCloud = generateServerWebExchange(true);
-        when(((SoulContext) exchangeSpringCloud.getAttributes().get(Constants.CONTEXT)).getRpcType())
+        when(((ShenyuContext) exchangeSpringCloud.getAttributes().get(Constants.CONTEXT)).getRpcType())
                 .thenReturn(RpcTypeEnum.SPRING_CLOUD.getName());
         assertFalse(webClientResponsePlugin.skip(exchangeSpringCloud));
     }
@@ -151,7 +151,7 @@ public final class WebClientResponsePluginTest {
         ServerWebExchange exchange = MockServerWebExchange
                 .from(MockServerHttpRequest.get("/test").build());
 
-        exchange.getAttributes().put(Constants.CONTEXT, mock(SoulContext.class));
+        exchange.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
         exchange.getAttributes().put(Constants.HTTP_URL, "/test");
         if (haveResponse) {
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_ATTR, mockResponse);

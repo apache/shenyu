@@ -37,8 +37,6 @@ import java.sql.DriverManager;
 
 /**
  * for execute schema sql file.
- *
- * @author huangxiaofeng
  */
 @Slf4j
 @Component

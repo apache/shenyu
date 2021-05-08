@@ -26,12 +26,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.register.common.config.SoulRegisterCenterConfig;
+import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.path.RegisterPathConstants;
-import org.apache.shenyu.register.server.api.SoulServerRegisterPublisher;
-import org.apache.shenyu.register.server.api.SoulServerRegisterRepository;
+import org.apache.shenyu.register.server.api.ShenyuServerRegisterPublisher;
+import org.apache.shenyu.register.server.api.ShenyuServerRegisterRepository;
 import org.apache.shenyu.spi.Join;
 
 import java.util.ArrayList;
@@ -46,14 +46,14 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Join
-public class ZookeeperServerRegisterRepository implements SoulServerRegisterRepository {
+public class ZookeeperServerRegisterRepository implements ShenyuServerRegisterRepository {
     
-    private SoulServerRegisterPublisher publisher;
+    private ShenyuServerRegisterPublisher publisher;
     
     private ZkClient zkClient;
     
     @Override
-    public void init(final SoulServerRegisterPublisher publisher, final SoulRegisterCenterConfig config) {
+    public void init(final ShenyuServerRegisterPublisher publisher, final ShenyuRegisterCenterConfig config) {
         this.init(config);
         this.publisher = publisher;
         Properties props = config.getProps();

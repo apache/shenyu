@@ -23,10 +23,10 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.SentinelHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
-import org.apache.shenyu.plugin.api.result.DefaultSoulResult;
-import org.apache.shenyu.plugin.api.result.SoulResult;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
+import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.sentinel.fallback.SentinelFallbackHandler;
 import org.apache.shenyu.plugin.sentinel.handler.SentinelRuleHandle;
@@ -66,24 +66,24 @@ public final class SentinelPluginTest {
     private SentinelFallbackHandler sentinelFallbackHandler;
 
     @Mock
-    private SoulPluginChain chain;
+    private ShenyuPluginChain chain;
 
     @Before
     public void setUp() {
-        this.chain = mock(SoulPluginChain.class);
+        this.chain = mock(ShenyuPluginChain.class);
         this.selectorData = mock(SelectorData.class);
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost")
                 .remoteAddress(new InetSocketAddress(8090))
                 .build());
         sentinelFallbackHandler = new SentinelFallbackHandler();
         sentinelRuleHandle = new SentinelRuleHandle();
-        SoulContext context = mock(SoulContext.class);
+        ShenyuContext context = mock(ShenyuContext.class);
         exchange.getAttributes().put(Constants.CONTEXT, context);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
 
         ConfigurableApplicationContext applicationContext = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setCfgContext(applicationContext);
-        when(applicationContext.getBean(SoulResult.class)).thenReturn(new DefaultSoulResult());
+        when(applicationContext.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
 
         sentinelPlugin = new SentinelPlugin(sentinelFallbackHandler);
     }

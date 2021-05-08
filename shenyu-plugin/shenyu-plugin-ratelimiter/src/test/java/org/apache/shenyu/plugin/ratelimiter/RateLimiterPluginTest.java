@@ -21,9 +21,9 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.RateLimiterHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.result.DefaultSoulResult;
-import org.apache.shenyu.plugin.api.result.SoulResult;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
+import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.apache.shenyu.plugin.ratelimiter.cache.RatelimiterRuleHandleCache;
 import org.apache.shenyu.plugin.ratelimiter.executor.RedisRateLimiter;
@@ -55,7 +55,7 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public final class RateLimiterPluginTest {
 
-    private SoulPluginChain chain;
+    private ShenyuPluginChain chain;
 
     private RedisRateLimiter redisRateLimiter;
 
@@ -71,7 +71,7 @@ public final class RateLimiterPluginTest {
     public void setup() {
         this.redisRateLimiter = mock(RedisRateLimiter.class);
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
-        this.chain = mock(SoulPluginChain.class);
+        this.chain = mock(ShenyuPluginChain.class);
         this.ruleData = mock(RuleData.class);
         this.selectorData = mock(SelectorData.class);
         this.rateLimiterPlugin = new RateLimiterPlugin(redisRateLimiter);
@@ -98,7 +98,7 @@ public final class RateLimiterPluginTest {
         when(redisRateLimiter.isAllowed(anyString(), any(RateLimiterHandle.class))).thenReturn(
                 Mono.just(new RateLimiterResponse(false, 1)));
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        when(context.getBean(SoulResult.class)).thenReturn(new DefaultSoulResult());
+        when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
         SpringBeanUtils.getInstance().setCfgContext(context);
         Mono<Void> result = rateLimiterPlugin.doExecute(exchange, chain, selectorData, ruleData);
         StepVerifier.create(result).expectSubscription().verifyComplete();

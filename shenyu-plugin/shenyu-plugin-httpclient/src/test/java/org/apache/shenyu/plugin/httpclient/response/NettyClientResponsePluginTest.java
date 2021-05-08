@@ -21,9 +21,9 @@ import io.netty.buffer.ByteBufAllocator;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
-import org.apache.shenyu.plugin.api.result.SoulResult;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -60,15 +60,15 @@ public class NettyClientResponsePluginTest {
 
     private NettyClientResponsePlugin nettyClientResponsePlugin;
 
-    private SoulPluginChain chain;
+    private ShenyuPluginChain chain;
 
     @Before
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setCfgContext(context);
-        when(context.getBean(SoulResult.class)).thenReturn(mock(SoulResult.class));
+        when(context.getBean(ShenyuResult.class)).thenReturn(mock(ShenyuResult.class));
 
-        chain = mock(SoulPluginChain.class);
+        chain = mock(ShenyuPluginChain.class);
         when(chain.execute(any())).thenReturn(Mono.empty());
 
         nettyClientResponsePlugin = new NettyClientResponsePlugin();
@@ -76,7 +76,7 @@ public class NettyClientResponsePluginTest {
 
     /**
      * test case for NettyClientResponsePluginTest
-     * {@link NettyClientResponsePlugin#execute(ServerWebExchange, SoulPluginChain)}.
+     * {@link NettyClientResponsePlugin#execute(ServerWebExchange, ShenyuPluginChain)}.
      */
     @Test
     public void testExecute() {
@@ -117,12 +117,12 @@ public class NettyClientResponsePluginTest {
         assertTrue(nettyClientResponsePlugin.skip(exchangeNormal));
 
         ServerWebExchange exchangeHttp = generateServerWebExchange();
-        when(((SoulContext) exchangeHttp.getAttributes().get(Constants.CONTEXT)).getRpcType())
+        when(((ShenyuContext) exchangeHttp.getAttributes().get(Constants.CONTEXT)).getRpcType())
                 .thenReturn(RpcTypeEnum.HTTP.getName());
         assertFalse(nettyClientResponsePlugin.skip(exchangeHttp));
 
         ServerWebExchange exchangeSpringCloud = generateServerWebExchange();
-        when(((SoulContext) exchangeSpringCloud.getAttributes().get(Constants.CONTEXT)).getRpcType())
+        when(((ShenyuContext) exchangeSpringCloud.getAttributes().get(Constants.CONTEXT)).getRpcType())
                 .thenReturn(RpcTypeEnum.SPRING_CLOUD.getName());
         assertFalse(nettyClientResponsePlugin.skip(exchangeSpringCloud));
     }
@@ -145,7 +145,7 @@ public class NettyClientResponsePluginTest {
 
     private ServerWebExchange generateServerWebExchange() {
         ServerWebExchange exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/test").build());
-        exchange.getAttributes().put(Constants.CONTEXT, mock(SoulContext.class));
+        exchange.getAttributes().put(Constants.CONTEXT, mock(ShenyuContext.class));
         exchange.getAttributes().put(Constants.HTTP_URL, "/test");
         return exchange;
     }

@@ -26,12 +26,12 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.common.exception.SoulException;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
-import org.apache.shenyu.plugin.api.result.SoulResultEnum;
-import org.apache.shenyu.plugin.base.AbstractSoulPlugin;
-import org.apache.shenyu.plugin.api.result.SoulResultWrap;
+import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.tars.cache.ApplicationConfigCache;
 import org.apache.shenyu.plugin.tars.proxy.TarsInvokePrxList;
@@ -51,27 +51,27 @@ import java.util.concurrent.CompletableFuture;
  * @author tydhot
  */
 @Slf4j
-public class TarsPlugin extends AbstractSoulPlugin {
+public class TarsPlugin extends AbstractShenyuPlugin {
 
     private static final Random RANDOM = new Random();
 
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         String body = exchange.getAttribute(Constants.PARAM_TRANSFORM);
-        SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-        assert soulContext != null;
+        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
         MetaData metaData = exchange.getAttribute(Constants.META_DATA);
         if (!checkMetaData(metaData)) {
             assert metaData != null;
-            log.error(" path is :{}, meta data have error.... {}", soulContext.getPath(), metaData.toString());
+            log.error(" path is :{}, meta data have error.... {}", shenyuContext.getPath(), metaData.toString());
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            Object error = SoulResultWrap.error(SoulResultEnum.META_DATA_ERROR.getCode(), SoulResultEnum.META_DATA_ERROR.getMsg(), null);
+            Object error = ShenyuResultWrap.error(ShenyuResultEnum.META_DATA_ERROR.getCode(), ShenyuResultEnum.META_DATA_ERROR.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         if (StringUtils.isNoneBlank(metaData.getParameterTypes()) && StringUtils.isBlank(body)) {
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            Object error = SoulResultWrap.error(SoulResultEnum.TARS_HAVE_BODY_PARAM.getCode(), SoulResultEnum.TARS_HAVE_BODY_PARAM.getMsg(), null);
+            Object error = ShenyuResultWrap.error(ShenyuResultEnum.TARS_HAVE_BODY_PARAM.getCode(), ShenyuResultEnum.TARS_HAVE_BODY_PARAM.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         TarsInvokePrxList tarsInvokePrxList = ApplicationConfigCache.getInstance().get(metaData.getPath());
@@ -85,7 +85,7 @@ public class TarsPlugin extends AbstractSoulPlugin {
         } catch (Exception e) {
             log.error("Invoke tars error", e);
             exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-            Object error = SoulResultWrap.error(SoulResultEnum.TARS_INVOKE.getCode(), SoulResultEnum.TARS_INVOKE.getMsg(), null);
+            Object error = ShenyuResultWrap.error(ShenyuResultEnum.TARS_INVOKE.getCode(), ShenyuResultEnum.TARS_INVOKE.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         return Mono.fromFuture(future.thenApply(ret -> {
@@ -95,7 +95,7 @@ public class TarsPlugin extends AbstractSoulPlugin {
             exchange.getAttributes().put(Constants.TARS_RPC_RESULT, ret);
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return ret;
-        })).onErrorMap(m -> new SoulException("failed to invoke tars")).then(chain.execute(exchange));
+        })).onErrorMap(m -> new ShenyuException("failed to invoke tars")).then(chain.execute(exchange));
     }
 
     @Override
@@ -110,9 +110,9 @@ public class TarsPlugin extends AbstractSoulPlugin {
 
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
-        final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-        assert soulContext != null;
-        return !Objects.equals(soulContext.getRpcType(), RpcTypeEnum.TARS.getName());
+        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
+        return !Objects.equals(shenyuContext.getRpcType(), RpcTypeEnum.TARS.getName());
     }
 
     private boolean checkMetaData(final MetaData metaData) {

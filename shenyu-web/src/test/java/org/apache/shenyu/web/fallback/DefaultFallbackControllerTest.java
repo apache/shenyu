@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.web.fallback;
 
-import org.apache.shenyu.plugin.api.result.SoulResultEnum;
+import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,8 +53,8 @@ public final class DefaultFallbackControllerTest {
     public void testFallback() throws Exception {
         this.mockMvc.perform(MockMvcRequestBuilders.get("/fallback/hystrix"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code", is(SoulResultEnum.HYSTRIX_PLUGIN_FALLBACK.getCode())))
-                .andExpect(jsonPath("$.message", is(SoulResultEnum.HYSTRIX_PLUGIN_FALLBACK.getMsg())))
+                .andExpect(jsonPath("$.code", is(ShenyuResultEnum.HYSTRIX_PLUGIN_FALLBACK.getCode())))
+                .andExpect(jsonPath("$.message", is(ShenyuResultEnum.HYSTRIX_PLUGIN_FALLBACK.getMsg())))
                 .andReturn();
     }
 
@@ -62,8 +62,8 @@ public final class DefaultFallbackControllerTest {
     public void testResilience4jFallback() throws Exception {
         this.mockMvc.perform(MockMvcRequestBuilders.get("/fallback/resilience4j"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code", is(SoulResultEnum.RESILIENCE4J_PLUGIN_FALLBACK.getCode())))
-                .andExpect(jsonPath("$.message", is(SoulResultEnum.RESILIENCE4J_PLUGIN_FALLBACK.getMsg())))
+                .andExpect(jsonPath("$.code", is(ShenyuResultEnum.RESILIENCE4J_PLUGIN_FALLBACK.getCode())))
+                .andExpect(jsonPath("$.message", is(ShenyuResultEnum.RESILIENCE4J_PLUGIN_FALLBACK.getMsg())))
                 .andReturn();
     }
 }

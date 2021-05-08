@@ -18,8 +18,8 @@
 package org.apache.shenyu.spring.boot.starter.plugin.global;
 
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.SoulPlugin;
-import org.apache.shenyu.plugin.api.context.SoulContextBuilder;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.context.ShenyuContextBuilder;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -45,8 +45,8 @@ public class GlobalPluginConfigurationTest {
             .run(
                 context -> {
                     assertThat(context).hasSingleBean(MetaDataSubscriber.class);
-                    assertThat(context).hasSingleBean(SoulContextBuilder.class);
-                    SoulPlugin plugin = context.getBean("globalPlugin", SoulPlugin.class);
+                    assertThat(context).hasSingleBean(ShenyuContextBuilder.class);
+                    ShenyuPlugin plugin = context.getBean("globalPlugin", ShenyuPlugin.class);
                     assertThat(plugin.named()).isEqualTo(PluginEnum.GLOBAL.getName());
                 }
             );

@@ -18,7 +18,7 @@
 package org.apache.shenyu.springboot.starter.plugin.springcloud;
 
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.SoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
@@ -57,7 +57,7 @@ public class SpringCloudPluginConfigurationTest {
                     assertThat(context).hasSingleBean(RibbonAutoConfiguration.class);
                     assertThat(context).hasSingleBean(DispatcherHandler.class);
                     assertThat(context).getBean(LoadBalancerClient.class).isInstanceOf(RibbonLoadBalancerClient.class);
-                    SoulPlugin plugin = context.getBean(SoulPlugin.class);
+                    ShenyuPlugin plugin = context.getBean(ShenyuPlugin.class);
                     assertThat(plugin.named()).isEqualTo(PluginEnum.SPRING_CLOUD.getName());
                 }
             );

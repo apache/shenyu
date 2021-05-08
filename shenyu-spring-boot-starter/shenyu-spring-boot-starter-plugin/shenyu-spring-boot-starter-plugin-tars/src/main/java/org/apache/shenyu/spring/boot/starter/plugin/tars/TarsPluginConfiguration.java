@@ -18,11 +18,11 @@
 
 package org.apache.shenyu.spring.boot.starter.plugin.tars;
 
-import org.apache.shenyu.plugin.api.SoulPlugin;
-import org.apache.shenyu.plugin.api.context.SoulContextDecorator;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.tars.TarsPlugin;
-import org.apache.shenyu.plugin.tars.context.TarsSoulContextDecorator;
+import org.apache.shenyu.plugin.tars.context.TarsShenyuContextDecorator;
 import org.apache.shenyu.plugin.tars.handler.TarsPluginDataHandler;
 import org.apache.shenyu.plugin.tars.response.TarsResponsePlugin;
 import org.apache.shenyu.plugin.tars.subscriber.TarsMetaDataSubscriber;
@@ -46,7 +46,7 @@ public class TarsPluginConfiguration {
      * @return the tars plugin
      */
     @Bean
-    public SoulPlugin tarsPlugin() {
+    public ShenyuPlugin tarsPlugin() {
         return new TarsPlugin();
     }
 
@@ -56,7 +56,7 @@ public class TarsPluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin tarsResponsePlugin() {
+    public ShenyuPlugin tarsResponsePlugin() {
         return new TarsResponsePlugin();
     }
 
@@ -86,7 +86,7 @@ public class TarsPluginConfiguration {
      * @return the soul context decorator
      */
     @Bean
-    public SoulContextDecorator tarsSoulContextDecorator() {
-        return new TarsSoulContextDecorator();
+    public ShenyuContextDecorator tarsSoulContextDecorator() {
+        return new TarsShenyuContextDecorator();
     }
 }

@@ -21,10 +21,10 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.result.SoulResultEnum;
-import org.apache.shenyu.plugin.api.result.SoulResultWrap;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.base.AbstractSoulPlugin;
+import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
+import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.api.SignService;
 import org.springframework.web.server.ServerWebExchange;
@@ -35,7 +35,7 @@ import reactor.core.publisher.Mono;
  *
  * @author xiaoyu(Myth)
  */
-public class SignPlugin extends AbstractSoulPlugin {
+public class SignPlugin extends AbstractShenyuPlugin {
 
     private final SignService signService;
 
@@ -59,10 +59,10 @@ public class SignPlugin extends AbstractSoulPlugin {
     }
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         Pair<Boolean, String> result = signService.signVerify(exchange);
         if (!result.getLeft()) {
-            Object error = SoulResultWrap.error(SoulResultEnum.SIGN_IS_NOT_PASS.getCode(), result.getRight(), null);
+            Object error = ShenyuResultWrap.error(ShenyuResultEnum.SIGN_IS_NOT_PASS.getCode(), result.getRight(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
         return chain.execute(exchange);

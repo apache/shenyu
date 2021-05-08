@@ -19,8 +19,6 @@ package org.apache.shenyu.register.common.type;
 
 /**
  * The enum Data type enum.
- *
- * @author xiaoyu
  */
 public enum DataType {
     
