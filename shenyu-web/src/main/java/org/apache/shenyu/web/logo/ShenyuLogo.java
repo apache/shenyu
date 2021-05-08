@@ -35,14 +35,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ShenyuLogo implements ApplicationListener<ApplicationEnvironmentPreparedEvent> {
 
     private static final String SHENYU_LOGO = "\n"
-            + "                 _  \n"
-            + "                | | \n"
-            + " ___  ___  _   _| | \n"
-            + "/ __|/ _ \\| | | | |\n"
-            + "\\__ \\ (_) | |_| | |\n"
-            + "|___/\\___/ \\__,_|_|\n"
-            + "                    \n"
-            + "                   \n";
+        + "   _____ _                            \n"
+        + "  / ____| |                           \n"
+        + " | (___ | |__   ___ _ __  _   _ _   _ \n"
+        + "  \\___ \\| '_ \\ / _ \\ '_ \\| | | | | | |\n"
+        + "  ____) | | | |  __/ | | | |_| | |_| |\n"
+        + " |_____/|_| |_|\\___|_| |_|\\__, |\\__,_|\n"
+        + "                           __/ |      \n"
+        + "                          |___/       ";
 
     private final AtomicBoolean alreadyLog = new AtomicBoolean(false);
 
