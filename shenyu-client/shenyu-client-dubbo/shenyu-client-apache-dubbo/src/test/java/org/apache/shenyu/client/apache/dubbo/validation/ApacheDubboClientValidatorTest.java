@@ -44,7 +44,7 @@ import static org.junit.Assert.assertThat;
 public final class ApacheDubboClientValidatorTest {
 
     private static final String MOCK_SERVICE_URL =
-            "mock://localhost:28000/MockValidatorTarget";
+            "mock://localhost:28000/org.apache.shenyu.client.apache.dubbo.validation.mock.MockValidatorTarget";
 
     private ApacheDubboClientValidator apacheDubboClientValidatorUnderTest;
 
@@ -58,7 +58,7 @@ public final class ApacheDubboClientValidatorTest {
                 + "?accepts=500&anyhost=true&application=soul-proxy"
                 + "&bind.ip=127.0.0.1&bind.port=20880&deprecated=false"
                 + "&dubbo=2.0.2&dynamic=true&generic=false"
-                + "&interface=TestService"
+                + "&interface=org.apache.shenyu.client.apache.dubbo.validation.service.TestService"
                 + "&keep.alive=true&methods=test&pid=67352&qos.enable=false&release=2.7.0"
                 + "&side=provider&threadpool=fixed&threads=500&timeout=20000"
                 + "&timestamp=1608119259859&validation=soulValidation");
@@ -66,7 +66,7 @@ public final class ApacheDubboClientValidatorTest {
         try {
             apacheDubboClientValidator.validate("test",
                     new Class[]{TestService.TestObject.class},
-                    new Object[]{TestService.TestObject.builder().age(null).build()});
+                    new Object[]{TestService.TestObject.builder().age(1).build()});
         } catch (Exception e) {
             assertThat("age cannot be null.", is(e.getMessage()));
         }
