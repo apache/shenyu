@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.examples.http.controller;
 
-import org.apache.shenyu.client.springmvc.annotation.SoulSpringMvcClient;
+import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.examples.http.dto.OrderDTO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,12 +29,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * TestController.
- *
- * @author xiaoyu
  */
 @RestController
 @RequestMapping("/order")
-@SoulSpringMvcClient(path = "/order")
+@ShenyuSpringMvcClient(path = "/order")
 public class OrderController {
 
     /**
@@ -44,7 +42,7 @@ public class OrderController {
      * @return the order dto
      */
     @PostMapping("/save")
-    @SoulSpringMvcClient(path = "/save" , desc = "Save order")
+    @ShenyuSpringMvcClient(path = "/save" , desc = "Save order")
     public OrderDTO save(@RequestBody final OrderDTO orderDTO) {
         orderDTO.setName("hello world save order");
         return orderDTO;
@@ -57,7 +55,7 @@ public class OrderController {
      * @return the order dto
      */
     @GetMapping("/findById")
-    @SoulSpringMvcClient(path = "/findById", desc = "Find by id")
+    @ShenyuSpringMvcClient(path = "/findById", desc = "Find by id")
     public OrderDTO findById(@RequestParam("id") final String id) {
         OrderDTO orderDTO = new OrderDTO();
         orderDTO.setId(id);
@@ -73,7 +71,7 @@ public class OrderController {
      * @return the path variable
      */
     @GetMapping("/path/{id}/{name}")
-    @SoulSpringMvcClient(path = "/path/**")
+    @ShenyuSpringMvcClient(path = "/path/**")
     public OrderDTO getPathVariable(@PathVariable("id") final String id, @PathVariable("name") final String name) {
         OrderDTO orderDTO = new OrderDTO();
         orderDTO.setId(id);
@@ -88,7 +86,7 @@ public class OrderController {
      * @return the order dto
      */
     @GetMapping("/path/{id}/name")
-    @SoulSpringMvcClient(path = "/path/**/name")
+    @ShenyuSpringMvcClient(path = "/path/**/name")
     public OrderDTO testRestFul(@PathVariable("id") final String id) {
         OrderDTO orderDTO = new OrderDTO();
         orderDTO.setId(id);

@@ -30,11 +30,8 @@ import org.springframework.context.annotation.Bean;
 
 /**
  * Motan service starter.
- *
- * @author tydhot
  */
 @SpringBootApplication
-@EnableAutoConfiguration
 public class TestMotanApplication {
 
     /**
@@ -76,7 +73,7 @@ public class TestMotanApplication {
     public BasicServiceConfigBean baseServiceConfig() {
         BasicServiceConfigBean config = new BasicServiceConfigBean();
         config.setExport("demoMotan:8002");
-        config.setGroup("motan-soul-rpc");
+        config.setGroup("motan-shenyu-rpc");
         config.setAccessLog(false);
         config.setShareChannel(true);
         config.setModule("motan-demo-rpc");

@@ -7,7 +7,6 @@ package org.apache.shenyu.examples.tars.servant.testapp;
 
 import com.qq.tars.protocol.annotation.*;
 import com.qq.tars.protocol.tars.annotation.*;
-import com.qq.tars.common.support.Holder;
 
 @Servant
 public interface HelloServant {

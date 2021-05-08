@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.examples.http.controller;
 
-import org.apache.shenyu.client.springmvc.annotation.SoulSpringMvcClient;
+import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.examples.http.dto.UserDTO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,12 +30,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * TestController.
- *
- * @author xiaoyu
  */
 @RestController
 @RequestMapping("/test")
-@SoulSpringMvcClient(path = "/test/**")
+@ShenyuSpringMvcClient(path = "/test/**")
 public class HttpTestController {
 
     /**

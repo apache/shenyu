@@ -84,7 +84,6 @@ public interface DubboMultiParamService {
      */
     DubboTest batchSaveAndNameAndId(List<DubboTest> dubboTestList, String id, String name);
 
-
     /**
      * Save complex bean test dubbo test.
      * body : {"dubboTest":{"id":"123","name":"xiaoyu"},"idLists":["456","789"],"idMaps":{"id2":"2","id1":"1"}}
@@ -93,7 +92,6 @@ public interface DubboMultiParamService {
      * @return the dubbo test
      */
     DubboTest saveComplexBeanTest(ComplexBeanTest complexBeanTest);
-
 
     /**
      * Save complex bean test and name dubbo test.

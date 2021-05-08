@@ -21,8 +21,6 @@ import org.apache.shenyu.examples.sofa.api.entity.SofaSimpleTypeBean;
 
 /**
  * Sofa single parameter service.
- *
- * @author wuudongdong
  */
 public interface SofaSingleParamService {
 

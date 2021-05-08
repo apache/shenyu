@@ -31,8 +31,6 @@ import java.util.Map;
 
 /**
  * The type Web socket configuration.
- *
- * @author xiaoyu(Myth)
  */
 @Configuration
 public class WebSocketConfiguration {

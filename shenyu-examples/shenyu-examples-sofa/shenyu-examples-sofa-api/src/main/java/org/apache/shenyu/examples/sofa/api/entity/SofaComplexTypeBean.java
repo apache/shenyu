@@ -27,8 +27,6 @@ import java.util.Map;
 
 /**
  * Sofa complex type bean.
- *
- * @author wuudongdong
  */
 @Data
 @AllArgsConstructor
