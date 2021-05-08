@@ -40,7 +40,7 @@ public final class ApacheDubboClientValidationTest {
     @Test
     public void testGetValidator() {
         String mockServiceUrl =
-                "mock://localhost:28000/MockValidatorTarget";
+                "mock://localhost:28000/org.apache.shenyu.client.apache.dubbo.validation.mock.MockValidatorTarget";
         final URL url = URL.valueOf(mockServiceUrl);
         apacheDubboClientValidationUnderTest.getValidator(url);
     }
