@@ -20,25 +20,25 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.dromara</groupId>
-    <artifactId>soul</artifactId>
+    <groupId>org.apache.shenyu</groupId>
+    <artifactId>shenyu</artifactId>
     <packaging>pom</packaging>
     <version>2.3.1-SNAPSHOT</version>
-    <name>soul</name>
+    <name>shenyu</name>
     <modules>
-        <module>soul-admin</module>
-        <module>soul-common</module>
-        <module>soul-web</module>
-        <module>soul-spring-boot-starter</module>
-        <module>soul-bootstrap</module>
-        <module>soul-client</module>
-        <module>soul-plugin</module>
-        <module>soul-sync-data-center</module>
-        <module>soul-metrics</module>
-        <module>soul-spi</module>
-        <module>soul-register-center</module>
-        <module>soul-dist</module>
-        <module>soul-disruptor</module>
+        <module>shenyu-admin</module>
+        <module>shenyu-common</module>
+        <module>shenyu-web</module>
+        <module>shenyu-spring-boot-starter</module>
+        <module>shenyu-bootstrap</module>
+        <module>shenyu-client</module>
+        <module>shenyu-plugin</module>
+        <module>shenyu-sync-data-center</module>
+        <module>shenyu-metrics</module>
+        <module>shenyu-spi</module>
+        <module>shenyu-register-center</module>
+        <module>shenyu-dist</module>
+        <module>shenyu-disruptor</module>
     </modules>
 
     <organization>
@@ -70,7 +70,7 @@
             <id>xiaoyu</id>
             <name>xiaoyu(Myth)</name>
             <email>xiaoyu@apache.org</email>
-            <organization>org.dromara</organization>
+            <organization>org.apache.shenyu</organization>
             <roles>
                 <role>author</role>
             </roles>
