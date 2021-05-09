@@ -22,4 +22,4 @@ soul:
       ipAndPort: motan
       appName: motan
       port: 8888
-      nacosNameSpace: SoulRegisterCenter
+      nacosNameSpace: ShenyuRegisterCenter

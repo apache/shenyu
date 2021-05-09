@@ -180,7 +180,7 @@
             <artifactId>sofa-rpc-all</artifactId>
             <version>5.7.6</version>
         </dependency>
-        <dependency>
+     <!--   <dependency>
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-client</artifactId>
             <version>4.0.1</version>
@@ -194,7 +194,7 @@
             <groupId>org.apache.curator</groupId>
             <artifactId>curator-recipes</artifactId>
             <version>4.0.1</version>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spring-boot-starter-plugin-sofa</artifactId>

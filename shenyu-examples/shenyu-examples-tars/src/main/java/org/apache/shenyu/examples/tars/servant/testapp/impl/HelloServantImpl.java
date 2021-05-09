@@ -18,24 +18,21 @@
 package org.apache.shenyu.examples.tars.servant.testapp.impl;
 
 import com.qq.tars.spring.annotation.TarsServant;
-import org.apache.shenyu.client.tars.common.annotation.SoulTarsClient;
-import org.apache.shenyu.client.tars.common.annotation.SoulTarsService;
+import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsClient;
+import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsService;
 import org.apache.shenyu.examples.tars.servant.testapp.HelloServant;
 
-/**
- * @author tydhot
- */
 @TarsServant("HelloObj")
-@SoulTarsService(serviceName = "SoulExampleServer.SoulExampleApp.HelloObj")
+@ShenyuTarsService(serviceName = "SoulExampleServer.SoulExampleApp.HelloObj")
 public class HelloServantImpl implements HelloServant {
     @Override
-    @SoulTarsClient(path = "/hello", desc = "hello")
+    @ShenyuTarsClient(path = "/hello", desc = "hello")
     public String hello(int no, String name) {
         return String.format("hello no=%s, name=%s, time=%s", no, name, System.currentTimeMillis());
     }
 
     @Override
-    @SoulTarsClient(path = "/helloInt", desc = "helloInt")
+    @ShenyuTarsClient(path = "/helloInt", desc = "helloInt")
     public int helloInt(int no, String name) {
         return 1;
     }

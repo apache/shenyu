@@ -18,7 +18,7 @@ package org.apache.shenyu.examples.alibaba.dubbo.service.impl;
 
 import java.util.Arrays;
 import java.util.Random;
-import org.apache.shenyu.client.dubbo.common.annotation.SoulDubboClient;
+import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
 import org.apache.shenyu.examples.dubbo.api.entity.DubboTest;
 import org.apache.shenyu.examples.dubbo.api.entity.ListResp;
 import org.apache.shenyu.examples.dubbo.api.service.DubboTestService;
@@ -26,14 +26,12 @@ import org.springframework.stereotype.Service;
 
 /**
  * DubboTestServiceImpl.
- *
- * @author xiaoyu(Myth)
  */
 @Service("dubboTestService")
 public class DubboTestServiceImpl implements DubboTestService {
 
     @Override
-    @SoulDubboClient(path = "/findById", desc = "Query by Id")
+    @ShenyuDubboClient(path = "/findById", desc = "Query by Id")
     public DubboTest findById(final String id) {
         DubboTest dubboTest = new DubboTest();
         dubboTest.setId(id);
@@ -42,7 +40,7 @@ public class DubboTestServiceImpl implements DubboTestService {
     }
 
     @Override
-    @SoulDubboClient(path = "/findAll", desc = "Get all data")
+    @ShenyuDubboClient(path = "/findAll", desc = "Get all data")
     public DubboTest findAll() {
         DubboTest dubboTest = new DubboTest();
         dubboTest.setName("hello world Soul Alibaba Dubbo , findAll");
@@ -51,14 +49,14 @@ public class DubboTestServiceImpl implements DubboTestService {
     }
 
     @Override
-    @SoulDubboClient(path = "/insert", desc = "Insert a row of data")
+    @ShenyuDubboClient(path = "/insert", desc = "Insert a row of data")
     public DubboTest insert(final DubboTest dubboTest) {
         dubboTest.setName("hello world Soul Alibaba Dubbo: " + dubboTest.getName());
         return dubboTest;
     }
 
     @Override
-    @SoulDubboClient(path = "/findList", desc = "Find list")
+    @ShenyuDubboClient(path = "/findList", desc = "Find list")
     public ListResp findList() {
         ListResp listResp = new ListResp();
         listResp.setTotal(1);

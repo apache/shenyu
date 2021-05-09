@@ -25,8 +25,6 @@ import java.util.Map;
 
 /**
  * Sofa multi parameter service.
- *
- * @author wuudongdong
  */
 public interface SofaMultiParamService {
 

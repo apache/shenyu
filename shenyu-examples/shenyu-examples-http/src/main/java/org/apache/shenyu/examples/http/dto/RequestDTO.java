@@ -25,8 +25,6 @@ import java.io.Serializable;
 
 /**
  * The type Request dto.
- *
- * @author xiaoyu(Myth)
  */
 @Data
 @AllArgsConstructor

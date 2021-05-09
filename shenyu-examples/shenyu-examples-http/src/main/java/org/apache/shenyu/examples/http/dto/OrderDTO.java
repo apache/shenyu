@@ -22,8 +22,6 @@ import lombok.Data;
 
 /**
  * The type Order dto.
- *
- * @author xiaoyu(Myth)
  */
 @Data
 public class OrderDTO implements Serializable {

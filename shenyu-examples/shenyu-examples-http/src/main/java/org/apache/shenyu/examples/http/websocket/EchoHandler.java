@@ -24,8 +24,6 @@ import reactor.core.publisher.Mono;
 
 /**
  * The type Echo handler.
- *
- * @author xiaoyu(Myth)
  */
 @Component
 public class EchoHandler implements WebSocketHandler {
