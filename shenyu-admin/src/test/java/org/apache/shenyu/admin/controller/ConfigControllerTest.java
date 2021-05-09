@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.dto.ConfigData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.junit.Before;
@@ -77,7 +77,7 @@ public final class ConfigControllerTest {
                 .param("groupKeys", new String[]{ConfigGroupEnum.APP_AUTH.toString()})
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.SUCCESS)))
                 .andExpect(jsonPath("$.data['APP_AUTH'].md5", is("md5-value1")))
                 .andReturn().getResponse();
 

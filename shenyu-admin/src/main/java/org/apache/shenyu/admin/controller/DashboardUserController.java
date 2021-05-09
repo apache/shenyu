@@ -21,12 +21,12 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.shenyu.admin.config.properties.SecretProperties;
 import org.apache.shenyu.admin.service.DashboardUserService;
 import org.apache.shenyu.admin.utils.AesUtils;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.DashboardUserDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.DashboardUserQuery;
-import org.apache.shenyu.admin.model.result.SoulAdminResult;
+import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.DashboardUserEditVO;
 import org.apache.shenyu.admin.model.vo.DashboardUserVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,17 +70,17 @@ public class DashboardUserController {
      * @param userName    user name
      * @param currentPage current page
      * @param pageSize    page size
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("")
-    public SoulAdminResult queryDashboardUsers(final String userName, final Integer currentPage, final Integer pageSize) {
+    public ShenyuAdminResult queryDashboardUsers(final String userName, final Integer currentPage, final Integer pageSize) {
         String key = secretProperties.getKey();
         CommonPager<DashboardUserVO> commonPager = dashboardUserService.listByPage(new DashboardUserQuery(userName, new PageParameter(currentPage, pageSize)));
         if (CollectionUtils.isNotEmpty(commonPager.getDataList())) {
             commonPager.getDataList().forEach(item -> item.setPassword(AesUtils.aesDecryption(item.getPassword(), key)));
-            return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
+            return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
         } else {
-            return SoulAdminResult.error(SoulResultMessage.DASHBOARD_QUERY_ERROR);
+            return ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_QUERY_ERROR);
         }
     }
 
@@ -88,32 +88,32 @@ public class DashboardUserController {
      * detail dashboard user.
      *
      * @param id dashboard user id.
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/{id}")
-    public SoulAdminResult detailDashboardUser(@PathVariable("id") final String id) {
+    public ShenyuAdminResult detailDashboardUser(@PathVariable("id") final String id) {
         String key = secretProperties.getKey();
         DashboardUserEditVO dashboardUserEditVO = dashboardUserService.findById(id);
         return Optional.ofNullable(dashboardUserEditVO).map(item -> {
             item.setPassword(AesUtils.aesDecryption(item.getPassword(), key));
-            return SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, item);
-        }).orElse(SoulAdminResult.error(SoulResultMessage.DASHBOARD_QUERY_ERROR));
+            return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, item);
+        }).orElse(ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_QUERY_ERROR));
     }
 
     /**
      * create dashboard user.
      *
      * @param dashboardUserDTO dashboard user.
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @PostMapping("")
-    public SoulAdminResult createDashboardUser(@RequestBody final DashboardUserDTO dashboardUserDTO) {
+    public ShenyuAdminResult createDashboardUser(@RequestBody final DashboardUserDTO dashboardUserDTO) {
         String key = secretProperties.getKey();
         return Optional.ofNullable(dashboardUserDTO).map(item -> {
             item.setPassword(AesUtils.aesEncryption(item.getPassword(), key));
             Integer createCount = dashboardUserService.createOrUpdate(item);
-            return SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS, createCount);
-        }).orElse(SoulAdminResult.error(SoulResultMessage.DASHBOARD_CREATE_USER_ERROR));
+            return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
+        }).orElse(ShenyuAdminResult.error(ShenyuResultMessage.DASHBOARD_CREATE_USER_ERROR));
     }
 
     /**
@@ -121,27 +121,27 @@ public class DashboardUserController {
      *
      * @param id               primary key.
      * @param dashboardUserDTO dashboard user.
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
-    public SoulAdminResult updateDashboardUser(@PathVariable("id") final String id, @RequestBody final DashboardUserDTO dashboardUserDTO) {
+    public ShenyuAdminResult updateDashboardUser(@PathVariable("id") final String id, @RequestBody final DashboardUserDTO dashboardUserDTO) {
         Objects.requireNonNull(dashboardUserDTO);
         String key = secretProperties.getKey();
         dashboardUserDTO.setId(id);
         dashboardUserDTO.setPassword(AesUtils.aesEncryption(dashboardUserDTO.getPassword(), key));
         Integer updateCount = dashboardUserService.createOrUpdate(dashboardUserDTO);
-        return SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS, updateCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, updateCount);
     }
 
     /**
      * delete dashboard users.
      *
      * @param ids primary key.
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/batch")
-    public SoulAdminResult deleteDashboardUser(@RequestBody final List<String> ids) {
+    public ShenyuAdminResult deleteDashboardUser(@RequestBody final List<String> ids) {
         Integer deleteCount = dashboardUserService.delete(ids);
-        return SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, deleteCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
     }
 }

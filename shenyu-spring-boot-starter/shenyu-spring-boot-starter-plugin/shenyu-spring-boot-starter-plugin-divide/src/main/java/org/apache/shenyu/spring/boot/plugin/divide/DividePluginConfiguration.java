@@ -17,11 +17,11 @@
 
 package org.apache.shenyu.spring.boot.plugin.divide;
 
-import org.apache.shenyu.plugin.api.SoulPlugin;
-import org.apache.shenyu.plugin.api.context.SoulContextDecorator;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.divide.DividePlugin;
-import org.apache.shenyu.plugin.divide.context.DivideSoulContextDecorator;
+import org.apache.shenyu.plugin.divide.context.DivideShenyuContextDecorator;
 import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
 import org.apache.shenyu.plugin.divide.websocket.WebSocketPlugin;
 import org.springframework.context.annotation.Bean;
@@ -45,7 +45,7 @@ public class DividePluginConfiguration {
      * @return {@linkplain DividePlugin}
      */
     @Bean
-    public SoulPlugin dividePlugin() {
+    public ShenyuPlugin dividePlugin() {
         return new DividePlugin();
     }
 
@@ -98,7 +98,7 @@ public class DividePluginConfiguration {
      * @return the soul context decorator
      */
     @Bean
-    public SoulContextDecorator divideSoulContextDecorator() {
-        return new DivideSoulContextDecorator();
+    public ShenyuContextDecorator divideSoulContextDecorator() {
+        return new DivideShenyuContextDecorator();
     }
 }

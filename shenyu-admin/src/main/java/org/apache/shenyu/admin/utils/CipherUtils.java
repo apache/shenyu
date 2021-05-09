@@ -17,7 +17,8 @@
 
 package org.apache.shenyu.admin.utils;
 
-import org.apache.shenyu.common.exception.SoulException;
+import org.apache.shenyu.common.exception.ShenyuException;
+
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -100,7 +101,7 @@ public class CipherUtils {
             }
             return cipher.doFinal(plainText);
         } catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException | IllegalBlockSizeException e) {
-            throw new SoulException(e);
+            throw new ShenyuException(e);
         }
     }
 
@@ -118,7 +119,7 @@ public class CipherUtils {
                 byte[] result = cipherTool(byteContent, Cipher.ENCRYPT_MODE, aesKey);
                 return Base64.getEncoder().encodeToString(result);
             } catch (Exception ex) {
-                throw new SoulException(ex);
+                throw new ShenyuException(ex);
             }
         }).orElse(null);
     }
@@ -137,7 +138,7 @@ public class CipherUtils {
                 byte[] result = cipherTool(byteContent, Cipher.DECRYPT_MODE, aesKey);
                 return new String(deleteZeroPadding(result));
             } catch (Exception ex) {
-                throw new SoulException(ex);
+                throw new ShenyuException(ex);
             }
         }).orElse(null);
     }

@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.disruptor.subscriber;
 
-import org.apache.shenyu.admin.service.SoulClientRegisterService;
+import org.apache.shenyu.admin.service.ShenyuClientRegisterService;
 import org.apache.shenyu.register.common.dto.URIRegisterDTO;
 import org.apache.shenyu.register.common.subsriber.ExecutorTypeSubscriber;
 import org.apache.shenyu.register.common.type.DataType;
@@ -35,15 +35,15 @@ import java.util.stream.Collectors;
  */
 public class URIRegisterExecutorSubscriber implements ExecutorTypeSubscriber<URIRegisterDTO> {
     
-    private final SoulClientRegisterService soulClientRegisterService;
+    private final ShenyuClientRegisterService shenyuClientRegisterService;
     
     /**
      * Instantiates a new Uri register executor subscriber.
      *
-     * @param soulClientRegisterService the soul client register service
+     * @param shenyuClientRegisterService the soul client register service
      */
-    public URIRegisterExecutorSubscriber(final SoulClientRegisterService soulClientRegisterService) {
-        this.soulClientRegisterService = soulClientRegisterService;
+    public URIRegisterExecutorSubscriber(final ShenyuClientRegisterService shenyuClientRegisterService) {
+        this.shenyuClientRegisterService = shenyuClientRegisterService;
     }
     
     @Override
@@ -61,7 +61,7 @@ public class URIRegisterExecutorSubscriber implements ExecutorTypeSubscriber<URI
                     uriList.add(String.join(":", uriRegisterDTO.getHost(), uriRegisterDTO.getPort().toString()));
                 }
             });
-            soulClientRegisterService.registerURI(contextPath, uriList);
+            shenyuClientRegisterService.registerURI(contextPath, uriList);
         });
     }
 }

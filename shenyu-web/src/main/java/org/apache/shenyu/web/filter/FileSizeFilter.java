@@ -17,8 +17,8 @@
 
 package org.apache.shenyu.web.filter;
 
-import org.apache.shenyu.plugin.api.result.SoulResultEnum;
-import org.apache.shenyu.plugin.api.result.SoulResultWrap;
+import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
+import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.web.filter.support.BodyInserterContext;
 import org.apache.shenyu.web.filter.support.CachedBodyOutputMessage;
@@ -46,8 +46,6 @@ import java.util.List;
 
 /**
  * The type File size filter.
- *
- * @author xiaoyu(Myth)
  */
 public class FileSizeFilter implements WebFilter {
 
@@ -74,7 +72,7 @@ public class FileSizeFilter implements WebFilter {
                         if (size.capacity() > BYTES_PER_MB * fileMaxSize) {
                             ServerHttpResponse response = exchange.getResponse();
                             response.setStatusCode(HttpStatus.BAD_REQUEST);
-                            Object error = SoulResultWrap.error(SoulResultEnum.PAYLOAD_TOO_LARGE.getCode(), SoulResultEnum.PAYLOAD_TOO_LARGE.getMsg(), null);
+                            Object error = ShenyuResultWrap.error(ShenyuResultEnum.PAYLOAD_TOO_LARGE.getCode(), ShenyuResultEnum.PAYLOAD_TOO_LARGE.getMsg(), null);
                             return WebFluxResultUtils.result(exchange, error);
                         }
                         BodyInserter<Mono<DataBuffer>, ReactiveHttpOutputMessage> bodyInsert = BodyInserters.fromPublisher(Mono.just(size), DataBuffer.class);

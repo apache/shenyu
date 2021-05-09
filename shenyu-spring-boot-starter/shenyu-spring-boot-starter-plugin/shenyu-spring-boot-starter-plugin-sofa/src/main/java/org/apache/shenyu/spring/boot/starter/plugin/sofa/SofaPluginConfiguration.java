@@ -18,11 +18,11 @@
 
 package org.apache.shenyu.spring.boot.starter.plugin.sofa;
 
-import org.apache.shenyu.plugin.api.SoulPlugin;
-import org.apache.shenyu.plugin.api.context.SoulContextDecorator;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.sofa.SofaPlugin;
-import org.apache.shenyu.plugin.sofa.context.SofaSoulContextDecorator;
+import org.apache.shenyu.plugin.sofa.context.SofaShenyuContextDecorator;
 import org.apache.shenyu.plugin.sofa.handler.SofaPluginDataHandler;
 import org.apache.shenyu.plugin.sofa.param.SofaBodyParamResolveServiceImpl;
 import org.apache.shenyu.plugin.sofa.proxy.SofaProxyService;
@@ -48,7 +48,7 @@ public class SofaPluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin sofaPlugin() {
+    public ShenyuPlugin sofaPlugin() {
         return new SofaPlugin(new SofaProxyService(new SofaBodyParamResolveServiceImpl()));
     }
 
@@ -58,7 +58,7 @@ public class SofaPluginConfiguration {
      * @return the soul plugin
      */
     @Bean
-    public SoulPlugin sofaResponsePlugin() {
+    public ShenyuPlugin sofaResponsePlugin() {
         return new SofaResponsePlugin();
     }
 
@@ -88,7 +88,7 @@ public class SofaPluginConfiguration {
      * @return the soul context decorator
      */
     @Bean
-    public SoulContextDecorator sofaSoulContextDecorator() {
-        return new SofaSoulContextDecorator();
+    public ShenyuContextDecorator sofaSoulContextDecorator() {
+        return new SofaShenyuContextDecorator();
     }
 }

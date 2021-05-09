@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.service;
 
-import org.apache.shenyu.admin.model.result.SoulAdminResult;
+import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.service.sync.SyncDataServiceImpl;
 import org.apache.shenyu.admin.model.vo.PluginVO;
 import org.apache.shenyu.common.dto.ConditionData;
@@ -87,7 +87,7 @@ public final class SyncDataServiceTest {
         PluginData pluginData = buildPluginData();
         SelectorData selectorData = buildSelectorData();
         RuleData ruleData = buildRuleData();
-        given(this.appAuthService.syncData()).willReturn(SoulAdminResult.success());
+        given(this.appAuthService.syncData()).willReturn(ShenyuAdminResult.success());
         given(this.pluginService.listAll()).willReturn(Collections.singletonList(pluginData));
         given(this.selectorService.listAll()).willReturn(Collections.singletonList(selectorData));
         given(this.ruleService.listAll()).willReturn(Collections.singletonList(ruleData));

@@ -20,10 +20,10 @@ package org.apache.shenyu.plugin.tars.response;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
-import org.apache.shenyu.plugin.api.result.DefaultSoulResult;
-import org.apache.shenyu.plugin.api.result.SoulResult;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
+import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,7 +52,7 @@ import static org.mockito.Mockito.when;
 public class TarsResponsePluginTest {
 
     @Mock
-    private SoulPluginChain chain;
+    private ShenyuPluginChain chain;
 
     private ServerWebExchange exchange;
 
@@ -61,7 +61,7 @@ public class TarsResponsePluginTest {
     @Before
     public void setUp() {
         ConfigurableApplicationContext applicationContext = mock(ConfigurableApplicationContext.class);
-        when(applicationContext.getBean(SoulResult.class)).thenReturn(new DefaultSoulResult());
+        when(applicationContext.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
         SpringBeanUtils springBeanUtils = SpringBeanUtils.getInstance();
         springBeanUtils.setCfgContext(applicationContext);
         exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
@@ -83,9 +83,9 @@ public class TarsResponsePluginTest {
 
     @Test
     public void testSkip() {
-        SoulContext soulContext = new SoulContext();
-        soulContext.setRpcType(RpcTypeEnum.TARS.getName());
-        exchange.getAttributes().put(Constants.CONTEXT, soulContext);
+        ShenyuContext shenyuContext = new ShenyuContext();
+        shenyuContext.setRpcType(RpcTypeEnum.TARS.getName());
+        exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
         final Boolean result = tarsResponsePluginUnderTest.skip(exchange);
         assertFalse(result);
     }

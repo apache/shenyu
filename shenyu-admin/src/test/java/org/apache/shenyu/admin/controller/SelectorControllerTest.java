@@ -22,7 +22,7 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.service.SelectorService;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
@@ -85,7 +85,7 @@ public final class SelectorControllerTest {
         String urlTemplate = "/selector?pluginId={pluginId}&name={name}&currentPage={currentPage}&pageSize={pageSize}";
         this.mockMvc.perform(MockMvcRequestBuilders.get(urlTemplate, "2", "selector-1", 1, 12))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
                 .andExpect(jsonPath("$.data.dataList[0].id", is(selectorVO.getId())))
                 .andReturn();
     }
@@ -101,7 +101,7 @@ public final class SelectorControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(selectorDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.CREATE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
                 .andReturn();
     }
 
@@ -116,7 +116,7 @@ public final class SelectorControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(selectorDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.UPDATE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
                 .andReturn();
     }
 
@@ -127,7 +127,7 @@ public final class SelectorControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("[\"123\"]"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.DELETE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
                 .andReturn();
     }
 
@@ -136,7 +136,7 @@ public final class SelectorControllerTest {
         given(this.selectorService.findById("1")).willReturn(selectorVO);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/selector/{id}", "1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.DETAIL_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
                 .andExpect(jsonPath("$.data.id", is(selectorVO.getId())))
                 .andReturn();
     }

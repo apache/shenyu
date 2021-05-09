@@ -17,11 +17,11 @@
 
 package org.apache.shenyu.springboot.starter.plugin.springcloud;
 
-import org.apache.shenyu.plugin.api.SoulPlugin;
-import org.apache.shenyu.plugin.api.context.SoulContextDecorator;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.springcloud.SpringCloudPlugin;
-import org.apache.shenyu.plugin.springcloud.context.SpringCloudSoulContextDecorator;
+import org.apache.shenyu.plugin.springcloud.context.SpringCloudShenyuContextDecorator;
 import org.apache.shenyu.plugin.springcloud.handler.SpringCloudPluginDataHandler;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
@@ -51,7 +51,7 @@ public class SpringCloudPluginConfiguration {
      * @return {@linkplain SpringCloudPlugin}
      */
     @Bean
-    public SoulPlugin springCloudPlugin(final ObjectProvider<LoadBalancerClient> loadBalancerClient) {
+    public ShenyuPlugin springCloudPlugin(final ObjectProvider<LoadBalancerClient> loadBalancerClient) {
         return new SpringCloudPlugin(loadBalancerClient.getIfAvailable());
     }
 
@@ -61,8 +61,8 @@ public class SpringCloudPluginConfiguration {
      * @return the soul context decorator
      */
     @Bean
-    public SoulContextDecorator springCloudDubboSoulContextDecorator() {
-        return new SpringCloudSoulContextDecorator();
+    public ShenyuContextDecorator springCloudDubboSoulContextDecorator() {
+        return new SpringCloudShenyuContextDecorator();
     }
 
     /**

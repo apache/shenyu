@@ -20,8 +20,8 @@ package org.apache.shenyu.web.filter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.api.result.SoulResultEnum;
-import org.apache.shenyu.plugin.api.result.SoulResultWrap;
+import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
+import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -34,8 +34,6 @@ import reactor.core.publisher.Mono;
 
 /**
  * this is http post param verify filter.
- *
- * @author xiaoyu(Myth)
  */
 public class WebSocketParamFilter extends AbstractWebFilter {
 
@@ -54,7 +52,7 @@ public class WebSocketParamFilter extends AbstractWebFilter {
     protected Mono<Void> doDenyResponse(final ServerWebExchange exchange) {
         ServerHttpResponse response = exchange.getResponse();
         response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-        Object error = SoulResultWrap.error(SoulResultEnum.PARAM_ERROR.getCode(), SoulResultEnum.PARAM_ERROR.getMsg(), null);
+        Object error = ShenyuResultWrap.error(ShenyuResultEnum.PARAM_ERROR.getCode(), ShenyuResultEnum.PARAM_ERROR.getMsg(), null);
         return WebFluxResultUtils.result(exchange, error);
     }
 

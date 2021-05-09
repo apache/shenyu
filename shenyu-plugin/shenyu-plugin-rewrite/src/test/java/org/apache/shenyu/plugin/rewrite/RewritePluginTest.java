@@ -22,7 +22,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.RewriteHandle;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 
 import org.apache.shenyu.plugin.rewrite.cache.RewriteRuleHandleCache;
 import org.apache.shenyu.plugin.rewrite.handler.RewritePluginDataHandler;
@@ -54,7 +54,7 @@ public final class RewritePluginTest {
     private ServerWebExchange exchange;
 
     @Mock
-    private SoulPluginChain chain;
+    private ShenyuPluginChain chain;
 
     @Before
     public void setUp() {

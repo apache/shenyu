@@ -19,7 +19,7 @@ package org.apache.shenyu.springboot.starter.plugin.sign;
 
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.SignService;
-import org.apache.shenyu.plugin.api.SoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -46,7 +46,7 @@ public class SignPluginConfigurationTest {
                 context -> {
                     assertThat(context).hasSingleBean(SignService.class);
                     assertThat(context).hasSingleBean(AuthDataSubscriber.class);
-                    SoulPlugin plugin = context.getBean("signPlugin", SoulPlugin.class);
+                    ShenyuPlugin plugin = context.getBean("signPlugin", ShenyuPlugin.class);
                     assertThat(plugin.named()).isEqualTo(PluginEnum.SIGN.getName());
                 }
             );

@@ -19,8 +19,8 @@ package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.service.DashboardUserService;
 import org.apache.shenyu.admin.service.EnumService;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
-import org.apache.shenyu.admin.model.result.SoulAdminResult;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
+import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.LoginDashboardUserVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,22 +53,22 @@ public class PlatformController {
      *
      * @param userName user name
      * @param password user password
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/login")
-    public SoulAdminResult loginDashboardUser(final String userName, final String password) {
+    public ShenyuAdminResult loginDashboardUser(final String userName, final String password) {
         LoginDashboardUserVO loginVO = dashboardUserService.login(userName, password);
-        return Optional.ofNullable(loginVO).map(item -> SoulAdminResult.success(SoulResultMessage.PLATFORM_LOGIN_SUCCESS, loginVO))
-                .orElse(SoulAdminResult.error(SoulResultMessage.PLATFORM_LOGIN_ERROR));
+        return Optional.ofNullable(loginVO).map(item -> ShenyuAdminResult.success(ShenyuResultMessage.PLATFORM_LOGIN_SUCCESS, loginVO))
+                .orElse(ShenyuAdminResult.error(ShenyuResultMessage.PLATFORM_LOGIN_ERROR));
     }
 
     /**
      * query enums.
      *
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/enum")
-    public SoulAdminResult queryEnums() {
-        return SoulAdminResult.success(enumService.list());
+    public ShenyuAdminResult queryEnums() {
+        return ShenyuAdminResult.success(enumService.list());
     }
 }

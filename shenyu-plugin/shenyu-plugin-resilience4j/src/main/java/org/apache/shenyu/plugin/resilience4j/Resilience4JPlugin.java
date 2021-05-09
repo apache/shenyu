@@ -22,9 +22,9 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.Resilience4JHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
-import org.apache.shenyu.plugin.api.context.SoulContext;
-import org.apache.shenyu.plugin.base.AbstractSoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.resilience4j.build.Resilience4JBuilder;
 import org.apache.shenyu.plugin.resilience4j.cache.Resilience4jRuleHandleCache;
 import org.apache.shenyu.plugin.resilience4j.executor.CombinedExecutor;
@@ -44,7 +44,7 @@ import java.util.function.Function;
  *
  * @author zhanglei
  */
-public class Resilience4JPlugin extends AbstractSoulPlugin {
+public class Resilience4JPlugin extends AbstractShenyuPlugin {
 
     private final CombinedExecutor combinedExecutor;
 
@@ -57,9 +57,9 @@ public class Resilience4JPlugin extends AbstractSoulPlugin {
     }
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final SoulPluginChain chain, final SelectorData selector, final RuleData rule) {
-        final SoulContext soulContext = exchange.getAttribute(Constants.CONTEXT);
-        assert soulContext != null;
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
+        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        assert shenyuContext != null;
         Resilience4JHandle resilience4JHandle = Resilience4jRuleHandleCache.getInstance().obtainHandle(Resilience4JHandler.getResourceName(rule));
         resilience4JHandle.checkData(resilience4JHandle);
         if (resilience4JHandle.getCircuitEnable() == 1) {
@@ -68,13 +68,13 @@ public class Resilience4JPlugin extends AbstractSoulPlugin {
         return rateLimiter(exchange, chain, rule);
     }
 
-    private Mono<Void> rateLimiter(final ServerWebExchange exchange, final SoulPluginChain chain, final RuleData rule) {
+    private Mono<Void> rateLimiter(final ServerWebExchange exchange, final ShenyuPluginChain chain, final RuleData rule) {
         return ratelimiterExecutor.run(
                 chain.execute(exchange), fallback(ratelimiterExecutor, exchange, null), Resilience4JBuilder.build(rule))
                 .onErrorResume(throwable -> ratelimiterExecutor.withoutFallback(exchange, throwable));
     }
 
-    private Mono<Void> combined(final ServerWebExchange exchange, final SoulPluginChain chain, final RuleData rule) {
+    private Mono<Void> combined(final ServerWebExchange exchange, final ShenyuPluginChain chain, final RuleData rule) {
         Resilience4JConf conf = Resilience4JBuilder.build(rule);
         return combinedExecutor.run(
                 chain.execute(exchange).doOnSuccess(v -> {

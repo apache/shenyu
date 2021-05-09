@@ -242,7 +242,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>org.apache.shenyu.admin.SoulAdminBootstrap</mainClass>
+                    <mainClass>org.apache.shenyu.admin.ShenyuAdminBootstrap</mainClass>
                     <executable>true</executable>
                 </configuration>
                 <executions>

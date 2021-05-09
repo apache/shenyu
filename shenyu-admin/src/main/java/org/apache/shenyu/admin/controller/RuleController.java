@@ -18,12 +18,12 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.service.RuleService;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.RuleQuery;
-import org.apache.shenyu.admin.model.result.SoulAdminResult;
+import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -61,12 +61,12 @@ public class RuleController {
      * @param name        rule name.
      * @param currentPage current page.
      * @param pageSize    page size.
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("")
-    public SoulAdminResult queryRules(final String selectorId, final String name, final Integer currentPage, final Integer pageSize) {
+    public ShenyuAdminResult queryRules(final String selectorId, final String name, final Integer currentPage, final Integer pageSize) {
         CommonPager<RuleVO> commonPager = ruleService.listByPage(new RuleQuery(selectorId, name, new PageParameter(currentPage, pageSize)));
-        return SoulAdminResult.success(SoulResultMessage.QUERY_SUCCESS, commonPager);
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
 
     }
 
@@ -74,24 +74,24 @@ public class RuleController {
      * detail rule.
      *
      * @param id rule id.
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("/{id}")
-    public SoulAdminResult detailRule(@PathVariable("id") final String id) {
+    public ShenyuAdminResult detailRule(@PathVariable("id") final String id) {
         RuleVO ruleVO = ruleService.findById(id);
-        return SoulAdminResult.success(SoulResultMessage.DETAIL_SUCCESS, ruleVO);
+        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, ruleVO);
     }
 
     /**
      * create rule.
      *
      * @param ruleDTO rule.
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @PostMapping("")
-    public SoulAdminResult createRule(@RequestBody final RuleDTO ruleDTO) {
+    public ShenyuAdminResult createRule(@RequestBody final RuleDTO ruleDTO) {
         Integer createCount = ruleService.createOrUpdate(ruleDTO);
-        return SoulAdminResult.success(SoulResultMessage.CREATE_SUCCESS, createCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
     }
 
     /**
@@ -99,25 +99,25 @@ public class RuleController {
      *
      * @param id      primary key.
      * @param ruleDTO rule.
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
-    public SoulAdminResult updateRule(@PathVariable("id") final String id, @RequestBody final RuleDTO ruleDTO) {
+    public ShenyuAdminResult updateRule(@PathVariable("id") final String id, @RequestBody final RuleDTO ruleDTO) {
         Objects.requireNonNull(ruleDTO);
         ruleDTO.setId(id);
         Integer updateCount = ruleService.createOrUpdate(ruleDTO);
-        return SoulAdminResult.success(SoulResultMessage.UPDATE_SUCCESS, updateCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, updateCount);
     }
 
     /**
      * delete rules.
      *
      * @param ids primary key.
-     * @return {@linkplain SoulAdminResult}
+     * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/batch")
-    public SoulAdminResult deleteRules(@RequestBody final List<String> ids) {
+    public ShenyuAdminResult deleteRules(@RequestBody final List<String> ids) {
         Integer deleteCount = ruleService.delete(ids);
-        return SoulAdminResult.success(SoulResultMessage.DELETE_SUCCESS, deleteCount);
+        return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
     }
 }

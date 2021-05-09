@@ -31,7 +31,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.ResultEnum;
-import org.apache.shenyu.common.exception.SoulException;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.api.param.BodyParamResolveService;
 import org.apache.shenyu.plugin.sofa.cache.ApplicationConfigCache;
 import org.springframework.web.server.ServerWebExchange;
@@ -66,9 +66,9 @@ public class SofaProxyService {
      * @param metaData the meta data
      * @param exchange the exchange
      * @return the object
-     * @throws SoulException the soul exception
+     * @throws ShenyuException the soul exception
      */
-    public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws SoulException {
+    public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws ShenyuException {
         ConsumerConfig<GenericService> reference = ApplicationConfigCache.getInstance().get(metaData.getPath());
         if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getInterfaceId())) {
             ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
@@ -108,6 +108,6 @@ public class SofaProxyService {
             exchange.getAttributes().put(Constants.SOFA_RPC_RESULT, genericObject.getFields());
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return ret;
-        })).onErrorMap(SoulException::new);
+        })).onErrorMap(ShenyuException::new);
     }
 }

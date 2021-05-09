@@ -67,8 +67,6 @@ import java.util.Set;
 
 /**
  * The type Alibaba dubbo client validator.
- *
- * @author KevinClair
  */
 @Slf4j
 public class AlibabaDubboClientValidator implements Validator {

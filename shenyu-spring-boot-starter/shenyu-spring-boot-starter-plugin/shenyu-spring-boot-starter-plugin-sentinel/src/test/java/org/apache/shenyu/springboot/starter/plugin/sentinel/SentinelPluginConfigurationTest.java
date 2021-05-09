@@ -19,7 +19,7 @@ package org.apache.shenyu.springboot.starter.plugin.sentinel;
 
 import com.alibaba.csp.sentinel.adapter.spring.webflux.exception.SentinelBlockExceptionHandler;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.SoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -48,7 +48,7 @@ public class SentinelPluginConfigurationTest {
                 context -> {
                     assertThat(context).hasSingleBean(PluginDataHandler.class);
                     assertThat(context).hasSingleBean(SentinelBlockExceptionHandler.class);
-                    SoulPlugin plugin = context.getBean("sentinelPlugin", SoulPlugin.class);
+                    ShenyuPlugin plugin = context.getBean("sentinelPlugin", ShenyuPlugin.class);
                     assertThat(plugin.named()).isEqualTo(PluginEnum.SENTINEL.getName());
                 }
             );

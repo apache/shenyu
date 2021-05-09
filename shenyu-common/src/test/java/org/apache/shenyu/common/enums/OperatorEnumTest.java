@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.common.enums;
 
-import org.apache.shenyu.common.exception.SoulException;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.junit.Test;
 
 import java.util.List;
@@ -61,7 +61,7 @@ public final class OperatorEnumTest {
     /**
      * test getOperatorEnumByAlias method with GT exception.
      */
-    @Test(expected = SoulException.class)
+    @Test(expected = ShenyuException.class)
     public void testAcquireByNameInvalidWithGTException() {
         OperatorEnum.getOperatorEnumByAlias(">");
     }
@@ -69,7 +69,7 @@ public final class OperatorEnumTest {
     /**
      * test getOperatorEnumByAlias method with LT exception.
      */
-    @Test(expected = SoulException.class)
+    @Test(expected = ShenyuException.class)
     public void testAcquireByNameInvalidWithLTException() {
         OperatorEnum.getOperatorEnumByAlias("<");
     }
@@ -77,7 +77,7 @@ public final class OperatorEnumTest {
     /**
      * test getOperatorEnumByAlias method with misspelling exception.
      */
-    @Test(expected = SoulException.class)
+    @Test(expected = ShenyuException.class)
     public void testAcquireByNameInvalidWithMisspellingException() {
         OperatorEnum.getOperatorEnumByAlias("nike");
     }

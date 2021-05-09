@@ -18,7 +18,7 @@
 package org.apache.shenyu.spring.boot.starter.plugin.tars;
 
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.SoulPlugin;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.tars.response.TarsResponsePlugin;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
@@ -48,7 +48,7 @@ public class TarsPluginConfigurationTest {
                     assertThat(context).hasSingleBean(MetaDataSubscriber.class);
                     assertThat(context).hasSingleBean(PluginDataHandler.class);
                     assertThat(context).hasSingleBean(TarsResponsePlugin.class);
-                    SoulPlugin plugin = context.getBean("tarsPlugin", SoulPlugin.class);
+                    ShenyuPlugin plugin = context.getBean("tarsPlugin", ShenyuPlugin.class);
                     assertThat(plugin.named()).isEqualTo(PluginEnum.TARS.getName());
                 }
             );

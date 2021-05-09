@@ -23,7 +23,7 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.admin.service.RuleService;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.vo.RuleConditionVO;
 import org.apache.shenyu.admin.model.vo.RuleVO;
 import org.apache.shenyu.common.utils.DateUtils;
@@ -89,7 +89,7 @@ public final class RuleControllerTest {
         String urlTemplate = "/rule?selectorId={selectorId}&name={name}&currentPage={currentPage}&pageSize={pageSize}";
         this.mockMvc.perform(MockMvcRequestBuilders.get(urlTemplate, "168", "/http/test/**", 1, 12))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
                 .andExpect(jsonPath("$.data.dataList[0].id", is(ruleVO.getId())))
                 .andReturn();
     }
@@ -99,7 +99,7 @@ public final class RuleControllerTest {
         given(this.ruleService.findById("666")).willReturn(ruleVO);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/rule/{id}", "666"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.DETAIL_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
                 .andExpect(jsonPath("$.data.id", is(ruleVO.getId())))
                 .andReturn();
     }
@@ -134,7 +134,7 @@ public final class RuleControllerTest {
                         .content(GsonUtils.getInstance().toJson(ruleDTO))
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.CREATE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
                 .andReturn();
     }
 
@@ -169,7 +169,7 @@ public final class RuleControllerTest {
                         .content(GsonUtils.getInstance().toJson(ruleDTO))
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.UPDATE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
                 .andReturn();
     }
 
@@ -181,7 +181,7 @@ public final class RuleControllerTest {
                         .content("[\"111\"]")
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.DELETE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
                 .andReturn();
     }
 

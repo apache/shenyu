@@ -25,9 +25,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 
 /**
- * The type Spring ext configuration.
- *
- * @author xiaoyu
+ * The type spring ext configuration.
  */
 public class SpringExtConfiguration {
 
@@ -38,13 +36,13 @@ public class SpringExtConfiguration {
      */
     @Bean
     public ApplicationContextAware applicationContextAware() {
-        return new SoulApplicationContextAware();
+        return new ShenyuApplicationContextAware();
     }
 
     /**
-     * The type Soul application context aware.
+     * The type shenyu application context aware.
      */
-    public static class SoulApplicationContextAware implements ApplicationContextAware {
+    public static class ShenyuApplicationContextAware implements ApplicationContextAware {
 
         @Override
         public void setApplicationContext(final ApplicationContext applicationContext) throws BeansException {

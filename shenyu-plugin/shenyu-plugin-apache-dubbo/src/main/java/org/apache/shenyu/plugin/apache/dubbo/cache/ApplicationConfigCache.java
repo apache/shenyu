@@ -31,7 +31,7 @@ import org.apache.dubbo.rpc.service.GenericService;
 import org.apache.shenyu.common.config.DubboRegisterConfig;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
-import org.apache.shenyu.common.exception.SoulException;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
 
 import java.lang.reflect.Field;
@@ -209,7 +209,7 @@ public final class ApplicationConfigCache {
         try {
             return (ReferenceConfig<T>) cache.get(path);
         } catch (ExecutionException e) {
-            throw new SoulException(e.getCause());
+            throw new ShenyuException(e.getCause());
         }
     }
 

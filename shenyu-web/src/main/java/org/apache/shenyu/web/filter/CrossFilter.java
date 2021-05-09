@@ -30,8 +30,6 @@ import reactor.core.publisher.Mono;
 
 /**
  * The type Cross filter.
- *
- * @author xiaoyu(Myth)
  */
 public class CrossFilter implements WebFilter {
 

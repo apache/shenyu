@@ -21,8 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.web.filter.AccessControlFilter;
-import org.apache.shenyu.admin.model.result.SoulAdminResult;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
+import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.exception.CommonErrorCode;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.springframework.http.HttpMethod;
@@ -91,8 +91,8 @@ public class StatelessAuthFilter extends AccessControlFilter {
         httpResponse.setCharacterEncoding("utf-8");
         wrapCorsResponse(httpResponse);
         httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        SoulAdminResult result = SoulAdminResult.error(CommonErrorCode.TOKEN_ERROR,
-                SoulResultMessage.TOKEN_IS_ERROR);
+        ShenyuAdminResult result = ShenyuAdminResult.error(CommonErrorCode.TOKEN_ERROR,
+                ShenyuResultMessage.TOKEN_IS_ERROR);
         httpResponse.getWriter().println(GsonUtils.getInstance().toJson(result));
     }
 

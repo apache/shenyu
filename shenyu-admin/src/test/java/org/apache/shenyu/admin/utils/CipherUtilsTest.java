@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.admin.utils;
 
-import org.apache.shenyu.common.exception.SoulException;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.is;
@@ -49,12 +49,12 @@ public final class CipherUtilsTest {
         assertThat(CipherUtils.decryptStr("jHcpKkiDbbQh7W7hh8yQSA==", AES_KEY), is("123456"));
     }
 
-    @Test(expected = SoulException.class)
+    @Test(expected = ShenyuException.class)
     public void testDecryptStrForErrorStringThrowsException() {
         assertThat(CipherUtils.decryptStr("jHcpKkiDbbQh7W7hh8yQSA=", AES_KEY), notNullValue());
     }
 
-    @Test(expected = SoulException.class)
+    @Test(expected = ShenyuException.class)
     public void testDecryptStrForEmptyStringThrowsException() {
         assertThat(CipherUtils.decryptStr("", AES_KEY), notNullValue());
     }

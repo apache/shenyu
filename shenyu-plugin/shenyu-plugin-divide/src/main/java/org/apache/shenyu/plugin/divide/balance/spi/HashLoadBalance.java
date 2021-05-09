@@ -18,7 +18,7 @@
 package org.apache.shenyu.plugin.divide.balance.spi;
 
 import org.apache.shenyu.common.dto.convert.DivideUpstream;
-import org.apache.shenyu.common.exception.SoulException;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.spi.Join;
 
 import java.nio.charset.StandardCharsets;
@@ -61,7 +61,7 @@ public class HashLoadBalance extends AbstractLoadBalance {
         try {
             md5 = MessageDigest.getInstance("MD5");
         } catch (NoSuchAlgorithmException e) {
-            throw new SoulException("MD5 not supported", e);
+            throw new ShenyuException("MD5 not supported", e);
         }
         md5.reset();
         byte[] keyBytes;

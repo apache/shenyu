@@ -21,7 +21,7 @@ import java.net.InetSocketAddress;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.SoulPluginChain;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,7 +52,7 @@ public final class LoggingPluginTest {
 
     private RuleData ruleData;
 
-    private SoulPluginChain chain;
+    private ShenyuPluginChain chain;
 
     private SelectorData selectorData;
 
@@ -60,7 +60,7 @@ public final class LoggingPluginTest {
     public void setUp() {
         this.loggingPlugin = new LoggingPlugin();
         this.ruleData = mock(RuleData.class);
-        this.chain = mock(SoulPluginChain.class);
+        this.chain = mock(ShenyuPluginChain.class);
         this.selectorData = mock(SelectorData.class);
         MockServerHttpRequest request = MockServerHttpRequest
             .get("localhost")

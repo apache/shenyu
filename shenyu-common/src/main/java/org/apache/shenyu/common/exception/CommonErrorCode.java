@@ -19,8 +19,6 @@ package org.apache.shenyu.common.exception;
 
 /**
  * CommonErrorCode.
- *
- * @author xiaoyu
  */
 public class CommonErrorCode {
 

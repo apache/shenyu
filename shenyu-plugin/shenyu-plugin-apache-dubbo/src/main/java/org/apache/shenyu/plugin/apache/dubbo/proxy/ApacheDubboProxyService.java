@@ -28,11 +28,11 @@ import org.apache.dubbo.rpc.Invoker;
 import org.apache.dubbo.rpc.RpcContext;
 import org.apache.dubbo.rpc.service.GenericException;
 import org.apache.dubbo.rpc.service.GenericService;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.plugin.apache.dubbo.cache.ApplicationConfigCache;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.ResultEnum;
-import org.apache.shenyu.common.exception.SoulException;
 import org.apache.shenyu.common.utils.ParamCheckUtils;
 import org.apache.shenyu.common.utils.ReflectUtils;
 import org.apache.shenyu.plugin.api.param.BodyParamResolveService;
@@ -68,9 +68,9 @@ public class ApacheDubboProxyService {
      * @param metaData the meta data
      * @param exchange the exchange
      * @return the object
-     * @throws SoulException the soul exception
+     * @throws ShenyuException the soul exception
      */
-    public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws SoulException {
+    public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws ShenyuException {
         // issue(https://github.com/dromara/soul/issues/471), add dubbo tag route
         String dubboTagRouteFromHttpHeaders = exchange.getRequest().getHeaders().getFirst(Constants.DUBBO_TAG_ROUTE);
         if (StringUtils.isNotBlank(dubboTagRouteFromHttpHeaders)) {
@@ -106,7 +106,7 @@ public class ApacheDubboProxyService {
             exchange.getAttributes().put(Constants.DUBBO_RPC_RESULT, ret);
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return ret;
-        })).onErrorMap(exception -> exception instanceof GenericException ? new SoulException(((GenericException) exception).getExceptionMessage()) : new SoulException(exception));
+        })).onErrorMap(exception -> exception instanceof GenericException ? new ShenyuException(((GenericException) exception).getExceptionMessage()) : new ShenyuException(exception));
     }
 
     private boolean isProviderSupportAsync(final ReferenceConfig<GenericService> reference) {

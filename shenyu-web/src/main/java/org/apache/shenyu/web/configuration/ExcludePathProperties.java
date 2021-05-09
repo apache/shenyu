@@ -27,13 +27,11 @@ import java.util.List;
 
 /**
  * Rule out the url Filter.
- *
- * @author HoldDie
  */
 @Getter
 @Setter
 @Component
-@ConfigurationProperties(prefix = "soul.exclude")
+@ConfigurationProperties(prefix = "shenyu.exclude")
 public class ExcludePathProperties {
     
     private final List<String> paths = new ArrayList<>();

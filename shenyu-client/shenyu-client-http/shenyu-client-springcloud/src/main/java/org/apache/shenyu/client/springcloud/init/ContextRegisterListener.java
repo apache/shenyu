@@ -19,10 +19,10 @@ package org.apache.shenyu.client.springcloud.init;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.client.core.disruptor.SoulClientRegisterEventPublisher;
+import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.register.client.api.SoulClientRegisterRepository;
-import org.apache.shenyu.register.common.config.SoulRegisterCenterConfig;
+import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
+import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 public class ContextRegisterListener implements ApplicationListener<ContextRefreshedEvent> {
     
-    private SoulClientRegisterEventPublisher publisher = SoulClientRegisterEventPublisher.getInstance();
+    private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
     
     private final AtomicBoolean registered = new AtomicBoolean(false);
     
@@ -55,9 +55,9 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
      *
      * @param config the config
      * @param env    the env
-     * @param soulClientRegisterRepository the soulClientRegisterRepository
+     * @param shenyuClientRegisterRepository the soulClientRegisterRepository
      */
-    public ContextRegisterListener(final SoulRegisterCenterConfig config, final Environment env, final SoulClientRegisterRepository soulClientRegisterRepository) {
+    public ContextRegisterListener(final ShenyuRegisterCenterConfig config, final Environment env, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = config.getProps();
         this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
         if (isFull) {
@@ -73,7 +73,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
             }
             this.env = env;
             this.contextPath = contextPath;
-            publisher.start(soulClientRegisterRepository);
+            publisher.start(shenyuClientRegisterRepository);
         }
     }
     
