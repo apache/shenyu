@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
 @Deprecated
 public class HttpServiceDiscovery implements InitializingBean {
 
-    private static final String ROOT = "/soul/register";
+    private static final String ROOT = "/shenyu/register";
 
     private ZkClient zkClient;
 

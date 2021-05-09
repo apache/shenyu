@@ -40,8 +40,6 @@ import java.util.Objects;
 
 /**
  * this is selector controller.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 @RestController
 @RequestMapping("/selector")

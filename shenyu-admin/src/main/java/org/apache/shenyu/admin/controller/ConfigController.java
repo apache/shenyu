@@ -38,9 +38,6 @@ import java.util.Map;
 
 /**
  * This Controller only when HttpLongPollingDataChangedListener exist, will take effect.
- *
- * @author huangxiaofeng
- * @author xiaoyu
  */
 @ConditionalOnBean(HttpLongPollingDataChangedListener.class)
 @RestController
@@ -52,10 +49,10 @@ public class ConfigController {
     private HttpLongPollingDataChangedListener longPollingListener;
 
     /**
-     * Fetch configs soul result.
+     * Fetch configs shenyu result.
      *
      * @param groupKeys the group keys
-     * @return the soul result
+     * @return the shenyu result
      */
     @GetMapping("/fetch")
     public ShenyuAdminResult fetchConfigs(@NotNull final String[] groupKeys) {

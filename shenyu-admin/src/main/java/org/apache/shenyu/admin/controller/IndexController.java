@@ -25,8 +25,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
  * The type Index controller.
- *
- * @author xiaoyu
  */
 @Controller
 public class IndexController {
