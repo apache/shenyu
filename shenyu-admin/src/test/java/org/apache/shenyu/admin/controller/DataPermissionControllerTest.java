@@ -44,8 +44,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * add test case for {@link DataPermissionController}.
- *
- * @author renzhuyan
  */
 @RunWith(MockitoJUnitRunner.class)
 public class DataPermissionControllerTest {
