@@ -26,7 +26,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * The type Nacos config.
  */
 @Data
-@ConfigurationProperties(prefix = "soul.sync.nacos")
+@ConfigurationProperties(prefix = "shenyu.sync.nacos")
 public class NacosProperties {
 
     private String url;

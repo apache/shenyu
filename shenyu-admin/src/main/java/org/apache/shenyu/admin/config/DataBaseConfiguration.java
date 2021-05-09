@@ -41,9 +41,9 @@ public class DataBaseConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(value = DataBaseProperties.class)
-    public DataBaseProperties dataBaseProperties(@Value("${soul.database.dialect:h2}") final String dialect,
-                                                   @Value("${soul.database.init_script:META-INF/schema.h2.sql}") final String initScript,
-                                                   @Value("${soul.database.init_enable:true}") final Boolean initEnable) {
+    public DataBaseProperties dataBaseProperties(@Value("${shenyu.database.dialect:h2}") final String dialect,
+                                                   @Value("${shenyu.database.init_script:META-INF/schema.h2.sql}") final String initScript,
+                                                   @Value("${shenyu.database.init_enable:true}") final Boolean initEnable) {
         DataBaseProperties dataSourceProperties = new DataBaseProperties();
         dataSourceProperties.setDialect(dialect);
         dataSourceProperties.setInitScript(initScript);

@@ -19,9 +19,9 @@ package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.model.dto.PluginHandleDTO;
 import org.apache.shenyu.admin.model.entity.PluginHandleDO;
-import org.apache.shenyu.admin.model.entity.SoulDictDO;
+import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
 import org.apache.shenyu.admin.mapper.PluginHandleMapper;
-import org.apache.shenyu.admin.mapper.SoulDictMapper;
+import org.apache.shenyu.admin.mapper.ShenyuDictMapper;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.PluginHandleQuery;
@@ -56,11 +56,11 @@ public final class PluginHandleServiceTest {
     private PluginHandleMapper pluginHandleMapper;
 
     @Mock
-    private SoulDictMapper soulDictMapper;
+    private ShenyuDictMapper shenyuDictMapper;
 
     @Before
     public void setUp() {
-        pluginHandleService = new PluginHandleServiceImpl(pluginHandleMapper, soulDictMapper);
+        pluginHandleService = new PluginHandleServiceImpl(pluginHandleMapper, shenyuDictMapper);
     }
 
     @Test
@@ -160,15 +160,15 @@ public final class PluginHandleServiceTest {
         PluginHandleDO pluginHandleDO = buildPluginHandleDO();
         pluginHandleDO.setDataType(3);
         given(this.pluginHandleMapper.selectById("4")).willReturn(pluginHandleDO);
-        given(this.soulDictMapper.findByType(any())).willReturn(buildSoulDictDOs());
+        given(this.shenyuDictMapper.findByType(any())).willReturn(buildShenyuDictDOs());
         final PluginHandleVO result = this.pluginHandleService.findById("4");
         assertThat(result, notNullValue());
         assertThat(result.getDictOptions().size(), equalTo(1));
     }
 
-    private List<SoulDictDO> buildSoulDictDOs() {
+    private List<ShenyuDictDO> buildShenyuDictDOs() {
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-        final SoulDictDO result = SoulDictDO.builder()
+        final ShenyuDictDO result = ShenyuDictDO.builder()
                 .type("burstCapacity")
                 .dictCode("RATE_LIMITER_QPS")
                 .dictName("QPS")

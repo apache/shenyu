@@ -50,11 +50,11 @@ public final class ExceptionHandlersTest {
     }
 
     @Test
-    public void testServerExceptionHandlerBySoulException() {
-        Exception soulException = new ShenyuException("Test soulException message!");
-        ShenyuAdminResult result = exceptionHandlersUnderTest.serverExceptionHandler(soulException);
+    public void testServerExceptionHandlerByShenyuException() {
+        Exception shenyuException = new ShenyuException("Test shenyuException message!");
+        ShenyuAdminResult result = exceptionHandlersUnderTest.serverExceptionHandler(shenyuException);
         assertEquals(result.getCode().intValue(), CommonErrorCode.ERROR);
-        assertEquals(result.getMessage(), soulException.getMessage());
+        assertEquals(result.getMessage(), shenyuException.getMessage());
     }
 
     @Test

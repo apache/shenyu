@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
 @Getter
 @Setter
 @Component
-@ConfigurationProperties(prefix = "soul.database")
+@ConfigurationProperties(prefix = "shenyu.database")
 public class DataBaseProperties {
 
     private String dialect;

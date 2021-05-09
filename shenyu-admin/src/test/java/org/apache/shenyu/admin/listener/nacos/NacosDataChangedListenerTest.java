@@ -43,15 +43,15 @@ import org.mockito.junit.MockitoJUnitRunner;
 public final class NacosDataChangedListenerTest {
     private static final String GROUP = "DEFAULT_GROUP";
 
-    private static final String PLUGIN_DATA_ID = "soul.plugin.json";
+    private static final String PLUGIN_DATA_ID = "shenyu.plugin.json";
 
-    private static final String SELECTOR_DATA_ID = "soul.selector.json";
+    private static final String SELECTOR_DATA_ID = "shenyu.selector.json";
 
-    private static final String RULE_DATA_ID = "soul.rule.json";
+    private static final String RULE_DATA_ID = "shenyu.rule.json";
 
-    private static final String AUTH_DATA_ID = "soul.auth.json";
+    private static final String AUTH_DATA_ID = "shenyu.auth.json";
 
-    private static final String META_DATA_ID = "soul.meta.json";
+    private static final String META_DATA_ID = "shenyu.meta.json";
 
     private ConfigService configService;
 

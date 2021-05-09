@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
  **/
 @Data
 @Component
-@ConfigurationProperties(prefix = "soul.jwt")
+@ConfigurationProperties(prefix = "shenyu.jwt")
 public class JwtProperties {
 
     private String key;

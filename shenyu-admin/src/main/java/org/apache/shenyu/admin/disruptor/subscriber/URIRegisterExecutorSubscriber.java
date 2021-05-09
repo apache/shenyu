@@ -40,7 +40,7 @@ public class URIRegisterExecutorSubscriber implements ExecutorTypeSubscriber<URI
     /**
      * Instantiates a new Uri register executor subscriber.
      *
-     * @param shenyuClientRegisterService the soul client register service
+     * @param shenyuClientRegisterService the shenyu client register service
      */
     public URIRegisterExecutorSubscriber(final ShenyuClientRegisterService shenyuClientRegisterService) {
         this.shenyuClientRegisterService = shenyuClientRegisterService;

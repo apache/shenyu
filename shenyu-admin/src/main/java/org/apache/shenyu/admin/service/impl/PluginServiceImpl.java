@@ -314,15 +314,15 @@ public class PluginServiceImpl implements PluginService {
                 .isLeaf(Boolean.TRUE).status(1).sort(0).icon(StringUtils.EMPTY).isRoute(0).build());
         switch (configGroupEnum) {
             case SELECTOR:
-                resourceDO.setTitle("SOUL.BUTTON.PLUGIN." + ConfigGroupEnum.SELECTOR.name() + "." + adminPluginOperateEnum.name());
+                resourceDO.setTitle("SHENYU.BUTTON.PLUGIN." + ConfigGroupEnum.SELECTOR.name() + "." + adminPluginOperateEnum.name());
                 resourceDO.setPerms("plugin:" + pluginName + "Selector:" + adminPluginOperateEnum.getName());
                 break;
             case RULE:
-                resourceDO.setTitle("SOUL.BUTTON.PLUGIN." + ConfigGroupEnum.RULE.name() + "." + adminPluginOperateEnum.name());
+                resourceDO.setTitle("SHENYU.BUTTON.PLUGIN." + ConfigGroupEnum.RULE.name() + "." + adminPluginOperateEnum.name());
                 resourceDO.setPerms("plugin:" + pluginName + "Rule:" + adminPluginOperateEnum.getName());
                 break;
             case PLUGIN:
-                resourceDO.setTitle("SOUL.BUTTON.PLUGIN." + adminPluginOperateEnum.name());
+                resourceDO.setTitle("SHENYU.BUTTON.PLUGIN." + adminPluginOperateEnum.name());
                 resourceDO.setPerms("plugin:" + pluginName + ":" + adminPluginOperateEnum.getName());
                 break;
             default:

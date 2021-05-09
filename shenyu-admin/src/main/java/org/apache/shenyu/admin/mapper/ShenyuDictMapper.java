@@ -19,87 +19,87 @@ package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.apache.shenyu.admin.model.entity.SoulDictDO;
-import org.apache.shenyu.admin.model.query.SoulDictQuery;
+import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
+import org.apache.shenyu.admin.model.query.ShenyuDictQuery;
 
 import java.util.List;
 
 /**
- * The soul dict mapper.
+ * The shenyu dict mapper.
  *
  * @author dengliming
  */
 @Mapper
-public interface SoulDictMapper {
+public interface ShenyuDictMapper {
 
     /**
-     * Select soul dict by id.
+     * Select shenyu dict by id.
      *
      * @param id the id.
-     * @return the soul dict do.
+     * @return the shenyu dict do.
      */
-    SoulDictDO selectById(@Param("id") String id);
+    ShenyuDictDO selectById(@Param("id") String id);
 
     /**
-     * find soul dict do list by dict type.
+     * find shenyu dict do list by dict type.
      *
      * @param type the dict type.
      * @return the list
      */
-    List<SoulDictDO> findByType(@Param("type") String type);
+    List<ShenyuDictDO> findByType(@Param("type") String type);
 
     /**
-     * insert soul dict.
+     * insert shenyu dict.
      *
-     * @param record {@link SoulDictDO}
+     * @param record {@link ShenyuDictDO}
      * @return affected rows
      */
-    int insert(SoulDictDO record);
+    int insert(ShenyuDictDO record);
 
     /**
-     * insert selective soul dict.
+     * insert selective shenyu dict.
      *
-     * @param record {@link SoulDictDO}
+     * @param record {@link ShenyuDictDO}
      * @return affected rows.
      */
-    int insertSelective(SoulDictDO record);
+    int insertSelective(ShenyuDictDO record);
 
     /**
-     * count soul dict by query.
+     * count shenyu dict by query.
      *
-     * @param soulDictQuery {@linkplain SoulDictQuery}
+     * @param shenyuDictQuery {@linkplain ShenyuDictQuery}
      * @return the count
      */
-    int countByQuery(SoulDictQuery soulDictQuery);
+    int countByQuery(ShenyuDictQuery shenyuDictQuery);
 
     /**
-     * select soul dict list by query.
+     * select shenyu dict list by query.
      *
-     * @param soulDictQuery {@linkplain SoulDictQuery}
-     * @return the soul dict list
+     * @param shenyuDictQuery {@linkplain ShenyuDictQuery}
+     * @return the shenyu dict list
      */
-    List<SoulDictDO> selectByQuery(SoulDictQuery soulDictQuery);
+    List<ShenyuDictDO> selectByQuery(ShenyuDictQuery shenyuDictQuery);
 
     /**
-     * update some selective columns in soul dict.
+     * update some selective columns in shenyu dict.
      *
-     * @param record {@linkplain SoulDictDO}
+     * @param record {@linkplain ShenyuDictDO}
      * @return affected rows
      */
-    int updateByPrimaryKeySelective(SoulDictDO record);
+    int updateByPrimaryKeySelective(ShenyuDictDO record);
 
     /**
-     * update soul dict by primary key.
+     * update shenyu dict by primary key.
      *
-     * @param record {@linkplain SoulDictDO}
+     * @param record {@linkplain ShenyuDictDO}
      * @return effected rows.
      */
-    int updateByPrimaryKey(SoulDictDO record);
+    int updateByPrimaryKey(ShenyuDictDO record);
 
     /**
      * delete string id.
      *
-     * @param id soul dict id
+     * @param id shenyu dict id
      * @return affected rows
      */
     int delete(String id);
@@ -107,7 +107,7 @@ public interface SoulDictMapper {
     /**
      * batch enabled.
      *
-     * @param ids soul dict ids
+     * @param ids shenyu dict ids
      * @param enabled enabled status
      * @return affected rows
      */

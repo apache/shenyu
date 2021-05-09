@@ -46,7 +46,7 @@ public final class HttpSyncPropertiesTest extends AbstractConfigurationTest {
 
     @Test
     public void testSpecified() {
-        load(HttpSyncPropertiesConfiguration.class, "soul.sync.http.enabled=false", "soul.sync.http.refreshInterval=1m");
+        load(HttpSyncPropertiesConfiguration.class, "shenyu.sync.http.enabled=false", "shenyu.sync.http.refreshInterval=1m");
         HttpSyncProperties httpSyncProperties = getContext().getBean(HttpSyncProperties.class);
         assertThat(httpSyncProperties.isEnabled(), comparesEqualTo(false));
         assertThat(httpSyncProperties.getRefreshInterval(), comparesEqualTo(Duration.ofMinutes(1)));

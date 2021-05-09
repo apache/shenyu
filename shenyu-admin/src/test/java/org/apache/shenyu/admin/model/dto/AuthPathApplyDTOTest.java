@@ -35,7 +35,7 @@ public final class AuthPathApplyDTOTest {
     public void setUp() throws Exception {
         authPathApplyDTOUnderTest = new AuthPathApplyDTO();
         authPathApplyDTOUnderTest.setPath("/");
-        authPathApplyDTOUnderTest.setAppName("soul");
+        authPathApplyDTOUnderTest.setAppName("shenyu");
     }
 
     @Test
@@ -47,6 +47,6 @@ public final class AuthPathApplyDTOTest {
     @Test
     public void testToString() {
         final String result = authPathApplyDTOUnderTest.toString();
-        assertEquals("AuthPathApplyDTO(appName=soul, path=/)", result);
+        assertEquals("AuthPathApplyDTO(appName=shenyu, path=/)", result);
     }
 }

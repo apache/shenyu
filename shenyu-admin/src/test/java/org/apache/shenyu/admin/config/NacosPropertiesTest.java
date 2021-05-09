@@ -50,10 +50,10 @@ public final class NacosPropertiesTest extends AbstractConfigurationTest {
         acm.setEnabled(false);
         acm.setEndpoint("acm.aliyun.com");
 
-        load(NacosPropertiesTest.NacosPropertiesConfiguration.class, "soul.sync.nacos.url=localhost:8848",
-                "soul.sync.nacos.namespace=1c10d748-af86-43b9-8265-75f487d20c6c",
-                "soul.sync.nacos.acm.enabled=false",
-                "soul.sync.nacos.acm.endpoint=acm.aliyun.com");
+        load(NacosPropertiesTest.NacosPropertiesConfiguration.class, "shenyu.sync.nacos.url=localhost:8848",
+                "shenyu.sync.nacos.namespace=1c10d748-af86-43b9-8265-75f487d20c6c",
+                "shenyu.sync.nacos.acm.enabled=false",
+                "shenyu.sync.nacos.acm.endpoint=acm.aliyun.com");
         NacosProperties nacosProperties = getContext().getBean(NacosProperties.class);
         assertEquals(nacosProperties.getUrl(), url);
         assertEquals(nacosProperties.getNamespace(), namespace);

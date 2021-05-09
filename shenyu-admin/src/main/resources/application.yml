@@ -27,7 +27,7 @@ spring:
     prefix: classpath:/static/
     suffix: .html
   datasource:
-    url: jdbc:mysql://localhost:3306/soul?useUnicode=true&characterEncoding=utf-8&useSSL=false
+    url: jdbc:mysql://localhost:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false
     username: root
     password:
     driver-class-name: com.mysql.jdbc.Driver
@@ -36,7 +36,7 @@ mybatis:
   config-location: classpath:/mybatis/mybatis-config.xml
   mapper-locations: classpath:/mappers/*.xml
 
-soul:
+shenyu:
   register:
     registerType: http #http #zookeeper #etcd #nacos #consul
     serverLists: #localhost:2181 #http://localhost:2379 #localhost:8848
@@ -46,7 +46,7 @@ soul:
       checked: true
       zombieCheckTimes: 5
       scheduledTime: 10
-      nacosNameSpace: SoulRegisterCenter
+      nacosNameSpace: ShenyuRegisterCenter
   database:
     dialect: mysql
     init_script: "META-INF/schema.sql"
@@ -85,7 +85,7 @@ soul:
   jwt:
     key: 2095132720951327
   shiro:
-    white-list: /,/favicon.*,/static/**,/index**,/plugin,/platform/**,/websocket,/configs/**,/soul-client/**,/error,/actuator/health
+    white-list: /,/favicon.*,/static/**,/index**,/plugin,/platform/**,/websocket,/configs/**,/shenyu-client/**,/error,/actuator/health
   swagger:
      enabled: true
 

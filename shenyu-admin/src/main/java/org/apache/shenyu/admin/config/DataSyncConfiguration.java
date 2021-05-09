@@ -51,7 +51,7 @@ public class DataSyncConfiguration {
      * http long polling.
      */
     @Configuration
-    @ConditionalOnProperty(name = "soul.sync.http.enabled", havingValue = "true")
+    @ConditionalOnProperty(name = "shenyu.sync.http.enabled", havingValue = "true")
     @EnableConfigurationProperties(HttpSyncProperties.class)
     static class HttpLongPollingListener {
 
@@ -66,7 +66,7 @@ public class DataSyncConfiguration {
      * The type Zookeeper listener.
      */
     @Configuration
-    @ConditionalOnProperty(prefix = "soul.sync.zookeeper", name = "url")
+    @ConditionalOnProperty(prefix = "shenyu.sync.zookeeper", name = "url")
     @Import(ZookeeperConfiguration.class)
     static class ZookeeperListener {
 
@@ -100,7 +100,7 @@ public class DataSyncConfiguration {
      * The type Nacos listener.
      */
     @Configuration
-    @ConditionalOnProperty(prefix = "soul.sync.nacos", name = "url")
+    @ConditionalOnProperty(prefix = "shenyu.sync.nacos", name = "url")
     @Import(NacosConfiguration.class)
     static class NacosListener {
 
@@ -134,7 +134,7 @@ public class DataSyncConfiguration {
      * The WebsocketListener(default strategy).
      */
     @Configuration
-    @ConditionalOnProperty(name = "soul.sync.websocket.enabled", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnProperty(name = "shenyu.sync.websocket.enabled", havingValue = "true", matchIfMissing = true)
     @EnableConfigurationProperties(WebsocketSyncProperties.class)
     static class WebsocketListener {
 

@@ -51,7 +51,7 @@ public class RegisterServerDisruptorPublisher implements ShenyuServerRegisterPub
     /**
      * start.
      *
-     * @param shenyuClientRegisterService the soul client register service
+     * @param shenyuClientRegisterService the shenyu client register service
      */
     public void start(final ShenyuClientRegisterService shenyuClientRegisterService) {
         factory = new RegisterServerExecutorFactory();

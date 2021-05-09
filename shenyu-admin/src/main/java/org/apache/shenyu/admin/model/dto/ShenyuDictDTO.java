@@ -22,12 +22,12 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * this soul dict from web front.
+ * this shenyu dict from web front.
  *
  * @author dengliming
  */
 @Data
-public class SoulDictDTO implements Serializable {
+public class ShenyuDictDTO implements Serializable {
 
     private static final long serialVersionUID = -8639439741130267709L;
 

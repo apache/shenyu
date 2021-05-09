@@ -47,7 +47,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
 /**
- * Test cases for SoulClientRegisterService.
+ * Test cases for ShenyuClientRegisterService.
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public final class ShenyuClientRegisterServiceTest {
