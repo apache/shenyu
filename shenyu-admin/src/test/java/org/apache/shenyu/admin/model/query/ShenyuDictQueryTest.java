@@ -20,7 +20,7 @@ package org.apache.shenyu.admin.model.query;
 import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
 
 /**
- * Test case for SoulDictQuery.
+ * Test case for ShenyuDictQuery.
  */
 public final class ShenyuDictQueryTest extends AbstractReflectGetterSetterTest {
 

@@ -25,7 +25,7 @@ import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import java.util.List;
 
 /**
- * this is soul dict service.
+ * this is shenyu dict service.
  */
 public interface ShenyuDictService {
     /**

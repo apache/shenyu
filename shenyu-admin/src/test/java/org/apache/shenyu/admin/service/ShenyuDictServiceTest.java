@@ -51,8 +51,6 @@ import static org.mockito.BDDMockito.given;
 
 /**
  * Test cases for ShenyuDictService.
- *
- * @author dengliming
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class ShenyuDictServiceTest {

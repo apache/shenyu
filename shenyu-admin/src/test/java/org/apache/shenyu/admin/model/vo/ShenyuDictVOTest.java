@@ -20,7 +20,7 @@ package org.apache.shenyu.admin.model.vo;
 import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
 
 /**
- * Test case for SoulDictVO.
+ * Test case for ShenyuDictVO.
  */
 public final class ShenyuDictVOTest extends AbstractReflectGetterSetterTest {
 
