@@ -32,27 +32,27 @@ public final class NacosPathConstants {
     /**
      * plugin data id.
      */
-    public static final String PLUGIN_DATA_ID = "soul.plugin.json";
+    public static final String PLUGIN_DATA_ID = "shenyu.plugin.json";
 
     /**
      * selector data id.
      */
-    public static final String SELECTOR_DATA_ID = "soul.selector.json";
+    public static final String SELECTOR_DATA_ID = "shenyu.selector.json";
 
     /**
      * rule data id.
      */
-    public static final String RULE_DATA_ID = "soul.rule.json";
+    public static final String RULE_DATA_ID = "shenyu.rule.json";
 
     /**
      * auth data id.
      */
-    public static final String AUTH_DATA_ID = "soul.auth.json";
+    public static final String AUTH_DATA_ID = "shenyu.auth.json";
 
     /**
      * meta data id.
      */
-    public static final String META_DATA_ID = "soul.meta.json";
+    public static final String META_DATA_ID = "shenyu.meta.json";
 
     /**
      * default value of get config.

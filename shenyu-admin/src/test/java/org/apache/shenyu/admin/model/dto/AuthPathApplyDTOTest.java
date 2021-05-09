@@ -41,7 +41,7 @@ public final class AuthPathApplyDTOTest {
     @Test
     public void testHashCode() {
         final int result = authPathApplyDTOUnderTest.hashCode();
-        assertEquals(208649417, result);
+        assertEquals(-1763955322, result);
     }
 
     @Test
