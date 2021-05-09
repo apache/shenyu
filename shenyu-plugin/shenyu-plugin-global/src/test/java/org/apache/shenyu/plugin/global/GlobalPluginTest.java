@@ -47,9 +47,7 @@ import static org.springframework.http.HttpHeaders.UPGRADE;
 
 /**
  * The Test Case For GlobalPlugin.
- *
- * @author nuo-promise
- **/
+ */
 @RunWith(MockitoJUnitRunner.class)
 public final class GlobalPluginTest {
 

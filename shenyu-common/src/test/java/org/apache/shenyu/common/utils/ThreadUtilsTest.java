@@ -33,9 +33,6 @@ import static org.mockito.Mockito.verify;
 
 /**
  * Test Cases for ThreadUtils.
- *
- * @author onlyonezhongjinhui
- * @author dengliming
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class ThreadUtilsTest {

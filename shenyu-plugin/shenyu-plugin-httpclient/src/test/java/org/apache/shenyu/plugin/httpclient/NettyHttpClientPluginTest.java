@@ -47,9 +47,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * The test case for NettyHttpClientPlugin.
- *
- * @author YuI
- **/
+ */
 @RunWith(MockitoJUnitRunner.class)
 public final class NettyHttpClientPluginTest {
 

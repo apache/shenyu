@@ -41,8 +41,6 @@ import java.util.Objects;
 
 /**
  * The type Apache dubbo plugin.
- *
- * @author xiaoyu(Myth)
  */
 @Slf4j
 public class ApacheDubboPlugin extends AbstractShenyuPlugin {

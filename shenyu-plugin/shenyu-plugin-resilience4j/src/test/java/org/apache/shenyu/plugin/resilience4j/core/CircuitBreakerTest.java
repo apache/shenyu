@@ -33,8 +33,6 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 
 /**
  * CircuitBreaker test.
- *
- * @author zhanglei
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class CircuitBreakerTest {
@@ -49,16 +47,16 @@ public final class CircuitBreakerTest {
     @Test
     public void normalTest() {
         when(circuitBreaker.tryAcquirePermission()).thenReturn(true);
-        StepVerifier.create(Mono.just("SOUL")
+        StepVerifier.create(Mono.just("SHENYU")
                 .transformDeferred(CircuitBreakerOperator.of(circuitBreaker)))
-                .expectNext("SOUL")
+                .expectNext("SHENYU")
                 .verifyComplete();
     }
 
     @Test
     public void errorTest() {
         when(circuitBreaker.tryAcquirePermission()).thenReturn(true);
-        StepVerifier.create(Mono.error(new RuntimeException("SOUL"))
+        StepVerifier.create(Mono.error(new RuntimeException("SHENYU"))
                 .transformDeferred(CircuitBreakerOperator.of(circuitBreaker)))
                 .expectError(RuntimeException.class)
                 .verify();
@@ -67,7 +65,7 @@ public final class CircuitBreakerTest {
     @Test
     public void circuitBreakerTest() {
         when(circuitBreaker.tryAcquirePermission()).thenReturn(false);
-        StepVerifier.create((Mono.just("SOUL"))
+        StepVerifier.create((Mono.just("SHENYU"))
                 .transformDeferred(CircuitBreakerOperator.of(circuitBreaker)))
                 .expectError(CallNotPermittedException.class)
                 .verify();

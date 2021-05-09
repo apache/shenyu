@@ -50,9 +50,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * Test for {@link SpringCloudClientBeanPostProcessor}.
- *
- * @author kaitoShy
- * @author dengliming
  */
 @RunWith(MockitoJUnitRunner.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)

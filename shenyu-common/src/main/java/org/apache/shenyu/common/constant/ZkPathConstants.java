@@ -19,8 +19,6 @@ package org.apache.shenyu.common.constant;
 
 /**
  * ZkPathConstants.
- *
- * @author xiaoyu(Myth)
  */
 public final class ZkPathConstants implements Constants {
 
@@ -131,7 +129,7 @@ public final class ZkPathConstants implements Constants {
      * @param pluginName pluginName
      * @param selectorId selectorId
      * @param ruleId     ruleId
-     * @return /soul/rule/pluginName/selectorId-ruleId
+     * @return /shenyu/rule/pluginName/selectorId-ruleId
      */
     public static String buildRulePath(final String pluginName, final String selectorId, final String ruleId) {
         return String.join(SEPARATOR, buildRuleParentPath(pluginName), String.join(SELECTOR_JOIN_RULE, selectorId, ruleId));

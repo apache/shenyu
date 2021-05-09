@@ -28,8 +28,6 @@ import java.util.Objects;
 
 /**
  * Fallback handler.
- *
- * @author zhanglei
  */
 public interface FallbackHandler {
 

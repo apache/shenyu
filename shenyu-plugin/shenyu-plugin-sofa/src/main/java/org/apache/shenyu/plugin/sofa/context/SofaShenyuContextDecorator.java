@@ -23,9 +23,7 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 
 /**
- * The type Sofa soul context decorator.
- * 
- * @author xiaoyu
+ * The type Sofa shenyu context decorator.
  */
 public class SofaShenyuContextDecorator implements ShenyuContextDecorator {
     

@@ -46,8 +46,6 @@ import java.util.Objects;
 
 /**
  * this is springCloud proxy impl.
- *
- * @author xiaoyu(myth)
  */
 public class SpringCloudPlugin extends AbstractShenyuPlugin {
 

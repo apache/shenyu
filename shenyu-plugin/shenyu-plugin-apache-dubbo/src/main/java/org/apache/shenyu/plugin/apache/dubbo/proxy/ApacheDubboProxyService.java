@@ -44,8 +44,6 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * dubbo proxy service is  use GenericService.
- *
- * @author xiaoyu(Myth)
  */
 @Slf4j
 public class ApacheDubboProxyService {
@@ -68,10 +66,10 @@ public class ApacheDubboProxyService {
      * @param metaData the meta data
      * @param exchange the exchange
      * @return the object
-     * @throws ShenyuException the soul exception
+     * @throws ShenyuException the shenyu exception
      */
     public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws ShenyuException {
-        // issue(https://github.com/dromara/soul/issues/471), add dubbo tag route
+        // issue(https://github.com/dromara/shenyu/issues/471), add dubbo tag route
         String dubboTagRouteFromHttpHeaders = exchange.getRequest().getHeaders().getFirst(Constants.DUBBO_TAG_ROUTE);
         if (StringUtils.isNotBlank(dubboTagRouteFromHttpHeaders)) {
             RpcContext.getContext().setAttachment(CommonConstants.TAG_KEY, dubboTagRouteFromHttpHeaders);

@@ -23,8 +23,6 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Test Cases for DataSyncEnum.
- *
- * @author patrickWuP
  */
 public final class DataSyncEnumTest {
 

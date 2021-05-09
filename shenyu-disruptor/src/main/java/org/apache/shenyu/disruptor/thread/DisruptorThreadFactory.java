@@ -22,8 +22,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * DisruptorThreadFactory.
- *
- * @author xiaoyu
  */
 public final class DisruptorThreadFactory implements ThreadFactory {
 

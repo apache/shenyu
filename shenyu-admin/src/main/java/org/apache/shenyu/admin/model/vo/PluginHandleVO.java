@@ -29,9 +29,6 @@ import java.util.Optional;
 
 /**
  * this is plugin handle view to web front.
- *
- * @author liangziqiang.
- * @author dengliming.
  */
 @Data
 @AllArgsConstructor

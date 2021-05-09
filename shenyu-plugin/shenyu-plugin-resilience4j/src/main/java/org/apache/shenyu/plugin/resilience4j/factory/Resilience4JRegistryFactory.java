@@ -26,8 +26,6 @@ import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
 
 /**
  * Resilience4J registry factory.
- *
- * @author zhanglei
  */
 public class Resilience4JRegistryFactory {
 

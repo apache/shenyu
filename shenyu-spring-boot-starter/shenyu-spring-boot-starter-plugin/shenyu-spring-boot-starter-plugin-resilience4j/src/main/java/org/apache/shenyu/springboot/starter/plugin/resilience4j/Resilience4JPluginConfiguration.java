@@ -26,8 +26,6 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * Resilience4j plugin configuration.
- *
- * @author zhanglei
  */
 @Configuration
 public class Resilience4JPluginConfiguration {
@@ -35,7 +33,7 @@ public class Resilience4JPluginConfiguration {
     /**
      * Resilience4j plugin.
      *
-     * @return the soul plugin
+     * @return the shenyu plugin
      */
     @Bean
     public Resilience4JPlugin resilience4JPlugin() {

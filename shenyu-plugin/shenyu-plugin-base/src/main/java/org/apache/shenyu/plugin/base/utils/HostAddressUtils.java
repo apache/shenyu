@@ -23,8 +23,6 @@ import org.springframework.web.server.ServerWebExchange;
 
 /**
  * The type Host address utils.
- *
- * @author xiaoyu
  */
 public class HostAddressUtils {
 

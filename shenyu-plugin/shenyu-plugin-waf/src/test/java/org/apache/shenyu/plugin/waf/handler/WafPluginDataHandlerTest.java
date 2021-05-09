@@ -33,8 +33,6 @@ import static org.junit.Assert.assertNull;
 
 /**
  * Test case for {@link WafPluginDataHandler}.
- *
- * @author HoldDie
  */
 public final class WafPluginDataHandlerTest {
 

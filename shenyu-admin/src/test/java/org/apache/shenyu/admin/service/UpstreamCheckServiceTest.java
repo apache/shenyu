@@ -50,8 +50,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * Test cases for UpstreamCheckService.
- *
- * @author zendwang
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class UpstreamCheckServiceTest {

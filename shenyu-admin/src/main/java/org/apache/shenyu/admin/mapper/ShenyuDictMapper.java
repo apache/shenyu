@@ -26,8 +26,6 @@ import java.util.List;
 
 /**
  * The shenyu dict mapper.
- *
- * @author dengliming
  */
 @Mapper
 public interface ShenyuDictMapper {

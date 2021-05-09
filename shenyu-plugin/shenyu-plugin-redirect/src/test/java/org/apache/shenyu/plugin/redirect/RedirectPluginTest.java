@@ -44,8 +44,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * test case for {@link RedirectPlugin}.
- *
- * @author HoldDie
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class RedirectPluginTest {

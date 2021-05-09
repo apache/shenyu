@@ -28,9 +28,7 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * The Test Case For MetricsConfig.
- *
- * @author nuo-promise
- **/
+ */
 public final class MetricsConfigTest {
 
     private MetricsConfig metricsConfig;

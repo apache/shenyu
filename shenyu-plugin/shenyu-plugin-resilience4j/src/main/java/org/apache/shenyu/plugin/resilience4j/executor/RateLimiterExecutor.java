@@ -27,8 +27,6 @@ import io.github.resilience4j.reactor.ratelimiter.operator.RateLimiterOperator;
 
 /**
  * Rate limiter executor.
- *
- * @author zhanglei
  */
 public class RateLimiterExecutor implements Executor {
 

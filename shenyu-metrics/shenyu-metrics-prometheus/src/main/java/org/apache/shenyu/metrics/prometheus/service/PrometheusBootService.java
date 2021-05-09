@@ -38,8 +38,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Prometheus metrics tracker manager.
- *
- * @author xiaoyu
  */
 @Getter
 @Slf4j

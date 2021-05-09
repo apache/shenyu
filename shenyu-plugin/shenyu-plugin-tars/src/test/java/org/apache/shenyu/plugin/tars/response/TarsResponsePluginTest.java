@@ -45,8 +45,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * Test case for {@link TarsResponsePlugin}.
- *
- * @author HoldDie
  */
 @RunWith(MockitoJUnitRunner.class)
 public class TarsResponsePluginTest {

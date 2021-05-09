@@ -37,8 +37,6 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * SofaResponsePluginTest.
- *
- * @author tydhot
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class SofaResponsePluginTest {

@@ -31,8 +31,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * AlibabaDubboPluginDataTest.
- *
- * @author xiaoshen11
  */
 @RunWith(MockitoJUnitRunner.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)

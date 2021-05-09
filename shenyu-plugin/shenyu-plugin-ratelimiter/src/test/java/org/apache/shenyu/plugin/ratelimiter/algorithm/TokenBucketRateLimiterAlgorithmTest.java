@@ -27,8 +27,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * test for TokenBucketRateLimiterAlgorithm.
- *
- * @author liupenghui
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class TokenBucketRateLimiterAlgorithmTest {

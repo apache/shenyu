@@ -23,8 +23,6 @@ import org.apache.shenyu.plugin.api.utils.BodyParamUtils;
 
 /**
  * The type Default generic param resolve service.
- *
- * @author xiaoyu
  */
 public class DubboBodyParamResolveServiceImpl implements BodyParamResolveService {
 

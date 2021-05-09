@@ -25,9 +25,7 @@ import reactor.core.publisher.Mono;
 import java.util.Objects;
 
 /**
- * The type Soul result utils.
- *
- * @author xiaoyu
+ * The type Shenyu result utils.
  */
 public final class WebFluxResultUtils {
 

@@ -28,8 +28,6 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Test Cases for OperatorEnum.
- *
- * @author mcnultyboy
  */
 public final class OperatorEnumTest {
 

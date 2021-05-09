@@ -19,8 +19,6 @@ package org.apache.shenyu.client.alibaba.dubbo.validation.mock;
 
 /**
  * Mock Enum Type.
- *
- * @author David Liu
  */
 public enum MockEnumType {
     

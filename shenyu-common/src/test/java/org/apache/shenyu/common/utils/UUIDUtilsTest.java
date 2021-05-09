@@ -31,8 +31,6 @@ import static org.hamcrest.Matchers.greaterThan;
 
 /**
  * Test cases for UUIDUtils.
- *
- * @author BetterWp
  */
 public final class UUIDUtilsTest {
 

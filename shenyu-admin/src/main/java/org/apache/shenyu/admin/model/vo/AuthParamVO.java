@@ -23,8 +23,6 @@ import java.io.Serializable;
 
 /**
  * The type Auth param vo.
- *
- * @author xiaoyu
  */
 @Data
 public class AuthParamVO implements Serializable {

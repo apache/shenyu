@@ -43,8 +43,6 @@ import java.util.Objects;
 
 /**
  * Hystrix Plugin.
- *
- * @author xiaoyu(Myth)
  */
 @Slf4j
 public class HystrixPlugin extends AbstractShenyuPlugin {

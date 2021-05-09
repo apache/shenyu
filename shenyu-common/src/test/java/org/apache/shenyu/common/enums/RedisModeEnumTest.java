@@ -24,8 +24,6 @@ import static org.junit.Assert.assertNotEquals;
 
 /**
  * Test Cases for RedisModeEnum.
- *
- * @author YarNeCn
  */
 public class RedisModeEnumTest {
 

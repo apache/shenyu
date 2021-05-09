@@ -31,10 +31,6 @@ import java.util.Optional;
 /**
  * The config field has been added in 2.0
  * PluginDO.
- *
- * @author jiangxiaofeng(Nicholas)
- * @author xiaoyu
- * @author nuo-promise
  */
 @Data
 @SuperBuilder

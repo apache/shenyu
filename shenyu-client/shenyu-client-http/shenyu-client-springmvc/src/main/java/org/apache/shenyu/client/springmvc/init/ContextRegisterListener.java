@@ -56,7 +56,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
      * Instantiates a new Context register listener.
      *
      * @param config the config
-     * @param shenyuClientRegisterRepository the soulClientRegisterRepository
+     * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      */
     public ContextRegisterListener(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = config.getProps();

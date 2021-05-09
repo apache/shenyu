@@ -35,9 +35,6 @@ import java.util.stream.Collectors;
 
 /**
  * The type Default generic param resolve service.
- *
- * @author dengliming
- * @author wuudongdong
  */
 public class SofaBodyParamResolveServiceImpl implements BodyParamResolveService {
 

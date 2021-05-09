@@ -33,15 +33,13 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * The type tars plugin configuration.
- *
- * @author tydhot
  */
 @Configuration
 @ConditionalOnClass(TarsPlugin.class)
 public class TarsPluginConfiguration {
 
     /**
-     * Tars plugin soul plugin.
+     * Tars plugin shenyu plugin.
      *
      * @return the tars plugin
      */
@@ -51,9 +49,9 @@ public class TarsPluginConfiguration {
     }
 
     /**
-     * Tars response plugin soul plugin.
+     * Tars response plugin shenyu plugin.
      *
-     * @return the soul plugin
+     * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin tarsResponsePlugin() {
@@ -81,9 +79,9 @@ public class TarsPluginConfiguration {
     }
     
     /**
-     * Tars soul context decorator soul context decorator.
+     * Tars shenyu context decorator shenyu context decorator.
      *
-     * @return the soul context decorator
+     * @return the shenyu context decorator
      */
     @Bean
     public ShenyuContextDecorator tarsShenyuContextDecorator() {

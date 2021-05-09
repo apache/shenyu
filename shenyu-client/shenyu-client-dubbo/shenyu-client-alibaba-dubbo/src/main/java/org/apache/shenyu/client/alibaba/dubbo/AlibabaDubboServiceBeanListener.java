@@ -156,7 +156,7 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
         if (!registered.compareAndSet(false, true)) {
             return;
         }
-        // Fix bug(https://github.com/dromara/soul/issues/415), upload dubbo metadata on ContextRefreshedEvent
+        // Fix bug(https://github.com/dromara/shenyu/issues/415), upload dubbo metadata on ContextRefreshedEvent
         Map<String, ServiceBean> serviceBean = contextRefreshedEvent.getApplicationContext().getBeansOfType(ServiceBean.class);
         for (Map.Entry<String, ServiceBean> entry : serviceBean.entrySet()) {
             executorService.execute(() -> handler(entry.getValue()));

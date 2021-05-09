@@ -33,8 +33,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * Test case for SelectorConditionMapper.
- *
- * @author bigwillc
  */
 public final class SelectorConditionMapperTest extends AbstractSpringIntegrationTest {
     @Resource

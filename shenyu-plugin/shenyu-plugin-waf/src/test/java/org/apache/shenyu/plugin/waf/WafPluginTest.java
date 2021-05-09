@@ -44,8 +44,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * Test case for {@link WafPlugin}.
- *
- * @author HoldDie
  */
 public final class WafPluginTest {
 

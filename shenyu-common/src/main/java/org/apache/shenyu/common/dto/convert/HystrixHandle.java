@@ -25,8 +25,6 @@ import org.apache.shenyu.common.enums.HystrixIsolationModeEnum;
 
 /**
  * this is hystrix handle.
- *
- * @author xiaoyu(Myth)
  */
 @Getter
 @Setter

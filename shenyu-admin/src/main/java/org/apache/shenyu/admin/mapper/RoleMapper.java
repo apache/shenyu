@@ -25,9 +25,7 @@ import java.util.List;
 
 /**
  * The Role Mapper.
- *
- * @author nuo-promise
- **/
+ */
 @Mapper
 public interface RoleMapper {
 

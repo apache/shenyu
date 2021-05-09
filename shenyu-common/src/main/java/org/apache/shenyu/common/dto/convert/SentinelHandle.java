@@ -24,8 +24,6 @@ import org.apache.shenyu.common.constant.Constants;
 
 /**
  * This is SentinelHandle.
- *
- * @author tydhot
  */
 @Getter
 @Setter

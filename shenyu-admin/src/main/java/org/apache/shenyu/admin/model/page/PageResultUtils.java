@@ -23,8 +23,6 @@ import java.util.function.Supplier;
 
 /**
  * The type Page result utils.
- *
- * @author xiaoyu
  */
 public class PageResultUtils {
 

@@ -26,8 +26,6 @@ import org.apache.shenyu.common.enums.LoadBalanceEnum;
 
 /**
  * The type Divide rule handle.
- *
- * @author xiaoyu(Myth)
  */
 @Data
 @NoArgsConstructor

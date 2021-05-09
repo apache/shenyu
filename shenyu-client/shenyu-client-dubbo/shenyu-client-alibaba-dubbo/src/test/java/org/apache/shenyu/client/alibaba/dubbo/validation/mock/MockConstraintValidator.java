@@ -22,8 +22,6 @@ import javax.validation.ConstraintValidatorContext;
 
 /**
  * MockConstraintValidator.
- *
- * @author David Liu
  */
 public class MockConstraintValidator implements ConstraintValidator<MockConstraint, Object> {
 

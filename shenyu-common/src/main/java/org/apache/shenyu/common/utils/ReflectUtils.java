@@ -23,8 +23,6 @@ import java.lang.reflect.Field;
 
 /**
  * The type Reflect utils.
- *
- * @author xiaoyu(Myth)
  */
 public class ReflectUtils {
 

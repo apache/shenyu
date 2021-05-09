@@ -39,8 +39,6 @@ import java.util.function.Function;
 
 /**
  * Executor.
- *
- * @author zhanglei
  */
 public interface Executor {
 

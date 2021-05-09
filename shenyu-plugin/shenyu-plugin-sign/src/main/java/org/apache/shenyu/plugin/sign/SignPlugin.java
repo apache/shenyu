@@ -32,8 +32,6 @@ import reactor.core.publisher.Mono;
 
 /**
  * Sign Plugin.
- *
- * @author xiaoyu(Myth)
  */
 public class SignPlugin extends AbstractShenyuPlugin {
 

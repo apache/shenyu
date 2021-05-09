@@ -37,8 +37,6 @@ import java.util.Objects;
 
 /**
  * ContextPathMapping Plugin.
- *
- * @author zhanglei
  */
 @Slf4j
 public class ContextPathMappingPlugin extends AbstractShenyuPlugin {

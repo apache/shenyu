@@ -27,8 +27,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Tars path invoke metadata.
- *
- * @author tydhot
  */
 @AllArgsConstructor
 @NoArgsConstructor

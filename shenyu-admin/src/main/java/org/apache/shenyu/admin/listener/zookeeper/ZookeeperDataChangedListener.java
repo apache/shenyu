@@ -33,9 +33,6 @@ import java.util.List;
 
 /**
  * Use zookeeper to push data changes.
- *
- * @author huangxiaofeng
- * @author xiaoyu
  */
 public class ZookeeperDataChangedListener implements DataChangedListener {
 

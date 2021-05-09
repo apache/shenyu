@@ -39,8 +39,6 @@ import java.util.ArrayList;
 
 /**
  * etcd sever register repository.
- *
- * @author lw1243925457
  */
 @Join
 @Slf4j

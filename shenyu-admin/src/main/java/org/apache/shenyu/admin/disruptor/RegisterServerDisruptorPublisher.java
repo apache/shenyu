@@ -27,8 +27,6 @@ import org.apache.shenyu.register.server.api.ShenyuServerRegisterPublisher;
 
 /**
  * The type Disruptor publisher.
- * 
- * @author xiaoyu
  */
 @SuppressWarnings("all")
 public class RegisterServerDisruptorPublisher implements ShenyuServerRegisterPublisher {

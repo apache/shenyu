@@ -26,8 +26,6 @@ import java.io.Serializable;
 
 /**
  * The type Meta data do.
- *
- * @author nuo-promise
  */
 @Data
 @SuperBuilder

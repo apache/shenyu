@@ -23,8 +23,6 @@ import java.util.regex.Pattern;
 
 /**
  * Regex predicate judge.
- *
- * @author xiaoyu(Myth)
  */
 public class RegexPredicateJudge implements PredicateJudge {
 

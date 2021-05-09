@@ -22,8 +22,6 @@ import org.junit.Test;
 
 /**
  * Test case for LoadBalanceEnum.
- *
- * @author tyjwan
  */
 public final class LoadBalanceEnumTest {
 

@@ -29,8 +29,6 @@ import javax.servlet.http.HttpSession;
 /**
  * The Websocket listener.
  *
- * @author xiaoyu(Myth)
- * @author huangxiaofeng
  * @since 2.0.0
  */
 @Slf4j

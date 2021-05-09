@@ -34,8 +34,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * test case for {@link JwtUtils}.
- *
- * @author HoldDie
  */
 public class JwtUtilsTest {
 

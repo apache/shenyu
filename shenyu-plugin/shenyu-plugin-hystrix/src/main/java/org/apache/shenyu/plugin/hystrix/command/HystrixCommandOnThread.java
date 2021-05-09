@@ -30,8 +30,6 @@ import java.net.URI;
 
 /**
  * hystrix command in thread isolation mode.
- *
- * @author liangziqiang
  */
 @Slf4j
 public class HystrixCommandOnThread extends HystrixCommand<Mono<Void>> implements Command {

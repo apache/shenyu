@@ -27,8 +27,6 @@ import javax.websocket.server.ServerEndpointConfig;
 /**
  * The Websocket configurator.
  *
- * @author xiaoyu(Myth)
- * @author huangxiaofeng
  * @since 2.0.0
  */
 @Slf4j

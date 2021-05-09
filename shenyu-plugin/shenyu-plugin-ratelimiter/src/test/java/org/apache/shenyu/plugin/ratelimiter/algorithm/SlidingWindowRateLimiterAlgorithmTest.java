@@ -25,8 +25,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * test for SlidingWindowRateLimiterAlgorithm.
- *
- * @author liupenghui
  */
 public final class SlidingWindowRateLimiterAlgorithmTest {
 

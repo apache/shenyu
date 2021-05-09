@@ -23,8 +23,6 @@ import java.io.Serializable;
 
 /**
  * this is selector condition from by web front.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 @Data
 public class SelectorConditionDTO implements Serializable {

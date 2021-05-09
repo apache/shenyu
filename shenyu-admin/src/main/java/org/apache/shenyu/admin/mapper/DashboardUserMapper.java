@@ -26,8 +26,6 @@ import java.util.List;
 
 /**
  * DashboardUserMapper.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 @Mapper
 public interface DashboardUserMapper {

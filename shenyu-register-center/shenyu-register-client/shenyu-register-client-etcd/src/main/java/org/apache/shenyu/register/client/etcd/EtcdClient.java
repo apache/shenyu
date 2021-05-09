@@ -33,8 +33,6 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * etcd client.
- *
- * @author lw1243925457
  */
 @Slf4j
 public class EtcdClient {

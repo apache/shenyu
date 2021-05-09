@@ -28,8 +28,6 @@ import org.apache.shenyu.common.enums.LoadBalanceEnum;
 
 /**
  * The type Dubbo rule handle.
- *
- * @author xiaoyu(Myth)
  */
 @Getter
 @Setter

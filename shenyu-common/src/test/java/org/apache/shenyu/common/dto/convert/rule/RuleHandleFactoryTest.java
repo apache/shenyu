@@ -30,8 +30,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for RuleHandleFactory.
- *
- * @author yiwenlong (wlong.yi@gmail.com)
  */
 public final class RuleHandleFactoryTest {
 

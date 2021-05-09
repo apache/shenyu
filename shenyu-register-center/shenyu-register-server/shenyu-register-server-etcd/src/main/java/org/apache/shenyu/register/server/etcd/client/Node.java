@@ -21,8 +21,6 @@ import lombok.Data;
 
 /**
  * etcd data node.
- *
- * @author lw1243925457
  */
 @Data
 public class Node {

@@ -35,8 +35,6 @@ import java.util.List;
 
 /**
  * data permission aop interceptor.
- *
- * @author nuo-promise
  */
 @Aspect
 @Component

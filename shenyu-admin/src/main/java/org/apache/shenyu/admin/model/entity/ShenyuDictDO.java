@@ -29,9 +29,6 @@ import java.util.Optional;
 
 /**
  * ShenyuDictDO.
- *
- * @author dengliming
- * @author nuo-promise
  */
 @Data
 @SuperBuilder

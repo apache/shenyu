@@ -31,8 +31,6 @@ import java.util.Optional;
 
 /**
  * The type spring cloud plugin data handler.
- *
- * @author zl
  */
 public class SpringCloudPluginDataHandler implements PluginDataHandler {
 

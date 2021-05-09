@@ -49,8 +49,6 @@ import java.util.stream.Collectors;
 
 /**
  * The Tars ServiceBean PostProcessor.
- *
- * @author tydhot
  */
 @Slf4j
 public class TarsServiceBeanPostProcessor implements BeanPostProcessor {

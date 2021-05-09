@@ -37,7 +37,7 @@ public class ShenyuMotanClientConfiguration {
      * Motan service bean post processor sofa service bean post processor.
      *
      * @param motanConfig the motan config
-     * @param shenyuClientRegisterRepository the soulClientRegisterRepository
+     * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      * @return the tars service bean post processor
      */
     @Bean

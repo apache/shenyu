@@ -28,8 +28,6 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Test Cases for DateUtils.
- *
- * @author dengliming
  */
 public final class DateUtilsTest {
     

@@ -30,8 +30,6 @@ import java.util.Optional;
 
 /**
  * The Role Data Entity.
- *
- * @author nuo-promise
  */
 @Data
 @SuperBuilder

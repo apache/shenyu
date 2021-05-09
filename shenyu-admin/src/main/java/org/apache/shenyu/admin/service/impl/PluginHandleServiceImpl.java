@@ -37,10 +37,6 @@ import java.util.stream.Collectors;
 
 /**
  * PluginHandleServiceImpl.
- *
- * @author liangziqiang.
- * @author dengliming
- * @author nuo-promise
  */
 @Service("pluginHandleService")
 public class PluginHandleServiceImpl implements PluginHandleService {

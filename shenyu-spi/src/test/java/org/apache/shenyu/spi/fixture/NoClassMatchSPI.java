@@ -21,8 +21,6 @@ import org.apache.shenyu.spi.SPI;
 
 /**
  * no class match test SPI interface.
- *
- * @author wyc192273
  */
 @SPI
 public interface NoClassMatchSPI {

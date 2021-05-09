@@ -22,8 +22,6 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * RegisterTypeEnum.
- *
- * @author xiaoyu(549477611 @ qq.com)
  */
 @RequiredArgsConstructor
 @Getter

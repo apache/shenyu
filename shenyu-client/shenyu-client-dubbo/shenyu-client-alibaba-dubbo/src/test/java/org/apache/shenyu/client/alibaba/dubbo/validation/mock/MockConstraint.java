@@ -33,8 +33,6 @@ import static java.lang.annotation.ElementType.TYPE_USE;
 
 /**
  * MockConstraint.
- *
- * @author David Liu
  */
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
 @Retention(RetentionPolicy.RUNTIME)

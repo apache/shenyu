@@ -32,8 +32,6 @@ import java.util.List;
 
 /**
  * The MatchStrategyFactory test.
- *
- * @author zhanglei
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class MatchStrategyUtilsTest {

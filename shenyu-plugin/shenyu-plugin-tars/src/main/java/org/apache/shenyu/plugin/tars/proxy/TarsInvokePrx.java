@@ -24,8 +24,6 @@ import lombok.NoArgsConstructor;
 
 /**
  * Tars path invoke metadata.
- *
- * @author tydhot
  */
 @AllArgsConstructor
 @NoArgsConstructor

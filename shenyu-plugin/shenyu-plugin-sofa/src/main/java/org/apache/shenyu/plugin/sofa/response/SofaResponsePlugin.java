@@ -36,8 +36,6 @@ import java.util.Objects;
 
 /**
  * this is sofa response plugin.
- *
- * @author tydhot
  */
 public class SofaResponsePlugin implements ShenyuPlugin {
 

@@ -33,8 +33,6 @@ import java.util.stream.Collectors;
 
 /**
  * Sentinel rule handle.
- *
- * @author tydhot
  */
 public class SentinelRuleHandle implements PluginDataHandler {
 

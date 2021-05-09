@@ -48,8 +48,6 @@ import java.util.stream.Collectors;
 
 /**
  * The Sofa ServiceBean PostProcessor.
- *
- * @author tydhot
  */
 @Slf4j
 public class SofaServiceBeanPostProcessor implements BeanPostProcessor {

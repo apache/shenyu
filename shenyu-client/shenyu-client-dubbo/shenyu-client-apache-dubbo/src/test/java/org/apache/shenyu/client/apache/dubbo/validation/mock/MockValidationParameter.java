@@ -21,8 +21,6 @@ import javax.validation.constraints.NotNull;
 
 /**
  * MockValidationParameter.
- *
- * @author HoldDie
  */
 public class MockValidationParameter {
     /**

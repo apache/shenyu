@@ -40,8 +40,6 @@ import java.util.Objects;
 
 /**
  * Redirect Plugin.
- *
- * @author HoldDie
  */
 @Slf4j
 public class RedirectPlugin extends AbstractShenyuPlugin {

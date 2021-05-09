@@ -30,8 +30,6 @@ import java.util.Optional;
 
 /**
  * The Data Permission Entity.
- *
- * @author kaitoshy(plutokaito)
  */
 @Data
 @SuperBuilder

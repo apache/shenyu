@@ -30,8 +30,6 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * The type Sign plugin configuration.
- *
- * @author xiaoyu
  */
 @Configuration
 public class SignPluginConfiguration {
@@ -48,10 +46,10 @@ public class SignPluginConfiguration {
     }
     
     /**
-     * sign plugin soul plugin.
+     * sign plugin shenyu plugin.
      *
      * @param signService the sign service
-     * @return the soul plugin
+     * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin signPlugin(final SignService signService) {

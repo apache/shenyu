@@ -30,8 +30,6 @@ import java.util.stream.Collectors;
 
 /**
  * SignUtils.
- *
- * @author xiaoyu
  */
 public final class SignUtils {
 

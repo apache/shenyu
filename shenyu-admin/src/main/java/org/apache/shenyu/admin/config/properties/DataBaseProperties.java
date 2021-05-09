@@ -24,8 +24,6 @@ import org.springframework.stereotype.Component;
 
 /**
  * Local DataSource configuration.
- *
- * @author nuo-promise
  */
 @Getter
 @Setter

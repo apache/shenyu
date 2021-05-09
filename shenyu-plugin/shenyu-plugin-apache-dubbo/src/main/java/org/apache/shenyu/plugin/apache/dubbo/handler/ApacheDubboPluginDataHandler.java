@@ -29,8 +29,6 @@ import org.apache.shenyu.plugin.base.utils.Singleton;
 
 /**
  * The type Apache dubbo plugin data handler.
- *
- * @author xiaoyu
  */
 public class ApacheDubboPluginDataHandler implements PluginDataHandler {
 

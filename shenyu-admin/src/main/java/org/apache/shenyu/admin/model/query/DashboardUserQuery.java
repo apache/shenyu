@@ -26,8 +26,6 @@ import java.io.Serializable;
 
 /**
  * this is dashboard user query.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 @Data
 @AllArgsConstructor

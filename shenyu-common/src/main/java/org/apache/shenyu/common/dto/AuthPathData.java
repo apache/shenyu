@@ -26,8 +26,6 @@ import java.io.Serializable;
 
 /**
  * The type Auth path data.
- *
- * @author xiaoyu
  */
 @Data
 @Builder

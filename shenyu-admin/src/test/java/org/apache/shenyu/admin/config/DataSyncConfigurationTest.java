@@ -46,8 +46,6 @@ import static org.junit.Assert.assertNotNull;
 
 /**
  * The TestCase for DataSyncConfiguration.
- *
- * @author xwzwmt
  */
 @RunWith(MockitoJUnitRunner.class)
 @EnableConfigurationProperties(HttpSyncProperties.class)

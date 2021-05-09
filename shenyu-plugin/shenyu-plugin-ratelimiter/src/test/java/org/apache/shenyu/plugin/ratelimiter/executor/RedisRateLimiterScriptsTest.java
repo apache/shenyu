@@ -44,8 +44,6 @@ import java.util.stream.Stream;
 
 /**
  * Test of rate limiter Lua scripts.
- *
- * @author liupenghui
  */
 @RunWith(MockitoJUnitRunner.class)
 @Slf4j

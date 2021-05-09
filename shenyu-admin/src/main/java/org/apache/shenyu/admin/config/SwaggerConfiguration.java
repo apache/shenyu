@@ -33,10 +33,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 /**
  * Configuration class for Swagger API document.
- *
- * @author xiaoshuang Li
- * @author Jiang Jining
- **/
+ */
 @Configuration
 @EnableSwagger2
 public class SwaggerConfiguration {

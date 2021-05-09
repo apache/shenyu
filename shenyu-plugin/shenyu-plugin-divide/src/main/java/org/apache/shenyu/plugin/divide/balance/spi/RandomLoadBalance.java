@@ -25,8 +25,6 @@ import java.util.Random;
 
 /**
  * random algorithm impl.
- *
- * @author xiaoyu(Myth)
  */
 @Join
 public class RandomLoadBalance extends AbstractLoadBalance {

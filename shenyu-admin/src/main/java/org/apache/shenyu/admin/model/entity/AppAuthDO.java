@@ -32,9 +32,6 @@ import java.util.Optional;
 
 /**
  * AppAuthDO.
- *
- * @author xiaoyu(Myth)
- * @author nuo-promise
  */
 @Data
 @SuperBuilder

@@ -57,8 +57,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * Test case for {@link TarsPlugin}.
- *
- * @author HoldDie
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class TarsPluginTest {

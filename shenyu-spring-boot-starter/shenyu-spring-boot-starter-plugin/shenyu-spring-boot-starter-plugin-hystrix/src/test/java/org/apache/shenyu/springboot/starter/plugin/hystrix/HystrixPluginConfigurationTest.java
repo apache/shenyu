@@ -28,8 +28,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Test case for {@link HystrixPluginConfiguration}.
- * 
- * @author HoldDie
  */
 public class HystrixPluginConfigurationTest {
 

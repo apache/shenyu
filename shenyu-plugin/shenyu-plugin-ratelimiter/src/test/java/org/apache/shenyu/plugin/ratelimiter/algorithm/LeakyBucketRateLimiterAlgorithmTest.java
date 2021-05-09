@@ -27,8 +27,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * test for LeakyBucketRateLimiterAlgorithm.
- *
- * @author liupenghui
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class LeakyBucketRateLimiterAlgorithmTest {

@@ -21,8 +21,6 @@ import lombok.Getter;
 
 /**
  * LoadBalancerStrategy.
- *
- * @author zhanglei
  */
 public enum LoadBalancerStrategy {
     

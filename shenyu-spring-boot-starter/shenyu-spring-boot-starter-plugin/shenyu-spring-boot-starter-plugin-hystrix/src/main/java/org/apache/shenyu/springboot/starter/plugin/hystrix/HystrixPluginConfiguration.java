@@ -26,16 +26,14 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * The type Hystrix plugin configuration.
- *
- * @author xiaoyu
  */
 @Configuration
 public class HystrixPluginConfiguration {
     
     /**
-     * Hystrix plugin soul plugin.
+     * Hystrix plugin shenyu plugin.
      *
-     * @return the soul plugin
+     * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin hystrixPlugin() {

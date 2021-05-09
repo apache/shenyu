@@ -23,8 +23,6 @@ import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
 
 /**
  * Context mapping thread handle.
- *
- * @author zhanglei
  */
 @Data
 @NoArgsConstructor

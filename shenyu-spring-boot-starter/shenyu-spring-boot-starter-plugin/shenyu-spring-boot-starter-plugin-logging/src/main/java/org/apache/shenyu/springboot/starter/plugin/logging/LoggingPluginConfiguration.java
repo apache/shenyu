@@ -24,16 +24,14 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * The type Logging plugin configuration.
- *
- * @author xuxd
- **/
+ */
 @Configuration
 public class LoggingPluginConfiguration {
 
     /**
-     * Logging plugin soul plugin.
+     * Logging plugin shenyu plugin.
      *
-     * @return the soul plugin
+     * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin loggingPlugin() {

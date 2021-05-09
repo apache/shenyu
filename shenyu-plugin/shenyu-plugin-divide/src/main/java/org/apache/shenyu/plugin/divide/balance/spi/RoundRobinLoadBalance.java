@@ -28,8 +28,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Round robin load balance impl.
- *
- * @author xiaoyu
  */
 @Join
 public class RoundRobinLoadBalance extends AbstractLoadBalance {

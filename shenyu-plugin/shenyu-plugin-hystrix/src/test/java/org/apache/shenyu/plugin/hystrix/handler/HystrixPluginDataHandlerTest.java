@@ -31,9 +31,7 @@ import static org.mockito.Mockito.mock;
 
 /**
  * The Test Case For HystrixPluginDataHandler.
- *
- * @author nuo-promise
- **/
+ */
 public final class HystrixPluginDataHandlerTest {
 
     private HystrixPluginDataHandler hystrixPluginDataHandler;

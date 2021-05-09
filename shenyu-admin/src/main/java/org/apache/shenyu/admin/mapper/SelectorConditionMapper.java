@@ -25,8 +25,6 @@ import java.util.List;
 
 /**
  * SelectorConditionMapper.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 @Mapper
 public interface SelectorConditionMapper {

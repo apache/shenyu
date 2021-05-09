@@ -30,8 +30,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for HttpSyncProperties.
- *
- * @author onlyonezhongjinhui
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class HttpSyncPropertiesTest extends AbstractConfigurationTest {

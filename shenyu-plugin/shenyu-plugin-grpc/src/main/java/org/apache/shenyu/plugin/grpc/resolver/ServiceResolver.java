@@ -32,8 +32,6 @@ import java.util.Map;
 
 /**
  * Read proto file descriptors and extract method definitions.
- *
- * @author zhanglei
  */
 @Slf4j
 public final class ServiceResolver {

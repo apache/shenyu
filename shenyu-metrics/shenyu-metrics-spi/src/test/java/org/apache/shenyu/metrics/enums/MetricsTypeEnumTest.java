@@ -26,9 +26,7 @@ import static org.junit.Assert.assertThat;
 
 /**
  * The Test Case For MetricsTypeEnum.
- *
- * @author nuo-promise
- **/
+ */
 public final class MetricsTypeEnumTest {
 
     private static final String METRICS_TYPE_ENUM_DATA = "[COUNTER, GAUGE, HISTOGRAM]";

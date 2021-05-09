@@ -21,8 +21,6 @@ import org.apache.shenyu.common.dto.ConditionData;
 
 /**
  * Contains predicate judge.
- *
- * @author xiaoyu(Myth)
  */
 public class ContainsPredicateJudge implements PredicateJudge {
 

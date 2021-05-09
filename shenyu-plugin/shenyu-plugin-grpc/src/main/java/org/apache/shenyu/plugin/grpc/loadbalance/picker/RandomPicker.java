@@ -26,8 +26,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * RandomPicker.
- *
- * @author zhanglei
  */
 public class RandomPicker extends AbstractReadyPicker {
 

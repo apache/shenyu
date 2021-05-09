@@ -47,8 +47,6 @@ import java.util.Objects;
 
 /**
  * Divide Plugin.
- *
- * @author xiaoyu(Myth)
  */
 @Slf4j
 public class DividePlugin extends AbstractShenyuPlugin {

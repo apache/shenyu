@@ -27,8 +27,6 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Test case for {@link PrxInfoUtil}.
- *
- * @author HoldDie
  */
 @RunWith(MockitoJUnitRunner.class)
 public class PrxInfoUtilTest {

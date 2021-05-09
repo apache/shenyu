@@ -30,8 +30,6 @@ import java.util.List;
 /**
  * SelectorDTO.
  *
- * @author xiaoyu(Myth)
- * @author huangxiaofeng
  * @since 2.0.0
  */
 @Data

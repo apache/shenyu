@@ -32,8 +32,6 @@ import java.util.stream.Collectors;
 
 /**
  * The tars metadata subscribe.
- *
- * @author tydhot
  */
 public class TarsMetaDataSubscriber implements MetaDataSubscriber {
 

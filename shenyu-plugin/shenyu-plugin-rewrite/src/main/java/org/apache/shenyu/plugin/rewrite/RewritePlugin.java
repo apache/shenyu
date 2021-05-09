@@ -37,8 +37,6 @@ import java.util.Objects;
 
 /**
  * Rewrite Plugin.
- *
- * @author xiaoyu(Myth)
  */
 @Slf4j
 public class RewritePlugin extends AbstractShenyuPlugin {

@@ -24,8 +24,6 @@ import java.security.CodeSource;
 
 /**
  * VersionUtils.
- *
- * @author xiaoyu(Myth)
  */
 @Slf4j
 public final class VersionUtils {

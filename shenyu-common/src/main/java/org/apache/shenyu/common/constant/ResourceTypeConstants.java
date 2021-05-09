@@ -19,9 +19,7 @@ package org.apache.shenyu.common.constant;
 
 /**
  * The Constants for Resource Type.
- *
- * @author nuo-promise
- **/
+ */
 public final class ResourceTypeConstants {
 
     /**

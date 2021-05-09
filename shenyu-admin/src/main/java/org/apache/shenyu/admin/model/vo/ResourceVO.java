@@ -28,9 +28,7 @@ import java.util.Optional;
 
 /**
  * this is resource for web front.
- *
- * @author nuo-promise
- **/
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

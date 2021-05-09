@@ -26,8 +26,6 @@ import java.util.List;
 
 /**
  * Motan rpc ext.
- *
- * @author tydhot
  */
 @Data
 @Builder

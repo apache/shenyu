@@ -48,9 +48,7 @@ import java.util.Map;
 
 /**
  * DefaultSignService Test.
- *
- * @author Phoenix Luo
- **/
+ */
 @RunWith(MockitoJUnitRunner.class)
 @Slf4j
 public final class DefaultSignServiceTest {

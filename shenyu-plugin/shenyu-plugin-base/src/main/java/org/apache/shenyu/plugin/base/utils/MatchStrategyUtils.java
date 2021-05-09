@@ -27,8 +27,6 @@ import java.util.List;
 
 /**
  * MatchStrategyFactory.
- *
- * @author xiaoyu(Myth)
  */
 public class MatchStrategyUtils {
 

@@ -22,8 +22,6 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Test Cases for PluginRoleEnum.
- *
- * @author itdachaoge
  */
 public final class PluginRoleEnumTest {
 

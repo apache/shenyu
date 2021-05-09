@@ -26,7 +26,6 @@ import lombok.ToString;
 
 /**
  * this is zombie divide upstream.
- * @author zhangzm
  */
 @Getter
 @Setter

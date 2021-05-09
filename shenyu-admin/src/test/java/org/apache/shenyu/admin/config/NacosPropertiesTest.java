@@ -28,8 +28,6 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * Test cases for NacosProperties.
- *
- * @author caimeijiao
  */
 public final class NacosPropertiesTest extends AbstractConfigurationTest {
 

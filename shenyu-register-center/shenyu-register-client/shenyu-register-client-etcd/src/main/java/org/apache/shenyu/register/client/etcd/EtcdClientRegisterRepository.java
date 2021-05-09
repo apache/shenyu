@@ -30,8 +30,6 @@ import java.util.Properties;
 
 /**
  * etcd register repository.
- *
- * @author lw1243925457
  */
 @Join
 @Slf4j

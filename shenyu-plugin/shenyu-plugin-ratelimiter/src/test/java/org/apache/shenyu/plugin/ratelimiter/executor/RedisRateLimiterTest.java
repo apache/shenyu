@@ -44,8 +44,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * RedisRateLimiter test.
- *
- * @author wyc192273
  */
 @RunWith(MockitoJUnitRunner.class)
 @Slf4j

@@ -26,16 +26,14 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * The type Waf plugin configuration.
- *
- * @author xiaoyu
  */
 @Configuration
 public class WafPluginConfiguration {
     
     /**
-     * Waf plugin soul plugin.
+     * Waf plugin shenyu plugin.
      *
-     * @return the soul plugin
+     * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin wafPlugin() {

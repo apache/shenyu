@@ -21,8 +21,6 @@ import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
 
 /**
  * Test case for RuleVO.
- *
- * @author midnight2104
  */
 public final class RuleVOTest extends AbstractReflectGetterSetterTest {
 

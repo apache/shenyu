@@ -26,8 +26,6 @@ import reactor.core.publisher.Mono;
 
 /**
  * The type Selector and rule check utils.
- *
- * @author xiaoyu
  */
 @Slf4j
 public class FallbackUtils {

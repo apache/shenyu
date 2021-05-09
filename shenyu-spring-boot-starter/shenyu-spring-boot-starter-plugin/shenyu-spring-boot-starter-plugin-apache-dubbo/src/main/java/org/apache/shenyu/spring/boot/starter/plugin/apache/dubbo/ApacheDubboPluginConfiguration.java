@@ -34,8 +34,6 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * The type Apache dubbo plugin configuration.
- *
- * @author xiaoyu(Myth)
  */
 @Configuration
 @ConditionalOnClass(ApacheDubboPlugin.class)
@@ -43,10 +41,10 @@ import org.springframework.context.annotation.Configuration;
 public class ApacheDubboPluginConfiguration {
 
     /**
-     * Dubbo plugin soul plugin.
+     * Dubbo plugin shenyu plugin.
      *
      * @param dubboBodyParamResolveService the dubbo param resolve service
-     * @return the soul plugin
+     * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin apacheDubboPlugin(final ObjectProvider<BodyParamResolveService> dubboBodyParamResolveService) {

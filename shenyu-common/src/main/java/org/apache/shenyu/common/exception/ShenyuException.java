@@ -25,7 +25,7 @@ public class ShenyuException extends RuntimeException {
     private static final long serialVersionUID = 8068509879445395353L;
 
     /**
-     * Instantiates a new Soul exception.
+     * Instantiates a new Shenyu exception.
      *
      * @param e the e
      */
@@ -34,7 +34,7 @@ public class ShenyuException extends RuntimeException {
     }
 
     /**
-     * Instantiates a new Soul exception.
+     * Instantiates a new Shenyu exception.
      *
      * @param message the message
      */
@@ -43,7 +43,7 @@ public class ShenyuException extends RuntimeException {
     }
 
     /**
-     * Instantiates a new Soul exception.
+     * Instantiates a new Shenyu exception.
      *
      * @param message   the message
      * @param throwable the throwable

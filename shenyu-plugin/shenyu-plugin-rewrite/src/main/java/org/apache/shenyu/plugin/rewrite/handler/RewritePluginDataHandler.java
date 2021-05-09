@@ -28,8 +28,6 @@ import java.util.Optional;
 
 /**
  * The type redirect plugin data subscriber.
- *
- * @author zl
  */
 public class RewritePluginDataHandler implements PluginDataHandler {
 

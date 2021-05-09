@@ -28,8 +28,6 @@ import java.util.stream.Stream;
 
 /**
  * The type random balance test.
- *
- * @author zhanglei
  */
 public class RandomLoadBalanceTest {
 

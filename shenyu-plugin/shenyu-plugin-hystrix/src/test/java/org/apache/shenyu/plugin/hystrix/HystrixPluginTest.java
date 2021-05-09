@@ -42,9 +42,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * The Test Case For HystrixPlugin.
- *
- * @author nuo-promise
- **/
+ */
 public final class HystrixPluginTest {
 
     private HystrixPlugin hystrixPlugin;

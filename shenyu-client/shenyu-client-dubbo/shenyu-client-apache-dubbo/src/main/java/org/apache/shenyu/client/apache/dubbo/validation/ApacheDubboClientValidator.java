@@ -66,8 +66,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * ApacheDubboClientValidator.
- *
- * @author KevinClair
  */
 @Slf4j
 public class ApacheDubboClientValidator implements Validator {

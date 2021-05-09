@@ -26,8 +26,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * Test case for {@link TarsMetaDataSubscriber}.
- *
- * @author HoldDie
  */
 @RunWith(MockitoJUnitRunner.class)
 public class TarsMetaDataSubscriberTest {

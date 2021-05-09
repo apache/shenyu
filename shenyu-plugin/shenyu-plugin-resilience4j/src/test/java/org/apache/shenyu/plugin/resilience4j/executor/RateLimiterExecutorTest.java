@@ -31,8 +31,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * RateLimiter executor tests.
- *
- * @author zhanglei
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class RateLimiterExecutorTest {
@@ -47,11 +45,11 @@ public final class RateLimiterExecutorTest {
     @Test
     public void normalTest() {
         Resilience4JConf conf = mock(Resilience4JConf.class);
-        when(conf.getId()).thenReturn("SOUL");
+        when(conf.getId()).thenReturn("SHENYU");
         when(conf.getRateLimiterConfig()).thenReturn(RateLimiterConfig.ofDefaults());
         Mono mono = Mono.just("ERROR");
-        StepVerifier.create(ratelimiterExecutor.run(Mono.just("SOUL"), throwable -> mono, conf))
-                .expectSubscription().expectNext("SOUL")
+        StepVerifier.create(ratelimiterExecutor.run(Mono.just("SHENYU"), throwable -> mono, conf))
+                .expectSubscription().expectNext("SHENYU")
                 .verifyComplete();
 
     }
@@ -59,7 +57,7 @@ public final class RateLimiterExecutorTest {
     @Test
     public void errorTest() {
         Resilience4JConf conf = mock(Resilience4JConf.class);
-        when(conf.getId()).thenReturn("SOUL");
+        when(conf.getId()).thenReturn("SHENYU");
         when(conf.getRateLimiterConfig()).thenReturn(RateLimiterConfig.ofDefaults());
         StepVerifier.create(ratelimiterExecutor.run(Mono.error(new RuntimeException()), throwable -> Mono.error(throwable), conf))
                 .expectSubscription()

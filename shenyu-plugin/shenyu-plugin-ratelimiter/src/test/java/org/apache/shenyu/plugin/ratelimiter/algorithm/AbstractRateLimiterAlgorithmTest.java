@@ -32,8 +32,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * test for AbstractRateLimiterAlgorithm.
- *
- * @author liupenghui
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class AbstractRateLimiterAlgorithmTest {

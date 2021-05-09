@@ -34,8 +34,6 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * The type Alibaba dubbo plugin configuration.
- *
- * @author xiaoyu(Myth)
  */
 @Configuration
 @ConditionalOnClass(AlibabaDubboPlugin.class)
@@ -43,10 +41,10 @@ import org.springframework.context.annotation.Configuration;
 public class AlibabaDubboPluginConfiguration {
     
     /**
-     * Dubbo plugin soul plugin.
+     * Dubbo plugin shenyu plugin.
      *
      * @param dubboBodyParamResolveService the dubbo param resolve service
-     * @return the soul plugin
+     * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin alibabaDubboPlugin(final ObjectProvider<BodyParamResolveService> dubboBodyParamResolveService) {

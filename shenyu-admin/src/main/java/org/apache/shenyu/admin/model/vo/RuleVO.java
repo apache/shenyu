@@ -29,8 +29,6 @@ import java.util.List;
 
 /**
  * this is rule view to web front.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 @Data
 @AllArgsConstructor

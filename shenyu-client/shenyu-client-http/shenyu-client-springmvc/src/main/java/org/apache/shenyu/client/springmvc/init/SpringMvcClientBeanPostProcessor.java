@@ -41,9 +41,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * The type Soul spring mvc client bean post processor.
- *
- * @author xiaoyu(Myth)
+ * The type Shenyu spring mvc client bean post processor.
  */
 @Slf4j
 public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
@@ -63,7 +61,7 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
     private final Boolean isFull;
     
     /**
-     * Instantiates a new Soul client bean post processor.
+     * Instantiates a new Shenyu client bean post processor.
      */
     public SpringMvcClientBeanPostProcessor(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         String registerType = config.getRegisterType();

@@ -25,8 +25,6 @@ import java.io.Serializable;
 
 /**
  * this is rule condition query.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 @Data
 @AllArgsConstructor

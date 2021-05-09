@@ -40,9 +40,6 @@ import org.springframework.web.socket.server.standard.ServerEndpointExporter;
 
 /**
  * The type Data sync configuration.
- *
- * @author xiaoyu
- * @author huangxiaofeng
  */
 @Configuration
 public class DataSyncConfiguration {

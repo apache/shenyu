@@ -27,8 +27,6 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * The tars return value type resolver.
- *
- * @author tydhot
  */
 public class ReturnValueResolver {
 

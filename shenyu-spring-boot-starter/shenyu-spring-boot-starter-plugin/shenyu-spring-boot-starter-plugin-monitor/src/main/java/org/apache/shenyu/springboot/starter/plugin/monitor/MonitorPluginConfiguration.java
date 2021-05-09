@@ -26,8 +26,6 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * The type Monitor plugin configuration.
- *
- * @author xiaoyu
  */
 @Configuration
 public class MonitorPluginConfiguration {
@@ -35,7 +33,7 @@ public class MonitorPluginConfiguration {
     /**
      * Monitor plugin .
      *
-     * @return the soul plugin
+     * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin monitorPlugin() {

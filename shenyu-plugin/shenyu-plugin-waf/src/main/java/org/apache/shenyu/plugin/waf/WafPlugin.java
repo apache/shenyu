@@ -42,8 +42,6 @@ import java.util.Objects;
 
 /**
  * use waf plugin we can control some access.
- *
- * @author xiaoyu(Myth)
  */
 @Slf4j
 public class WafPlugin extends AbstractShenyuPlugin {

@@ -24,8 +24,6 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 
 /**
  * this is shenyu dict query.
- *
- * @author dengliming
  */
 @Data
 @AllArgsConstructor

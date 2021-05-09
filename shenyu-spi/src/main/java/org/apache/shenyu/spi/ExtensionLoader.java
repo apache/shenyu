@@ -37,7 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @SuppressWarnings("all")
 public final class ExtensionLoader<T> {
 
-    private static final String SOUL_DIRECTORY = "META-INF/shenyu/";
+    private static final String SHENYU_DIRECTORY = "META-INF/shenyu/";
 
     private static final Map<Class<?>, ExtensionLoader<?>> LOADERS = new ConcurrentHashMap<>();
 
@@ -182,10 +182,10 @@ public final class ExtensionLoader<T> {
     }
 
     /**
-     * Load files under SOUL_DIRECTORY.
+     * Load files under SHENYU_DIRECTORY.
      */
     private void loadDirectory(final Map<String, Class<?>> classes) {
-        String fileName = SOUL_DIRECTORY + clazz.getName();
+        String fileName = SHENYU_DIRECTORY + clazz.getName();
         try {
             ClassLoader classLoader = ExtensionLoader.class.getClassLoader();
             Enumeration<URL> urls = classLoader != null ? classLoader.getResources(fileName)

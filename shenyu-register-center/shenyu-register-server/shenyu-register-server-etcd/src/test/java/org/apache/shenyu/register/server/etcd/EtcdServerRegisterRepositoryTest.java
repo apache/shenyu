@@ -41,8 +41,6 @@ import static org.mockito.Mockito.times;
 
 /**
  * test for EtcdServerRegisterRepository.
- *
- * @author lw1243925457
  */
 public class EtcdServerRegisterRepositoryTest {
 

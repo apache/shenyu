@@ -24,8 +24,6 @@ import lombok.NoArgsConstructor;
 
 /**
  * this is resource Dto.
- *
- * @author nuo-promise
  */
 @Data
 @Builder

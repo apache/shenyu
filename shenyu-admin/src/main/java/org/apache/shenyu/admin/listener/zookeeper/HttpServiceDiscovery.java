@@ -44,7 +44,6 @@ import java.util.stream.Collectors;
 /**
  * The type Http service discovery.
  *
- * @author xiaoyu
  * @deprecated sice 2.2.0  Deprecated
  */
 @Component

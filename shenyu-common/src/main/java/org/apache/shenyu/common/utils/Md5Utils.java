@@ -23,9 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 
 /**
- * The type Md 5 utils.
- *
- * @author huangxiaofeng
+ * The type Md5 utils.
  */
 public class Md5Utils {
 

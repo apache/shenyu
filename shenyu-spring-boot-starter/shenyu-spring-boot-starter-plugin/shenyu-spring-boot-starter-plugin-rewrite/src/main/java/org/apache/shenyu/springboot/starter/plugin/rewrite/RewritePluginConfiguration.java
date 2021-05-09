@@ -26,8 +26,6 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * The type Rewrite plugin configuration.
- *
- * @author xiaoyu
  */
 @Configuration
 public class RewritePluginConfiguration {
@@ -35,7 +33,7 @@ public class RewritePluginConfiguration {
     /**
      * Rewrite plugin.
      *
-     * @return the soul plugin
+     * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin rewritePlugin() {

@@ -30,8 +30,6 @@ import lombok.SneakyThrows;
 
 /**
  * Test cases for UpstreamCheckUtils.
- *
- * @author dengliming
  */
 public final class UpstreamCheckUtilsTest {
 

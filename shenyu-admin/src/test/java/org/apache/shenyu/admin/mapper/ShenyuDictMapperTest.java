@@ -31,8 +31,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for ShenyuDictMapper.
- *
- * @author dengliming
  */
 public final class ShenyuDictMapperTest extends AbstractSpringIntegrationTest {
 

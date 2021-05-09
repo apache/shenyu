@@ -23,8 +23,6 @@ import java.net.InetSocketAddress;
 
 /**
  * The interface Remote address resolver.
- *
- * @author xiaoyu
  */
 public interface RemoteAddressResolver {
 

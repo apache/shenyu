@@ -25,8 +25,6 @@ import java.io.Serializable;
 
 /**
  * this is enum view to web front.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 @Data
 @AllArgsConstructor

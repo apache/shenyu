@@ -50,8 +50,6 @@ import java.util.stream.Collectors;
 
 /**
  * RoleServiceImpl.
- *
- * @author nuo-promise
  */
 @Service("roleService")
 public class RoleServiceImpl implements RoleService {

@@ -52,8 +52,6 @@ import java.util.stream.Collectors;
 
 /**
  * Motan BeanPostProcessor.
- *
- * @author tydhot
  */
 public class MotanServiceBeanPostProcessor implements BeanPostProcessor, ApplicationContextAware {
 

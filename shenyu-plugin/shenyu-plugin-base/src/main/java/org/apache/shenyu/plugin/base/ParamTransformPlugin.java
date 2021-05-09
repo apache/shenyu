@@ -38,8 +38,6 @@ import java.util.Objects;
 
 /**
  * The param transform plugin.
- *
- * @author xiaoyu
  */
 public class ParamTransformPlugin implements ShenyuPlugin {
 

@@ -41,8 +41,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * The Test Case For ApplicationConfigCache.
- *
- * @author nuo-promise
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class ApplicationConfigCacheTest {

@@ -42,7 +42,7 @@ public class ShenyuClientCommonBeanConfiguration {
     }
     
     /**
-     * Soul Register Center Config.
+     * Shenyu Register Center Config.
      *
      * @return the Register Center Config
      */

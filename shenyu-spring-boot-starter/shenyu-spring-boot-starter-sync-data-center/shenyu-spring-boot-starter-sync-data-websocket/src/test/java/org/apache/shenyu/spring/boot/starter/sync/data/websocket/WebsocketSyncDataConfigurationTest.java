@@ -34,8 +34,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * Test case for {@link WebsocketSyncDataConfiguration}.
- *
- * @author midnight2104
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(

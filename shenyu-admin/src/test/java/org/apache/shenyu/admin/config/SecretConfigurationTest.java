@@ -25,8 +25,6 @@ import org.junit.jupiter.api.Assertions;
 
 /**
  * Test SecretConfiguration.
- *
- * @author Jiang Jining
  */
 @Slf4j
 public class SecretConfigurationTest extends AbstractConfigurationTest {

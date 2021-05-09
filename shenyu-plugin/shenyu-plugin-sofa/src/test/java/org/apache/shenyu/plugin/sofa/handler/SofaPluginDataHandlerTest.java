@@ -32,8 +32,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * SofaPluginDataHandlerTest.
- *
- * @author tydhot
  */
 @RunWith(MockitoJUnitRunner.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)

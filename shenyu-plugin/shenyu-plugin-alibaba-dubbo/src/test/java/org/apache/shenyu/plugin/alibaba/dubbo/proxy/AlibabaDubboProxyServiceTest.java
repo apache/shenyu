@@ -40,8 +40,6 @@ import java.lang.reflect.Field;
 
 /**
  * AlibabaDubboProxyServiceTest.
- *
- * @author tydhot
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class AlibabaDubboProxyServiceTest {

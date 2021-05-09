@@ -23,9 +23,7 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 
 /**
- * The type SpringCloud soul context decorator.
- * 
- * @author xiaoyu
+ * The type SpringCloud shenyu context decorator.
  */
 public class SpringCloudShenyuContextDecorator implements ShenyuContextDecorator {
     

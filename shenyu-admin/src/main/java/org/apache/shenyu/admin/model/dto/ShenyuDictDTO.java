@@ -23,8 +23,6 @@ import java.io.Serializable;
 
 /**
  * this shenyu dict from web front.
- *
- * @author dengliming
  */
 @Data
 public class ShenyuDictDTO implements Serializable {

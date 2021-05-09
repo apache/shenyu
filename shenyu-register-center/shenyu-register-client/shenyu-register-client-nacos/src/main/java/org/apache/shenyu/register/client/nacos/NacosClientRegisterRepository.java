@@ -41,8 +41,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * nacos register center client.
- *
- * @author lw1243925457
  */
 @Join
 @Slf4j

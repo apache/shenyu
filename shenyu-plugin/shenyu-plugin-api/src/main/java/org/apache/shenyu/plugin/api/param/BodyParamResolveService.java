@@ -22,8 +22,6 @@ import org.apache.commons.lang3.tuple.Pair;
 /**
  * The interface Generic param service.
  * This service is used to construct the parameters required for the dubbo and sofa generalization.
- *
- * @author xiaoyu(Myth)
  */
 public interface BodyParamResolveService {
 

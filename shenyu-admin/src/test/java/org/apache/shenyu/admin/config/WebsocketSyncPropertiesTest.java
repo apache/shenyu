@@ -28,8 +28,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for WebsocketSyncProperties.
- *
- * @author xiaoshen11
  */
 public final class WebsocketSyncPropertiesTest extends AbstractConfigurationTest {
 

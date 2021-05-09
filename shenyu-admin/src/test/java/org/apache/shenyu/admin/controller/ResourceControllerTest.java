@@ -47,8 +47,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * test for {@linkplain ResourceController}.
- *
- * @author davidliu
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ResourceControllerTest {

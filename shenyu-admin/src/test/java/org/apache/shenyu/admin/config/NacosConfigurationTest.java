@@ -32,8 +32,6 @@ import static org.junit.Assert.assertNotNull;
 
 /**
  * Test cases for NacosConfiguration.
- *
- * @author caimeijiao
  */
 public final class NacosConfigurationTest extends AbstractConfigurationTest {
 

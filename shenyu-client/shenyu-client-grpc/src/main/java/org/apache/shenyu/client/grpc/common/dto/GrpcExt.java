@@ -24,8 +24,6 @@ import java.io.Serializable;
 
 /**
  * The type Grpc ext.
- *
- * @author xiaoyu
  */
 @Data
 @Builder

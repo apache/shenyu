@@ -24,8 +24,6 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * The type Base data cache.
- *
- * @author xiaoyu
  */
 public final class SignAuthDataCache {
     

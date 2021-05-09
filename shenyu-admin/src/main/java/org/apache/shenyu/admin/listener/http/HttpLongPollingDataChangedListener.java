@@ -61,7 +61,6 @@ import java.util.concurrent.locks.ReentrantLock;
  * when there are data changes. If there is no data change after the specified time,
  * the client will make a listening request again.
  *
- * @author huangxiaofeng
  * @since 2.0.0
  */
 @Slf4j

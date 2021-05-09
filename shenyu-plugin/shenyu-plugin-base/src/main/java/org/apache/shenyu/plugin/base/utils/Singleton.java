@@ -22,8 +22,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Singleton.
- *
- * @author xiaoyu
  */
 public enum Singleton {
 

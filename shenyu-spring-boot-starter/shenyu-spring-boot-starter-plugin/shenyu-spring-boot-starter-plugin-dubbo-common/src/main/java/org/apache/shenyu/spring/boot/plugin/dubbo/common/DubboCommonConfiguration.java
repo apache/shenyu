@@ -30,16 +30,14 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * The type Dubbo common configuration.
- * 
- * @author xiaoyu
  */
 @Configuration
 public class DubboCommonConfiguration {
     
     /**
-     * Dubbo soul context decorator soul context decorator.
+     * Dubbo shenyu context decorator shenyu context decorator.
      *
-     * @return the soul context decorator
+     * @return the shenyu context decorator
      */
     @Bean
     public ShenyuContextDecorator dubboShenyuContextDecorator() {
@@ -47,9 +45,9 @@ public class DubboCommonConfiguration {
     }
     
     /**
-     * Dubbo response plugin soul plugin.
+     * Dubbo response plugin shenyu plugin.
      *
-     * @return the soul plugin
+     * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin dubboResponsePlugin() {

@@ -28,8 +28,6 @@ import java.util.Optional;
 
 /**
  * The type context path mapping plugin data subscriber.
- *
- * @author zl
  */
 public class ContextPathMappingPluginDataHandler implements PluginDataHandler {
 

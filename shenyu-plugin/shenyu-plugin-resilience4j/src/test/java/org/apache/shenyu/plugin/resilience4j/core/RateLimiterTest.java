@@ -35,8 +35,6 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 
 /**
  * RateLimiter test.
- *
- * @author zhanglei
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class RateLimiterTest {
@@ -51,17 +49,17 @@ public final class RateLimiterTest {
     @Test
     public void normalTest() {
         when(rateLimiter.reservePermission()).thenReturn(Duration.ofSeconds(0).toNanos());
-        StepVerifier.create(Mono.just("SOUL")
+        StepVerifier.create(Mono.just("SHENYU")
                 .transformDeferred(RateLimiterOperator.of(rateLimiter)))
                 .expectSubscription()
-                .expectNext("SOUL")
+                .expectNext("SHENYU")
                 .verifyComplete();
     }
 
     @Test
     public void errorTest() {
         when(rateLimiter.reservePermission()).thenReturn(Duration.ofSeconds(0).toNanos());
-        StepVerifier.create(Mono.error(new RuntimeException("SOUL"))
+        StepVerifier.create(Mono.error(new RuntimeException("SHENYU"))
                 .transformDeferred(RateLimiterOperator.of(rateLimiter)))
                 .expectSubscription()
                 .expectError(RuntimeException.class)
@@ -71,7 +69,7 @@ public final class RateLimiterTest {
     @Test
     public void limitTest() {
         when(rateLimiter.reservePermission()).thenReturn(-1L);
-        StepVerifier.create(Mono.just("SOUL")
+        StepVerifier.create(Mono.just("SHENYU")
                 .transformDeferred(RateLimiterOperator.of(rateLimiter)))
                 .expectError(RequestNotPermitted.class)
                 .verify();

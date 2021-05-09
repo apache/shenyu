@@ -36,8 +36,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * add test case for {@link PermissionController}.
- *
- * @author HoldDie
  */
 @RunWith(MockitoJUnitRunner.class)
 public class PermissionControllerTest {

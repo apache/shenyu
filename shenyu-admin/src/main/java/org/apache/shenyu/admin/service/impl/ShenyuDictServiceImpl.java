@@ -35,9 +35,6 @@ import java.util.stream.Collectors;
 
 /**
  * ShenyuDictServiceImpl.
- *
- * @author dengliming
- * @author nuo-promise
  */
 @Service("shenyuDictService")
 public class ShenyuDictServiceImpl implements ShenyuDictService {

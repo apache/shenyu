@@ -39,7 +39,6 @@ import java.util.concurrent.TimeUnit;
  * disruptor provider manager.
  *
  * @param <T> the type parameter
- * @author xiaoyu sixh
  */
 public class DisruptorProviderManage<T> {
 

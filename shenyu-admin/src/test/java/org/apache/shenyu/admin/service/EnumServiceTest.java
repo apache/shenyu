@@ -35,8 +35,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for EnumService.
- *
- * @author onlyonezhongjinhui
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class EnumServiceTest {
@@ -53,7 +51,6 @@ public final class EnumServiceTest {
      * test element size.
      *
      * @param key element key
-     * @author onlyonezhongjinhui
      */
     @ParameterizedTest(name = "{index} => test {0}")
     @MethodSource("nonNullEleKeys")
@@ -69,7 +66,6 @@ public final class EnumServiceTest {
      * test element code.
      *
      * @param key element key
-     * @author onlyonezhongjinhui
      */
     @ParameterizedTest(name = "{index} => test {0}")
     @MethodSource("nullEleCodeKeys")
@@ -83,7 +79,6 @@ public final class EnumServiceTest {
      * test element support.
      *
      * @param key element key
-     * @author onlyonezhongjinhui
      */
     @ParameterizedTest(name = "{index} => test {0}")
     @MethodSource("supportEleCodeKeys")

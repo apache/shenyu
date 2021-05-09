@@ -40,8 +40,6 @@ import java.util.Objects;
 
 /**
  * The sofa plugin.
- *
- * @author tydhot
  */
 @Slf4j
 public class SofaPlugin extends AbstractShenyuPlugin {

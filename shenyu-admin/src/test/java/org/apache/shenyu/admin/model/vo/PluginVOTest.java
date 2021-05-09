@@ -28,8 +28,6 @@ import static org.junit.Assert.assertNotNull;
 
 /**
  * Test case for PluginVO.
- *
- * @author midnight2104
  */
 public final class PluginVOTest extends AbstractReflectGetterSetterTest {
 

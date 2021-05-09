@@ -21,8 +21,6 @@ import lombok.Data;
 
 /**
  * this is rateLimiter plugin handle.
- *
- * @author xiaoyu(Myth)
  */
 @Data
 public class RateLimiterHandle {

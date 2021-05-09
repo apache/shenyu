@@ -24,8 +24,6 @@ import java.io.Serializable;
 
 /**
  * The type dubbo register config.
- *
- * @author xiaoyu
  */
 @Data
 @EqualsAndHashCode

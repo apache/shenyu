@@ -36,9 +36,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * Test case for {@link ContextRegisterListener}.
- *
- * @author kaitoShy
- * @author dengliming
  */
 @RunWith(MockitoJUnitRunner.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)

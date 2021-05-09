@@ -27,8 +27,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * Test case for ZookeeperProperties.
- *
- * @author fengzhenbing
  */
 public final class ZookeeperPropertiesTest extends AbstractConfigurationTest {
 

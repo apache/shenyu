@@ -30,8 +30,6 @@ import java.util.stream.Collectors;
 
 /**
  * The type Uri register executor subscriber.
- *
- * @author xiaoyu
  */
 public class URIRegisterExecutorSubscriber implements ExecutorTypeSubscriber<URIRegisterDTO> {
     

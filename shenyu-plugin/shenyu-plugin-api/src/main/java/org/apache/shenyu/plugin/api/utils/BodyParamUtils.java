@@ -31,8 +31,6 @@ import java.util.Map;
 
 /**
  * Common rpc parameter builder utils.
- *
- * @author dengliming
  */
 public class BodyParamUtils {
 

@@ -43,8 +43,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Abstract test class for getter and setter.
- *
- * @author dengliming
  */
 public abstract class AbstractReflectGetterSetterTest {
 

@@ -31,8 +31,6 @@ import java.util.stream.Collectors;
 
 /**
  * The AbstractReadyPicker result.
- *
- * @author zhanglei
  */
 @Slf4j
 public abstract class AbstractReadyPicker extends AbstractPicker implements Picker {

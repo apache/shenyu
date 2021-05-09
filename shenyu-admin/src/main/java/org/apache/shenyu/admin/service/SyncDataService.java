@@ -21,8 +21,6 @@ import org.apache.shenyu.common.enums.DataEventTypeEnum;
 
 /**
  * The interface Sync data service.
- *
- * @author xiaoyu(Myth)
  */
 public interface SyncDataService {
 

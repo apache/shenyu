@@ -59,9 +59,6 @@ import java.util.stream.Collectors;
 
 /**
  * RuleServiceImpl.
- *
- * @author jiangxiaofeng(Nicholas)
- * @author xiaoyu
  */
 @Service("ruleService")
 public class RuleServiceImpl implements RuleService {

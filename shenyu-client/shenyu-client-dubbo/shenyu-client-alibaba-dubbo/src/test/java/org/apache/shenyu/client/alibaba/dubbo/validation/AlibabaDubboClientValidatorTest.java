@@ -33,8 +33,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * Test case for {@link AlibabaDubboClientValidation}.
- *
- * @author KevinClair
  */
 @Ignore
 public final class AlibabaDubboClientValidatorTest {

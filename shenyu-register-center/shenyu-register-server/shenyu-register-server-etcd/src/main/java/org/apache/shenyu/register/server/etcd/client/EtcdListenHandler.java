@@ -23,8 +23,6 @@ import java.util.function.BiConsumer;
 
 /**
  * etcd event handler.
- *
- * @author lw1243925457
  */
 @Slf4j
 public abstract class EtcdListenHandler implements BiConsumer<Event, Node> {

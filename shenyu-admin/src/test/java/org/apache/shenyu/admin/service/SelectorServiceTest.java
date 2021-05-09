@@ -71,8 +71,6 @@ import static org.mockito.Mockito.mock;
 
 /**
  * Test cases for SelectorService.
- *
- * @author linkuan
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class SelectorServiceTest {

@@ -21,8 +21,6 @@ import io.grpc.Attributes;
 
 /**
  * GrpcAttributeUtils.
- *
- * @author zhanglei
  */
 public class GrpcAttributeUtils {
 

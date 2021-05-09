@@ -29,8 +29,6 @@ import java.util.Objects;
 
 /**
  * The type motan plugin data handler.
- *
- * @author tydhot
  */
 public class MotanPluginDataHandler implements PluginDataHandler {
 

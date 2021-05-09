@@ -25,11 +25,11 @@ import org.apache.shenyu.common.dto.MetaData;
 public interface ShenyuContextDecorator {
     
     /**
-     * Decorator soul context.
+     * Decorator shenyu context.
      *
-     * @param shenyuContext the soul context
+     * @param shenyuContext the shenyu context
      * @param metaData the meta data
-     * @return the soul context
+     * @return the shenyu context
      */
     ShenyuContext decorator(ShenyuContext shenyuContext, MetaData metaData);
     

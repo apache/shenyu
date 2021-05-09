@@ -28,8 +28,6 @@ import java.util.List;
 
 /**
  * this is dashboard user service.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 public interface DashboardUserService {
 

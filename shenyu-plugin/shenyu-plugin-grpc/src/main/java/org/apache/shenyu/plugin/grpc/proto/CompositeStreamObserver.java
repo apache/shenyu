@@ -23,8 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * A which groups multiple observers and executes them all.
- *
- * @author zhanglei
  */
 @Slf4j
 public final class CompositeStreamObserver<T> implements StreamObserver<T> {

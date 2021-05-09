@@ -30,8 +30,6 @@ import java.net.URI;
 
 /**
  * the Hystrix command.
- *
- * @author xiaoyu(Myth)
  */
 @Slf4j
 public class HystrixCommand extends HystrixObservableCommand<Void> implements Command {

@@ -39,8 +39,6 @@ import java.util.concurrent.CopyOnWriteArraySet;
 /**
  * The type Websocket data changed listener.
  *
- * @author xiaoyu(Myth)
- * @author huangxiaofeng
  * @since 2.0.0
  */
 @Slf4j

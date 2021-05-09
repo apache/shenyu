@@ -26,8 +26,6 @@ import org.apache.shenyu.common.constant.Constants;
 
 /**
  * The type Spring cloud rule handle.
- *
- * @author xiaoyu(Myth)
  */
 @ToString
 @Getter

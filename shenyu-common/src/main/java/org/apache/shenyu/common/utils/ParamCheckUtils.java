@@ -19,8 +19,6 @@ package org.apache.shenyu.common.utils;
 
 /**
  * The type Param check utils.
- *
- * @author xiaoyu
  */
 public class ParamCheckUtils {
     

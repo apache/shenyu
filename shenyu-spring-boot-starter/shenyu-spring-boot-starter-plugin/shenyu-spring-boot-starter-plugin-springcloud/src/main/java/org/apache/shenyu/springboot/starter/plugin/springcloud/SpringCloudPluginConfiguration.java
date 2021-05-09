@@ -35,8 +35,6 @@ import org.springframework.web.reactive.DispatcherHandler;
 
 /**
  * The type Spring cloud plugin configuration.
- *
- * @author xiaoyu(Myth)
  */
 @ConditionalOnClass({LoadBalancerClient.class, RibbonAutoConfiguration.class, DispatcherHandler.class})
 @AutoConfigureAfter(RibbonAutoConfiguration.class)
@@ -56,9 +54,9 @@ public class SpringCloudPluginConfiguration {
     }
 
     /**
-     * Spring cloud dubbo soul context decorator soul context decorator.
+     * Spring cloud dubbo shenyu context decorator shenyu context decorator.
      *
-     * @return the soul context decorator
+     * @return the shenyu context decorator
      */
     @Bean
     public ShenyuContextDecorator springCloudDubboShenyuContextDecorator() {

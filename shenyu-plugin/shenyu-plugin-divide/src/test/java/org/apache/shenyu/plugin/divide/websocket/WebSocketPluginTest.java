@@ -53,8 +53,6 @@ import static org.springframework.http.HttpHeaders.UPGRADE;
 
 /**
  * The type websocket plugin test.
- *
- * @author zhanglei
  */
 public class WebSocketPluginTest {
 

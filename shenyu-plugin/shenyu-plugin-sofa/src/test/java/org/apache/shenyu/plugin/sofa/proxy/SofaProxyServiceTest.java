@@ -43,8 +43,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * SofaProxyServiceTest.
- *
- * @author tydhot
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class SofaProxyServiceTest {

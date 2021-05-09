@@ -28,8 +28,6 @@ import java.util.Map;
 
 /**
  * this is application authority service.
- *
- * @author xiaoyu(Myth)
  */
 public interface MetaDataService {
 

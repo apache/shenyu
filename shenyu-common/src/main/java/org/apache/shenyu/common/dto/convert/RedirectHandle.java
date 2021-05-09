@@ -21,8 +21,6 @@ import lombok.Data;
 
 /**
  * This is redirect plugin handle.
- *
- * @author HoldDie
  */
 @Data
 public class RedirectHandle {

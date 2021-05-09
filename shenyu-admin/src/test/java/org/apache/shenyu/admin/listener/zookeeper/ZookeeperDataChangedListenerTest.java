@@ -44,8 +44,6 @@ import com.google.common.collect.ImmutableList;
 
 /**
  * The testCase for ZookeeperDataChangedListener.
- *
- * @author tyjwan
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class ZookeeperDataChangedListenerTest {

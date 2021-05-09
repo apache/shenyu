@@ -45,9 +45,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * The type Soul grpc client bean post processor.
- *
- * @author zhanglei
+ * The type Shenyu grpc client bean post processor.
  */
 @Slf4j
 public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
@@ -65,10 +63,10 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
     private final int port;
     
     /**
-     * Instantiates a new Soul client bean post processor.
+     * Instantiates a new Shenyu client bean post processor.
      *
-     * @param config the soul grpc config
-     * @param shenyuClientRegisterRepository the soulClientRegisterRepository
+     * @param config the shenyu grpc config
+     * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      */
     public GrpcClientBeanPostProcessor(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = config.getProps();

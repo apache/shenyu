@@ -33,8 +33,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Test case for IndexController.
- *
- * @author lw1243925457
  */
 @RunWith(SpringRunner.class)
 public final class IndexControllerTest {

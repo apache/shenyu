@@ -34,8 +34,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The type Context register listener.
- *
- * @author tnnn
  */
 @Slf4j
 public class ContextRegisterListener implements ApplicationListener<ContextRefreshedEvent> {
@@ -55,7 +53,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
      *
      * @param config the config
      * @param env    the env
-     * @param shenyuClientRegisterRepository the soulClientRegisterRepository
+     * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      */
     public ContextRegisterListener(final ShenyuRegisterCenterConfig config, final Environment env, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = config.getProps();

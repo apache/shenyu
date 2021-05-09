@@ -45,9 +45,6 @@ import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 
 /**
  * Nacos cache handler.
- *
- * @author Chenxjx
- * @author xiaoyu
  */
 @Slf4j
 public class NacosCacheHandler {
@@ -86,7 +83,7 @@ public class NacosCacheHandler {
 
     protected void updatePluginMap(final String configInfo) {
         try {
-            // Fix bug #656(https://github.com/dromara/soul/issues/656)
+            // Fix bug #656(https://github.com/dromara/shenyu/issues/656)
             List<PluginData> pluginDataList = new ArrayList<>(GsonUtils.getInstance().toObjectMap(configInfo, PluginData.class).values());
             pluginDataList.forEach(pluginData -> Optional.ofNullable(pluginDataSubscriber).ifPresent(subscriber -> {
                 subscriber.unSubscribe(pluginData);

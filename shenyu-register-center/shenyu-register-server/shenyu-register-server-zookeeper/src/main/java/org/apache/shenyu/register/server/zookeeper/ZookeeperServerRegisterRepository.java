@@ -41,8 +41,6 @@ import java.util.stream.Collectors;
 
 /**
  * Zookeeper register center.
- *
- * @author lw1243925457
  */
 @Slf4j
 @Join

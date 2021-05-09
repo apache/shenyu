@@ -25,8 +25,6 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * Local Data Source Configuration.
- *
- * @author nuo-promise
  */
 @Configuration
 public class DataBaseConfiguration {

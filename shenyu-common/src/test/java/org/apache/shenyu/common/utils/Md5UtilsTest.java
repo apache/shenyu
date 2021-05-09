@@ -23,8 +23,6 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Test cases for Md5Utils.
- *
- * @author dengliming
  */
 public final class Md5UtilsTest {
 

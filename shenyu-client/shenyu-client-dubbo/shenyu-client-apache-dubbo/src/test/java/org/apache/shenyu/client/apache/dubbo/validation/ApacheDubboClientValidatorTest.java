@@ -37,8 +37,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * Test case for {@link ApacheDubboClientValidator}.
- *
- * @author KevinClair
  */
 @Ignore
 public final class ApacheDubboClientValidatorTest {

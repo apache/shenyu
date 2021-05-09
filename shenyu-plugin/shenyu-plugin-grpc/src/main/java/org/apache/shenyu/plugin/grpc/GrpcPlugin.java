@@ -49,8 +49,6 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * The type grpc plugin.
- *
- * @author xiaoyu(Myth)
  */
 @Slf4j
 public class GrpcPlugin extends AbstractShenyuPlugin {

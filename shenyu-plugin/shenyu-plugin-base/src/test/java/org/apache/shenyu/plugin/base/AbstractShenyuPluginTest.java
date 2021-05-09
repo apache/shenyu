@@ -39,9 +39,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * The Abstract soul plugin test.
- *
- * @author zhanglei
+ * The Abstract shenyu plugin test.
  */
 public final class AbstractShenyuPluginTest {
 

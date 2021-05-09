@@ -50,8 +50,6 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * The type Netty http client plugin.
- *
- * @author xiaoyu
  */
 @Slf4j
 public class NettyHttpClientPlugin implements ShenyuPlugin {

@@ -26,8 +26,6 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * ContextPathMappingPluginConfiguration.
- *
- * @author zhanglei
  */
 @Configuration
 public class ContextPathMappingPluginConfiguration {
@@ -35,7 +33,7 @@ public class ContextPathMappingPluginConfiguration {
     /**
      * Context path mapping plugin.
      *
-     * @return the soul plugin
+     * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin contextPathMappingPlugin() {

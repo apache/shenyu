@@ -23,8 +23,6 @@ import org.apache.dubbo.validation.Validator;
 
 /**
  * The type Apache dubbo client validation.
- *
- * @author KevinClair
  */
 public class ApacheDubboClientValidation implements Validation {
     

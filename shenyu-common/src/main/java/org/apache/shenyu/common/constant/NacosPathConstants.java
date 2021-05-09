@@ -19,8 +19,6 @@ package org.apache.shenyu.common.constant;
 
 /**
  * Nacos path constants.
- *
- * @author lw1243925457
  */
 public final class NacosPathConstants {
 

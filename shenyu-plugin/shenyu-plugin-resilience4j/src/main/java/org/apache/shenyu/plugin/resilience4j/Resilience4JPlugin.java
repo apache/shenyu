@@ -41,8 +41,6 @@ import java.util.function.Function;
 
 /**
  * Resilience4J plugin.
- *
- * @author zhanglei
  */
 public class Resilience4JPlugin extends AbstractShenyuPlugin {
 

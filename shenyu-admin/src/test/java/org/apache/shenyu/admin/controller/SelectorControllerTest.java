@@ -49,8 +49,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Test cases for {@link SelectorController}.
- *
- * @author chenxi
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class SelectorControllerTest {

@@ -29,8 +29,6 @@ import org.mapstruct.factory.Mappers;
 
 /**
  * The interface Condition transfer.
- *
- * @author xiaoyu(Myth)
  */
 @Mapper
 public interface ConditionTransfer {

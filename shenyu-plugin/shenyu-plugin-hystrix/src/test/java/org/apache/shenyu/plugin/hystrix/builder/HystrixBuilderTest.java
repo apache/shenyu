@@ -25,9 +25,7 @@ import static org.junit.Assert.assertNotNull;
 
 /**
  * The Test Case For HystrixBuilder.
- *
- * @author nuo-promise
- **/
+ */
 public final class HystrixBuilderTest {
 
     @Test

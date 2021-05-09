@@ -46,7 +46,7 @@ public interface ShenyuPlugin {
     /**
      * acquire plugin name.
      * this is plugin name define you must Provide the right name.
-     * if you impl AbstractSoulPlugin this attribute not use.
+     * if you impl AbstractShenyuPlugin this attribute not use.
      *
      * @return plugin name.
      */

@@ -21,8 +21,6 @@ import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
 
 /**
  * Test case for SelectorVO.
- *
- * @author midnight2104
  */
 public final class SelectorVOTest extends AbstractReflectGetterSetterTest {
 

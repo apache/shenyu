@@ -21,8 +21,6 @@ import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
 
 /**
  * Test case for AuthPathVO.
- *
- * @author midnight2104
  */
 public final class AuthPathVOTest extends AbstractReflectGetterSetterTest {
 

@@ -35,9 +35,6 @@ import java.util.Optional;
 
 /**
  * SelectorDO.
- *
- * @author jiangxiaofeng(Nicholas)
- * @author nuo-promise
  */
 @Data
 @SuperBuilder

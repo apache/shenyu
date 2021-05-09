@@ -36,8 +36,6 @@ import java.util.Map;
 
 /**
  * LookupServiceHandler.
- *
- * @author zhanglei
  */
 public class LookupServiceHandler implements StreamObserver<ServerReflectionResponse> {
 

@@ -51,9 +51,7 @@ import static org.mockito.Mockito.any;
 
 /**
  * The test case for WebClientResponsePlugin.
- *
- * @author YuI
- **/
+ */
 @RunWith(MockitoJUnitRunner.class)
 public final class WebClientResponsePluginTest {
 

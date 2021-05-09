@@ -21,7 +21,6 @@ package org.apache.shenyu.disruptor.consumer;
  * The interface Queue consumer factory.
  *
  * @param <T> the type parameter
- * @author xiaoyu
  */
 public interface QueueConsumerFactory<T> {
     

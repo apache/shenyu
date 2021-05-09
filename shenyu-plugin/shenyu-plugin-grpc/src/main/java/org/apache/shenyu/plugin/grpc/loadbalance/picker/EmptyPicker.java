@@ -24,8 +24,6 @@ import io.grpc.Status;
 
 /**
  * The empty picker.
- *
- * @author zhanglei
  */
 public class EmptyPicker extends AbstractPicker {
 

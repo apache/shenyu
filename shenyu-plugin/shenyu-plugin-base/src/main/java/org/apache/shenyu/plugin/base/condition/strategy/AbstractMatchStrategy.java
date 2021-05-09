@@ -31,8 +31,6 @@ import java.util.List;
 
 /**
  * AbstractMatchStrategy.
- *
- * @author xiaoyu(Myth)
  */
 public abstract class AbstractMatchStrategy {
 

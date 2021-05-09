@@ -28,8 +28,6 @@ import java.util.function.Function;
 
 /**
  * Proxy info util.
- *
- * @author tydhot
  */
 public class PrxInfoUtil {
 

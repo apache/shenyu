@@ -33,8 +33,6 @@ import static org.mockito.Mockito.mock;
 
 /**
  * CombinedExecutor test.
- *
- * @author zhanglei
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class CombinedExecutorTest {
@@ -49,14 +47,14 @@ public final class CombinedExecutorTest {
     @Test
     public void normalTest() {
         Resilience4JConf conf = mock(Resilience4JConf.class);
-        when(conf.getId()).thenReturn("SOUL");
+        when(conf.getId()).thenReturn("SHENYU");
         when(conf.getRateLimiterConfig()).thenReturn(RateLimiterConfig.ofDefaults());
         when(conf.getTimeLimiterConfig()).thenReturn(TimeLimiterConfig.ofDefaults());
         when(conf.getCircuitBreakerConfig()).thenReturn(CircuitBreakerConfig.ofDefaults());
         Mono mono = Mono.just("ERROR");
-        StepVerifier.create(combinedExecutor.run(Mono.just("SOUL"), throwable -> mono, conf))
+        StepVerifier.create(combinedExecutor.run(Mono.just("SHENYU"), throwable -> mono, conf))
                 .expectSubscription()
-                .expectNext("SOUL")
+                .expectNext("SHENYU")
                 .verifyComplete();
 
     }

@@ -21,8 +21,6 @@ import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
 
 /**
  * Test case for PluginHandleQuery.
- *
- * @author wuudongdong
  */
 public final class PluginHandleQueryTest extends AbstractReflectGetterSetterTest {
 

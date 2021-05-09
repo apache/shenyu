@@ -56,9 +56,6 @@ import org.springframework.web.client.RestTemplate;
 
 /**
  * HTTP long polling implementation.
- *
- * @author huangxiaofeng
- * @author xiaoyu
  */
 @SuppressWarnings("all")
 @Slf4j
@@ -114,7 +111,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
             // start long polling, each server creates a thread to listen for changes.
             this.serverList.forEach(server -> this.executor.execute(new HttpLongPollingTask(server)));
         } else {
-            log.info("soul http long polling was started, executor=[{}]", executor);
+            log.info("shenyu http long polling was started, executor=[{}]", executor);
         }
     }
 

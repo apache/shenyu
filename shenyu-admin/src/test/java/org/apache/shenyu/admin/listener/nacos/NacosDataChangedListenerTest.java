@@ -36,8 +36,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * The TestCase for NacosDataChangedListener.
- *
- * @author cottom
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class NacosDataChangedListenerTest {

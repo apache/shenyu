@@ -23,8 +23,6 @@ import java.io.Serializable;
 
 /**
  * The type Auth path dto.
- *
- * @author xiaoyu
  */
 @Data
 public class AuthPathDTO implements Serializable {

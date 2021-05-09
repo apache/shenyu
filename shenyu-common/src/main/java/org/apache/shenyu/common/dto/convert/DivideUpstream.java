@@ -25,9 +25,6 @@ import java.io.Serializable;
 
 /**
  * this is divide upstream.
- *
- * @author xiaoyu(Myth).
- * @author nuo-promise
  */
 @Data
 @ToString

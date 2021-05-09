@@ -22,8 +22,6 @@ import org.springframework.util.AntPathMatcher;
 
 /**
  * The type Path match utils.
- *
- * @author xiaoyu
  */
 public class PathMatchUtils {
 

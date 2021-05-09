@@ -23,8 +23,6 @@ import java.io.Serializable;
 
 /**
  * data permission dto.
- *
- * @author kaitoshy(plutokaito)
  */
 @Data
 public class DataPermissionDTO implements Serializable {

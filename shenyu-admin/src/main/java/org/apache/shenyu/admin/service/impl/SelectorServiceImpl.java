@@ -66,10 +66,6 @@ import java.util.stream.Collectors;
 
 /**
  * SelectorServiceImpl.
- *
- * @author jiangxiaofeng(Nicholas)
- * @author xiaoyu
- * @author  nuo-promise
  */
 @Service("selectorService")
 public class SelectorServiceImpl implements SelectorService {

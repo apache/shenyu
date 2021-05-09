@@ -32,8 +32,6 @@ import java.util.List;
 
 /**
  * Test cases for OrMatchStrategy.
- *
- * @author BetterWp
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class OrMatchStrategyTest {

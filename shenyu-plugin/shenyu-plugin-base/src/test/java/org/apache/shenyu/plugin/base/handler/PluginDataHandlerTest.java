@@ -35,8 +35,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * Test cases for PluginDataHandler.
- *
- * @author zhanglei
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class PluginDataHandlerTest {

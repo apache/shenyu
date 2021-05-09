@@ -26,9 +26,6 @@ import java.util.Random;
 
 /**
  * Sofa single param service.
- *
- * @author tydhot
- * @author wuudongdong
  */
 @Service("sofaSingleParamService")
 public class SofaSingleParamServiceImpl implements SofaSingleParamService {

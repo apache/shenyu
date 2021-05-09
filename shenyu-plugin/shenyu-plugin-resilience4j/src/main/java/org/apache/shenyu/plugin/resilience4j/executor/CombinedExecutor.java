@@ -32,8 +32,6 @@ import org.apache.shenyu.plugin.resilience4j.conf.Resilience4JConf;
 
 /**
  * Combined executor.
- *
- * @author zhanglei
  */
 public class CombinedExecutor implements Executor {
 

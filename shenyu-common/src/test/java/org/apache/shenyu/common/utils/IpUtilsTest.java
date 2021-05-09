@@ -34,8 +34,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * Test case for {@link IpUtils}.
- *
- * @author HoldDie
  */
 public final class IpUtilsTest {
 

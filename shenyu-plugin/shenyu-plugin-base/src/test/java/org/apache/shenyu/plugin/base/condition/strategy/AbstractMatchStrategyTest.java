@@ -40,8 +40,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * Test cases for AbstractMatchStrategy.
- *
- * @author BetterWp
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class AbstractMatchStrategyTest {

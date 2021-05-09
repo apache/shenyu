@@ -30,8 +30,6 @@ import reactor.core.publisher.Mono;
 
 /**
  * Sentinel block handler.
- *
- * @author zhanglei
  */
 public class SentinelFallbackHandler implements FallbackHandler {
 

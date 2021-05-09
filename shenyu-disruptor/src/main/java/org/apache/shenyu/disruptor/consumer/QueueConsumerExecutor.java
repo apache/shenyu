@@ -24,7 +24,6 @@ import lombok.Setter;
  * The type Queue consumer executor.
  *
  * @param <T> the type parameter
- * @author xiaoyu
  */
 @Getter
 @Setter

@@ -55,8 +55,6 @@ import reactor.core.publisher.Mono;
 
 /**
  * The type Web socket plugin.
- *
- * @author xiaoyu(Myth)
  */
 @Slf4j
 public class WebSocketPlugin extends AbstractShenyuPlugin {

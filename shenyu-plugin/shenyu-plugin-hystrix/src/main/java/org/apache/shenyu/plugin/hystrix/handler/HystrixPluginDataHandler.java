@@ -29,8 +29,6 @@ import java.util.Optional;
 
 /**
  * The type Hystrix plugin data handler.
- *
- * @author xiaoyu
  */
 public class HystrixPluginDataHandler implements PluginDataHandler {
 

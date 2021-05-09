@@ -29,8 +29,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 /**
  * test case for {@link RedirectPluginConfiguration}.
- *
- * @author HoldDie
  */
 public class RedirectPluginConfigurationTest {
 

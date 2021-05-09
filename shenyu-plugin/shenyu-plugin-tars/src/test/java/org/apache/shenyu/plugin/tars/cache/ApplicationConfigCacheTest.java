@@ -41,8 +41,6 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * Test case for {@link ApplicationConfigCache}.
- *
- * @author HoldDie
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class ApplicationConfigCacheTest {

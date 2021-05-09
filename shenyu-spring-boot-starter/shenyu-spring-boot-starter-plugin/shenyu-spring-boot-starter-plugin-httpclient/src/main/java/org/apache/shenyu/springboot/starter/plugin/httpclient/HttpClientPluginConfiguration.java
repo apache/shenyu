@@ -47,8 +47,6 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * The type Http client plugin configuration.
- *
- * @author xiaoyu
  */
 @Configuration
 public class HttpClientPluginConfiguration {
@@ -149,10 +147,10 @@ public class HttpClientPluginConfiguration {
     static class WebClientConfiguration {
 
         /**
-         * Web client plugin soul plugin.
+         * Web client plugin shenyu plugin.
          *
          * @param httpClient the http client
-         * @return the soul plugin
+         * @return the shenyu plugin
          */
         @Bean
         public ShenyuPlugin webClientPlugin(final ObjectProvider<HttpClient> httpClient) {
@@ -163,9 +161,9 @@ public class HttpClientPluginConfiguration {
         }
 
         /**
-         * Web client response plugin soul plugin.
+         * Web client response plugin shenyu plugin.
          *
-         * @return the soul plugin
+         * @return the shenyu plugin
          */
         @Bean
         public ShenyuPlugin webClientResponsePlugin() {
@@ -182,10 +180,10 @@ public class HttpClientPluginConfiguration {
     static class NettyHttpClientConfiguration {
 
         /**
-         * Netty http client plugin soul plugin.
+         * Netty http client plugin shenyu plugin.
          *
          * @param httpClient the http client
-         * @return the soul plugin
+         * @return the shenyu plugin
          */
         @Bean
         public ShenyuPlugin nettyHttpClientPlugin(final ObjectProvider<HttpClient> httpClient) {
@@ -193,9 +191,9 @@ public class HttpClientPluginConfiguration {
         }
 
         /**
-         * Netty client response plugin soul plugin.
+         * Netty client response plugin shenyu plugin.
          *
-         * @return the soul plugin
+         * @return the shenyu plugin
          */
         @Bean
         public ShenyuPlugin nettyClientResponsePlugin() {

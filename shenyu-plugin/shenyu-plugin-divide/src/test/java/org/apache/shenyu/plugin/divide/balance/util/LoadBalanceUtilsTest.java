@@ -30,8 +30,6 @@ import java.util.stream.Stream;
 
 /**
  * The type loadBalance utils test.
- *
- * @author zhanglei
  */
 public final class LoadBalanceUtilsTest {
 

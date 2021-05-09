@@ -40,8 +40,6 @@ import java.util.stream.Stream;
 
 /**
  * shiro configuration.
- *
- * @author YuI
  */
 @Configuration
 public class ShiroConfiguration {

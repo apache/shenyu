@@ -24,8 +24,6 @@ import java.util.List;
 
 /**
  * The type Auth path warp dto.
- *
- * @author xiaoyu
  */
 @Data
 public class AuthPathWarpDTO implements Serializable {

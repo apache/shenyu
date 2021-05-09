@@ -22,8 +22,6 @@ import lombok.Data;
 
 /**
  * The type Sofa rpc ext.
- *
- * @author tydhot
  */
 @Data
 @Builder

@@ -26,8 +26,6 @@ import java.io.Serializable;
 
 /**
  * The type sofa register config.
- *
- * @author tydhot
  */
 @Data
 @EqualsAndHashCode

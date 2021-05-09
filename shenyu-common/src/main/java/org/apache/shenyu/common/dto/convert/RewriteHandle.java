@@ -21,7 +21,6 @@ import lombok.Data;
 
 /**
  * this is rewrite plugin handle.
- * @author xiaoyu
  */
 @Data
 public class RewriteHandle {

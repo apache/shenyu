@@ -19,8 +19,6 @@ package org.apache.shenyu.common.constant;
 
 /**
  * RedisKeyConstants.
- *
- * @author xiaoyu(Myth)
  */
 public final class RedisKeyConstants implements Constants {
 

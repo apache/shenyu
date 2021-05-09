@@ -18,9 +18,7 @@
 package org.apache.shenyu.plugin.api.result;
 
 /**
- * The type Soul default result.
- *
- * @author xiaoyu
+ * The type Shenyu default result.
  */
 public class DefaultShenyuResult implements ShenyuResult<DefaultShenyuEntity> {
 

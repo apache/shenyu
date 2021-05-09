@@ -23,8 +23,6 @@ import java.io.Serializable;
 
 /**
  * this is plugin from by web front.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 @Data
 public class PluginDTO implements Serializable {

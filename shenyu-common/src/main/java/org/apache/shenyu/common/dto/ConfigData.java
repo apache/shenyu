@@ -28,7 +28,7 @@ import java.util.List;
 
 /**
  * Data set, including {@link AppAuthData}、{@link ConditionData}、{@link PluginData}、{@link RuleData}、{@link SelectorData}.
- * @author huangxiaofeng
+ *
  * @since 2.0.0
  */
 @Data

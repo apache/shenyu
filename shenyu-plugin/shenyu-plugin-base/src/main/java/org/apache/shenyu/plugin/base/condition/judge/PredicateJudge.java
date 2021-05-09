@@ -21,8 +21,6 @@ import org.apache.shenyu.common.dto.ConditionData;
 
 /**
  * Predicate judge.
- *
- * @author xiaoyu(Myth)
  */
 @FunctionalInterface
 public interface PredicateJudge {

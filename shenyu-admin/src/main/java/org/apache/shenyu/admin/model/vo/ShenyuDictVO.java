@@ -28,8 +28,6 @@ import java.util.Optional;
 
 /**
  * this is shenyu dict view to web front.
- *
- * @author dengliming
  */
 @Data
 @AllArgsConstructor

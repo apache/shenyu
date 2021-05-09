@@ -29,8 +29,6 @@ import static org.junit.Assert.assertNotNull;
 
 /**
  * Test case for SelectorConditionVO.
- *
- * @author midnight2104
  */
 public final class SelectorConditionVOTest extends AbstractReflectGetterSetterTest {
 

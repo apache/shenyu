@@ -62,9 +62,6 @@ import java.util.stream.Collectors;
 
 /**
  * AppAuthServiceImpl.
- *
- * @author xiaoyu(Myth)
- * @author nuo-promise
  */
 @Service("appAuthService")
 public class AppAuthServiceImpl implements AppAuthService {

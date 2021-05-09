@@ -32,8 +32,6 @@ import static org.mockito.Mockito.doAnswer;
 
 /**
  * test for EtcdClientRegisterRepository.
- *
- * @author lw1243925457
  */
 public class EtcdClientRegisterRepositoryTest {
 

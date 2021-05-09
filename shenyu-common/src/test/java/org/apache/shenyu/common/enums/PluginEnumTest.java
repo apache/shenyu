@@ -24,8 +24,6 @@ import java.util.Arrays;
 
 /**
  * Test Cases for PluginEnum.
- *
- * @author abysscat-yj
  */
 public final class PluginEnumTest {
 

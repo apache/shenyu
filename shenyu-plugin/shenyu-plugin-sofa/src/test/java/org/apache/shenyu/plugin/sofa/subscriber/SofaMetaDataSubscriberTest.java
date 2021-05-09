@@ -28,8 +28,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * SofaMetaDataSubscriberTest.
- *
- * @author tydhot
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class SofaMetaDataSubscriberTest {

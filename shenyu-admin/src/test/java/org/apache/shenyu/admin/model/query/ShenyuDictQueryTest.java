@@ -21,8 +21,6 @@ import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
 
 /**
  * Test case for ShenyuDictQuery.
- *
- * @author wuudongdong
  */
 public final class ShenyuDictQueryTest extends AbstractReflectGetterSetterTest {
 

@@ -29,8 +29,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Test case for {@link GlobalPluginConfiguration}.
- * 
- * @author HoldDie
  */
 public class GlobalPluginConfigurationTest {
 

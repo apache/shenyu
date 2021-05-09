@@ -54,8 +54,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Test cases for ShenyuDictController.
- *
- * @author guanys
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class PluginControllerTest {

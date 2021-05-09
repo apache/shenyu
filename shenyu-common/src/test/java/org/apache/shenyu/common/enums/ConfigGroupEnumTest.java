@@ -28,8 +28,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * Test Cases for ConfigGroupEnum.
- *
- * @author coderlmm
  */
 public final class ConfigGroupEnumTest {
 

@@ -31,9 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * LdapConfiguration .
- *
- * @author Naah
+ * LdapConfiguration.
  */
 @Configuration
 @ConditionalOnProperty(name = "shenyu.ldap.enabled", havingValue = "true")

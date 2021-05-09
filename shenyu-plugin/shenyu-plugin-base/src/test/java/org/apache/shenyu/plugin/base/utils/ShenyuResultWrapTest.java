@@ -33,9 +33,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * The Soul result wrap test.
- *
- * @author zhanglei
+ * The Shenyu result wrap test.
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class ShenyuResultWrapTest {

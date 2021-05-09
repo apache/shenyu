@@ -41,8 +41,6 @@ import java.util.Properties;
 
 /**
  * Nacos sync data configuration for spring boot.
- *
- * @author xiaoyu(Myth)
  */
 @Configuration
 @ConditionalOnClass(NacosSyncDataService.class)

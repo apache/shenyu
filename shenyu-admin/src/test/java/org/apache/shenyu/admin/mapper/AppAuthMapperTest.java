@@ -35,8 +35,6 @@ import static org.junit.Assert.assertNotNull;
 
 /**
  * Test cases for AppAuthMapper.
- *
- * @author tangtian8
  */
 public final class AppAuthMapperTest extends AbstractSpringIntegrationTest {
 

@@ -32,8 +32,6 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Test cases for HttpParamConverter.
- *
- * @author dengliming
  */
 public final class HttpParamConverterTest {
 

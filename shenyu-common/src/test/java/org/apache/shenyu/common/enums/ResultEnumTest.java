@@ -23,8 +23,6 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Test case for ResultEnum.
- *
- * @author rockpig
  */
 public final class ResultEnumTest {
 

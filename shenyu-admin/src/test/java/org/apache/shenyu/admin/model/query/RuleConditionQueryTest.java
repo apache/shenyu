@@ -21,8 +21,6 @@ import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
 
 /**
  * Test case for RuleConditionQuery.
- *
- * @author wuudongdong
  */
 public final class RuleConditionQueryTest extends AbstractReflectGetterSetterTest {
 

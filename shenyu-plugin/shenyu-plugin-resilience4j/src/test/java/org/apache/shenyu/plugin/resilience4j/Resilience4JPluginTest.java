@@ -53,8 +53,6 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 
 /**
  * Resilience4J plugin test.
- *
- * @author zhanglei
  */
 @RunWith(MockitoJUnitRunner.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -89,8 +87,8 @@ public final class Resilience4JPluginTest {
     public void normalTest() {
         resilience4JPlugin = new Resilience4JPlugin(new CombinedExecutor(), new RateLimiterExecutor());
         RuleData data = mock(RuleData.class);
-        data.setSelectorId("SOUL");
-        data.setId("SOUL");
+        data.setSelectorId("SHENYU");
+        data.setId("SHENYU");
         Resilience4JHandle resilience4JHandle = GsonUtils.getGson().fromJson(HANDLER, Resilience4JHandle.class);
         Resilience4jRuleHandleCache.getInstance().cachedHandle(Resilience4JHandler.getResourceName(data), resilience4JHandle);
         when(data.getHandle()).thenReturn(HANDLER);
@@ -102,8 +100,8 @@ public final class Resilience4JPluginTest {
     @Test
     public void rateLimiterTest() {
         RuleData data = mock(RuleData.class);
-        data.setSelectorId("SOUL");
-        data.setId("SOUL");
+        data.setSelectorId("SHENYU");
+        data.setId("SHENYU");
         Resilience4JHandle resilience4JHandle = GsonUtils.getGson().fromJson(HANDLER, Resilience4JHandle.class);
         Resilience4jRuleHandleCache.getInstance().cachedHandle(Resilience4JHandler.getResourceName(data), resilience4JHandle);
         CombinedExecutor combinedExecutor = mock(CombinedExecutor.class);
@@ -118,8 +116,8 @@ public final class Resilience4JPluginTest {
     @Test
     public void circuitBreakerTest() {
         RuleData data = mock(RuleData.class);
-        data.setSelectorId("SOUL");
-        data.setId("SOUL");
+        data.setSelectorId("SHENYU");
+        data.setId("SHENYU");
         Resilience4JHandle resilience4JHandle = GsonUtils.getGson().fromJson(HANDLER, Resilience4JHandle.class);
         Resilience4jRuleHandleCache.getInstance().cachedHandle(Resilience4JHandler.getResourceName(data), resilience4JHandle);
         CombinedExecutor combinedExecutor = new CombinedExecutor();

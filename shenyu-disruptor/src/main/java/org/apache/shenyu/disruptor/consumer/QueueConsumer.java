@@ -26,7 +26,6 @@ import java.util.concurrent.ExecutorService;
  * The type Queue consumer.
  *
  * @param <T> the type parameter
- * @author xiaoyu
  */
 public class QueueConsumer<T> implements WorkHandler<DataEvent<T>> {
     

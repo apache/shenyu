@@ -21,8 +21,6 @@ import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
 
 /**
  * Test case for ShenyuDictVO.
- *
- * @author midnight2104
  */
 public final class ShenyuDictVOTest extends AbstractReflectGetterSetterTest {
 

@@ -25,8 +25,6 @@ import java.util.Set;
 
 /**
  * The type Abstract queue consumer factory.
- *
- * @author xiaoyu
  */
 @SuppressWarnings("all")
 public abstract class AbstractQueueConsumerFactory implements QueueConsumerFactory {

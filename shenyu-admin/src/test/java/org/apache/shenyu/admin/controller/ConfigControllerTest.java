@@ -47,8 +47,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Test cases for ConfigController.
- *
- * @author HoldDie
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class ConfigControllerTest {

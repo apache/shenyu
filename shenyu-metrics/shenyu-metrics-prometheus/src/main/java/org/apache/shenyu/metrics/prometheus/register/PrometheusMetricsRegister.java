@@ -27,8 +27,6 @@ import org.apache.shenyu.metrics.api.MetricsRegister;
 
 /**
  * Prometheus metrics register.
- *
- * @author xiaoyu
  */
 @Slf4j
 public final class PrometheusMetricsRegister implements MetricsRegister {

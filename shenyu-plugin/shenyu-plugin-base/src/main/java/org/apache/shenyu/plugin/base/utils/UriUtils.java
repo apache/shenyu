@@ -22,7 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * uri util.
- * @author liangziqiang
  */
 public class UriUtils {
 

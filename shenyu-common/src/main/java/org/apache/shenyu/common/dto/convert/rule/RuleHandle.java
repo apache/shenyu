@@ -23,8 +23,6 @@ import java.io.Serializable;
 
 /**
  * The RuleHandle interface.
- *
- * @author yiwenlong (wlong.yi@gmail.com)
  */
 public interface RuleHandle extends Serializable {
 

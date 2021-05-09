@@ -25,8 +25,6 @@ import java.util.List;
 
 /**
  * PluginMapper.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 @Mapper
 public interface PluginMapper {

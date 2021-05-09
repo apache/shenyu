@@ -26,8 +26,6 @@ import java.util.List;
 
 /**
  * this is shenyu dict service.
- *
- * @author dengliming
  */
 public interface ShenyuDictService {
     /**

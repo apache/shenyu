@@ -64,9 +64,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * Test cases for PluginService.
- *
- * @author wuliendan
- *
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public final class PluginServiceTest {

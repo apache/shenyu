@@ -42,9 +42,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * The Test Case For HystrixCommand.
- *
- * @author nuo-promise
- **/
+ */
 @RunWith(MockitoJUnitRunner.class)
 public final class HystrixCommandTest {
 

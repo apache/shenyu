@@ -39,8 +39,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * Test cases for FallbackHandler.
- *
- * @author zhanglei
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class FallbackHandlerTest {

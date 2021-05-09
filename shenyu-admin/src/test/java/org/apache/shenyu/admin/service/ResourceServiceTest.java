@@ -51,8 +51,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * test for {@linkplain ResourceService}.
- *
- * @author davidliu
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ResourceServiceTest {

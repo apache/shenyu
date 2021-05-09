@@ -25,9 +25,7 @@ import java.io.Serializable;
 
 /**
  * this is permission query.
- *
- * @author nuo-promise
- **/
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

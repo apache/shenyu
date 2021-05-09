@@ -23,8 +23,6 @@ import java.io.Serializable;
 
 /**
  * The springCloud plugin configuration for eureka.
- *
- * @author xiaoyu(Myth)
  */
 @Data
 public class SpringCloudConfig implements Serializable {

@@ -38,8 +38,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * Test case for {@link RegisterUtils}.
- *
- * @author Young Bean
  */
 public final class RegisterUtilsTest {
     

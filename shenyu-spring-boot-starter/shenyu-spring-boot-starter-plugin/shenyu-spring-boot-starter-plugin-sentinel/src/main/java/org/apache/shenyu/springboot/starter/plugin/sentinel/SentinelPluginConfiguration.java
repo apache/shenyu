@@ -35,8 +35,6 @@ import java.util.List;
 
 /**
  * Sentinel plugin configuration.
- *
- * @author tydhot
  */
 @Configuration
 public class SentinelPluginConfiguration {
@@ -65,7 +63,7 @@ public class SentinelPluginConfiguration {
     /**
      * Sentinel plugin.
      *
-     * @return the soul plugin
+     * @return the shenyu plugin
      */
     @Bean
     public SentinelPlugin sentinelPlugin() {
@@ -85,7 +83,7 @@ public class SentinelPluginConfiguration {
     /**
      * Sentinel exception handler.
      *
-     * @return the soul plugin
+     * @return the shenyu plugin
      */
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)

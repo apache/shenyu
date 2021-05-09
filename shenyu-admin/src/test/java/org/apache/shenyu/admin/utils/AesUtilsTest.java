@@ -25,8 +25,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for AesUtils.
- *
- * @author dengliming
  */
 public final class AesUtilsTest {
 

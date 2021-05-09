@@ -24,8 +24,6 @@ import org.springframework.stereotype.Component;
 
 /**
  * Aes Secret configuration.
- *
- * @author nuo-promise
  */
 @Getter
 @Setter

@@ -41,8 +41,6 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * test for {@linkplain ResourceMapper}.
- *
- * @author davidliu
  */
 public class ResourceMapperTest extends AbstractSpringIntegrationTest {
 

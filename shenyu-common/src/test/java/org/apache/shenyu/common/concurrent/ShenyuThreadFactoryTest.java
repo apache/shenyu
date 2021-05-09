@@ -26,9 +26,7 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 /**
- * Test cases for SoulThreadFactory.
- *
- * @author FocusZhouGD
+ * Test cases for ShenyuThreadFactory.
  */
 @Slf4j
 public final class ShenyuThreadFactoryTest {

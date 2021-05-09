@@ -28,8 +28,6 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * The sofa metadata subscribe.
- *
- * @author tydhot
  */
 public class SofaMetaDataSubscriber implements MetaDataSubscriber {
 

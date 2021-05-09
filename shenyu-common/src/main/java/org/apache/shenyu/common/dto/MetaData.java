@@ -57,8 +57,6 @@ public class MetaData implements Serializable {
 
     /**
      * update ContextPath.
-     *
-     * @author HoldDie
      */
     public void updateContextPath() {
         if (StringUtils.isNoneBlank(this.path)) {

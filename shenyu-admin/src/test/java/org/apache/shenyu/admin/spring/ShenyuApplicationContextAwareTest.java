@@ -27,8 +27,6 @@ import static org.mockito.Mockito.mock;
 
 /**
  * Test case for {@link ShenyuApplicationContextAware}.
- *
- * @author HoldDie
  */
 public final class ShenyuApplicationContextAwareTest {
 

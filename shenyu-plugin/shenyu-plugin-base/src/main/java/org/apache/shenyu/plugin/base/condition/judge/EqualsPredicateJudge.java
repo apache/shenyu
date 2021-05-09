@@ -23,8 +23,6 @@ import java.util.Objects;
 
 /**
  * Equals predicate judge.
- *
- * @author xiaoyu(Myth)
  */
 public class EqualsPredicateJudge implements PredicateJudge {
 
