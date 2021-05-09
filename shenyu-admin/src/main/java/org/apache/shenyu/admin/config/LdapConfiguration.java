@@ -36,7 +36,7 @@ import java.util.Map;
  * @author Naah
  */
 @Configuration
-@ConditionalOnProperty(name = "soul.ldap.enabled", havingValue = "true")
+@ConditionalOnProperty(name = "shenyu.ldap.enabled", havingValue = "true")
 @EnableConfigurationProperties(LdapProperties.class)
 public class LdapConfiguration {
 

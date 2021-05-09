@@ -18,13 +18,13 @@
 package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
-import org.apache.shenyu.admin.model.dto.SoulDictDTO;
+import org.apache.shenyu.admin.model.dto.ShenyuDictDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
-import org.apache.shenyu.admin.model.query.SoulDictQuery;
-import org.apache.shenyu.admin.service.SoulDictService;
+import org.apache.shenyu.admin.model.query.ShenyuDictQuery;
+import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
+import org.apache.shenyu.admin.service.ShenyuDictService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.apache.shenyu.admin.model.vo.SoulDictVO;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.Before;
@@ -46,7 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Test cases for SoulDictController.
+ * Test cases for ShenyuDictController.
  *
  * @author dengliming
  */
@@ -59,9 +59,9 @@ public final class ShenyuDictControllerTest {
     private ShenyuDictController shenyuDictController;
 
     @Mock
-    private SoulDictService soulDictService;
+    private ShenyuDictService shenyuDictService;
 
-    private final SoulDictVO soulDictVO = new SoulDictVO("123", "1", "t", "t_n", "1", "desc", 2, true,
+    private final ShenyuDictVO shenyuDictVO = new ShenyuDictVO("123", "1", "t", "t_n", "1", "desc", 2, true,
             DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()));
 
     @Before
@@ -72,9 +72,9 @@ public final class ShenyuDictControllerTest {
     @Test
     public void testQueryDicts() throws Exception {
         final PageParameter pageParameter = new PageParameter();
-        final SoulDictQuery soulDictQuery = new SoulDictQuery("1", "t", "t_n", pageParameter);
-        final CommonPager<SoulDictVO> commonPager = new CommonPager<>(pageParameter, Collections.singletonList(soulDictVO));
-        given(this.soulDictService.listByPage(soulDictQuery)).willReturn(commonPager);
+        final ShenyuDictQuery shenyuDictQuery = new ShenyuDictQuery("1", "t", "t_n", pageParameter);
+        final CommonPager<ShenyuDictVO> commonPager = new CommonPager<>(pageParameter, Collections.singletonList(shenyuDictVO));
+        given(this.shenyuDictService.listByPage(shenyuDictQuery)).willReturn(commonPager);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/shenyu-dict")
                 .param("type", "1")
                 .param("dictCode", "t")
@@ -89,55 +89,55 @@ public final class ShenyuDictControllerTest {
 
     @Test
     public void testFindByType() throws Exception {
-        given(this.soulDictService.list("1")).willReturn(Collections.singletonList(soulDictVO));
+        given(this.shenyuDictService.list("1")).willReturn(Collections.singletonList(shenyuDictVO));
         this.mockMvc.perform(MockMvcRequestBuilders.get("/shenyu-dict/all/{type}", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
-                .andExpect(jsonPath("$.data[0].id", is(soulDictVO.getId())))
+                .andExpect(jsonPath("$.data[0].id", is(shenyuDictVO.getId())))
                 .andReturn();
     }
 
     @Test
     public void testDetail() throws Exception {
-        given(this.soulDictService.findById("123")).willReturn(soulDictVO);
+        given(this.shenyuDictService.findById("123")).willReturn(shenyuDictVO);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/shenyu-dict/{id}", "123"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
-                .andExpect(jsonPath("$.data.id", is(soulDictVO.getId())))
+                .andExpect(jsonPath("$.data.id", is(shenyuDictVO.getId())))
                 .andReturn();
     }
 
     @Test
-    public void testCreateSoulDict() throws Exception {
-        SoulDictDTO soulDictDTO = new SoulDictDTO();
-        soulDictDTO.setId("123");
-        soulDictDTO.setDesc("test");
-        given(this.soulDictService.createOrUpdate(soulDictDTO)).willReturn(1);
+    public void testCreateShenyuDict() throws Exception {
+        ShenyuDictDTO shenyuDictDTO = new ShenyuDictDTO();
+        shenyuDictDTO.setId("123");
+        shenyuDictDTO.setDesc("test");
+        given(this.shenyuDictService.createOrUpdate(shenyuDictDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/shenyu-dict/")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(GsonUtils.getInstance().toJson(soulDictDTO)))
+                .content(GsonUtils.getInstance().toJson(shenyuDictDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.CREATE_SUCCESS)))
                 .andReturn();
     }
 
     @Test
-    public void testUpdateSoulDict() throws Exception {
-        SoulDictDTO soulDictDTO = new SoulDictDTO();
-        soulDictDTO.setId("123");
-        soulDictDTO.setDesc("test");
-        given(this.soulDictService.createOrUpdate(soulDictDTO)).willReturn(1);
+    public void testUpdateShenyuDict() throws Exception {
+        ShenyuDictDTO shenyuDictDTO = new ShenyuDictDTO();
+        shenyuDictDTO.setId("123");
+        shenyuDictDTO.setDesc("test");
+        given(this.shenyuDictService.createOrUpdate(shenyuDictDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.put("/shenyu-dict/{id}", "123")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(GsonUtils.getInstance().toJson(soulDictDTO)))
+                .content(GsonUtils.getInstance().toJson(shenyuDictDTO)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.UPDATE_SUCCESS)))
                 .andReturn();
     }
 
     @Test
-    public void testDeleteSoulDicts() throws Exception {
-        given(this.soulDictService.deleteSoulDicts(Collections.singletonList("123"))).willReturn(1);
+    public void testDeleteShenyuDicts() throws Exception {
+        given(this.shenyuDictService.deleteShenyuDicts(Collections.singletonList("123"))).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.delete("/shenyu-dict/batch")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("[\"123\"]"))
@@ -151,7 +151,7 @@ public final class ShenyuDictControllerTest {
         BatchCommonDTO batchCommonDTO = new BatchCommonDTO();
         batchCommonDTO.setEnabled(false);
         batchCommonDTO.setIds(Collections.singletonList("123"));
-        given(this.soulDictService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled())).willReturn(1);
+        given(this.shenyuDictService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled())).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/shenyu-dict/batchEnabled")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(batchCommonDTO)))

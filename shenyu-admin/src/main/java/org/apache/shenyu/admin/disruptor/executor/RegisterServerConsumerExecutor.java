@@ -66,7 +66,7 @@ public final class RegisterServerConsumerExecutor extends QueueConsumerExecutor<
 
         @Override
         public String fixName() {
-            return "soul_register_server";
+            return "shenyu_register_server";
         }
     }
 }

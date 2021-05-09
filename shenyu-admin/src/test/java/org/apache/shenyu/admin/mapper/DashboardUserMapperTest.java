@@ -79,7 +79,7 @@ public final class DashboardUserMapperTest extends AbstractSpringIntegrationTest
     @Test
     public void testFindByQuery() {
         DashboardUserDO record = buildDashboardUserDO();
-        record.setUserName("adminSoul");
+        record.setUserName("adminshenyu");
         int count = dashboardUserMapper.insert(record);
         assertThat(count, comparesEqualTo(1));
 

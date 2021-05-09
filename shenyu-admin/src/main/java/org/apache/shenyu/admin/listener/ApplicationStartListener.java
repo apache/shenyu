@@ -39,7 +39,7 @@ public class ApplicationStartListener implements ApplicationListener<WebServerIn
     public void onApplicationEvent(final WebServerInitializedEvent event) {
         int port = event.getWebServer().getPort();
         final String host = IpUtils.getHost();
-        final String domain = System.getProperty("soul.httpPath");
+        final String domain = System.getProperty("shenyu.httpPath");
         if (StringUtils.isBlank(domain)) {
             ShenyuDomain.getInstance().setHttpPath("http://" + String.join(":", host, String.valueOf(port)));
         } else {

@@ -209,7 +209,7 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
         }
         // the lastModifyTime before client, then the local cache needs to be updated.
         // Considering the concurrency problem, admin must lock,
-        // otherwise it may cause the request from soul-web to update the cache concurrently, causing excessive db pressure
+        // otherwise it may cause the request from shenyu-web to update the cache concurrently, causing excessive db pressure
         boolean locked = false;
         try {
             locked = LOCK.tryLock(5, TimeUnit.SECONDS);

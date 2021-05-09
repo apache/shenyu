@@ -40,7 +40,7 @@ public class RegisterCenterConfiguration {
      * @return the shenyu register center config
      */
     @Bean
-    @ConfigurationProperties(prefix = "soul.register")
+    @ConfigurationProperties(prefix = "shenyu.register")
     public ShenyuRegisterCenterConfig shenyuRegisterCenterConfig() {
         return new ShenyuRegisterCenterConfig();
     }

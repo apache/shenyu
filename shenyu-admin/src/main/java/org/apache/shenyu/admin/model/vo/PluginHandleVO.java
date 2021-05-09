@@ -95,7 +95,7 @@ public class PluginHandleVO implements Serializable {
      */
     private String dateUpdated;
 
-    private List<SoulDictVO> dictOptions;
+    private List<ShenyuDictVO> dictOptions;
 
     /**
      * build {@linkplain PluginHandleVO}.
@@ -104,7 +104,7 @@ public class PluginHandleVO implements Serializable {
      * @param dictOptions dictOptions
      * @return {@linkplain PluginHandleVO}
      */
-    public static PluginHandleVO buildPluginHandleVO(final PluginHandleDO pluginHandleDO, final List<SoulDictVO> dictOptions) {
+    public static PluginHandleVO buildPluginHandleVO(final PluginHandleDO pluginHandleDO, final List<ShenyuDictVO> dictOptions) {
         return Optional.ofNullable(pluginHandleDO)
                 .map(it -> new PluginHandleVO(pluginHandleDO.getId(), pluginHandleDO.getPluginId(),
                         pluginHandleDO.getField(), pluginHandleDO.getLabel(),

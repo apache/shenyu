@@ -41,7 +41,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableSwagger2
 public class SwaggerConfiguration {
     
-    @Value("${soul.swagger.enable:false}")
+    @Value("${shenyu.swagger.enable:false}")
     private boolean enable;
     
     private final BuildProperties buildProperties;
@@ -78,10 +78,10 @@ public class SwaggerConfiguration {
             version = buildProperties.getVersion();
         }
         return new ApiInfoBuilder()
-                .title("Soul Admin API Document")
+                .title("Shenyu Admin API Document")
                 .description("")
                 .version(version)
-                .contact(new Contact("soul", "https://github.com/dromara/soul", ""))
+                .contact(new Contact("shenyu", "https://github.com/dromara/shenyu", ""))
                 .build();
     }
 }

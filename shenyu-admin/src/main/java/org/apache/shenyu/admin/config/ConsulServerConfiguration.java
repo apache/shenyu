@@ -25,7 +25,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty(prefix = "soul.register", name = "registerType", havingValue = "consul")
+@ConditionalOnProperty(prefix = "shenyu.register", name = "registerType", havingValue = "consul")
 public class ConsulServerConfiguration {
     
     /**

@@ -20,21 +20,21 @@ package org.apache.shenyu.admin.model.vo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.shenyu.admin.model.entity.SoulDictDO;
+import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
 import org.apache.shenyu.common.utils.DateUtils;
 
 import java.io.Serializable;
 import java.util.Optional;
 
 /**
- * this is soul dict view to web front.
+ * this is shenyu dict view to web front.
  *
  * @author dengliming
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SoulDictVO implements Serializable {
+public class ShenyuDictVO implements Serializable {
 
     private static final long serialVersionUID = 5731120468713362319L;
 
@@ -89,18 +89,18 @@ public class SoulDictVO implements Serializable {
     private String dateUpdated;
 
     /**
-     * build {@linkplain SoulDictVO}.
+     * build {@linkplain ShenyuDictVO}.
      *
-     * @param soulDictDO {@linkplain SoulDictDO}
-     * @return {@linkplain SoulDictVO}
+     * @param shenyuDictDO {@linkplain ShenyuDictDO}
+     * @return {@linkplain ShenyuDictVO}
      */
-    public static SoulDictVO buildSoulDictVO(final SoulDictDO soulDictDO) {
-        return Optional.ofNullable(soulDictDO)
-                .map(it -> new SoulDictVO(soulDictDO.getId(), soulDictDO.getType(),
-                        soulDictDO.getDictCode(), soulDictDO.getDictName(),
-                        soulDictDO.getDictValue(), soulDictDO.getDesc(), soulDictDO.getSort(), soulDictDO.getEnabled(),
-                        DateUtils.localDateTimeToString(soulDictDO.getDateCreated().toLocalDateTime()),
-                        DateUtils.localDateTimeToString(soulDictDO.getDateUpdated().toLocalDateTime())))
+    public static ShenyuDictVO buildShenyuDictVO(final ShenyuDictDO shenyuDictDO) {
+        return Optional.ofNullable(shenyuDictDO)
+                .map(it -> new ShenyuDictVO(shenyuDictDO.getId(), shenyuDictDO.getType(),
+                        shenyuDictDO.getDictCode(), shenyuDictDO.getDictName(),
+                        shenyuDictDO.getDictValue(), shenyuDictDO.getDesc(), shenyuDictDO.getSort(), shenyuDictDO.getEnabled(),
+                        DateUtils.localDateTimeToString(shenyuDictDO.getDateCreated().toLocalDateTime()),
+                        DateUtils.localDateTimeToString(shenyuDictDO.getDateUpdated().toLocalDateTime())))
                 .orElse(null);
     }
 }

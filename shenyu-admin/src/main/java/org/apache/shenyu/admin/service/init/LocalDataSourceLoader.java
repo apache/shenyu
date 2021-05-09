@@ -55,10 +55,10 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
 
     @SneakyThrows
     protected void init(final DataSourceProperties properties) {
-        // If jdbcUrl in the configuration file specifies the soul database, it is removed,
-        // because the soul database does not need to be specified when executing the SQL file,
-        // otherwise the soul database will be disconnected when the soul database does not exist
-        String jdbcUrl = StringUtils.replace(properties.getUrl(), "/soul?", "?");
+        // If jdbcUrl in the configuration file specifies the shenyu database, it is removed,
+        // because the shenyu database does not need to be specified when executing the SQL file,
+        // otherwise the shenyu database will be disconnected when the shenyu database does not exist
+        String jdbcUrl = StringUtils.replace(properties.getUrl(), "/shenyu?", "?");
         Connection connection = DriverManager.getConnection(jdbcUrl, properties.getUsername(), properties.getPassword());
         this.execute(connection);
 

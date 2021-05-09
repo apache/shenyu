@@ -23,14 +23,14 @@ import lombok.NoArgsConstructor;
 import org.apache.shenyu.admin.model.page.PageParameter;
 
 /**
- * this is soul dict query.
+ * this is shenyu dict query.
  *
  * @author dengliming
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SoulDictQuery {
+public class ShenyuDictQuery {
     /**
      * dict type.
      */

@@ -35,18 +35,18 @@ public final class AuthPathApplyDTOTest {
     public void setUp() throws Exception {
         authPathApplyDTOUnderTest = new AuthPathApplyDTO();
         authPathApplyDTOUnderTest.setPath("/");
-        authPathApplyDTOUnderTest.setAppName("soul");
+        authPathApplyDTOUnderTest.setAppName("shenyu");
     }
 
     @Test
     public void testHashCode() {
         final int result = authPathApplyDTOUnderTest.hashCode();
-        assertEquals(208649417, result);
+        assertEquals(-1763955322, result);
     }
 
     @Test
     public void testToString() {
         final String result = authPathApplyDTOUnderTest.toString();
-        assertEquals("AuthPathApplyDTO(appName=soul, path=/)", result);
+        assertEquals("AuthPathApplyDTO(appName=shenyu, path=/)", result);
     }
 }
