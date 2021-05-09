@@ -22,8 +22,6 @@ import lombok.Data;
 
 /**
  * The type User dto.
- *
- * @author xiaoyu(Myth)
  */
 @Data
 public class UserDTO implements Serializable {

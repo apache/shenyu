@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.examples.springcloud.controller;
 
-import org.apache.shenyu.client.springcloud.annotation.SoulSpringCloudClient;
+import org.apache.shenyu.client.springcloud.annotation.ShenyuSpringCloudClient;
 import org.apache.shenyu.examples.springcloud.dto.OrderDTO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,12 +29,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * OrderController.
- *
- * @author xiaoyu
  */
 @RestController
 @RequestMapping("/order")
-@SoulSpringCloudClient(path = "/order")
+@ShenyuSpringCloudClient(path = "/order")
 public class OrderController {
 
     /**
@@ -44,7 +42,7 @@ public class OrderController {
      * @return the order dto
      */
     @PostMapping("/save")
-    @SoulSpringCloudClient(path = "/save")
+    @ShenyuSpringCloudClient(path = "/save")
     public OrderDTO save(@RequestBody final OrderDTO orderDTO) {
         orderDTO.setName("hello world spring cloud save order");
         return orderDTO;
@@ -57,7 +55,7 @@ public class OrderController {
      * @return the order dto
      */
     @GetMapping("/findById")
-    @SoulSpringCloudClient(path = "/findById")
+    @ShenyuSpringCloudClient(path = "/findById")
     public OrderDTO findById(@RequestParam("id") final String id) {
         OrderDTO orderDTO = new OrderDTO();
         orderDTO.setId(id);
@@ -73,7 +71,7 @@ public class OrderController {
      * @return the path variable
      */
     @GetMapping("/path/{id}/{name}")
-    @SoulSpringCloudClient(path = "/path/**")
+    @ShenyuSpringCloudClient(path = "/path/**")
     public OrderDTO getPathVariable(@PathVariable("id") final String id, @PathVariable("name") final String name) {
         OrderDTO orderDTO = new OrderDTO();
         orderDTO.setId(id);
@@ -88,7 +86,7 @@ public class OrderController {
      * @return the order dto
      */
     @GetMapping("/path/{id}/name")
-    @SoulSpringCloudClient(path = "/path/**/name")
+    @ShenyuSpringCloudClient(path = "/path/**/name")
     public OrderDTO testRestFul(@PathVariable("id") final String id) {
         OrderDTO orderDTO = new OrderDTO();
         orderDTO.setId(id);

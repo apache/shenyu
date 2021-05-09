@@ -36,12 +36,10 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
 /**
- * The type Soul test http router.
- *
- * @author xiaoyu
+ * The type shenyu test http router.
  */
 @Component
-public class SoulTestHttpRouter {
+public class ShenyuTestHttpRouter {
 
     private static final AtomicInteger ATOMIC_INTEGER = new AtomicInteger(1);
 

@@ -112,7 +112,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>org.apache.shenyu.examples.tars.SoulTestTarsApplication</mainClass>
+                    <mainClass>org.apache.shenyu.examples.tars.ShenyuTestTarsApplication</mainClass>
                 </configuration>
                 <executions>
                     <execution>

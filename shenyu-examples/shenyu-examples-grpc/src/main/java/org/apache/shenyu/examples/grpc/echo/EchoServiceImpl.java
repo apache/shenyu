@@ -24,17 +24,14 @@ import echo.Trace;
 import io.grpc.stub.StreamObserver;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import org.apache.shenyu.client.grpc.common.annotation.SoulGrpcClient;
+import org.apache.shenyu.client.grpc.common.annotation.ShenyuGrpcClient;
 import org.springframework.stereotype.Service;
 
-/**
- * @author zhanglei
- */
 @Service
 public class EchoServiceImpl extends EchoServiceGrpc.EchoServiceImplBase {
 
     @Override
-    @SoulGrpcClient(path = "/echo", desc = "echo")
+    @ShenyuGrpcClient(path = "/echo", desc = "echo")
     public void echo(EchoRequest request, StreamObserver<EchoResponse> responseObserver) {
         System.out.println("Received: " + request.getMessage());
         EchoResponse.Builder response = EchoResponse.newBuilder()

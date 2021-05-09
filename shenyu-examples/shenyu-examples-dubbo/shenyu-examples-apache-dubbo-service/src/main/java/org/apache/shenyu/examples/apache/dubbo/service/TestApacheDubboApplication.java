@@ -23,8 +23,6 @@ import org.springframework.context.annotation.ImportResource;
 
 /**
  * TestDubboApplication.
- *
- * @author xiaoyu
  */
 @SpringBootApplication
 @ImportResource({"classpath:spring-dubbo.xml"})

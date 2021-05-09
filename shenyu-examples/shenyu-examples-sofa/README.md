@@ -1,21 +1,21 @@
-# # Soul example Sofa
+# Shenyu example Sofa
 ***
 ## Run
 You can run server with http/zookeeper/etcd register center
 
 ### run with etcd register center
-#### Soul-Admin config
-add etcd register center dependency in soul-admin:
+#### Shenyu-Admin config
+add etcd register center dependency in shenyu-admin:
 
 ```xml
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>soul-register-server-etcd</artifactId>
+            <artifactId>shenyu-register-server-etcd</artifactId>
             <version>${project.version}</version>
         </dependency>
 ```
 
-set etcd register config in soul-admin:
+set etcd register config in shenyu-admin:
 
 ```yaml
 soul:
@@ -24,7 +24,7 @@ soul:
     serverLists : http://localhost:2379
 ```
 
-#### soul-examples-sofa-service config
+#### shenyu-examples-sofa-service config
 set etcd register config:
 
 ```yaml

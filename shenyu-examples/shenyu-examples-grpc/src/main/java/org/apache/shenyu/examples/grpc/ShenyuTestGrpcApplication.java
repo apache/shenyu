@@ -26,11 +26,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import java.io.IOException;
 
 /**
- * SoulTestTarsApplication.
- * @author tydhot
+ * ShenyuTestTarsApplication.
  */
 @SpringBootApplication
-public class SoulTestGrpcApplication {
+public class ShenyuTestGrpcApplication {
 
     /**
      * main.
@@ -38,7 +37,7 @@ public class SoulTestGrpcApplication {
      * @param args args
      */
     public static void main(final String[] args) throws IOException {
-        SpringApplication.run(SoulTestGrpcApplication.class, args);
+        SpringApplication.run(ShenyuTestGrpcApplication.class, args);
         io.grpc.Server server = ServerBuilder
                 .forPort(8080)
                 .addService(new EchoServiceImpl())

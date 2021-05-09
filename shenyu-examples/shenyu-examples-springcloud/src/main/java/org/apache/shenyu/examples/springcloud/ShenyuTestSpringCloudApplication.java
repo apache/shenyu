@@ -15,18 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.http;
+package org.apache.shenyu.examples.springcloud;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 /**
- * SoulTestHttpApplication.
- *
- * @author xiaoyu
+ * ShenyuTestSpringCloudApplication.
  */
 @SpringBootApplication
-public class SoulTestHttpApplication {
+@EnableDiscoveryClient
+public class ShenyuTestSpringCloudApplication {
 
     /**
      * main.
@@ -34,6 +34,6 @@ public class SoulTestHttpApplication {
      * @param args args
      */
     public static void main(final String[] args) {
-        SpringApplication.run(SoulTestHttpApplication.class, args);
+        SpringApplication.run(ShenyuTestSpringCloudApplication.class, args);
     }
 }

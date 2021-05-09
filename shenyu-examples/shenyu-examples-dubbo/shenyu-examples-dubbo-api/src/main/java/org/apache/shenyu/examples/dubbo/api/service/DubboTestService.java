@@ -22,8 +22,6 @@ import org.apache.shenyu.examples.dubbo.api.entity.ListResp;
 
 /**
  * DubboTestService.
- *
- * @author xiaoyu(Myth)
  */
 public interface DubboTestService {
 

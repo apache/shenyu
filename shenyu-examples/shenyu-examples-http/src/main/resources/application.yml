@@ -25,7 +25,7 @@ soul:
       contextPath: /http
       appName: http
       port: 8189
-      nacosNameSpace: SoulRegisterCenter
+      nacosNameSpace: ShenyuRegisterCenter
 
 logging:
   level:

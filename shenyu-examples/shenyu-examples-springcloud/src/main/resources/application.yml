@@ -43,7 +43,7 @@ soul:
     props:
       contextPath: /springcloud
       port: 8884
-      nacosNameSpace: SoulRegisterCenter
+      nacosNameSpace: ShenyuRegisterCenter
 
 logging:
   level:

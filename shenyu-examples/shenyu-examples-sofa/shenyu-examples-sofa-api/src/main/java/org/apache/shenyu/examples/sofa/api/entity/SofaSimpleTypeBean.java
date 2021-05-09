@@ -25,8 +25,6 @@ import java.io.Serializable;
 
 /**
  * Sofa simple type Bean.
- *
- * @author wuudongdong
  */
 @Data
 @AllArgsConstructor

@@ -39,4 +39,4 @@ soul:
       ipAndPort: sofa
       appName: sofa
       port: 8888
-      nacosNameSpace: SoulRegisterCenter
+      nacosNameSpace: ShenyuRegisterCenter

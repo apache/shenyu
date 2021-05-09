@@ -22,12 +22,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * SoulTestTarsApplication.
- * @author tydhot
+ * ShenyuTestTarsApplication.
  */
 @SpringBootApplication
 @EnableTarsServer
-public class SoulTestTarsApplication {
+public class ShenyuTestTarsApplication {
 
     /**
      * main.
@@ -35,7 +34,7 @@ public class SoulTestTarsApplication {
      * @param args args
      */
     public static void main(final String[] args) {
-        SpringApplication.run(SoulTestTarsApplication.class, args);
+        SpringApplication.run(ShenyuTestTarsApplication.class, args);
     }
 
 }

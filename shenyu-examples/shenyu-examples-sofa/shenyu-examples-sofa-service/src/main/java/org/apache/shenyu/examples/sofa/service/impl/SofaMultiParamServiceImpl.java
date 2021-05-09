@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.examples.sofa.service.impl;
 
-import org.apache.shenyu.client.sofa.common.annotation.SoulSofaClient;
+import org.apache.shenyu.client.sofa.common.annotation.ShenyuSofaClient;
 import org.apache.shenyu.examples.sofa.api.entity.SofaComplexTypeBean;
 import org.apache.shenyu.examples.sofa.api.entity.SofaSimpleTypeBean;
 import org.apache.shenyu.examples.sofa.api.service.SofaMultiParamService;
@@ -30,14 +30,12 @@ import java.util.stream.Collectors;
 
 /**
  * Sofa multi parameter service.
- *
- * @author wuudongdong
  */
 @Service("sofaMultiParamService")
 public class SofaMultiParamServiceImpl implements SofaMultiParamService {
 
     @Override
-    @SoulSofaClient(path = "/findByIdsAndName", desc = "findByIdsAndName")
+    @ShenyuSofaClient(path = "/findByIdsAndName", desc = "findByIdsAndName")
     public SofaSimpleTypeBean findByIdsAndName(final List<Integer> ids, final String name) {
         SofaSimpleTypeBean simpleTypeBean = new SofaSimpleTypeBean();
         simpleTypeBean.setId(ids.toString());
@@ -46,7 +44,7 @@ public class SofaMultiParamServiceImpl implements SofaMultiParamService {
     }
 
     @Override
-    @SoulSofaClient(path = "/findByArrayIdsAndName", desc = "findByIdsAndName")
+    @ShenyuSofaClient(path = "/findByArrayIdsAndName", desc = "findByIdsAndName")
     public SofaSimpleTypeBean findByArrayIdsAndName(final Integer[] ids, final String name) {
         SofaSimpleTypeBean simpleTypeBean = new SofaSimpleTypeBean();
         simpleTypeBean.setId(Arrays.toString(ids));
@@ -55,7 +53,7 @@ public class SofaMultiParamServiceImpl implements SofaMultiParamService {
     }
 
     @Override
-    @SoulSofaClient(path = "/findByStringArray", desc = "findByStringArray")
+    @ShenyuSofaClient(path = "/findByStringArray", desc = "findByStringArray")
     public SofaSimpleTypeBean findByStringArray(final String[] ids) {
         SofaSimpleTypeBean simpleTypeBean = new SofaSimpleTypeBean();
         simpleTypeBean.setId(Arrays.toString(ids));
@@ -64,7 +62,7 @@ public class SofaMultiParamServiceImpl implements SofaMultiParamService {
     }
 
     @Override
-    @SoulSofaClient(path = "/findByListId", desc = "findByListId")
+    @ShenyuSofaClient(path = "/findByListId", desc = "findByListId")
     public SofaSimpleTypeBean findByListId(final List<String> ids) {
         SofaSimpleTypeBean simpleTypeBean = new SofaSimpleTypeBean();
         simpleTypeBean.setId(ids.toString());
@@ -73,7 +71,7 @@ public class SofaMultiParamServiceImpl implements SofaMultiParamService {
     }
 
     @Override
-    @SoulSofaClient(path = "/batchSave", desc = "batchSave")
+    @ShenyuSofaClient(path = "/batchSave", desc = "batchSave")
     public SofaSimpleTypeBean batchSave(final List<SofaSimpleTypeBean> sofaTestList) {
         SofaSimpleTypeBean simpleTypeBean = new SofaSimpleTypeBean();
         simpleTypeBean.setId(sofaTestList.stream().map(SofaSimpleTypeBean::getId).collect(Collectors.joining("-")));
@@ -82,7 +80,7 @@ public class SofaMultiParamServiceImpl implements SofaMultiParamService {
     }
 
     @Override
-    @SoulSofaClient(path = "/batchSaveNameAndId", desc = "batchSaveNameAndId")
+    @ShenyuSofaClient(path = "/batchSaveNameAndId", desc = "batchSaveNameAndId")
     public SofaSimpleTypeBean batchSaveNameAndId(final List<SofaSimpleTypeBean> sofaTestList, final String id, final String name) {
         SofaSimpleTypeBean simpleTypeBean = new SofaSimpleTypeBean();
         simpleTypeBean.setId(id);
@@ -91,7 +89,7 @@ public class SofaMultiParamServiceImpl implements SofaMultiParamService {
     }
 
     @Override
-    @SoulSofaClient(path = "/saveComplexBean", desc = "saveComplexBean")
+    @ShenyuSofaClient(path = "/saveComplexBean", desc = "saveComplexBean")
     public SofaSimpleTypeBean saveComplexBean(final SofaComplexTypeBean sofaComplexTypeBean) {
         SofaSimpleTypeBean simpleTypeBean = new SofaSimpleTypeBean();
         simpleTypeBean.setId(sofaComplexTypeBean.getIdLists().toString());
@@ -100,7 +98,7 @@ public class SofaMultiParamServiceImpl implements SofaMultiParamService {
     }
 
     @Override
-    @SoulSofaClient(path = "/saveComplexBeanAndName", desc = "saveComplexBeanAndName")
+    @ShenyuSofaClient(path = "/saveComplexBeanAndName", desc = "saveComplexBeanAndName")
     public SofaSimpleTypeBean saveComplexBeanAndName(final SofaComplexTypeBean sofaComplexTypeBean, final String name) {
         SofaSimpleTypeBean simpleTypeBean = new SofaSimpleTypeBean();
         simpleTypeBean.setId(sofaComplexTypeBean.getIdLists().toString());
@@ -109,7 +107,7 @@ public class SofaMultiParamServiceImpl implements SofaMultiParamService {
     }
 
     @Override
-    @SoulSofaClient(path = "/saveTwoList", desc = "saveTwoList")
+    @ShenyuSofaClient(path = "/saveTwoList", desc = "saveTwoList")
     public SofaSimpleTypeBean saveTwoList(final List<SofaComplexTypeBean> sofaComplexTypeBeanList, final Map<String, SofaSimpleTypeBean> sofaSimpleTypeBeanMap) {
         SofaSimpleTypeBean simpleTypeBean = new SofaSimpleTypeBean();
         simpleTypeBean.setId(sofaComplexTypeBeanList.get(0).getIdLists().toString());
@@ -117,5 +115,4 @@ public class SofaMultiParamServiceImpl implements SofaMultiParamService {
                 + "-" + sofaSimpleTypeBeanMap.values().stream().findFirst().map(SofaSimpleTypeBean::getName).toString());
         return simpleTypeBean;
     }
-
 }

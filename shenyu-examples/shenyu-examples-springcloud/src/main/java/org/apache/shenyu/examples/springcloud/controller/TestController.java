@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.examples.springcloud.controller;
 
-import org.apache.shenyu.client.springcloud.annotation.SoulSpringCloudClient;
+import org.apache.shenyu.client.springcloud.annotation.ShenyuSpringCloudClient;
 import org.apache.shenyu.examples.springcloud.dto.UserDTO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,12 +28,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * TestController.
- *
- * @author xiaoyu
  */
 @RestController
 @RequestMapping("/test")
-@SoulSpringCloudClient(path = "/test/**")
+@ShenyuSpringCloudClient(path = "/test/**")
 public class TestController {
 
 
