@@ -1,5 +1,21 @@
-package org.apache.shenyu.admin.controller;
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
+package org.apache.shenyu.admin.controller;
 
 import org.apache.shenyu.admin.model.dto.DataPermissionDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -8,7 +24,7 @@ import org.apache.shenyu.admin.model.query.RuleQuery;
 import org.apache.shenyu.admin.model.query.SelectorQuery;
 import org.apache.shenyu.admin.model.vo.DataPermissionPageVO;
 import org.apache.shenyu.admin.service.DataPermissionService;
-import org.apache.shenyu.admin.utils.SoulResultMessage;
+import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,9 +36,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
 import java.util.Collections;
-
 import static org.hamcrest.core.Is.is;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -46,14 +60,13 @@ public class DataPermissionControllerTest {
     @Mock
     private DataPermissionService dataPermissionService;
 
-
     @Before
     public void setUp() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(dataPermissionController).build();
     }
 
     @Test
-    public void listPageSelectorDataPermissions() throws Exception{
+    public void listPageSelectorDataPermissions() throws Exception {
         Integer currentPage = 1;
         Integer pageSize = 10;
         String userId = "testUserId";
@@ -72,13 +85,13 @@ public class DataPermissionControllerTest {
                 .param("pluginId", pluginId)
                 .param("name", name))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
                 .andExpect(jsonPath("$.data.dataList[0].dataId", is(dataPermissionPageVO.getDataId())))
                 .andReturn();
     }
 
     @Test
-    public void listPageRuleDataPermissions() throws Exception{
+    public void listPageRuleDataPermissions() throws Exception {
         Integer currentPage = 1;
         Integer pageSize = 10;
         String userId = "testUserId";
@@ -97,26 +110,26 @@ public class DataPermissionControllerTest {
                 .param("selectorId", selectorId)
                 .param("name", name))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.QUERY_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
                 .andExpect(jsonPath("$.data.dataList[0].dataId", is(dataPermissionPageVO.getDataId())))
                 .andReturn();
     }
 
     @Test
-    public void saveSelector() throws Exception{
+    public void saveSelector() throws Exception {
         DataPermissionDTO dataPermissionDTO = new DataPermissionDTO();
         given(this.dataPermissionService.createSelector(dataPermissionDTO)).willReturn(1);
         this.mockMvc.perform(MockMvcRequestBuilders.post("/data-permission/selector")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(dataPermissionDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.SAVE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.SAVE_SUCCESS)))
                 .andExpect(jsonPath("$.data", is(1)))
                 .andReturn();
     }
 
     @Test
-    public void deleteSelector() throws Exception{
+    public void deleteSelector() throws Exception {
         DataPermissionDTO dataPermissionDTO = new DataPermissionDTO();
         dataPermissionDTO.setDataId("testDataId");
         dataPermissionDTO.setUserId("testUserId");
@@ -125,7 +138,7 @@ public class DataPermissionControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(dataPermissionDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.DELETE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
                 .andExpect(jsonPath("$.data", is(1)))
                 .andReturn();
     }
@@ -138,13 +151,13 @@ public class DataPermissionControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(dataPermissionDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.SAVE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.SAVE_SUCCESS)))
                 .andExpect(jsonPath("$.data", is(1)))
                 .andReturn();
     }
 
     @Test
-    public void deleteRule() throws Exception{
+    public void deleteRule() throws Exception {
         DataPermissionDTO dataPermissionDTO = new DataPermissionDTO();
         dataPermissionDTO.setDataId("testDataId");
         dataPermissionDTO.setUserId("testUserId");
@@ -153,7 +166,7 @@ public class DataPermissionControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(dataPermissionDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is(SoulResultMessage.DELETE_SUCCESS)))
+                .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DELETE_SUCCESS)))
                 .andExpect(jsonPath("$.data", is(1)))
                 .andReturn();
     }
