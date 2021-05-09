@@ -59,7 +59,7 @@ public class HttpClientPluginConfiguration {
      * @return the http client properties
      */
     @Bean
-    @ConfigurationProperties(prefix = "soul.httpclient")
+    @ConfigurationProperties(prefix = "shenyu.httpclient")
     public HttpClientProperties httpClientProperties() {
         return new HttpClientProperties();
     }
@@ -145,7 +145,7 @@ public class HttpClientPluginConfiguration {
      * The type Web client configuration.
      */
     @Configuration
-    @ConditionalOnProperty(name = "soul.httpclient.strategy", havingValue = "webClient", matchIfMissing = true)
+    @ConditionalOnProperty(name = "shenyu.httpclient.strategy", havingValue = "webClient", matchIfMissing = true)
     static class WebClientConfiguration {
 
         /**
@@ -178,7 +178,7 @@ public class HttpClientPluginConfiguration {
      * The type Netty http client configuration.
      */
     @Configuration
-    @ConditionalOnProperty(name = "soul.httpclient.strategy", havingValue = "netty")
+    @ConditionalOnProperty(name = "shenyu.httpclient.strategy", havingValue = "netty")
     static class NettyHttpClientConfiguration {
 
         /**

@@ -41,7 +41,7 @@ import java.util.List;
  */
 @Configuration
 @ConditionalOnClass(ZookeeperSyncDataService.class)
-@ConditionalOnProperty(prefix = "soul.sync.zookeeper", name = "url")
+@ConditionalOnProperty(prefix = "shenyu.sync.zookeeper", name = "url")
 @EnableConfigurationProperties(ZookeeperConfig.class)
 @Slf4j
 public class ZookeeperSyncDataConfiguration {
@@ -58,7 +58,7 @@ public class ZookeeperSyncDataConfiguration {
     @Bean
     public SyncDataService syncDataService(final ObjectProvider<ZkClient> zkClient, final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
                                            final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers) {
-        log.info("you use zookeeper sync soul data.......");
+        log.info("you use zookeeper sync shenyu data.......");
         return new ZookeeperSyncDataService(zkClient.getIfAvailable(), pluginSubscriber.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList));
     }
