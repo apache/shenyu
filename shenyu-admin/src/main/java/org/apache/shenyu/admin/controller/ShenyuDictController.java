@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.controller;
 
+import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.SoulDictService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
@@ -25,7 +26,6 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.SoulDictQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
-import org.apache.shenyu.admin.model.vo.SoulDictVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -64,7 +64,7 @@ public class ShenyuDictController {
      */
     @GetMapping("")
     public ShenyuAdminResult queryDicts(final String type, final String dictCode, final String dictName, final Integer currentPage, final Integer pageSize) {
-        CommonPager<SoulDictVO> commonPager = soulDictService.listByPage(new SoulDictQuery(type, dictCode, dictName, new PageParameter(currentPage, pageSize)));
+        CommonPager<ShenyuDictVO> commonPager = soulDictService.listByPage(new SoulDictQuery(type, dictCode, dictName, new PageParameter(currentPage, pageSize)));
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
 
@@ -76,8 +76,8 @@ public class ShenyuDictController {
      */
     @GetMapping("/all/{type}")
     public ShenyuAdminResult findByType(@PathVariable("type") final String type) {
-        List<SoulDictVO> soulDictVOS = soulDictService.list(type);
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, soulDictVOS);
+        List<ShenyuDictVO> shenyuDictVOS = soulDictService.list(type);
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, shenyuDictVOS);
     }
 
     /**
@@ -88,8 +88,8 @@ public class ShenyuDictController {
      */
     @GetMapping("/{id}")
     public ShenyuAdminResult detail(@PathVariable("id") final String id) {
-        SoulDictVO soulDictVO = soulDictService.findById(id);
-        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, soulDictVO);
+        ShenyuDictVO shenyuDictVO = soulDictService.findById(id);
+        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, shenyuDictVO);
     }
 
     /**

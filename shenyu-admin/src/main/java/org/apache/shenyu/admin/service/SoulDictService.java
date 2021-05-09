@@ -20,7 +20,7 @@ package org.apache.shenyu.admin.service;
 import org.apache.shenyu.admin.model.dto.SoulDictDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.query.SoulDictQuery;
-import org.apache.shenyu.admin.model.vo.SoulDictVO;
+import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 
 import java.util.List;
 
@@ -36,7 +36,7 @@ public interface SoulDictService {
      * @param soulDictQuery {@linkplain SoulDictQuery}
      * @return {@link CommonPager}
      */
-    CommonPager<SoulDictVO> listByPage(SoulDictQuery soulDictQuery);
+    CommonPager<ShenyuDictVO> listByPage(SoulDictQuery soulDictQuery);
 
     /**
      * create or update soul dict.
@@ -50,9 +50,9 @@ public interface SoulDictService {
      * find soul dict by id.
      *
      * @param id soul dict id.
-     * @return {@linkplain SoulDictVO}
+     * @return {@linkplain ShenyuDictVO}
      */
-    SoulDictVO findById(String id);
+    ShenyuDictVO findById(String id);
 
     /**
      * find soul dict list by dict type.
@@ -60,7 +60,7 @@ public interface SoulDictService {
      * @param type the soul dict type.
      * @return soul dict list.
      */
-    List<SoulDictVO> list(String type);
+    List<ShenyuDictVO> list(String type);
 
     /**
      * delete soul dicts.

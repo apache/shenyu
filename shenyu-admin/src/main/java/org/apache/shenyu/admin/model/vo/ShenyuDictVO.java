@@ -34,7 +34,7 @@ import java.util.Optional;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SoulDictVO implements Serializable {
+public class ShenyuDictVO implements Serializable {
 
     private static final long serialVersionUID = 5731120468713362319L;
 
@@ -89,14 +89,14 @@ public class SoulDictVO implements Serializable {
     private String dateUpdated;
 
     /**
-     * build {@linkplain SoulDictVO}.
+     * build {@linkplain ShenyuDictVO}.
      *
      * @param soulDictDO {@linkplain SoulDictDO}
-     * @return {@linkplain SoulDictVO}
+     * @return {@linkplain ShenyuDictVO}
      */
-    public static SoulDictVO buildSoulDictVO(final SoulDictDO soulDictDO) {
+    public static ShenyuDictVO buildSoulDictVO(final SoulDictDO soulDictDO) {
         return Optional.ofNullable(soulDictDO)
-                .map(it -> new SoulDictVO(soulDictDO.getId(), soulDictDO.getType(),
+                .map(it -> new ShenyuDictVO(soulDictDO.getId(), soulDictDO.getType(),
                         soulDictDO.getDictCode(), soulDictDO.getDictName(),
                         soulDictDO.getDictValue(), soulDictDO.getDesc(), soulDictDO.getSort(), soulDictDO.getEnabled(),
                         DateUtils.localDateTimeToString(soulDictDO.getDateCreated().toLocalDateTime()),

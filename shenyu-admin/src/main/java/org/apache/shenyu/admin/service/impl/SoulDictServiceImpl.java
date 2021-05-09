@@ -24,8 +24,8 @@ import org.apache.shenyu.admin.model.entity.SoulDictDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.SoulDictQuery;
+import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.SoulDictService;
-import org.apache.shenyu.admin.model.vo.SoulDictVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,12 +50,12 @@ public class SoulDictServiceImpl implements SoulDictService {
     }
 
     @Override
-    public CommonPager<SoulDictVO> listByPage(final SoulDictQuery soulDictQuery) {
+    public CommonPager<ShenyuDictVO> listByPage(final SoulDictQuery soulDictQuery) {
         return PageResultUtils.result(soulDictQuery.getPageParameter(),
             () -> soulDictMapper.countByQuery(soulDictQuery),
             () -> soulDictMapper.selectByQuery(soulDictQuery)
                         .stream()
-                        .map(SoulDictVO::buildSoulDictVO)
+                        .map(ShenyuDictVO::buildSoulDictVO)
                         .collect(Collectors.toList()));
     }
 
@@ -90,16 +90,16 @@ public class SoulDictServiceImpl implements SoulDictService {
     }
 
     @Override
-    public SoulDictVO findById(final String id) {
-        return SoulDictVO.buildSoulDictVO(soulDictMapper.selectById(id));
+    public ShenyuDictVO findById(final String id) {
+        return ShenyuDictVO.buildSoulDictVO(soulDictMapper.selectById(id));
     }
 
     @Override
-    public List<SoulDictVO> list(final String type) {
+    public List<ShenyuDictVO> list(final String type) {
         SoulDictQuery soulDictQuery = new SoulDictQuery();
         soulDictQuery.setType(type);
         return soulDictMapper.selectByQuery(soulDictQuery).stream()
-                .map(SoulDictVO::buildSoulDictVO).collect(Collectors.toList());
+                .map(ShenyuDictVO::buildSoulDictVO).collect(Collectors.toList());
     }
 
 }

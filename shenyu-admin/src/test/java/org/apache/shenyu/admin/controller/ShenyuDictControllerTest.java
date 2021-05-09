@@ -22,9 +22,9 @@ import org.apache.shenyu.admin.model.dto.SoulDictDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.SoulDictQuery;
+import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.SoulDictService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
-import org.apache.shenyu.admin.model.vo.SoulDictVO;
 import org.apache.shenyu.common.utils.DateUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.Before;
@@ -61,7 +61,7 @@ public final class ShenyuDictControllerTest {
     @Mock
     private SoulDictService soulDictService;
 
-    private final SoulDictVO soulDictVO = new SoulDictVO("123", "1", "t", "t_n", "1", "desc", 2, true,
+    private final ShenyuDictVO shenyuDictVO = new ShenyuDictVO("123", "1", "t", "t_n", "1", "desc", 2, true,
             DateUtils.localDateTimeToString(LocalDateTime.now()), DateUtils.localDateTimeToString(LocalDateTime.now()));
 
     @Before
@@ -73,7 +73,7 @@ public final class ShenyuDictControllerTest {
     public void testQueryDicts() throws Exception {
         final PageParameter pageParameter = new PageParameter();
         final SoulDictQuery soulDictQuery = new SoulDictQuery("1", "t", "t_n", pageParameter);
-        final CommonPager<SoulDictVO> commonPager = new CommonPager<>(pageParameter, Collections.singletonList(soulDictVO));
+        final CommonPager<ShenyuDictVO> commonPager = new CommonPager<>(pageParameter, Collections.singletonList(shenyuDictVO));
         given(this.soulDictService.listByPage(soulDictQuery)).willReturn(commonPager);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/soul-dict")
                 .param("type", "1")
@@ -89,21 +89,21 @@ public final class ShenyuDictControllerTest {
 
     @Test
     public void testFindByType() throws Exception {
-        given(this.soulDictService.list("1")).willReturn(Collections.singletonList(soulDictVO));
+        given(this.soulDictService.list("1")).willReturn(Collections.singletonList(shenyuDictVO));
         this.mockMvc.perform(MockMvcRequestBuilders.get("/soul-dict/all/{type}", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
-                .andExpect(jsonPath("$.data[0].id", is(soulDictVO.getId())))
+                .andExpect(jsonPath("$.data[0].id", is(shenyuDictVO.getId())))
                 .andReturn();
     }
 
     @Test
     public void testDetail() throws Exception {
-        given(this.soulDictService.findById("123")).willReturn(soulDictVO);
+        given(this.soulDictService.findById("123")).willReturn(shenyuDictVO);
         this.mockMvc.perform(MockMvcRequestBuilders.get("/soul-dict/{id}", "123"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
-                .andExpect(jsonPath("$.data.id", is(soulDictVO.getId())))
+                .andExpect(jsonPath("$.data.id", is(shenyuDictVO.getId())))
                 .andReturn();
     }
 

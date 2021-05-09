@@ -25,8 +25,8 @@ import org.apache.shenyu.admin.mapper.SoulDictMapper;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.SoulDictQuery;
+import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.impl.SoulDictServiceImpl;
-import org.apache.shenyu.admin.model.vo.SoulDictVO;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,18 +67,18 @@ public final class SoulDictServiceTest {
     public void testFindByType() {
         SoulDictDO soulDictDO = buildSoulDictDO();
         given(this.soulDictMapper.selectByQuery(any())).willReturn(Collections.singletonList(soulDictDO));
-        List<SoulDictVO> soulDictVOList = this.soulDictService.list("rule");
-        assertEquals(1, soulDictVOList.size());
-        assertEquals(soulDictDO.getId(), soulDictVOList.get(0).getId());
+        List<ShenyuDictVO> shenyuDictVOList = this.soulDictService.list("rule");
+        assertEquals(1, shenyuDictVOList.size());
+        assertEquals(soulDictDO.getId(), shenyuDictVOList.get(0).getId());
     }
 
     @Test
     public void testFindById() {
         SoulDictDO soulDictDO = buildSoulDictDO();
         given(this.soulDictMapper.selectById(eq("123"))).willReturn(soulDictDO);
-        SoulDictVO soulDictVO = this.soulDictService.findById("123");
-        assertNotNull(soulDictVO);
-        assertEquals(soulDictDO.getId(), soulDictVO.getId());
+        ShenyuDictVO shenyuDictVO = this.soulDictService.findById("123");
+        assertNotNull(shenyuDictVO);
+        assertEquals(soulDictDO.getId(), shenyuDictVO.getId());
     }
 
     @Test
@@ -126,7 +126,7 @@ public final class SoulDictServiceTest {
             soulDictDOList.add(soulDictVO);
         }
         given(this.soulDictMapper.selectByQuery(soulDictQuery)).willReturn(soulDictDOList);
-        final CommonPager<SoulDictVO> pluginDOCommonPager = this.soulDictService.listByPage(soulDictQuery);
+        final CommonPager<ShenyuDictVO> pluginDOCommonPager = this.soulDictService.listByPage(soulDictQuery);
         assertEquals(pluginDOCommonPager.getDataList().size(), soulDictDOList.size());
     }
 

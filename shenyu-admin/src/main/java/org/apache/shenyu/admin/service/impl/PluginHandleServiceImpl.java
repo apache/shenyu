@@ -27,7 +27,7 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.PluginHandleQuery;
 import org.apache.shenyu.admin.model.vo.PluginHandleVO;
-import org.apache.shenyu.admin.model.vo.SoulDictVO;
+import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -107,12 +107,12 @@ public class PluginHandleServiceImpl implements PluginHandleService {
     }
 
     private PluginHandleVO buildPluginHandleVO(final PluginHandleDO pluginHandleDO) {
-        List<SoulDictVO> dictOptions = null;
+        List<ShenyuDictVO> dictOptions = null;
 
         if (pluginHandleDO.getDataType() == SELECT_BOX_DATA_TYPE) {
             dictOptions = soulDictMapper.findByType(pluginHandleDO.getField())
                     .stream()
-                    .map(SoulDictVO::buildSoulDictVO)
+                    .map(ShenyuDictVO::buildSoulDictVO)
                     .collect(Collectors.toList());
         }
         return PluginHandleVO.buildPluginHandleVO(pluginHandleDO, dictOptions);

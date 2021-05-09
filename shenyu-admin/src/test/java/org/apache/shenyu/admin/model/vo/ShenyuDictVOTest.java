@@ -20,14 +20,14 @@ package org.apache.shenyu.admin.model.vo;
 import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
 
 /**
- * Test case for SoulDictVO.
+ * Test case for ShenyuDictVO.
  *
  * @author midnight2104
  */
-public final class SoulDictVOTest extends AbstractReflectGetterSetterTest {
+public final class ShenyuDictVOTest extends AbstractReflectGetterSetterTest {
 
     @Override
     protected Class<?> getTargetClass() {
-        return SoulDictVO.class;
+        return ShenyuDictVO.class;
     }
 }
