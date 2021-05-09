@@ -70,7 +70,7 @@ public class LocalDataSourceLoader implements InstantiationAwareBeanPostProcesso
         runner.setLogWriter(null);
         Resources.setCharset(StandardCharsets.UTF_8);
         Reader read = Resources.getResourceAsReader(dataBaseProperties.getInitScript());
-        log.info("execute soul schema sql: {}", dataBaseProperties.getInitScript());
+        log.info("execute shenyu schema sql: {}", dataBaseProperties.getInitScript());
         runner.runScript(read);
         runner.closeConnection();
         conn.close();

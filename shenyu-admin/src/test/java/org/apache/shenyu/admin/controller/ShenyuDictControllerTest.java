@@ -75,7 +75,7 @@ public final class ShenyuDictControllerTest {
         final SoulDictQuery soulDictQuery = new SoulDictQuery("1", "t", "t_n", pageParameter);
         final CommonPager<SoulDictVO> commonPager = new CommonPager<>(pageParameter, Collections.singletonList(soulDictVO));
         given(this.soulDictService.listByPage(soulDictQuery)).willReturn(commonPager);
-        this.mockMvc.perform(MockMvcRequestBuilders.get("/soul-dict")
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/shenyu-dict")
                 .param("type", "1")
                 .param("dictCode", "t")
                 .param("dictName", "t_n")
@@ -90,7 +90,7 @@ public final class ShenyuDictControllerTest {
     @Test
     public void testFindByType() throws Exception {
         given(this.soulDictService.list("1")).willReturn(Collections.singletonList(soulDictVO));
-        this.mockMvc.perform(MockMvcRequestBuilders.get("/soul-dict/all/{type}", "1"))
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/shenyu-dict/all/{type}", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.QUERY_SUCCESS)))
                 .andExpect(jsonPath("$.data[0].id", is(soulDictVO.getId())))
@@ -100,7 +100,7 @@ public final class ShenyuDictControllerTest {
     @Test
     public void testDetail() throws Exception {
         given(this.soulDictService.findById("123")).willReturn(soulDictVO);
-        this.mockMvc.perform(MockMvcRequestBuilders.get("/soul-dict/{id}", "123"))
+        this.mockMvc.perform(MockMvcRequestBuilders.get("/shenyu-dict/{id}", "123"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is(ShenyuResultMessage.DETAIL_SUCCESS)))
                 .andExpect(jsonPath("$.data.id", is(soulDictVO.getId())))
@@ -113,7 +113,7 @@ public final class ShenyuDictControllerTest {
         soulDictDTO.setId("123");
         soulDictDTO.setDesc("test");
         given(this.soulDictService.createOrUpdate(soulDictDTO)).willReturn(1);
-        this.mockMvc.perform(MockMvcRequestBuilders.post("/soul-dict/")
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/shenyu-dict/")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(soulDictDTO)))
                 .andExpect(status().isOk())
@@ -127,7 +127,7 @@ public final class ShenyuDictControllerTest {
         soulDictDTO.setId("123");
         soulDictDTO.setDesc("test");
         given(this.soulDictService.createOrUpdate(soulDictDTO)).willReturn(1);
-        this.mockMvc.perform(MockMvcRequestBuilders.put("/soul-dict/{id}", "123")
+        this.mockMvc.perform(MockMvcRequestBuilders.put("/shenyu-dict/{id}", "123")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(soulDictDTO)))
                 .andExpect(status().isOk())
@@ -138,7 +138,7 @@ public final class ShenyuDictControllerTest {
     @Test
     public void testDeleteSoulDicts() throws Exception {
         given(this.soulDictService.deleteSoulDicts(Collections.singletonList("123"))).willReturn(1);
-        this.mockMvc.perform(MockMvcRequestBuilders.delete("/soul-dict/batch")
+        this.mockMvc.perform(MockMvcRequestBuilders.delete("/shenyu-dict/batch")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("[\"123\"]"))
                 .andExpect(status().isOk())
@@ -152,7 +152,7 @@ public final class ShenyuDictControllerTest {
         batchCommonDTO.setEnabled(false);
         batchCommonDTO.setIds(Collections.singletonList("123"));
         given(this.soulDictService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled())).willReturn(1);
-        this.mockMvc.perform(MockMvcRequestBuilders.post("/soul-dict/batchEnabled")
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/shenyu-dict/batchEnabled")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(batchCommonDTO)))
                 .andExpect(status().isOk())

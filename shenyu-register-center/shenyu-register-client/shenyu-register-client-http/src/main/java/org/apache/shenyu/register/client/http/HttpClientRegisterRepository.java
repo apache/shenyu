@@ -34,15 +34,13 @@ import java.util.Map;
 
 /**
  * The type Http client register repository.
- *
- * @author xiaoyu
  */
 @Slf4j
 @Join
 public class HttpClientRegisterRepository implements ShenyuClientRegisterRepository {
 
     private List<String> serverList;
-    
+
     private Gson gson = new Gson();
 
     private Map<String, String> turn = new HashMap<>();
@@ -54,13 +52,13 @@ public class HttpClientRegisterRepository implements ShenyuClientRegisterReposit
     }
 
     protected void initTurn() {
-        turn.put(RegisterTypeEnum.DUBBO.getName(), "/soul-client/dubbo-register");
-        turn.put(RegisterTypeEnum.GRPC.getName(), "/soul-client/grpc-register");
-        turn.put(RegisterTypeEnum.HTTP.getName(), "/soul-client/springmvc-register");
-        turn.put(RegisterTypeEnum.SOFA.getName(), "/soul-client/sofa-register");
-        turn.put(RegisterTypeEnum.SPRING_CLOUD.getName(), "/soul-client/springcloud-register");
-        turn.put(RegisterTypeEnum.TARS.getName(), "/soul-client/tars-register");
-        turn.put(RegisterTypeEnum.MOTAN.getName(), "/soul-client/motan-register");
+        turn.put(RegisterTypeEnum.DUBBO.getName(), "/shenyu-client/dubbo-register");
+        turn.put(RegisterTypeEnum.GRPC.getName(), "/shenyu-client/grpc-register");
+        turn.put(RegisterTypeEnum.HTTP.getName(), "/shenyu-client/springmvc-register");
+        turn.put(RegisterTypeEnum.SOFA.getName(), "/shenyu-client/sofa-register");
+        turn.put(RegisterTypeEnum.SPRING_CLOUD.getName(), "/shenyu-client/springcloud-register");
+        turn.put(RegisterTypeEnum.TARS.getName(), "/shenyu-client/tars-register");
+        turn.put(RegisterTypeEnum.MOTAN.getName(), "/shenyu-client/motan-register");
     }
 
     @Override

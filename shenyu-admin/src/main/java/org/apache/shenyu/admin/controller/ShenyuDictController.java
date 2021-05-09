@@ -43,7 +43,7 @@ import java.util.Objects;
  * this is a shenyu dict controller.
  */
 @RestController
-@RequestMapping("/soul-dict")
+@RequestMapping("/shenyu-dict")
 public class ShenyuDictController {
     private final SoulDictService soulDictService;
 

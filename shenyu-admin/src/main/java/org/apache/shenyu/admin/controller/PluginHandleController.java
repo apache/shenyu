@@ -40,7 +40,6 @@ import java.util.Objects;
 
 /**
  * this is a plugin handle controller.
- * @author liangziqiang.
  */
 @RestController
 @RequestMapping("/plugin-handle")

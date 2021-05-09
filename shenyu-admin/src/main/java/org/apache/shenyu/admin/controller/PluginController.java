@@ -45,8 +45,6 @@ import java.util.Objects;
 
 /**
  * this is plugin controller.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 @RestController
 @RequestMapping("/plugin")

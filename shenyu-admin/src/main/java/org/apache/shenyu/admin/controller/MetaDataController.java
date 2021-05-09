@@ -39,8 +39,6 @@ import java.util.List;
 
 /**
  * The type Meta data controller.
- *
- * @author xiaoyu
  */
 @RestController
 @RequestMapping("/meta-data")
@@ -64,7 +62,7 @@ public class MetaDataController {
      * @param appName     the app name
      * @param currentPage the current page
      * @param pageSize    the page size
-     * @return the soul result
+     * @return the shenyu result
      */
     @GetMapping("/queryList")
     public ShenyuAdminResult queryList(final String appName, final Integer currentPage, final Integer pageSize) {
@@ -75,7 +73,7 @@ public class MetaDataController {
     /**
      * Find all metadata.
      *
-     * @return the soul result
+     * @return the shenyu result
      */
     @GetMapping("/findAll")
     public ShenyuAdminResult findAll() {
@@ -85,7 +83,7 @@ public class MetaDataController {
     /**
      * Find all group of metadata.
      *
-     * @return the soul result
+     * @return the shenyu result
      */
     @GetMapping("/findAllGroup")
     public ShenyuAdminResult findAllGroup() {
@@ -96,7 +94,7 @@ public class MetaDataController {
      * Get detail of metadata.
      *
      * @param id the id
-     * @return the soul result
+     * @return the shenyu result
      */
     @GetMapping("/{id}")
     public ShenyuAdminResult editor(@PathVariable("id") final String id) {
@@ -108,7 +106,7 @@ public class MetaDataController {
      * Create or update metadata.
      *
      * @param metaDataDTO the meta data dto
-     * @return the soul result
+     * @return the shenyu result
      */
     @PostMapping("/createOrUpdate")
     public ShenyuAdminResult createOrUpdate(@RequestBody final MetaDataDTO metaDataDTO) {
@@ -123,7 +121,7 @@ public class MetaDataController {
      * Batch deleted metadata.
      *
      * @param ids the ids
-     * @return the soul result
+     * @return the shenyu result
      */
     @PostMapping("/batchDeleted")
     public ShenyuAdminResult batchDeleted(@RequestBody final List<String> ids) {
@@ -135,7 +133,7 @@ public class MetaDataController {
      * Batch enabled metadata.
      *
      * @param batchCommonDTO the batch common dto
-     * @return the soul result
+     * @return the shenyu result
      */
     @PostMapping("/batchEnabled")
     public ShenyuAdminResult batchEnabled(@RequestBody final BatchCommonDTO batchCommonDTO) {
@@ -149,7 +147,7 @@ public class MetaDataController {
     /**
      * Sync metadata.
      *
-     * @return the soul result
+     * @return the shenyu result
      */
     @PostMapping("/syncData")
     public ShenyuAdminResult syncData() {

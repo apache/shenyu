@@ -31,43 +31,41 @@ import java.util.List;
 
 /**
  * this is application authority service.
- *
- * @author xiaoyu(Myth)
  */
 public interface AppAuthService {
 
 
     /**
-     * Apply create soul result.
+     * Apply create shenyu result.
      *
      * @param authApplyDTO the auth apply dto
-     * @return the soul result
+     * @return the shenyu result
      */
     ShenyuAdminResult applyCreate(AuthApplyDTO authApplyDTO);
 
 
     /**
-     * Apply update soul result.
+     * Apply update shenyu result.
      *
      * @param authApplyDTO the auth apply dto
-     * @return the soul result
+     * @return the shenyu result
      */
     ShenyuAdminResult applyUpdate(AuthApplyDTO authApplyDTO);
 
 
     /**
-     * Update detail soul result.
+     * Update detail shenyu result.
      *
      * @param appAuthDTO the app auth dto
-     * @return the soul result
+     * @return the shenyu result
      */
     ShenyuAdminResult updateDetail(AppAuthDTO appAuthDTO);
 
     /**
-     * Update detail path soul result.
+     * Update detail path shenyu result.
      *
      * @param authPathWarpDTO the auth path warp dto
-     * @return the soul result
+     * @return the shenyu result
      */
     ShenyuAdminResult updateDetailPath(AuthPathWarpDTO authPathWarpDTO);
 
@@ -130,19 +128,19 @@ public interface AppAuthService {
     List<AppAuthData> listAll();
 
     /**
-     * Update app secret by app key soul result.
+     * Update app secret by app key shenyu result.
      *
      * @param appKey    the app key
      * @param appSecret the app secret
-     * @return the soul result
+     * @return the shenyu result
      */
     ShenyuAdminResult updateAppSecretByAppKey(String appKey, String appSecret);
 
 
     /**
-     * Sync data soul result.
+     * Sync data shenyu result.
      *
-     * @return the soul result
+     * @return the shenyu result
      */
     ShenyuAdminResult syncData();
 

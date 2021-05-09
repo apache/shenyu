@@ -40,8 +40,6 @@ import java.util.Objects;
 
 /**
  * this is rule controller.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 @RestController
 @RequestMapping("/rule")
