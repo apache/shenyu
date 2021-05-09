@@ -87,7 +87,7 @@ public class MotanPluginConfiguration {
      * @return the soul context decorator
      */
     @Bean
-    public ShenyuContextDecorator motanSoulContextDecorator() {
+    public ShenyuContextDecorator motanShenyuContextDecorator() {
         return new MotanShenyuContextDecorator();
     }
 }

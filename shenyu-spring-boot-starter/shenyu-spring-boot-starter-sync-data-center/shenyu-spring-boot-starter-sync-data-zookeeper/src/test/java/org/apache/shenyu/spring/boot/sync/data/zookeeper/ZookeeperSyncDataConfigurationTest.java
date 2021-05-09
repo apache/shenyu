@@ -46,9 +46,9 @@ import static org.junit.Assert.assertTrue;
         },
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
-                "soul.sync.zookeeper.url=localhost:2181",
-                "soul.sync.zookeeper.sessionTimeout=30000",
-                "soul.sync.zookeeper.connectionTimeout=500"
+                "shenyu.sync.zookeeper.url=localhost:2181",
+                "shenyu.sync.zookeeper.sessionTimeout=30000",
+                "shenyu.sync.zookeeper.connectionTimeout=500"
         })
 @EnableAutoConfiguration
 @MockBean({PluginDataSubscriber.class, ZkClient.class})

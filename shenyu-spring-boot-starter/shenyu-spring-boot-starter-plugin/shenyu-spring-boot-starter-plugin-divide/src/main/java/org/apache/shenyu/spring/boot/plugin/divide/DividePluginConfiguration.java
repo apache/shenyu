@@ -98,7 +98,7 @@ public class DividePluginConfiguration {
      * @return the soul context decorator
      */
     @Bean
-    public ShenyuContextDecorator divideSoulContextDecorator() {
+    public ShenyuContextDecorator divideShenyuContextDecorator() {
         return new DivideShenyuContextDecorator();
     }
 }

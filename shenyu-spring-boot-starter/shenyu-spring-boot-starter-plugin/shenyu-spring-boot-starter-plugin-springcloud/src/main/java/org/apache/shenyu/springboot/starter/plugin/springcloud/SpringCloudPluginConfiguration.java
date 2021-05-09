@@ -61,7 +61,7 @@ public class SpringCloudPluginConfiguration {
      * @return the soul context decorator
      */
     @Bean
-    public ShenyuContextDecorator springCloudDubboSoulContextDecorator() {
+    public ShenyuContextDecorator springCloudDubboShenyuContextDecorator() {
         return new SpringCloudShenyuContextDecorator();
     }
 

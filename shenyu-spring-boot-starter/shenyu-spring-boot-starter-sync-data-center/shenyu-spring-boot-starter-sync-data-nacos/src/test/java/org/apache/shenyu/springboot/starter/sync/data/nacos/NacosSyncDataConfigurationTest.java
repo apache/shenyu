@@ -39,8 +39,8 @@ import static org.mockito.Answers.CALLS_REAL_METHODS;
 @SpringBootTest(
         classes = NacosSyncDataConfiguration.class,
         properties = {
-                "soul.sync.nacos.url=localhost:8848",
-                "soul.sync.nacos.namespace=1c10d748-af86-43b9-8265-75f487d20c6c"
+                "shenyu.sync.nacos.url=localhost:8848",
+                "shenyu.sync.nacos.namespace=1c10d748-af86-43b9-8265-75f487d20c6c"
         })
 @EnableAutoConfiguration
 @MockBean(name = "nacosConfigService", value = NacosMockConfigService.class, answer = CALLS_REAL_METHODS)
