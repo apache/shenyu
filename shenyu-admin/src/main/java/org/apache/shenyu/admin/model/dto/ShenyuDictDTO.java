@@ -25,7 +25,7 @@ import java.io.Serializable;
  * this shenyu dict from web front.
  */
 @Data
-public class SoulDictDTO implements Serializable {
+public class ShenyuDictDTO implements Serializable {
 
     private static final long serialVersionUID = -8639439741130267709L;
 

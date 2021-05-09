@@ -17,35 +17,15 @@
 
 package org.apache.shenyu.admin.model.query;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.apache.shenyu.admin.model.page.PageParameter;
+import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
 
 /**
- * this is shenyu dict query.
+ * Test case for SoulDictQuery.
  */
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class SoulDictQuery {
-    /**
-     * dict type.
-     */
-    private String type;
+public final class ShenyuDictQueryTest extends AbstractReflectGetterSetterTest {
 
-    /**
-     * dict code.
-     */
-    private String dictCode;
-
-    /**
-     * dict name.
-     */
-    private String dictName;
-
-    /**
-     * page parameter.
-     */
-    private PageParameter pageParameter;
+    @Override
+    protected Class<?> getTargetClass() {
+        return ShenyuDictQuery.class;
+    }
 }

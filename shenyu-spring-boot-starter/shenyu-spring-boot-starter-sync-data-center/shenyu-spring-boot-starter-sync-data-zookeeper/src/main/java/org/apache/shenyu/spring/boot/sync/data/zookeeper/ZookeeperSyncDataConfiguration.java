@@ -39,7 +39,7 @@ import java.util.List;
  */
 @Configuration
 @ConditionalOnClass(ZookeeperSyncDataService.class)
-@ConditionalOnProperty(prefix = "soul.sync.zookeeper", name = "url")
+@ConditionalOnProperty(prefix = "shenyu.sync.zookeeper", name = "url")
 @EnableConfigurationProperties(ZookeeperConfig.class)
 @Slf4j
 public class ZookeeperSyncDataConfiguration {

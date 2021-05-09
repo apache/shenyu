@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
  */
 @Data
 @Component("shiroProperties")
-@ConfigurationProperties(prefix = "soul.shiro")
+@ConfigurationProperties(prefix = "shenyu.shiro")
 public class ShiroProperties {
 
     /**

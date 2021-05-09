@@ -36,12 +36,12 @@ import static org.junit.Assert.assertNotNull;
 public final class NacosConfigurationTest extends AbstractConfigurationTest {
 
     private final String[] inlinedProperties = new String[]{
-        "soul.sync.nacos.url=localhost:8848",
-        "soul.sync.nacos.namespace=1c10d748-af86-43b9-8265-75f487d20c6c",
-        "soul.sync.nacos.username=nacos",
-        "soul.sync.nacos.password=nacos",
-        "soul.sync.nacos.acm.enabled=false",
-        "soul.sync.nacos.acm.endpoint=acm.aliyun.com",
+        "shenyu.sync.nacos.url=localhost:8848",
+        "shenyu.sync.nacos.namespace=1c10d748-af86-43b9-8265-75f487d20c6c",
+        "shenyu.sync.nacos.username=nacos",
+        "shenyu.sync.nacos.password=nacos",
+        "shenyu.sync.nacos.acm.enabled=false",
+        "shenyu.sync.nacos.acm.endpoint=acm.aliyun.com",
     };
 
     @Test
@@ -54,13 +54,13 @@ public final class NacosConfigurationTest extends AbstractConfigurationTest {
     @Test(expected = BeanCreationException.class)
     public void testNacosConfigService() {
         String[] inlinedProperties = new String[]{
-            "soul.sync.nacos.url=localhost:8848",
-            "soul.sync.nacos.namespace=1c10d748-af86-43b9-8265-75f487d20c6c",
-            "soul.sync.nacos.acm.enabled=true",
-            "soul.sync.nacos.acm.endpoint=localhost:8849",
-            "soul.sync.nacos.acm.namespace=namespace",
-            "soul.sync.nacos.acm.accessKey=accessKey",
-            "soul.sync.nacos.acm.secretKey=secretKey",
+            "shenyu.sync.nacos.url=localhost:8848",
+            "shenyu.sync.nacos.namespace=1c10d748-af86-43b9-8265-75f487d20c6c",
+            "shenyu.sync.nacos.acm.enabled=true",
+            "shenyu.sync.nacos.acm.endpoint=localhost:8849",
+            "shenyu.sync.nacos.acm.namespace=namespace",
+            "shenyu.sync.nacos.acm.accessKey=accessKey",
+            "shenyu.sync.nacos.acm.secretKey=secretKey",
         };
         load(NacosConfiguration.class, inlinedProperties);
         ConfigService configService = (ConfigService) getContext().getBean("nacosConfigService");

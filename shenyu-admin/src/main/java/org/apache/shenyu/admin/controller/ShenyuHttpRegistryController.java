@@ -33,18 +33,18 @@ import java.util.Collections;
 /**
  * The type shenyu client controller.
  */
-@RequestMapping("/soul-client")
+@RequestMapping("/shenyu-client")
 @Join
 public class ShenyuHttpRegistryController implements ShenyuServerRegisterRepository {
-    
+
     private ShenyuServerRegisterPublisher publisher;
-    
+
     @Override
     public void init(final ShenyuServerRegisterPublisher publisher, final ShenyuRegisterCenterConfig config) {
         this.init(config);
         this.publisher = publisher;
     }
-    
+
     /**
      * Register spring mvc string.
      *
@@ -57,7 +57,7 @@ public class ShenyuHttpRegistryController implements ShenyuServerRegisterReposit
         publish(metaDataRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
     }
-    
+
     /**
      * Register spring cloud string.
      *
@@ -70,7 +70,7 @@ public class ShenyuHttpRegistryController implements ShenyuServerRegisterReposit
         publish(metaDataRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
     }
-    
+
     /**
      * Register rpc string.
      *
@@ -83,7 +83,7 @@ public class ShenyuHttpRegistryController implements ShenyuServerRegisterReposit
         publish(metaDataRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
     }
-    
+
     /**
      * Register sofa rpc string.
      *
@@ -96,7 +96,7 @@ public class ShenyuHttpRegistryController implements ShenyuServerRegisterReposit
         publish(metaDataRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
     }
-    
+
     /**
      * Register tars rpc string.
      *
@@ -109,7 +109,7 @@ public class ShenyuHttpRegistryController implements ShenyuServerRegisterReposit
         publish(metaDataRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
     }
-    
+
     /**
      * Register grpc string.
      *
@@ -135,7 +135,7 @@ public class ShenyuHttpRegistryController implements ShenyuServerRegisterReposit
         publish(metaDataRegisterDTO);
         return ShenyuResultMessage.SUCCESS;
     }
-    
+
     private void publish(final MetaDataRegisterDTO metaDataRegisterDTO) {
         publisher.publish(Collections.singletonList(metaDataRegisterDTO));
     }

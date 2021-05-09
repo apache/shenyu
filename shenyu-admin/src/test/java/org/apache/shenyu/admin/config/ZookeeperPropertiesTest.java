@@ -37,10 +37,10 @@ public final class ZookeeperPropertiesTest extends AbstractConfigurationTest {
         final Integer connectionTimeout = 2000;
         final String serializer = "org.I0Itec.zkclient.serialize.SerializableSerializer";
         final String[] inlinedProperties = new String[]{
-            "soul.sync.zookeeper.url=" + url,
-            "soul.sync.zookeeper.sessionTimeout=" + sessionTimeOut,
-            "soul.sync.zookeeper.connectionTimeout=" + connectionTimeout,
-            "soul.sync.zookeeper.serializer=" + serializer,
+            "shenyu.sync.zookeeper.url=" + url,
+            "shenyu.sync.zookeeper.sessionTimeout=" + sessionTimeOut,
+            "shenyu.sync.zookeeper.connectionTimeout=" + connectionTimeout,
+            "shenyu.sync.zookeeper.serializer=" + serializer,
         };
         load(ZookeeperPropertiesConfiguration.class, inlinedProperties);
         ZookeeperProperties properties = getContext().getBean(ZookeeperProperties.class);

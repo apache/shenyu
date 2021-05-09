@@ -37,7 +37,7 @@ public class SecretConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(value = SecretProperties.class)
-    public SecretProperties secretProperties(@Value("${soul.aes.secret.key:2095132720951327}") final String key) {
+    public SecretProperties secretProperties(@Value("${shenyu.aes.secret.key:2095132720951327}") final String key) {
         SecretProperties secretProperties = new SecretProperties();
         secretProperties.setKey(key);
         return secretProperties;

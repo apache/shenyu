@@ -93,7 +93,7 @@ public class UpstreamCheckService {
      * @param eventPublisher           the event publisher
      * @param pluginMapper             the plugin mapper
      * @param selectorConditionMapper  the selectorCondition mapper
-     * @param shenyuRegisterCenterConfig the soul register center config
+     * @param shenyuRegisterCenterConfig the shenyu register center config
      */
     @Autowired(required = false)
     public UpstreamCheckService(final SelectorMapper selectorMapper, final ApplicationEventPublisher eventPublisher,

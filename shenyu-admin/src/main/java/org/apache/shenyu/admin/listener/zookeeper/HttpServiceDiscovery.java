@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
 @Deprecated
 public class HttpServiceDiscovery implements InitializingBean {
 
-    private static final String ROOT = "/soul/register";
+    private static final String ROOT = "/shenyu/register";
 
     private ZkClient zkClient;
 
@@ -86,11 +86,11 @@ public class HttpServiceDiscovery implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() {
-        Boolean register = env.getProperty("soul.http.register", Boolean.class, false);
+        Boolean register = env.getProperty("shenyu.http.register", Boolean.class, false);
         if (!register) {
             return;
         }
-        String zookeeperUrl = env.getProperty("soul.http.zookeeperUrl", "");
+        String zookeeperUrl = env.getProperty("shenyu.http.zookeeperUrl", "");
         if (StringUtils.isNoneBlank(zookeeperUrl)) {
             zkClient = new ZkClient(zookeeperUrl, 5000, 2000);
             boolean exists = zkClient.exists(ROOT);

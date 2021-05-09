@@ -87,10 +87,10 @@ public class AppAuthController {
     /**
      * Find App auth page by query.
      *
-     * @param appKey the app key
-     * @param phone  specific phone
-     * @param currentPage  current page of list
-     * @param pageSize  page size of query
+     * @param appKey      the app key
+     * @param phone       specific phone
+     * @param currentPage current page of list
+     * @param pageSize    page size of query
      * @return the shenyu result
      */
     @GetMapping("/findPageByQuery")
@@ -129,7 +129,7 @@ public class AppAuthController {
      * Detail path of App auth.
      *
      * @param id the id
-     * @return the soul result
+     * @return the shenyu result
      */
     @GetMapping("/detailPath")
     public ShenyuAdminResult detailPath(@RequestParam("id") final String id) {
@@ -140,7 +140,7 @@ public class AppAuthController {
      * Update detail path.
      *
      * @param authPathWarpDTO the auth path warp dto
-     * @return the soul result
+     * @return the shenyu result
      */
     @PostMapping("/updateDetailPath")
     public ShenyuAdminResult updateDetailPath(@RequestBody final AuthPathWarpDTO authPathWarpDTO) {
@@ -163,7 +163,7 @@ public class AppAuthController {
      * Batch enabled App auth.
      *
      * @param batchCommonDTO the batch common dto
-     * @return the soul result
+     * @return the shenyu result
      */
     @PostMapping("/batchEnabled")
     public ShenyuAdminResult batchEnabled(@RequestBody final BatchCommonDTO batchCommonDTO) {
@@ -177,7 +177,7 @@ public class AppAuthController {
     /**
      * Sync App auth data.
      *
-     * @return the soul result
+     * @return the shenyu result
      */
     @PostMapping("/syncData")
     public ShenyuAdminResult syncData() {

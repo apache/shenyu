@@ -19,7 +19,8 @@ package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.PluginHandleMapper;
-import org.apache.shenyu.admin.mapper.SoulDictMapper;
+import org.apache.shenyu.admin.mapper.ShenyuDictMapper;
+import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 import org.apache.shenyu.admin.service.PluginHandleService;
 import org.apache.shenyu.admin.model.dto.PluginHandleDTO;
 import org.apache.shenyu.admin.model.entity.PluginHandleDO;
@@ -27,7 +28,6 @@ import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.PluginHandleQuery;
 import org.apache.shenyu.admin.model.vo.PluginHandleVO;
-import org.apache.shenyu.admin.model.vo.SoulDictVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,12 +45,12 @@ public class PluginHandleServiceImpl implements PluginHandleService {
 
     private final PluginHandleMapper pluginHandleMapper;
 
-    private final SoulDictMapper soulDictMapper;
+    private final ShenyuDictMapper shenyuDictMapper;
 
     @Autowired(required = false)
-    public PluginHandleServiceImpl(final PluginHandleMapper pluginHandleMapper, final SoulDictMapper soulDictMapper) {
+    public PluginHandleServiceImpl(final PluginHandleMapper pluginHandleMapper, final ShenyuDictMapper shenyuDictMapper) {
         this.pluginHandleMapper = pluginHandleMapper;
-        this.soulDictMapper = soulDictMapper;
+        this.shenyuDictMapper = shenyuDictMapper;
     }
 
     @Override
@@ -103,12 +103,12 @@ public class PluginHandleServiceImpl implements PluginHandleService {
     }
 
     private PluginHandleVO buildPluginHandleVO(final PluginHandleDO pluginHandleDO) {
-        List<SoulDictVO> dictOptions = null;
+        List<ShenyuDictVO> dictOptions = null;
 
         if (pluginHandleDO.getDataType() == SELECT_BOX_DATA_TYPE) {
-            dictOptions = soulDictMapper.findByType(pluginHandleDO.getField())
+            dictOptions = shenyuDictMapper.findByType(pluginHandleDO.getField())
                     .stream()
-                    .map(SoulDictVO::buildSoulDictVO)
+                    .map(ShenyuDictVO::buildShenyuDictVO)
                     .collect(Collectors.toList());
         }
         return PluginHandleVO.buildPluginHandleVO(pluginHandleDO, dictOptions);

@@ -17,15 +17,15 @@
 
 package org.apache.shenyu.admin.controller;
 
-import org.apache.shenyu.admin.service.SoulDictService;
+import org.apache.shenyu.admin.model.query.ShenyuDictQuery;
+import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
+import org.apache.shenyu.admin.service.ShenyuDictService;
 import org.apache.shenyu.admin.utils.ShenyuResultMessage;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
-import org.apache.shenyu.admin.model.dto.SoulDictDTO;
+import org.apache.shenyu.admin.model.dto.ShenyuDictDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
-import org.apache.shenyu.admin.model.query.SoulDictQuery;
 import org.apache.shenyu.admin.model.result.ShenyuAdminResult;
-import org.apache.shenyu.admin.model.vo.SoulDictVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -43,13 +43,13 @@ import java.util.Objects;
  * this is a shenyu dict controller.
  */
 @RestController
-@RequestMapping("/soul-dict")
+@RequestMapping("/shenyu-dict")
 public class ShenyuDictController {
-    private final SoulDictService soulDictService;
+    private final ShenyuDictService shenyuDictService;
 
     @Autowired(required = false)
-    public ShenyuDictController(final SoulDictService soulDictService) {
-        this.soulDictService = soulDictService;
+    public ShenyuDictController(final ShenyuDictService shenyuDictService) {
+        this.shenyuDictService = shenyuDictService;
     }
 
     /**
@@ -64,7 +64,7 @@ public class ShenyuDictController {
      */
     @GetMapping("")
     public ShenyuAdminResult queryDicts(final String type, final String dictCode, final String dictName, final Integer currentPage, final Integer pageSize) {
-        CommonPager<SoulDictVO> commonPager = soulDictService.listByPage(new SoulDictQuery(type, dictCode, dictName, new PageParameter(currentPage, pageSize)));
+        CommonPager<ShenyuDictVO> commonPager = shenyuDictService.listByPage(new ShenyuDictQuery(type, dictCode, dictName, new PageParameter(currentPage, pageSize)));
         return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, commonPager);
     }
 
@@ -76,8 +76,8 @@ public class ShenyuDictController {
      */
     @GetMapping("/all/{type}")
     public ShenyuAdminResult findByType(@PathVariable("type") final String type) {
-        List<SoulDictVO> soulDictVOS = soulDictService.list(type);
-        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, soulDictVOS);
+        List<ShenyuDictVO> shenyuDictVOS = shenyuDictService.list(type);
+        return ShenyuAdminResult.success(ShenyuResultMessage.QUERY_SUCCESS, shenyuDictVOS);
     }
 
     /**
@@ -88,34 +88,34 @@ public class ShenyuDictController {
      */
     @GetMapping("/{id}")
     public ShenyuAdminResult detail(@PathVariable("id") final String id) {
-        SoulDictVO soulDictVO = soulDictService.findById(id);
-        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, soulDictVO);
+        ShenyuDictVO shenyuDictVO = shenyuDictService.findById(id);
+        return ShenyuAdminResult.success(ShenyuResultMessage.DETAIL_SUCCESS, shenyuDictVO);
     }
 
     /**
      * create shenyu dict.
      *
-     * @param soulDictDTO {@link SoulDictDTO}
+     * @param shenyuDictDTO {@link ShenyuDictDTO}
      * @return {@link ShenyuAdminResult}
      */
     @PostMapping("")
-    public ShenyuAdminResult createSoulDict(@RequestBody final SoulDictDTO soulDictDTO) {
-        Integer createCount = soulDictService.createOrUpdate(soulDictDTO);
+    public ShenyuAdminResult createShenyuDict(@RequestBody final ShenyuDictDTO shenyuDictDTO) {
+        Integer createCount = shenyuDictService.createOrUpdate(shenyuDictDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.CREATE_SUCCESS, createCount);
     }
 
     /**
      * update shenyu dict by id.
      *
-     * @param id          shenyu dict id
-     * @param soulDictDTO {@linkplain SoulDictDTO}
+     * @param id shenyu dict id
+     * @param shenyuDictDTO {@linkplain ShenyuDictDTO}
      * @return {@linkplain ShenyuAdminResult}
      */
     @PutMapping("/{id}")
-    public ShenyuAdminResult updateSoulDict(@PathVariable("id") final String id, @RequestBody final SoulDictDTO soulDictDTO) {
-        Objects.requireNonNull(soulDictDTO);
-        soulDictDTO.setId(id);
-        Integer updateCount = soulDictService.createOrUpdate(soulDictDTO);
+    public ShenyuAdminResult updateShenyuDict(@PathVariable("id") final String id, @RequestBody final ShenyuDictDTO shenyuDictDTO) {
+        Objects.requireNonNull(shenyuDictDTO);
+        shenyuDictDTO.setId(id);
+        Integer updateCount = shenyuDictService.createOrUpdate(shenyuDictDTO);
         return ShenyuAdminResult.success(ShenyuResultMessage.UPDATE_SUCCESS, updateCount);
     }
 
@@ -126,8 +126,8 @@ public class ShenyuDictController {
      * @return {@linkplain ShenyuAdminResult}
      */
     @DeleteMapping("/batch")
-    public ShenyuAdminResult deleteSoulDicts(@RequestBody final List<String> ids) {
-        Integer deleteCount = soulDictService.deleteSoulDicts(ids);
+    public ShenyuAdminResult deleteShenyuDicts(@RequestBody final List<String> ids) {
+        Integer deleteCount = shenyuDictService.deleteShenyuDicts(ids);
         return ShenyuAdminResult.success(ShenyuResultMessage.DELETE_SUCCESS, deleteCount);
     }
 
@@ -139,7 +139,7 @@ public class ShenyuDictController {
      */
     @PostMapping("/batchEnabled")
     public ShenyuAdminResult batchEnabled(@RequestBody final BatchCommonDTO batchCommonDTO) {
-        final Integer result = soulDictService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled());
+        final Integer result = shenyuDictService.enabled(batchCommonDTO.getIds(), batchCommonDTO.getEnabled());
         return ShenyuAdminResult.success("batch enable success", result);
     }
 }

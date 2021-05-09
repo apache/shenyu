@@ -40,7 +40,7 @@ public class DubboCommonConfiguration {
      * @return the shenyu context decorator
      */
     @Bean
-    public ShenyuContextDecorator dubboSoulContextDecorator() {
+    public ShenyuContextDecorator dubboShenyuContextDecorator() {
         return new DubboShenyuContextDecorator();
     }
     

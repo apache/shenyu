@@ -22,7 +22,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.model.dto.SoulDictDTO;
+import org.apache.shenyu.admin.model.dto.ShenyuDictDTO;
 import org.apache.shenyu.common.utils.UUIDUtils;
 
 import java.util.Optional;
@@ -34,7 +34,7 @@ import java.util.Optional;
 @SuperBuilder
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public final class SoulDictDO extends BaseDO {
+public final class ShenyuDictDO extends BaseDO {
 
     private static final long serialVersionUID = -3968123108441795604L;
 
@@ -74,14 +74,14 @@ public final class SoulDictDO extends BaseDO {
     private Boolean enabled;
 
     /**
-     * build {@linkplain SoulDictDO} instance.
+     * build {@linkplain ShenyuDictDO} instance.
      *
-     * @param soulDictDTO {@linkplain SoulDictDTO}
-     * @return {@linkplain SoulDictDO}
+     * @param shenyuDictDTO {@linkplain ShenyuDictDTO}
+     * @return {@linkplain ShenyuDictDO}
      */
-    public static SoulDictDO buildSoulDictDO(final SoulDictDTO soulDictDTO) {
-        return Optional.ofNullable(soulDictDTO).map(item -> {
-            SoulDictDO soulDictDO = SoulDictDO.builder()
+    public static ShenyuDictDO buildShenyuDictDO(final ShenyuDictDTO shenyuDictDTO) {
+        return Optional.ofNullable(shenyuDictDTO).map(item -> {
+            ShenyuDictDO shenyuDictDO = ShenyuDictDO.builder()
                     .id(item.getId())
                     .dictCode(item.getDictCode())
                     .dictName(item.getDictName())
@@ -92,9 +92,9 @@ public final class SoulDictDO extends BaseDO {
                     .type(item.getType())
                     .build();
             if (StringUtils.isEmpty(item.getId())) {
-                soulDictDO.setId(UUIDUtils.getInstance().generateShortUuid());
+                shenyuDictDO.setId(UUIDUtils.getInstance().generateShortUuid());
             }
-            return soulDictDO;
+            return shenyuDictDO;
         }).orElse(null);
     }
 }

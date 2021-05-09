@@ -42,7 +42,7 @@ import static org.junit.Assert.assertThat;
         },
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
-                "soul.sync.websocket.urls=ws://localhost:9095/websocket"
+                "shenyu.sync.websocket.urls=ws://localhost:9095/websocket"
         })
 @EnableAutoConfiguration
 @MockBean(PluginDataSubscriber.class)

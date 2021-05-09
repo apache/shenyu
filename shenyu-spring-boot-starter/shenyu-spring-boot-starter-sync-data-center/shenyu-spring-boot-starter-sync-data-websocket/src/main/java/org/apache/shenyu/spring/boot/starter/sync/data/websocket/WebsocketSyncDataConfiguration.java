@@ -39,7 +39,7 @@ import java.util.List;
  */
 @Configuration
 @ConditionalOnClass(WebsocketSyncDataService.class)
-@ConditionalOnProperty(prefix = "soul.sync.websocket", name = "urls")
+@ConditionalOnProperty(prefix = "shenyu.sync.websocket", name = "urls")
 @Slf4j
 public class WebsocketSyncDataConfiguration {
 
@@ -55,7 +55,7 @@ public class WebsocketSyncDataConfiguration {
     @Bean
     public SyncDataService websocketSyncDataService(final ObjectProvider<WebsocketConfig> websocketConfig, final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
                                            final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers) {
-        log.info("you use websocket sync soul data.......");
+        log.info("you use websocket sync shenyu data.......");
         return new WebsocketSyncDataService(websocketConfig.getIfAvailable(WebsocketConfig::new), pluginSubscriber.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList));
     }
@@ -66,7 +66,7 @@ public class WebsocketSyncDataConfiguration {
      * @return the websocket config
      */
     @Bean
-    @ConfigurationProperties(prefix = "soul.sync.websocket")
+    @ConfigurationProperties(prefix = "shenyu.sync.websocket")
     public WebsocketConfig websocketConfig() {
         return new WebsocketConfig();
     }

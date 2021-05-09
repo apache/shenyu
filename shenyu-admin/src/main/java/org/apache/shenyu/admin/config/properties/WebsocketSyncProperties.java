@@ -26,7 +26,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @Getter
 @Setter
-@ConfigurationProperties(prefix = "soul.sync.websocket")
+@ConfigurationProperties(prefix = "shenyu.sync.websocket")
 public class WebsocketSyncProperties {
 
     /**

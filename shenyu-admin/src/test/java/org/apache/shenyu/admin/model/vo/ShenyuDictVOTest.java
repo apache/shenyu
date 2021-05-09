@@ -15,17 +15,17 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.model.query;
+package org.apache.shenyu.admin.model.vo;
 
 import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
 
 /**
- * Test case for SoulDictQuery.
+ * Test case for SoulDictVO.
  */
-public final class SoulDictQueryTest extends AbstractReflectGetterSetterTest {
+public final class ShenyuDictVOTest extends AbstractReflectGetterSetterTest {
 
     @Override
     protected Class<?> getTargetClass() {
-        return SoulDictQuery.class;
+        return ShenyuDictVO.class;
     }
 }

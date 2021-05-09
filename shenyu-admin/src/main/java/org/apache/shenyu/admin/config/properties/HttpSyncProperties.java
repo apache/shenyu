@@ -28,7 +28,7 @@ import java.time.Duration;
  */
 @Getter
 @Setter
-@ConfigurationProperties(prefix = "soul.sync.http")
+@ConfigurationProperties(prefix = "shenyu.sync.http")
 public class HttpSyncProperties {
 
     /**

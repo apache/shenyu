@@ -24,7 +24,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * The type Zookeeper configuration.
  */
 @Data
-@ConfigurationProperties(prefix = "soul.sync.zookeeper")
+@ConfigurationProperties(prefix = "shenyu.sync.zookeeper")
 public class ZookeeperConfig {
 
     private String url;

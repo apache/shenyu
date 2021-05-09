@@ -18,8 +18,8 @@
 package org.apache.shenyu.admin.mapper;
 
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
-import org.apache.shenyu.admin.model.entity.SoulDictDO;
-import org.apache.shenyu.admin.model.query.SoulDictQuery;
+import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
+import org.apache.shenyu.admin.model.query.ShenyuDictQuery;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.Test;
 import javax.annotation.Resource;
@@ -32,40 +32,40 @@ import static org.junit.Assert.assertThat;
 /**
  * Test cases for ShenyuDictMapper.
  */
-public final class SoulDictMapperTest extends AbstractSpringIntegrationTest {
+public final class ShenyuDictMapperTest extends AbstractSpringIntegrationTest {
 
     @Resource
-    private SoulDictMapper soulDictMapper;
+    private ShenyuDictMapper shenyuDictMapper;
 
     @Test
     public void testSelectByQuery() {
-        SoulDictDO record = buildSoulDictDO();
-        int count = soulDictMapper.insert(record);
+        ShenyuDictDO record = buildShenyuDictDO();
+        int count = shenyuDictMapper.insert(record);
         assertThat(count, greaterThan(0));
 
-        SoulDictQuery soulDictQuery = new SoulDictQuery();
-        List<SoulDictDO> soulDictList = soulDictMapper.selectByQuery(soulDictQuery);
-        assertThat(soulDictList.size(), greaterThan(0));
+        ShenyuDictQuery shenyuDictQuery = new ShenyuDictQuery();
+        List<ShenyuDictDO> shenyuDictList = shenyuDictMapper.selectByQuery(shenyuDictQuery);
+        assertThat(shenyuDictList.size(), greaterThan(0));
     }
 
     @Test
     public void testInsertAndUpdate() {
-        SoulDictDO record = buildSoulDictDO();
-        int count = soulDictMapper.insert(record);
+        ShenyuDictDO record = buildShenyuDictDO();
+        int count = shenyuDictMapper.insert(record);
         assertThat(count, greaterThan(0));
 
         record.setDesc("test1");
-        count = soulDictMapper.updateByPrimaryKey(record);
+        count = shenyuDictMapper.updateByPrimaryKey(record);
         assertThat(count, greaterThan(0));
 
-        count = soulDictMapper.delete(record.getId());
+        count = shenyuDictMapper.delete(record.getId());
         assertThat(count, greaterThan(0));
     }
 
-    private SoulDictDO buildSoulDictDO() {
+    private ShenyuDictDO buildShenyuDictDO() {
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         String id = UUIDUtils.getInstance().generateShortUuid();
-        return SoulDictDO.builder()
+        return ShenyuDictDO.builder()
                 .id(id)
                 .sort(1)
                 .desc("test")

@@ -86,7 +86,7 @@ public class SofaPluginConfiguration {
      * @return the shenyu context decorator
      */
     @Bean
-    public ShenyuContextDecorator sofaSoulContextDecorator() {
+    public ShenyuContextDecorator sofaShenyuContextDecorator() {
         return new SofaShenyuContextDecorator();
     }
 }

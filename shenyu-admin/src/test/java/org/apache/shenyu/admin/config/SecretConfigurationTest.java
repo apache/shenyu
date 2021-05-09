@@ -31,7 +31,7 @@ public class SecretConfigurationTest extends AbstractConfigurationTest {
     
     @Test
     public void testNormalSecretConfiguration() {
-        load(SecretConfiguration.class, "soul.aes.secret.key=1234567890123456");
+        load(SecretConfiguration.class, "shenyu.aes.secret.key=1234567890123456");
         SecretProperties secretProperties = getContext().getBean(SecretProperties.class);
         Assertions.assertNotNull(secretProperties);
         String key = secretProperties.getKey();
@@ -49,7 +49,7 @@ public class SecretConfigurationTest extends AbstractConfigurationTest {
     
     @Test
     public void testAbnormalSecretConfiguration() {
-        load(SecretConfiguration.class, "soul.aes.secret.key=");
+        load(SecretConfiguration.class, "shenyu.aes.secret.key=");
         SecretProperties secretProperties = getContext().getBean(SecretProperties.class);
         Assertions.assertNotNull(secretProperties);
         String key = secretProperties.getKey();

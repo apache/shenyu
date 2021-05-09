@@ -45,22 +45,22 @@ import static org.junit.Assert.assertThat;
         },
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
-                "soul.httpclient.connectTimeout=3",
-                "soul.httpclient.responseTimeout=0",
-                "soul.httpclient.pool.PoolType=0",
-                "soul.httpclient.pool.name=proxy",
-                "soul.httpclient.pool.maxConnections=1",
-                "soul.httpclient.pool.acquireTimeout=45000",
-                "soul.httpclient.proxy.host=http://localhost",
-                "soul.httpclient.proxy.port=18848",
-                "soul.httpclient.proxy.username=itmiwang",
-                "soul.httpclient.proxy.password=itmiwang",
-                "soul.httpclient.proxy.nonProxyHostsPattern=itmiwang",
-                "soul.httpclient.ssl.X509Certificate[]=[]",
-                "soul.httpclient.ssl.handshakeTimeout=10000",
-                "soul.httpclient.ssl.closeNotifyFlushTimeout=3000",
-                "soul.httpclient.ssl.closeNotifyReadTimeout=0",
-                "soul.httpclient.ssl.SslProvider.DefaultConfigurationType=1"
+                "shenyu.httpclient.connectTimeout=3",
+                "shenyu.httpclient.responseTimeout=0",
+                "shenyu.httpclient.pool.PoolType=0",
+                "shenyu.httpclient.pool.name=proxy",
+                "shenyu.httpclient.pool.maxConnections=1",
+                "shenyu.httpclient.pool.acquireTimeout=45000",
+                "shenyu.httpclient.proxy.host=http://localhost",
+                "shenyu.httpclient.proxy.port=18848",
+                "shenyu.httpclient.proxy.username=itmiwang",
+                "shenyu.httpclient.proxy.password=itmiwang",
+                "shenyu.httpclient.proxy.nonProxyHostsPattern=itmiwang",
+                "shenyu.httpclient.ssl.X509Certificate[]=[]",
+                "shenyu.httpclient.ssl.handshakeTimeout=10000",
+                "shenyu.httpclient.ssl.closeNotifyFlushTimeout=3000",
+                "shenyu.httpclient.ssl.closeNotifyReadTimeout=0",
+                "shenyu.httpclient.ssl.SslProvider.DefaultConfigurationType=1"
         })
 @EnableAutoConfiguration
 public final class HttpClientPluginConfigurationTest {

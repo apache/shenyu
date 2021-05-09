@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
 @Getter
 @Setter
 @Component
-@ConfigurationProperties(prefix = "soul.aes.secret")
+@ConfigurationProperties(prefix = "shenyu.aes.secret")
 public class SecretProperties {
 
     private String key;

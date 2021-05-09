@@ -85,22 +85,22 @@ public class PermissionServiceTest {
         permissionDOS.add(PermissionDO.builder().objectId("1346358560427216896").resourceId("1346776175553376256").id("1351007708585271296").build());
         permissionDOS.add(PermissionDO.builder().objectId("1346358560427216896").resourceId("1346777157943259136").id("1351007708593659904").build());
         permissionDOS.add(PermissionDO.builder().objectId("1346358560427216896").resourceId("1347053375029653504").id("1351007708593659914").build());
-        final ResourceDO resourceDO1 = ResourceDO.builder().title("SOUL.MENU.PLUGIN.LIST").name("plug").url("/plug").component("PluginList")
+        final ResourceDO resourceDO1 = ResourceDO.builder().title("SHENYU.MENU.PLUGIN.LIST").name("plug").url("/plug").component("PluginList")
                 .resourceType(0).sort(0).icon("dashboard").isLeaf(false).isRoute(0).status(1)
                 .dateCreated(new Timestamp(1610940313000L))
                 .dateUpdated(new Timestamp(1610940313000L))
                 .id("1346775491550474240").build();
-        final ResourceDO resourceDO2 = ResourceDO.builder().title("SOUL.MENU.SYSTEM.MANAGMENT").name("system").url("/system").component("system")
+        final ResourceDO resourceDO2 = ResourceDO.builder().title("SHENYU.MENU.SYSTEM.MANAGMENT").name("system").url("/system").component("system")
                 .resourceType(0).sort(1).icon("setting").isLeaf(false).isRoute(0).status(1)
                 .dateCreated(new Timestamp(1610940313000L))
                 .dateUpdated(new Timestamp(1610940313000L))
                 .id("1346776175553376256").build();
-        final ResourceDO resourceDO3 = ResourceDO.builder().parentId("1346776175553376256").title("SOUL.MENU.SYSTEM.MANAGMENT.USER").name("manage").url("/system/manage").component("manage")
+        final ResourceDO resourceDO3 = ResourceDO.builder().parentId("1346776175553376256").title("SHENYU.MENU.SYSTEM.MANAGMENT.USER").name("manage").url("/system/manage").component("manage")
                 .resourceType(1).sort(1).icon("").isLeaf(false).isRoute(0).status(1)
                 .dateCreated(new Timestamp(1610940313000L))
                 .dateUpdated(new Timestamp(1610940313000L))
                 .id("1346777157943259136").build();
-        final ResourceDO resourceDO4 = ResourceDO.builder().parentId("1347027526339538944").title("SOUL.BUTTON.PLUGIN.SYNCHRONIZE")
+        final ResourceDO resourceDO4 = ResourceDO.builder().parentId("1347027526339538944").title("SHENYU.BUTTON.PLUGIN.SYNCHRONIZE")
                 .resourceType(2).sort(4).isLeaf(true).isRoute(0).perms("plugin:sign:modify").status(1)
                 .dateCreated(new Timestamp(1610940313000L))
                 .dateUpdated(new Timestamp(1610940313000L))
@@ -121,15 +121,15 @@ public class PermissionServiceTest {
     public void testGetPermissionMenu() {
         final PermissionMenuVO expectedResult = new PermissionMenuVO(Arrays.asList(
                 new PermissionMenuVO.MenuInfo("1346776175553376256", "system", "/system", "system",
-                        new PermissionMenuVO.Meta("setting", "SOUL.MENU.SYSTEM.MANAGMENT"), Arrays.asList(
+                        new PermissionMenuVO.Meta("setting", "SHENYU.MENU.SYSTEM.MANAGMENT"), Arrays.asList(
                         new PermissionMenuVO.MenuInfo("1346777157943259136", "manage", "/system/manage", "manage",
-                                new PermissionMenuVO.Meta("", "SOUL.MENU.SYSTEM.MANAGMENT.USER"), Arrays.asList(), 1)
+                                new PermissionMenuVO.Meta("", "SHENYU.MENU.SYSTEM.MANAGMENT.USER"), Arrays.asList(), 1)
                 ), 1),
                 new PermissionMenuVO.MenuInfo("1346775491550474240", "plug", "/plug", "PluginList",
-                        new PermissionMenuVO.Meta("dashboard", "SOUL.MENU.PLUGIN.LIST"), Arrays.asList(), 0)
+                        new PermissionMenuVO.Meta("dashboard", "SHENYU.MENU.PLUGIN.LIST"), Arrays.asList(), 0)
         ),
-                Arrays.asList(new PermissionMenuVO.AuthPerm("plugin:sign:modify", "SOUL.BUTTON.PLUGIN.SYNCHRONIZE", null)),
-                Arrays.asList(new PermissionMenuVO.AuthPerm("plugin:sign:modify", "SOUL.BUTTON.PLUGIN.SYNCHRONIZE", null)));
+                Arrays.asList(new PermissionMenuVO.AuthPerm("plugin:sign:modify", "SHENYU.BUTTON.PLUGIN.SYNCHRONIZE", null)),
+                Arrays.asList(new PermissionMenuVO.AuthPerm("plugin:sign:modify", "SHENYU.BUTTON.PLUGIN.SYNCHRONIZE", null)));
         String token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhZG1pbiIsImlhdCI6MTYxMTc5MjEzOX0.eFORUk5kZawKLTsfRYojy-uaaDySo9kWtcfgxISS_3g";
         final PermissionMenuVO result = permissionServiceImplUnderTest.getPermissionMenu(token);
         assertThat(result, is(expectedResult));

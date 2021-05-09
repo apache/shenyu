@@ -37,10 +37,10 @@ public final class ZookeeperConfigurationTest extends AbstractConfigurationTest 
     private static TestingServer zkServer;
 
     private final String[] inlinedProperties = new String[]{
-        "soul.sync.zookeeper.url=127.0.0.1:21810",
-        "soul.sync.zookeeper.sessionTimeout=5000",
-        "soul.sync.zookeeper.connectionTimeout=2000",
-        "soul.sync.zookeeper.serializer=org.I0Itec.zkclient.serialize.SerializableSerializer",
+        "shenyu.sync.zookeeper.url=127.0.0.1:21810",
+        "shenyu.sync.zookeeper.sessionTimeout=5000",
+        "shenyu.sync.zookeeper.connectionTimeout=2000",
+        "shenyu.sync.zookeeper.serializer=org.I0Itec.zkclient.serialize.SerializableSerializer",
     };
 
     @BeforeClass

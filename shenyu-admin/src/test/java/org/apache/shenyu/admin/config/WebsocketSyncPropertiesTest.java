@@ -38,7 +38,7 @@ public final class WebsocketSyncPropertiesTest extends AbstractConfigurationTest
 
     @Test
     public void testWebsocketSyncPropertiesSetValue() {
-        load(WebsocketSyncPropertiesConfiguration.class, "soul.sync.websocket.enabled=false");
+        load(WebsocketSyncPropertiesConfiguration.class, "shenyu.sync.websocket.enabled=false");
         WebsocketSyncProperties websocketSyncProperties = getContext().getBean(WebsocketSyncProperties.class);
         assertThat(websocketSyncProperties.isEnabled(), comparesEqualTo(false));
     }

@@ -17,8 +17,8 @@
   -->
 
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="org.apache.shenyu.admin.mapper.SoulDictMapper">
-    <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.SoulDictDO">
+<mapper namespace="org.apache.shenyu.admin.mapper.ShenyuDictMapper">
+    <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.ShenyuDictDO">
         <id column="id" jdbcType="VARCHAR" property="id"/>
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
@@ -38,23 +38,23 @@
     <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
-        from soul_dict
+        from shenyu_dict
         where id = #{id,jdbcType=VARCHAR}
     </select>
 
     <select id="findByType" parameterType="java.lang.String" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
-        from soul_dict where `type` = #{type,jdbcType=VARCHAR}
+        from shenyu_dict where `type` = #{type,jdbcType=VARCHAR}
     </select>
 
     <delete id="delete" parameterType="java.lang.String">
-        delete from soul_dict
+        delete from shenyu_dict
         where id = #{id,jdbcType=VARCHAR}
     </delete>
 
-    <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.SoulDictDO">
-    insert into soul_dict (id, `type`, dict_code, dict_name, dict_value, `desc`, sort, enabled, date_created, date_updated
+    <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.ShenyuDictDO">
+    insert into shenyu_dict (id, `type`, dict_code, dict_name, dict_value, `desc`, sort, enabled, date_created, date_updated
       )
     values (#{id,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{dictCode,jdbcType=VARCHAR},
       #{dictName,jdbcType=VARCHAR}, #{dictValue,jdbcType=VARCHAR}, #{desc,jdbcType=VARCHAR}, #{sort,jdbcType=INTEGER},
@@ -62,8 +62,8 @@
       )
   </insert>
 
-    <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.SoulDictDO">
-        insert into soul_dict
+    <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.ShenyuDictDO">
+        insert into shenyu_dict
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="id != null">
                 id,
@@ -129,8 +129,8 @@
             </if>
         </trim>
     </insert>
-    <update id="updateByPrimaryKeySelective" parameterType="org.apache.shenyu.admin.model.entity.SoulDictDO">
-        update soul_dict
+    <update id="updateByPrimaryKeySelective" parameterType="org.apache.shenyu.admin.model.entity.ShenyuDictDO">
+        update shenyu_dict
         <set>
             <if test="type != null">
                 `type` = #{type,jdbcType=VARCHAR},
@@ -163,8 +163,8 @@
         where id = #{id,jdbcType=VARCHAR}
     </update>
 
-    <update id="updateByPrimaryKey" parameterType="org.apache.shenyu.admin.model.entity.SoulDictDO">
-        update soul_dict
+    <update id="updateByPrimaryKey" parameterType="org.apache.shenyu.admin.model.entity.ShenyuDictDO">
+        update shenyu_dict
         set `type` = #{type,jdbcType=VARCHAR},
           dict_code = #{dictCode,jdbcType=VARCHAR},
           dict_name = #{dictName,jdbcType=VARCHAR},
@@ -177,9 +177,9 @@
         where id = #{id,jdbcType=VARCHAR}
     </update>
 
-    <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.SoulDictQuery" resultType="java.lang.Integer">
+    <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.ShenyuDictQuery" resultType="java.lang.Integer">
         select count(1)
-        from soul_dict
+        from shenyu_dict
         <where>
             <if test="type != null and type != ''">
                 and `type` = #{type,jdbcType=VARCHAR}
@@ -193,10 +193,10 @@
         </where>
     </select>
 
-    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.SoulDictQuery" resultMap="BaseResultMap">
+    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.ShenyuDictQuery" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
-        from soul_dict
+        from shenyu_dict
         <where>
             <if test="type != null and type != ''">
                 and `type` = #{type,jdbcType=VARCHAR}
@@ -215,7 +215,7 @@
     </select>
 
     <update id="enabled">
-        update soul_dict set enabled = #{enabled,jdbcType=TINYINT} where id in
+        update shenyu_dict set enabled = #{enabled,jdbcType=TINYINT} where id in
         <foreach item="item" index="index" collection="ids" open="(" separator="," close=")">
         #{item}
         </foreach>

@@ -65,9 +65,9 @@ public class RoleController {
     /**
      * query role.
      *
-     * @param roleName role name
+     * @param roleName    role name
      * @param currentPage current page
-     * @param pageSize page size
+     * @param pageSize    page size
      * @return {@linkplain ShenyuAdminResult}
      */
     @GetMapping("")
@@ -78,6 +78,7 @@ public class RoleController {
 
     /**
      * detail role and permission info.
+     *
      * @param id role id
      * @return {@linkplain ShenyuAdminResult}
      */
@@ -107,7 +108,7 @@ public class RoleController {
     /**
      * update role and permission info.
      *
-     * @param id primary key.
+     * @param id      primary key.
      * @param roleDTO role and permission info
      * @return {@linkplain ShenyuAdminResult}
      */

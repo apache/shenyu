@@ -17,56 +17,56 @@
 
 package org.apache.shenyu.admin.service;
 
-import org.apache.shenyu.admin.model.dto.SoulDictDTO;
+import org.apache.shenyu.admin.model.dto.ShenyuDictDTO;
 import org.apache.shenyu.admin.model.page.CommonPager;
-import org.apache.shenyu.admin.model.query.SoulDictQuery;
-import org.apache.shenyu.admin.model.vo.SoulDictVO;
+import org.apache.shenyu.admin.model.query.ShenyuDictQuery;
+import org.apache.shenyu.admin.model.vo.ShenyuDictVO;
 
 import java.util.List;
 
 /**
  * this is soul dict service.
  */
-public interface SoulDictService {
+public interface ShenyuDictService {
     /**
-     * find page of soul dict by query.
+     * find page of shenyu dict by query.
      *
-     * @param soulDictQuery {@linkplain SoulDictQuery}
+     * @param shenyuDictQuery {@linkplain ShenyuDictQuery}
      * @return {@link CommonPager}
      */
-    CommonPager<SoulDictVO> listByPage(SoulDictQuery soulDictQuery);
+    CommonPager<ShenyuDictVO> listByPage(ShenyuDictQuery shenyuDictQuery);
 
     /**
-     * create or update soul dict.
+     * create or update shenyu dict.
      *
-     * @param soulDictDTO {@linkplain SoulDictDTO}
+     * @param shenyuDictDTO {@linkplain ShenyuDictDTO}
      * @return affected rows
      */
-    Integer createOrUpdate(SoulDictDTO soulDictDTO);
+    Integer createOrUpdate(ShenyuDictDTO shenyuDictDTO);
 
     /**
-     * find soul dict by id.
+     * find shenyu dict by id.
      *
-     * @param id soul dict id.
-     * @return {@linkplain SoulDictVO}
+     * @param id shenyu dict id.
+     * @return {@linkplain ShenyuDictVO}
      */
-    SoulDictVO findById(String id);
+    ShenyuDictVO findById(String id);
 
     /**
-     * find soul dict list by dict type.
+     * find shenyu dict list by dict type.
      *
-     * @param type the soul dict type.
-     * @return soul dict list.
+     * @param type the shenyu dict type.
+     * @return shenyu dict list.
      */
-    List<SoulDictVO> list(String type);
+    List<ShenyuDictVO> list(String type);
 
     /**
-     * delete soul dicts.
+     * delete shenyu dicts.
      *
      * @param ids ids to delete
      * @return The number of rows deleted
      */
-    Integer deleteSoulDicts(List<String> ids);
+    Integer deleteShenyuDicts(List<String> ids);
 
     /**
      * Enabled string.

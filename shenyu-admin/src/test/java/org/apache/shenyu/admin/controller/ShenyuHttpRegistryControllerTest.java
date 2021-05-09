@@ -61,7 +61,7 @@ public final class ShenyuHttpRegistryControllerTest {
     public void testRegisterSpringMvc() throws Exception {
         final MetaDataRegisterDTO springMvcRegisterDTO = buildSpringMvcRegisterDTO();
         given(this.shenyuClientRegisterService.registerSpringMvc(springMvcRegisterDTO)).willReturn("success");
-        this.mockMvc.perform(MockMvcRequestBuilders.post("/soul-client/springmvc-register")
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/shenyu-client/springmvc-register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(springMvcRegisterDTO)))
                 .andExpect(status().isOk())
@@ -87,7 +87,7 @@ public final class ShenyuHttpRegistryControllerTest {
     public void testRegisterSpringCloud() throws Exception {
         final MetaDataRegisterDTO springCloudRegisterDTO = buildCloudRegisterDTO();
         given(this.shenyuClientRegisterService.registerSpringCloud(springCloudRegisterDTO)).willReturn("success");
-        this.mockMvc.perform(MockMvcRequestBuilders.post("/soul-client/springcloud-register")
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/shenyu-client/springcloud-register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(springCloudRegisterDTO)))
                 .andExpect(status().isOk())
@@ -110,7 +110,7 @@ public final class ShenyuHttpRegistryControllerTest {
     public void testRegisterRpc() throws Exception {
         final MetaDataRegisterDTO metaDataDTO = buildMetaDataDTO("app_dubbo");
         given(this.shenyuClientRegisterService.registerDubbo(metaDataDTO)).willReturn("success");
-        this.mockMvc.perform(MockMvcRequestBuilders.post("/soul-client/dubbo-register")
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/shenyu-client/dubbo-register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(metaDataDTO)))
                 .andExpect(status().isOk())
@@ -137,7 +137,7 @@ public final class ShenyuHttpRegistryControllerTest {
     public void testRegisterSofaRpc() throws Exception {
         final MetaDataRegisterDTO metaDataDTO = buildMetaDataDTO("app_sofa");
         given(this.shenyuClientRegisterService.registerSofa(metaDataDTO)).willReturn("success");
-        this.mockMvc.perform(MockMvcRequestBuilders.post("/soul-client/sofa-register")
+        this.mockMvc.perform(MockMvcRequestBuilders.post("/shenyu-client/sofa-register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(GsonUtils.getInstance().toJson(metaDataDTO)))
                 .andExpect(status().isOk())
