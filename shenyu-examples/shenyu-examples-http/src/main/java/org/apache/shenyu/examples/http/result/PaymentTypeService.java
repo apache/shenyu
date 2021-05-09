@@ -31,8 +31,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * The type Payment type service.
- *
- * @author xiaoyu
  */
 public class PaymentTypeService {
 

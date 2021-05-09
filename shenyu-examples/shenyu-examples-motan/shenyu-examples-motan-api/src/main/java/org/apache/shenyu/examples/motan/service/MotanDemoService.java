@@ -21,8 +21,6 @@ import com.weibo.api.motan.transport.async.MotanAsync;
 
 /**
  * Motan demo interface.
- *
- * @author tydhot
  */
 @MotanAsync
 public interface MotanDemoService {

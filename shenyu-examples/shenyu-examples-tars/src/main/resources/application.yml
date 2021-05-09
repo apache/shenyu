@@ -37,4 +37,4 @@ soul:
       appName: tars
       port: 21715
       host: 192.168.41.103
-      nacosNameSpace: SoulRegisterCenter
+      nacosNameSpace: ShenyuRegisterCenter

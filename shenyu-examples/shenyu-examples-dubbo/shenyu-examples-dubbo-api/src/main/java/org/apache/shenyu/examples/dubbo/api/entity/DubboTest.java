@@ -25,7 +25,6 @@ import java.io.Serializable;
 
 /**
  * DubboTest.
- * @author xiaoyu(Myth)
  */
 @Data
 @AllArgsConstructor

@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.examples.http.config;
 
-import org.apache.shenyu.examples.http.router.SoulTestHttpRouter;
+import org.apache.shenyu.examples.http.router.ShenyuTestHttpRouter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,8 +34,6 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * HttpServerConfig.
- *
- * @author xiaoyu
  */
 @Configuration
 public class HttpServerConfig {
@@ -48,8 +46,8 @@ public class HttpServerConfig {
     }
 
     @Bean
-    public RouterFunction<ServerResponse> monoRouterFunction(SoulTestHttpRouter soulTestHttpRouter) {
-        return soulTestHttpRouter.routes();
+    public RouterFunction<ServerResponse> monoRouterFunction(ShenyuTestHttpRouter shenyuTestHttpRouter) {
+        return shenyuTestHttpRouter.routes();
     }
 
     @Bean

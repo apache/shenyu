@@ -83,7 +83,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>org.apache.shenyu.examples.http.SoulTestHttpApplication</mainClass>
+                    <mainClass>org.apache.shenyu.examples.http.ShenyuTestHttpApplication</mainClass>
                     <executable>true</executable>
                 </configuration>
             </plugin>

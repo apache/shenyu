@@ -29,5 +29,5 @@ soul:
     props:
       contextPath: /dubbo
       appName: dubbo
-      nacosNameSpace: SoulRegisterCenter
+      nacosNameSpace: ShenyuRegisterCenter
       port: 20888

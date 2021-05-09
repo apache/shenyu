@@ -18,18 +18,16 @@
 package org.apache.shenyu.examples.motan.service.impl;
 
 import com.weibo.api.motan.config.springsupport.annotation.MotanService;
-import org.apache.shenyu.client.motan.common.annotation.SoulMotanClient;
+import org.apache.shenyu.client.motan.common.annotation.ShenyuMotanClient;
 import org.apache.shenyu.examples.motan.service.MotanDemoService;
 
 /**
  * Motan demo service.
- *
- * @author tydhot
  */
 @MotanService(export = "demoMotan:8002")
 public class MotanDemoServiceImpl implements MotanDemoService {
     @Override
-    @SoulMotanClient(path = "/hello")
+    @ShenyuMotanClient(path = "/hello")
     public String hello(String name) {
         return "hello " + name;
     }
