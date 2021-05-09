@@ -24,8 +24,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The selector or rule handle base cache.
- *
- * @author zl
  */
 public abstract class BaseHandleCache<K, V> implements HandleCache<K, V> {
 

@@ -24,8 +24,6 @@ import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 
 /**
  * The type Divide soul context decorator.
- * 
- * @author xiaoyu
  */
 public class DivideShenyuContextDecorator implements ShenyuContextDecorator {
     

@@ -34,8 +34,6 @@ import java.util.Objects;
 
 /**
  * this is grpc response plugin.
- *
- * @author zhanglei
  */
 public class GrpcResponsePlugin implements ShenyuPlugin {
 

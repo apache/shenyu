@@ -28,8 +28,6 @@ import org.apache.shenyu.plugin.grpc.resolver.ShenyuNameResolverProvider;
 
 /**
  * Grpc client Builder.
- *
- * @author zhanglei
  */
 public class GrpcClientBuilder {
 

@@ -23,8 +23,6 @@ import org.springframework.test.context.support.TestPropertySourceUtils;
 
 /**
  * AbstractConfigurationTest for Configuration or Properties.
- *
- * @author dengliming
  */
 public abstract class AbstractConfigurationTest {
 

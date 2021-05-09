@@ -28,8 +28,6 @@ import org.apache.shenyu.common.enums.LoadBalanceEnum;
 
 /**
  * The type Sofa rule handle.
- *
- * @author tydhot
  */
 @Getter
 @Setter

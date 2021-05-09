@@ -29,8 +29,6 @@ import java.util.Objects;
 
 /**
  * The type sofa plugin data handler.
- *
- * @author tydhot
  */
 public class SofaPluginDataHandler implements PluginDataHandler {
 

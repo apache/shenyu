@@ -26,8 +26,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * Test cases for SwaggerConfiguration.
- *
- * @author linkuan
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class SwaggerConfigurationTest {

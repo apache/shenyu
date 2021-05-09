@@ -25,8 +25,6 @@ import java.util.List;
 
 /**
  * RuleConditionMapper.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 @Mapper
 public interface RuleConditionMapper {

@@ -29,9 +29,6 @@ import java.util.Optional;
 
 /**
  * plugin handle json definition.
- *
- * @author liangziqiang.
- * @author nuo-promise
  */
 @Data
 @SuperBuilder

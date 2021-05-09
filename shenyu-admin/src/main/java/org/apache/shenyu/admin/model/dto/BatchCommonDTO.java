@@ -24,8 +24,6 @@ import java.util.List;
 
 /**
  * The type Batch common dto.
- *
- * @author xiaoyu(Myth)
  */
 @Data
 public class BatchCommonDTO implements Serializable {

@@ -40,9 +40,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * The Test Case For DebugPlugin.
- *
- * @author xuxd
- **/
+ */
 @RunWith(MockitoJUnitRunner.class)
 public final class LoggingPluginTest {
 

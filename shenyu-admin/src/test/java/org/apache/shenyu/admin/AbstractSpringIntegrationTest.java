@@ -24,8 +24,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 /**
  * Abstract Integration Test for Spring.
- *
- * @author dengliming
  */
 @ActiveProfiles("h2")
 @RunWith(SpringJUnit4ClassRunner.class)

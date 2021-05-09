@@ -19,8 +19,6 @@ package org.apache.shenyu.metrics.api;
 
 /**
  * Metrics register.
- *
- * @author xiaoyu
  */
 public interface MetricsRegister {
     

@@ -21,8 +21,6 @@ import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
 
 /**
  * Test case for SoulDictQuery.
- *
- * @author wuudongdong
  */
 public final class SoulDictQueryTest extends AbstractReflectGetterSetterTest {
 

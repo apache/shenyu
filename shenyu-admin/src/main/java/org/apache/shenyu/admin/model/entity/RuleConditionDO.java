@@ -30,9 +30,6 @@ import java.util.Optional;
 
 /**
  * RuleConditionDO.
- *
- * @author jiangxiaofeng(Nicholas)
- * @author nuo-promise
  */
 @Data
 @SuperBuilder

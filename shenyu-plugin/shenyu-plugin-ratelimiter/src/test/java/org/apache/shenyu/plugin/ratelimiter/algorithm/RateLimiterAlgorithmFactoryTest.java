@@ -26,8 +26,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * test for RateLimiterAlgorithmFactory.
- *
- * @author liupenghui
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class RateLimiterAlgorithmFactoryTest {

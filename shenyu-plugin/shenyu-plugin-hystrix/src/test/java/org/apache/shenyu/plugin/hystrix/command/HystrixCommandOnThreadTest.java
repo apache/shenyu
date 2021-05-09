@@ -38,9 +38,7 @@ import static org.mockito.Mockito.mock;
 
 /**
  * The Test Case For HystrixCommandOnThread.
- *
- * @author nuo-promise
- **/
+ */
 public final class HystrixCommandOnThreadTest {
 
     private HystrixCommandOnThread hystrixCommandOnThread;

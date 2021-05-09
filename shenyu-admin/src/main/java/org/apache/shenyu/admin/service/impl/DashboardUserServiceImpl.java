@@ -57,8 +57,6 @@ import java.util.stream.Collectors;
 
 /**
  * DashboardUserServiceImpl.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 @Service("dashboardUserService")
 @Slf4j

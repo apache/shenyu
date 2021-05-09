@@ -29,8 +29,6 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Test case for {@link ExceptionHandlers}.
- *
- * @author bigwillc
  */
 public final class ExceptionHandlersTest {
 

@@ -32,8 +32,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * test case for {@link SpringCloudPluginConfiguration}.
- *
- * @author HoldDie
  */
 public class SpringCloudPluginConfigurationTest {
 

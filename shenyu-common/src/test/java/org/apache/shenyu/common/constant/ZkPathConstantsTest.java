@@ -26,8 +26,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for ZkPathConstants.
- *
- * @author songyuequan
  */
 public final class ZkPathConstantsTest {
 

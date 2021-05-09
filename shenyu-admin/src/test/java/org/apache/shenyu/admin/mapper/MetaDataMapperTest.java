@@ -34,8 +34,6 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * Test cases for MetaDataMapper.
- *
- * @author pismery
  */
 public final class MetaDataMapperTest extends AbstractSpringIntegrationTest {
 

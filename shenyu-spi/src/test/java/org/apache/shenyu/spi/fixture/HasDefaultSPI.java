@@ -21,8 +21,6 @@ import org.apache.shenyu.spi.SPI;
 
 /**
  * has default value test SPI interface.
- *
- * @author wyc192273
  */
 @SPI("subHasDefaultSPI")
 public interface HasDefaultSPI {

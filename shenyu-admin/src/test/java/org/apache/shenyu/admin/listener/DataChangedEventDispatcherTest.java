@@ -45,8 +45,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * Test cases for {@link DataChangedEventDispatcher}.
- *
- * @author wyc192273
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class DataChangedEventDispatcherTest {

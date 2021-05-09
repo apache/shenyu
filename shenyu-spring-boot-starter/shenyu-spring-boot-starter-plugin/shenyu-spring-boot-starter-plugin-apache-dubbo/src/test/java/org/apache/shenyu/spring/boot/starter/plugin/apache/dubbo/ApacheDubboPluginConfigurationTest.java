@@ -35,8 +35,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * Test case for {@link ApacheDubboPluginConfiguration}.
- *
- * @author lahmxu
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(

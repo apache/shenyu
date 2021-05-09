@@ -21,8 +21,6 @@ import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
 
 /**
  * Test case for PluginHandleVO.
- *
- * @author midnight2104
  */
 public final class PluginHandleVOTest extends AbstractReflectGetterSetterTest {
 

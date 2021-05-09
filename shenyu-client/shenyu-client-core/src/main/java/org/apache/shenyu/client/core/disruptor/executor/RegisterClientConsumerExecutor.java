@@ -25,8 +25,6 @@ import org.apache.shenyu.register.common.type.DataTypeParent;
 
 /**
  * The type Consumer executor.
- *
- * @author xiaoyu
  */
 @SuppressWarnings("all")
 public class RegisterClientConsumerExecutor extends QueueConsumerExecutor<DataTypeParent> {

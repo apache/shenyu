@@ -27,9 +27,6 @@ import java.time.temporal.ChronoUnit;
 
 /**
  * DateUtils.
- *
- * @author xiaoyu
- * @author dengliming
  */
 @Slf4j
 public class DateUtils {

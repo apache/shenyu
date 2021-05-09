@@ -39,9 +39,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * SignPlugin test.
- *
- * @author Phoenix Luo
- **/
+ */
 @RunWith(MockitoJUnitRunner.class)
 public final class SignPluginTest {
     @Mock

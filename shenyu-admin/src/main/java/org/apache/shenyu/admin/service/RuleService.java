@@ -27,8 +27,6 @@ import java.util.List;
 
 /**
  * this is rule service.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 public interface RuleService {
 

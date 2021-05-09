@@ -21,8 +21,6 @@ import java.util.Optional;
 
 /**
  * The type Aes utils.
- *
- * @author nuo-promise
  */
 public class AesUtils {
 

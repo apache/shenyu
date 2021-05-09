@@ -32,8 +32,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for DefaultDubboParamResolveService.
- *
- * @author hebaceous
  */
 @RunWith(MockitoJUnitRunner.class)
 public class DubboBodyParamResolveServiceTest {

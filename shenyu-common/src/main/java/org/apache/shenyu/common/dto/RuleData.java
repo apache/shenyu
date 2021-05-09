@@ -31,8 +31,6 @@ import java.util.List;
 /**
  * RuleDTO.
  *
- * @author xiaoyu(Myth)
- * @author huangxiaofeng
  * @since 2.0.0
  */
 @Data

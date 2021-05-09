@@ -21,8 +21,6 @@ import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
 
 /**
  * Test case for AppAuthQuery.
- *
- * @author wuudongdong
  */
 public final class AppAuthQueryTest extends AbstractReflectGetterSetterTest {
 

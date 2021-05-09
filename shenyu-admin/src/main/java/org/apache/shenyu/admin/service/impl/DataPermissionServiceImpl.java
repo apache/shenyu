@@ -45,8 +45,6 @@ import java.util.stream.Stream;
 
 /**
  * data permission vo.
- *
- * @author kaitoshy(plutokaito)
  */
 @Service("dataPermissionService")
 public class DataPermissionServiceImpl implements DataPermissionService {

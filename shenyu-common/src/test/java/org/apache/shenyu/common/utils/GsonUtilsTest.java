@@ -44,9 +44,7 @@ import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for GsonUtils.
- *
- * @author YuI
- **/
+ */
 public class GsonUtilsTest {
 
     private static final String EXPECTED_JSON = "{\"bool\":true,\"iNumber\":1,\"fNumber\":1.0,\"dNumber\":1.0,"
@@ -64,7 +62,7 @@ public class GsonUtilsTest {
 
     /**
      * test method about {@link GsonUtils#toJson(java.lang.Object)}.
-     **/
+     */
     @Test
     public void testToJson() {
         TestObject testObject = generateTestObject();
@@ -87,7 +85,7 @@ public class GsonUtilsTest {
 
     /**
      * test method about {@link GsonUtils#fromJson(String, Class)}.
-     **/
+     */
     @Test
     public void testFromJsonAboutString() {
         TestObject testObject = generateTestObject();

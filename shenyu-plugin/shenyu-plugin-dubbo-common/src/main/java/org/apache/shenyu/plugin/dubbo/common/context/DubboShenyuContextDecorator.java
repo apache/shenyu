@@ -23,9 +23,7 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 
 /**
- * The type dubbo soul context decorator.
- * 
- * @author xiaoyu
+ * The type dubbo shenyu context decorator.
  */
 public class DubboShenyuContextDecorator implements ShenyuContextDecorator {
     

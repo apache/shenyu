@@ -27,8 +27,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * The Singleton test.
- *
- * @author zhanglei
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class SingletonTest {

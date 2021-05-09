@@ -34,9 +34,6 @@ import java.util.List;
 
 /**
  * Event forwarders, which forward the changed events to each ConfigEventListener.
- *
- * @author huangxiaofeng
- * @author xiaoyu
  */
 @Component
 public class DataChangedEventDispatcher implements ApplicationListener<DataChangedEvent>, InitializingBean {

@@ -28,8 +28,6 @@ import org.apache.shenyu.plugin.base.utils.Singleton;
 
 /**
  * The type Alibaba dubbo plugin data subscriber.
- *
- * @author xiaoyu
  */
 public class AlibabaDubboPluginDataHandler implements PluginDataHandler {
 

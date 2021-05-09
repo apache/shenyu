@@ -40,8 +40,6 @@ import static org.mockito.Mockito.mockStatic;
 
 /**
  * Data Change WebSocketListener Test.
- *
- * @author Hyuk
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class WebsocketDataChangedListenerTest {

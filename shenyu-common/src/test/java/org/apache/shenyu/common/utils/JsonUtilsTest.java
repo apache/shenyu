@@ -32,8 +32,6 @@ import static org.junit.Assert.assertNotNull;
 
 /**
  * Test cases for JsonUtils.
- *
- * @author strawberry-crisis
  */
 public final class JsonUtilsTest {
 

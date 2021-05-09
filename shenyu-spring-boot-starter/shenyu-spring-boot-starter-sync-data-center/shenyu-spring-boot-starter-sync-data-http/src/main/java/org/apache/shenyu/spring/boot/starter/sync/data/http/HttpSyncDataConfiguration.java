@@ -37,8 +37,6 @@ import java.util.Objects;
 
 /**
  * Http sync data configuration for spring boot.
- *
- * @author xiaoyu(Myth)
  */
 @Configuration
 @ConditionalOnClass(HttpSyncDataService.class)

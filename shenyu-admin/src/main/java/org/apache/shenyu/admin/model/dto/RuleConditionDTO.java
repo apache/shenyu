@@ -26,9 +26,6 @@ import java.io.Serializable;
 
 /**
  * this is rule condition from by web front.
- *
- * @author jiangxiaofeng(Nicholas)
- * @author nuo-promise
  */
 @Data
 @Builder

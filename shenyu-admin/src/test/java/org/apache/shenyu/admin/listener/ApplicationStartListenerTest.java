@@ -26,8 +26,6 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Test case for {@link ApplicationStartListener}.
- *
- * @author magicalxiaochen
  */
 public final class ApplicationStartListenerTest extends AbstractSpringIntegrationTest {
 

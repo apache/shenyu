@@ -44,8 +44,6 @@ import java.util.stream.Collectors;
 
 /**
  * etcd client.
- *
- * @author lw1243925457
  */
 @Slf4j
 public class EtcdClient {

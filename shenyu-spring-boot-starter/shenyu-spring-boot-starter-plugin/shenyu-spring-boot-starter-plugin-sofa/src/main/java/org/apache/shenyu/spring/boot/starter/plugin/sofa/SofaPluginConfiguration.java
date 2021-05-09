@@ -35,17 +35,15 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * The type sofa plugin configuration.
- *
- * @author tydhot
  */
 @Configuration
 @ConditionalOnClass(SofaPlugin.class)
 public class SofaPluginConfiguration {
 
     /**
-     * Sofa plugin soul plugin.
+     * Sofa plugin shenyu plugin.
      *
-     * @return the soul plugin
+     * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin sofaPlugin() {
@@ -53,9 +51,9 @@ public class SofaPluginConfiguration {
     }
 
     /**
-     * Dubbo response plugin soul plugin.
+     * Dubbo response plugin shenyu plugin.
      *
-     * @return the soul plugin
+     * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin sofaResponsePlugin() {
@@ -83,9 +81,9 @@ public class SofaPluginConfiguration {
     }
     
     /**
-     * Sofa soul context decorator soul context decorator.
+     * Sofa shenyu context decorator shenyu context decorator.
      *
-     * @return the soul context decorator
+     * @return the shenyu context decorator
      */
     @Bean
     public ShenyuContextDecorator sofaSoulContextDecorator() {

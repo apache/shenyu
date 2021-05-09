@@ -26,9 +26,7 @@ import java.io.Serializable;
 
 /**
  * The Role Query.
- *
- * @author nuo-promise
- **/
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

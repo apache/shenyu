@@ -30,8 +30,6 @@ import java.util.List;
 
 /**
  * The type Meta data dto.
- *
- * @author xiaoyu
  */
 @Data
 @Builder

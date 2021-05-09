@@ -24,8 +24,6 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * test cast for {@link AuthPathApplyDTO}.
- *
- * @author HoldDie
  */
 public final class AuthPathApplyDTOTest {
 

@@ -33,8 +33,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * Test case for {@link LogUtils}.
- *
- * @author HoldDie
  */
 public final class LogUtilsTest {
 

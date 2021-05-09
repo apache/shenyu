@@ -54,8 +54,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Test cases for MetaDataController.
- *
- * @author fcwalker
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class MetaDataControllerTest {

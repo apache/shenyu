@@ -25,8 +25,6 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 
 /**
  * this is rule query.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 @Data
 @AllArgsConstructor

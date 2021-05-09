@@ -25,8 +25,6 @@ import lombok.Getter;
 
 /**
  * SubChannelCopy.
- *
- * @author zhanglei
  */
 @EqualsAndHashCode
 @Getter

@@ -28,8 +28,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * RateLimiterConfig default value test.
- *
- * @author wyc192273
  */
 @RunWith(MockitoJUnitRunner.class)
 @Slf4j

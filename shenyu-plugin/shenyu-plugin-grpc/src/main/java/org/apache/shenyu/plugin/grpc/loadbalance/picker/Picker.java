@@ -23,8 +23,6 @@ import java.util.List;
 
 /**
  * Picker.
- *
- * @author zhanglei
  */
 public interface Picker {
 

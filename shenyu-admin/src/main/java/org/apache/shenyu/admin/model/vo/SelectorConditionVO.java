@@ -29,8 +29,6 @@ import java.io.Serializable;
 
 /**
  * this is selector condition view to web front.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 @Data
 @AllArgsConstructor

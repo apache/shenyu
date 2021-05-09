@@ -23,8 +23,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * web handler.
- *
- * @author xiaoyu(Myth)
  */
 @Configuration
 public class WebConfiguration implements WebMvcConfigurer {

@@ -32,8 +32,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for RuleMapper.
- *
- * @author hellboy0621
  */
 public final class RuleMapperTest extends AbstractSpringIntegrationTest {
 

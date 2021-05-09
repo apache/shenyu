@@ -44,8 +44,6 @@ import java.util.concurrent.ExecutionException;
 
 /**
  * The cache info.
- *
- * @author tydhot
  */
 @Slf4j
 public final class ApplicationConfigCache {

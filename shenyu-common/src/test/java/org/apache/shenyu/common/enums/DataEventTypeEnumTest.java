@@ -27,8 +27,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * Test Cases for DataEventTypeEnum.
- *
- * @author yanbing
  */
 public final class DataEventTypeEnumTest {
 

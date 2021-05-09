@@ -39,7 +39,7 @@ public class ShenyuSpringCloudClientConfiguration {
      *
      * @param config the config
      * @param env    the env
-     * @param shenyuClientRegisterRepository the soulClientRegisterRepository
+     * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      * @return the spring cloud client bean post processor
      */
     @Bean
@@ -53,7 +53,7 @@ public class ShenyuSpringCloudClientConfiguration {
      *
      * @param config the config
      * @param env    the env
-     * @param shenyuClientRegisterRepository the soulClientRegisterRepository
+     * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      * @return the context register listener
      */
     @Bean

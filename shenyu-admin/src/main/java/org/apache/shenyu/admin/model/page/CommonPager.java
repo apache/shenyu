@@ -26,7 +26,6 @@ import java.util.List;
 
 /**
  * common Pager.
- * @author xiaoyu(Myth)
  */
 @Data
 @AllArgsConstructor

@@ -25,8 +25,6 @@ import java.util.List;
 
 /**
  * The type Load balance utils.
- *
- * @author xiaoyu(Myth)
  */
 public class LoadBalanceUtils {
 

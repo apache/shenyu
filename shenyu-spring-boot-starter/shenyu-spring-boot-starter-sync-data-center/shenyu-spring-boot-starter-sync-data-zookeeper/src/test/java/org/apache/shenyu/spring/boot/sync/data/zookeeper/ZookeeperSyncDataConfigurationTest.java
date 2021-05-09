@@ -36,8 +36,6 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * test case for {@link ZookeeperSyncDataConfiguration}.
- *
- * @author David Liu
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(

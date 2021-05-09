@@ -26,8 +26,6 @@ import org.junit.Test;
 
 /**
  * Test cases for PredicateJudgeFactory.
- *
- * @author BetterWp
  */
 public final class PredicateJudgeFactoryTest {
     private static final String FIRST_TIME = "2018-07-11 17:20:00";

@@ -22,8 +22,6 @@ import java.util.Collection;
 
 /**
  * The type Collection utils.
- *
- * @author xiaoyu(Myth)
  */
 public class CollectionUtils {
 

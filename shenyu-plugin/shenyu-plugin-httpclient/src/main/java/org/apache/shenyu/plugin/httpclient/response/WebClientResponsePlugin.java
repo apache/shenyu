@@ -37,8 +37,6 @@ import java.util.Objects;
 
 /**
  * this is response plugin.
- *
- * @author xiaoyu
  */
 public class WebClientResponsePlugin implements ShenyuPlugin {
 

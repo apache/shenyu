@@ -35,8 +35,6 @@ import rx.Observable;
 
 /**
  * hystrix command for semaphore and thread.
- *
- * @author liangziqiang
  */
 public interface Command {
     /**

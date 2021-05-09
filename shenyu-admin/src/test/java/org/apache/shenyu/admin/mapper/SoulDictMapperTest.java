@@ -30,9 +30,7 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThat;
 
 /**
- * Test cases for SoulDictMapper.
- *
- * @author dengliming
+ * Test cases for ShenyuDictMapper.
  */
 public final class SoulDictMapperTest extends AbstractSpringIntegrationTest {
 

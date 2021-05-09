@@ -23,9 +23,7 @@ import lombok.NoArgsConstructor;
 import org.apache.shenyu.admin.model.page.PageParameter;
 
 /**
- * this is soul dict query.
- *
- * @author dengliming
+ * this is shenyu dict query.
  */
 @Data
 @AllArgsConstructor

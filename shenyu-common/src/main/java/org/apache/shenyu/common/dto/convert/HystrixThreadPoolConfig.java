@@ -24,7 +24,6 @@ import org.apache.shenyu.common.constant.Constants;
 
 /**
  * hystrix thread pool config.
- * @author liangziqiang
  */
 @Getter
 @Setter

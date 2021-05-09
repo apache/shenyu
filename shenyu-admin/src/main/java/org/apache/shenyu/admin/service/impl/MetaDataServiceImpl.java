@@ -51,8 +51,6 @@ import java.util.stream.Collectors;
 
 /**
  * The type Meta data service.
- *
- * @author xiaoyu
  */
 @Slf4j
 @Service("metaDataService")

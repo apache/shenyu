@@ -25,8 +25,6 @@ import org.mapstruct.factory.Mappers;
 
 /**
  * The interface App auth transfer.
- *
- * @author xiaoyu(Myth)
  */
 @Mapper
 public interface AppAuthTransfer {

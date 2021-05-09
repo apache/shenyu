@@ -38,8 +38,6 @@ import reactor.core.publisher.Mono;
 
 /**
  * Sentinel Plugin.
- *
- * @author tydhot
  */
 @Slf4j
 public class SentinelPlugin extends AbstractShenyuPlugin {

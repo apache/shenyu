@@ -29,8 +29,6 @@ import java.util.List;
 
 /**
  * The interface Meta data transfer.
- *
- * @author xiaoyu(Myth)
  */
 @Mapper
 public interface MetaDataTransfer {

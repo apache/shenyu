@@ -56,8 +56,6 @@ import static org.mockito.Mockito.atLeastOnce;
 
 /**
  * Test cases for RoleService.
- *
- * @author wincher
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class RoleServiceTest {

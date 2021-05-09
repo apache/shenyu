@@ -26,8 +26,6 @@ import java.util.List;
 
 /**
  * DataPermissionMapper.
- *
- * @author kaitoShy(plutokaito)
  */
 @Mapper
 public interface DataPermissionMapper {

@@ -25,8 +25,6 @@ import java.util.Map;
 
 /**
  * Mock Validator Target.
- *
- * @author David Liu
  */
 public interface MockValidatorTarget {
     

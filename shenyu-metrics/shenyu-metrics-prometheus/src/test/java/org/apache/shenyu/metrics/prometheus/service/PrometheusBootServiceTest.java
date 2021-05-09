@@ -37,8 +37,6 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * Test cases for PrometheusMetricsTrackerManager.
- *
- * @author dengliming
  */
 public final class PrometheusBootServiceTest {
 

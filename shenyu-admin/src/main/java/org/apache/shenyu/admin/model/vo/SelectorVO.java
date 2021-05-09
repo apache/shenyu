@@ -30,8 +30,6 @@ import java.util.List;
 
 /**
  * this is selector view to web front.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 @Data
 @AllArgsConstructor

@@ -49,8 +49,6 @@ import static io.grpc.ConnectivityState.READY;
 
 /**
  * LoadBalancer.
- *
- * @author zhanglei
  */
 @Slf4j
 public abstract class AbstractLoadBalancer extends LoadBalancer {

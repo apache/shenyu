@@ -25,7 +25,6 @@ import java.time.Duration;
 
 /**
  * the http sync strategy properties.
- * @author huangxiaofeng
  */
 @Getter
 @Setter

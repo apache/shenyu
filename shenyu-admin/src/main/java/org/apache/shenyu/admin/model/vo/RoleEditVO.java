@@ -29,8 +29,6 @@ import java.util.Optional;
 
 /**
  * this is role edit for web front.
- *
- * @author nuo-promise
  */
 @Data
 @AllArgsConstructor

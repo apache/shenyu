@@ -39,8 +39,6 @@ import java.util.List;
 
 /**
  * The type Meta data controller.
- *
- * @author xiaoyu
  */
 @RestController
 @RequestMapping("/meta-data")

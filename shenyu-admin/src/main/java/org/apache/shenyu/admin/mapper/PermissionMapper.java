@@ -25,9 +25,7 @@ import java.util.List;
 
 /**
  * this is permission mapper.
- *
- * @author nuo-promise
- **/
+ */
 @Mapper
 public interface PermissionMapper {
 

@@ -45,8 +45,6 @@ import org.springframework.web.server.ServerWebExchange;
 
 /**
  * The type Default sign service.
- *
- * @author xiaoyu
  */
 @Slf4j
 public class DefaultSignService implements SignService {

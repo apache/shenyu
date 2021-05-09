@@ -118,7 +118,7 @@ public class ConsulServerRegisterRepository implements ShenyuServerRegisterRepos
                 map.putIfAbsent(contextPath, new ArrayList<>());
                 map.get(contextPath).add(uriRegisterDTO);
             } else {
-                log.debug("maybe not soul client, ignore service instance: {}", serviceInstance.toString());
+                log.debug("maybe not shenyu client, ignore service instance: {}", serviceInstance.toString());
             }
         });
         return map;

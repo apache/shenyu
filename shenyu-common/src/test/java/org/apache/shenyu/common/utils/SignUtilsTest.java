@@ -27,8 +27,6 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * Test cases for SignUtils.
- *
- * @author dengliming
  */
 public final class SignUtilsTest {
 

@@ -26,8 +26,6 @@ import lombok.Data;
 
 /**
  * The grpc SubChannels.
- *
- * @author zhanglei
  */
 public class SubChannels {
 

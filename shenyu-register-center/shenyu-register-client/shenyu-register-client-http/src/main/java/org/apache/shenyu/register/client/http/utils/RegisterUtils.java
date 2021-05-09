@@ -23,8 +23,6 @@ import java.io.IOException;
 
 /**
  * RegisterUtils.
- *
- * @author severez
  */
 @Slf4j
 public final class RegisterUtils {

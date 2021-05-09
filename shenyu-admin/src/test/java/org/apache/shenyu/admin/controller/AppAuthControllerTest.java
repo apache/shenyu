@@ -59,8 +59,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Test cases for AppAuthController.
- *
- * @author magicalxiaochen
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class AppAuthControllerTest {

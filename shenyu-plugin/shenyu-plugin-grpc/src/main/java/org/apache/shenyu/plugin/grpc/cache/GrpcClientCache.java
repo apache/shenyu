@@ -27,8 +27,6 @@ import java.util.Objects;
 
 /**
  * The Grpc client cache.
- *
- * @author zhanglei
  */
 @Slf4j
 public class GrpcClientCache {

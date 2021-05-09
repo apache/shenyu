@@ -40,8 +40,6 @@ import java.util.Objects;
 
 /**
  * Motan plugin.
- *
- * @author tydhot
  */
 @Slf4j
 public class MotanPlugin extends AbstractShenyuPlugin {

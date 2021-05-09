@@ -25,7 +25,6 @@ import org.apache.shenyu.admin.model.query.PluginHandleQuery;
 
 /**
  * The interface Plugin handle mapper.
- * @author liangziqiang
  */
 @Mapper
 public interface PluginHandleMapper {

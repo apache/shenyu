@@ -31,8 +31,6 @@ import static org.junit.Assert.assertNotNull;
 
 /**
  * Test case for ZookeeperConfiguration.
- *
- * @author fengzhenbing
  */
 public final class ZookeeperConfigurationTest extends AbstractConfigurationTest {
 

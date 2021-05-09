@@ -25,23 +25,21 @@ import org.apache.shenyu.admin.model.query.SoulDictQuery;
 import java.util.List;
 
 /**
- * The soul dict mapper.
- *
- * @author dengliming
+ * The shenyu dict mapper.
  */
 @Mapper
 public interface SoulDictMapper {
 
     /**
-     * Select soul dict by id.
+     * Select shenyu dict by id.
      *
      * @param id the id.
-     * @return the soul dict do.
+     * @return the shenyu dict do.
      */
     SoulDictDO selectById(@Param("id") String id);
 
     /**
-     * find soul dict do list by dict type.
+     * find shenyu dict do list by dict type.
      *
      * @param type the dict type.
      * @return the list
@@ -49,7 +47,7 @@ public interface SoulDictMapper {
     List<SoulDictDO> findByType(@Param("type") String type);
 
     /**
-     * insert soul dict.
+     * insert shenyu dict.
      *
      * @param record {@link SoulDictDO}
      * @return affected rows
@@ -57,7 +55,7 @@ public interface SoulDictMapper {
     int insert(SoulDictDO record);
 
     /**
-     * insert selective soul dict.
+     * insert selective shenyu dict.
      *
      * @param record {@link SoulDictDO}
      * @return affected rows.
@@ -65,7 +63,7 @@ public interface SoulDictMapper {
     int insertSelective(SoulDictDO record);
 
     /**
-     * count soul dict by query.
+     * count shenyu dict by query.
      *
      * @param soulDictQuery {@linkplain SoulDictQuery}
      * @return the count
@@ -73,15 +71,15 @@ public interface SoulDictMapper {
     int countByQuery(SoulDictQuery soulDictQuery);
 
     /**
-     * select soul dict list by query.
+     * select shenyu dict list by query.
      *
      * @param soulDictQuery {@linkplain SoulDictQuery}
-     * @return the soul dict list
+     * @return the shenyu dict list
      */
     List<SoulDictDO> selectByQuery(SoulDictQuery soulDictQuery);
 
     /**
-     * update some selective columns in soul dict.
+     * update some selective columns in shenyu dict.
      *
      * @param record {@linkplain SoulDictDO}
      * @return affected rows
@@ -89,7 +87,7 @@ public interface SoulDictMapper {
     int updateByPrimaryKeySelective(SoulDictDO record);
 
     /**
-     * update soul dict by primary key.
+     * update shenyu dict by primary key.
      *
      * @param record {@linkplain SoulDictDO}
      * @return effected rows.

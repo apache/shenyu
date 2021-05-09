@@ -25,8 +25,6 @@ import java.io.Serializable;
 
 /**
  * The monitor configuration for influxdb.
- *
- * @author xiaoyu(Myth)
  */
 @Data
 @EqualsAndHashCode

@@ -24,8 +24,6 @@ import java.util.List;
 
 /**
  * The type Auth apply dto.
- *
- * @author xiaoyu
  */
 @Data
 public class AuthApplyDTO implements Serializable {

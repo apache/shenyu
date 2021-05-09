@@ -24,9 +24,6 @@ import java.io.Serializable;
 
 /**
  * The type Spring cloud selector handle.
- *
- * @author xiaoyu(Myth)
- * @author nuo-promise
  */
 @Data
 @Builder

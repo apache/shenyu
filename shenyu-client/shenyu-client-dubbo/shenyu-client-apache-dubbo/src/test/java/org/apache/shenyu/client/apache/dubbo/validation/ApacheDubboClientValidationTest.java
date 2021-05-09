@@ -24,8 +24,6 @@ import org.junit.Test;
 
 /**
  * Test case for {@link ApacheDubboClientValidation}.
- *
- * @author HoldDie
  */
 @Ignore
 public final class ApacheDubboClientValidationTest {

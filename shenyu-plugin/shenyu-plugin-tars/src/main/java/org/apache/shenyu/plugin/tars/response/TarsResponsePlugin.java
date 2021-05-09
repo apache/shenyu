@@ -34,8 +34,6 @@ import java.util.Objects;
 
 /**
  * Tars response plugin.
- *
- * @author tydhot
  */
 public class TarsResponsePlugin implements ShenyuPlugin {
 

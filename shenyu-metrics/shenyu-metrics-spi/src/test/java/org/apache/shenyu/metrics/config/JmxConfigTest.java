@@ -34,9 +34,7 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * The Test Case For JmxConfig.
- *
- * @author nuo-promise
- **/
+ */
 public final class JmxConfigTest {
 
     private JmxConfig jmxConfig;

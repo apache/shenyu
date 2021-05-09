@@ -22,9 +22,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * this soul dict from web front.
- *
- * @author dengliming
+ * this shenyu dict from web front.
  */
 @Data
 public class SoulDictDTO implements Serializable {

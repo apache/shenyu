@@ -29,8 +29,6 @@ import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 
 /**
  * The type Apache dubbo meta data subscriber.
- *
- * @author xiaoyu
  */
 public class ApacheDubboMetaDataSubscriber implements MetaDataSubscriber {
 

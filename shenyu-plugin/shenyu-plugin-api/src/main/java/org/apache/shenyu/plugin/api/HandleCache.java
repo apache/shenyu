@@ -19,8 +19,6 @@ package org.apache.shenyu.plugin.api;
 
 /**
  * The selector or rule handle cache.
- *
- * @author zl
  */
 public interface HandleCache<K, V> {
 

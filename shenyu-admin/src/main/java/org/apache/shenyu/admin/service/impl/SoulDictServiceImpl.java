@@ -35,9 +35,6 @@ import java.util.stream.Collectors;
 
 /**
  * SoulDictServiceImpl.
- *
- * @author dengliming
- * @author nuo-promise
  */
 @Service("soulDictService")
 public class SoulDictServiceImpl implements SoulDictService {

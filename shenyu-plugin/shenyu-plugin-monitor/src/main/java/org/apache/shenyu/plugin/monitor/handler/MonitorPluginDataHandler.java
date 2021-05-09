@@ -29,8 +29,6 @@ import org.apache.shenyu.plugin.base.utils.Singleton;
 
 /**
  * The type Monitor plugin data handler.
- *
- * @author xiaoyu
  */
 public class MonitorPluginDataHandler implements PluginDataHandler {
     

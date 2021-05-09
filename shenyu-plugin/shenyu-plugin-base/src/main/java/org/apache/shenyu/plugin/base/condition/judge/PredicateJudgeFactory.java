@@ -27,8 +27,6 @@ import java.util.Objects;
 
 /**
  * Predicate judge factory.
- *
- * @author xiaoyu(Myth)
  */
 public class PredicateJudgeFactory {
 

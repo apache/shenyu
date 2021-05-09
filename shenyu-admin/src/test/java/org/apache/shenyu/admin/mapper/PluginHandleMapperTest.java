@@ -31,8 +31,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for PluginHandleMapper.
- *
- * @author Nemointellego
  */
 public final class PluginHandleMapperTest extends AbstractSpringIntegrationTest {
 

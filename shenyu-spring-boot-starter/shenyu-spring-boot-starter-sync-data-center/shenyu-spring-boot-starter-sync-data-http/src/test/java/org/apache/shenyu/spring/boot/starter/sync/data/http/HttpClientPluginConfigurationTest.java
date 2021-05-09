@@ -48,8 +48,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for {@link HttpSyncDataConfiguration}.
- *
- * @author strawberry-crisis
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(

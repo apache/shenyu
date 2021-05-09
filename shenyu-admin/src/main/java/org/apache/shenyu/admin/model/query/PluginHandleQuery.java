@@ -25,7 +25,6 @@ import org.apache.shenyu.admin.model.page.PageParameter;
 
 /**
  * this is plugin handle query.
- * @author liangziqiang
  */
 @Data
 @AllArgsConstructor

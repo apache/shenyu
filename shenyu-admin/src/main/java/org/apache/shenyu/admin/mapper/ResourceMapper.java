@@ -26,9 +26,7 @@ import java.util.List;
 
 /**
  * this is resource mapper.
- *
- * @author nuo-promise
- **/
+ */
 @Mapper
 public interface ResourceMapper {
 

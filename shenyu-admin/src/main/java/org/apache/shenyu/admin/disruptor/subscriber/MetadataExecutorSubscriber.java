@@ -27,8 +27,6 @@ import java.util.Collection;
 
 /**
  * The type Metadata executor subscriber.
- *
- * @author xiaoyu
  */
 public class MetadataExecutorSubscriber implements ExecutorTypeSubscriber<MetaDataRegisterDTO> {
     

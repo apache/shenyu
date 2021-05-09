@@ -28,8 +28,6 @@ import java.io.Serializable;
 
 /**
  * this is plugin view to web front.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 @Data
 @AllArgsConstructor

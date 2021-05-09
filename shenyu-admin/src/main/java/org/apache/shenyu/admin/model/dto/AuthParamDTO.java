@@ -23,8 +23,6 @@ import java.io.Serializable;
 
 /**
  * The type Auth param dto.
- *
- * @author xiaoyu
  */
 @Data
 public class AuthParamDTO implements Serializable {

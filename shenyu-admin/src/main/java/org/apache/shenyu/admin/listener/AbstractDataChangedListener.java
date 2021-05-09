@@ -49,7 +49,6 @@ import java.util.concurrent.ConcurrentMap;
  * although it may be a little different, but it doesn't matter, we will have thread to periodically
  * pull the data in the database.
  *
- * @author huangxiaofeng
  * @since 2.0.0
  */
 @Slf4j

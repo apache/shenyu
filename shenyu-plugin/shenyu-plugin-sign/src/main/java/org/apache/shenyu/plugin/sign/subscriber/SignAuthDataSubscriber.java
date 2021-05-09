@@ -23,8 +23,6 @@ import org.apache.shenyu.common.dto.AppAuthData;
 
 /**
  * The type Sign auth data subscriber.
- *
- * @author xiaoyu
  */
 public class SignAuthDataSubscriber implements AuthDataSubscriber {
     

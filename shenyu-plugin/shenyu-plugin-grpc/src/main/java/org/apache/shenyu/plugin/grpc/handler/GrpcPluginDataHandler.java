@@ -27,8 +27,6 @@ import java.util.Objects;
 
 /**
  * The type Grpc plugin data handler.
- *
- * @author zhanglei
  */
 public class GrpcPluginDataHandler implements PluginDataHandler {
 

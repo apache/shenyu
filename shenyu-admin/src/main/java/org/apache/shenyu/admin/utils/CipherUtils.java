@@ -32,8 +32,6 @@ import java.util.Optional;
 
 /**
  *  Cipher Tools.
- *
- * @author nuo-promise
  */
 public class CipherUtils {
 

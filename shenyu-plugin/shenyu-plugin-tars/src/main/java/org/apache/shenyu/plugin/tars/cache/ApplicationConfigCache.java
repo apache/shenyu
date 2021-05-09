@@ -58,8 +58,6 @@ import java.util.stream.Collectors;
 
 /**
  * Tars config cache.
- *
- * @author tydhot
  */
 @Slf4j
 public final class ApplicationConfigCache {
@@ -253,7 +251,6 @@ public final class ApplicationConfigCache {
      * invalidate.
      *
      * @param contextPath context path
-     * @author HoldDie
      */
     public void invalidate(final String contextPath) {
         List<MetaData> metaDataList = ctxPathCache.getOrDefault(contextPath, new ArrayList<>());

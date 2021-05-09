@@ -30,8 +30,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The RuleHandle factory.
- *
- * @author yiwenlong (wlong.yi@gmail.com)
  */
 public final class RuleHandleFactory {
 

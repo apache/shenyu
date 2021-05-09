@@ -21,8 +21,6 @@ import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
 
 /**
  * Test case for EnumVO.
- *
- * @author midnight2104
  */
 public final class EnumVOTest extends AbstractReflectGetterSetterTest {
 

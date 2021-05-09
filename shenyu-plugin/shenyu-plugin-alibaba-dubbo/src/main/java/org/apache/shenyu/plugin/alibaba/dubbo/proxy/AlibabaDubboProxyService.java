@@ -34,8 +34,6 @@ import java.util.Objects;
 
 /**
  * Alibaba dubbo proxy service is  use GenericService.
- *
- * @author xiaoyu(Myth)
  */
 @Slf4j
 public class AlibabaDubboProxyService {
@@ -57,7 +55,7 @@ public class AlibabaDubboProxyService {
      * @param body     the body
      * @param metaData the meta data
      * @return the object
-     * @throws ShenyuException the soul exception
+     * @throws ShenyuException the shenyu exception
      */
     public Object genericInvoker(final String body, final MetaData metaData) throws ShenyuException {
         ReferenceConfig<GenericService> reference = ApplicationConfigCache.getInstance().get(metaData.getPath());

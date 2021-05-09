@@ -23,8 +23,6 @@ import io.grpc.stub.StreamObserver;
 
 /**
  * A holding a future which completes when the rpc terminates.
- *
- * @author zhanglei
  */
 public class CompleteObserver<T> implements StreamObserver<T> {
 

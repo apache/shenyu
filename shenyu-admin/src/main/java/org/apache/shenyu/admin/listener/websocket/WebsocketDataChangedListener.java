@@ -32,8 +32,6 @@ import org.apache.shenyu.common.utils.GsonUtils;
 /**
  * The type Websocket data changed listener.
  *
- * @author xiaoyu(Myth)
- * @author huangxiaofeng
  * @since 2.0.0
  */
 public class WebsocketDataChangedListener implements DataChangedListener {

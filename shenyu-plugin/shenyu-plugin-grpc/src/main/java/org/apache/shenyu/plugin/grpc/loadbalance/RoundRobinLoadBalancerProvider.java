@@ -27,8 +27,6 @@ import java.util.List;
 
 /**
  * RoundRobinLoadBalancerProvider.
- *
- * @author zhanglei
  */
 @Slf4j
 public class RoundRobinLoadBalancerProvider extends LoadBalancerProvider {

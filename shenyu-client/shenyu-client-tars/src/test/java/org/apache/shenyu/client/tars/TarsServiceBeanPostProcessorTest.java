@@ -33,8 +33,6 @@ import java.util.Properties;
 
 /**
  * Test case for {@link TarsServiceBeanPostProcessor}.
- *
- * @author tydhot
  */
 @RunWith(MockitoJUnitRunner.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)

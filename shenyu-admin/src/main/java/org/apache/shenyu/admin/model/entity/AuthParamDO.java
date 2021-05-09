@@ -27,9 +27,6 @@ import java.sql.Timestamp;
 
 /**
  * The type Auth param do.
- *
- * @author xiaoyu
- * @author nuo-promise
  */
 @Data
 @SuperBuilder

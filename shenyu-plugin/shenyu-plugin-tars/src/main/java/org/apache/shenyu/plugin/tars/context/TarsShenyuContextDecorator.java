@@ -23,9 +23,7 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 
 /**
- * The type Tars soul context decorator.
- * 
- * @author xiaoyu
+ * The type Tars shenyu context decorator.
  */
 public class TarsShenyuContextDecorator implements ShenyuContextDecorator {
     

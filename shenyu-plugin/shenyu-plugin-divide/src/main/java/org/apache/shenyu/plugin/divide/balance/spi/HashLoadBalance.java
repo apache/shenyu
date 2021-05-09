@@ -30,8 +30,6 @@ import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * hash algorithm impl.
- *
- * @author xiaoyu(Myth)
  */
 @Join
 public class HashLoadBalance extends AbstractLoadBalance {

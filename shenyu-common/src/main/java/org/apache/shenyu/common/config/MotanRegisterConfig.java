@@ -26,8 +26,6 @@ import java.io.Serializable;
 
 /**
  * Motan register config.
- *
- * @author tydhot
  */
 @Data
 @EqualsAndHashCode

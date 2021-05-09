@@ -19,8 +19,6 @@ package org.apache.shenyu.common.constant;
 
 /**
  * DubboParamConstants.
- *
- * @author xiaoyu(Myth)
  */
 public final class DubboParamConstants {
 

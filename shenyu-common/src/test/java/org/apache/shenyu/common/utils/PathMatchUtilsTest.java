@@ -24,8 +24,6 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * Test cases for PathMatchUtils.
- *
- * @author dengliming
  */
 public final class PathMatchUtilsTest {
 

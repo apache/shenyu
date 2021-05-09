@@ -27,8 +27,6 @@ import org.springframework.web.reactive.DispatcherHandler;
 
 /**
  * the type redirect plugin Configuration.
- *
- * @author HoldDie
  */
 @Configuration
 public class RedirectPluginConfiguration {
@@ -37,7 +35,7 @@ public class RedirectPluginConfiguration {
      * Redirect plugin.
      *
      * @param dispatcherHandler {@link DispatcherHandler}
-     * @return the soul plugin
+     * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin redirectPlugin(final DispatcherHandler dispatcherHandler) {

@@ -60,9 +60,6 @@ import static org.mockito.BDDMockito.given;
 
 /**
  * Test cases for RuleService.
- *
- * @author kennhua
- * @author nuo-promise
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public final class RuleServiceTest {

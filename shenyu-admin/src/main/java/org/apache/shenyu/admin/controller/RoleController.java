@@ -41,8 +41,6 @@ import java.util.Optional;
 
 /**
  * this is role controller.
- *
- * @author nuo-promise
  */
 @RestController
 @RequestMapping("/role")

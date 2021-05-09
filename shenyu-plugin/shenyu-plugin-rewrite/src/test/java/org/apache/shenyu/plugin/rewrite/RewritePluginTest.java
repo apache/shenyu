@@ -43,8 +43,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * RewritePluginTest.
- *
- * @author wuudongdong
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class RewritePluginTest {

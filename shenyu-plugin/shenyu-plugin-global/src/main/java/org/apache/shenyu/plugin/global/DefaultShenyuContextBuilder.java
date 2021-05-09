@@ -34,8 +34,6 @@ import java.util.Optional;
 
 /**
  * The type Default soul context builder.
- *
- * @author xiaoyu
  */
 public class DefaultShenyuContextBuilder implements ShenyuContextBuilder {
     

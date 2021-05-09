@@ -49,8 +49,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Test case for RuleController.
- *
- * @author shijie666
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class RuleControllerTest {

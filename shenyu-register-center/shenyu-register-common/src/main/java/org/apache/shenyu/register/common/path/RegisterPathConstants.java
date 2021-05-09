@@ -19,8 +19,6 @@ package org.apache.shenyu.register.common.path;
 
 /**
  * zookeeper register center.
- *
- * @author xiaoyu
  */
 public class RegisterPathConstants {
     
@@ -35,7 +33,7 @@ public class RegisterPathConstants {
     private static final String SEPARATOR = "/";
     
     /**
-     * build child path of "/soul/register/metadata/{rpcType}/".
+     * build child path of "/shenyu/register/metadata/{rpcType}/".
      *
      * @param rpcType rpc type
      * @return path string
@@ -45,7 +43,7 @@ public class RegisterPathConstants {
     }
     
     /**
-     * build child path of "/soul/register/metadata/{rpcType}/{contextPath}/".
+     * build child path of "/shenyu/register/metadata/{rpcType}/{contextPath}/".
      *
      * @param rpcType rpc type
      * @param contextPath context path
@@ -57,7 +55,7 @@ public class RegisterPathConstants {
     
     /**
      * Build uri path string.
-     * build child path of "/soul/register/uri/{rpcType}/".
+     * build child path of "/shenyu/register/uri/{rpcType}/".
      *
      * @param rpcType the rpc type
      * @return the string
@@ -68,7 +66,7 @@ public class RegisterPathConstants {
     
     /**
      * Build uri path string.
-     * build child path of "/soul/register/uri/{rpcType}/{contextPath}/".
+     * build child path of "/shenyu/register/uri/{rpcType}/{contextPath}/".
      *
      * @param rpcType the rpc type
      * @param contextPath the context path
@@ -115,7 +113,7 @@ public class RegisterPathConstants {
 
     /**
      * Build nacos instance service path string.
-     * build child path of "soul.register.service.{rpcType}".
+     * build child path of "shenyu.register.service.{rpcType}".
      *
      * @param rpcType the rpc type
      * @return the string
@@ -127,7 +125,7 @@ public class RegisterPathConstants {
 
     /**
      * Build nacos config service path string.
-     * build child path of "soul.register.service.{rpcType}.{contextPath}".
+     * build child path of "shenyu.register.service.{rpcType}.{contextPath}".
      *
      * @param rpcType the rpc type
      * @param contextPath the context path

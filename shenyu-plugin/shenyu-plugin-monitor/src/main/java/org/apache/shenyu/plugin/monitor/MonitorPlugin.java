@@ -36,8 +36,6 @@ import java.util.Optional;
 
 /**
  * the monitor plugin.
- *
- * @author xiaoyu(Myth)
  */
 public class MonitorPlugin extends AbstractShenyuPlugin {
     

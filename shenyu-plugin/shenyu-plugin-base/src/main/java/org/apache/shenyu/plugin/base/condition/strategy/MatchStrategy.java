@@ -25,8 +25,6 @@ import java.util.List;
 
 /**
  * This is condition strategy.
- *
- * @author xiaoyu(Myth)
  */
 @SPI
 public interface MatchStrategy {

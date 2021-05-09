@@ -48,11 +48,9 @@ import reactor.core.publisher.Mono;
 import reactor.util.annotation.NonNull;
 
 /**
- * Soul logging plugin. it can print request info(include request headers, request params, request body ...etc) and
+ * Shenyu logging plugin. it can print request info(include request headers, request params, request body ...etc) and
  * response info(include response headers and response body).
- *
- * @author xuxd
- **/
+ */
 @Slf4j
 public class LoggingPlugin extends AbstractShenyuPlugin {
 

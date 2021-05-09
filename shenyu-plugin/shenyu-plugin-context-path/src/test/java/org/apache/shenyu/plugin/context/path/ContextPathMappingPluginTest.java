@@ -45,8 +45,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * ContextPathMapping Plugin Test.
- *
- * @author zhanglei
  */
 public final class ContextPathMappingPluginTest {
 

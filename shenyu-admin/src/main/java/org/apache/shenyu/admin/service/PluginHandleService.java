@@ -26,7 +26,6 @@ import java.util.List;
 
 /**
  * this is plugin handle service.
- * @author liangziqiang
  */
 public interface PluginHandleService {
     /**

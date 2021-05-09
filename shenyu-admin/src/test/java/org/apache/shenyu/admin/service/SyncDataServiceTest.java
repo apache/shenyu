@@ -44,8 +44,6 @@ import static org.mockito.BDDMockito.given;
 
 /**
  * test for SyncDataService.
- *
- * @author Redick
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class SyncDataServiceTest {

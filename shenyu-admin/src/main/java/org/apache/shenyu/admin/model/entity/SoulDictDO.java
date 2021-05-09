@@ -28,10 +28,7 @@ import org.apache.shenyu.common.utils.UUIDUtils;
 import java.util.Optional;
 
 /**
- * SoulDictDO.
- *
- * @author dengliming
- * @author nuo-promise
+ * ShenyuDictDO.
  */
 @Data
 @SuperBuilder

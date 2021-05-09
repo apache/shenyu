@@ -36,8 +36,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * Test case for {@link HttpClientPluginConfiguration}.
- *
- * @author itmiwang
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(

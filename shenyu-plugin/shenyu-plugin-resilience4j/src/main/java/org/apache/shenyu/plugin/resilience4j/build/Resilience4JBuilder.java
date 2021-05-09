@@ -31,8 +31,6 @@ import java.time.Duration;
 
 /**
  * Resilience4j builder.
- *
- * @author zhanglei
  */
 public class Resilience4JBuilder {
 

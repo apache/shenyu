@@ -37,9 +37,7 @@ import java.util.Optional;
 
 /**
  * JWT tools.
- *
- * @author YuI
- **/
+ */
 @UtilityClass
 @Slf4j
 @Data

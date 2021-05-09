@@ -37,8 +37,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for RoleMapper.
- *
- * @author wincher
  */
 public final class RoleMapperTest extends AbstractSpringIntegrationTest {
 

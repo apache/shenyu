@@ -26,8 +26,6 @@ import java.util.List;
 
 /**
  * this is application authority view to web front.
- *
- * @author xiaoyu(Myth)
  */
 @Data
 @AllArgsConstructor

@@ -44,8 +44,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * Test case for AlibabaDubboPlugin.
- *
- * @author HoldDie
  */
 @RunWith(MockitoJUnitRunner.Silent.class)
 public final class AlibabaDubboPluginTest {

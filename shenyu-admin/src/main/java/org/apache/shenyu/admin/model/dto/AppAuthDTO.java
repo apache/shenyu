@@ -24,8 +24,6 @@ import java.util.List;
 
 /**
  * this is application authority from by web front.
- *
- * @author xiaoyu(Myth)
  */
 @Data
 public class AppAuthDTO implements Serializable {

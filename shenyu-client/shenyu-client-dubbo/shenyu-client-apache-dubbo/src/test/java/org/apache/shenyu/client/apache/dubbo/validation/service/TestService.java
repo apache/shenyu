@@ -24,8 +24,6 @@ import javax.validation.constraints.NotNull;
 
 /**
  * TestService.
- *
- * @author KevinClair
  */
 public interface TestService {
 

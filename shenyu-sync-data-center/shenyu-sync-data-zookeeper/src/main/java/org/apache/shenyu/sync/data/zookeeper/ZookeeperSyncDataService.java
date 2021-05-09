@@ -42,8 +42,6 @@ import org.apache.shenyu.sync.data.api.SyncDataService;
 
 /**
  * this cache data with zookeeper.
- *
- * @author xiaoyu
  */
 public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable {
 

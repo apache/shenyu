@@ -23,8 +23,6 @@ import static org.junit.Assert.assertNotNull;
 
 /**
  * Test cases for VersionUtils.
- *
- * @author linkuan
  */
 public final class VersionUtilsTest {
 

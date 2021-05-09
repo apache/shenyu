@@ -28,8 +28,6 @@ import java.util.Optional;
 
 /**
  * this is dashboard user view to web front.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 @Data
 @AllArgsConstructor

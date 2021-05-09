@@ -20,8 +20,6 @@ package org.apache.shenyu.admin.listener;
 /**
  * Data cache to compare if data has changed.
  *
- * @author huangxiaofeng
- * @author xiaoyu
  * @since 2.0.0
  */
 public class ConfigDataCache {

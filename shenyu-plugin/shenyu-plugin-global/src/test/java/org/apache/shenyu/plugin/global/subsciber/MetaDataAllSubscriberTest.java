@@ -27,9 +27,7 @@ import static org.junit.Assert.assertNull;
 
 /**
  * The Test Case For MetaDataAllSubscriber.
- *
- * @author nuo-promise
- **/
+ */
 public final class MetaDataAllSubscriberTest {
     
     private MetaDataAllSubscriber metaDataAllSubscriber;

@@ -35,8 +35,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * The type divide plugin data handler test.
- *
- * @author zhanglei
  */
 public final class DividePluginDataHandlerTest {
 

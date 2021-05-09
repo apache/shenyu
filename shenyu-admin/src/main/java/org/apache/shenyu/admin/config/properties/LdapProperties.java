@@ -22,9 +22,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * Ldap properties.
- *
- * @author Naah
- **/
+ */
 @Data
 @ConfigurationProperties(prefix = "soul.ldap")
 public class LdapProperties {

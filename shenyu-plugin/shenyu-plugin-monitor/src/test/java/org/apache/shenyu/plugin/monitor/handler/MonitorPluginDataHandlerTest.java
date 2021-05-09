@@ -29,8 +29,6 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * Test case for MonitorPluginHandler.
- *
- * @author wincher
  */
 public final class MonitorPluginDataHandlerTest {
 

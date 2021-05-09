@@ -27,8 +27,6 @@ import java.io.InputStream;
 
 /**
  * Dynamic messages.
- *
- * @author zhanglei
  */
 public class DynamicMessageMarshaller implements Marshaller<DynamicMessage> {
 

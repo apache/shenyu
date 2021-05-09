@@ -27,8 +27,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * Test case for {@link SpringBeanUtils}.
- *
- * @author HoldDie
  */
 public final class SpringBeanUtilsTest {
 
@@ -63,8 +61,6 @@ public final class SpringBeanUtilsTest {
 
     /**
      * Test Bean.
-     *
-     * @author HoldDie
      */
     static final class TestBean {
     }

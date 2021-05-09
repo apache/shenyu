@@ -28,8 +28,6 @@ import java.util.regex.Pattern;
 
 /**
  * The type Uri utils.
- *
- * @author xiaoyu(Myth)
  */
 public class UpstreamCheckUtils {
 

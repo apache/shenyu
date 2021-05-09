@@ -44,8 +44,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * SofaPluginTest.
- *
- * @author tydhot
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class SofaPluginTest {

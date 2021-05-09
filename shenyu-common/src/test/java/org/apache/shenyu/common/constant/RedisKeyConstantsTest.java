@@ -25,8 +25,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for RedisKeyConstants.
- *
- * @author DaveModl (davemo-coderpersonal@hotmail.com)
  */
 public final class RedisKeyConstantsTest {
 

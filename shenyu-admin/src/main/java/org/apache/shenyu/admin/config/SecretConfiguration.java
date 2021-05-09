@@ -25,9 +25,6 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * Aes Secret configuration.
- *
- * @author nuo-promise
- * @author Jiang Jining
  */
 @Configuration
 public class SecretConfiguration {

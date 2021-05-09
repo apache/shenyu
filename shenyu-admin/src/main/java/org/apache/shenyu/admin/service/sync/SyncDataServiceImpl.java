@@ -41,8 +41,6 @@ import org.springframework.stereotype.Service;
 
 /**
  * The type sync data service.
- *
- * @author xiaoyu(Myth)
  */
 @Service("syncDataService")
 public class SyncDataServiceImpl implements SyncDataService {

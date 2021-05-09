@@ -25,8 +25,6 @@ import java.util.List;
 
 /**
  * SelectorMapper.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 @Mapper
 public interface SelectorMapper {

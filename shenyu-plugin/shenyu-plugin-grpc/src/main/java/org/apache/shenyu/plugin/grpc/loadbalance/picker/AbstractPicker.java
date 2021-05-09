@@ -21,8 +21,6 @@ import io.grpc.LoadBalancer;
 
 /**
  * Picker abstract.
- *
- * @author zhanglei
  */
 public abstract class AbstractPicker extends LoadBalancer.SubchannelPicker {
 

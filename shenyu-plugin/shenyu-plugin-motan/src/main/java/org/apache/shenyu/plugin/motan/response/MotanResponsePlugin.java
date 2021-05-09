@@ -36,8 +36,6 @@ import java.util.Objects;
 
 /**
  * this is motan response plugin.
- *
- * @author tydhot
  */
 public class MotanResponsePlugin implements ShenyuPlugin {
 

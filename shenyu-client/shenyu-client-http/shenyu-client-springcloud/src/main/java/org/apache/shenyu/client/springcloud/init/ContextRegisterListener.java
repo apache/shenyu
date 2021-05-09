@@ -34,8 +34,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The type Context register listener.
- *
- * @author tnnn
  */
 @Slf4j
 public class ContextRegisterListener implements ApplicationListener<ContextRefreshedEvent> {

@@ -42,8 +42,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * Test case for WebsocketCollector.
- *
- * @author wuudongdong
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class WebsocketCollectorTest {

@@ -61,8 +61,6 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * this is divide  http url upstream.
- *
- * @author xiaoyu
  */
 @Slf4j
 @Component

@@ -51,8 +51,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * The type divide plugin test.
- *
- * @author zhanglei
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class DividePluginTest {

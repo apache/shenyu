@@ -23,8 +23,6 @@ import java.io.Serializable;
 
 /**
  * The type Dubbo selector handle.
- *
- * @author xiaoyu(Myth)
  */
 @Data
 public class DubboSelectorHandle implements Serializable {

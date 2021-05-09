@@ -19,13 +19,11 @@ package org.apache.shenyu.common.constant;
 
 /**
  * The type Admin constants.
- *
- * @author xiaoyu(Myth)
  */
 public final class AdminConstants {
 
     /**
-     * The constant SUCCESS, equals to SoulResultMessage.SUCCESS.
+     * The constant SUCCESS, equals to ShenyuResultMessage.SUCCESS.
      */
     public static final String SUCCESS = "SUCCESS";
 

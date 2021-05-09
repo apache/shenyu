@@ -40,8 +40,6 @@ import java.util.Optional;
 
 /**
  * this is dataPermission controller.
- *
- * @author kaitoShy
  */
 @RestController
 @RequestMapping("/data-permission")

@@ -28,8 +28,6 @@ import java.util.Optional;
 
 /**
  * data permission page list vo.
- *
- * @author kaitoshy(plutokaito)
  */
 @Data
 @AllArgsConstructor

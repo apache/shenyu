@@ -26,7 +26,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * The type Soul alibaba dubbo client configuration.
+ * The type Shenyu alibaba dubbo client configuration.
  */
 @Configuration
 @ImportAutoConfiguration(ShenyuClientCommonBeanConfiguration.class)
@@ -36,7 +36,7 @@ public class ShenyuAlibabaDubboClientConfiguration {
      * Alibaba dubbo service bean listener.
      *
      * @param config the config
-     * @param shenyuClientRegisterRepository the soulClientRegisterRepository
+     * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      * @return the alibaba dubbo service bean post processor
      */
     @Bean

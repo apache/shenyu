@@ -31,8 +31,6 @@ import java.util.List;
 
 /**
  * this is application authority service.
- *
- * @author xiaoyu(Myth)
  */
 public interface AppAuthService {
 

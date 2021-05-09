@@ -35,8 +35,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * Test case for {@link AlibabaDubboPluginConfiguration}.
- *
- * @author ZhouBin
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(

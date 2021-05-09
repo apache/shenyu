@@ -32,8 +32,6 @@ import static org.mockito.Answers.CALLS_REAL_METHODS;
 
 /**
  * The test case for {@link NacosSyncDataConfiguration}.
- *c
- * @author zhoutzzz
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(

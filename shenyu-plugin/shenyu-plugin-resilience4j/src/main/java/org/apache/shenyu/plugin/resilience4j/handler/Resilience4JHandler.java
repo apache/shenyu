@@ -29,8 +29,6 @@ import java.util.Optional;
 
 /**
  * Resilience4J rule handle.
- *
- * @author zhanglei
  */
 public class Resilience4JHandler implements PluginDataHandler {
 

@@ -23,8 +23,6 @@ import java.io.Serializable;
 
 /**
  * The type Auth path vo.
- *
- * @author xiaoyu
  */
 @Data
 public class AuthPathVO implements Serializable {

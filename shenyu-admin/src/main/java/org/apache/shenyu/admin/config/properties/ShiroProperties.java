@@ -23,9 +23,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Shiro properties.
- *
- * @author YuI
- **/
+ */
 @Data
 @Component("shiroProperties")
 @ConfigurationProperties(prefix = "soul.shiro")

@@ -32,8 +32,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for AuthPathMapper.
- *
- * @author itmiwang
  */
 public final class AuthPathMapperTest extends AbstractSpringIntegrationTest {
 

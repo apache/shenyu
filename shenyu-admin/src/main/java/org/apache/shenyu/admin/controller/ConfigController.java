@@ -38,9 +38,6 @@ import java.util.Map;
 
 /**
  * This Controller only when HttpLongPollingDataChangedListener exist, will take effect.
- *
- * @author huangxiaofeng
- * @author xiaoyu
  */
 @ConditionalOnBean(HttpLongPollingDataChangedListener.class)
 @RestController

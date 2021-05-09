@@ -21,8 +21,6 @@ import org.apache.shenyu.spi.Join;
 
 /**
  * default spi class.
- *
- * @author wyc192273
  */
 @Join
 public class SubHasDefaultSPI implements HasDefaultSPI {

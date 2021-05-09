@@ -21,8 +21,6 @@ import lombok.Data;
 
 /**
  * this is waf plugin handle.
- *
- * @author xiaoyu
  */
 @Data
 public class WafHandle {

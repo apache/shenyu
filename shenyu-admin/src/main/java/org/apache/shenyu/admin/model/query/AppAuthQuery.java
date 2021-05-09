@@ -26,8 +26,6 @@ import java.io.Serializable;
 
 /**
  * this is application authority query.
- *
- * @author xiaoyu(Myth)
  */
 @Data
 @AllArgsConstructor

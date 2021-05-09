@@ -51,8 +51,6 @@ import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  * GSONUtils.
- *
- * @author xiaoyu(Myth)
  */
 public class GsonUtils {
 

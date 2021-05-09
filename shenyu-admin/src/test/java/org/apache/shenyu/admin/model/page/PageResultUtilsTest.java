@@ -25,8 +25,6 @@ import java.util.Collections;
 
 /**
  * Test case for {@link PageResultUtils}.
- *
- * @author HoldDie
  */
 public final class PageResultUtilsTest {
 

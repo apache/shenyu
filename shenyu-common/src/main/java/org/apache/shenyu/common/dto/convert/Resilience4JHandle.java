@@ -23,8 +23,6 @@ import org.apache.shenyu.common.constant.Constants;
 
 /**
  * this is Resilience4J plugin handle.
- *
- * @author zhanglei
  */
 @Data
 @EqualsAndHashCode

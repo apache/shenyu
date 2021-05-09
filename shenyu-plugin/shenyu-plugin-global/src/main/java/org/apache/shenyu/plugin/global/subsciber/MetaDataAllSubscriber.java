@@ -23,8 +23,6 @@ import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 
 /**
  * The type Meta data all subscriber.
- *
- * @author xiaoyu
  */
 public class MetaDataAllSubscriber implements MetaDataSubscriber {
     

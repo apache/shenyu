@@ -27,9 +27,7 @@ import java.io.Serializable;
 import java.util.Optional;
 
 /**
- * this is soul dict view to web front.
- *
- * @author dengliming
+ * this is shenyu dict view to web front.
  */
 @Data
 @AllArgsConstructor

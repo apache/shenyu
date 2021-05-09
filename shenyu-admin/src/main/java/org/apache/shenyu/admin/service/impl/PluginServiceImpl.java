@@ -63,9 +63,6 @@ import java.util.stream.Collectors;
 
 /**
  * PluginServiceImpl.
- *
- * @author jiangxiaofeng(Nicholas)
- * @author nuo-promise
  */
 @Service("pluginService")
 public class PluginServiceImpl implements PluginService {

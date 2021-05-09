@@ -30,8 +30,6 @@ import java.util.Properties;
 
 /**
  * Nacos configuration.
- *
- * @author xiaoyu
  */
 @EnableConfigurationProperties(NacosProperties.class)
 public class NacosConfiguration {

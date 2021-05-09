@@ -29,8 +29,6 @@ import java.util.Random;
 
 /**
  * Test SecretProperties.
- *
- * @author Jiang Jining
  */
 @Slf4j
 public final class SecretPropertiesTest extends AbstractConfigurationTest {

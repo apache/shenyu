@@ -28,8 +28,6 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Test case for {@link TarsPluginDataHandler}.
- *
- * @author HoldDie
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class TarsPluginDataHandlerTest {

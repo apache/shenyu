@@ -36,8 +36,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * Test cases for WebSocketParamFilter.
- *
- * @author candyYu
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class SofaBodyParamResolveServiceTest {

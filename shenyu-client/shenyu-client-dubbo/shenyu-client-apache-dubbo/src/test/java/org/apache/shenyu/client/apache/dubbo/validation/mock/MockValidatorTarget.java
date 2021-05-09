@@ -25,8 +25,6 @@ import java.util.Map;
 
 /**
  * MockValidatorTarget.
- *
- * @author HoldDie
  */
 public interface MockValidatorTarget {
 

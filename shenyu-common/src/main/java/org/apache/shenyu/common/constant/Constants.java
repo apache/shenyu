@@ -19,8 +19,6 @@ package org.apache.shenyu.common.constant;
 
 /**
  * Constants.
- *
- * @author xiaoyu(Myth)
  */
 public interface Constants {
 

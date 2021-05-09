@@ -26,8 +26,6 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 
 /**
  * Test cases for WebConfig.
- *
- * @author Yejiajun
  */
 public final class WebConfigurationTest extends AbstractConfigurationTest {
 

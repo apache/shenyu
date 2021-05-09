@@ -31,8 +31,6 @@ import java.util.stream.Stream;
 
 /**
  * The type Hash balance test.
- *
- * @author zhanglei
  */
 public final class HashLoadBalanceTest {
 

@@ -23,8 +23,6 @@ import java.util.Set;
 
 /**
  * this is permission service.
- *
- * @author nuo-promise
  */
 public interface PermissionService {
 

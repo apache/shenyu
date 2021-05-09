@@ -44,8 +44,6 @@ import static org.mockito.Mockito.anyBoolean;
 
 /**
  * Test for Zookeeper register center.
- *
- * @author lw1243925457
  */
 public class ZookeeperServerRegisterRepositoryTest implements ShenyuServerRegisterRepository {
 

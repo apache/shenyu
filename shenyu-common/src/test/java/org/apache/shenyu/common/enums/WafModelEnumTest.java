@@ -23,8 +23,6 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Test case for WafModelEnum.
- *
- * @author xwzwmt
  */
 public final class WafModelEnumTest {
 

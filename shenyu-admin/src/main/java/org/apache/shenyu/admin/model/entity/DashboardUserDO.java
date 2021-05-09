@@ -31,9 +31,6 @@ import java.util.Optional;
 
 /**
  * DashboardUserDO.
- *
- * @author jiangxiaofeng(Nicholas)
- * @author nuo-promise
  */
 @Data
 @SuperBuilder

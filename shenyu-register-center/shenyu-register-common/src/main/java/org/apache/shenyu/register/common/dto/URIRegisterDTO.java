@@ -31,8 +31,6 @@ import java.io.Serializable;
 
 /**
  * The type URI register dto.
- *
- * @author xiaoyu
  */
 @Data
 @Builder

@@ -21,8 +21,6 @@ import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
 
 /**
  * Test case for SelectorConditionQuery.
- *
- * @author wuudongdong
  */
 public final class SelectorConditionQueryTest extends AbstractReflectGetterSetterTest {
 

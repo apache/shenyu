@@ -36,8 +36,6 @@ import java.util.List;
 
 /**
  * Websocket sync data configuration for spring boot.
- *
- * @author xiaoyu(Myth)
  */
 @Configuration
 @ConditionalOnClass(WebsocketSyncDataService.class)

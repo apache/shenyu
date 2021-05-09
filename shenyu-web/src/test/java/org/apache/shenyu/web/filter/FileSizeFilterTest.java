@@ -39,7 +39,7 @@ import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
 
 /**
  * test case for FileSizeFilter.
- **/
+ */
 public class FileSizeFilterTest {
 
     @Before

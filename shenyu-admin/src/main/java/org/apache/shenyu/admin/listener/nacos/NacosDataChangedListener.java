@@ -45,8 +45,6 @@ import java.util.stream.Collectors;
 
 /**
  * Use nacos to push data changes.
- *
- * @author chenxj
  */
 public class NacosDataChangedListener implements DataChangedListener {
 

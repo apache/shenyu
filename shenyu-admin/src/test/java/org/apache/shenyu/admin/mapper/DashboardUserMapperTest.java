@@ -36,8 +36,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * test case for DashboardUserMapper.
- *
- * @author peiht
  */
 public final class DashboardUserMapperTest extends AbstractSpringIntegrationTest {
 

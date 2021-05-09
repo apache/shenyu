@@ -51,8 +51,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * Test cases for MetaDataService.
- *
- * @author James Fang (funpad)
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class MetaDataServiceTest {

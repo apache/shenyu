@@ -28,7 +28,7 @@ public interface ShenyuContextBuilder {
      * Build shenyu context.
      *
      * @param exchange the exchange
-     * @return the soul context
+     * @return the shenyu context
      */
     ShenyuContext build(ServerWebExchange exchange);
 }

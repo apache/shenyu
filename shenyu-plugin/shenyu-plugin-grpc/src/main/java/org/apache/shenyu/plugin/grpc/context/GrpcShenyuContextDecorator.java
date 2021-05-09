@@ -24,8 +24,6 @@ import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 
 /**
  * The type Grpc soul context decorator.
- * 
- * @author xiaoyu
  */
 public class GrpcShenyuContextDecorator implements ShenyuContextDecorator {
     

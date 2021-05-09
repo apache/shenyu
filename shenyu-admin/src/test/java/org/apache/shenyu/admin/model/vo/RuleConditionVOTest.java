@@ -29,8 +29,6 @@ import static org.junit.Assert.assertNotNull;
 
 /**
  * Test case for RuleConditionVO.
- *
- * @author midnight2104
  */
 public final class RuleConditionVOTest extends AbstractReflectGetterSetterTest {
 

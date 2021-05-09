@@ -21,8 +21,6 @@ import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
 
 /**
  * Test case for DashboardUserQuery.
- *
- * @author wuudongdong
  */
 public final class DashboardUserQueryTest extends AbstractReflectGetterSetterTest {
 

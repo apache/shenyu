@@ -23,9 +23,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Jwt Properties.
- *
- * @author YuI
- **/
+ */
 @Data
 @Component
 @ConfigurationProperties(prefix = "soul.jwt")

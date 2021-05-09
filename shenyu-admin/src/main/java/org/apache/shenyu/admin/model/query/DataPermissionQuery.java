@@ -26,8 +26,6 @@ import java.io.Serializable;
 
 /**
  * data permission query.
- *
- * @author kaitoshy(plutokaito)
  */
 @Data
 @AllArgsConstructor

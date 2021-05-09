@@ -42,8 +42,6 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * sofa proxy service is use GenericService.
- *
- * @author tydhot
  */
 @Slf4j
 public class SofaProxyService {
@@ -66,7 +64,7 @@ public class SofaProxyService {
      * @param metaData the meta data
      * @param exchange the exchange
      * @return the object
-     * @throws ShenyuException the soul exception
+     * @throws ShenyuException the shenyu exception
      */
     public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws ShenyuException {
         ConsumerConfig<GenericService> reference = ApplicationConfigCache.getInstance().get(metaData.getPath());

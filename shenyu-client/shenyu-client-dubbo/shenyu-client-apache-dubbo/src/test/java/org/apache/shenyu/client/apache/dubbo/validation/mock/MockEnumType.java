@@ -19,8 +19,6 @@ package org.apache.shenyu.client.apache.dubbo.validation.mock;
 
 /**
  * MockEnumType.
- *
- * @author HoldDie
  */
 public enum MockEnumType {
     MEMBER

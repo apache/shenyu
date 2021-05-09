@@ -21,8 +21,6 @@ import org.apache.shenyu.spi.Join;
 
 /**
  * can't instantiated test SPI class.
- *
- * @author wyc192273
  */
 @Join
 public final class CanNotInstantiatedSPI implements JdbcSPI {

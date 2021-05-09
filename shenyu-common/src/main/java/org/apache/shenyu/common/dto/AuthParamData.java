@@ -25,8 +25,6 @@ import java.io.Serializable;
 
 /**
  * The type Auth param data.
- *
- * @author xiaoyu
  */
 @Data
 @AllArgsConstructor

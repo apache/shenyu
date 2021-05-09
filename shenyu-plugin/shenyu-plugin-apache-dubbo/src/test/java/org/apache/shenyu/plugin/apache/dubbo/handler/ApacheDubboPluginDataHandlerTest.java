@@ -30,9 +30,7 @@ import static org.mockito.Mockito.mock;
 
 /**
  * The Test Case For ApacheDubboPluginDataHandler.
- *
- * @author nuo-promise
- **/
+ */
 public final class ApacheDubboPluginDataHandlerTest {
 
     private ApacheDubboPluginDataHandler apacheDubboPluginDataHandler;

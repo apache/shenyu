@@ -36,8 +36,6 @@ import java.util.List;
 
 /**
  * Zookeeper sync data configuration for spring boot.
- *
- * @author xiaoyu(Myth)
  */
 @Configuration
 @ConditionalOnClass(ZookeeperSyncDataService.class)
@@ -58,7 +56,7 @@ public class ZookeeperSyncDataConfiguration {
     @Bean
     public SyncDataService syncDataService(final ObjectProvider<ZkClient> zkClient, final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
                                            final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers) {
-        log.info("you use zookeeper sync soul data.......");
+        log.info("you use zookeeper sync shenyu data.......");
         return new ZookeeperSyncDataService(zkClient.getIfAvailable(), pluginSubscriber.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList));
     }

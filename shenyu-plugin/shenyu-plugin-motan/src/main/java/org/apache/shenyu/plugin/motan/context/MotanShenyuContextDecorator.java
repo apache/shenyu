@@ -23,12 +23,10 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 
 /**
- * The type motan soul context decorator.
- * 
- * @author tydhot
+ * The type motan shenyu context decorator.
  */
 public class MotanShenyuContextDecorator implements ShenyuContextDecorator {
-    
+
     @Override
     public ShenyuContext decorator(final ShenyuContext shenyuContext, final MetaData metaData) {
         shenyuContext.setModule(metaData.getAppName());

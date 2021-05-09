@@ -35,8 +35,6 @@ import java.util.Objects;
 
 /**
  * this is dubbo response plugin.
- *
- * @author xiaoyu
  */
 public class DubboResponsePlugin implements ShenyuPlugin {
 

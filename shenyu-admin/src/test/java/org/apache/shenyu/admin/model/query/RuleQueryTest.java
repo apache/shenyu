@@ -21,8 +21,6 @@ import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
 
 /**
  * Test case for RuleQuery.
- *
- * @author wuudongdong
  */
 public final class RuleQueryTest extends AbstractReflectGetterSetterTest {
 

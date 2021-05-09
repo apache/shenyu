@@ -21,8 +21,6 @@ import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
 
 /**
  * Test case for MetaDataQuery.
- *
- * @author wuudongdong
  */
 public final class MetaDataQueryTest extends AbstractReflectGetterSetterTest {
 

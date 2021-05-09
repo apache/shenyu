@@ -24,8 +24,6 @@ import java.util.List;
 
 /**
  * LoadBalance interface spi .
- *
- * @author xiaoyu(Myth)
  */
 @SPI
 public interface LoadBalance {

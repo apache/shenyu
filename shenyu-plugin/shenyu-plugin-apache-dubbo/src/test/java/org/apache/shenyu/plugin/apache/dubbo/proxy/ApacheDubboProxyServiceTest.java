@@ -55,8 +55,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * The Test Case For ApacheDubboProxyService.
- *
- * @author tydhot
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class ApacheDubboProxyServiceTest {

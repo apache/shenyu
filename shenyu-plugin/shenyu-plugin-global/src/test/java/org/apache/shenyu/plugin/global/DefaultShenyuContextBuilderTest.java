@@ -35,9 +35,7 @@ import static org.junit.Assert.assertNotNull;
 
 /**
  * The Test Case For DefaultSoulContextBuilder.
- *
- * @author nuo-promise
- **/
+ */
 public final class DefaultShenyuContextBuilderTest {
 
     private DefaultShenyuContextBuilder defaultSoulContextBuilder;

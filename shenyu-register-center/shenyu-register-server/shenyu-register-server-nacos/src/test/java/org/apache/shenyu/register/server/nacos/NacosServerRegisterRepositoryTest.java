@@ -53,8 +53,6 @@ import static org.mockito.Mockito.times;
 
 /**
  * Test for NacosServerRegisterRepository.
- *
- * @author lw1243925457
  */
 public class NacosServerRegisterRepositoryTest {
 

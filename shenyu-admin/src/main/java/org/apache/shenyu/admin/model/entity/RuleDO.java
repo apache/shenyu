@@ -33,9 +33,6 @@ import java.util.Optional;
 
 /**
  * RuleDO.
- *
- * @author jiangxiaofeng(Nicholas)
- * @author nuo-promise
  */
 @Data
 @SuperBuilder

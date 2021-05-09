@@ -35,8 +35,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * The type upstream cache manager test.
- *
- * @author zhanglei
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class UpstreamCacheManagerTest {

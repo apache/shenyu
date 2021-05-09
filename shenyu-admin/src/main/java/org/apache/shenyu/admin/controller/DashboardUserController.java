@@ -46,9 +46,6 @@ import java.util.Optional;
 
 /**
  * this is dashboard user controller.
- *
- * @author jiangxiaofeng(Nicholas)
- * @author Jiang Jining
  */
 @RestController
 @RequestMapping("/dashboardUser")

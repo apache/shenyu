@@ -27,8 +27,6 @@ import java.util.Objects;
 
 /**
  * The type tars plugin data handler.
- *
- * @author tydhot
  */
 public class TarsPluginDataHandler implements PluginDataHandler {
 

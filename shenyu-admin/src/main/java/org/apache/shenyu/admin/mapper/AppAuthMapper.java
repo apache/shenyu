@@ -26,8 +26,6 @@ import java.util.List;
 
 /**
  * AppAuthMapper.
- *
- * @author xiaoyu(Myth)
  */
 @Mapper
 public interface AppAuthMapper {

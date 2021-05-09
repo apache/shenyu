@@ -27,8 +27,6 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * The type RateLimiter plugin configuration.
- *
- * @author xiaoyu
  */
 @Configuration
 public class RateLimiterPluginConfiguration {
@@ -36,7 +34,7 @@ public class RateLimiterPluginConfiguration {
     /**
      * RateLimiter plugin.
      *
-     * @return the soul plugin
+     * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin rateLimiterPlugin() {

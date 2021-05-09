@@ -26,9 +26,7 @@ import java.io.Serializable;
 
 /**
  * this is resource query.
- *
- * @author nuo-promise
- **/
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

@@ -36,9 +36,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * Test case for {@link OkHttpTools}.
- *
- * @author Young Bean
- * @author dengliming
  */
 public final class OkHttpToolsTest {
 

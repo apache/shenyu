@@ -39,8 +39,6 @@ import static org.mockito.Mockito.mock;
 
 /**
  * Test for nacos register center client.
- *
- * @author lw1243925457
  */
 public class NacosClientRegisterRepositoryTest {
 

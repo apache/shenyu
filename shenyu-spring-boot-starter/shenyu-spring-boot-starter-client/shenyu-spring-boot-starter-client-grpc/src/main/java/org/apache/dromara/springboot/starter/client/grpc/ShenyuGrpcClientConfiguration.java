@@ -37,7 +37,7 @@ public class ShenyuGrpcClientConfiguration {
      * Grpc service bean post processor grpc client bean post processor.
      *
      * @param registerCenterConfig the register center config
-     * @param shenyuClientRegisterRepository the soulClientRegisterRepository
+     * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      * @return the grpc client bean post processor
      */
     @Bean

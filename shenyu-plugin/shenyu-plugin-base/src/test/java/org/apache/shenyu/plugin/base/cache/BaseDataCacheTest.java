@@ -31,8 +31,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Test cases for BaseDataCache.
- *
- * @author BetterWp
  */
 @SuppressWarnings("unchecked")
 public final class BaseDataCacheTest {

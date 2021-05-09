@@ -25,8 +25,6 @@ import java.time.LocalDateTime;
 
 /**
  * Timer before predicate judge.
- *
- * @author xiaoyu(Myth)
  */
 public class TimerBeforePredicateJudge implements PredicateJudge {
 

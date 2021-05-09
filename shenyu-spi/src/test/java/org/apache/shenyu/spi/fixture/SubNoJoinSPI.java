@@ -19,8 +19,6 @@ package org.apache.shenyu.spi.fixture;
 
 /**
  * no join SPI class.
- *
- * @author wyc192273
  */
 public class SubNoJoinSPI implements NoJoinSPI {
 

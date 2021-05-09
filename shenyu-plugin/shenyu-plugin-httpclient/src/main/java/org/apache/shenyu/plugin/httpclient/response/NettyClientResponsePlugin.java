@@ -39,8 +39,6 @@ import java.util.Objects;
 
 /**
  * The type Netty client response plugin.
- *
- * @author xiaoyu
  */
 @Slf4j
 public class NettyClientResponsePlugin implements ShenyuPlugin {

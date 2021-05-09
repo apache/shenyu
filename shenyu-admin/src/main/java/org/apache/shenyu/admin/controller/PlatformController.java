@@ -31,8 +31,6 @@ import java.util.Optional;
 
 /**
  * this is platform controller.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 @RestController
 @RequestMapping("/platform")

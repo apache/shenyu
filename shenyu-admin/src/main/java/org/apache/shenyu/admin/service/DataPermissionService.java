@@ -28,8 +28,6 @@ import java.util.List;
 
 /**
  * data permission service.
- *
- * @author kaitoshy(plutokaito)
  */
 public interface DataPermissionService {
 

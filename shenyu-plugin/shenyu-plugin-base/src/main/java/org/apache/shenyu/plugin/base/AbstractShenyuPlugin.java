@@ -36,9 +36,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 /**
- * abstract soul plugin please extends.
- *
- * @author xiaoyu(Myth)
+ * abstract shenyu plugin please extends.
  */
 @RequiredArgsConstructor
 @Slf4j

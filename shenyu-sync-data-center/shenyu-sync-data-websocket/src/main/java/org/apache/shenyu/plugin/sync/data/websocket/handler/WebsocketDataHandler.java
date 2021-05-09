@@ -26,8 +26,6 @@ import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 
 /**
  * The type Websocket cache handler.
- *
- * @author xiaoyu(Myth)
  */
 public class WebsocketDataHandler {
 

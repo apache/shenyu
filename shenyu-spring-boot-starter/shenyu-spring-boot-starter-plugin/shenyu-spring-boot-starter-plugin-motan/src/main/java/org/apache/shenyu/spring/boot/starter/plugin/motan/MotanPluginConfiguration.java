@@ -34,17 +34,15 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * The type motan plugin configuration.
- *
- * @author tydhot
  */
 @Configuration
 @ConditionalOnClass(MotanPlugin.class)
 public class MotanPluginConfiguration {
 
     /**
-     * Motan plugin soul plugin.
+     * Motan plugin shenyu plugin.
      *
-     * @return the soul plugin
+     * @return the shenyu plugin
      */
     @Bean
     public MotanPlugin motanPlugin() {
@@ -52,9 +50,9 @@ public class MotanPluginConfiguration {
     }
 
     /**
-     * Motan response plugin soul plugin.
+     * Motan response plugin shenyu plugin.
      *
-     * @return the soul plugin
+     * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin motanResponsePlugin() {
@@ -82,9 +80,9 @@ public class MotanPluginConfiguration {
     }
     
     /**
-     * motan soul context decorator soul context decorator.
+     * motan shenyu context decorator shenyu context decorator.
      *
-     * @return the soul context decorator
+     * @return the shenyu context decorator
      */
     @Bean
     public ShenyuContextDecorator motanSoulContextDecorator() {

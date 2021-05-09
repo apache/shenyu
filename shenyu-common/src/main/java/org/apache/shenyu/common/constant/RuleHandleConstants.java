@@ -21,8 +21,6 @@ import org.apache.shenyu.common.enums.LoadBalanceEnum;
 
 /**
  * The Constants for RuleHandles.
- *
- * @author yiwenlong (wlong.yi@gmail.com)
  */
 public final class RuleHandleConstants {
 

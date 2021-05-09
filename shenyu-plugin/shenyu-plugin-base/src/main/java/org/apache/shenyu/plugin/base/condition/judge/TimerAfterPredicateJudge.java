@@ -25,8 +25,6 @@ import java.util.Objects;
 
 /**
  * Timer after predicate judge.
- *
- * @author xiaoyu(Myth)
  */
 public class TimerAfterPredicateJudge implements PredicateJudge {
 

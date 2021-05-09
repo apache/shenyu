@@ -26,8 +26,6 @@ import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 /**
  * RoundRobin picker.
- *
- * @author zhanglei
  */
 public class RoundRobinPicker extends AbstractReadyPicker {
 

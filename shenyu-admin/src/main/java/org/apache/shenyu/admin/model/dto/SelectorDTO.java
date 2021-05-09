@@ -27,9 +27,6 @@ import java.util.List;
 
 /**
  * this is selector from by web front.
- *
- * @author jiangxiaofeng(Nicholas)
- * @author nuo-promise
  */
 @Data
 @Builder

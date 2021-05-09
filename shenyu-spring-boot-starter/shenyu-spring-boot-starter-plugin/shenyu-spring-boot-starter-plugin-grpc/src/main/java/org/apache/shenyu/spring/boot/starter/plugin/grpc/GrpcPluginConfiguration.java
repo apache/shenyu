@@ -30,14 +30,12 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * The type grpc plugin configuration.
- *
- * @author zhanglei
  */
 @Configuration
 public class GrpcPluginConfiguration {
 
     /**
-     * grpc plugin soul plugin.
+     * grpc plugin shenyu plugin.
      *
      * @return the tars plugin
      */
@@ -47,9 +45,9 @@ public class GrpcPluginConfiguration {
     }
 
     /**
-     * Grpc response plugin soul plugin.
+     * Grpc response plugin shenyu plugin.
      *
-     * @return the soul plugin
+     * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin grpcResponsePlugin() {
@@ -67,9 +65,9 @@ public class GrpcPluginConfiguration {
     }
 
     /**
-     * Grpc soul context decorator soul context decorator.
+     * Grpc shenyu context decorator shenyu context decorator.
      *
-     * @return the soul context decorator
+     * @return the shenyu context decorator
      */
     @Bean
     public ShenyuContextDecorator grpcSoulContextDecorator() {

@@ -27,9 +27,7 @@ import static org.junit.Assert.assertNull;
 
 /**
  * The Test Case For MetaDataCache.
- *
- * @author nuo-promise
- **/
+ */
 public final class MetaDataCacheTest {
 
     private MetaData metaData;

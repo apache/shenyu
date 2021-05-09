@@ -31,8 +31,6 @@ import java.util.List;
 
 /**
  * Test cases for CommonPluginDataSubscriber.
- *
- * @author BetterWp
  */
 public final class CommonPluginDataSubscriberTest {
 

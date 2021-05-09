@@ -27,9 +27,7 @@ import java.util.Optional;
 
 /**
  * login dashboard return user info's vo.
- *
- * @author YuI
- **/
+ */
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)

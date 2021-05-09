@@ -42,8 +42,6 @@ import java.util.Collections;
 
 /**
  * RateLimiterPluginDataHandler test.
- *
- * @author wyc192273
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class RateLimiterPluginDataHandlerTest {

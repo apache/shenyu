@@ -26,8 +26,6 @@ import java.util.List;
 /**
  * Data change event.
  *
- * @author huangxiaofeng
- * @author xiaoyu
  * @see DataChangedEventDispatcher
  * @since 2.0.0
  */

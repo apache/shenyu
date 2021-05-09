@@ -24,7 +24,6 @@ import static org.junit.Assert.assertNotEquals;
 
 /**
  * Test Cases for SelectorTypeEnum.
- * @author bran.chen
  */
 public final class SelectorTypeEnumTest {
 

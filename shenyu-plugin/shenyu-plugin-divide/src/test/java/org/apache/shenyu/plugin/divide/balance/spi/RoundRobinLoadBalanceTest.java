@@ -29,8 +29,6 @@ import java.util.stream.Stream;
 
 /**
  * The type Load balance test.
- *
- * @author wanglaomo
  */
 public final class RoundRobinLoadBalanceTest {
 

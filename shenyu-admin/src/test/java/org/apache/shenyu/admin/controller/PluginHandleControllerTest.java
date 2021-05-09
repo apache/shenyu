@@ -46,8 +46,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Test case for PluginHandleController.
- *
- * @author charlesgongC
  */
 @RunWith(SpringRunner.class)
 public final class PluginHandleControllerTest {

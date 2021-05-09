@@ -21,8 +21,6 @@ import java.util.Random;
 
 /**
  * UUIDUtils.
- *
- * @author xiaoyu(myth)
  */
 public final class UUIDUtils {
 

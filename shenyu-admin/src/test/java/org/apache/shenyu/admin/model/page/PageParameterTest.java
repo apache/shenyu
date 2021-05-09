@@ -24,8 +24,6 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Test case for {@link PageParameter}.
- *
- * @author HoldDie
  */
 public final class PageParameterTest {
 

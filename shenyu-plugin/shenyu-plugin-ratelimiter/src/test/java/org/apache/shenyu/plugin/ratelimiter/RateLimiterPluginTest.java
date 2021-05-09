@@ -49,8 +49,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * RateLimiterPlugin test.
- *
- * @author wyc192273
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class RateLimiterPluginTest {

@@ -19,8 +19,6 @@ package org.apache.shenyu.common.exception;
 
 /**
  * SerializerException.
- *
- * @author xiaoyu(Myth)
  */
 public class SerializerException extends RuntimeException {
 

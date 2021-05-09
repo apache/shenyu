@@ -28,8 +28,6 @@ import org.springframework.stereotype.Component;
 
 /**
  * ApplicationStartListener.
- *
- * @author xiaoyu
  */
 @Slf4j
 @Component

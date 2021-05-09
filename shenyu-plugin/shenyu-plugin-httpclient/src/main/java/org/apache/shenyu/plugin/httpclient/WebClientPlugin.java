@@ -46,8 +46,6 @@ import java.util.Optional;
 
 /**
  * The type Web client plugin.
- *
- * @author xiaoyu
  */
 @Slf4j
 public class WebClientPlugin implements ShenyuPlugin {

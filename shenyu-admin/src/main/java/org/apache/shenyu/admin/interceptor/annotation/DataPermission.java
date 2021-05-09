@@ -24,8 +24,6 @@ import java.lang.annotation.Target;
 
 /**
  * data permission annotation type.
- *
- * @author nuo-promise
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

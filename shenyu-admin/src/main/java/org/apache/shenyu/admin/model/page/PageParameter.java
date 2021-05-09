@@ -23,8 +23,6 @@ import java.io.Serializable;
 
 /**
  * PageParameter.
- *
- * @author xiaoyu(Myth)
  */
 @Data
 public class PageParameter implements Serializable {

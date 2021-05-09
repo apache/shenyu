@@ -23,8 +23,6 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Test case for HystrixIsolationModeEnum.
- *
- * @author HoldDie
  */
 public final class HystrixIsolationModeEnumTest {
 

@@ -26,8 +26,6 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Test Cases for HttpMethodEnum.
- *
- * @author tangtian8
  */
 public final class HttpMethodEnumTest {
 

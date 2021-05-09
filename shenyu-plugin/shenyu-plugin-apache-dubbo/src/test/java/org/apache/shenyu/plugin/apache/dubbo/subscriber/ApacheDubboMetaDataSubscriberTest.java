@@ -34,9 +34,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * The Test Case For ApacheDubboMetaDataSubscriber.
- *
- * @author nuo-promise
- **/
+ */
 @RunWith(MockitoJUnitRunner.class)
 public final class ApacheDubboMetaDataSubscriberTest {
 

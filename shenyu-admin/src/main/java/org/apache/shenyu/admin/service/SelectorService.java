@@ -28,8 +28,6 @@ import java.util.List;
 
 /**
  * this is selector service.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 public interface SelectorService {
 

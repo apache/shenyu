@@ -27,8 +27,6 @@ import java.util.List;
 
 /**
  * this is plugin service.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 public interface PluginService {
 

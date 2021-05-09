@@ -26,8 +26,6 @@ import java.net.URI;
 
 /**
  * The Uri Util test.
- *
- * @author zhanglei
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class UriUtilsTest {

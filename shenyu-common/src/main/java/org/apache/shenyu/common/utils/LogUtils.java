@@ -24,7 +24,6 @@ import java.util.function.Supplier;
 
 /**
  * LogUtils.
- * @author xiaoyu
  */
 public final class LogUtils {
 

@@ -24,9 +24,7 @@ import static org.junit.Assert.assertNotNull;
 
 /**
  * The Test Case For BuildInfoCollector.
- *
- * @author nuo-promise
- **/
+ */
 public final class BuildInfoCollectorTest {
 
     private BuildInfoCollector buildInfoCollector;

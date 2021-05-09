@@ -38,8 +38,6 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Websocket sync data service.
- *
- * @author xiaoyu(Myth)
  */
 @Slf4j
 public class WebsocketSyncDataService implements SyncDataService, AutoCloseable {

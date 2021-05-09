@@ -24,8 +24,6 @@ import java.util.List;
 
 /**
  * data permission filter query.
- *
- * @author nuo-promise
  */
 @Data
 public class FilterQuery implements Serializable {

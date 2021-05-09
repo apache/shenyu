@@ -25,8 +25,6 @@ import java.util.List;
 
 /**
  * Rule mapper.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 @Mapper
 public interface RuleMapper {

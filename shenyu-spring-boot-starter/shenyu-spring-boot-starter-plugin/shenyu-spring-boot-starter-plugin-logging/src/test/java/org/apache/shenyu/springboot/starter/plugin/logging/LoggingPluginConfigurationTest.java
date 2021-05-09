@@ -28,9 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Test case for {@link LoggingPluginConfiguration}..
- *
- * @author xuxd
- **/
+ */
 public class LoggingPluginConfigurationTest {
 
     @Test

@@ -25,8 +25,6 @@ import org.springframework.boot.CommandLineRunner;
 
 /**
  * The type Zookeeper data init.
- *
- * @author xiaoyu
  */
 public class ZookeeperDataInit implements CommandLineRunner {
 

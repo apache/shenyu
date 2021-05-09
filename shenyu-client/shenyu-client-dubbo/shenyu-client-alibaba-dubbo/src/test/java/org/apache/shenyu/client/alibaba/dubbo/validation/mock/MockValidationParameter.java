@@ -23,8 +23,6 @@ import javax.validation.constraints.NotNull;
 
 /**
  * Mock ValidationParameter.
- *
- * @author David Liu
  */
 @Data
 public class MockValidationParameter {

@@ -57,8 +57,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * test cases for DashboardUserService.
- *
- * @author cherlas
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class DashboardUserServiceTest {

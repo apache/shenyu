@@ -28,8 +28,6 @@ import java.util.concurrent.ConcurrentMap;
 
 /**
  * The motan metadata subscribe.
- *
- * @author tydhot
  */
 public class MotanMetaDataSubscriber implements MetaDataSubscriber {
 

@@ -36,8 +36,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * Test cases for HostAddressUtils.
- *
- * @author zhanglei
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class HostAddressUtilsTest {

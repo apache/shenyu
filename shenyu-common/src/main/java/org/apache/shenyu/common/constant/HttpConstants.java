@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit;
 /**
  * constants for http, including http long polling.
  *
- * @author huangxiaofeng
  * @since 2.0.0
  */
 public final class HttpConstants {

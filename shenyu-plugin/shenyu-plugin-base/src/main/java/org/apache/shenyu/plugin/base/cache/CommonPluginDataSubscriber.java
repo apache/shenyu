@@ -31,8 +31,6 @@ import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 
 /**
  * The type Common plugin data subscriber.
- *
- * @author xiaoyu
  */
 public class CommonPluginDataSubscriber implements PluginDataSubscriber {
     

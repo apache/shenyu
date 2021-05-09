@@ -51,8 +51,6 @@ import java.util.concurrent.Executor;
 
 /**
  * nacos register server.
- *
- * @author lw1243925457
  */
 @Slf4j
 @Join

@@ -36,8 +36,6 @@ import org.apache.shenyu.plugin.base.cache.BaseHandleCache;
 
 /**
  * this is divide  http url upstream.
- *
- * @author xiaoyu
  */
 @Slf4j
 public final class UpstreamCacheManager extends BaseHandleCache<String, DivideRuleHandle> {

@@ -53,9 +53,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Test cases for SoulDictController.
- *
- * @author guanys
+ * Test cases for ShenyuDictController.
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class PluginControllerTest {

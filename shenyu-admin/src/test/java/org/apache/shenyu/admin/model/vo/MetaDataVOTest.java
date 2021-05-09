@@ -21,8 +21,6 @@ import org.apache.shenyu.admin.AbstractReflectGetterSetterTest;
 
 /**
  * Test case for MetaDataVO.
- *
- * @author midnight2104
  */
 public final class MetaDataVOTest extends AbstractReflectGetterSetterTest {
 

@@ -30,8 +30,6 @@ import java.util.Optional;
 
 /**
  * this is logon get user permission role.
- *
- * @author nuo-promise
  */
 @Data
 @AllArgsConstructor

@@ -34,8 +34,6 @@ import java.util.Map;
 
 /**
  * The type Http client register repository.
- *
- * @author xiaoyu
  */
 @Slf4j
 @Join

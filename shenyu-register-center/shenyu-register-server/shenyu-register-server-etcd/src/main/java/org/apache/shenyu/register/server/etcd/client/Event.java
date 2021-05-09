@@ -19,8 +19,6 @@ package org.apache.shenyu.register.server.etcd.client;
 
 /**
  * etcd event.
- *
- * @author lw1243925457
  */
 public enum Event {
 

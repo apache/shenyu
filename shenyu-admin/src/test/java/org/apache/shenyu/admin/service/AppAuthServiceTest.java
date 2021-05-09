@@ -71,8 +71,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * Test cases for AppAuthService.
- *
- * @author jnzhouhao
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class AppAuthServiceTest {

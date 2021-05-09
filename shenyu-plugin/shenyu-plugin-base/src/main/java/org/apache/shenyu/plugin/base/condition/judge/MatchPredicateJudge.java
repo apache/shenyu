@@ -25,8 +25,6 @@ import java.util.Objects;
 
 /**
  * Match predicate judge.
- *
- * @author xiaoyu(Myth)
  */
 public class MatchPredicateJudge implements PredicateJudge {
 

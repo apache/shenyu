@@ -22,8 +22,6 @@ import java.util.ServiceLoader;
 
 /**
  * SpiLoadFactory.
- *
- * @author xiaoyu
  */
 public class SpiLoadFactory {
 

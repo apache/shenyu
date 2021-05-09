@@ -23,7 +23,7 @@ import lombok.Data;
 public class WebsocketConfig {
     
     /**
-     * if have more soul admin url,please config like this.
+     * if have more shenyu admin url,please config like this.
      * 127.0.0.1:8888,127.0.0.1:8889
      */
     private String urls;

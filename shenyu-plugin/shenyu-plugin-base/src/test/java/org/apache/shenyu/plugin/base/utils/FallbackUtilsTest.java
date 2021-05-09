@@ -38,8 +38,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * Test cases for CheckUtils.
- *
- * @author zhanglei
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class FallbackUtilsTest {

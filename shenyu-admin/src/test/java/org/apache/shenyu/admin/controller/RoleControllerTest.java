@@ -52,8 +52,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Test cases for RoleController.
- *
- * @author wincher
  */
 @RunWith(MockitoJUnitRunner.class)
 public class RoleControllerTest {

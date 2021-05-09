@@ -24,8 +24,6 @@ import java.util.Map;
 
 /**
  * this is enum service.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 public interface EnumService {
 

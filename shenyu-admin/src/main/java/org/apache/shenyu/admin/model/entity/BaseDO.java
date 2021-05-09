@@ -27,9 +27,6 @@ import java.sql.Timestamp;
 
 /**
  * BaseDO.
- *
- * @author xiaoyu(Myth)
- * @author nuo-promise
  */
 @Data
 @SuperBuilder

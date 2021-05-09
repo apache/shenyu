@@ -34,8 +34,6 @@ import java.util.Set;
 
 /**
  * shiro custom's realm.
- *
- * @author YuI
  */
 @Service("shiroRealm")
 public class ShiroRealm extends AuthorizingRealm {

@@ -28,8 +28,6 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * OkHttpTools.
- *
- * @author xiaoyu
  */
 public final class OkHttpTools {
 

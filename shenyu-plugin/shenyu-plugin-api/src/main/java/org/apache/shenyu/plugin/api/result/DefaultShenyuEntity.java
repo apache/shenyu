@@ -93,12 +93,12 @@ public class DefaultShenyuEntity implements Serializable {
     }
 
     /**
-     * Success soul web result.
+     * Success shenyu web result.
      *
      * @param code the code
      * @param msg  the msg
      * @param data the data
-     * @return the soul web result
+     * @return the shenyu web result
      */
     public static DefaultShenyuEntity success(final int code, final String msg, final Object data) {
         return get(code, msg, data);

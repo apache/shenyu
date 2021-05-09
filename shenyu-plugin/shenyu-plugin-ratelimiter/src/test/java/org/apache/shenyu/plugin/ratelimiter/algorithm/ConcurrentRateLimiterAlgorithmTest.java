@@ -27,8 +27,6 @@ import static org.junit.Assert.assertThat;
 
 /**
  * test for ConcurrentRateLimiterAlgorithm.
- *
- * @author liupenghui
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class ConcurrentRateLimiterAlgorithmTest {

@@ -24,8 +24,6 @@ import static org.junit.Assert.assertNull;
 
 /**
  * Test cases for ReflectUtils.
- *
- * @author dengliming
  */
 public final class ReflectUtilsTest {
 

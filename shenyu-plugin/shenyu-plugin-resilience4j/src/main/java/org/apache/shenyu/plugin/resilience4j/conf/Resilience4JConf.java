@@ -24,8 +24,6 @@ import lombok.Data;
 
 /**
  * Resilience4J conf.
- *
- * @author zhanglei
  */
 @Data
 public class Resilience4JConf {

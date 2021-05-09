@@ -25,8 +25,6 @@ import java.util.List;
 
 /**
  * The interface Auth param mapper.
- *
- * @author xiaoyu
  */
 @Mapper
 public interface AuthParamMapper {

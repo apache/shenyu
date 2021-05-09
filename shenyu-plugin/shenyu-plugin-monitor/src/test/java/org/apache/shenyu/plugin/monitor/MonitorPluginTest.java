@@ -35,8 +35,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * Test case for MonitorPlugin.
- *
- * @author wincher
  */
 public final class MonitorPluginTest {
 

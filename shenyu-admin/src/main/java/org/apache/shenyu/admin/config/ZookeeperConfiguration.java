@@ -24,9 +24,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 
 /**
- * ZookeeperConfiguration .
- *
- * @author xiaoyu(Myth)
+ * ZookeeperConfiguration.
  */
 @EnableConfigurationProperties(ZookeeperProperties.class)
 public class ZookeeperConfiguration {

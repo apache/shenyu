@@ -32,8 +32,6 @@ import java.util.Objects;
 
 /**
  * the hystrix builder.
- *
- * @author xiaoyu(Myth)
  */
 @Slf4j
 public class HystrixBuilder {

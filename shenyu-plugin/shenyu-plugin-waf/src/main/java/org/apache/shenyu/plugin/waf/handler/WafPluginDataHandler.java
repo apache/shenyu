@@ -31,8 +31,6 @@ import java.util.Optional;
 
 /**
  * The type Waf plugin data handler.
- *
- * @author xiaoyu
  */
 public class WafPluginDataHandler implements PluginDataHandler {
 

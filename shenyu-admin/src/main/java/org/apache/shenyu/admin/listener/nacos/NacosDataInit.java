@@ -26,8 +26,6 @@ import org.springframework.boot.CommandLineRunner;
 
 /**
  * The type Nacos data init.
- *
- * @author lw1243925457
  */
 public class NacosDataInit implements CommandLineRunner {
 

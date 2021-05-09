@@ -25,8 +25,6 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * MessageWriter.
- *
- * @author zhanglei
  */
 @Slf4j
 public final class MessageWriter<T extends Message> implements StreamObserver<T> {

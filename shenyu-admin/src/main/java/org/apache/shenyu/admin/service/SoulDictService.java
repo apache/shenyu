@@ -26,8 +26,6 @@ import java.util.List;
 
 /**
  * this is soul dict service.
- *
- * @author dengliming
  */
 public interface SoulDictService {
     /**

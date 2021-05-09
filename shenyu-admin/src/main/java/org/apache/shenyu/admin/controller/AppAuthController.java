@@ -41,8 +41,6 @@ import java.util.List;
 
 /**
  * this is application authority controller.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 @RestController
 @RequestMapping("/appAuth")
@@ -64,7 +62,7 @@ public class AppAuthController {
      * Apply App auth.
      *
      * @param authApplyDTO the auth apply dto
-     * @return the soul result
+     * @return the shenyu result
      */
     @PostMapping("/apply")
     public ShenyuAdminResult apply(@RequestBody final AuthApplyDTO authApplyDTO) {
@@ -79,7 +77,7 @@ public class AppAuthController {
      *
      * @param appKey    the app key
      * @param appSecret the app secret
-     * @return the soul result
+     * @return the shenyu result
      */
     @GetMapping("/updateSk")
     public ShenyuAdminResult updateSk(@RequestParam("appKey") final String appKey, @RequestParam("appSecret") final String appSecret) {
@@ -93,7 +91,7 @@ public class AppAuthController {
      * @param phone  specific phone
      * @param currentPage  current page of list
      * @param pageSize  page size of query
-     * @return the soul result
+     * @return the shenyu result
      */
     @GetMapping("/findPageByQuery")
     public ShenyuAdminResult findPageByQuery(final String appKey, final String phone, final Integer currentPage, final Integer pageSize) {
@@ -109,7 +107,7 @@ public class AppAuthController {
      * Get detail of App auth.
      *
      * @param id the id
-     * @return the soul result
+     * @return the shenyu result
      */
     @GetMapping("/detail")
     public ShenyuAdminResult detail(@RequestParam("id") final String id) {
@@ -120,7 +118,7 @@ public class AppAuthController {
      * Update App auth.
      *
      * @param appAuthDTO the app auth dto
-     * @return the soul result
+     * @return the shenyu result
      */
     @PostMapping("/updateDetail")
     public ShenyuAdminResult updateDetail(@RequestBody final AppAuthDTO appAuthDTO) {

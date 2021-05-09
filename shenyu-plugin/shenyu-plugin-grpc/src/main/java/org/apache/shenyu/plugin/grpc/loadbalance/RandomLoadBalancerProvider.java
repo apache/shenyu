@@ -27,8 +27,6 @@ import java.util.List;
 
 /**
  * RandomLoadBalancerProvider.
- *
- * @author raphael
  */
 @Slf4j
 public class RandomLoadBalancerProvider extends LoadBalancerProvider {

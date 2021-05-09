@@ -28,8 +28,6 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * Test Cases for ParamTypeEnum.
- *
- * @author wilbur1991
  */
 public final class ParamTypeEnumTest {
 

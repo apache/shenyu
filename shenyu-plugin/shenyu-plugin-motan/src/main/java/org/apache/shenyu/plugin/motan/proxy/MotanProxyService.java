@@ -37,8 +37,6 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * Motan proxy service.
- *
- * @author tydhot
  */
 public class MotanProxyService {
 
@@ -49,7 +47,7 @@ public class MotanProxyService {
      * @param metaData the meta data
      * @param exchange the exchange
      * @return the object
-     * @throws ShenyuException the soul exception
+     * @throws ShenyuException the shenyu exception
      */
     @SneakyThrows
     public Mono<Object> genericInvoker(final String body, final MetaData metaData, final ServerWebExchange exchange) throws ShenyuException {

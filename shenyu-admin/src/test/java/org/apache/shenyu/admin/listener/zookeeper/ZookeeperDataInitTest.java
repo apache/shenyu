@@ -36,8 +36,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * Test cases for {@link ZookeeperDataInit}.
- *
- * @author liMingLiang
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class ZookeeperDataInitTest {

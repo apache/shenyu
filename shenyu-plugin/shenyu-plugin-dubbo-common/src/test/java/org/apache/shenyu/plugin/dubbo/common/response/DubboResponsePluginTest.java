@@ -41,8 +41,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * Test for DubboResponsePlugin.
- *
- * @author lw1243925457
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class DubboResponsePluginTest {

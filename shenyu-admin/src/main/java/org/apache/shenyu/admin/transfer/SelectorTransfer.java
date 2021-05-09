@@ -24,8 +24,6 @@ import org.mapstruct.factory.Mappers;
 
 /**
  * The interface Plugin transfer.
- *
- * @author xiaoyu(Myth)
  */
 @Mapper
 public interface SelectorTransfer {

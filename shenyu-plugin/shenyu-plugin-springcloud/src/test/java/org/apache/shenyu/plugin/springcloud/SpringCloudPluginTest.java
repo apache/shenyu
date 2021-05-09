@@ -62,9 +62,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * The Test Case For {@link SpringCloudPlugin}.
- *
- * @author nuo-promise
- **/
+ */
 @RunWith(MockitoJUnitRunner.class)
 public class SpringCloudPluginTest {
 

@@ -27,8 +27,6 @@ import java.util.List;
 
 /**
  * this is dashboard user from by web front.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 @Data
 @Builder

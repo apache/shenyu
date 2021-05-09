@@ -21,8 +21,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 /**
  * SpringBeanUtils.
- *
- * @author xiaoyu
  */
 public final class SpringBeanUtils {
 

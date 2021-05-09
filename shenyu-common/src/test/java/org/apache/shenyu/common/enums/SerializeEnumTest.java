@@ -21,8 +21,6 @@ import junit.framework.TestCase;
 
 /**
  * Test case for SerializeEnum.
- *
- * @author wincher
  */
 public final class SerializeEnumTest extends TestCase {
 

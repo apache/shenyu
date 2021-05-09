@@ -42,8 +42,6 @@ import java.util.Objects;
 
 /**
  * Alibaba dubbo plugin.
- *
- * @author xiaoyu(Myth)
  */
 @Slf4j
 public class AlibabaDubboPlugin extends AbstractShenyuPlugin {

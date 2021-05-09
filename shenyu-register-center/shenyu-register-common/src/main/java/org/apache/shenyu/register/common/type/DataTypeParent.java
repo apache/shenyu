@@ -19,8 +19,6 @@ package org.apache.shenyu.register.common.type;
 
 /**
  * The interface Data type parent.
- *
- * @author xiaoyu
  */
 public interface DataTypeParent {
     

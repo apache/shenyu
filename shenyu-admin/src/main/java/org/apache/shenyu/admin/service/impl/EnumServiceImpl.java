@@ -42,8 +42,6 @@ import java.util.stream.Collectors;
 
 /**
  * EnumServiceImpl.
- *
- * @author jiangxiaofeng(Nicholas)
  */
 @Service("enumService")
 public class EnumServiceImpl implements EnumService {

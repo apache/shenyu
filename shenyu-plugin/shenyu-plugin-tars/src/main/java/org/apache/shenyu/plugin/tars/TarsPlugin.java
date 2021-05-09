@@ -47,8 +47,6 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * The tars plugin.
- *
- * @author tydhot
  */
 @Slf4j
 public class TarsPlugin extends AbstractShenyuPlugin {

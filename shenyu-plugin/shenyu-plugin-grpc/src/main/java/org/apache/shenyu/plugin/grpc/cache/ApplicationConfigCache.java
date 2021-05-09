@@ -40,8 +40,6 @@ import java.util.stream.Collectors;
 
 /**
  * Grpc config cache.
- *
- * @author zhanglei
  */
 @Slf4j
 public final class ApplicationConfigCache {

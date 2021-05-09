@@ -30,8 +30,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Test case for {@link SofaPluginConfiguration}.
- * 
- * @author HoldDie
  */
 public class SofaPluginConfigurationTest {
    
