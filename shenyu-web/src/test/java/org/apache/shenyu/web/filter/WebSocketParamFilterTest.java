@@ -41,8 +41,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * Test cases for WebSocketParamFilter.
- *
- * @author marina432
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class WebSocketParamFilterTest<T> extends WebSocketParamFilter {

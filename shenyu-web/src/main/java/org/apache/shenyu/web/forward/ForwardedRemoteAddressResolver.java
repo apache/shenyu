@@ -35,8 +35,6 @@ import java.util.List;
  * {@link ServerHttpRequest#getRemoteAddress()}. Use the static constructor methods which
  * meets your security requirements.
  *
- * @author Andrew Fitzgerald
- * @author xiaoyu
  */
 @Slf4j
 public class ForwardedRemoteAddressResolver implements RemoteAddressResolver {

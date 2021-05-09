@@ -39,8 +39,6 @@ import static org.springframework.http.MediaType.MULTIPART_FORM_DATA;
 
 /**
  * test case for FileSizeFilter.
- *
- * @author hellboy0621
  **/
 public class FileSizeFilterTest {
 
@@ -48,7 +46,7 @@ public class FileSizeFilterTest {
     public void setup() {
         GenericApplicationContext context = new GenericApplicationContext();
         SpringBeanUtils.getInstance().setCfgContext(context);
-        context.getBeanFactory().registerSingleton("soulResult", mock(ShenyuResult.class));
+        context.getBeanFactory().registerSingleton("shenyuResult", mock(ShenyuResult.class));
         context.refresh();
     }
 

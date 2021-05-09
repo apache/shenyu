@@ -36,7 +36,7 @@ public class ShenyuExtConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(value = ShenyuResult.class, search = SearchStrategy.ALL)
-    public ShenyuResult<?> soulResult() {
+    public ShenyuResult<?> shenyuResult() {
         return new DefaultShenyuResult();
     }
 

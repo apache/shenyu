@@ -40,8 +40,6 @@ import java.util.List;
 
 /**
  * The type Error handler configuration.
- *
- * @author xiaoyu(Myth)
  */
 @EnableConfigurationProperties({ServerProperties.class, ResourceProperties.class})
 public class ErrorHandlerConfiguration {

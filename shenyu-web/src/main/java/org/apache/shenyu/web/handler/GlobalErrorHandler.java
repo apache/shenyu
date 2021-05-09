@@ -36,8 +36,6 @@ import java.util.Map;
 
 /**
  * GlobalErrorHandler.
- *
- * @author xiaoyu(Myth)
  */
 @Slf4j
 public class GlobalErrorHandler extends DefaultErrorWebExceptionHandler {
