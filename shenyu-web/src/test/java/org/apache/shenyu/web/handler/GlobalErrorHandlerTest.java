@@ -54,7 +54,6 @@ import static org.mockito.Mockito.when;
 /**
  * test for GlobalErrorHandler.
  *
- * @author yangxing
  */
 @RunWith(MockitoJUnitRunner.class)
 public class GlobalErrorHandlerTest {

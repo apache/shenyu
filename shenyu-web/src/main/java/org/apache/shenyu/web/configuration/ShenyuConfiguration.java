@@ -69,7 +69,7 @@ public class ShenyuConfiguration {
         List<ShenyuPlugin> pluginList = plugins.getIfAvailable(Collections::emptyList);
         List<ShenyuPlugin> shenyuPlugins = pluginList.stream()
                 .sorted(Comparator.comparingInt(ShenyuPlugin::getOrder)).collect(Collectors.toList());
-        shenyuPlugins.forEach(soulPlugin -> log.info("load plugin:[{}] [{}]", soulPlugin.named(), soulPlugin.getClass().getName()));
+        shenyuPlugins.forEach(shenyuPlugin -> log.info("load plugin:[{}] [{}]", shenyuPlugin.named(), shenyuPlugin.getClass().getName()));
         return new ShenyuWebHandler(shenyuPlugins);
     }
     
@@ -86,7 +86,7 @@ public class ShenyuConfiguration {
     /**
      * Param transform plugin shenyu plugin.
      *
-     * @return the soul plugin
+     * @return the shenyu plugin
      */
     @Bean
     public ShenyuPlugin paramTransformPlugin() {
@@ -126,7 +126,7 @@ public class ShenyuConfiguration {
      */
     @Bean
     @Order(-100)
-    @ConditionalOnProperty(name = "soul.cross.enabled", havingValue = "true")
+    @ConditionalOnProperty(name = "shenyu.cross.enabled", havingValue = "true")
     public WebFilter crossFilter() {
         return new CrossFilter();
     }
@@ -139,7 +139,7 @@ public class ShenyuConfiguration {
      */
     @Bean
     @Order(-10)
-    @ConditionalOnProperty(name = "soul.file.enabled", havingValue = "true")
+    @ConditionalOnProperty(name = "shenyu.file.enabled", havingValue = "true")
     public WebFilter fileSizeFilter(final ShenyuConfig shenyuConfig) {
         return new FileSizeFilter(shenyuConfig.getFileMaxSize());
     }
@@ -152,18 +152,18 @@ public class ShenyuConfiguration {
      */
     @Bean
     @Order(-5)
-    @ConditionalOnProperty(name = "soul.exclude.enabled", havingValue = "true")
+    @ConditionalOnProperty(name = "shenyu.exclude.enabled", havingValue = "true")
     public WebFilter excludeFilter(final ExcludePathProperties excludePathProperties) {
         return new ExcludeFilter(excludePathProperties);
     }
     
     /**
-     * Soul config shenyu config.
+     * shenyu config.
      *
      * @return the shenyu config
      */
     @Bean
-    @ConfigurationProperties(prefix = "soul")
+    @ConfigurationProperties(prefix = "shenyu")
     public ShenyuConfig shenyuConfig() {
         return new ShenyuConfig();
     }
@@ -176,7 +176,7 @@ public class ShenyuConfiguration {
      */
     @Bean
     @Order(30)
-    @ConditionalOnProperty(name = "soul.filterTimeEnable")
+    @ConditionalOnProperty(name = "shenyu.filterTimeEnable")
     public WebFilter timeWebFilter(final ShenyuConfig shenyuConfig) {
         return new TimeWebFilter(shenyuConfig);
     }

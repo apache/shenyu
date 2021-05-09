@@ -26,8 +26,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * The default fallback for hystrix plugin and resilience4j plugin.
- *
- * @author xiaoshen11
  */
 @RestController
 @RequestMapping("/fallback")
@@ -37,7 +35,7 @@ public class DefaultFallbackController {
     /**
      * default fallback for hystrix.
      *
-     * @return the soul result
+     * @return the shenyu result
      */
     @GetMapping("/hystrix")
     public Object hystrixPluginFallback() {
@@ -48,7 +46,7 @@ public class DefaultFallbackController {
     /**
      * default fallback for resilience4j.
      *
-     * @return the soul result
+     * @return the shenyu result
      */
     @GetMapping("/resilience4j")
     public Object resilience4jFallBack() {

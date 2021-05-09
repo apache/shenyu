@@ -33,8 +33,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Test case for DefaultFallbackController.
- *
- * @author xiaoshen11
  */
 @RunWith(MockitoJUnitRunner.class)
 public final class DefaultFallbackControllerTest {

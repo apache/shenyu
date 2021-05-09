@@ -30,8 +30,6 @@ import static org.mockito.Mockito.when;
 
 /**
  * test case for CrossFilter.
- *
- * @author YuI
  **/
 public final class CrossFilterTest {
 

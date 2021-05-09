@@ -46,8 +46,6 @@ import java.util.List;
 
 /**
  * The type File size filter.
- *
- * @author xiaoyu(Myth)
  */
 public class FileSizeFilter implements WebFilter {
 
