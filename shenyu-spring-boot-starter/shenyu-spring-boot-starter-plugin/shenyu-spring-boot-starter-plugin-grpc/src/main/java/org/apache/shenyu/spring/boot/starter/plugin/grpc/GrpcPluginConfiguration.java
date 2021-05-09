@@ -72,7 +72,7 @@ public class GrpcPluginConfiguration {
      * @return the soul context decorator
      */
     @Bean
-    public ShenyuContextDecorator grpcSoulContextDecorator() {
+    public ShenyuContextDecorator grpcShenyuContextDecorator() {
         return new GrpcShenyuContextDecorator();
     }
 }

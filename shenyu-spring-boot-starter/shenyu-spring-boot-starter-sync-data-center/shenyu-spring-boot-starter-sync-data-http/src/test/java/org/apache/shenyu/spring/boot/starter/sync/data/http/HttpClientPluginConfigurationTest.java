@@ -58,9 +58,9 @@ import static org.junit.Assert.assertThat;
         },
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
-                "soul.sync.http.url=http://localhost:18848",
-                "soul.sync.http.delayTime=3",
-                "soul.sync.http.connectionTimeout=5"
+                "shenyu.sync.http.url=http://localhost:18848",
+                "shenyu.sync.http.delayTime=3",
+                "shenyu.sync.http.connectionTimeout=5"
         })
 @EnableAutoConfiguration
 @MockBean({PluginDataSubscriber.class, ServletWebServerFactory.class})

@@ -42,7 +42,7 @@ import java.util.Objects;
  */
 @Configuration
 @ConditionalOnClass(HttpSyncDataService.class)
-@ConditionalOnProperty(prefix = "soul.sync.http", name = "url")
+@ConditionalOnProperty(prefix = "shenyu.sync.http", name = "url")
 @Slf4j
 public class HttpSyncDataConfiguration {
 
@@ -58,7 +58,7 @@ public class HttpSyncDataConfiguration {
     @Bean
     public SyncDataService httpSyncDataService(final ObjectProvider<HttpConfig> httpConfig, final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
                                            final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers) {
-        log.info("you use http long pull sync soul data");
+        log.info("you use http long pull sync shenyu data");
         return new HttpSyncDataService(Objects.requireNonNull(httpConfig.getIfAvailable()), Objects.requireNonNull(pluginSubscriber.getIfAvailable()),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList));
     }
@@ -69,7 +69,7 @@ public class HttpSyncDataConfiguration {
      * @return the http config
      */
     @Bean
-    @ConfigurationProperties(prefix = "soul.sync.http")
+    @ConfigurationProperties(prefix = "shenyu.sync.http")
     public HttpConfig httpConfig() {
         return new HttpConfig();
     }

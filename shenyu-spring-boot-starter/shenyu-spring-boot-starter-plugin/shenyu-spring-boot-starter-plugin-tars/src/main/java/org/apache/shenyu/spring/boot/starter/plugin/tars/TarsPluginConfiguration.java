@@ -86,7 +86,7 @@ public class TarsPluginConfiguration {
      * @return the soul context decorator
      */
     @Bean
-    public ShenyuContextDecorator tarsSoulContextDecorator() {
+    public ShenyuContextDecorator tarsShenyuContextDecorator() {
         return new TarsShenyuContextDecorator();
     }
 }

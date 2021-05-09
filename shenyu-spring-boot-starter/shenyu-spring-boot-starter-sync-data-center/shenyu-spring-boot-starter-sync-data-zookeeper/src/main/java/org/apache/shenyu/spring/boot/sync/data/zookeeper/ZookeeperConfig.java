@@ -26,7 +26,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author xiaoyu(Myth)
  */
 @Data
-@ConfigurationProperties(prefix = "soul.sync.zookeeper")
+@ConfigurationProperties(prefix = "shenyu.sync.zookeeper")
 public class ZookeeperConfig {
 
     private String url;

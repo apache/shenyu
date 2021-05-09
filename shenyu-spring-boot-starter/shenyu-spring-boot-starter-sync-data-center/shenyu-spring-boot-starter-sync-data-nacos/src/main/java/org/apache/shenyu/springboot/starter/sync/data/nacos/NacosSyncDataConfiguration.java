@@ -46,7 +46,7 @@ import java.util.Properties;
  */
 @Configuration
 @ConditionalOnClass(NacosSyncDataService.class)
-@ConditionalOnProperty(prefix = "soul.sync.nacos", name = "url")
+@ConditionalOnProperty(prefix = "shenyu.sync.nacos", name = "url")
 @Slf4j
 public class NacosSyncDataConfiguration {
 
@@ -62,7 +62,7 @@ public class NacosSyncDataConfiguration {
     @Bean
     public SyncDataService nacosSyncDataService(final ObjectProvider<ConfigService> configService, final ObjectProvider<PluginDataSubscriber> pluginSubscriber,
                                            final ObjectProvider<List<MetaDataSubscriber>> metaSubscribers, final ObjectProvider<List<AuthDataSubscriber>> authSubscribers) {
-        log.info("you use nacos sync soul data.......");
+        log.info("you use nacos sync shenyu data.......");
         return new NacosSyncDataService(configService.getIfAvailable(), pluginSubscriber.getIfAvailable(),
                 metaSubscribers.getIfAvailable(Collections::emptyList), authSubscribers.getIfAvailable(Collections::emptyList));
     }
@@ -103,7 +103,7 @@ public class NacosSyncDataConfiguration {
      * @return the http config
      */
     @Bean
-    @ConfigurationProperties(prefix = "soul.sync.nacos")
+    @ConfigurationProperties(prefix = "shenyu.sync.nacos")
     public NacosConfig nacosConfig() {
         return new NacosConfig();
     }
