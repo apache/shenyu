@@ -20,7 +20,7 @@ package org.apache.shenyu.admin.service;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.model.dto.BatchCommonDTO;
 import org.apache.shenyu.admin.model.dto.SoulDictDTO;
-import org.apache.shenyu.admin.model.entity.SoulDictDO;
+import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
 import org.apache.shenyu.admin.mapper.SoulDictMapper;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
@@ -65,20 +65,20 @@ public final class SoulDictServiceTest {
 
     @Test
     public void testFindByType() {
-        SoulDictDO soulDictDO = buildSoulDictDO();
-        given(this.soulDictMapper.selectByQuery(any())).willReturn(Collections.singletonList(soulDictDO));
+        ShenyuDictDO shenyuDictDO = buildSoulDictDO();
+        given(this.soulDictMapper.selectByQuery(any())).willReturn(Collections.singletonList(shenyuDictDO));
         List<ShenyuDictVO> shenyuDictVOList = this.soulDictService.list("rule");
         assertEquals(1, shenyuDictVOList.size());
-        assertEquals(soulDictDO.getId(), shenyuDictVOList.get(0).getId());
+        assertEquals(shenyuDictDO.getId(), shenyuDictVOList.get(0).getId());
     }
 
     @Test
     public void testFindById() {
-        SoulDictDO soulDictDO = buildSoulDictDO();
-        given(this.soulDictMapper.selectById(eq("123"))).willReturn(soulDictDO);
+        ShenyuDictDO shenyuDictDO = buildSoulDictDO();
+        given(this.soulDictMapper.selectById(eq("123"))).willReturn(shenyuDictDO);
         ShenyuDictVO shenyuDictVO = this.soulDictService.findById("123");
         assertNotNull(shenyuDictVO);
-        assertEquals(soulDictDO.getId(), shenyuDictVO.getId());
+        assertEquals(shenyuDictDO.getId(), shenyuDictVO.getId());
     }
 
     @Test
@@ -120,14 +120,14 @@ public final class SoulDictServiceTest {
         pageParameter.setTotalPage(pageParameter.getTotalCount() / pageParameter.getPageSize());
         SoulDictQuery soulDictQuery = new SoulDictQuery("1", "t", "t_n", pageParameter);
         given(this.soulDictMapper.countByQuery(soulDictQuery)).willReturn(10);
-        List<SoulDictDO> soulDictDOList = new ArrayList<>();
+        List<ShenyuDictDO> shenyuDictDOList = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
-            SoulDictDO soulDictVO = buildSoulDictDO();
-            soulDictDOList.add(soulDictVO);
+            ShenyuDictDO soulDictVO = buildSoulDictDO();
+            shenyuDictDOList.add(soulDictVO);
         }
-        given(this.soulDictMapper.selectByQuery(soulDictQuery)).willReturn(soulDictDOList);
+        given(this.soulDictMapper.selectByQuery(soulDictQuery)).willReturn(shenyuDictDOList);
         final CommonPager<ShenyuDictVO> pluginDOCommonPager = this.soulDictService.listByPage(soulDictQuery);
-        assertEquals(pluginDOCommonPager.getDataList().size(), soulDictDOList.size());
+        assertEquals(pluginDOCommonPager.getDataList().size(), shenyuDictDOList.size());
     }
 
     private SoulDictDTO buildSoulDictDTO() {
@@ -149,13 +149,13 @@ public final class SoulDictServiceTest {
         return soulDictDTO;
     }
 
-    private SoulDictDO buildSoulDictDO() {
-        SoulDictDO soulDictDO = SoulDictDO.buildSoulDictDO(buildSoulDictDTO());
-        Optional.ofNullable(soulDictDO).ifPresent(it -> {
+    private ShenyuDictDO buildSoulDictDO() {
+        ShenyuDictDO shenyuDictDO = ShenyuDictDO.buildSoulDictDO(buildSoulDictDTO());
+        Optional.ofNullable(shenyuDictDO).ifPresent(it -> {
             Timestamp now = Timestamp.valueOf(LocalDateTime.now());
             it.setDateCreated(now);
             it.setDateUpdated(now);
         });
-        return soulDictDO;
+        return shenyuDictDO;
     }
 }

@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.apache.shenyu.admin.model.entity.SoulDictDO;
+import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
 import org.apache.shenyu.admin.model.query.SoulDictQuery;
 
 import java.util.List;
@@ -38,7 +38,7 @@ public interface SoulDictMapper {
      * @param id the id.
      * @return the soul dict do.
      */
-    SoulDictDO selectById(@Param("id") String id);
+    ShenyuDictDO selectById(@Param("id") String id);
 
     /**
      * find soul dict do list by dict type.
@@ -46,23 +46,23 @@ public interface SoulDictMapper {
      * @param type the dict type.
      * @return the list
      */
-    List<SoulDictDO> findByType(@Param("type") String type);
+    List<ShenyuDictDO> findByType(@Param("type") String type);
 
     /**
      * insert soul dict.
      *
-     * @param record {@link SoulDictDO}
+     * @param record {@link ShenyuDictDO}
      * @return affected rows
      */
-    int insert(SoulDictDO record);
+    int insert(ShenyuDictDO record);
 
     /**
      * insert selective soul dict.
      *
-     * @param record {@link SoulDictDO}
+     * @param record {@link ShenyuDictDO}
      * @return affected rows.
      */
-    int insertSelective(SoulDictDO record);
+    int insertSelective(ShenyuDictDO record);
 
     /**
      * count soul dict by query.
@@ -78,23 +78,23 @@ public interface SoulDictMapper {
      * @param soulDictQuery {@linkplain SoulDictQuery}
      * @return the soul dict list
      */
-    List<SoulDictDO> selectByQuery(SoulDictQuery soulDictQuery);
+    List<ShenyuDictDO> selectByQuery(SoulDictQuery soulDictQuery);
 
     /**
      * update some selective columns in soul dict.
      *
-     * @param record {@linkplain SoulDictDO}
+     * @param record {@linkplain ShenyuDictDO}
      * @return affected rows
      */
-    int updateByPrimaryKeySelective(SoulDictDO record);
+    int updateByPrimaryKeySelective(ShenyuDictDO record);
 
     /**
      * update soul dict by primary key.
      *
-     * @param record {@linkplain SoulDictDO}
+     * @param record {@linkplain ShenyuDictDO}
      * @return effected rows.
      */
-    int updateByPrimaryKey(SoulDictDO record);
+    int updateByPrimaryKey(ShenyuDictDO record);
 
     /**
      * delete string id.

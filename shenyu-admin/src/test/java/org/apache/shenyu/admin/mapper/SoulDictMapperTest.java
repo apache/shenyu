@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.mapper;
 
 import org.apache.shenyu.admin.AbstractSpringIntegrationTest;
-import org.apache.shenyu.admin.model.entity.SoulDictDO;
+import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
 import org.apache.shenyu.admin.model.query.SoulDictQuery;
 import org.apache.shenyu.common.utils.UUIDUtils;
 import org.junit.Test;
@@ -41,18 +41,18 @@ public final class SoulDictMapperTest extends AbstractSpringIntegrationTest {
 
     @Test
     public void testSelectByQuery() {
-        SoulDictDO record = buildSoulDictDO();
+        ShenyuDictDO record = buildSoulDictDO();
         int count = soulDictMapper.insert(record);
         assertThat(count, greaterThan(0));
 
         SoulDictQuery soulDictQuery = new SoulDictQuery();
-        List<SoulDictDO> soulDictList = soulDictMapper.selectByQuery(soulDictQuery);
+        List<ShenyuDictDO> soulDictList = soulDictMapper.selectByQuery(soulDictQuery);
         assertThat(soulDictList.size(), greaterThan(0));
     }
 
     @Test
     public void testInsertAndUpdate() {
-        SoulDictDO record = buildSoulDictDO();
+        ShenyuDictDO record = buildSoulDictDO();
         int count = soulDictMapper.insert(record);
         assertThat(count, greaterThan(0));
 
@@ -64,10 +64,10 @@ public final class SoulDictMapperTest extends AbstractSpringIntegrationTest {
         assertThat(count, greaterThan(0));
     }
 
-    private SoulDictDO buildSoulDictDO() {
+    private ShenyuDictDO buildSoulDictDO() {
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
         String id = UUIDUtils.getInstance().generateShortUuid();
-        return SoulDictDO.builder()
+        return ShenyuDictDO.builder()
                 .id(id)
                 .sort(1)
                 .desc("test")

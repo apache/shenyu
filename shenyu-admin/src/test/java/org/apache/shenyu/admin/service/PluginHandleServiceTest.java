@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.service;
 
 import org.apache.shenyu.admin.model.dto.PluginHandleDTO;
 import org.apache.shenyu.admin.model.entity.PluginHandleDO;
-import org.apache.shenyu.admin.model.entity.SoulDictDO;
+import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
 import org.apache.shenyu.admin.mapper.PluginHandleMapper;
 import org.apache.shenyu.admin.mapper.SoulDictMapper;
 import org.apache.shenyu.admin.model.page.CommonPager;
@@ -166,9 +166,9 @@ public final class PluginHandleServiceTest {
         assertThat(result.getDictOptions().size(), equalTo(1));
     }
 
-    private List<SoulDictDO> buildSoulDictDOs() {
+    private List<ShenyuDictDO> buildSoulDictDOs() {
         Timestamp now = Timestamp.valueOf(LocalDateTime.now());
-        final SoulDictDO result = SoulDictDO.builder()
+        final ShenyuDictDO result = ShenyuDictDO.builder()
                 .type("burstCapacity")
                 .dictCode("RATE_LIMITER_QPS")
                 .dictName("QPS")

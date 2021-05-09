@@ -18,7 +18,7 @@
 
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.apache.shenyu.admin.mapper.SoulDictMapper">
-    <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.SoulDictDO">
+    <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.ShenyuDictDO">
         <id column="id" jdbcType="VARCHAR" property="id"/>
         <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
         <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
@@ -53,7 +53,7 @@
         where id = #{id,jdbcType=VARCHAR}
     </delete>
 
-    <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.SoulDictDO">
+    <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.ShenyuDictDO">
     insert into soul_dict (id, `type`, dict_code, dict_name, dict_value, `desc`, sort, enabled, date_created, date_updated
       )
     values (#{id,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{dictCode,jdbcType=VARCHAR},
@@ -62,7 +62,7 @@
       )
   </insert>
 
-    <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.SoulDictDO">
+    <insert id="insertSelective" parameterType="org.apache.shenyu.admin.model.entity.ShenyuDictDO">
         insert into soul_dict
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="id != null">
@@ -129,7 +129,7 @@
             </if>
         </trim>
     </insert>
-    <update id="updateByPrimaryKeySelective" parameterType="org.apache.shenyu.admin.model.entity.SoulDictDO">
+    <update id="updateByPrimaryKeySelective" parameterType="org.apache.shenyu.admin.model.entity.ShenyuDictDO">
         update soul_dict
         <set>
             <if test="type != null">
@@ -163,7 +163,7 @@
         where id = #{id,jdbcType=VARCHAR}
     </update>
 
-    <update id="updateByPrimaryKey" parameterType="org.apache.shenyu.admin.model.entity.SoulDictDO">
+    <update id="updateByPrimaryKey" parameterType="org.apache.shenyu.admin.model.entity.ShenyuDictDO">
         update soul_dict
         set `type` = #{type,jdbcType=VARCHAR},
           dict_code = #{dictCode,jdbcType=VARCHAR},

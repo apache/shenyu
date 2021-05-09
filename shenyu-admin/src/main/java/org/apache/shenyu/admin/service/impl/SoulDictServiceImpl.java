@@ -20,7 +20,7 @@ package org.apache.shenyu.admin.service.impl;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.SoulDictMapper;
 import org.apache.shenyu.admin.model.dto.SoulDictDTO;
-import org.apache.shenyu.admin.model.entity.SoulDictDO;
+import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageResultUtils;
 import org.apache.shenyu.admin.model.query.SoulDictQuery;
@@ -62,11 +62,11 @@ public class SoulDictServiceImpl implements SoulDictService {
     @Override
     public Integer createOrUpdate(final SoulDictDTO soulDictDTO) {
         int count;
-        SoulDictDO soulDictDO = SoulDictDO.buildSoulDictDO(soulDictDTO);
+        ShenyuDictDO shenyuDictDO = ShenyuDictDO.buildSoulDictDO(soulDictDTO);
         if (StringUtils.isEmpty(soulDictDTO.getId())) {
-            count = soulDictMapper.insertSelective(soulDictDO);
+            count = soulDictMapper.insertSelective(shenyuDictDO);
         } else {
-            count = soulDictMapper.updateByPrimaryKeySelective(soulDictDO);
+            count = soulDictMapper.updateByPrimaryKeySelective(shenyuDictDO);
         }
         return count;
     }

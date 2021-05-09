@@ -20,7 +20,7 @@ package org.apache.shenyu.admin.model.vo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.shenyu.admin.model.entity.SoulDictDO;
+import org.apache.shenyu.admin.model.entity.ShenyuDictDO;
 import org.apache.shenyu.common.utils.DateUtils;
 
 import java.io.Serializable;
@@ -91,16 +91,16 @@ public class ShenyuDictVO implements Serializable {
     /**
      * build {@linkplain ShenyuDictVO}.
      *
-     * @param soulDictDO {@linkplain SoulDictDO}
+     * @param shenyuDictDO {@linkplain ShenyuDictDO}
      * @return {@linkplain ShenyuDictVO}
      */
-    public static ShenyuDictVO buildSoulDictVO(final SoulDictDO soulDictDO) {
-        return Optional.ofNullable(soulDictDO)
-                .map(it -> new ShenyuDictVO(soulDictDO.getId(), soulDictDO.getType(),
-                        soulDictDO.getDictCode(), soulDictDO.getDictName(),
-                        soulDictDO.getDictValue(), soulDictDO.getDesc(), soulDictDO.getSort(), soulDictDO.getEnabled(),
-                        DateUtils.localDateTimeToString(soulDictDO.getDateCreated().toLocalDateTime()),
-                        DateUtils.localDateTimeToString(soulDictDO.getDateUpdated().toLocalDateTime())))
+    public static ShenyuDictVO buildSoulDictVO(final ShenyuDictDO shenyuDictDO) {
+        return Optional.ofNullable(shenyuDictDO)
+                .map(it -> new ShenyuDictVO(shenyuDictDO.getId(), shenyuDictDO.getType(),
+                        shenyuDictDO.getDictCode(), shenyuDictDO.getDictName(),
+                        shenyuDictDO.getDictValue(), shenyuDictDO.getDesc(), shenyuDictDO.getSort(), shenyuDictDO.getEnabled(),
+                        DateUtils.localDateTimeToString(shenyuDictDO.getDateCreated().toLocalDateTime()),
+                        DateUtils.localDateTimeToString(shenyuDictDO.getDateUpdated().toLocalDateTime())))
                 .orElse(null);
     }
 }
