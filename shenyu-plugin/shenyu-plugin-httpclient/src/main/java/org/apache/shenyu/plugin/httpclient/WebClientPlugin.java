@@ -112,7 +112,6 @@ public class WebClientPlugin implements ShenyuPlugin {
             httpHeaders.addAll(exchange.getRequest().getHeaders());
             httpHeaders.remove(HttpHeaders.HOST);
         })
-                .contentType(buildMediaType(exchange))
                 .body(BodyInserters.fromDataBuffers(exchange.getRequest().getBody()))
                 .exchange()
                 .doOnError(e -> log.error(e.getMessage(), e))
