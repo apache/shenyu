@@ -32,7 +32,7 @@ management:
     defaults:
       enabled: false
 
-soul:
+shenyu:
     file:
       enabled: true
     cross:
