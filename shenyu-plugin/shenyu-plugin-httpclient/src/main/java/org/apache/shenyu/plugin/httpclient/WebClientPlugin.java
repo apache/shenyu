@@ -32,7 +32,6 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -94,13 +93,6 @@ public class WebClientPlugin implements ShenyuPlugin {
         assert shenyuContext != null;
         return !Objects.equals(RpcTypeEnum.HTTP.getName(), shenyuContext.getRpcType())
                 && !Objects.equals(RpcTypeEnum.SPRING_CLOUD.getName(), shenyuContext.getRpcType());
-    }
-
-    private MediaType buildMediaType(final ServerWebExchange exchange) {
-        return MediaType.valueOf(Optional.ofNullable(exchange
-                .getRequest()
-                .getHeaders().getFirst(HttpHeaders.CONTENT_TYPE))
-                .orElse(MediaType.APPLICATION_JSON_VALUE));
     }
 
     private Mono<Void> handleRequestBody(final WebClient.RequestBodySpec requestBodySpec,
