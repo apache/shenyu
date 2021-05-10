@@ -23,7 +23,7 @@ import org.apache.shenyu.client.tars.common.annotation.ShenyuTarsService;
 import org.apache.shenyu.examples.tars.servant.testapp.HelloServant;
 
 @TarsServant("HelloObj")
-@ShenyuTarsService(serviceName = "SoulExampleServer.SoulExampleApp.HelloObj")
+@ShenyuTarsService(serviceName = "ShenyuExampleServer.ShenyuExampleApp.HelloObj")
 public class HelloServantImpl implements HelloServant {
     @Override
     @ShenyuTarsClient(path = "/hello", desc = "hello")

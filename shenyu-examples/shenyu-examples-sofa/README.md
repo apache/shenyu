@@ -18,7 +18,7 @@ add etcd register center dependency in shenyu-admin:
 set etcd register config in shenyu-admin:
 
 ```yaml
-soul:
+shenyu:
   register:
     registerType: etcd
     serverLists : http://localhost:2379
@@ -28,7 +28,7 @@ soul:
 set etcd register config:
 
 ```yaml
-soul:
+shenyu:
   client:
     registerType: etcd #http #zookeeper #etcd
     serverLists: http://localhost:2379 #http://localhost:9095 #localhost:2181 #http://localhost:2379

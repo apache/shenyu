@@ -39,7 +39,7 @@ public class SofaMultiParamServiceImpl implements SofaMultiParamService {
     public SofaSimpleTypeBean findByIdsAndName(final List<Integer> ids, final String name) {
         SofaSimpleTypeBean simpleTypeBean = new SofaSimpleTypeBean();
         simpleTypeBean.setId(ids.toString());
-        simpleTypeBean.setName("hello world soul sofa param findByIdsAndName ：" + name);
+        simpleTypeBean.setName("hello world shenyu sofa param findByIdsAndName ：" + name);
         return simpleTypeBean;
     }
 
@@ -48,7 +48,7 @@ public class SofaMultiParamServiceImpl implements SofaMultiParamService {
     public SofaSimpleTypeBean findByArrayIdsAndName(final Integer[] ids, final String name) {
         SofaSimpleTypeBean simpleTypeBean = new SofaSimpleTypeBean();
         simpleTypeBean.setId(Arrays.toString(ids));
-        simpleTypeBean.setName("hello world soul sofa param findByArrayIdsAndName ：" + name);
+        simpleTypeBean.setName("hello world shenyu sofa param findByArrayIdsAndName ：" + name);
         return simpleTypeBean;
     }
 
@@ -57,7 +57,7 @@ public class SofaMultiParamServiceImpl implements SofaMultiParamService {
     public SofaSimpleTypeBean findByStringArray(final String[] ids) {
         SofaSimpleTypeBean simpleTypeBean = new SofaSimpleTypeBean();
         simpleTypeBean.setId(Arrays.toString(ids));
-        simpleTypeBean.setName("hello world soul sofa param findByStringArray");
+        simpleTypeBean.setName("hello world shenyu sofa param findByStringArray");
         return simpleTypeBean;
     }
 
@@ -66,7 +66,7 @@ public class SofaMultiParamServiceImpl implements SofaMultiParamService {
     public SofaSimpleTypeBean findByListId(final List<String> ids) {
         SofaSimpleTypeBean simpleTypeBean = new SofaSimpleTypeBean();
         simpleTypeBean.setId(ids.toString());
-        simpleTypeBean.setName("hello world soul sofa param findByListId");
+        simpleTypeBean.setName("hello world shenyu sofa param findByListId");
         return simpleTypeBean;
     }
 
@@ -75,7 +75,7 @@ public class SofaMultiParamServiceImpl implements SofaMultiParamService {
     public SofaSimpleTypeBean batchSave(final List<SofaSimpleTypeBean> sofaTestList) {
         SofaSimpleTypeBean simpleTypeBean = new SofaSimpleTypeBean();
         simpleTypeBean.setId(sofaTestList.stream().map(SofaSimpleTypeBean::getId).collect(Collectors.joining("-")));
-        simpleTypeBean.setName("hello world soul sofa param batchSave :" + sofaTestList.stream().map(SofaSimpleTypeBean::getName).collect(Collectors.joining("-")));
+        simpleTypeBean.setName("hello world shenyu sofa param batchSave :" + sofaTestList.stream().map(SofaSimpleTypeBean::getName).collect(Collectors.joining("-")));
         return simpleTypeBean;
     }
 
@@ -84,7 +84,7 @@ public class SofaMultiParamServiceImpl implements SofaMultiParamService {
     public SofaSimpleTypeBean batchSaveNameAndId(final List<SofaSimpleTypeBean> sofaTestList, final String id, final String name) {
         SofaSimpleTypeBean simpleTypeBean = new SofaSimpleTypeBean();
         simpleTypeBean.setId(id);
-        simpleTypeBean.setName("hello world soul sofa param batchSaveAndNameAndId :" + name + ":" + sofaTestList.stream().map(SofaSimpleTypeBean::getName).collect(Collectors.joining("-")));
+        simpleTypeBean.setName("hello world shenyu sofa param batchSaveAndNameAndId :" + name + ":" + sofaTestList.stream().map(SofaSimpleTypeBean::getName).collect(Collectors.joining("-")));
         return simpleTypeBean;
     }
 
@@ -93,7 +93,7 @@ public class SofaMultiParamServiceImpl implements SofaMultiParamService {
     public SofaSimpleTypeBean saveComplexBean(final SofaComplexTypeBean sofaComplexTypeBean) {
         SofaSimpleTypeBean simpleTypeBean = new SofaSimpleTypeBean();
         simpleTypeBean.setId(sofaComplexTypeBean.getIdLists().toString());
-        simpleTypeBean.setName("hello world soul sofa param saveComplexBean :" + sofaComplexTypeBean.getSofaSimpleTypeBean().getName());
+        simpleTypeBean.setName("hello world shenyu sofa param saveComplexBean :" + sofaComplexTypeBean.getSofaSimpleTypeBean().getName());
         return simpleTypeBean;
     }
 
@@ -102,7 +102,7 @@ public class SofaMultiParamServiceImpl implements SofaMultiParamService {
     public SofaSimpleTypeBean saveComplexBeanAndName(final SofaComplexTypeBean sofaComplexTypeBean, final String name) {
         SofaSimpleTypeBean simpleTypeBean = new SofaSimpleTypeBean();
         simpleTypeBean.setId(sofaComplexTypeBean.getIdLists().toString());
-        simpleTypeBean.setName("hello world soul sofa param saveComplexBeanAndName :" + sofaComplexTypeBean.getSofaSimpleTypeBean().getName() + "-" + name);
+        simpleTypeBean.setName("hello world shenyu sofa param saveComplexBeanAndName :" + sofaComplexTypeBean.getSofaSimpleTypeBean().getName() + "-" + name);
         return simpleTypeBean;
     }
 
@@ -111,7 +111,7 @@ public class SofaMultiParamServiceImpl implements SofaMultiParamService {
     public SofaSimpleTypeBean saveTwoList(final List<SofaComplexTypeBean> sofaComplexTypeBeanList, final Map<String, SofaSimpleTypeBean> sofaSimpleTypeBeanMap) {
         SofaSimpleTypeBean simpleTypeBean = new SofaSimpleTypeBean();
         simpleTypeBean.setId(sofaComplexTypeBeanList.get(0).getIdLists().toString());
-        simpleTypeBean.setName("hello world soul sofa param saveTwoList :" + sofaComplexTypeBeanList.get(0).getSofaSimpleTypeBean().getName()
+        simpleTypeBean.setName("hello world shenyu sofa param saveTwoList :" + sofaComplexTypeBeanList.get(0).getSofaSimpleTypeBean().getName()
                 + "-" + sofaSimpleTypeBeanMap.values().stream().findFirst().map(SofaSimpleTypeBean::getName).toString());
         return simpleTypeBean;
     }
