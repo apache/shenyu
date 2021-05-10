@@ -159,7 +159,7 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
         private final List<String> subProtocols;
 
         /**
-         * Instantiates a new Soul web socket handler.
+         * Instantiates a new shenyu web socket handler.
          *
          * @param url       the url
          * @param client    the client

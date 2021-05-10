@@ -49,7 +49,7 @@ import org.springframework.web.server.ServerWebExchange;
 @Slf4j
 public class DefaultSignService implements SignService {
 
-    @Value("${soul.sign.delay:5}")
+    @Value("${shenyu.sign.delay:5}")
     private int delay;
 
     @Override

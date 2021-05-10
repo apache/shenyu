@@ -48,14 +48,14 @@ public final class UpstreamCacheManager extends BaseHandleCache<String, DivideRu
 
 
     /**
-     * suggest soul.upstream.scheduledTime set 1 SECONDS.
+     * suggest shenyu.upstream.scheduledTime set 1 SECONDS.
      */
     private UpstreamCacheManager() {
-        boolean check = Boolean.parseBoolean(System.getProperty("soul.upstream.check", "false"));
+        boolean check = Boolean.parseBoolean(System.getProperty("shenyu.upstream.check", "false"));
         if (check) {
             new ScheduledThreadPoolExecutor(1, ShenyuThreadFactory.create("scheduled-upstream-task", false))
                     .scheduleWithFixedDelay(this::scheduled,
-                            30, Integer.parseInt(System.getProperty("soul.upstream.scheduledTime", "30")), TimeUnit.SECONDS);
+                            30, Integer.parseInt(System.getProperty("shenyu.upstream.scheduledTime", "30")), TimeUnit.SECONDS);
         }
     }
 

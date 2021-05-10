@@ -55,7 +55,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
 
     /**
      * Process the Web request and (optionally) delegate to the next
-     * {@code SoulPlugin} through the given {@link ShenyuPluginChain}.
+     * {@code ShenyuPlugin} through the given {@link ShenyuPluginChain}.
      *
      * @param exchange the current server exchange
      * @param chain    provides a way to delegate to the next plugin

@@ -25,7 +25,7 @@ public class RegisterPathConstants {
     /**
      * root path of zookeeper register center.
      */
-    public static final String ROOT_PATH = "/soul/register";
+    public static final String ROOT_PATH = "/shenyu/register";
 
     /**
      * constants of separator.

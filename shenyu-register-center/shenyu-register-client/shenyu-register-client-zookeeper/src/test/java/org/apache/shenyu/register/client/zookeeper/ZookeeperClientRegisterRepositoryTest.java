@@ -109,11 +109,11 @@ public class ZookeeperClientRegisterRepositoryTest {
                 .build();
 
         repository.persistInterface(data);
-        String metadataPath = "/soul/register/metadata/http/context/context-ruleName";
+        String metadataPath = "/shenyu/register/metadata/http/context/context-ruleName";
         assert zookeeperBroker.containsKey(metadataPath);
         assert zookeeperBroker.get(metadataPath).equals(GsonUtils.getInstance().toJson(data));
 
-        String uriPath = "/soul/register/uri/http/context/host:80";
+        String uriPath = "/shenyu/register/uri/http/context/host:80";
         assert zookeeperBroker.containsKey(uriPath);
         assert zookeeperBroker.get(uriPath).equals(GsonUtils.getInstance().toJson(URIRegisterDTO.transForm(data)));
 

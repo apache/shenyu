@@ -104,7 +104,7 @@ public class NacosClientRegisterRepositoryTest {
 
         repository.persistInterface(data);
 
-        String uriInstancePath = "soul.register.service.http";
+        String uriInstancePath = "shenyu.register.service.http";
         assert nacosBroker.containsKey(uriInstancePath);
         Instance instance = (Instance) nacosBroker.get(uriInstancePath);
         assert instance.getPort() == data.getPort();
@@ -112,7 +112,7 @@ public class NacosClientRegisterRepositoryTest {
         Map<String, String> metadataMap = instance.getMetadata();
         assert metadataMap.get("uriMetadata").equals(GsonUtils.getInstance().toJson(URIRegisterDTO.transForm(data)));
 
-        String configPath = "soul.register.service.http.context";
+        String configPath = "shenyu.register.service.http.context";
         assert nacosBroker.containsKey(configPath);
         String dataStr = GsonUtils.getInstance().toJson(data);
         assert nacosBroker.get(configPath).equals(GsonUtils.getInstance().toJson(Collections.singletonList(dataStr)));

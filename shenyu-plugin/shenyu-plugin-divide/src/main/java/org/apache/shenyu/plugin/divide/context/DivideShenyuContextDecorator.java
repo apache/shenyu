@@ -23,7 +23,7 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 
 /**
- * The type Divide soul context decorator.
+ * The type Divide shenyu context decorator.
  */
 public class DivideShenyuContextDecorator implements ShenyuContextDecorator {
     

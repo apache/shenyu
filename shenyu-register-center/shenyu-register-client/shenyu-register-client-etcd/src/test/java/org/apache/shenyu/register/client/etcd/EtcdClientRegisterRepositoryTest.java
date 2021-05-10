@@ -81,11 +81,11 @@ public class EtcdClientRegisterRepositoryTest {
                 .build();
 
         repository.persistInterface(data);
-        String metadataPath = "/soul/register/metadata/http/context/context-ruleName";
+        String metadataPath = "/shenyu/register/metadata/http/context/context-ruleName";
         assert etcdBroker.containsKey(metadataPath);
         assert etcdBroker.get(metadataPath).equals(GsonUtils.getInstance().toJson(data));
 
-        String uriPath = "/soul/register/uri/http/context/host:80";
+        String uriPath = "/shenyu/register/uri/http/context/host:80";
         assert etcdBroker.containsKey(uriPath);
         assert etcdBroker.get(uriPath).equals(GsonUtils.getInstance().toJson(data));
 
