@@ -35,7 +35,7 @@ public class DubboTestServiceImpl implements DubboTestService {
     public DubboTest findById(final String id) {
         DubboTest dubboTest = new DubboTest();
         dubboTest.setId(id);
-        dubboTest.setName("hello world Soul Alibaba Dubbo, findById");
+        dubboTest.setName("hello world shenyu Alibaba Dubbo, findById");
         return dubboTest;
     }
 
@@ -43,7 +43,7 @@ public class DubboTestServiceImpl implements DubboTestService {
     @ShenyuDubboClient(path = "/findAll", desc = "Get all data")
     public DubboTest findAll() {
         DubboTest dubboTest = new DubboTest();
-        dubboTest.setName("hello world Soul Alibaba Dubbo , findAll");
+        dubboTest.setName("hello world shenyu Alibaba Dubbo , findAll");
         dubboTest.setId(String.valueOf(new Random().nextInt()));
         return dubboTest;
     }
@@ -51,7 +51,7 @@ public class DubboTestServiceImpl implements DubboTestService {
     @Override
     @ShenyuDubboClient(path = "/insert", desc = "Insert a row of data")
     public DubboTest insert(final DubboTest dubboTest) {
-        dubboTest.setName("hello world Soul Alibaba Dubbo: " + dubboTest.getName());
+        dubboTest.setName("hello world shenyu Alibaba Dubbo: " + dubboTest.getName());
         return dubboTest;
     }
 

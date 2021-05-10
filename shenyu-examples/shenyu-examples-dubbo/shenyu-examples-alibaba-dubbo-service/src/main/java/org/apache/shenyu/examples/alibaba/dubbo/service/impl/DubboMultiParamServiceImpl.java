@@ -36,7 +36,7 @@ public class DubboMultiParamServiceImpl implements DubboMultiParamService {
     public DubboTest findByIdsAndName(List<Integer> ids, String name) {
         DubboTest test = new DubboTest();
         test.setId(ids.toString());
-        test.setName("hello world soul alibaba dubbo param findByIdsAndName ：" + name);
+        test.setName("hello world shenyu alibaba dubbo param findByIdsAndName ：" + name);
         return test;
     }
 
@@ -45,7 +45,7 @@ public class DubboMultiParamServiceImpl implements DubboMultiParamService {
     public DubboTest findByArrayIdsAndName(Integer[] ids, String name) {
         DubboTest test = new DubboTest();
         test.setId(Arrays.toString(ids));
-        test.setName("hello world soul alibaba dubbo param findByArrayIdsAndName ：" + name);
+        test.setName("hello world shenyu alibaba dubbo param findByArrayIdsAndName ：" + name);
         return test;
     }
 
@@ -54,7 +54,7 @@ public class DubboMultiParamServiceImpl implements DubboMultiParamService {
     public DubboTest findByStringArray(String[] ids) {
         DubboTest test = new DubboTest();
         test.setId(Arrays.toString(ids));
-        test.setName("hello world soul alibaba dubbo param findByStringArray");
+        test.setName("hello world shenyu alibaba dubbo param findByStringArray");
         return test;
     }
 
@@ -63,7 +63,7 @@ public class DubboMultiParamServiceImpl implements DubboMultiParamService {
     public DubboTest findByListId(List<String> ids) {
         DubboTest test = new DubboTest();
         test.setId(ids.toString());
-        test.setName("hello world soul alibaba dubbo param findByListId");
+        test.setName("hello world shenyu alibaba dubbo param findByListId");
         return test;
     }
 
@@ -72,7 +72,7 @@ public class DubboMultiParamServiceImpl implements DubboMultiParamService {
     public DubboTest batchSave(List<DubboTest> dubboTestList) {
         DubboTest test = new DubboTest();
         test.setId(dubboTestList.stream().map(DubboTest::getId).collect(Collectors.joining("-")));
-        test.setName("hello world soul alibaba dubbo param batchSave :" + dubboTestList.stream().map(DubboTest::getName).collect(Collectors.joining("-")));
+        test.setName("hello world shenyu alibaba dubbo param batchSave :" + dubboTestList.stream().map(DubboTest::getName).collect(Collectors.joining("-")));
         return test;
     }
 
@@ -81,7 +81,7 @@ public class DubboMultiParamServiceImpl implements DubboMultiParamService {
     public DubboTest batchSaveAndNameAndId(List<DubboTest> dubboTestList, String id, String name) {
         DubboTest test = new DubboTest();
         test.setId(id);
-        test.setName("hello world soul alibaba dubbo param batchSaveAndNameAndId :" + name + ":" + dubboTestList.stream().map(DubboTest::getName).collect(Collectors.joining("-")));
+        test.setName("hello world shenyu alibaba dubbo param batchSaveAndNameAndId :" + name + ":" + dubboTestList.stream().map(DubboTest::getName).collect(Collectors.joining("-")));
         return test;
     }
 
@@ -90,7 +90,7 @@ public class DubboMultiParamServiceImpl implements DubboMultiParamService {
     public DubboTest saveComplexBeanTest(ComplexBeanTest complexBeanTest) {
         DubboTest test = new DubboTest();
         test.setId(complexBeanTest.getIdLists().toString());
-        test.setName("hello world soul alibaba dubbo param saveComplexBeanTest :" + complexBeanTest.getDubboTest().getName());
+        test.setName("hello world shenyu alibaba dubbo param saveComplexBeanTest :" + complexBeanTest.getDubboTest().getName());
         return test;
     }
 
@@ -99,7 +99,7 @@ public class DubboMultiParamServiceImpl implements DubboMultiParamService {
     public DubboTest saveComplexBeanTestAndName(ComplexBeanTest complexBeanTest, String name) {
         DubboTest test = new DubboTest();
         test.setId(complexBeanTest.getIdLists().toString());
-        test.setName("hello world soul alibaba dubbo param saveComplexBeanTestAndName :" + complexBeanTest.getDubboTest().getName() + "-" + name);
+        test.setName("hello world shenyu alibaba dubbo param saveComplexBeanTestAndName :" + complexBeanTest.getDubboTest().getName() + "-" + name);
         return test;
     }
 

@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-soul:
+shenyu:
   client:
     registerType: http #zookeeper #etcd #nacos #consul
     serverLists: http://localhost:9095 #localhost:2181 #http://localhost:2379 #localhost:8848

@@ -35,7 +35,7 @@ public class SofaSingleParamServiceImpl implements SofaSingleParamService {
     public SofaSimpleTypeBean findById(final String id) {
         SofaSimpleTypeBean sofaSimpleTypeBean = new SofaSimpleTypeBean();
         sofaSimpleTypeBean.setId(id);
-        sofaSimpleTypeBean.setName("hello world Soul Sofa, findById");
+        sofaSimpleTypeBean.setName("hello world shenyu Sofa, findById");
         return sofaSimpleTypeBean;
     }
 
@@ -43,7 +43,7 @@ public class SofaSingleParamServiceImpl implements SofaSingleParamService {
     @ShenyuSofaClient(path = "/findAll", desc = "Get all data")
     public SofaSimpleTypeBean findAll() {
         SofaSimpleTypeBean sofaSimpleTypeBean = new SofaSimpleTypeBean();
-        sofaSimpleTypeBean.setName("hello world Soul Sofa , findAll");
+        sofaSimpleTypeBean.setName("hello world shenyu Sofa , findAll");
         sofaSimpleTypeBean.setId(String.valueOf(new Random().nextInt()));
         return sofaSimpleTypeBean;
     }
@@ -51,7 +51,7 @@ public class SofaSingleParamServiceImpl implements SofaSingleParamService {
     @Override
     @ShenyuSofaClient(path = "/insert", desc = "Insert a row of data")
     public SofaSimpleTypeBean insert(final SofaSimpleTypeBean sofaSimpleTypeBean) {
-        sofaSimpleTypeBean.setName("hello world Soul Sofa: " + sofaSimpleTypeBean.getName());
+        sofaSimpleTypeBean.setName("hello world shenyu Sofa: " + sofaSimpleTypeBean.getName());
         return sofaSimpleTypeBean;
     }
 }
