@@ -30,7 +30,7 @@
 
     <dubbo:protocol name="dubbo" port="20888"/>
 
-    <dubbo:service timeout="10000" interface="DubboTestService" ref="dubboTestService"/>
+    <dubbo:service timeout="10000" interface="org.apache.shenyu.examples.dubbo.api.service.DubboTestService" ref="dubboTestService"/>
 
-    <dubbo:service timeout="10000" interface="DubboMultiParamService" ref="dubboMultiParamService"/>
+    <dubbo:service timeout="10000" interface="org.apache.shenyu.examples.dubbo.api.service.DubboMultiParamService" ref="dubboMultiParamService"/>
 </beans>
