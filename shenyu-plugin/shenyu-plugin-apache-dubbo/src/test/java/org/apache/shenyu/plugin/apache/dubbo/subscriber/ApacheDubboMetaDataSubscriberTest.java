@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.apache.dubbo.subscriber;
 
 import com.google.common.cache.LoadingCache;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
@@ -63,7 +64,8 @@ public final class ApacheDubboMetaDataSubscriberTest {
         ApplicationConfigCache applicationConfigCache = ApplicationConfigCache.getInstance();
         Field field = ApplicationConfigCache.class.getDeclaredField("cache");
         field.setAccessible(true);
-        ((LoadingCache) field.get(applicationConfigCache)).put("/dubbo/findAll", referenceConfig);
+        Pair<ReferenceConfig, String> refPair = Pair.of(referenceConfig, "2.7.5");
+        ((LoadingCache) field.get(applicationConfigCache)).put("/dubbo/findAll", refPair);
         apacheDubboMetaDataSubscriber.onSubscribe(metaData);
         MetaData metaData = MetaData.builder()
                 .id("1332017966661636096")

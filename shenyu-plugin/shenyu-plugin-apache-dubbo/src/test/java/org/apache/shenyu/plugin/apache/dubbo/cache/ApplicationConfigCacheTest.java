@@ -18,7 +18,10 @@
 package org.apache.shenyu.plugin.apache.dubbo.cache;
 
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.dubbo.config.RegistryConfig;
+import org.apache.dubbo.rpc.service.GenericService;
 import org.apache.shenyu.common.config.DubboRegisterConfig;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
@@ -120,7 +123,8 @@ public final class ApplicationConfigCacheTest {
         dubboParamExtInfo.setUrl("http://192.168.55.113/dubbo");
         MetaData metaData = new MetaData();
         metaData.setRpcExt(GsonUtils.getInstance().toJson(dubboParamExtInfo));
-        assertNotNull(this.applicationConfigCache.build(metaData));
+        Pair<ReferenceConfig<GenericService>, String> refPair = this.applicationConfigCache.build(metaData);
+        assertNotNull(refPair.getLeft());
     }
 
     @Test

@@ -24,15 +24,19 @@ import com.google.common.cache.Weigher;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.dubbo.config.ApplicationConfig;
 import org.apache.dubbo.config.ReferenceConfig;
 import org.apache.dubbo.config.RegistryConfig;
+import org.apache.dubbo.rpc.Invoker;
 import org.apache.dubbo.rpc.service.GenericService;
 import org.apache.shenyu.common.config.DubboRegisterConfig;
+import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.common.utils.ReflectUtils;
 
 import java.lang.reflect.Field;
 import java.util.Objects;
@@ -52,11 +56,12 @@ public final class ApplicationConfigCache {
 
     private final int maxCount = 50000;
 
-    private final LoadingCache<String, ReferenceConfig<GenericService>> cache = CacheBuilder.newBuilder()
+    // LoadingCache(path, Pair(ReferenceConfig<GenericService>, providerVersion))
+    private final LoadingCache<String, Pair<ReferenceConfig<GenericService>, String>> cache = CacheBuilder.newBuilder()
             .maximumWeight(maxCount)
-            .weigher((Weigher<String, ReferenceConfig<GenericService>>) (string, referenceConfig) -> getSize())
+            .weigher((Weigher<String, Pair<ReferenceConfig<GenericService>, String>>) (string, referenceConfig) -> getSize())
             .removalListener(notification -> {
-                ReferenceConfig<GenericService> config = notification.getValue();
+                ReferenceConfig<GenericService> config = notification.getValue().getLeft();
                 if (config != null) {
                     try {
                         Class<?> cz = config.getClass();
@@ -70,10 +75,10 @@ public final class ApplicationConfigCache {
                     }
                 }
             })
-            .build(new CacheLoader<String, ReferenceConfig<GenericService>>() {
+            .build(new CacheLoader<String, Pair<ReferenceConfig<GenericService>, String>>() {
                 @Override
-                public ReferenceConfig<GenericService> load(final String key) {
-                    return new ReferenceConfig<>();
+                public Pair<ReferenceConfig<GenericService>, String> load(final String key) {
+                    return Pair.of(new ReferenceConfig<>(), null);
                 }
             });
 
@@ -131,11 +136,11 @@ public final class ApplicationConfigCache {
      * @param metaData the meta data
      * @return the reference config
      */
-    public ReferenceConfig<GenericService> initRef(final MetaData metaData) {
+    public Pair<ReferenceConfig<GenericService>, String> initRef(final MetaData metaData) {
         try {
-            ReferenceConfig<GenericService> referenceConfig = cache.get(metaData.getPath());
-            if (StringUtils.isNoneBlank(referenceConfig.getInterface())) {
-                return referenceConfig;
+            Pair<ReferenceConfig<GenericService>, String> referenceConfigPair = cache.get(metaData.getPath());
+            if (StringUtils.isNoneBlank(referenceConfigPair.getLeft().getInterface())) {
+                return referenceConfigPair;
             }
         } catch (ExecutionException e) {
             log.error("init dubbo ref ex:{}", e.getMessage());
@@ -150,7 +155,7 @@ public final class ApplicationConfigCache {
      * @param metaData the meta data
      * @return the reference config
      */
-    public ReferenceConfig<GenericService> build(final MetaData metaData) {
+    public Pair<ReferenceConfig<GenericService>, String> build(final MetaData metaData) {
         ReferenceConfig<GenericService> reference = new ReferenceConfig<>();
         reference.setGeneric("true");
         reference.setApplication(applicationConfig);
@@ -176,16 +181,20 @@ public final class ApplicationConfigCache {
             Optional.ofNullable(dubboParamExtInfo.getTimeout()).ifPresent(reference::setTimeout);
             Optional.ofNullable(dubboParamExtInfo.getRetries()).ifPresent(reference::setRetries);
         }
+
+        Pair<ReferenceConfig<GenericService>, String> refConfigPair = null;
         try {
             Object obj = reference.get();
             if (obj != null) {
                 log.info("init apache dubbo reference success there meteData is :{}", metaData.toString());
-                cache.put(metaData.getPath(), reference);
+                String providerVersion = getProviderVersion(reference);
+                refConfigPair = Pair.of(reference, providerVersion);
+                cache.put(metaData.getPath(), refConfigPair);
             }
         } catch (Exception e) {
             log.error("init apache dubbo reference ex:{}", e.getMessage());
         }
-        return reference;
+        return Objects.isNull(refConfigPair) ? Pair.of(reference, null) : refConfigPair;
     }
 
     private String buildLoadBalanceName(final String loadBalance) {
@@ -198,16 +207,27 @@ public final class ApplicationConfigCache {
         return loadBalance;
     }
 
+    private String getProviderVersion(final ReferenceConfig<GenericService> reference) {
+        try {
+            Invoker invoker = (Invoker) ReflectUtils.getFieldValue(reference, Constants.DUBBO_REFRENCE_INVOKER);
+            return invoker.getUrl().getParameter(Constants.DUBBO_PROVIDER_VERSION);
+        } catch (Exception e) {
+            if (log.isDebugEnabled()) {
+                log.debug("check dubbo provider version ex:{}", e.getMessage());
+            }
+        }
+        return null;
+    }
+
     /**
      * Get reference config.
      *
-     * @param <T>  the type parameter
      * @param path the path
      * @return the reference config
      */
-    public <T> ReferenceConfig<T> get(final String path) {
+    public Pair<ReferenceConfig<GenericService>, String> get(final String path) {
         try {
-            return (ReferenceConfig<T>) cache.get(path);
+            return cache.get(path);
         } catch (ExecutionException e) {
             throw new ShenyuException(e.getCause());
         }
