@@ -53,33 +53,33 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public final class ZookeeperSyncDataServiceTest {
 
-    private static final String MOCK_PLUGIN_PARENT_PATH = "/soul/plugin";
+    private static final String MOCK_PLUGIN_PARENT_PATH = "/shenyu/plugin";
 
-    private static final String MOCK_PLUGIN_PATH = "/soul/plugin/divide";
+    private static final String MOCK_PLUGIN_PATH = "/shenyu/plugin/divide";
 
     private static final String MOCK_PLUGIN_NAME = "divide";
 
-    private static final String MOCK_SELECTOR_PARENT_PATH = "/soul/selector/divide";
+    private static final String MOCK_SELECTOR_PARENT_PATH = "/shenyu/selector/divide";
 
-    private static final String MOCK_SELECTOR_PATH = "/soul/selector/divide/test";
+    private static final String MOCK_SELECTOR_PATH = "/shenyu/selector/divide/test";
 
     private static final String MOCK_SELECTOR_NAME = "test";
 
-    private static final String MOCK_RULE_PARENT_PATH = "/soul/rule/divide";
+    private static final String MOCK_RULE_PARENT_PATH = "/shenyu/rule/divide";
 
-    private static final String MOCK_RULE_PATH = "/soul/rule/divide/test-test";
+    private static final String MOCK_RULE_PATH = "/shenyu/rule/divide/test-test";
 
     private static final String MOCK_RULE_NAME = "test-test";
 
-    private static final String MOCK_APP_AUTH_PARENT_PATH = "/soul/auth";
+    private static final String MOCK_APP_AUTH_PARENT_PATH = "/shenyu/auth";
 
-    private static final String MOCK_APP_AUTH_PATH = "/soul/auth/test";
+    private static final String MOCK_APP_AUTH_PATH = "/shenyu/auth/test";
 
     private static final String MOCK_APP_AUTH_KEY = "test";
 
-    private static final String MOCK_META_DATA_PARENT_PATH = "/soul/metaData";
+    private static final String MOCK_META_DATA_PARENT_PATH = "/shenyu/metaData";
 
-    private static final String MOCK_META_DATA_PATH = "/soul/metaData/test";
+    private static final String MOCK_META_DATA_PATH = "/shenyu/metaData/test";
 
     private static final String MOCK_META_DATA_ID = "test";
 

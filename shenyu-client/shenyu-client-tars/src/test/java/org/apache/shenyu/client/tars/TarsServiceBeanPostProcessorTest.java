@@ -57,7 +57,7 @@ public final class TarsServiceBeanPostProcessorTest {
     public void testPostProcessAfterInitialization() {
         TarsDemoService serviceFactoryBean = new TarsDemoService();
         tarsServiceBeanPostProcessor
-                .postProcessAfterInitialization(serviceFactoryBean, "SoulTarsTest");
+                .postProcessAfterInitialization(serviceFactoryBean, "ShenyuTarsTest");
     }
 
     @Test

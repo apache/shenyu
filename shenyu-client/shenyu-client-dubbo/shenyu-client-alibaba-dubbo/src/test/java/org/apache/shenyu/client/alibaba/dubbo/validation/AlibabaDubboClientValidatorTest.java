@@ -53,7 +53,7 @@ public final class AlibabaDubboClientValidatorTest {
 
     @Test
     public void testItWithExistMethod() throws Exception {
-        final URL url = URL.valueOf(MOCK_SERVICE_URL + "?soulValidation=org.hibernate.validator.HibernateValidator");
+        final URL url = URL.valueOf(MOCK_SERVICE_URL + "?shenyuValidation=org.hibernate.validator.HibernateValidator");
         new AlibabaDubboClientValidation().getValidator(url)
                 .validate("method1", new Class<?>[]{String.class}, new Object[]{"anything"});
     }
