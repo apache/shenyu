@@ -53,13 +53,13 @@ public final class ApacheDubboClientValidatorTest {
     public void validate() {
         URL url = URL.valueOf("dubbo://127.0.0.1:20880/org.apache.shenyu"
                 + ".client.apache.dubbo.validation.service.TestService"
-                + "?accepts=500&anyhost=true&application=soul-proxy"
+                + "?accepts=500&anyhost=true&application=shenyu-proxy"
                 + "&bind.ip=127.0.0.1&bind.port=20880&deprecated=false"
                 + "&dubbo=2.0.2&dynamic=true&generic=false"
                 + "&interface=org.apache.shenyu.client.apache.dubbo.validation.service.TestService"
                 + "&keep.alive=true&methods=test&pid=67352&qos.enable=false&release=2.7.0"
                 + "&side=provider&threadpool=fixed&threads=500&timeout=20000"
-                + "&timestamp=1608119259859&validation=soulValidation");
+                + "&timestamp=1608119259859&validation=shenyuValidation");
         Validator apacheDubboClientValidator = new ApacheDubboClientValidation().getValidator(url);
         try {
             apacheDubboClientValidator.validate("test",
@@ -84,7 +84,7 @@ public final class ApacheDubboClientValidatorTest {
 
     @Test
     public void testValidateWithExistMethod() throws Exception {
-        final URL url = URL.valueOf(MOCK_SERVICE_URL + "?soulValidation=org.hibernate.validator.HibernateValidator");
+        final URL url = URL.valueOf(MOCK_SERVICE_URL + "?shenyuValidation=org.hibernate.validator.HibernateValidator");
         ApacheDubboClientValidator apacheDubboClientValidator = new ApacheDubboClientValidator(url);
         apacheDubboClientValidator
                 .validate("methodOne", new Class<?>[]{String.class}, new Object[]{"anything"});

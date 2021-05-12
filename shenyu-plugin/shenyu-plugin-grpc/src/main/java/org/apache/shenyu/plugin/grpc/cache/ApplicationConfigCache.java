@@ -66,10 +66,10 @@ public final class ApplicationConfigCache {
     }
 
     /**
-     * Get soulServiceInstanceList.
+     * Get shenyuServiceInstanceList.
      *
      * @param contextPath contextPath
-     * @return SoulServiceInstanceLists instances
+     * @return ShenyuServiceInstanceLists instances
      */
     public ShenyuServiceInstanceLists get(final String contextPath) {
         try {
@@ -91,8 +91,8 @@ public final class ApplicationConfigCache {
                 invalidate(selectorData.getName());
                 return;
             }
-            ShenyuServiceInstanceLists soulServiceInstances = cache.get(selectorData.getName());
-            List<ShenyuServiceInstance> instances = soulServiceInstances.getShenyuServiceInstances();
+            ShenyuServiceInstanceLists shenyuServiceInstances = cache.get(selectorData.getName());
+            List<ShenyuServiceInstance> instances = shenyuServiceInstances.getShenyuServiceInstances();
             instances.clear();
             instances.addAll(upstreamList.stream().map(this::build).collect(Collectors.toList()));
             Consumer<Object> consumer = listener.get(selectorData.getName());

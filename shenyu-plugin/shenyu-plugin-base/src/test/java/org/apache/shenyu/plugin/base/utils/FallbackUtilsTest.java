@@ -48,9 +48,9 @@ public final class FallbackUtilsTest {
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setCfgContext(context);
-        this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/SOUL/SOUL")
+        this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/SHENYU/SHENYU")
                 .remoteAddress(new InetSocketAddress(8090))
-                .contextPath("/SOUL")
+                .contextPath("/SHENYU")
                 .build());
         when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
     }
