@@ -60,7 +60,7 @@ public final class ShenyuGrpcReflectionClient {
      * A new reflection client using the supplied channel.
      *
      * @param channel channel
-     * @return SoulGrpcReflectionClient client
+     * @return ShenyuGrpcReflectionClient client
      */
     public static ShenyuGrpcReflectionClient create(final Channel channel) {
         return new ShenyuGrpcReflectionClient(channel);

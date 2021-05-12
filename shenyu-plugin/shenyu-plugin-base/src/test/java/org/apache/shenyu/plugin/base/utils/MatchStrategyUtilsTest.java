@@ -49,7 +49,7 @@ public final class MatchStrategyUtilsTest {
         conditionData.setParamType("uri");
         conditionData.setParamValue("/http/**");
         conditionDatas.add(conditionData);
-        this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/http/SOUL")
+        this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/http/SHENYU")
                 .build());
     }
 

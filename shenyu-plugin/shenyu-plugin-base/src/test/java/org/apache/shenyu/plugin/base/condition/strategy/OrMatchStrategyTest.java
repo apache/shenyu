@@ -47,17 +47,17 @@ public final class OrMatchStrategyTest {
         this.conditionDataList = Lists.newArrayListWithCapacity(2);
         ConditionData matchConditionData = new ConditionData();
         matchConditionData.setOperator("match");
-        matchConditionData.setParamName("soul");
+        matchConditionData.setParamName("shenyu");
         matchConditionData.setParamType("uri");
         matchConditionData.setParamValue("/http/**");
         ConditionData eqConditionData = new ConditionData();
         eqConditionData.setOperator("=");
-        eqConditionData.setParamName("soul");
+        eqConditionData.setParamName("shenyu");
         eqConditionData.setParamType("uri");
         eqConditionData.setParamValue("/http/test");
         conditionDataList.add(matchConditionData);
         conditionDataList.add(eqConditionData);
-        this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/http/soul")
+        this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/http/shenyu")
                 .build());
         matchStrategy = new OrMatchStrategy();
     }
