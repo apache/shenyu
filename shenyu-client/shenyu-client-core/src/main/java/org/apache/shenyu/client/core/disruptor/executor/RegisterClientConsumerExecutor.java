@@ -56,7 +56,7 @@ public class RegisterClientConsumerExecutor extends QueueConsumerExecutor<DataTy
 
         @Override
         public String fixName() {
-            return "soul_register_client";
+            return "shenyu_register_client";
         }
     }
 }

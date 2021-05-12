@@ -35,7 +35,7 @@ public final class PrometheusMetricsRegisterTest {
     public void assertCounter() {
         String requestTotal = "request_total";
         String[] labelNames = new String[] {"name"};
-        prometheusMetricsRegister.registerCounter(requestTotal, labelNames, "soul request total count");
+        prometheusMetricsRegister.registerCounter(requestTotal, labelNames, "shenyu request total count");
         prometheusMetricsRegister.counterIncrement(requestTotal, labelNames);
         prometheusMetricsRegister.counterIncrement(requestTotal, labelNames, 2);
         Map<String, Counter> counterMap = (Map<String, Counter>) ReflectUtils.getFieldValue(prometheusMetricsRegister, "COUNTER_MAP");

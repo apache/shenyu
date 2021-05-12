@@ -23,7 +23,7 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 
 /**
- * The type Grpc soul context decorator.
+ * The type Grpc shenyu context decorator.
  */
 public class GrpcShenyuContextDecorator implements ShenyuContextDecorator {
     

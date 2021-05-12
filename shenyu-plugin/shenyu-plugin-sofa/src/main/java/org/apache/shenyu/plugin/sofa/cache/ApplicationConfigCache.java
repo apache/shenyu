@@ -101,8 +101,8 @@ public final class ApplicationConfigCache {
     public void init(final SofaRegisterConfig sofaRegisterConfig) {
         if (applicationConfig == null) {
             applicationConfig = new ApplicationConfig();
-            applicationConfig.setAppId("soul_proxy");
-            applicationConfig.setAppName("soul_proxy");
+            applicationConfig.setAppId("shenyu_proxy");
+            applicationConfig.setAppName("shenyu_proxy");
         }
         if (registryConfig == null) {
             registryConfig = new RegistryConfig();

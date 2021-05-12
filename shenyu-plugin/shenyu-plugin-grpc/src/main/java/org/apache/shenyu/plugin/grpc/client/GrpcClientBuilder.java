@@ -41,7 +41,7 @@ public class GrpcClientBuilder {
      * Build the client.
      *
      * @param contextPath contextPath
-     * @return SoulGrpcClient  soulGrpcClient
+     * @return ShenyuGrpcClient  shenyuGrpcClient
      */
     public static ShenyuGrpcClient buildClient(final String contextPath) {
         ManagedChannelBuilder<?> builder = ManagedChannelBuilder.forTarget(contextPath)

@@ -47,12 +47,12 @@ public final class AndMatchStrategyTest {
         this.conditionDataList = Lists.newArrayListWithCapacity(2);
         ConditionData matchConditionData = new ConditionData();
         matchConditionData.setOperator("match");
-        matchConditionData.setParamName("soul");
+        matchConditionData.setParamName("shenyu");
         matchConditionData.setParamType("uri");
         matchConditionData.setParamValue("/http/**");
         ConditionData eqConditionData = new ConditionData();
         eqConditionData.setOperator("=");
-        eqConditionData.setParamName("soul");
+        eqConditionData.setParamName("shenyu");
         eqConditionData.setParamType("uri");
         eqConditionData.setParamValue("/http/test");
         conditionDataList.add(matchConditionData);

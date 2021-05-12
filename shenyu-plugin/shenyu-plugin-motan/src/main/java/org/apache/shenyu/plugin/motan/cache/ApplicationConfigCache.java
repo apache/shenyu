@@ -105,7 +105,7 @@ public final class ApplicationConfigCache {
     public void init(final MotanRegisterConfig motanRegisterConfig) {
         if (registryConfig == null) {
             registryConfig = new RegistryConfig();
-            registryConfig.setId("soul_motan_proxy");
+            registryConfig.setId("shenyu_motan_proxy");
             registryConfig.setRegister(false);
             registryConfig.setRegProtocol("zookeeper");
             registryConfig.setAddress(motanRegisterConfig.getRegister());
