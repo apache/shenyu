@@ -24,8 +24,8 @@ import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.Resilience4JHandle;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.resilience4j.conf.Resilience4JConf;
-import org.apache.shenyu.plugin.resilience4j.handler.Resilience4JHandler;
 
 import java.time.Duration;
 
@@ -62,6 +62,6 @@ public class Resilience4JBuilder {
                 .limitForPeriod(handle.getLimitForPeriod())
                 .timeoutDuration(Duration.ofSeconds(handle.getTimeoutDurationRate() / 1000))
                 .limitRefreshPeriod(Duration.ofNanos(handle.getLimitRefreshPeriod() * 1000000)).build();
-        return new Resilience4JConf(Resilience4JHandler.getResourceName(ruleData), handle.getFallbackUri(), rateLimiterConfig, timeLimiterConfig, circuitBreakerConfig);
+        return new Resilience4JConf(CacheKeyUtils.INST.getKey(ruleData), handle.getFallbackUri(), rateLimiterConfig, timeLimiterConfig, circuitBreakerConfig);
     }
 }

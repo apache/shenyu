@@ -18,12 +18,13 @@
 package org.apache.shenyu.plugin.hystrix.handler;
 
 import com.netflix.hystrix.strategy.properties.HystrixPropertiesFactory;
-import org.apache.shenyu.plugin.hystrix.cache.HystrixRuleHandleCache;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.HystrixHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.hystrix.cache.HystrixRuleHandleCache;
 
 import java.util.Optional;
 
@@ -37,25 +38,13 @@ public class HystrixPluginDataHandler implements PluginDataHandler {
         HystrixPropertiesFactory.reset();
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
             final HystrixHandle hystrixHandle = GsonUtils.getInstance().fromJson(s, HystrixHandle.class);
-            HystrixRuleHandleCache.getInstance().cachedHandle(getCacheKeyName(ruleData), hystrixHandle);
+            HystrixRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), hystrixHandle);
         });
     }
 
     @Override
     public void removeRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            HystrixRuleHandleCache.getInstance().removeHandle(getCacheKeyName(ruleData));
-        });
-    }
-
-    /**
-     * return rule handle cache key name.
-     *
-     * @param ruleData ruleData
-     * @return string string
-     */
-    public static String getCacheKeyName(final RuleData ruleData) {
-        return ruleData.getSelectorId() + "_" + ruleData.getName();
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> HystrixRuleHandleCache.getInstance().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
     }
 
     @Override

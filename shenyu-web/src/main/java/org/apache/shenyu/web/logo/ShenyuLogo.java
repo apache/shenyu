@@ -59,7 +59,7 @@ public class ShenyuLogo implements ApplicationListener<ApplicationEnvironmentPre
                 + Constants.LINE_SEPARATOR
                 + SHENYU_LOGO
                 + Constants.LINE_SEPARATOR
-                + " :: Shenyu :: (v" + VersionUtils.getVersion(getClass(), "2.0.2") + ")"
+                + " :: Shenyu :: (v" + VersionUtils.getVersion(getClass(), "2.3.0") + ")"
                 + Constants.LINE_SEPARATOR;
     }
 }

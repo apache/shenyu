@@ -15,38 +15,38 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.springboot.starter.plugin.contextpath;
+package org.apache.shenyu.springboot.starter.plugin.context.path;
 
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.apache.shenyu.plugin.context.path.ContextPathMappingPlugin;
-import org.apache.shenyu.plugin.context.path.handler.ContextPathMappingPluginDataHandler;
+import org.apache.shenyu.plugin.context.path.ContextPathPlugin;
+import org.apache.shenyu.plugin.context.path.handler.ContextPathPluginDataHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * ContextPathMappingPluginConfiguration.
+ * The type Context path plugin configuration.
  */
 @Configuration
-public class ContextPathMappingPluginConfiguration {
-
+public class ContextPathPluginConfiguration {
+    
     /**
-     * Context path mapping plugin.
+     * Context path plugin.
      *
      * @return the shenyu plugin
      */
     @Bean
-    public ShenyuPlugin contextPathMappingPlugin() {
-        return new ContextPathMappingPlugin();
+    public ShenyuPlugin contextPathPlugin() {
+        return new ContextPathPlugin();
     }
-
+    
     /**
-     * Context path mapping plugin data handler plugin data handler.
+     * Context path plugin data handler plugin data handler.
      *
      * @return the plugin data handler
      */
     @Bean
-    public PluginDataHandler contextPathMappingPluginDataHandler() {
-        return new ContextPathMappingPluginDataHandler();
+    public PluginDataHandler contextPathPluginDataHandler() {
+        return new ContextPathPluginDataHandler();
     }
 }

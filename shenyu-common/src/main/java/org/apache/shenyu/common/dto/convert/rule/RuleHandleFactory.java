@@ -48,7 +48,7 @@ public final class RuleHandleFactory {
         RPC_TYPE_TO_RULE_HANDLE_CLASS.put(PluginEnum.DUBBO.getName(), DubboRuleHandle.class);
         RPC_TYPE_TO_RULE_HANDLE_CLASS.put(PluginEnum.SOFA.getName(), SofaRuleHandle.class);
         RPC_TYPE_TO_RULE_HANDLE_CLASS.put(PluginEnum.SPRING_CLOUD.getName(), SpringCloudRuleHandle.class);
-        RPC_TYPE_TO_RULE_HANDLE_CLASS.put(PluginEnum.CONTEXTPATH_MAPPING.getName(), ContextMappingHandle.class);
+        RPC_TYPE_TO_RULE_HANDLE_CLASS.put(PluginEnum.CONTEXT_PATH.getName(), ContextMappingHandle.class);
     }
 
     /**

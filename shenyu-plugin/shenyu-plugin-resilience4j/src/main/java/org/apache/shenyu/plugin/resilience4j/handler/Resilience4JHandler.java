@@ -22,6 +22,7 @@ import org.apache.shenyu.common.dto.convert.Resilience4JHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.resilience4j.cache.Resilience4jRuleHandleCache;
 import org.apache.shenyu.plugin.resilience4j.factory.Resilience4JRegistryFactory;
 
@@ -34,33 +35,23 @@ public class Resilience4JHandler implements PluginDataHandler {
 
     @Override
     public void handlerRule(final RuleData ruleData) {
-        Resilience4JRegistryFactory.remove(getResourceName(ruleData));
+        String key = CacheKeyUtils.INST.getKey(ruleData);
+        Resilience4JRegistryFactory.remove(key);
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
             final Resilience4JHandle resilience4JHandle = GsonUtils.getInstance().fromJson(s, Resilience4JHandle.class);
-            Resilience4jRuleHandleCache.getInstance().cachedHandle(getResourceName(ruleData), resilience4JHandle);
+            Resilience4jRuleHandleCache.getInstance().cachedHandle(key, resilience4JHandle);
         });
     }
 
     @Override
     public void removeRule(final RuleData ruleData) {
-        Resilience4JRegistryFactory.remove(getResourceName(ruleData));
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            Resilience4jRuleHandleCache.getInstance().removeHandle(getResourceName(ruleData));
-        });
+        String key = CacheKeyUtils.INST.getKey(ruleData);
+        Resilience4JRegistryFactory.remove(key);
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> Resilience4jRuleHandleCache.getInstance().removeHandle(key));
     }
 
     @Override
     public String pluginNamed() {
         return PluginEnum.RESILIENCE4J.getName();
-    }
-
-    /**
-     * Resource name.
-     *
-     * @param ruleData the ruleData
-     * @return String
-     */
-    public static String getResourceName(final RuleData ruleData) {
-        return ruleData.getSelectorId() + "_" + ruleData.getName();
     }
 }

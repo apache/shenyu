@@ -23,9 +23,10 @@ import org.apache.shenyu.common.dto.convert.WafHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.Singleton;
-import org.apache.shenyu.plugin.waf.config.WafConfig;
 import org.apache.shenyu.plugin.waf.cache.WafRuleHandleCache;
+import org.apache.shenyu.plugin.waf.config.WafConfig;
 
 import java.util.Optional;
 
@@ -44,25 +45,13 @@ public class WafPluginDataHandler implements PluginDataHandler {
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
             final WafHandle wafHandle = GsonUtils.getInstance().fromJson(s, WafHandle.class);
-            WafRuleHandleCache.getInstance().cachedHandle(getCacheKeyName(ruleData), wafHandle);
+            WafRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), wafHandle);
         });
     }
 
     @Override
     public void removeRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            WafRuleHandleCache.getInstance().removeHandle(getCacheKeyName(ruleData));
-        });
-    }
-
-    /**
-     * return rule handle cache key name.
-     *
-     * @param ruleData ruleData
-     * @return string string
-     */
-    public static String getCacheKeyName(final RuleData ruleData) {
-        return ruleData.getSelectorId() + "_" + ruleData.getName();
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> WafRuleHandleCache.getInstance().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
     }
 
     @Override

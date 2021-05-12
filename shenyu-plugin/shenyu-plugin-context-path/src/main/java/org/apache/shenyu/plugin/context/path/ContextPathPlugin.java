@@ -28,26 +28,26 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.context.path.cache.ContextPathRuleHandleCache;
-import org.apache.shenyu.plugin.context.path.handler.ContextPathMappingPluginDataHandler;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.Objects;
 
 /**
- * ContextPathMapping Plugin.
+ * ContextPath Plugin.
  */
 @Slf4j
-public class ContextPathMappingPlugin extends AbstractShenyuPlugin {
+public class ContextPathPlugin extends AbstractShenyuPlugin {
 
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
-        ContextMappingHandle contextMappingHandle = ContextPathRuleHandleCache.getInstance().obtainHandle(ContextPathMappingPluginDataHandler.getCacheKeyName(rule));
+        ContextMappingHandle contextMappingHandle = ContextPathRuleHandleCache.getInstance().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (Objects.isNull(contextMappingHandle) || StringUtils.isBlank(contextMappingHandle.getContextPath())) {
-            log.error("context path mapping rule configuration is null ：{}", rule);
+            log.error("context path rule configuration is null ：{}", rule);
             return chain.execute(exchange);
         }
         buildContextPath(shenyuContext, contextMappingHandle);
@@ -56,12 +56,12 @@ public class ContextPathMappingPlugin extends AbstractShenyuPlugin {
 
     @Override
     public int getOrder() {
-        return PluginEnum.CONTEXTPATH_MAPPING.getCode();
+        return PluginEnum.CONTEXT_PATH.getCode();
     }
 
     @Override
     public String named() {
-        return PluginEnum.CONTEXTPATH_MAPPING.getName();
+        return PluginEnum.CONTEXT_PATH.getName();
     }
 
     @Override
@@ -89,7 +89,7 @@ public class ContextPathMappingPlugin extends AbstractShenyuPlugin {
         }
         context.setRealUrl(realURI);
         if (StringUtils.isNoneBlank(handle.getRealUrl())) {
-            log.info("context path mappingPlugin replaced old :{} , real:{}", context.getRealUrl(), handle.getRealUrl());
+            log.info("context path replaced old :{} , real:{}", context.getRealUrl(), handle.getRealUrl());
             context.setRealUrl(handle.getRealUrl());
         }
     }

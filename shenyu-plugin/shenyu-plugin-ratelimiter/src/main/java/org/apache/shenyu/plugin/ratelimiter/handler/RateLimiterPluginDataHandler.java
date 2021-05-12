@@ -19,23 +19,18 @@ package org.apache.shenyu.plugin.ratelimiter.handler;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.RateLimiterHandle;
-import org.apache.shenyu.plugin.ratelimiter.cache.RatelimiterRuleHandleCache;
-import org.apache.shenyu.plugin.ratelimiter.config.RateLimiterConfig;
-import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RedisModeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.Singleton;
+import org.apache.shenyu.plugin.ratelimiter.cache.RatelimiterRuleHandleCache;
+import org.apache.shenyu.plugin.ratelimiter.config.RateLimiterConfig;
 import org.springframework.data.redis.connection.RedisClusterConfiguration;
 import org.springframework.data.redis.connection.RedisNode;
 import org.springframework.data.redis.connection.RedisPassword;
@@ -50,6 +45,11 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * The type Rate limiter plugin data handler.
@@ -81,23 +81,13 @@ public class RateLimiterPluginDataHandler implements PluginDataHandler {
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
             final RateLimiterHandle rateLimiterHandle = GsonUtils.getInstance().fromJson(s, RateLimiterHandle.class);
-            RatelimiterRuleHandleCache.getInstance().cachedHandle(getCacheKeyName(ruleData), rateLimiterHandle);
+            RatelimiterRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), rateLimiterHandle);
         });
     }
 
     @Override
     public void removeRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> RatelimiterRuleHandleCache.getInstance().removeHandle(getCacheKeyName(ruleData)));
-    }
-
-    /**
-     * return rule handle cache key name.
-     *
-     * @param ruleData ruleData
-     * @return string string
-     */
-    public static String getCacheKeyName(final RuleData ruleData) {
-        return ruleData.getSelectorId() + "_" + ruleData.getName();
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> RatelimiterRuleHandleCache.getInstance().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
     }
 
     @Override

@@ -22,6 +22,7 @@ import org.apache.shenyu.common.dto.convert.RedirectHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.redirect.cache.RedirectRuleHandleCache;
 
 import java.util.Optional;
@@ -35,27 +36,15 @@ public class RedirectPluginDataHandler implements PluginDataHandler {
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
             final RedirectHandle redirectHandle = GsonUtils.getInstance().fromJson(s, RedirectHandle.class);
-            RedirectRuleHandleCache.getInstance().cachedHandle(getCacheKeyName(ruleData), redirectHandle);
+            RedirectRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), redirectHandle);
         });
     }
 
     @Override
     public void removeRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            RedirectRuleHandleCache.getInstance().removeHandle(getCacheKeyName(ruleData));
-        });
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> RedirectRuleHandleCache.getInstance().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
     }
-
-    /**
-     * return rule handle cache key name.
-     *
-     * @param ruleData ruleData
-     * @return string string
-     */
-    public static String getCacheKeyName(final RuleData ruleData) {
-        return ruleData.getSelectorId() + "_" + ruleData.getName();
-    }
-
+    
     @Override
     public String pluginNamed() {
         return PluginEnum.REDIRECT.getName();

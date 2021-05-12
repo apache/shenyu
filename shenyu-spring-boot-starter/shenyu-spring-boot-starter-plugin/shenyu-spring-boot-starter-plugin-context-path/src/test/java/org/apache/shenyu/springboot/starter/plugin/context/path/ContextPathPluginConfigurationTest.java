@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.springboot.starter.plugin.contextpath;
+package org.apache.shenyu.springboot.starter.plugin.context.path;
 
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
@@ -26,22 +26,22 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Test case for {@link ContextPathMappingPluginConfiguration}.
+ * Test case for {@link ContextPathPluginConfiguration}.
  */
-public class ContextPathMappingPluginConfigurationTest {
+public class ContextPathPluginConfigurationTest {
 
     @Test
-    public void testContextPathMappingPlugin() {
+    public void testContextPathPlugin() {
         new ApplicationContextRunner()
             .withConfiguration(
                 AutoConfigurations.of(
-                    ContextPathMappingPluginConfiguration.class
+                    ContextPathPluginConfiguration.class
                 ))
             .withPropertyValues("debug=true")
             .run(
                 context -> {
-                    ShenyuPlugin plugin = context.getBean("contextPathMappingPlugin", ShenyuPlugin.class);
-                    assertThat(plugin.named()).isEqualTo(PluginEnum.CONTEXTPATH_MAPPING.getName());
+                    ShenyuPlugin plugin = context.getBean("contextPathPlugin", ShenyuPlugin.class);
+                    assertThat(plugin.named()).isEqualTo(PluginEnum.CONTEXT_PATH.getName());
                 }
             );
     }

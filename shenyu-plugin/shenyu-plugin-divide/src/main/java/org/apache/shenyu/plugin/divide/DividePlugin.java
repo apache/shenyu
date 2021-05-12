@@ -21,7 +21,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.plugin.divide.cache.UpstreamCacheManager;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -32,12 +31,13 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
-import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
-import org.apache.shenyu.plugin.base.utils.FallbackUtils;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.base.utils.FallbackUtils;
 import org.apache.shenyu.plugin.divide.balance.utils.LoadBalanceUtils;
-import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
+import org.apache.shenyu.plugin.divide.cache.UpstreamCacheManager;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -54,9 +54,9 @@ public class DividePlugin extends AbstractShenyuPlugin {
     @SneakyThrows
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
-        final DivideRuleHandle ruleHandle = UpstreamCacheManager.getInstance().obtainHandle(DividePluginDataHandler.getCacheKeyName(rule));
+        DivideRuleHandle ruleHandle = UpstreamCacheManager.getInstance().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         long headerSize = 0;
         for (List<String> multiHeader : exchange.getRequest().getHeaders().values()) {
             for (String value : multiHeader) {
@@ -73,13 +73,13 @@ public class DividePlugin extends AbstractShenyuPlugin {
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.REQUEST_ENTITY_TOO_LARGE.getCode(), ShenyuResultEnum.REQUEST_ENTITY_TOO_LARGE.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
-        final List<DivideUpstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
+        List<DivideUpstream> upstreamList = UpstreamCacheManager.getInstance().findUpstreamListBySelectorId(selector.getId());
         if (CollectionUtils.isEmpty(upstreamList)) {
             log.error("divide upstream configuration error： {}", rule.toString());
             Object error = ShenyuResultWrap.error(ShenyuResultEnum.CANNOT_FIND_URL.getCode(), ShenyuResultEnum.CANNOT_FIND_URL.getMsg(), null);
             return WebFluxResultUtils.result(exchange, error);
         }
-        final String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
+        String ip = Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
         DivideUpstream divideUpstream = LoadBalanceUtils.selector(upstreamList, ruleHandle.getLoadBalance(), ip);
         if (Objects.isNull(divideUpstream)) {
             log.error("divide has no upstream");
@@ -141,7 +141,7 @@ public class DividePlugin extends AbstractShenyuPlugin {
                 path = path + realUrl;
             }
         }
-        String query = exchange.getRequest().getURI().getRawQuery();
+        String query = exchange.getRequest().getURI().getQuery();
         if (StringUtils.isNoneBlank(query)) {
             return path + "?" + query;
         }

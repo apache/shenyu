@@ -24,7 +24,6 @@ import org.apache.shenyu.plugin.base.cache.BaseHandleCache;
 /**
  * The rule handle cache.
  */
-@SuppressWarnings("all")
 @Slf4j
 public final class ContextPathRuleHandleCache extends BaseHandleCache<String, ContextMappingHandle> {
 

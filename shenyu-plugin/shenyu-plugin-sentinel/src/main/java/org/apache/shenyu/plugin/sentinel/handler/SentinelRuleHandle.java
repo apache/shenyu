@@ -27,6 +27,7 @@ import org.apache.shenyu.common.dto.convert.SentinelHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,12 +41,13 @@ public class SentinelRuleHandle implements PluginDataHandler {
     public void handlerRule(final RuleData ruleData) {
         SentinelHandle sentinelHandle = GsonUtils.getInstance().fromJson(ruleData.getHandle(), SentinelHandle.class);
         sentinelHandle.checkData(sentinelHandle);
+        String key = CacheKeyUtils.INST.getKey(ruleData);
         List<FlowRule> flowRules = FlowRuleManager.getRules()
                 .stream()
-                .filter(r -> !r.getResource().equals(getResourceName(ruleData)))
+                .filter(r -> !r.getResource().equals(key))
                 .collect(Collectors.toList());
         if (sentinelHandle.getFlowRuleEnable() == Constants.SENTINEL_ENABLE_FLOW_RULE) {
-            FlowRule rule = new FlowRule(getResourceName(ruleData));
+            FlowRule rule = new FlowRule(key);
             rule.setCount(sentinelHandle.getFlowRuleCount());
             rule.setGrade(sentinelHandle.getFlowRuleGrade());
             rule.setControlBehavior(sentinelHandle.getFlowRuleControlBehavior());
@@ -55,10 +57,10 @@ public class SentinelRuleHandle implements PluginDataHandler {
 
         List<DegradeRule> degradeRules = DegradeRuleManager.getRules()
                 .stream()
-                .filter(r -> !r.getResource().equals(getResourceName(ruleData)))
+                .filter(r -> !r.getResource().equals(key))
                 .collect(Collectors.toList());
         if (sentinelHandle.getDegradeRuleEnable() == Constants.SENTINEL_ENABLE_DEGRADE_RULE) {
-            DegradeRule rule = new DegradeRule(getResourceName(ruleData));
+            DegradeRule rule = new DegradeRule(key);
             rule.setCount(sentinelHandle.getDegradeRuleCount());
             rule.setGrade(sentinelHandle.getDegradeRuleGrade());
             rule.setTimeWindow(sentinelHandle.getDegradeRuleTimeWindow());
@@ -69,13 +71,14 @@ public class SentinelRuleHandle implements PluginDataHandler {
 
     @Override
     public void removeRule(final RuleData ruleData) {
+        String key = CacheKeyUtils.INST.getKey(ruleData);
         FlowRuleManager.loadRules(FlowRuleManager.getRules()
                 .stream()
-                .filter(r -> !r.getResource().equals(getResourceName(ruleData)))
+                .filter(r -> !r.getResource().equals(key))
                 .collect(Collectors.toList()));
         DegradeRuleManager.loadRules(DegradeRuleManager.getRules()
                 .stream()
-                .filter(r -> !r.getResource().equals(getResourceName(ruleData)))
+                .filter(r -> !r.getResource().equals(key))
                 .collect(Collectors.toList()));
     }
 
@@ -83,15 +86,4 @@ public class SentinelRuleHandle implements PluginDataHandler {
     public String pluginNamed() {
         return PluginEnum.SENTINEL.getName();
     }
-
-    /**
-     * return sentinel resource name.
-     *
-     * @param ruleData ruleData
-     * @return string string
-     */
-    public static String getResourceName(final RuleData ruleData) {
-        return ruleData.getSelectorId() + "_" + ruleData.getName();
-    }
-
 }

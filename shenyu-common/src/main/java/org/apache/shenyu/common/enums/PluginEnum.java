@@ -51,9 +51,9 @@ public enum PluginEnum {
     RATE_LIMITER(20, 0, "rate_limiter"),
 
     /**
-     * Context path mapping plugin enum.
+     * Context path plugin enum.
      */
-    CONTEXTPATH_MAPPING(25, 0, "context_path"),
+    CONTEXT_PATH(25, 0, "context_path"),
 
     /**
      * Rewrite plugin enum.
