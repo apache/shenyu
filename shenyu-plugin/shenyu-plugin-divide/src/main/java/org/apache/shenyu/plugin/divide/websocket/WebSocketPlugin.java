@@ -17,16 +17,8 @@
 
 package org.apache.shenyu.plugin.divide.websocket;
 
-import java.net.URI;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.shenyu.plugin.divide.balance.utils.LoadBalanceUtils;
-import org.apache.shenyu.plugin.divide.cache.UpstreamCacheManager;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -38,9 +30,11 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
-import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.divide.balance.utils.LoadBalanceUtils;
+import org.apache.shenyu.plugin.divide.cache.UpstreamCacheManager;
 import org.springframework.http.HttpHeaders;
 import org.springframework.lang.NonNull;
 import org.springframework.util.StringUtils;
@@ -52,6 +46,13 @@ import org.springframework.web.reactive.socket.server.WebSocketService;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
+
+import java.net.URI;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * The type Web socket plugin.
@@ -209,7 +210,5 @@ public class WebSocketPlugin extends AbstractShenyuPlugin {
                 }
             });
         }
-
     }
-
 }

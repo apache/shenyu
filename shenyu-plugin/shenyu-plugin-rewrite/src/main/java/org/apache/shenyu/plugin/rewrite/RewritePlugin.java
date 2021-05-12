@@ -26,10 +26,10 @@ import org.apache.shenyu.common.dto.convert.RewriteHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.rewrite.cache.RewriteRuleHandleCache;
-import org.apache.shenyu.plugin.rewrite.handler.RewritePluginDataHandler;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -45,7 +45,7 @@ public class RewritePlugin extends AbstractShenyuPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         String handle = rule.getHandle();
         final RewriteHandle rewriteHandle = RewriteRuleHandleCache.getInstance()
-                .obtainHandle(RewritePluginDataHandler.getCacheKeyName(rule));
+                .obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (Objects.isNull(rewriteHandle) || StringUtils.isBlank(rewriteHandle.getRewriteURI())) {
             log.error("uri rewrite rule can not configuration：{}", handle);
             return chain.execute(exchange);

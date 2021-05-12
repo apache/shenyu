@@ -52,8 +52,8 @@ public class ParamTransformPlugin implements ShenyuPlugin {
 
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-        final ServerHttpRequest request = exchange.getRequest();
-        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        ServerHttpRequest request = exchange.getRequest();
+        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         if (Objects.nonNull(shenyuContext)) {
             MediaType mediaType = request.getHeaders().getContentType();
             ServerRequest serverRequest = ServerRequest.create(exchange, messageReaders);
@@ -97,8 +97,7 @@ public class ParamTransformPlugin implements ShenyuPlugin {
     }
     
     private Mono<Void> query(final ServerWebExchange exchange, final ServerRequest serverRequest, final ShenyuPluginChain chain) {
-        exchange.getAttributes().put(Constants.PARAM_TRANSFORM,
-                HttpParamConverter.ofString(() -> serverRequest.uri().getQuery()));
+        exchange.getAttributes().put(Constants.PARAM_TRANSFORM, HttpParamConverter.ofString(() -> serverRequest.uri().getQuery()));
         return chain.execute(exchange);
     }
     

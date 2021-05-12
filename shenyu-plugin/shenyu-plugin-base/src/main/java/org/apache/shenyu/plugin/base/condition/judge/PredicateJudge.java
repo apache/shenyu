@@ -33,5 +33,4 @@ public interface PredicateJudge {
      * @return true is pass  false is not pass.
      */
     Boolean judge(ConditionData conditionData, String realData);
-
 }

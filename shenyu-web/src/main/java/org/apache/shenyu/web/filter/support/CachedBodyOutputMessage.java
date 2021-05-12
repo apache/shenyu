@@ -93,8 +93,7 @@ public class CachedBodyOutputMessage implements ReactiveHttpOutputMessage {
     }
 
     @Override
-    public Mono<Void> writeAndFlushWith(
-            final Publisher<? extends Publisher<? extends DataBuffer>> body) {
+    public Mono<Void> writeAndFlushWith(final Publisher<? extends Publisher<? extends DataBuffer>> body) {
         return writeWith(Flux.from(body).flatMap(p -> p));
     }
 

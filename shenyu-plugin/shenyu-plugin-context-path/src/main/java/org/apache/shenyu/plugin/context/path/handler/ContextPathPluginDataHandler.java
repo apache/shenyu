@@ -22,42 +22,31 @@ import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.context.path.cache.ContextPathRuleHandleCache;
 
 import java.util.Optional;
 
 /**
- * The type context path mapping plugin data subscriber.
+ * The type context path plugin data subscriber.
  */
-public class ContextPathMappingPluginDataHandler implements PluginDataHandler {
+public class ContextPathPluginDataHandler implements PluginDataHandler {
 
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
             ContextMappingHandle contextMappingHandle = GsonUtils.getInstance().fromJson(s, ContextMappingHandle.class);
-            ContextPathRuleHandleCache.getInstance().cachedHandle(getCacheKeyName(ruleData), contextMappingHandle);
+            ContextPathRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), contextMappingHandle);
         });
     }
 
     @Override
     public void removeRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            ContextPathRuleHandleCache.getInstance().removeHandle(getCacheKeyName(ruleData));
-        });
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> ContextPathRuleHandleCache.getInstance().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
     }
-
-    /**
-     * return rule handle cache key name.
-     *
-     * @param ruleData ruleData
-     * @return string string
-     */
-    public static String getCacheKeyName(final RuleData ruleData) {
-        return ruleData.getSelectorId() + "_" + ruleData.getName();
-    }
-
+    
     @Override
     public String pluginNamed() {
-        return PluginEnum.CONTEXTPATH_MAPPING.getName();
+        return PluginEnum.CONTEXT_PATH.getName();
     }
 }

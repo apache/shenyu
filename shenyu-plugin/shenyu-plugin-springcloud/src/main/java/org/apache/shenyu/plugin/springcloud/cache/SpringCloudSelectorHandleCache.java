@@ -22,9 +22,8 @@ import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.plugin.base.cache.BaseHandleCache;
 
 /**
- * The selctor handle cache.
+ * The spring cloud selector handle cache.
  */
-@SuppressWarnings("all")
 @Slf4j
 public final class SpringCloudSelectorHandleCache extends BaseHandleCache<String, SpringCloudSelectorHandle> {
 

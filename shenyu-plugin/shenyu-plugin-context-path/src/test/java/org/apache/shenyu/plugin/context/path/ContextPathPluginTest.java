@@ -29,8 +29,8 @@ import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.context.path.cache.ContextPathRuleHandleCache;
-import org.apache.shenyu.plugin.context.path.handler.ContextPathMappingPluginDataHandler;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,7 +46,7 @@ import static org.mockito.Mockito.when;
 /**
  * ContextPathMapping Plugin Test.
  */
-public final class ContextPathMappingPluginTest {
+public final class ContextPathPluginTest {
 
     private RuleData ruleData;
 
@@ -58,7 +58,7 @@ public final class ContextPathMappingPluginTest {
 
     private ServerWebExchange exchange;
 
-    private ContextPathMappingPlugin contextPathMappingPlugin;
+    private ContextPathPlugin contextPathPlugin;
 
     @Before
     public void setup() {
@@ -66,7 +66,7 @@ public final class ContextPathMappingPluginTest {
         this.ruleData = mock(RuleData.class);
         this.chain = mock(ShenyuPluginChain.class);
         this.selectorData = mock(SelectorData.class);
-        this.contextPathMappingPlugin = new ContextPathMappingPlugin();
+        this.contextPathPlugin = new ContextPathPlugin();
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("localhost").build());
         this.exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
         when(chain.execute(exchange)).thenReturn(Mono.empty());
@@ -84,9 +84,9 @@ public final class ContextPathMappingPluginTest {
         shenyuContext.setPath("/http/context/order/findById");
         ContextMappingHandle contextMappingHandle = new ContextMappingHandle();
         contextMappingHandle.setContextPath("/http/context");
-        ContextPathRuleHandleCache.getInstance().cachedHandle(ContextPathMappingPluginDataHandler.getCacheKeyName(ruleData), contextMappingHandle);
+        ContextPathRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), contextMappingHandle);
         when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(contextMappingHandle));
-        contextPathMappingPlugin.doExecute(exchange, chain, selectorData, ruleData);
+        contextPathPlugin.doExecute(exchange, chain, selectorData, ruleData);
         Assert.assertEquals(shenyuContext.getRealUrl(), "/order/findById");
     }
 
@@ -99,9 +99,9 @@ public final class ContextPathMappingPluginTest {
         ContextMappingHandle contextMappingHandle = new ContextMappingHandle();
         contextMappingHandle.setContextPath("/http/context");
         contextMappingHandle.setRealUrl("/findById");
-        ContextPathRuleHandleCache.getInstance().cachedHandle(ContextPathMappingPluginDataHandler.getCacheKeyName(ruleData), contextMappingHandle);
+        ContextPathRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), contextMappingHandle);
         when(ruleData.getHandle()).thenReturn(GsonUtils.getGson().toJson(contextMappingHandle));
-        contextPathMappingPlugin.doExecute(exchange, chain, selectorData, ruleData);
+        contextPathPlugin.doExecute(exchange, chain, selectorData, ruleData);
         Assert.assertEquals(shenyuContext.getRealUrl(), "/findById");
     }
 
@@ -112,7 +112,7 @@ public final class ContextPathMappingPluginTest {
     public void skip() {
         shenyuContext.setRpcType(RpcTypeEnum.DUBBO.getName());
         this.exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
-        Assert.assertTrue(contextPathMappingPlugin.skip(exchange));
+        Assert.assertTrue(contextPathPlugin.skip(exchange));
     }
 
     /**
@@ -120,7 +120,7 @@ public final class ContextPathMappingPluginTest {
      */
     @Test
     public void namedTest() {
-        Assert.assertEquals(PluginEnum.CONTEXTPATH_MAPPING.getName(), contextPathMappingPlugin.named());
+        Assert.assertEquals(PluginEnum.CONTEXT_PATH.getName(), contextPathPlugin.named());
     }
 
     /**
@@ -128,6 +128,6 @@ public final class ContextPathMappingPluginTest {
      */
     @Test
     public void getOrderTest() {
-        Assert.assertEquals(PluginEnum.CONTEXTPATH_MAPPING.getCode(), contextPathMappingPlugin.getOrder());
+        Assert.assertEquals(PluginEnum.CONTEXT_PATH.getCode(), contextPathPlugin.getOrder());
     }
 }

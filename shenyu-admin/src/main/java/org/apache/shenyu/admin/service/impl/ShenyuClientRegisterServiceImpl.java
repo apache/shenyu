@@ -161,7 +161,7 @@ public class ShenyuClientRegisterServiceImpl implements ShenyuClientRegisterServ
             String contextPathSelectorId = registerContextPathSelector(contextPath, name);
             RuleDO ruleDO = ruleMapper.findByName(name);
             if (Objects.isNull(ruleDO)) {
-                registerRule(contextPathSelectorId, contextPath + "/**", PluginEnum.CONTEXTPATH_MAPPING.getName(), name);
+                registerRule(contextPathSelectorId, contextPath + "/**", PluginEnum.CONTEXT_PATH.getName(), name);
             }
         }
     }
@@ -450,7 +450,7 @@ public class ShenyuClientRegisterServiceImpl implements ShenyuClientRegisterServ
 
     private String registerContextPathSelector(final String contextPath, final String name) {
         SelectorDTO selectorDTO = buildDefaultSelectorDTO(name);
-        selectorDTO.setPluginId(getPluginId(PluginEnum.CONTEXTPATH_MAPPING.getName()));
+        selectorDTO.setPluginId(getPluginId(PluginEnum.CONTEXT_PATH.getName()));
         selectorDTO.setSelectorConditions(buildDefaultSelectorConditionDTO(contextPath));
         return selectorService.register(selectorDTO);
     }
@@ -488,7 +488,7 @@ public class ShenyuClientRegisterServiceImpl implements ShenyuClientRegisterServ
 
     private void registerRule(final String selectorId, final String path, final String pluginName, final String ruleName) {
         RuleHandle ruleHandle;
-        if (pluginName.equals(PluginEnum.CONTEXTPATH_MAPPING.getName())) {
+        if (pluginName.equals(PluginEnum.CONTEXT_PATH.getName())) {
             ruleHandle = RuleHandleFactory.ruleHandle(pluginName, buildContextPath(path));
         } else {
             ruleHandle = RuleHandleFactory.ruleHandle(pluginName, path);

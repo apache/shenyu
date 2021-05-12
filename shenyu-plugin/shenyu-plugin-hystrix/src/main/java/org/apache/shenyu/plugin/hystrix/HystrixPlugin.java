@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.hystrix;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.plugin.hystrix.builder.HystrixBuilder;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -30,11 +29,12 @@ import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.hystrix.builder.HystrixBuilder;
 import org.apache.shenyu.plugin.hystrix.cache.HystrixRuleHandleCache;
 import org.apache.shenyu.plugin.hystrix.command.Command;
 import org.apache.shenyu.plugin.hystrix.command.HystrixCommand;
 import org.apache.shenyu.plugin.hystrix.command.HystrixCommandOnThread;
-import org.apache.shenyu.plugin.hystrix.handler.HystrixPluginDataHandler;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import rx.Subscription;
@@ -52,7 +52,7 @@ public class HystrixPlugin extends AbstractShenyuPlugin {
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
         final HystrixHandle hystrixHandle = HystrixRuleHandleCache.getInstance()
-                .obtainHandle(HystrixPluginDataHandler.getCacheKeyName(rule));
+                .obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (StringUtils.isBlank(hystrixHandle.getGroupKey())) {
             hystrixHandle.setGroupKey(Objects.requireNonNull(shenyuContext).getModule());
         }

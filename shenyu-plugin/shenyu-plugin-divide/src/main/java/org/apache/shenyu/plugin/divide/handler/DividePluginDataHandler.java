@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.divide.handler;
 
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.divide.cache.UpstreamCacheManager;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -46,25 +47,13 @@ public class DividePluginDataHandler implements PluginDataHandler {
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
             final DivideRuleHandle divideRuleHandle = GsonUtils.getInstance().fromJson(s, DivideRuleHandle.class);
-            UpstreamCacheManager.getInstance().cachedHandle(getCacheKeyName(ruleData), divideRuleHandle);
+            UpstreamCacheManager.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), divideRuleHandle);
         });
     }
 
     @Override
     public void removeRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            UpstreamCacheManager.getInstance().removeHandle(getCacheKeyName(ruleData));
-        });
-    }
-
-    /**
-     * return rule handle cache key name.
-     *
-     * @param ruleData ruleData
-     * @return string string
-     */
-    public static String getCacheKeyName(final RuleData ruleData) {
-        return ruleData.getSelectorId() + "_" + ruleData.getName();
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> UpstreamCacheManager.getInstance().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
     }
 
     @Override

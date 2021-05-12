@@ -64,10 +64,8 @@ public class HashLoadBalance extends AbstractLoadBalance {
         md5.reset();
         byte[] keyBytes;
         keyBytes = key.getBytes(StandardCharsets.UTF_8);
-
         md5.update(keyBytes);
         byte[] digest = md5.digest();
-
         // hash code, Truncate to 32-bits
         long hashCode = (long) (digest[3] & 0xFF) << 24
                 | ((long) (digest[2] & 0xFF) << 16)
@@ -75,5 +73,4 @@ public class HashLoadBalance extends AbstractLoadBalance {
                 | (digest[0] & 0xFF);
         return hashCode & 0xffffffffL;
     }
-
 }

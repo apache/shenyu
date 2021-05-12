@@ -19,12 +19,6 @@ package org.apache.shenyu.plugin.divide.cache;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.concurrent.ShenyuThreadFactory;
 import org.apache.shenyu.common.dto.SelectorData;
@@ -33,6 +27,11 @@ import org.apache.shenyu.common.dto.convert.rule.impl.DivideRuleHandle;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.UpstreamCheckUtils;
 import org.apache.shenyu.plugin.base.cache.BaseHandleCache;
+
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * this is divide  http url upstream.
@@ -45,8 +44,7 @@ public final class UpstreamCacheManager extends BaseHandleCache<String, DivideRu
     private static final Map<String, List<DivideUpstream>> UPSTREAM_MAP = Maps.newConcurrentMap();
 
     private static final Map<String, List<DivideUpstream>> UPSTREAM_MAP_TEMP = Maps.newConcurrentMap();
-
-
+    
     /**
      * suggest shenyu.upstream.scheduledTime set 1 SECONDS.
      */
@@ -133,6 +131,5 @@ public final class UpstreamCacheManager extends BaseHandleCache<String, DivideRu
             }
         }
         return resultList;
-
     }
 }

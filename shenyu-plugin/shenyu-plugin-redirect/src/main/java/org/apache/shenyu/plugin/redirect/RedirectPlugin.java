@@ -25,9 +25,9 @@ import org.apache.shenyu.common.dto.convert.RedirectHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.UriUtils;
 import org.apache.shenyu.plugin.redirect.cache.RedirectRuleHandleCache;
-import org.apache.shenyu.plugin.redirect.handler.RedirectPluginDataHandler;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -67,7 +67,7 @@ public class RedirectPlugin extends AbstractShenyuPlugin {
                                    final SelectorData selector, final RuleData rule) {
         final String handle = rule.getHandle();
         final RedirectHandle redirectHandle = RedirectRuleHandleCache.getInstance()
-                .obtainHandle(RedirectPluginDataHandler.getCacheKeyName(rule));
+                .obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (Objects.isNull(redirectHandle) || StringUtils.isBlank(redirectHandle.getRedirectURI())) {
             log.error("uri redirect rule can not configuration: {}", handle);
             return chain.execute(exchange);

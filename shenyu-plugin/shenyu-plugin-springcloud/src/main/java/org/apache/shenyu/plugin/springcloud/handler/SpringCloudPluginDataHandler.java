@@ -24,6 +24,7 @@ import org.apache.shenyu.common.dto.convert.selector.SpringCloudSelectorHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.springcloud.cache.SpringCloudRuleHandleCache;
 import org.apache.shenyu.plugin.springcloud.cache.SpringCloudSelectorHandleCache;
 
@@ -37,7 +38,7 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
     @Override
     public void handlerSelector(final SelectorData selectorData) {
         Optional.ofNullable(selectorData.getHandle()).ifPresent(s -> {
-            final SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getInstance().fromJson(s, SpringCloudSelectorHandle.class);
+            SpringCloudSelectorHandle springCloudSelectorHandle = GsonUtils.getInstance().fromJson(s, SpringCloudSelectorHandle.class);
             SpringCloudSelectorHandleCache.getInstance().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
         });
     }
@@ -50,24 +51,14 @@ public class SpringCloudPluginDataHandler implements PluginDataHandler {
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            final SpringCloudRuleHandle springCloudRuleHandle = GsonUtils.getInstance().fromJson(s, SpringCloudRuleHandle.class);
-            SpringCloudRuleHandleCache.getInstance().cachedHandle(getRuleCacheKey(ruleData), springCloudRuleHandle);
+            SpringCloudRuleHandle springCloudRuleHandle = GsonUtils.getInstance().fromJson(s, SpringCloudRuleHandle.class);
+            SpringCloudRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), springCloudRuleHandle);
         });
     }
 
     @Override
     public void removeRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> SpringCloudRuleHandleCache.getInstance().removeHandle(getRuleCacheKey(ruleData)));
-    }
-
-    /**
-     * return rule handle cache key name.
-     *
-     * @param ruleData ruleData
-     * @return string string
-     */
-    public static String getRuleCacheKey(final RuleData ruleData) {
-        return ruleData.getSelectorId() + "_" + ruleData.getName();
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> SpringCloudRuleHandleCache.getInstance().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
     }
 
     @Override

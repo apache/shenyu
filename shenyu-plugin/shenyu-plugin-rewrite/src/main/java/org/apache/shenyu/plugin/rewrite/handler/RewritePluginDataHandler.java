@@ -22,6 +22,7 @@ import org.apache.shenyu.common.dto.convert.RewriteHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.rewrite.cache.RewriteRuleHandleCache;
 
 import java.util.Optional;
@@ -34,26 +35,14 @@ public class RewritePluginDataHandler implements PluginDataHandler {
     @Override
     public void handlerRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            final RewriteHandle rewriteHandle = GsonUtils.getInstance().fromJson(s, RewriteHandle.class);
-            RewriteRuleHandleCache.getInstance().cachedHandle(getCacheKeyName(ruleData), rewriteHandle);
+            RewriteHandle rewriteHandle = GsonUtils.getInstance().fromJson(s, RewriteHandle.class);
+            RewriteRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), rewriteHandle);
         });
     }
 
     @Override
     public void removeRule(final RuleData ruleData) {
-        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> {
-            RewriteRuleHandleCache.getInstance().removeHandle(getCacheKeyName(ruleData));
-        });
-    }
-
-    /**
-     * return rule handle cache key name.
-     *
-     * @param ruleData ruleData
-     * @return string string
-     */
-    public static String getCacheKeyName(final RuleData ruleData) {
-        return ruleData.getSelectorId() + "_" + ruleData.getName();
+        Optional.ofNullable(ruleData.getHandle()).ifPresent(s -> RewriteRuleHandleCache.getInstance().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
     }
 
     @Override

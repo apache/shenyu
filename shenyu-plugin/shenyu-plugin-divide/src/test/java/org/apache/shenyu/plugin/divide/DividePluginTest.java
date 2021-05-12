@@ -28,8 +28,8 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.divide.cache.UpstreamCacheManager;
-import org.apache.shenyu.plugin.divide.handler.DividePluginDataHandler;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -146,7 +146,7 @@ public final class DividePluginTest {
         when(selectorData.getId()).thenReturn("mock");
         when(selectorData.getHandle()).thenReturn(GsonUtils.getGson().toJson(divideUpstreamList));
         DivideRuleHandle divideRuleHandle = GsonUtils.getInstance().fromJson(GsonUtils.getGson().toJson(handle), DivideRuleHandle.class);
-        UpstreamCacheManager.getInstance().cachedHandle(DividePluginDataHandler.getCacheKeyName(ruleData), divideRuleHandle);
+        UpstreamCacheManager.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), divideRuleHandle);
         UpstreamCacheManager.getInstance().submit(selectorData);
         when(context.getRealUrl()).thenReturn("mock-real");
         exchange.getAttributes().put(Constants.CONTEXT, context);

@@ -39,17 +39,17 @@ import java.util.Optional;
  */
 public class MonitorPlugin extends AbstractShenyuPlugin {
     
-    private static final String REQUEST_TOTAL = "soul_request_total";
+    private static final String REQUEST_TOTAL = "shenyu_request_total";
     
-    private static final String HTTP_REQUEST_TOTAL = "soul_http_request_total";
+    private static final String HTTP_REQUEST_TOTAL = "shenyu_http_request_total";
     
-    private static final String EXECUTE_LATENCY_NAME = "soul_execute_latency_millis";
+    private static final String EXECUTE_LATENCY_NAME = "shenyu_execute_latency_millis";
     
     static {
         MetricsReporter.register(new PrometheusMetricsRegister());
-        MetricsReporter.registerCounter(REQUEST_TOTAL, "soul request total count");
-        MetricsReporter.registerCounter(HTTP_REQUEST_TOTAL, new String[]{"path", "type"}, "soul http request type total count");
-        MetricsReporter.registerHistogram(EXECUTE_LATENCY_NAME, "the soul executor latency millis");
+        MetricsReporter.registerCounter(REQUEST_TOTAL, "shenyu request total count");
+        MetricsReporter.registerCounter(HTTP_REQUEST_TOTAL, new String[]{"path", "type"}, "shenyu http request type total count");
+        MetricsReporter.registerHistogram(EXECUTE_LATENCY_NAME, "the shenyu executor latency millis");
     }
     
     @Override

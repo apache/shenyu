@@ -15,29 +15,27 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.divide.balance.utils;
+package org.apache.shenyu.plugin.base.utils;
 
-import org.apache.shenyu.plugin.divide.balance.LoadBalance;
-import org.apache.shenyu.common.dto.convert.DivideUpstream;
-import org.apache.shenyu.spi.ExtensionLoader;
-
-import java.util.List;
+import org.apache.shenyu.common.dto.RuleData;
 
 /**
- * The type Load balance utils.
+ * CacheKeyUtils.
  */
-public class LoadBalanceUtils {
-
+public enum CacheKeyUtils {
+    
     /**
-     * Selector divide upstream.
-     *
-     * @param upstreamList the upstream list
-     * @param algorithm    the loadBalance algorithm
-     * @param ip           the ip
-     * @return the divide upstream
+     * Inst singleton.
      */
-    public static DivideUpstream selector(final List<DivideUpstream> upstreamList, final String algorithm, final String ip) {
-        LoadBalance loadBalance = ExtensionLoader.getExtensionLoader(LoadBalance.class).getJoin(algorithm);
-        return loadBalance.select(upstreamList, ip);
+    INST;
+    
+    /**
+     * return rule handle cache key name.
+     *
+     * @param ruleData ruleData
+     * @return string string
+     */
+    public String getKey(final RuleData ruleData) {
+        return ruleData.getSelectorId() + "_" + ruleData.getName();
     }
 }

@@ -22,6 +22,7 @@ import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.convert.WafHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.Singleton;
 import org.apache.shenyu.plugin.waf.cache.WafRuleHandleCache;
 import org.apache.shenyu.plugin.waf.config.WafConfig;
@@ -61,9 +62,9 @@ public final class WafPluginDataHandlerTest {
         wafHandle.setStatusCode("0");
         ruleData.setHandle(GsonUtils.getGson().toJson(wafHandle));
         wafPluginDataHandlerUnderTest.handlerRule(ruleData);
-        assertEquals(wafHandle.getPermission(), WafRuleHandleCache.getInstance().obtainHandle(WafPluginDataHandler.getCacheKeyName(ruleData)).getPermission());
+        assertEquals(wafHandle.getPermission(), WafRuleHandleCache.getInstance().obtainHandle(CacheKeyUtils.INST.getKey(ruleData)).getPermission());
         wafPluginDataHandlerUnderTest.removeRule(ruleData);
-        assertNull(WafRuleHandleCache.getInstance().obtainHandle(WafPluginDataHandler.getCacheKeyName(ruleData)));
+        assertNull(WafRuleHandleCache.getInstance().obtainHandle(CacheKeyUtils.INST.getKey(ruleData)));
     }
 
     @Test

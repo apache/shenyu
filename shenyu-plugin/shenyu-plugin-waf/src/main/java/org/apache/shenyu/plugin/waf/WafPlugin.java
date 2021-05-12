@@ -26,14 +26,14 @@ import org.apache.shenyu.common.dto.convert.WafHandle;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.WafEnum;
 import org.apache.shenyu.common.enums.WafModelEnum;
-import org.apache.shenyu.plugin.base.utils.Singleton;
-import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
+import org.apache.shenyu.plugin.base.utils.Singleton;
 import org.apache.shenyu.plugin.waf.cache.WafRuleHandleCache;
 import org.apache.shenyu.plugin.waf.config.WafConfig;
-import org.apache.shenyu.plugin.waf.handler.WafPluginDataHandler;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -59,7 +59,7 @@ public class WafPlugin extends AbstractShenyuPlugin {
         }
         String handle = rule.getHandle();
         WafHandle wafHandle = WafRuleHandleCache.getInstance()
-                .obtainHandle(WafPluginDataHandler.getCacheKeyName(rule));
+                .obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (Objects.isNull(wafHandle) || StringUtils.isBlank(wafHandle.getPermission())) {
             log.error("waf handler can not configuration：{}", handle);
             return chain.execute(exchange);
