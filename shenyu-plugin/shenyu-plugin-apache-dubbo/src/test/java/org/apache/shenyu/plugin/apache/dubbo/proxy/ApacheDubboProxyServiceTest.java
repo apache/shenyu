@@ -20,15 +20,12 @@ package org.apache.shenyu.plugin.apache.dubbo.proxy;
 import com.google.common.cache.LoadingCache;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.dubbo.common.URL;
 import org.apache.dubbo.config.ReferenceConfig;
-import org.apache.dubbo.rpc.Invoker;
 import org.apache.dubbo.rpc.service.GenericService;
-import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.common.utils.ReflectUtils;
 import org.apache.shenyu.plugin.apache.dubbo.cache.ApplicationConfigCache;
+import org.apache.shenyu.plugin.apache.dubbo.cache.DubboProviderVersionCache;
 import org.apache.shenyu.plugin.api.param.BodyParamResolveService;
 import org.junit.After;
 import org.junit.Assert;
@@ -89,13 +86,11 @@ public final class ApacheDubboProxyServiceTest {
 
     @Test
     public void genericInvokerTest() throws IllegalAccessException, NoSuchFieldException {
-        ReferenceConfig referenceConfig = mock(ReferenceConfig.class);
-        Invoker invoker = mock(Invoker.class);
-        URL url = mock(URL.class);
-        final MockedStatic<ReflectUtils> reflectUtilsMockedStatic = mockStatic(ReflectUtils.class);
-        when(ReflectUtils.getFieldValue(referenceConfig, Constants.DUBBO_REFRENCE_INVOKER)).thenReturn(invoker);
-        when(invoker.getUrl()).thenReturn(url);
-        when(url.getParameter(anyString())).thenReturn("2.7.3");
+        final ReferenceConfig referenceConfig = mock(ReferenceConfig.class);
+        DubboProviderVersionCache dubboProviderVersionCache = mock(DubboProviderVersionCache.class);
+        final MockedStatic<DubboProviderVersionCache> dubboProviderVersionCacheMockedStatic = mockStatic(DubboProviderVersionCache.class);
+        when(DubboProviderVersionCache.getInstance()).thenReturn(dubboProviderVersionCache);
+        when(dubboProviderVersionCache.get(anyString())).thenReturn("2.7.3");
 
         GenericService genericService = mock(GenericService.class);
         when(referenceConfig.get()).thenReturn(genericService);
@@ -112,31 +107,30 @@ public final class ApacheDubboProxyServiceTest {
         future.complete("success");
         verify(genericService, times(1)).$invokeAsync(METHOD_NAME, LEFT, RIGHT);
 
-        when(url.getParameter(anyString())).thenReturn("2.7.2");
+        when(dubboProviderVersionCache.get(anyString())).thenReturn("2.7.2");
         apacheDubboProxyService.genericInvoker("", metaData, exchange);
         verify(genericService, times(1)).$invoke(METHOD_NAME, LEFT, RIGHT);
-        reflectUtilsMockedStatic.close();
+        dubboProviderVersionCacheMockedStatic.close();
     }
 
     @Test
     public void isProviderSupportAsyncTest() throws IllegalAccessException,
             NoSuchMethodException, InvocationTargetException {
-        ReferenceConfig referenceConfig = mock(ReferenceConfig.class);
-        Invoker invoker = mock(Invoker.class);
-        final URL url = mock(URL.class);
-        final MockedStatic<ReflectUtils> reflectUtilsMockedStatic = mockStatic(ReflectUtils.class);
-        when(ReflectUtils.getFieldValue(referenceConfig, Constants.DUBBO_REFRENCE_INVOKER))
-                .thenReturn(invoker);
-        when(invoker.getUrl()).thenReturn(url);
-        when(url.getParameter(anyString())).thenReturn("2.7.3");
+        DubboProviderVersionCache dubboProviderVersionCache = mock(DubboProviderVersionCache.class);
+        final MockedStatic<DubboProviderVersionCache> dubboProviderVersionCacheMockedStatic = mockStatic(DubboProviderVersionCache.class);
+        when(DubboProviderVersionCache.getInstance()).thenReturn(dubboProviderVersionCache);
+        when(dubboProviderVersionCache.get(anyString())).thenReturn("2.7.3");
+        String path = "/test";
+        when(dubboProviderVersionCache.get(path)).thenReturn("2.7.3");
         ApacheDubboProxyService apacheDubboProxyService = mock(ApacheDubboProxyService.class);
         Method isProviderSupportAsyncMethod = ApacheDubboProxyService.class
-                .getDeclaredMethod("isProviderSupportAsync", ReferenceConfig.class);
+                .getDeclaredMethod("isProviderSupportAsync", String.class);
         isProviderSupportAsyncMethod.setAccessible(true);
-        Assert.assertTrue((Boolean) isProviderSupportAsyncMethod.invoke(apacheDubboProxyService, referenceConfig));
-        when(url.getParameter(anyString())).thenReturn("2.7.2");
-        Assert.assertFalse((Boolean) isProviderSupportAsyncMethod.invoke(apacheDubboProxyService, referenceConfig));
-        reflectUtilsMockedStatic.close();
+        Assert.assertTrue((Boolean) isProviderSupportAsyncMethod.invoke(apacheDubboProxyService, path));
+
+        when(dubboProviderVersionCache.get(path)).thenReturn("2.7.2");
+        Assert.assertFalse((Boolean) isProviderSupportAsyncMethod.invoke(apacheDubboProxyService, path));
+        dubboProviderVersionCacheMockedStatic.close();
     }
 
     static class BodyParamResolveServiceImpl implements BodyParamResolveService {
