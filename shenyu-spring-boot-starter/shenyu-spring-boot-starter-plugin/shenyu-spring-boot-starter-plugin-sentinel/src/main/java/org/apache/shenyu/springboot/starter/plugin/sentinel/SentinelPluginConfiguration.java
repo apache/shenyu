@@ -18,11 +18,13 @@
 package org.apache.shenyu.springboot.starter.plugin.sentinel;
 
 import com.alibaba.csp.sentinel.adapter.spring.webflux.exception.SentinelBlockExceptionHandler;
+import org.apache.shenyu.plugin.base.fallback.FallbackHandler;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.sentinel.SentinelPlugin;
 import org.apache.shenyu.plugin.sentinel.fallback.SentinelFallbackHandler;
 import org.apache.shenyu.plugin.sentinel.handler.SentinelRuleHandle;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
@@ -48,7 +50,13 @@ public class SentinelPluginConfiguration {
      * Sentinel plugin serverCodecConfigurer.
      */
     private final ServerCodecConfigurer serverCodecConfigurer;
-    
+
+    /**
+     * Sentinel plugin fallbackHandler.
+     */
+    @Autowired(required = false)
+    private FallbackHandler fallbackHandler;
+
     /**
      * sentinelPluginConfiguration constructor.
      *
@@ -59,7 +67,7 @@ public class SentinelPluginConfiguration {
         this.viewResolvers = listObjectProvider.getIfAvailable(Collections::emptyList);
         this.serverCodecConfigurer = serverCodecConfigurer;
     }
-    
+
     /**
      * Sentinel plugin.
      *
@@ -67,9 +75,12 @@ public class SentinelPluginConfiguration {
      */
     @Bean
     public SentinelPlugin sentinelPlugin() {
-        return new SentinelPlugin(new SentinelFallbackHandler());
+        if (fallbackHandler == null) {
+            fallbackHandler = new SentinelFallbackHandler();
+        }
+        return new SentinelPlugin(fallbackHandler);
     }
-    
+
     /**
      * Sentinel plugin data handler plugin data handler.
      *
@@ -79,7 +90,7 @@ public class SentinelPluginConfiguration {
     public PluginDataHandler sentinelRuleHandle() {
         return new SentinelRuleHandle();
     }
-    
+
     /**
      * Sentinel exception handler.
      *
