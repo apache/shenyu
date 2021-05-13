@@ -2,7 +2,7 @@
     <a href="https://dromara.org"><img src="https://dromara.org/img/logo/soul.png" width="45%"></a>
 </p>
 <p align="center">
-  <strong>Scalable, High Performance, Responsive API Gateway Solution for all MicroSerivces</strong>
+  <strong>Scalable, High Performance, Responsive API Gateway Solution for all MicroServices</strong>
 </p>
 <p align="center">
   <a href="https://dromara.org">https://dromara.org/</a>
@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-    <a target="_blank" href="http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22org.dromara%22%20AND%soul">
+    <a target="_blank" href="https://search.maven.org/search?q=g:org.dromara%20AND%20a:soul">
         <img src="https://img.shields.io/maven-central/v/org.dromara/soul.svg?label=maven%20central" />
     </a>
     <a target="_blank" href="https://github.com/Dromara/soul/blob/master/LICENSE">
@@ -22,7 +22,7 @@
     <a target="_blank" href="https://www.oracle.com/technetwork/java/javase/downloads/index.html">
         <img src="https://img.shields.io/badge/JDK-8+-green.svg" />
     </a>
-    <a target="_blank" href="https://github.com/dromara/soul">
+    <a target="_blank" href="https://github.com/dromara/soul/actions">
         <img src="https://github.com/dromara/soul/workflows/ci/badge.svg" />
     </a>
     <a href="https://www.codacy.com/app/yu199195/soul?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Dromara/soul&amp;utm_campaign=Badge_Grade">
@@ -65,39 +65,39 @@
   
 # Modules
 
- * soul-admin : plugins and other information configuration management background
+ * shenyu-admin : plugins and other configuration information management background
  
- * soul-bootstrap : with the startup project, users can refer to
+ * shenyu-bootstrap : with the startup project, users can refer to
  
- * soul-client : user fast access with Spring MVC, Dubbo, Spring Cloud.
+ * shenyu-client : user fast access with Spring MVC, Dubbo, Spring Cloud.
   
- * soul-common : framework common class
+ * shenyu-common : framework common class
  
- * soul-disruptor : based on disruptor Enclosure
+ * shenyu-disruptor : based on disruptor Enclosure
  
- * soul-register-center : rpc type register for soul-client
+ * shenyu-register-center : rpc type register for shenyu-client
  
- * soul-dist : build project
+ * shenyu-dist : build project
 
- * soul-metrics : metrics impl by prometheus.
+ * shenyu-metrics : metrics impl by prometheus.
  
- * soul-plugin : Soul provider plugin collection.
+ * shenyu-plugin : ShenYu provider plugin collection.
  
- * soul-spi : Soul spi define.
+ * shenyu-spi : ShenYu spi define.
  
- * soul-spring-boot-starter : support for the spring boot starter
+ * shenyu-spring-boot-starter : support for the spring boot starter
  
- * soul-sync-data-center : provider ZooKeeper, HTTP, WebSocket, Nacos to sync data
+ * shenyu-sync-data-center : provider ZooKeeper, HTTP, WebSocket, Nacos to sync data
  
- * soul-examples : the RPC examples project
+ * shenyu-examples : the RPC examples project
  
- * soul-web : core processing packages including plugins, request routing and forwarding, and so on
+ * shenyu-web : core processing packages including plugins, request routing and forwarding, and so on
  
 --------------------------------------------------------------------------------   
  
 # Features
 
-   * Soul provides plugins such as current limiting, fusing, forwarding, routing monitoring and so on.
+   * ShenYu provides ability such as current limiting, fusing, forwarding, routing monitoring and so on by its plugins.
    
    * Support HTTP, RESTFul, WebSocket, Dubbo, GRPC, Tars and Spring Cloud Proxy.
    
@@ -113,9 +113,9 @@
  
 # Plugin
 
- Whenever a request comes in, Soul executes all open plugins through the chain of responsibility.
+ Whenever a request comes in, ShenYu will execute it by all enabled plugins through the chain of responsibility.
  
- As the heart of Soul, plugins are extensible and hot-pluggable.
+ As the heart of ShenYu, plugins are extensible and hot-pluggable.
  
  Different plugins do different things.
  
@@ -131,7 +131,7 @@
   
   Selector is your first route, It is coarser grained, for example, at the module level.
   
-  Rule is your second route and what do you think your request should do,For example a method level in a module.
+  Rule is your second route and what do you think your request should do. For example a method level in a module.
   
   The selector and the rule match only once, and the match is returned. So the coarsest granularity should be sorted last.
  
@@ -139,9 +139,9 @@
    
 # Data Caching & Data Sync
  
-  All data have been cached using ConcurrentHashMap in the JVM, so it's very fast.
+  Since all data have been cached using ConcurrentHashMap in the JVM, it's very fast.
   
-  When the user is managing changes in the background, Soul dynamically updates the cache by listening to the ZooKeeper node, WebSocket push, HTTP longPull.
+  When user have changed the configuration in the background management, ShenYu wiil dynamically updates its cache by listening to the ZooKeeper node, WebSocket push, HTTP longPull.
   
   ![](https://yu199195.github.io/images/soul/soul-config-processor.png)
   
@@ -157,9 +157,9 @@
    
 # About
   
-   Soul has been used widely in more and more systems by many companies, and it's simple and convenient to integrate Services/APIs with the high performance and flexibility.
+   ShenYu has been used widely in more and more systems in many companies, and it's simple and convenient to integrate Services/APIs with the high performance and flexibility.
    
-   In double eleven online shopping carnival of China, Soul clusters successfully supported a large volume of internet business.
+   In double eleven online shopping carnival of China, ShenYu clusters successfully supported a large volume of internet business.
    
 --------------------------------------------------------------------------------  
     
@@ -172,13 +172,13 @@
         
 # Stargazers over time
 
-[![Stargazers over time](https://starchart.cc/Dromara/soul.svg)](https://starchart.cc/Dromara/soul)
+[![Stargazers over time](https://starchart.cc/dromara/soul.svg)](https://starchart.cc/dromara/soul)
 
 --------------------------------------------------------------------------------  
 
 # Known Users
 
-In order of registration, More access companies are welcome to register at [https://github.com/Dromara/soul/issues/68](https://github.com/Dromara/soul/issues/68) (For open source users only)
+In order of registration, More access companies are welcome to register at [https://github.com/dromara/soul/issues/68](https://github.com/dromara/soul/issues/68) (For open source users only)
 
 <table>
   <tbody>
@@ -246,24 +246,3 @@ In order of registration, More access companies are welcome to register at [http
     </tr>
   </tbody> 
 </table>
-
-# Support  
-
-<table>
-  <thead>
-    <th>WeChat</th>
-    <th>QQ</th>
-    <th>Taro Source</th>
-    <th>JetBrains</th>
-  </thead>
-  <tbody>
-    <tr>
-      <td><img src="https://yu199195.github.io/images/public.jpg"   alt="WeChat"/>
-      <td><img src="https://yu199195.github.io/images/soul-qq.png"  alt="QQ group"/>
-      <td><img src="http://www.iocoder.cn/images/common/erweima.jpg"  alt="yuNai"/>
-      <td><img src="https://yu199195.github.io/images/jetbrains.svg"  alt="Jetbrains"/>
-    </tr>
-  </tbody>
-</table>
-  
- 
