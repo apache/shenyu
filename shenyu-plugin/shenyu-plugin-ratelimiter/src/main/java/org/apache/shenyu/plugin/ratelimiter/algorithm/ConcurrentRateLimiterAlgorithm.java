@@ -23,7 +23,6 @@ import org.apache.shenyu.plugin.base.utils.Singleton;
 import org.apache.shenyu.spi.Join;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
-import org.springframework.http.client.reactive.ClientHttpRequest;
 
 import java.util.Arrays;
 import java.util.List;
