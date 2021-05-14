@@ -23,15 +23,16 @@ import org.apache.shenyu.plugin.base.utils.Singleton;
 import org.apache.shenyu.spi.Join;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.http.client.reactive.ClientHttpRequest;
 
 import java.util.Arrays;
 import java.util.List;
 
 /**
- * See https://stripe.com/blog/rate-limiters and
- * https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L11-L34
- * The type Concurrent rate limiter algorithm.
- * 
+ * <p>The type Concurrent rate limiter algorithm.
+ *
+ * @see <a href="https://stripe.com/blog/rate-limiters">rate-limiters</a>
+ * @see <a href="https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L11-L34">check_request_rate_limiter</a>
  */
 @Join
 public class ConcurrentRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm {
