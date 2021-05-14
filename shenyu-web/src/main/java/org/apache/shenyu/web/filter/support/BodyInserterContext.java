@@ -31,7 +31,7 @@ import java.util.Optional;
  * The type Body inserter context.
  * 
  * @see <a href="https://github.com/spring-cloud/spring-cloud-gateway/blob/master/spring-cloud-gateway-core/
- * src/main/java/org/springframework/cloud/gateway/support/BodyInserterContext.java">BodyInserterContext</a>
+src/main/java/org/springframework/cloud/gateway/support/BodyInserterContext.java">BodyInserterContext</a>
  */
 public class BodyInserterContext implements BodyInserter.Context {
 
