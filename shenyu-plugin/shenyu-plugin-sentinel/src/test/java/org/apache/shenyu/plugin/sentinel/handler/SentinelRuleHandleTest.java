@@ -62,6 +62,9 @@ public final class SentinelRuleHandleTest {
         sentinelHandle.setDegradeRuleCount(1);
         sentinelHandle.setDegradeRuleGrade(0);
         sentinelHandle.setDegradeRuleTimeWindow(5);
+        sentinelHandle.setDegradeRuleMinRequestAmount(5);
+        sentinelHandle.setDegradeRuleStatIntervals(10);
+        sentinelHandle.setDegradeRuleSlowRatioThreshold(0.5d);
         data.setHandle(GsonUtils.getGson().toJson(sentinelHandle));
         sentinelRuleHandle.handlerRule(data);
         FlowRule flowRule = FlowRuleManager.getRules().get(0);

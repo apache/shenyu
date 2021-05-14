@@ -105,6 +105,9 @@ public final class SentinelPluginTest {
         sentinelHandle.setDegradeRuleCount(1);
         sentinelHandle.setDegradeRuleGrade(1);
         sentinelHandle.setDegradeRuleTimeWindow(10);
+        sentinelHandle.setDegradeRuleMinRequestAmount(5);
+        sentinelHandle.setDegradeRuleStatIntervals(10);
+        sentinelHandle.setDegradeRuleSlowRatioThreshold(0.5d);
         data.setHandle(GsonUtils.getGson().toJson(sentinelHandle));
         when(chain.execute(exchange)).thenReturn(Mono.empty());
         sentinelRuleHandle.handlerRule(data);
@@ -133,6 +136,9 @@ public final class SentinelPluginTest {
         sentinelHandle.setDegradeRuleCount(1);
         sentinelHandle.setDegradeRuleGrade(2);
         sentinelHandle.setDegradeRuleTimeWindow(10);
+        sentinelHandle.setDegradeRuleMinRequestAmount(5);
+        sentinelHandle.setDegradeRuleStatIntervals(10);
+        sentinelHandle.setDegradeRuleSlowRatioThreshold(0.5d);
         data.setHandle(GsonUtils.getGson().toJson(sentinelHandle));
         sentinelRuleHandle.handlerRule(data);
         Mono mono = Mono.error(RuntimeException::new);
@@ -164,6 +170,9 @@ public final class SentinelPluginTest {
         sentinelHandle.setDegradeRuleCount(2);
         sentinelHandle.setDegradeRuleGrade(2);
         sentinelHandle.setDegradeRuleTimeWindow(5);
+        sentinelHandle.setDegradeRuleMinRequestAmount(5);
+        sentinelHandle.setDegradeRuleStatIntervals(10);
+        sentinelHandle.setDegradeRuleSlowRatioThreshold(0.5d);
         data.setHandle(GsonUtils.getGson().toJson(sentinelHandle));
         sentinelRuleHandle.handlerRule(data);
 
@@ -194,6 +203,9 @@ public final class SentinelPluginTest {
         sentinelHandle.setDegradeRuleCount(2);
         sentinelHandle.setDegradeRuleGrade(2);
         sentinelHandle.setDegradeRuleTimeWindow(5);
+        sentinelHandle.setDegradeRuleMinRequestAmount(5);
+        sentinelHandle.setDegradeRuleStatIntervals(10);
+        sentinelHandle.setDegradeRuleSlowRatioThreshold(0.5d);
         data.setHandle(GsonUtils.getGson().toJson(sentinelHandle));
         sentinelRuleHandle.handlerRule(data);
 
