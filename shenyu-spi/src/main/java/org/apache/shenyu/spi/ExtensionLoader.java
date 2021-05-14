@@ -32,7 +32,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * The type Extension loader.
  * This is done by loading the properties file.
  *
- * @see <a href="https://github.com/apache/dubbo/blob/master/dubbo-common/src/main/java/org/apache/dubbo/common/extension/ExtensionLoader.java">ExtensionLoader</a>
+ * @see <a href="https://github.com/apache/dubbo/blob/master/dubbo-common/
+ * src/main/java/org/apache/dubbo/common/extension/ExtensionLoader.java">ExtensionLoader</a>
  */
 @Slf4j
 @SuppressWarnings("all")

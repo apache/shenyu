@@ -26,7 +26,8 @@ import java.lang.annotation.Target;
 /**
  * SPI Extend the processing.
  * All spi system reference the apache implementation of
- * <a href="https://github.com/apache/dubbo/blob/master/dubbo-common/src/main/java/org/apache/dubbo/common/extension">Apache Dubbo Common Extension</a>.
+ * <a href="https://github.com/apache/dubbo/blob/master/dubbo-common/
+ * src/main/java/org/apache/dubbo/common/extension">Apache Dubbo Common Extension</a>.
  *
  * @see ExtensionFactory
  * @see ExtensionLoader
