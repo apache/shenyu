@@ -24,7 +24,7 @@ import org.apache.shenyu.plugin.sentinel.SentinelPlugin;
 import org.apache.shenyu.plugin.sentinel.fallback.SentinelFallbackHandler;
 import org.apache.shenyu.plugin.sentinel.handler.SentinelRuleHandle;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
@@ -52,12 +52,6 @@ public class SentinelPluginConfiguration {
     private final ServerCodecConfigurer serverCodecConfigurer;
 
     /**
-     * Sentinel plugin fallbackHandler.
-     */
-    @Autowired(required = false)
-    private FallbackHandler fallbackHandler;
-
-    /**
      * sentinelPluginConfiguration constructor.
      *
      * @param listObjectProvider    the list object provider
@@ -71,14 +65,23 @@ public class SentinelPluginConfiguration {
     /**
      * Sentinel plugin.
      *
+     * @param fallbackHandler the fallback handler
      * @return the shenyu plugin
      */
     @Bean
-    public SentinelPlugin sentinelPlugin() {
-        if (fallbackHandler == null) {
-            fallbackHandler = new SentinelFallbackHandler();
-        }
+    public SentinelPlugin sentinelPlugin(final FallbackHandler fallbackHandler) {
         return new SentinelPlugin(fallbackHandler);
+    }
+
+    /**
+     * Fallback handler.
+     *
+     * @return the default fallback handler
+     */
+    @Bean
+    @ConditionalOnMissingBean(FallbackHandler.class)
+    public FallbackHandler fallbackHandler() {
+        return new SentinelFallbackHandler();
     }
 
     /**
