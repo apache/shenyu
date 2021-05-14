@@ -28,9 +28,9 @@ import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.base.fallback.FallbackHandler;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.base.utils.UriUtils;
-import org.apache.shenyu.plugin.sentinel.fallback.SentinelFallbackHandler;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.server.ServerWebExchange;
@@ -42,10 +42,10 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class SentinelPlugin extends AbstractShenyuPlugin {
 
-    private final SentinelFallbackHandler sentinelFallbackHandler;
+    private final FallbackHandler fallbackHandler;
 
-    public SentinelPlugin(final SentinelFallbackHandler sentinelFallbackHandler) {
-        this.sentinelFallbackHandler = sentinelFallbackHandler;
+    public SentinelPlugin(final FallbackHandler fallbackHandler) {
+        this.fallbackHandler = fallbackHandler;
     }
 
     @Override
@@ -61,7 +61,7 @@ public class SentinelPlugin extends AbstractShenyuPlugin {
                 exchange.getResponse().setStatusCode(null);
                 throw new SentinelFallbackException(status == null ? HttpStatus.INTERNAL_SERVER_ERROR : status);
             }
-        }).onErrorResume(throwable -> sentinelFallbackHandler.fallback(exchange, UriUtils.createUri(sentinelHandle.getFallbackUri()), throwable));
+        }).onErrorResume(throwable -> fallbackHandler.fallback(exchange, UriUtils.createUri(sentinelHandle.getFallbackUri()), throwable));
     }
 
     @Override
