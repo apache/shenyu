@@ -456,6 +456,21 @@ public interface Constants {
     int SENTINEL_RESPONSE_RULE_GRADE = 0;
 
     /**
+     * Sentinel degrade rule default min request.
+     */
+    int SENTINEL_MIN_REQUEST_AMOUNT = 5;
+
+    /**
+     * Sentinel degrade rule default slow ratio threshold.
+     */
+    double SENTINEL_SLOW_RATIO_THRESHOLD = 1.0d;
+
+    /**
+     * Sentinel degrade rule default stat intervals.
+     */
+    int SENTINEL_STAT_INTERVALS = 1;
+
+    /**
      * default warmup.
      */
     int DEFAULT_WARMUP = 10 * 60 * 1000;
