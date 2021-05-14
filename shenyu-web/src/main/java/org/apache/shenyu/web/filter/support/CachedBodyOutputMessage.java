@@ -30,9 +30,10 @@ import reactor.core.publisher.Mono;
 import java.util.function.Supplier;
 
 /**
- * <p>Implementation of {@link ClientHttpRequest} that saves body as a field.
+ * Implementation of {@link ClientHttpRequest} that saves body as a field.
  *
- * <p>@see <a href="https://github.com/spring-cloud/spring-cloud-gateway/blob/master/spring-cloud-gateway-core/src/main/java/org/springframework/cloud/gateway/filter/factory/rewrite/CachedBodyOutputMessage.java">CachedBodyOutputMessage</a>
+ * @see <a href="https://github.com/spring-cloud/spring-cloud-gateway/blob/master/spring-cloud-gateway-core/
+ * src/main/java/org/springframework/cloud/gateway/filter/factory/rewrite/CachedBodyOutputMessage.java">CachedBodyOutputMessage</a>
  */
 public class CachedBodyOutputMessage implements ReactiveHttpOutputMessage {
 
