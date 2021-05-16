@@ -19,7 +19,9 @@ package org.apache.shenyu.common.utils;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 /**
  * The type Reflect utils.
@@ -79,5 +81,40 @@ public class ReflectUtils {
             e.printStackTrace();
         }
         return result;
+    }
+
+    /**
+     * get method by class.
+     *
+     * @param clazz  class type
+     * @param method method
+     * @return Method object
+     */
+    public static Object getMethod(final Class<?> clazz, final String method) {
+        try {
+            Method m = clazz.getMethod(method);
+            return m.invoke(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    /**
+     * create a class instance.
+     *
+     * @param clazz class type
+     * @return a instance
+     */
+    public static Object classInstance(final Class<?> clazz) {
+        try {
+            Constructor<?> con = clazz.getDeclaredConstructor();
+            con.setAccessible(true);
+            return con.newInstance();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

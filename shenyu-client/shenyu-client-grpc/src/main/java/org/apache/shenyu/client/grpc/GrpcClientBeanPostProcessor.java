@@ -17,11 +17,15 @@
 
 package org.apache.shenyu.client.grpc;
 
+import com.google.common.collect.Lists;
 import io.grpc.BindableService;
+import io.grpc.ServerServiceDefinition;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.grpc.common.annotation.ShenyuGrpcClient;
 import org.apache.shenyu.client.grpc.common.dto.GrpcExt;
+import org.apache.shenyu.client.grpc.json.JsonServerServiceInterceptor;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
@@ -36,6 +40,7 @@ import org.springframework.util.StringUtils;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
@@ -60,8 +65,12 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
 
     private final String host;
 
+    @Getter
     private final int port;
-    
+
+    @Getter
+    private List<ServerServiceDefinition> serviceDefinitions = Lists.newArrayList();
+
     /**
      * Instantiates a new Shenyu client bean post processor.
      *
@@ -74,7 +83,7 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
         String ipAndPort = props.getProperty("ipAndPort");
         String port = props.getProperty("port");
         if (StringUtils.isEmpty(contextPath) || StringUtils.isEmpty(ipAndPort) || StringUtils.isEmpty(port)) {
-            throw new RuntimeException("tars client must config the contextPath, ipAndPort");
+            throw new RuntimeException("grpc client must config the contextPath, ipAndPort");
         }
         this.ipAndPort = ipAndPort;
         this.contextPath = contextPath;
@@ -87,6 +96,7 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
     @Override
     public Object postProcessAfterInitialization(@NonNull final Object bean, @NonNull final String beanName) throws BeansException {
         if (bean instanceof BindableService) {
+            exportJsonGenericService(bean);
             executorService.execute(() -> handler(bean));
         }
         return bean;
@@ -157,6 +167,17 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
         GrpcExt build = GrpcExt.builder().timeout(shenyuGrpcClient.timeout()).build();
         return GsonUtils.getInstance().toJson(build);
     }
+
+    private void exportJsonGenericService(final Object bean) {
+        BindableService bindableService = (BindableService) bean;
+        ServerServiceDefinition serviceDefinition = bindableService.bindService();
+
+        try {
+            ServerServiceDefinition jsonDefinition = JsonServerServiceInterceptor.useJsonMessages(serviceDefinition);
+            serviceDefinitions.add(serviceDefinition);
+            serviceDefinitions.add(jsonDefinition);
+        } catch (Exception e) {
+            log.error("export json generic service is fail", e);
+        }
+    }
 }
-
-
