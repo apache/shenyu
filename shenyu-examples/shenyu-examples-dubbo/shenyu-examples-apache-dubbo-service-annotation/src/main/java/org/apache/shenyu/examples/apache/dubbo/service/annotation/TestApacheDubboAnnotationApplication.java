@@ -15,27 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.ratelimiter.algorithm;
+package org.apache.shenyu.examples.apache.dubbo.service.annotation;
 
-import org.apache.shenyu.common.enums.RateLimitEnum;
-import org.apache.shenyu.spi.Join;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * The type Token bucket rate limiter algorithm.
- *
- * @see <a href="https://stripe.com/blog/rate-limiters">rate-limiters</a>
- * @see <a href="https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L11-L34">check_request_rate_limiter</a>
+ * TestDubboApplication.
  */
-@Join
-public class TokenBucketRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm {
+@SpringBootApplication
+public class TestApacheDubboAnnotationApplication {
 
-    @Override
-    protected String getScriptName() {
-        return RateLimitEnum.TOKEN_BUCKET.getScriptName();
-    }
-    
-    @Override
-    protected String getKeyName() {
-        return RateLimitEnum.TOKEN_BUCKET.getKeyName();
+    /**
+     * Main Entrance.
+     *
+     * @param args startup arguments
+     */
+    public static void main(final String[] args) {
+        SpringApplication.run(TestApacheDubboAnnotationApplication.class, args);
     }
 }
