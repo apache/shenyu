@@ -24,6 +24,7 @@ import org.apache.shenyu.common.config.DubboRegisterConfig;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.plugin.apache.dubbo.cache.DubboProviderVersionCache;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.base.utils.Singleton;
 
@@ -44,6 +45,7 @@ public class ApacheDubboPluginDataHandler implements PluginDataHandler {
                 // If it is null, initialize it
                 ApplicationConfigCache.getInstance().init(dubboRegisterConfig);
                 ApplicationConfigCache.getInstance().invalidateAll();
+                DubboProviderVersionCache.getInstance().invalidateAll();
             }
             Singleton.INST.single(DubboRegisterConfig.class, dubboRegisterConfig);
         }
