@@ -19,10 +19,10 @@ package org.apache.shenyu.springboot.starter.plugin.logging;
 
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
-import org.apache.shenyu.plugin.logging.LoggingPlugin;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.http.codec.support.DefaultServerCodecConfigurer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -32,12 +32,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class LoggingPluginConfigurationTest {
 
     @Test
-    public void testDebugPlugin() {
+    public void testLoggingPlugin() {
         new ApplicationContextRunner()
             .withConfiguration(
                 AutoConfigurations.of(
-                    LoggingPlugin.class
+                    LoggingPluginConfiguration.class
                 ))
+            .withBean(DefaultServerCodecConfigurer.class)
             .withPropertyValues("debug=true")
             .run(
                 context -> {
