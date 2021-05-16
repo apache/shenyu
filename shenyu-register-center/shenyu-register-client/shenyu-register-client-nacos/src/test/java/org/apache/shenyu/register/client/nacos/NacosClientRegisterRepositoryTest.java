@@ -121,7 +121,6 @@ public class NacosClientRegisterRepositoryTest {
                 .build();
 
         repository.persistInterface(data);
-
         String uriInstancePath = "shenyu.register.service.http";
         assert nacosBroker.containsKey(uriInstancePath);
         Instance instance = (Instance) nacosBroker.get(uriInstancePath);
