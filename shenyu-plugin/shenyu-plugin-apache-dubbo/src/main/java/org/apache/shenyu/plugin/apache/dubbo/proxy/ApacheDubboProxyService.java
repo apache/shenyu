@@ -24,7 +24,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.dubbo.common.Version;
 import org.apache.dubbo.common.constants.CommonConstants;
 import org.apache.dubbo.config.ReferenceConfig;
-import org.apache.dubbo.rpc.Invoker;
 import org.apache.dubbo.rpc.RpcContext;
 import org.apache.dubbo.rpc.service.GenericException;
 import org.apache.dubbo.rpc.service.GenericService;
@@ -34,7 +33,7 @@ import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.ResultEnum;
 import org.apache.shenyu.common.utils.ParamCheckUtils;
-import org.apache.shenyu.common.utils.ReflectUtils;
+import org.apache.shenyu.plugin.apache.dubbo.cache.DubboProviderVersionCache;
 import org.apache.shenyu.plugin.api.param.BodyParamResolveService;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -77,6 +76,7 @@ public class ApacheDubboProxyService {
         ReferenceConfig<GenericService> reference = ApplicationConfigCache.getInstance().get(metaData.getPath());
         if (Objects.isNull(reference) || StringUtils.isEmpty(reference.getInterface())) {
             ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
+            DubboProviderVersionCache.getInstance().invalidate(metaData.getPath());
             reference = ApplicationConfigCache.getInstance().initRef(metaData);
         }
         GenericService genericService = reference.get();
@@ -87,7 +87,7 @@ public class ApacheDubboProxyService {
             pair = bodyParamResolveService.buildParameter(body, metaData.getParameterTypes());
         }
         CompletableFuture<Object> future;
-        if (isProviderSupportAsync(reference)) {
+        if (isProviderSupportAsync(metaData.getPath())) {
             future = genericService.$invokeAsync(metaData.getMethodName(), pair.getLeft(), pair.getRight());
         } else {
             Object data = genericService.$invoke(metaData.getMethodName(), pair.getLeft(), pair.getRight());
@@ -107,11 +107,11 @@ public class ApacheDubboProxyService {
         })).onErrorMap(exception -> exception instanceof GenericException ? new ShenyuException(((GenericException) exception).getExceptionMessage()) : new ShenyuException(exception));
     }
 
-    private boolean isProviderSupportAsync(final ReferenceConfig<GenericService> reference) {
+    private boolean isProviderSupportAsync(final String path) {
         boolean support = false;
         try {
-            Invoker invoker = (Invoker) ReflectUtils.getFieldValue(reference, Constants.DUBBO_REFRENCE_INVOKER);
-            int sdkVersion = Version.getIntVersion(invoker.getUrl().getParameter(Constants.DUBBO_PROVIDER_VERSION));
+            String providerVersion = DubboProviderVersionCache.getInstance().get(path);
+            int sdkVersion = Version.getIntVersion(providerVersion);
             //dubbo sdk only supports $invokeAsync after version 2.7.3
             if (sdkVersion >= Constants.DUBBO_SUPPORT_ASYNC_VERSION) {
                 support = true;

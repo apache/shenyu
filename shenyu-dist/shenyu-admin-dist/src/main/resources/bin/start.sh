@@ -25,10 +25,11 @@ else
     exit 1
 fi
 
-PRG_DIR=$(dirname "$0")
+PRG_DIR=$(cd `dirname $0`; pwd)
 
-APP="$PRG_DIR/../lib/shenyu-admin.jar"
-BASE_DIR="$PRG_DIR/.."
+BASE_DIR=$(cd $PRG_DIR/.. ; pwd)
+
+APP="$BASE_DIR/lib/shenyu-admin.jar"
 
 [[ -z "$LOG_DIR" ]] && LOG_DIR="$BASE_DIR/logs"
 [[ -d "$LOG_DIR" ]] || mkdir -p "$LOG_DIR"
@@ -58,7 +59,7 @@ JAVA_GC_LOG_OPTS="-Xloggc:$LOG_DIR/gc.log"
 
 JAVA_OPTS="$JAVA_OPTS $JAVA_MEM_OPTS $JAVA_GC_TUNE_OPTS $JAVA_GC_LOG_OPTS"
 
-$JAVA -jar "$APP" --spring.config.location=file:"$BASE_DIR"/conf/ "$JAVA_OPTS" >> "${LOG_DIR}"/shenyu-admin.out &
+$JAVA $JAVA_OPTS -jar $APP --spring.config.location=file:"$BASE_DIR"/conf/  >> "${LOG_DIR}"/shenyu-admin.out 2>&1 &
 
 if [ $? -gt 0 ]; then
     echo "Starting $APP ERROR"

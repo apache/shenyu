@@ -64,6 +64,9 @@ public class SentinelRuleHandle implements PluginDataHandler {
             rule.setCount(sentinelHandle.getDegradeRuleCount());
             rule.setGrade(sentinelHandle.getDegradeRuleGrade());
             rule.setTimeWindow(sentinelHandle.getDegradeRuleTimeWindow());
+            rule.setStatIntervalMs(sentinelHandle.getDegradeRuleStatIntervals() * 1000);
+            rule.setMinRequestAmount(sentinelHandle.getDegradeRuleMinRequestAmount());
+            rule.setSlowRatioThreshold(sentinelHandle.getDegradeRuleSlowRatioThreshold());
             degradeRules.add(rule);
         }
         DegradeRuleManager.loadRules(degradeRules);

@@ -96,9 +96,9 @@ public class ErrorHandlerConfiguration {
     }
 
     /**
-     * https://github.com/spring-cloud/spring-cloud-gateway/issues/541
      * Hidden http method filter hidden http method filter.
      *
+     * @see <a href="https://github.com/spring-cloud/spring-cloud-gateway/issues/541">issues-541</a>
      * @return the hidden http method filter
      */
     @Bean
