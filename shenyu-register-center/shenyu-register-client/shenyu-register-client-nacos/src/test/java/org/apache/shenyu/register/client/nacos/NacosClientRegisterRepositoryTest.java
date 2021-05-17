@@ -17,25 +17,30 @@
 
 package org.apache.shenyu.register.client.nacos;
 
-import com.alibaba.nacos.api.config.ConfigService;
-import com.alibaba.nacos.api.naming.NamingService;
-import com.alibaba.nacos.api.naming.pojo.Instance;
-import lombok.SneakyThrows;
-import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
-import org.apache.shenyu.register.common.dto.URIRegisterDTO;
-import org.junit.Before;
-import org.junit.Test;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
+import lombok.SneakyThrows;
+
+import org.apache.shenyu.common.utils.GsonUtils;
+import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
+import org.apache.shenyu.register.common.dto.URIRegisterDTO;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.alibaba.nacos.api.config.ConfigService;
+import com.alibaba.nacos.api.exception.NacosException;
+import com.alibaba.nacos.api.naming.NamingService;
+import com.alibaba.nacos.api.naming.pojo.Instance;
 
 /**
  * Test for nacos register center client.
@@ -46,20 +51,26 @@ public class NacosClientRegisterRepositoryTest {
 
     private final Map<String, Object> nacosBroker = new HashMap<>();
 
+    private ConfigService configService;
+
+    private NamingService namingService;
+
     @Before
     public void setUp() throws IllegalAccessException, NoSuchFieldException {
         this.repository = new NacosClientRegisterRepository();
+        this.configService = mockConfigService();
+        this.namingService = mockNamingService();
         Class<? extends NacosClientRegisterRepository> clazz = this.repository.getClass();
 
         String configFiledStr = "configService";
         Field configFiled = clazz.getDeclaredField(configFiledStr);
         configFiled.setAccessible(true);
-        configFiled.set(repository, mockConfigService());
+        configFiled.set(repository, this.configService);
 
         String namingFiledStr = "namingService";
         Field namingFiled = clazz.getDeclaredField(namingFiledStr);
         namingFiled.setAccessible(true);
-        namingFiled.set(repository, mockNamingService());
+        namingFiled.set(repository, this.namingService);
 
         nacosBroker.clear();
     }
@@ -93,6 +104,13 @@ public class NacosClientRegisterRepositoryTest {
     }
 
     @Test
+    public void testClose() throws NacosException {
+        repository.close();
+        verify(configService, times(1)).shutDown();
+        verify(namingService, times(1)).shutDown();
+    }
+
+    @Test
     public void testPersistInterface() {
         final MetaDataRegisterDTO data = MetaDataRegisterDTO.builder()
                 .rpcType("http")
@@ -103,7 +121,6 @@ public class NacosClientRegisterRepositoryTest {
                 .build();
 
         repository.persistInterface(data);
-
         String uriInstancePath = "shenyu.register.service.http";
         assert nacosBroker.containsKey(uriInstancePath);
         Instance instance = (Instance) nacosBroker.get(uriInstancePath);
