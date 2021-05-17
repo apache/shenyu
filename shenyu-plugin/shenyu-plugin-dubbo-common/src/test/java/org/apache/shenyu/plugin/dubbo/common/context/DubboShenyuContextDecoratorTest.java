@@ -26,8 +26,7 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
- * @author yuchen.wu
- * @date 2021-05-17
+ * DubboShenyuContextDecorator test.
  */
 @RunWith(MockitoJUnitRunner.class)
 public class DubboShenyuContextDecoratorTest {
