@@ -24,7 +24,6 @@ import com.alibaba.dubbo.rpc.service.GenericService;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.cache.Weigher;
 import java.lang.reflect.Field;
 import java.util.Objects;
 import java.util.Optional;
@@ -50,13 +49,12 @@ public final class ApplicationConfigCache {
 
     private RegistryConfig registryConfig;
 
-    private final int maxCount = 50000;
+    private final int maxCount = 1000;
 
     private final LoadingCache<String, ReferenceConfig<GenericService>> cache = CacheBuilder.newBuilder()
-            .maximumWeight(maxCount)
-            .weigher((Weigher<String, ReferenceConfig<GenericService>>) (string, referenceConfig) -> getSize())
+            .maximumSize(maxCount)
             .removalListener(notification -> {
-                ReferenceConfig config = notification.getValue();
+                ReferenceConfig config = (ReferenceConfig<GenericService>) notification.getValue();
                 if (config != null) {
                     try {
                         Class cz = config.getClass();
@@ -78,10 +76,6 @@ public final class ApplicationConfigCache {
             });
 
     private ApplicationConfigCache() {
-    }
-
-    private int getSize() {
-        return (int) cache.size();
     }
 
     /**

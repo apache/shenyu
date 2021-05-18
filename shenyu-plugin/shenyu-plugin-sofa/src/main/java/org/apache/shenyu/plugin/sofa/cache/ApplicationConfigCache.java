@@ -25,7 +25,6 @@ import com.alipay.sofa.rpc.config.RegistryConfig;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.cache.Weigher;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -50,13 +49,12 @@ public final class ApplicationConfigCache {
 
     private RegistryConfig registryConfig;
 
-    private final int maxCount = 50000;
+    private final int maxCount = 1000;
 
     private final LoadingCache<String, ConsumerConfig<GenericService>> cache = CacheBuilder.newBuilder()
-            .maximumWeight(maxCount)
-            .weigher((Weigher<String, ConsumerConfig<GenericService>>) (string, referenceConfig) -> getSize())
+            .maximumSize(maxCount)
             .removalListener(notification -> {
-                ConsumerConfig<GenericService> config = notification.getValue();
+                ConsumerConfig<GenericService> config = (ConsumerConfig<GenericService>) notification.getValue();
                 if (config != null) {
                     try {
                         Class<?> cz = config.getClass();
@@ -78,10 +76,6 @@ public final class ApplicationConfigCache {
             });
 
     private ApplicationConfigCache() {
-    }
-
-    private int getSize() {
-        return (int) cache.size();
     }
 
     /**
