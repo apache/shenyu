@@ -91,7 +91,7 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
         this.httpClient = createRestTemplate();
         this.start();
     }
-    
+
     private RestTemplate createRestTemplate() {
         OkHttp3ClientHttpRequestFactory factory = new OkHttp3ClientHttpRequestFactory();
         factory.setConnectTimeout((int) this.connectionTimeout.toMillis());
@@ -174,8 +174,10 @@ public class HttpSyncDataService implements SyncDataService, AutoCloseable {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>(8);
         for (ConfigGroupEnum group : ConfigGroupEnum.values()) {
             ConfigData<?> cacheConfig = factory.cacheConfigData(group);
-            String value = String.join(",", cacheConfig.getMd5(), String.valueOf(cacheConfig.getLastModifyTime()));
-            params.put(group.name(), Lists.newArrayList(value));
+            if (cacheConfig != null) {
+                String value = String.join(",", cacheConfig.getMd5(), String.valueOf(cacheConfig.getLastModifyTime()));
+                params.put(group.name(), Lists.newArrayList(value));
+            }
         }
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);

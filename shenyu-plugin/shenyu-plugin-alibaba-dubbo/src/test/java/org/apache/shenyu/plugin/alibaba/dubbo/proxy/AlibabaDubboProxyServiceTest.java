@@ -19,12 +19,13 @@ package org.apache.shenyu.plugin.alibaba.dubbo.proxy;
 
 import com.alibaba.dubbo.config.ReferenceConfig;
 import com.alibaba.dubbo.rpc.service.GenericService;
-import com.google.common.cache.LoadingCache;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import org.apache.shenyu.plugin.alibaba.dubbo.cache.ApplicationConfigCache;
@@ -34,9 +35,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.MockedStatic;
 import org.mockito.junit.MockitoJUnitRunner;
-
-import java.lang.reflect.Field;
 
 /**
  * AlibabaDubboProxyServiceTest.
@@ -70,18 +70,19 @@ public final class AlibabaDubboProxyServiceTest {
     }
 
     @Test
-    public void test() throws NoSuchFieldException, IllegalAccessException {
+    public void testGenericInvoker() {
         ReferenceConfig referenceConfig = mock(ReferenceConfig.class);
         GenericService genericService = mock(GenericService.class);
         when(referenceConfig.get()).thenReturn(genericService);
-        when(referenceConfig.getInterface()).thenReturn(PATH);
         when(genericService.$invoke(METHOD_NAME, LEFT, RIGHT)).thenReturn(null);
-        ApplicationConfigCache applicationConfigCache = ApplicationConfigCache.getInstance();
-        Field field = ApplicationConfigCache.class.getDeclaredField("cache");
-        field.setAccessible(true);
-        ((LoadingCache) field.get(applicationConfigCache)).put(PATH, referenceConfig);
-        AlibabaDubboProxyService alibabaDubboProxyService = new AlibabaDubboProxyService(new BodyParamResolveServiceImpl());
-        Assert.assertNull(alibabaDubboProxyService.genericInvoker("", metaData));
+        try (MockedStatic<ApplicationConfigCache> applicationConfigCacheMockedStatic = mockStatic(ApplicationConfigCache.class)) {
+            ApplicationConfigCache applicationConfigCache = mock(ApplicationConfigCache.class);
+            applicationConfigCacheMockedStatic.when(() -> ApplicationConfigCache.getInstance()).thenReturn(applicationConfigCache);
+            when(applicationConfigCache.initRef(metaData)).thenReturn(referenceConfig);
+
+            AlibabaDubboProxyService alibabaDubboProxyService = new AlibabaDubboProxyService(new BodyParamResolveServiceImpl());
+            Assert.assertNull(alibabaDubboProxyService.genericInvoker("", metaData));
+        }
     }
 
     class BodyParamResolveServiceImpl implements BodyParamResolveService {

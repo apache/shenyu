@@ -20,7 +20,6 @@ package org.apache.shenyu.plugin.motan.cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.cache.Weigher;
 import com.weibo.api.motan.config.ProtocolConfig;
 import com.weibo.api.motan.config.RefererConfig;
 import com.weibo.api.motan.config.RegistryConfig;
@@ -54,13 +53,12 @@ public final class ApplicationConfigCache {
 
     private ProtocolConfig protocolConfig;
 
-    private final int maxCount = 50000;
+    private final int maxCount = 1000;
 
     private final LoadingCache<String, RefererConfig<CommonHandler>> cache = CacheBuilder.newBuilder()
-            .maximumWeight(maxCount)
-            .weigher((Weigher<String, RefererConfig<CommonHandler>>) (string, referenceConfig) -> getSize())
+            .maximumSize(maxCount)
             .removalListener(notification -> {
-                RefererConfig<CommonHandler> config = notification.getValue();
+                RefererConfig<CommonHandler> config = (RefererConfig<CommonHandler>) notification.getValue();
                 if (config != null) {
                     try {
                         Class<?> cz = config.getClass();
@@ -82,10 +80,6 @@ public final class ApplicationConfigCache {
             });
 
     private ApplicationConfigCache() {
-    }
-
-    private int getSize() {
-        return (int) cache.size();
     }
 
     /**
