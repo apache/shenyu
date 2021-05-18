@@ -70,7 +70,7 @@ public final class AlibabaDubboProxyServiceTest {
     }
 
     @Test
-    public void test() {
+    public void testGenericInvoker() {
         ReferenceConfig referenceConfig = mock(ReferenceConfig.class);
         GenericService genericService = mock(GenericService.class);
         when(referenceConfig.get()).thenReturn(genericService);
