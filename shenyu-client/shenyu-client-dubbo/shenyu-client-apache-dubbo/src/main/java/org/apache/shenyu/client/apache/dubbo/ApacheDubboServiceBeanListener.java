@@ -52,21 +52,21 @@ import java.util.stream.Collectors;
 @Slf4j
 @SuppressWarnings("all")
 public class ApacheDubboServiceBeanListener implements ApplicationListener<ContextRefreshedEvent> {
-    
+
     private ShenyuClientRegisterEventPublisher shenyuClientRegisterEventPublisher = ShenyuClientRegisterEventPublisher.getInstance();
-    
+
     private final AtomicBoolean registered = new AtomicBoolean(false);
-    
+
     private ExecutorService executorService;
-    
+
     private String contextPath;
-    
+
     private String appName;
 
     private final String host;
 
     private final String port;
-    
+
     public ApacheDubboServiceBeanListener(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
@@ -83,18 +83,9 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
     }
 
     private void handler(final ServiceBean serviceBean) {
-        Class<?> clazz = serviceBean.getRef().getClass();
         Object refProxy = serviceBean.getRef();
-        if (AopUtils.isCglibProxy(refProxy)) {
-            String superClassName = clazz.getGenericSuperclass().getTypeName();
-            try {
-                clazz = Class.forName(superClassName);
-            } catch (ClassNotFoundException e) {
-                log.error(String.format("class not found: %s", superClassName));
-                return;
-            }
-        }
-        if (AopUtils.isJdkDynamicProxy(refProxy)) {
+        Class<?> clazz = refProxy.getClass();
+        if (AopUtils.isAopProxy(refProxy)) {
             clazz = AopUtils.getTargetClass(serviceBean.getRef());
         }
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
