@@ -37,11 +37,13 @@ import reactor.core.publisher.Mono;
  */
 public class WebSocketParamFilter extends AbstractWebFilter {
 
+    private static final String UPGRADE = "Upgrade";
+
     @Override
     protected Mono<Boolean> doFilter(final ServerWebExchange exchange, final WebFilterChain chain) {
-        final ServerHttpRequest request = exchange.getRequest();
-        final HttpHeaders headers = request.getHeaders();
-        final String upgrade = headers.getFirst("Upgrade");
+        ServerHttpRequest request = exchange.getRequest();
+        HttpHeaders headers = request.getHeaders();
+        String upgrade = headers.getFirst(UPGRADE);
         if (StringUtils.isNoneBlank(upgrade) && RpcTypeEnum.WEB_SOCKET.getName().equals(upgrade)) {
             return Mono.just(verify(request.getQueryParams()));
         }
