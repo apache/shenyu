@@ -15,15 +15,14 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.apache.dubbo.cache;
+package org.apache.shenyu.plugin.alibaba.dubbo.cache;
 
+import com.alibaba.dubbo.config.RegistryConfig;
 import lombok.SneakyThrows;
-import org.apache.dubbo.config.RegistryConfig;
 import org.apache.shenyu.common.config.DubboRegisterConfig;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.LoadBalanceEnum;
 import org.apache.shenyu.common.utils.GsonUtils;
-import org.apache.shenyu.plugin.apache.dubbo.cache.ApplicationConfigCache.DubboParamExtInfo;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -107,10 +106,9 @@ public final class ApplicationConfigCacheTest {
 
     @Test
     public void testBuild() {
-        DubboParamExtInfo dubboParamExtInfo = new DubboParamExtInfo();
-        dubboParamExtInfo.setVersion("2.7.5");
+        ApplicationConfigCache.DubboParamExtInfo dubboParamExtInfo = new ApplicationConfigCache.DubboParamExtInfo();
+        dubboParamExtInfo.setVersion("2.6.5");
         dubboParamExtInfo.setGroup("Group");
-        dubboParamExtInfo.setLoadbalance("Balance");
         dubboParamExtInfo.setUrl("http://192.168.55.113/dubbo");
         MetaData metaData = new MetaData();
         metaData.setRpcExt(GsonUtils.getInstance().toJson(dubboParamExtInfo));
