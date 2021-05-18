@@ -90,13 +90,15 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
     @SneakyThrows
     private void handler(final ServiceFactoryBean serviceBean) {
         Class<?> clazz;
+        Object targetProxy;
         try {
-            clazz = ((Service) Objects.requireNonNull(serviceBean.getObject())).getTarget().getClass();
+            targetProxy = ((Service) Objects.requireNonNull(serviceBean.getObject())).getTarget();
+            clazz = targetProxy.getClass();
         } catch (Exception e) {
             log.error("failed to get sofa target class");
             return;
         }
-        if (AopUtils.isCglibProxy(clazz)) {
+        if (AopUtils.isCglibProxy(targetProxy)) {
             String superClassName = clazz.getGenericSuperclass().getTypeName();
             try {
                 clazz = Class.forName(superClassName);
@@ -105,7 +107,7 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
                 return;
             }
         }
-        if (AopUtils.isJdkDynamicProxy(clazz)) {
+        if (AopUtils.isJdkDynamicProxy(targetProxy)) {
             clazz = AopUtils.getTargetClass(serviceBean.getObject());
         }
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);

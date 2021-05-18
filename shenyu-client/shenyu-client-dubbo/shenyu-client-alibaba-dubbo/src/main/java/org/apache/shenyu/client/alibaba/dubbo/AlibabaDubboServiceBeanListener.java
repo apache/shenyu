@@ -84,7 +84,8 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
 
     private void handler(final ServiceBean<?> serviceBean) {
         Class<?> clazz = serviceBean.getRef().getClass();
-        if (AopUtils.isCglibProxy(clazz)) {
+        Object refProxy = serviceBean.getRef();
+        if (AopUtils.isCglibProxy(refProxy)) {
             String superClassName = clazz.getGenericSuperclass().getTypeName();
             try {
                 clazz = Class.forName(superClassName);
@@ -93,7 +94,7 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
                 return;
             }
         }
-        if (AopUtils.isJdkDynamicProxy(clazz)) {
+        if (AopUtils.isJdkDynamicProxy(refProxy)) {
             clazz = AopUtils.getTargetClass(serviceBean.getRef());
         }
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
