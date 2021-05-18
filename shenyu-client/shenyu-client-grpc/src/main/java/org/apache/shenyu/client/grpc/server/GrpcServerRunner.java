@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.client.grpc;
+package org.apache.shenyu.client.grpc.server;
 
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.ServerServiceDefinition;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.shenyu.client.grpc.GrpcClientBeanPostProcessor;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 
@@ -33,9 +34,13 @@ import java.util.List;
 @Slf4j
 public class GrpcServerRunner implements ApplicationRunner {
 
+    private final GrpcServerBuilder grpcServerBuilder;
+
     private final GrpcClientBeanPostProcessor grpcClientBeanPostProcessor;
 
-    public GrpcServerRunner(final GrpcClientBeanPostProcessor grpcClientBeanPostProcessor) {
+    public GrpcServerRunner(final GrpcServerBuilder grpcServerBuilder,
+                            final GrpcClientBeanPostProcessor grpcClientBeanPostProcessor) {
+        this.grpcServerBuilder = grpcServerBuilder;
         this.grpcClientBeanPostProcessor = grpcClientBeanPostProcessor;
     }
 
@@ -45,8 +50,7 @@ public class GrpcServerRunner implements ApplicationRunner {
     }
 
     private void startGrpcServer() {
-        int port = grpcClientBeanPostProcessor.getPort();
-        ServerBuilder<?> serverBuilder = ServerBuilder.forPort(port);
+        ServerBuilder<?> serverBuilder = grpcServerBuilder.buildServerBuilder();
 
         List<ServerServiceDefinition> serviceDefinitions = grpcClientBeanPostProcessor.getServiceDefinitions();
         for (ServerServiceDefinition serviceDefinition : serviceDefinitions) {
@@ -63,7 +67,7 @@ public class GrpcServerRunner implements ApplicationRunner {
                 log.info("grpc server shut down");
             }));
 
-            log.info("Grpc server started on port: {}", port);
+            log.info("Grpc server started successfully");
         } catch (IOException e) {
             log.error("Grpc server failed to start", e);
         }

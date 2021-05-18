@@ -17,21 +17,19 @@
 
 package org.apache.shenyu.examples.grpc;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import io.grpc.ServerBuilder;
+import org.apache.shenyu.client.grpc.server.GrpcServerBuilder;
+import org.springframework.stereotype.Component;
 
 /**
- * ShenyuTestGrpcApplication.
+ * Grpc ServerBuilder.
  */
-@SpringBootApplication
-public class ShenyuTestGrpcApplication {
+@Component
+public class ShenyuGrpcServerBuilder implements GrpcServerBuilder {
 
-    /**
-     * main.
-     *
-     * @param args args
-     */
-    public static void main(final String[] args) {
-        SpringApplication.run(ShenyuTestGrpcApplication.class, args);
+    @Override
+    public ServerBuilder<?> buildServerBuilder() {
+        ServerBuilder<?> serverBuilder = ServerBuilder.forPort(8080);
+        return serverBuilder;
     }
 }

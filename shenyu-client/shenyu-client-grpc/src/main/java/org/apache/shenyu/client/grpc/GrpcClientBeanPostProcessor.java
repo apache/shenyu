@@ -65,7 +65,6 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
 
     private final String host;
 
-    @Getter
     private final int port;
 
     @Getter

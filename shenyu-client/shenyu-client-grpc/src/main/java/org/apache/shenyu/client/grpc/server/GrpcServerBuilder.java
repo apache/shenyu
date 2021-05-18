@@ -15,23 +15,17 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.grpc;
+package org.apache.shenyu.client.grpc.server;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import io.grpc.ServerBuilder;
 
 /**
- * ShenyuTestGrpcApplication.
+ * Grpc ServerBuilder.
  */
-@SpringBootApplication
-public class ShenyuTestGrpcApplication {
-
+public interface GrpcServerBuilder {
     /**
-     * main.
-     *
-     * @param args args
+     * build ServerBuilder.
+     * @return ServerBuilder
      */
-    public static void main(final String[] args) {
-        SpringApplication.run(ShenyuTestGrpcApplication.class, args);
-    }
+    ServerBuilder<?> buildServerBuilder();
 }
