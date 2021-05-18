@@ -17,11 +17,11 @@
 
 package org.apache.shenyu.client.springcloud.init;
 
-import com.alibaba.nacos.api.utils.NetUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.common.utils.IpUtils;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.register.common.dto.MetaDataRegisterDTO;
@@ -90,7 +90,7 @@ public class ContextRegisterListener implements ApplicationListener<ContextRefre
         String contextPath = this.contextPath;
         String appName = env.getProperty("spring.application.name");
         Integer port = env.getProperty("server.port",Integer.class,8080);
-        String host = NetUtils.localIP();
+        String host = IpUtils.getHost();
         String path = contextPath + "/**";
         return MetaDataRegisterDTO.builder()
                 .contextPath(contextPath)
