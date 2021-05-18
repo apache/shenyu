@@ -86,7 +86,7 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
         Object refProxy = serviceBean.getRef();
         Class<?> clazz = refProxy.getClass();
         if (AopUtils.isAopProxy(refProxy)) {
-            clazz = AopUtils.getTargetClass(serviceBean.getRef());
+            clazz = AopUtils.getTargetClass(refProxy);
         }
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {
