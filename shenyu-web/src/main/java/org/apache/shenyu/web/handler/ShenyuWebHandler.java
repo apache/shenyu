@@ -17,8 +17,6 @@
 
 package org.apache.shenyu.web.handler;
 
-import java.util.List;
-import java.util.Objects;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.springframework.lang.NonNull;
@@ -28,6 +26,9 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
+import java.util.List;
+import java.util.Objects;
+
 /**
  * This is web handler request starter.
  */
@@ -35,7 +36,9 @@ public final class ShenyuWebHandler implements WebHandler {
 
     private final List<ShenyuPlugin> plugins;
 
-    private final Scheduler scheduler;
+    private Scheduler scheduler;
+    
+    private boolean scheduled;
     
     /**
      * Instantiates a new shenyu web handler.
@@ -44,13 +47,17 @@ public final class ShenyuWebHandler implements WebHandler {
      */
     public ShenyuWebHandler(final List<ShenyuPlugin> plugins) {
         this.plugins = plugins;
-        String schedulerType = System.getProperty("shenyu.scheduler.type", "fixed");
-        if (Objects.equals(schedulerType, "fixed")) {
-            int threads = Integer.parseInt(System.getProperty(
-                    "shenyu.work.threads", "" + Math.max((Runtime.getRuntime().availableProcessors() << 1) + 1, 16)));
-            scheduler = Schedulers.newParallel("shenyu-work-threads", threads);
-        } else {
-            scheduler = Schedulers.elastic();
+        String enabled = System.getProperty("shenyu.scheduler.enabled", "false");
+        this.scheduled = Boolean.parseBoolean(enabled);
+        if (scheduled) {
+            String schedulerType = System.getProperty("shenyu.scheduler.type", "fixed");
+            if (Objects.equals(schedulerType, "fixed")) {
+                int threads = Integer.parseInt(System.getProperty(
+                        "shenyu.work.threads", "" + Math.max((Runtime.getRuntime().availableProcessors() << 1) + 1, 16)));
+                scheduler = Schedulers.newParallel("shenyu-work-threads", threads);
+            } else {
+                scheduler = Schedulers.elastic();
+            }
         }
     }
 
@@ -62,7 +69,11 @@ public final class ShenyuWebHandler implements WebHandler {
      */
     @Override
     public Mono<Void> handle(@NonNull final ServerWebExchange exchange) {
-        return new DefaultShenyuPluginChain(plugins).execute(exchange).subscribeOn(scheduler);
+        Mono<Void> execute = new DefaultShenyuPluginChain(plugins).execute(exchange);
+        if (scheduled) {
+            return execute.subscribeOn(scheduler);
+        }
+        return execute;
     }
 
     private static class DefaultShenyuPluginChain implements ShenyuPluginChain {
