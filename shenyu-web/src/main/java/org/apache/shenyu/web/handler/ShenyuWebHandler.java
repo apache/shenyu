@@ -35,10 +35,10 @@ import java.util.Objects;
 public final class ShenyuWebHandler implements WebHandler {
 
     private final List<ShenyuPlugin> plugins;
+    
+    private final boolean scheduled;
 
     private Scheduler scheduler;
-    
-    private boolean scheduled;
     
     /**
      * Instantiates a new shenyu web handler.
