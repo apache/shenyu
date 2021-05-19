@@ -93,7 +93,7 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
 
     private void handler(final Object serviceBean) {
         Class<?> clazz = serviceBean.getClass();
-        if (AopUtils.isCglibProxy(clazz)) {
+        if (AopUtils.isCglibProxy(serviceBean)) {
             String superClassName = clazz.getGenericSuperclass().getTypeName();
             try {
                 clazz = Class.forName(superClassName);
@@ -102,7 +102,7 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
                 return;
             }
         }
-        if (AopUtils.isJdkDynamicProxy(clazz)) {
+        if (AopUtils.isJdkDynamicProxy(serviceBean)) {
             clazz = AopUtils.getTargetClass(serviceBean);
         }
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
