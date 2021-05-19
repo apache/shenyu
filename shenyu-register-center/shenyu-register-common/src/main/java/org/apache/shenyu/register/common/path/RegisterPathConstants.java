@@ -31,6 +31,11 @@ public class RegisterPathConstants {
      * constants of separator.
      */
     private static final String SEPARATOR = "/";
+
+    /**
+     * Dot separator.
+     */
+    private static final String DOT_SEPARATOR = ".";
     
     /**
      * build child path of "/shenyu/register/metadata/{rpcType}/".
@@ -134,5 +139,16 @@ public class RegisterPathConstants {
     public static String buildServiceConfigPath(final String rpcType, final String contextPath) {
         return String.join(SEPARATOR, ROOT_PATH, "service", rpcType, contextPath)
                 .replace("/", ".").substring(1);
+    }
+
+    /**
+     * Build zookeeper node name.
+     *
+     * @param serviceName the service name
+     * @param methodName the method name
+     * @return the string
+     */
+    public static String buildNodeName(final String serviceName, final String methodName) {
+        return String.join(DOT_SEPARATOR, serviceName, methodName);
     }
 }
