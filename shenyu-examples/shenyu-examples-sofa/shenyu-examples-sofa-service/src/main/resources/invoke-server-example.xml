@@ -23,11 +23,11 @@
             http://sofastack.io/schema/sofaboot http://sofastack.io/schema/sofaboot.xsd"
        default-autowire="byName">
 
-    <sofa:service ref="sofaSingleParamService" interface="SofaSingleParamService">
+    <sofa:service ref="sofaSingleParamService" interface="org.apache.shenyu.examples.sofa.api.service.SofaSingleParamService">
         <sofa:binding.bolt/>
     </sofa:service>
 
-    <sofa:service ref="sofaMultiParamService" interface="SofaMultiParamService">
+    <sofa:service ref="sofaMultiParamService" interface="org.apache.shenyu.examples.sofa.api.service.SofaMultiParamService">
         <sofa:binding.bolt/>
     </sofa:service>
 

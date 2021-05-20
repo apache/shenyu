@@ -51,19 +51,19 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
-    
+
     private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
-    
+
     private final ExecutorService executorService;
-    
+
     private final String contextPath;
-    
+
     private final String appName;
 
     private final String host;
 
     private final String port;
-    
+
     public SofaServiceBeanPostProcessor(final ShenyuRegisterCenterConfig config, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         Properties props = config.getProps();
         String contextPath = props.getProperty("contextPath");
@@ -90,23 +90,16 @@ public class SofaServiceBeanPostProcessor implements BeanPostProcessor {
     @SneakyThrows
     private void handler(final ServiceFactoryBean serviceBean) {
         Class<?> clazz;
+        Object targetProxy;
         try {
-            clazz = ((Service) Objects.requireNonNull(serviceBean.getObject())).getTarget().getClass();
+            targetProxy = ((Service) Objects.requireNonNull(serviceBean.getObject())).getTarget();
+            clazz = targetProxy.getClass();
         } catch (Exception e) {
-            log.error("failed to get sofa target class");
+            log.error("failed to get sofa target class", e);
             return;
         }
-        if (AopUtils.isCglibProxy(clazz)) {
-            String superClassName = clazz.getGenericSuperclass().getTypeName();
-            try {
-                clazz = Class.forName(superClassName);
-            } catch (ClassNotFoundException e) {
-                log.error(String.format("class not found: %s", superClassName));
-                return;
-            }
-        }
-        if (AopUtils.isJdkDynamicProxy(clazz)) {
-            clazz = AopUtils.getTargetClass(serviceBean.getObject());
+        if (AopUtils.isAopProxy(targetProxy)) {
+            clazz = AopUtils.getTargetClass(targetProxy);
         }
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {

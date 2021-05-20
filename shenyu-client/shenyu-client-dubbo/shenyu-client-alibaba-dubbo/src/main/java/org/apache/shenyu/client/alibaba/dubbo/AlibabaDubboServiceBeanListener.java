@@ -52,15 +52,15 @@ import java.util.stream.Collectors;
 @Slf4j
 @SuppressWarnings("all")
 public class AlibabaDubboServiceBeanListener implements ApplicationListener<ContextRefreshedEvent> {
-    
+
     private ShenyuClientRegisterEventPublisher publisher = ShenyuClientRegisterEventPublisher.getInstance();
-    
+
     private AtomicBoolean registered = new AtomicBoolean(false);
-    
+
     private final ExecutorService executorService;
-    
+
     private final String contextPath;
-    
+
     private final String appName;
 
     private final String host;
@@ -83,18 +83,10 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
     }
 
     private void handler(final ServiceBean<?> serviceBean) {
-        Class<?> clazz = serviceBean.getRef().getClass();
-        if (AopUtils.isCglibProxy(clazz)) {
-            String superClassName = clazz.getGenericSuperclass().getTypeName();
-            try {
-                clazz = Class.forName(superClassName);
-            } catch (ClassNotFoundException e) {
-                log.error(String.format("class not found: %s", superClassName));
-                return;
-            }
-        }
-        if (AopUtils.isJdkDynamicProxy(clazz)) {
-            clazz = AopUtils.getTargetClass(serviceBean.getRef());
+        Object refProxy = serviceBean.getRef();
+        Class<?> clazz = refProxy.getClass();
+        if (AopUtils.isAopProxy(refProxy)) {
+            clazz = AopUtils.getTargetClass(refProxy);
         }
         Method[] methods = ReflectionUtils.getUniqueDeclaredMethods(clazz);
         for (Method method : methods) {

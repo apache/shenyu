@@ -20,6 +20,7 @@ package org.apache.shenyu.register.client.nacos;
 import com.alibaba.nacos.api.PropertyKeyConst;
 import com.alibaba.nacos.api.config.ConfigFactory;
 import com.alibaba.nacos.api.config.ConfigService;
+import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.NamingFactory;
 import com.alibaba.nacos.api.naming.NamingService;
 import com.alibaba.nacos.api.naming.pojo.Instance;
@@ -80,6 +81,12 @@ public class NacosClientRegisterRepository implements ShenyuClientRegisterReposi
 
     @Override
     public void close() {
+        try {
+            configService.shutDown();
+            namingService.shutDown();
+        } catch (NacosException e) {
+            log.error("NacosClientRegisterRepository close error!", e);
+        }
     }
 
     @Override
