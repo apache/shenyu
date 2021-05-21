@@ -19,6 +19,8 @@
 package org.apache.dromara.springboot.starter.client.grpc;
 
 import org.apache.shenyu.client.grpc.GrpcClientBeanPostProcessor;
+import org.apache.shenyu.client.grpc.server.GrpcServerBuilder;
+import org.apache.shenyu.client.grpc.server.GrpcServerRunner;
 import org.apache.shenyu.register.client.api.ShenyuClientRegisterRepository;
 import org.apache.shenyu.register.common.config.ShenyuRegisterCenterConfig;
 import org.apache.shenyu.springboot.starter.client.common.config.ShenyuClientCommonBeanConfiguration;
@@ -32,16 +34,30 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ImportAutoConfiguration(ShenyuClientCommonBeanConfiguration.class)
 public class ShenyuGrpcClientConfiguration {
-    
+
     /**
      * Grpc service bean post processor grpc client bean post processor.
      *
-     * @param registerCenterConfig the register center config
+     * @param registerCenterConfig           the register center config
      * @param shenyuClientRegisterRepository the shenyuClientRegisterRepository
      * @return the grpc client bean post processor
      */
     @Bean
-    public GrpcClientBeanPostProcessor grpcServiceBeanPostProcessor(final ShenyuRegisterCenterConfig registerCenterConfig, final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
+    public GrpcClientBeanPostProcessor grpcServiceBeanPostProcessor(final ShenyuRegisterCenterConfig registerCenterConfig,
+                                                                    final ShenyuClientRegisterRepository shenyuClientRegisterRepository) {
         return new GrpcClientBeanPostProcessor(registerCenterConfig, shenyuClientRegisterRepository);
+    }
+
+    /**
+     * Grpc Server.
+     *
+     * @param grpcServerBuilder            grpcServerBuilder
+     * @param grpcServiceBeanPostProcessor grpcServiceBeanPostProcessor
+     * @return the grpc server
+     */
+    @Bean
+    public GrpcServerRunner grpcServer(final GrpcServerBuilder grpcServerBuilder,
+                                       final GrpcClientBeanPostProcessor grpcServiceBeanPostProcessor) {
+        return new GrpcServerRunner(grpcServerBuilder, grpcServiceBeanPostProcessor);
     }
 }

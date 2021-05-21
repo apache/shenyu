@@ -15,31 +15,16 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.grpc.proto;
-
-import com.google.protobuf.Message;
-import io.grpc.CallOptions;
-import io.grpc.Channel;
-import io.grpc.MethodDescriptor;
-import io.grpc.stub.StreamObserver;
-import lombok.Builder;
-import lombok.Getter;
-import org.apache.shenyu.common.message.JsonRequest;
+package org.apache.shenyu.common.constant;
 
 /**
- * ShenyuGrpcCallRequest.
+ * Grpc constants.
  */
-@Builder
-@Getter
-public class ShenyuGrpcCallRequest {
+public class GrpcConstants {
 
-    private Channel channel;
+    /**
+     * grpc json generic service.
+     */
+    public static final String GRPC_JSON_GENERIC_SERVICE = "JSON";
 
-    private CallOptions callOptions;
-
-    private JsonRequest requests;
-
-    private MethodDescriptor<Message, Message> methodDescriptor;
-
-    private StreamObserver<Message> responseObserver;
 }
