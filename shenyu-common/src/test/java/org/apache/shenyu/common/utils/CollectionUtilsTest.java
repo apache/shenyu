@@ -15,20 +15,34 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.condition.judge;
+package org.apache.shenyu.common.utils;
 
-import org.apache.shenyu.common.dto.ConditionData;
-import groovy.util.Eval;
-import org.apache.shenyu.spi.Join;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Collection;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
- * Groovy predicate judge.
+ * Test Cases for CollectionUtils.
  */
-@Join
-public class GroovyPredicateJudge implements PredicateJudge {
-    
-    @Override
-    public Boolean judge(final ConditionData conditionData, final String realData) {
-        return (Boolean) Eval.me(conditionData.getParamName(), realData, conditionData.getParamValue());
+public class CollectionUtilsTest {
+
+    @Test
+    public void testIsEmpty() {
+        final Collection<Integer> collection = new ArrayList<>();
+        assertTrue(CollectionUtils.isEmpty(collection));
+        collection.add(1);
+        assertFalse(CollectionUtils.isEmpty(collection));
+    }
+
+    @Test
+    public void testIsNotEmpty() {
+        Collection<Integer> collection = new ArrayList<>();
+        assertFalse(CollectionUtils.isNotEmpty(collection));
+        collection.add(1);
+        assertTrue(CollectionUtils.isNotEmpty(collection));
     }
 }

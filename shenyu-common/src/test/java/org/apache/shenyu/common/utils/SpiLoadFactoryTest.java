@@ -15,20 +15,31 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.condition.judge;
+package org.apache.shenyu.common.utils;
 
-import org.apache.shenyu.common.dto.ConditionData;
-import groovy.util.Eval;
-import org.apache.shenyu.spi.Join;
+import org.junit.Test;
+
+import java.util.List;
+
+import static org.junit.Assert.assertNotNull;
 
 /**
- * Groovy predicate judge.
+ * Test Cases for SpiLoadFactory.
  */
-@Join
-public class GroovyPredicateJudge implements PredicateJudge {
-    
-    @Override
-    public Boolean judge(final ConditionData conditionData, final String realData) {
-        return (Boolean) Eval.me(conditionData.getParamName(), realData, conditionData.getParamValue());
+public class SpiLoadFactoryTest {
+
+    @Test
+    public void testLoadFirst() {
+        assertNotNull(SpiLoadFactory.loadFirst(SpiInterface.class));
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testLoadFirstNoDefined() {
+        SpiLoadFactory.loadFirst(List.class);
+    }
+
+    @Test
+    public void testLoadAll() {
+        assertNotNull(SpiLoadFactory.loadAll(SpiInterface.class));
     }
 }

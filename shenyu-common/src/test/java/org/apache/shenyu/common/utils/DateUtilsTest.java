@@ -87,4 +87,11 @@ public final class DateUtilsTest {
         LocalDateTime localDateTime = DateUtils.parseLocalDateTime("1991-08-02T08:30:11", "yyyy-MM-dd'T'HH:mm:ss");
         assertEquals(localDateTime.getYear(), 1991);
     }
+
+    @Test
+    public void testAcquireMillisBetween() {
+        LocalDateTime start = LocalDateTime.now();
+        LocalDateTime end = start.plusMinutes(1);
+        assertEquals(60 * 1000, DateUtils.acquireMillisBetween(start, end));
+    }
 }
