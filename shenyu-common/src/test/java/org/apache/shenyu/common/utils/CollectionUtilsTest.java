@@ -15,33 +15,34 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.enums;
+package org.apache.shenyu.common.utils;
 
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Collection;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
- * Test Cases for PluginEnum.
+ * Test Cases for CollectionUtils.
  */
-public final class PluginEnumTest {
+public class CollectionUtilsTest {
 
     @Test
-    public void testGetPluginEnumByName() {
-        Arrays.stream(PluginEnum.values())
-                .forEach(pluginEnum -> assertEquals(pluginEnum, PluginEnum.getPluginEnumByName(pluginEnum.getName())));
+    public void testIsEmpty() {
+        final Collection<Integer> collection = new ArrayList<>();
+        assertTrue(CollectionUtils.isEmpty(collection));
+        collection.add(1);
+        assertFalse(CollectionUtils.isEmpty(collection));
     }
 
     @Test
-    public void testGetPluginEnumByNameInvalid() {
-        assertEquals(PluginEnum.GLOBAL, PluginEnum.getPluginEnumByName("invalidName"));
-    }
-
-    @Test
-    public void testGetUpstreamNames() {
-        List<String> list = PluginEnum.getUpstreamNames();
-        assert list.size() > 0;
+    public void testIsNotEmpty() {
+        Collection<Integer> collection = new ArrayList<>();
+        assertFalse(CollectionUtils.isNotEmpty(collection));
+        collection.add(1);
+        assertTrue(CollectionUtils.isNotEmpty(collection));
     }
 }
