@@ -33,7 +33,9 @@ import java.net.InetSocketAddress;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class HeaderParameterDataTest {
+
     private ServerWebExchange exchange;
+
     private HeaderParameterData parameterData;
 
     @Before
