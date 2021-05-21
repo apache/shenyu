@@ -27,6 +27,7 @@ import io.grpc.ServerCallHandler;
 import io.grpc.ServiceDescriptor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.constant.GrpcConstants;
+import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.message.JsonRequest;
 import org.apache.shenyu.common.utils.GrpcUtils;
 import org.apache.shenyu.common.utils.ReflectUtils;
@@ -78,7 +79,7 @@ public class JsonServerServiceInterceptor {
             MethodDescriptor.Marshaller<?> requestMarshaller = definition.getMethodDescriptor().getRequestMarshaller();
             Field defaultInstanceField = ReflectUtils.getField(requestMarshaller.getClass(), "defaultInstance");
             if (Objects.isNull(defaultInstanceField)) {
-                throw new RuntimeException(String.format("can not get defaultInstance Field of %s", requestMarshaller.getClass()));
+                throw new ShenyuException(String.format("can not get defaultInstance Field of %s", requestMarshaller.getClass()));
             }
 
             defaultInstanceField.setAccessible(true);
@@ -100,7 +101,7 @@ public class JsonServerServiceInterceptor {
         for (MethodDescriptor<?, ?> md : wrappedDescriptors) {
             Field fullMethodNameField = ReflectUtils.getField(md.getClass(), "fullMethodName");
             if (Objects.isNull(fullMethodNameField)) {
-                throw new RuntimeException(String.format("can not get fullMethodName Field of %s", md.getClass()));
+                throw new ShenyuException(String.format("can not get fullMethodName Field of %s", md.getClass()));
             }
             fullMethodNameField.setAccessible(true);
             String fullMethodName = (String) fullMethodNameField.get(md);
@@ -110,7 +111,7 @@ public class JsonServerServiceInterceptor {
 
             Field serviceNameField = ReflectUtils.getField(md.getClass(), "serviceName");
             if (Objects.isNull(serviceNameField)) {
-                throw new RuntimeException(String.format("can not get serviceName Field Field of %s", md.getClass()));
+                throw new ShenyuException(String.format("can not get serviceName Field Field of %s", md.getClass()));
             }
             serviceNameField.setAccessible(true);
             String serviceName = (String) serviceNameField.get(md);
