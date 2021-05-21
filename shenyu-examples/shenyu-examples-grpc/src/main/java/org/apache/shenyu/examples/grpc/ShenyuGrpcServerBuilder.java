@@ -15,31 +15,21 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.grpc.proto;
+package org.apache.shenyu.examples.grpc;
 
-import com.google.protobuf.Message;
-import io.grpc.CallOptions;
-import io.grpc.Channel;
-import io.grpc.MethodDescriptor;
-import io.grpc.stub.StreamObserver;
-import lombok.Builder;
-import lombok.Getter;
-import org.apache.shenyu.common.message.JsonRequest;
+import io.grpc.ServerBuilder;
+import org.apache.shenyu.client.grpc.server.GrpcServerBuilder;
+import org.springframework.stereotype.Component;
 
 /**
- * ShenyuGrpcCallRequest.
+ * Grpc ServerBuilder.
  */
-@Builder
-@Getter
-public class ShenyuGrpcCallRequest {
+@Component
+public class ShenyuGrpcServerBuilder implements GrpcServerBuilder {
 
-    private Channel channel;
-
-    private CallOptions callOptions;
-
-    private JsonRequest requests;
-
-    private MethodDescriptor<Message, Message> methodDescriptor;
-
-    private StreamObserver<Message> responseObserver;
+    @Override
+    public ServerBuilder<?> buildServerBuilder() {
+        ServerBuilder<?> serverBuilder = ServerBuilder.forPort(8080);
+        return serverBuilder;
+    }
 }

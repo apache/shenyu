@@ -15,32 +15,17 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.grpc.proto;
+package org.apache.shenyu.client.grpc.server;
 
-import com.google.protobuf.Descriptors.MethodDescriptor;
-import com.google.protobuf.DynamicMessage;
-import io.grpc.CallOptions;
-import io.grpc.Channel;
-import io.grpc.stub.StreamObserver;
-import lombok.Builder;
-import lombok.Getter;
-
-import java.util.List;
+import io.grpc.ServerBuilder;
 
 /**
- * ShenyuGrpcRequest.
+ * Grpc ServerBuilder.
  */
-@Builder
-@Getter
-public class ShenyuGrpcRequest {
-
-    private MethodDescriptor methodDescriptor;
-
-    private Channel channel;
-
-    private CallOptions callOptions;
-
-    private List<DynamicMessage> requests;
-
-    private StreamObserver<DynamicMessage> responseObserver;
+public interface GrpcServerBuilder {
+    /**
+     * build ServerBuilder.
+     * @return ServerBuilder
+     */
+    ServerBuilder<?> buildServerBuilder();
 }

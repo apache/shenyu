@@ -38,13 +38,11 @@
             <artifactId>shenyu-plugin-base</artifactId>
             <version>${project.version}</version>
         </dependency>
-
         <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-all</artifactId>
-            <version>${grpc.version}</version>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-common</artifactId>
+            <version>${project.version}</version>
         </dependency>
-        
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
