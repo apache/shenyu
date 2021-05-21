@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.base.condition.judge;
 
 import org.apache.shenyu.common.dto.ConditionData;
+import org.apache.shenyu.spi.Join;
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
@@ -25,6 +26,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 /**
  * SpEL predicate judge.
  */
+@Join
 public class SpELPredicateJudge implements PredicateJudge {
     
     private static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();

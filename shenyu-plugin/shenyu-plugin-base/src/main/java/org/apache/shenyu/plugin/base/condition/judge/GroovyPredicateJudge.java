@@ -19,10 +19,12 @@ package org.apache.shenyu.plugin.base.condition.judge;
 
 import org.apache.shenyu.common.dto.ConditionData;
 import groovy.util.Eval;
+import org.apache.shenyu.spi.Join;
 
 /**
  * Groovy predicate judge.
  */
+@Join
 public class GroovyPredicateJudge implements PredicateJudge {
     
     @Override
