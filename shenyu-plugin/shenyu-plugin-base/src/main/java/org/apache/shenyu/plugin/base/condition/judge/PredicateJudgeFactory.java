@@ -28,22 +28,29 @@ import java.util.Objects;
  * Predicate judge factory.
  */
 public class PredicateJudgeFactory {
-
-
+    
+    /**
+     * New instance predicate judge.
+     *
+     * @param operator the operator
+     * @return the predicate judge
+     */
+    public static PredicateJudge newInstance(final String operator) {
+        return ExtensionLoader.getExtensionLoader(PredicateJudge.class).getJoin(processSpecialOperator(operator));
+    }
+    
     /**
      * judge request realData has by pass.
      *
      * @param conditionData condition data
-     * @param realData      realData
+     * @param realData realData
      * @return is true pass   is false not pass
      */
     public static Boolean judge(final ConditionData conditionData, final String realData) {
         if (Objects.isNull(conditionData) || StringUtils.isBlank(realData)) {
             return false;
         }
-        String operator = processSpecialOperator(conditionData.getOperator());
-        PredicateJudge predicateJudge = ExtensionLoader.getExtensionLoader(PredicateJudge.class).getJoin(operator);
-        return predicateJudge.judge(conditionData, realData);
+        return newInstance(conditionData.getOperator()).judge(conditionData, realData);
     }
 
     /**
@@ -53,11 +60,6 @@ public class PredicateJudgeFactory {
      * @return alias
      */
     private static String processSpecialOperator(final String operator) {
-        if ("=".equals(operator)) {
-            return "equals";
-        } else {
-            return operator;
-        }
+        return "=".equals(operator) ? "equals" : operator;
     }
-
 }

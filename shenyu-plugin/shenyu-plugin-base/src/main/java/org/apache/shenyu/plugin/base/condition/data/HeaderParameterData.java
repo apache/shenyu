@@ -15,25 +15,26 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.condition.strategy;
+package org.apache.shenyu.plugin.base.condition.data;
 
-import org.apache.shenyu.common.dto.ConditionData;
-import org.apache.shenyu.plugin.base.condition.data.ParameterDataFactory;
+import org.apache.shenyu.spi.Join;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.server.ServerWebExchange;
 
-/**
- * AbstractMatchStrategy.
- */
-public abstract class AbstractMatchStrategy {
+import java.util.List;
 
-    /**
-     * Build real data string.
-     *
-     * @param condition the condition
-     * @param exchange  the exchange
-     * @return the string
-     */
-    public String buildRealData(final ConditionData condition, final ServerWebExchange exchange) {
-        return ParameterDataFactory.builderData(condition.getParamType(), condition.getParamName(), exchange);
+/**
+ * The type Header parameter data.
+ */
+@Join
+public class HeaderParameterData implements ParameterData {
+    
+    @Override
+    public String builder(final String paramName, final ServerWebExchange exchange) {
+        List<String> headers = exchange.getRequest().getHeaders().get(paramName);
+        if (CollectionUtils.isEmpty(headers)) {
+            return "";
+        } 
+        return headers.get(0);
     }
 }
