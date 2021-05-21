@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.base.utils;
 
 import org.apache.shenyu.common.dto.ConditionData;
+import org.apache.shenyu.plugin.base.condition.strategy.MatchStrategyFactory;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,7 +35,7 @@ import java.util.List;
  * The MatchStrategyFactory test.
  */
 @RunWith(MockitoJUnitRunner.class)
-public final class MatchStrategyUtilsTest {
+public final class MatchStrategyFactoryTest {
 
     private ServerWebExchange exchange;
 
@@ -58,6 +59,6 @@ public final class MatchStrategyUtilsTest {
      */
     @Test
     public void matchTest() {
-        Assert.assertTrue(MatchStrategyUtils.match(0, conditionDatas, exchange));
+        Assert.assertTrue(MatchStrategyFactory.match(0, conditionDatas, exchange));
     }
 }

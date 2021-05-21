@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.utils;
+package org.apache.shenyu.plugin.base.condition.strategy;
 
-import org.apache.shenyu.plugin.base.condition.strategy.MatchStrategy;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.enums.MatchModeEnum;
 import org.apache.shenyu.spi.ExtensionLoader;
@@ -28,19 +27,28 @@ import java.util.List;
 /**
  * MatchStrategyFactory.
  */
-public class MatchStrategyUtils {
-
+public class MatchStrategyFactory {
+    
+    /**
+     * New instance match strategy.
+     *
+     * @param strategy the strategy
+     * @return the match strategy
+     */
+    public static MatchStrategy newInstance(final Integer strategy) {
+        String matchMode = MatchModeEnum.getMatchModeByCode(strategy);
+        return ExtensionLoader.getExtensionLoader(MatchStrategy.class).getJoin(matchMode);
+    }
+    
     /**
      * Match boolean.
      *
-     * @param strategy          the strategy
+     * @param strategy the strategy
      * @param conditionDataList the condition data list
-     * @param exchange          the exchange
+     * @param exchange the exchange
      * @return the boolean
      */
     public static boolean match(final Integer strategy, final List<ConditionData> conditionDataList, final ServerWebExchange exchange) {
-        String matchMode = MatchModeEnum.getMatchModeByCode(strategy);
-        MatchStrategy matchStrategy = ExtensionLoader.getExtensionLoader(MatchStrategy.class).getJoin(matchMode);
-        return matchStrategy.match(conditionDataList, exchange);
+        return newInstance(strategy).match(conditionDataList, exchange);
     }
 }

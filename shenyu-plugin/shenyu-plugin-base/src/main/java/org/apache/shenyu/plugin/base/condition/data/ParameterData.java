@@ -15,25 +15,25 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.condition.strategy;
+package org.apache.shenyu.plugin.base.condition.data;
 
-import org.apache.shenyu.common.dto.ConditionData;
-import org.apache.shenyu.plugin.base.condition.data.ParameterDataFactory;
+import org.apache.shenyu.spi.SPI;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
- * AbstractMatchStrategy.
+ * The interface Parameter data.
  */
-public abstract class AbstractMatchStrategy {
-
+@SPI
+public interface ParameterData {
+    
     /**
-     * Build real data string.
+     * Builder string.
      *
-     * @param condition the condition
-     * @param exchange  the exchange
+     * @param paramName the param name
+     * @param exchange the exchange
      * @return the string
      */
-    public String buildRealData(final ConditionData condition, final ServerWebExchange exchange) {
-        return ParameterDataFactory.builderData(condition.getParamType(), condition.getParamName(), exchange);
+    default String builder(final String paramName, final ServerWebExchange exchange) {
+        return "";
     }
 }
