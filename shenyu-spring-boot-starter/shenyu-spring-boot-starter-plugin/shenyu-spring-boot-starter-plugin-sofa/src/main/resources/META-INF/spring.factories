@@ -16,4 +16,4 @@
 #
 
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.apache.shenyu.spring.boot.starter.plugin.sofa.SofaPluginConfiguration
+org.apache.shenyu.springboot.starter.plugin.sofa.SofaPluginConfiguration
