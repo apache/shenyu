@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.base.condition.judge;
 
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.utils.DateUtils;
+import org.apache.shenyu.spi.Join;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
@@ -26,6 +27,7 @@ import java.time.LocalDateTime;
 /**
  * Timer before predicate judge.
  */
+@Join
 public class TimerBeforePredicateJudge implements PredicateJudge {
 
     @Override
