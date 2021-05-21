@@ -15,33 +15,31 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.enums;
+package org.apache.shenyu.common.utils;
 
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
 
-import java.util.Arrays;
 import java.util.List;
 
+import static org.junit.Assert.assertNotNull;
+
 /**
- * Test Cases for PluginEnum.
+ * Test Cases for SpiLoadFactory.
  */
-public final class PluginEnumTest {
+public class SpiLoadFactoryTest {
 
     @Test
-    public void testGetPluginEnumByName() {
-        Arrays.stream(PluginEnum.values())
-                .forEach(pluginEnum -> assertEquals(pluginEnum, PluginEnum.getPluginEnumByName(pluginEnum.getName())));
+    public void testLoadFirst() {
+        assertNotNull(SpiLoadFactory.loadFirst(SpiInterface.class));
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testLoadFirstNoDefined() {
+        SpiLoadFactory.loadFirst(List.class);
     }
 
     @Test
-    public void testGetPluginEnumByNameInvalid() {
-        assertEquals(PluginEnum.GLOBAL, PluginEnum.getPluginEnumByName("invalidName"));
-    }
-
-    @Test
-    public void testGetUpstreamNames() {
-        List<String> list = PluginEnum.getUpstreamNames();
-        assert list.size() > 0;
+    public void testLoadAll() {
+        assertNotNull(SpiLoadFactory.loadAll(SpiInterface.class));
     }
 }
