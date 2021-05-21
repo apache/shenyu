@@ -44,13 +44,7 @@ public class PredicateJudgeFactory {
             return false;
         }
         String operator = processSpecialOperator(conditionData.getOperator());
-
-        PredicateJudge predicateJudge;
-        try {
-            predicateJudge = ExtensionLoader.getExtensionLoader(PredicateJudge.class).getJoin(operator);
-        } catch (Exception e) {
-            throw new UnsupportedOperationException("predicate judge not found by " + operator);
-        }
+        PredicateJudge predicateJudge = ExtensionLoader.getExtensionLoader(PredicateJudge.class).getJoin(operator);
         return predicateJudge.judge(conditionData, realData);
     }
 
