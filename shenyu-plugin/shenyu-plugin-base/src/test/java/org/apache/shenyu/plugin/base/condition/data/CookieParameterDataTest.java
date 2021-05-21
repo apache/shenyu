@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.base.condition.data;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpCookie;
@@ -25,8 +26,6 @@ import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.net.InetSocketAddress;
-
-import static org.junit.Assert.*;
 
 /**
  * Test cases for {@link CookieParameterData}.
@@ -48,7 +47,7 @@ public class CookieParameterDataTest {
 
     @Test
     public void testBuilder() {
-        assertEquals("", parameterData.builder("invalid-cookie-name", exchange));
-        assertEquals("cookie-value", parameterData.builder("cookie-name", exchange));
+        Assert.assertEquals("", parameterData.builder("invalid-cookie-name", exchange));
+        Assert.assertEquals("cookie-value", parameterData.builder("cookie-name", exchange));
     }
 }
