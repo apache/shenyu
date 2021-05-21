@@ -17,13 +17,11 @@
 
 package org.apache.shenyu.plugin.base.condition.judge;
 
-import com.google.common.collect.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.ConditionData;
 import org.apache.shenyu.common.enums.OperatorEnum;
 import org.apache.shenyu.spi.ExtensionLoader;
 
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -49,18 +47,17 @@ public class PredicateJudgeFactory {
     }
 
     /**
-     * process special operator, like = need to change to equals
+     * process special operator, like = need to change to equals.
      *
      * @param operator {@linkplain OperatorEnum} alias
      * @return alias
      */
-    private static String processSpecialOperator(String operator) {
+    private static String processSpecialOperator(final String operator) {
         if ("=".equals(operator)) {
             return "equals";
         } else {
             return operator;
         }
     }
-
 
 }
