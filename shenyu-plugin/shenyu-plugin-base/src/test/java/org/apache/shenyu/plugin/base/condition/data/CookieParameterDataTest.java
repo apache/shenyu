@@ -17,36 +17,38 @@
 
 package org.apache.shenyu.plugin.base.condition.data;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.http.HttpCookie;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.net.InetSocketAddress;
 
+import static org.junit.Assert.*;
+
 /**
- * Test cases for {@link HeaderParameterData}.
+ * Test cases for {@link CookieParameterData}.
  */
-public class HeaderParameterDataTest {
+public class CookieParameterDataTest {
 
     private ServerWebExchange exchange;
 
-    private HeaderParameterData parameterData;
+    private CookieParameterData parameterData;
 
     @Before
     public void setUp() {
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/http")
                 .remoteAddress(new InetSocketAddress("localhost", 8080))
-                .header("shenyu", "shenyuHeader")
+                .cookie(new HttpCookie("cookie-name", "cookie-value"))
                 .build());
-        this.parameterData = new HeaderParameterData();
+        this.parameterData = new CookieParameterData();
     }
 
     @Test
     public void testBuilder() {
-        Assert.assertEquals("", parameterData.builder("invalidParamName", exchange));
-        Assert.assertEquals("shenyuHeader", parameterData.builder("shenyu", exchange));
+        assertEquals("", parameterData.builder("invalid-cookie-name", exchange));
+        assertEquals("cookie-value", parameterData.builder("cookie-name", exchange));
     }
 }
