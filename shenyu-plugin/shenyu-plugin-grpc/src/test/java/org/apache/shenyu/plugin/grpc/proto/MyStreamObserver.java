@@ -24,13 +24,13 @@ public class MyStreamObserver implements StreamObserver<Boolean> {
 
     private Boolean state;
 
-    public MyStreamObserver(Boolean state) {
+    public MyStreamObserver(final Boolean state) {
         this.state = state;
     }
 
     @SneakyThrows
     @Override
-    public void onNext(Boolean value) {
+    public void onNext(final Boolean value) {
         if (!value) {
             throw new Exception("exception");
         } else {
@@ -40,7 +40,7 @@ public class MyStreamObserver implements StreamObserver<Boolean> {
 
     @SneakyThrows
     @Override
-    public void onError(Throwable t) {
+    public void onError(final Throwable t) {
         throw new Exception("exception");
     }
 
@@ -50,6 +50,11 @@ public class MyStreamObserver implements StreamObserver<Boolean> {
         throw new Exception("exception");
     }
 
+    /**
+     * get state.
+     *
+     * @return state.
+     */
     public Boolean getState() {
         return state;
     }
