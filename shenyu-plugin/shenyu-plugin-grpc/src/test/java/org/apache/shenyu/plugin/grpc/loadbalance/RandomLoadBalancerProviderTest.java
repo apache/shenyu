@@ -30,7 +30,9 @@ import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 
 /**
  * The Test Case For {@link RandomLoadBalancerProvider}.
@@ -63,7 +65,7 @@ public class RandomLoadBalancerProviderTest {
     @Test(expected = Exception.class)
     public void testNewLoadBalancer() {
         LoadBalancer.Helper helper = new MyHelper();
-        LoadBalancer loadBalancer = randomLoadBalancerProvider.newLoadBalancer(helper);
+        final LoadBalancer loadBalancer = randomLoadBalancerProvider.newLoadBalancer(helper);
 
         EquivalentAddressGroup group = mock(EquivalentAddressGroup.class, RETURNS_DEEP_STUBS);
         when(group.getAddresses().isEmpty()).thenReturn(false);

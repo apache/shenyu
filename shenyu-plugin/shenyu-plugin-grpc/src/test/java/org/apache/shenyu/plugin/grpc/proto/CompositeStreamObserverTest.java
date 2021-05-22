@@ -39,14 +39,14 @@ public class CompositeStreamObserverTest {
 
     private CompleteObserver<Boolean> completeObserver;
 
-    private volatile boolean state = false;
+    private boolean state = false;
 
     @Before
     public void setUp() {
         StreamObserver<Boolean> streamObserver = new StreamObserver<Boolean>() {
             @SneakyThrows
             @Override
-            public void onNext(Boolean value) {
+            public void onNext(final Boolean value) {
                 if (!value) {
                     throw new Exception("exception");
                 } else {
@@ -56,7 +56,7 @@ public class CompositeStreamObserverTest {
 
             @SneakyThrows
             @Override
-            public void onError(Throwable t) {
+            public void onError(final Throwable t) {
                 throw new Exception("exception");
             }
 

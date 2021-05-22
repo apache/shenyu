@@ -46,7 +46,7 @@ public class ShenyuServiceInstanceListsTest {
     }
 
     @Test
-    public void NoArgsConstructor() {
+    public void noArgsConstructor() {
         shenyuServiceInstanceLists = new ShenyuServiceInstanceLists();
     }
 

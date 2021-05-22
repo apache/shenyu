@@ -66,7 +66,7 @@ public class ShenyuGrpcClientTest {
 
     @Test(expected = RuntimeException.class)
     public void call() {
-        CallOptions callOptions = CallOptions.DEFAULT.withDeadlineAfter(5000, TimeUnit.MILLISECONDS);;
+        CallOptions callOptions = CallOptions.DEFAULT.withDeadlineAfter(5000, TimeUnit.MILLISECONDS);
         String requestJsons = "{'message':'1'}";
         shenyuGrpcClient.call(metaData, callOptions, requestJsons);
     }

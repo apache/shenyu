@@ -1,29 +1,40 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package org.apache.shenyu.plugin.grpc.loadbalance.picker;
 
-import io.grpc.Attributes;
-import io.grpc.ConnectivityState;
-import io.grpc.ConnectivityStateInfo;
-import io.grpc.EquivalentAddressGroup;
-import io.grpc.LoadBalancer;
-import io.grpc.ManagedChannel;
-import io.grpc.NameResolver;
+import io.grpc.*;
 import lombok.SneakyThrows;
 import org.apache.shenyu.plugin.grpc.loadbalance.SubChannels;
 
 import javax.annotation.Nonnull;
-import java.lang.reflect.Field;
 import java.net.SocketAddress;
 import java.util.Collections;
 import java.util.List;
 
 public class MyHelper extends LoadBalancer.Helper {
+
     @Override
-    public ManagedChannel createOobChannel(EquivalentAddressGroup eag, String authority) {
+    public ManagedChannel createOobChannel(final EquivalentAddressGroup eag, final String authority) {
         return null;
     }
 
     @Override
-    public void updateBalancingState(@Nonnull ConnectivityState newState, @Nonnull LoadBalancer.SubchannelPicker newPicker) {
+    public void updateBalancingState(@Nonnull final ConnectivityState newState, @Nonnull final LoadBalancer.SubchannelPicker newPicker) {
 
     }
 
@@ -37,39 +48,34 @@ public class MyHelper extends LoadBalancer.Helper {
         return null;
     }
 
-
     @Override
-    public LoadBalancer.Subchannel createSubchannel(LoadBalancer.CreateSubchannelArgs args) {
+    public LoadBalancer.Subchannel createSubchannel(final LoadBalancer.CreateSubchannelArgs args) {
         return new LoadBalancer.Subchannel() {
+
             @Override
-            public void start(LoadBalancer.SubchannelStateListener listener) {
-                SubChannels.setStateInfo(this, ConnectivityStateInfo.forNonError(ConnectivityState.READY));
+            public void start(final LoadBalancer.SubchannelStateListener listener) {
+                SubChannels.setStateInfo(this,
+                        ConnectivityStateInfo.forNonError(ConnectivityState.READY));
             }
 
             @Override
             public void shutdown() {
-
             }
 
             @Override
             public void requestConnection() {
-
             }
 
             @SneakyThrows
             @Override
             public Attributes getAttributes() {
-
-//                setStateInfo(final LoadBalancer.Subchannel subchannel, final ConnectivityStateInfo value)
-//                SubChannels subChannels = new SubChannels();
-//                Field field = subChannels.getClass().getDeclaredField("STATE_INFO_KEY");
-//                field.get(subChannels);
                 return args.getAttributes();
             }
 
             @Override
             public List<EquivalentAddressGroup> getAllAddresses() {
-                return Collections.singletonList(new EquivalentAddressGroup(new SocketAddress(){}));
+                return Collections.singletonList(new EquivalentAddressGroup(new SocketAddress() {
+                }));
             }
         };
     }

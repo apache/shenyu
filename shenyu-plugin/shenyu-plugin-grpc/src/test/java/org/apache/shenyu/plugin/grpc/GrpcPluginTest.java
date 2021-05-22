@@ -59,11 +59,13 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class GrpcPluginTest {
+
     @Spy
     private GrpcPlugin grpcPlugin;
 
     @Mock
     private ShenyuPluginChain chain;
+
     @Mock
     private SelectorData selector;
 
