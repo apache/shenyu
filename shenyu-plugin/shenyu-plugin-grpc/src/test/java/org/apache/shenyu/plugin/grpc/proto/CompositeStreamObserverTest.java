@@ -18,8 +18,6 @@
 package org.apache.shenyu.plugin.grpc.proto;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import io.grpc.stub.StreamObserver;
-import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,33 +37,11 @@ public class CompositeStreamObserverTest {
 
     private CompleteObserver<Boolean> completeObserver;
 
-    private boolean state = false;
+    private MyStreamObserver streamObserver;
 
     @Before
     public void setUp() {
-        StreamObserver<Boolean> streamObserver = new StreamObserver<Boolean>() {
-            @SneakyThrows
-            @Override
-            public void onNext(final Boolean value) {
-                if (!value) {
-                    throw new Exception("exception");
-                } else {
-                    state = true;
-                }
-            }
-
-            @SneakyThrows
-            @Override
-            public void onError(final Throwable t) {
-                throw new Exception("exception");
-            }
-
-            @SneakyThrows
-            @Override
-            public void onCompleted() {
-                throw new Exception("exception");
-            }
-        };
+        streamObserver = new MyStreamObserver(false);
         completeObserver = new CompleteObserver<>();
         compositeStreamObserver = CompositeStreamObserver.of(streamObserver, completeObserver);
     }
@@ -88,7 +64,7 @@ public class CompositeStreamObserverTest {
     @Test
     public void onNext() {
         compositeStreamObserver.onNext(true);
-        assertTrue(state);
+        assertTrue(streamObserver.getState());
     }
 
     @Test
