@@ -51,6 +51,9 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
+/**
+ * add test case for {@link NacosCacheHandler}.
+ */
 @Slf4j
 @SuppressWarnings("all")
 public final class NacosCacheHandlerTest {
@@ -98,7 +101,6 @@ public final class NacosCacheHandlerTest {
                 PluginData.builder().name(pluginName1).id("plugin_1").config("config_1").build();
         PluginData pluginData2 =
                 PluginData.builder().name(pluginName2).id("plugin_2").config("config_2").build();
-
         String pluginData = GsonUtils.getInstance()
                 .toJson(ImmutableMap.of(pluginName2, pluginData2, pluginName1, pluginData1));
 
@@ -308,6 +310,44 @@ public final class NacosCacheHandlerTest {
                 configService.getConfig(AUTH_DATA_ID, GROUP, 100),
                 GsonUtils.getInstance()
                         .toJson(ImmutableMap.of(mockAppKey2, appAuthData2, mockAppKey, appAuthData)));
+    }
+
+    @SneakyThrows
+    @Test
+    public void testWatcherData() {
+        String mockAppKey = "MOCK_APP_KEY";
+        String mockAppKey2 = "MOCK_APP_KEY2";
+        String mockAppSecret = "MOCK_APP_SECRET";
+        AppAuthData appAuthData =
+                AppAuthData.builder().appKey(mockAppKey).appSecret(mockAppSecret).enabled(true).build();
+        AppAuthData appAuthData2 =
+                AppAuthData.builder().appKey(mockAppKey2).appSecret(mockAppSecret).enabled(true).build();
+
+        changeAuthData(ImmutableList.of(appAuthData, appAuthData2));
+        String appAuthDataParam = GsonUtils.getInstance()
+                .toJson(ImmutableMap.of(mockAppKey2, appAuthData2, mockAppKey, appAuthData));
+        final CountDownLatch latch = new CountDownLatch(2);
+        final List<AppAuthData> subscribeList = new ArrayList<>();
+        final List<AppAuthData> unsubscribeList = new ArrayList<>();
+
+        AuthDataSubscriber authDataSubscriber = new AuthDataSubscriber() {
+            @Override
+            public void onSubscribe(final AppAuthData appAuthData) {
+                subscribeList.add(appAuthData);
+                latch.countDown();
+            }
+
+            @Override
+            public void unSubscribe(final AppAuthData appAuthData) {
+                unsubscribeList.add(appAuthData);
+                latch.countDown();
+            }
+        };
+        nacosCacheHandlerService = new NacosCacheHandler(configService, null,
+                Collections.emptyList(), Lists.newArrayList(authDataSubscriber));
+
+        NacosCacheHandler.OnChange oc = nacosCacheHandlerService::updateAuthMap;
+        nacosCacheHandlerService.watcherData(AUTH_DATA_ID, oc);
     }
 
     private void changePluginData(final List<PluginData> changed) {
