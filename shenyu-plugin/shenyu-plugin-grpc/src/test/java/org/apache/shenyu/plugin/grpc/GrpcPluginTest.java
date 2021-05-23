@@ -72,7 +72,6 @@ public class GrpcPluginTest {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setCfgContext(context);
         when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
-
         when(selector.getName()).thenReturn("/grpc");
     }
 
