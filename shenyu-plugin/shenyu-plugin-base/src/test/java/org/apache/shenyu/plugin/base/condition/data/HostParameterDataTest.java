@@ -32,12 +32,11 @@ import org.springframework.web.server.ServerWebExchange;
 
 import java.net.InetSocketAddress;
 
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * unit test for {@link HostParameterData}
+ * unit test for {@link HostParameterData}.
  */
 @RunWith(MockitoJUnitRunner.class)
 public class HostParameterDataTest {
@@ -48,7 +47,8 @@ public class HostParameterDataTest {
 
     private RemoteAddressResolver remoteAddressResolver;
 
-    private final String TEST_HOST = "192.168.0.121";
+    private final String testhost = "192.168.0.121";
+
     @Before
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
@@ -56,7 +56,7 @@ public class HostParameterDataTest {
         this.remoteAddressResolver = new RemoteAddressResolver() {
         };
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/http")
-                .remoteAddress(new InetSocketAddress(TEST_HOST, 8085))
+                .remoteAddress(new InetSocketAddress(testhost, 8085))
                 .build());
         this.hostParameterData = new HostParameterData();
 
@@ -65,11 +65,11 @@ public class HostParameterDataTest {
 
     @Test
     public void testBuilderWithNullParamName() {
-        Assert.assertEquals(TEST_HOST, hostParameterData.builder(null, exchange));
+        Assert.assertEquals(testhost, hostParameterData.builder(null, exchange));
     }
 
     @Test
     public void testBuilderWithAnyParamName() {
-        Assert.assertEquals(TEST_HOST, hostParameterData.builder(UUIDUtils.getInstance().generateShortUuid(), exchange));
+        Assert.assertEquals(testhost, hostParameterData.builder(UUIDUtils.getInstance().generateShortUuid(), exchange));
     }
 }
