@@ -39,6 +39,7 @@ import java.util.Properties;
 @RunWith(MockitoJUnitRunner.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public final class TarsServiceBeanPostProcessorTest {
+
     private static TarsServiceBeanPostProcessor tarsServiceBeanPostProcessor;
 
     @BeforeClass
