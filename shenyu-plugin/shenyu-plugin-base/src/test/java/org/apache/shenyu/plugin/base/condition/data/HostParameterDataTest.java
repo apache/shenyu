@@ -17,9 +17,15 @@
 
 package org.apache.shenyu.plugin.base.condition.data;
 
+import org.apache.shenyu.common.utils.UUIDUtils;
+import org.apache.shenyu.plugin.api.RemoteAddressResolver;
+import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -27,24 +33,39 @@ import org.springframework.web.server.ServerWebExchange;
 import java.net.InetSocketAddress;
 
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class HostParameterDataTest {
 
     private ServerWebExchange exchange;
 
     private HostParameterData hostParameterData;
 
+    private RemoteAddressResolver remoteAddressResolver;
+
     @Before
     public void setUp() {
+        ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
+        SpringBeanUtils.getInstance().setCfgContext(context);
+        this.remoteAddressResolver = new RemoteAddressResolver() {
+        };
         this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/http")
                 .remoteAddress(new InetSocketAddress("192.168.0.121", 8085))
                 .build());
         this.hostParameterData = new HostParameterData();
+
+        when(context.getBean(RemoteAddressResolver.class)).thenReturn(remoteAddressResolver);
     }
 
     @Test
-    public void testBuilder() {
+    public void testBuilderWithNullParamName() {
         Assert.assertEquals("192.168.0.121", hostParameterData.builder(null, exchange));
-        Assert.assertEquals("192.168.0.121", hostParameterData.builder(anyString(), exchange));
+    }
+
+    @Test
+    public void testBuilderWithAnyParamName() {
+        Assert.assertEquals("192.168.0.121", hostParameterData.builder(UUIDUtils.getInstance().generateShortUuid(), exchange));
     }
 }
