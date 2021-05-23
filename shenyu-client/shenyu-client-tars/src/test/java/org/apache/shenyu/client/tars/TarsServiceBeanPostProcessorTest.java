@@ -28,7 +28,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.util.ReflectionUtils;
 
+import java.lang.reflect.Method;
 import java.util.Properties;
 
 /**
@@ -64,6 +66,15 @@ public final class TarsServiceBeanPostProcessorTest {
     public void testPostProcessNormalBean() {
         tarsServiceBeanPostProcessor
                 .postProcessAfterInitialization(new Object(), "normalBean");
+    }
+
+    @Test
+    public void testHandler() {
+        TarsDemoService serviceFactoryBean = new TarsDemoService();
+        Method method = ReflectionUtils.findMethod(TarsServiceBeanPostProcessor.class, "handler", Object.class);
+        assert method != null;
+        method.setAccessible(true);
+        ReflectionUtils.invokeMethod(method, tarsServiceBeanPostProcessor, serviceFactoryBean);
     }
 
     @ShenyuTarsService(serviceName = "testObj")
