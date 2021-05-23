@@ -23,15 +23,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
-
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-/**
- * The Test Case For {@link DynamicMessageMarshaller}.
- */
 @RunWith(MockitoJUnitRunner.class)
 public class DynamicMessageMarshallerTest {
 
@@ -41,13 +39,15 @@ public class DynamicMessageMarshallerTest {
 
     @Before
     public void setUp() {
-        messageDescriptor = mock(Descriptors.Descriptor.class);
+        messageDescriptor = mock(Descriptors.Descriptor.class, RETURNS_DEEP_STUBS);
+        when(messageDescriptor.toProto().getOneofDeclCount()).thenReturn(2);
+        when(messageDescriptor.getOptions().getMapEntry()).thenReturn(true);
         dynamicMessageMarshaller = new DynamicMessageMarshaller(messageDescriptor);
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test(expected = RuntimeException.class)
     public void test() {
-        InputStream inputStream = mock(InputStream.class);
+        InputStream inputStream = new ByteArrayInputStream("test".getBytes());
         DynamicMessage dynamicMessage = dynamicMessageMarshaller.parse(inputStream);
         InputStream tmp = dynamicMessageMarshaller.stream(dynamicMessage);
         assertEquals(inputStream, tmp);
