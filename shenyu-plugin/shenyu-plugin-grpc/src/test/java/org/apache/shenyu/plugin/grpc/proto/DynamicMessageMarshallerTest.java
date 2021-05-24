@@ -19,19 +19,17 @@ package org.apache.shenyu.plugin.grpc.proto;
 
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
-
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-
-import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-/**
- * The Test Case For {@link DynamicMessageMarshaller}.
- */
 @RunWith(MockitoJUnitRunner.class)
 public class DynamicMessageMarshallerTest {
 
@@ -41,15 +39,30 @@ public class DynamicMessageMarshallerTest {
 
     @Before
     public void setUp() {
-        messageDescriptor = mock(Descriptors.Descriptor.class);
+        messageDescriptor = mock(Descriptors.Descriptor.class, RETURNS_DEEP_STUBS);
+        when(messageDescriptor.toProto().getOneofDeclCount()).thenReturn(2);
+        when(messageDescriptor.getOptions().getMapEntry()).thenReturn(true);
         dynamicMessageMarshaller = new DynamicMessageMarshaller(messageDescriptor);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void test() {
+    @Test
+    public void testParse() {
+        InputStream inputStream = new ByteArrayInputStream("".getBytes());
+        dynamicMessageMarshaller.parse(inputStream);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testParseThrowException() {
+        InputStream inputStream = new ByteArrayInputStream("test".getBytes());
+        dynamicMessageMarshaller.parse(inputStream);
+    }
+
+    @Test
+    public void testStream() {
+        DynamicMessage dynamicMessage = mock(DynamicMessage.class, RETURNS_DEEP_STUBS);
         InputStream inputStream = mock(InputStream.class);
-        DynamicMessage dynamicMessage = dynamicMessageMarshaller.parse(inputStream);
-        InputStream tmp = dynamicMessageMarshaller.stream(dynamicMessage);
-        assertEquals(inputStream, tmp);
+        when(dynamicMessage.toByteString().newInput()).thenReturn(inputStream);
+        InputStream actualInputStream = dynamicMessageMarshaller.stream(dynamicMessage);
+        Assert.assertEquals(inputStream, actualInputStream);
     }
 }
