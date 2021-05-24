@@ -44,7 +44,7 @@ public class IpParameterDataTest {
 
     private RemoteAddressResolver remoteAddressResolver;
 
-    private final String TEST_HOST = "127.0.0.1";
+    private final String testHost = "127.0.0.1";
 
     @Before
     public void setUp() {
@@ -63,11 +63,11 @@ public class IpParameterDataTest {
 
     @Test
     public void testBuilderWithNullParamName() {
-        Assert.assertEquals(TEST_HOST, ipParameterData.builder(null, exchange));
+        Assert.assertEquals(testHost, ipParameterData.builder(null, exchange));
     }
 
     @Test
     public void testBuilderWithAnyParamName() {
-        Assert.assertEquals(TEST_HOST, ipParameterData.builder(UUIDUtils.getInstance().generateShortUuid(), exchange));
+        Assert.assertEquals(testHost, ipParameterData.builder(UUIDUtils.getInstance().generateShortUuid(), exchange));
     }
 }
