@@ -70,4 +70,28 @@ public final class RewritePluginTest {
         StepVerifier.create(rewritePlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
         assertEquals("/test", exchange.getAttributes().get(Constants.REWRITE_URI));
     }
+
+    @Test
+    public void shouldReturnOriginURIForRewritePlugin() {
+        RuleData data = new RuleData();
+        data.setHandle("{\"rewriteURI\":\"/test\",\"regex\":\"\",\"replace\":\"\"}");
+        RewriteHandle rewriteHandle = GsonUtils.getGson().fromJson(data.getHandle(), RewriteHandle.class);
+        RewriteRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(data), rewriteHandle);
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+        SelectorData selectorData = mock(SelectorData.class);
+        StepVerifier.create(rewritePlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
+        assertEquals("/test", exchange.getAttributes().get(Constants.REWRITE_URI));
+    }
+
+    @Test
+    public void shouldReturnNewURIForRewritePlugin() {
+        RuleData data = new RuleData();
+        data.setHandle("{\"rewriteURI\":\"/test1\",\"regex\":\"\\\\d\",\"replace\":\"\"}");
+        RewriteHandle rewriteHandle = GsonUtils.getGson().fromJson(data.getHandle(), RewriteHandle.class);
+        RewriteRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(data), rewriteHandle);
+        when(chain.execute(exchange)).thenReturn(Mono.empty());
+        SelectorData selectorData = mock(SelectorData.class);
+        StepVerifier.create(rewritePlugin.doExecute(exchange, chain, selectorData, data)).expectSubscription().verifyComplete();
+        assertEquals("/test", exchange.getAttributes().get(Constants.REWRITE_URI));
+    }
 }
