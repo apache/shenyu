@@ -19,13 +19,13 @@ package org.apache.shenyu.plugin.grpc.proto;
 
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -45,11 +45,24 @@ public class DynamicMessageMarshallerTest {
         dynamicMessageMarshaller = new DynamicMessageMarshaller(messageDescriptor);
     }
 
+    @Test
+    public void testParse() {
+        InputStream inputStream = new ByteArrayInputStream("".getBytes());
+        dynamicMessageMarshaller.parse(inputStream);
+    }
+
     @Test(expected = RuntimeException.class)
-    public void test() {
+    public void testParseThrowException() {
         InputStream inputStream = new ByteArrayInputStream("test".getBytes());
-        DynamicMessage dynamicMessage = dynamicMessageMarshaller.parse(inputStream);
-        InputStream tmp = dynamicMessageMarshaller.stream(dynamicMessage);
-        assertEquals(inputStream, tmp);
+        dynamicMessageMarshaller.parse(inputStream);
+    }
+
+    @Test
+    public void testStream() {
+        DynamicMessage dynamicMessage = mock(DynamicMessage.class, RETURNS_DEEP_STUBS);
+        InputStream inputStream = mock(InputStream.class);
+        when(dynamicMessage.toByteString().newInput()).thenReturn(inputStream);
+        InputStream actualInputStream = dynamicMessageMarshaller.stream(dynamicMessage);
+        Assert.assertEquals(inputStream, actualInputStream);
     }
 }
