@@ -65,7 +65,7 @@ public class IpParameterDataTest {
     public void testBuilderWithNullParamName() {
         Assert.assertEquals(TEST_HOST, ipParameterData.builder(null, exchange));
     }
-    
+
     @Test
     public void testBuilderWithAnyParamName() {
         Assert.assertEquals(TEST_HOST, ipParameterData.builder(UUIDUtils.getInstance().generateShortUuid(), exchange));
