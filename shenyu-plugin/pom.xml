@@ -53,5 +53,6 @@
         <module>shenyu-plugin-dubbo-common</module>
         <module>shenyu-plugin-motan</module>
         <module>shenyu-plugin-logging</module>
+        <module>shenyu-plugin-oauth2</module>
     </modules>
 </project>

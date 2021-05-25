@@ -19,6 +19,8 @@ package org.apache.shenyu.examples.http.controller;
 
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
 import org.apache.shenyu.examples.http.dto.OrderDTO;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,6 +28,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * TestController.
@@ -56,7 +60,10 @@ public class OrderController {
      */
     @GetMapping("/findById")
     @ShenyuSpringMvcClient(path = "/findById", desc = "Find by id")
-    public OrderDTO findById(@RequestParam("id") final String id) {
+    public OrderDTO findById(@RequestParam("id") final String id, ServerHttpRequest request) {
+        HttpHeaders headers = request.getHeaders();
+        List<String> qwe = headers.get("principal");
+        System.out.println(qwe);
         OrderDTO orderDTO = new OrderDTO();
         orderDTO.setId(id);
         orderDTO.setName("hello world findById");

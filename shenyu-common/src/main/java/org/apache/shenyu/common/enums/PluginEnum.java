@@ -41,6 +41,11 @@ public enum PluginEnum {
     SIGN(2, 0, "sign"),
 
     /**
+     * OAuth2 plugin enum.
+     */
+    OAUTH2(3, 0, "oauth2"),
+
+    /**
      * Waf plugin enum.
      */
     WAF(10, 0, "waf"),
