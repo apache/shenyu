@@ -322,7 +322,7 @@ INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`
 
 /*insert plugin_handle data for rewrite*/
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('13', '3' ,'rewriteURI','rewriteURI', 2, 2, 1, '2020-11-29 16:07:10', '2020-11-29 16:07:10');
-INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('130', '3', 'regex', 'regex', 2, 2, 2, '2021-05-24 16:07:10', '2021-05-24 16:07:10'),
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('130', '3', 'regex', 'regex', 2, 2, 2, '2021-05-24 16:07:10', '2021-05-24 16:07:10');
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('131', '3', 'replace', 'replace', 2, 2, 3, '2021-05-24 16:07:10', '2021-05-24 16:07:10');
 
 /*insert plugin_handle data for rewrite*/
