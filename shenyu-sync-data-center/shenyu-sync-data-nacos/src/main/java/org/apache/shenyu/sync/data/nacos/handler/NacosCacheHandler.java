@@ -21,18 +21,10 @@ import com.alibaba.nacos.api.config.ConfigService;
 import com.alibaba.nacos.api.config.listener.Listener;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonParseException;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.Executor;
-import java.util.stream.Collectors;
-
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
@@ -43,23 +35,19 @@ import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.Executor;
+import java.util.stream.Collectors;
+
 /**
  * Nacos cache handler.
  */
 @Slf4j
 public class NacosCacheHandler {
-
-    protected static final String GROUP = "DEFAULT_GROUP";
-
-    protected static final String PLUGIN_DATA_ID = "soul.plugin.json";
-
-    protected static final String SELECTOR_DATA_ID = "soul.selector.json";
-
-    protected static final String RULE_DATA_ID = "soul.rule.json";
-
-    protected static final String AUTH_DATA_ID = "soul.auth.json";
-
-    protected static final String META_DATA_ID = "soul.meta.json";
 
     protected static final Map<String, List<Listener>> LISTENERS = Maps.newConcurrentMap();
 
@@ -146,7 +134,7 @@ public class NacosCacheHandler {
 
     @SneakyThrows
     private String getConfigAndSignListener(final String dataId, final Listener listener) {
-        String config = configService.getConfigAndSignListener(dataId, GROUP, 6000, listener);
+        String config = configService.getConfigAndSignListener(dataId, NacosPathConstants.GROUP, 6000, listener);
         if (config == null) {
             config = "{}";
         }
