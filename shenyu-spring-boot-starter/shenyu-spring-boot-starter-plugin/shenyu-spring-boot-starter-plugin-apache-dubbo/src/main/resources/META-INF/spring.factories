@@ -16,4 +16,4 @@
 #
 
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.apache.shenyu.spring.boot.starter.plugin.apache.dubbo.ApacheDubboPluginConfiguration
+org.apache.shenyu.springboot.starter.plugin.apache.dubbo.ApacheDubboPluginConfiguration

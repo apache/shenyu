@@ -25,7 +25,6 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.apache.dubbo.cache.ApplicationConfigCache;
-import org.apache.shenyu.plugin.apache.dubbo.cache.DubboProviderVersionCache;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 
 /**
@@ -60,7 +59,6 @@ public class ApacheDubboMetaDataSubscriber implements MetaDataSubscriber {
     public void unSubscribe(final MetaData metaData) {
         if (RpcTypeEnum.DUBBO.getName().equals(metaData.getRpcType())) {
             ApplicationConfigCache.getInstance().invalidate(metaData.getPath());
-            DubboProviderVersionCache.getInstance().invalidate(metaData.getPath());
             META_DATA.remove(metaData.getPath());
         }
     }

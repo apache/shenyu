@@ -16,4 +16,4 @@
 #
 
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.apache.shenyu.spring.boot.sync.data.zookeeper.ZookeeperSyncDataConfiguration
+org.apache.shenyu.springboot.sync.data.zookeeper.ZookeeperSyncDataConfiguration

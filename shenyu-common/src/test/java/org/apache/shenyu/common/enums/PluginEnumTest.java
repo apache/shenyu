@@ -21,6 +21,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Test Cases for PluginEnum.
@@ -36,5 +37,11 @@ public final class PluginEnumTest {
     @Test
     public void testGetPluginEnumByNameInvalid() {
         assertEquals(PluginEnum.GLOBAL, PluginEnum.getPluginEnumByName("invalidName"));
+    }
+
+    @Test
+    public void testGetUpstreamNames() {
+        List<String> list = PluginEnum.getUpstreamNames();
+        assert list.size() > 0;
     }
 }

@@ -27,7 +27,7 @@ import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
-import org.apache.shenyu.plugin.base.utils.MatchStrategyUtils;
+import org.apache.shenyu.plugin.base.condition.strategy.MatchStrategyFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -114,7 +114,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             if (CollectionUtils.isEmpty(selector.getConditionList())) {
                 return false;
             }
-            return MatchStrategyUtils.match(selector.getMatchMode(), selector.getConditionList(), exchange);
+            return MatchStrategyFactory.match(selector.getMatchMode(), selector.getConditionList(), exchange);
         }
         return true;
     }
@@ -124,7 +124,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     }
 
     private Boolean filterRule(final RuleData ruleData, final ServerWebExchange exchange) {
-        return ruleData.getEnabled() && MatchStrategyUtils.match(ruleData.getMatchMode(), ruleData.getConditionDataList(), exchange);
+        return ruleData.getEnabled() && MatchStrategyFactory.match(ruleData.getMatchMode(), ruleData.getConditionDataList(), exchange);
     }
 
     private void selectorLog(final SelectorData selectorData, final String pluginName) {
