@@ -18,6 +18,7 @@
 package org.apache.shenyu.sync.data.nacos;
 
 import com.alibaba.nacos.api.config.ConfigService;
+import org.apache.shenyu.common.constant.NacosPathConstants;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
@@ -50,17 +51,17 @@ public class NacosSyncDataService extends NacosCacheHandler implements AutoClose
      * Start.
      */
     public void start() {
-        watcherData(PLUGIN_DATA_ID, this::updatePluginMap);
-        watcherData(SELECTOR_DATA_ID, this::updateSelectorMap);
-        watcherData(RULE_DATA_ID, this::updateRuleMap);
-        watcherData(META_DATA_ID, this::updateMetaDataMap);
-        watcherData(AUTH_DATA_ID, this::updateAuthMap);
+        watcherData(NacosPathConstants.PLUGIN_DATA_ID, this::updatePluginMap);
+        watcherData(NacosPathConstants.SELECTOR_DATA_ID, this::updateSelectorMap);
+        watcherData(NacosPathConstants.RULE_DATA_ID, this::updateRuleMap);
+        watcherData(NacosPathConstants.META_DATA_ID, this::updateMetaDataMap);
+        watcherData(NacosPathConstants.AUTH_DATA_ID, this::updateAuthMap);
     }
 
     @Override
     public void close() {
         LISTENERS.forEach((dataId, lss) -> {
-            lss.forEach(listener -> getConfigService().removeListener(dataId, GROUP, listener));
+            lss.forEach(listener -> getConfigService().removeListener(dataId, NacosPathConstants.GROUP, listener));
             lss.clear();
         });
         LISTENERS.clear();
