@@ -43,6 +43,11 @@ public enum ShenyuResultEnum {
     SIGN_IS_NOT_PASS(401, "Sign is not pass shenyu!"),
 
     /**
+     * Authorization is incorrect.
+     */
+    ERROR_TOKEN(401, "Illegal authorization"),
+
+    /**
      * Payload too large shenyu result enum.
      */
     PAYLOAD_TOO_LARGE(403, "Payload too large!"),
@@ -162,6 +167,11 @@ public enum ShenyuResultEnum {
      * The Context path error.
      */
     CONTEXT_PATH_ERROR(-111, "The context path illegal, please check the context path mapping plugin!"),
+
+    /**
+     * SecretKey must be configured.
+     */
+    SECRET_KEY_MUST_BE_CONFIGURED(-112, "SecretKey must be configured"),
 
     /**
      * Request Header Fields Too Large.
