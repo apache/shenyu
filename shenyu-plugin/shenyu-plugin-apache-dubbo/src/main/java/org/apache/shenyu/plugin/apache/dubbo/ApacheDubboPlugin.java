@@ -30,7 +30,6 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
-import org.apache.shenyu.plugin.base.utils.FallbackUtils;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.springframework.http.HttpStatus;
@@ -107,13 +106,13 @@ public class ApacheDubboPlugin extends AbstractShenyuPlugin {
     }
 
     @Override
-    protected Mono<Void> handleSelectorIsNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-        return FallbackUtils.getNoSelectorResult(pluginName, exchange);
+    protected Mono<Void> handleSelectorIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+        return WebFluxResultUtils.noSelectorResult(pluginName, exchange);
     }
 
     @Override
-    protected Mono<Void> handleRuleIsNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-        return FallbackUtils.getNoRuleResult(pluginName, exchange);
+    protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+        return WebFluxResultUtils.noRuleResult(pluginName, exchange);
     }
 
     private boolean checkMetaData(final MetaData metaData) {
