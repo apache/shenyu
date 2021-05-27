@@ -89,5 +89,4 @@ public final class JwtPluginTest {
         final int result = jwtPluginUnderTest.getOrder();
         assertEquals(PluginEnum.JWT.getCode(), result);
     }
-
 }

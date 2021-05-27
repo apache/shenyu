@@ -43,5 +43,4 @@ public interface ThrowingFunction {
             return null;
         }
     }
-
 }
