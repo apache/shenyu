@@ -36,7 +36,7 @@ dubbo:
   application:
     name: test-dubbo-service
   registry:
-    address: zookeeper://150.158.214.232:2181
+    address: zookeeper://127.0.0.1:2181
   protocol:
     name: dubbo
     port: 20888

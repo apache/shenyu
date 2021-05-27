@@ -68,16 +68,16 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         if (pluginData != null && pluginData.getEnabled()) {
             final Collection<SelectorData> selectors = BaseDataCache.getInstance().obtainSelectorData(pluginName);
             if (CollectionUtils.isEmpty(selectors)) {
-                return handleSelectorIsNull(pluginName, exchange, chain);
+                return handleSelectorIfNull(pluginName, exchange, chain);
             }
             SelectorData selectorData = matchSelector(exchange, selectors);
             if (Objects.isNull(selectorData)) {
-                return handleSelectorIsNull(pluginName, exchange, chain);
+                return handleSelectorIfNull(pluginName, exchange, chain);
             }
             selectorLog(selectorData, pluginName);
             List<RuleData> rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
             if (CollectionUtils.isEmpty(rules)) {
-                return handleRuleIsNull(pluginName, exchange, chain);
+                return handleRuleIfNull(pluginName, exchange, chain);
             }
             RuleData rule;
             if (selectorData.getType() == SelectorTypeEnum.FULL_FLOW.getCode()) {
@@ -87,7 +87,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                 rule = matchRule(exchange, rules);
             }
             if (Objects.isNull(rule)) {
-                return handleRuleIsNull(pluginName, exchange, chain);
+                return handleRuleIfNull(pluginName, exchange, chain);
             }
             ruleLog(rule, pluginName);
             return doExecute(exchange, chain, selectorData, rule);
@@ -95,11 +95,11 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         return chain.execute(exchange);
     }
 
-    protected Mono<Void> handleSelectorIsNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+    protected Mono<Void> handleSelectorIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return chain.execute(exchange);
     }
 
-    protected Mono<Void> handleRuleIsNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+    protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return chain.execute(exchange);
     }
 
