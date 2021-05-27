@@ -37,5 +37,4 @@ public class JwtConfig implements Serializable {
      * No need to carry the authorization.
      */
     private List<String> filterPath;
-
 }

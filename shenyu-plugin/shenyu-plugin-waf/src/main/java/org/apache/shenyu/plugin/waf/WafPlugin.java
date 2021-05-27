@@ -73,12 +73,12 @@ public class WafPlugin extends AbstractShenyuPlugin {
     }
 
     @Override
-    protected Mono<Void> handleSelectorIsNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+    protected Mono<Void> handleSelectorIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return doExecute(exchange, chain, null, null);
     }
 
     @Override
-    protected Mono<Void> handleRuleIsNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+    protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return doExecute(exchange, chain, null, null);
     }
 
