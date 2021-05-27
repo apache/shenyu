@@ -74,7 +74,7 @@ public class DefaultSignService implements SignService {
         final LocalDateTime now = LocalDateTime.now();
         final long between = DateUtils.acquireMinutesBetween(start, now);
         if (between > delay) {
-            return Pair.of(Boolean.FALSE, String.format(ShenyuResultEnum.SING_TIME_IS_TIMEOUT.getMsg(), delay));
+            return Pair.of(Boolean.FALSE, String.format(ShenyuResultEnum.SIGN_TIME_IS_TIMEOUT.getMsg(), delay));
         }
         return sign(shenyuContext, exchange);
     }
