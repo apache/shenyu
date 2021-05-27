@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
@@ -53,11 +54,12 @@ public class JwtPlugin extends AbstractShenyuPlugin {
         String authorization = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         String token = exchange.getRequest().getHeaders().getFirst(TOKEN);
         // filter path
-        // contextPath + api ep: /cloud/ecg/upload
         String path = exchange.getRequest().getURI().getPath();
         List<String> filterPath = jwtConfig.getFilterPath();
-        if (filterPath.contains(path)) {
-            return chain.execute(exchange);
+        if (CollectionUtils.isNotEmpty(filterPath)) {
+            if (filterPath.contains(path)) {
+                return chain.execute(exchange);
+            }
         }
         // check secreteKey
         if (StringUtils.isEmpty(jwtConfig.getSecretKey())) {
@@ -79,23 +81,6 @@ public class JwtPlugin extends AbstractShenyuPlugin {
         return PluginEnum.JWT.getCode();
     }
 
-    @Override
-    protected Mono<Void> handleSelectorIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-        return doExecute(exchange, chain, null, null);
-    }
-
-    @Override
-    protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-        return doExecute(exchange, chain, null, null);
-    }
-
-    /**
-     * Both are compatible.
-     *
-     * @param token header of token
-     * @param authorization header of authorization
-     * @return the authorization after processing
-     */
     private String compatible(final String token, final String authorization) {
         String finalAuthorization;
         if (StringUtils.isNotEmpty(token)) {
@@ -105,22 +90,9 @@ public class JwtPlugin extends AbstractShenyuPlugin {
         } else {
             return null;
         }
-        return isAuth2(finalAuthorization) ? finalAuthorization.split(" ")[1] : finalAuthorization;
+        return finalAuthorization.contains(AUTH2_TOKEN) ? finalAuthorization.split(" ")[1] : finalAuthorization;
     }
-
-    private boolean isAuth2(final String authorization) {
-        return authorization.contains(AUTH2_TOKEN);
-    }
-
-    /**
-     * check Authorization.
-     *
-     * @param exchange exchange
-     * @param chain chain
-     * @param authorization the authorization after processing
-     * @param secretKey secretKey of authorization
-     * @return Mono
-     */
+    
     private Mono<Void> checkAuthorization(final ServerWebExchange exchange,
                                           final ShenyuPluginChain chain,
                                           final String authorization,
@@ -136,5 +108,4 @@ public class JwtPlugin extends AbstractShenyuPlugin {
         }
         return WebFluxResultUtils.result(exchange, error);
     }
-
 }

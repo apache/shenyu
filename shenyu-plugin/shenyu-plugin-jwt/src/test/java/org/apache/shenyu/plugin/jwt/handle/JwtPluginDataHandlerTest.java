@@ -52,5 +52,4 @@ public final class JwtPluginDataHandlerTest {
         final String result = jwtPluginDataHandlerUnderTest.pluginNamed();
         assertEquals(PluginEnum.JWT.getName(), result);
     }
-
 }
