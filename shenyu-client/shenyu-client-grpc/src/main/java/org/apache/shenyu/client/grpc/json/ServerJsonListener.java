@@ -25,8 +25,8 @@ import io.grpc.ServerCall.Listener;
 import io.grpc.Status;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.message.JsonRequest;
 import org.apache.shenyu.common.utils.ReflectUtils;
+import org.apache.shenyu.protocol.grpc.message.JsonRequest;
 
 import java.util.Objects;
 

@@ -27,14 +27,14 @@ import io.grpc.MethodDescriptor;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.dto.MetaData;
-import org.apache.shenyu.common.message.JsonRequest;
-import org.apache.shenyu.common.message.JsonResponse;
-import org.apache.shenyu.common.utils.GrpcUtils;
 import org.apache.shenyu.plugin.grpc.proto.CompleteObserver;
 import org.apache.shenyu.plugin.grpc.proto.MessageWriter;
 import org.apache.shenyu.plugin.grpc.proto.ShenyuGrpcCallRequest;
 import org.apache.shenyu.plugin.grpc.proto.ShenyuGrpcResponse;
 import org.apache.shenyu.plugin.grpc.proto.CompositeStreamObserver;
+import org.apache.shenyu.protocol.grpc.message.JsonReply;
+import org.apache.shenyu.protocol.grpc.message.JsonRequest;
+import org.apache.shenyu.protocol.grpc.utils.GrpcUtils;
 
 import java.io.Closeable;
 import java.util.concurrent.CompletableFuture;
@@ -68,7 +68,7 @@ public class ShenyuGrpcClient implements Closeable {
     public CompletableFuture<ShenyuGrpcResponse> call(final MetaData metaData, final CallOptions callOptions, final String requestJsons) {
         MethodDescriptor<Message, Message> methodDescriptor = GrpcUtils.createJsonMethodDescriptor(metaData.getServiceName(), metaData.getMethodName());
 
-        JsonFormat.TypeRegistry registry = JsonFormat.TypeRegistry.newBuilder().add(JsonResponse.getDescriptor()).build();
+        JsonFormat.TypeRegistry registry = JsonFormat.TypeRegistry.newBuilder().add(JsonReply.getDescriptor()).build();
         ShenyuGrpcResponse shenyuGrpcResponse = new ShenyuGrpcResponse();
         StreamObserver<Message> streamObserver = MessageWriter.newInstance(registry, shenyuGrpcResponse);
 

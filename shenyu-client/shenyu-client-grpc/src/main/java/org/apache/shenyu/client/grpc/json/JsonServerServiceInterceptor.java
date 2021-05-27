@@ -26,11 +26,11 @@ import io.grpc.Metadata;
 import io.grpc.ServerCallHandler;
 import io.grpc.ServiceDescriptor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shenyu.common.constant.GrpcConstants;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.message.JsonRequest;
-import org.apache.shenyu.common.utils.GrpcUtils;
 import org.apache.shenyu.common.utils.ReflectUtils;
+import org.apache.shenyu.protocol.grpc.constant.GrpcConstants;
+import org.apache.shenyu.protocol.grpc.message.JsonRequest;
+import org.apache.shenyu.protocol.grpc.utils.GrpcUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;

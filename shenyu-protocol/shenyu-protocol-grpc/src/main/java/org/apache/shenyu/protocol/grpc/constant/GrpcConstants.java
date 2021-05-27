@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.constant;
+package org.apache.shenyu.protocol.grpc.constant;
 
 /**
  * Grpc constants.
