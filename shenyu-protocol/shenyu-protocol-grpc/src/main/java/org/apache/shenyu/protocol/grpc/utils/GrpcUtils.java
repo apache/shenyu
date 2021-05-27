@@ -15,16 +15,17 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.utils;
+package org.apache.shenyu.protocol.grpc.utils;
 
 import com.google.common.collect.Maps;
 import com.google.protobuf.Message;
 import io.grpc.MethodDescriptor;
 import io.grpc.MethodDescriptor.MethodType;
-import org.apache.shenyu.common.constant.GrpcConstants;
-import org.apache.shenyu.common.message.JsonRequest;
-import org.apache.shenyu.common.message.JsonResponse;
+import org.apache.shenyu.protocol.grpc.constant.GrpcConstants;
+import org.apache.shenyu.protocol.grpc.message.JsonReply;
+import org.apache.shenyu.protocol.grpc.message.JsonRequest;
 
+import java.lang.reflect.Constructor;
 import java.util.Map;
 
 /**
@@ -47,7 +48,7 @@ public class GrpcUtils {
                 .get(clazzName + GrpcConstants.GRPC_JSON_GENERIC_SERVICE + methodName);
         if (methodDescriptor == null) {
             Message argsReq = createDefaultInstance(JsonRequest.class);
-            Message argsRep = createDefaultInstance(JsonResponse.class);
+            Message argsRep = createDefaultInstance(JsonReply.class);
             methodDescriptor = MethodDescriptor.<Message, Message>newBuilder().setType(MethodType.UNARY)
                     .setFullMethodName(MethodDescriptor.generateFullMethodName(clazzName + GrpcConstants.GRPC_JSON_GENERIC_SERVICE, methodName))
                     .setRequestMarshaller(io.grpc.protobuf.ProtoUtils.marshaller(argsReq))
@@ -69,8 +70,24 @@ public class GrpcUtils {
      */
     public static Message createDefaultInstance(final Class<?> type) {
         Class<? extends Message> messageType = (Class<? extends Message>) type;
-        Object obj = ReflectUtils.classInstance(messageType);
+        Object obj = classInstance(messageType);
         return (Message) obj;
     }
 
+    /**
+     * create a class instance.
+     *
+     * @param clazz class type
+     * @return a instance
+     */
+    public static Object classInstance(final Class<?> clazz) {
+        try {
+            Constructor<?> con = clazz.getDeclaredConstructor();
+            con.setAccessible(true);
+            return con.newInstance();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
