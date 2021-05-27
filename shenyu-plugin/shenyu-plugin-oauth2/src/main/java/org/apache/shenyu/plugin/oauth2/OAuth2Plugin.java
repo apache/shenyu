@@ -23,14 +23,24 @@ import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 /**
  * The OAuth2Plugin.
  */
 @Slf4j
 public class OAuth2Plugin extends AbstractShenyuPlugin {
+
+    private final List<ServerWebExchangeMatcher> matcherList;
+
+    public OAuth2Plugin(final List<ServerWebExchangeMatcher> matcherList) {
+        this.matcherList = matcherList;
+    }
 
     @Override
     public int getOrder() {
@@ -53,6 +63,10 @@ public class OAuth2Plugin extends AbstractShenyuPlugin {
      */
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
+        matcherList.clear();
+        rule.getConditionDataList().forEach(data ->
+                matcherList.add(new PathPatternParserServerWebExchangeMatcher(data.getParamValue()))
+        );
         return chain.execute(exchange);
     }
 }

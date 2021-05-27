@@ -43,17 +43,21 @@ public class OAuth2Filter implements WebFilter {
 
     @Override
     public Mono<Void> filter(final ServerWebExchange serverWebExchange, final WebFilterChain webFilterChain) {
+        Boolean skip = (Boolean) serverWebExchange.getAttributes().get("skip");
+        if (skip) {
+            return webFilterChain.filter(serverWebExchange);
+        }
         return ReactiveSecurityContextHolder.getContext()
-                .map(SecurityContext::getAuthentication)
-                .filter(t -> t instanceof OAuth2AuthenticationToken)
-                .cast(OAuth2AuthenticationToken.class)
-                .<OAuth2AuthorizedClient>flatMap(token ->
-                        authorizedClientService.loadAuthorizedClient(token.getAuthorizedClientRegistrationId(), token.getName())
-                )
-                .flatMap(t -> {
-                    serverWebExchange.getAttributes().put("principal", t.getPrincipalName());
-                    return Mono.empty();
-                }).thenEmpty(webFilterChain.filter(this.addTokenToHeader(serverWebExchange)));
+            .map(SecurityContext::getAuthentication)
+            .filter(t -> t instanceof OAuth2AuthenticationToken)
+            .cast(OAuth2AuthenticationToken.class)
+            .<OAuth2AuthorizedClient>flatMap(token ->
+                authorizedClientService.loadAuthorizedClient(token.getAuthorizedClientRegistrationId(), token.getName())
+            )
+            .flatMap(t -> {
+                serverWebExchange.getAttributes().put("principal", t.getPrincipalName());
+                return Mono.empty();
+            }).thenEmpty(webFilterChain.filter(this.addTokenToHeader(serverWebExchange)));
     }
 
     /**

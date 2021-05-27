@@ -21,20 +21,25 @@ package org.apache.shenyu.springboot.starter.plugin.oauth2;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.oauth2.OAuth2Plugin;
 import org.apache.shenyu.plugin.oauth2.filter.OAuth2Filter;
+import org.apache.shenyu.plugin.oauth2.filter.OAuth2PreFilter;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.security.reactive.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.util.matcher.OrServerWebExchangeMatcher;
+import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
 
+import java.util.List;
 import java.util.Objects;
-
-import static org.springframework.security.config.Customizer.withDefaults;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * The type motan plugin configuration.
@@ -42,8 +47,16 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @Configuration
 @ConditionalOnClass(OAuth2Plugin.class)
 @EnableWebFluxSecurity
-@EnableReactiveMethodSecurity
+//@ComponentScan(excludeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class)})
 public class OAuth2PluginConfiguration {
+
+    private static final List<ServerWebExchangeMatcher> MATCHERS = new CopyOnWriteArrayList<>();
+
+    static {
+        MATCHERS.add(new PathPatternParserServerWebExchangeMatcher("/"));
+    }
+
+    private static final OrServerWebExchangeMatcher OR_MATCHER = new OrServerWebExchangeMatcher(MATCHERS);
 
     /**
      * oauth2 plugin shenyu plugin.
@@ -52,28 +65,41 @@ public class OAuth2PluginConfiguration {
      */
     @Bean
     public ShenyuPlugin oAuth2Plugin() {
-        return new OAuth2Plugin();
+        return new OAuth2Plugin(MATCHERS);
     }
 
     /**
      * Build SecurityWebFilterChain.
      *
-     * @param http The ServerHttpSecurity Instance
+     * @param http                 The ServerHttpSecurity Instance
      * @param oAuth2FilterProvider The OAuth2Filter Instance
+     * @param oAuth2PreFilterProvider The OAuth2PreFilter Instance
      * @return The SecurityWebFilterChain
      */
     @Bean
-    public SecurityWebFilterChain getSecurityWebFilterChain(final ServerHttpSecurity http, final ObjectProvider<OAuth2Filter> oAuth2FilterProvider) {
+    public SecurityWebFilterChain getSecurityWebFilterChain(final ServerHttpSecurity http, final ObjectProvider<OAuth2Filter> oAuth2FilterProvider,
+                                                            final ObjectProvider<OAuth2PreFilter> oAuth2PreFilterProvider) {
         http
-                .authorizeExchange(exchanges ->
-                        exchanges
-                                .pathMatchers("/**").permitAll()
-                                .anyExchange().authenticated()
-                )
-                .oauth2Login(withDefaults())
-                .formLogin(withDefaults())
-                .oauth2Client(withDefaults())
-                .addFilterAt(Objects.requireNonNull(oAuth2FilterProvider.getIfAvailable()), SecurityWebFiltersOrder.LAST);
+            .csrf()
+            .disable()
+            .oauth2Login()
+            .and()
+            .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
+            .oauth2Client()
+            .and()
+            .addFilterAt(Objects.requireNonNull(oAuth2FilterProvider.getIfAvailable()), SecurityWebFiltersOrder.LAST)
+            .addFilterAfter(Objects.requireNonNull(oAuth2PreFilterProvider.getIfAvailable()), SecurityWebFiltersOrder.REACTOR_CONTEXT)
+            .authorizeExchange(exchanges ->
+                exchanges
+                    .matchers(PathRequest.toStaticResources().atCommonLocations())
+                    .permitAll()
+                    .pathMatchers(HttpMethod.OPTIONS)
+                    .permitAll()
+                    .matchers(OR_MATCHER)
+                    .authenticated()
+                    .anyExchange()
+                    .permitAll()
+            );
         return http.build();
     }
 
@@ -86,5 +112,14 @@ public class OAuth2PluginConfiguration {
     @Bean
     public OAuth2Filter oAuth2Filter(final ObjectProvider<ReactiveOAuth2AuthorizedClientService> authorizedClientService) {
         return new OAuth2Filter(Objects.requireNonNull(authorizedClientService.getIfAvailable()));
+    }
+
+    /**
+     * Build OAuth2PreFilter.
+     * @return The OAuth2PreFilter
+     */
+    @Bean
+    public OAuth2PreFilter oAuth2PreFilter() {
+        return new OAuth2PreFilter(MATCHERS);
     }
 }
