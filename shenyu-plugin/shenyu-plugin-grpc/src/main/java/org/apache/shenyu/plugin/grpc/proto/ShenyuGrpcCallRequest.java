@@ -24,7 +24,7 @@ import io.grpc.MethodDescriptor;
 import io.grpc.stub.StreamObserver;
 import lombok.Builder;
 import lombok.Getter;
-import org.apache.shenyu.common.message.JsonRequest;
+import org.apache.shenyu.protocol.grpc.message.JsonRequest;
 
 /**
  * ShenyuGrpcCallRequest.

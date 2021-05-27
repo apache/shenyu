@@ -143,7 +143,12 @@ public enum PluginEnum {
     /**
      * Response plugin enum.
      */
-    RESPONSE(100, 0, "response");
+    RESPONSE(100, 0, "response"),
+
+    /**
+     * Jwt plugin enum.
+     */
+    JWT(9, 0, "jwt");
 
     private final int code;
 

@@ -52,5 +52,6 @@
         <module>shenyu-spring-boot-starter-plugin-redirect</module>
         <module>shenyu-spring-boot-starter-plugin-logging</module>
         <module>shenyu-spring-boot-starter-plugin-oauth2</module>
+        <module>shenyu-spring-boot-starter-plugin-jwt</module>
     </modules>
 </project>

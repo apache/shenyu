@@ -13,19 +13,28 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
-syntax = "proto3";
+package org.apache.shenyu.plugin.jwt.config;
 
-option java_multiple_files = true;
-option java_package = "org.apache.shenyu.common.message";
-option java_outer_classname = "JsonProto";
+import lombok.Data;
 
-message JsonRequest {
- string message = 1;
-}
+import java.io.Serializable;
+import java.util.List;
 
-message JsonResponse {
-  string message = 1;
+/**
+ * The type Jwt config.
+ */
+@Data
+public class JwtConfig implements Serializable {
+
+    /**
+     * private key.
+     */
+    private String secretKey;
+
+    /**
+     * No need to carry the authorization.
+     */
+    private List<String> filterPath;
 }

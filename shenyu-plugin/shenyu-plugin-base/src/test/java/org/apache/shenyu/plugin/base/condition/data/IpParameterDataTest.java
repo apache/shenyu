@@ -15,21 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.base.utils;
+package org.apache.shenyu.plugin.base.condition.data;
 
-import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
-import org.apache.shenyu.plugin.api.result.ShenyuResult;
+import org.apache.shenyu.common.utils.UUIDUtils;
+import org.apache.shenyu.plugin.api.RemoteAddressResolver;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
-import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
 
@@ -37,37 +34,40 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Test cases for CheckUtils.
+ * Test cases for {@link IpParameterDataTest}.
  */
-@RunWith(MockitoJUnitRunner.class)
-public final class FallbackUtilsTest {
+public class IpParameterDataTest {
 
     private ServerWebExchange exchange;
+
+    private IpParameterData ipParameterData;
+
+    private RemoteAddressResolver remoteAddressResolver;
+
+    private final String testHost = "127.0.0.1";
 
     @Before
     public void setUp() {
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setCfgContext(context);
-        this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/SHENYU/SHENYU")
-                .remoteAddress(new InetSocketAddress(8090))
-                .contextPath("/SHENYU")
+        this.remoteAddressResolver = new RemoteAddressResolver() {
+        };
+
+        this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/http")
+                .remoteAddress(new InetSocketAddress("localhost", 8080))
                 .build());
-        when(context.getBean(ShenyuResult.class)).thenReturn(new DefaultShenyuResult());
+        this.ipParameterData = new IpParameterData();
+
+        when(context.getBean(RemoteAddressResolver.class)).thenReturn(remoteAddressResolver);
     }
 
-    /**
-     * The test for check selector.
-     */
     @Test
-    public void getNoRuleResultTest() {
-        StepVerifier.create(FallbackUtils.getNoRuleResult(PluginEnum.DIVIDE.getName(), exchange)).expectSubscription().verifyComplete();
+    public void testBuilderWithNullParamName() {
+        Assert.assertEquals(testHost, ipParameterData.builder(null, exchange));
     }
 
-    /**
-     * The test for check rule.
-     */
     @Test
-    public void getNoSelectorResultTest() {
-        StepVerifier.create(FallbackUtils.getNoSelectorResult(PluginEnum.SPRING_CLOUD.getName(), exchange)).expectSubscription().verifyComplete();
+    public void testBuilderWithAnyParamName() {
+        Assert.assertEquals(testHost, ipParameterData.builder(UUIDUtils.getInstance().generateShortUuid(), exchange));
     }
 }

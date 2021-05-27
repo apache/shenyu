@@ -54,5 +54,6 @@
         <module>shenyu-plugin-motan</module>
         <module>shenyu-plugin-logging</module>
         <module>shenyu-plugin-oauth2</module>
+        <module>shenyu-plugin-jwt</module>
     </modules>
 </project>

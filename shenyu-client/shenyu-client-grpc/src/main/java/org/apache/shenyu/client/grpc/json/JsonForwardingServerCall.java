@@ -27,7 +27,8 @@ import io.grpc.ServerCall;
 import io.grpc.Metadata;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shenyu.common.message.JsonResponse;
+import org.apache.shenyu.protocol.grpc.message.JsonReply;
+
 
 /**
  * Handle response of json generic service.
@@ -52,7 +53,7 @@ public class JsonForwardingServerCall<R, P> extends ServerCall<R, P> {
     @Override
     public void sendMessage(final P message) {
         String jsonFormat;
-        JsonResponse rep;
+        JsonReply rep;
         try {
             if (message == null) {
                 delegate().sendMessage(null);
@@ -62,7 +63,7 @@ public class JsonForwardingServerCall<R, P> extends ServerCall<R, P> {
             jsonFormat = JsonFormat.printer().includingDefaultValueFields().preservingProtoFieldNames()
                     .print((MessageOrBuilder) message);
 
-            rep = JsonResponse.newBuilder().setMessage(jsonFormat).build();
+            rep = JsonReply.newBuilder().setMessage(jsonFormat).build();
             log.debug("begin send json response: {}", jsonFormat);
             delegate().sendMessage((P) rep);
         } catch (InvalidProtocolBufferException e) {
