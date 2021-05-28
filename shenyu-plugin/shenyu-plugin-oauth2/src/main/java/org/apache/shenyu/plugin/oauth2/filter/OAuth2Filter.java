@@ -43,8 +43,8 @@ public class OAuth2Filter implements WebFilter {
 
     @Override
     public Mono<Void> filter(final ServerWebExchange serverWebExchange, final WebFilterChain webFilterChain) {
-        Boolean skip = (Boolean) serverWebExchange.getAttributes().get("skip");
-        if (skip) {
+        Boolean enable = (Boolean) serverWebExchange.getAttributes().get("enable");
+        if (!enable) {
             return webFilterChain.filter(serverWebExchange);
         }
         return ReactiveSecurityContextHolder.getContext()

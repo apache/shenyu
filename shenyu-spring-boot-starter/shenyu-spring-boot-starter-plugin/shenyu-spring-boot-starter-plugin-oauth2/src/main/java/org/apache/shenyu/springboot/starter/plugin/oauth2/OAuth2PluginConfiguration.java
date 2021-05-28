@@ -26,12 +26,18 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.security.reactive.PathRequest;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
+import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.util.matcher.OrServerWebExchangeMatcher;
 import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
@@ -47,7 +53,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Configuration
 @ConditionalOnClass(OAuth2Plugin.class)
 @EnableWebFluxSecurity
-//@ComponentScan(excludeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class)})
+@ComponentScan(excludeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class)})
 public class OAuth2PluginConfiguration {
 
     private static final List<ServerWebExchangeMatcher> MATCHERS = new CopyOnWriteArrayList<>();
@@ -65,14 +71,14 @@ public class OAuth2PluginConfiguration {
      */
     @Bean
     public ShenyuPlugin oAuth2Plugin() {
-        return new OAuth2Plugin(MATCHERS);
+        return new OAuth2Plugin();
     }
 
     /**
      * Build SecurityWebFilterChain.
      *
-     * @param http                 The ServerHttpSecurity Instance
-     * @param oAuth2FilterProvider The OAuth2Filter Instance
+     * @param http                    The ServerHttpSecurity Instance
+     * @param oAuth2FilterProvider    The OAuth2Filter Instance
      * @param oAuth2PreFilterProvider The OAuth2PreFilter Instance
      * @return The SecurityWebFilterChain
      */
@@ -121,5 +127,27 @@ public class OAuth2PluginConfiguration {
     @Bean
     public OAuth2PreFilter oAuth2PreFilter() {
         return new OAuth2PreFilter(MATCHERS);
+    }
+
+    /**
+     * Build clientRegistration.
+     *
+     * @return The clientRegistration instance.
+     */
+    @Bean
+    public ReactiveClientRegistrationRepository reactiveClientRegistrationRepository() {
+//        ClientRegistration.Builder builder = ClientRegistrations.fromIssuerLocation("");
+//        builder.registrationId()
+        ClientRegistration.Builder github = ClientRegistration.withRegistrationId("123");
+        github.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE);
+        github.tokenUri("/");
+        github.authorizationUri("/");
+        github.redirectUriTemplate("/");
+        github.scope("");
+        github.userInfoUri("/");
+        github.clientId("123");
+        github.clientSecret("123");
+        github.redirectUriTemplate("{baseUrl}/login/oauth2/code/{registrationId}");
+        return new InMemoryReactiveClientRegistrationRepository(github.build());
     }
 }
