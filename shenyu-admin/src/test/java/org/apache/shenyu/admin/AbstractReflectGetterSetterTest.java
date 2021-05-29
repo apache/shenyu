@@ -112,8 +112,9 @@ public abstract class AbstractReflectGetterSetterTest {
                         return;
                     }
                     try {
-                        //get the get and set methods of the field by PropertyDescriptor
-                        PropertyDescriptor property = new PropertyDescriptor(f.getName(), clazz);
+                        // get the get and set methods of the field by PropertyDescriptor
+                        // (String) f.getName() for java11 (can not find com.sun.beans.introspect.PropertyInfo class)
+                        PropertyDescriptor property = new PropertyDescriptor((String) f.getName(), clazz);
                         Method getter = property.getReadMethod();
                         Method setter = property.getWriteMethod();
 

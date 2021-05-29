@@ -58,7 +58,7 @@ public class ServerJsonListener<R, P> extends ForwardingServerCallListener<R> {
         Message.Builder builder;
         Class<?> t = JsonServerServiceInterceptor.getRequestClazzMap().get(call.getMethodDescriptor().getFullMethodName());
         try {
-            builder = (Message.Builder) ReflectUtils.getMethod(t, "newBuilder");
+            builder = (Message.Builder) ReflectUtils.invokeMethod(t, "newBuilder");
             JsonFormat.parser().ignoringUnknownFields().merge(((JsonRequest) message).getMessage(), builder);
             if (Objects.isNull(builder)) {
                 throw new ShenyuException("build json response message is error, newBuilder method is null");
