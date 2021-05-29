@@ -336,6 +336,23 @@
             <version>${project.version}</version>
         </dependency>
 
+        <!--shenyu data sync start use etcd-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-sync-data-etcd</artifactId>
+            <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.grpc</groupId>
+                    <artifactId>grpc-grpclb</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.grpc</groupId>
+                    <artifactId>grpc-netty</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
         <!--shenyu debug plugin start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>

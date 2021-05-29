@@ -20,7 +20,7 @@ package org.apache.shenyu.common.constant;
 /**
  * ZkPathConstants.
  */
-public final class ZkPathConstants implements Constants {
+public final class DefaultPathConstants implements Constants {
 
     /**
      * The constant SELECTOR_JOIN_RULE.

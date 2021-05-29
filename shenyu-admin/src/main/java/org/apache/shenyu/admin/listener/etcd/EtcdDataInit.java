@@ -15,40 +15,36 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.listener.zookeeper;
+package org.apache.shenyu.admin.listener.etcd;
 
-import org.I0Itec.zkclient.ZkClient;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.springframework.boot.CommandLineRunner;
 
 /**
- * The type Zookeeper data init.
+ * EtcdDataInit.
  */
-public class ZookeeperDataInit implements CommandLineRunner {
+@Slf4j
+public class EtcdDataInit implements CommandLineRunner {
 
-    private final ZkClient zkClient;
+    private final EtcdClient etcdClient;
 
     private final SyncDataService syncDataService;
 
-    /**
-     * Instantiates a new Zookeeper data init.
-     *
-     * @param zkClient        the zk client
-     * @param syncDataService the sync data service
-     */
-    public ZookeeperDataInit(final ZkClient zkClient, final SyncDataService syncDataService) {
-        this.zkClient = zkClient;
+    public EtcdDataInit(final EtcdClient client, final SyncDataService syncDataService) {
+        this.etcdClient = client;
         this.syncDataService = syncDataService;
     }
 
     @Override
-    public void run(final String... args) {
-        String pluginPath = DefaultPathConstants.PLUGIN_PARENT;
-        String authPath = DefaultPathConstants.APP_AUTH_PARENT;
-        String metaDataPath = DefaultPathConstants.META_DATA;
-        if (!zkClient.exists(pluginPath) && !zkClient.exists(authPath) && !zkClient.exists(metaDataPath)) {
+    public void run(final String... args) throws Exception {
+        final String pluginPath = DefaultPathConstants.PLUGIN_PARENT;
+        final String authPath = DefaultPathConstants.APP_AUTH_PARENT;
+        final String metaDataPath = DefaultPathConstants.META_DATA;
+        if (!etcdClient.exists(pluginPath) && !etcdClient.exists(authPath) && !etcdClient.exists(metaDataPath)) {
+            log.info("Init all data from database");
             syncDataService.syncAll(DataEventTypeEnum.REFRESH);
         }
     }

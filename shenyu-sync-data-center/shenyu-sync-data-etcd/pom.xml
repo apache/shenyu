@@ -21,19 +21,23 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>org.apache.shenyu</groupId>
-        <artifactId>shenyu</artifactId>
+        <artifactId>shenyu-sync-data-center</artifactId>
         <version>2.3.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>shenyu-sync-data-center</artifactId>
-    <packaging>pom</packaging>
-    
-    <modules>
-        <module>shenyu-sync-data-api</module>
-        <module>shenyu-sync-data-zookeeper</module>
-        <module>shenyu-sync-data-websocket</module>
-        <module>shenyu-sync-data-http</module>
-        <module>shenyu-sync-data-nacos</module>
-        <module>shenyu-sync-data-etcd</module>
-    </modules>
+    <artifactId>shenyu-sync-data-etcd</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-sync-data-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.etcd</groupId>
+            <artifactId>jetcd-core</artifactId>
+            <version>0.5.0</version>
+        </dependency>
+    </dependencies>
+
 </project>

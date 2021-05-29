@@ -20,7 +20,7 @@ package org.apache.shenyu.sync.data.zookeeper;
 import com.google.common.collect.Lists;
 import org.I0Itec.zkclient.IZkDataListener;
 import org.I0Itec.zkclient.ZkClient;
-import org.apache.shenyu.common.constant.ZkPathConstants;
+import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
@@ -248,7 +248,7 @@ public final class ZookeeperSyncDataServiceTest {
         verify(zkClient).subscribeDataChanges(eq(MOCK_RULE_PATH), captor.capture());
         captor.getValue().handleDataDeleted(MOCK_RULE_PATH);
         assertThat(unSubscribeList.size(), is(1));
-        assertThat(unSubscribeList.get(0).getSelectorId() + ZkPathConstants.SELECTOR_JOIN_RULE + unSubscribeList.get(0).getId(), is(MOCK_RULE_NAME));
+        assertThat(unSubscribeList.get(0).getSelectorId() + DefaultPathConstants.SELECTOR_JOIN_RULE + unSubscribeList.get(0).getId(), is(MOCK_RULE_NAME));
     }
 
     @Test
