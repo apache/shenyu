@@ -70,13 +70,8 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
         if (RpcTypeEnum.HTTP.getName().equals(rpcType) || RpcTypeEnum.SPRING_CLOUD.getName().equals(rpcType)) {
             nodeName = String.join("-", metadata.getContextPath(), metadata.getRuleName().replace("/", "-"));
         } else {
-            nodeName = buildNodeName(metadata.getServiceName(), metadata.getMethodName());
+            nodeName = RegisterPathConstants.buildNodeName(metadata.getServiceName(), metadata.getMethodName());
         }
         return nodeName.substring(1);
     }
-    
-    private String buildNodeName(final String serviceName, final String methodName) {
-        return String.join(DOT_SEPARATOR, serviceName, methodName);
-    }
-    
 }
