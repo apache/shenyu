@@ -1,5 +1,5 @@
 <p align="center" >
-    <a href="https://dromara.org"><img src="https://dromara.org/img/logo/soul.png" width="45%"></a>
+    <a href="https://dromara.org"><img src="https://dromara.org/img/logo/ShenYu.png" width="45%"></a>
 </p>
 <p align="center">
   <strong>Scalable, High Performance, Responsive API Gateway Solution for all MicroServices</strong>
@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  English | <a href="https://github.com/dromara/soul/blob/master/README_CN.md">简体中文</a>
+  English | <a href="https://github.com/dromara/shenyu/blob/master/README_CN.md">简体中文</a>
 </p>
 
 <p align="center">

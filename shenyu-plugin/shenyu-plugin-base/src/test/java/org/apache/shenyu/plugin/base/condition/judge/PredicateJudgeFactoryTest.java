@@ -25,7 +25,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Test cases for PredicateJudgeFactory.
+ * Test cases for {@link PredicateJudgeFactory}.
  */
 public final class PredicateJudgeFactoryTest {
     private static final String FIRST_TIME = "2018-07-11 17:20:00";

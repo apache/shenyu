@@ -17,7 +17,10 @@
 
 package org.apache.shenyu.plugin.api.utils;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
+import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.springframework.http.MediaType;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -27,6 +30,7 @@ import java.util.Objects;
 /**
  * The type Shenyu result utils.
  */
+@Slf4j
 public final class WebFluxResultUtils {
 
     /**
@@ -41,5 +45,31 @@ public final class WebFluxResultUtils {
         return exchange.getResponse().writeWith(Mono.just(exchange.getResponse()
                 // TODO this is a risk for error charset coding with getBytes
                 .bufferFactory().wrap(Objects.requireNonNull(JsonUtils.toJson(result)).getBytes())));
+    }
+
+    /**
+     * get no selector result.
+     *
+     * @param pluginName the plugin name
+     * @param exchange   the exchange
+     * @return the mono
+     */
+    public static Mono<Void> noSelectorResult(final String pluginName, final ServerWebExchange exchange) {
+        log.error("can not match selector data: {}", pluginName);
+        Object error = ShenyuResultWrap.error(ShenyuResultEnum.SELECTOR_NOT_FOUND.getCode(), ShenyuResultEnum.SELECTOR_NOT_FOUND.getMsg(), null);
+        return WebFluxResultUtils.result(exchange, error);
+    }
+
+    /**
+     * get no rule result.
+     *
+     * @param pluginName the plugin name
+     * @param exchange   the exchange
+     * @return the mono
+     */
+    public static Mono<Void> noRuleResult(final String pluginName, final ServerWebExchange exchange) {
+        log.error("can not match rule data: {}", pluginName);
+        Object error = ShenyuResultWrap.error(ShenyuResultEnum.RULE_NOT_FOUND.getCode(), ShenyuResultEnum.RULE_NOT_FOUND.getMsg(), null);
+        return WebFluxResultUtils.result(exchange, error);
     }
 }
