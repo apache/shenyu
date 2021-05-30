@@ -315,7 +315,8 @@ INSERT IGNORE INTO `plugin` (`id`, `name`, `role`,`config`, `enabled`, `date_cre
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('16', 'redirect', '1','0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`,`config`, `enabled`, `date_created`, `date_updated`) VALUES ('17', 'motan', '1','{"register":"127.0.0.1:2181"}','0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT IGNORE INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('18', 'logging', '1', '0', '2021-04-29 13:37:35', '2021-04-29 13:37:35');
-INSERT IGNORE INTO `plugin` (`id`, `name`, `role`,`config`, `enabled`, `date_created`, `date_updated`) VALUES ('19', 'request', '1', '{"ruleHandlePageType":"custom"}', '0', '2021-05-26 21:38:48', '2021-05-30 19:55:22');
+INSERT IGNORE INTO `plugin`(`id`, `name`, `role`, `config`, `enabled`, `date_created`, `date_updated`) VALUES ('19', 'jwt', '1', '{"secretKey":"key","filterPath":[]}', '0', '2021-05-24 17:58:37', '2021-05-25 15:38:04');
+INSERT IGNORE INTO `plugin` (`id`, `name`, `role`,`config`, `enabled`, `date_created`, `date_updated`) VALUES ('20', 'request', '1', '{"ruleHandlePageType":"custom"}', '0', '2021-05-26 21:38:48', '2021-05-30 19:55:22');
 
 /**default admin user**/
 INSERT IGNORE INTO `dashboard_user` (`id`, `user_name`, `password`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('1','admin','jHcpKkiDbbQh7W7hh8yQSA==', '1', '1', '2018-06-23 15:12:22', '2018-06-23 15:12:23');
@@ -343,6 +344,8 @@ INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`
 
 /*insert plugin_handle data for rewrite*/
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('13', '3' ,'rewriteURI','rewriteURI', 2, 2, 1, '2020-11-29 16:07:10', '2020-11-29 16:07:10');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('130', '3', 'regex', 'regex', 2, 2, 2, '2021-05-24 16:07:10', '2021-05-24 16:07:10');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('131', '3', 'replace', 'replace', 2, 2, 3, '2021-05-24 16:07:10', '2021-05-24 16:07:10');
 
 /*insert plugin_handle data for rewrite*/
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('42', '16' ,'redirectURI','redirectURI', 2, 2, 1, '2020-11-29 16:07:10', '2020-11-29 16:07:10');
@@ -429,7 +432,7 @@ INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`
 INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('1002', '14', 'addPrefix', 'addPrefix', 2, 2, 0, '2020-12-25 16:13:09', '2020-12-25 16:13:09');
 
 /*insert plugin_handle data for request*/
-INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('86', '19', 'ruleHandlePageType', 'ruleHandlePageType', 3, 3, 0, '{"required":"0","rule":""}', '2021-05-27 23:43:53', '2021-05-30 19:58:28');
+INSERT IGNORE INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('86', '20', 'ruleHandlePageType', 'ruleHandlePageType', 3, 3, 0, '{"required":"0","rule":""}', '2021-05-27 23:43:53', '2021-05-30 19:58:28');
 
 /** insert permission role for role */
 INSERT IGNORE INTO `role` (`id`,`role_name`,`description`,`date_created`,`date_updated`) VALUES ('1346358560427216896', 'super', '超级管理员', '2021-01-05 01:31:10', '2021-01-08 17:00:07');

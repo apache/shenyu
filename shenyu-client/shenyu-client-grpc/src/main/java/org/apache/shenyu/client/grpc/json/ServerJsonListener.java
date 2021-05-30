@@ -25,8 +25,8 @@ import io.grpc.ServerCall.Listener;
 import io.grpc.Status;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.exception.ShenyuException;
-import org.apache.shenyu.common.message.JsonRequest;
 import org.apache.shenyu.common.utils.ReflectUtils;
+import org.apache.shenyu.protocol.grpc.message.JsonRequest;
 
 import java.util.Objects;
 
@@ -58,7 +58,7 @@ public class ServerJsonListener<R, P> extends ForwardingServerCallListener<R> {
         Message.Builder builder;
         Class<?> t = JsonServerServiceInterceptor.getRequestClazzMap().get(call.getMethodDescriptor().getFullMethodName());
         try {
-            builder = (Message.Builder) ReflectUtils.getMethod(t, "newBuilder");
+            builder = (Message.Builder) ReflectUtils.invokeMethod(t, "newBuilder");
             JsonFormat.parser().ignoringUnknownFields().merge(((JsonRequest) message).getMessage(), builder);
             if (Objects.isNull(builder)) {
                 throw new ShenyuException("build json response message is error, newBuilder method is null");

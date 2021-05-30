@@ -43,6 +43,11 @@ public enum ShenyuResultEnum {
     SIGN_IS_NOT_PASS(401, "Sign is not pass shenyu!"),
 
     /**
+     * Authorization is incorrect.
+     */
+    ERROR_TOKEN(401, "Illegal authorization"),
+
+    /**
      * Payload too large shenyu result enum.
      */
     PAYLOAD_TOO_LARGE(403, "Payload too large!"),
@@ -116,7 +121,7 @@ public enum ShenyuResultEnum {
     /**
      * Rule not find shenyu result enum.
      */
-    RULE_NOT_FIND(-102, "Rule not found!"),
+    RULE_NOT_FOUND(-102, "Rule not found!"),
 
     /**
      * Service result error shenyu result enum.
@@ -129,9 +134,9 @@ public enum ShenyuResultEnum {
     SERVICE_TIMEOUT(-104, "Service call timeout!"),
 
     /**
-     * Sing time is timeout shenyu result enum.
+     * Sign time is timeout shenyu result enum.
      */
-    SING_TIME_IS_TIMEOUT(-105, "The signature timestamp has exceeded %s minutes!"),
+    SIGN_TIME_IS_TIMEOUT(-105, "The signature timestamp has exceeded %s minutes!"),
 
     /**
      * Cannot find url shenyu result enum.
@@ -141,10 +146,10 @@ public enum ShenyuResultEnum {
     /**
      * Cannot find selector shenyu result enum.
      */
-    CANNOT_FIND_SELECTOR(-107, "Can not find selector, please check your configuration!"),
+    SELECTOR_NOT_FOUND(-107, "Can not find selector, please check your configuration!"),
 
     /**
-     * The Cannot config springcloud serviceid.
+     * Can not config springcloud serviceid.
      */
     CANNOT_CONFIG_SPRINGCLOUD_SERVICEID(-108, "You are not configured or do not match springcloud serviceId!"),
 
@@ -162,6 +167,11 @@ public enum ShenyuResultEnum {
      * The Context path error.
      */
     CONTEXT_PATH_ERROR(-111, "The context path illegal, please check the context path mapping plugin!"),
+
+    /**
+     * SecretKey must be configured.
+     */
+    SECRET_KEY_MUST_BE_CONFIGURED(-112, "SecretKey must be configured"),
 
     /**
      * Request Header Fields Too Large.
