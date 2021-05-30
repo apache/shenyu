@@ -92,9 +92,9 @@ public class RequestPlugin extends AbstractShenyuPlugin {
                     && MapUtils.isNotEmpty(shenyuReqHeader.getSetHeaders())) {
                 shenyuReqHeader.getSetHeaders().entrySet().forEach(s -> this.fillHeader(s, headers));
             }
-            if (Objects.nonNull(shenyuReqHeader.getRepalceHeaderKeys())
-                    && MapUtils.isNotEmpty(shenyuReqHeader.getRepalceHeaderKeys())) {
-                shenyuReqHeader.getRepalceHeaderKeys().entrySet().forEach(s -> this.replaceHeaderKey(s, headers));
+            if (Objects.nonNull(shenyuReqHeader.getReplaceHeaderKeys())
+                    && MapUtils.isNotEmpty(shenyuReqHeader.getReplaceHeaderKeys())) {
+                shenyuReqHeader.getReplaceHeaderKeys().entrySet().forEach(s -> this.replaceHeaderKey(s, headers));
             }
             if (Objects.nonNull(shenyuReqHeader.getRemoveHeaderKeys())
                     && CollectionUtils.isNotEmpty(shenyuReqHeader.getRemoveHeaderKeys())) {
@@ -117,13 +117,13 @@ public class RequestPlugin extends AbstractShenyuPlugin {
             if (Objects.nonNull(shenyuCookie.getSetCookies()) && MapUtils.isNotEmpty(shenyuCookie.getSetCookies())) {
                 shenyuCookie.getSetCookies().entrySet().forEach(s -> this.fillCookie(s, cookies));
             }
-            if (Objects.nonNull(shenyuCookie.getReplaceCookies())
-                    && MapUtils.isNotEmpty(shenyuCookie.getReplaceCookies())) {
-                shenyuCookie.getReplaceCookies().entrySet().forEach(s -> this.replaceCookieKey(s, cookies));
+            if (Objects.nonNull(shenyuCookie.getReplaceCookieKeys())
+                    && MapUtils.isNotEmpty(shenyuCookie.getReplaceCookieKeys())) {
+                shenyuCookie.getReplaceCookieKeys().entrySet().forEach(s -> this.replaceCookieKey(s, cookies));
             }
-            if (Objects.nonNull(shenyuCookie.getRemoveCookies())
-                    && CollectionUtils.isNotEmpty(shenyuCookie.getRemoveCookies())) {
-                shenyuCookie.getRemoveCookies().forEach(cookies::remove);
+            if (Objects.nonNull(shenyuCookie.getRemoveCookieKeys())
+                    && CollectionUtils.isNotEmpty(shenyuCookie.getRemoveCookieKeys())) {
+                shenyuCookie.getRemoveCookieKeys().forEach(cookies::remove);
             }
             return cookies;
         }
@@ -148,9 +148,9 @@ public class RequestPlugin extends AbstractShenyuPlugin {
                     && MapUtils.isNotEmpty(shenyuReqParameter.getReplaceParameterKeys())) {
                 shenyuReqParameter.getReplaceParameterKeys().entrySet().forEach(s -> this.replaceParameterKey(s, queryParams));
             }
-            if (Objects.nonNull(shenyuReqParameter.getRemoveParameters())
-                    && CollectionUtils.isNotEmpty(shenyuReqParameter.getRemoveParameters())) {
-                shenyuReqParameter.getRemoveParameters().forEach(queryParams::remove);
+            if (Objects.nonNull(shenyuReqParameter.getRemoveParameterKeys())
+                    && CollectionUtils.isNotEmpty(shenyuReqParameter.getRemoveParameterKeys())) {
+                shenyuReqParameter.getRemoveParameterKeys().forEach(queryParams::remove);
             }
             return queryParams;
         }

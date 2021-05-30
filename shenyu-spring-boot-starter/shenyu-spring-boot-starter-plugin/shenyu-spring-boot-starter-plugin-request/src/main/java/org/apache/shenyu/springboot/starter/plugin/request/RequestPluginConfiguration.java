@@ -18,7 +18,9 @@
 package org.apache.shenyu.springboot.starter.plugin.request;
 
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.request.RequestPlugin;
+import org.apache.shenyu.plugin.request.handler.RequestPluginHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -36,5 +38,15 @@ public class RequestPluginConfiguration {
     @Bean
     public ShenyuPlugin requestPlugin() {
         return new RequestPlugin();
+    }
+
+    /**
+     * Request plugin data handler.
+     *
+     * @return the plugin data handler
+     */
+    @Bean
+    public PluginDataHandler requestPluginDataHandler() {
+        return new RequestPluginHandler();
     }
 }

@@ -50,7 +50,7 @@ public class RequestHandle {
          * new headerKey replaces old headerKey.
          * key: oldHeaderKey, value: newHeaderKey.
          */
-        private Map<String, String> repalceHeaderKeys;
+        private Map<String, String> replaceHeaderKeys;
 
         /**
          * need to be covered header value.
@@ -76,7 +76,7 @@ public class RequestHandle {
 
         private Map<String, String> setParameters;
 
-        private Set<String> removeParameters;
+        private Set<String> removeParameterKeys;
     }
 
     @Getter
@@ -87,10 +87,10 @@ public class RequestHandle {
     public class ShenyuCookie {
         private Map<String, String> addCookies;
 
-        private Map<String, String> replaceCookies;
+        private Map<String, String> replaceCookieKeys;
 
         private Map<String, String> setCookies;
 
-        private Set<String> removeCookies;
+        private Set<String> removeCookieKeys;
     }
 }
