@@ -136,6 +136,11 @@ public enum PluginEnum {
     MONITOR(80, 0, "monitor"),
 
     /**
+     * ParamResponse plugin enum.
+     */
+    PARAM_RESPONSE(99, 0, "paramResponse"),
+
+    /**
      * Response plugin enum.
      */
     RESPONSE(100, 0, "response");

@@ -343,7 +343,16 @@
             <version>${project.version}</version>
         </dependency>
         <!--shenyu debug plugin end-->
-      
+
+        <!-- shenyu param response plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-paramresponse</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- shenyu param response plugin end-->
+
+
     </dependencies>
 
     <build>

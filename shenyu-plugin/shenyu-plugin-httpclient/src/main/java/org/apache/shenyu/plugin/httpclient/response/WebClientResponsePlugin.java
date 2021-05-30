@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.plugin.httpclient.response;
 
+import org.apache.commons.collections4.MapUtils;
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
@@ -63,9 +64,13 @@ public class WebClientResponsePlugin implements ShenyuPlugin {
                 Object error = ShenyuResultWrap.error(ShenyuResultEnum.SERVICE_TIMEOUT.getCode(), ShenyuResultEnum.SERVICE_TIMEOUT.getMsg(), null);
                 return WebFluxResultUtils.result(exchange, error);
             }
-            response.setStatusCode(clientResponse.statusCode());
-            response.getCookies().putAll(clientResponse.cookies());
-            response.getHeaders().putAll(clientResponse.headers().asHttpHeaders());
+//            response.setStatusCode(clientResponse.statusCode());
+            if(MapUtils.isNotEmpty(clientResponse.cookies())){
+                response.getCookies().putAll(clientResponse.cookies());
+            }
+            if(Objects.nonNull(clientResponse.headers())){
+                response.getHeaders().putAll(clientResponse.headers().asHttpHeaders());
+            }
             return response.writeWith(clientResponse.body(BodyExtractors.toDataBuffers())).doOnCancel(() -> clean(exchange));
         }));
     }
