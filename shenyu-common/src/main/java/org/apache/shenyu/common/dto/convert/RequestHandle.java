@@ -17,7 +17,11 @@
 
 package org.apache.shenyu.common.dto.convert;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.util.Map;
 import java.util.Set;
@@ -32,7 +36,9 @@ import java.util.Set;
 @AllArgsConstructor
 public class RequestHandle {
     private ShenyuRequestHeader header;
+
     private ShenyuRequestParameter parameter;
+
     private ShenyuCookie cookie;
 
     @Getter

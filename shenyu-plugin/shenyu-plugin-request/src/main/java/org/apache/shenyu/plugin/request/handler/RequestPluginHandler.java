@@ -41,7 +41,7 @@ public class RequestPluginHandler implements PluginDataHandler {
     }
 
     @Override
-    public void removeRule(RuleData ruleData) {
+    public void removeRule(final RuleData ruleData) {
         Optional.ofNullable(ruleData).ifPresent(s ->
                 RequestRuleHandleCache.getInstance().removeHandle(CacheKeyUtils.INST.getKey(ruleData)));
     }

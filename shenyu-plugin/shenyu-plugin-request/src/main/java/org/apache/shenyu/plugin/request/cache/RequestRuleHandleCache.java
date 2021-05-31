@@ -23,7 +23,7 @@ import org.apache.shenyu.plugin.base.cache.BaseHandleCache;
 /**
  * This is request rule handle cache.
  */
-public class RequestRuleHandleCache extends BaseHandleCache<String, RequestHandle> {
+public final class RequestRuleHandleCache extends BaseHandleCache<String, RequestHandle> {
 
     private RequestRuleHandleCache() {
     }
