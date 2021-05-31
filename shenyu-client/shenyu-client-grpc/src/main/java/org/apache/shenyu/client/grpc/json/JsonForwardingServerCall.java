@@ -61,7 +61,7 @@ public class JsonForwardingServerCall<R, P> extends ServerCall<R, P> {
                     .print((MessageOrBuilder) message);
 
             DynamicMessage respMessage = JsonMessage.buildJsonMessage(jsonFormat);
-            log.info("begin send json response");
+            log.debug("begin send json response");
             delegate().sendMessage((P) respMessage);
         } catch (InvalidProtocolBufferException e) {
             log.error("handle json message is error", e);
