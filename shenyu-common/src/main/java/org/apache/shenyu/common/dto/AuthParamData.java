@@ -36,6 +36,4 @@ public class AuthParamData implements Serializable {
     private String appName;
 
     private String appParam;
-
-
 }
