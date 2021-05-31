@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.client.grpc.json;
 
+import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.Message;
 import com.google.protobuf.util.JsonFormat;
 import io.grpc.ForwardingServerCallListener;
@@ -26,23 +27,24 @@ import io.grpc.Status;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.ReflectUtils;
-import org.apache.shenyu.protocol.grpc.message.JsonRequest;
+import org.apache.shenyu.protocol.grpc.message.JsonMessage;
 
 import java.util.Objects;
 
 /**
  * handle request of json generic invoke.
+ *
  * @param <R> generic request
  * @param <P> generic response
  */
 @Slf4j
-public class ServerJsonListener<R, P> extends ForwardingServerCallListener<R> {
+public class JsonServerCallListener<R, P> extends ForwardingServerCallListener<R> {
 
     private final Listener<R> delegate;
 
     private final ServerCall<R, P> call;
 
-    public ServerJsonListener(final Listener<R> delegate, final ServerCall<R, P> call) {
+    public JsonServerCallListener(final Listener<R> delegate, final ServerCall<R, P> call) {
         this.delegate = delegate;
         this.call = call;
     }
@@ -59,7 +61,9 @@ public class ServerJsonListener<R, P> extends ForwardingServerCallListener<R> {
         Class<?> t = JsonServerServiceInterceptor.getRequestClazzMap().get(call.getMethodDescriptor().getFullMethodName());
         try {
             builder = (Message.Builder) ReflectUtils.invokeMethod(t, "newBuilder");
-            JsonFormat.parser().ignoringUnknownFields().merge(((JsonRequest) message).getMessage(), builder);
+
+            String reqData = JsonMessage.getDataFromDynamicMessage((DynamicMessage) message);
+            JsonFormat.parser().ignoringUnknownFields().merge(reqData, builder);
             if (Objects.isNull(builder)) {
                 throw new ShenyuException("build json response message is error, newBuilder method is null");
             }

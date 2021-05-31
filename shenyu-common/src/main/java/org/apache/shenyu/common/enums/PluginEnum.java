@@ -39,6 +39,11 @@ public enum PluginEnum {
      * Sign plugin enum.
      */
     SIGN(2, 0, "sign"),
+    
+    /**
+     * Jwt plugin enum.
+     */
+    JWT(9, 0, "jwt"),
 
     /**
      * Waf plugin enum.
@@ -138,13 +143,8 @@ public enum PluginEnum {
     /**
      * Response plugin enum.
      */
-    RESPONSE(100, 0, "response"),
-
-    /**
-     * Jwt plugin enum.
-     */
-    JWT(9, 0, "jwt");
-
+    RESPONSE(100, 0, "response");
+    
     private final int code;
 
     private final int role;
