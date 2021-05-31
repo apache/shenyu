@@ -300,8 +300,7 @@ public final class ShenyuClientRegisterServiceTest {
     }
 
     /**
-     * The above testRegisterDubbo only test the main logic about registration of dubbo,
-     * but the event not covered
+     * The above testRegisterDubbo only test the main logic about registration of dubbo, but the event not covered.
      * */
     @Test
     public void testRegisterDubboAndEvenhandle() {
