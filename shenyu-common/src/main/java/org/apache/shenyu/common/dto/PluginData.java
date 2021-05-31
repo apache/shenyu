@@ -48,5 +48,4 @@ public class PluginData implements Serializable {
     private Integer role;
 
     private Boolean enabled;
-
 }
