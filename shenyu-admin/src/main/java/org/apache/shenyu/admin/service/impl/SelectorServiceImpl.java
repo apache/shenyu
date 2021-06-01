@@ -127,7 +127,7 @@ public class SelectorServiceImpl implements SelectorService {
      * @return rows
      */
     @Override
-    @Transactional(rollbackFor = RuntimeException.class)
+    @Transactional(rollbackFor = Exception.class)
     public int createOrUpdate(final SelectorDTO selectorDTO) {
         int selectorCount;
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);

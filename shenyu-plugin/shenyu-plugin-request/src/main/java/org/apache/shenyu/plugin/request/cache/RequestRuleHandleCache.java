@@ -15,24 +15,32 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.web.configuration;
+package org.apache.shenyu.plugin.request.cache;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.apache.shenyu.common.dto.convert.RequestHandle;
+import org.apache.shenyu.plugin.base.cache.BaseHandleCache;
 
 /**
- * Rule out the url Filter.
+ * This is request rule handle cache.
  */
-@Getter
-@Setter
-@Component
-@ConfigurationProperties(prefix = "shenyu.exclude")
-public class ExcludePathProperties {
-    
-    private final List<String> paths = new ArrayList<>();
+public final class RequestRuleHandleCache extends BaseHandleCache<String, RequestHandle> {
+
+    private RequestRuleHandleCache() {
+    }
+
+    /**
+     * get instance.
+     *
+     * @return the RequestRuleHandleCache
+     */
+    public static RequestRuleHandleCache getInstance() {
+        return RequestRuleHandleCacheInstance.INSTANCE;
+    }
+
+    /**
+     * The Instance.
+     */
+    static class RequestRuleHandleCacheInstance {
+        static final RequestRuleHandleCache INSTANCE = new RequestRuleHandleCache();
+    }
 }
