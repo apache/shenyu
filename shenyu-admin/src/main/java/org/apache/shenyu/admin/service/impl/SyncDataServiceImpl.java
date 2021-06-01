@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.service.sync;
+package org.apache.shenyu.admin.service.impl;
 
 import java.util.ArrayList;
 import java.util.Collections;
