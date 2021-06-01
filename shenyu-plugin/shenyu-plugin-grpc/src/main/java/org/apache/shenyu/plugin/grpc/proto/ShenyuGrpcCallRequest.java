@@ -17,14 +17,13 @@
 
 package org.apache.shenyu.plugin.grpc.proto;
 
-import com.google.protobuf.Message;
+import com.google.protobuf.DynamicMessage;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.MethodDescriptor;
 import io.grpc.stub.StreamObserver;
 import lombok.Builder;
 import lombok.Getter;
-import org.apache.shenyu.protocol.grpc.message.JsonRequest;
 
 /**
  * ShenyuGrpcCallRequest.
@@ -37,9 +36,9 @@ public class ShenyuGrpcCallRequest {
 
     private CallOptions callOptions;
 
-    private JsonRequest requests;
+    private DynamicMessage requests;
 
-    private MethodDescriptor<Message, Message> methodDescriptor;
+    private MethodDescriptor<DynamicMessage, DynamicMessage> methodDescriptor;
 
-    private StreamObserver<Message> responseObserver;
+    private StreamObserver<DynamicMessage> responseObserver;
 }

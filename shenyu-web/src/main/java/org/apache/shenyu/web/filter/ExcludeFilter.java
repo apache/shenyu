@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.web.filter;
 
-import org.apache.shenyu.web.configuration.ExcludePathProperties;
+import org.apache.shenyu.web.configuration.properties.ExcludePathProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
