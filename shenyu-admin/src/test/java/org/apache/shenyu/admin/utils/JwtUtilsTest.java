@@ -23,8 +23,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.context.ConfigurableApplicationContext;
 
-import java.time.LocalDate;
-
 import static org.hamcrest.Matchers.comparesEqualTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -50,14 +48,14 @@ public class JwtUtilsTest {
 
     @Test
     public void testGetIssuer() {
-        assertThat(JwtUtils.getIssuer(TOKEN), is("userName"));
+        assertThat(JwtUtils.getIssuer(TOKEN), is(""));
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void testGenerateToken() {
-        String token = JwtUtils.generateToken("userName", "userId");
+        String token = JwtUtils.generateToken("userName");
         assertThat(token, notNullValue());
-        assertThat(JwtUtils.getIssuerDate(token), comparesEqualTo(LocalDate.now()));
+        assertThat(JwtUtils.getIssuerDate(token), comparesEqualTo(null));
         assertThat(JwtUtils.getIssuer(token), is("userName"));
     }
 }

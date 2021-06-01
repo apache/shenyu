@@ -27,15 +27,15 @@ import lombok.Data;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.admin.config.properties.JwtProperties;
+import org.apache.shenyu.admin.model.custom.UserInfo;
+import org.apache.shenyu.admin.spring.SpringBeanUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.util.StringUtils;
-import org.apache.shenyu.admin.spring.SpringBeanUtils;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * JWT tools.
@@ -46,31 +46,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class JwtUtils {
 
     /**
-     * userId map.
+     * according to token to get isUserInfo.
      *
+     * @return UserInfo {@link UserInfo}
      */
-    private static ConcurrentHashMap<String, String> userIds = new ConcurrentHashMap<>();
-
-    /**
-     * get user id.
-     *
-     * @return userId {@link String}
-     */
-    public static String getUserId() {
-        String userName = (String) SecurityUtils.getSubject().getPrincipal();
-        return Optional.ofNullable(userName).map(item -> userIds.get(item)).orElse(null);
-    }
-
-    /**
-     * according to token to set userid.
-     *
-     * @param token token
-     */
-    public static void setUserId(final String token) {
-        DecodedJWT jwt = verifierToken(token);
-        if (Optional.ofNullable(jwt).isPresent()) {
-            userIds.put(jwt.getIssuer(), jwt.getId());
-        }
+    public static UserInfo getUserInfo() {
+        return (UserInfo) SecurityUtils.getSubject().getPrincipal();
     }
 
     /**
@@ -80,8 +61,8 @@ public final class JwtUtils {
      * @return Issuer {@link String}
      */
     public static String getIssuer(final String token) {
-        DecodedJWT jwt = verifierToken(token);
-        return Optional.ofNullable(jwt).map(DecodedJWT::getIssuer).orElse("");
+        DecodedJWT jwt = JWT.decode(token);
+        return Optional.ofNullable(jwt).map(item -> item.getClaim("userName").asString()).orElse("");
     }
 
     /**
@@ -103,12 +84,11 @@ public final class JwtUtils {
      * generate jwt token.
      *
      * @param userName login's userName
-     * @param userId   login's userId
      * @return token
      */
-    public static String generateToken(final String userName, final String userId) {
+    public static String generateToken(final String userName) {
         try {
-            return JWT.create().withJWTId(userId).withIssuer(userName) .withIssuedAt(new Date()).sign(generateAlgorithm());
+            return JWT.create().withClaim("userName", userName) .withExpiresAt(new Date()).sign(generateAlgorithm());
         } catch (IllegalArgumentException | JWTCreationException e) {
             log.error("JWTToken generate fail ", e);
         }

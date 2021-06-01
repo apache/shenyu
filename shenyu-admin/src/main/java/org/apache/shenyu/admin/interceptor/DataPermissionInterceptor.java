@@ -73,7 +73,7 @@ public class DataPermissionInterceptor {
      */
     private Object[] getFilterSQLData(final ProceedingJoinPoint point) {
         Object[] args = point.getArgs();
-        List<String> dataPermissionList = dataPermissionService.getDataPermission(JwtUtils.getUserId());
+        List<String> dataPermissionList = dataPermissionService.getDataPermission(JwtUtils.getUserInfo().getUserId());
         if (dataPermissionList.size() > 0) {
             DataPermission dataPermission = ((MethodSignature) point.getSignature()).getMethod().getAnnotation(DataPermission.class);
             if (dataPermission != null && args != null) {

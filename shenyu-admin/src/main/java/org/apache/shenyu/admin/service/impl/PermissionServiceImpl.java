@@ -23,6 +23,7 @@ import org.apache.shenyu.admin.mapper.DashboardUserMapper;
 import org.apache.shenyu.admin.mapper.PermissionMapper;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
 import org.apache.shenyu.admin.mapper.UserRoleMapper;
+import org.apache.shenyu.admin.model.custom.UserInfo;
 import org.apache.shenyu.admin.service.ResourceService;
 import org.apache.shenyu.admin.utils.JwtUtils;
 import org.apache.shenyu.admin.model.entity.PermissionDO;
@@ -34,6 +35,7 @@ import org.apache.shenyu.admin.model.vo.PermissionMenuVO.MenuInfo;
 import org.apache.shenyu.admin.model.vo.ResourceVO;
 import org.apache.shenyu.common.constant.ResourceTypeConstants;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -77,12 +79,14 @@ public class PermissionServiceImpl implements PermissionService {
      */
     @Override
     public PermissionMenuVO getPermissionMenu(final String token) {
-        String userName = JwtUtils.getIssuer(token);
-        List<ResourceVO> resourceVOList = getResourceListByUserName(userName);
-        if (CollectionUtils.isNotEmpty(resourceVOList)) {
-            List<MenuInfo> menuInfoList = new ArrayList<>();
-            resourceService.getMenuInfo(menuInfoList, resourceVOList, null);
-            return new PermissionMenuVO(menuInfoList, getAuthPerm(resourceVOList), getAllAuthPerms());
+        UserInfo userInfo = JwtUtils.getUserInfo();
+        if (!ObjectUtils.isEmpty(userInfo)) {
+            List<ResourceVO> resourceVOList = getResourceListByUserName(userInfo.getUserName());
+            if (CollectionUtils.isNotEmpty(resourceVOList)) {
+                List<MenuInfo> menuInfoList = new ArrayList<>();
+                resourceService.getMenuInfo(menuInfoList, resourceVOList, null);
+                return new PermissionMenuVO(menuInfoList, getAuthPerm(resourceVOList), getAllAuthPerms());
+            }
         }
         return null;
     }
