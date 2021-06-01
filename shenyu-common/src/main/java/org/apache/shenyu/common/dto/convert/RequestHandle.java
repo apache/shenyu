@@ -43,10 +43,16 @@ public class RequestHandle {
 
     private ShenyuCookie cookie;
 
+    /**
+     * is empty config.
+     */
     public boolean isEmptyConfig() {
         return !isNotEmptyConfig();
     }
 
+    /**
+     * is not empty config.
+     */
     private boolean isNotEmptyConfig() {
         return header.isNotEmptyConfig() || parameter.isNotEmptyConfig() || cookie.isNotEmptyConfig();
     }
@@ -79,6 +85,9 @@ public class RequestHandle {
          */
         private Set<String> removeHeaderKeys;
 
+        /**
+         * is not empty config.
+         */
         public boolean isNotEmptyConfig() {
             return MapUtils.isNotEmpty(addHeaders) || MapUtils.isNotEmpty(replaceHeaderKeys)
                     || MapUtils.isNotEmpty(setHeaders) || CollectionUtils.isNotEmpty(removeHeaderKeys);
@@ -99,6 +108,9 @@ public class RequestHandle {
 
         private Set<String> removeParameterKeys;
 
+        /**
+         * is not empty config.
+         */
         public boolean isNotEmptyConfig() {
             return MapUtils.isNotEmpty(addParameters) || MapUtils.isNotEmpty(replaceParameterKeys)
                     || MapUtils.isNotEmpty(setParameters) || CollectionUtils.isNotEmpty(removeParameterKeys);
@@ -119,6 +131,9 @@ public class RequestHandle {
 
         private Set<String> removeCookieKeys;
 
+        /**
+         * is not empty config.
+         */
         public boolean isNotEmptyConfig() {
             return MapUtils.isNotEmpty(addCookies) || MapUtils.isNotEmpty(replaceCookieKeys)
                     || MapUtils.isNotEmpty(setCookies) || CollectionUtils.isNotEmpty(removeCookieKeys);
