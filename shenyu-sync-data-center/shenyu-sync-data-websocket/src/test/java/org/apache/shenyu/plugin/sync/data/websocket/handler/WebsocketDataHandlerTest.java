@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.shenyu.plugin.sync.data.websocket.handler;
 
 import static org.mockito.Mockito.mock;
@@ -32,7 +33,6 @@ import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
 
 public class WebsocketDataHandlerTest {
 
