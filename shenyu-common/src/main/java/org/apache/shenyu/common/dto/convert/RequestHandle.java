@@ -22,6 +22,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.commons.collections.MapUtils;
+import org.apache.shenyu.common.utils.CollectionUtils;
 
 import java.util.Map;
 import java.util.Set;
@@ -40,6 +42,14 @@ public class RequestHandle {
     private ShenyuRequestParameter parameter;
 
     private ShenyuCookie cookie;
+
+    public boolean isEmptyConfig() {
+        return !isNotEmptyConfig();
+    }
+
+    private boolean isNotEmptyConfig() {
+        return header.isNotEmptyConfig() || parameter.isNotEmptyConfig() || cookie.isNotEmptyConfig();
+    }
 
     @Getter
     @Setter
@@ -68,6 +78,11 @@ public class RequestHandle {
          * need to be removed headerKey.
          */
         private Set<String> removeHeaderKeys;
+
+        public boolean isNotEmptyConfig() {
+            return MapUtils.isNotEmpty(addHeaders) || MapUtils.isNotEmpty(replaceHeaderKeys)
+                    || MapUtils.isNotEmpty(setHeaders) || CollectionUtils.isNotEmpty(removeHeaderKeys);
+        }
     }
 
     @Getter
@@ -83,6 +98,11 @@ public class RequestHandle {
         private Map<String, String> setParameters;
 
         private Set<String> removeParameterKeys;
+
+        public boolean isNotEmptyConfig() {
+            return MapUtils.isNotEmpty(addParameters) || MapUtils.isNotEmpty(replaceParameterKeys)
+                    || MapUtils.isNotEmpty(setParameters) || CollectionUtils.isNotEmpty(removeParameterKeys);
+        }
     }
 
     @Getter
@@ -98,5 +118,10 @@ public class RequestHandle {
         private Map<String, String> setCookies;
 
         private Set<String> removeCookieKeys;
+
+        public boolean isNotEmptyConfig() {
+            return MapUtils.isNotEmpty(addCookies) || MapUtils.isNotEmpty(replaceCookieKeys)
+                    || MapUtils.isNotEmpty(setCookies) || CollectionUtils.isNotEmpty(removeCookieKeys);
+        }
     }
 }

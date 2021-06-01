@@ -53,8 +53,8 @@ public class RequestPlugin extends AbstractShenyuPlugin {
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         RequestHandle requestHandle = RequestRuleHandleCache.getInstance().obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        if (Objects.isNull(requestHandle)) {
-            log.error("uri request rule can not configuration.");
+        if (Objects.isNull(requestHandle) || requestHandle.isEmptyConfig()) {
+            log.error("request handler can not configuration：{}", requestHandle);
             return chain.execute(exchange);
         }
         ServerHttpRequest request = exchange.getRequest();
@@ -93,20 +93,16 @@ public class RequestPlugin extends AbstractShenyuPlugin {
         if (Objects.isNull(shenyuReqHeader)) {
             return headers;
         }
-        if (Objects.nonNull(shenyuReqHeader.getAddHeaders())
-                && MapUtils.isNotEmpty(shenyuReqHeader.getAddHeaders())) {
+        if (MapUtils.isNotEmpty(shenyuReqHeader.getAddHeaders())) {
             shenyuReqHeader.getAddHeaders().entrySet().forEach(s -> this.fillHeader(s, headers));
         }
-        if (Objects.nonNull(shenyuReqHeader.getSetHeaders())
-                && MapUtils.isNotEmpty(shenyuReqHeader.getSetHeaders())) {
+        if (MapUtils.isNotEmpty(shenyuReqHeader.getSetHeaders())) {
             shenyuReqHeader.getSetHeaders().entrySet().forEach(s -> this.fillHeader(s, headers));
         }
-        if (Objects.nonNull(shenyuReqHeader.getReplaceHeaderKeys())
-                && MapUtils.isNotEmpty(shenyuReqHeader.getReplaceHeaderKeys())) {
+        if (MapUtils.isNotEmpty(shenyuReqHeader.getReplaceHeaderKeys())) {
             shenyuReqHeader.getReplaceHeaderKeys().entrySet().forEach(s -> this.replaceHeaderKey(s, headers));
         }
-        if (Objects.nonNull(shenyuReqHeader.getRemoveHeaderKeys())
-                && CollectionUtils.isNotEmpty(shenyuReqHeader.getRemoveHeaderKeys())) {
+        if (CollectionUtils.isNotEmpty(shenyuReqHeader.getRemoveHeaderKeys())) {
             shenyuReqHeader.getRemoveHeaderKeys().forEach(headers::remove);
         }
         List<HttpCookie> cookies = getCookies(request, requestHandle).values().stream()
@@ -128,18 +124,16 @@ public class RequestPlugin extends AbstractShenyuPlugin {
         if (Objects.isNull(shenyuCookie)) {
             return cookies;
         }
-        if (Objects.nonNull(shenyuCookie.getAddCookies()) && MapUtils.isNotEmpty(shenyuCookie.getAddCookies())) {
+        if (MapUtils.isNotEmpty(shenyuCookie.getAddCookies())) {
             shenyuCookie.getAddCookies().entrySet().forEach(s -> this.fillCookie(s, cookies));
         }
-        if (Objects.nonNull(shenyuCookie.getSetCookies()) && MapUtils.isNotEmpty(shenyuCookie.getSetCookies())) {
+        if (MapUtils.isNotEmpty(shenyuCookie.getSetCookies())) {
             shenyuCookie.getSetCookies().entrySet().forEach(s -> this.fillCookie(s, cookies));
         }
-        if (Objects.nonNull(shenyuCookie.getReplaceCookieKeys())
-                && MapUtils.isNotEmpty(shenyuCookie.getReplaceCookieKeys())) {
+        if (MapUtils.isNotEmpty(shenyuCookie.getReplaceCookieKeys())) {
             shenyuCookie.getReplaceCookieKeys().entrySet().forEach(s -> this.replaceCookieKey(s, cookies));
         }
-        if (Objects.nonNull(shenyuCookie.getRemoveCookieKeys())
-                && CollectionUtils.isNotEmpty(shenyuCookie.getRemoveCookieKeys())) {
+        if (CollectionUtils.isNotEmpty(shenyuCookie.getRemoveCookieKeys())) {
             shenyuCookie.getRemoveCookieKeys().forEach(cookies::remove);
         }
         return cookies;
@@ -158,20 +152,16 @@ public class RequestPlugin extends AbstractShenyuPlugin {
         if (Objects.isNull(shenyuReqParameter)) {
             return queryParams;
         }
-        if (Objects.nonNull(shenyuReqParameter.getAddParameters())
-                && MapUtils.isNotEmpty(shenyuReqParameter.getAddParameters())) {
+        if (MapUtils.isNotEmpty(shenyuReqParameter.getAddParameters())) {
             shenyuReqParameter.getAddParameters().entrySet().forEach(s -> this.fillParameter(s, queryParams));
         }
-        if (Objects.nonNull(shenyuReqParameter.getSetParameters())
-                && MapUtils.isNotEmpty(shenyuReqParameter.getSetParameters())) {
+        if (MapUtils.isNotEmpty(shenyuReqParameter.getSetParameters())) {
             shenyuReqParameter.getSetParameters().entrySet().forEach(s -> this.fillParameter(s, queryParams));
         }
-        if (Objects.nonNull(shenyuReqParameter.getReplaceParameterKeys())
-                && MapUtils.isNotEmpty(shenyuReqParameter.getReplaceParameterKeys())) {
+        if (MapUtils.isNotEmpty(shenyuReqParameter.getReplaceParameterKeys())) {
             shenyuReqParameter.getReplaceParameterKeys().entrySet().forEach(s -> this.replaceParameterKey(s, queryParams));
         }
-        if (Objects.nonNull(shenyuReqParameter.getRemoveParameterKeys())
-                && CollectionUtils.isNotEmpty(shenyuReqParameter.getRemoveParameterKeys())) {
+        if (CollectionUtils.isNotEmpty(shenyuReqParameter.getRemoveParameterKeys())) {
             shenyuReqParameter.getRemoveParameterKeys().forEach(queryParams::remove);
         }
         return queryParams;
