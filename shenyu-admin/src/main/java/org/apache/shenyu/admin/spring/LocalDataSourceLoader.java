@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.service.init;
+package org.apache.shenyu.admin.spring;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;

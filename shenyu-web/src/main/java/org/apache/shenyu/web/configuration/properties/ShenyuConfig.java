@@ -15,24 +15,21 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.web.configuration;
+package org.apache.shenyu.web.configuration.properties;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
+import lombok.Data;
 
 /**
- * Rule out the url Filter.
+ * The type shenyu config.
  */
-@Getter
-@Setter
-@Component
-@ConfigurationProperties(prefix = "shenyu.exclude")
-public class ExcludePathProperties {
-    
-    private final List<String> paths = new ArrayList<>();
+@Data
+public class ShenyuConfig {
+
+    private Integer filterTime = 10;
+
+    private Boolean filterTimeEnable = false;
+
+    private Integer upstreamScheduledTime = 30;
+
+    private Integer fileMaxSize = 10;
 }

@@ -28,7 +28,7 @@ import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.service.impl.AppAuthServiceImpl;
-import org.apache.shenyu.admin.service.sync.SyncDataServiceImpl;
+import org.apache.shenyu.admin.service.impl.SyncDataServiceImpl;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.After;

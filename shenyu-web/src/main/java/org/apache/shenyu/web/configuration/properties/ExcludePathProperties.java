@@ -15,25 +15,24 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.interceptor.annotation;
+package org.apache.shenyu.web.configuration.properties;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * data permission annotation type.
+ * Rule out the url Filter.
  */
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface DataPermission {
+@Getter
+@Setter
+@Component
+@ConfigurationProperties(prefix = "shenyu.exclude")
+public class ExcludePathProperties {
 
-    /**
-     * record data type.
-     *
-     * @return dataType {@link String}
-     */
-    String dataType() default "";
-
+    private final List<String> paths = new ArrayList<>();
 }
