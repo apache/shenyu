@@ -78,7 +78,6 @@ public class PermissionServiceImpl implements PermissionService {
     @Override
     public PermissionMenuVO getPermissionMenu(final String token) {
         String userName = JwtUtils.getIssuer(token);
-        JwtUtils.setUserId(token);
         List<ResourceVO> resourceVOList = getResourceListByUserName(userName);
         if (CollectionUtils.isNotEmpty(resourceVOList)) {
             List<MenuInfo> menuInfoList = new ArrayList<>();

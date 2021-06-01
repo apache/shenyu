@@ -27,6 +27,7 @@ import lombok.Data;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.admin.config.properties.JwtProperties;
+import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.util.StringUtils;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
 
@@ -34,6 +35,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * JWT tools.
@@ -44,9 +46,10 @@ import java.util.Optional;
 public final class JwtUtils {
 
     /**
-     * user id.
+     * userId map.
+     *
      */
-    private static String userId;
+    private static ConcurrentHashMap<String, String> userIds = new ConcurrentHashMap<>();
 
     /**
      * get user id.
@@ -54,7 +57,8 @@ public final class JwtUtils {
      * @return userId {@link String}
      */
     public static String getUserId() {
-        return userId;
+        String userName = (String) SecurityUtils.getSubject().getPrincipal();
+        return Optional.ofNullable(userName).map(item -> userIds.get(item)).orElse(null);
     }
 
     /**
@@ -65,7 +69,7 @@ public final class JwtUtils {
     public static void setUserId(final String token) {
         DecodedJWT jwt = verifierToken(token);
         if (Optional.ofNullable(jwt).isPresent()) {
-            userId = jwt.getId();
+            userIds.put(jwt.getIssuer(), jwt.getId());
         }
     }
 

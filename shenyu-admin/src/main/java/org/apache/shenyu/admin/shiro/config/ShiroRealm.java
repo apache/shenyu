@@ -18,6 +18,7 @@
 package org.apache.shenyu.admin.shiro.config;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.shiro.bean.StatelessToken;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
@@ -73,7 +74,7 @@ public class ShiroRealm extends AuthorizingRealm {
 
         token.setUserName(userName);
 
-        if (JwtUtils.getUserId() == null) {
+        if (StringUtils.isEmpty(JwtUtils.getUserId())) {
             JwtUtils.setUserId(token.getToken());
         }
 
