@@ -15,25 +15,32 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.interceptor.annotation;
+package org.apache.shenyu.plugin.request.cache;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.apache.shenyu.common.dto.convert.RequestHandle;
+import org.apache.shenyu.plugin.base.cache.BaseHandleCache;
 
 /**
- * data permission annotation type.
+ * This is request rule handle cache.
  */
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface DataPermission {
+public final class RequestRuleHandleCache extends BaseHandleCache<String, RequestHandle> {
+
+    private RequestRuleHandleCache() {
+    }
 
     /**
-     * record data type.
+     * get instance.
      *
-     * @return dataType {@link String}
+     * @return the RequestRuleHandleCache
      */
-    String dataType() default "";
+    public static RequestRuleHandleCache getInstance() {
+        return RequestRuleHandleCacheInstance.INSTANCE;
+    }
 
+    /**
+     * The Instance.
+     */
+    static class RequestRuleHandleCacheInstance {
+        static final RequestRuleHandleCache INSTANCE = new RequestRuleHandleCache();
+    }
 }
