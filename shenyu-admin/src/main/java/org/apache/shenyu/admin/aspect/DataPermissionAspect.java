@@ -15,41 +15,44 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.interceptor;
+package org.apache.shenyu.admin.aspect;
 
 import lombok.SneakyThrows;
-import org.apache.shenyu.admin.interceptor.annotation.DataPermission;
+import org.apache.shenyu.admin.aspect.annotation.DataPermission;
+import org.apache.shenyu.admin.model.query.FilterQuery;
 import org.apache.shenyu.admin.service.DataPermissionService;
+import org.apache.shenyu.admin.utils.JwtUtils;
+import org.apache.shenyu.common.utils.CollectionUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.apache.shenyu.admin.model.query.RuleQuery;
-import org.apache.shenyu.admin.model.query.SelectorQuery;
-import org.apache.shenyu.admin.utils.JwtUtils;
-import org.apache.shenyu.common.constant.AdminConstants;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.Stream;
+
+import static org.apache.shenyu.common.constant.AdminConstants.DATA_PERMISSION_RULE;
+import static org.apache.shenyu.common.constant.AdminConstants.DATA_PERMISSION_SELECTOR;
 
 /**
- * data permission aop interceptor.
+ * Data permission aop aspect.
  */
 @Aspect
 @Component
-public class DataPermissionInterceptor {
+public class DataPermissionAspect {
 
     private final DataPermissionService dataPermissionService;
 
-    public DataPermissionInterceptor(final DataPermissionService dataPermissionService) {
+    public DataPermissionAspect(final DataPermissionService dataPermissionService) {
         this.dataPermissionService = dataPermissionService;
     }
 
     /**
      * define data permission aop point cut.
      */
-    @Pointcut("@annotation(org.apache.shenyu.admin.interceptor.annotation.DataPermission)")
+    @Pointcut("@annotation(org.apache.shenyu.admin.aspect.annotation.DataPermission)")
     public void dataPermissionCut() { }
 
 
@@ -72,21 +75,25 @@ public class DataPermissionInterceptor {
      * @return args {@link List}
      */
     private Object[] getFilterSQLData(final ProceedingJoinPoint point) {
+        DataPermission dataPermission = ((MethodSignature) point.getSignature()).getMethod().getAnnotation(DataPermission.class);
         Object[] args = point.getArgs();
+        if (dataPermission == null || args == null) {
+            return args;
+        }
         List<String> dataPermissionList = dataPermissionService.getDataPermission(JwtUtils.getUserId());
-        if (dataPermissionList.size() > 0) {
-            DataPermission dataPermission = ((MethodSignature) point.getSignature()).getMethod().getAnnotation(DataPermission.class);
-            if (dataPermission != null && args != null) {
-                if (dataPermission.dataType().equals(AdminConstants.DATA_PERMISSION_SELECTOR)) {
-                    SelectorQuery selectorQuery = (SelectorQuery) args[0];
-                    selectorQuery.setFilterIds(dataPermissionList);
-                    args[0] = selectorQuery;
-                } else if (dataPermission.dataType().equals(AdminConstants.DATA_PERMISSION_RULE)) {
-                    RuleQuery ruleQuery = (RuleQuery) args[0];
-                    ruleQuery.setFilterIds(dataPermissionList);
-                    args[0] = ruleQuery;
-                }
-            }
+        if (CollectionUtils.isEmpty(dataPermissionList)) {
+            return args;
+        }
+
+        switch (dataPermission.dataType()) {
+            case DATA_PERMISSION_SELECTOR:
+            case DATA_PERMISSION_RULE:
+                Stream.of(args)
+                        .filter(arg -> arg instanceof FilterQuery)
+                        .forEach(q -> ((FilterQuery) q).setFilterIds(dataPermissionList));
+                break;
+            default:
+                break;
         }
         return args;
     }

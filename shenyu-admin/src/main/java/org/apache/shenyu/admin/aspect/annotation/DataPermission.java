@@ -15,21 +15,25 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.web.config;
+package org.apache.shenyu.admin.aspect.annotation;
 
-import lombok.Data;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * The type shenyu config.
+ * data permission annotation type.
  */
-@Data
-public class ShenyuConfig {
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface DataPermission {
 
-    private Integer filterTime = 10;
+    /**
+     * record data type.
+     *
+     * @return dataType {@link String}
+     */
+    String dataType() default "";
 
-    private Boolean filterTimeEnable = false;
-
-    private Integer upstreamScheduledTime = 30;
-    
-    private Integer fileMaxSize = 10;
 }
