@@ -45,6 +45,8 @@ public class RequestHandle {
 
     /**
      * is empty config.
+     *
+     * @return empty is true
      */
     public boolean isEmptyConfig() {
         return !isNotEmptyConfig();
@@ -52,6 +54,8 @@ public class RequestHandle {
 
     /**
      * is not empty config.
+     *
+     * @return not empty is true
      */
     private boolean isNotEmptyConfig() {
         return header.isNotEmptyConfig() || parameter.isNotEmptyConfig() || cookie.isNotEmptyConfig();
@@ -87,6 +91,8 @@ public class RequestHandle {
 
         /**
          * is not empty config.
+         *
+         * @return not empty is true
          */
         public boolean isNotEmptyConfig() {
             return MapUtils.isNotEmpty(addHeaders) || MapUtils.isNotEmpty(replaceHeaderKeys)
@@ -110,6 +116,8 @@ public class RequestHandle {
 
         /**
          * is not empty config.
+         *
+         * @return not empty is true
          */
         public boolean isNotEmptyConfig() {
             return MapUtils.isNotEmpty(addParameters) || MapUtils.isNotEmpty(replaceParameterKeys)
@@ -133,6 +141,8 @@ public class RequestHandle {
 
         /**
          * is not empty config.
+         *
+         * @return not empty is true
          */
         public boolean isNotEmptyConfig() {
             return MapUtils.isNotEmpty(addCookies) || MapUtils.isNotEmpty(replaceCookieKeys)
