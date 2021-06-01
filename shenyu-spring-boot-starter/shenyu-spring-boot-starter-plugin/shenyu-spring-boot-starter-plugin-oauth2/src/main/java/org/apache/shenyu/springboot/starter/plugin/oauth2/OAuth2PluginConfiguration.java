@@ -24,11 +24,10 @@ import org.apache.shenyu.plugin.oauth2.filter.OAuth2Filter;
 import org.apache.shenyu.plugin.oauth2.filter.OAuth2PreFilter;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.security.reactive.PathRequest;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.FilterType;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
@@ -48,12 +47,12 @@ import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * The type motan plugin configuration.
+ * The type oauth2 plugin configuration.
  */
 @Configuration
 @ConditionalOnClass(OAuth2Plugin.class)
+@ConditionalOnProperty("spring.security")
 @EnableWebFluxSecurity
-@ComponentScan(excludeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class)})
 public class OAuth2PluginConfiguration {
 
     private static final List<ServerWebExchangeMatcher> MATCHERS = new CopyOnWriteArrayList<>();
@@ -116,8 +115,8 @@ public class OAuth2PluginConfiguration {
      * @return The OAuth2Filter.
      */
     @Bean
-    public OAuth2Filter oAuth2Filter(final ObjectProvider<ReactiveOAuth2AuthorizedClientService> authorizedClientService) {
-        return new OAuth2Filter(Objects.requireNonNull(authorizedClientService.getIfAvailable()));
+    public OAuth2Filter oAuth2Filter(final ReactiveOAuth2AuthorizedClientService authorizedClientService) {
+        return new OAuth2Filter(authorizedClientService);
     }
 
     /**

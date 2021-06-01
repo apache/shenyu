@@ -18,11 +18,9 @@
 package org.apache.shenyu.plugin.oauth2;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shenyu.common.dto.RuleData;
-import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -30,7 +28,13 @@ import reactor.core.publisher.Mono;
  * The OAuth2Plugin.
  */
 @Slf4j
-public class OAuth2Plugin extends AbstractShenyuPlugin {
+public class OAuth2Plugin implements ShenyuPlugin {
+
+    @Override
+    public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+        return chain.execute(exchange);
+    }
+
     @Override
     public int getOrder() {
         return PluginEnum.OAUTH2.getCode();
@@ -39,20 +43,6 @@ public class OAuth2Plugin extends AbstractShenyuPlugin {
     @Override
     public String named() {
         return PluginEnum.OAUTH2.getName();
-    }
-
-    /**
-     * Just execute the next plugin.
-     *
-     * @param exchange exchange the current server exchange {@linkplain ServerWebExchange}
-     * @param chain    chain the current chain  {@linkplain ServerWebExchange}
-     * @param selector selector    {@linkplain SelectorData}
-     * @param rule     rule    {@linkplain RuleData}
-     * @return void
-     */
-    @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
-        return chain.execute(exchange);
     }
 }
 

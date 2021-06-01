@@ -21,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.base.cache.BaseDataCache;
 import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
@@ -60,7 +61,7 @@ public class OAuth2PreFilter implements WebFilter {
      * Change OAuth2 skip status.
      */
     private void changeSkipOAuth2Status() {
-        PluginData pluginData = BaseDataCache.getInstance().obtainPluginData("oauth2");
+        PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(PluginEnum.OAUTH2.getName());
         boolean expect = ENABLE.get();
         if (pluginData == null || (expect == pluginData.getEnabled() && matchers.size() > 1)) {
             return;
@@ -69,7 +70,7 @@ public class OAuth2PreFilter implements WebFilter {
         if (expect != pluginData.getEnabled()) {
             Boolean skipStatus = pluginData.getEnabled();
             while (!ENABLE.compareAndSet(expect, skipStatus)) {
-                log.info("try to change OAuth2 skip status to {}", skipStatus);
+                log.info("the current OAuth2 skip status is {}, try to change OAuth2 skip status to {}", expect, skipStatus);
             }
             log.info("change OAuth2 skip status to {}", skipStatus);
         }
