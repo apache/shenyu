@@ -19,6 +19,7 @@ package org.apache.shenyu.plugin.global;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
@@ -63,7 +64,7 @@ public class GlobalPlugin implements ShenyuPlugin {
     
     @Override
     public int getOrder() {
-        return 0;
+        return PluginEnum.GLOBAL.getCode();
     }
     
     private ShenyuContext transformMap(final MultiValueMap<String, String> queryParams) {
@@ -76,6 +77,6 @@ public class GlobalPlugin implements ShenyuPlugin {
     
     @Override
     public String named() {
-        return "global";
+        return PluginEnum.GLOBAL.getName();
     }
 }

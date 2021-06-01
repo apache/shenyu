@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.service.impl;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.aspect.annotation.DataPermission;
-import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
 import org.apache.shenyu.admin.mapper.RuleConditionMapper;
@@ -127,7 +126,7 @@ public class SelectorServiceImpl implements SelectorService {
      * @return rows
      */
     @Override
-    @Transactional(rollbackFor = RuntimeException.class)
+    @Transactional(rollbackFor = Exception.class)
     public int createOrUpdate(final SelectorDTO selectorDTO) {
         int selectorCount;
         SelectorDO selectorDO = SelectorDO.buildSelectorDO(selectorDTO);
