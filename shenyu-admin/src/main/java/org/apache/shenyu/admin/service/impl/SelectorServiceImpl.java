@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.interceptor.annotation.DataPermission;
+import org.apache.shenyu.admin.aspect.annotation.DataPermission;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;

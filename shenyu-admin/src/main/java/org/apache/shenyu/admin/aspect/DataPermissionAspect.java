@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.interceptor;
+package org.apache.shenyu.admin.aspect;
 
 import lombok.SneakyThrows;
-import org.apache.shenyu.admin.interceptor.annotation.DataPermission;
+import org.apache.shenyu.admin.aspect.annotation.DataPermission;
 import org.apache.shenyu.admin.service.DataPermissionService;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -38,18 +38,18 @@ import java.util.List;
  */
 @Aspect
 @Component
-public class DataPermissionInterceptor {
+public class DataPermissionAspect {
 
     private final DataPermissionService dataPermissionService;
 
-    public DataPermissionInterceptor(final DataPermissionService dataPermissionService) {
+    public DataPermissionAspect(final DataPermissionService dataPermissionService) {
         this.dataPermissionService = dataPermissionService;
     }
 
     /**
      * define data permission aop point cut.
      */
-    @Pointcut("@annotation(org.apache.shenyu.admin.interceptor.annotation.DataPermission)")
+    @Pointcut("@annotation(org.apache.shenyu.admin.aspect.annotation.DataPermission)")
     public void dataPermissionCut() { }
 
 
