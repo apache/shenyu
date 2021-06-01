@@ -34,7 +34,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public class WebsocketDataHandlerTest {
+public final class WebsocketDataHandlerTest {
 
     private PluginDataSubscriber pluginDataSubscriber;
 
