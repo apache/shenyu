@@ -29,6 +29,7 @@ import org.apache.shenyu.admin.model.vo.PermissionMenuVO;
 import org.apache.shenyu.admin.service.impl.PermissionServiceImpl;
 import org.apache.shenyu.admin.service.impl.ResourceServiceImpl;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
+import org.apache.shiro.SecurityUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -69,8 +70,12 @@ public class PermissionServiceTest {
 
     private PermissionServiceImpl permissionServiceImplUnderTest;
 
+    @Mock
+    private org.apache.shiro.mgt.SecurityManager securityManager;
+
     @Before
     public void setUp() throws Exception {
+        SecurityUtils.setSecurityManager(securityManager);
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
         SpringBeanUtils.getInstance().setCfgContext(context);
         final DashboardUserDO dashboardUserDO = DashboardUserDO.builder().id("1").userName("admin").role(1).enabled(true).build();
