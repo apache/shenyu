@@ -15,11 +15,14 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.metrics.api;
+package org.apache.shenyu.metrics.spi;
+
+import org.apache.shenyu.spi.SPI;
 
 /**
  * Metrics register.
  */
+@SPI
 public interface MetricsRegister {
     
     /**
@@ -48,14 +51,6 @@ public interface MetricsRegister {
      * @param document document for histogram
      */
     void registerHistogram(String name, String[] labelNames, String document);
-    
-    /**
-     * Counter increment.
-     *
-     * @param name name
-     * @param labelValues label values
-     */
-    void counterIncrement(String name, String[] labelValues);
     
     /**
      * Counter increment by count.

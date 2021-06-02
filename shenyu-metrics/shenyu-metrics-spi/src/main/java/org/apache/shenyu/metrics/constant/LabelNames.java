@@ -5,7 +5,7 @@
  * The ASF licenses this file to You under the Apache License, Version 2.0
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
- *
+ *  
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
@@ -15,28 +15,25 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.metrics.spi;
-
-import org.apache.shenyu.metrics.config.MetricsConfig;
-import org.apache.shenyu.spi.SPI;
+package org.apache.shenyu.metrics.constant;
 
 /**
- * Metrics tracker manager.
+ * The Label names.
  */
-@SPI
-public interface MetricsBootService {
+public final class LabelNames {
     
     /**
-     * Start metrics tracker.
-     *
-     * @param metricsConfig metrics config
-     * @param metricsRegister the metrics register
+     * The constant REQUEST_TOTAL.
      */
-    void start(MetricsConfig metricsConfig, MetricsRegister metricsRegister);
+    public static final String REQUEST_TOTAL = "shenyu_request_total";
     
     /**
-     * Stop metrics tracker.
+     * The constant HTTP_REQUEST_TOTAL.
      */
-    void stop();
+    public static final String HTTP_REQUEST_TOTAL = "shenyu_http_request_total";
+    
+    /**
+     * The constant EXECUTE_LATENCY_NAME.
+     */
+    public static final String EXECUTE_LATENCY_NAME = "shenyu_execute_latency_millis";
 }
-
