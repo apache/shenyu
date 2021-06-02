@@ -47,7 +47,7 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
         if (RpcTypeEnum.HTTP.getName().equals(rpcType) || RpcTypeEnum.TARS.getName().equals(rpcType) || RpcTypeEnum.GRPC.getName().equals(rpcType)) {
             registerURI(metadata);
         }
-        log.info("{} Consul client register success: {}", rpcType, metadata.toString());
+        log.info("{} Consul client register success: {}", rpcType, metadata);
     }
     
     private void registerMetadata(final String rpcType, final String contextPath, final MetaDataRegisterDTO metadata) {
@@ -72,6 +72,6 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
         } else {
             nodeName = RegisterPathConstants.buildNodeName(metadata.getServiceName(), metadata.getMethodName());
         }
-        return nodeName.substring(1);
+        return nodeName.startsWith("/") ? nodeName.substring(1) : nodeName;
     }
 }
