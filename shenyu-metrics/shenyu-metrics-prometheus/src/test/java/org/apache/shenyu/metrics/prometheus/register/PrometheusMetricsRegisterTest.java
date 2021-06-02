@@ -19,16 +19,17 @@ package org.apache.shenyu.metrics.prometheus.register;
 
 import io.prometheus.client.Counter;
 import io.prometheus.client.Histogram;
-import java.util.Map;
 import org.apache.shenyu.common.utils.ReflectUtils;
 import org.junit.Test;
+
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 public final class PrometheusMetricsRegisterTest {
     
-    private final PrometheusMetricsRegister prometheusMetricsRegister = PrometheusMetricsRegister.getInstance();
+    private final PrometheusMetricsRegister prometheusMetricsRegister = new PrometheusMetricsRegister();
     
     @Test
     @SuppressWarnings("unchecked")
@@ -36,7 +37,7 @@ public final class PrometheusMetricsRegisterTest {
         String requestTotal = "request_total";
         String[] labelNames = new String[] {"name"};
         prometheusMetricsRegister.registerCounter(requestTotal, labelNames, "shenyu request total count");
-        prometheusMetricsRegister.counterIncrement(requestTotal, labelNames);
+        prometheusMetricsRegister.counterIncrement(requestTotal, labelNames, 1);
         prometheusMetricsRegister.counterIncrement(requestTotal, labelNames, 2);
         Map<String, Counter> counterMap = (Map<String, Counter>) ReflectUtils.getFieldValue(prometheusMetricsRegister, "COUNTER_MAP");
         assertThat(counterMap.size(), is(1));
