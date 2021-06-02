@@ -30,8 +30,6 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -79,26 +77,6 @@ public final class JsonUtils {
         } catch (IOException e) {
             log.warn("write to json string error: " + object, e);
             return "{}";
-        }
-    }
-
-    /**
-     * Json string to Object.
-     *
-     * @param json the json string
-     * @param clazz Class of object
-     * @param <T> the result class type
-     * @return the object
-     */
-    public static <T> T toObject(final String json, final Class<T> clazz) {
-        try {
-            if (StringUtils.isBlank(json) || clazz == null) {
-                return null;
-            }
-            return MAPPER.readValue(json, clazz);
-        } catch (IOException e) {
-            log.warn("read to object error: {}", json, e);
-            return null;
         }
     }
 
