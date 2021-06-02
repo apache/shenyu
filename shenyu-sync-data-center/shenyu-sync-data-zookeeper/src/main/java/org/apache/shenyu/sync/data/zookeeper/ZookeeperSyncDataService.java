@@ -35,7 +35,7 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
-import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
@@ -100,7 +100,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
             zkClient.createPersistent(pluginPath, true);
         }
         PluginData pluginData = null == zkClient.readData(pluginPath) ? null
-                : JsonUtils.toObject(zkClient.readData(pluginPath), PluginData.class);
+                : GsonUtils.getInstance().fromJson((String) zkClient.readData(pluginPath), PluginData.class);
         cachePluginData(pluginData);
         subscribePluginDataChanges(pluginPath, pluginName);
     }
@@ -112,7 +112,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
             childrenList.forEach(children -> {
                 String realPath = buildRealPath(selectorParentPath, children);
                 SelectorData selectorData = null == zkClient.readData(realPath) ? null
-                        : JsonUtils.toObject(zkClient.readData(realPath), SelectorData.class);
+                        : GsonUtils.getInstance().fromJson((String) zkClient.readData(realPath), SelectorData.class);
                 cacheSelectorData(selectorData);
                 subscribeSelectorDataChanges(realPath);
             });
@@ -127,7 +127,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
             childrenList.forEach(children -> {
                 String realPath = buildRealPath(ruleParent, children);
                 RuleData ruleData = null == zkClient.readData(realPath) ? null
-                        : JsonUtils.toObject(zkClient.readData(realPath), RuleData.class);
+                        : GsonUtils.getInstance().fromJson((String) zkClient.readData(realPath), RuleData.class);
                 cacheRuleData(ruleData);
                 subscribeRuleDataChanges(realPath);
             });
@@ -142,7 +142,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
             childrenList.forEach(children -> {
                 String realPath = buildRealPath(appAuthParent, children);
                 AppAuthData appAuthData = null == zkClient.readData(realPath) ? null
-                        : JsonUtils.toObject(zkClient.readData(realPath), AppAuthData.class);
+                        : GsonUtils.getInstance().fromJson((String) zkClient.readData(realPath), AppAuthData.class);
                 cacheAuthData(appAuthData);
                 subscribeAppAuthDataChanges(realPath);
             });
@@ -157,7 +157,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
             childrenList.forEach(children -> {
                 String realPath = buildRealPath(metaDataPath, children);
                 MetaData metaData = null == zkClient.readData(realPath) ? null
-                        : JsonUtils.toObject(zkClient.readData(realPath), MetaData.class);
+                        : GsonUtils.getInstance().fromJson((String) zkClient.readData(realPath), MetaData.class);
                 cacheMetaData(metaData);
                 subscribeMetaDataChanges(realPath);
             });
@@ -174,7 +174,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
                         addSubscribePath.stream().map(addPath -> {
                             String realPath = buildRealPath(parentPath, addPath);
                             SelectorData selectorData = null == zkClient.readData(realPath) ? null
-                                    : JsonUtils.toObject(zkClient.readData(realPath), SelectorData.class);
+                                    : GsonUtils.getInstance().fromJson((String) zkClient.readData(realPath), SelectorData.class);
                             cacheSelectorData(selectorData);
                             return realPath;
                         }).forEach(this::subscribeSelectorDataChanges);
@@ -190,7 +190,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
                         addSubscribePath.stream().map(addPath -> {
                             String realPath = buildRealPath(parentPath, addPath);
                             RuleData ruleData = null == zkClient.readData(realPath) ? null
-                                    : JsonUtils.toObject(zkClient.readData(realPath), RuleData.class);
+                                    : GsonUtils.getInstance().fromJson((String) zkClient.readData(realPath), RuleData.class);
                             cacheRuleData(ruleData);
                             return realPath;
                         }).forEach(this::subscribeRuleDataChanges);
@@ -204,7 +204,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
                         addSubscribePath.stream().map(children -> {
                             final String realPath = buildRealPath(parentPath, children);
                             AppAuthData appAuthData = null == zkClient.readData(realPath) ? null
-                                    : JsonUtils.toObject(zkClient.readData(realPath), AppAuthData.class);
+                                    : GsonUtils.getInstance().fromJson((String) zkClient.readData(realPath), AppAuthData.class);
                             cacheAuthData(appAuthData);
                             return realPath;
                         }).forEach(this::subscribeAppAuthDataChanges);
@@ -218,7 +218,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
                         addSubscribePath.stream().map(children -> {
                             final String realPath = buildRealPath(parentPath, children);
                             MetaData metaData = null == zkClient.readData(realPath) ? null
-                                    : JsonUtils.toObject(zkClient.readData(realPath), MetaData.class);
+                                    : GsonUtils.getInstance().fromJson((String) zkClient.readData(realPath), MetaData.class);
                             cacheMetaData(metaData);
                             return realPath;
                         }).forEach(this::subscribeMetaDataChanges);

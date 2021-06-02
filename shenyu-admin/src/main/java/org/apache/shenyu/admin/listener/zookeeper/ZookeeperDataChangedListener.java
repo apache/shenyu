@@ -27,7 +27,7 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
-import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.common.utils.GsonUtils;
 
 import java.net.URLEncoder;
 import java.util.List;
@@ -130,7 +130,7 @@ public class ZookeeperDataChangedListener implements DataChangedListener {
     
     private void insertZkNode(final String path, final Object data) {
         createZkNode(path);
-        zkClient.writeData(path, null == data ? "" : JsonUtils.toJson(data));
+        zkClient.writeData(path, null == data ? "" : GsonUtils.getInstance().toJson(data));
     }
     
     private void createZkNode(final String path) {

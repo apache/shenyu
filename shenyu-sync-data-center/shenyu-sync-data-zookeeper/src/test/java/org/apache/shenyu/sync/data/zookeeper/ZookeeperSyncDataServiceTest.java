@@ -26,7 +26,7 @@ import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.utils.JsonUtils;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
@@ -94,23 +94,23 @@ public final class ZookeeperSyncDataServiceTest {
         //mock plugin data & method
         PluginData pluginData = PluginData.builder().name(MOCK_PLUGIN_NAME).enabled(Boolean.FALSE).build();
         when(zkClient.exists(anyString())).thenReturn(Boolean.FALSE);
-        when(zkClient.readData(MOCK_PLUGIN_PATH)).thenReturn(JsonUtils.toJson(pluginData));
+        when(zkClient.readData(MOCK_PLUGIN_PATH)).thenReturn(GsonUtils.getInstance().toJson(pluginData));
         when(zkClient.getChildren(MOCK_PLUGIN_PARENT_PATH)).thenReturn(Lists.newArrayList(MOCK_PLUGIN_NAME));
         //mock selector data & method
         SelectorData selectorData = SelectorData.builder().name(MOCK_SELECTOR_NAME).enabled(Boolean.FALSE).build();
-        when(zkClient.readData(MOCK_SELECTOR_PATH)).thenReturn(JsonUtils.toJson(selectorData));
+        when(zkClient.readData(MOCK_SELECTOR_PATH)).thenReturn(GsonUtils.getInstance().toJson(selectorData));
         when(zkClient.getChildren(MOCK_SELECTOR_PARENT_PATH)).thenReturn(Lists.newArrayList(MOCK_SELECTOR_NAME));
         //mock rule data & method
         RuleData ruleData = RuleData.builder().name(MOCK_RULE_NAME).enabled(Boolean.FALSE).build();
-        when(zkClient.readData(MOCK_RULE_PATH)).thenReturn(JsonUtils.toJson(ruleData));
+        when(zkClient.readData(MOCK_RULE_PATH)).thenReturn(GsonUtils.getInstance().toJson(ruleData));
         when(zkClient.getChildren(MOCK_RULE_PARENT_PATH)).thenReturn(Lists.newArrayList(MOCK_RULE_NAME));
         //mock auth data & method
         AppAuthData appAuthData = AppAuthData.builder().appKey(MOCK_APP_AUTH_KEY).enabled(Boolean.FALSE).build();
-        when(zkClient.readData(MOCK_APP_AUTH_PATH)).thenReturn(JsonUtils.toJson(appAuthData));
+        when(zkClient.readData(MOCK_APP_AUTH_PATH)).thenReturn(GsonUtils.getInstance().toJson(appAuthData));
         when(zkClient.getChildren(MOCK_APP_AUTH_PARENT_PATH)).thenReturn(Lists.newArrayList(MOCK_APP_AUTH_KEY));
         //mock meta data & method
         MetaData metaData = MetaData.builder().id(MOCK_META_DATA_ID).enabled(Boolean.FALSE).build();
-        when(zkClient.readData(MOCK_META_DATA_PATH)).thenReturn(JsonUtils.toJson(metaData));
+        when(zkClient.readData(MOCK_META_DATA_PATH)).thenReturn(GsonUtils.getInstance().toJson(metaData));
         when(zkClient.getChildren(MOCK_META_DATA_PARENT_PATH)).thenReturn(Lists.newArrayList(MOCK_META_DATA_ID));
     }
 
