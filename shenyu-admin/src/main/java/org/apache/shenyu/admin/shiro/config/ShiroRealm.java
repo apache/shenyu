@@ -25,6 +25,7 @@ import org.apache.shenyu.admin.service.DashboardUserService;
 import org.apache.shenyu.admin.service.PermissionService;
 import org.apache.shenyu.admin.shiro.bean.StatelessToken;
 import org.apache.shenyu.admin.utils.JwtUtils;
+import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.SimpleAuthenticationInfo;
@@ -76,7 +77,7 @@ public class ShiroRealm extends AuthorizingRealm {
             return null;
         }
 
-        UserInfo userInfo = checkUserTokenIsValid(token);
+        UserInfo userInfo = getUserInfoByToken(token);
 
         return new SimpleAuthenticationInfo(userInfo, token, this.getName());
     }
@@ -87,16 +88,21 @@ public class ShiroRealm extends AuthorizingRealm {
      * @param token user token
      * @return userInfo {@link UserInfo}
      */
-    private UserInfo checkUserTokenIsValid(final String token) {
+    private UserInfo getUserInfoByToken(final String token) {
+
         String userName = JwtUtils.getIssuer(token);
-        UserInfo userInfo = UserInfo.builder().build();
-        if (StringUtils.isNotEmpty(userName)) {
-            userInfo.setUserName(userName);
-            DashboardUserVO dashboardUserVO = dashboardUserService.findByUserName(userName);
-            if (dashboardUserVO != null) {
-                userInfo.setUserId(dashboardUserVO.getId());
-            }
+        if (StringUtils.isEmpty(userName)) {
+            throw new AuthenticationException("userName is null");
         }
-        return userInfo;
+
+        DashboardUserVO dashboardUserVO = dashboardUserService.findByUserName(userName);
+        if (dashboardUserVO == null) {
+            throw new AuthenticationException(String.format("userName(%s) can not be found.", userName));
+        }
+
+        return UserInfo.builder()
+                .userName(userName)
+                .userId(dashboardUserVO.getId())
+                .build();
     }
 }
