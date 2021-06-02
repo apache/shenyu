@@ -15,30 +15,25 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.admin.shiro.bean;
+package org.apache.shenyu.admin.model.custom;
 
-import org.apache.shiro.authc.AuthenticationToken;
+import lombok.Builder;
+import lombok.Data;
 
-/**
- * custom Stateless AuthenticationToken.
+/*
+ * this is user info.
  */
-public class StatelessToken implements AuthenticationToken {
+@Data
+@Builder
+public class UserInfo {
 
-    private static final long serialVersionUID = -482325250555312708L;
+    /**
+     * user name.
+     */
+    private String userName;
 
-    private final String token;
-
-    public StatelessToken(final String token) {
-        this.token = token;
-    }
-
-    @Override
-    public Object getPrincipal() {
-        return token;
-    }
-
-    @Override
-    public Object getCredentials() {
-        return token;
-    }
+    /**
+     * user id.
+     */
+    private String userId;
 }

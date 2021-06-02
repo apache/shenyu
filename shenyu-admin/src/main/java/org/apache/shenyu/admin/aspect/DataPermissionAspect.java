@@ -80,7 +80,7 @@ public class DataPermissionAspect {
         if (dataPermission == null || args == null) {
             return args;
         }
-        List<String> dataPermissionList = dataPermissionService.getDataPermission(JwtUtils.getUserId());
+        List<String> dataPermissionList = dataPermissionService.getDataPermission(JwtUtils.getUserInfo().getUserId());
         if (CollectionUtils.isEmpty(dataPermissionList)) {
             return args;
         }
