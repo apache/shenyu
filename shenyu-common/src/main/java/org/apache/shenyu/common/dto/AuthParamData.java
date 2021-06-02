@@ -32,6 +32,4 @@ public class AuthParamData {
     private String appName;
 
     private String appParam;
-
-
 }
