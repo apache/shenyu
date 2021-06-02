@@ -44,5 +44,4 @@ public class PluginData {
     private Integer role;
 
     private Boolean enabled;
-
 }

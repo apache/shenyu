@@ -92,7 +92,7 @@ public class DataPermissionServiceImpl implements DataPermissionService {
      * @return int
      */
     @Override
-    @Transactional(rollbackFor = RuntimeException.class)
+    @Transactional(rollbackFor = Exception.class)
     public int createSelector(final DataPermissionDTO dataPermissionDTO) {
         List<DataPermissionDO> allDOList = new LinkedList<>();
 
@@ -123,7 +123,7 @@ public class DataPermissionServiceImpl implements DataPermissionService {
      * @return int  effect rows
      */
     @Override
-    @Transactional(rollbackFor = RuntimeException.class)
+    @Transactional(rollbackFor = Exception.class)
     public int deleteSelector(final DataPermissionDTO dataPermissionDTO) {
         List<String> allRuleIds = ruleMapper.findBySelectorId(dataPermissionDTO.getDataId())
                 .stream()
@@ -207,7 +207,7 @@ public class DataPermissionServiceImpl implements DataPermissionService {
      * @return int, effect rows count
      */
     @Override
-    @Transactional(rollbackFor = RuntimeException.class)
+    @Transactional(rollbackFor = Exception.class)
     public int createRule(final DataPermissionDTO dataPermissionDTO) {
 
         RuleDO ruleDO = ruleMapper.selectById(dataPermissionDTO.getDataId());
@@ -236,7 +236,7 @@ public class DataPermissionServiceImpl implements DataPermissionService {
      * @return effect rows count
      */
     @Override
-    @Transactional(rollbackFor = RuntimeException.class)
+    @Transactional(rollbackFor = Exception.class)
     public int deleteRule(final DataPermissionDTO dataPermissionDTO) {
         return dataPermissionMapper.deleteByUniqueKey(dataPermissionDTO.getDataId(), dataPermissionDTO.getUserId(),
                 AdminDataPermissionTypeEnum.RULE.ordinal());

@@ -58,8 +58,7 @@ public class WafPlugin extends AbstractShenyuPlugin {
             return WebFluxResultUtils.result(exchange, error);
         }
         String handle = rule.getHandle();
-        WafHandle wafHandle = WafRuleHandleCache.getInstance()
-                .obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        WafHandle wafHandle = WafRuleHandleCache.getInstance().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (Objects.isNull(wafHandle) || StringUtils.isBlank(wafHandle.getPermission())) {
             log.error("waf handler can not configuration：{}", handle);
             return chain.execute(exchange);

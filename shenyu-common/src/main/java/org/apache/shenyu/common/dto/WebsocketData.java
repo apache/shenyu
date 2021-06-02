@@ -54,5 +54,4 @@ public class WebsocketData<T> {
      * {@link AppAuthData}、{@link ConditionData}、{@link PluginData}、{@link RuleData}、{@link SelectorData}.
      */
     private List<T> data;
-
 }
