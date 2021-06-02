@@ -54,10 +54,11 @@ public class OAuth2Filter implements WebFilter {
             .<OAuth2AuthorizedClient>flatMap(token ->
                 authorizedClientService.loadAuthorizedClient(token.getAuthorizedClientRegistrationId(), token.getName())
             )
-            .flatMap(t -> {
-                serverWebExchange.getAttributes().put("principal", t.getPrincipalName());
+            .flatMap(client -> {
+                serverWebExchange.getAttributes().put("principal", client.getPrincipalName());
                 return Mono.empty();
-            }).thenEmpty(webFilterChain.filter(this.addTokenToHeader(serverWebExchange)));
+            })
+            .thenEmpty(webFilterChain.filter(this.addTokenToHeader(serverWebExchange)));
     }
 
     /**

@@ -28,6 +28,7 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
+import org.springframework.web.server.handler.DefaultWebFilterChain;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -42,7 +43,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 public class OAuth2PreFilter implements WebFilter {
 
-    private static final AtomicBoolean ENABLE = new AtomicBoolean(true);
+    private static final AtomicBoolean ENABLE = new AtomicBoolean(false);
 
     private final List<ServerWebExchangeMatcher> matchers;
 

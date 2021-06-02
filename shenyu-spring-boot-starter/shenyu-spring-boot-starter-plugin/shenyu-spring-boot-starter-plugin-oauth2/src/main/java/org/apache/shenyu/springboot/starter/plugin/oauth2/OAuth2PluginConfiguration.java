@@ -24,14 +24,20 @@ import org.apache.shenyu.plugin.oauth2.filter.OAuth2Filter;
 import org.apache.shenyu.plugin.oauth2.filter.OAuth2PreFilter;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.security.reactive.PathRequest;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.core.userdetails.MapReactiveUserDetailsService;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
@@ -42,6 +48,7 @@ import org.springframework.security.web.server.util.matcher.OrServerWebExchangeM
 import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -51,9 +58,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 @Configuration
 @ConditionalOnClass(OAuth2Plugin.class)
-@ConditionalOnProperty("spring.security")
 @EnableWebFluxSecurity
 public class OAuth2PluginConfiguration {
+
+    private static final String DEFAULT_CLIENT_REGISTRATION_BEAN = "org.apache.shenyu.springboot.starter.plugin.oauth2.defaultReactiveClientRegistrationRepository";
 
     private static final List<ServerWebExchangeMatcher> MATCHERS = new CopyOnWriteArrayList<>();
 
@@ -73,18 +81,47 @@ public class OAuth2PluginConfiguration {
         return new OAuth2Plugin();
     }
 
+    @Bean
+    @ConditionalOnMissingBean(ReactiveAuthenticationManager.class)
+    MapReactiveUserDetailsService userDetailsService() {
+        UserDetails userDetails = User
+            .withDefaultPasswordEncoder()
+            .username("shenyu")
+            .password("shenyu")
+            .roles("USER")
+            .disabled(true)
+            .build();
+        return new MapReactiveUserDetailsService(userDetails);
+    }
+
     /**
      * Build SecurityWebFilterChain.
      *
      * @param http                    The ServerHttpSecurity Instance
      * @param oAuth2FilterProvider    The OAuth2Filter Instance
      * @param oAuth2PreFilterProvider The OAuth2PreFilter Instance
+     * @param context                 The ApplicationContext Instance
      * @return The SecurityWebFilterChain
      */
     @Bean
     public SecurityWebFilterChain getSecurityWebFilterChain(final ServerHttpSecurity http, final ObjectProvider<OAuth2Filter> oAuth2FilterProvider,
-                                                            final ObjectProvider<OAuth2PreFilter> oAuth2PreFilterProvider) {
-        http
+                                                            final ObjectProvider<OAuth2PreFilter> oAuth2PreFilterProvider, final ApplicationContext context) {
+        String[] names = context.getBeanNamesForType(ReactiveClientRegistrationRepository.class);
+        boolean exists = Arrays.asList(names).contains(DEFAULT_CLIENT_REGISTRATION_BEAN);
+        if (exists) {
+            return http.csrf()
+                .disable()
+                .httpBasic()
+                .disable()
+                .formLogin()
+                .disable()
+                .authorizeExchange()
+                .anyExchange()
+                .permitAll()
+                .and()
+                .build();
+        }
+        return http
             .csrf()
             .disable()
             .oauth2Login()
@@ -104,8 +141,19 @@ public class OAuth2PluginConfiguration {
                     .authenticated()
                     .anyExchange()
                     .permitAll()
-            );
-        return http.build();
+            )
+            .build();
+    }
+
+    /**
+     * Build OAuth2PreFilter.
+     *
+     * @return The OAuth2PreFilter
+     */
+    @Bean
+    @ConditionalOnMissingBean(value = ReactiveClientRegistrationRepository.class, name = DEFAULT_CLIENT_REGISTRATION_BEAN)
+    public OAuth2PreFilter oAuth2PreFilter() {
+        return new OAuth2PreFilter(MATCHERS);
     }
 
     /**
@@ -115,17 +163,10 @@ public class OAuth2PluginConfiguration {
      * @return The OAuth2Filter.
      */
     @Bean
-    public OAuth2Filter oAuth2Filter(final ReactiveOAuth2AuthorizedClientService authorizedClientService) {
-        return new OAuth2Filter(authorizedClientService);
-    }
-
-    /**
-     * Build OAuth2PreFilter.
-     * @return The OAuth2PreFilter
-     */
-    @Bean
-    public OAuth2PreFilter oAuth2PreFilter() {
-        return new OAuth2PreFilter(MATCHERS);
+    @DependsOn("oAuth2PreFilter")
+    @ConditionalOnMissingBean(value = ReactiveClientRegistrationRepository.class, name = DEFAULT_CLIENT_REGISTRATION_BEAN)
+    public OAuth2Filter oAuth2Filter(final ObjectProvider<ReactiveOAuth2AuthorizedClientService> authorizedClientService) {
+        return new OAuth2Filter(authorizedClientService.getIfAvailable());
     }
 
     /**
@@ -133,7 +174,8 @@ public class OAuth2PluginConfiguration {
      *
      * @return The clientRegistration instance.
      */
-    @Bean
+    @Bean(DEFAULT_CLIENT_REGISTRATION_BEAN)
+    @ConditionalOnMissingBean(ReactiveClientRegistrationRepository.class)
     public ReactiveClientRegistrationRepository reactiveClientRegistrationRepository() {
 //        ClientRegistration.Builder builder = ClientRegistrations.fromIssuerLocation("");
 //        builder.registrationId()
