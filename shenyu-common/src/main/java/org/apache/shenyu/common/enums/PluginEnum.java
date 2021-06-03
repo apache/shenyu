@@ -150,6 +150,7 @@ public enum PluginEnum {
      */
     RESPONSE(100, 0, "response");
 
+
     private final int code;
 
     private final int role;

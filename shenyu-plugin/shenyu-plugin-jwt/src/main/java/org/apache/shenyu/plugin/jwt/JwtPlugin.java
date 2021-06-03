@@ -93,6 +93,7 @@ public class JwtPlugin extends AbstractShenyuPlugin {
         return finalAuthorization.contains(AUTH2_TOKEN) ? finalAuthorization.split(" ")[1] : finalAuthorization;
     }
 
+
     private Mono<Void> checkAuthorization(final ServerWebExchange exchange,
                                           final ShenyuPluginChain chain,
                                           final String authorization,
