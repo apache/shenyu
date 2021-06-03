@@ -53,6 +53,8 @@
         <module>shenyu-plugin-dubbo-common</module>
         <module>shenyu-plugin-motan</module>
         <module>shenyu-plugin-logging</module>
-        <module>shenyu-plugin-paramresponse</module>
+        <module>shenyu-plugin-param-response</module>
+        <module>shenyu-plugin-request</module>
+        <module>shenyu-plugin-jwt</module>
     </modules>
 </project>

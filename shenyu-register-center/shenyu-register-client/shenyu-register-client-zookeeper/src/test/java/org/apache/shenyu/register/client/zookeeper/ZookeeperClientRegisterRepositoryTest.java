@@ -57,7 +57,7 @@ public class ZookeeperClientRegisterRepositoryTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        zkServer = new TestingServer(2181, true);
+        zkServer = new TestingServer(1181, true);
     }
 
     @AfterClass
@@ -175,7 +175,7 @@ public class ZookeeperClientRegisterRepositoryTest {
     @Test
     public void testInit() {
         ShenyuRegisterCenterConfig config = new ShenyuRegisterCenterConfig();
-        config.setServerLists("127.0.0.1:2181");
+        config.setServerLists("127.0.0.1:1181");
         repository.init(config);
     }
 

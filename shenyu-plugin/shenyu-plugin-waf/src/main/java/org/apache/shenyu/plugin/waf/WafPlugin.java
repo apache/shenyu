@@ -58,8 +58,7 @@ public class WafPlugin extends AbstractShenyuPlugin {
             return WebFluxResultUtils.result(exchange, error);
         }
         String handle = rule.getHandle();
-        WafHandle wafHandle = WafRuleHandleCache.getInstance()
-                .obtainHandle(CacheKeyUtils.INST.getKey(rule));
+        WafHandle wafHandle = WafRuleHandleCache.getInstance().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (Objects.isNull(wafHandle) || StringUtils.isBlank(wafHandle.getPermission())) {
             log.error("waf handler can not configuration：{}", handle);
             return chain.execute(exchange);
@@ -73,12 +72,12 @@ public class WafPlugin extends AbstractShenyuPlugin {
     }
 
     @Override
-    protected Mono<Void> handleSelectorIsNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+    protected Mono<Void> handleSelectorIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return doExecute(exchange, chain, null, null);
     }
 
     @Override
-    protected Mono<Void> handleRuleIsNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+    protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return doExecute(exchange, chain, null, null);
     }
 

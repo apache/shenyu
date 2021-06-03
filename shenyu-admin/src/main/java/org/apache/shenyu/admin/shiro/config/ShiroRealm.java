@@ -18,7 +18,14 @@
 package org.apache.shenyu.admin.shiro.config;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shenyu.admin.model.custom.UserInfo;
+import org.apache.shenyu.admin.model.vo.DashboardUserVO;
+import org.apache.shenyu.admin.service.DashboardUserService;
+import org.apache.shenyu.admin.service.PermissionService;
 import org.apache.shenyu.admin.shiro.bean.StatelessToken;
+import org.apache.shenyu.admin.utils.JwtUtils;
+import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.SimpleAuthenticationInfo;
@@ -26,8 +33,6 @@ import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
-import org.apache.shenyu.admin.service.PermissionService;
-import org.apache.shenyu.admin.utils.JwtUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
@@ -40,8 +45,11 @@ public class ShiroRealm extends AuthorizingRealm {
 
     private final PermissionService permissionService;
 
-    public ShiroRealm(final PermissionService permissionService) {
+    private final DashboardUserService dashboardUserService;
+
+    public ShiroRealm(final PermissionService permissionService, final DashboardUserService dashboardUserService) {
         this.permissionService = permissionService;
+        this.dashboardUserService = dashboardUserService;
     }
 
     @Override
@@ -51,8 +59,8 @@ public class ShiroRealm extends AuthorizingRealm {
 
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(final PrincipalCollection principalCollection) {
-        String userName = (String) principalCollection.getPrimaryPrincipal();
-        Set<String> permissions = permissionService.getAuthPermByUserName(userName);
+        UserInfo userInfo = (UserInfo) principalCollection.getPrimaryPrincipal();
+        Set<String> permissions = permissionService.getAuthPermByUserName(userInfo.getUserName());
         if (CollectionUtils.isEmpty(permissions)) {
             return null;
         }
@@ -64,19 +72,37 @@ public class ShiroRealm extends AuthorizingRealm {
 
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(final AuthenticationToken authenticationToken) {
-        StatelessToken token = (StatelessToken) authenticationToken;
-        if (token == null || token.getToken() == null) {
+        String token = (String) authenticationToken.getCredentials();
+        if (StringUtils.isEmpty(token)) {
             return null;
         }
 
-        String userName = JwtUtils.getIssuer(token.getToken());
+        UserInfo userInfo = getUserInfoByToken(token);
 
-        token.setUserName(userName);
+        return new SimpleAuthenticationInfo(userInfo, token, this.getName());
+    }
 
-        if (JwtUtils.getUserId() == null) {
-            JwtUtils.setUserId(token.getToken());
+    /**
+     * check token valid.
+     *
+     * @param token user token
+     * @return userInfo {@link UserInfo}
+     */
+    private UserInfo getUserInfoByToken(final String token) {
+
+        String userName = JwtUtils.getIssuer(token);
+        if (StringUtils.isEmpty(userName)) {
+            throw new AuthenticationException("userName is null");
         }
 
-        return new SimpleAuthenticationInfo(userName, token.getToken(), this.getName());
+        DashboardUserVO dashboardUserVO = dashboardUserService.findByUserName(userName);
+        if (dashboardUserVO == null) {
+            throw new AuthenticationException(String.format("userName(%s) can not be found.", userName));
+        }
+
+        return UserInfo.builder()
+                .userName(userName)
+                .userId(dashboardUserVO.getId())
+                .build();
     }
 }

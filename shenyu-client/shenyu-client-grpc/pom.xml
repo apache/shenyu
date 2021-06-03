@@ -27,10 +27,6 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-client-grpc</artifactId>
 
-    <properties>
-        <grpc.version>1.33.1</grpc.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -39,7 +35,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-common</artifactId>
+            <artifactId>shenyu-protocol-grpc</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

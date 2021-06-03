@@ -18,20 +18,17 @@
 
 package org.apache.shenyu.admin.config;
 
-import com.alibaba.nacos.api.config.ConfigService;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.curator.test.TestingServer;
 import org.apache.shenyu.admin.AbstractConfigurationTest;
 import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
-import org.apache.shenyu.admin.listener.nacos.NacosMockConfigService;
 import org.apache.shenyu.admin.service.MetaDataService;
 import org.apache.shenyu.admin.service.PluginService;
 import org.apache.shenyu.admin.service.RuleService;
 import org.apache.shenyu.admin.service.SelectorService;
 import org.apache.shenyu.admin.service.SyncDataService;
 import org.apache.shenyu.admin.service.impl.AppAuthServiceImpl;
-import org.apache.shenyu.admin.service.sync.SyncDataServiceImpl;
-import org.junit.Before;
+import org.apache.shenyu.admin.service.impl.SyncDataServiceImpl;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.After;
@@ -54,8 +51,6 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
     private static TestingServer zkServer;
 
     private final ZkClient zkClient = new ZkClient("127.0.0.1:21810");
-
-    private ConfigService configService;
 
     @InjectMocks
     private AppAuthServiceImpl appAuthService;
@@ -80,11 +75,6 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
         zkServer = new TestingServer(21810, true);
     }
 
-    @Before
-    public void setUp() {
-        configService = new NacosMockConfigService();
-    }
-
     @Test
     public void testHttpLongPollingDataChangedListener() {
         final HttpSyncProperties httpSyncProperties = new HttpSyncProperties();
@@ -104,12 +94,6 @@ public final class DataSyncConfigurationTest extends AbstractConfigurationTest {
                 ruleService, eventPublisher, metaDataService);
         DataSyncConfiguration.ZookeeperListener zookeeperListener = new DataSyncConfiguration.ZookeeperListener();
         assertNotNull(zookeeperListener.zookeeperDataInit(zkClient, syncDataService));
-    }
-
-    @Test
-    public void testNacosDataChangedListener() {
-        DataSyncConfiguration.NacosListener nacosListener = new DataSyncConfiguration.NacosListener();
-        assertNotNull(nacosListener.nacosDataChangedListener(configService));
     }
 
     @Test

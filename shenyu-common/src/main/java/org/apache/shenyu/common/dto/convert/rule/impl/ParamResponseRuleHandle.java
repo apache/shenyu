@@ -26,6 +26,7 @@ import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * The type ParamResponse rule handle.
@@ -41,24 +42,23 @@ public class ParamResponseRuleHandle implements RuleHandle {
     /**
      * add header map
      */
-    private Map<String,String> addHeaderMap;
+    private Map<String,String> addHeaders;
 
     /**
      * set header map
      */
-    private Map<String,String> setHeaderMap;
+    private Map<String,String> setHeaders;
 
     /**
      * replace header map
      * key: oldHeaderKey, value: newHeaderKey.
      */
-    private Map<String,String> replaceHeaderMap;
+    private Map<String,String> replaceHeaderKeys;
 
     /**
      * remove header List
      */
-    private List<String> removeHeaderList;
-
+    private Set<String> removeHeaderKeys;
 
     /**
      * http response status code

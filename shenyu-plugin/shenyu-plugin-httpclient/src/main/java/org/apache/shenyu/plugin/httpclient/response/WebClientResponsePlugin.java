@@ -64,13 +64,8 @@ public class WebClientResponsePlugin implements ShenyuPlugin {
                 Object error = ShenyuResultWrap.error(ShenyuResultEnum.SERVICE_TIMEOUT.getCode(), ShenyuResultEnum.SERVICE_TIMEOUT.getMsg(), null);
                 return WebFluxResultUtils.result(exchange, error);
             }
-//            response.setStatusCode(clientResponse.statusCode());
-            if(MapUtils.isNotEmpty(clientResponse.cookies())){
-                response.getCookies().putAll(clientResponse.cookies());
-            }
-            if(Objects.nonNull(clientResponse.headers())){
-                response.getHeaders().putAll(clientResponse.headers().asHttpHeaders());
-            }
+            response.getCookies().putAll(clientResponse.cookies());
+            response.getHeaders().putAll(clientResponse.headers().asHttpHeaders());
             return response.writeWith(clientResponse.body(BodyExtractors.toDataBuffers())).doOnCancel(() -> clean(exchange));
         }));
     }
