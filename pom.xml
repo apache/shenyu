@@ -20,62 +20,46 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.dromara</groupId>
-    <artifactId>soul</artifactId>
+    <groupId>org.apache.shenyu</groupId>
+    <artifactId>shenyu</artifactId>
     <packaging>pom</packaging>
     <version>2.3.1-SNAPSHOT</version>
-    <name>soul</name>
+    <name>shenyu</name>
     <modules>
-        <module>soul-admin</module>
-        <module>soul-common</module>
-        <module>soul-web</module>
-        <module>soul-spring-boot-starter</module>
-        <module>soul-bootstrap</module>
-        <module>soul-client</module>
-        <module>soul-plugin</module>
-        <module>soul-sync-data-center</module>
-        <module>soul-metrics</module>
-        <module>soul-spi</module>
-        <module>soul-register-center</module>
-        <module>soul-dist</module>
-        <module>soul-disruptor</module>
+        <module>shenyu-admin</module>
+        <module>shenyu-common</module>
+        <module>shenyu-web</module>
+        <module>shenyu-spring-boot-starter</module>
+        <module>shenyu-bootstrap</module>
+        <module>shenyu-client</module>
+        <module>shenyu-plugin</module>
+        <module>shenyu-sync-data-center</module>
+        <module>shenyu-metrics</module>
+        <module>shenyu-spi</module>
+        <module>shenyu-register-center</module>
+        <module>shenyu-dist</module>
+        <module>shenyu-disruptor</module>
+        <module>shenyu-protocol</module>
     </modules>
-
-    <organization>
-        <name>dromara</name>
-        <url>http://www.dromara.org</url>
-    </organization>
 
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
     <scm>
-        <url>https://github.com/Dromara/soul.git</url>
-        <connection>scm:git:https://github.com/Dromara/soul</connection>
-        <developerConnection>scm:git:git@github.com:Dromara/soul</developerConnection>
+        <url>https://github.com/dromara/shenyu.git</url>
+        <connection>scm:git:https://github.com/dromara/shenyu</connection>
+        <developerConnection>scm:git:git@github.com:dromara/shenyu</developerConnection>
         <tag>${project.version}</tag>
     </scm>
 
     <issueManagement>
         <system>GitHub Issues</system>
-        <url>https://github.com/Dromara/soul/issues</url>
+        <url>https://github.com/dromara/shenyu/issues</url>
     </issueManagement>
-
-    <developers>
-        <developer>
-            <id>xiaoyu</id>
-            <name>xiaoyu(Myth)</name>
-            <email>xiaoyu@apache.org</email>
-            <organization>org.dromara</organization>
-            <roles>
-                <role>author</role>
-            </roles>
-        </developer>
-    </developers>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -114,7 +98,7 @@
         <tars.version>1.7.2</tars.version>
         <skipTests>false</skipTests>
         <undertow.version>2.2.2.Final</undertow.version>
-        <curator-test.version>3.3.0</curator-test.version>
+        <curator-test.version>4.0.1</curator-test.version>
         <wiremock.version>2.18.0</wiremock.version>
         <zookeeper.version>3.5.6</zookeeper.version>
         <zkclient.version>0.10</zkclient.version>
@@ -129,7 +113,7 @@
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
         <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
         <maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
-        <maven-javadoc-plugin.version>2.10.3</maven-javadoc-plugin.version>
+        <maven-javadoc-plugin.version>3.3.0</maven-javadoc-plugin.version>
         <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
         <versions-maven-plugin.version>2.5</versions-maven-plugin.version>
@@ -180,7 +164,6 @@
                 <version>${mapstruct.version}</version>
             </dependency>
 
-            <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
             <dependency>
                 <groupId>com.google.code.gson</groupId>
                 <artifactId>gson</artifactId>
@@ -413,10 +396,6 @@
             <scope>test</scope>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>ch.qos.logback</groupId>-->
-<!--            <artifactId>logback-classic</artifactId>-->
-<!--        </dependency>-->
     </dependencies>
 
     <distributionManagement>
@@ -495,7 +474,6 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>${maven-javadoc-plugin.version}</version>
                 <configuration>
-                    <aggregate>true</aggregate>
                     <sourcepath>src/main/java</sourcepath>
                 </configuration>
                 <executions>
@@ -537,7 +515,7 @@
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>${maven-checkstyle-plugin.version}</version>
                 <configuration>
-                    <configLocation>/script/soul_checkstyle.xml</configLocation>
+                    <configLocation>/script/shenyu_checkstyle.xml</configLocation>
                     <includeTestSourceDirectory>true</includeTestSourceDirectory>
                     <excludes>**/transfer/**/*</excludes>
                 </configuration>
@@ -613,7 +591,7 @@
                         <exclude>**/*.txt</exclude>
                         <exclude>**/docs/**</exclude>
                         <!-- UI files -->
-                        <exclude>/soul-dashboard/**</exclude>
+                        <exclude>/shenyu-dashboard/**</exclude>
                         <exclude>**/resources/static/</exclude>
                     </excludes>
                 </configuration>

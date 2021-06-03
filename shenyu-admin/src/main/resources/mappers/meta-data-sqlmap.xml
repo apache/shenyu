@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.apache.shenyu.admin.mapper.MetaDataMapper">
+    <resultMap id="BaseResultMap" type="org.apache.shenyu.admin.model.entity.MetaDataDO">
+        <id column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="date_created" jdbcType="TIMESTAMP" property="dateCreated"/>
+        <result column="date_updated" jdbcType="TIMESTAMP" property="dateUpdated"/>
+        <result column="app_name" jdbcType="VARCHAR" property="appName"/>
+        <result column="path" jdbcType="VARCHAR" property="path"/>
+        <result column="path_desc" jdbcType="VARCHAR" property="pathDesc"/>
+        <result column="rpc_type" jdbcType="VARCHAR" property="rpcType"/>
+        <result column="service_name" jdbcType="VARCHAR" property="serviceName"/>
+        <result column="method_name" jdbcType="VARCHAR" property="methodName"/>
+        <result column="parameter_types" jdbcType="VARCHAR" property="parameterTypes"/>
+        <result column="rpc_ext" jdbcType="VARCHAR" property="rpcExt"/>
+        <result column="enabled" jdbcType="TINYINT" property="enabled"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, date_created, date_updated, app_name, path,path_desc,rpc_type, service_name,method_name,parameter_types,rpc_ext,enabled
+    </sql>
+
+    <select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from meta_data
+        where id = #{id,jdbcType=VARCHAR}
+    </select>
+
+    <select id="findByPath" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from meta_data
+        where path = #{path,jdbcType=VARCHAR}
+    </select>
+
+    <select id="findByServiceNameAndMethod" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from meta_data
+        where service_name = #{serviceName,jdbcType=VARCHAR}
+        and method_name = #{methodName,jdbcType=VARCHAR}
+    </select>
+
+
+    <select id="findAll" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from meta_data
+
+    </select>
+
+
+    <select id="selectByQuery" parameterType="org.apache.shenyu.admin.model.query.MetaDataQuery" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from meta_data
+        <if test="appName != null">
+            where app_name = #{appName,jdbcType=VARCHAR}
+        </if>
+
+        <if test="pageParameter != null">
+            limit #{pageParameter.offset},#{pageParameter.pageSize}
+        </if>
+
+    </select>
+
+    <select id="countByQuery" parameterType="org.apache.shenyu.admin.model.query.MetaDataQuery" resultType="java.lang.Integer">
+        select count(1)
+        from meta_data
+        <if test="appName != null">
+            where app_name = #{appName,jdbcType=VARCHAR}
+        </if>
+    </select>
+
+    <select id="selectAll" resultType="org.apache.shenyu.admin.model.entity.MetaDataDO" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from meta_data
+    </select>
+
+    <insert id="insert" parameterType="org.apache.shenyu.admin.model.entity.MetaDataDO">
+        insert into meta_data (id, date_created, date_updated, app_name, path,path_desc,rpc_type, service_name,method_name,parameter_types,rpc_ext,enabled )
+        values (#{id,jdbcType=VARCHAR}, #{dateCreated,jdbcType=TIMESTAMP}, #{dateUpdated,jdbcType=TIMESTAMP},
+         #{appName,jdbcType=VARCHAR},
+         #{path,jdbcType=VARCHAR},
+         #{pathDesc,jdbcType=VARCHAR},
+         #{rpcType,jdbcType=VARCHAR},
+         #{serviceName,jdbcType=VARCHAR},
+         #{methodName,jdbcType=VARCHAR},
+         #{parameterTypes,jdbcType=VARCHAR},
+         #{rpcExt,jdbcType=VARCHAR},
+         #{enabled,jdbcType=TINYINT})
+    </insert>
+
+
+    <update id="update" parameterType="org.apache.shenyu.admin.model.entity.MetaDataDO">
+        update meta_data
+        set  app_name = #{appName,jdbcType=VARCHAR},
+        path = #{path,jdbcType=VARCHAR},
+        path_desc = #{pathDesc,jdbcType=VARCHAR},
+        rpc_type = #{rpcType,jdbcType=VARCHAR},
+        service_name = #{serviceName,jdbcType=VARCHAR},
+        method_name = #{methodName,jdbcType=VARCHAR},
+        parameter_types = #{parameterTypes,jdbcType=VARCHAR},
+        rpc_ext= #{rpcExt,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+
+    <update id="updateEnable" parameterType="org.apache.shenyu.admin.model.entity.PluginDO">
+        update meta_data
+        set  enabled = #{enabled,jdbcType=TINYINT}
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+
+    <delete id="delete" parameterType="java.lang.String">
+        delete from meta_data
+        where id = #{id,jdbcType=VARCHAR}
+    </delete>
+</mapper>

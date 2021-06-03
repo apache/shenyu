@@ -1,5 +1,5 @@
 <p align="center" >
-    <a href="https://dromara.org"><img src="https://dromara.org/img/logo/soul.png" width="45%"></a>
+    <a href="https://dromara.org"><img src="https://dromara.org/img/logo/ShenYu.png" width="45%"></a>
 </p>
 <p align="center">
   <strong>应用于所有微服务场景的，可扩展、高性能、响应式的 API 网关解决方案</strong>
@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/dromara/soul/blob/master/README.md">English</a> | 简体中文
+  <a href="https://github.com/dromara/shenyu/blob/master/README.md">English</a> | 简体中文
 </p>
 
 <p align="center">
@@ -65,33 +65,33 @@
 
 # 模块
 
- * soul-admin : 插件和其他信息配置的管理后台
+ * shenyu-admin : 插件和其他信息配置的管理后台
 
- * soul-bootstrap : 用于启动项目，用户可以参考
+ * shenyu-bootstrap : 用于启动项目，用户可以参考
 
- * soul-client : 用户可以使用 Spring MVC，Dubbo，Spring Cloud 快速访问
+ * shenyu-client : 用户可以使用 Spring MVC，Dubbo，Spring Cloud 快速访问
  
- * soul-disruptor : 基于disruptor的封装
+ * shenyu-disruptor : 基于disruptor的封装
   
- * soul-register-center : 为soul-client提供各种rpc接入注册中心的支持
+ * shenyu-register-center : shenyu-client提供各种rpc接入注册中心的支持
   
- * soul-common : 框架的通用类
+ * shenyu-common : 框架的通用类
 
- * soul-dist : 构建项目
+ * shenyu-dist : 构建项目
 
- * soul-metrics : prometheus（普罗米修斯）实现的 metrics
+ * shenyu-metrics : prometheus（普罗米修斯）实现的 metrics
 
- * soul-plugin : Soul 支持的插件集合
+ * shenyu-plugin : ShenYu 支持的插件集合
 
- * soul-spi : 定义 Soul spi
+ * shenyu-spi : 定义 ShenYu spi
 
- * soul-spring-boot-starter : 支持 spring boot starter
+ * shenyu-spring-boot-starter : 支持 spring boot starter
 
- * soul-sync-data-center : 提供 ZooKeeper，HTTP，WebSocket，Nacos 的方式同步数据
+ * shenyu-sync-data-center : 提供 ZooKeeper，HTTP，WebSocket，Nacos 的方式同步数据
 
- * soul-examples : RPC 示例项目
+ * shenyu-examples : RPC 示例项目
 
- * soul-web : 包括插件、请求路由和转发等的核心处理包
+ * shenyu-web : 包括插件、请求路由和转发等的核心处理包
 
 --------------------------------------------------------------------------------
 
@@ -108,9 +108,9 @@
 
 # 插件
 
-无论请求何时进入，Soul 会通过响应链执行所有已打开的插件。
+无论请求何时进入，ShenYu 会通过响应链执行所有已打开的插件。
 
-插件是 Soul 的灵魂，并且插件也是可扩展和热插拔的。
+插件是 ShenYu 的灵魂，并且插件也是可扩展和热插拔的。
 
 不同的插件实现不同的功能。
 
@@ -136,7 +136,7 @@
 
 所有的数据都被缓存在 JVM 的 ConcurrentHashMap 中，所以它非常快。
 
-当用户在后台界面改变配置信息时，Soul 通过监听 ZooKeeper node，WebSocket push，HTTP longPull 来动态更新缓存。
+当用户在后台界面改变配置信息时，ShenYu 通过监听 ZooKeeper node，WebSocket push，HTTP longPull 来动态更新缓存。
 
   ![](https://yu199195.github.io/images/soul/soul-config-processor.png)
 
@@ -152,9 +152,9 @@
 
 # 关于
 
-Soul 已经被很多公司广泛使用在越来越多的业务系统，它能以高性能和灵活性让我们方便快捷的集成自己的服务和 API 。
+ShenYu 已经被很多公司广泛使用在越来越多的业务系统，它能以高性能和灵活性让我们方便快捷的集成自己的服务和 API 。
 
-在中国的双 11 购物狂欢节中，Soul集群成功支撑了海量的互联网业务。
+在中国的双 11 购物狂欢节中，ShenYu集群成功支撑了海量的互联网业务。
 
 --------------------------------------------------------------------------------
 
@@ -179,7 +179,7 @@ Soul 已经被很多公司广泛使用在越来越多的业务系统，它能以
 
 # 目前已知用户
 
-为了便于登记，欢迎已经使用了 Soul 的公司在 [https://github.com/Dromara/soul/issues/68](https://github.com/Dromara/soul/issues/68) 注册。（仅适用于开源用户）
+为了便于登记，欢迎已经使用了 ShenYu 的公司在 [https://github.com/Dromara/soul/issues/68](https://github.com/Dromara/soul/issues/68) 注册。（仅适用于开源用户）
 
 <table>
   <tbody>
@@ -250,32 +250,10 @@ Soul 已经被很多公司广泛使用在越来越多的业务系统，它能以
 
 #贡献者列表
 
-`Soul` 遵循 `Apache-2.0` 开源协议，欢迎大家提交 `PR` 或 `Issue`。
+`ShenYu` 遵循 `Apache-2.0` 开源协议，欢迎大家提交 `PR` 或 `Issue`。
 
 如果要为项目做出贡献，请查看 [贡献指南](https://dromara.org/zh/projects/soul/contributor/e)。
 
-感谢每一位为 `Soul` 贡献代码的朋友。
+感谢每一位为 `ShenYu` 贡献代码的朋友。
 
 [![Giteye chart](https://chart.giteye.net/gitee/dromara/soul/2ZKY3P9W.png)](https://giteye.net/chart/2ZKY3P9W)
-
-# 支持
-
-<table>
-  <thead>
-    <th>微信公众号</th>
-    <th>QQ 交流群</th>
-    <th>芋道源码</th>
-    <th>JetBrains</th>
-  </thead>
-  <tbody>
-    <tr>
-      <td><img src="https://yu199195.github.io/images/public.jpg"   alt="微信公众号"/>
-      <td><img src="https://yu199195.github.io/images/soul-qq.png"  alt="QQ 交流群"/>
-      <td><img src="http://www.iocoder.cn/images/common/erweima.jpg"  alt="芋道源码"/>
-      <td><img src="https://yu199195.github.io/images/jetbrains.svg"  alt="JetBrains"/>
-    </tr>
-  </tbody>
-</table>
-
-
-
