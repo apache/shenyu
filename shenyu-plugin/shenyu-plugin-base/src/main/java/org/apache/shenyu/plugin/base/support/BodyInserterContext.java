@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.web.filter.support;
+package org.apache.shenyu.plugin.base.support;
 
 import org.springframework.http.codec.HttpMessageWriter;
 import org.springframework.http.server.reactive.ServerHttpRequest;

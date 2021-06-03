@@ -23,6 +23,21 @@ package org.apache.shenyu.common.constant;
 public interface Constants {
 
     /**
+     * The constant path template.
+     */
+    char LEFT = '{';
+
+    /**
+     * The constant path template.
+     */
+    char RIGHT = '}';
+
+    /**
+     * The constant path template.
+     */
+    String PATTERN = "([^/]*)";
+
+    /**
      * The constant APP_PARAM.
      */
     String APP_PARAM = "appParam";
