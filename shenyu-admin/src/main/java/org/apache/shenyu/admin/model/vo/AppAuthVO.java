@@ -20,6 +20,7 @@ package org.apache.shenyu.admin.model.vo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.shenyu.admin.model.dto.AuthPathDTO;
 
 import java.io.Serializable;
 import java.util.List;
@@ -66,6 +67,8 @@ public class AppAuthVO implements Serializable {
     private Boolean enabled;
 
     private List<AuthParamVO> authParamVOList;
+
+    private List<AuthPathVO> authPathVOList;
 
     /**
      * updated time.
