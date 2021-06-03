@@ -20,7 +20,6 @@ package org.apache.shenyu.admin.model.vo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.apache.shenyu.admin.model.dto.AuthPathDTO;
 
 import java.io.Serializable;
 import java.util.List;

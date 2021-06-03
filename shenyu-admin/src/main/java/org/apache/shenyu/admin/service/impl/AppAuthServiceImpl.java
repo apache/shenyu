@@ -186,7 +186,7 @@ public class AppAuthServiceImpl implements AppAuthService {
                     .map(AuthPathDO::getAppName).orElse(StringUtils.EMPTY);
             authPathMapper.deleteByAuthId(appAuthDTO.getId());
             List<AuthPathDO> authPathDOList = authPathDTOList.stream()
-                    .map(dto -> AuthPathDO.create(dto.getPath(),appAuthDTO.getId(), appName ))
+                    .map(dto -> AuthPathDO.create(dto.getPath(), appAuthDTO.getId(), appName))
                     .collect(Collectors.toList());
             authPathMapper.batchSave(authPathDOList);
         }
