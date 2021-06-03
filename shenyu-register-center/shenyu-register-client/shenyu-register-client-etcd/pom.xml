@@ -64,12 +64,6 @@
             <groupId>io.grpc</groupId>
             <version>1.28.0</version>
         </dependency>
-        <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-stub</artifactId>
-            <version>1.28.0</version>
-            <scope>compile</scope>
-        </dependency>
 
         <dependency>
             <groupId>org.apache.shenyu</groupId>

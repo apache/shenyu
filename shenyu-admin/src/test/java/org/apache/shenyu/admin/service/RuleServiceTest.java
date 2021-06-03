@@ -19,23 +19,24 @@ package org.apache.shenyu.admin.service;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
+import org.apache.shenyu.admin.mapper.PluginMapper;
+import org.apache.shenyu.admin.mapper.RuleConditionMapper;
+import org.apache.shenyu.admin.mapper.RuleMapper;
+import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.dto.RuleConditionDTO;
 import org.apache.shenyu.admin.model.dto.RuleDTO;
 import org.apache.shenyu.admin.model.entity.PluginDO;
 import org.apache.shenyu.admin.model.entity.RuleConditionDO;
 import org.apache.shenyu.admin.model.entity.RuleDO;
 import org.apache.shenyu.admin.model.entity.SelectorDO;
-import org.apache.shenyu.admin.mapper.PluginMapper;
-import org.apache.shenyu.admin.mapper.RuleConditionMapper;
-import org.apache.shenyu.admin.mapper.RuleMapper;
-import org.apache.shenyu.admin.mapper.SelectorMapper;
 import org.apache.shenyu.admin.model.page.CommonPager;
 import org.apache.shenyu.admin.model.page.PageParameter;
 import org.apache.shenyu.admin.model.query.RuleConditionQuery;
 import org.apache.shenyu.admin.model.query.RuleQuery;
-import org.apache.shenyu.admin.service.impl.RuleServiceImpl;
 import org.apache.shenyu.admin.model.vo.RuleVO;
+import org.apache.shenyu.admin.service.impl.RuleServiceImpl;
 import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shiro.SecurityUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -85,8 +86,12 @@ public final class RuleServiceTest {
     @Mock
     private DataPermissionMapper dataPermissionMapper;
 
+    @Mock
+    private org.apache.shiro.mgt.SecurityManager securityManager;
+
     @Before
     public void setUp() {
+        SecurityUtils.setSecurityManager(securityManager);
         ruleService = new RuleServiceImpl(ruleMapper, ruleConditionMapper, selectorMapper, pluginMapper, dataPermissionMapper, eventPublisher);
     }
 
@@ -97,7 +102,7 @@ public final class RuleServiceTest {
         testRegisterUpdate();
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void testCreateOrUpdate() {
         publishEvent();
         testCreate();
