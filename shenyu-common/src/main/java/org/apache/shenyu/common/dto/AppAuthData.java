@@ -21,8 +21,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -34,7 +32,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class AppAuthData implements Serializable {
+public class AppAuthData {
 
     private static final long serialVersionUID = -7060944416765128601L;
 
