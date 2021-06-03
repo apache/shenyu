@@ -26,9 +26,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.metrics.config.MetricsConfig;
 import org.apache.shenyu.metrics.prometheus.collector.BuildInfoCollector;
-import org.apache.shenyu.metrics.prometheus.register.PrometheusMetricsRegister;
 import org.apache.shenyu.metrics.reporter.MetricsReporter;
 import org.apache.shenyu.metrics.spi.MetricsBootService;
+import org.apache.shenyu.metrics.spi.MetricsRegister;
 import org.apache.shenyu.spi.Join;
 
 import javax.management.MalformedObjectNameException;
@@ -49,9 +49,9 @@ public final class PrometheusBootService implements MetricsBootService {
     private volatile AtomicBoolean registered = new AtomicBoolean(false);
     
     @Override
-    public void start(final MetricsConfig metricsConfig) {
+    public void start(final MetricsConfig metricsConfig, final MetricsRegister metricsRegister) {
         startServer(metricsConfig);
-        MetricsReporter.register(PrometheusMetricsRegister.getInstance());
+        MetricsReporter.register(metricsRegister);
     }
     
     @Override

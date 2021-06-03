@@ -20,6 +20,7 @@ package org.apache.shenyu.plugin.alibaba.dubbo.handler;
 import org.apache.shenyu.common.config.DubboRegisterConfig;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.base.utils.Singleton;
 import org.junit.Assert;
 import org.junit.Before;
@@ -63,5 +64,10 @@ public final class AlibabaDubboPluginDataTest {
         PluginData pluginData = new PluginData("", "", registryConfig, 1, false);
         alibabaDubboPluginDataHandler.handlerPlugin(pluginData);
         Assert.assertNull(Singleton.INST.get(DubboRegisterConfig.class));
+    }
+
+    @Test
+    public void testPluginNamed() {
+        Assert.assertEquals(alibabaDubboPluginDataHandler.pluginNamed(), PluginEnum.DUBBO.getName());
     }
 }

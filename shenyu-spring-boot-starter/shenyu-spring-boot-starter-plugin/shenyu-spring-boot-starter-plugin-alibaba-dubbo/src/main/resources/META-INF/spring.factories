@@ -16,4 +16,4 @@
 #
 
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.apache.shenyu.spring.boot.starter.plugin.alibaba.dubbo.AlibabaDubboPluginConfiguration
+org.apache.shenyu.springboot.starter.plugin.alibaba.dubbo.AlibabaDubboPluginConfiguration

@@ -57,12 +57,6 @@ public final class ApplicationConfigCacheTest {
         assertNotNull(this.applicationConfigCache);
     }
 
-    @SneakyThrows
-    @Test
-    public void testGetSize() {
-        assertNotNull(ReflectionTestUtils.invokeMethod(this.applicationConfigCache, "getSize"));
-    }
-
     @Test
     public void testInit() {
         DubboRegisterConfig dubboRegisterConfig = new DubboRegisterConfig();

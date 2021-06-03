@@ -23,8 +23,6 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
-
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -37,9 +35,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Accessors(chain = true)
-public class WebsocketData<T> implements Serializable {
-
-    private static final long serialVersionUID = -3068033915566306050L;
+public class WebsocketData<T> {
 
     /**
      * group type.
@@ -58,5 +54,4 @@ public class WebsocketData<T> implements Serializable {
      * {@link AppAuthData}、{@link ConditionData}、{@link PluginData}、{@link RuleData}、{@link SelectorData}.
      */
     private List<T> data;
-
 }

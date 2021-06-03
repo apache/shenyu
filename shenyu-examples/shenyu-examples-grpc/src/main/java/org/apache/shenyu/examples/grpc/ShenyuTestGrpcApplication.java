@@ -17,16 +17,11 @@
 
 package org.apache.shenyu.examples.grpc;
 
-import io.grpc.ServerBuilder;
-import io.grpc.protobuf.services.ProtoReflectionService;
-import org.apache.shenyu.examples.grpc.echo.EchoServiceImpl;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import java.io.IOException;
-
 /**
- * ShenyuTestTarsApplication.
+ * ShenyuTestGrpcApplication.
  */
 @SpringBootApplication
 public class ShenyuTestGrpcApplication {
@@ -36,13 +31,7 @@ public class ShenyuTestGrpcApplication {
      *
      * @param args args
      */
-    public static void main(final String[] args) throws IOException {
+    public static void main(final String[] args) {
         SpringApplication.run(ShenyuTestGrpcApplication.class, args);
-        io.grpc.Server server = ServerBuilder
-                .forPort(8080)
-                .addService(new EchoServiceImpl())
-                .addService(ProtoReflectionService.newInstance())
-                .build();
-        server.start();
     }
 }

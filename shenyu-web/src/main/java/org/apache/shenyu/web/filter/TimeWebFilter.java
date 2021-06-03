@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.web.filter;
 
-import org.apache.shenyu.web.config.ShenyuConfig;
+import org.apache.shenyu.web.configuration.properties.ShenyuConfig;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;

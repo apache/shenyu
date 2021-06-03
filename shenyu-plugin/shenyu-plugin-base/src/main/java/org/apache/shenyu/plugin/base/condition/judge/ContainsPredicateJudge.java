@@ -18,10 +18,12 @@
 package org.apache.shenyu.plugin.base.condition.judge;
 
 import org.apache.shenyu.common.dto.ConditionData;
+import org.apache.shenyu.spi.Join;
 
 /**
  * Contains predicate judge.
  */
+@Join
 public class ContainsPredicateJudge implements PredicateJudge {
 
     @Override

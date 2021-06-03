@@ -17,17 +17,9 @@
 
 package org.apache.shenyu.plugin.base.condition.strategy;
 
-import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.dto.ConditionData;
-import org.apache.shenyu.common.enums.ParamTypeEnum;
-import org.apache.shenyu.common.utils.ReflectUtils;
-import org.apache.shenyu.plugin.api.context.ShenyuContext;
-import org.apache.shenyu.plugin.base.utils.HostAddressUtils;
-import org.springframework.http.HttpCookie;
-import org.springframework.util.CollectionUtils;
+import org.apache.shenyu.plugin.base.condition.data.ParameterDataFactory;
 import org.springframework.web.server.ServerWebExchange;
-
-import java.util.List;
 
 /**
  * AbstractMatchStrategy.
@@ -42,37 +34,6 @@ public abstract class AbstractMatchStrategy {
      * @return the string
      */
     public String buildRealData(final ConditionData condition, final ServerWebExchange exchange) {
-        String realData = "";
-        ParamTypeEnum paramTypeEnum = ParamTypeEnum.getParamTypeEnumByName(condition.getParamType());
-        switch (paramTypeEnum) {
-            case HEADER:
-                List<String> headers = exchange.getRequest().getHeaders().get(condition.getParamName());
-                if (CollectionUtils.isEmpty(headers)) {
-                    return realData;
-                }
-                return headers.get(0);
-            case URI:
-                return exchange.getRequest().getURI().getPath();
-            case QUERY:
-                return exchange.getRequest().getQueryParams().getFirst(condition.getParamName());
-            case HOST:
-                return HostAddressUtils.acquireHost(exchange);
-            case IP:
-                return HostAddressUtils.acquireIp(exchange);
-            case POST:
-                ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-                return (String) ReflectUtils.getFieldValue(shenyuContext, condition.getParamName());
-            case REQUEST_METHOD:
-                return exchange.getRequest().getMethodValue();
-            case COOKIE:
-                List<HttpCookie> cookies = exchange.getRequest().getCookies().get(condition.getParamName());
-                if (CollectionUtils.isEmpty(cookies)) {
-                    return realData;
-                }
-                return cookies.get(0).getValue();
-            default:
-                break;
-        }
-        return realData;
+        return ParameterDataFactory.builderData(condition.getParamType(), condition.getParamName(), exchange);
     }
 }

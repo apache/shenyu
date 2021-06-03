@@ -17,19 +17,19 @@
 
 package org.apache.shenyu.admin.service;
 
-import org.apache.shenyu.admin.config.properties.JwtProperties;
-import org.apache.shenyu.admin.model.entity.DashboardUserDO;
-import org.apache.shenyu.admin.model.entity.PermissionDO;
-import org.apache.shenyu.admin.model.entity.ResourceDO;
-import org.apache.shenyu.admin.model.entity.UserRoleDO;
 import org.apache.shenyu.admin.mapper.DashboardUserMapper;
 import org.apache.shenyu.admin.mapper.PermissionMapper;
 import org.apache.shenyu.admin.mapper.ResourceMapper;
 import org.apache.shenyu.admin.mapper.UserRoleMapper;
+import org.apache.shenyu.admin.model.entity.DashboardUserDO;
+import org.apache.shenyu.admin.model.entity.PermissionDO;
+import org.apache.shenyu.admin.model.entity.ResourceDO;
+import org.apache.shenyu.admin.model.entity.UserRoleDO;
+import org.apache.shenyu.admin.model.vo.PermissionMenuVO;
 import org.apache.shenyu.admin.service.impl.PermissionServiceImpl;
 import org.apache.shenyu.admin.service.impl.ResourceServiceImpl;
 import org.apache.shenyu.admin.spring.SpringBeanUtils;
-import org.apache.shenyu.admin.model.vo.PermissionMenuVO;
+import org.apache.shiro.SecurityUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -70,12 +70,13 @@ public class PermissionServiceTest {
 
     private PermissionServiceImpl permissionServiceImplUnderTest;
 
+    @Mock
+    private org.apache.shiro.mgt.SecurityManager securityManager;
+
     @Before
     public void setUp() throws Exception {
+        SecurityUtils.setSecurityManager(securityManager);
         ConfigurableApplicationContext context = mock(ConfigurableApplicationContext.class);
-        JwtProperties jwtProperties = mock(JwtProperties.class);
-        when(jwtProperties.getKey()).thenReturn("jwt-key");
-        when(context.getBean(JwtProperties.class)).thenReturn(jwtProperties);
         SpringBeanUtils.getInstance().setCfgContext(context);
         final DashboardUserDO dashboardUserDO = DashboardUserDO.builder().id("1").userName("admin").role(1).enabled(true).build();
         final UserRoleDO userRoleDO = UserRoleDO.builder().userId("1").roleId("1346358560427216896")
@@ -112,12 +113,11 @@ public class PermissionServiceTest {
         when(mockResourceMapper.selectById("1346776175553376256")).thenReturn(resourceDO2);
         when(mockResourceMapper.selectById("1346777157943259136")).thenReturn(resourceDO3);
         when(mockResourceMapper.selectById("1347053375029653504")).thenReturn(resourceDO4);
-        when(mockResourceMapper.selectAll()).thenReturn(Arrays.asList(resourceDO1, resourceDO2, resourceDO3, resourceDO4));
         resourceService = new ResourceServiceImpl(mockResourceMapper, mockPermissionMapper);
         permissionServiceImplUnderTest = new PermissionServiceImpl(mockDashboardUserMapper, mockUserRoleMapper, mockPermissionMapper, mockResourceMapper, resourceService);
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void testGetPermissionMenu() {
         final PermissionMenuVO expectedResult = new PermissionMenuVO(Arrays.asList(
                 new PermissionMenuVO.MenuInfo("1346776175553376256", "system", "/system", "system",

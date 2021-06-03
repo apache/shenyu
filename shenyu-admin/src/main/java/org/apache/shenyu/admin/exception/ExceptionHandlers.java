@@ -30,7 +30,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * ControllerMethodResolver.
- * https://dzone.com/articles/global-exception-handling-with-controlleradvice.
+ *
+ * @see <a href="https://dzone.com/articles/global-exception-handling-with-controlleradvice">global-exception-handling-with-controlleradvice</a>
  */
 @Slf4j
 @ControllerAdvice

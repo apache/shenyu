@@ -1,5 +1,5 @@
 <p align="center" >
-    <a href="https://dromara.org"><img src="https://dromara.org/img/logo/soul.png" width="45%"></a>
+    <a href="https://dromara.org"><img src="https://dromara.org/img/logo/ShenYu.png" width="45%"></a>
 </p>
 <p align="center">
   <strong>应用于所有微服务场景的，可扩展、高性能、响应式的 API 网关解决方案</strong>
@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/dromara/soul/blob/master/README.md">English</a> | 简体中文
+  <a href="https://github.com/dromara/shenyu/blob/master/README.md">English</a> | 简体中文
 </p>
 
 <p align="center">

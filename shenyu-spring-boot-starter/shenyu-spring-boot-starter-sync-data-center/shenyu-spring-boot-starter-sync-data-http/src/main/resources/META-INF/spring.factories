@@ -16,4 +16,4 @@
 #
 
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.apache.shenyu.spring.boot.starter.sync.data.http.HttpSyncDataConfiguration
+org.apache.shenyu.springboot.starter.sync.data.http.HttpSyncDataConfiguration

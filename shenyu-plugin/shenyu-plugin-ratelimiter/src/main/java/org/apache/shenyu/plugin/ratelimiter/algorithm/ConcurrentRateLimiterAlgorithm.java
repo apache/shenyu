@@ -28,10 +28,10 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * See https://stripe.com/blog/rate-limiters and
- * https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L11-L34
  * The type Concurrent rate limiter algorithm.
- * 
+ *
+ * @see <a href="https://stripe.com/blog/rate-limiters">rate-limiters</a>
+ * @see <a href="https://gist.github.com/ptarjan/e38f45f2dfe601419ca3af937fff574d#file-1-check_request_rate_limiter-rb-L11-L34">check_request_rate_limiter</a>
  */
 @Join
 public class ConcurrentRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm {
@@ -40,7 +40,7 @@ public class ConcurrentRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm
     protected String getScriptName() {
         return RateLimitEnum.CONCURRENT.getScriptName();
     }
-    
+
     @Override
     protected String getKeyName() {
         return RateLimitEnum.CONCURRENT.getKeyName();
@@ -52,7 +52,7 @@ public class ConcurrentRateLimiterAlgorithm extends AbstractRateLimiterAlgorithm
         String requestKey = UUIDUtils.getInstance().generateShortUuid();
         return Arrays.asList(tokenKey, requestKey);
     }
-    
+
     @Override
     @SuppressWarnings("unchecked")
     public void callback(final RedisScript<?> script, final List<String> keys, final List<String> scriptArgs) {

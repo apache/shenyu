@@ -24,8 +24,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
-
 /**
  * PluginData.
  *
@@ -35,9 +33,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class PluginData implements Serializable {
-
-    private static final long serialVersionUID = 2144241419448507109L;
+public class PluginData {
 
     private String id;
 
@@ -48,5 +44,4 @@ public class PluginData implements Serializable {
     private Integer role;
 
     private Boolean enabled;
-
 }

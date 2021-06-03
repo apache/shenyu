@@ -18,12 +18,14 @@
 package org.apache.shenyu.plugin.base.condition.judge;
 
 import org.apache.shenyu.common.dto.ConditionData;
+import org.apache.shenyu.spi.Join;
 
 import java.util.regex.Pattern;
 
 /**
  * Regex predicate judge.
  */
+@Join
 public class RegexPredicateJudge implements PredicateJudge {
 
     @Override

@@ -26,11 +26,6 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-plugin-grpc</artifactId>
-    
-    <properties>
-        <grpc.version>1.33.1</grpc.version>
-        <protobuf-java.version>3.12.0</protobuf-java.version>
-    </properties>
 
     <dependencies>
         <dependency>
@@ -40,17 +35,11 @@
         </dependency>
 
         <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-all</artifactId>
-            <version>${grpc.version}</version>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-protocol-grpc</artifactId>
+            <version>${project.version}</version>
         </dependency>
-        
-        <dependency>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java</artifactId>
-            <version>${protobuf-java.version}</version>
-        </dependency>
-        
+
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>

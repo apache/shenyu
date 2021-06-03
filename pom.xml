@@ -39,12 +39,13 @@
         <module>shenyu-register-center</module>
         <module>shenyu-dist</module>
         <module>shenyu-disruptor</module>
+        <module>shenyu-protocol</module>
     </modules>
 
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
@@ -97,7 +98,7 @@
         <tars.version>1.7.2</tars.version>
         <skipTests>false</skipTests>
         <undertow.version>2.2.2.Final</undertow.version>
-        <curator-test.version>3.3.0</curator-test.version>
+        <curator-test.version>4.0.1</curator-test.version>
         <wiremock.version>2.18.0</wiremock.version>
         <zookeeper.version>3.5.6</zookeeper.version>
         <zkclient.version>0.10</zkclient.version>
@@ -112,7 +113,7 @@
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
         <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
         <maven-surefire-plugin.version>3.0.0-M4</maven-surefire-plugin.version>
-        <maven-javadoc-plugin.version>2.10.3</maven-javadoc-plugin.version>
+        <maven-javadoc-plugin.version>3.3.0</maven-javadoc-plugin.version>
         <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
         <versions-maven-plugin.version>2.5</versions-maven-plugin.version>
@@ -473,7 +474,6 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>${maven-javadoc-plugin.version}</version>
                 <configuration>
-                    <aggregate>true</aggregate>
                     <sourcepath>src/main/java</sourcepath>
                 </configuration>
                 <executions>
