@@ -65,13 +65,21 @@ public class GsonUtils {
     }.getRawType(), new MapDeserializer<String, Object>()).create();
 
     private static final String DOT = ".";
+
     private static final String E = "e";
+
     private static final String LEFT = "left";
+
     private static final String RIGHT = "right";
+
     private static final String LEFT_ANGLE_BRACKETS = "{";
+
     private static final String RIGHT_ANGLE_BRACKETS = "}";
+
     private static final String EMPTY = "";
+
     private static final String EQUAL_SIGN = "=";
+
     private static final String AND = "&";
 
     /**
