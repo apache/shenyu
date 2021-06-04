@@ -27,9 +27,9 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
@@ -66,18 +66,11 @@ public class OAuth2Filter implements WebFilter {
             .map(SecurityContext::getAuthentication)
             .filter(t -> t instanceof OAuth2AuthenticationToken)
             .cast(OAuth2AuthenticationToken.class)
-            .<OAuth2AuthorizedClient>flatMap(token -> {
-                        Map<String, Object> userInfo = token.getPrincipal().getAttributes();
-                        serverWebExchange.getAttributes().put("UserInfo", userInfo);
-                        return authorizedClientService.loadAuthorizedClient(token.getAuthorizedClientRegistrationId(), token.getName());
-                    }
+            .flatMap(token -> authorizedClientService.loadAuthorizedClient(token.getAuthorizedClientRegistrationId(), token.getName())
+                .flatMap(client -> this.addTokenToHeader(serverWebExchange, client.getAccessToken().getTokenValue(), client.getPrincipalName())
+                    .map(exchange -> this.addUserInfoToBody(exchange, token.getPrincipal().getAttributes())))
             )
-            .flatMap(client -> {
-                serverWebExchange.getAttributes().put("Authorization", client.getAccessToken());
-                serverWebExchange.getAttributes().put("Principal", client.getPrincipalName());
-                return Mono.empty();
-            })
-            .thenEmpty(webFilterChain.filter(this.addTokenToHeader(serverWebExchange)));
+            .flatMap(webFilterChain::filter);
     }
 
     /**
@@ -86,33 +79,27 @@ public class OAuth2Filter implements WebFilter {
      * @param exchange The exchange
      * @return New ServerWebExchange Instance
      */
-    private ServerWebExchange addTokenToHeader(final ServerWebExchange exchange) {
+    private Mono<ServerWebExchange> addTokenToHeader(final ServerWebExchange exchange, final String tokenValue, final String principalName) {
         ServerHttpRequest.Builder requestMutate = exchange.getRequest().mutate();
-        requestMutate.header("Principal", exchange.<String>getAttribute("Principal"));
-        requestMutate.header("Authorization", exchange.<String>getAttribute("Authorization"));
-        ServerWebExchange build = exchange.mutate().request(requestMutate.build()).build();
-        return addUserInfoToBody(build);
+        requestMutate.header("Principal", principalName);
+        requestMutate.header("Token", tokenValue);
+        return Mono.just(exchange.mutate().request(requestMutate.build()).build());
     }
 
-    private ServerWebExchange addUserInfoToBody(final ServerWebExchange exchange) {
+    private ServerWebExchange addUserInfoToBody(final ServerWebExchange exchange, final Map<String, Object> userInfoMap) {
         ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(exchange.getRequest()) {
             @Override
             public Flux<DataBuffer> getBody() {
-                Map<String, Object> userInfo = exchange.getAttribute("UserInfo");
-                if (userInfo == null) {
+                if (CollectionUtils.isEmpty(userInfoMap)) {
                     return super.getBody();
                 }
                 Flux<DataBuffer> bodyBuffer = super.getBody();
 
-                return bodyBuffer.map(buf -> {
-                    int readableByteCount = buf.readableByteCount();
-                    if (readableByteCount > 0) {
-                        return appendBody(buf, userInfo);
-                    }
-                    String json = GsonUtils.getInstance().toJson(userInfo);
-                    buf.write(json.getBytes(StandardCharsets.UTF_8));
-                    return buf;
-                });
+                DataBuffer dataBuffer = dataBufferFactory.allocateBuffer();
+                String userInfoJson = GsonUtils.getInstance().toJson(userInfoMap);
+                dataBuffer.write(userInfoJson.getBytes(StandardCharsets.UTF_8));
+                return Flux.just(dataBuffer);
+//                appendBody(dataBuffer, bodyBuffer);
             }
         };
         return exchange.mutate().request(decorator).build();
