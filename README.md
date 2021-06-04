@@ -44,7 +44,7 @@
         <img src="https://tokei.rs/b1/github/Dromara/soul?category=lines"/>
    </a>
    <a target="_blank" href="https://codecov.io/gh/dromara/soul">
-        <img src="https://codecov.io/gh/dromara/soul/branch/master/graph/badge.svg" />
+        <img src="https://codecov.io/gh/dromara/shenyu/branch/master/graph/badge.svg" />
    </a>
 </p>
 <br/>

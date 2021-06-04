@@ -22,8 +22,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.apache.shenyu.common.utils.GsonUtils;
-
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -35,9 +33,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Accessors(chain = true)
-public class ConfigData<T> implements Serializable {
-
-    private static final long serialVersionUID = 4171533502848375739L;
+public class ConfigData<T> {
 
     private String md5;
 

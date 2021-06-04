@@ -93,4 +93,30 @@ public class EtcdClientRegisterRepositoryTest {
         assert !etcdBroker.containsKey(metadataPath);
         assert !etcdBroker.containsKey(uriPath);
     }
+
+    @Test
+    public void testPersistInterface4Other() {
+        final MetaDataRegisterDTO data = MetaDataRegisterDTO.builder()
+                .rpcType("grpc")
+                .host("host")
+                .port(80)
+                .contextPath("/context")
+                .ruleName("ruleName")
+                .serviceName("testService")
+                .methodName("testMethod")
+                .build();
+
+        repository.persistInterface(data);
+        String metadataPath = "/shenyu/register/metadata/grpc/context/testService.testMethod";
+        assert etcdBroker.containsKey(metadataPath);
+        assert etcdBroker.get(metadataPath).equals(GsonUtils.getInstance().toJson(data));
+
+        String uriPath = "/shenyu/register/uri/grpc/context/host:80";
+        assert etcdBroker.containsKey(uriPath);
+        assert etcdBroker.get(uriPath).equals(GsonUtils.getInstance().toJson(data));
+
+        repository.close();
+        assert !etcdBroker.containsKey(metadataPath);
+        assert !etcdBroker.containsKey(uriPath);
+    }
 }

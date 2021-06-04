@@ -23,8 +23,18 @@ package org.apache.shenyu.protocol.grpc.constant;
 public class GrpcConstants {
 
     /**
-     * grpc json generic service.
+     * grpc json service.
      */
-    public static final String GRPC_JSON_GENERIC_SERVICE = "JSON";
+    public static final String GRPC_JSON_SERVICE = "JSON";
+
+    /**
+     * json descriptor proto name.
+     */
+    public static final String JSON_DESCRIPTOR_PROTO_NAME = "JsonMessage";
+
+    /**
+     * json descriptor proto field name.
+     */
+    public static final String JSON_DESCRIPTOR_PROTO_FIELD_NAME = "data";
 
 }

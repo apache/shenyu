@@ -17,7 +17,7 @@
 
 package org.apache.shenyu.web.filter;
 
-import org.apache.shenyu.web.configuration.ExcludePathProperties;
+import org.apache.shenyu.web.configuration.properties.ExcludePathProperties;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
