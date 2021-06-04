@@ -23,7 +23,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 /**
  * Shenyu bootstrap.
  */
-@SpringBootApplication(exclude = org.springframework.boot.autoconfigure.security.reactive.ReactiveUserDetailsServiceAutoConfiguration.class)
+@SpringBootApplication
 public class ShenyuBootstrapApplication {
 
     /**

@@ -22,14 +22,13 @@ import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.oauth2.OAuth2Plugin;
 import org.apache.shenyu.plugin.oauth2.filter.OAuth2Filter;
 import org.apache.shenyu.plugin.oauth2.filter.OAuth2PreFilter;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.security.reactive.PathRequest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
@@ -50,7 +49,6 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -85,7 +83,7 @@ public class OAuth2PluginConfiguration {
     @ConditionalOnMissingBean(ReactiveAuthenticationManager.class)
     MapReactiveUserDetailsService userDetailsService() {
         UserDetails userDetails = User
-            .withDefaultPasswordEncoder()
+            .builder()
             .username("shenyu")
             .password("shenyu")
             .roles("USER")
@@ -98,14 +96,14 @@ public class OAuth2PluginConfiguration {
      * Build SecurityWebFilterChain.
      *
      * @param http                    The ServerHttpSecurity Instance
-     * @param oAuth2FilterProvider    The OAuth2Filter Instance
-     * @param oAuth2PreFilterProvider The OAuth2PreFilter Instance
+     * @param authorizedClientService    The OAuth2Filter Instance
      * @param context                 The ApplicationContext Instance
      * @return The SecurityWebFilterChain
      */
     @Bean
-    public SecurityWebFilterChain getSecurityWebFilterChain(final ServerHttpSecurity http, final ObjectProvider<OAuth2Filter> oAuth2FilterProvider,
-                                                            final ObjectProvider<OAuth2PreFilter> oAuth2PreFilterProvider, final ApplicationContext context) {
+    public SecurityWebFilterChain getSecurityWebFilterChain(final ServerHttpSecurity http,
+                                                            final ReactiveOAuth2AuthorizedClientService authorizedClientService,
+                                                            final ApplicationContext context) {
         String[] names = context.getBeanNamesForType(ReactiveClientRegistrationRepository.class);
         boolean exists = Arrays.asList(names).contains(DEFAULT_CLIENT_REGISTRATION_BEAN);
         if (exists) {
@@ -129,8 +127,8 @@ public class OAuth2PluginConfiguration {
             .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
             .oauth2Client()
             .and()
-            .addFilterAt(Objects.requireNonNull(oAuth2FilterProvider.getIfAvailable()), SecurityWebFiltersOrder.LAST)
-            .addFilterAfter(Objects.requireNonNull(oAuth2PreFilterProvider.getIfAvailable()), SecurityWebFiltersOrder.REACTOR_CONTEXT)
+            .addFilterAt(new OAuth2Filter(authorizedClientService), SecurityWebFiltersOrder.LAST)
+            .addFilterAfter(new OAuth2PreFilter(MATCHERS), SecurityWebFiltersOrder.REACTOR_CONTEXT)
             .authorizeExchange(exchanges ->
                 exchanges
                     .matchers(PathRequest.toStaticResources().atCommonLocations())
@@ -146,49 +144,24 @@ public class OAuth2PluginConfiguration {
     }
 
     /**
-     * Build OAuth2PreFilter.
-     *
-     * @return The OAuth2PreFilter
-     */
-    @Bean
-    @ConditionalOnMissingBean(value = ReactiveClientRegistrationRepository.class, name = DEFAULT_CLIENT_REGISTRATION_BEAN)
-    public OAuth2PreFilter oAuth2PreFilter() {
-        return new OAuth2PreFilter(MATCHERS);
-    }
-
-    /**
-     * Build OAuth2Filter.
-     *
-     * @param authorizedClientService The authorizedClientService Instance
-     * @return The OAuth2Filter.
-     */
-    @Bean
-    @DependsOn("oAuth2PreFilter")
-    @ConditionalOnMissingBean(value = ReactiveClientRegistrationRepository.class, name = DEFAULT_CLIENT_REGISTRATION_BEAN)
-    public OAuth2Filter oAuth2Filter(final ObjectProvider<ReactiveOAuth2AuthorizedClientService> authorizedClientService) {
-        return new OAuth2Filter(authorizedClientService.getIfAvailable());
-    }
-
-    /**
-     * Build clientRegistration.
+     * Build default clientRegistration.
+     * if this bean load, the oauth2 plugin don't take effect
      *
      * @return The clientRegistration instance.
      */
     @Bean(DEFAULT_CLIENT_REGISTRATION_BEAN)
-    @ConditionalOnMissingBean(ReactiveClientRegistrationRepository.class)
+    @Conditional(DefaultClientsConfiguredCondition.class)
     public ReactiveClientRegistrationRepository reactiveClientRegistrationRepository() {
-//        ClientRegistration.Builder builder = ClientRegistrations.fromIssuerLocation("");
-//        builder.registrationId()
-        ClientRegistration.Builder github = ClientRegistration.withRegistrationId("123");
-        github.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE);
-        github.tokenUri("/");
-        github.authorizationUri("/");
-        github.redirectUriTemplate("/");
-        github.scope("");
-        github.userInfoUri("/");
-        github.clientId("123");
-        github.clientSecret("123");
-        github.redirectUriTemplate("{baseUrl}/login/oauth2/code/{registrationId}");
-        return new InMemoryReactiveClientRegistrationRepository(github.build());
+        ClientRegistration.Builder shenyu = ClientRegistration.withRegistrationId("shenyu");
+        shenyu.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE);
+        shenyu.tokenUri("/");
+        shenyu.authorizationUri("/");
+        shenyu.redirectUriTemplate("/");
+        shenyu.scope("read:user");
+        shenyu.userInfoUri("/");
+        shenyu.clientId("shenyu");
+        shenyu.clientSecret("shenyu");
+        shenyu.redirectUriTemplate("{baseUrl}/login/oauth2/code/{registrationId}");
+        return new InMemoryReactiveClientRegistrationRepository(shenyu.build());
     }
 }
