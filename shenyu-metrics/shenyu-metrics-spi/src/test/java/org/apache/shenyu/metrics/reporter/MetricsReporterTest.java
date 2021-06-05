@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.shenyu.metrics.reporter;
 
+package org.apache.shenyu.metrics.reporter;
 
 import org.apache.shenyu.metrics.entity.Metric;
 import org.apache.shenyu.metrics.enums.MetricType;
@@ -24,7 +24,6 @@ import org.junit.Test;
 
 import java.util.Collection;
 import java.util.Collections;
-
 
 /**
  * MetricsReporterTest.
@@ -38,7 +37,7 @@ public class MetricsReporterTest {
         MetricsReporter.register(metricsRegister);
     }
 
-    @Test(expected = RuntimeException.class )
+    @Test(expected = RuntimeException.class)
     public void testRegisterMetrics() {
         Collection<Metric> metricsCounterType = Collections.singletonList(new Metric(MetricType.COUNTER,
                 "name", "document", Collections.EMPTY_LIST));
@@ -56,44 +55,44 @@ public class MetricsReporterTest {
 
     @Test
     public void testRegisterCounter() {
-        MetricsReporter.registerCounter("name",new String[]{"labelNames"},"document");
-        MetricsReporter.registerCounter("name","document");
+        MetricsReporter.registerCounter("name", new String[]{"labelNames"}, "document");
+        MetricsReporter.registerCounter("name", "document");
     }
 
     @Test
     public void testRegisterGauge() {
-        MetricsReporter.registerGauge("name",new String[]{"labelNames"},"document");
-        MetricsReporter.registerGauge("name","document");
+        MetricsReporter.registerGauge("name", new String[]{"labelNames"}, "document");
+        MetricsReporter.registerGauge("name", "document");
     }
 
     @Test
     public void testHistogram() {
-        MetricsReporter.registerHistogram("name",new String[]{"labelNames"},"document");
-        MetricsReporter.registerHistogram("name","document");
+        MetricsReporter.registerHistogram("name", new String[]{"labelNames"}, "document");
+        MetricsReporter.registerHistogram("name", "document");
     }
 
     @Test
     public void testCounterIncrement() {
-        MetricsReporter.counterIncrement("name",new String[]{"labelValues"});
+        MetricsReporter.counterIncrement("name", new String[]{"labelValues"});
         MetricsReporter.counterIncrement("name");
-        MetricsReporter.counterIncrement("name",new String[]{"labelValues"},1);
+        MetricsReporter.counterIncrement("name", new String[]{"labelValues"}, 1);
     }
 
     @Test
     public void testGaugeIncrement() {
-        MetricsReporter.gaugeIncrement("name",new String[]{"labelValues"});
+        MetricsReporter.gaugeIncrement("name", new String[]{"labelValues"});
         MetricsReporter.gaugeIncrement("name");
     }
 
     @Test
     public void testGaugeDecrement() {
-        MetricsReporter.gaugeDecrement("name",new String[]{"labelValues"});
+        MetricsReporter.gaugeDecrement("name", new String[]{"labelValues"});
         MetricsReporter.gaugeDecrement("name");
     }
 
     @Test
     public void testRecordTime() {
-        MetricsReporter.recordTime("name",new String[]{"labelValues"},1L);
-        MetricsReporter.recordTime("name",1L);
+        MetricsReporter.recordTime("name", new String[]{"labelValues"}, 1L);
+        MetricsReporter.recordTime("name", 1L);
     }
 }
