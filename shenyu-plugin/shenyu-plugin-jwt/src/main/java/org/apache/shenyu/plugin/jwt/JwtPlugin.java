@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
+import org.apache.shenyu.common.exception.ThrowingFunction;
 import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
@@ -30,7 +31,6 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.utils.Singleton;
 import org.apache.shenyu.plugin.jwt.config.JwtConfig;
-import org.apache.shenyu.plugin.jwt.lambda.ThrowingFunction;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
@@ -92,7 +92,6 @@ public class JwtPlugin extends AbstractShenyuPlugin {
         }
         return finalAuthorization.contains(AUTH2_TOKEN) ? finalAuthorization.split(" ")[1] : finalAuthorization;
     }
-
 
     private Mono<Void> checkAuthorization(final ServerWebExchange exchange,
                                           final ShenyuPluginChain chain,
