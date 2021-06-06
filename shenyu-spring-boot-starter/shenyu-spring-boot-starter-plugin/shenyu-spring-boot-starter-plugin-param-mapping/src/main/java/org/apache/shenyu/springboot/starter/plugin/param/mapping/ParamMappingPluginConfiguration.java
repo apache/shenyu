@@ -23,7 +23,6 @@ import org.apache.shenyu.plugin.param.mapping.ParamMappingPlugin;
 import org.apache.shenyu.plugin.param.mapping.handler.ParamMappingPluginDataHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.reactive.function.server.HandlerStrategies;
 
 /**
  * The type param mapping plugin configuration.
@@ -38,8 +37,7 @@ public class ParamMappingPluginConfiguration {
      */
     @Bean
     public ShenyuPlugin paramMappingPlugin() {
-        HandlerStrategies handlerStrategies = HandlerStrategies.builder().build();
-        return new ParamMappingPlugin(handlerStrategies.messageReaders());
+        return new ParamMappingPlugin();
     }
 
     /**

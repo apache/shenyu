@@ -15,40 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.dto.convert.rule.impl;
+package org.apache.shenyu.plugin.param.mapping.strategy;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
-
-import java.util.Set;
-import java.util.List;
+import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingHandle;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
 
 /**
- * Param mapping handle.
+ * DefaultStrategy.
  */
-@Data
-@NoArgsConstructor
-public class ParamMappingHandle implements RuleHandle {
-
-    private Set<String> removeParameterKeys;
-
-    private List<ParamMapInfo> replaceParameterKeys;
-
-    private List<ParamMapInfo> addParameterKeys;
+public class DefaultOperator implements Operator {
 
     @Override
-    public RuleHandle createDefault(final String path) {
-        return this;
-    }
-
-    @Data
-    public static class ParamMapInfo {
-
-        private String path;
-
-        private String key;
-
-        private String value;
+    public Mono<Void> apply(final ServerWebExchange exchange, final ShenyuPluginChain shenyuPluginChain, final ParamMappingHandle paramMappingHandle) {
+        return shenyuPluginChain.execute(exchange);
     }
 }

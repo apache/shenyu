@@ -18,7 +18,6 @@
 package org.apache.shenyu.plugin.param.mapping.cache;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shenyu.common.dto.convert.rule.impl.ContextMappingHandle;
 import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingHandle;
 import org.apache.shenyu.plugin.base.cache.BaseHandleCache;
 

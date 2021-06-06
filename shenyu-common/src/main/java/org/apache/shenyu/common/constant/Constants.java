@@ -536,6 +536,11 @@ public interface Constants {
     int REQUEST_MAX_SIZE = 102400;
 
     /**
+     * String default.
+     */
+    String DEFAULT = "DEFAULT";
+
+    /**
      * String q.
      */
     default void findConstants() {
