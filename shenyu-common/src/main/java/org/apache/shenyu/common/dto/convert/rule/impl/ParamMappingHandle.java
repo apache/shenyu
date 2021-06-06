@@ -3,10 +3,9 @@ package org.apache.shenyu.common.dto.convert.rule.impl;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.shenyu.common.dto.convert.rule.RuleHandle;
+import org.apache.shenyu.common.utils.GsonUtils;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Param mapping handle.
@@ -15,13 +14,11 @@ import java.util.Set;
 @NoArgsConstructor
 public class ParamMappingHandle implements RuleHandle {
 
-    private String mediaType;
+    private Set<String> removeParameterKeys;
 
-    private Set<String> deleteInfos;
+    private List<ParamMapInfo> replaceParameterKeys;
 
-    private List<ParamMapInfo> modityInfos;
-
-    private List<ParamMapInfo> addInfos;
+    private List<ParamMapInfo> addParameterKeys;
 
     @Override
     public RuleHandle createDefault(final String path) {
@@ -29,7 +26,7 @@ public class ParamMappingHandle implements RuleHandle {
     }
 
     @Data
-    public class ParamMapInfo {
+    public static class ParamMapInfo {
 
         private String path;
 

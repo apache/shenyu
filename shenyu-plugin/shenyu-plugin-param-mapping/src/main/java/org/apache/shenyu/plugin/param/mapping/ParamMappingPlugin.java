@@ -210,18 +210,18 @@ public class ParamMappingPlugin extends AbstractShenyuPlugin {
 
     private String operation(String jsonValue, ParamMappingHandle paramMappingHandle) {
         DocumentContext context = JsonPath.parse(jsonValue);
-        if (CollectionUtils.isEmpty(paramMappingHandle.getAddInfos())) {
-            paramMappingHandle.getAddInfos().forEach(info -> {
+        if (CollectionUtils.isEmpty(paramMappingHandle.getAddParameterKeys())) {
+            paramMappingHandle.getAddParameterKeys().forEach(info -> {
                 context.put(info.getPath(), info.getKey(), info.getValue());
             });
         }
-        if (CollectionUtils.isEmpty(paramMappingHandle.getModityInfos())) {
-            paramMappingHandle.getModityInfos().forEach(info -> {
+        if (CollectionUtils.isEmpty(paramMappingHandle.getReplaceParameterKeys())) {
+            paramMappingHandle.getReplaceParameterKeys().forEach(info -> {
                 context.renameKey(info.getPath(), info.getKey(), info.getValue());
             });
         }
-        if (CollectionUtils.isEmpty(paramMappingHandle.getDeleteInfos())) {
-            paramMappingHandle.getDeleteInfos().forEach(info -> {
+        if (CollectionUtils.isEmpty(paramMappingHandle.getRemoveParameterKeys())) {
+            paramMappingHandle.getRemoveParameterKeys().forEach(info -> {
                 context.delete(info);
             });
         }
