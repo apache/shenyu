@@ -73,11 +73,13 @@ public final class JwtUtils {
      */
     public static LocalDate getIssuerDate(final String token) {
         DecodedJWT jwt = verifierToken(token);
-        if (jwt != null) {
-            Date date = jwt.getIssuedAt();
-            return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        if (jwt == null) {
+            return null;
         }
-        return null;
+        Date date = jwt.getIssuedAt();
+        return Optional.ofNullable(date)
+                .map(it -> it.toInstant().atZone(ZoneId.systemDefault()).toLocalDate())
+                .orElse(null);
     }
 
     /**
@@ -88,7 +90,7 @@ public final class JwtUtils {
      */
     public static String generateToken(final String userName) {
         try {
-            return JWT.create().withClaim("userName", userName) .withExpiresAt(new Date()).sign(generateAlgorithm());
+            return JWT.create().withClaim("userName", userName).withExpiresAt(new Date()).sign(generateAlgorithm());
         } catch (IllegalArgumentException | JWTCreationException e) {
             log.error("JWTToken generate fail ", e);
         }
