@@ -312,6 +312,7 @@ INSERT INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `date_upd
 INSERT INTO `plugin` (`id`, `name`, `role`,`config`, `enabled`, `date_created`, `date_updated`) VALUES ('17', 'motan', '1','{"register":"127.0.0.1:2181"}','0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('18', 'logging', '1', '0', '2021-04-29 13:37:35', '2021-04-29 13:37:35');
 INSERT INTO `plugin` (`id`, `name`, `role`,`config`, `enabled`, `date_created`, `date_updated`) VALUES ('20', 'request', '1', '{"ruleHandlePageType":"custom"}', '0', '2021-05-26 21:38:48', '2021-05-30 19:55:22');
+INSERT INTO `plugin` (`id`, `name`, `role`,`config`, `enabled`, `date_created`, `date_updated`) VALUES ('21', 'paramResponse', '1', '{"ruleHandlePageType":"custom"}', '0', '2021-05-30 21:26:37', '2021-05-30 23:26:11');
 
 /**default admin user**/
 INSERT INTO `dashboard_user` (`id`, `user_name`, `password`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('1','admin','jHcpKkiDbbQh7W7hh8yQSA==', '1', '1', '2018-06-23 15:12:22', '2018-06-23 15:12:23');
@@ -429,6 +430,10 @@ INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`
 
 /*insert plugin_handle data for request*/
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('86', '20', 'ruleHandlePageType', 'ruleHandlePageType', 3, 3, 0, '{"required":"0","rule":""}', '2021-05-27 23:43:53', '2021-05-30 19:58:28');
+
+/*insert plugin_handle data for paramResponse*/
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('87', '21', 'statusCode', 'status code', 1, 2, 1, '{\"required\":\"0\",\"rule\":\"/^[1-5]\\\\d{2}$/\"}', '2021-05-30 21:42:56', '2021-05-30 22:08:37');
+
 
 /** insert permission role for role */
 INSERT INTO `role` (`id`,`role_name`,`description`,`date_created`,`date_updated`) VALUES ('1346358560427216896', 'super', '超级管理员', '2021-01-05 01:31:10', '2021-01-08 17:00:07');
@@ -696,6 +701,19 @@ INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, 
 INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1397547768292343808', '1397547768158126080', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:requestRule:query', 1, '2021-05-26 21:38:48', '2021-05-26 21:38:47');
 INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES('1397547768296538112', '1397547768158126080', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:request:modify', 1, '2021-05-26 21:38:48', '2021-05-26 21:38:47');
 
+/** insert paramResponse plugin's resource */
+INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1398994252528254976', '1346775491550474240', 'paramResponse', 'paramResponse', '/plug/paramResponse', 'paramResponse', 1, 0, 'block', 0, 0, '', 1, '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1398994252566003712', '1398994252528254976', 'SHENYU.BUTTON.PLUGIN.SELECTOR.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:paramResponseSelector:add', 1, '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1398994252582780928', '1398994252528254976', 'SHENYU.BUTTON.PLUGIN.SELECTOR.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:paramResponseSelector:delete', 1, '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1398994252591169536', '1398994252528254976', 'SHENYU.BUTTON.PLUGIN.SELECTOR.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:paramResponseSelector:edit', 1, '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1398994252603752448', '1398994252528254976', 'SHENYU.BUTTON.PLUGIN.SELECTOR.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:paramResponseSelector:query', 1, '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1398994252620529664', '1398994252528254976', 'SHENYU.BUTTON.PLUGIN.RULE.ADD', '', '', '', 2, 0, '', 1, 0, 'plugin:paramResponseRule:add', 1, '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1398994252645695488', '1398994252528254976', 'SHENYU.BUTTON.PLUGIN.RULE.DELETE', '', '', '', 2, 0, '', 1, 0, 'plugin:paramResponseRule:delete', 1, '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1398994252658278400', '1398994252528254976', 'SHENYU.BUTTON.PLUGIN.RULE.EDIT', '', '', '', 2, 0, '', 1, 0, 'plugin:paramResponseRule:edit', 1, '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1398994252666667008', '1398994252528254976', 'SHENYU.BUTTON.PLUGIN.RULE.QUERY', '', '', '', 2, 0, '', 1, 0, 'plugin:paramResponseRule:query', 1, '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT INTO `resource` (`id`, `parent_id`, `title`, `name`, `url`, `component`, `resource_type`, `sort`, `icon`, `is_leaf`, `is_route`, `perms`, `status`, `date_created`, `date_updated`) VALUES ('1398994252679249920', '1398994252528254976', 'SHENYU.BUTTON.PLUGIN.SYNCHRONIZE', '', '', '', 2, 0, '', 1, 0, 'plugin:paramResponse:modify', 1, '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+
+
 /** insert admin permission */
 INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1351007708572688384', '1346358560427216896', '1346775491550474240', '2021-01-18 11:25:13', '2021-01-18 11:25:12');
 INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1351007708585271296', '1346358560427216896', '1346776175553376256', '2021-01-18 11:25:13', '2021-01-18 11:25:12');
@@ -952,3 +970,16 @@ INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `dat
 INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1397547768283955201', '1346358560427216896', '1397547768283955200', '2021-05-26 21:38:48', '2021-05-26 21:38:47');
 INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1397547768292343809', '1346358560427216896', '1397547768292343808', '2021-05-26 21:38:48', '2021-05-26 21:38:47');
 INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1397547768300732416', '1346358560427216896', '1397547768296538112', '2021-05-26 21:38:48', '2021-05-26 21:38:47');
+
+/** add paramResponse plugin's permissions */
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1398994252532449280', '1346358560427216896', '1398994252528254976', '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1398994252570198016', '1346358560427216896', '1398994252566003712', '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1398994252582780929', '1346358560427216896', '1398994252582780928', '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1398994252591169537', '1346358560427216896', '1398994252591169536', '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1398994252603752449', '1346358560427216896', '1398994252603752448', '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1398994252620529665', '1346358560427216896', '1398994252620529664', '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1398994252645695489', '1346358560427216896', '1398994252645695488', '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1398994252658278401', '1346358560427216896', '1398994252658278400', '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1398994252666667009', '1346358560427216896', '1398994252666667008', '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+INSERT INTO `permission` (`id`, `object_id`, `resource_id`, `date_created`, `date_updated`) VALUES ('1398994252679249921', '1346358560427216896', '1398994252679249920', '2021-05-30 21:26:37', '2021-05-30 21:26:36');
+

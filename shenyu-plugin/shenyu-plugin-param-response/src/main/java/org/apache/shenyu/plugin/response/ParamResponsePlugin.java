@@ -69,7 +69,9 @@ public class ParamResponsePlugin extends AbstractShenyuPlugin {
         }
         final ShenyuContext soulContext = exchange.getAttribute(Constants.CONTEXT);
         assert soulContext != null;
-        ParamResponseRuleHandle paramResponseRuleHandle = ParamResponseRuleHandleCache.getInstance().obtainHandle(ParamResponsePluginDataHandler.getResourceName(rule));
+        final ParamResponseRuleHandle paramResponseRuleHandle = ParamResponseRuleHandleCache.getInstance().obtainHandle(ParamResponsePluginDataHandler.getResourceName(rule));
+
+        String setBody = "";
 
         if(Objects.nonNull(paramResponseRuleHandle)){
             ServerHttpResponse response = exchange.getResponse();
@@ -107,8 +109,8 @@ public class ParamResponsePlugin extends AbstractShenyuPlugin {
 
         }
 
-        return chain.execute(exchange)
-                .then(Mono.defer(() -> Mono.empty()));
+        return chain.execute(exchange.mutate()
+                .response(new ParamServerHttpResponse(exchange.getResponse(),setBody)).build());
     }
 
 
@@ -125,25 +127,35 @@ public class ParamResponsePlugin extends AbstractShenyuPlugin {
     class ParamServerHttpResponse extends ServerHttpResponseDecorator {
 
         private final ServerHttpResponse serverHttpResponse;
+        private final String setBody;
 
-        ParamServerHttpResponse(final ServerHttpResponse delegate) {
+        ParamServerHttpResponse(final ServerHttpResponse delegate,final String setBody) {
             super(delegate);
             this.serverHttpResponse = delegate;
+            this.setBody = setBody;
         }
 
         @Override
         @NonNull
         public Mono<Void> writeWith(@NonNull final Publisher<? extends DataBuffer> body) {
-            return super.writeWith(appendResponse(body));
+            return super.writeWith(updateResponse(body));
         }
 
         @NonNull
-        private Flux<? extends DataBuffer> appendResponse(final Publisher<? extends DataBuffer> body) {
+        private Flux<? extends DataBuffer> updateResponse(final Publisher<? extends DataBuffer> body) {
 
             BodyWriter writer = new BodyWriter();
             return Flux.from(body).doOnNext(buffer -> writer.write(buffer.asByteBuffer().asReadOnlyBuffer())).doFinally(signal -> {
+                if (!writer.isEmpty()) {
 
-                // when response, print all request info.
+                    String responseBody  = writer.output();
+                    log.info(responseBody);
+                    log.info(setBody);
+                }else{
+
+                    writer.output();
+                }
+
 
             });
         }

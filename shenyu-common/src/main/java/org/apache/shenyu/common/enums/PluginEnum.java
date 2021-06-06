@@ -146,14 +146,14 @@ public enum PluginEnum {
     MONITOR(80, 0, "monitor"),
 
     /**
-     * ParamResponse plugin enum.
-     */
-    PARAM_RESPONSE(200, 0, "paramResponse"),
-
-    /**
      * Response plugin enum.
      */
-    RESPONSE(100, 0, "response");
+    RESPONSE(100, 0, "response"),
+
+    /**
+     * ParamResponse plugin enum.
+     */
+    PARAM_RESPONSE(200, 0, "paramResponse");
     
     private final int code;
 
