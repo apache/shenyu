@@ -24,7 +24,6 @@ import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
 import org.apache.shenyu.plugin.tars.TarsPlugin;
 import org.apache.shenyu.plugin.tars.context.TarsShenyuContextDecorator;
 import org.apache.shenyu.plugin.tars.handler.TarsPluginDataHandler;
-import org.apache.shenyu.plugin.tars.response.TarsResponsePlugin;
 import org.apache.shenyu.plugin.tars.subscriber.TarsMetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;

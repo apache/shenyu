@@ -59,7 +59,6 @@ public class RpcResponsePlugin implements ShenyuPlugin {
      */
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-
         return chain.execute(exchange).then(Mono.defer(() -> {
             final Object result = Optional.ofNullable(getResult(exchange)).map(data -> exchange.getAttribute(data)).orElse(null);
             if (Objects.isNull(result)) {
@@ -71,7 +70,7 @@ public class RpcResponsePlugin implements ShenyuPlugin {
         }));
     }
 
-    private String getResult(ServerWebExchange exchange) {
+    private String getResult(final ServerWebExchange exchange) {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         return Optional.ofNullable(shenyuContext).map(data -> RPC_TYPE_MAP.get(data.getRpcType())).orElse(null);
     }
