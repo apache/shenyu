@@ -46,6 +46,8 @@ import java.util.Optional;
 @RequestMapping("/role")
 public class RoleController {
 
+    private static final String SUPER = "super";
+
     private final RoleService roleService;
 
     public RoleController(final RoleService roleService) {
@@ -97,7 +99,7 @@ public class RoleController {
     @PostMapping("")
     public ShenyuAdminResult createRole(@RequestBody final RoleDTO roleDTO) {
         return Optional.ofNullable(roleDTO).map(item -> {
-            if (roleDTO.getRoleName().equals("super")) {
+            if (SUPER.equals(roleDTO.getRoleName())) {
                 return ShenyuAdminResult.error(ShenyuResultMessage.ROLE_CREATE_ERROR);
             }
             Integer createCount = roleService.createOrUpdate(item);
