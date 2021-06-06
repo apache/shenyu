@@ -51,16 +51,6 @@ public class SofaPluginConfiguration {
     }
 
     /**
-     * Dubbo response plugin shenyu plugin.
-     *
-     * @return the shenyu plugin
-     */
-    @Bean
-    public ShenyuPlugin sofaResponsePlugin() {
-        return new SofaResponsePlugin();
-    }
-
-    /**
      * Sofa plugin data handler plugin data handler.
      *
      * @return the plugin data handler

@@ -49,16 +49,6 @@ public class TarsPluginConfiguration {
     }
 
     /**
-     * Tars response plugin shenyu plugin.
-     *
-     * @return the shenyu plugin
-     */
-    @Bean
-    public ShenyuPlugin tarsResponsePlugin() {
-        return new TarsResponsePlugin();
-    }
-
-    /**
      * Tars meta data subscriber meta data subscriber.
      *
      * @return the meta data subscriber

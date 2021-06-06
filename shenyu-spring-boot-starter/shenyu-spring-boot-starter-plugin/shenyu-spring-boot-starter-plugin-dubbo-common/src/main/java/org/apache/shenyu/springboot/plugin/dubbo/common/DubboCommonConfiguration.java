@@ -45,16 +45,6 @@ public class DubboCommonConfiguration {
     }
     
     /**
-     * Dubbo response plugin shenyu plugin.
-     *
-     * @return the shenyu plugin
-     */
-    @Bean
-    public ShenyuPlugin dubboResponsePlugin() {
-        return new DubboResponsePlugin();
-    }
-    
-    /**
      * Generic param resolve service dubbo param resolve service.
      *
      * @return the dubbo param resolve service

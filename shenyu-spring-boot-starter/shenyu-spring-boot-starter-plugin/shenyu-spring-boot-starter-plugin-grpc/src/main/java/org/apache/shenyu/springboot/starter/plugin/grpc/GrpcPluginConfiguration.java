@@ -45,16 +45,6 @@ public class GrpcPluginConfiguration {
     }
 
     /**
-     * Grpc response plugin shenyu plugin.
-     *
-     * @return the shenyu plugin
-     */
-    @Bean
-    public ShenyuPlugin grpcResponsePlugin() {
-        return new GrpcResponsePlugin();
-    }
-
-    /**
      * Grpc data handler.
      *
      * @return the plugin data handler
