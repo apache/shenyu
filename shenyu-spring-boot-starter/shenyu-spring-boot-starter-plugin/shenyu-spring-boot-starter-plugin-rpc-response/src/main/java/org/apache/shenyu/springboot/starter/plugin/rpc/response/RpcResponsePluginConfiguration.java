@@ -29,7 +29,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RpcResponsePluginConfiguration {
 
-
     /**
      * rpc response plugin shenyu plugin.
      *
@@ -39,5 +38,4 @@ public class RpcResponsePluginConfiguration {
     public ShenyuPlugin grpcResponsePlugin() {
         return new RpcResponsePlugin();
     }
-
 }
