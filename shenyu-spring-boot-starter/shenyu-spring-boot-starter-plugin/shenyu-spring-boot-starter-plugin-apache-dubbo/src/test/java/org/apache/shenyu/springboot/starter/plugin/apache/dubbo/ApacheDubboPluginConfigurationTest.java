@@ -21,7 +21,6 @@ import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.apache.dubbo.ApacheDubboPlugin;
 import org.apache.shenyu.plugin.apache.dubbo.handler.ApacheDubboPluginDataHandler;
 import org.apache.shenyu.plugin.apache.dubbo.subscriber.ApacheDubboMetaDataSubscriber;
-import org.apache.shenyu.plugin.dubbo.common.response.DubboResponsePlugin;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,9 +50,6 @@ public final class ApacheDubboPluginConfigurationTest {
     private ApacheDubboPlugin apacheDubboPlugin;
     
     @Autowired(required = false)
-    private DubboResponsePlugin dubboResponsePlugin;
-    
-    @Autowired(required = false)
     private ApacheDubboPluginDataHandler apacheDubboPluginDataHandler;
     
     @Autowired(required = false)
@@ -64,13 +60,6 @@ public final class ApacheDubboPluginConfigurationTest {
         assertNotNull(apacheDubboPlugin);
         assertThat(apacheDubboPlugin.named(), is(PluginEnum.DUBBO.getName()));
         assertThat(apacheDubboPlugin.getOrder(), is(PluginEnum.DUBBO.getCode()));
-    }
-
-    @Test
-    public void testDubboResponsePluginConfiguration() {
-        assertNotNull(dubboResponsePlugin);
-        assertThat(dubboResponsePlugin.getOrder(), is(PluginEnum.RESPONSE.getCode()));
-        assertThat(dubboResponsePlugin.named(), is(PluginEnum.RESPONSE.getName()));
     }
 
     @Test
