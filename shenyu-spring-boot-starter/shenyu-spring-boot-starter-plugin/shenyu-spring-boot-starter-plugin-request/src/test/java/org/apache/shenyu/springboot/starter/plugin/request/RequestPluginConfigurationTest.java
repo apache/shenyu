@@ -34,7 +34,9 @@ public class RequestPluginConfigurationTest {
     @Test
     public void testRequestPlugin() {
         new ApplicationContextRunner()
-            .withConfiguration(AutoConfigurations.of(RequestPluginConfiguration.class))
+            .withConfiguration(
+                    AutoConfigurations.of(RequestPluginConfiguration.class)
+            )
             .withPropertyValues("debug=true")
             .run(
                     context -> {
