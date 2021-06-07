@@ -19,10 +19,11 @@ package org.apache.shenyu.common.exception;
 
 /**
  * Throwing wrap.
+ * Handle exception, and return null.
+ * Not all exceptions must be try catch, throw upwards, return null, you can use if to judge.
  */
 @FunctionalInterface
 public interface ThrowingFunction<T> {
-
 
     /**
      * apply function.
@@ -34,6 +35,7 @@ public interface ThrowingFunction<T> {
 
     /**
      * operation function.
+     * If an exception occurs, it will directly return a null.
      *
      * @param function apply function.
      * @param <T> t
@@ -43,7 +45,6 @@ public interface ThrowingFunction<T> {
         try {
             return function.apply();
         } catch (Exception e) {
-            e.printStackTrace();
             return null;
         }
     }

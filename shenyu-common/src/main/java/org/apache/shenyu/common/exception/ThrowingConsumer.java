@@ -19,6 +19,7 @@ package org.apache.shenyu.common.exception;
 
 /**
  * Throwing wrap.
+ * Ignored exception, do not return any exception info.
  */
 @FunctionalInterface
 public interface ThrowingConsumer {
@@ -38,8 +39,8 @@ public interface ThrowingConsumer {
     static void wrap(ThrowingConsumer consumer) {
         try {
             consumer.accept();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ignored) {
+
         }
     }
 }
