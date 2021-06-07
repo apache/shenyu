@@ -1,0 +1,80 @@
+version: "3.9"
+services:
+  shenyu-mysql:
+    restart: always
+    image: mysql:5.7
+    container_name: shenyu-mysql
+    ports:
+      - 13310:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=shenyu
+    networks:
+      - shenyu
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
+
+
+  #  zookeeper:
+#    image: zookeeper:3.5
+#    restart: always
+#    networks:
+#      - shenyu
+#  redis:
+#    image: redis:6.0
+#    restart: always
+#    networks:
+#      - shenyu
+#  prometheus:
+#    image: prom/prometheus:v2.27.1
+#    restart: always
+#    networks:
+#      - shenyu
+#  third-party-ready:
+#    image: wait-for
+#    container_name: third-party-ready
+#    command:
+#      - sh -c './wait-for www.eficode.com:80 -- echo "Eficode site is up"'
+#    networks:
+#      - shenyu
+#    depends_on:
+#      - shenyu-mysql
+  shenyu-admin:
+    image: dromara/shenyu-admin:2.3.1-SNAPSHOT
+    container_name: shenyu-admin
+    restart: always
+    networks:
+      - shenyu
+    depends_on:
+#      - third-party-ready
+      shenyu-mysql:
+        condition: service_healthy
+#      - redis
+#      - zookeeper
+#      - prometheus
+    ports:
+      - 9095:9095
+    environment:
+      - SPRING_PROFILES_ACTIVE=mysql
+      - "spring.datasource.url=jdbc:mysql://shenyu-mysql:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false"
+      - "spring.datasource.password=root"
+      - "soul.sync.http.url=http://shenyu-admin:9095/http"
+    healthcheck:
+      test: ["CMD", "wget", "http://shenyu-admin:9095"]
+      timeout: 20s
+      retries: 10
+  shenyu-bootstrap:
+    container_name: shenyu-bootstrap
+    image: dromara/shenyu-bootstrap:2.3.1-SNAPSHOT
+    restart: always
+    depends_on:
+      shenyu-admin:
+        condition: service_healthy
+    ports:
+      - 9195:9195
+
+networks:
+  shenyu:
+    name: shenyu
