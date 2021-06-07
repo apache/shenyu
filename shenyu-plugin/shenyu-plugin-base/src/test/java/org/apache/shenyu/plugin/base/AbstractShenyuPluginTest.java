@@ -53,7 +53,7 @@ public final class AbstractShenyuPluginTest {
 
     private ServerWebExchange exchange;
 
-    private TestShenyuPlugin testSoulPlugin;
+    private TestShenyuPlugin testShenyuPlugin;
 
     private ShenyuPluginChain shenyuPluginChain;
 
@@ -68,11 +68,11 @@ public final class AbstractShenyuPluginTest {
         this.conditionData.setParamType("uri");
         this.conditionData.setParamValue("/http/**");
         this.shenyuPluginChain = mock(ShenyuPluginChain.class);
-        this.pluginData = PluginData.builder().name("SOUL").enabled(true).build();
-        this.selectorData = SelectorData.builder().id("1").pluginName("SOUL")
+        this.pluginData = PluginData.builder().name("SHENYU").enabled(true).build();
+        this.selectorData = SelectorData.builder().id("1").pluginName("SHENYU")
                 .enabled(true).type(SelectorTypeEnum.CUSTOM_FLOW.getCode()).build();
-        this.testSoulPlugin = new TestShenyuPlugin();
-        this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/http/SOUL/SOUL")
+        this.testShenyuPlugin = new TestShenyuPlugin();
+        this.exchange = MockServerWebExchange.from(MockServerHttpRequest.get("/http/SHENYU/SHENYU")
                 .build());
         when(shenyuPluginChain.execute(exchange)).thenReturn(Mono.empty());
     }
@@ -82,7 +82,7 @@ public final class AbstractShenyuPluginTest {
      */
     @Test
     public void executePluginIsNullTest() {
-        StepVerifier.create(testSoulPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
     }
 
     /**
@@ -91,7 +91,7 @@ public final class AbstractShenyuPluginTest {
     @Test
     public void executeSelectorIsNullTest() {
         BaseDataCache.getInstance().cachePluginData(pluginData);
-        StepVerifier.create(testSoulPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
     }
 
     /**
@@ -101,7 +101,7 @@ public final class AbstractShenyuPluginTest {
     public void executeSelectorDataIsNullTest() {
         BaseDataCache.getInstance().cachePluginData(pluginData);
         BaseDataCache.getInstance().cacheSelectData(selectorData);
-        StepVerifier.create(testSoulPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
     }
 
     /**
@@ -115,7 +115,7 @@ public final class AbstractShenyuPluginTest {
         this.selectorData.setConditionList(conditionDataList);
         BaseDataCache.getInstance().cachePluginData(pluginData);
         BaseDataCache.getInstance().cacheSelectData(selectorData);
-        StepVerifier.create(testSoulPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
     }
 
     /**
@@ -132,7 +132,7 @@ public final class AbstractShenyuPluginTest {
         BaseDataCache.getInstance().cachePluginData(pluginData);
         BaseDataCache.getInstance().cacheSelectData(selectorData);
         BaseDataCache.getInstance().cacheRuleData(ruleData);
-        StepVerifier.create(testSoulPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
     }
 
     /**
@@ -150,7 +150,7 @@ public final class AbstractShenyuPluginTest {
         BaseDataCache.getInstance().cachePluginData(pluginData);
         BaseDataCache.getInstance().cacheSelectData(selectorData);
         BaseDataCache.getInstance().cacheRuleData(ruleData);
-        StepVerifier.create(testSoulPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
+        StepVerifier.create(testShenyuPlugin.execute(exchange, shenyuPluginChain)).expectSubscription().verifyComplete();
     }
 
     static class TestShenyuPlugin extends AbstractShenyuPlugin {
@@ -167,7 +167,7 @@ public final class AbstractShenyuPluginTest {
 
         @Override
         public String named() {
-            return "SOUL";
+            return "SHENYU";
         }
     }
 }

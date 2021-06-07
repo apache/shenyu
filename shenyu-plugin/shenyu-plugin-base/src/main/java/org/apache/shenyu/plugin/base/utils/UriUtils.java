@@ -17,8 +17,9 @@
 
 package org.apache.shenyu.plugin.base.utils;
 
-import java.net.URI;
 import org.apache.commons.lang3.StringUtils;
+
+import java.net.URI;
 
 /**
  * uri util.
@@ -36,5 +37,4 @@ public class UriUtils {
         }
         return null;
     }
-
 }

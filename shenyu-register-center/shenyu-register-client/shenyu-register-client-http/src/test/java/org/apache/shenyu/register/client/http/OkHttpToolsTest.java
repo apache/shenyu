@@ -44,7 +44,7 @@ public final class OkHttpToolsTest {
 
     private String url;
 
-    private final String json = "{\"appName\":\"soul\"}";
+    private final String json = "{\"appName\":\"shenyu\"}";
 
     @Before
     public void setUpWireMock() {

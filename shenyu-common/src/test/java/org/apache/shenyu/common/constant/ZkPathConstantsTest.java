@@ -29,15 +29,15 @@ import static org.junit.Assert.assertThat;
  */
 public final class ZkPathConstantsTest {
 
-    private static final String APP_AUTH_PARENT = "/soul/auth";
+    private static final String APP_AUTH_PARENT = "/shenyu/auth";
 
-    private static final String META_DATA_PARENT = "/soul/metaData";
+    private static final String META_DATA_PARENT = "/shenyu/metaData";
 
-    private static final String PLUGIN_PARENT = "/soul/plugin";
+    private static final String PLUGIN_PARENT = "/shenyu/plugin";
 
-    private static final String SELECTOR_PARENT = "/soul/selector";
+    private static final String SELECTOR_PARENT = "/shenyu/selector";
 
-    private static final String RULE_PARENT = "/soul/rule";
+    private static final String RULE_PARENT = "/shenyu/rule";
 
     private static final String SELECTOR_JOIN_RULE = "-";
 

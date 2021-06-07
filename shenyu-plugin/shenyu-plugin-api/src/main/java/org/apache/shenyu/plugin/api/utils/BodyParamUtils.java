@@ -23,7 +23,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.shenyu.common.utils.GsonUtils;
-import java.util.LinkedList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -72,26 +71,26 @@ public class BodyParamUtils {
             paramNameList.addAll(paramNameMap.keySet());
             paramTypeList.addAll(paramNameMap.values());
         } else {
-            paramTypeList = Arrays.asList(StringUtils.split(parameterTypes, ","));
+            Map<String, Object> paramMap = GsonUtils.getInstance().toObjectMap(body);
+            paramNameList.addAll(paramMap.keySet());
+            paramTypeList.addAll(Arrays.asList(StringUtils.split(parameterTypes, ",")));
         }
 
         if (paramTypeList.size() == 1 && !isBaseType(paramTypeList.get(0))) {
             return buildSingleParameter(body, parameterTypes);
         }
         Map<String, Object> paramMap = GsonUtils.getInstance().toObjectMap(body);
-        List<Object> list = new LinkedList<>();
-        for (String key : paramNameList) {
+        Object[] objects = paramNameList.stream().map(key -> {
             Object obj = paramMap.get(key);
             if (obj instanceof JsonObject) {
-                list.add(GsonUtils.getInstance().convertToMap(obj.toString()));
+                return GsonUtils.getInstance().convertToMap(obj.toString());
             } else if (obj instanceof JsonArray) {
-                list.add(GsonUtils.getInstance().fromList(obj.toString(), Object.class));
+                return GsonUtils.getInstance().fromList(obj.toString(), Object.class);
             } else {
-                list.add(obj);
+                return obj;
             }
-        }
+        }).toArray();
         String[] paramTypes = paramTypeList.toArray(new String[0]);
-        Object[] objects = list.toArray();
         return new ImmutablePair<>(paramTypes, objects);
     }
 

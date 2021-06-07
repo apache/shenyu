@@ -65,7 +65,7 @@ public final class SpringCloudClientBeanPostProcessorTest {
     }
 
     @Test
-    public void testSoulBeanProcess() {
+    public void testShenyuBeanProcess() {
         // config with full
         SpringCloudClientBeanPostProcessor springCloudClientBeanPostProcessor = buildSpringCloudClientBeanPostProcessor(true);
         assertThat(springCloudClientTestBean, equalTo(springCloudClientBeanPostProcessor.postProcessAfterInitialization(springCloudClientTestBean, "springCloudClientTestBean")));
@@ -80,7 +80,7 @@ public final class SpringCloudClientBeanPostProcessorTest {
     }
 
     @Test
-    public void testWithSoulClientAnnotation() {
+    public void testWithShenyuClientAnnotation() {
         try (MockedStatic mocked = mockStatic(RegisterUtils.class)) {
             mocked.when(() -> RegisterUtils.doRegister(any(), any(), any()))
                     .thenAnswer((Answer<Void>) invocation -> null);

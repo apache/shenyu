@@ -24,8 +24,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.shenyu.common.enums.OperatorEnum;
 
-import java.io.Serializable;
-
 /**
  * ConditionDTO.
  *
@@ -34,9 +32,7 @@ import java.io.Serializable;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ConditionData implements Serializable {
-
-    private static final long serialVersionUID = -6768497298941824781L;
+public class ConditionData {
 
     /**
      * param type (post  query  uri).

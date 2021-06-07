@@ -31,7 +31,7 @@ import static org.junit.Assert.assertThat;
 @Slf4j
 public final class ShenyuThreadFactoryTest {
 
-    private static final String NAME_PREFIX = "soul##thread##";
+    private static final String NAME_PREFIX = "shenyu##thread##";
 
     @Test
     public void testCreate() {

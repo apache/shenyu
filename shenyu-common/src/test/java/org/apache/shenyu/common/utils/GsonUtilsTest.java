@@ -236,12 +236,12 @@ public class GsonUtilsTest {
     @Test
     public void testConvertToMap() {
         List<Integer> innerList = ImmutableList.of(1, 2, 3);
-        Map<String, Object> innerMap = ImmutableMap.of("id", 123, "name", "soul");
+        Map<String, Object> innerMap = ImmutableMap.of("id", 123, "name", "shenyu");
         Map<String, Object> map = ImmutableMap.of("code", 200, "message", "test",
                 "data", innerMap, "list", innerList);
 
         String testJson = "{\"code\":200,\"message\":\"test\","
-                + "\"data\":{\"id\":123,\"name\":\"soul\"},\"list\":[1,2,3]}";
+                + "\"data\":{\"id\":123,\"name\":\"shenyu\"},\"list\":[1,2,3]}";
         Map<String, Object> parseMap = GsonUtils.getInstance().convertToMap(testJson);
 
         map.forEach((key, value) -> {

@@ -67,7 +67,7 @@ public final class RegisterUtilsTest {
         };
         
         json = gson.toJson(jsonMap);
-        url = "http://localhost:9095/soul-client/dubbo-register";
+        url = "http://localhost:9095/shenyu-client/dubbo-register";
     }
     
     @SneakyThrows

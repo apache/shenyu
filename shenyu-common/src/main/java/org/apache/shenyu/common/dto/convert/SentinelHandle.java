@@ -71,6 +71,21 @@ public class SentinelHandle {
     private Integer degradeRuleTimeWindow;
 
     /**
+     * Degrade rule min request amount.
+     */
+    private Integer degradeRuleMinRequestAmount = Constants.SENTINEL_MIN_REQUEST_AMOUNT;
+
+    /**
+     * Degrade rule slow ratio threshold.
+     */
+    private Double degradeRuleSlowRatioThreshold = Constants.SENTINEL_SLOW_RATIO_THRESHOLD;
+
+    /**
+     * Degrade rule stat intervalMs.
+     */
+    private int degradeRuleStatIntervals = Constants.SENTINEL_STAT_INTERVALS;
+
+    /**
      * Sentinel fallback uri.
      */
     private String fallbackUri;

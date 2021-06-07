@@ -92,7 +92,7 @@ public class DisruptorProviderManage<T> {
         this.consumerSize = consumerSize;
         this.executor = new ThreadPoolExecutor(consumerSize, consumerSize, 0, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(),
-                DisruptorThreadFactory.create("soul_disruptor_consumer_", false), new ThreadPoolExecutor.AbortPolicy());
+                DisruptorThreadFactory.create("shenyu_disruptor_consumer_", false), new ThreadPoolExecutor.AbortPolicy());
     }
 
     /**
@@ -102,7 +102,7 @@ public class DisruptorProviderManage<T> {
     public void startup() {
         Disruptor<DataEvent<T>> disruptor = new Disruptor<>(new DisruptorEventFactory<>(),
                 size,
-                DisruptorThreadFactory.create("soul_disruptor_provider_" + consumerFactory.fixName(), false),
+                DisruptorThreadFactory.create("shenyu_disruptor_provider_" + consumerFactory.fixName(), false),
                 ProducerType.MULTI,
                 new BlockingWaitStrategy());
         QueueConsumer<T>[] consumers = new QueueConsumer[consumerSize];

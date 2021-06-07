@@ -18,10 +18,12 @@
 package org.apache.shenyu.plugin.base.condition.judge;
 
 import org.apache.shenyu.common.dto.ConditionData;
+import org.apache.shenyu.spi.SPI;
 
 /**
  * Predicate judge.
  */
+@SPI
 @FunctionalInterface
 public interface PredicateJudge {
 
@@ -33,5 +35,4 @@ public interface PredicateJudge {
      * @return true is pass  false is not pass.
      */
     Boolean judge(ConditionData conditionData, String realData);
-
 }

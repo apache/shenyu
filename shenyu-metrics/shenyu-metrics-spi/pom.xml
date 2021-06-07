@@ -29,10 +29,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.apache.shenyu</groupId>
             <artifactId>shenyu-spi</artifactId>
             <version>${project.version}</version>

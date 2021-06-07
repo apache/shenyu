@@ -40,5 +40,4 @@ public class LoadBalanceUtils {
         LoadBalance loadBalance = ExtensionLoader.getExtensionLoader(LoadBalance.class).getJoin(algorithm);
         return loadBalance.select(upstreamList, ip);
     }
-
 }

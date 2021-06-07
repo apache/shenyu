@@ -25,9 +25,9 @@ import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.DefaultShenyuResult;
 import org.apache.shenyu.plugin.api.result.ShenyuResult;
 import org.apache.shenyu.plugin.api.utils.SpringBeanUtils;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.ratelimiter.cache.RatelimiterRuleHandleCache;
 import org.apache.shenyu.plugin.ratelimiter.executor.RedisRateLimiter;
-import org.apache.shenyu.plugin.ratelimiter.handler.RateLimiterPluginDataHandler;
 import org.apache.shenyu.plugin.ratelimiter.response.RateLimiterResponse;
 import org.junit.Assert;
 import org.junit.Before;
@@ -126,7 +126,7 @@ public final class RateLimiterPluginTest {
         RateLimiterHandle rateLimiterHandle = mockRateLimiterHandler();
         when(ruleData.getId()).thenReturn("test1");
         when(chain.execute(any())).thenReturn(Mono.empty());
-        RatelimiterRuleHandleCache.getInstance().cachedHandle(RateLimiterPluginDataHandler.getCacheKeyName(ruleData), rateLimiterHandle);
+        RatelimiterRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), rateLimiterHandle);
     }
 
     /**

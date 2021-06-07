@@ -27,7 +27,7 @@ public final class DisruptorThreadFactory implements ThreadFactory {
 
     private static final AtomicLong THREAD_NUMBER = new AtomicLong(1);
 
-    private static final ThreadGroup THREAD_GROUP = new ThreadGroup("soul-disruptor");
+    private static final ThreadGroup THREAD_GROUP = new ThreadGroup("shenyu-disruptor");
 
     private final boolean daemon;
 

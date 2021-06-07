@@ -20,7 +20,6 @@ package org.apache.shenyu.plugin.grpc.cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.cache.Weigher;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.dto.convert.DivideUpstream;
@@ -44,11 +43,10 @@ import java.util.stream.Collectors;
 @Slf4j
 public final class ApplicationConfigCache {
 
-    private final int maxCount = 50000;
+    private final int maxCount = 1000;
 
     private final LoadingCache<String, ShenyuServiceInstanceLists> cache = CacheBuilder.newBuilder()
-            .maximumWeight(maxCount)
-            .weigher((Weigher<String, ShenyuServiceInstanceLists>) (string, referenceConfig) -> getSize())
+            .maximumSize(maxCount)
             .build(new CacheLoader<String, ShenyuServiceInstanceLists>() {
                 @Override
                 public ShenyuServiceInstanceLists load(final String key) {
@@ -61,15 +59,11 @@ public final class ApplicationConfigCache {
     private ApplicationConfigCache() {
     }
 
-    private int getSize() {
-        return (int) cache.size();
-    }
-
     /**
-     * Get soulServiceInstanceList.
+     * Get shenyuServiceInstanceList.
      *
      * @param contextPath contextPath
-     * @return SoulServiceInstanceLists instances
+     * @return ShenyuServiceInstanceLists instances
      */
     public ShenyuServiceInstanceLists get(final String contextPath) {
         try {
@@ -91,8 +85,8 @@ public final class ApplicationConfigCache {
                 invalidate(selectorData.getName());
                 return;
             }
-            ShenyuServiceInstanceLists soulServiceInstances = cache.get(selectorData.getName());
-            List<ShenyuServiceInstance> instances = soulServiceInstances.getShenyuServiceInstances();
+            ShenyuServiceInstanceLists shenyuServiceInstances = cache.get(selectorData.getName());
+            List<ShenyuServiceInstance> instances = shenyuServiceInstances.getShenyuServiceInstances();
             instances.clear();
             instances.addAll(upstreamList.stream().map(this::build).collect(Collectors.toList()));
             Consumer<Object> consumer = listener.get(selectorData.getName());

@@ -26,9 +26,9 @@ import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.ratelimiter.cache.RatelimiterRuleHandleCache;
 import org.apache.shenyu.plugin.ratelimiter.executor.RedisRateLimiter;
-import org.apache.shenyu.plugin.ratelimiter.handler.RateLimiterPluginDataHandler;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -62,7 +62,7 @@ public class RateLimiterPlugin extends AbstractShenyuPlugin {
     @Override
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         RateLimiterHandle limiterHandle = RatelimiterRuleHandleCache.getInstance()
-                .obtainHandle(RateLimiterPluginDataHandler.getCacheKeyName(rule));
+                .obtainHandle(CacheKeyUtils.INST.getKey(rule));
         return redisRateLimiter.isAllowed(rule.getId(), limiterHandle)
                 .flatMap(response -> {
                     if (!response.isAllowed()) {

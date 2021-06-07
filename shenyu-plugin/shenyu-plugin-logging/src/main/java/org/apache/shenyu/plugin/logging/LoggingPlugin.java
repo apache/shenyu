@@ -17,16 +17,6 @@
 
 package org.apache.shenyu.plugin.logging;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.Channels;
-import java.nio.channels.WritableByteChannel;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.RuleData;
@@ -47,50 +37,69 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.annotation.NonNull;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.WritableByteChannel;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 /**
  * Shenyu logging plugin. it can print request info(include request headers, request params, request body ...etc) and
  * response info(include response headers and response body).
  */
 @Slf4j
 public class LoggingPlugin extends AbstractShenyuPlugin {
-
-    @Override protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain,
-        final SelectorData selector, final RuleData rule) {
-
+    
+    @Override
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         ServerHttpRequest request = exchange.getRequest();
         StringBuilder requestInfo = new StringBuilder("Print Request Info: ").append(System.lineSeparator());
-
         requestInfo.append(getRequestUri(request)).append(getRequestMethod(request)).append(System.lineSeparator())
-            .append(getRequestHeaders(request)).append(System.lineSeparator())
-            .append(getQueryParams(request)).append(System.lineSeparator());
-
-        return chain.execute(
-            exchange.mutate()
-                .request(new LoggingServerHttpRequest(request, requestInfo))
-                .response(new LoggingServerHttpResponse(exchange.getResponse(), requestInfo))
-                .build()
-        );
+                .append(getRequestHeaders(request)).append(System.lineSeparator())
+                .append(getQueryParams(request)).append(System.lineSeparator());
+        return chain.execute(exchange.mutate().request(new LoggingServerHttpRequest(request, requestInfo))
+                .response(new LoggingServerHttpResponse(exchange.getResponse(), requestInfo)).build());
     }
-
+    
+    @Override
+    public int getOrder() {
+        return PluginEnum.LOGGING.getCode();
+    }
+    
+    @Override
+    public String named() {
+        return PluginEnum.LOGGING.getName();
+    }
+    
+    @Override
+    public Boolean skip(final ServerWebExchange exchange) {
+        return false;
+    }
+    
     private String getRequestMethod(final ServerHttpRequest request) {
         return "Request Method: " + request.getMethod() + System.lineSeparator();
     }
-
+    
     private String getRequestUri(final ServerHttpRequest request) {
         return "Request Uri: " + request.getURI() + System.lineSeparator();
     }
-
+    
     private String getQueryParams(final ServerHttpRequest request) {
         MultiValueMap<String, String> params = request.getQueryParams();
         StringBuilder logInfo = new StringBuilder();
         if (!params.isEmpty()) {
             logInfo.append("[Query Params Start]").append(System.lineSeparator());
-            params.forEach((key, value) -> logInfo.append(key).append(": ").append(StringUtils.join(value, ",")).append(System.lineSeparator()));
+            params.forEach((key, value) -> logInfo.append(key).append(":").append(StringUtils.join(value, ",")).append(System.lineSeparator()));
             logInfo.append("[Query Params End]").append(System.lineSeparator());
         }
         return logInfo.toString();
     }
-
+    
     private String getRequestHeaders(final ServerHttpRequest request) {
         HttpHeaders headers = request.getHeaders();
         final StringBuilder logInfo = new StringBuilder();
@@ -101,11 +110,11 @@ public class LoggingPlugin extends AbstractShenyuPlugin {
         }
         return logInfo.toString();
     }
-
+    
     private void print(final String info) {
         log.info(info);
     }
-
+    
     private String getHeaders(final HttpHeaders headers) {
         StringBuilder sb = new StringBuilder();
         Set<Map.Entry<String, List<String>>> entrySet = headers.entrySet();
@@ -116,20 +125,7 @@ public class LoggingPlugin extends AbstractShenyuPlugin {
         }
         return sb.toString();
     }
-
-    @Override public int getOrder() {
-        return PluginEnum.LOGGING.getCode();
-    }
-
-    @Override public String named() {
-        return PluginEnum.LOGGING.getName();
-    }
-
-    @Override
-    public Boolean skip(final ServerWebExchange exchange) {
-        return false;
-    }
-
+    
     static class LoggingServerHttpRequest extends ServerHttpRequestDecorator {
 
         private final StringBuilder logInfo;
@@ -228,20 +224,17 @@ public class LoggingPlugin extends AbstractShenyuPlugin {
                 log.error("Write failed: ", e);
                 return "Write failed: " + e.getMessage();
             } finally {
-
                 try {
                     stream.close();
                 } catch (IOException e) {
                     log.error("Close stream error: ", e);
                 }
-
                 try {
                     channel.close();
                 } catch (IOException e) {
                     log.error("Close channel error: ", e);
                 }
             }
-
         }
     }
 }

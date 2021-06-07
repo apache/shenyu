@@ -47,7 +47,7 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
         if (RpcTypeEnum.HTTP.getName().equals(rpcType) || RpcTypeEnum.TARS.getName().equals(rpcType) || RpcTypeEnum.GRPC.getName().equals(rpcType)) {
             registerURI(metadata);
         }
-        log.info("{} Consul client register success: {}", rpcType, metadata.toString());
+        log.info("{} Consul client register success: {}", rpcType, metadata);
     }
     
     private void registerMetadata(final String rpcType, final String contextPath, final MetaDataRegisterDTO metadata) {
@@ -70,13 +70,8 @@ public class ConsulClientRegisterRepository implements ShenyuClientRegisterRepos
         if (RpcTypeEnum.HTTP.getName().equals(rpcType) || RpcTypeEnum.SPRING_CLOUD.getName().equals(rpcType)) {
             nodeName = String.join("-", metadata.getContextPath(), metadata.getRuleName().replace("/", "-"));
         } else {
-            nodeName = buildNodeName(metadata.getServiceName(), metadata.getMethodName());
+            nodeName = RegisterPathConstants.buildNodeName(metadata.getServiceName(), metadata.getMethodName());
         }
-        return nodeName.substring(1);
+        return nodeName.startsWith("/") ? nodeName.substring(1) : nodeName;
     }
-    
-    private String buildNodeName(final String serviceName, final String methodName) {
-        return String.join(DOT_SEPARATOR, serviceName, methodName);
-    }
-    
 }

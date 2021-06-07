@@ -73,7 +73,7 @@ public final class AppAuthControllerTest {
 
     private final AppAuthVO appAuthVO = new AppAuthVO("0001", "testAppKey", "testAppSecret",
             "testUser", "18600000000", "{\"extInfo\": \"test\"}",
-            true, true, null,
+            true, true, null, null,
             DateUtils.localDateTimeToString(LocalDateTime.now()));
 
     @Before

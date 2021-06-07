@@ -43,7 +43,7 @@ public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRe
 
     private ZkClient zkClient;
 
-    private Map<String, String> nodeDataMap = new HashMap<>();
+    private final Map<String, String> nodeDataMap = new HashMap<>();
 
     @Override
     public void init(final ShenyuRegisterCenterConfig config) {
@@ -110,34 +110,30 @@ public class ZookeeperClientRegisterRepository implements ShenyuClientRegisterRe
         if (RpcTypeEnum.HTTP.getName().equals(rpcType) || RpcTypeEnum.SPRING_CLOUD.getName().equals(rpcType)) {
             nodeName = String.join("-", metadata.getContextPath(), metadata.getRuleName().replace("/", "-"));
         } else {
-            nodeName = buildNodeName(metadata.getServiceName(), metadata.getMethodName());
+            nodeName = RegisterPathConstants.buildNodeName(metadata.getServiceName(), metadata.getMethodName());
         }
-        return nodeName.substring(1);
-    }
-
-    private String buildNodeName(final String serviceName, final String methodName) {
-        return String.join(DOT_SEPARATOR, serviceName, methodName);
+        return nodeName.startsWith("/") ? nodeName.substring(1) : nodeName;
     }
 
     private class ZkStateListener implements IZkStateListener {
         @Override
-        public void handleStateChanged(final Watcher.Event.KeeperState keeperState) throws Exception {
+        public void handleStateChanged(final Watcher.Event.KeeperState keeperState) {
             if (Watcher.Event.KeeperState.SyncConnected.equals(keeperState)) {
                 nodeDataMap.forEach((k, v) -> {
                     if (!zkClient.exists(k)) {
                         zkClient.createEphemeral(k, v);
-                        log.info("zookeeper client reregister success: {}", v);
+                        log.info("zookeeper client register success: {}", v);
                     }
                 });
             }
         }
 
         @Override
-        public void handleNewSession() throws Exception {
+        public void handleNewSession() {
         }
 
         @Override
-        public void handleSessionEstablishmentError(final Throwable throwable) throws Exception {
+        public void handleSessionEstablishmentError(final Throwable throwable) {
         }
     }
 }

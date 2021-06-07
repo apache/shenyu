@@ -23,8 +23,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -36,8 +34,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SelectorData implements Serializable {
-    private static final long serialVersionUID = 760613690421794874L;
+public class SelectorData {
 
     private String id;
 

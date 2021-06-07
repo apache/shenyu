@@ -20,7 +20,6 @@ package org.apache.shenyu.plugin.tars.cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.cache.Weigher;
 import com.qq.tars.client.Communicator;
 import com.qq.tars.client.CommunicatorConfig;
 import com.qq.tars.client.CommunicatorFactory;
@@ -64,11 +63,10 @@ public final class ApplicationConfigCache {
 
     private static final ReentrantLock LOCK = new ReentrantLock();
 
-    private final int maxCount = 50000;
+    private final int maxCount = 1000;
 
     private final LoadingCache<String, TarsInvokePrxList> cache = CacheBuilder.newBuilder()
-            .maximumWeight(maxCount)
-            .weigher((Weigher<String, TarsInvokePrxList>) (string, referenceConfig) -> getSize())
+            .maximumSize(maxCount)
             .build(new CacheLoader<String, TarsInvokePrxList>() {
                 @Override
                 public TarsInvokePrxList load(final String key) {
@@ -88,10 +86,6 @@ public final class ApplicationConfigCache {
 
     private ApplicationConfigCache() {
         communicator = CommunicatorFactory.getInstance().getCommunicator(CommunicatorConfig.getDefault());
-    }
-
-    private int getSize() {
-        return (int) cache.size();
     }
 
     /**

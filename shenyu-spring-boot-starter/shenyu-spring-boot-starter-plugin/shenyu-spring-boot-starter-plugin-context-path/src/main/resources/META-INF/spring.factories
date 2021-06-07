@@ -16,4 +16,4 @@
 #
 
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-org.apache.shenyu.springboot.starter.plugin.contextpath.ContextPathMappingPluginConfiguration
+org.apache.shenyu.springboot.starter.plugin.context.path.ContextPathPluginConfiguration

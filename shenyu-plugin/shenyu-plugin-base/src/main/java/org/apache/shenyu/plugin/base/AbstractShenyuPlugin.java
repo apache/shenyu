@@ -17,23 +17,23 @@
 
 package org.apache.shenyu.plugin.base;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.shenyu.plugin.base.cache.BaseDataCache;
-import org.apache.shenyu.plugin.base.utils.MatchStrategyUtils;
-import org.apache.shenyu.common.dto.SelectorData;
-import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.PluginData;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.base.cache.BaseDataCache;
+import org.apache.shenyu.plugin.base.condition.strategy.MatchStrategyFactory;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * abstract shenyu plugin please extends.
@@ -55,7 +55,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
 
     /**
      * Process the Web request and (optionally) delegate to the next
-     * {@code SoulPlugin} through the given {@link ShenyuPluginChain}.
+     * {@code ShenyuPlugin} through the given {@link ShenyuPluginChain}.
      *
      * @param exchange the current server exchange
      * @param chain    provides a way to delegate to the next plugin
@@ -64,20 +64,20 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         String pluginName = named();
-        final PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(pluginName);
+        PluginData pluginData = BaseDataCache.getInstance().obtainPluginData(pluginName);
         if (pluginData != null && pluginData.getEnabled()) {
             final Collection<SelectorData> selectors = BaseDataCache.getInstance().obtainSelectorData(pluginName);
             if (CollectionUtils.isEmpty(selectors)) {
-                return handleSelectorIsNull(pluginName, exchange, chain);
+                return handleSelectorIfNull(pluginName, exchange, chain);
             }
-            final SelectorData selectorData = matchSelector(exchange, selectors);
+            SelectorData selectorData = matchSelector(exchange, selectors);
             if (Objects.isNull(selectorData)) {
-                return handleSelectorIsNull(pluginName, exchange, chain);
+                return handleSelectorIfNull(pluginName, exchange, chain);
             }
             selectorLog(selectorData, pluginName);
-            final List<RuleData> rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
+            List<RuleData> rules = BaseDataCache.getInstance().obtainRuleData(selectorData.getId());
             if (CollectionUtils.isEmpty(rules)) {
-                return handleRuleIsNull(pluginName, exchange, chain);
+                return handleRuleIfNull(pluginName, exchange, chain);
             }
             RuleData rule;
             if (selectorData.getType() == SelectorTypeEnum.FULL_FLOW.getCode()) {
@@ -87,7 +87,7 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
                 rule = matchRule(exchange, rules);
             }
             if (Objects.isNull(rule)) {
-                return handleRuleIsNull(pluginName, exchange, chain);
+                return handleRuleIfNull(pluginName, exchange, chain);
             }
             ruleLog(rule, pluginName);
             return doExecute(exchange, chain, selectorData, rule);
@@ -95,11 +95,11 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
         return chain.execute(exchange);
     }
 
-    protected Mono<Void> handleSelectorIsNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+    protected Mono<Void> handleSelectorIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return chain.execute(exchange);
     }
 
-    protected Mono<Void> handleRuleIsNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+    protected Mono<Void> handleRuleIfNull(final String pluginName, final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return chain.execute(exchange);
     }
 
@@ -114,19 +114,17 @@ public abstract class AbstractShenyuPlugin implements ShenyuPlugin {
             if (CollectionUtils.isEmpty(selector.getConditionList())) {
                 return false;
             }
-            return MatchStrategyUtils.match(selector.getMatchMode(), selector.getConditionList(), exchange);
+            return MatchStrategyFactory.match(selector.getMatchMode(), selector.getConditionList(), exchange);
         }
         return true;
     }
 
     private RuleData matchRule(final ServerWebExchange exchange, final Collection<RuleData> rules) {
-        return rules.stream()
-                .filter(rule -> filterRule(rule, exchange))
-                .findFirst().orElse(null);
+        return rules.stream().filter(rule -> filterRule(rule, exchange)).findFirst().orElse(null);
     }
 
     private Boolean filterRule(final RuleData ruleData, final ServerWebExchange exchange) {
-        return ruleData.getEnabled() && MatchStrategyUtils.match(ruleData.getMatchMode(), ruleData.getConditionDataList(), exchange);
+        return ruleData.getEnabled() && MatchStrategyFactory.match(ruleData.getMatchMode(), ruleData.getConditionDataList(), exchange);
     }
 
     private void selectorLog(final SelectorData selectorData, final String pluginName) {

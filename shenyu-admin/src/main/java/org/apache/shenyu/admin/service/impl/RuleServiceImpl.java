@@ -18,7 +18,7 @@
 package org.apache.shenyu.admin.service.impl;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shenyu.admin.interceptor.annotation.DataPermission;
+import org.apache.shenyu.admin.aspect.annotation.DataPermission;
 import org.apache.shenyu.admin.listener.DataChangedEvent;
 import org.apache.shenyu.admin.mapper.DataPermissionMapper;
 import org.apache.shenyu.admin.mapper.PluginMapper;
@@ -119,9 +119,9 @@ public class RuleServiceImpl implements RuleService {
         List<RuleConditionDTO> ruleConditions = ruleDTO.getRuleConditions();
         if (StringUtils.isEmpty(ruleDTO.getId())) {
             ruleCount = ruleMapper.insertSelective(ruleDO);
-            if (dataPermissionMapper.listByUserId(JwtUtils.getUserId()).size() > 0) {
+            if (dataPermissionMapper.listByUserId(JwtUtils.getUserInfo().getUserId()).size() > 0) {
                 DataPermissionDTO dataPermissionDTO = new DataPermissionDTO();
-                dataPermissionDTO.setUserId(JwtUtils.getUserId());
+                dataPermissionDTO.setUserId(JwtUtils.getUserInfo().getUserId());
                 dataPermissionDTO.setDataId(ruleDO.getId());
                 dataPermissionDTO.setDataType(AdminConstants.RULE_DATA_TYPE);
                 dataPermissionMapper.insertSelective(DataPermissionDO.buildPermissionDO(dataPermissionDTO));

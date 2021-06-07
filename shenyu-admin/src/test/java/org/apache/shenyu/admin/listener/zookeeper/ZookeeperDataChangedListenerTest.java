@@ -34,6 +34,7 @@ import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -83,7 +84,7 @@ public final class ZookeeperDataChangedListenerTest {
         when(zkClient.exists(appAuthPath)).thenReturn(false);
         zookeeperDataChangedListener.onAppAuthChanged(ImmutableList.of(appAuthData), DataEventTypeEnum.CREATE);
         verify(zkClient, times(1)).createPersistent(appAuthPath, true);
-        verify(zkClient, times(1)).writeData(appAuthPath, appAuthData);
+        verify(zkClient, times(1)).writeData(appAuthPath, GsonUtils.getInstance().toJson(appAuthData));
     }
 
     /**
@@ -97,7 +98,7 @@ public final class ZookeeperDataChangedListenerTest {
         when(zkClient.exists(appAuthPath)).thenReturn(true);
         zookeeperDataChangedListener.onAppAuthChanged(ImmutableList.of(appAuthData), DataEventTypeEnum.UPDATE);
         verify(zkClient, atMostOnce()).createPersistent(appAuthPath, true);
-        verify(zkClient, times(1)).writeData(appAuthPath, appAuthData);
+        verify(zkClient, times(1)).writeData(appAuthPath, GsonUtils.getInstance().toJson(appAuthData));
     }
 
     /**
@@ -125,7 +126,7 @@ public final class ZookeeperDataChangedListenerTest {
         when(zkClient.exists(metaDataPath)).thenReturn(false);
         zookeeperDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData), DataEventTypeEnum.CREATE);
         verify(zkClient, times(1)).createPersistent(metaDataPath, true);
-        verify(zkClient, times(1)).writeData(metaDataPath, metaData);
+        verify(zkClient, times(1)).writeData(metaDataPath, GsonUtils.getInstance().toJson(metaData));
     }
 
     /**
@@ -140,7 +141,7 @@ public final class ZookeeperDataChangedListenerTest {
         when(zkClient.exists(metaDataPath)).thenReturn(true);
         zookeeperDataChangedListener.onMetaDataChanged(ImmutableList.of(metaData), DataEventTypeEnum.UPDATE);
         verify(zkClient, atMostOnce()).createPersistent(metaDataPath, true);
-        verify(zkClient, times(1)).writeData(metaDataPath, metaData);
+        verify(zkClient, times(1)).writeData(metaDataPath, GsonUtils.getInstance().toJson(metaData));
     }
 
     /**
@@ -168,7 +169,7 @@ public final class ZookeeperDataChangedListenerTest {
         when(zkClient.exists(pluginPath)).thenReturn(false);
         zookeeperDataChangedListener.onPluginChanged(ImmutableList.of(pluginData), DataEventTypeEnum.CREATE);
         verify(zkClient, times(1)).createPersistent(pluginPath, true);
-        verify(zkClient, times(1)).writeData(pluginPath, pluginData);
+        verify(zkClient, times(1)).writeData(pluginPath, GsonUtils.getInstance().toJson(pluginData));
     }
 
     /**
@@ -182,7 +183,7 @@ public final class ZookeeperDataChangedListenerTest {
         when(zkClient.exists(pluginPath)).thenReturn(true);
         zookeeperDataChangedListener.onPluginChanged(ImmutableList.of(pluginData), DataEventTypeEnum.UPDATE);
         verify(zkClient, atMostOnce()).createPersistent(pluginPath, true);
-        verify(zkClient, times(1)).writeData(pluginPath, pluginData);
+        verify(zkClient, times(1)).writeData(pluginPath, GsonUtils.getInstance().toJson(pluginData));
     }
 
     /**
@@ -221,7 +222,7 @@ public final class ZookeeperDataChangedListenerTest {
         zookeeperDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.CREATE);
         verify(zkClient, times(1)).createPersistent(selectorRealPath, true);
         verify(zkClient, times(1)).createPersistent(selectorParentPath, true);
-        verify(zkClient, times(1)).writeData(selectorRealPath, selectorData);
+        verify(zkClient, times(1)).writeData(selectorRealPath, GsonUtils.getInstance().toJson(selectorData));
     }
 
     /**
@@ -240,7 +241,7 @@ public final class ZookeeperDataChangedListenerTest {
         zookeeperDataChangedListener.onSelectorChanged(ImmutableList.of(selectorData), DataEventTypeEnum.UPDATE);
         verify(zkClient, atMostOnce()).createPersistent(selectorRealPath, true);
         verify(zkClient, atMostOnce()).createPersistent(selectorParentPath, true);
-        verify(zkClient, times(1)).writeData(selectorRealPath, selectorData);
+        verify(zkClient, times(1)).writeData(selectorRealPath, GsonUtils.getInstance().toJson(selectorData));
     }
 
     /**
@@ -289,7 +290,7 @@ public final class ZookeeperDataChangedListenerTest {
         zookeeperDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.CREATE);
         verify(zkClient, times(1)).createPersistent(ruleRealPath, true);
         verify(zkClient, times(1)).createPersistent(ruleParentPath, true);
-        verify(zkClient, times(1)).writeData(ruleRealPath, ruleData);
+        verify(zkClient, times(1)).writeData(ruleRealPath, GsonUtils.getInstance().toJson(ruleData));
     }
 
     /**
@@ -313,7 +314,7 @@ public final class ZookeeperDataChangedListenerTest {
         zookeeperDataChangedListener.onRuleChanged(ImmutableList.of(ruleData), DataEventTypeEnum.UPDATE);
         verify(zkClient, atMostOnce()).createPersistent(ruleRealPath, true);
         verify(zkClient, atMostOnce()).createPersistent(ruleParentPath, true);
-        verify(zkClient, times(1)).writeData(ruleRealPath, ruleData);
+        verify(zkClient, times(1)).writeData(ruleRealPath, GsonUtils.getInstance().toJson(ruleData));
     }
 
     /**

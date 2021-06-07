@@ -80,5 +80,4 @@ public interface PluginDataHandler {
      * @return the string
      */
     String pluginNamed();
-    
 }

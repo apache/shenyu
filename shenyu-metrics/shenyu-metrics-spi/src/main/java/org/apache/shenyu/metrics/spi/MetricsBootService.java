@@ -30,8 +30,9 @@ public interface MetricsBootService {
      * Start metrics tracker.
      *
      * @param metricsConfig metrics config
+     * @param metricsRegister the metrics register
      */
-    void start(MetricsConfig metricsConfig);
+    void start(MetricsConfig metricsConfig, MetricsRegister metricsRegister);
     
     /**
      * Stop metrics tracker.

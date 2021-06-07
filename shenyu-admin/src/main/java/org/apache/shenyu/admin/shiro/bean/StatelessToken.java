@@ -17,24 +17,24 @@
 
 package org.apache.shenyu.admin.shiro.bean;
 
-import lombok.Data;
 import org.apache.shiro.authc.AuthenticationToken;
 
 /**
  * custom Stateless AuthenticationToken.
  */
-@Data
 public class StatelessToken implements AuthenticationToken {
 
     private static final long serialVersionUID = -482325250555312708L;
 
-    private String userName;
+    private final String token;
 
-    private String token;
+    public StatelessToken(final String token) {
+        this.token = token;
+    }
 
     @Override
     public Object getPrincipal() {
-        return userName;
+        return token;
     }
 
     @Override

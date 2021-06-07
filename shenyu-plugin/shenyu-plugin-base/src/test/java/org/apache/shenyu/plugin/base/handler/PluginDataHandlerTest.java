@@ -58,12 +58,12 @@ public final class PluginDataHandlerTest {
         this.pluginDataHandler = new PluginDataHandler() {
             @Override
             public String pluginNamed() {
-                return "SOUL";
+                return "SHENYU";
             }
         };
-        when(ruleData.getId()).thenReturn("SOUL");
-        when(pluginData.getId()).thenReturn("SOUL");
-        when(selectorData.getId()).thenReturn("SOUL");
+        when(ruleData.getId()).thenReturn("SHENYU");
+        when(pluginData.getId()).thenReturn("SHENYU");
+        when(selectorData.getId()).thenReturn("SHENYU");
     }
 
     /**
@@ -134,8 +134,8 @@ public final class PluginDataHandlerTest {
      */
     @Test
     public void pluginNamedTest() {
-        Assert.assertEquals("SOUL", pluginDataHandler.pluginNamed());
-        Assert.assertEquals("SOUL_TEST", testPluginDataHandler.pluginNamed());
+        Assert.assertEquals("SHENYU", pluginDataHandler.pluginNamed());
+        Assert.assertEquals("SHENYU_TEST", testPluginDataHandler.pluginNamed());
     }
 
     @Data
@@ -179,7 +179,7 @@ public final class PluginDataHandlerTest {
 
         @Override
         public String pluginNamed() {
-            return "SOUL_TEST";
+            return "SHENYU_TEST";
         }
     }
 }
