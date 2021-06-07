@@ -24,16 +24,12 @@ import lombok.ToString;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.Serializable;
-
 @Data
 @ToString
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class MetaData implements Serializable {
-
-    private static final long serialVersionUID = 7197733588974164580L;
+public class MetaData {
 
     private String id;
 

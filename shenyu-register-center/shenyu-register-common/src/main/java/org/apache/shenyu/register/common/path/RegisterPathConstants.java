@@ -142,7 +142,7 @@ public class RegisterPathConstants {
     }
 
     /**
-     * Build zookeeper node name.
+     * Build node name by DOT_SEPARATOR.
      *
      * @param serviceName the service name
      * @param methodName the method name

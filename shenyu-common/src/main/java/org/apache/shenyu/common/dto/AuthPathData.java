@@ -22,8 +22,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
-
 /**
  * The type Auth path data.
  */
@@ -31,9 +29,7 @@ import java.io.Serializable;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AuthPathData implements Serializable {
-
-    private static final long serialVersionUID = 758219804964342621L;
+public class AuthPathData {
 
     private String appName;
 
