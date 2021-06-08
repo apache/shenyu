@@ -68,11 +68,11 @@ public class OAuth2PreFilter implements WebFilter {
         }
 
         if (expect != pluginData.getEnabled()) {
-            Boolean skipStatus = pluginData.getEnabled();
-            while (!ENABLE.compareAndSet(expect, skipStatus)) {
-                log.info("the current OAuth2 skip status is {}, try to change OAuth2 skip status to {}", expect, skipStatus);
-            }
-            log.info("change OAuth2 skip status to {}", skipStatus);
+            Boolean enableStatus = pluginData.getEnabled();
+            do {
+                log.info("the current OAuth2 enable status is {}, try to change OAuth2 enable status to {}", expect, enableStatus);
+            } while (!ENABLE.compareAndSet(expect, enableStatus));
+            log.info("change OAuth2 enable status to {}", enableStatus);
         }
 
         this.processPathMatchers();
