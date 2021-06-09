@@ -52,26 +52,27 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Slf4j
 public class OAuth2Filter implements WebFilter {
 
-    private static final AtomicBoolean REFRESH_TOKEN = new AtomicBoolean(false);
-
     private final DataBufferFactory dataBufferFactory = new NettyDataBufferFactory(ByteBufAllocator.DEFAULT);
 
     private final ReactiveOAuth2AuthorizedClientService authorizedClientService;
 
+    private final AtomicBoolean isSend;
+
     public OAuth2Filter(final ReactiveOAuth2AuthorizedClientService clientService) {
-        authorizedClientService = clientService;
+        this.authorizedClientService = clientService;
+        this.isSend = new AtomicBoolean(false);
     }
 
     @Override
     public Mono<Void> filter(final ServerWebExchange serverWebExchange, final WebFilterChain webFilterChain) {
 
         Boolean enable = (Boolean) serverWebExchange.getAttributes().get("enable");
-        if (!enable || !REFRESH_TOKEN.get()) {
+        if (!enable || isSend.get()) {
             return webFilterChain.filter(serverWebExchange);
         }
         return ReactiveSecurityContextHolder.getContext()
             .map(SecurityContext::getAuthentication)
-            .filter(t -> t instanceof OAuth2AuthenticationToken)
+            .filter(t -> t instanceof OAuth2AuthenticationToken && t.isAuthenticated())
             .cast(OAuth2AuthenticationToken.class)
             .flatMap(token ->
                 authorizedClientService.loadAuthorizedClient(token.getAuthorizedClientRegistrationId(), token.getName())
@@ -93,7 +94,6 @@ public class OAuth2Filter implements WebFilter {
                 return Flux.just(dataBufferFactory.allocateBuffer())
                     .map(buf -> {
                         List<Object> res = new ArrayList<>();
-
                         OAuth2RefreshToken refreshToken = client.getRefreshToken();
                         OAuth2AccessToken accessToken = client.getAccessToken();
                         Map<String, Object> tokenMap = handleTokenProperty(refreshToken, accessToken);
@@ -103,6 +103,7 @@ public class OAuth2Filter implements WebFilter {
                         handleOriginBody(super.getBody(), res);
 
                         buf.write(GsonUtils.getInstance().toJson(res).getBytes(StandardCharsets.UTF_8));
+                        isSend.set(true);
                         return buf;
                     });
             }
@@ -120,18 +121,10 @@ public class OAuth2Filter implements WebFilter {
         }
         Instant expiresAt = Objects.requireNonNull(accessToken.getExpiresAt());
         Instant issuedAt = Objects.requireNonNull(accessToken.getIssuedAt());
-        // todo maintain refresh token status
         long expiresIn = expiresAt.minusSeconds(issuedAt.getEpochSecond()).getEpochSecond();
         if (expiresIn > 1) {
             tokenMap.put("expires_in", expiresIn);
-            REFRESH_TOKEN.set(false);
         }
-        if (tokenMap.containsKey("refresh_token") && expiresAt.getEpochSecond() < Instant.now().getEpochSecond()) {
-            while (!REFRESH_TOKEN.compareAndSet(false, true)) {
-                log.info("");
-            }
-        }
-
         tokenMap.put("access_token", accessToken.getTokenValue());
         tokenMap.put("token_type", accessToken.getTokenType());
         tokenMap.put("scope", accessToken.getScopes());
