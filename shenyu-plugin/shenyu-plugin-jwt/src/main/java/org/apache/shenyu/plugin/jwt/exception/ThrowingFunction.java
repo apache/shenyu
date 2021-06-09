@@ -15,32 +15,38 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.exception;
+package org.apache.shenyu.plugin.jwt.exception;
 
 /**
  * Throwing wrap.
- * Ignored exception, do not return any exception info.
+ * Handle exception, and return null.
+ * Not all exceptions must be try catch, throw upwards, return null, you can use if to judge.
  */
 @FunctionalInterface
-public interface ThrowingConsumer {
+public interface ThrowingFunction<T> {
 
     /**
-     * accept function.
+     * apply function.
      *
-     * @throws Exception any error.
+     * @return T
+     * @throws Exception any error
      */
-    void accept() throws Exception;
+    T apply() throws Exception;
 
     /**
      * operation function.
+     * If an exception occurs, it will directly return a null.
      *
-     * @param consumer consumer function.
+     * @param function apply function.
+     * @param <T> t
+     * @return T
      */
-    static void wrap(ThrowingConsumer consumer) {
+    static <T> T wrap(ThrowingFunction<T> function) {
         try {
-            consumer.accept();
-        } catch (Exception ignored) {
-
+            return function.apply();
+        } catch (Exception e) {
+            return null;
         }
     }
+
 }
