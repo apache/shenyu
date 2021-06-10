@@ -44,7 +44,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The OAuth2Filter.
@@ -56,18 +55,14 @@ public class OAuth2Filter implements WebFilter {
 
     private final ReactiveOAuth2AuthorizedClientService authorizedClientService;
 
-    private final AtomicBoolean isSend;
-
     public OAuth2Filter(final ReactiveOAuth2AuthorizedClientService clientService) {
         this.authorizedClientService = clientService;
-        this.isSend = new AtomicBoolean(false);
     }
 
     @Override
     public Mono<Void> filter(final ServerWebExchange serverWebExchange, final WebFilterChain webFilterChain) {
-
         Boolean enable = (Boolean) serverWebExchange.getAttributes().get("enable");
-        if (!enable || isSend.get()) {
+        if (!enable) {
             return webFilterChain.filter(serverWebExchange);
         }
         return ReactiveSecurityContextHolder.getContext()
@@ -103,7 +98,6 @@ public class OAuth2Filter implements WebFilter {
                         handleOriginBody(super.getBody(), res);
 
                         buf.write(GsonUtils.getInstance().toJson(res).getBytes(StandardCharsets.UTF_8));
-                        isSend.set(true);
                         return buf;
                     });
             }
