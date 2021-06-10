@@ -29,6 +29,8 @@ import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.ratelimiter.cache.RatelimiterRuleHandleCache;
 import org.apache.shenyu.plugin.ratelimiter.executor.RedisRateLimiter;
+import org.apache.shenyu.plugin.ratelimiter.resolver.RateLimiterKeyResolver;
+import org.apache.shenyu.plugin.ratelimiter.resolver.RateLimiterKeyResolverFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -39,6 +41,8 @@ import reactor.core.publisher.Mono;
 public class RateLimiterPlugin extends AbstractShenyuPlugin {
 
     private final RedisRateLimiter redisRateLimiter;
+
+    private static final String EMPTY_KEY = "____EMPTY_KEY__";
 
     /**
      * Instantiates a new Rate limiter plugin.
@@ -63,7 +67,8 @@ public class RateLimiterPlugin extends AbstractShenyuPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         RateLimiterHandle limiterHandle = RatelimiterRuleHandleCache.getInstance()
                 .obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        return redisRateLimiter.isAllowed(rule.getId(), limiterHandle)
+        RateLimiterKeyResolver resolver = RateLimiterKeyResolverFactory.newInstance(limiterHandle.getKeyResolverName());
+        return redisRateLimiter.isAllowed(resolver.resolve(exchange), limiterHandle)
                 .flatMap(response -> {
                     if (!response.isAllowed()) {
                         exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
