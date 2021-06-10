@@ -15,32 +15,38 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.jwt.lambda;
+package org.apache.shenyu.plugin.jwt.exception;
 
 /**
- * Exception wrap.
+ * Throwing wrap.
+ * Handle exception, and return null.
+ * Not all exceptions must be try catch, throw upwards, return null, you can use if to judge.
  */
 @FunctionalInterface
-public interface ThrowingFunction {
+public interface ThrowingFunction<T> {
 
     /**
      * apply function.
      *
-     * @return object
+     * @return T
+     * @throws Exception any error
      */
-    Object apply();
+    T apply() throws Exception;
 
     /**
      * operation function.
+     * If an exception occurs, it will directly return a null.
      *
-     * @param function accept function
-     * @return object
+     * @param function apply function.
+     * @param <T> t
+     * @return T
      */
-    static Object wrap(ThrowingFunction function) {
+    static <T> T wrap(ThrowingFunction<T> function) {
         try {
             return function.apply();
         } catch (Exception e) {
             return null;
         }
     }
+
 }
