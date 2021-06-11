@@ -18,10 +18,15 @@
 package org.apache.shenyu.admin.config;
 
 import com.alibaba.nacos.api.config.ConfigService;
+import io.etcd.jetcd.Client;
 import org.I0Itec.zkclient.ZkClient;
+import org.apache.shenyu.admin.config.properties.EtcdProperties;
 import org.apache.shenyu.admin.config.properties.HttpSyncProperties;
 import org.apache.shenyu.admin.config.properties.WebsocketSyncProperties;
 import org.apache.shenyu.admin.listener.DataChangedListener;
+import org.apache.shenyu.admin.listener.etcd.EtcdClient;
+import org.apache.shenyu.admin.listener.etcd.EtcdDataDataChangedListener;
+import org.apache.shenyu.admin.listener.etcd.EtcdDataInit;
 import org.apache.shenyu.admin.listener.http.HttpLongPollingDataChangedListener;
 import org.apache.shenyu.admin.listener.nacos.NacosDataChangedListener;
 import org.apache.shenyu.admin.listener.nacos.NacosDataInit;
@@ -166,6 +171,48 @@ public class DataSyncConfiguration {
         @ConditionalOnMissingBean(ServerEndpointExporter.class)
         public ServerEndpointExporter serverEndpointExporter() {
             return new ServerEndpointExporter();
+        }
+    }
+
+    /**
+     * The type Etcd listener.
+     */
+    @Configuration
+    @ConditionalOnProperty(prefix = "shenyu.sync.etcd", name = "url")
+    @EnableConfigurationProperties(EtcdProperties.class)
+    static class EtcdListener {
+
+        @Bean
+        public EtcdClient etcdClient(final EtcdProperties etcdProperties) {
+            Client client = Client.builder()
+                    .endpoints(etcdProperties.getUrl())
+                    .build();
+            return new EtcdClient(client);
+        }
+
+        /**
+         * Config event listener data changed listener.
+         *
+         * @param etcdClient the etcd client
+         * @return the data changed listener
+         */
+        @Bean
+        @ConditionalOnMissingBean(EtcdDataDataChangedListener.class)
+        public DataChangedListener etcdDataChangedListener(final EtcdClient etcdClient) {
+            return new EtcdDataDataChangedListener(etcdClient);
+        }
+
+        /**
+         * data init.
+         *
+         * @param etcdClient        the etcd client
+         * @param syncDataService the sync data service
+         * @return the etcd data init
+         */
+        @Bean
+        @ConditionalOnMissingBean(EtcdDataInit.class)
+        public EtcdDataInit etcdDataInit(final EtcdClient etcdClient, final SyncDataService syncDataService) {
+            return new EtcdDataInit(etcdClient, syncDataService);
         }
     }
 }
