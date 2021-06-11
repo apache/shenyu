@@ -15,32 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.jwt.lambda;
+package org.apache.shenyu.springboot.sync.data.etcd;
+
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * Exception wrap.
+ * The type etcd configuration.
  */
-@FunctionalInterface
-public interface ThrowingFunction {
+@Data
+@ConfigurationProperties(prefix = "shenyu.sync.etcd")
+public class EtcdConfig {
 
-    /**
-     * apply function.
-     *
-     * @return object
-     */
-    Object apply();
+    private String url;
 
-    /**
-     * operation function.
-     *
-     * @param function accept function
-     * @return object
-     */
-    static Object wrap(ThrowingFunction function) {
-        try {
-            return function.apply();
-        } catch (Exception e) {
-            return null;
-        }
-    }
+    private Integer sessionTimeout;
+
+    private Integer connectionTimeout;
+
+    private String serializer;
 }

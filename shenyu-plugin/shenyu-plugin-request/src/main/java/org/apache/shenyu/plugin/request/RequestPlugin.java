@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.request;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.common.dto.RuleData;
@@ -36,6 +37,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
+
 import reactor.core.publisher.Mono;
 
 import java.util.Collection;
@@ -51,7 +53,8 @@ import java.util.stream.Collectors;
 public class RequestPlugin extends AbstractShenyuPlugin {
 
     @Override
-    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector,
+            final RuleData rule) {
         RequestHandle requestHandle = RequestRuleHandleCache.getInstance().obtainHandle(CacheKeyUtils.INST.getKey(rule));
         if (Objects.isNull(requestHandle) || requestHandle.isEmptyConfig()) {
             log.error("request handler can not configuration：{}", requestHandle);
@@ -65,7 +68,7 @@ public class RequestPlugin extends AbstractShenyuPlugin {
                                 .replaceQueryParams(getQueryParams(request, requestHandle))
                                 .build()
                                 .toUri()
-                        ).headers(httpHeaders -> httpHeaders.addAll(getHeaders(request, requestHandle)))
+                        ).headers(httpHeaders -> setHeaders(httpHeaders, request, requestHandle))
                 ).build();
         return chain.execute(modifiedExchange);
     }
@@ -83,15 +86,21 @@ public class RequestPlugin extends AbstractShenyuPlugin {
     /**
      * getHeaders.
      *
-     * @param request       serverHttpRequest
+     * @param request serverHttpRequest
      * @param requestHandle requestHandle
      * @return new headers
      */
-    public HttpHeaders getHeaders(final ServerHttpRequest request, final RequestHandle requestHandle) {
+    private void setHeaders(final HttpHeaders headers, final ServerHttpRequest request, final RequestHandle requestHandle) {
+        List<HttpCookie> cookies = getCookies(request, requestHandle).values().stream()
+                .flatMap(Collection::stream).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(cookies)) {
+            headers.remove(HttpHeaders.COOKIE);
+            headers.set(HttpHeaders.COOKIE, StringUtils.join(cookies, "; "));
+        }
+
         RequestHandle.ShenyuRequestHeader shenyuReqHeader = requestHandle.getHeader();
-        HttpHeaders headers = HttpHeaders.writableHttpHeaders(request.getHeaders());
         if (Objects.isNull(shenyuReqHeader)) {
-            return headers;
+            return;
         }
         if (MapUtils.isNotEmpty(shenyuReqHeader.getAddHeaders())) {
             shenyuReqHeader.getAddHeaders().entrySet().forEach(s -> this.fillHeader(s, headers));
@@ -105,20 +114,16 @@ public class RequestPlugin extends AbstractShenyuPlugin {
         if (CollectionUtils.isNotEmpty(shenyuReqHeader.getRemoveHeaderKeys())) {
             shenyuReqHeader.getRemoveHeaderKeys().forEach(headers::remove);
         }
-        List<HttpCookie> cookies = getCookies(request, requestHandle).values().stream()
-                .flatMap(Collection::stream).collect(Collectors.toList());
-        headers.set(HttpHeaders.COOKIE, StringUtils.join(cookies, ';'));
-        return HttpHeaders.readOnlyHttpHeaders(headers);
     }
 
     /**
      * get cookies.
      *
-     * @param request       serverHttpRequest
+     * @param request serverHttpRequest
      * @param requestHandle requestHandle
      * @return new cookies
      */
-    public MultiValueMap<String, HttpCookie> getCookies(final ServerHttpRequest request, final RequestHandle requestHandle) {
+    private MultiValueMap<String, HttpCookie> getCookies(final ServerHttpRequest request, final RequestHandle requestHandle) {
         RequestHandle.ShenyuCookie shenyuCookie = requestHandle.getCookie();
         MultiValueMap<String, HttpCookie> cookies = new LinkedMultiValueMap<>(request.getCookies());
         if (Objects.isNull(shenyuCookie)) {
@@ -142,11 +147,11 @@ public class RequestPlugin extends AbstractShenyuPlugin {
     /**
      * get queryParams.
      *
-     * @param request       serverHttpRequest
+     * @param request serverHttpRequest
      * @param requestHandle requestHandle
      * @return new queryParams
      */
-    public MultiValueMap<String, String> getQueryParams(final ServerHttpRequest request, final RequestHandle requestHandle) {
+    private MultiValueMap<String, String> getQueryParams(final ServerHttpRequest request, final RequestHandle requestHandle) {
         RequestHandle.ShenyuRequestParameter shenyuReqParameter = requestHandle.getParameter();
         MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>(request.getQueryParams());
         if (Objects.isNull(shenyuReqParameter)) {

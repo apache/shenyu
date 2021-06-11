@@ -72,6 +72,8 @@ shenyu:
   #        namespace:
   #        accessKey:
   #        secretKey:
+#    etcd:
+#      url: http://localhost:2379
   aes:
     secret:
       key: 2095132720951327
