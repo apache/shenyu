@@ -19,23 +19,13 @@ package org.apache.shenyu.integratedtest.http;
 import com.google.gson.reflect.TypeToken;
 import org.apache.shenyu.integratedtest.AbstractRateLimitTest;
 import org.apache.shenyu.integratedtest.dto.AdminResponse;
-import org.apache.shenyu.integratedtest.dto.SelectorDTO;
 import org.apache.shenyu.integratedtest.dto.UserDTO;
 import org.apache.shenyu.integratedtest.helper.HttpHelper;
-import org.apache.shenyu.integratedtest.helper.RuleHelper;
-import org.apache.shenyu.integratedtest.helper.SelectorHelper;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
 
-import static org.apache.shenyu.integratedtest.helper.HttpHelper.CREATE_SUCCESS;
-import static org.apache.shenyu.integratedtest.helper.HttpHelper.QUERY_SUCCESS;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class HttpRateLimitTest extends AbstractRateLimitTest {
 

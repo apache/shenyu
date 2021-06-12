@@ -17,12 +17,7 @@
 
 package org.apache.shenyu.integratedtest.http;
 
-import com.google.gson.Gson;
-import okhttp3.*;
 import org.apache.shenyu.integratedtest.AbstractTest;
-
-import java.io.IOException;
-import java.lang.reflect.Type;
 
 public class AbstractHttpTest extends AbstractTest {
 
