@@ -25,6 +25,8 @@ import io.grpc.stub.StreamObserver;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.util.List;
+
 /**
  * ShenyuGrpcCallRequest.
  */
@@ -36,7 +38,7 @@ public class ShenyuGrpcCallRequest {
 
     private CallOptions callOptions;
 
-    private DynamicMessage requests;
+    private List<DynamicMessage> requests;
 
     private MethodDescriptor<DynamicMessage, DynamicMessage> methodDescriptor;
 

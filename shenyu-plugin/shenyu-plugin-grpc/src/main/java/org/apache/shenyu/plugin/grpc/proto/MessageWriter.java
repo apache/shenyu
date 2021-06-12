@@ -29,10 +29,10 @@ import org.apache.shenyu.protocol.grpc.message.JsonMessage;
 @Slf4j
 public final class MessageWriter<T extends Message> implements StreamObserver<T> {
 
-    private final ShenyuGrpcResponse results;
+    private final ShenyuGrpcResponse grpcResponse;
 
-    private MessageWriter(final ShenyuGrpcResponse results) {
-        this.results = results;
+    private MessageWriter(final ShenyuGrpcResponse grpcResponse) {
+        this.grpcResponse = grpcResponse;
     }
 
     /**
@@ -49,7 +49,7 @@ public final class MessageWriter<T extends Message> implements StreamObserver<T>
     @Override
     public void onNext(final T value) {
         String respData = JsonMessage.getDataFromDynamicMessage((DynamicMessage) value);
-        results.setResult(respData);
+        grpcResponse.getResults().add(respData);
     }
 
     @Override

@@ -13,29 +13,32 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package org.apache.shenyu.client.grpc.common.dto;
+syntax = "proto3";
 
-import io.grpc.MethodDescriptor;
-import lombok.Builder;
-import lombok.Data;
+package stream;
 
-import java.io.Serializable;
+option java_multiple_files = true;
 
-/**
- * The type Grpc ext.
- */
-@Data
-@Builder
-public class GrpcExt implements Serializable {
 
-    private static final long serialVersionUID = 346053551613199101L;
+service StreamService {
 
-    private String loadbalance;
+  rpc unaryFun(RequestData) returns (ResponseData){}
 
-    private Integer timeout;
+  rpc serverStreamingFun(RequestData) returns (stream ResponseData){}
 
-    private MethodDescriptor.MethodType methodType;
+  rpc clientStreamingFun(stream RequestData) returns (ResponseData){}
 
+  rpc bidiStreamingFun(stream RequestData) returns (stream ResponseData){}
+
+}
+
+message RequestData {
+  string text = 1;
+}
+
+message ResponseData {
+  string text = 1;
 }
