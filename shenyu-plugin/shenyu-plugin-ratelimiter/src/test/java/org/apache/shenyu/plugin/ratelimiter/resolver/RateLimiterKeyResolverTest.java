@@ -33,6 +33,8 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+
 @RunWith(MockitoJUnitRunner.class)
 public class RateLimiterKeyResolverTest {
 
@@ -47,16 +49,16 @@ public class RateLimiterKeyResolverTest {
         rateLimiterAlgorithm = new TokenBucketRateLimiterAlgorithm();
         firstExchange = MockServerWebExchange.from(MockServerHttpRequest
                 .get("localhost")
-                .remoteAddress(new InetSocketAddress(InetAddress.getByAddress(new byte[]{1, 1, 1, 1}),8080))
+                .remoteAddress(new InetSocketAddress(InetAddress.getByAddress(new byte[]{1, 1, 1, 1}), 8080))
                 .build());
         secondExchange = MockServerWebExchange.from(MockServerHttpRequest
                 .get("localhost")
-                .remoteAddress(new InetSocketAddress(InetAddress.getByAddress(new byte[]{1, 1, 1, 2}),8080))
+                .remoteAddress(new InetSocketAddress(InetAddress.getByAddress(new byte[]{1, 1, 1, 2}), 8080))
                 .build());
     }
 
     @Test
-    public void wholeTest() {
+    public void wholeResolveTest() {
         RateLimiterKeyResolver keyResolver = new WholeKeyResolver();
         List<String> firstKeys = rateLimiterAlgorithm.getKeys(keyResolver.resolve(firstExchange));
         List<String> secondKeys = rateLimiterAlgorithm.getKeys(keyResolver.resolve(secondExchange));
@@ -64,10 +66,26 @@ public class RateLimiterKeyResolverTest {
     }
 
     @Test
-    public void RemoteAddressTest() {
+    public void remoteAddrResolveTest() {
         RateLimiterKeyResolver keyResolver = new RemoteAddrKeyResolver();
         List<String> firstKeys = rateLimiterAlgorithm.getKeys(keyResolver.resolve(firstExchange));
         List<String> secondKeys = rateLimiterAlgorithm.getKeys(keyResolver.resolve(secondExchange));
         assert !ListUtils.isEqualList(firstKeys, secondKeys);
+    }
+
+    @Test
+    public void wholeGetKeyResolverNameTest() {
+        String keyResolverName = new WholeKeyResolver().getKeyResolverName();
+        assertEquals(keyResolverName, "WHOLE_KEY_RESOLVER");
+        RateLimiterKeyResolver keyResolver = RateLimiterKeyResolverFactory.newInstance(keyResolverName);
+        assertEquals(keyResolver.getKeyResolverName(), keyResolverName);
+    }
+
+    @Test
+    public void remoteAddrGetKeyResolverNameTest() {
+        String keyResolverName = new RemoteAddrKeyResolver().getKeyResolverName();
+        assertEquals(keyResolverName, "REMOTE_ADDRESS_KEY_RESOLVER");
+        RateLimiterKeyResolver keyResolver = RateLimiterKeyResolverFactory.newInstance(keyResolverName);
+        assertEquals(keyResolver.getKeyResolverName(), keyResolverName);
     }
 }

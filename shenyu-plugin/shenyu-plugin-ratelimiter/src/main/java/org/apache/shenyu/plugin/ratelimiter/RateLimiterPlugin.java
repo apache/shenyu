@@ -42,8 +42,6 @@ public class RateLimiterPlugin extends AbstractShenyuPlugin {
 
     private final RedisRateLimiter redisRateLimiter;
 
-    private static final String EMPTY_KEY = "____EMPTY_KEY__";
-
     /**
      * Instantiates a new Rate limiter plugin.
      *

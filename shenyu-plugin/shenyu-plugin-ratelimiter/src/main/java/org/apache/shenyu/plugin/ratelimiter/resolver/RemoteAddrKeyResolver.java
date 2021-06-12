@@ -31,7 +31,7 @@ public class RemoteAddrKeyResolver implements RateLimiterKeyResolver {
     }
 
     @Override
-    public String resolve(ServerWebExchange exchange) {
+    public String resolve(final ServerWebExchange exchange) {
         return Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
     }
 }

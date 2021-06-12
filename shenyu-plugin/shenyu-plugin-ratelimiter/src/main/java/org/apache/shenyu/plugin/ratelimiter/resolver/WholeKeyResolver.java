@@ -29,7 +29,7 @@ public class WholeKeyResolver implements RateLimiterKeyResolver {
     }
 
     @Override
-    public String resolve(ServerWebExchange exchange) {
+    public String resolve(final ServerWebExchange exchange) {
         return "WHOLE_KEY_RESOLVER";
     }
 }
