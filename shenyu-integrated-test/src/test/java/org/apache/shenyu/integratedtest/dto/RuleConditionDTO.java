@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.http.dto;
+package org.apache.shenyu.integratedtest.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,16 +25,43 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 
 /**
- * The type User dto.
+ * this is rule condition from by web front.
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserDTO implements Serializable {
+public final class RuleConditionDTO implements Serializable {
 
-    private String userId;
+    private static final long serialVersionUID = -1883819174316303659L;
 
-    private String userName;
+    /**
+     * primary key.
+     */
+    private String id;
 
+    /**
+     * rule id.
+     */
+    private String ruleId;
+
+    /**
+     * parameter type.
+     */
+    private String paramType;
+
+    /**
+     * match operator.
+     */
+    private String operator;
+
+    /**
+     * parameter name.
+     */
+    private String paramName;
+
+    /**
+     * parameter value.
+     */
+    private String paramValue;
 }

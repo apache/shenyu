@@ -15,26 +15,24 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.http.dto;
+package org.apache.shenyu.integratedtest.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
 /**
- * The type User dto.
+ * The type Order dto.
  */
 @Data
-@Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class UserDTO implements Serializable {
+@NoArgsConstructor
+public class OrderDTO implements Serializable {
 
-    private String userId;
+    private String id;
 
-    private String userName;
+    private String name;
 
 }

@@ -15,26 +15,15 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.http.dto;
+package org.apache.shenyu.integratedtest.http;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.google.gson.Gson;
+import okhttp3.*;
+import org.apache.shenyu.integratedtest.AbstractTest;
 
-import java.io.Serializable;
+import java.io.IOException;
+import java.lang.reflect.Type;
 
-/**
- * The type User dto.
- */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class UserDTO implements Serializable {
-
-    private String userId;
-
-    private String userName;
+public class AbstractHttpTest extends AbstractTest {
 
 }

@@ -13,7 +13,7 @@ Then you will see the `dist` directory in root directory.
 * build image and startup docker container
 
 docker build
-``` 
+```
 cd shenyu 
 mvn clean package -Pdist,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
 ```

@@ -1,0 +1,9 @@
+{
+  "ids": [
+    "4"
+  ],
+  "name": "rate_limiter",
+  "role": "1",
+  "config": "{\"mode\":\"standalone\",\"master\":\"mymaster\",\"url\":\"shenyu-redis:6379\",\"password\":\"abc\"}",
+  "enabled": true
+}

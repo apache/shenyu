@@ -1,0 +1,18 @@
+{
+  "pluginId": "4",
+  "name": "slidingwindow-ratelimit",
+  "type": "1",
+  "matchMode": "0",
+  "continued": true,
+  "loged": true,
+  "enabled": true,
+  "sort": 1,
+  "selectorConditions": [
+    {
+      "paramType": "uri",
+      "operator": "=",
+      "paramName": "/",
+      "paramValue": "/test/path/123"
+    }
+  ]
+}

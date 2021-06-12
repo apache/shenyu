@@ -15,9 +15,8 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.http.dto;
+package org.apache.shenyu.integratedtest.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,16 +24,41 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 
 /**
- * The type User dto.
+ * this is selector condition from by web front.
  */
 @Data
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class UserDTO implements Serializable {
+public class SelectorConditionDTO implements Serializable {
 
-    private String userId;
+    private static final long serialVersionUID = -7096949265173497354L;
 
-    private String userName;
+    /**
+     * primary key.
+     */
+    private String id;
 
+    /**
+     * selector id.
+     */
+    private String selectorId;
+
+    /**
+     * parameter type.
+     */
+    private String paramType;
+
+    /**
+     * match operator.
+     */
+    private String operator;
+
+    /**
+     * parameter name.
+     */
+    private String paramName;
+
+    /**
+     * parameter value.
+     */
+    private String paramValue;
 }

@@ -15,26 +15,27 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.http.dto;
+package org.apache.shenyu.integratedtest;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
+import com.google.common.io.Resources;
+import com.google.gson.Gson;
+import okhttp3.*;
+import org.apache.shenyu.integratedtest.dto.AdminResponse;
+
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 /**
- * The type User dto.
+ * all tests must extend this class
+ * we will do something here. For example, update DB to init the data
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class UserDTO implements Serializable {
+public class AbstractTest {
 
-    private String userId;
-
-    private String userName;
-
+    protected String readResourceAsString(String path) throws Exception {
+        URL resourceUrl = AppTest.class.getResource(path);
+        return Resources.toString(resourceUrl, StandardCharsets.UTF_8);
+    }
 }
