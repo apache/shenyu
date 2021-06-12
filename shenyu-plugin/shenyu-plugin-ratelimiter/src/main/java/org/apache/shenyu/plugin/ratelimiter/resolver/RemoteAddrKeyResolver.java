@@ -19,7 +19,6 @@ package org.apache.shenyu.plugin.ratelimiter.resolver;
 
 import org.apache.shenyu.spi.Join;
 import org.springframework.web.server.ServerWebExchange;
-import reactor.core.publisher.Mono;
 
 import java.util.Objects;
 
@@ -28,11 +27,11 @@ public class RemoteAddrKeyResolver implements RateLimiterKeyResolver {
 
     @Override
     public String getKeyResolverName() {
-        return "remote_address_key_resolver";
+        return "REMOTE_ADDRESS_KEY_RESOLVER";
     }
 
     @Override
     public String resolve(ServerWebExchange exchange) {
-        return Mono.just(Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress());
+        return Objects.requireNonNull(exchange.getRequest().getRemoteAddress()).getAddress().getHostAddress();
     }
 }

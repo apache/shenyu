@@ -14,5 +14,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-remote_address_key_resolver=org.apache.shenyu.plugin.ratelimiter.resolver.RemoteAddrKeyResolver
-whole_key_resolver=org.apache.shenyu.plugin.ratelimiter.resolver.WholeKeyResolver
+REMOTE_ADDRESS_KEY_RESOLVER=org.apache.shenyu.plugin.ratelimiter.resolver.RemoteAddrKeyResolver
+WHOLE_KEY_RESOLVER=org.apache.shenyu.plugin.ratelimiter.resolver.WholeKeyResolver
