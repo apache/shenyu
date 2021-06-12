@@ -18,7 +18,6 @@ package org.apache.shenyu.integratedtest.helper;
 
 import com.google.gson.Gson;
 import okhttp3.*;
-import org.apache.shenyu.integratedtest.dto.AdminResponse;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -28,10 +27,7 @@ public class HttpHelper {
     private final OkHttpClient client = new OkHttpClient.Builder()
             .build();
 
-    public static final String ADMIN_END_POINT = "http://localhost:9095";
     public static final String GATEWAY_END_POINT = "http://localhost:9195";
-    public static final String CREATE_SUCCESS = "create success";
-    public static final String QUERY_SUCCESS = "query success";
 
     public static final MediaType JSON = MediaType.parse("application/json");
 
@@ -54,39 +50,5 @@ public class HttpHelper {
         Response response = client.newCall(request).execute();
         String respBody = response.body().string();
         return gson.fromJson(respBody, type);
-    }
-
-
-    public <RESP> AdminResponse<RESP> getFromAdmin(String path, Type respType) throws IOException {
-        Gson gson = new Gson();
-        Request request = new Request.Builder()
-                .url(ADMIN_END_POINT + path)
-                .get()
-                .build();
-        Response response = client.newCall(request).execute();
-        String respBody = response.body().string();
-        return gson.fromJson(respBody, respType);
-    }
-
-    public <RESP> AdminResponse<RESP> postAdmin(String path, Object req, Type respType) throws IOException {
-        Gson gson = new Gson();
-        Request request = new Request.Builder()
-                .url(ADMIN_END_POINT + path)
-                .post(RequestBody.create(gson.toJson(req), JSON))
-                .build();
-        Response response = client.newCall(request).execute();
-        String respBody = response.body().string();
-        return gson.fromJson(respBody, respType);
-    }
-
-    public <RESP> AdminResponse<RESP> putAdmin(String path, Object req, Type respType) throws IOException {
-        Gson gson = new Gson();
-        Request request = new Request.Builder()
-                .url(ADMIN_END_POINT + path)
-                .put(RequestBody.create(gson.toJson(req), JSON))
-                .build();
-        Response response = client.newCall(request).execute();
-        String respBody = response.body().string();
-        return gson.fromJson(respBody, respType);
     }
 }

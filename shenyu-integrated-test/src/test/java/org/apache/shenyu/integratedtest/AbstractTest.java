@@ -18,24 +18,10 @@
 package org.apache.shenyu.integratedtest;
 
 
-import com.google.common.io.Resources;
-import com.google.gson.Gson;
-import okhttp3.*;
-import org.apache.shenyu.integratedtest.dto.AdminResponse;
-
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-
 /**
  * all tests must extend this class
  * we will do something here. For example, update DB to init the data
  */
 public class AbstractTest {
 
-    protected String readResourceAsString(String path) throws Exception {
-        URL resourceUrl = AppTest.class.getResource(path);
-        return Resources.toString(resourceUrl, StandardCharsets.UTF_8);
-    }
 }

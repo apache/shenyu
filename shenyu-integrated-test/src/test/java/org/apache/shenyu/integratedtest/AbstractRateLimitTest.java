@@ -16,25 +16,8 @@
  */
 package org.apache.shenyu.integratedtest;
 
-import com.google.common.io.Resources;
-import com.google.common.reflect.TypeToken;
-import com.google.gson.Gson;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import org.apache.shenyu.integratedtest.dto.AdminResponse;
-import org.apache.shenyu.integratedtest.dto.PluginDTO;
-import org.apache.shenyu.integratedtest.helper.HttpHelper;
-import org.apache.shenyu.integratedtest.helper.PluginHelper;
-import org.junit.BeforeClass;
-
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
-
-import static org.junit.Assert.assertEquals;
 
 
 public class AbstractRateLimitTest extends AbstractTest {

@@ -51,8 +51,9 @@ jobs:
       - name: Build with Maven
 #        if: env.SKIP_INTEGRATED_TEST != 'true'
         run: ./mvnw clean package -Pdist,docker -Dmaven.javadoc.skip=true -Dmaven.test.skip=true
-      - name: Start MySQL
-        run:  docker run --name mysql5.7 -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=shenyu -p 3306:3306 -d mysql:5.7
+      - name: Build example
+        run:  cd http-examples && cd http-examples-http && docker build -t shenyu-test-http ./
       - name: Start App
-        run: docker run -e "SPRING_PROFILES_ACTIVE=mysql" -e "spring.datasource.url=jdbc:mysql://localhost:3306/shenyu?useUnicode=true&characterEncoding=utf-8&useSSL=false" -e "spring.datasource.password=root" -d -p 9095:9095 dromara/shenyu-admin
+        run: cd ../../ && docker compose up -d
       - name: Run Integrated Tests
+        run: ./mvnw test --file ./shenyu-integrated-test/pom.xml
