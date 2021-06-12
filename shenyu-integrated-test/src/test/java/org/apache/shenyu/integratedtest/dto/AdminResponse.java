@@ -14,27 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.shenyu.integratedtest.dto;
 
-package org.apache.shenyu.examples.http.dto;
+import lombok.Getter;
+import lombok.Setter;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
-
-/**
- * The type User dto.
- */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class UserDTO implements Serializable {
-
-    private String userId;
-
-    private String userName;
-
+@Getter
+@Setter
+public class AdminResponse<T> {
+    private Integer code;
+    private String message;
+    private T data;
 }

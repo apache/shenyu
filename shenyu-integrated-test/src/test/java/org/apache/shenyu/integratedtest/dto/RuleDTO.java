@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.http.dto;
+package org.apache.shenyu.integratedtest.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,18 +23,61 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
- * The type User dto.
+ * this is rule from by web front.
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserDTO implements Serializable {
+public final class RuleDTO implements Serializable {
 
-    private String userId;
+    private static final long serialVersionUID = 995629439944393704L;
 
-    private String userName;
+    /**
+     * primary key.
+     */
+    private String id;
 
+    /**
+     * selector id.
+     */
+    private String selectorId;
+
+    /**
+     * match mode.
+     */
+    private Integer matchMode;
+
+    /**
+     * rule name.
+     */
+    private String name;
+
+    /**
+     * whether enabled.
+     */
+    private Boolean enabled;
+
+    /**
+     * whether loged.
+     */
+    private Boolean loged;
+
+    /**
+     * sort type.
+     */
+    private Integer sort;
+
+    /**
+     * process logic.
+     */
+    private String handle;
+
+    /**
+     * rule conditions.
+     */
+    private List<RuleConditionDTO> ruleConditions;
 }

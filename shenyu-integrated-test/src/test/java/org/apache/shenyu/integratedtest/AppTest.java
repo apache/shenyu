@@ -15,26 +15,21 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.http.dto;
+package org.apache.shenyu.integratedtest;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import static org.junit.Assert.assertTrue;
 
-import java.io.Serializable;
+import org.junit.Test;
 
 /**
- * The type User dto.
+ * Unit test for simple App.
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class UserDTO implements Serializable {
-
-    private String userId;
-
-    private String userName;
-
+public class AppTest {
+    /**
+     * Rigorous Test :-)
+     */
+    @Test
+    public void shouldAnswerWithTrue() {
+        assertTrue(true);
+    }
 }

@@ -15,26 +15,37 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.examples.http.dto;
+package org.apache.shenyu.integratedtest.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 
-/**
- * The type User dto.
- */
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class UserDTO implements Serializable {
+@Accessors(chain = true)
+public class PluginDTO implements Serializable {
 
-    private String userId;
 
-    private String userName;
+    private String id;
 
+    /**
+     * plugin name.
+     */
+    private String name;
+
+    /**
+     * plugin config.
+     */
+    private String config;
+
+    /**
+     * plugin role.
+     */
+    private Integer role;
+
+    /**
+     * whether enabled.
+     */
+    private Boolean enabled;
 }

@@ -14,27 +14,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.shenyu.integratedtest.helper;
 
-package org.apache.shenyu.examples.http.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.google.common.reflect.TypeToken;
+import org.apache.shenyu.integratedtest.dto.AdminResponse;
+import org.apache.shenyu.integratedtest.dto.PluginDTO;
 
-import java.io.Serializable;
+public class PluginHelper {
+    public static final PluginHelper INSTANCE = new PluginHelper();
 
-/**
- * The type User dto.
- */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class UserDTO implements Serializable {
-
-    private String userId;
-
-    private String userName;
-
+    public AdminResponse<Object> updatePlugin(int id, PluginDTO plugin) throws Exception {
+        return HttpHelper.INSTANCE.putAdmin("/plugin/" + id, plugin,
+                (new TypeToken<AdminResponse<Object>>() {
+                }).getType());
+    }
 }
