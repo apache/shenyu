@@ -24,6 +24,7 @@ import org.junit.Test;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * MetricsReporterTest.
@@ -39,60 +40,61 @@ public class MetricsReporterTest {
 
     @Test(expected = RuntimeException.class)
     public void testRegisterMetrics() {
-        Collection<Metric> metricsCounterType = Collections.singletonList(new Metric(MetricType.COUNTER,
-                "name", "document", Collections.EMPTY_LIST));
-        MetricsReporter.registerMetrics(metricsCounterType);
-        Collection<Metric> metricsGaugeType = Collections.singletonList(new Metric(MetricType.GAUGE,
-                "name", "document", Collections.EMPTY_LIST));
-        MetricsReporter.registerMetrics(metricsGaugeType);
-        Collection<Metric> metricsHistogramType = Collections.singletonList(new Metric(MetricType.HISTOGRAM,
-                "name", "document", Collections.EMPTY_LIST));
-        MetricsReporter.registerMetrics(metricsHistogramType);
-        Collection<Metric> metricsNullType = Collections.singletonList(new Metric(null,
-                "name", "document", Collections.EMPTY_LIST));
-        MetricsReporter.registerMetrics(metricsNullType);
+        List<String> labels = Collections.singletonList("label");
+        Collection<Metric> metricsCounter = Collections.singletonList(new Metric(MetricType.COUNTER,
+                "request_total", "shenyu request total count", labels));
+        MetricsReporter.registerMetrics(metricsCounter);
+        Collection<Metric> metricsGauge = Collections.singletonList(new Metric(MetricType.GAUGE,
+                "jvm.total.used", "shenyu jvm total used", labels));
+        MetricsReporter.registerMetrics(metricsGauge);
+        Collection<Metric> metricsHistogram = Collections.singletonList(new Metric(MetricType.HISTOGRAM,
+                "requests_latency_histogram_millis", "the shenyu proxy executor latency millis", labels));
+        MetricsReporter.registerMetrics(metricsHistogram);
+        Collection<Metric> metricsNull = Collections.singletonList(new Metric(null,
+                null, null, labels));
+        MetricsReporter.registerMetrics(metricsNull);
     }
 
     @Test
     public void testRegisterCounter() {
-        MetricsReporter.registerCounter("name", new String[]{"labelNames"}, "document");
-        MetricsReporter.registerCounter("name", "document");
+        MetricsReporter.registerCounter("pending.jobs.size", new String[]{"label"}, "shenyu pending jobs size");
+        MetricsReporter.registerCounter("pending.jobs.size", "shenyu pending jobs size");
     }
 
     @Test
     public void testRegisterGauge() {
-        MetricsReporter.registerGauge("name", new String[]{"labelNames"}, "document");
-        MetricsReporter.registerGauge("name", "document");
+        MetricsReporter.registerGauge("jvm.total.used", new String[]{"label"}, "shenyu jvm total used");
+        MetricsReporter.registerGauge("jvm.total.used", "shenyu jvm total used");
     }
 
     @Test
     public void testHistogram() {
-        MetricsReporter.registerHistogram("name", new String[]{"labelNames"}, "document");
-        MetricsReporter.registerHistogram("name", "document");
+        MetricsReporter.registerHistogram("request.histogram", new String[]{"label"}, "shenyu request total");
+        MetricsReporter.registerHistogram("request.histogram", "shenyu request total");
     }
 
     @Test
     public void testCounterIncrement() {
-        MetricsReporter.counterIncrement("name", new String[]{"labelValues"});
-        MetricsReporter.counterIncrement("name");
-        MetricsReporter.counterIncrement("name", new String[]{"labelValues"}, 1);
+        MetricsReporter.counterIncrement("requestCountIncrement", new String[]{"label"});
+        MetricsReporter.counterIncrement("requestCountIncrement");
+        MetricsReporter.counterIncrement("requestCountIncrement", new String[]{"label"}, 1);
     }
 
     @Test
     public void testGaugeIncrement() {
-        MetricsReporter.gaugeIncrement("name", new String[]{"labelValues"});
-        MetricsReporter.gaugeIncrement("name");
+        MetricsReporter.gaugeIncrement("requestGaugeIncrement", new String[]{"label"});
+        MetricsReporter.gaugeIncrement("requestGaugeIncrement");
     }
 
     @Test
     public void testGaugeDecrement() {
-        MetricsReporter.gaugeDecrement("name", new String[]{"labelValues"});
-        MetricsReporter.gaugeDecrement("name");
+        MetricsReporter.gaugeDecrement("gaugeDecrement", new String[]{"label"});
+        MetricsReporter.gaugeDecrement("gaugeDecrement");
     }
 
     @Test
     public void testRecordTime() {
-        MetricsReporter.recordTime("name", new String[]{"labelValues"}, 1L);
-        MetricsReporter.recordTime("name", 1L);
+        MetricsReporter.recordTime("executeTime", new String[]{"label"}, 1L);
+        MetricsReporter.recordTime("executeTime", 1L);
     }
 }
