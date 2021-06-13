@@ -17,17 +17,18 @@
 package org.apache.shenyu.integratedtest.http;
 
 import com.google.gson.reflect.TypeToken;
-import org.apache.shenyu.integratedtest.AbstractRateLimitTest;
+import org.apache.shenyu.integratedtest.AbstractTest;
 import org.apache.shenyu.integratedtest.dto.AdminResponse;
 import org.apache.shenyu.integratedtest.dto.UserDTO;
 import org.apache.shenyu.integratedtest.helper.HttpHelper;
 import org.junit.Test;
 
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
 import static org.junit.Assert.assertEquals;
 
-public class HttpRateLimitTest extends AbstractRateLimitTest {
+public class HttpRateLimitTest extends AbstractTest {
 
     @Test
     public void testSlidingWindow() throws Exception {
