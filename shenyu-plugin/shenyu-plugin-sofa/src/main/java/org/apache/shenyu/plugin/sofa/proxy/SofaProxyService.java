@@ -103,7 +103,7 @@ public class SofaProxyService {
             }
 
             GenericObject genericObject = (GenericObject) ret;
-            exchange.getAttributes().put(Constants.SOFA_RPC_RESULT, genericObject.getFields());
+            exchange.getAttributes().put(Constants.RPC_RESULT, genericObject.getFields());
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return ret;
         })).onErrorMap(ShenyuException::new);

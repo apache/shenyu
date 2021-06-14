@@ -352,13 +352,13 @@
         </dependency>
         <!--shenyu request plugin end-->
 
-        <!--shenyu rpc response plugin start-->
+        <!--shenyu response plugin start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-rpc-response</artifactId>
+            <artifactId>shenyu-spring-boot-starter-plugin-response</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <!--shenyu  rpc response plugin end-->
+        <!--shenyu response plugin end-->
     </dependencies>
 
     <build>
