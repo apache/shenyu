@@ -33,6 +33,6 @@ public class RateLimiterKeyResolverFactory {
      * @return the rate limiter key resolver
      */
     public static RateLimiterKeyResolver newInstance(final String name) {
-        return Optional.ofNullable(ExtensionLoader.getExtensionLoader(RateLimiterKeyResolver.class).getJoin(name)).orElse(new RemoteAddrKeyResolver());
+        return ExtensionLoader.getExtensionLoader(RateLimiterKeyResolver.class).getJoin(name);
     }
 }

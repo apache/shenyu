@@ -35,6 +35,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Optional;
+
 /**
  * RateLimiter Plugin.
  */
@@ -65,8 +67,10 @@ public class RateLimiterPlugin extends AbstractShenyuPlugin {
     protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
         RateLimiterHandle limiterHandle = RatelimiterRuleHandleCache.getInstance()
                 .obtainHandle(CacheKeyUtils.INST.getKey(rule));
-        RateLimiterKeyResolver resolver = RateLimiterKeyResolverFactory.newInstance(limiterHandle.getKeyResolverName());
-        return redisRateLimiter.isAllowed(resolver.resolve(exchange), limiterHandle)
+        String resolverKey = Optional.ofNullable(limiterHandle.getKeyResolverName())
+                .flatMap(name -> Optional.of("-" + RateLimiterKeyResolverFactory.newInstance(name).resolve(exchange)))
+                .orElse("");
+        return redisRateLimiter.isAllowed(rule.getId() + resolverKey, limiterHandle)
                 .flatMap(response -> {
                     if (!response.isAllowed()) {
                         exchange.getResponse().setStatusCode(HttpStatus.TOO_MANY_REQUESTS);
