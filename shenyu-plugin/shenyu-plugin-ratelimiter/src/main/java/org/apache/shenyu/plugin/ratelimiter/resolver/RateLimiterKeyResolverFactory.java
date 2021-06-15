@@ -19,8 +19,6 @@ package org.apache.shenyu.plugin.ratelimiter.resolver;
 
 import org.apache.shenyu.spi.ExtensionLoader;
 
-import java.util.Optional;
-
 /**
  * The type rate limiter key resolver factory.
  */

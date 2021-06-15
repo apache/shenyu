@@ -29,7 +29,6 @@ import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.base.utils.CacheKeyUtils;
 import org.apache.shenyu.plugin.ratelimiter.cache.RatelimiterRuleHandleCache;
 import org.apache.shenyu.plugin.ratelimiter.executor.RedisRateLimiter;
-import org.apache.shenyu.plugin.ratelimiter.resolver.RateLimiterKeyResolver;
 import org.apache.shenyu.plugin.ratelimiter.resolver.RateLimiterKeyResolverFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebExchange;
