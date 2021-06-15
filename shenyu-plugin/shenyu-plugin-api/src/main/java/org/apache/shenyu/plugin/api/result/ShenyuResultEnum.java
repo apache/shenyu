@@ -174,6 +174,11 @@ public enum ShenyuResultEnum {
     SECRET_KEY_MUST_BE_CONFIGURED(-112, "SecretKey must be configured"),
 
     /**
+     * Response error.
+     */
+    RESPONSE_ERROR(-113, "Response error, please check your configuration!"),
+
+    /**
      * Request Header Fields Too Large.
      */
     REQUEST_HEADER_TOO_LARGE(431, "Request Header Fields Too Large"),

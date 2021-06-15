@@ -17,6 +17,8 @@
 
 package org.apache.shenyu.plugin.response.strategy;
 
+import org.apache.shenyu.common.constant.Constants;
+import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
@@ -24,14 +26,23 @@ import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
+
 /**
- * This is the rpc response default strategy.
+ * This is the rpc response common strategy.
  */
-public class DefaultStrategy implements Strategy {
+public class CommonStrategy implements Strategy {
 
     @Override
     public Mono<Void> doExcute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-        Object error = ShenyuResultWrap.error(ShenyuResultEnum.RESPONSE_ERROR.getCode(), ShenyuResultEnum.RESPONSE_ERROR.getMsg(), null);
-        return WebFluxResultUtils.result(exchange, error);
+        return chain.execute(exchange).then(Mono.defer(() -> {
+            final Object result = exchange.getAttribute(Constants.RPC_RESULT);
+            if (Objects.isNull(result)) {
+                Object error = ShenyuResultWrap.error(ShenyuResultEnum.SERVICE_RESULT_ERROR.getCode(), ShenyuResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
+                return WebFluxResultUtils.result(exchange, error);
+            }
+            Object success = ShenyuResultWrap.success(ShenyuResultEnum.SUCCESS.getCode(), ShenyuResultEnum.SUCCESS.getMsg(), JsonUtils.removeClass(result));
+            return WebFluxResultUtils.result(exchange, success);
+        }));
     }
 }

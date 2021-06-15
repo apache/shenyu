@@ -23,17 +23,11 @@ import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
-import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
-import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
-import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.apache.shenyu.plugin.response.strategy.ResponseHandler;
-import org.apache.shenyu.plugin.response.strategy.Strategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * this is rpc response plugin.
@@ -53,12 +47,7 @@ public class ResponsePlugin implements ShenyuPlugin {
      */
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-        final Strategy strategy = responseHandler.dispatch(exchange);
-        if (Optional.ofNullable(strategy).isPresent()) {
-            return strategy.doExcute(exchange, chain);
-        }
-        Object error = ShenyuResultWrap.error(ShenyuResultEnum.SERVICE_RESULT_ERROR.getCode(), ShenyuResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
-        return WebFluxResultUtils.result(exchange, error);
+        return responseHandler.dispatch(exchange).doExcute(exchange, chain);
     }
 
     /**

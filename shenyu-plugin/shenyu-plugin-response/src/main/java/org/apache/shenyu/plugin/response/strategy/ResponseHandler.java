@@ -46,17 +46,17 @@ public class ResponseHandler {
                 || Objects.equals(RpcTypeEnum.SPRING_CLOUD.getName(), shenyuContext.getRpcType())) {
             return getHttpStrategy();
         } else {
-            return new DefaultStrategy();
+            return new CommonStrategy();
         }
     }
 
     private Strategy getHttpStrategy() {
-        if (httpClientProperties.getStrategy().equals("webClient")) {
+        if ("webClient".equals(httpClientProperties.getStrategy())) {
             return new WebClientStrategy();
-        } else if (httpClientProperties.getStrategy().equals("netty")) {
+        } else if ("netty".equals(httpClientProperties.getStrategy())) {
             return new NettyClientStrategy();
         } else {
-            return null;
+            return new DefaultStrategy();
         }
     }
 }
