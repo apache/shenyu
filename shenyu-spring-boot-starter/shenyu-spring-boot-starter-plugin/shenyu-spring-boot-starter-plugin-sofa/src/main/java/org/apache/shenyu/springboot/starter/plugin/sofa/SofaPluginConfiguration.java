@@ -26,7 +26,6 @@ import org.apache.shenyu.plugin.sofa.context.SofaShenyuContextDecorator;
 import org.apache.shenyu.plugin.sofa.handler.SofaPluginDataHandler;
 import org.apache.shenyu.plugin.sofa.param.SofaBodyParamResolveServiceImpl;
 import org.apache.shenyu.plugin.sofa.proxy.SofaProxyService;
-import org.apache.shenyu.plugin.sofa.response.SofaResponsePlugin;
 import org.apache.shenyu.plugin.sofa.subscriber.SofaMetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -48,16 +47,6 @@ public class SofaPluginConfiguration {
     @Bean
     public ShenyuPlugin sofaPlugin() {
         return new SofaPlugin(new SofaProxyService(new SofaBodyParamResolveServiceImpl()));
-    }
-
-    /**
-     * Dubbo response plugin shenyu plugin.
-     *
-     * @return the shenyu plugin
-     */
-    @Bean
-    public ShenyuPlugin sofaResponsePlugin() {
-        return new SofaResponsePlugin();
     }
 
     /**

@@ -15,27 +15,27 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.grpc.response;
+package org.apache.shenyu.plugin.response;
 
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.common.utils.JsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
-import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
-import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
-import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
+import org.apache.shenyu.plugin.response.strategy.ResponseHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
 import java.util.Objects;
 
 /**
- * this is grpc response plugin.
+ * this is rpc response plugin.
  */
-public class GrpcResponsePlugin implements ShenyuPlugin {
+public class ResponsePlugin implements ShenyuPlugin {
+
+    @Autowired
+    private ResponseHandler responseHandler;
 
     /**
      * Process the Web request and (optionally) delegate to the next
@@ -47,24 +47,32 @@ public class GrpcResponsePlugin implements ShenyuPlugin {
      */
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-        return chain.execute(exchange).then(Mono.defer(() -> {
-            final Object result = exchange.getAttribute(Constants.GRPC_RPC_RESULT);
-            if (Objects.isNull(result)) {
-                Object error = ShenyuResultWrap.error(ShenyuResultEnum.SERVICE_RESULT_ERROR.getCode(), ShenyuResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
-                return WebFluxResultUtils.result(exchange, error);
-            }
-            Object success = ShenyuResultWrap.success(ShenyuResultEnum.SUCCESS.getCode(), ShenyuResultEnum.SUCCESS.getMsg(), JsonUtils.removeClass(result));
-            return WebFluxResultUtils.result(exchange, success);
-        }));
+        return responseHandler.dispatch(exchange).doExcute(exchange, chain);
     }
 
+    /**
+     * skip.
+     *
+     * @param exchange the current server exchange
+     * @return
+     */
     @Override
     public Boolean skip(final ServerWebExchange exchange) {
         final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
-        return !Objects.equals(shenyuContext.getRpcType(), RpcTypeEnum.GRPC.getName());
+        return !Objects.equals(shenyuContext.getRpcType(), RpcTypeEnum.GRPC.getName())
+                && !Objects.equals(shenyuContext.getRpcType(), RpcTypeEnum.SOFA.getName())
+                && !Objects.equals(shenyuContext.getRpcType(), RpcTypeEnum.DUBBO.getName())
+                && !Objects.equals(shenyuContext.getRpcType(), RpcTypeEnum.TARS.getName())
+                && !Objects.equals(shenyuContext.getRpcType(), RpcTypeEnum.HTTP.getName())
+                && !Objects.equals(shenyuContext.getRpcType(), RpcTypeEnum.SPRING_CLOUD.getName());
     }
 
+    /**
+     * get order.
+     *
+     * @return
+     */
     @Override
     public int getOrder() {
         return PluginEnum.RESPONSE.getCode();

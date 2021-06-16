@@ -15,14 +15,10 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.httpclient.response;
+package org.apache.shenyu.plugin.response.strategy;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.enums.RpcTypeEnum;
-import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.springframework.core.io.buffer.NettyDataBuffer;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import org.springframework.http.MediaType;
@@ -35,18 +31,16 @@ import reactor.netty.Connection;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 /**
- * The type Netty client response plugin.
+ * This is the http response netty client strategy.
  */
-@Slf4j
-public class NettyClientResponsePlugin implements ShenyuPlugin {
+public class NettyClientStrategy implements Strategy {
 
     private final List<MediaType> streamingMediaTypes = Arrays.asList(MediaType.TEXT_EVENT_STREAM, MediaType.APPLICATION_STREAM_JSON);
 
     @Override
-    public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+    public Mono<Void> doExcute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return chain.execute(exchange).doOnError(throwable -> cleanup(exchange)).then(Mono.defer(() -> {
             Connection connection = exchange.getAttribute(Constants.CLIENT_RESPONSE_CONN_ATTR);
             if (connection == null) {
@@ -64,24 +58,6 @@ public class NettyClientResponsePlugin implements ShenyuPlugin {
                     ? response.writeAndFlushWith(body.map(Flux::just))
                     : response.writeWith(body);
         })).doOnCancel(() -> cleanup(exchange));
-    }
-
-    @Override
-    public int getOrder() {
-        return 100;
-    }
-
-    @Override
-    public String named() {
-        return "NettyClientResponse";
-    }
-
-    @Override
-    public Boolean skip(final ServerWebExchange exchange) {
-        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
-        return !Objects.equals(RpcTypeEnum.HTTP.getName(), shenyuContext.getRpcType())
-                && !Objects.equals(RpcTypeEnum.SPRING_CLOUD.getName(), shenyuContext.getRpcType());
     }
 
     private void cleanup(final ServerWebExchange exchange) {

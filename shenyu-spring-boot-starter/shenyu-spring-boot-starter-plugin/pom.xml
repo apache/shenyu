@@ -53,5 +53,6 @@
         <module>shenyu-spring-boot-starter-plugin-logging</module>
         <module>shenyu-spring-boot-starter-plugin-request</module>
         <module>shenyu-spring-boot-starter-plugin-jwt</module>
+        <module>shenyu-spring-boot-starter-plugin-response</module>
     </modules>
 </project>

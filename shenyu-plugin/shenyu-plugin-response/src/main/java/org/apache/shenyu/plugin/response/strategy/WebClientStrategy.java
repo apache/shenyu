@@ -15,16 +15,12 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.plugin.httpclient.response;
+package org.apache.shenyu.plugin.response.strategy;
 
 import org.apache.shenyu.common.constant.Constants;
-import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.enums.RpcTypeEnum;
+import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
 import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
-import org.apache.shenyu.plugin.api.ShenyuPlugin;
-import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.plugin.api.context.ShenyuContext;
 import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -36,20 +32,12 @@ import reactor.core.publisher.Mono;
 import java.util.Objects;
 
 /**
- * this is response plugin.
+ * This is the http response web client strategy.
  */
-public class WebClientResponsePlugin implements ShenyuPlugin {
+public class WebClientStrategy implements Strategy {
 
-    /**
-     * Process the Web request and (optionally) delegate to the next
-     * {@code WebFilter} through the given {@link ShenyuPluginChain}.
-     *
-     * @param exchange the current server exchange
-     * @param chain    provides a way to delegate to the next filter
-     * @return {@code Mono<Void>} to indicate when request processing is complete
-     */
     @Override
-    public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+    public Mono<Void> doExcute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return chain.execute(exchange).then(Mono.defer(() -> {
             ServerHttpResponse response = exchange.getResponse();
             ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
@@ -70,29 +58,6 @@ public class WebClientResponsePlugin implements ShenyuPlugin {
         }));
     }
 
-    @Override
-    public int getOrder() {
-        return PluginEnum.RESPONSE.getCode();
-    }
-
-    @Override
-    public Boolean skip(final ServerWebExchange exchange) {
-        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
-        assert shenyuContext != null;
-        return !Objects.equals(RpcTypeEnum.HTTP.getName(), shenyuContext.getRpcType())
-                && !Objects.equals(RpcTypeEnum.SPRING_CLOUD.getName(), shenyuContext.getRpcType());
-    }
-
-    /**
-     * acquire plugin name.
-     *
-     * @return plugin name.
-     */
-    @Override
-    public String named() {
-        return PluginEnum.RESPONSE.getName();
-    }
-    
     private void clean(final ServerWebExchange exchange) {
         ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
         if (clientResponse != null) {

@@ -16,50 +16,40 @@
  *
  */
 
-package org.apache.shenyu.springboot.starter.plugin.grpc;
+package org.apache.shenyu.springboot.starter.plugin.response;
 
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
-import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
-import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.apache.shenyu.plugin.grpc.GrpcPlugin;
-import org.apache.shenyu.plugin.grpc.context.GrpcShenyuContextDecorator;
-import org.apache.shenyu.plugin.grpc.handler.GrpcPluginDataHandler;
+import org.apache.shenyu.plugin.response.ResponsePlugin;
+import org.apache.shenyu.plugin.response.config.HttpClientProperties;
+import org.apache.shenyu.plugin.response.strategy.ResponseHandler;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * The type grpc plugin configuration.
+ * The type response plugin configuration.
  */
 @Configuration
-public class GrpcPluginConfiguration {
+@EnableConfigurationProperties(HttpClientProperties.class)
+public class ResponsePluginConfiguration {
 
     /**
-     * grpc plugin shenyu plugin.
+     * response plugin shenyu plugin.
      *
-     * @return the tars plugin
+     * @return the shenyu plugin.
      */
     @Bean
-    public ShenyuPlugin grpcPlugin() {
-        return new GrpcPlugin();
+    public ShenyuPlugin responsePlugin() {
+        return new ResponsePlugin();
     }
 
     /**
-     * Grpc data handler.
+     * response handler.
      *
-     * @return the plugin data handler
+     * @return the response handler.
      */
     @Bean
-    public PluginDataHandler grpcPluginDataHandler() {
-        return new GrpcPluginDataHandler();
-    }
-
-    /**
-     * Grpc shenyu context decorator shenyu context decorator.
-     *
-     * @return the shenyu context decorator
-     */
-    @Bean
-    public ShenyuContextDecorator grpcShenyuContextDecorator() {
-        return new GrpcShenyuContextDecorator();
+    public ResponseHandler responseHandler() {
+        return new ResponseHandler();
     }
 }
