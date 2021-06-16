@@ -25,7 +25,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import reactor.netty.http.server.HttpServer;
 import reactor.netty.resources.LoopResources;
-import reactor.netty.tcp.TcpServer;
 
 /**
  * The type shenyu netty web server factory.
@@ -67,28 +66,16 @@ public class ShenyuNettyWebServerFactory {
         @Override
         public HttpServer apply(final HttpServer httpServer) {
             return httpServer
-                    .tcpConfiguration(tcpServer -> {
-                        TcpServer server = tcpServer
-                                .runOn(LoopResources.create("shenyu-netty", nettyTcpConfig.getSelectCount(), nettyTcpConfig.getWorkerCount(), true));
-                        selectOption(server, nettyTcpConfig);
-                        option(server, nettyTcpConfig);
-                        return server;
-                    });
-        }
-
-        private void selectOption(final TcpServer tcpServer, final NettyTcpConfig nettyTcpConfig) {
-            tcpServer.selectorOption(ChannelOption.SO_BACKLOG, nettyTcpConfig.getSoBacklog());
-            tcpServer.selectorOption(ChannelOption.SO_REUSEADDR, nettyTcpConfig.isSoReuseaddr());
-        }
-
-        private void option(final TcpServer tcpServer, final NettyTcpConfig nettyTcpConfig) {
-            tcpServer.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, nettyTcpConfig.getConnectTimeoutMillis());
-            tcpServer.option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(nettyTcpConfig.getWriteBufferLowWaterMark(),
-                    nettyTcpConfig.getWriteBufferHighWaterMark()));
-            tcpServer.option(ChannelOption.SO_KEEPALIVE, nettyTcpConfig.isSoKeepalive());
-            tcpServer.option(ChannelOption.SO_REUSEADDR, nettyTcpConfig.isSoReuseaddr());
-            tcpServer.option(ChannelOption.SO_LINGER, nettyTcpConfig.getSoLinger());
-            tcpServer.option(ChannelOption.TCP_NODELAY, nettyTcpConfig.isTcpNodelay());
-        }
-    }
+                    .tcpConfiguration(tcpServer -> tcpServer
+                            .runOn(LoopResources.create("shenyu-netty", nettyTcpConfig.getSelectCount(), nettyTcpConfig.getWorkerCount(), true))
+                            .selectorOption(ChannelOption.SO_BACKLOG, nettyTcpConfig.getSoBacklog())
+                            .selectorOption(ChannelOption.SO_REUSEADDR, nettyTcpConfig.isSoReuseaddr())
+                            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, nettyTcpConfig.getConnectTimeoutMillis())
+                            .option(ChannelOption.WRITE_BUFFER_WATER_MARK, new WriteBufferWaterMark(nettyTcpConfig.getWriteBufferLowWaterMark(),
+                                    nettyTcpConfig.getWriteBufferHighWaterMark()))
+                            .option(ChannelOption.SO_KEEPALIVE, nettyTcpConfig.isSoKeepalive())
+                            .option(ChannelOption.SO_REUSEADDR, nettyTcpConfig.isSoReuseaddr())
+                            .option(ChannelOption.SO_LINGER, nettyTcpConfig.getSoLinger())
+                            .option(ChannelOption.TCP_NODELAY, nettyTcpConfig.isTcpNodelay()));
+        }}
 }

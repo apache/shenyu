@@ -18,38 +18,81 @@
 
 package org.apache.shenyu.springboot.starter.plugin.response;
 
+import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.response.ResponsePlugin;
-import org.apache.shenyu.plugin.response.config.HttpClientProperties;
-import org.apache.shenyu.plugin.response.strategy.ResponseHandler;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.apache.shenyu.plugin.response.strategy.MessageWriter;
+import org.apache.shenyu.plugin.response.strategy.NettyClientMessageWriter;
+import org.apache.shenyu.plugin.response.strategy.RPCMessageWriter;
+import org.apache.shenyu.plugin.response.strategy.WebClientMessageWriter;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The type response plugin configuration.
  */
 @Configuration
-@EnableConfigurationProperties(HttpClientProperties.class)
 public class ResponsePluginConfiguration {
-
+    
     /**
-     * response plugin shenyu plugin.
+     * Response plugin shenyu plugin.
      *
-     * @return the shenyu plugin.
+     * @param httpWriter the http writer
+     * @return the shenyu plugin
      */
     @Bean
-    public ShenyuPlugin responsePlugin() {
-        return new ResponsePlugin();
+    public ShenyuPlugin responsePlugin(final ObjectProvider<MessageWriter> httpWriter) {
+        Map<String, MessageWriter> writerMap = new HashMap<>();
+        MessageWriter httpWrite = httpWriter.getIfAvailable();
+        MessageWriter rpcWrite = new RPCMessageWriter();
+        writerMap.put(RpcTypeEnum.HTTP.getName(), httpWrite);
+        writerMap.put(RpcTypeEnum.SPRING_CLOUD.getName(), httpWrite);
+        writerMap.put(RpcTypeEnum.DUBBO.getName(), rpcWrite);
+        writerMap.put(RpcTypeEnum.SOFA.getName(), rpcWrite);
+        writerMap.put(RpcTypeEnum.GRPC.getName(), rpcWrite);
+        writerMap.put(RpcTypeEnum.MOTAN.getName(), rpcWrite);
+        writerMap.put(RpcTypeEnum.TARS.getName(), rpcWrite);
+        return new ResponsePlugin(writerMap);
     }
-
+    
     /**
-     * response handler.
-     *
-     * @return the response handler.
+     * The type Web client message writer configuration.
      */
-    @Bean
-    public ResponseHandler responseHandler() {
-        return new ResponseHandler();
+    @Configuration
+    @ConditionalOnProperty(name = "shenyu.httpclient.strategy", havingValue = "webClient", matchIfMissing = true)
+    static class WebClientMessageWriterConfiguration {
+    
+        /**
+         * Web client message writer message writer.
+         *
+         * @return the message writer
+         */
+        @Bean
+        public MessageWriter webClientMessageWriter() {
+            return new WebClientMessageWriter();
+        }
+    }
+    
+    /**
+     * The type Netty client message writer configuration.
+     */
+    @Configuration
+    @ConditionalOnProperty(name = "shenyu.httpclient.strategy", havingValue = "netty")
+    static class NettyClientMessageWriterConfiguration {
+    
+        /**
+         * Netty message writer message writer.
+         *
+         * @return the message writer
+         */
+        @Bean
+        public MessageWriter nettyMessageWriter() {
+            return new NettyClientMessageWriter();
+        }
     }
 }

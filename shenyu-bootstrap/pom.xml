@@ -49,29 +49,6 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!--if you use http proxy start this-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-divide</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
-        <!-- shenyu httpclient plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-httpclient</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu httpclient plugin end-->
-
-        <!-- shenyu global plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-global</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu global plugin end-->
-
         <!-- shenyu ratelimiter plugin start-->
         <dependency>
             <groupId>org.apache.shenyu</groupId>
@@ -151,6 +128,22 @@
             <version>${project.version}</version>
         </dependency>
         <!-- shenyu redirect plugin end-->
+
+        <!--shenyu debug plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-logging</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu debug plugin end-->
+
+        <!--shenyu request plugin start-->
+        <dependency>
+            <groupId>org.apache.shenyu</groupId>
+            <artifactId>shenyu-spring-boot-starter-plugin-request</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!--shenyu request plugin end-->
         
         <!--shenyu tars plugin end-->
         <dependency>
@@ -352,30 +345,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
-        <!--shenyu debug plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-logging</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!--shenyu debug plugin end-->
-
-        <!--shenyu request plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-request</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!--shenyu request plugin end-->
-
-        <!--shenyu response plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-response</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!--shenyu response plugin end-->
     </dependencies>
 
     <build>

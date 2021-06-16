@@ -33,14 +33,14 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * This is the http response netty client strategy.
+ * The type Netty client message writer.
  */
-public class NettyClientStrategy implements Strategy {
+public class NettyClientMessageWriter implements MessageWriter {
 
     private final List<MediaType> streamingMediaTypes = Arrays.asList(MediaType.TEXT_EVENT_STREAM, MediaType.APPLICATION_STREAM_JSON);
 
     @Override
-    public Mono<Void> doExcute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+    public Mono<Void> writeWith(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return chain.execute(exchange).doOnError(throwable -> cleanup(exchange)).then(Mono.defer(() -> {
             Connection connection = exchange.getAttribute(Constants.CLIENT_RESPONSE_CONN_ATTR);
             if (connection == null) {

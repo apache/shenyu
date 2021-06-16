@@ -19,70 +19,44 @@ package org.apache.shenyu.plugin.response;
 
 import org.apache.shenyu.common.constant.Constants;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.common.enums.RpcTypeEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.api.context.ShenyuContext;
-import org.apache.shenyu.plugin.response.strategy.ResponseHandler;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.shenyu.plugin.response.strategy.MessageWriter;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import java.util.Objects;
+
+import java.util.Map;
 
 /**
- * this is rpc response plugin.
+ * this is response plugin.
  */
 public class ResponsePlugin implements ShenyuPlugin {
-
-    @Autowired
-    private ResponseHandler responseHandler;
-
+    
+    private final Map<String, MessageWriter> writerMap;
+    
     /**
-     * Process the Web request and (optionally) delegate to the next
-     * {@code WebFilter} through the given {@link ShenyuPluginChain}.
+     * Instantiates a new Response plugin.
      *
-     * @param exchange the current server exchange
-     * @param chain    provides a way to delegate to the next filter
-     * @return {@code Mono<Void>} to indicate when request processing is complete
+     * @param writerMap the writer map
      */
+    public ResponsePlugin(Map<String, MessageWriter> writerMap) {
+        this.writerMap = writerMap;
+    }
+    
     @Override
     public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-        return responseHandler.dispatch(exchange).doExcute(exchange, chain);
-    }
-
-    /**
-     * skip.
-     *
-     * @param exchange the current server exchange
-     * @return
-     */
-    @Override
-    public Boolean skip(final ServerWebExchange exchange) {
-        final ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
+        ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         assert shenyuContext != null;
-        return !Objects.equals(shenyuContext.getRpcType(), RpcTypeEnum.GRPC.getName())
-                && !Objects.equals(shenyuContext.getRpcType(), RpcTypeEnum.SOFA.getName())
-                && !Objects.equals(shenyuContext.getRpcType(), RpcTypeEnum.DUBBO.getName())
-                && !Objects.equals(shenyuContext.getRpcType(), RpcTypeEnum.TARS.getName())
-                && !Objects.equals(shenyuContext.getRpcType(), RpcTypeEnum.HTTP.getName())
-                && !Objects.equals(shenyuContext.getRpcType(), RpcTypeEnum.SPRING_CLOUD.getName());
+        return writerMap.get(shenyuContext.getRpcType()).writeWith(exchange, chain);
     }
-
-    /**
-     * get order.
-     *
-     * @return
-     */
+    
+    
     @Override
     public int getOrder() {
         return PluginEnum.RESPONSE.getCode();
     }
-
-    /**
-     * acquire plugin name.
-     *
-     * @return plugin name.
-     */
+    
     @Override
     public String named() {
         return PluginEnum.RESPONSE.getName();
