@@ -15,43 +15,29 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.dto.convert;
+package org.apache.shenyu.plugin.ratelimiter.resolver;
 
-import lombok.Data;
+import org.apache.shenyu.spi.SPI;
+import org.springframework.web.server.ServerWebExchange;
 
 /**
- * this is rateLimiter plugin handle.
+ * RateLimiterKeyResolver.
  */
-@Data
-public class RateLimiterHandle {
-    
-    /**
-     * algorithm name.
-     */
-    private String algorithmName;
+@SPI
+public interface RateLimiterKeyResolver {
 
     /**
-     * replenish rate.
+     * get Key resolver's name.
+     *
+     * @return Key resolver's name
      */
-    private double replenishRate;
+    String getKeyResolverName();
 
     /**
-     * burst capacity.
+     * resolve.
+     *
+     * @param exchange exchange the current server exchange {@linkplain ServerWebExchange}
+     * @return rate limiter key
      */
-    private double burstCapacity;
-    
-    /**
-     * request count.
-     */
-    private double requestCount = 1.0;
-
-    /**
-     * loged.
-     */
-    private boolean loged;
-
-    /**
-     * key resolver name.
-     */
-    private String keyResolverName;
+    String resolve(ServerWebExchange exchange);
 }

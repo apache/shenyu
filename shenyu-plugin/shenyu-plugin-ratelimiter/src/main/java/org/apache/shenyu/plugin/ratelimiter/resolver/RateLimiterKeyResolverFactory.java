@@ -15,43 +15,22 @@
  * limitations under the License.
  */
 
-package org.apache.shenyu.common.dto.convert;
+package org.apache.shenyu.plugin.ratelimiter.resolver;
 
-import lombok.Data;
+import org.apache.shenyu.spi.ExtensionLoader;
 
 /**
- * this is rateLimiter plugin handle.
+ * The type rate limiter key resolver factory.
  */
-@Data
-public class RateLimiterHandle {
-    
-    /**
-     * algorithm name.
-     */
-    private String algorithmName;
+public class RateLimiterKeyResolverFactory {
 
     /**
-     * replenish rate.
+     * New instance rate limiter key resolver.
+     *
+     * @param name the name
+     * @return the rate limiter key resolver
      */
-    private double replenishRate;
-
-    /**
-     * burst capacity.
-     */
-    private double burstCapacity;
-    
-    /**
-     * request count.
-     */
-    private double requestCount = 1.0;
-
-    /**
-     * loged.
-     */
-    private boolean loged;
-
-    /**
-     * key resolver name.
-     */
-    private String keyResolverName;
+    public static RateLimiterKeyResolver newInstance(final String name) {
+        return ExtensionLoader.getExtensionLoader(RateLimiterKeyResolver.class).getJoin(name);
+    }
 }

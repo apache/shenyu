@@ -289,6 +289,8 @@ INSERT INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, 
 INSERT INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('45', 'paramType', 'PARAM_TYPE', 'header', 'header', 'header', 5, 1, '2021-05-30 19:39:29', '2021-05-30 20:15:23');
 INSERT INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('46', 'paramType', 'PARAM_TYPE', 'cookie', 'cookie', 'cookie', 6, 1, '2021-05-30 19:39:46', '2021-05-30 20:15:23');
 INSERT INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('47', 'paramType', 'PARAM_TYPE', 'req_method', 'req_method', 'req_method', 7, 1, '2021-05-30 19:40:41', '2021-05-30 20:15:23');
+INSERT INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('48','keyResolverName','WHOLE_KEY_RESOLVER','whole','WHOLE_KEY_RESOLVER','Rate limit by all request',0,1,'2021-06-12 19:28:44','2021-06-12 19:28:44');
+INSERT INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('49','keyResolverName','REMOTE_ADDRESS_KEY_RESOLVER','remoteAddress','REMOTE_ADDRESS_KEY_RESOLVER','Rate limit by remote address',1,1,'2021-06-12 19:28:44','2021-06-12 19:28:44');
 
 /*plugin*/
 INSERT INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('1','sign','1', '0', '2018-06-14 10:17:35', '2018-06-14 10:17:35');
@@ -377,6 +379,7 @@ INSERT INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `ty
 INSERT INTO plugin_handle (`id`, `plugin_id`, `field`, `label`, `data_type`, `type`, `sort`, `ext_obj`, `date_created`, `date_updated`) VALUES ('41', '7', 'async', 'async', 2, 3, 4, NULL, '2020-12-25 00:00:00', '2020-12-25 00:00:00');
 /*insert plugin_handle data for plugin rate_limiter*/
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('43','4' ,'algorithmName','algorithmName','3', 2, 1, '{"required":"1","defaultValue":"slidingWindow","rule":""}', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
+INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('82','4' ,'keyResolverName','keyResolverName','3', 2, 4, '{"required":"1","defaultValue":"WHOLE_KEY_RESOLVER","rule":""}', '2021-06-12 19:17:10', '2021-06-12 19:17:10');
 
 /*insert mode data for rate_limiter plugin*/
 INSERT INTO shenyu_dict (`id`, `type`, `dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('12', 'mode', 'MODE', 'cluster', 'cluster', 'cluster', 0, 1, '2020-12-25 00:00:00', '2020-12-25 00:00:00');
