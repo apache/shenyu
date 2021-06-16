@@ -76,6 +76,11 @@ public enum PluginEnum {
     REQUEST(42, 0, "request"),
 
     /**
+     * ModifyResponse plugin enum.
+     */
+    MODIFY_RESPONSE(44, 0, "modifyResponse"),
+
+    /**
      * Hystrix plugin enum.
      */
     HYSTRIX(45, 0, "hystrix"),
@@ -148,12 +153,7 @@ public enum PluginEnum {
     /**
      * Response plugin enum.
      */
-    RESPONSE(100, 0, "response"),
-
-    /**
-     * ParamResponse plugin enum.
-     */
-    PARAM_RESPONSE(200, 0, "paramResponse");
+    RESPONSE(100, 0, "response");
     
     private final int code;
 
