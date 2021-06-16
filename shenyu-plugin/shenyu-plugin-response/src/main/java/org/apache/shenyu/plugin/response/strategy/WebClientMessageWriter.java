@@ -32,12 +32,12 @@ import reactor.core.publisher.Mono;
 import java.util.Objects;
 
 /**
- * This is the http response web client strategy.
+ * The type Web client message writer.
  */
-public class WebClientStrategy implements Strategy {
+public class WebClientMessageWriter implements MessageWriter {
 
     @Override
-    public Mono<Void> doExcute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+    public Mono<Void> writeWith(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return chain.execute(exchange).then(Mono.defer(() -> {
             ServerHttpResponse response = exchange.getResponse();
             ClientResponse clientResponse = exchange.getAttribute(Constants.CLIENT_RESPONSE_ATTR);
