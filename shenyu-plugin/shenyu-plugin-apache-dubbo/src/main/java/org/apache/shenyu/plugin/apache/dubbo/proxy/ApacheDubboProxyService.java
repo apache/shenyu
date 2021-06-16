@@ -101,7 +101,7 @@ public class ApacheDubboProxyService {
             if (Objects.isNull(ret)) {
                 ret = Constants.DUBBO_RPC_RESULT_EMPTY;
             }
-            exchange.getAttributes().put(Constants.DUBBO_RPC_RESULT, ret);
+            exchange.getAttributes().put(Constants.RPC_RESULT, ret);
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return ret;
         })).onErrorMap(exception -> exception instanceof GenericException ? new ShenyuException(((GenericException) exception).getExceptionMessage()) : new ShenyuException(exception));

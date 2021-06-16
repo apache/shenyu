@@ -26,8 +26,6 @@ import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.httpclient.NettyHttpClientPlugin;
 import org.apache.shenyu.plugin.httpclient.WebClientPlugin;
 import org.apache.shenyu.plugin.httpclient.config.HttpClientProperties;
-import org.apache.shenyu.plugin.httpclient.response.NettyClientResponsePlugin;
-import org.apache.shenyu.plugin.httpclient.response.WebClientResponsePlugin;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -159,17 +157,6 @@ public class HttpClientPluginConfiguration {
                     .build();
             return new WebClientPlugin(webClient);
         }
-
-        /**
-         * Web client response plugin shenyu plugin.
-         *
-         * @return the shenyu plugin
-         */
-        @Bean
-        public ShenyuPlugin webClientResponsePlugin() {
-            return new WebClientResponsePlugin();
-        }
-
     }
 
     /**
@@ -188,16 +175,6 @@ public class HttpClientPluginConfiguration {
         @Bean
         public ShenyuPlugin nettyHttpClientPlugin(final ObjectProvider<HttpClient> httpClient) {
             return new NettyHttpClientPlugin(httpClient.getIfAvailable());
-        }
-
-        /**
-         * Netty client response plugin shenyu plugin.
-         *
-         * @return the shenyu plugin
-         */
-        @Bean
-        public ShenyuPlugin nettyClientResponsePlugin() {
-            return new NettyClientResponsePlugin();
         }
     }
 }

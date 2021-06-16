@@ -20,7 +20,6 @@ package org.apache.shenyu.springboot.starter.plugin.tars;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.base.handler.PluginDataHandler;
-import org.apache.shenyu.plugin.tars.response.TarsResponsePlugin;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -45,7 +44,6 @@ public class TarsPluginConfigurationTest {
                 context -> {
                     assertThat(context).hasSingleBean(MetaDataSubscriber.class);
                     assertThat(context).hasSingleBean(PluginDataHandler.class);
-                    assertThat(context).hasSingleBean(TarsResponsePlugin.class);
                     ShenyuPlugin plugin = context.getBean("tarsPlugin", ShenyuPlugin.class);
                     assertThat(plugin.named()).isEqualTo(PluginEnum.TARS.getName());
                 }
