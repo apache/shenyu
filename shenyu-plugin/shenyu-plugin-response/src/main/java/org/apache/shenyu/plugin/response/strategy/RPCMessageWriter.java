@@ -29,14 +29,14 @@ import reactor.core.publisher.Mono;
 import java.util.Objects;
 
 /**
- * This is the rpc response common strategy.
+ * The type Rpc message writer.
  */
-public class CommonStrategy implements Strategy {
+public class RPCMessageWriter implements MessageWriter {
 
     @Override
-    public Mono<Void> doExcute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
+    public Mono<Void> writeWith(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
         return chain.execute(exchange).then(Mono.defer(() -> {
-            final Object result = exchange.getAttribute(Constants.RPC_RESULT);
+            Object result = exchange.getAttribute(Constants.RPC_RESULT);
             if (Objects.isNull(result)) {
                 Object error = ShenyuResultWrap.error(ShenyuResultEnum.SERVICE_RESULT_ERROR.getCode(), ShenyuResultEnum.SERVICE_RESULT_ERROR.getMsg(), null);
                 return WebFluxResultUtils.result(exchange, error);

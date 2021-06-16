@@ -18,20 +18,20 @@
 package org.apache.shenyu.plugin.response.strategy;
 
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
-import org.apache.shenyu.plugin.api.result.ShenyuResultEnum;
-import org.apache.shenyu.plugin.api.result.ShenyuResultWrap;
-import org.apache.shenyu.plugin.api.utils.WebFluxResultUtils;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 /**
- * This is the rpc response default strategy.
+ * The interface Message writer.
  */
-public class DefaultStrategy implements Strategy {
-
-    @Override
-    public Mono<Void> doExcute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-        Object error = ShenyuResultWrap.error(ShenyuResultEnum.RESPONSE_ERROR.getCode(), ShenyuResultEnum.RESPONSE_ERROR.getMsg(), null);
-        return WebFluxResultUtils.result(exchange, error);
-    }
+public interface MessageWriter {
+    
+    /**
+     * Write with exchange and shenyu plugin chain.
+     *
+     * @param exchange exchange the current server exchange
+     * @param chain provides a way to delegate to the next filter
+     * @return {@code Mono<Void>} to indicate when request processing is complete
+     */
+    Mono<Void> writeWith(ServerWebExchange exchange, ShenyuPluginChain chain);
 }
