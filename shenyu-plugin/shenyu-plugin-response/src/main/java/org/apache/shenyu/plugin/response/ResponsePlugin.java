@@ -40,7 +40,7 @@ public class ResponsePlugin implements ShenyuPlugin {
      *
      * @param writerMap the writer map
      */
-    public ResponsePlugin(Map<String, MessageWriter> writerMap) {
+    public ResponsePlugin(final Map<String, MessageWriter> writerMap) {
         this.writerMap = writerMap;
     }
     
@@ -50,7 +50,6 @@ public class ResponsePlugin implements ShenyuPlugin {
         assert shenyuContext != null;
         return writerMap.get(shenyuContext.getRpcType()).writeWith(exchange, chain);
     }
-    
     
     @Override
     public int getOrder() {
