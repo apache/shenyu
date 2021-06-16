@@ -17,7 +17,6 @@
 
 package org.apache.shenyu.admin.shiro.config;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.admin.config.properties.ShiroProperties;
 import org.apache.shenyu.admin.shiro.bean.StatelessAuthFilter;
 import org.apache.shiro.realm.AuthorizingRealm;
@@ -32,33 +31,13 @@ import org.springframework.context.annotation.Lazy;
 
 import javax.servlet.Filter;
 import java.util.LinkedHashMap;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * shiro configuration.
  */
 @Configuration
 public class ShiroConfiguration {
-
-    /**
-     * generate white list.
-     *
-     * @param shiroProperties shiro's properties
-     * @return white list
-     */
-    @Bean("whiteList")
-    List<String> generateWhiteList(@Qualifier("shiroProperties") final ShiroProperties shiroProperties) {
-        if (StringUtils.isBlank(shiroProperties.getWhiteList())) {
-            return Collections.emptyList();
-        }
-        return Stream
-                .of(StringUtils.split(shiroProperties.getWhiteList(), ","))
-                .collect(Collectors.toList());
-    }
 
     /**
      * generate WebSecurityManager.
@@ -77,13 +56,13 @@ public class ShiroConfiguration {
      * ShiroFilterFactoryBean.
      *
      * @param securityManager {@linkplain DefaultWebSecurityManager}
-     * @param whiteList white list
+     * @param shiroProperties {@linkplain ShiroProperties}
      * @return {@linkplain ShiroFilterFactoryBean}
      */
     @Bean
     public ShiroFilterFactoryBean shiroFilterFactoryBean(
             @Qualifier("shiroSecurityManager") final DefaultWebSecurityManager securityManager,
-            @Qualifier("whiteList") final List<String> whiteList) {
+            @Qualifier("shiroProperties") final ShiroProperties shiroProperties) {
         ShiroFilterFactoryBean factoryBean = new ShiroFilterFactoryBean();
         factoryBean.setSecurityManager(securityManager);
         Map<String, Filter> filterMap = new LinkedHashMap<>();
@@ -92,7 +71,7 @@ public class ShiroConfiguration {
 
         Map<String, String> filterChainDefinitionMap = new LinkedHashMap<>();
 
-        for (String s : whiteList) {
+        for (String s : shiroProperties.getWhiteList()) {
             filterChainDefinitionMap.put(s, "anon");
         }
 

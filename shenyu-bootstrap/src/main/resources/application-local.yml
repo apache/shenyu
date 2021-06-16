@@ -59,6 +59,8 @@ shenyu:
 #            namespace:
 #            accessKey:
 #            secretKey:
+#       etcd:
+#         url: http://localhost:2379
     exclude:
       enabled: false
       paths:

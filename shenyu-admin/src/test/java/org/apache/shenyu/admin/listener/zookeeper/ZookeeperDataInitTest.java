@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.listener.zookeeper;
 
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.shenyu.admin.service.SyncDataService;
-import org.apache.shenyu.common.constant.ZkPathConstants;
+import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -55,14 +55,14 @@ public final class ZookeeperDataInitTest {
 
         when(zkClient.exists(Mockito.anyString()))
                 .then(invocation -> pathExist(invocation, Collections.singletonList(
-                        ZkPathConstants.APP_AUTH_PARENT
+                        DefaultPathConstants.APP_AUTH_PARENT
                 )));
         zookeeperDataInit.run();
 
         when(zkClient.exists(Mockito.anyString()))
                 .thenAnswer(invocation -> pathExist(invocation, Arrays.asList(
-                        ZkPathConstants.PLUGIN_PARENT,
-                        ZkPathConstants.APP_AUTH_PARENT
+                        DefaultPathConstants.PLUGIN_PARENT,
+                        DefaultPathConstants.APP_AUTH_PARENT
                 )));
         zookeeperDataInit.run();
 

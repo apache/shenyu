@@ -271,8 +271,6 @@ INSERT INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, 
 INSERT INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('25', 'multiRuleHandle', 'MULTI_RULE_HANDLE', 'single rule', '0', 'single rule', 0, 1, '2021-03-08 13:39:30', '2021-03-08 13:39:30');
 INSERT INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('26', 'multiSelectorHandle', 'MULTI_SELECTOR_HANDLE', 'multiple handle', '1', 'multiple handle', 1, 1, '2021-03-08 13:26:48', '2021-03-08 13:39:54');
 INSERT INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('27', 'multiSelectorHandle', 'MULTI_SELECTOR_HANDLE', 'single handle', '0', 'single handle', 0, 1, '2021-03-08 13:26:05', '2021-03-08 13:27:54');
-INSERT INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('28', 'ruleHandlePageType', 'RULE_HANDLE_PAGE_TYPE', 'CommonRuleHandle', 'common', 'commonRuleHandle', 0, 1, '2021-05-27 23:39:43', '2021-05-30 20:14:38');
-INSERT INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('29', 'ruleHandlePageType', 'RULE_HANDLE_PAGE_TYPE', 'PluginRuleHandle', 'custom', 'pluginRuleHandle', 1, 1, '2021-05-27 23:40:09', '2021-05-30 20:14:43');
 INSERT INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('30', 'matchMode', 'MATCH_MODE', 'and', '0', 'and', 0, 1, '2021-05-30 19:29:10', '2021-05-30 20:15:23');
 INSERT INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('31', 'matchMode', 'MATCH_MODE', 'or', '1', 'or', 1, 1, '2021-05-30 19:29:45', '2021-05-30 20:15:23');
 INSERT INTO `shenyu_dict` (`id`, `type`,`dict_code`, `dict_name`, `dict_value`, `desc`, `sort`, `enabled`, `date_created`, `date_updated`) VALUES ('32', 'operator', 'OPERATOR', 'match', 'match', 'match', 0, 1, '2021-05-30 19:31:39', '2021-05-30 20:15:23');
@@ -311,7 +309,7 @@ INSERT INTO `plugin` (`id`, `name`, `role`,`config`,`enabled`, `date_created`, `
 INSERT INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('16', 'redirect', '1','0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT INTO `plugin` (`id`, `name`, `role`,`config`, `enabled`, `date_created`, `date_updated`) VALUES ('17', 'motan', '1','{"register":"127.0.0.1:2181"}','0', '2020-11-09 01:19:10', '2020-11-09 01:19:10');
 INSERT INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('18', 'logging', '1', '0', '2021-04-29 13:37:35', '2021-04-29 13:37:35');
-INSERT INTO `plugin` (`id`, `name`, `role`,`config`, `enabled`, `date_created`, `date_updated`) VALUES ('20', 'request', '1', '{"ruleHandlePageType":"custom"}', '0', '2021-05-26 21:38:48', '2021-05-30 19:55:22');
+INSERT INTO `plugin` (`id`, `name`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('20', 'request', '1', '0', '2021-05-26 21:38:48', '2021-05-30 19:55:22');
 
 /**default admin user**/
 INSERT INTO `dashboard_user` (`id`, `user_name`, `password`, `role`, `enabled`, `date_created`, `date_updated`) VALUES ('1','admin','jHcpKkiDbbQh7W7hh8yQSA==', '1', '1', '2018-06-23 15:12:22', '2018-06-23 15:12:23');
@@ -426,9 +424,6 @@ INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`
 /*insert plugin_handle data for context path*/
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('1001', '14', 'contextPath', 'contextPath', 2, 2, 0, '2020-12-25 16:13:09', '2020-12-25 16:13:09');
 INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`date_created`,`date_updated`) VALUES ('1002', '14', 'addPrefix', 'addPrefix', 2, 2, 0, '2020-12-25 16:13:09', '2020-12-25 16:13:09');
-
-/*insert plugin_handle data for request*/
-INSERT INTO plugin_handle (`id`,`plugin_id`,`field`,`label`,`data_type`,`type`,`sort`,`ext_obj`,`date_created`,`date_updated`) VALUES ('86', '20', 'ruleHandlePageType', 'ruleHandlePageType', 3, 3, 0, '{"required":"0","rule":""}', '2021-05-27 23:43:53', '2021-05-30 19:58:28');
 
 /** insert permission role for role */
 INSERT INTO `role` (`id`,`role_name`,`description`,`date_created`,`date_updated`) VALUES ('1346358560427216896', 'super', '超级管理员', '2021-01-05 01:31:10', '2021-01-08 17:00:07');
