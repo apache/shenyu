@@ -100,9 +100,7 @@ public class ShenyuClientShutdownHook {
                         log.info("sleep {}ms", shutdownWaitTime);
                         try {
                             TimeUnit.MILLISECONDS.sleep(shutdownWaitTime);
-                        } catch (InterruptedException ex) {
-                            ex.printStackTrace();
-                        }
+                        } catch (InterruptedException ignore) { }
                         hook.run();
                     }, hook.getName());
                     delayHooks.put(delayHook, delayHook);
