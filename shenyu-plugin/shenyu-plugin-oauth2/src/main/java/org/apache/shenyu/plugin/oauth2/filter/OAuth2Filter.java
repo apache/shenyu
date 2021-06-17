@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.oauth2.filter;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.core.context.SecurityContext;
@@ -68,7 +69,7 @@ public class OAuth2Filter implements WebFilter {
      */
     private Mono<ServerWebExchange> handleToken(final ServerWebExchange exchange, final OAuth2AuthorizedClient client) {
         ServerHttpRequest.Builder mutate = exchange.getRequest().mutate();
-        mutate.header("Authorization", "Bearer " + client.getAccessToken().getTokenValue());
+        mutate.header(HttpHeaders.AUTHORIZATION, "Bearer " + client.getAccessToken().getTokenValue());
         return Mono.just(exchange.mutate().request(mutate.build()).build());
     }
 }
