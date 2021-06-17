@@ -123,6 +123,11 @@ public interface Constants {
     String GRPC_RPC_RESULT = "grpc_rpc_result";
 
     /**
+     * The constant RPC_RESULT.
+     */
+    String RPC_RESULT = "rpc_result";
+
+    /**
      * The constant MOTAN_RPC_RESULT.
      */
     String MOTAN_RPC_RESULT = "motan_rpc_result";

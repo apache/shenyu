@@ -90,7 +90,7 @@ public class TarsPlugin extends AbstractShenyuPlugin {
             if (Objects.isNull(ret)) {
                 ret = Constants.TARS_RPC_RESULT_EMPTY;
             }
-            exchange.getAttributes().put(Constants.TARS_RPC_RESULT, ret);
+            exchange.getAttributes().put(Constants.RPC_RESULT, ret);
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return ret;
         })).onErrorMap(m -> new ShenyuException("failed to invoke tars")).then(chain.execute(exchange));

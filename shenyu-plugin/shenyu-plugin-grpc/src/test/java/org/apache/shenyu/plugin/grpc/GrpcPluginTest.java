@@ -89,8 +89,8 @@ public class GrpcPluginTest {
         Map<String, ShenyuGrpcClient> clientCacheMap = (Map<String, ShenyuGrpcClient>) clientCacheField.get(grpcClientCacheClass);
         ShenyuGrpcClient mockClient = mock(ShenyuGrpcClient.class);
         ShenyuGrpcResponse response = new ShenyuGrpcResponse();
-        response.setResult("success");
-        when(mockClient.call(Mockito.any(), Mockito.any(), Mockito.any()))
+        response.getResults().add("success");
+        when(mockClient.call(Mockito.any(), Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenReturn(CompletableFuture.completedFuture(response));
         clientCacheMap.put("/grpc", mockClient);
 

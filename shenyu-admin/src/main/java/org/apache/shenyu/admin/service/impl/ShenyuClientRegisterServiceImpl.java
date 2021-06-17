@@ -341,7 +341,7 @@ public class ShenyuClientRegisterServiceImpl implements ShenyuClientRegisterServ
         }
         // publish MetaData's event
         eventPublisher.publishEvent(new DataChangedEvent(ConfigGroupEnum.META_DATA, eventType,
-                Collections.singletonList(MetaDataTransfer.INSTANCE.mapRegisterDTOToEntity(metaDataDTO))));
+                Collections.singletonList(MetaDataTransfer.INSTANCE.mapToData(metaDataDO))));
     }
 
     private String handlerSelector(final MetaDataRegisterDTO dto) {

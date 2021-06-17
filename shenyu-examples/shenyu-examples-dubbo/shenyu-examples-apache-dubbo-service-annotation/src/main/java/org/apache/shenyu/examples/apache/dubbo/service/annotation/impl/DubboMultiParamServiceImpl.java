@@ -29,9 +29,7 @@ import java.util.stream.Collectors;
 
 /**
  * The type Dubbo multi param service.
- *
- * @author KevinClair
- **/
+ */
 @Service
 public class DubboMultiParamServiceImpl implements DubboMultiParamService {
 

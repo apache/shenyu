@@ -28,13 +28,14 @@ import lombok.SneakyThrows;
 import org.I0Itec.zkclient.IZkDataListener;
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.shenyu.common.constant.ZkPathConstants;
+import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.dto.AppAuthData;
 import org.apache.shenyu.common.dto.MetaData;
 import org.apache.shenyu.common.dto.PluginData;
 import org.apache.shenyu.common.dto.RuleData;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.ConfigGroupEnum;
+import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.sync.data.api.AuthDataSubscriber;
 import org.apache.shenyu.sync.data.api.MetaDataSubscriber;
 import org.apache.shenyu.sync.data.api.PluginDataSubscriber;
@@ -73,7 +74,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
     }
 
     private void watcherData() {
-        final String pluginParent = ZkPathConstants.PLUGIN_PARENT;
+        final String pluginParent = DefaultPathConstants.PLUGIN_PARENT;
         List<String> pluginZKs = zkClientGetChildren(pluginParent);
         for (String pluginName : pluginZKs) {
             watcherAll(pluginName);
@@ -94,21 +95,25 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
     }
 
     private void watcherPlugin(final String pluginName) {
-        String pluginPath = ZkPathConstants.buildPluginPath(pluginName);
+        String pluginPath = DefaultPathConstants.buildPluginPath(pluginName);
         if (!zkClient.exists(pluginPath)) {
             zkClient.createPersistent(pluginPath, true);
         }
-        cachePluginData(zkClient.readData(pluginPath));
+        PluginData pluginData = null == zkClient.readData(pluginPath) ? null
+                : GsonUtils.getInstance().fromJson((String) zkClient.readData(pluginPath), PluginData.class);
+        cachePluginData(pluginData);
         subscribePluginDataChanges(pluginPath, pluginName);
     }
 
     private void watcherSelector(final String pluginName) {
-        String selectorParentPath = ZkPathConstants.buildSelectorParentPath(pluginName);
+        String selectorParentPath = DefaultPathConstants.buildSelectorParentPath(pluginName);
         List<String> childrenList = zkClientGetChildren(selectorParentPath);
         if (CollectionUtils.isNotEmpty(childrenList)) {
             childrenList.forEach(children -> {
                 String realPath = buildRealPath(selectorParentPath, children);
-                cacheSelectorData(zkClient.readData(realPath));
+                SelectorData selectorData = null == zkClient.readData(realPath) ? null
+                        : GsonUtils.getInstance().fromJson((String) zkClient.readData(realPath), SelectorData.class);
+                cacheSelectorData(selectorData);
                 subscribeSelectorDataChanges(realPath);
             });
         }
@@ -116,12 +121,14 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
     }
 
     private void watcherRule(final String pluginName) {
-        String ruleParent = ZkPathConstants.buildRuleParentPath(pluginName);
+        String ruleParent = DefaultPathConstants.buildRuleParentPath(pluginName);
         List<String> childrenList = zkClientGetChildren(ruleParent);
         if (CollectionUtils.isNotEmpty(childrenList)) {
             childrenList.forEach(children -> {
                 String realPath = buildRealPath(ruleParent, children);
-                cacheRuleData(zkClient.readData(realPath));
+                RuleData ruleData = null == zkClient.readData(realPath) ? null
+                        : GsonUtils.getInstance().fromJson((String) zkClient.readData(realPath), RuleData.class);
+                cacheRuleData(ruleData);
                 subscribeRuleDataChanges(realPath);
             });
         }
@@ -129,12 +136,14 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
     }
 
     private void watchAppAuth() {
-        final String appAuthParent = ZkPathConstants.APP_AUTH_PARENT;
+        final String appAuthParent = DefaultPathConstants.APP_AUTH_PARENT;
         List<String> childrenList = zkClientGetChildren(appAuthParent);
         if (CollectionUtils.isNotEmpty(childrenList)) {
             childrenList.forEach(children -> {
                 String realPath = buildRealPath(appAuthParent, children);
-                cacheAuthData(zkClient.readData(realPath));
+                AppAuthData appAuthData = null == zkClient.readData(realPath) ? null
+                        : GsonUtils.getInstance().fromJson((String) zkClient.readData(realPath), AppAuthData.class);
+                cacheAuthData(appAuthData);
                 subscribeAppAuthDataChanges(realPath);
             });
         }
@@ -142,12 +151,14 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
     }
 
     private void watchMetaData() {
-        final String metaDataPath = ZkPathConstants.META_DATA;
+        final String metaDataPath = DefaultPathConstants.META_DATA;
         List<String> childrenList = zkClientGetChildren(metaDataPath);
         if (CollectionUtils.isNotEmpty(childrenList)) {
             childrenList.forEach(children -> {
                 String realPath = buildRealPath(metaDataPath, children);
-                cacheMetaData(zkClient.readData(realPath));
+                MetaData metaData = null == zkClient.readData(realPath) ? null
+                        : GsonUtils.getInstance().fromJson((String) zkClient.readData(realPath), MetaData.class);
+                cacheMetaData(metaData);
                 subscribeMetaDataChanges(realPath);
             });
         }
@@ -162,7 +173,9 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
                         List<String> addSubscribePath = addSubscribePath(childrenList, currentChildren);
                         addSubscribePath.stream().map(addPath -> {
                             String realPath = buildRealPath(parentPath, addPath);
-                            cacheSelectorData(zkClient.readData(realPath));
+                            SelectorData selectorData = null == zkClient.readData(realPath) ? null
+                                    : GsonUtils.getInstance().fromJson((String) zkClient.readData(realPath), SelectorData.class);
+                            cacheSelectorData(selectorData);
                             return realPath;
                         }).forEach(this::subscribeSelectorDataChanges);
 
@@ -176,7 +189,9 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
                         // Get the newly added node data and subscribe to that node
                         addSubscribePath.stream().map(addPath -> {
                             String realPath = buildRealPath(parentPath, addPath);
-                            cacheRuleData(zkClient.readData(realPath));
+                            RuleData ruleData = null == zkClient.readData(realPath) ? null
+                                    : GsonUtils.getInstance().fromJson((String) zkClient.readData(realPath), RuleData.class);
+                            cacheRuleData(ruleData);
                             return realPath;
                         }).forEach(this::subscribeRuleDataChanges);
                     }
@@ -188,7 +203,9 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
                         final List<String> addSubscribePath = addSubscribePath(childrenList, currentChildren);
                         addSubscribePath.stream().map(children -> {
                             final String realPath = buildRealPath(parentPath, children);
-                            cacheAuthData(zkClient.readData(realPath));
+                            AppAuthData appAuthData = null == zkClient.readData(realPath) ? null
+                                    : GsonUtils.getInstance().fromJson((String) zkClient.readData(realPath), AppAuthData.class);
+                            cacheAuthData(appAuthData);
                             return realPath;
                         }).forEach(this::subscribeAppAuthDataChanges);
                     }
@@ -200,7 +217,9 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
                         final List<String> addSubscribePath = addSubscribePath(childrenList, currentChildren);
                         addSubscribePath.stream().map(children -> {
                             final String realPath = buildRealPath(parentPath, children);
-                            cacheMetaData(zkClient.readData(realPath));
+                            MetaData metaData = null == zkClient.readData(realPath) ? null
+                                    : GsonUtils.getInstance().fromJson((String) zkClient.readData(realPath), MetaData.class);
+                            cacheMetaData(metaData);
                             return realPath;
                         }).forEach(this::subscribeMetaDataChanges);
                     }
@@ -281,7 +300,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
             @SneakyThrows
             @Override
             public void handleDataDeleted(final String dataPath) {
-                final String realPath = dataPath.substring(ZkPathConstants.META_DATA.length() + 1);
+                final String realPath = dataPath.substring(DefaultPathConstants.META_DATA.length() + 1);
                 MetaData metaData = new MetaData();
                 metaData.setPath(URLDecoder.decode(realPath, StandardCharsets.UTF_8.name()));
                 unCacheMetaData(metaData);
@@ -301,7 +320,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
     private void unCacheSelectorData(final String dataPath) {
         SelectorData selectorData = new SelectorData();
         final String selectorId = dataPath.substring(dataPath.lastIndexOf("/") + 1);
-        final String str = dataPath.substring(ZkPathConstants.SELECTOR_PARENT.length());
+        final String str = dataPath.substring(DefaultPathConstants.SELECTOR_PARENT.length());
         final String pluginName = str.substring(1, str.length() - selectorId.length() - 1);
         selectorData.setPluginName(pluginName);
         selectorData.setId(selectorId);
@@ -315,9 +334,9 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
 
     private void unCacheRuleData(final String dataPath) {
         String substring = dataPath.substring(dataPath.lastIndexOf("/") + 1);
-        final String str = dataPath.substring(ZkPathConstants.RULE_PARENT.length());
+        final String str = dataPath.substring(DefaultPathConstants.RULE_PARENT.length());
         final String pluginName = str.substring(1, str.length() - substring.length() - 1);
-        final List<String> list = Lists.newArrayList(Splitter.on(ZkPathConstants.SELECTOR_JOIN_RULE).split(substring));
+        final List<String> list = Lists.newArrayList(Splitter.on(DefaultPathConstants.SELECTOR_JOIN_RULE).split(substring));
         RuleData ruleData = new RuleData();
         ruleData.setPluginName(pluginName);
         ruleData.setSelectorId(list.get(0));
@@ -330,7 +349,7 @@ public class ZookeeperSyncDataService implements SyncDataService, AutoCloseable 
     }
 
     private void unCacheAuthData(final String dataPath) {
-        final String key = dataPath.substring(ZkPathConstants.APP_AUTH_PARENT.length() + 1);
+        final String key = dataPath.substring(DefaultPathConstants.APP_AUTH_PARENT.length() + 1);
         AppAuthData appAuthData = new AppAuthData();
         appAuthData.setAppKey(key);
         authDataSubscribers.forEach(e -> e.unSubscribe(appAuthData));

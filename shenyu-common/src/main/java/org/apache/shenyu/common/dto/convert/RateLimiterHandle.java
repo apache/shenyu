@@ -49,4 +49,9 @@ public class RateLimiterHandle {
      * loged.
      */
     private boolean loged;
+
+    /**
+     * key resolver name.
+     */
+    private String keyResolverName;
 }

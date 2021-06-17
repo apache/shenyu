@@ -41,6 +41,7 @@ import org.apache.shenyu.admin.model.vo.SelectorVO;
 import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
 import org.apache.shenyu.common.enums.SelectorTypeEnum;
+import org.apache.shiro.SecurityUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -102,8 +103,12 @@ public final class SelectorServiceTest {
     @Mock
     private UpstreamCheckService upstreamCheckService;
 
+    @Mock
+    private org.apache.shiro.mgt.SecurityManager securityManager;
+
     @Before
     public void setUp() {
+        SecurityUtils.setSecurityManager(securityManager);
         selectorService = new SelectorServiceImpl(selectorMapper, selectorConditionMapper, pluginMapper,
                 ruleMapper, ruleConditionMapper, eventPublisher, dataPermissionMapper, upstreamCheckService);
     }
@@ -115,7 +120,7 @@ public final class SelectorServiceTest {
         testRegisterUpdate();
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void testCreateOrUpdate() {
         publishEvent();
         testCreate();

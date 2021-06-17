@@ -39,6 +39,11 @@ public enum PluginEnum {
      * Sign plugin enum.
      */
     SIGN(2, 0, "sign"),
+    
+    /**
+     * Jwt plugin enum.
+     */
+    JWT(9, 0, "jwt"),
 
     /**
      * OAuth2 plugin enum.
@@ -69,6 +74,11 @@ public enum PluginEnum {
      * Redirect plugin enum.
      */
     REDIRECT(40, 0, "redirect"),
+
+    /**
+     * Request plugin enum.
+     */
+    REQUEST(42, 0, "request"),
 
     /**
      * Hystrix plugin enum.
@@ -143,12 +153,8 @@ public enum PluginEnum {
     /**
      * Response plugin enum.
      */
-    RESPONSE(100, 0, "response"),
+    RESPONSE(100, 0, "response");
 
-    /**
-     * Jwt plugin enum.
-     */
-    JWT(9, 0, "jwt");
 
     private final int code;
 

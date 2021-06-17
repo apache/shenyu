@@ -17,12 +17,10 @@
 
 package org.apache.shenyu.springboot.plugin.dubbo.common;
 
-import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.context.ShenyuContextDecorator;
 import org.apache.shenyu.plugin.api.param.BodyParamResolveService;
 import org.apache.shenyu.plugin.dubbo.common.context.DubboShenyuContextDecorator;
 import org.apache.shenyu.plugin.dubbo.common.param.DubboBodyParamResolveServiceImpl;
-import org.apache.shenyu.plugin.dubbo.common.response.DubboResponsePlugin;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.SearchStrategy;
 import org.springframework.context.annotation.Bean;
@@ -42,16 +40,6 @@ public class DubboCommonConfiguration {
     @Bean
     public ShenyuContextDecorator dubboShenyuContextDecorator() {
         return new DubboShenyuContextDecorator();
-    }
-    
-    /**
-     * Dubbo response plugin shenyu plugin.
-     *
-     * @return the shenyu plugin
-     */
-    @Bean
-    public ShenyuPlugin dubboResponsePlugin() {
-        return new DubboResponsePlugin();
     }
     
     /**

@@ -67,6 +67,8 @@ public class AppAuthVO implements Serializable {
 
     private List<AuthParamVO> authParamVOList;
 
+    private List<AuthPathVO> authPathVOList;
+
     /**
      * updated time.
      */

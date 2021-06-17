@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.common.utils;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
@@ -25,6 +26,7 @@ import java.lang.reflect.Method;
 /**
  * The type Reflect utils.
  */
+@Slf4j
 public class ReflectUtils {
 
     /**
@@ -77,24 +79,41 @@ public class ReflectUtils {
         try {
             result = field.get(obj);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            log.error("", e);
         }
         return result;
     }
 
     /**
-     * get method by class.
+     * Invoke method by class.
      *
      * @param clazz  class type
      * @param method method
      * @return Method object
      */
-    public static Object getMethod(final Class<?> clazz, final String method) {
+    public static Object invokeMethod(final Class<?> clazz, final String method) {
         try {
-            Method m = clazz.getMethod(method);
+            Method m = findMethod(clazz, method);
             return m.invoke(null);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("", e);
+        }
+
+        return null;
+    }
+
+    /**
+     * Get method by class.
+     *
+     * @param clazz  class type
+     * @param method method
+     * @return Method object
+     */
+    public static Method findMethod(final Class<?> clazz, final String method) {
+        try {
+            return clazz.getMethod(method);
+        } catch (Exception e) {
+            log.error("", e);
         }
 
         return null;

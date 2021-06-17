@@ -18,17 +18,19 @@
 package org.apache.shenyu.metrics.facade;
 
 import com.google.common.base.Preconditions;
-import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.metrics.config.MetricsConfig;
 import org.apache.shenyu.metrics.spi.MetricsBootService;
+import org.apache.shenyu.metrics.spi.MetricsRegister;
 import org.apache.shenyu.spi.ExtensionLoader;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Metrics tracker facade.
  */
 @Slf4j
-public final class MetricsTrackerFacade {
+public final class MetricsTrackerFacade implements AutoCloseable {
     
     private MetricsBootService metricsBootService;
     
@@ -56,7 +58,10 @@ public final class MetricsTrackerFacade {
             metricsBootService = ExtensionLoader.getExtensionLoader(MetricsBootService.class).getJoin(metricsConfig.getMetricsName());
             Preconditions.checkNotNull(metricsBootService,
                     "Can not find metrics tracker manager with metrics name : %s in metrics configuration.", metricsConfig.getMetricsName());
-            metricsBootService.start(metricsConfig);
+            MetricsRegister metricsRegister = ExtensionLoader.getExtensionLoader(MetricsRegister.class).getJoin(metricsConfig.getMetricsName());
+            Preconditions.checkNotNull(metricsRegister,
+                    "Can not find metrics register with metrics name : %s in metrics configuration.", metricsConfig.getMetricsName());
+            metricsBootService.start(metricsConfig, metricsRegister);
         } else {
             log.info("metrics tracker has started !");
         }
@@ -81,10 +86,16 @@ public final class MetricsTrackerFacade {
         return isStarted.get();
     }
     
+    @Override
+    public void close() {
+        stop();
+    }
+    
     /**
      * Metrics tracker facade holder.
      */
     private static class MetricsTrackerFacadeHolder {
+        
         private static final MetricsTrackerFacade INSTANCE = new MetricsTrackerFacade();
     }
 }

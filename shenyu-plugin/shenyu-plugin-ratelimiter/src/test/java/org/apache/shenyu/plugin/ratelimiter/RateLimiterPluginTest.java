@@ -124,7 +124,6 @@ public final class RateLimiterPluginTest {
      */
     private void doExecutePreInit() {
         RateLimiterHandle rateLimiterHandle = mockRateLimiterHandler();
-        when(ruleData.getId()).thenReturn("test1");
         when(chain.execute(any())).thenReturn(Mono.empty());
         RatelimiterRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(ruleData), rateLimiterHandle);
     }
@@ -136,6 +135,7 @@ public final class RateLimiterPluginTest {
         RateLimiterHandle rateLimiterHandle = new RateLimiterHandle();
         rateLimiterHandle.setReplenishRate(1);
         rateLimiterHandle.setBurstCapacity(100);
+        rateLimiterHandle.setKeyResolverName("WHOLE_KEY_RESOLVER");
         rateLimiterHandle.setLoged(false);
         return rateLimiterHandle;
     }

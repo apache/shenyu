@@ -21,16 +21,15 @@ import com.google.common.collect.Maps;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerMethodDefinition;
 import io.grpc.ServerServiceDefinition;
+import io.grpc.ServiceDescriptor;
+import io.grpc.ServerCallHandler;
 import io.grpc.ServerCall;
 import io.grpc.Metadata;
-import io.grpc.ServerCallHandler;
-import io.grpc.ServiceDescriptor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.exception.ShenyuException;
 import org.apache.shenyu.common.utils.ReflectUtils;
 import org.apache.shenyu.protocol.grpc.constant.GrpcConstants;
-import org.apache.shenyu.protocol.grpc.message.JsonRequest;
-import org.apache.shenyu.protocol.grpc.utils.GrpcUtils;
+import org.apache.shenyu.protocol.grpc.message.JsonMessage;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -39,12 +38,14 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Support json generic invoke.
+ * Support json invoke.
  */
 @Slf4j
 public class JsonServerServiceInterceptor {
 
     private static Map<String, Class<?>> requestClazzMap = Maps.newConcurrentMap();
+
+    private static Map<String, MethodDescriptor.MethodType> methodTypeMap = Maps.newConcurrentMap();
 
     /**
      * wrap ServerServiceDefinition to get json ServerServiceDefinition.
@@ -56,7 +57,7 @@ public class JsonServerServiceInterceptor {
     public static ServerServiceDefinition useJsonMessages(final ServerServiceDefinition serviceDef)
             throws IllegalArgumentException, IllegalAccessException {
         return useMarshalledMessages(serviceDef,
-                io.grpc.protobuf.ProtoUtils.marshaller(GrpcUtils.createDefaultInstance(JsonRequest.class)));
+                io.grpc.protobuf.ProtoUtils.marshaller(JsonMessage.buildJsonMessage()));
     }
 
     /**
@@ -85,8 +86,11 @@ public class JsonServerServiceInterceptor {
             defaultInstanceField.setAccessible(true);
 
             String fullMethodName = definition.getMethodDescriptor().getFullMethodName();
+            MethodDescriptor.MethodType methodType = definition.getMethodDescriptor().getType();
+            methodTypeMap.put(fullMethodName, methodType);
+
             String[] splitMethodName = fullMethodName.split("/");
-            fullMethodName = splitMethodName[0] + GrpcConstants.GRPC_JSON_GENERIC_SERVICE + "/" + splitMethodName[1];
+            fullMethodName = splitMethodName[0] + GrpcConstants.GRPC_JSON_SERVICE + "/" + splitMethodName[1];
             requestClazzMap.put(fullMethodName, defaultInstanceField.get(requestMarshaller).getClass());
 
             final MethodDescriptor<?, ?> originalMethodDescriptor = definition.getMethodDescriptor();
@@ -97,7 +101,7 @@ public class JsonServerServiceInterceptor {
         }
 
         // Build the new service descriptor
-        ServiceDescriptor.Builder build = ServiceDescriptor.newBuilder(serviceDef.getServiceDescriptor().getName() + GrpcConstants.GRPC_JSON_GENERIC_SERVICE);
+        ServiceDescriptor.Builder build = ServiceDescriptor.newBuilder(serviceDef.getServiceDescriptor().getName() + GrpcConstants.GRPC_JSON_SERVICE);
         for (MethodDescriptor<?, ?> md : wrappedDescriptors) {
             Field fullMethodNameField = ReflectUtils.getField(md.getClass(), "fullMethodName");
             if (Objects.isNull(fullMethodNameField)) {
@@ -106,7 +110,7 @@ public class JsonServerServiceInterceptor {
             fullMethodNameField.setAccessible(true);
             String fullMethodName = (String) fullMethodNameField.get(md);
             String[] splitMethodName = fullMethodName.split("/");
-            fullMethodName = splitMethodName[0] + GrpcConstants.GRPC_JSON_GENERIC_SERVICE + "/" + splitMethodName[1];
+            fullMethodName = splitMethodName[0] + GrpcConstants.GRPC_JSON_SERVICE + "/" + splitMethodName[1];
             fullMethodNameField.set(md, fullMethodName);
 
             Field serviceNameField = ReflectUtils.getField(md.getClass(), "serviceName");
@@ -115,7 +119,7 @@ public class JsonServerServiceInterceptor {
             }
             serviceNameField.setAccessible(true);
             String serviceName = (String) serviceNameField.get(md);
-            serviceName = serviceName + GrpcConstants.GRPC_JSON_GENERIC_SERVICE;
+            serviceName = serviceName + GrpcConstants.GRPC_JSON_SERVICE;
             serviceNameField.set(md, serviceName);
 
             build.addMethod(md);
@@ -143,8 +147,7 @@ public class JsonServerServiceInterceptor {
     private static <R, P, W, M> ServerMethodDefinition<W, M> wrapMethod(
             final ServerMethodDefinition<R, P> definition,
             final MethodDescriptor<W, M> wrappedMethod) {
-        final ServerCallHandler<W, M> wrappedHandler = wrapHandler(definition.getServerCallHandler()
-        );
+        final ServerCallHandler<W, M> wrappedHandler = wrapHandler(definition.getServerCallHandler());
         return ServerMethodDefinition.create(wrappedMethod, wrappedHandler);
     }
 
@@ -166,7 +169,7 @@ public class JsonServerServiceInterceptor {
             public ServerCall.Listener<W> startCall(final ServerCall<W, M> call, final Metadata headers) {
                 final ServerCall<R, P> unwrappedCall = new JsonForwardingServerCall<>((ServerCall<P, P>) call);
                 final ServerCall.Listener<R> originalListener = originalHandler.startCall(unwrappedCall, headers);
-                return new ServerJsonListener(originalListener, unwrappedCall);
+                return new JsonServerCallListener(originalListener, unwrappedCall);
             }
         };
     }
@@ -177,5 +180,13 @@ public class JsonServerServiceInterceptor {
      */
     public static Map<String, Class<?>> getRequestClazzMap() {
         return requestClazzMap;
+    }
+
+    /**
+     * get MethodTypeMap.
+     * @return methodTypeMap
+     */
+    public static Map<String, MethodDescriptor.MethodType> getMethodTypeMap() {
+        return methodTypeMap;
     }
 }
