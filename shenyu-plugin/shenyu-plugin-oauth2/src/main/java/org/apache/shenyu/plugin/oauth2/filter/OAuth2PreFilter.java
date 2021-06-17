@@ -86,16 +86,8 @@ public class OAuth2PreFilter implements WebFilter {
         }
     }
 
-    private void refreshPathMatchers() {
-        if (matchers.size() == 1) {
-            return;
-        }
-        matchers.clear();
-        matchers.add(new PathPatternParserServerWebExchangeMatcher("-"));
-    }
-
     private void buildPathMatchers() {
-        matchers.clear();
+        refreshPathMatchers();
         List<SelectorData> oauth2Selectors = BaseDataCache.getInstance().obtainSelectorData(PluginEnum.OAUTH2.getName());
         oauth2Selectors
             .parallelStream()
@@ -110,5 +102,10 @@ public class OAuth2PreFilter implements WebFilter {
                         )
                     );
             });
+    }
+
+    private void refreshPathMatchers() {
+        matchers.clear();
+        matchers.add(new PathPatternParserServerWebExchangeMatcher("-"));
     }
 }
