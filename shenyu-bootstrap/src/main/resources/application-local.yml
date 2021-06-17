@@ -18,22 +18,27 @@ server:
   address: 0.0.0.0
 
 spring:
-  security:
-    oauth2:
-      client:
-        registration:
-          github:
-            client-id: "8b6148aca7f8d2e46624"
-            client-secret: "043728dc816ca710f7f66be86876350814e7fb68"
-            scope: "read:user,public_repo"
   main:
     allow-bean-definition-overriding: true
   application:
     name: shenyu-bootstrap
-#   cloud:
+  security:
+#    oauth2:
+#      client:
+#        provider:
+#          <your client-registration-id>:
+#            authorization-uri: <your authorization-uri>
+#            token-uri: <your access-token-uri>
+#            user-info-uri: <your user-info-uri>
+#            jwk-set-uri: <your jwk-set-uri>
+#        registration:
+#          <your client-registration-id>:
+#            client-id: <your client-id>
+#            client-secret: <your client-secret>
+#  cloud:
 #    nacos:
-#       discovery:
-#          server-addr: 127.0.0.1:8848
+#      discovery:
+#        server-addr: 127.0.0.1:8848
 
 management:
   health:

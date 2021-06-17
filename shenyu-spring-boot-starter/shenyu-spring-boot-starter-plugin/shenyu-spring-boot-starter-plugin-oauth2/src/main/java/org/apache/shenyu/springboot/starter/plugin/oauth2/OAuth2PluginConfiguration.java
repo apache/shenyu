@@ -64,7 +64,7 @@ public class OAuth2PluginConfiguration {
     private static final List<ServerWebExchangeMatcher> MATCHERS = new CopyOnWriteArrayList<>();
 
     static {
-        MATCHERS.add(new PathPatternParserServerWebExchangeMatcher("/"));
+        MATCHERS.add(new PathPatternParserServerWebExchangeMatcher("-"));
     }
 
     private static final OrServerWebExchangeMatcher OR_MATCHER = new OrServerWebExchangeMatcher(MATCHERS);
@@ -96,7 +96,7 @@ public class OAuth2PluginConfiguration {
      * Build SecurityWebFilterChain.
      *
      * @param http                    The ServerHttpSecurity Instance
-     * @param authorizedClientService    The OAuth2Filter Instance
+     * @param authorizedClientService The OAuth2Filter Instance
      * @param context                 The ApplicationContext Instance
      * @return The SecurityWebFilterChain
      */
@@ -152,16 +152,16 @@ public class OAuth2PluginConfiguration {
     @Bean(DEFAULT_CLIENT_REGISTRATION_BEAN)
     @Conditional(DefaultClientsConfiguredCondition.class)
     public ReactiveClientRegistrationRepository reactiveClientRegistrationRepository() {
-        ClientRegistration.Builder shenyu = ClientRegistration.withRegistrationId("shenyu");
-        shenyu.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE);
-        shenyu.tokenUri("/");
-        shenyu.authorizationUri("/");
-        shenyu.redirectUriTemplate("/");
-        shenyu.scope("read:user");
-        shenyu.userInfoUri("/");
-        shenyu.clientId("shenyu");
-        shenyu.clientSecret("shenyu");
-        shenyu.redirectUriTemplate("{baseUrl}/login/oauth2/code/{registrationId}");
-        return new InMemoryReactiveClientRegistrationRepository(shenyu.build());
+        ClientRegistration.Builder shenyuClientRegistration = ClientRegistration.withRegistrationId("shenyu");
+        shenyuClientRegistration.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE);
+        shenyuClientRegistration.tokenUri("/");
+        shenyuClientRegistration.authorizationUri("/");
+        shenyuClientRegistration.redirectUriTemplate("/");
+        shenyuClientRegistration.scope("read:user");
+        shenyuClientRegistration.userInfoUri("/");
+        shenyuClientRegistration.clientId("shenyu");
+        shenyuClientRegistration.clientSecret("shenyu");
+        shenyuClientRegistration.redirectUriTemplate("{baseUrl}/login/oauth2/code/{registrationId}");
+        return new InMemoryReactiveClientRegistrationRepository(shenyuClientRegistration.build());
     }
 }
