@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.apache.shenyu</groupId>
         <artifactId>shenyu</artifactId>
-        <version>2.3.1-SNAPSHOT</version>
+        <version>2.4.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>shenyu-bootstrap</artifactId>
@@ -104,14 +104,6 @@
             <version>${project.version}</version>
         </dependency>
         <!-- shenyu sentinel plugin end-->
-
-        <!-- shenyu context-path plugin start-->
-        <dependency>
-            <groupId>org.apache.shenyu</groupId>
-            <artifactId>shenyu-spring-boot-starter-plugin-context-path</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- shenyu context-path plugin end-->
 
         <!-- shenyu redirect plugin start-->
         <dependency>
