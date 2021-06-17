@@ -18,6 +18,7 @@
 package org.apache.shenyu.examples.http.controller;
 
 import org.apache.shenyu.client.springmvc.annotation.ShenyuSpringMvcClient;
+import org.apache.shenyu.examples.http.dto.OAuth2DTO;
 import org.apache.shenyu.examples.http.dto.OrderDTO;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -96,17 +97,17 @@ public class OrderController {
     }
 
     @GetMapping("/oauth2/test")
-    @ShenyuSpringMvcClient(path = "/path/**/name")
-    public Map<String, String> testRestFul(ServerHttpRequest request) {
+    @ShenyuSpringMvcClient(path = "/oauth2/test")
+    public OAuth2DTO testRestFul(ServerHttpRequest request) {
         HttpHeaders headers = request.getHeaders();
         List<String> tokens = headers.get("Authorization");
-        Map<String, String> result = new HashMap<>();
+        OAuth2DTO oAuth2DTO = new OAuth2DTO();
         if (Objects.isNull(tokens)) {
-            result.put("msg","no authorization");
+            oAuth2DTO.setToken("no authorization");
         } else {
-            result.put("","token: " + tokens.get(0));
+            oAuth2DTO.setToken(tokens.get(0));
         }
-        return result;
+        return oAuth2DTO;
     }
 
 }

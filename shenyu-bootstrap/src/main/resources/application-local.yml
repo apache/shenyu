@@ -22,7 +22,7 @@ spring:
     allow-bean-definition-overriding: true
   application:
     name: shenyu-bootstrap
-  security:
+#  security:
 #    oauth2:
 #      client:
 #        provider:
