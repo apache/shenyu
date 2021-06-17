@@ -91,12 +91,12 @@ public class OAuth2PreFilter implements WebFilter {
             return;
         }
         matchers.clear();
-        matchers.add(new PathPatternParserServerWebExchangeMatcher("/"));
+        matchers.add(new PathPatternParserServerWebExchangeMatcher("-"));
     }
 
     private void buildPathMatchers() {
         matchers.clear();
-        List<SelectorData> oauth2Selectors = BaseDataCache.getInstance().obtainSelectorData("oauth2");
+        List<SelectorData> oauth2Selectors = BaseDataCache.getInstance().obtainSelectorData(PluginEnum.OAUTH2.getName());
         oauth2Selectors
             .parallelStream()
             .filter(SelectorData::getEnabled)
