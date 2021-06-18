@@ -1,5 +1,5 @@
 <p align="center" >
-    <a href="https://shenyu.apache.org/"><img src="https://dromara.org/img/logo/ShenYu.png" width="45%"></a>
+    <a href="https://shenyu.apache.org/"><img src="https://shenyu.apache.org/img/logo/shenyu.png" width="45%"></a>
 </p>
 <p align="center">
   <strong>Scalable, High Performance, Responsive API Gateway Solution for all MicroServices</strong>
@@ -25,9 +25,6 @@
     <a target="_blank" href="https://github.com/apache/shenyu/actions">
         <img src="https://github.com/apache/shenyu/workflows/ci/badge.svg" />
     </a>
-    <a href="https://www.codacy.com/app/yu199195/soul?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=apache/shenyu&amp;utm_campaign=Badge_Grade">
-        <img src="https://api.codacy.com/project/badge/Grade/4367ffad5b434b7e8078b3a68cc6398d"/>
-    </a>
    <a target="_blank" href='https://github.com/apache/shenyu'>
         <img src="https://img.shields.io/github/forks/apache/shenyu.svg" alt="github forks"/>
    </a>
@@ -37,12 +34,6 @@
    <a target="_blank" href='https://github.com/apache/shenyu'>
         <img src="https://img.shields.io/github/contributors/apache/shenyu.svg" alt="github contributors"/>
    </a>     
-   <a href="https://github.com/apache/shenyu">
-        <img src="https://tokei.rs/b1/github/apache/shenyu?category=lines"/>
-   </a>
-   <a target="_blank" href="https://codecov.io/gh/apache/shenyu">
-        <img src="https://codecov.io/gh/apache/shenyu/branch/master/graph/badge.svg" />
-   </a>
 </p>
 <br/>
 
@@ -50,7 +41,7 @@
 
 # Architecture
  
- ![](https://yu199195.github.io/images/soul/soul-framework.png)  
+ ![](https://shenyu.apache.org/img/shenyu/architecture/shenyu-framework.png)  
  
 -------------------------------------------------------------------------------- 
   
@@ -169,77 +160,12 @@
         
 # Stargazers over time
 
-[![Stargazers over time](https://starchart.cc/dromara/soul.svg)](https://starchart.cc/dromara/soul.svg)
+[![Stargazers over time](https://starchart.cc/apache/incubator-shenyu.svg)](https://starchart.cc/apache/incubator-shenyu.svg)
 
 --------------------------------------------------------------------------------  
 
 # Known Users
 
-In order of registration, More access companies are welcome to register at [https://github.com/apache/shenyu/issues/68](https://github.com/apache/shenyu/issues/68) (For open source users only)
+In order of registration, More access companies are welcome to register at [https://github.com/apache/incubator-shenyu/issues/68](https://github.com/apache/incubator-shenyu/issues/68) (For open source users only)
 
-<table>
-  <tbody>
-    <tr>
-      <td><img src="https://yu199195.github.io/images/soul/users/joyy.png"  width="1800" height="90" alt="yy"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/mihoyo.jpg"  width="1800" height="90" alt="mihoyo"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/keking.png"  width="1800" height="90" alt="kk group"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/shansong.jpg"  width="1800" height="90" alt="shansong"/>
-    </tr>
-  </tbody>
-  <tbody>
-    <tr>
-      <td><img src="https://yu199195.github.io/images/soul/users/sibu.jpg"  width="1800" height="90" alt="sibu group"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/guojiadianwang.jpg"  width="1800" height="90" alt="guojiadianwang"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/caibeike.png"  width="1800" height="90" alt="caibeike"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/jiangsuyonggang.jpg"  width="1800" height="90" alt="jiangsuyonggang"/>
-    </tr>
-  </tbody>
-  <tbody>
-    <tr>
-      <td><img src="https://yu199195.github.io/images/soul/users/fangfutong.png"  width="1800" height="90" alt="fangfutong"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/lixiang.jpg"  width="1800" height="90" alt="lixiang"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/kaipuyun.png"  width="1800" height="90" alt="kaipuyun"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/songda.png"  width="1800" height="90" alt="songda"/>
-     </tr>
-  </tbody>
-  <tbody>
-    <tr>
-      <td><img src="https://yu199195.github.io/images/soul/users/aoyou.jpg"  width="1800" height="90" alt="aoyou"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/cheyipai.jpg"  width="1800" height="90" alt="cheyipai"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/caomao.jpg"  width="1800" height="90" alt="caomao"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/zuyun.jpg"  width="1800" height="90" alt="zuyun"/>
-    </tr>
-  </tbody>
-  <tbody>
-    <tr>
-      <td><img src="https://yu199195.github.io/images/soul/users/hezhi.png"  width="1800" height="90" alt="hezhi"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/qidianyun.jpg"  width="1800" height="90" alt="qidianyun"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/wanwei.gif"  width="1800" height="90" alt="wanwei"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/wuyiyuntong.jpg"  width="1800" height="90" alt="wuyiyuntong"/>
-    </tr>            
-  </tbody>
-  <tbody>
-    <tr>
-      <td><img src="https://yu199195.github.io/images/soul/users/haokangzaijia.jpg"  width="1800" height="90" alt="haokangzaijia"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/caissa.jpg"  width="1800" height="90" alt="caissa"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/deepBule.png"  width="1800" height="90" alt="deepBule"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/anka.png"  width="1800" height="90" alt="anka"/>
-    </tr>
-  </tbody>     
-  <tbody>
-    <tr>
-      <td><img src="https://dromara.org/img/users/jd_logo.png"  width="1800" height="90" alt="jd"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/minglamp.jpeg"  width="1800" height="90" alt="minglamp"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/webuy.jpg"  width="1800" height="90" alt="webuy"/>
-      <td><img src="https://dromara.org/img/users/cass.png"  width="1800" height="90" alt="cass"/>
-    </tr>
-  </tbody> 
-  <tbody>
-    <tr>
-      <td><img src="https://dromara.org/img/users/songguo.png"  width="1800" height="90" alt="songguo"/>
-      <td><img src="https://dromara.org/img/users/lianlian.png"  width="1800" height="90" alt="lianlian"/>
-      <td><img src="https://dromara.org/img/users/dasouche.png"  width="1800" height="90" alt="dasouche"/>
-      <td><img src="https://dromara.org/img/users/weimai.png"  width="1800" height="90" alt="weimai"/>
-    </tr>
-  </tbody> 
-</table>
+All Users : [Known Users](https://shenyu.apache.org/awesome/)
