@@ -18,9 +18,16 @@
 package org.apache.shenyu.plugin.oauth2;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.shenyu.common.dto.RuleData;
+import org.apache.shenyu.common.dto.SelectorData;
 import org.apache.shenyu.common.enums.PluginEnum;
-import org.apache.shenyu.plugin.api.ShenyuPlugin;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -28,11 +35,25 @@ import reactor.core.publisher.Mono;
  * The OAuth2Plugin.
  */
 @Slf4j
-public class OAuth2Plugin implements ShenyuPlugin {
+public class OAuth2Plugin extends AbstractShenyuPlugin {
+
+    private static final String BEARER = "Bearer ";
+
+    private final ReactiveOAuth2AuthorizedClientService authorizedClientService;
+
+    public OAuth2Plugin(final ReactiveOAuth2AuthorizedClientService authorizedClientService) {
+        this.authorizedClientService = authorizedClientService;
+    }
 
     @Override
-    public Mono<Void> execute(final ServerWebExchange exchange, final ShenyuPluginChain chain) {
-        return chain.execute(exchange);
+    protected Mono<Void> doExecute(final ServerWebExchange exchange, final ShenyuPluginChain chain, final SelectorData selector, final RuleData rule) {
+        return exchange.getPrincipal()
+            .filter(t -> t instanceof OAuth2AuthenticationToken)
+            .cast(OAuth2AuthenticationToken.class)
+            .flatMap(token ->
+                authorizedClientService.<OAuth2AuthorizedClient>loadAuthorizedClient(token.getAuthorizedClientRegistrationId(), token.getName())
+            )
+            .flatMap(client -> chain.execute(this.handleToken(exchange, client)));
     }
 
     @Override
@@ -43,6 +64,12 @@ public class OAuth2Plugin implements ShenyuPlugin {
     @Override
     public String named() {
         return PluginEnum.OAUTH2.getName();
+    }
+
+    private ServerWebExchange handleToken(final ServerWebExchange exchange, final OAuth2AuthorizedClient client) {
+        ServerHttpRequest.Builder mutate = exchange.getRequest().mutate();
+        mutate.header(HttpHeaders.AUTHORIZATION, BEARER + client.getAccessToken().getTokenValue());
+        return exchange.mutate().request(mutate.build()).build();
     }
 }
 

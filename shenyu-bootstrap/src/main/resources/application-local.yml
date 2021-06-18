@@ -25,16 +25,16 @@ spring:
 #  security:
 #    oauth2:
 #      client:
+#        registration:
+#          <your client-registration-id>:
+#            client-id: <your client-id>
+#            client-secret: <your client-secret>
 #        provider:
 #          <your client-registration-id>:
 #            authorization-uri: <your authorization-uri>
 #            token-uri: <your access-token-uri>
 #            user-info-uri: <your user-info-uri>
 #            jwk-set-uri: <your jwk-set-uri>
-#        registration:
-#          <your client-registration-id>:
-#            client-id: <your client-id>
-#            client-secret: <your client-secret>
 #  cloud:
 #    nacos:
 #      discovery:

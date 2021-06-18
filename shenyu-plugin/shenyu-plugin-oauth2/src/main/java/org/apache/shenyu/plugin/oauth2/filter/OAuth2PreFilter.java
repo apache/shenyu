@@ -31,6 +31,7 @@ import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -89,6 +90,9 @@ public class OAuth2PreFilter implements WebFilter {
     private void buildPathMatchers() {
         refreshPathMatchers();
         List<SelectorData> oauth2Selectors = BaseDataCache.getInstance().obtainSelectorData(PluginEnum.OAUTH2.getName());
+        if (Objects.isNull(oauth2Selectors)) {
+            return;
+        }
         oauth2Selectors
             .parallelStream()
             .filter(SelectorData::getEnabled)

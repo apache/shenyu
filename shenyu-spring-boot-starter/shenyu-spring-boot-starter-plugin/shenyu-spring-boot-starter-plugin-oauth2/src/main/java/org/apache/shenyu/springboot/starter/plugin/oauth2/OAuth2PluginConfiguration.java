@@ -18,9 +18,8 @@
 
 package org.apache.shenyu.springboot.starter.plugin.oauth2;
 
-import org.apache.shenyu.plugin.api.ShenyuPlugin;
+import org.apache.shenyu.plugin.base.AbstractShenyuPlugin;
 import org.apache.shenyu.plugin.oauth2.OAuth2Plugin;
-import org.apache.shenyu.plugin.oauth2.filter.OAuth2Filter;
 import org.apache.shenyu.plugin.oauth2.filter.OAuth2PreFilter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -71,12 +70,12 @@ public class OAuth2PluginConfiguration {
 
     /**
      * oauth2 plugin shenyu plugin.
-     *
+     * @param authorizedClientService the ReactiveOAuth2AuthorizedClientService
      * @return the shenyu plugin
      */
     @Bean
-    public ShenyuPlugin oAuth2Plugin() {
-        return new OAuth2Plugin();
+    public AbstractShenyuPlugin oAuth2Plugin(final ReactiveOAuth2AuthorizedClientService authorizedClientService) {
+        return new OAuth2Plugin(authorizedClientService);
     }
 
     @Bean
@@ -102,7 +101,6 @@ public class OAuth2PluginConfiguration {
      */
     @Bean
     public SecurityWebFilterChain getSecurityWebFilterChain(final ServerHttpSecurity http,
-                                                            final ReactiveOAuth2AuthorizedClientService authorizedClientService,
                                                             final ApplicationContext context) {
         String[] names = context.getBeanNamesForType(ReactiveClientRegistrationRepository.class);
         boolean exists = Arrays.asList(names).contains(DEFAULT_CLIENT_REGISTRATION_BEAN);
@@ -127,7 +125,6 @@ public class OAuth2PluginConfiguration {
             .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
             .oauth2Client()
             .and()
-            .addFilterAt(new OAuth2Filter(authorizedClientService), SecurityWebFiltersOrder.LAST)
             .addFilterAfter(new OAuth2PreFilter(MATCHERS), SecurityWebFiltersOrder.REACTOR_CONTEXT)
             .authorizeExchange(exchanges ->
                 exchanges
