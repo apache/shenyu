@@ -17,9 +17,11 @@
 
 package org.apache.shenyu.plugin.param.mapping.strategy;
 
+import com.jayway.jsonpath.DocumentContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.common.dto.convert.rule.impl.ParamMappingHandle;
 import org.apache.shenyu.common.exception.ShenyuException;
+import org.apache.shenyu.common.utils.CollectionUtils;
 import org.apache.shenyu.common.utils.GsonUtils;
 import org.apache.shenyu.plugin.api.ShenyuPluginChain;
 import org.apache.shenyu.plugin.base.support.BodyInserterContext;
@@ -42,6 +44,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -70,7 +73,7 @@ public class ApplicationFormOperator implements Operator {
                     HttpHeaders httpHeaders = new HttpHeaders();
                     Charset charset = headers.getContentType().getCharset();
                     charset = charset == null ? StandardCharsets.UTF_8 : charset;
-                    LinkedMultiValueMap<String, String> modifyMap = GsonUtils.getInstance().fromJson(modify, LinkedMultiValueMap.class);
+                    LinkedMultiValueMap<String, String> modifyMap = GsonUtils.getInstance().toLinkedMultiValueMap(modify);
                     List<String> list = new ArrayList<>();
                     for (Map.Entry<String, List<String>> entry : modifyMap.entrySet()) {
                         for (String value : entry.getValue()) {
@@ -84,11 +87,11 @@ public class ApplicationFormOperator implements Operator {
                     String content = list.stream().collect(Collectors.joining("&"));
                     byte[] bodyBytes = content.getBytes(charset);
                     int contentLength = bodyBytes.length;
-                    final BodyInserter bodyInserter = BodyInserters.fromFormData(modifyMap);
+                    final BodyInserter bodyInserter = BodyInserters.fromValue(modifyMap);
                     httpHeaders.putAll(exchange.getRequest().getHeaders());
                     httpHeaders.remove(HttpHeaders.CONTENT_LENGTH);
                     httpHeaders.setContentLength(contentLength);
-                    CachedBodyOutputMessage cachedBodyOutputMessage = new CachedBodyOutputMessage(exchange, headers);
+                    CachedBodyOutputMessage cachedBodyOutputMessage = new CachedBodyOutputMessage(exchange, httpHeaders);
                     return bodyInserter.insert(cachedBodyOutputMessage, new BodyInserterContext())
                             .then(Mono.defer(() -> {
                                 ServerHttpRequestDecorator decorator = new ServerHttpRequestDecorator(exchange.getRequest()) {
@@ -109,5 +112,14 @@ public class ApplicationFormOperator implements Operator {
                                 return shenyuPluginChain.execute(exchange.mutate().request(decorator).build());
                             })).onErrorResume((Function<Throwable, Mono<Void>>) throwable -> release(cachedBodyOutputMessage, throwable));
                 });
+    }
+
+    @Override
+    public void operation(final DocumentContext context, final ParamMappingHandle paramMappingHandle) {
+        if (!CollectionUtils.isEmpty(paramMappingHandle.getAddParameterKeys())) {
+            paramMappingHandle.getAddParameterKeys().forEach(info -> {
+                context.put(info.getPath(), info.getKey(), Arrays.asList(info.getValue()));
+            });
+        }
     }
 }

@@ -51,7 +51,7 @@ public interface Operator {
      * @param throwable     throwable
      * @return mono
      */
-    default Mono<Void> release(CachedBodyOutputMessage outputMessage, Throwable throwable) {
+    default Mono<Void> release(final CachedBodyOutputMessage outputMessage, final Throwable throwable) {
         if (outputMessage.getCache()) {
             return outputMessage.getBody().map(DataBufferUtils::release).then(Mono.error(throwable));
         }
@@ -65,23 +65,33 @@ public interface Operator {
      * @param paramMappingHandle handle
      * @return string
      */
-    default String operation(String jsonValue, ParamMappingHandle paramMappingHandle) {
+    default String operation(final String jsonValue, final ParamMappingHandle paramMappingHandle) {
         DocumentContext context = JsonPath.parse(jsonValue);
-        if (CollectionUtils.isEmpty(paramMappingHandle.getAddParameterKeys())) {
-            paramMappingHandle.getAddParameterKeys().forEach(info -> {
-                context.put(info.getPath(), info.getKey(), info.getValue());
-            });
-        }
-        if (CollectionUtils.isEmpty(paramMappingHandle.getReplaceParameterKeys())) {
+        operation(context, paramMappingHandle);
+        if (!CollectionUtils.isEmpty(paramMappingHandle.getReplaceParameterKeys())) {
             paramMappingHandle.getReplaceParameterKeys().forEach(info -> {
                 context.renameKey(info.getPath(), info.getKey(), info.getValue());
             });
         }
-        if (CollectionUtils.isEmpty(paramMappingHandle.getRemoveParameterKeys())) {
+        if (!CollectionUtils.isEmpty(paramMappingHandle.getRemoveParameterKeys())) {
             paramMappingHandle.getRemoveParameterKeys().forEach(info -> {
                 context.delete(info);
             });
         }
         return context.jsonString();
+    }
+
+    /**
+     * Operation.
+     *
+     * @param context            context
+     * @param paramMappingHandle handle
+     */
+    default void operation(final DocumentContext context, final ParamMappingHandle paramMappingHandle) {
+        if (!CollectionUtils.isEmpty(paramMappingHandle.getAddParameterKeys())) {
+            paramMappingHandle.getAddParameterKeys().forEach(info -> {
+                context.put(info.getPath(), info.getKey(), info.getValue());
+            });
+        }
     }
 }
