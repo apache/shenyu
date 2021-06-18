@@ -1,50 +1,47 @@
 <p align="center" >
-    <a href="https://dromara.org"><img src="https://dromara.org/img/logo/ShenYu.png" width="45%"></a>
+    <a href="https://shenyu.apache.org/"><img src="https://dromara.org/img/logo/ShenYu.png" width="45%"></a>
 </p>
 <p align="center">
   <strong>Scalable, High Performance, Responsive API Gateway Solution for all MicroServices</strong>
 </p>
 <p align="center">
-  <a href="https://dromara.org">https://dromara.org/</a>
+  <a href="https://shenyu.apache.org/">https://shenyu.apache.org/</a>
 </p>
 
 <p align="center">
-  English | <a href="https://github.com/dromara/shenyu/blob/master/README_CN.md">简体中文</a>
+  English | <a href="https://github.com/apache/shenyu/blob/master/README_CN.md">简体中文</a>
 </p>
 
 <p align="center">
-    <a target="_blank" href="https://search.maven.org/search?q=g:org.dromara%20AND%20a:soul">
-        <img src="https://img.shields.io/maven-central/v/org.dromara/soul.svg?label=maven%20central" />
+    <a target="_blank" href="https://search.maven.org/search?q=g:org.apache%20AND%20a:shenyu">
+        <img src="https://img.shields.io/maven-central/v/org.apache/shenyu.svg?label=maven%20central" />
     </a>
-    <a target="_blank" href="https://github.com/Dromara/soul/blob/master/LICENSE">
+    <a target="_blank" href="https://github.com/apache/shenyu/blob/master/LICENSE">
         <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg?label=license" />
     </a>
     <a target="_blank" href="https://www.oracle.com/technetwork/java/javase/downloads/index.html">
         <img src="https://img.shields.io/badge/JDK-8+-green.svg" />
     </a>
-    <a target="_blank" href="https://github.com/dromara/soul/actions">
-        <img src="https://github.com/dromara/soul/workflows/ci/badge.svg" />
+    <a target="_blank" href="https://github.com/apache/shenyu/actions">
+        <img src="https://github.com/apache/shenyu/workflows/ci/badge.svg" />
     </a>
-    <a href="https://www.codacy.com/app/yu199195/soul?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Dromara/soul&amp;utm_campaign=Badge_Grade">
+    <a href="https://www.codacy.com/app/yu199195/soul?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=apache/shenyu&amp;utm_campaign=Badge_Grade">
         <img src="https://api.codacy.com/project/badge/Grade/4367ffad5b434b7e8078b3a68cc6398d"/>
     </a>
-    <a target="_blank" href='https://gitee.com/dromara/soul/stargazers'>
-        <img src='https://gitee.com/dromara/soul/badge/star.svg?theme=gvp' alt='gitee stars'/>
+   <a target="_blank" href='https://github.com/apache/shenyu'>
+        <img src="https://img.shields.io/github/forks/apache/shenyu.svg" alt="github forks"/>
    </a>
-   <a target="_blank" href='https://github.com/dromara/soul'>
-        <img src="https://img.shields.io/github/forks/dromara/soul.svg" alt="github forks"/>
+   <a target="_blank" href='https://github.com/apache/shenyu'>
+        <img src="https://img.shields.io/github/stars/apache/shenyu.svg" alt="github stars"/>
    </a>
-   <a target="_blank" href='https://github.com/dromara/soul'>
-        <img src="https://img.shields.io/github/stars/dromara/soul.svg" alt="github stars"/>
-   </a>
-   <a target="_blank" href='https://github.com/dromara/soul'>
-        <img src="https://img.shields.io/github/contributors/dromara/soul.svg" alt="github contributors"/>
+   <a target="_blank" href='https://github.com/apache/shenyu'>
+        <img src="https://img.shields.io/github/contributors/apache/shenyu.svg" alt="github contributors"/>
    </a>     
-   <a href="https://github.com/Dromara/soul">
-        <img src="https://tokei.rs/b1/github/Dromara/soul?category=lines"/>
+   <a href="https://github.com/apache/shenyu">
+        <img src="https://tokei.rs/b1/github/apache/shenyu?category=lines"/>
    </a>
-   <a target="_blank" href="https://codecov.io/gh/dromara/soul">
-        <img src="https://codecov.io/gh/dromara/shenyu/branch/master/graph/badge.svg" />
+   <a target="_blank" href="https://codecov.io/gh/apache/shenyu">
+        <img src="https://codecov.io/gh/apache/shenyu/branch/master/graph/badge.svg" />
    </a>
 </p>
 <br/>
@@ -59,7 +56,7 @@
   
 # Mind maps
  
- ![](https://dromara.org/img/soul/activite/soul-xmind.png)
+ ![](https://shenyu.apache.org/img/shenyu/activite/shenyu-xmind.png)
  
 --------------------------------------------------------------------------------  
   
@@ -121,7 +118,7 @@
  
  Of course, users can also customize plugins to meet their own needs.
  
- If you want to customize, see [custom-plugin](https://dromara.org/projects/soul/custom-plugin/)
+ If you want to customize, see [custom-plugin](https://shenyu.apache.org/projects/shenyu/custom-plugin/)
  
 --------------------------------------------------------------------------------  
  
@@ -165,20 +162,20 @@
     
 # Document & Website
 
-[![EN doc](https://img.shields.io/badge/document-English-blue.svg)](https://dromara.org/projects/soul/overview)
-[![CN doc](https://img.shields.io/badge/document-Chinese-blue.svg)](https://dromara.org/zh/projects/soul/overview)
+[![EN doc](https://img.shields.io/badge/document-English-blue.svg)](https://shenyu.apache.org/projects/shenyu/overview)
+[![CN doc](https://img.shields.io/badge/document-Chinese-blue.svg)](https://shenyu.apache.org/zh/projects/shenyu/overview)
   
 --------------------------------------------------------------------------------  
         
 # Stargazers over time
 
-[![Stargazers over time](https://starchart.cc/dromara/soul.svg)](https://starchart.cc/dromara/soul)
+[![Stargazers over time](https://starchart.cc/dromara/soul.svg)](https://starchart.cc/dromara/soul.svg)
 
 --------------------------------------------------------------------------------  
 
 # Known Users
 
-In order of registration, More access companies are welcome to register at [https://github.com/dromara/soul/issues/68](https://github.com/dromara/soul/issues/68) (For open source users only)
+In order of registration, More access companies are welcome to register at [https://github.com/apache/shenyu/issues/68](https://github.com/apache/shenyu/issues/68) (For open source users only)
 
 <table>
   <tbody>
