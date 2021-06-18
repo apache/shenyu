@@ -1,51 +1,39 @@
 <p align="center" >
-    <a href="https://dromara.org"><img src="https://dromara.org/img/logo/ShenYu.png" width="45%"></a>
+    <a href="https://dromara.org"><img src="https://shenyu.apache.org/img/logo/shenyu.png" width="45%"></a>
 </p>
 <p align="center">
   <strong>应用于所有微服务场景的，可扩展、高性能、响应式的 API 网关解决方案</strong>
 </p>
 <p align="center">
-  <a href="https://dromara.org">https://dromara.org/</a>
+  <a href="https://shenyu.apache.org/">https://shenyu.apache.org/</a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/dromara/shenyu/blob/master/README.md">English</a> | 简体中文
+  <a href="https://github.com/apache/shenyu/blob/master/README.md">English</a> | 简体中文
 </p>
 
 <p align="center">
-    <a target="_blank" href="https://search.maven.org/search?q=g:org.dromara%20AND%20a:soul">
-        <img src="https://img.shields.io/maven-central/v/org.dromara/soul.svg?label=maven%20central" />
+    <a target="_blank" href="https://search.maven.org/search?q=g:org.apache%20AND%20a:shenyu">
+        <img src="https://img.shields.io/maven-central/v/org.apache/shenyu.svg?label=maven%20central" />
     </a>
-    <a target="_blank" href="https://github.com/Dromara/soul/blob/master/LICENSE">
+    <a target="_blank" href="https://github.com/apache/shenyu/blob/master/LICENSE">
         <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg?label=license" />
     </a>
     <a target="_blank" href="https://www.oracle.com/technetwork/java/javase/downloads/index.html">
         <img src="https://img.shields.io/badge/JDK-8+-green.svg" />
     </a>
-    <a target="_blank" href="https://github.com/dromara/soul/actions">
-        <img src="https://github.com/dromara/soul/workflows/ci/badge.svg" />
+    <a target="_blank" href="https://github.com/apache/shenyu/actions">
+        <img src="https://github.com/apache/shenyu/workflows/ci/badge.svg" />
     </a>
-    <a href="https://www.codacy.com/app/yu199195/soul?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Dromara/soul&amp;utm_campaign=Badge_Grade">
-        <img src="https://api.codacy.com/project/badge/Grade/4367ffad5b434b7e8078b3a68cc6398d"/>
-    </a>
-    <a target="_blank" href='https://gitee.com/dromara/soul/stargazers'>
-        <img src='https://gitee.com/dromara/soul/badge/star.svg?theme=gvp' alt='gitee stars'/>
+   <a target="_blank" href='https://github.com/apache/shenyu'>
+        <img src="https://img.shields.io/github/forks/apache/shenyu.svg" alt="github forks"/>
    </a>
-   <a target="_blank" href='https://github.com/dromara/soul'>
-        <img src="https://img.shields.io/github/forks/dromara/soul.svg" alt="github forks"/>
+   <a target="_blank" href='https://github.com/apache/shenyu'>
+        <img src="https://img.shields.io/github/stars/apache/shenyu.svg" alt="github stars"/>
    </a>
-   <a target="_blank" href='https://github.com/dromara/soul'>
-        <img src="https://img.shields.io/github/stars/dromara/soul.svg" alt="github stars"/>
-   </a>
-   <a target="_blank" href='https://github.com/dromara/soul'>
-        <img src="https://img.shields.io/github/contributors/dromara/soul.svg" alt="github contributors"/>
+   <a target="_blank" href='https://github.com/apache/shenyu'>
+        <img src="https://img.shields.io/github/contributors/apache/shenyu.svg" alt="github contributors"/>
    </a>     
-   <a href="https://github.com/Dromara/soul">
-        <img src="https://tokei.rs/b1/github/Dromara/soul?category=lines"/>
-   </a>
-   <a target="_blank" href="https://codecov.io/gh/dromara/soul">
-        <img src="https://codecov.io/gh/dromara/soul/branch/master/graph/badge.svg" />
-   </a>
 </p>
 <br/>
 
@@ -53,13 +41,13 @@
 
 # 架构
 
- ![](https://yu199195.github.io/images/soul/soul-framework.png)  
+ ![](https://shenyu.apache.org/img/architecture/shenyu-framework.png)  
 
 --------------------------------------------------------------------------------
 
 # 结构图
 
-![](https://dromara.org/img/soul/activite/soul-xmind.png)
+![](https://shenyu.apache.org/img/shenyu/activite/shenyu-xmind.png)
 
 --------------------------------------------------------------------------------
 
@@ -116,7 +104,7 @@
 
 当然，用户也可以定制化插件去满足他们自己的需求。
 
-如果你有定制化插件的需求，请参看这里：[custom-plugin](https://dromara.org/zh/projects/soul/custom-plugin/)
+如果你有定制化插件的需求，请参看这里：[custom-plugin](https://shenyu.apache.org/zh/projects/shenyu/custom-plugin/)
 
 --------------------------------------------------------------------------------
 
@@ -160,100 +148,19 @@ ShenYu 已经被很多公司广泛使用在越来越多的业务系统，它能�
 
 # 文档 & 网站
 
-[![EN doc](https://img.shields.io/badge/document-English-blue.svg)](https://dromara.org/projects/soul/overview)
-[![CN doc](https://img.shields.io/badge/document-Chinese-blue.svg)](https://dromara.org/zh/projects/soul/overview)
+[![EN doc](https://img.shields.io/badge/document-English-blue.svg)](https://shenyu.apache.org/projects/shenyu/overview)
+[![CN doc](https://img.shields.io/badge/document-Chinese-blue.svg)](https://shenyu.apache.org/zh/projects/shenyu/overview)
 
 --------------------------------------------------------------------------------
 
 # Github stars趋势
 
-[![Stargazers over time](https://starchart.cc/Dromara/soul.svg)](https://starchart.cc/Dromara/soul)
-
---------------------------------------------------------------------------------
-
-# Gitee stars趋势
-
-[![Giteye chart](https://chart.giteye.net/gitee/dromara/soul/UZUPQEPC.png)](https://giteye.net/chart/UZUPQEPC)
+[![Stargazers over time](https://starchart.cc/apache/incubator-shenyu.svg)](https://starchart.cc/apache/incubator-shenyu.svg)
 
 --------------------------------------------------------------------------------
 
 # 目前已知用户
 
-为了便于登记，欢迎已经使用了 ShenYu 的公司在 [https://github.com/Dromara/soul/issues/68](https://github.com/Dromara/soul/issues/68) 注册。（仅适用于开源用户）
+为了便于登记，欢迎已经使用了 ShenYu 的公司在 [https://github.com/apache/shenyu/issues/68](https://github.com/apache/shenyu/issues/68) 注册。（仅适用于开源用户）
 
-<table>
-  <tbody>
-    <tr>
-      <td><img src="https://yu199195.github.io/images/soul/users/joyy.png"  width="1800" height="90" alt="yy"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/mihoyo.jpg"  width="1800" height="90" alt="mihoyo"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/keking.png"  width="1800" height="90" alt="kk group"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/shansong.jpg"  width="1800" height="90" alt="shansong"/>
-    </tr>
-  </tbody>
-  <tbody>
-    <tr>
-      <td><img src="https://yu199195.github.io/images/soul/users/sibu.jpg"  width="1800" height="90" alt="sibu group"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/guojiadianwang.jpg"  width="1800" height="90" alt="guojiadianwang"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/caibeike.png"  width="1800" height="90" alt="caibeike"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/jiangsuyonggang.jpg"  width="1800" height="90" alt="jiangsuyonggang"/>
-    </tr>
-  </tbody>
-  <tbody>
-    <tr>
-      <td><img src="https://yu199195.github.io/images/soul/users/fangfutong.png"  width="1800" height="90" alt="fangfutong"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/lixiang.jpg"  width="1800" height="90" alt="lixiang"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/kaipuyun.png"  width="1800" height="90" alt="kaipuyun"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/songda.png"  width="1800" height="90" alt="songda"/>
-     </tr>
-  </tbody>
-  <tbody>
-    <tr>
-      <td><img src="https://yu199195.github.io/images/soul/users/aoyou.jpg"  width="1800" height="90" alt="aoyou"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/cheyipai.jpg"  width="1800" height="90" alt="cheyipai"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/caomao.jpg"  width="1800" height="90" alt="caomao"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/zuyun.jpg"  width="1800" height="90" alt="zuyun"/>
-    </tr>
-  </tbody>
-  <tbody>
-    <tr>
-      <td><img src="https://yu199195.github.io/images/soul/users/hezhi.png"  width="1800" height="90" alt="hezhi"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/qidianyun.jpg"  width="1800" height="90" alt="qidianyun"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/wanwei.gif"  width="1800" height="90" alt="wanwei"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/wuyiyuntong.jpg"  width="1800" height="90" alt="wuyiyuntong"/>
-    </tr>            
-  </tbody>
-  <tbody>
-    <tr>
-      <td><img src="https://yu199195.github.io/images/soul/users/haokangzaijia.jpg"  width="1800" height="90" alt="haokangzaijia"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/caissa.jpg"  width="1800" height="90" alt="caissa"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/deepBule.png"  width="1800" height="90" alt="deepBule"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/anka.png"  width="1800" height="90" alt="anka"/>
-    </tr>
-  </tbody>     
-  <tbody>
-    <tr>
-      <td><img src="https://dromara.org/img/users/jd_logo.png"  width="1800" height="90" alt="jd"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/minglamp.jpeg"  width="1800" height="90" alt="minglamp"/>
-      <td><img src="https://yu199195.github.io/images/soul/users/webuy.jpg"  width="1800" height="90" alt="webuy"/>
-      <td><img src="https://dromara.org/img/users/cass.png"  width="1800" height="90" alt="cass"/>
-    </tr>
-  </tbody>
-  <tbody>
-    <tr>
-      <td><img src="https://dromara.org/img/users/songguo.png"  width="1800" height="90" alt="songguo"/>
-      <td><img src="https://dromara.org/img/users/lianlian.png"  width="1800" height="90" alt="lianlian"/>
-      <td><img src="https://dromara.org/img/users/dasouche.png"  width="1800" height="90" alt="dasouche"/>
-      <td><img src="https://dromara.org/img/users/weimai.png"  width="1800" height="90" alt="weimai"/>
-    </tr>
-  </tbody>
-</table>
-
-#贡献者列表
-
-`ShenYu` 遵循 `Apache-2.0` 开源协议，欢迎大家提交 `PR` 或 `Issue`。
-
-如果要为项目做出贡献，请查看 [贡献指南](https://dromara.org/zh/projects/soul/contributor/e)。
-
-感谢每一位为 `ShenYu` 贡献代码的朋友。
-
-[![Giteye chart](https://chart.giteye.net/gitee/dromara/soul/2ZKY3P9W.png)](https://giteye.net/chart/2ZKY3P9W)
+所有用户 : [Known Users](https://shenyu.apache.org/awesome/)

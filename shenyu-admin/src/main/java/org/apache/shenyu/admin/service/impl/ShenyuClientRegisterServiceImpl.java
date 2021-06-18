@@ -119,7 +119,7 @@ public class ShenyuClientRegisterServiceImpl implements ShenyuClientRegisterServ
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public synchronized String registerSpringMvc(final MetaDataRegisterDTO dto) {
         if (dto.isRegisterMetaData()) {
             MetaDataDO exist = metaDataMapper.findByPath(dto.getPath());
@@ -138,7 +138,7 @@ public class ShenyuClientRegisterServiceImpl implements ShenyuClientRegisterServ
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public synchronized String registerSpringCloud(final MetaDataRegisterDTO dto) {
         MetaDataDO metaDataDO = metaDataMapper.findByPath(dto.getContextPath() + "/**");
         if (Objects.isNull(metaDataDO)) {
@@ -167,7 +167,7 @@ public class ShenyuClientRegisterServiceImpl implements ShenyuClientRegisterServ
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public synchronized String registerDubbo(final MetaDataRegisterDTO dto) {
         MetaDataDO exist = metaDataMapper.findByPath(dto.getPath());
         saveOrUpdateMetaData(exist, dto);

@@ -40,7 +40,7 @@
         <dependency>
             <groupId>io.lettuce</groupId>
             <artifactId>lettuce-core</artifactId>
-            <version>${lettuce.version}</version>
+            <version>6.1.2.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>

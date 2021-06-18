@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.admin.listener.http;
 
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -44,6 +45,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -295,6 +297,17 @@ public class HttpLongPollingDataChangedListener extends AbstractDataChangedListe
 
         @Override
         public void run() {
+            if (clients.size() > httpSyncProperties.getNotifyBatchSize()) {
+                List<LongPollingClient> targetClients = new ArrayList<>(clients.size());
+                clients.drainTo(targetClients);
+                List<List<LongPollingClient>> partitionClients = Lists.partition(targetClients, httpSyncProperties.getNotifyBatchSize());
+                partitionClients.forEach(item -> scheduler.execute(() -> doRun(item)));
+            } else {
+                doRun(clients);
+            }
+        }
+
+        private void doRun(final Collection<LongPollingClient> clients) {
             for (Iterator<LongPollingClient> iter = clients.iterator(); iter.hasNext();) {
                 LongPollingClient client = iter.next();
                 iter.remove();
