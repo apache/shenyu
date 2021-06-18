@@ -41,7 +41,7 @@
 
 # Architecture
  
- ![](https://shenyu.apache.org/img/shenyu/architecture/shenyu-framework.png)  
+ ![](https://shenyu.apache.org/img/architecture/shenyu-framework.png)  
  
 -------------------------------------------------------------------------------- 
   
