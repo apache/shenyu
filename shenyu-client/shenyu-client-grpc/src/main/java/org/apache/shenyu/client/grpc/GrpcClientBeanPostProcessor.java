@@ -18,7 +18,9 @@
 package org.apache.shenyu.client.grpc;
 
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.grpc.BindableService;
+import io.grpc.MethodDescriptor;
 import io.grpc.ServerServiceDefinition;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -44,9 +46,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -88,7 +88,7 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
         this.contextPath = contextPath;
         this.host = props.getProperty("host");
         this.port = Integer.parseInt(port);
-        executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        executorService = Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().setNameFormat("shenyu-grpc-client-thread-pool-%d").build());
         publisher.start(shenyuClientRegisterRepository);
     }
 
@@ -145,6 +145,8 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
         Class<?>[] parameterTypesClazz = method.getParameterTypes();
         String parameterTypes = Arrays.stream(parameterTypesClazz).map(Class::getName)
                 .collect(Collectors.joining(","));
+        MethodDescriptor.MethodType methodType = JsonServerServiceInterceptor.getMethodTypeMap().get(packageName + "/" + methodName);
+
         return MetaDataRegisterDTO.builder()
                 .appName(ipAndPort)
                 .serviceName(packageName)
@@ -157,13 +159,17 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
                 .pathDesc(desc)
                 .parameterTypes(parameterTypes)
                 .rpcType("grpc")
-                .rpcExt(buildRpcExt(shenyuGrpcClient))
+                .rpcExt(buildRpcExt(shenyuGrpcClient, methodType))
                 .enabled(shenyuGrpcClient.enabled())
                 .build();
     }
 
-    private String buildRpcExt(final ShenyuGrpcClient shenyuGrpcClient) {
-        GrpcExt build = GrpcExt.builder().timeout(shenyuGrpcClient.timeout()).build();
+    private String buildRpcExt(final ShenyuGrpcClient shenyuGrpcClient,
+                               final MethodDescriptor.MethodType methodType) {
+        GrpcExt build = GrpcExt.builder()
+                .timeout(shenyuGrpcClient.timeout())
+                .methodType(methodType)
+                .build();
         return GsonUtils.getInstance().toJson(build);
     }
 

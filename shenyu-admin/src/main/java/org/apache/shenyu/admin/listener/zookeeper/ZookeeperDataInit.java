@@ -19,7 +19,7 @@ package org.apache.shenyu.admin.listener.zookeeper;
 
 import org.I0Itec.zkclient.ZkClient;
 import org.apache.shenyu.admin.service.SyncDataService;
-import org.apache.shenyu.common.constant.ZkPathConstants;
+import org.apache.shenyu.common.constant.DefaultPathConstants;
 import org.apache.shenyu.common.enums.DataEventTypeEnum;
 import org.springframework.boot.CommandLineRunner;
 
@@ -45,9 +45,9 @@ public class ZookeeperDataInit implements CommandLineRunner {
 
     @Override
     public void run(final String... args) {
-        String pluginPath = ZkPathConstants.PLUGIN_PARENT;
-        String authPath = ZkPathConstants.APP_AUTH_PARENT;
-        String metaDataPath = ZkPathConstants.META_DATA;
+        String pluginPath = DefaultPathConstants.PLUGIN_PARENT;
+        String authPath = DefaultPathConstants.APP_AUTH_PARENT;
+        String metaDataPath = DefaultPathConstants.META_DATA;
         if (!zkClient.exists(pluginPath) && !zkClient.exists(authPath) && !zkClient.exists(metaDataPath)) {
             syncDataService.syncAll(DataEventTypeEnum.REFRESH);
         }

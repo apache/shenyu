@@ -18,6 +18,7 @@
 package org.apache.shenyu.plugin.grpc;
 
 import io.grpc.CallOptions;
+import io.grpc.MethodDescriptor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -79,9 +80,9 @@ public class GrpcPlugin extends AbstractShenyuPlugin {
         }
         GrpcExtInfo extInfo = GsonUtils.getGson().fromJson(metaData.getRpcExt(), GrpcExtInfo.class);
         CallOptions callOptions = CallOptions.DEFAULT.withDeadlineAfter(extInfo.timeout, TimeUnit.MILLISECONDS);
-        CompletableFuture<ShenyuGrpcResponse> result = client.call(metaData, callOptions, param);
+        CompletableFuture<ShenyuGrpcResponse> result = client.call(metaData, callOptions, param, extInfo.methodType);
         return Mono.fromFuture(result.thenApply(ret -> {
-            exchange.getAttributes().put(Constants.GRPC_RPC_RESULT, ret.getResult());
+            exchange.getAttributes().put(Constants.RPC_RESULT, ret.getResults());
             exchange.getAttributes().put(Constants.CLIENT_RESPONSE_RESULT_TYPE, ResultEnum.SUCCESS.getName());
             return ret;
         })).onErrorMap(ShenyuException::new).then(chain.execute(exchange));
@@ -126,5 +127,8 @@ public class GrpcPlugin extends AbstractShenyuPlugin {
     static class GrpcExtInfo {
 
         private Integer timeout = 5000;
+
+        private MethodDescriptor.MethodType methodType;
+
     }
 }

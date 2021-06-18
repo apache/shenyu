@@ -57,6 +57,7 @@ import java.net.URISyntaxException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -208,9 +209,8 @@ public class SpringCloudPluginTest {
         SpringCloudSelectorHandleCache.getInstance().cachedHandle(selectorData.getId(), springCloudSelectorHandle);
         SpringCloudRuleHandleCache.getInstance().cachedHandle(CacheKeyUtils.INST.getKey(rule), springCloudRuleHandle);
         when(shenyuContext.getRealUrl()).thenReturn("http://127.0.0.1");
-        when(shenyuContext.getHttpMethod()).thenReturn(HttpMethod.GET.name());
         exchange.getAttributes().put(Constants.CONTEXT, shenyuContext);
-        when(loadBalancerClient.choose(any()))
+        when(loadBalancerClient.choose(anyString()))
                 .thenReturn(new DefaultServiceInstance("instanceId", "service1", "127.0.0.1", 8080, true));
         when(loadBalancerClient.reconstructURI(any(), any())).thenReturn(new URI("https://localhost:8080/service1/"));
         Mono<Void> execute = springCloudPlugin.doExecute(exchange, chain, selectorData, rule);

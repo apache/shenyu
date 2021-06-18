@@ -154,7 +154,8 @@ public enum PluginEnum {
      * Response plugin enum.
      */
     RESPONSE(100, 0, "response");
-    
+
+
     private final int code;
 
     private final int role;

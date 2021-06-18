@@ -103,7 +103,7 @@ public class MetaDataServiceImpl implements MetaDataService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public int delete(final List<String> ids) {
         int count = 0;
         List<MetaData> metaDataList = Lists.newArrayList();

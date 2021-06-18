@@ -41,4 +41,9 @@ public class HttpSyncProperties {
      */
     private Duration refreshInterval = Duration.ofMinutes(5);
 
+    /**
+     * Notify client batch size.
+     */
+    private int notifyBatchSize = 100;
+
 }

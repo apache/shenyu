@@ -62,4 +62,6 @@ public class AppAuthDTO implements Serializable {
     private Boolean enabled;
 
     private List<AuthParamDTO> authParamDTOList;
+
+    private List<AuthPathDTO> authPathDTOList;
 }
