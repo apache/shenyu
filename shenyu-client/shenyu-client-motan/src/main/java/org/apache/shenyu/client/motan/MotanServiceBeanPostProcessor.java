@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.client.motan;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.weibo.api.motan.config.springsupport.BasicServiceConfigBean;
 import com.weibo.api.motan.config.springsupport.annotation.MotanService;
 import lombok.SneakyThrows;
@@ -84,7 +85,8 @@ public class MotanServiceBeanPostProcessor implements BeanPostProcessor, Applica
         this.appName = appName;
         this.host = props.getProperty("host");
         this.port = props.getProperty("port");
-        executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), new ThreadFactoryBuilder()
+                .setNameFormat("motan-client-thread-pool-%d").build());
         publisher.start(shenyuClientRegisterRepository);
     }
 

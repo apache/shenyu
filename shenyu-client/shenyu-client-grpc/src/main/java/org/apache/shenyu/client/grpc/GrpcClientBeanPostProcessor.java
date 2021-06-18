@@ -18,6 +18,7 @@
 package org.apache.shenyu.client.grpc;
 
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.grpc.BindableService;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerServiceDefinition;
@@ -89,7 +90,8 @@ public class GrpcClientBeanPostProcessor implements BeanPostProcessor {
         this.contextPath = contextPath;
         this.host = props.getProperty("host");
         this.port = Integer.parseInt(port);
-        executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), new ThreadFactoryBuilder()
+                .setNameFormat("grpc-client-thread-pool-%d").build());
         publisher.start(shenyuClientRegisterRepository);
     }
 

@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.client.springmvc.init;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
@@ -78,7 +79,8 @@ public class SpringMvcClientBeanPostProcessor implements BeanPostProcessor {
         this.port = port;
         this.contextPath = props.getProperty("contextPath");
         this.isFull = Boolean.parseBoolean(props.getProperty("isFull", "false"));
-        executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), new ThreadFactoryBuilder()
+                .setNameFormat("spring-mvc-client-thread-pool-%d").build());
         publisher.start(shenyuClientRegisterRepository);
     }
 

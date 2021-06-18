@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.client.springcloud.init;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
@@ -80,7 +81,8 @@ public class SpringCloudClientBeanPostProcessor implements BeanPostProcessor {
             log.error(errorMsg);
             throw new RuntimeException(errorMsg);
         }
-        executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), new ThreadFactoryBuilder()
+                .setNameFormat("spring-cloud-client-thread-pool-%d").build());
         this.env = env;
         Properties props = config.getProps();
         this.contextPath = props.getProperty("contextPath");

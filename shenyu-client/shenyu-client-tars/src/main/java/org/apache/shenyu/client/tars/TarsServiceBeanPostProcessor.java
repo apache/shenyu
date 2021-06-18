@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.client.tars;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -79,7 +80,8 @@ public class TarsServiceBeanPostProcessor implements BeanPostProcessor {
         this.ipAndPort = ip + ":" + port;
         this.host = props.getProperty("host");
         this.port = Integer.parseInt(port);
-        executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), new ThreadFactoryBuilder()
+                .setNameFormat("tars-client-thread-pool-%d").build());
         publisher.start(shenyuClientRegisterRepository);
     }
 

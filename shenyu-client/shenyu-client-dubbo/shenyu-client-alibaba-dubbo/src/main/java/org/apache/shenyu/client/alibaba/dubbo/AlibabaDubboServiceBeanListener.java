@@ -20,6 +20,7 @@ package org.apache.shenyu.client.alibaba.dubbo;
 import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.utils.StringUtils;
 import com.alibaba.dubbo.config.spring.ServiceBean;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shenyu.client.core.disruptor.ShenyuClientRegisterEventPublisher;
 import org.apache.shenyu.client.dubbo.common.annotation.ShenyuDubboClient;
@@ -78,7 +79,8 @@ public class AlibabaDubboServiceBeanListener implements ApplicationListener<Cont
         this.appName = appName;
         this.host = props.getProperty("host");
         this.port = props.getProperty("port");
-        executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), new ThreadFactoryBuilder()
+                .setNameFormat("alibaba-dubbo-client-thread-pool-%d").build());
         publisher.start(shenyuClientRegisterRepository);
     }
 

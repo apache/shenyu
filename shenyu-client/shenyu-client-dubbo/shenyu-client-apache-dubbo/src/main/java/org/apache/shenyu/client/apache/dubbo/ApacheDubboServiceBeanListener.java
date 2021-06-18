@@ -17,6 +17,7 @@
 
 package org.apache.shenyu.client.apache.dubbo;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.common.Constants;
@@ -78,7 +79,8 @@ public class ApacheDubboServiceBeanListener implements ApplicationListener<Conte
         this.appName = appName;
         this.host = props.getProperty("host");
         this.port = props.getProperty("port");
-        executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        executorService = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), new ThreadFactoryBuilder()
+                .setNameFormat("apache-dubbo-client-thread-pool-%d").build());
         shenyuClientRegisterEventPublisher.start(shenyuClientRegisterRepository);
     }
 
